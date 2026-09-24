@@ -1,0 +1,608 @@
+{
+  "scenario": "compare-two-defaults",
+  "shows": "Two areas compared with no search open, on a renter's defaults",
+  "captured": true,
+  "request": {
+    "operation_id": "compare",
+    "method": "POST",
+    "route": "/v1/compare",
+    "path": "/v1/compare",
+    "body": {
+      "area_ids": [
+        "syn-n0001",
+        "syn-n0018"
+      ],
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.8,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 1.0,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.2,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.3,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.2,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.3,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.3,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.5,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      }
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "8821",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-synthetic": "true",
+    "x-request-id": "2d72b254-3528-4bdd-84c7-fc299a4eb821"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.3.0",
+      "synthetic": true
+    },
+    "data": {
+      "areas": [
+        {
+          "area_id": "syn-n0001",
+          "name": "Alderwick",
+          "status": "ranked"
+        },
+        {
+          "area_id": "syn-n0018",
+          "name": "Pellam Cross",
+          "status": "ranked"
+        }
+      ],
+      "rows": [
+        {
+          "component": "feature:station_walk",
+          "label": "Walk to the nearest station",
+          "weight": 0.5,
+          "cells": [
+            {
+              "area_id": "syn-n0001",
+              "value": 33.0,
+              "percentile": 88.6,
+              "utility": 0.114,
+              "contribution": 0.0356,
+              "fact_id": "syn-n0001/feature/station_walk"
+            },
+            {
+              "area_id": "syn-n0018",
+              "value": 2.0,
+              "percentile": 11.4,
+              "utility": 0.886,
+              "contribution": 0.2461,
+              "fact_id": "syn-n0018/feature/station_walk"
+            }
+          ]
+        },
+        {
+          "component": "feature:highstreet_access",
+          "label": "Share of homes within a 10-minute walk of a high street or town centre",
+          "weight": 0.3,
+          "cells": [
+            {
+              "area_id": "syn-n0001",
+              "value": 42.1,
+              "percentile": 11.9,
+              "utility": 0.119,
+              "contribution": 0.0223,
+              "fact_id": "syn-n0001/feature/highstreet_access"
+            },
+            {
+              "area_id": "syn-n0018",
+              "value": 94.5,
+              "percentile": 97.6,
+              "utility": 0.976,
+              "contribution": 0.1627,
+              "fact_id": "syn-n0018/feature/highstreet_access"
+            }
+          ]
+        },
+        {
+          "component": "feature:park_proximity",
+          "label": "Walk to the nearest park of 2 ha or more",
+          "weight": 0.3,
+          "cells": [
+            {
+              "area_id": "syn-n0001",
+              "value": 290.0,
+              "percentile": 2.4,
+              "utility": 0.976,
+              "contribution": 0.183,
+              "fact_id": "syn-n0001/feature/park_proximity"
+            },
+            {
+              "area_id": "syn-n0018",
+              "value": 1300.0,
+              "percentile": 97.6,
+              "utility": 0.024,
+              "contribution": 0.004,
+              "fact_id": "syn-n0018/feature/park_proximity"
+            }
+          ]
+        },
+        {
+          "component": "feature:station_lines",
+          "label": "Lines within a 10-minute walk",
+          "weight": 0.3,
+          "cells": [
+            {
+              "area_id": "syn-n0001",
+              "value": 0.0,
+              "percentile": 15.9,
+              "utility": 0.159,
+              "contribution": 0.0298,
+              "fact_id": "syn-n0001/feature/station_lines"
+            },
+            {
+              "area_id": "syn-n0018",
+              "value": 4.0,
+              "percentile": 97.7,
+              "utility": 0.977,
+              "contribution": 0.1628,
+              "fact_id": "syn-n0018/feature/station_lines"
+            }
+          ]
+        },
+        {
+          "component": "feature:air_no2",
+          "label": "Modelled annual mean nitrogen dioxide",
+          "weight": 0.2,
+          "cells": [
+            {
+              "area_id": "syn-n0001",
+              "value": null,
+              "percentile": null,
+              "utility": null,
+              "contribution": null,
+              "fact_id": "syn-n0001/missing/feature:air_no2"
+            },
+            {
+              "area_id": "syn-n0018",
+              "value": 34.5,
+              "percentile": 97.5,
+              "utility": 0.025,
+              "contribution": 0.0028,
+              "fact_id": "syn-n0018/feature/air_no2"
+            }
+          ]
+        },
+        {
+          "component": "feature:noise_exposure",
+          "label": "Share of homes at 55 dB or more of transport noise",
+          "weight": 0.2,
+          "cells": [
+            {
+              "area_id": "syn-n0001",
+              "value": 9.1,
+              "percentile": 7.5,
+              "utility": 0.925,
+              "contribution": 0.1156,
+              "fact_id": "syn-n0001/feature/noise_exposure"
+            },
+            {
+              "area_id": "syn-n0018",
+              "value": 59.6,
+              "percentile": 97.5,
+              "utility": 0.025,
+              "contribution": 0.0028,
+              "fact_id": "syn-n0018/feature/noise_exposure"
+            }
+          ]
+        }
+      ],
+      "facts": [
+        {
+          "fact_id": "syn-n0001/feature/highstreet_access",
+          "area_id": "syn-n0001",
+          "kind": "feature",
+          "key": "highstreet_access",
+          "label": "Share of homes within a 10-minute walk of a high street or town centre",
+          "template": "feature",
+          "slots": {
+            "label": "Share of homes within a 10-minute walk of a high street or town centre",
+            "value": "42%",
+            "comparative": "less than",
+            "pct": "85",
+            "compared": "21",
+            "standing": "less than 85% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "42%",
+            "85%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0001/feature/noise_exposure",
+          "area_id": "syn-n0001",
+          "kind": "feature",
+          "key": "noise_exposure",
+          "label": "Share of homes at 55 dB or more of transport noise",
+          "template": "feature",
+          "slots": {
+            "label": "Share of homes at 55 dB or more of transport noise",
+            "value": "9%",
+            "comparative": "quieter than",
+            "pct": "90",
+            "compared": "20",
+            "standing": "quieter than 90% of the 20 areas compared in this release"
+          },
+          "numbers": [
+            "9%",
+            "90%",
+            "20"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0001/feature/park_proximity",
+          "area_id": "syn-n0001",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Walk to the nearest park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest park of 2 ha or more",
+            "value": "290 m",
+            "comparative": "closer than",
+            "pct": "95",
+            "compared": "21",
+            "standing": "closer than 95% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "290",
+            "95%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0001/feature/station_lines",
+          "area_id": "syn-n0001",
+          "kind": "feature",
+          "key": "station_lines",
+          "label": "Lines within a 10-minute walk",
+          "template": "feature",
+          "slots": {
+            "label": "Lines within a 10-minute walk",
+            "value": "0",
+            "comparative": "fewer than",
+            "pct": "68",
+            "compared": "22",
+            "level": "6",
+            "standing": "fewer than 68% of the 22 areas compared in this release, and the same as 6 others"
+          },
+          "numbers": [
+            "0",
+            "68%",
+            "22",
+            "6"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0001/feature/station_walk",
+          "area_id": "syn-n0001",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Walk to the nearest station",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest station",
+            "value": "33 min",
+            "comparative": "further than",
+            "pct": "86",
+            "compared": "22",
+            "standing": "further than 86% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "33",
+            "86%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0001/missing/feature:air_no2",
+          "area_id": "syn-n0001",
+          "kind": "missing",
+          "key": "feature:air_no2",
+          "label": "Modelled annual mean nitrogen dioxide",
+          "template": "missing",
+          "slots": {
+            "label": "Modelled annual mean nitrogen dioxide",
+            "name": "Alderwick"
+          },
+          "numbers": [],
+          "names": [
+            "Alderwick"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/feature/air_no2",
+          "area_id": "syn-n0018",
+          "kind": "feature",
+          "key": "air_no2",
+          "label": "Modelled annual mean nitrogen dioxide",
+          "template": "feature",
+          "slots": {
+            "label": "Modelled annual mean nitrogen dioxide",
+            "value": "34.5 µg/m³",
+            "comparative": "higher than",
+            "pct": "95",
+            "compared": "20",
+            "standing": "higher than 95% of the 20 areas compared in this release"
+          },
+          "numbers": [
+            "34.5",
+            "95%",
+            "20"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/feature/highstreet_access",
+          "area_id": "syn-n0018",
+          "kind": "feature",
+          "key": "highstreet_access",
+          "label": "Share of homes within a 10-minute walk of a high street or town centre",
+          "template": "feature",
+          "slots": {
+            "label": "Share of homes within a 10-minute walk of a high street or town centre",
+            "value": "94%",
+            "comparative": "more than",
+            "pct": "95",
+            "compared": "21",
+            "standing": "more than 95% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "94%",
+            "95%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/feature/noise_exposure",
+          "area_id": "syn-n0018",
+          "kind": "feature",
+          "key": "noise_exposure",
+          "label": "Share of homes at 55 dB or more of transport noise",
+          "template": "feature",
+          "slots": {
+            "label": "Share of homes at 55 dB or more of transport noise",
+            "value": "60%",
+            "comparative": "noisier than",
+            "pct": "95",
+            "compared": "20",
+            "standing": "noisier than 95% of the 20 areas compared in this release"
+          },
+          "numbers": [
+            "60%",
+            "95%",
+            "20"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/feature/park_proximity",
+          "area_id": "syn-n0018",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Walk to the nearest park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest park of 2 ha or more",
+            "value": "1300 m",
+            "comparative": "further than",
+            "pct": "95",
+            "compared": "21",
+            "standing": "further than 95% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "1300",
+            "95%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/feature/station_lines",
+          "area_id": "syn-n0018",
+          "kind": "feature",
+          "key": "station_lines",
+          "label": "Lines within a 10-minute walk",
+          "template": "feature",
+          "slots": {
+            "label": "Lines within a 10-minute walk",
+            "value": "4",
+            "comparative": "more than",
+            "pct": "95",
+            "compared": "22",
+            "standing": "more than 95% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "4",
+            "95%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/feature/station_walk",
+          "area_id": "syn-n0018",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Walk to the nearest station",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest station",
+            "value": "2 min",
+            "comparative": "closer than",
+            "pct": "77",
+            "compared": "22",
+            "level": "4",
+            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others"
+          },
+          "numbers": [
+            "2",
+            "77%",
+            "22",
+            "4"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        }
+      ]
+    }
+  }
+}

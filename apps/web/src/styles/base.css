@@ -1,0 +1,267 @@
+/*
+ * Base styles: what an element looks like before any component styles it.
+ * Every value comes from tokens.css. Sizes are in rem, so text can be made
+ * larger, and nothing that holds text has a fixed height.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* Text stays the size the person chose when a phone is turned on its side. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* A heading reached by a link is not left under the top edge. */
+  scroll-padding-top: var(--space-5);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: var(--size-body);
+  line-height: var(--leading-text);
+  /* A word too long for its line is broken, and never pushes the page wider than the screen. */
+  overflow-wrap: break-word;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0 0 var(--space-3);
+  line-height: var(--leading-heading);
+  font-weight: 650;
+  text-wrap: balance;
+  /* A heading is often a name, which the API gives and the website cannot shorten. */
+  overflow-wrap: anywhere;
+}
+
+h1 {
+  font-size: var(--size-h1);
+}
+
+h2 {
+  font-size: var(--size-h2);
+  margin-top: var(--space-7);
+}
+
+h3 {
+  font-size: var(--size-h3);
+  margin-top: var(--space-6);
+}
+
+h4 {
+  font-size: var(--size-lead);
+  margin-top: var(--space-5);
+}
+
+p,
+ul,
+ol,
+dl,
+table {
+  margin: 0 0 var(--space-4);
+}
+
+p,
+li,
+dd {
+  max-width: var(--measure);
+}
+
+ul,
+ol {
+  padding-left: var(--space-5);
+}
+
+dt {
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+dd {
+  margin: 0 0 var(--space-3);
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9375em;
+}
+
+/* Tables: header cells, and figures that line up. */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-variant-numeric: tabular-nums;
+}
+
+caption {
+  text-align: left;
+  color: var(--muted);
+  font-size: var(--size-small);
+  padding-bottom: var(--space-2);
+}
+
+th,
+td {
+  text-align: left;
+  vertical-align: top;
+  padding: var(--space-2) var(--space-3) var(--space-2) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+thead th {
+  font-size: var(--size-small);
+  color: var(--muted);
+  font-weight: 600;
+}
+
+tbody th {
+  font-weight: 600;
+}
+
+/* Fields and buttons take the page's font, and the size of a target. */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button,
+select,
+input:not([type="checkbox"], [type="radio"], [type="range"]),
+textarea {
+  min-height: var(--target);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+button {
+  cursor: pointer;
+}
+
+/*
+ * A button that does nothing just now. One that may be pressed until it does nothing says
+ * that it is off and is not switched off, so that it keeps the focus: it looks the same.
+ */
+button:disabled,
+button[aria-disabled="true"] {
+  cursor: default;
+  color: var(--muted);
+}
+
+/*
+ * Focus: a ring between two bands of the page colour, so it shows on any
+ * background, the map included. It is never removed.
+ */
+:focus-visible {
+  outline: var(--focus-ring) solid var(--focus);
+  outline-offset: var(--focus-band);
+  box-shadow:
+    0 0 0 var(--focus-band) var(--bg),
+    0 0 0 calc(var(--focus-band) * 2 + var(--focus-ring)) var(--bg);
+}
+
+/* The two sizes a control may be. Every control takes one of them. */
+.target {
+  min-width: var(--target);
+  min-height: var(--target);
+}
+
+.target-min {
+  min-width: var(--target-min);
+  min-height: var(--target-min);
+}
+
+.target-min + .target-min {
+  margin-inline-start: var(--target-gap);
+}
+
+/*
+ * A link is drawn in a line of text, where a smallest height means nothing.
+ * One that takes a target size is drawn as a box, so that the size holds.
+ * It weighs nothing, so that a component may lay its own link out as it likes.
+ */
+:where(a.target, a.target-min) {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Read by a screen reader, and not drawn. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/*
+ * A table wider than a narrow screen scrolls inside its own box. The box is positioned, so
+ * that what is laid out `absolute` inside it, as a name kept for a screen reader is, is laid
+ * out against the box and cut off with the rest. Against the page, it made the page wider.
+ */
+.scroll-x {
+  position: relative;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+/* A skeleton holds the place of what is coming. It does not shimmer. */
+.skeleton {
+  background: var(--surface);
+  border-radius: var(--radius);
+  color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* With forced colours the system's own colours carry every edge and ring. */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight;
+    box-shadow: none;
+  }
+
+  th,
+  td {
+    border-bottom-color: CanvasText;
+  }
+}

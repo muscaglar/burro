@@ -1,0 +1,54 @@
+{
+  "scenario": "places-search",
+  "shows": "Places offered as a name is typed",
+  "captured": true,
+  "request": {
+    "operation_id": "search_places",
+    "method": "POST",
+    "route": "/v1/places/search",
+    "path": "/v1/places/search",
+    "body": {
+      "q": "pel"
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "395",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-synthetic": "true",
+    "x-request-id": "3dbf605d-3c78-46aa-8aec-aca46d801c8e"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.3.0",
+      "synthetic": true
+    },
+    "data": {
+      "places": [
+        {
+          "place_id": "syn-p0012",
+          "name": "Pellam Cross",
+          "kind": "station",
+          "coarse_name": "Pellam Cross"
+        },
+        {
+          "place_id": "syn-p0017",
+          "name": "Pellam Exchange",
+          "kind": "district",
+          "coarse_name": "Pellam Exchange"
+        },
+        {
+          "place_id": "syn-p0028",
+          "name": "Pellam Infirmary",
+          "kind": "hospital",
+          "coarse_name": "Coracle Row"
+        }
+      ]
+    }
+  }
+}

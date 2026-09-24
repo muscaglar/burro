@@ -1,0 +1,156 @@
+.share {
+  min-width: 0;
+}
+
+.panel {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.panel > * {
+  max-width: 100%;
+}
+
+.title,
+.stored {
+  margin: 0;
+  font-size: var(--size-lead);
+}
+
+.points {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+}
+
+.exact {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target);
+  font-weight: 600;
+}
+
+.hint {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.make {
+  color: var(--on-accent);
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+/* While the link is being made. The button is not switched off, so that it keeps the focus. */
+.make[aria-disabled="true"] {
+  cursor: default;
+  color: var(--muted);
+  background: var(--bg);
+  border-color: var(--border);
+}
+
+/* The line keeps its height when it has nothing to say, so that nothing moves. */
+.said {
+  margin: 0;
+  min-height: calc(var(--leading-text) * 1em);
+}
+
+.error {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg);
+  border: 1px solid var(--error);
+  border-inline-start-width: 4px;
+  border-radius: var(--radius);
+}
+
+.error p {
+  margin: 0;
+}
+
+.errorTitle {
+  color: var(--error);
+  font-weight: 600;
+}
+
+.request {
+  color: var(--muted);
+  font-size: var(--size-small);
+  overflow-wrap: anywhere;
+}
+
+.made {
+  display: grid;
+  gap: var(--space-2);
+  justify-self: stretch;
+  min-width: 0;
+}
+
+.link {
+  font-weight: 600;
+}
+
+.linkRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.field {
+  flex: 1 1 16rem;
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--size-small);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  max-width: 100%;
+  padding: var(--space-1) var(--space-3);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* Assumed is said in words. The dashed edge repeats it for the eye. */
+.chip[data-assumed="true"] {
+  border-style: dashed;
+}
+
+.chipLabel {
+  font-weight: 600;
+}
+
+.assumed {
+  color: var(--muted);
+  font-style: italic;
+}
+
+@media (forced-colors: active) {
+  .make {
+    border-color: ButtonText;
+  }
+}

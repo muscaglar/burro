@@ -1,0 +1,29 @@
+.error {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--error);
+  border-inline-start-width: 4px;
+  border-radius: var(--radius);
+}
+
+.error p {
+  margin: 0;
+}
+
+.message {
+  color: var(--error);
+  font-weight: 600;
+}
+
+.request {
+  color: var(--muted);
+  font-size: var(--size-small);
+  overflow-wrap: anywhere;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}

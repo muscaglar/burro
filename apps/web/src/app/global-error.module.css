@@ -1,0 +1,7 @@
+/* The page has no shell, so it takes the shell's width and edges for itself. */
+.main {
+  width: 100%;
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}

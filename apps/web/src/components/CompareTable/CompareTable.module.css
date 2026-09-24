@@ -1,0 +1,164 @@
+.compare {
+  display: grid;
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+/* The areas, each with its status and its links. One beside the next where there is room. */
+.areas {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.area {
+  display: grid;
+  gap: var(--space-1);
+  align-content: start;
+  justify-items: start;
+  max-width: none;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.area p {
+  margin: 0;
+}
+
+.areaName {
+  font-size: var(--size-h3);
+  font-weight: 650;
+  line-height: var(--leading-heading);
+}
+
+.status {
+  display: grid;
+  gap: var(--space-1);
+  min-height: calc(var(--leading-text) * 1em);
+  color: var(--muted);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+}
+
+.table {
+  margin: 0;
+}
+
+.thing {
+  min-width: 12rem;
+}
+
+.label,
+.weight,
+.caveat {
+  display: block;
+}
+
+.weight,
+.caveat {
+  color: var(--muted);
+  font-size: var(--size-small);
+  font-weight: 400;
+}
+
+.cell {
+  min-width: 10rem;
+}
+
+/* Whose cell it is. Shown only where the rows are stacked. */
+.cellName {
+  display: none;
+  font-weight: 600;
+}
+
+.figures {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.figures dd {
+  margin: 0;
+}
+
+.adds,
+.none {
+  margin: var(--space-1) 0 0;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.none {
+  margin: 0;
+  font-size: var(--size-body);
+}
+
+/*
+ * A narrow screen: each row is stacked. The thing that counts comes first,
+ * then each area under its own name. The headings of the columns are kept
+ * for a screen reader and not drawn, because each cell now says whose it is.
+ */
+@media (max-width: 59.99rem) {
+  .table,
+  .table caption,
+  .table tbody,
+  .table tr,
+  .table th,
+  .table td {
+    display: block;
+  }
+
+  .head {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .row {
+    padding: var(--space-3) 0;
+    border-block-end: 1px solid var(--border);
+  }
+
+  .table th,
+  .table td {
+    min-width: 0;
+    padding: var(--space-1) 0;
+    border: 0;
+  }
+
+  .thing {
+    font-size: var(--size-lead);
+  }
+
+  .cell {
+    padding-block: var(--space-2);
+  }
+
+  .cellName {
+    display: block;
+  }
+
+  .figures {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-5);
+  }
+}
+
+@media (forced-colors: active) {
+  .area,
+  .row {
+    border-color: CanvasText;
+  }
+}

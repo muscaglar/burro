@@ -1,0 +1,682 @@
+{
+  "scenarios": [
+    {
+      "scenario": "area",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "One area's profile: features, tags, cost, stations, neighbours and facts"
+    },
+    {
+      "scenario": "area-by-id",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The same profile, asked for by its id"
+    },
+    {
+      "scenario": "area-not-found",
+      "operation_id": "get_area",
+      "status": 404,
+      "shows": "A slug the release lacks: 404"
+    },
+    {
+      "scenario": "area-not-rankable",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "An area the release does not rank"
+    },
+    {
+      "scenario": "area/alderwick",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Alderwick, asked for by its slug"
+    },
+    {
+      "scenario": "area/brackenhythe",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Brackenhythe, asked for by its slug"
+    },
+    {
+      "scenario": "area/cindermoor",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Cindermoor, asked for by its slug"
+    },
+    {
+      "scenario": "area/dulcimer-green",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Dulcimer Green, asked for by its slug"
+    },
+    {
+      "scenario": "area/eskerfold",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Eskerfold, asked for by its slug"
+    },
+    {
+      "scenario": "area/farrowmere",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Farrowmere, asked for by its slug"
+    },
+    {
+      "scenario": "area/foxholt",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Foxholt, asked for by its slug"
+    },
+    {
+      "scenario": "area/gorsebeck",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Gorsebeck, asked for by its slug"
+    },
+    {
+      "scenario": "area/grapnel-dock",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Grapnel Dock, asked for by its slug"
+    },
+    {
+      "scenario": "area/hollinsworth-quay",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Hollinsworth Quay, asked for by its slug"
+    },
+    {
+      "scenario": "area/kindlewharf",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Kindlewharf, asked for by its slug"
+    },
+    {
+      "scenario": "area/lantern-yard",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Lantern Yard, asked for by its slug"
+    },
+    {
+      "scenario": "area/larkspur-hill",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Larkspur Hill, asked for by its slug"
+    },
+    {
+      "scenario": "area/marrowfen",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Marrowfen, asked for by its slug"
+    },
+    {
+      "scenario": "area/osierholm",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Osierholm, asked for by its slug"
+    },
+    {
+      "scenario": "area/ostrel-vale",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Ostrel Vale, asked for by its slug"
+    },
+    {
+      "scenario": "area/otterby-fields",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Otterby Fields, asked for by its slug"
+    },
+    {
+      "scenario": "area/pellam-cross",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Pellam Cross, asked for by its slug"
+    },
+    {
+      "scenario": "area/sable-reach",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Sable Reach, asked for by its slug"
+    },
+    {
+      "scenario": "area/sedgewater-marsh",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Sedgewater Marsh, asked for by its slug"
+    },
+    {
+      "scenario": "area/tallowgate",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Tallowgate, asked for by its slug"
+    },
+    {
+      "scenario": "area/thrushcombe",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Thrushcombe, asked for by its slug"
+    },
+    {
+      "scenario": "area/wexmoor",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Wexmoor, asked for by its slug"
+    },
+    {
+      "scenario": "area/wickerford",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Wickerford, asked for by its slug"
+    },
+    {
+      "scenario": "areas",
+      "operation_id": "list_areas",
+      "status": 200,
+      "shows": "Every area of the release, by id"
+    },
+    {
+      "scenario": "compare-area-not-found",
+      "operation_id": "compare",
+      "status": 404,
+      "shows": "A comparison that names an area the release lacks: 404"
+    },
+    {
+      "scenario": "compare-crime",
+      "operation_id": "compare",
+      "status": 200,
+      "shows": "Two areas compared on a search that weighs recorded crime"
+    },
+    {
+      "scenario": "compare-invalid",
+      "operation_id": "compare",
+      "status": 422,
+      "shows": "One area is not a comparison: 422"
+    },
+    {
+      "scenario": "compare-three",
+      "operation_id": "compare",
+      "status": 200,
+      "shows": "Three areas side by side, one of them filtered, rows in the order of the weights"
+    },
+    {
+      "scenario": "compare-two-defaults",
+      "operation_id": "compare",
+      "status": 200,
+      "shows": "Two areas compared with no search open, on a renter's defaults"
+    },
+    {
+      "scenario": "error-internal",
+      "operation_id": "explain_top",
+      "status": 500,
+      "shows": "A fault in the service: 500, with fixed words and a request id to quote"
+    },
+    {
+      "scenario": "explanations-buyer-family",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Reasons and a trade-off for the first five, with every fact they cite"
+    },
+    {
+      "scenario": "explanations-by-the-river",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Reasons and a trade-off for the first five, with every fact they cite"
+    },
+    {
+      "scenario": "explanations-first",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Reasons and a trade-off for the first five, with every fact they cite"
+    },
+    {
+      "scenario": "explanations-nights-out",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Reasons and a trade-off for the first five, with every fact they cite"
+    },
+    {
+      "scenario": "explanations-on-foot",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Reasons and trade-offs where a journey is beyond the longest time the release holds"
+    },
+    {
+      "scenario": "explanations-refined",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "The reasons after the refinement"
+    },
+    {
+      "scenario": "explanations-second-sentence",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Reasons and a trade-off for the first five, with every fact they cite"
+    },
+    {
+      "scenario": "explanations-two-journeys",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Reasons and a trade-off for the first five, with every fact they cite"
+    },
+    {
+      "scenario": "geometry",
+      "operation_id": "get_geometry",
+      "status": 200,
+      "shows": "The boundary of every area, as GeoJSON"
+    },
+    {
+      "scenario": "healthz",
+      "operation_id": "healthz",
+      "status": 200,
+      "shows": "The service is up. The one answer with no meta"
+    },
+    {
+      "scenario": "interpret-buyer-family",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A buyer, so the tenure changes and the buyer's defaults come in"
+    },
+    {
+      "scenario": "interpret-by-model",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A sentence read by a model: the same edits, and the answer says who read it"
+    },
+    {
+      "scenario": "interpret-by-the-river",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "Two tags and a journey by bike"
+    },
+    {
+      "scenario": "interpret-clarify",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A name that matches several places: a question with options, and the rest applied"
+    },
+    {
+      "scenario": "interpret-clarify-no-options",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A name that matches nothing: a question with no options, so a search box"
+    },
+    {
+      "scenario": "interpret-degraded",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "The model did not answer, so the rules read the words: degraded, and still a reading"
+    },
+    {
+      "scenario": "interpret-first",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A first sentence, read in full: a budget, two tags and a journey"
+    },
+    {
+      "scenario": "interpret-invalid-text",
+      "operation_id": "interpret",
+      "status": 422,
+      "shows": "A line of spaces: 422 on the text"
+    },
+    {
+      "scenario": "interpret-nights-out",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A sentence about venues, with a workplace and no budget"
+    },
+    {
+      "scenario": "interpret-nothing-read",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "Nothing in the sentence could be read: no edit, and other in unmet"
+    },
+    {
+      "scenario": "interpret-notice",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "Part of the request is about who lives somewhere: the neutral notice, and the rest"
+    },
+    {
+      "scenario": "interpret-off-topic",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A model finds nothing about where to live: no edit, and the notice in the API's words"
+    },
+    {
+      "scenario": "interpret-rejected",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A loose wish for safety: the edit to recorded crime is rejected, the park is applied"
+    },
+    {
+      "scenario": "interpret-second-sentence",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A second sentence, sent with the spec the first one left: one thing more, one taken off"
+    },
+    {
+      "scenario": "interpret-two-journeys",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A firm budget and two journeys, one of them firm"
+    },
+    {
+      "scenario": "interpret-unmet",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "Things the data cannot answer: each is named in unmet, and the rest is applied"
+    },
+    {
+      "scenario": "meta",
+      "operation_id": "get_meta",
+      "status": 200,
+      "shows": "Everything a form needs, and every source and method"
+    },
+    {
+      "scenario": "not-found",
+      "operation_id": null,
+      "status": 404,
+      "shows": "A path that is no route: 404, in the same envelope"
+    },
+    {
+      "scenario": "places-search",
+      "operation_id": "search_places",
+      "status": 200,
+      "shows": "Places offered as a name is typed"
+    },
+    {
+      "scenario": "places-search-invalid",
+      "operation_id": "search_places",
+      "status": 422,
+      "shows": "One character is too few: 422"
+    },
+    {
+      "scenario": "places-search-none",
+      "operation_id": "search_places",
+      "status": 200,
+      "shows": "A search that finds nothing"
+    },
+    {
+      "scenario": "places-search-one-kind",
+      "operation_id": "search_places",
+      "status": 200,
+      "shows": "A search that finds schools, each with the station that stands in for it"
+    },
+    {
+      "scenario": "rank-buyer-family",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Another search, ranked"
+    },
+    {
+      "scenario": "rank-by-the-river",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Another search, ranked"
+    },
+    {
+      "scenario": "rank-crime-switched-on",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Recorded crime weighted by a control, which a loose word may not do"
+    },
+    {
+      "scenario": "rank-default-rent",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A renter's defaults, ranked as they stand, as a comparison with no search uses them"
+    },
+    {
+      "scenario": "rank-empty-spec",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Nothing asked for: every area scores 0 and the order is by id"
+    },
+    {
+      "scenario": "rank-first",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "The first twenty areas"
+    },
+    {
+      "scenario": "rank-invalid-operations",
+      "operation_id": "rank",
+      "status": 422,
+      "shows": "An edit that is not an edit: 422, with paths and codes and nothing that was sent"
+    },
+    {
+      "scenario": "rank-nights-out",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Another search, ranked"
+    },
+    {
+      "scenario": "rank-nothing-matches",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Firm limits that no area passes: nothing ranked, and a reason for each area"
+    },
+    {
+      "scenario": "rank-on-foot",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A journey on foot: for most areas it is beyond the longest time the release holds"
+    },
+    {
+      "scenario": "rank-refined",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "One control moved: the journey made firm and five minutes shorter"
+    },
+    {
+      "scenario": "rank-rejected-edit",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "An edit the reducer refuses: a budget of one pound. The spec comes back as it was"
+    },
+    {
+      "scenario": "rank-second-sentence",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "The search after a second sentence, with a usual setting taken off"
+    },
+    {
+      "scenario": "rank-stale-spec",
+      "operation_id": "rank",
+      "status": 422,
+      "shows": "A spec that names a place the release no longer has: 422, with the path"
+    },
+    {
+      "scenario": "rank-stale-spec-repaired",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "The same spec, sent with the edit that takes the place out"
+    },
+    {
+      "scenario": "rank-switched-off",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A usual setting switched off by a control: its entry stays in the spec, at 0"
+    },
+    {
+      "scenario": "rank-two-journeys",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Another search, ranked"
+    },
+    {
+      "scenario": "share-gone",
+      "operation_id": "get_share",
+      "status": 410,
+      "shows": "A share whose place the release no longer has: 410"
+    },
+    {
+      "scenario": "share-made",
+      "operation_id": "create_share",
+      "status": 200,
+      "shows": "A share of a search that names a school: the station stands in for it"
+    },
+    {
+      "scenario": "share-made-exact",
+      "operation_id": "create_share",
+      "status": 200,
+      "shows": "A share that keeps the exact place, because the sender asked"
+    },
+    {
+      "scenario": "share-made-no-place",
+      "operation_id": "create_share",
+      "status": 200,
+      "shows": "A share of a search that names no place: there is nothing to stand in for"
+    },
+    {
+      "scenario": "share-not-found",
+      "operation_id": "get_share",
+      "status": 404,
+      "shows": "A share id nobody made: 404"
+    },
+    {
+      "scenario": "share-opened",
+      "operation_id": "get_share",
+      "status": 200,
+      "shows": "A share opened: the stored spec, ranked now"
+    },
+    {
+      "scenario": "share-opened-stale",
+      "operation_id": "get_share",
+      "status": 200,
+      "shows": "A share opened on a newer release than it was made on: stale, and ranked again"
+    },
+    {
+      "scenario": "visit/01-first",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A first sentence, sent with a renter's defaults"
+    },
+    {
+      "scenario": "visit/02-first-rank",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Its ranking"
+    },
+    {
+      "scenario": "visit/03-first-reasons",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons"
+    },
+    {
+      "scenario": "visit/04-second",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A second sentence: one thing more, one taken off"
+    },
+    {
+      "scenario": "visit/05-second-rank",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Its ranking"
+    },
+    {
+      "scenario": "visit/06-second-reasons",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons"
+    },
+    {
+      "scenario": "visit/07-firm-rank",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A control moved: the journey made a firm limit"
+    },
+    {
+      "scenario": "visit/08-firm-reasons",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons"
+    },
+    {
+      "scenario": "visit/09-place",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A place named in part: a question, and no edit applied"
+    },
+    {
+      "scenario": "visit/10-answered-rank",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "The question answered: the edit, with the id picked"
+    },
+    {
+      "scenario": "visit/11-answered-reasons",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons"
+    },
+    {
+      "scenario": "visit/12-people",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A sentence in part about people: the notice, and the rest"
+    },
+    {
+      "scenario": "visit/13-people-rank",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Its ranking"
+    },
+    {
+      "scenario": "visit/14-people-reasons",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons"
+    },
+    {
+      "scenario": "visit/15-unread",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A sentence with nothing to read in it: no edit, and no ranking"
+    },
+    {
+      "scenario": "visit/16-compare",
+      "operation_id": "compare",
+      "status": 200,
+      "shows": "The second and the first result compared, on the search as it stands"
+    },
+    {
+      "scenario": "visit/17-share-made",
+      "operation_id": "create_share",
+      "status": 200,
+      "shows": "A link to the search"
+    },
+    {
+      "scenario": "visit/18-share-opened",
+      "operation_id": "get_share",
+      "status": 200,
+      "shows": "The link opened"
+    },
+    {
+      "scenario": "visit/19-share-reasons",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "The reasons of the shared search"
+    },
+    {
+      "scenario": "visit/20-slow",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A sentence the model did not answer: read by the rules, and degraded"
+    },
+    {
+      "scenario": "visit/21-slow-rank",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Its ranking"
+    },
+    {
+      "scenario": "visit/22-slow-reasons",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons"
+    }
+  ]
+}

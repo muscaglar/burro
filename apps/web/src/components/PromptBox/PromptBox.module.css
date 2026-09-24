@@ -1,0 +1,95 @@
+.prompt {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.form {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.label {
+  font-size: var(--size-lead);
+  font-weight: 650;
+}
+
+.hint,
+.words,
+.count {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.box {
+  width: 100%;
+  min-height: calc(3 * var(--leading-text) * 1em + 2 * var(--space-2));
+  resize: vertical;
+}
+
+.under {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-4);
+}
+
+/* One line high whether it holds a count or not. */
+.count {
+  min-height: calc(var(--leading-text) * 1em);
+}
+
+.buttons {
+  display: flex;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+
+/* Named with its size class, so that its width does not depend on the order of two style sheets. */
+.submit:global(.target) {
+  min-width: 7rem;
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 650;
+}
+
+.submit[aria-disabled="true"] {
+  cursor: default;
+}
+
+.problem {
+  margin: 0;
+  color: var(--error);
+}
+
+.examples {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.examplesTitle {
+  margin: 0;
+  font-size: var(--size-body);
+}
+
+.list {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.example {
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+}
+
+@media (forced-colors: active) {
+  .submit {
+    border-color: ButtonText;
+  }
+}

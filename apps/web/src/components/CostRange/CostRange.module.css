@@ -1,0 +1,118 @@
+.cost {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.range {
+  margin: 0;
+}
+
+.figure {
+  font-size: var(--size-lead);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-5);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.facts dd {
+  margin: 0;
+}
+
+/* The word that names how sure the figure is leads to what it means. */
+.means {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Three pips, filled to say how far to trust the figure. The word beside them says it. */
+.pips {
+  display: inline-flex;
+  gap: 2px;
+  vertical-align: middle;
+}
+
+.pips span {
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 1px solid var(--text);
+  border-radius: 50%;
+}
+
+.pips span[data-on="true"] {
+  background: var(--text);
+}
+
+/* The bar: a line for the whole scale, a block for the range, a tick for the middle, a mark for the budget. */
+.bar {
+  position: relative;
+  height: var(--space-5);
+  border-block-end: 1px solid var(--border);
+}
+
+.span,
+.median,
+.budget {
+  position: absolute;
+  inset-block-end: 0;
+}
+
+.span {
+  height: var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--text);
+  border-block-end: 0;
+}
+
+.median {
+  width: 2px;
+  height: var(--space-3);
+  background: var(--text);
+}
+
+/* The budget is a taller mark with a head, so that it is told from the middle by shape. */
+.budget {
+  width: 2px;
+  height: var(--space-5);
+  background: var(--accent);
+}
+
+.budget::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: -4px;
+  width: 10px;
+  height: 10px;
+  background: var(--accent);
+  transform: rotate(45deg);
+}
+
+.falls {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+@media (forced-colors: active) {
+  .span,
+  .pips span {
+    border-color: CanvasText;
+  }
+
+  .median,
+  .pips span[data-on="true"] {
+    background: CanvasText;
+  }
+
+  .budget,
+  .budget::before {
+    background: Highlight;
+  }
+}

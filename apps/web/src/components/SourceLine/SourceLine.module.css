@@ -1,0 +1,18 @@
+.line {
+  margin: 0;
+  max-width: none;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+}
+
+.madeUp {
+  padding: 0 var(--space-1);
+  color: var(--notice-text);
+  background: var(--notice-bg);
+  border-radius: var(--radius);
+}

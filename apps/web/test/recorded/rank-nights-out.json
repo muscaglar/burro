@@ -1,0 +1,3131 @@
+{
+  "scenario": "rank-nights-out",
+  "shows": "Another search, ranked",
+  "captured": true,
+  "request": {
+    "operation_id": "rank",
+    "method": "POST",
+    "route": "/v1/rank",
+    "path": "/v1/rank",
+    "body": {
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.8,
+          "provenance": "default"
+        },
+        "commutes": [
+          {
+            "place_id": "syn-p0017",
+            "mode": "pt",
+            "max_minutes": 45,
+            "strictness": "soft",
+            "provenance": "stated"
+          }
+        ],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 1.0,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "venue_evening",
+            "weight": 0.5,
+            "direction": "more",
+            "provenance": "stated"
+          },
+          {
+            "feature_id": "venue_food_drink",
+            "weight": 0.5,
+            "direction": "more",
+            "provenance": "stated"
+          }
+        ],
+        "tags": [
+          {
+            "tag_id": "buzzy",
+            "weight": 0.5,
+            "provenance": "stated"
+          }
+        ],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "limit": 20
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "42858",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-synthetic": "true",
+    "x-request-id": "e0736af7-3a43-44ff-a15b-57d1118fe05c"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.3.0",
+      "synthetic": true
+    },
+    "data": {
+      "scores": [
+        {
+          "area_id": "syn-n0018",
+          "score": 93.12
+        },
+        {
+          "area_id": "syn-n0012",
+          "score": 89.49
+        },
+        {
+          "area_id": "syn-n0011",
+          "score": 85.58
+        },
+        {
+          "area_id": "syn-n0021",
+          "score": 85.19
+        },
+        {
+          "area_id": "syn-n0010",
+          "score": 82.75
+        },
+        {
+          "area_id": "syn-n0007",
+          "score": 79.83
+        },
+        {
+          "area_id": "syn-n0023",
+          "score": 75.75
+        },
+        {
+          "area_id": "syn-n0019",
+          "score": 72.41
+        },
+        {
+          "area_id": "syn-n0002",
+          "score": 68.42
+        },
+        {
+          "area_id": "syn-n0022",
+          "score": 67.57
+        },
+        {
+          "area_id": "syn-n0004",
+          "score": 66.69
+        },
+        {
+          "area_id": "syn-n0015",
+          "score": 65.6
+        },
+        {
+          "area_id": "syn-n0005",
+          "score": 63.54
+        },
+        {
+          "area_id": "syn-n0024",
+          "score": 54.67
+        },
+        {
+          "area_id": "syn-n0003",
+          "score": 51.97
+        },
+        {
+          "area_id": "syn-n0016",
+          "score": 48.63
+        },
+        {
+          "area_id": "syn-n0006",
+          "score": 44.82
+        },
+        {
+          "area_id": "syn-n0013",
+          "score": 39.4
+        },
+        {
+          "area_id": "syn-n0001",
+          "score": 34.83
+        },
+        {
+          "area_id": "syn-n0008",
+          "score": 32.58
+        },
+        {
+          "area_id": "syn-n0014",
+          "score": 30.05
+        }
+      ],
+      "ranked": [
+        {
+          "area_id": "syn-n0018",
+          "rank": 1,
+          "score": 93.12,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 1.0,
+              "contribution": 0.3509,
+              "loss": 0.0,
+              "fact_ids": [
+                "syn-n0018/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.976,
+              "contribution": 0.1712,
+              "loss": 0.0042,
+              "fact_ids": [
+                "syn-n0018/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.976,
+              "contribution": 0.1712,
+              "loss": 0.0042,
+              "fact_ids": [
+                "syn-n0018/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.976,
+              "contribution": 0.1712,
+              "loss": 0.0042,
+              "fact_ids": [
+                "syn-n0018/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.886,
+              "contribution": 0.0311,
+              "loss": 0.004,
+              "fact_ids": [
+                "syn-n0018/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.977,
+              "contribution": 0.0171,
+              "loss": 0.0004,
+              "fact_ids": [
+                "syn-n0018/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.976,
+              "contribution": 0.0171,
+              "loss": 0.0004,
+              "fact_ids": [
+                "syn-n0018/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.025,
+              "contribution": 0.0004,
+              "loss": 0.0171,
+              "fact_ids": [
+                "syn-n0018/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.025,
+              "contribution": 0.0004,
+              "loss": 0.0171,
+              "fact_ids": [
+                "syn-n0018/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.024,
+              "contribution": 0.0004,
+              "loss": 0.0171,
+              "fact_ids": [
+                "syn-n0018/feature/park_proximity"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 2,
+              "minutes_typical": 2,
+              "minutes_just_missed": 2,
+              "utility": 1.0
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0012",
+          "rank": 2,
+          "score": 89.49,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 1.0,
+              "contribution": 0.3509,
+              "loss": 0.0,
+              "fact_ids": [
+                "syn-n0012/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.929,
+              "contribution": 0.163,
+              "loss": 0.0125,
+              "fact_ids": [
+                "syn-n0012/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.929,
+              "contribution": 0.163,
+              "loss": 0.0125,
+              "fact_ids": [
+                "syn-n0012/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.929,
+              "contribution": 0.163,
+              "loss": 0.0125,
+              "fact_ids": [
+                "syn-n0012/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.636,
+              "contribution": 0.0223,
+              "loss": 0.0128,
+              "fact_ids": [
+                "syn-n0012/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.881,
+              "contribution": 0.0155,
+              "loss": 0.0021,
+              "fact_ids": [
+                "syn-n0012/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.591,
+              "contribution": 0.0104,
+              "loss": 0.0072,
+              "fact_ids": [
+                "syn-n0012/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.2,
+              "contribution": 0.0035,
+              "loss": 0.014,
+              "fact_ids": [
+                "syn-n0012/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.125,
+              "contribution": 0.0022,
+              "loss": 0.0154,
+              "fact_ids": [
+                "syn-n0012/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.071,
+              "contribution": 0.0012,
+              "loss": 0.0163,
+              "fact_ids": [
+                "syn-n0012/feature/park_proximity"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 10,
+              "minutes_typical": 10,
+              "minutes_just_missed": 13,
+              "utility": 1.0
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0011",
+          "rank": 3,
+          "score": 85.58,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 1.0,
+              "contribution": 0.3509,
+              "loss": 0.0,
+              "fact_ids": [
+                "syn-n0011/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.881,
+              "contribution": 0.1546,
+              "loss": 0.0209,
+              "fact_ids": [
+                "syn-n0011/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.881,
+              "contribution": 0.1546,
+              "loss": 0.0209,
+              "fact_ids": [
+                "syn-n0011/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.833,
+              "contribution": 0.1461,
+              "loss": 0.0293,
+              "fact_ids": [
+                "syn-n0011/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.909,
+              "contribution": 0.0159,
+              "loss": 0.0016,
+              "fact_ids": [
+                "syn-n0011/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.386,
+              "contribution": 0.0135,
+              "loss": 0.0215,
+              "fact_ids": [
+                "syn-n0011/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.738,
+              "contribution": 0.0129,
+              "loss": 0.0046,
+              "fact_ids": [
+                "syn-n0011/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.214,
+              "contribution": 0.0038,
+              "loss": 0.0138,
+              "fact_ids": [
+                "syn-n0011/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.125,
+              "contribution": 0.0022,
+              "loss": 0.0154,
+              "fact_ids": [
+                "syn-n0011/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.075,
+              "contribution": 0.0013,
+              "loss": 0.0162,
+              "fact_ids": [
+                "syn-n0011/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 13,
+              "minutes_typical": 13,
+              "minutes_just_missed": 16,
+              "utility": 1.0
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0021",
+          "rank": 4,
+          "score": 85.19,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 1.0,
+              "contribution": 0.3509,
+              "loss": 0.0,
+              "fact_ids": [
+                "syn-n0021/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.881,
+              "contribution": 0.1546,
+              "loss": 0.0209,
+              "fact_ids": [
+                "syn-n0021/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.833,
+              "contribution": 0.1461,
+              "loss": 0.0293,
+              "fact_ids": [
+                "syn-n0021/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.786,
+              "contribution": 0.1379,
+              "loss": 0.0375,
+              "fact_ids": [
+                "syn-n0021/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.636,
+              "contribution": 0.0223,
+              "loss": 0.0128,
+              "fact_ids": [
+                "syn-n0021/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.909,
+              "contribution": 0.0159,
+              "loss": 0.0016,
+              "fact_ids": [
+                "syn-n0021/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.833,
+              "contribution": 0.0146,
+              "loss": 0.0029,
+              "fact_ids": [
+                "syn-n0021/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.2,
+              "contribution": 0.0035,
+              "loss": 0.014,
+              "fact_ids": [
+                "syn-n0021/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.175,
+              "contribution": 0.0031,
+              "loss": 0.0145,
+              "fact_ids": [
+                "syn-n0021/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.167,
+              "contribution": 0.0029,
+              "loss": 0.0146,
+              "fact_ids": [
+                "syn-n0021/feature/park_proximity"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 9,
+              "minutes_typical": 9,
+              "minutes_just_missed": 11,
+              "utility": 1.0
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0010",
+          "rank": 5,
+          "score": 82.75,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 1.0,
+              "contribution": 0.3509,
+              "loss": 0.0,
+              "fact_ids": [
+                "syn-n0010/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.833,
+              "contribution": 0.1461,
+              "loss": 0.0293,
+              "fact_ids": [
+                "syn-n0010/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.786,
+              "contribution": 0.1379,
+              "loss": 0.0375,
+              "fact_ids": [
+                "syn-n0010/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.786,
+              "contribution": 0.1379,
+              "loss": 0.0375,
+              "fact_ids": [
+                "syn-n0010/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.636,
+              "contribution": 0.0223,
+              "loss": 0.0128,
+              "fact_ids": [
+                "syn-n0010/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.69,
+              "contribution": 0.0121,
+              "loss": 0.0054,
+              "fact_ids": [
+                "syn-n0010/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.591,
+              "contribution": 0.0104,
+              "loss": 0.0072,
+              "fact_ids": [
+                "syn-n0010/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.262,
+              "contribution": 0.0046,
+              "loss": 0.0129,
+              "fact_ids": [
+                "syn-n0010/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.225,
+              "contribution": 0.0039,
+              "loss": 0.0136,
+              "fact_ids": [
+                "syn-n0010/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.075,
+              "contribution": 0.0013,
+              "loss": 0.0162,
+              "fact_ids": [
+                "syn-n0010/feature/air_no2"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 10,
+              "minutes_typical": 10,
+              "minutes_just_missed": 12,
+              "utility": 1.0
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0007",
+          "rank": 6,
+          "score": 79.83,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 1.0,
+              "contribution": 0.3509,
+              "loss": 0.0,
+              "fact_ids": [
+                "syn-n0007/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.738,
+              "contribution": 0.1295,
+              "loss": 0.046,
+              "fact_ids": [
+                "syn-n0007/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.738,
+              "contribution": 0.1295,
+              "loss": 0.046,
+              "fact_ids": [
+                "syn-n0007/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.738,
+              "contribution": 0.1295,
+              "loss": 0.046,
+              "fact_ids": [
+                "syn-n0007/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.929,
+              "contribution": 0.0163,
+              "loss": 0.0012,
+              "fact_ids": [
+                "syn-n0007/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.455,
+              "contribution": 0.016,
+              "loss": 0.0191,
+              "fact_ids": [
+                "syn-n0007/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.591,
+              "contribution": 0.0104,
+              "loss": 0.0072,
+              "fact_ids": [
+                "syn-n0007/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.357,
+              "contribution": 0.0063,
+              "loss": 0.0113,
+              "fact_ids": [
+                "syn-n0007/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.3,
+              "contribution": 0.0053,
+              "loss": 0.0123,
+              "fact_ids": [
+                "syn-n0007/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.275,
+              "contribution": 0.0048,
+              "loss": 0.0127,
+              "fact_ids": [
+                "syn-n0007/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 14,
+              "minutes_typical": 14,
+              "minutes_just_missed": 18,
+              "utility": 1.0
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0023",
+          "rank": 7,
+          "score": 75.75,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 0.9667,
+              "contribution": 0.3392,
+              "loss": 0.0117,
+              "fact_ids": [
+                "syn-n0023/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.69,
+              "contribution": 0.1211,
+              "loss": 0.0544,
+              "fact_ids": [
+                "syn-n0023/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.69,
+              "contribution": 0.1211,
+              "loss": 0.0544,
+              "fact_ids": [
+                "syn-n0023/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.69,
+              "contribution": 0.1211,
+              "loss": 0.0544,
+              "fact_ids": [
+                "syn-n0023/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.341,
+              "contribution": 0.012,
+              "loss": 0.0231,
+              "fact_ids": [
+                "syn-n0023/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.643,
+              "contribution": 0.0113,
+              "loss": 0.0063,
+              "fact_ids": [
+                "syn-n0023/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.591,
+              "contribution": 0.0104,
+              "loss": 0.0072,
+              "fact_ids": [
+                "syn-n0023/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.45,
+              "contribution": 0.0079,
+              "loss": 0.0096,
+              "fact_ids": [
+                "syn-n0023/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.405,
+              "contribution": 0.0071,
+              "loss": 0.0104,
+              "fact_ids": [
+                "syn-n0023/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.375,
+              "contribution": 0.0066,
+              "loss": 0.011,
+              "fact_ids": [
+                "syn-n0023/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 17,
+              "minutes_typical": 17,
+              "minutes_just_missed": 19,
+              "utility": 0.9667
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0019",
+          "rank": 8,
+          "score": 72.41,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 0.9333,
+              "contribution": 0.3275,
+              "loss": 0.0234,
+              "fact_ids": [
+                "syn-n0019/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.643,
+              "contribution": 0.1128,
+              "loss": 0.0626,
+              "fact_ids": [
+                "syn-n0019/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.643,
+              "contribution": 0.1128,
+              "loss": 0.0626,
+              "fact_ids": [
+                "syn-n0019/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.595,
+              "contribution": 0.1044,
+              "loss": 0.0711,
+              "fact_ids": [
+                "syn-n0019/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.886,
+              "contribution": 0.0311,
+              "loss": 0.004,
+              "fact_ids": [
+                "syn-n0019/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.591,
+              "contribution": 0.0104,
+              "loss": 0.0072,
+              "fact_ids": [
+                "syn-n0019/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.5,
+              "contribution": 0.0088,
+              "loss": 0.0088,
+              "fact_ids": [
+                "syn-n0019/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.325,
+              "contribution": 0.0057,
+              "loss": 0.0118,
+              "fact_ids": [
+                "syn-n0019/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.31,
+              "contribution": 0.0054,
+              "loss": 0.0121,
+              "fact_ids": [
+                "syn-n0019/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.3,
+              "contribution": 0.0053,
+              "loss": 0.0123,
+              "fact_ids": [
+                "syn-n0019/feature/air_no2"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 19,
+              "minutes_typical": 19,
+              "minutes_just_missed": 24,
+              "utility": 0.9333
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0002",
+          "rank": 9,
+          "score": 68.42,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 1.0,
+              "contribution": 0.3509,
+              "loss": 0.0,
+              "fact_ids": [
+                "syn-n0002/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.476,
+              "contribution": 0.0835,
+              "loss": 0.0919,
+              "fact_ids": [
+                "syn-n0002/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.452,
+              "contribution": 0.0793,
+              "loss": 0.0961,
+              "fact_ids": [
+                "syn-n0002/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.452,
+              "contribution": 0.0793,
+              "loss": 0.0961,
+              "fact_ids": [
+                "syn-n0002/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.886,
+              "contribution": 0.0311,
+              "loss": 0.004,
+              "fact_ids": [
+                "syn-n0002/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.881,
+              "contribution": 0.0155,
+              "loss": 0.0021,
+              "fact_ids": [
+                "syn-n0002/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.825,
+              "contribution": 0.0145,
+              "loss": 0.0031,
+              "fact_ids": [
+                "syn-n0002/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.725,
+              "contribution": 0.0127,
+              "loss": 0.0048,
+              "fact_ids": [
+                "syn-n0002/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.591,
+              "contribution": 0.0104,
+              "loss": 0.0072,
+              "fact_ids": [
+                "syn-n0002/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.405,
+              "contribution": 0.0071,
+              "loss": 0.0104,
+              "fact_ids": [
+                "syn-n0002/feature/highstreet_access"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 12,
+              "minutes_typical": 12,
+              "minutes_just_missed": 14,
+              "utility": 1.0
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0022",
+          "rank": 10,
+          "score": 67.57,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 0.85,
+              "contribution": 0.2982,
+              "loss": 0.0526,
+              "fact_ids": [
+                "syn-n0022/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.643,
+              "contribution": 0.1128,
+              "loss": 0.0626,
+              "fact_ids": [
+                "syn-n0022/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.595,
+              "contribution": 0.1044,
+              "loss": 0.0711,
+              "fact_ids": [
+                "syn-n0022/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.595,
+              "contribution": 0.1044,
+              "loss": 0.0711,
+              "fact_ids": [
+                "syn-n0022/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.786,
+              "contribution": 0.0138,
+              "loss": 0.0038,
+              "fact_ids": [
+                "syn-n0022/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.738,
+              "contribution": 0.0129,
+              "loss": 0.0046,
+              "fact_ids": [
+                "syn-n0022/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.525,
+              "contribution": 0.0092,
+              "loss": 0.0083,
+              "fact_ids": [
+                "syn-n0022/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.25,
+              "contribution": 0.0088,
+              "loss": 0.0263,
+              "fact_ids": [
+                "syn-n0022/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.475,
+              "contribution": 0.0083,
+              "loss": 0.0092,
+              "fact_ids": [
+                "syn-n0022/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.159,
+              "contribution": 0.0028,
+              "loss": 0.0148,
+              "fact_ids": [
+                "syn-n0022/feature/station_lines"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 24,
+              "minutes_typical": 24,
+              "minutes_just_missed": 29,
+              "utility": 0.85
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0004",
+          "rank": 11,
+          "score": 66.69,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 0.95,
+              "contribution": 0.3333,
+              "loss": 0.0175,
+              "fact_ids": [
+                "syn-n0004/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.5,
+              "contribution": 0.0877,
+              "loss": 0.0877,
+              "fact_ids": [
+                "syn-n0004/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.5,
+              "contribution": 0.0877,
+              "loss": 0.0877,
+              "fact_ids": [
+                "syn-n0004/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.476,
+              "contribution": 0.0835,
+              "loss": 0.0919,
+              "fact_ids": [
+                "syn-n0004/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.636,
+              "contribution": 0.0223,
+              "loss": 0.0128,
+              "fact_ids": [
+                "syn-n0004/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.69,
+              "contribution": 0.0121,
+              "loss": 0.0054,
+              "fact_ids": [
+                "syn-n0004/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.591,
+              "contribution": 0.0104,
+              "loss": 0.0072,
+              "fact_ids": [
+                "syn-n0004/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.575,
+              "contribution": 0.0101,
+              "loss": 0.0075,
+              "fact_ids": [
+                "syn-n0004/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.575,
+              "contribution": 0.0101,
+              "loss": 0.0075,
+              "fact_ids": [
+                "syn-n0004/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.548,
+              "contribution": 0.0096,
+              "loss": 0.0079,
+              "fact_ids": [
+                "syn-n0004/feature/highstreet_access"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 18,
+              "minutes_typical": 18,
+              "minutes_just_missed": 22,
+              "utility": 0.95
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0015",
+          "rank": 12,
+          "score": 65.6,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 0.85,
+              "contribution": 0.2982,
+              "loss": 0.0526,
+              "fact_ids": [
+                "syn-n0015/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.548,
+              "contribution": 0.0961,
+              "loss": 0.0793,
+              "fact_ids": [
+                "syn-n0015/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.548,
+              "contribution": 0.0961,
+              "loss": 0.0793,
+              "fact_ids": [
+                "syn-n0015/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.548,
+              "contribution": 0.0961,
+              "loss": 0.0793,
+              "fact_ids": [
+                "syn-n0015/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.636,
+              "contribution": 0.0223,
+              "loss": 0.0128,
+              "fact_ids": [
+                "syn-n0015/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.595,
+              "contribution": 0.0104,
+              "loss": 0.0071,
+              "fact_ids": [
+                "syn-n0015/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.595,
+              "contribution": 0.0104,
+              "loss": 0.0071,
+              "fact_ids": [
+                "syn-n0015/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.591,
+              "contribution": 0.0104,
+              "loss": 0.0072,
+              "fact_ids": [
+                "syn-n0015/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.525,
+              "contribution": 0.0092,
+              "loss": 0.0083,
+              "fact_ids": [
+                "syn-n0015/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.375,
+              "contribution": 0.0066,
+              "loss": 0.011,
+              "fact_ids": [
+                "syn-n0015/feature/air_no2"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 24,
+              "minutes_typical": 24,
+              "minutes_just_missed": 29,
+              "utility": 0.85
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0005",
+          "rank": 13,
+          "score": 63.54,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 1.0,
+              "contribution": 0.3509,
+              "loss": 0.0,
+              "fact_ids": [
+                "syn-n0005/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.405,
+              "contribution": 0.0711,
+              "loss": 0.1044,
+              "fact_ids": [
+                "syn-n0005/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.405,
+              "contribution": 0.0711,
+              "loss": 0.1044,
+              "fact_ids": [
+                "syn-n0005/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.381,
+              "contribution": 0.0668,
+              "loss": 0.1086,
+              "fact_ids": [
+                "syn-n0005/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.636,
+              "contribution": 0.0223,
+              "loss": 0.0128,
+              "fact_ids": [
+                "syn-n0005/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.725,
+              "contribution": 0.0127,
+              "loss": 0.0048,
+              "fact_ids": [
+                "syn-n0005/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.643,
+              "contribution": 0.0113,
+              "loss": 0.0063,
+              "fact_ids": [
+                "syn-n0005/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.625,
+              "contribution": 0.011,
+              "loss": 0.0066,
+              "fact_ids": [
+                "syn-n0005/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.591,
+              "contribution": 0.0104,
+              "loss": 0.0072,
+              "fact_ids": [
+                "syn-n0005/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.452,
+              "contribution": 0.0079,
+              "loss": 0.0096,
+              "fact_ids": [
+                "syn-n0005/feature/highstreet_access"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 15,
+              "minutes_typical": 15,
+              "minutes_just_missed": 18,
+              "utility": 1.0
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0024",
+          "rank": 14,
+          "score": 54.67,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 0.8167,
+              "contribution": 0.2865,
+              "loss": 0.0643,
+              "fact_ids": [
+                "syn-n0024/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.357,
+              "contribution": 0.0626,
+              "loss": 0.1128,
+              "fact_ids": [
+                "syn-n0024/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.31,
+              "contribution": 0.0544,
+              "loss": 0.1211,
+              "fact_ids": [
+                "syn-n0024/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.31,
+              "contribution": 0.0544,
+              "loss": 0.1211,
+              "fact_ids": [
+                "syn-n0024/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.886,
+              "contribution": 0.0311,
+              "loss": 0.004,
+              "fact_ids": [
+                "syn-n0024/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.786,
+              "contribution": 0.0138,
+              "loss": 0.0038,
+              "fact_ids": [
+                "syn-n0024/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.775,
+              "contribution": 0.0136,
+              "loss": 0.0039,
+              "fact_ids": [
+                "syn-n0024/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.775,
+              "contribution": 0.0136,
+              "loss": 0.0039,
+              "fact_ids": [
+                "syn-n0024/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.591,
+              "contribution": 0.0104,
+              "loss": 0.0072,
+              "fact_ids": [
+                "syn-n0024/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.357,
+              "contribution": 0.0063,
+              "loss": 0.0113,
+              "fact_ids": [
+                "syn-n0024/feature/highstreet_access"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 26,
+              "minutes_typical": 26,
+              "minutes_just_missed": 31,
+              "utility": 0.8167
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0003",
+          "rank": 15,
+          "score": 51.97,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 0.9833,
+              "contribution": 0.345,
+              "loss": 0.0058,
+              "fact_ids": [
+                "syn-n0003/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.262,
+              "contribution": 0.046,
+              "loss": 0.1295,
+              "fact_ids": [
+                "syn-n0003/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.214,
+              "contribution": 0.0375,
+              "loss": 0.1379,
+              "fact_ids": [
+                "syn-n0003/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.886,
+              "contribution": 0.0311,
+              "loss": 0.004,
+              "fact_ids": [
+                "syn-n0003/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.167,
+              "contribution": 0.0293,
+              "loss": 0.1461,
+              "fact_ids": [
+                "syn-n0003/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.591,
+              "contribution": 0.0104,
+              "loss": 0.0072,
+              "fact_ids": [
+                "syn-n0003/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.45,
+              "contribution": 0.0079,
+              "loss": 0.0096,
+              "fact_ids": [
+                "syn-n0003/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.425,
+              "contribution": 0.0075,
+              "loss": 0.0101,
+              "fact_ids": [
+                "syn-n0003/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.167,
+              "contribution": 0.0029,
+              "loss": 0.0146,
+              "fact_ids": [
+                "syn-n0003/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.119,
+              "contribution": 0.0021,
+              "loss": 0.0155,
+              "fact_ids": [
+                "syn-n0003/feature/park_proximity"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 16,
+              "minutes_typical": 16,
+              "minutes_just_missed": 18,
+              "utility": 0.9833
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0016",
+          "rank": 16,
+          "score": 48.63,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 0.7167,
+              "contribution": 0.2515,
+              "loss": 0.0994,
+              "fact_ids": [
+                "syn-n0016/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.381,
+              "contribution": 0.0668,
+              "loss": 0.1086,
+              "fact_ids": [
+                "syn-n0016/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.357,
+              "contribution": 0.0626,
+              "loss": 0.1128,
+              "fact_ids": [
+                "syn-n0016/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.31,
+              "contribution": 0.0544,
+              "loss": 0.1211,
+              "fact_ids": [
+                "syn-n0016/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.675,
+              "contribution": 0.0118,
+              "loss": 0.0057,
+              "fact_ids": [
+                "syn-n0016/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.625,
+              "contribution": 0.011,
+              "loss": 0.0066,
+              "fact_ids": [
+                "syn-n0016/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.295,
+              "contribution": 0.0104,
+              "loss": 0.0247,
+              "fact_ids": [
+                "syn-n0016/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.548,
+              "contribution": 0.0096,
+              "loss": 0.0079,
+              "fact_ids": [
+                "syn-n0016/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.31,
+              "contribution": 0.0054,
+              "loss": 0.0121,
+              "fact_ids": [
+                "syn-n0016/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.159,
+              "contribution": 0.0028,
+              "loss": 0.0148,
+              "fact_ids": [
+                "syn-n0016/feature/station_lines"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 32,
+              "minutes_typical": 32,
+              "minutes_just_missed": 37,
+              "utility": 0.7167
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0006",
+          "rank": 17,
+          "score": 44.82,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 0.85,
+              "contribution": 0.2982,
+              "loss": 0.0526,
+              "fact_ids": [
+                "syn-n0006/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.262,
+              "contribution": 0.046,
+              "loss": 0.1295,
+              "fact_ids": [
+                "syn-n0006/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.167,
+              "contribution": 0.0293,
+              "loss": 0.1461,
+              "fact_ids": [
+                "syn-n0006/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.925,
+              "contribution": 0.0162,
+              "loss": 0.0013,
+              "fact_ids": [
+                "syn-n0006/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.455,
+              "contribution": 0.016,
+              "loss": 0.0191,
+              "fact_ids": [
+                "syn-n0006/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.875,
+              "contribution": 0.0154,
+              "loss": 0.0022,
+              "fact_ids": [
+                "syn-n0006/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.591,
+              "contribution": 0.0104,
+              "loss": 0.0072,
+              "fact_ids": [
+                "syn-n0006/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.452,
+              "contribution": 0.0079,
+              "loss": 0.0096,
+              "fact_ids": [
+                "syn-n0006/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.262,
+              "contribution": 0.0046,
+              "loss": 0.0129,
+              "fact_ids": [
+                "syn-n0006/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.024,
+              "contribution": 0.0042,
+              "loss": 0.1712,
+              "fact_ids": [
+                "syn-n0006/feature/venue_food_drink"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 24,
+              "minutes_typical": 24,
+              "minutes_just_missed": 28,
+              "utility": 0.85
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0013",
+          "rank": 18,
+          "score": 39.4,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 0.6833,
+              "contribution": 0.2398,
+              "loss": 0.1111,
+              "fact_ids": [
+                "syn-n0013/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.262,
+              "contribution": 0.046,
+              "loss": 0.1295,
+              "fact_ids": [
+                "syn-n0013/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.214,
+              "contribution": 0.0375,
+              "loss": 0.1379,
+              "fact_ids": [
+                "syn-n0013/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.929,
+              "contribution": 0.0163,
+              "loss": 0.0012,
+              "fact_ids": [
+                "syn-n0013/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.875,
+              "contribution": 0.0154,
+              "loss": 0.0022,
+              "fact_ids": [
+                "syn-n0013/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.825,
+              "contribution": 0.0145,
+              "loss": 0.0031,
+              "fact_ids": [
+                "syn-n0013/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.071,
+              "contribution": 0.0125,
+              "loss": 0.163,
+              "fact_ids": [
+                "syn-n0013/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.159,
+              "contribution": 0.0056,
+              "loss": 0.0295,
+              "fact_ids": [
+                "syn-n0013/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.214,
+              "contribution": 0.0038,
+              "loss": 0.0138,
+              "fact_ids": [
+                "syn-n0013/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.159,
+              "contribution": 0.0028,
+              "loss": 0.0148,
+              "fact_ids": [
+                "syn-n0013/feature/station_lines"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 34,
+              "minutes_typical": 34,
+              "minutes_just_missed": 39,
+              "utility": 0.6833
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0001",
+          "rank": 19,
+          "score": 34.83,
+          "weight_coverage": 0.9825,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3571,
+              "utility": 0.7,
+              "contribution": 0.25,
+              "loss": 0.1071,
+              "fact_ids": [
+                "syn-n0001/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1786,
+              "utility": 0.167,
+              "contribution": 0.0298,
+              "loss": 0.1487,
+              "fact_ids": [
+                "syn-n0001/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1786,
+              "utility": 0.119,
+              "contribution": 0.0213,
+              "loss": 0.1573,
+              "fact_ids": [
+                "syn-n0001/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0179,
+              "utility": 0.976,
+              "contribution": 0.0174,
+              "loss": 0.0004,
+              "fact_ids": [
+                "syn-n0001/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0179,
+              "utility": 0.925,
+              "contribution": 0.0165,
+              "loss": 0.0013,
+              "fact_ids": [
+                "syn-n0001/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1786,
+              "utility": 0.024,
+              "contribution": 0.0043,
+              "loss": 0.1743,
+              "fact_ids": [
+                "syn-n0001/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0357,
+              "utility": 0.114,
+              "contribution": 0.0041,
+              "loss": 0.0316,
+              "fact_ids": [
+                "syn-n0001/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0179,
+              "utility": 0.159,
+              "contribution": 0.0028,
+              "loss": 0.015,
+              "fact_ids": [
+                "syn-n0001/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0179,
+              "utility": 0.119,
+              "contribution": 0.0021,
+              "loss": 0.0157,
+              "fact_ids": [
+                "syn-n0001/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": false,
+              "weight": 0.05,
+              "share": 0.0,
+              "utility": null,
+              "contribution": 0.0,
+              "loss": 0.0,
+              "fact_ids": [
+                "syn-n0001/missing/feature:air_no2"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 33,
+              "minutes_typical": 33,
+              "minutes_just_missed": 38,
+              "utility": 0.7
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        },
+        {
+          "area_id": "syn-n0008",
+          "rank": 20,
+          "score": 32.58,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 1.0,
+              "share": 0.3509,
+              "utility": 0.6,
+              "contribution": 0.2105,
+              "loss": 0.1404,
+              "fact_ids": [
+                "syn-n0008/travel/syn-p0017.pt"
+              ]
+            },
+            {
+              "component": "feature:venue_evening",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.214,
+              "contribution": 0.0375,
+              "loss": 0.1379,
+              "fact_ids": [
+                "syn-n0008/feature/venue_evening"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.975,
+              "contribution": 0.0171,
+              "loss": 0.0004,
+              "fact_ids": [
+                "syn-n0008/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.975,
+              "contribution": 0.0171,
+              "loss": 0.0004,
+              "fact_ids": [
+                "syn-n0008/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.833,
+              "contribution": 0.0146,
+              "loss": 0.0029,
+              "fact_ids": [
+                "syn-n0008/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:venue_food_drink",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.071,
+              "contribution": 0.0125,
+              "loss": 0.163,
+              "fact_ids": [
+                "syn-n0008/feature/venue_food_drink"
+              ]
+            },
+            {
+              "component": "tag:buzzy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.1754,
+              "utility": 0.071,
+              "contribution": 0.0125,
+              "loss": 0.163,
+              "fact_ids": [
+                "syn-n0008/tag/buzzy"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.159,
+              "contribution": 0.0028,
+              "loss": 0.0148,
+              "fact_ids": [
+                "syn-n0008/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0351,
+              "utility": 0.023,
+              "contribution": 0.0008,
+              "loss": 0.0343,
+              "fact_ids": [
+                "syn-n0008/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0175,
+              "utility": 0.024,
+              "contribution": 0.0004,
+              "loss": 0.0171,
+              "fact_ids": [
+                "syn-n0008/feature/highstreet_access"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0017",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 39,
+              "minutes_typical": 39,
+              "minutes_just_missed": 44,
+              "utility": 0.6
+            }
+          ],
+          "budget": null,
+          "untested_filters": []
+        }
+      ],
+      "filtered": [],
+      "unranked": [
+        {
+          "area_id": "syn-n0009",
+          "reason": "not_rankable"
+        },
+        {
+          "area_id": "syn-n0017",
+          "reason": "insufficient_data"
+        },
+        {
+          "area_id": "syn-n0020",
+          "reason": "not_rankable"
+        }
+      ],
+      "empty_spec": false,
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.8,
+          "provenance": "default"
+        },
+        "commutes": [
+          {
+            "place_id": "syn-p0017",
+            "mode": "pt",
+            "max_minutes": 45,
+            "strictness": "soft",
+            "provenance": "stated"
+          }
+        ],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 1.0,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "venue_evening",
+            "weight": 0.5,
+            "direction": "more",
+            "provenance": "stated"
+          },
+          {
+            "feature_id": "venue_food_drink",
+            "weight": 0.5,
+            "direction": "more",
+            "provenance": "stated"
+          }
+        ],
+        "tags": [
+          {
+            "tag_id": "buzzy",
+            "weight": 0.5,
+            "provenance": "stated"
+          }
+        ],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "spec_hash": "2ecc6b8a6f7897c6f00b4aff8b02b217cb5b851f24a51db2963e3f22b6fcc9cf",
+      "applied": [],
+      "rejected": []
+    }
+  }
+}

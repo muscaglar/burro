@@ -1,0 +1,13 @@
+# Not committed yet. See docs/adr/0008-package-sources.md.
+package-lock.json
+
+node_modules/
+# Written by `vercel link`. It names an account and a project.
+.vercel/
+.next/
+.swc/
+coverage/
+
+# Written by Next before it checks types. Generated, so not kept.
+next-env.d.ts
+*.tsbuildinfo

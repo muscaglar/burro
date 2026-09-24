@@ -1,0 +1,67 @@
+{
+  "scenario": "places-search-one-kind",
+  "shows": "A search that finds schools, each with the station that stands in for it",
+  "captured": true,
+  "request": {
+    "operation_id": "search_places",
+    "method": "POST",
+    "route": "/v1/places/search",
+    "path": "/v1/places/search",
+    "body": {
+      "q": "school",
+      "limit": 5
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "626",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-synthetic": "true",
+    "x-request-id": "b7387627-3a80-4bc5-be5b-bf4fd08733fc"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.3.0",
+      "synthetic": true
+    },
+    "data": {
+      "places": [
+        {
+          "place_id": "syn-p0027",
+          "name": "Kindlewharf School of Art",
+          "kind": "university",
+          "coarse_name": "Kindlewharf Studios"
+        },
+        {
+          "place_id": "syn-p0031",
+          "name": "Alderwick Primary School",
+          "kind": "school",
+          "coarse_name": "Eskerfold"
+        },
+        {
+          "place_id": "syn-p0033",
+          "name": "Larkspur Hill School",
+          "kind": "school",
+          "coarse_name": "Brackenhythe"
+        },
+        {
+          "place_id": "syn-p0034",
+          "name": "Osierholm School",
+          "kind": "school",
+          "coarse_name": "Osierholm"
+        },
+        {
+          "place_id": "syn-p0035",
+          "name": "Thrushcombe Primary School",
+          "kind": "school",
+          "coarse_name": "Hollinsworth Quay"
+        }
+      ]
+    }
+  }
+}

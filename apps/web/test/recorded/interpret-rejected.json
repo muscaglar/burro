@@ -1,0 +1,185 @@
+{
+  "scenario": "interpret-rejected",
+  "shows": "A loose wish for safety: the edit to recorded crime is rejected, the park is applied",
+  "captured": true,
+  "request": {
+    "operation_id": "interpret",
+    "method": "POST",
+    "route": "/v1/interpret",
+    "path": "/v1/interpret",
+    "body": {
+      "text": "Somewhere safe, near a park"
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "2174",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-synthetic": "true",
+    "x-request-id": "59276561-958f-4d46-9642-08d39d85a0c7"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.3.0",
+      "synthetic": true
+    },
+    "data": {
+      "status": "ok",
+      "operations": {
+        "budget_ops": [],
+        "commute_ops": [],
+        "weight_ops": [
+          {
+            "action": "nudge",
+            "feature_id": "park_proximity",
+            "value": 0.0,
+            "step": "up_large",
+            "direction": "default",
+            "provenance": "stated"
+          },
+          {
+            "action": "nudge",
+            "feature_id": "crime_violence_robbery",
+            "value": 0.0,
+            "step": "up_large",
+            "direction": "default",
+            "provenance": "inferred"
+          },
+          {
+            "action": "nudge",
+            "feature_id": "crime_burglary_theft",
+            "value": 0.0,
+            "step": "up_large",
+            "direction": "default",
+            "provenance": "inferred"
+          }
+        ],
+        "tag_ops": [],
+        "area_ops": [],
+        "setting_ops": []
+      },
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.8,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 1.0,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.5,
+            "direction": "less",
+            "provenance": "stated"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "spec_hash": "d11abd56ac03c7d24f71fc148cd822ac3780e434f8ef9f6f8a600364685d2a66",
+      "applied": [
+        {
+          "group": "weight_ops",
+          "index": 0,
+          "changed": true
+        }
+      ],
+      "rejected": [
+        {
+          "group": "weight_ops",
+          "index": 1,
+          "reason": "crime_needs_explicit_request"
+        },
+        {
+          "group": "weight_ops",
+          "index": 2,
+          "reason": "crime_needs_explicit_request"
+        }
+      ],
+      "assumptions": [
+        {
+          "code": "weight",
+          "group": "weight_ops",
+          "index": 1
+        },
+        {
+          "code": "weight",
+          "group": "weight_ops",
+          "index": 2
+        }
+      ],
+      "unmet": [],
+      "clarify": [],
+      "notice": "none",
+      "notice_text": "",
+      "interpreter": "rule",
+      "degraded": false,
+      "rests_on": [
+        {
+          "group": "weight_ops",
+          "index": 0,
+          "start": 16,
+          "end": 27
+        },
+        {
+          "group": "weight_ops",
+          "index": 1,
+          "start": 10,
+          "end": 14
+        },
+        {
+          "group": "weight_ops",
+          "index": 2,
+          "start": 10,
+          "end": 14
+        }
+      ]
+    }
+  }
+}

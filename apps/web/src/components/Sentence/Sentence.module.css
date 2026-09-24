@@ -1,0 +1,32 @@
+/* The sentence, then its source beside it. What the source opens goes under both. */
+.sentence {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-3);
+}
+
+.text {
+  flex: 1 1 16rem;
+  margin: 0;
+}
+
+.byModel {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+/*
+ * What holds the "Source" button and what it opens is no box of its own, so that each is
+ * laid out beside the sentence: the button stays where it was when it is pressed, and what
+ * it opens takes the whole width under both.
+ */
+.sentence > :has(> button[aria-expanded]) {
+  display: contents;
+}
+
+.sentence > * > button[aria-expanded] + div {
+  flex-basis: 100%;
+  margin-block-start: 0;
+}

@@ -1,0 +1,28 @@
+.lines,
+.card {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.card {
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+/* One line of text high, whatever the size of the text. */
+.line {
+  display: block;
+  height: calc(var(--leading-text) * 1em);
+}
+
+.line:last-child:not(:first-child) {
+  width: 60%;
+}
+
+.chip {
+  display: inline-block;
+  width: 8rem;
+  height: var(--target);
+  border-radius: var(--radius);
+}

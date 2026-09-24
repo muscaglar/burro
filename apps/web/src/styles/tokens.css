@@ -1,0 +1,116 @@
+/*
+ * Design tokens. Every colour, size and space the website uses is named here
+ * and nowhere else. docs/design/web.md, section 8, says what each is for and
+ * what it must contrast with. test/tokens.test.ts works the contrast out
+ * again from this file and fails if any pair falls short.
+ *
+ * The dark values apply when the system asks for them. There is no switch,
+ * because a remembered choice would need storage.
+ *
+ * Breakpoints cannot be custom properties. They are 40rem and 60rem.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* Colour: light */
+  --bg: #ffffff;
+  --surface: #f4f5f3;
+  --text: #1b1f23;
+  --muted: #4d565e;
+  --accent: #0a5a8c;
+  --on-accent: #ffffff;
+  --border: #6f7a83;
+  --focus: #0a5a8c;
+  --notice-text: #3a2c00;
+  --notice-bg: #fff1c2;
+  --notice-edge: #8a6d00;
+  --info-text: #12324a;
+  --info-bg: #e8f1f8;
+  --tradeoff: #8f3a12;
+  --good: #1b6638;
+  --error: #9b1c1c;
+  --map-water: #c9dfec;
+  --map-land: #eceae2;
+  --map-1: #dcebd3;
+  --map-2: #bedcb4;
+  --map-3: #9ccb98;
+  --map-4: #77b681;
+  --map-5: #559f6f;
+  --map-line: #1b1f23;
+
+  /* Type: the system's own fonts, and no font file */
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --size-small: 0.875rem;
+  --size-body: 1rem;
+  --size-lead: 1.125rem;
+  --size-h3: 1.375rem;
+  --size-h2: 1.75rem;
+  --size-h1: 2.25rem;
+  --leading-text: 1.5;
+  --leading-heading: 1.25;
+  --measure: 70ch;
+
+  /* Space */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --radius: 4px;
+  --radius-card: 8px;
+  --page-width: 75rem;
+
+  /* Targets: the main controls, and the small ones such as "Source" */
+  --target: 44px;
+  --target-min: 24px;
+  --target-gap: 8px;
+
+  /* Focus: a ring between two bands of the page colour */
+  --focus-ring: 3px;
+  --focus-band: 2px;
+
+  /* Motion: none, unless the system says motion is welcome */
+  --motion-fast: 0ms;
+  --motion-slow: 0ms;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111416;
+    --surface: #1a1e21;
+    --text: #eef0f1;
+    --muted: #b3bcc3;
+    --accent: #8ecbf3;
+    --on-accent: #0b1c27;
+    --border: #88939c;
+    --focus: #8ecbf3;
+    --notice-text: #ffe7a3;
+    --notice-bg: #3a2c00;
+    --notice-edge: #d1a935;
+    --info-text: #d7e9f7;
+    --info-bg: #12324a;
+    --tradeoff: #f0a57e;
+    --good: #8fd3a5;
+    --error: #ff9d9d;
+    --map-water: #0c2735;
+    --map-land: #25282a;
+    --map-1: #1f2e27;
+    --map-2: #274036;
+    --map-3: #2f5444;
+    --map-4: #386a54;
+    --map-5: #438265;
+    --map-line: #eef0f1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    --motion-fast: 120ms;
+    --motion-slow: 200ms;
+  }
+}

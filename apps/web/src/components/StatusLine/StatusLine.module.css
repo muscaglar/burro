@@ -1,0 +1,6 @@
+/* One line high whether it says anything or not, so nothing under it moves. */
+.status {
+  min-height: calc(var(--leading-text) * 1em);
+  margin: 0;
+  color: var(--muted);
+}

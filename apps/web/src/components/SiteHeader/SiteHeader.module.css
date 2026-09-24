@@ -1,0 +1,45 @@
+.header {
+  border-block-end: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: var(--space-2) var(--space-4);
+}
+
+.name {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--size-h3);
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* The page being read is marked by weight and by an edge, as well as to a screen reader. */
+.link[aria-current="page"] {
+  color: var(--text);
+  font-weight: 700;
+  text-decoration-thickness: 2px;
+}

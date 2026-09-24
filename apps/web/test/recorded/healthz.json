@@ -1,0 +1,25 @@
+{
+  "scenario": "healthz",
+  "shows": "The service is up. The one answer with no meta",
+  "captured": true,
+  "request": {
+    "operation_id": "healthz",
+    "method": "GET",
+    "route": "/healthz",
+    "path": "/healthz"
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "11",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-synthetic": "true",
+    "x-request-id": "5ec56e42-4afe-4267-bf21-6f8f586d16bb"
+  },
+  "body": {
+    "ok": true
+  }
+}

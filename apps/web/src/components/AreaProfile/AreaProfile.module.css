@@ -1,0 +1,155 @@
+.profile {
+  display: grid;
+  gap: var(--space-5);
+  padding-block-end: var(--space-7);
+  min-width: 0;
+}
+
+.head {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.head h1 {
+  margin: 0;
+}
+
+.borough {
+  margin: 0;
+}
+
+.borough dd {
+  margin: 0;
+  font-size: var(--size-lead);
+}
+
+.notRanked {
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  max-width: none;
+  background: var(--surface);
+  border-inline-start: 4px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* Each link is a small target, so two rows of them are as far apart as two small targets must be. */
+.contents ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--target-gap) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.contents a {
+  display: inline-flex;
+  align-items: center;
+}
+
+.compare {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+}
+
+.compare > :last-child {
+  justify-self: stretch;
+}
+
+.part {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.part h2,
+.part h3 {
+  margin: 0;
+}
+
+.part > p {
+  margin: 0;
+}
+
+.lead {
+  color: var(--muted);
+}
+
+.small {
+  font-size: var(--size-lead);
+}
+
+/* The picture beside the list that says what it shows. One above the other where there is no room. */
+.where {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+.neighbours,
+.sources {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+}
+
+.neighbours a,
+.sources a,
+.back a {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* One fact a row, with a rule between one and the next. */
+.rows {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rows > li {
+  max-width: none;
+  padding-block: var(--space-3);
+  border-block-end: 1px solid var(--border);
+}
+
+.rows > li:first-child {
+  border-block-start: 1px solid var(--border);
+}
+
+.noFigure {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.noFigure p {
+  margin: 0;
+}
+
+.name {
+  font-weight: 600;
+}
+
+.says {
+  color: var(--muted);
+}
+
+.back {
+  margin: 0;
+}
+
+@media (min-width: 40rem) {
+  .where {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+}
+
+@media (forced-colors: active) {
+  .rows > li {
+    border-color: CanvasText;
+  }
+}

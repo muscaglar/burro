@@ -1,0 +1,168 @@
+.search {
+  display: grid;
+  gap: var(--space-3);
+  padding-block-end: var(--space-7);
+}
+
+.search h1 {
+  margin: 0;
+}
+
+.lead {
+  margin: 0;
+  color: var(--muted);
+}
+
+/* A skip link is drawn only while it has the focus. */
+.skip {
+  position: absolute;
+  inset-inline-start: -9999px;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg);
+}
+
+.skip:focus-visible {
+  position: static;
+  justify-self: start;
+}
+
+/* Narrow screens: one column, and the list, the map and the table under three tabs. */
+.columns {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.left,
+.right {
+  display: grid;
+  gap: var(--space-4);
+  align-content: start;
+  min-width: 0;
+}
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.beside {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  align-items: start;
+}
+
+/*
+ * What Burro says of the search: what happened, what was not read, a question, a failure,
+ * and what was understood. It stands directly under the box, where it is seen when Search
+ * is pressed.
+ */
+.says {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/*
+ * Before a search the line that says what happened has nothing to say, and holds no room:
+ * the examples follow the box as they did. It is on the page all the same, so that a screen
+ * reader is told when it first says something.
+ */
+.says[data-open="false"] > [role="status"]:empty {
+  min-height: 0;
+}
+
+.degraded,
+.part {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+
+/* That a part was not read changes what the ranking means, so it is drawn as the notice is. */
+.partSaid {
+  justify-self: stretch;
+  padding: var(--space-3) var(--space-4);
+  background: var(--notice-bg);
+  color: var(--notice-text);
+  border-inline-start: 4px solid var(--notice-edge);
+  border-radius: var(--radius);
+}
+
+.partSaid p,
+.partShown,
+.goTo {
+  margin: 0;
+}
+
+/* One line high whether it says anything or not, so that pressing the button moves nothing. */
+.partShown {
+  min-height: calc(var(--leading-text) * 1em);
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.degraded > :first-child {
+  justify-self: stretch;
+}
+
+.resultsTitle {
+  margin: 0 0 var(--space-3);
+  font-size: var(--size-h2);
+}
+
+.note {
+  margin: 0 0 var(--space-3);
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.panel {
+  min-width: 0;
+}
+
+.panel:focus {
+  outline: none;
+}
+
+.wideTabs {
+  display: none;
+}
+
+.panel[data-narrow="false"] {
+  display: none;
+}
+
+/* Wide screens: the list beside the map. The list is always there, and two tabs choose map or table. */
+@media (min-width: 60rem) {
+  .columns {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .right {
+    position: sticky;
+    inset-block-start: var(--space-4);
+    max-height: calc(100vh - 2 * var(--space-4));
+    overflow-y: auto;
+  }
+
+  .narrowTabs {
+    display: none;
+  }
+
+  .wideTabs {
+    display: block;
+  }
+
+  .panel[data-narrow="false"] {
+    display: block;
+  }
+
+  .panel[data-wide="false"] {
+    display: none;
+  }
+}

@@ -1,0 +1,50 @@
+.sources {
+  display: grid;
+  gap: var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.source {
+  max-width: none;
+  padding: var(--space-5);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.name {
+  margin-block-start: 0;
+  font-size: var(--size-h3);
+}
+
+.attribution {
+  font-size: var(--size-lead);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+  gap: var(--space-2) var(--space-5);
+  margin: 0 0 var(--space-4);
+}
+
+.facts dd {
+  margin: 0;
+}
+
+.address {
+  overflow-wrap: anywhere;
+}
+
+.usedFor {
+  margin-block-start: var(--space-4);
+  font-size: var(--size-body);
+}
+
+.features {
+  columns: 18rem;
+  column-gap: var(--space-6);
+  margin: 0;
+}

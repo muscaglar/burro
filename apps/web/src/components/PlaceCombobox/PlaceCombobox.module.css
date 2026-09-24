@@ -1,0 +1,78 @@
+.combobox {
+  position: relative;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.label {
+  font-weight: 650;
+}
+
+.hint,
+.status,
+.full {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+/* One line high whether it says anything or not, so nothing under it moves. */
+.status {
+  min-height: calc(var(--leading-text) * 1em);
+}
+
+.field {
+  width: 100%;
+}
+
+/* The list is laid over what is under it, so that opening it moves nothing. */
+.list {
+  position: absolute;
+  z-index: 2;
+  inset-inline: 0;
+  top: calc(100% - var(--leading-text) * 1em);
+  max-height: 18rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.list[hidden] {
+  display: none;
+}
+
+.option {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  max-width: none;
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+}
+
+/* The option the keys are on is marked by an edge and a ground, and says so to a screen reader. */
+.option[aria-selected="true"] {
+  background: var(--surface);
+  box-shadow: inset 4px 0 0 var(--accent);
+}
+
+.name {
+  font-weight: 600;
+}
+
+.kind {
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+@media (forced-colors: active) {
+  .option[aria-selected="true"] {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
+}

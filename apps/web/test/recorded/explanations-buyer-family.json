@@ -1,0 +1,1245 @@
+{
+  "scenario": "explanations-buyer-family",
+  "shows": "Reasons and a trade-off for the first five, with every fact they cite",
+  "captured": true,
+  "request": {
+    "operation_id": "explain_top",
+    "method": "POST",
+    "route": "/v1/explanations",
+    "path": "/v1/explanations",
+    "body": {
+      "spec": {
+        "schema_version": 1,
+        "tenure": "buy",
+        "budget": {
+          "amount": 450000,
+          "segment": "terraced",
+          "strictness": "soft",
+          "weight": 0.8,
+          "provenance": "stated"
+        },
+        "commutes": [
+          {
+            "place_id": "syn-p0029",
+            "mode": "pt",
+            "max_minutes": 40,
+            "strictness": "soft",
+            "provenance": "stated"
+          }
+        ],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 1.0,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "green_cover",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.5,
+            "direction": "less",
+            "provenance": "stated"
+          },
+          {
+            "feature_id": "school_primary_attainment",
+            "weight": 0.5,
+            "direction": "more",
+            "provenance": "stated"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [],
+        "areas": [],
+        "tenure_from": "stated",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "limit": 5
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "20246",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-synthetic": "true",
+    "x-request-id": "528835fc-ec30-46f4-b592-898461cea95d"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.3.0",
+      "synthetic": true
+    },
+    "data": {
+      "explanations": [
+        {
+          "area_id": "syn-n0017",
+          "orientation": {
+            "text": "Otterby Fields is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0017/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "The upper end is £5,000 under your budget of £450,000.",
+              "fact_ids": [
+                "syn-n0017/budget_fit/buy.terraced"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "By public transport to Dulcimer Green Hospital: about 31 minutes on a typical weekday morning, 36 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0017/travel/syn-p0029.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Walk to the nearest station: 27 min, further than 77% of the 22 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0017/feature/station_walk"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": [
+            {
+              "text": "There is no Modelled annual mean nitrogen dioxide figure for Otterby Fields in this release, so it was left out of the score.",
+              "fact_ids": [
+                "syn-n0017/missing/feature:air_no2"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "There is no Share of homes within a 10-minute walk of a high street or town centre figure for Otterby Fields in this release, so it was left out of the score.",
+              "fact_ids": [
+                "syn-n0017/missing/feature:highstreet_access"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "There is no Share of homes at 55 dB or more of transport noise figure for Otterby Fields in this release, so it was left out of the score.",
+              "fact_ids": [
+                "syn-n0017/missing/feature:noise_exposure"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "There is no Walk to the nearest park of 2 ha or more figure for Otterby Fields in this release, so it was left out of the score.",
+              "fact_ids": [
+                "syn-n0017/missing/feature:park_proximity"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "There is no Pupils meeting the expected standard at nearby primaries figure for Otterby Fields in this release, so it was left out of the score.",
+              "fact_ids": [
+                "syn-n0017/missing/feature:school_primary_attainment"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0006",
+          "orientation": {
+            "text": "Farrowmere is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0006/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By public transport to Dulcimer Green Hospital: about 22 minutes on a typical weekday morning, 27 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0006/travel/syn-p0029.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "The upper end is £35,000 under your budget of £450,000.",
+              "fact_ids": [
+                "syn-n0006/budget_fit/buy.terraced"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Modelled annual mean nitrogen dioxide: 15.4 µg/m³, lower than 90% of the 20 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0006/feature/air_no2"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Pupils meeting the expected standard at nearby primaries: 67%, lower than 60% of the 20 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0006/feature/school_primary_attainment"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0003",
+          "orientation": {
+            "text": "Cindermoor is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0003/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "The upper end is £165,000 under your budget of £450,000.",
+              "fact_ids": [
+                "syn-n0003/budget_fit/buy.terraced"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "By public transport to Dulcimer Green Hospital: about 25 minutes on a typical weekday morning, 30 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0003/travel/syn-p0029.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Walk to the nearest station: 2 min, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
+              "fact_ids": [
+                "syn-n0003/feature/station_walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Walk to the nearest park of 2 ha or more: 1080 m, further than 85% of the 21 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0003/feature/park_proximity"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": [
+            {
+              "text": "There is no Pupils meeting the expected standard at nearby primaries figure for Cindermoor in this release, so it was left out of the score.",
+              "fact_ids": [
+                "syn-n0003/missing/feature:school_primary_attainment"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0014",
+          "orientation": {
+            "text": "Marrowfen is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0014/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By public transport to Dulcimer Green Hospital: about 24 minutes on a typical weekday morning, 29 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0014/travel/syn-p0029.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Walk to the nearest park of 2 ha or more: 800 m, further than 47% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0014/feature/park_proximity"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Modelled annual mean nitrogen dioxide: 18.5 µg/m³, lower than 65% of the 20 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0014/feature/air_no2"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Pupils meeting the expected standard at nearby primaries: 67%, lower than 55% of the 20 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0014/feature/school_primary_attainment"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": [
+            {
+              "text": "There is no Share of homes at 55 dB or more of transport noise figure for Marrowfen in this release, so it was left out of the score.",
+              "fact_ids": [
+                "syn-n0014/missing/feature:noise_exposure"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0004",
+          "orientation": {
+            "text": "Dulcimer Green is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0004/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By public transport to Dulcimer Green Hospital: about 10 minutes on a typical weekday morning, 10 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0004/travel/syn-p0029.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Pupils meeting the expected standard at nearby primaries: 84%, higher than 95% of the 20 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0004/feature/school_primary_attainment"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Walk to the nearest park of 2 ha or more: 600 m, closer than 66% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0004/feature/park_proximity"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "The upper end is £220,000 over your budget of £450,000.",
+            "fact_ids": [
+              "syn-n0004/budget_fit/buy.terraced"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        }
+      ],
+      "facts": [
+        {
+          "fact_id": "syn-n0017/area/name",
+          "area_id": "syn-n0017",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Otterby Fields",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Otterby Fields",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/budget_fit/buy.terraced",
+          "area_id": "syn-n0017",
+          "kind": "budget_fit",
+          "key": "buy.terraced",
+          "label": "Budget",
+          "template": "budget_under",
+          "slots": {
+            "margin": "5,000",
+            "amount": "450,000",
+            "upper": "445,000"
+          },
+          "numbers": [
+            "£450000",
+            "£445000",
+            "£5000"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/feature/station_walk",
+          "area_id": "syn-n0017",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Walk to the nearest station",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest station",
+            "value": "27 min",
+            "comparative": "further than",
+            "pct": "77",
+            "compared": "22",
+            "standing": "further than 77% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "27",
+            "77%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/missing/feature:air_no2",
+          "area_id": "syn-n0017",
+          "kind": "missing",
+          "key": "feature:air_no2",
+          "label": "Modelled annual mean nitrogen dioxide",
+          "template": "missing",
+          "slots": {
+            "label": "Modelled annual mean nitrogen dioxide",
+            "name": "Otterby Fields"
+          },
+          "numbers": [],
+          "names": [
+            "Otterby Fields"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/missing/feature:highstreet_access",
+          "area_id": "syn-n0017",
+          "kind": "missing",
+          "key": "feature:highstreet_access",
+          "label": "Share of homes within a 10-minute walk of a high street or town centre",
+          "template": "missing",
+          "slots": {
+            "label": "Share of homes within a 10-minute walk of a high street or town centre",
+            "name": "Otterby Fields"
+          },
+          "numbers": [],
+          "names": [
+            "Otterby Fields"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/missing/feature:noise_exposure",
+          "area_id": "syn-n0017",
+          "kind": "missing",
+          "key": "feature:noise_exposure",
+          "label": "Share of homes at 55 dB or more of transport noise",
+          "template": "missing",
+          "slots": {
+            "label": "Share of homes at 55 dB or more of transport noise",
+            "name": "Otterby Fields"
+          },
+          "numbers": [],
+          "names": [
+            "Otterby Fields"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/missing/feature:park_proximity",
+          "area_id": "syn-n0017",
+          "kind": "missing",
+          "key": "feature:park_proximity",
+          "label": "Walk to the nearest park of 2 ha or more",
+          "template": "missing",
+          "slots": {
+            "label": "Walk to the nearest park of 2 ha or more",
+            "name": "Otterby Fields"
+          },
+          "numbers": [],
+          "names": [
+            "Otterby Fields"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/missing/feature:school_primary_attainment",
+          "area_id": "syn-n0017",
+          "kind": "missing",
+          "key": "feature:school_primary_attainment",
+          "label": "Pupils meeting the expected standard at nearby primaries",
+          "template": "missing",
+          "slots": {
+            "label": "Pupils meeting the expected standard at nearby primaries",
+            "name": "Otterby Fields"
+          },
+          "numbers": [],
+          "names": [
+            "Otterby Fields"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/travel/syn-p0029.pt",
+          "area_id": "syn-n0017",
+          "kind": "travel",
+          "key": "syn-p0029.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Dulcimer Green Hospital",
+            "typical": "31",
+            "missed": "36"
+          },
+          "numbers": [
+            "31",
+            "36"
+          ],
+          "names": [
+            "Dulcimer Green Hospital"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/area/name",
+          "area_id": "syn-n0006",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Farrowmere",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Farrowmere",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/budget_fit/buy.terraced",
+          "area_id": "syn-n0006",
+          "kind": "budget_fit",
+          "key": "buy.terraced",
+          "label": "Budget",
+          "template": "budget_under",
+          "slots": {
+            "margin": "35,000",
+            "amount": "450,000",
+            "upper": "415,000"
+          },
+          "numbers": [
+            "£450000",
+            "£415000",
+            "£35000"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/feature/air_no2",
+          "area_id": "syn-n0006",
+          "kind": "feature",
+          "key": "air_no2",
+          "label": "Modelled annual mean nitrogen dioxide",
+          "template": "feature",
+          "slots": {
+            "label": "Modelled annual mean nitrogen dioxide",
+            "value": "15.4 µg/m³",
+            "comparative": "lower than",
+            "pct": "90",
+            "compared": "20",
+            "standing": "lower than 90% of the 20 areas compared in this release"
+          },
+          "numbers": [
+            "15.4",
+            "90%",
+            "20"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/feature/school_primary_attainment",
+          "area_id": "syn-n0006",
+          "kind": "feature",
+          "key": "school_primary_attainment",
+          "label": "Pupils meeting the expected standard at nearby primaries",
+          "template": "feature",
+          "slots": {
+            "label": "Pupils meeting the expected standard at nearby primaries",
+            "value": "67%",
+            "comparative": "lower than",
+            "pct": "60",
+            "compared": "20",
+            "standing": "lower than 60% of the 20 areas compared in this release"
+          },
+          "numbers": [
+            "67%",
+            "60%",
+            "20"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/travel/syn-p0029.pt",
+          "area_id": "syn-n0006",
+          "kind": "travel",
+          "key": "syn-p0029.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Dulcimer Green Hospital",
+            "typical": "22",
+            "missed": "27"
+          },
+          "numbers": [
+            "22",
+            "27"
+          ],
+          "names": [
+            "Dulcimer Green Hospital"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/area/name",
+          "area_id": "syn-n0003",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Cindermoor",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Cindermoor",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/budget_fit/buy.terraced",
+          "area_id": "syn-n0003",
+          "kind": "budget_fit",
+          "key": "buy.terraced",
+          "label": "Budget",
+          "template": "budget_under",
+          "slots": {
+            "margin": "165,000",
+            "amount": "450,000",
+            "upper": "285,000"
+          },
+          "numbers": [
+            "£450000",
+            "£285000",
+            "£165000"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/park_proximity",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Walk to the nearest park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest park of 2 ha or more",
+            "value": "1080 m",
+            "comparative": "further than",
+            "pct": "85",
+            "compared": "21",
+            "standing": "further than 85% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "1080",
+            "85%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/station_walk",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Walk to the nearest station",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest station",
+            "value": "2 min",
+            "comparative": "closer than",
+            "pct": "77",
+            "compared": "22",
+            "level": "4",
+            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others"
+          },
+          "numbers": [
+            "2",
+            "77%",
+            "22",
+            "4"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/missing/feature:school_primary_attainment",
+          "area_id": "syn-n0003",
+          "kind": "missing",
+          "key": "feature:school_primary_attainment",
+          "label": "Pupils meeting the expected standard at nearby primaries",
+          "template": "missing",
+          "slots": {
+            "label": "Pupils meeting the expected standard at nearby primaries",
+            "name": "Cindermoor"
+          },
+          "numbers": [],
+          "names": [
+            "Cindermoor"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/travel/syn-p0029.pt",
+          "area_id": "syn-n0003",
+          "kind": "travel",
+          "key": "syn-p0029.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Dulcimer Green Hospital",
+            "typical": "25",
+            "missed": "30"
+          },
+          "numbers": [
+            "25",
+            "30"
+          ],
+          "names": [
+            "Dulcimer Green Hospital"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/area/name",
+          "area_id": "syn-n0014",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Marrowfen",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Marrowfen",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/feature/air_no2",
+          "area_id": "syn-n0014",
+          "kind": "feature",
+          "key": "air_no2",
+          "label": "Modelled annual mean nitrogen dioxide",
+          "template": "feature",
+          "slots": {
+            "label": "Modelled annual mean nitrogen dioxide",
+            "value": "18.5 µg/m³",
+            "comparative": "lower than",
+            "pct": "65",
+            "compared": "20",
+            "standing": "lower than 65% of the 20 areas compared in this release"
+          },
+          "numbers": [
+            "18.5",
+            "65%",
+            "20"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/feature/park_proximity",
+          "area_id": "syn-n0014",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Walk to the nearest park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest park of 2 ha or more",
+            "value": "800 m",
+            "comparative": "further than",
+            "pct": "47",
+            "compared": "21",
+            "standing": "further than 47% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "800",
+            "47%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/feature/school_primary_attainment",
+          "area_id": "syn-n0014",
+          "kind": "feature",
+          "key": "school_primary_attainment",
+          "label": "Pupils meeting the expected standard at nearby primaries",
+          "template": "feature",
+          "slots": {
+            "label": "Pupils meeting the expected standard at nearby primaries",
+            "value": "67%",
+            "comparative": "lower than",
+            "pct": "55",
+            "compared": "20",
+            "standing": "lower than 55% of the 20 areas compared in this release"
+          },
+          "numbers": [
+            "67%",
+            "55%",
+            "20"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/missing/feature:noise_exposure",
+          "area_id": "syn-n0014",
+          "kind": "missing",
+          "key": "feature:noise_exposure",
+          "label": "Share of homes at 55 dB or more of transport noise",
+          "template": "missing",
+          "slots": {
+            "label": "Share of homes at 55 dB or more of transport noise",
+            "name": "Marrowfen"
+          },
+          "numbers": [],
+          "names": [
+            "Marrowfen"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/travel/syn-p0029.pt",
+          "area_id": "syn-n0014",
+          "kind": "travel",
+          "key": "syn-p0029.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Dulcimer Green Hospital",
+            "typical": "24",
+            "missed": "29"
+          },
+          "numbers": [
+            "24",
+            "29"
+          ],
+          "names": [
+            "Dulcimer Green Hospital"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/area/name",
+          "area_id": "syn-n0004",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Dulcimer Green",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Dulcimer Green",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/budget_fit/buy.terraced",
+          "area_id": "syn-n0004",
+          "kind": "budget_fit",
+          "key": "buy.terraced",
+          "label": "Budget",
+          "template": "budget_over",
+          "slots": {
+            "margin": "220,000",
+            "amount": "450,000",
+            "upper": "670,000"
+          },
+          "numbers": [
+            "£450000",
+            "£670000",
+            "£220000"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/feature/park_proximity",
+          "area_id": "syn-n0004",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Walk to the nearest park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest park of 2 ha or more",
+            "value": "600 m",
+            "comparative": "closer than",
+            "pct": "66",
+            "compared": "21",
+            "standing": "closer than 66% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "600",
+            "66%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/feature/school_primary_attainment",
+          "area_id": "syn-n0004",
+          "kind": "feature",
+          "key": "school_primary_attainment",
+          "label": "Pupils meeting the expected standard at nearby primaries",
+          "template": "feature",
+          "slots": {
+            "label": "Pupils meeting the expected standard at nearby primaries",
+            "value": "84%",
+            "comparative": "higher than",
+            "pct": "95",
+            "compared": "20",
+            "standing": "higher than 95% of the 20 areas compared in this release"
+          },
+          "numbers": [
+            "84%",
+            "95%",
+            "20"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/travel/syn-p0029.pt",
+          "area_id": "syn-n0004",
+          "kind": "travel",
+          "key": "syn-p0029.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Dulcimer Green Hospital",
+            "typical": "10",
+            "missed": "10"
+          },
+          "numbers": [
+            "10"
+          ],
+          "names": [
+            "Dulcimer Green Hospital"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        }
+      ]
+    }
+  }
+}

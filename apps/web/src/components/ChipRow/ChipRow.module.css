@@ -1,0 +1,113 @@
+.row {
+  display: grid;
+  gap: var(--space-2);
+  /* The row is at least one chip high before it has any, so nothing moves when they come. */
+  min-height: var(--target);
+}
+
+/* The heading says what the chips are. It is small, and it is there to be read. */
+.title {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: grid;
+  gap: var(--space-2);
+  max-width: none;
+}
+
+/* A chip that is open takes the row, and its control sits under it. */
+.chip[data-open="true"] {
+  flex-basis: 100%;
+}
+
+.head {
+  display: inline-flex;
+  align-items: stretch;
+  justify-self: start;
+  max-width: 100%;
+  min-width: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+/* Assumed is said in words. The dashed edge repeats it for the eye. */
+.chip[data-assumed="true"] .head {
+  border-style: dashed;
+}
+
+.main {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  padding: var(--space-1) var(--space-3);
+  border: 0;
+  background: transparent;
+  text-align: left;
+}
+
+.plain {
+  min-height: var(--target);
+}
+
+.label {
+  font-weight: 600;
+}
+
+.assumed {
+  color: var(--muted);
+  font-style: italic;
+  font-weight: 400;
+}
+
+.remove {
+  padding: 0 var(--space-2);
+  border: 0;
+  border-inline-start: 1px solid var(--border);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: transparent;
+  font-size: var(--size-lead);
+  line-height: 1;
+}
+
+.editor {
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.editor[hidden] {
+  display: none;
+}
+
+/* What explains the chips: what "assumed" means, what the usual settings are, who read the words. */
+.hints {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.hints p {
+  margin: 0;
+}
+
+@media (forced-colors: active) {
+  .head {
+    border-color: ButtonText;
+  }
+}

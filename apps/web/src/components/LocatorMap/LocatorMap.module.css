@@ -1,0 +1,42 @@
+.locator {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.water {
+  fill: var(--map-water);
+}
+
+.area {
+  fill: var(--map-land);
+  stroke: var(--map-line);
+  stroke-width: 0.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.here {
+  fill: var(--map-5);
+  stroke: var(--map-line);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+@media (forced-colors: active) {
+  .water,
+  .area {
+    fill: Canvas;
+  }
+
+  .area,
+  .here {
+    stroke: CanvasText;
+  }
+
+  .here {
+    fill: Highlight;
+  }
+}

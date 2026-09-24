@@ -1,0 +1,38 @@
+.note {
+  display: inline-block;
+  vertical-align: baseline;
+}
+
+.link {
+  display: inline-flex;
+  align-items: center;
+  font-size: var(--size-small);
+}
+
+.lines {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  list-style: none;
+  font-size: var(--size-small);
+  background: var(--surface);
+  border-inline-start: 2px solid var(--border);
+}
+
+.lines li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+}
+
+.lines span {
+  color: var(--muted);
+}
+
+.lines .madeUp {
+  color: var(--notice-text);
+  background: var(--notice-bg);
+  padding: 0 var(--space-1);
+  border-radius: var(--radius);
+}

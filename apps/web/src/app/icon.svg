@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- A pin on a square, in the colours of the page. Drawn by hand: it loads nothing. -->
+  <title>Burro</title>
+  <style>
+    .ground { fill: #0a5a8c; }
+    .pin { fill: #ffffff; }
+    @media (prefers-color-scheme: dark) {
+      .ground { fill: #8ecbf3; }
+      .pin { fill: #0b1c27; }
+    }
+  </style>
+  <rect class="ground" width="32" height="32" rx="6" />
+  <path
+    class="pin"
+    fill-rule="evenodd"
+    d="M16 5a9 9 0 0 0-9 9c0 6 9 13 9 13s9-7 9-13a9 9 0 0 0-9-9zm0 12.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"
+  />
+</svg>

@@ -1,0 +1,49 @@
+{
+  "name": "burro-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "The Burro website: prompt, ranked map, refine. Every sentence about a place comes from the API.",
+  "engines": {
+    "node": ">=20.9"
+  },
+  "scripts": {
+    "gen:api": "node scripts/gen-api.mjs",
+    "check:api": "node scripts/gen-api.mjs --check",
+    "typecheck": "NEXT_TELEMETRY_DISABLED=1 next typegen && tsc --noEmit",
+    "lint": "eslint . --max-warnings 0",
+    "test": "NEXT_TELEMETRY_DISABLED=1 jest",
+    "build": "NEXT_TELEMETRY_DISABLED=1 next build",
+    "dev": "NEXT_TELEMETRY_DISABLED=1 next dev",
+    "start": "NEXT_TELEMETRY_DISABLED=1 next start",
+    "check:pages": "node scripts/check-pages.mjs",
+    "check": "npm run check:api && npm run typecheck && npm run lint && npm run test && npm run build && npm run check:pages"
+  },
+  "dependencies": {
+    "maplibre-gl": "~5.24.0",
+    "next": "~16.3.6",
+    "react": "~19.2.8",
+    "react-dom": "~19.2.8"
+  },
+  "devDependencies": {
+    "@maplibre/maplibre-gl-style-spec": "~24.8.1",
+    "@testing-library/dom": "~10.4.1",
+    "@testing-library/jest-dom": "~7.0.1",
+    "@testing-library/react": "~16.3.3",
+    "@testing-library/user-event": "~14.6.7",
+    "@types/jest": "~30.0.0",
+    "@types/node": "~26.5.0",
+    "@types/react": "~19.2.18",
+    "@types/react-dom": "~19.2.7",
+    "ajv": "~8.20.0",
+    "axe-core": "~4.13.0",
+    "eslint": "~9.39.4",
+    "eslint-config-next": "~16.3.4",
+    "jest": "~30.5.1",
+    "jest-environment-jsdom": "~30.5.1",
+    "openapi-typescript": "~7.6.1",
+    "typescript": "~5.9.3"
+  },
+  "overrides": {
+    "@redocly/openapi-core": "1.30.0"
+  }
+}

@@ -1,0 +1,401 @@
+.list {
+  display: grid;
+  gap: var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * A list that is being worked out again stays where it is, and says so in words above
+ * it. It is not dimmed: at 70% its muted text, its links and its edges all fall below the
+ * contrast they need. The line has its height whether or not it says anything.
+ */
+.working {
+  min-height: calc(var(--leading-text) * 1em);
+  margin: 0 0 var(--space-2);
+  font-weight: 600;
+}
+
+.item {
+  max-width: none;
+  /* A card brought into view is not left under the top edge. */
+  scroll-margin-block: var(--space-5);
+}
+
+.waiting {
+  margin: 0;
+  color: var(--muted);
+}
+
+.card,
+.row {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.row {
+  gap: var(--space-2);
+}
+
+/* The chosen area is marked by a heavy edge, and says so to a screen reader. */
+.card[aria-current="true"],
+.row[aria-current="true"] {
+  outline: 3px solid var(--map-line);
+  outline-offset: 1px;
+}
+
+.heading {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+}
+
+.rank {
+  display: grid;
+  place-items: center;
+  min-width: 2rem;
+  height: 2rem;
+  margin: 0;
+  padding: 0 var(--space-1);
+  border-radius: 1rem;
+  background: var(--map-line);
+  color: var(--bg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.names {
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  font-size: var(--size-h3);
+}
+
+.row .name {
+  font-size: var(--size-lead);
+}
+
+.borough {
+  margin: 0;
+  color: var(--muted);
+}
+
+.fit {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 7rem;
+  text-align: right;
+}
+
+.fit p {
+  margin: 0;
+}
+
+.fitLabel {
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.fitFigure {
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.meter {
+  height: var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.meter span {
+  display: block;
+  height: 100%;
+  background: var(--text);
+}
+
+.part {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.part h4 {
+  margin: 0;
+  font-size: var(--size-body);
+  color: var(--muted);
+}
+
+.where {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-3) var(--space-4);
+  align-items: start;
+}
+
+.whereWords {
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* Room for three reasons, whether there are three or not. */
+.reasons {
+  min-height: calc(3 * var(--leading-text) * 1em + 2 * var(--space-2));
+}
+
+.reasons ol {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+}
+
+.reasons li {
+  max-width: none;
+}
+
+.reasons p {
+  margin: 0;
+}
+
+/* The trade-off is told apart by its word and its mark, as well as its colour. */
+.part .tradeOff {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--tradeoff);
+}
+
+.tradeOffMark {
+  width: 0;
+  height: 0;
+  border-inline: 0.4em solid transparent;
+  border-block-end: 0.7em solid currentColor;
+}
+
+.completeness {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.based,
+.untested {
+  margin: 0;
+}
+
+/*
+ * A firm limit that could not be tested. It is the gravest thing a result can carry, so it
+ * has the mark and the weight of the trade-off, and is not small print.
+ */
+.untested {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  color: var(--tradeoff);
+  font-weight: 600;
+}
+
+.untested .tradeOffMark {
+  flex: none;
+}
+
+.completeness .meter {
+  max-width: 16rem;
+}
+
+.journeysPart,
+.breakdownPart {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.journeys,
+.breakdown {
+  margin: 0;
+}
+
+.journeys th,
+.journeys td,
+.breakdown th,
+.breakdown td {
+  padding-inline-end: var(--space-4);
+}
+
+/* What a cell is of. Shown only where the rows are stacked, and the headings are not drawn. */
+.cellLabel {
+  display: none;
+  color: var(--muted);
+  font-size: var(--size-small);
+  font-weight: 400;
+}
+
+/* Which journey the fit is worked out from, and that the figures are rounded down. */
+.uses,
+.rounded,
+.timed {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+/* What the data says of one thing that counts: the slots of its fact, each under its name. */
+.says {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+}
+
+.says dd {
+  margin: 0;
+}
+
+.within,
+.over {
+  margin: 0;
+}
+
+.within {
+  color: var(--good);
+}
+
+.over {
+  color: var(--tradeoff);
+}
+
+.failed {
+  margin: 0;
+  color: var(--error);
+}
+
+.more {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.actions li {
+  max-width: none;
+}
+
+.action {
+  display: inline-flex;
+  align-items: center;
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+@media (max-width: 40rem) {
+  .heading {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .fit {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+
+  .where {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /*
+   * A narrow screen: a journey, and a thing that counts, is stacked, so that nothing
+   * scrolls sideways. What the row is of comes first, then each cell under its own
+   * name. The headings of the columns are kept for a screen reader and not drawn.
+   */
+  .journeys,
+  .journeys caption,
+  .journeys tbody,
+  .journeys th,
+  .journeys td,
+  .breakdown,
+  .breakdown caption,
+  .breakdown tbody,
+  .breakdown th,
+  .breakdown td {
+    display: block;
+  }
+
+  /* A row is a column of its cells, so that one of them can be brought forward. */
+  .journeys tr,
+  .breakdown tr {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-2) 0;
+    border-block-end: 1px solid var(--border);
+  }
+
+  .journeys .head,
+  .breakdown .head {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .journeys th,
+  .journeys td,
+  .breakdown th,
+  .breakdown td {
+    padding: var(--space-1) 0;
+    border: 0;
+  }
+
+  .cellLabel {
+    display: block;
+  }
+
+  /* Whether a journey is within the limit is read first, under the place. */
+  .verdict {
+    order: -1;
+  }
+
+  .journeys tbody th {
+    order: -2;
+  }
+}
+
+@media (forced-colors: active) {
+  .rank {
+    border: 1px solid CanvasText;
+  }
+
+  .journeys tr,
+  .breakdown tr {
+    border-block-end-color: CanvasText;
+  }
+
+  .meter span {
+    background: CanvasText;
+  }
+
+  .card[aria-current="true"],
+  .row[aria-current="true"] {
+    outline-color: Highlight;
+  }
+}

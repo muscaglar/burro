@@ -1,0 +1,252 @@
+.view,
+.without {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.without p {
+  margin: 0;
+}
+
+/* The frame has its size before the map is drawn in it, so nothing moves when it is. */
+.frame {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  min-height: 18rem;
+  max-height: 70vh;
+  width: 100%;
+  background: var(--map-water);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+/*
+ * Two classes, so that this outranks the map library's own `.maplibregl-map`, which sets
+ * `position: relative` and is loaded later. With one class the library wins, the map has
+ * no height, and everything in it is cut off.
+ */
+.frame > .map {
+  position: absolute;
+  inset: 0;
+}
+
+.loading {
+  position: absolute;
+  inset-block-end: var(--space-2);
+  inset-inline-start: var(--space-2);
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  background: var(--bg);
+  border-radius: var(--radius);
+  font-size: var(--size-small);
+}
+
+/* The focus ring of the map itself is drawn inside its frame, where it cannot be cut off. */
+.map :global(.maplibregl-canvas):focus-visible {
+  outline: var(--focus-ring) solid var(--focus);
+  outline-offset: calc(-1 * (var(--focus-ring) + var(--focus-band)));
+  box-shadow: inset 0 0 0 var(--focus-band) var(--bg);
+}
+
+/* A pin: a disc that holds the rank. The number says the rank, not the colour. */
+.pin {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  min-height: 0;
+  padding: 0;
+  border: 2px solid var(--bg);
+  border-radius: 50%;
+  background: var(--map-line);
+  color: var(--bg);
+  font-size: var(--size-small);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* The map places a pin. No space is added beside it, as is between two small buttons in a row. */
+.pin:global(.target-min) {
+  margin: 0;
+}
+
+/* The chosen pin is larger, and says so to a screen reader. */
+.pin[aria-current="true"] {
+  width: 36px;
+  height: 36px;
+  font-size: var(--size-body);
+  z-index: 1;
+}
+
+/*
+ * The buttons that move the map, and the keys that do the same, in a row under it.
+ * Nothing but a pin is laid over the map: a button there covers an area.
+ */
+.under {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--target-gap);
+}
+
+.keys {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+/*
+ * A screen that is touched and has nothing to point with has no arrow keys to use. The line
+ * is still what describes the map to a screen reader: what is not drawn is still read.
+ */
+@media (hover: none) and (pointer: coarse) {
+  .keys {
+    display: none;
+  }
+}
+
+.control:global(.target-min) {
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0 var(--space-2);
+  background: var(--bg);
+  font-size: var(--size-lead);
+  line-height: 1;
+}
+
+.control + .control {
+  margin-inline-start: 0;
+}
+
+.whole {
+  font-size: var(--size-small);
+}
+
+.card {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.card p {
+  margin: 0;
+}
+
+.cardName {
+  font-size: var(--size-lead);
+  font-weight: 650;
+}
+
+.cardBorough,
+.cardNote {
+  color: var(--muted);
+}
+
+.cardActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.legend ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--size-small);
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: none;
+}
+
+.swatch {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  background: var(--map-land);
+  border: 1px solid var(--map-line);
+}
+
+.swatch[data-band="1"] {
+  background: var(--map-1);
+}
+
+.swatch[data-band="2"] {
+  background: var(--map-2);
+}
+
+.swatch[data-band="3"] {
+  background: var(--map-3);
+}
+
+.swatch[data-band="4"] {
+  background: var(--map-4);
+}
+
+.swatch[data-band="5"] {
+  background: var(--map-5);
+}
+
+.swatch[data-pattern="filtered"] {
+  background: repeating-linear-gradient(
+    135deg,
+    var(--map-land) 0 3px,
+    var(--map-line) 3px 4px
+  );
+}
+
+.swatch[data-pattern="unranked"] {
+  background:
+    radial-gradient(circle, var(--map-line) 1px, transparent 1.5px) 0 0 / 5px 5px,
+    var(--map-land);
+}
+
+.pinSwatch {
+  display: inline-grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  background: var(--map-line);
+  color: var(--bg);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+@media (forced-colors: active) {
+  .pin,
+  .pinSwatch {
+    border: 2px solid ButtonText;
+    background: ButtonFace;
+    color: ButtonText;
+  }
+
+  .pin[aria-current="true"] {
+    border-color: Highlight;
+  }
+
+  .swatch {
+    forced-color-adjust: none;
+  }
+}

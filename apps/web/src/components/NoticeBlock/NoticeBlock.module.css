@@ -1,0 +1,36 @@
+.notice,
+.state {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius);
+}
+
+.notice {
+  background: var(--info-bg);
+  color: var(--info-text);
+  border-inline-start: 4px solid var(--info-text);
+}
+
+.state {
+  background: var(--surface);
+  border-inline-start: 4px solid var(--border);
+}
+
+.notice p,
+.state p {
+  margin: 0;
+}
+
+.list ul {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+}
+
+.list li {
+  color: var(--muted);
+}
+
+.list strong {
+  color: var(--text);
+}

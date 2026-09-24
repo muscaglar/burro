@@ -1,0 +1,143 @@
+{
+  "scenario": "rank-invalid-operations",
+  "shows": "An edit that is not an edit: 422, with paths and codes and nothing that was sent",
+  "captured": true,
+  "request": {
+    "operation_id": "rank",
+    "method": "POST",
+    "route": "/v1/rank",
+    "path": "/v1/rank",
+    "body": {
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": 1700,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.8,
+          "provenance": "stated"
+        },
+        "commutes": [
+          {
+            "place_id": "syn-p0021",
+            "mode": "pt",
+            "max_minutes": 35,
+            "strictness": "soft",
+            "provenance": "stated"
+          }
+        ],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 1.0,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [
+          {
+            "tag_id": "leafy",
+            "weight": 0.5,
+            "provenance": "stated"
+          },
+          {
+            "tag_id": "quiet_residential",
+            "weight": 0.5,
+            "provenance": "stated"
+          }
+        ],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "operations": {
+        "budget_ops": [],
+        "commute_ops": [],
+        "weight_ops": [],
+        "tag_ops": [
+          {
+            "action": "set"
+          }
+        ],
+        "area_ops": [],
+        "setting_ops": []
+      }
+    }
+  },
+  "status": 422,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "417",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-synthetic": "true",
+    "x-request-id": "d8294235-afb7-4089-8763-5c489ef9989e"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.3.0",
+      "synthetic": true
+    },
+    "error": {
+      "code": "invalid_operations",
+      "message": "The operations are not valid.",
+      "fields": [
+        {
+          "path": "operations.tag_ops[0].tag_id",
+          "problem": "missing"
+        },
+        {
+          "path": "operations.tag_ops[0].value",
+          "problem": "missing"
+        },
+        {
+          "path": "operations.tag_ops[0].step",
+          "problem": "missing"
+        },
+        {
+          "path": "operations.tag_ops[0].provenance",
+          "problem": "missing"
+        }
+      ]
+    }
+  }
+}
