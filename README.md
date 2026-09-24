@@ -4,21 +4,24 @@ Decide where before you search what.
 
 Burro helps people choose where in London to live. Describe the life you want, name the places you need to reach, and see named neighbourhoods ranked on a map, each with the reasons it matched and the source behind every number.
 
-**Status:** the code of phase 0a of the [plan](docs/PLAN.md) is built, and the backend runs end to end on synthetic data. No real dataset has been ingested. A few real files were opened for research, and none is in the repository: the research says which.
+**Status:** the code of phase 0a of the [plan](docs/PLAN.md) is built, and the backend runs end to end on synthetic data. The first real files of London have been fetched, and a preview and a draft of the areas were made from them. Neither is served, and neither is in the repository. A few real files were opened for research before that, and none is in the repository: the research says which.
 
 | Part | State |
 |---|---|
 | Conventions and the licence registry | Done. Every data source is registered with its licence |
-| Ranking engine, `packages/core` | Built. Spec, reducer, `rank()`, facts, verifier, a rule-based reader of prompts |
-| Data release, `packages/pipeline` | Built for a synthetic release: a made-up city of 24 areas. No real dataset has been ingested |
-| Real data for London, milestone M0 of [the plan](docs/design/london-data.md) | Ready to fetch, and nothing fetched. The step that fetches a file, the receipt, the lock, the rule that no fact is served without evidence, the coverage report and two hosted workflows are built, and tried on made-up files only. No workflow has run and no store exists. [docs/data-builds.md](docs/data-builds.md) says what is built, what is not, and what to set up |
-| API, `services/api` | Built. Twelve routes over the synthetic release. No database, no sign-in, no rate limits |
+| Ranking engine, `packages/core` | Built, at version 1.12.0. Spec, reducer, `rank()`, facts, verifier, and a rule-based reader that applies a plain prompt and asks about any other. It answers a whole first search part by part: a journey given as a range of minutes, a home, a word for a smart area, which it offers as of the place in two ways, and a word for character, which it offers three ways. "Max £400k" and "within 40 minutes" are firm limits, which leave areas out. Eleven vibes, each a recipe over measured parts and shown as one of five bands, the areas most like an area, and the portrait of an area. An area with no figure for what was asked for stands below every area that has one. A cost is a range, or one number where its publisher gives no range |
+| Data release, `packages/pipeline` | Built for a synthetic release: a made-up city of 24 areas. The tests and the service run on it unless a release is named |
+| Real data for London, milestone M0 of [the plan](docs/design/london-data.md) | Ready to fetch in a hosted run, and nothing fetched by one. The step that fetches a file, the receipt, the lock, the rule that no fact is served without evidence, the coverage report and two hosted workflows are built. No workflow has run and no object store exists. [docs/data-builds.md](docs/data-builds.md) says what is built, what is not, and what to set up |
+| A first build of London, milestones M1 and M2 | A preview. The step `fetch` was run outside a workflow, into a store that is a folder, and 74 receipts are in `data/receipts/`. From those files a build makes every part of Greater London as one of the statistics office's 1,002 areas, with 28 measures. They are nitrogen dioxide, transport noise and main roads; homes per hectare, flats, and homes built before 1919 and since 2000; public parks and gardens, the nearest park, large park and play space, gardens, woodland and water close by; primary schools within reach; the nearest station and the nearest town centre, each as a straight line; places to eat and drink and cultural venues, each as a count that is shown and as a rate for each 1,000 homes that is ranked on; land used for industry, for storage and for transport other than roads; conservation areas and listed buildings; and recorded criminal damage and recorded anti-social behaviour, for each 1,000 homes a year. Five measures are worked out and left out, each by the name of its rule. The size and the shape of a town centre and what there is to do in parks wait on the founder. Pubs and bars wait on a second source. What a home sells for waits on a receipt for that use. Core places areas on eight of the eleven vibes: Leafy, Going out, Quiet streets, Age of buildings, Parks close by, Houses or flats, Family amenities and Gritty. Village feel, Everyday on foot and Food and drink hold under 60 in 100 of their recipes, so no area has a band on them. No journey, no cost, no station and no name of a neighbourhood. It says it is a preview, and it is not served. Sections 15 to 18 of [docs/data-builds.md](docs/data-builds.md), and [the page on the first vibes](docs/research/data/first-vibes-on-london.md) |
+| Named areas of London, milestone M3 | A draft, made by method and checked by nobody. One command makes the names and the borders of the areas from publishers' files, with what a person must look at first. Nothing of it is committed. It waits for the review desk |
+| The review desk, `tools/desk` | Built. One server and one page, where a person decides a name, a border, a quotation or a rating. Tested on the made-up city. [docs/design/desk.md](docs/design/desk.md) |
+| API, `services/api` | Built, to version 2 of the contract. Twelve routes over one release: a ranking, where each area sits on each vibe, the areas most like one area, and what the reader noticed in a sentence it did not apply. Every answer says whether its data is made up and whether its release is a preview. No database, no sign-in, no rate limits |
 | Reading prompts with a model | Built and tested against a stand-in. Never run against the provider |
-| Website, `apps/web` | Built, on the synthetic release: search and results, a page for each area, comparison, sharing, methods, sources and the accessibility statement. Tested against answers recorded from the API. Not yet tested by hand: see [See the website](#see-the-website) |
-| iOS app, `apps/ios` | Built, on the synthetic release: the screen that asks before the first search, search and results on a map, a page for each area, a shortlist kept on the phone, comparison and sharing. Written against the API contract and the website's recorded answers. Its tests and its build need a Mac with Xcode, and hosted CI runs them. It has never been run: see [See the iOS app](#see-the-ios-app) |
+| Website, `apps/web` | Built, on the synthetic release: search and results, a page for each area, a page of every vibe, comparison, sharing, methods, sources and the accessibility statement. It shows a banner on a preview, and a notice and no figure where an answer is of another kind of data than the page was built on. Tested against answers recorded from the API, and walked in a browser window at two sizes. Not yet seen on a real phone or with a screen reader: see [See the website](#see-the-website) |
+| iOS app, `apps/ios` | Built, on the synthetic release: the screen that asks before the first search, search and results on a map, a page for each area, a shortlist kept on the phone, comparison and sharing. Written against the API contract and the website's recorded answers. Its tests and its build need a Mac with Xcode, and hosted CI runs them. Its generated files are in step with version 2 of the contract. It does not yet draw an offer in its four parts, and its tests that name a figure are not yet brought to the answers as they are now recorded. It has never been run: see [See the iOS app](#see-the-ios-app) |
 | Map tiles, real travel times | Not started |
 
-Every response from the API says `synthetic: true`. Nothing it shows is a fact about a real place.
+On the synthetic release every response from the API says `synthetic: true`, and nothing it shows is a fact about a real place. On a preview every response says `preview: true`.
 
 ## Get started
 
@@ -35,10 +38,19 @@ make api
 ```
 curl -s localhost:8000/v1/meta
 curl -s localhost:8000/v1/interpret -H 'content-type: application/json' \
-  -d '{"text": "Renting a 1 bed up to £1,700 a month, leafy, 35 minutes to Cindermoor Works"}'
+  -d '{"text": "Renting a 1 bed for about £1,700 a month, leafy, 35 minutes to Cindermoor Works"}'
 ```
 
 The second answer holds a `spec`. Post it to `/v1/rank` as `{"spec": ...}` to rank the areas.
+
+A sentence is applied only when the whole of it is a plain list of wishes, with a budget and a journey if it has them. Any other is not applied. Its answer holds `suggestions`, each with the choices a person may press, and `unread`, which says where the words stand that nothing was made of. Try `{"text": "Pubs are so noisy"}`.
+
+The release that is served carries Gritty, the one vibe that counts recorded crime, and `/v1/meta` says so as `gritty_variant: b`. To serve a release that holds no recorded crime, and carries every vibe but Gritty:
+
+```
+uv run burro-release build-synthetic --gritty a --out /tmp/burro-releases
+BURRO_RELEASE_DIR=/tmp/burro-releases/syn-2026-09-23-02 make api
+```
 
 ### Settings
 
@@ -50,8 +62,10 @@ The API reads its settings from the environment, once, when it starts. With none
 | `BURRO_HOST` | `127.0.0.1` | The address to listen on |
 | `BURRO_PORT` | `8000` | The port to listen on, 1 to 65535 |
 | `BURRO_ALLOWED_ORIGINS` | `http://localhost:3000` | The origins a browser may call from, separated by commas. Each is a scheme, a host and perhaps a port, written as a browser sends it: in lower case, with no path, never a pattern, and without the port its scheme implies. `https://burro.example:443` is refused, because no browser sends it |
-| `ANTHROPIC_API_KEY` | None | With a key present, prompts are read by a model, and by the rules whenever the model fails. The service notes that a key is there and never reads it: the provider's SDK does |
-| `BURRO_MODEL_ID` | `claude-haiku-4-5` | The model that reads prompts |
+| `BURRO_MODEL_PROVIDER` | None | Which provider's model reads prompts: `gemini`, `openai`, `deepseek` or `anthropic`. There is no default, and a key alone turns nothing on. A model reads only when the provider is named, its key is present, its terms are accepted, and the model is one its adapter was fitted to. DeepSeek never reads what people type. Otherwise the rules read, and the service says why as it starts. [docs/design/models.md](docs/design/models.md) has the whole of it |
+| `BURRO_MODEL_TERMS_ACCEPTED` | None | The same provider's name. It says that whoever runs the service has read its terms and taken them on |
+| `BURRO_MODEL_ID` | The provider's smallest fitted model | The model that reads prompts. One the provider's adapter was fitted to, or the rules read |
+| `BURRO_MODEL_SENDS_SETTINGS` | Not set | `yes` sends the search settings to the provider with the words. Otherwise the words go alone |
 | `BURRO_MODEL_TIMEOUT_S` | `6` | How many seconds a person waits for the model before the rules answer, up to 60 |
 | `BURRO_MODEL_MAX_TOKENS` | `2048` | The most the model may answer with, 256 to 16000 |
 
@@ -91,21 +105,24 @@ Use `localhost` and not `127.0.0.1`: the API answers a page only if it was serve
 
 | Do this | You should see |
 |---|---|
-| Open the page | A yellow banner across the top: "This is made-up test data." Under it, the heading "Decide where to live", one box to type in, three example sentences, "Renting or buying", "A place you need to reach", and a button called "Settings". On the right, a map of 24 areas in one plain colour on a blue ground, with no streets or names on it. On a narrow window the map is behind a tab called "Map" |
-| Type `Renting a 1 bed up to £1,700 a month, leafy and quiet, 35 minutes to Cindermoor Works` and press Enter | Within a second or two: chips that say what was read (Renting, £1,700 a month, Cindermoor Works, Leafy, Quiet residential, Usual settings: 6), each part nobody chose marked "assumed", and "Read by rules." under them. A list of 20 results. The first is **Farrowmere**, "Fit 80 of 100", with three reasons that begin "By public transport to Cindermoor Works: about 21 minutes", one trade-off, and a "Source" button on every line. The map fills in five shades of green, with pins numbered 1 to 10 |
-| Press "Source" under any sentence | It opens in place: "Synthetic test data", a date, and "Made-up data" |
-| Clear the box, type `a bit more green space, and ignore the high street`, press Enter | The list changes order. Two new chips: one for public green space, and one for the high street that says "does not count" |
-| Open "Settings" and tick "The journey is a firm limit" | The list shortens to 15 results. Under the "Table" tab, seven areas say "A journey is longer than a firm limit" |
+| Open the page | A yellow banner across the top: "This is made-up test data." Under it, the heading "Decide where to live", one box to type in, "Start from a word" with seven words and "More words", "Renting or buying", "A place you need to reach", three example sentences, and a button called "Settings". On the right, a map of 24 areas in one plain colour on a blue ground, with the names of the areas where there is room and no streets. On a narrow window the map comes after the form |
+| Press "leafy" | A card opens under the words: what Leafy means, what it is made of and what it cannot see. The map is coloured in five bands. Nothing is sent. "Add to my search" ranks the areas |
+| Type `Renting a 1 bed for about £1,700 a month, leafy and quiet, 35 minutes to Cindermoor Works` and press Enter | Within a second or two: "21 areas ranked. What you asked for counts most.", because each thing you say of the place counts for more than a journey or a budget until you say otherwise. Chips that say what was read: Leafy, Quiet streets, Cindermoor Works within 35 minutes, £1,700 a month for one bedroom, Renting, and "Usual settings: 6", with each part nobody chose marked "assumed". "Read without AI." beside them. Ten results, and "Show 10 more". The first is **Farrowmere**, "Fit 71 of 100", with "Why it fits", which begins "Quiet streets: band 4 of 5", one trade-off, and a "Source" button after each. The map fills in shades of green, with pins numbered 1 to 10 |
+| Press "Source" after any sentence | It opens in place: "Synthetic test data", who published it, "Data from" and a date, and "Made-up data" |
+| Press "3 areas are not ranked", under the list | Otterby Fields, with "Too little data for what counts in your search" and the six things it has no figure for. It is in no result. Then two areas that the data ranks for no search |
+| Clear the box, type `a bit more green space, and ignore the high street`, press Enter | The list changes order. Two new chips: one for public green space, and one for the town centre that says "does not count" |
+| Open "Settings", then "Journeys", and tick "The journey is a firm limit" | The list shortens to 14 results. Under "Table of all areas", seven areas say "A journey is longer than a firm limit" |
 | Type `and 30 minutes to Pellam`, press Enter | A question: "Which place did you mean?", with Pellam Cross, Pellam Exchange and Pellam Infirmary. Pick one and it becomes a chip |
 | Type `not too many students, and near a park`, press Enter | One sentence in a plain block: "Burro ranks places by what is there, such as schools, parks, venues and transport, and never by who lives there. The rest of your search has been applied." The park is applied. Nothing on the page says what was left out |
-| Press "Open the page for Farrowmere" on the first result | The page of the area: where it is, stations, what homes cost, everything measured there, each figure with its source and date written under it |
-| On that page press "Add Farrowmere to compare". Follow "Search for areas" at the foot of the page, press the button of another result that begins "Add" and ends "to compare", then "Compare 2 areas" | Your search is still there when you come back to it. Then a table of the two areas side by side, in the order of what counts most in your search |
+| Type `Pubs are so noisy`, press Enter | Nothing is ranked again. Under "Burro was not sure. Choose what to add." are the things it noticed, each with a button for each way it could be meant. Press one and the list is ranked with it |
+| Press the name of the first result | The page of the area. It opens with what the area is like in short, and where it is. Then where it sits on each vibe, the stations, what homes cost and everything measured there, each figure with its source and date |
+| Go back. Press "Compare" on two results, then "Compare 2 areas" at the foot of the screen | A table of the two areas side by side: where each sits on each vibe, and then each thing that counts in your search, with one row for each journey. Your search is still there when you come back to it |
 | Go back to the search, press "Share this search", then "Make the link" | A link that ends `/s#` and 22 letters and digits. Open it in a new tab: the same search, under the heading "A shared search". The link stops working when you stop `make api`, because the API keeps shares in memory |
 | Stop the API with Ctrl-C in terminal 1, then change a setting | The results stay, with a line that says Burro could not be reached, and "Try again" |
 
-The figures above are the ones the API gave on 2026-09-23, with ranking engine 1.3.0. The foot of every page names the data release and the engine. If the engine has moved on, the order and the figures may differ, and the rest should hold.
+The figures above are the ones the API gave on 2026-09-24, with ranking engine 1.12.0. The foot of every page names the data release and the engine. If the engine has moved on, the order and the figures may differ, and the rest should hold.
 
-To check the website without a browser, run `make web-check`. It takes about a minute: it checks the types against the contract, lints, runs about 1,400 tests offline, builds every page, and reads each built page for what a person or a screen reader would trip over.
+To check the website without a browser, run `make web-check`. It takes about a minute: it checks the types against the contract, lints, runs about 2,900 tests offline, builds every page, and reads each built page for what a person or a screen reader would trip over.
 
 The website reads two settings from the environment. `make web` sets the first for you.
 

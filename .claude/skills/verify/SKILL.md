@@ -22,6 +22,8 @@ Needs `uv`, `ruff`, `pyright` and `make` on your PATH. Use the package index the
 | Licence registry | `uv run burro-registry [--path FILE_OR_FOLDER] check [--strict]`, `list`, `attributions` |
 | Ingest gate | A short script that imports `burro_pipeline.registry`, calls `load(path)` then `registry.require(id, use)`. Run it with `uv run python script.py` |
 | A data release | `uv run burro-release check FOLDER`. `make fixture` rebuilds the synthetic one |
+| The census of a release | `uv run burro-release check FOLDER --census FOLDER`, where the second is the folder named for the release with `-residents` after it. `make fixture` rebuilds the made-up count in `data/fixtures/residents/` |
+| A first real build | `BURRO_STORE_FOLDER=... uv run python -m burro_pipeline preview --release-id ID --built-at TIME --out FOLDER`, on a machine that has the store. It reads the store and writes nothing to it. See below |
 | The API | `make api`, then `curl` against `127.0.0.1:8000`. Where no port can be opened, the test client: see below |
 | The API contract | `make openapi`, then `git diff contracts/openapi.json` |
 | The website | Build it against a running API and drive it in a real browser: see below |
@@ -52,7 +54,8 @@ Walk it at 1440 by 900 and at 390 by 844:
 5. Remove a chip, move a slider, press a pin, press "Show on the map": each changes one thing and says so.
 6. On the phone, the Table tab: the page is no wider than the window.
 7. An area's page, a comparison of two, a share made and then opened from its link.
-8. Stop the API and search: the page says Burro could not be reached, and does not blame the words.
+8. On an area's page, the census figures: opened by keyboard, then one table. One request goes to route 13, each table is a table with its caption, and no figure of it is in the page before it is opened.
+9. Stop the API and search: the page says Burro could not be reached, and does not blame the words.
 
 Then read what the browser recorded: no request to any host but the two you started, no typed word in any address, nothing in local storage, session storage or a cookie, and no error in the console that you did not cause.
 
@@ -67,6 +70,7 @@ Then read what the browser recorded: no request to any host but the two you star
 | `POST /v1/places/search` | `{"q": 2-80 characters}` | Names from the release, never the text sent |
 | `POST /v1/shares`, `GET /v1/shares/{share_id}` | `{"spec": ..., "exact_destinations": false}` | `coarsened`, and the same ranking as `/v1/rank` gives the stored spec |
 | `GET /v1/areas`, `/v1/areas/geometry`, `/v1/areas/{id_or_slug}`, `/v1/meta` | | `Cache-Control: public`, `ETag` |
+| `GET /v1/areas/{id_or_slug}/census` | Nothing. A query of any kind is refused | `Cache-Control: no-store`, `X-Robots-Tag: noindex, nosnippet`, a share with its count beside the whole city's share, and no count where the share is under 1 in 100. `BURRO_CENSUS=off` answers 404 `census_not_available` |
 | `GET /healthz` | | `{"ok": true}` |
 
 ### Driving the API without a port
@@ -87,7 +91,26 @@ found = client.post("/v1/interpret", json={"text": "leafy, 30 minutes to Cinderm
 ranked = client.post("/v1/rank", json={"spec": found.json()["data"]["spec"]})
 ```
 
-To make a model fail, pass `dataclasses.replace(deps, interpreter=...)` an interpreter whose `name` is `InterpreterName.CLAUDE` and whose `interpret` raises.
+To make a model fail, pass `dataclasses.replace(deps, interpreter=..., told=...)` an interpreter whose `name` is `InterpreterName.MODEL` and whose `interpret` raises, and what people are told of a provider: `told_of(TERMS[Provider.GEMINI], with_settings=False)`. A `Deps` that tells people no model reads cannot hold a model.
+
+To drive the service as it starts, give `deps_from` what `choose` makes of an environment: `deps_from(Settings.from_env(env), choose(env))`. A key alone turns nothing on. To see a provider read, give `choose` a table of terms a person has checked and a function that answers in the provider's place: `choose(env, table=..., send=...)`. No test and no drive calls a provider.
+
+### Driving a first real build
+
+It needs the store of fetched files, which `BURRO_STORE_FOLDER` names, and the receipts in `data/receipts/`. Where there is no store, drive the step on the made-up build of `packages/pipeline/tests/assemble/support.py`: `made(folder).run()`.
+
+```
+BURRO_STORE_FOLDER=... uv run python -m burro_pipeline preview \
+    --release-id lon-2026-10-02-01 --built-at 2026-10-02T09:00:00Z --out scratch/releases
+uv run burro-release check scratch/releases/lon-2026-10-02-01
+```
+
+- Write to a scratch folder, never into a tracked one. A release is never written over, so give a second run a second folder.
+- The lock names the commit, and a working copy with changes is refused. While a change is not yet committed, seal outside the repository: `--root` a folder that is no repository, and `--commit` the commit that is checked out.
+- Run it twice and compare every byte of the two folders.
+- Read `build.json` beside the release: which measures were left out, and by which rule.
+- Open the release with the test client, as below, with `Settings.from_env({"BURRO_RELEASE_DIR": ...})`. Every answer must say `synthetic: false` and `preview: true`, in `meta` and in the headers. Take one fact, and follow it to its row in `evidence.json`, to the files the row names, to each receipt in `data/receipts/`, and to the hash of the file in the store.
+- A wish for what the release does not measure must be refused or said to be missing, and never answered with a figure: a journey, a budget, a vibe, a measure that is not carried.
 
 ## Flows worth driving
 
@@ -114,7 +137,7 @@ To make a model fail, pass `dataclasses.replace(deps, interpreter=...)` an inter
 3. Rank one spec ten times: the bodies are byte for byte the same. Shuffle its weights and change every provenance: the hash and the ranking do not move.
 4. Change a weight and the budget through `operations`, then say the same in words with the spec attached. Both reach the same `spec_hash`.
 5. Fetch an area by id and by slug, compare three areas of which one was filtered, search for a destination as it is typed, make a share of a spec that names a school and open it: the stored commute is the station that stands in for the school.
-6. Every response, errors included, has `X-Burro-Synthetic: true` and `meta.synthetic: true`. Only `/healthz` has no `meta`.
+6. Every response, errors included, has `X-Burro-Synthetic: true` and `meta.synthetic: true`, and says whether the release is a preview in `X-Burro-Preview` and `meta.preview`. Only `/healthz` has no `meta`.
 
 **Breaking it**
 Each of these must be answered with the error envelope or a rejected edit, never a 5xx and never an echo of what was sent: an empty prompt, a line of spaces, 601 characters, a 20 KB body, a prompt in another language (no edits, `unmet: other`), a budget of 0 and of 1, a cap of 1 minute and of 91 by public transport, 4 and 20 commutes in a spec and as edits, an unknown area in a path, a spec and an edit, an edit to a feature that is not in the allowlist, a spec with every weight at 0 (`empty_spec`, score 0, ordered by id), upper-case enum values in an edit (accepted), `NaN` and a weight of 1.5.
@@ -147,6 +170,7 @@ If the machine has a private package host configured, write that host with no UR
 - Tests block the network. A test that needs it is wrong.
 - `uv.lock` is ignored by git on purpose. See `docs/adr/0008-package-sources.md`.
 - Binary files are skipped by `public-only`, so it will not see credentials inside one.
+- `next start` listens on every address of the machine unless it is told otherwise. To show a preview to nobody else, start it with `-H 127.0.0.1`.
 - Where no port can be opened, use the test client, and say the service was not run over a socket.
 - A release folder holds its files and nothing else. A file browser can leave a hidden file in the fixture folder, and the release is then refused until it is deleted.
 - `make openapi` and `make fixture` rewrite committed files. After either, `git diff` must be empty unless you meant to change a route, a record or the generator.

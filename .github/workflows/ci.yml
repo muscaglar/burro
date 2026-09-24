@@ -12,6 +12,9 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Anyone can read the annotations of a run, and only a person who is signed in can read its
+# log. So a command is run through .github/run.sh, which says the end of what a failed
+# command printed again, as an annotation.
 jobs:
   ci:
     runs-on: ubuntu-24.04
@@ -24,10 +27,12 @@ jobs:
         with:
           version: "0.12.17"
       # Pinned here until they move into the dev dependency group. See docs/adr/0008.
-      - run: uv tool install ruff==0.16.8 && uv tool install pyright==1.1.414
+      - run: sh "$GITHUB_WORKSPACE/.github/run.sh" uv tool install ruff==0.16.8
+      - run: sh "$GITHUB_WORKSPACE/.github/run.sh" uv tool install pyright==1.1.414
       # No lockfile yet, so no --locked. See docs/adr/0008.
-      - run: uv sync
-      - run: make ci
+      - run: sh "$GITHUB_WORKSPACE/.github/run.sh" uv sync
+      # The tests run side by side, one process for each core. See docs/adr/0020.
+      - run: sh "$GITHUB_WORKSPACE/.github/run.sh" make ci
 
   # The website. It needs nothing from the job above, so the two run side by side.
   web:
@@ -42,12 +47,26 @@ jobs:
           persist-credentials: false
       # The runner's own Node, whatever its image holds, and so not pinned. No
       # action that installs Node is pinned by commit in this file yet.
-      - run: node --version && npm --version
+      - run: sh "$GITHUB_WORKSPACE/.github/run.sh" node --version
+      - run: sh "$GITHUB_WORKSPACE/.github/run.sh" npm --version
       # No lockfile yet, so `npm install` and not `npm ci`: each run resolves
       # again, inside the ranges package.json gives. See docs/adr/0008.
-      - run: npm install --no-audit --no-fund
+      - run: sh "$GITHUB_WORKSPACE/.github/run.sh" npm install --no-audit --no-fund
       # With no API address set, the build reads the recorded answers.
-      - run: npm run check
+      - run: sh "$GITHUB_WORKSPACE/.github/run.sh" npm run check
+
+  # The page of the review desk, in tools/desk/page. It installs nothing: the page has no
+  # package. The desk's Python is tested by the job `ci`, with the rest of tools/.
+  desk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The runner's own Node, as the website's job uses. The page needs 20 or later.
+      - run: sh "$GITHUB_WORKSPACE/.github/run.sh" node --version
+      - run: sh "$GITHUB_WORKSPACE/.github/run.sh" node --test tools/desk/page/test/*.test.mjs
 
   # The API's image. Hosted CI is the first place it is ever built.
   image:
@@ -57,7 +76,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - run: docker build --file deploy/api/Dockerfile --tag burro-api:ci .
+      - run: sh "$GITHUB_WORKSPACE/.github/run.sh" docker build --file deploy/api/Dockerfile --tag burro-api:ci .
       - name: The service starts as its own user and passes its own health check
         run: |
           docker run --detach --name burro-api burro-api:ci
@@ -93,6 +112,12 @@ jobs:
           xcodebuild -version
           xcodebuild -version -sdk iphoneos
           swift --version
-      # Generated files in step, the tests on macOS, and the app compiled for iOS in Debug and
-      # in Release with signing off. It needs no secret, no team and no simulator.
-      - run: make -C apps/ios check
+      # The parts of `make check`, in its order: generated files in step, the tests on macOS,
+      # and the app compiled for iOS in Debug and in Release with signing off. It needs no
+      # secret, no team and no simulator. Each part is run though one before it failed, so
+      # that one run says all that is wrong.
+      - run: sh "$GITHUB_WORKSPACE/.github/run.sh" make -C apps/ios generate-check
+      - if: success() || failure()
+        run: sh "$GITHUB_WORKSPACE/.github/run.sh" make -C apps/ios test
+      - if: success() || failure()
+        run: sh "$GITHUB_WORKSPACE/.github/run.sh" make -C apps/ios build

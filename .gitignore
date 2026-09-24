@@ -38,6 +38,8 @@ Package.resolved
 # Data: releases and downloads live in object storage, never in git
 data/raw/
 data/releases/
+# Where a step of a build leaves copies of publishers' files while it reads them
+scratch/
 *.parquet
 *.npy
 *.pmtiles

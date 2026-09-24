@@ -1,34 +1,26 @@
-name: data-fetch
+name: data-travel
 
-# Fetches the files of a list from their publishers, and keeps each in the store.
+# Works out the journeys of a release twice, on two machines, and compares the two.
 # For the founder: docs/data-builds.md says how to start it and what to look at.
 #
-# It is started by hand, on the default branch, and the fetch waits for approval.
-# It prints step names, registry ids, counts and hashes, and uploads nothing to GitHub.
+# Today it routes the made-up town, with the router that is for tests, and reads no
+# store. The engine that routes London needs Java and is not installed by any package
+# of this repository. docs/design/london-data-travel.md, section 18, says what stands
+# between this file and a run of that engine, and what its first run must settle.
+#
+# It is started by hand, on the default branch, and the routing waits for approval.
+# It prints step names, counts and hashes, and uploads nothing to GitHub. No line
+# names a stop, a place, an area or a time.
 # tools/check_data_workflows.py holds this file to its rules: in `make ci`, and
 # again as the first step of every run.
-#
-# Which files a list holds, and where each comes from, is in the list and not here:
-# packages/pipeline/src/burro_pipeline/fetch/lists. The licence registry is asked
-# about every file of the list before anything is asked of a publisher.
 
 on:
   workflow_dispatch:
-    inputs:
-      list:
-        description: Which list of files to fetch
-        type: choice
-        options: [m1, m10-health, m10-land-use, m11-age-and-households, m11-high-streets, m11-outdoor-space, m2-culture, m2-living, m2-places, m5-journeys]
-        default: m1
-      item:
-        description: One item of the list, by its name. Leave it empty to fetch every file
-        type: string
-        default: ""
 
 permissions: {}
 
 concurrency:
-  group: data-fetch
+  group: data-travel
   cancel-in-progress: false
 
 jobs:
@@ -60,14 +52,25 @@ jobs:
       - name: A planted row and a planted key cannot be seen
         run: uv run --no-sync python tools/canary.py plant
 
-  fetch:
-    name: Fetch
+  # The same journeys on two fresh machines. Both wait for one approval. An engine that
+  # draws anything at random, or a machine that counts another way, is found by the two
+  # not agreeing.
+  route:
+    name: Route ${{ matrix.copy }}
     needs: check
     runs-on: ubuntu-24.04
-    timeout-minutes: 120
-    environment: data-fetch
+    timeout-minutes: 30
+    environment: data-travel
     permissions:
       contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        copy: [a, b]
+    # Each copy writes the output named for it, so neither writes over the other.
+    outputs:
+      a: ${{ steps.manifest.outputs.a }}
+      b: ${{ steps.manifest.outputs.b }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -78,47 +81,50 @@ jobs:
           enable-cache: false
       - name: Install
         run: uv sync --package burro-pipeline --no-dev --exclude-newer 2026-09-23T00:00:00Z
+      # No step here reads the store yet, so the environment holds made-up values and no
+      # key. This step refuses a value that could be a real one, and shows on every run
+      # that what is made from a secret is hidden.
       - name: Every secret is set, and what is made from one is hidden
         env:
           BURRO_STORE_ENDPOINT: ${{ secrets.BURRO_STORE_ENDPOINT }}
           BURRO_STORE_BUCKET: ${{ secrets.BURRO_STORE_BUCKET }}
           BURRO_STORE_KEY_ID: ${{ secrets.BURRO_STORE_KEY_ID }}
           BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
-          BURRO_FETCH_CONTACT: ${{ secrets.BURRO_FETCH_CONTACT }}
-        run: uv run --no-project python tools/public_log.py mask
-      - name: The store answers, and says how much it holds
+        run: uv run --no-project python tools/public_log.py mask --made-up
+      # The made-up town reads nothing, so this step is given no secret.
+      - name: Route the made-up town
+        run: uv run --no-project python tools/public_log.py --step travel -- uv run --no-sync python -m burro_pipeline travel --made-up --out "$RUNNER_TEMP/releases"
+      - name: Hash what was built
+        id: manifest
         env:
-          BURRO_STORE_ENDPOINT: ${{ secrets.BURRO_STORE_ENDPOINT }}
-          BURRO_STORE_BUCKET: ${{ secrets.BURRO_STORE_BUCKET }}
-          BURRO_STORE_KEY_ID: ${{ secrets.BURRO_STORE_KEY_ID }}
-          BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
-        run: uv run --no-project python tools/public_log.py --step store -- uv run --no-sync python -m burro_pipeline held
-      - name: Fetch every file of the list
-        if: inputs.item == ''
+          COPY: ${{ matrix.copy }}
+        run: uv run --no-project python tools/same_manifest.py hash "$RUNNER_TEMP/releases"
+
+  compare:
+    name: Two runs, one manifest
+    needs: route
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.17"
+          enable-cache: false
+      - name: Compare the two runs
         env:
-          BURRO_STORE_ENDPOINT: ${{ secrets.BURRO_STORE_ENDPOINT }}
-          BURRO_STORE_BUCKET: ${{ secrets.BURRO_STORE_BUCKET }}
-          BURRO_STORE_KEY_ID: ${{ secrets.BURRO_STORE_KEY_ID }}
-          BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
-          BURRO_FETCH_CONTACT: ${{ secrets.BURRO_FETCH_CONTACT }}
-          LIST: ${{ inputs.list }}
-        run: uv run --no-project python tools/public_log.py --step fetch -- uv run --no-sync python -m burro_pipeline fetch --list="$LIST"
-      - name: Fetch one item of the list
-        if: inputs.item != ''
-        env:
-          BURRO_STORE_ENDPOINT: ${{ secrets.BURRO_STORE_ENDPOINT }}
-          BURRO_STORE_BUCKET: ${{ secrets.BURRO_STORE_BUCKET }}
-          BURRO_STORE_KEY_ID: ${{ secrets.BURRO_STORE_KEY_ID }}
-          BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
-          BURRO_FETCH_CONTACT: ${{ secrets.BURRO_FETCH_CONTACT }}
-          LIST: ${{ inputs.list }}
-          ITEM: ${{ inputs.item }}
-        run: uv run --no-project python tools/public_log.py --step fetch -- uv run --no-sync python -m burro_pipeline fetch --list="$LIST" --only="$ITEM"
+          COPY_A: ${{ needs.route.outputs.a }}
+          COPY_B: ${{ needs.route.outputs.b }}
+        run: uv run --no-project python tools/same_manifest.py compare
 
   # Runs whatever happened before it: a step that failed is where a row would get out.
   search:
     name: Search what the run made public
-    needs: [check, fetch]
+    needs: [check, route, compare]
     if: always()
     runs-on: ubuntu-24.04
     timeout-minutes: 10
