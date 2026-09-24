@@ -1,0 +1,135 @@
+"""The evidence row: one for each figure, and one for each figure that is missing.
+
+Its key is the `fact_id` of contract 7.1, so a fact and its evidence cannot
+part. It says which files the figure was worked out from, by which method, how
+much of the area the data covered, and in which state that leaves the figure.
+A missing figure has a row too: the row is what says why it is missing.
+"""
+
+from enum import StrEnum
+from typing import Annotated, Self
+
+from burro_core.ids import FactKind
+from pydantic import Field, model_validator
+
+from burro_pipeline.evidence.method import DerivationId
+from burro_pipeline.evidence.receipt import Period
+from burro_pipeline.evidence.record import (
+    Day,
+    EvidenceRecord,
+    FileId,
+    Share,
+    given,
+    strictly_increasing,
+)
+
+# The kinds of fact that have a row of their own. A `budget_fit` rests on the row of its
+# cost, a `missing` on the row of the area's name, and a journey on the row of its mode.
+ROW_KINDS = (
+    FactKind.AREA,
+    FactKind.FEATURE,
+    FactKind.TAG,
+    FactKind.COST,
+    FactKind.STATION,
+    FactKind.TRAVEL,
+)
+ROW_ID_PATTERN = rf"^(syn|lon)-n[0-9a-z]+/({'|'.join(ROW_KINDS)})/[0-9a-z][0-9a-z_.-]*$"
+# At or above this share of an area's homes, a figure is said to cover the area.
+FULLY_COVERED = 0.99
+
+RowId = Annotated[str, Field(pattern=ROW_ID_PATTERN)]
+
+
+class State(StrEnum):
+    """The state of one measure in one area. There is no blank."""
+
+    PRESENT = "present"  # a value, with at least 99% covered
+    PARTIAL = "partial"  # a value, with less covered. The share is shown
+    BELOW_THRESHOLD = "below_threshold"  # too little covered. The value is null
+    SOURCE_GAP = "source_gap"  # the publisher holds nothing for these units
+    SUPPRESSED = "suppressed"  # the publisher withheld it
+    NOT_PUBLISHED = "not_published"  # the publisher does not publish it for areas this small
+    NOT_CARRIED = "not_carried"  # this release has no cleared source for the measure
+
+
+HAS_A_VALUE = frozenset({State.PRESENT, State.PARTIAL})
+# `not_published` is said once and is not counted: no source could close it.
+IS_A_GAP = frozenset({State.BELOW_THRESHOLD, State.SOURCE_GAP, State.SUPPRESSED, State.NOT_CARRIED})
+NEEDS_NO_FILE = frozenset({State.NOT_PUBLISHED, State.NOT_CARRIED})
+
+
+class Flag(StrEnum):
+    """What a reader of the figure should know."""
+
+    ROUNDED_IN_SOURCE = "rounded_in_source"
+    SUPPRESSED_IN_SOURCE = "suppressed_in_source"
+    UNIT_SPLIT = "unit_split"
+
+
+def state_of(has_value: bool, covered: float) -> State:
+    """The state a figure is in, from whether it has a value and how much was covered.
+
+    It cannot tell a figure the publisher withheld from one the publisher never
+    held. Only the step that read the file can, and it says so in the row.
+    """
+    if has_value:
+        return State.PRESENT if covered >= FULLY_COVERED else State.PARTIAL
+    return State.BELOW_THRESHOLD if covered > 0 else State.SOURCE_GAP
+
+
+class EvidenceRow(EvidenceRecord):
+    fact_id: RowId
+    # Null only where no file was read: the measure is not carried, or is not published.
+    derivation_id: DerivationId | None
+    # Every file the figure was worked out from, the crosswalk and the weights included.
+    inputs: tuple[FileId, ...]
+    # The span of the inputs, and the latest day any was retrieved.
+    data_period: Period | None
+    retrieved_on: Day | None
+    # How many of the source's units the area takes in, and how many had data.
+    units_used: int = Field(ge=0)
+    units_expected: int = Field(ge=0)
+    # The share of the area's homes, or land, that had data.
+    weight_covered: Share
+    state: State
+    flags: tuple[Flag, ...] = ()
+
+    @model_validator(mode="after")
+    def _holds_together(self) -> Self:
+        if not strictly_increasing(self.inputs) or not strictly_increasing(self.flags):
+            raise ValueError("inputs and flags are sorted, each once")
+        if self.units_used > self.units_expected:
+            raise ValueError("units_used is more than units_expected")
+        bare = not self.inputs
+        if bare and self.state not in NEEDS_NO_FILE:
+            raise ValueError("a row in this state names the files it rests on")
+        if not bare and self.state is State.NOT_CARRIED:
+            raise ValueError("a measure that is not carried rests on no file")
+        if given(self.derivation_id, self.data_period, self.retrieved_on) is not (not bare):
+            raise ValueError("a method, a period and a date are given exactly when a file is")
+        if not self._weight_suits_the_state():
+            raise ValueError("weight_covered does not suit the state")
+        return self
+
+    def _weight_suits_the_state(self) -> bool:
+        covered, used = self.weight_covered, self.units_used
+        if self.state is State.PRESENT:
+            return covered >= FULLY_COVERED
+        if self.state in (State.PARTIAL, State.BELOW_THRESHOLD):
+            return 0 < covered < FULLY_COVERED
+        if self.state is State.SUPPRESSED:
+            return True
+        return covered == 0 and used == 0
+
+    @property
+    def area_id(self) -> str:
+        return self.fact_id.split("/")[0]
+
+    @property
+    def measure(self) -> str:
+        """What is measured, whatever the area: `feature/park_proximity`."""
+        return self.fact_id.split("/", 1)[1]
+
+    @property
+    def has_a_value(self) -> bool:
+        return self.state in HAS_A_VALUE

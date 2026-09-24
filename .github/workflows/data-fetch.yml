@@ -1,0 +1,139 @@
+name: data-fetch
+
+# Fetches the files of a list from their publishers, and keeps each in the store.
+# For the founder: docs/data-builds.md says how to start it and what to look at.
+#
+# It is started by hand, on the default branch, and the fetch waits for approval.
+# It prints step names, registry ids, counts and hashes, and uploads nothing to GitHub.
+# tools/check_data_workflows.py holds this file to its rules: in `make ci`, and
+# again as the first step of every run.
+#
+# Which files a list holds, and where each comes from, is in the list and not here:
+# packages/pipeline/src/burro_pipeline/fetch/lists. The licence registry is asked
+# about every file of the list before anything is asked of a publisher.
+
+on:
+  workflow_dispatch:
+    inputs:
+      list:
+        description: Which list of files to fetch
+        type: choice
+        options: [m1]
+        default: m1
+      item:
+        description: One item of the list, by its name. Leave it empty to fetch every file
+        type: string
+        default: ""
+
+permissions: {}
+
+concurrency:
+  group: data-fetch
+  cancel-in-progress: false
+
+jobs:
+  # Needs no secret and no approval, so a mistake is found before anyone is asked.
+  check:
+    name: Rules and canary
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.17"
+          enable-cache: false
+      - name: The run is on the default branch, and the workflows keep their rules
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: uv run --no-project python tools/check_data_workflows.py --on-default-branch
+      - name: No file names a private package host or holds credentials
+        run: uv run --no-project python tools/check_public_only.py
+      # Only what a step imports, and nothing published after the day stated. No lockfile
+      # yet, so no --locked. docs/data-builds.md says how the day is moved.
+      - name: Install
+        run: uv sync --package burro-pipeline --no-dev --exclude-newer 2026-09-23T00:00:00Z
+      - name: A planted row and a planted key cannot be seen
+        run: uv run --no-sync python tools/canary.py plant
+
+  fetch:
+    name: Fetch
+    needs: check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    environment: data-fetch
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.17"
+          enable-cache: false
+      - name: Install
+        run: uv sync --package burro-pipeline --no-dev --exclude-newer 2026-09-23T00:00:00Z
+      - name: Every secret is set, and what is made from one is hidden
+        env:
+          BURRO_STORE_ENDPOINT: ${{ secrets.BURRO_STORE_ENDPOINT }}
+          BURRO_STORE_BUCKET: ${{ secrets.BURRO_STORE_BUCKET }}
+          BURRO_STORE_KEY_ID: ${{ secrets.BURRO_STORE_KEY_ID }}
+          BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
+          BURRO_FETCH_CONTACT: ${{ secrets.BURRO_FETCH_CONTACT }}
+        run: uv run --no-project python tools/public_log.py mask
+      - name: The store answers, and says how much it holds
+        env:
+          BURRO_STORE_ENDPOINT: ${{ secrets.BURRO_STORE_ENDPOINT }}
+          BURRO_STORE_BUCKET: ${{ secrets.BURRO_STORE_BUCKET }}
+          BURRO_STORE_KEY_ID: ${{ secrets.BURRO_STORE_KEY_ID }}
+          BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
+        run: uv run --no-project python tools/public_log.py --step store -- uv run --no-sync python -m burro_pipeline held
+      - name: Fetch every file of the list
+        if: inputs.item == ''
+        env:
+          BURRO_STORE_ENDPOINT: ${{ secrets.BURRO_STORE_ENDPOINT }}
+          BURRO_STORE_BUCKET: ${{ secrets.BURRO_STORE_BUCKET }}
+          BURRO_STORE_KEY_ID: ${{ secrets.BURRO_STORE_KEY_ID }}
+          BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
+          BURRO_FETCH_CONTACT: ${{ secrets.BURRO_FETCH_CONTACT }}
+          LIST: ${{ inputs.list }}
+        run: uv run --no-project python tools/public_log.py --step fetch -- uv run --no-sync python -m burro_pipeline fetch --list="$LIST"
+      - name: Fetch one item of the list
+        if: inputs.item != ''
+        env:
+          BURRO_STORE_ENDPOINT: ${{ secrets.BURRO_STORE_ENDPOINT }}
+          BURRO_STORE_BUCKET: ${{ secrets.BURRO_STORE_BUCKET }}
+          BURRO_STORE_KEY_ID: ${{ secrets.BURRO_STORE_KEY_ID }}
+          BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
+          BURRO_FETCH_CONTACT: ${{ secrets.BURRO_FETCH_CONTACT }}
+          LIST: ${{ inputs.list }}
+          ITEM: ${{ inputs.item }}
+        run: uv run --no-project python tools/public_log.py --step fetch -- uv run --no-sync python -m burro_pipeline fetch --list="$LIST" --only="$ITEM"
+
+  # Runs whatever happened before it: a step that failed is where a row would get out.
+  search:
+    name: Search what the run made public
+    needs: [check, fetch]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.17"
+          enable-cache: false
+      - name: No log holds a planted row or key, and nothing was uploaded
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: uv run --no-project python tools/canary.py search

@@ -1,0 +1,138 @@
+name: data-build
+
+# Builds a data release twice, on two machines, and compares the two.
+# For the founder: docs/data-builds.md says how to start it and what to look at.
+#
+# It is started by hand, on the default branch, and the build waits for approval.
+# It prints step names, counts and hashes, and uploads nothing to GitHub.
+# tools/check_data_workflows.py holds this file to its rules: in `make ci`, and
+# again as the first step of every run.
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: data-build
+  cancel-in-progress: false
+
+jobs:
+  # Needs no secret and no approval, so a mistake is found before anyone is asked.
+  check:
+    name: Rules and canary
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.17"
+          enable-cache: false
+      - name: The run is on the default branch, and the workflows keep their rules
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: uv run --no-project python tools/check_data_workflows.py --on-default-branch
+      - name: No file names a private package host or holds credentials
+        run: uv run --no-project python tools/check_public_only.py
+      # Only what a step imports, and nothing published after the day stated. No lockfile
+      # yet, so no --locked, and every build is a development build. docs/data-builds.md
+      # says how the day is moved.
+      - name: Install
+        run: uv sync --package burro-pipeline --no-dev --exclude-newer 2026-09-23T00:00:00Z
+      - name: A planted row and a planted key cannot be seen
+        run: uv run --no-sync python tools/canary.py plant
+
+  # The same build on two fresh machines. Both wait for one approval.
+  build:
+    name: Build ${{ matrix.copy }}
+    needs: check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: data-build
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        copy: [a, b]
+    # Each copy writes the output named for it, so neither writes over the other.
+    outputs:
+      a: ${{ steps.manifest.outputs.a }}
+      b: ${{ steps.manifest.outputs.b }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.17"
+          enable-cache: false
+      - name: Install
+        run: uv sync --package burro-pipeline --no-dev --exclude-newer 2026-09-23T00:00:00Z
+      # No step here reads the store yet, so the environment holds made-up values and no
+      # key. This step refuses a value that could be a real one, and shows on every build
+      # that what is made from a secret is hidden.
+      - name: Every secret is set, and what is made from one is hidden
+        env:
+          BURRO_STORE_ENDPOINT: ${{ secrets.BURRO_STORE_ENDPOINT }}
+          BURRO_STORE_BUCKET: ${{ secrets.BURRO_STORE_BUCKET }}
+          BURRO_STORE_KEY_ID: ${{ secrets.BURRO_STORE_KEY_ID }}
+          BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
+        run: uv run --no-project python tools/public_log.py mask --made-up
+      # The synthetic release reads nothing, so this step is given no secret.
+      - name: Build the synthetic release
+        run: uv run --no-project python tools/public_log.py --step assemble -- uv run --no-sync burro-release build-synthetic --out "$RUNNER_TEMP/releases"
+      - name: Hash what was built
+        id: manifest
+        env:
+          COPY: ${{ matrix.copy }}
+        run: uv run --no-project python tools/same_manifest.py hash "$RUNNER_TEMP/releases"
+
+  compare:
+    name: Two builds, one manifest
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.17"
+          enable-cache: false
+      - name: Compare the two builds
+        env:
+          COPY_A: ${{ needs.build.outputs.a }}
+          COPY_B: ${{ needs.build.outputs.b }}
+        run: uv run --no-project python tools/same_manifest.py compare
+
+  # Runs whatever happened before it: a step that failed is where a row would get out.
+  search:
+    name: Search what the run made public
+    needs: [check, build, compare]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.17"
+          enable-cache: false
+      - name: No log holds a planted row or key, and nothing was uploaded
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: uv run --no-project python tools/canary.py search

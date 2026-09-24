@@ -1,0 +1,22 @@
+# What may enter the build of deploy/api/Dockerfile.
+#
+# Everything is left out, and then only what the image is built from is let in.
+# A new folder, a settings file or a secret left in the checkout stays out
+# without anyone having to remember it.
+#
+# Docker reads this file because it sits beside the Dockerfile and carries its
+# name. Fly.io is told where it is with `--ignorefile`.
+
+*
+
+!packages/core/pyproject.toml
+!packages/core/src
+!services/api/pyproject.toml
+!services/api/src
+!data/fixtures/synthetic
+
+# A release folder holds its files and nothing else, so nothing a file browser
+# or an interpreter leaves behind may come with it.
+**/__pycache__
+**/*.py[cod]
+**/.DS_Store

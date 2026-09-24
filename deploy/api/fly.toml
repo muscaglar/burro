@@ -1,0 +1,79 @@
+# Burro's API on Fly.io: one small machine in London, always running.
+#
+# Deploy from the repository root. deploy/README.md has the steps.
+#
+#   fly deploy . --config deploy/api/fly.toml --dockerfile deploy/api/Dockerfile \
+#     --ignorefile deploy/api/Dockerfile.dockerignore --ha=false
+#
+# No secret belongs in this file. The model key is set with `fly secrets`, and
+# not before the plan's conditions for it are met. deploy/README.md lists them.
+#
+# This file has never been deployed. It was written from Fly.io's reference as
+# it read on 2026-09-23.
+
+# Names are shared by every Fly.io customer. Change it if this one is taken.
+app = "burro-api"
+primary_region = "lhr"
+
+# The service may wait 6 seconds for a model before the rules answer. Give a
+# request in flight longer than that to finish when the machine is stopped.
+kill_signal = "SIGINT"
+kill_timeout = 10
+
+[env]
+  # The website's own origin, exactly as a browser sends it: `https://`, the
+  # host, no path, no slash at the end, no port. It must be the same origin as
+  # BURRO_SITE_URL on Vercel. Two origins are separated by a comma.
+  #
+  # The value below is one the service refuses, on purpose. A deploy that
+  # leaves it in fails its health check and says so in `fly logs`. A deploy
+  # with no value at all would pass, and answer no browser but one on the
+  # visitor's own machine.
+  BURRO_ALLOWED_ORIGINS = "https://SET-THE-WEBSITE-ORIGIN"
+
+  # The release folder, the address and the port are set in the image.
+  # BURRO_MODEL_ID, BURRO_MODEL_TIMEOUT_S and BURRO_MODEL_MAX_TOKENS have
+  # defaults in code. Set one here only to change it.
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "512mb"
+
+[[services]]
+  # The port the image listens on, BURRO_PORT in deploy/api/Dockerfile.
+  internal_port = 8080
+  protocol = "tcp"
+
+  # Never stopped for being idle, so the first request of the day is not slow.
+  # One machine, no more: a shared search is kept in the machine's memory, so a
+  # second machine would not find a link the first one made.
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  # Port 443 only. Port 80 is not opened, so the service never answers a
+  # request sent in the clear, and no redirect repeats a path, which can hold a
+  # share id, in a header. The website calls the API by its `https` address and
+  # never needs port 80. To open it, add a second `[[services.ports]]` with
+  # `port = 80`, `handlers = ["http"]` and `force_https = true`.
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  # A first guess, not a measurement. Ranking takes milliseconds. A prompt read
+  # by a model can hold a worker for seconds.
+  [services.concurrency]
+    type = "requests"
+    soft_limit = 50
+    hard_limit = 100
+
+  # Route 12. It says the process is up. It says nothing about the release,
+  # which is checked once, before the service listens.
+  [[services.http_checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "10s"
+    method = "get"
+    path = "/healthz"
+    protocol = "http"
