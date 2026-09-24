@@ -1,0 +1,98 @@
+# Licence registry: schools. Rules are in registry/README.md.
+# Approved first, then gated, held and banned.
+schema_version = 1
+
+[[source]]
+id = "dfe-gias"
+name = "Get Information About Schools (GIAS) establishment downloads"
+publisher = "Department for Education"
+url = "https://get-information-schools.service.gov.uk/Downloads"
+dimension = "schools"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = true
+conditions = [
+    "Use the public bulk downloads only. The acceptable use policy forbids scraping or harvesting the website interface, 'including via AI bots, headless browsers or automated scripts'.",
+    "Ingest establishment files only. Do not ingest the governors downloads, which are records about named people.",
+    "OGL v3 does not cover personal data. Drop any personal fields in the establishment file (head teacher name fields are expected) at ingest, and confirm the column list on first download.",
+    "The acceptable use policy says: 'Do not combine GIAS data with other sources to create or infer personal data beyond what is lawfully and openly available.'",
+    "The service gives no dataset-specific attribution statement, so the OGL v3 default applies. Name the Department for Education as the source beside it.",
+    "If the extract holds pupil intake fields (for example free school meals percentage or pupil counts by sex), drop them at ingest. They describe people, not places (PLAN section 9).",
+    "Keep the religious character field out of ranking and tags until the founder decides. It describes the school, but religion is a protected characteristic.",
+    "No catchment claims. Distance to a school is not admission.",
+]
+status = "approved"
+uses = ["destination_search", "scoring", "display"]
+cadence = "Daily."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://get-information-schools.service.gov.uk/Downloads",
+    "https://get-information-schools.service.gov.uk/TermsofUse",
+    "https://get-information-schools.service.gov.uk/AcceptableUsePolicy",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+]
+notes = "How it was verified: Re-checked by the reviewer on 2026-09-23. The Downloads page and Terms of use page state 'All content is available under the Open Government Licence v3.0, except where otherwise stated', and the acceptable use policy names the public downloads as the route for 'offline analysis or system ingestion'. The liveability research also marks it verified. In this domain GIAS supplies school and college names and coordinates so a named school resolves as a destination. The schools dimension uses the same dataset for features; 'scoring' and 'display' are listed for that and should be re-checked by that domain's review. If the schools domain drafts its own entry, merge into this id. Join key is URN. The 'except where otherwise stated' carve-out was not traced field by field; nothing on the three pages marks any establishment field as excluded. Universities are not in GIAS. Join key to Ofsted and performance tables is URN. The acceptable use policy was read today at the URL above, so the scraping ban no longer rests on the research report alone. It also says: 'Where GIAS data is made available under the OGL, you must attribute appropriately and comply with the licence terms of use stated on the service.' No publisher-specific attribution wording was found on the Downloads, terms or policy pages, so the OGL v3.0 default applies. I did not open the extract, so the pupil intake column names are from memory, not checked."
+
+[[source]]
+id = "ofsted-state-funded-schools-mi"
+name = "Ofsted state-funded school inspections and outcomes: monthly management information"
+publisher = "Ofsted"
+url = "https://www.gov.uk/government/statistical-data-sets/monthly-management-information-ofsteds-school-inspections-outcomes"
+dimension = "schools"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "The file mixes three inspection regimes that Ofsted says are not directly comparable. Never build a composite Ofsted grade. Show the published outcome and inspection date as they are.",
+    "This is management information, not official statistics, and can be revised.",
+    "At first ingest, save a dated copy of the dataset page footer to registry/evidence. Nobody has read that page as far as its footer.",
+]
+status = "approved"
+uses = ["scoring", "display"]
+cadence = "Monthly. Latest files are as at 31 August 2026, page updated 10 September 2026."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.gov.uk/government/statistics/state-funded-schools-inspections-and-outcomes-as-at-31-march-2026/methodology-state-funded-schools-inspections-and-outcomes-as-at-31-march-2026",
+    "https://www.gov.uk/government/statistics/state-funded-schools-inspections-and-outcomes-as-at-31-march-2026",
+    "https://www.gov.uk/government/collections/maintained-schools-and-academies-inspections-and-outcomes-official-statistics",
+    "https://www.gov.uk/government/statistical-data-sets/monthly-management-information-ofsteds-school-inspections-outcomes",
+]
+notes = "How it was verified: Ofsted's methodology page for these statistics states 'This publication is licensed under the terms of the Open Government Licence v3.0 except where otherwise stated' (reviewer fetch, 2026-09-23), which matches the research. The OGL v3.0 footer was also read on Ofsted's GOV.UK collection page and on the March 2026 release page. It is a v1 source in PLAN section 7. The licence statement is on the methodology page for the official statistics, which describe the monthly management information as part of the same output. The footer on the management information page itself has still not been seen, so the attribution stays unverified: I cannot rule out a statement on that page or inside the file. The methodology page says report card outcomes 'are distinct from the judgements under the original EIF and so are not directly comparable'. Report cards began on 10 November 2025 and have no overall grade."
+
+[[source]]
+id = "dfe-school-performance-tables"
+name = "DfE school performance tables (Compare school and college performance download data)"
+publisher = "Department for Education"
+url = "https://www.compare-school-performance.service.gov.uk/download-data"
+dimension = "schools"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "Gate: open the download page in a browser, confirm that OGL v3.0 covers the school-level CSV files, and save a dated copy of the footer and any data terms to registry/evidence.",
+    "Use attainment measures only. If the files hold columns that describe pupils (for example disadvantaged, first language or special educational needs shares), drop them at ingest (PLAN section 9).",
+    "Progress 8 cannot be calculated for 2024/25 or 2025/26. Use Attainment 8 and grade 5+ in English and maths.",
+    "No catchment claims. Distance to a school is not admission.",
+]
+status = "gated"
+status_reason = "Intended for v1 (PLAN section 7), but nobody has read the download service: not the research, the drafter or the reviewer on 2026-09-23. OGL v3.0 was seen only on related DfE pages, not on the service that serves the files. The browser check in conditions settles it."
+uses = ["scoring", "display"]
+cadence = "Annual"
+verified_how = "secondary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.gov.uk/school-performance-tables",
+    "https://explore-education-statistics.service.gov.uk/find-statistics/key-stage-4-performance",
+]
+notes = "The DfE key stage 4 statistics release carries the OGL v3.0 footer and says 'It is not possible to calculate Progress 8 for academic years 2024/25 and 2025/26' and that school level data for 2024/25 'can be found in the Compare School and College Performance' (reviewer fetch today). That page is not the download page. Attribution is the OGL default and stays unverified until the download page is read."

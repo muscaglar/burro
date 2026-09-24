@@ -1,0 +1,49 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Python
+# Not committed yet. See docs/adr/0008-package-sources.md.
+uv.lock
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.pyright/
+*.egg-info/
+dist/
+build/
+
+# Node
+# The lockfile is not committed yet, as uv.lock is not.
+# See docs/adr/0008-package-sources.md.
+apps/web/package-lock.json
+node_modules/
+.next/
+
+# Xcode and Swift
+# apps/ios depends on no package, so there is no Package.resolved to commit.
+# What a build leaves in apps/ios/build is covered by build/ above.
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcodeproj/project.xcworkspace/
+*.xcresult
+.build/
+.swiftpm/
+Package.resolved
+
+# Data: releases and downloads live in object storage, never in git
+data/raw/
+data/releases/
+*.parquet
+*.npy
+*.pmtiles
+!data/fixtures/**
+
+# Tools and OS
+.DS_Store
+.claude/*
+!.claude/skills/

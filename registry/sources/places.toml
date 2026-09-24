@@ -1,0 +1,296 @@
+# Licence registry: places. Rules are in registry/README.md.
+# Approved first, then gated, held and banned.
+schema_version = 1
+
+[[source]]
+id = "fsa-food-hygiene-ratings"
+name = "Food Hygiene Rating Scheme open data"
+publisher = "Food Standards Agency"
+url = "https://ratings.food.gov.uk/open-data"
+dimension = "places"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "Use for establishment counts, business type and chain detection only.",
+    "Never display an individual hygiene rating or any rating imagery. The terms warn that 'displaying or otherwise using an invalid or inaccurate rating may constitute a criminal offence and/or expose the user to potential civil liability'.",
+    "Do not use FSA or FHRS logos, branding or rating images. Naming the Food Standards Agency as the source is fine and is needed for attribution.",
+    "Show the data date wherever a derived figure appears. The terms make users responsible for using the current rating or indicating the date the information was updated.",
+    "Never display or export establishment-level rows. Some records are sole traders, and OGL does not cover personal data.",
+    "Do not imply FSA endorsement.",
+    "OpenStreetMap comparison must never drop, add or correct an individual FSA record.",
+]
+status = "approved"
+uses = ["scoring", "validation_only"]
+cadence = "Daily"
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://ratings.food.gov.uk/terms-and-conditions",
+    "https://ratings.food.gov.uk/open-data",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+]
+notes = "How it was verified: The FSA terms page states that use 'is subject to the terms of the Open Government Licence (OGL)' and links to version 3. Confirmed by the verifier, by the drafter, and again by this review on 2026-09-23. The FSA terms page, open data page and API help page give no attribution statement of their own, so the OGL default line is used and the FSA is named as the source on the attributions page. Marked unverified because the API guidance PDF was not read and all pages were read through a reader that summarises. validation_only is registered because this is the cross-check for Overture food and drink counts in the phase 0b spike. The API was not queried in earlier research, so file contents are uninspected."
+
+[[source]]
+id = "overture-places"
+name = "Overture Maps Places"
+publisher = "Overture Maps Foundation"
+url = "https://docs.overturemaps.org/guides/places/"
+dimension = "places"
+licence = "CDLA-Permissive-2.0"
+additional_licences = ["Apache-2.0", "CC0-1.0"]
+licence_url = "https://cdla.dev/permissive-2-0/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Overture Maps Foundation, overturemaps.org | Data from Foursquare. Copyright 2024 Foursquare Labs, Inc. All rights reserved. Available under Apache 2.0. Foursquare data was transformed to the Overture schema. Changed: 2026-03-18. NOTICE.txt (https://opensource.foursquare.com/places-notice-txt/)"
+attribution_verified = false
+conditions = [
+    "Licence varies by record. Meta, Microsoft, PinMeTo, Krick, RenderSEO, DAC and BrightQuery records are CDLA-Permissive-2.0; Foursquare records are Apache 2.0 with a NOTICE duty; AllThePlaces records are CC0 1.0.",
+    "Keep the per-record 'sources' property at ingest so records can be filtered by licence.",
+    "CDLA-Permissive-2.0 section 3.1 (no restriction or obligations on Results) does not exist in Apache 2.0, so it does not cover the Foursquare share. Filter Foursquare-only records out of any output that must carry no obligations.",
+    "AllThePlaces records are scraped from retailer store locators. The CC0 waiver covers only the project's own rights, not any rights the retailers hold. Keep these records filterable so they can be dropped if a retailer objects.",
+    "Put the Overture line and the Foursquare notice on the attributions page. If the raw data is ever shared, include the CDLA-Permissive-2.0 text and the full Foursquare NOTICE.txt.",
+    "Aggregates only in v1. Do not show place names or any record-level row; showing Foursquare-sourced names brings the Apache notice duty onto that display.",
+    "Pin one release per data release and build against basic_category and taxonomy, not the removed categories property.",
+    "OpenStreetMap may be used to set a global confidence threshold only, never to drop, add or correct individual Overture records.",
+    "This entry covers the Places theme only. Overture base, buildings, divisions and transportation contain OpenStreetMap data under ODbL and need their own entries.",
+]
+status = "approved"
+uses = ["scoring"]
+cadence = "Monthly releases. Latest seen 2026-08-19.0. Pin one release per data release."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://docs.overturemaps.org/attribution/",
+    "https://docs.overturemaps.org/guides/places/",
+    "https://cdla.dev/permissive-2-0/",
+    "https://opensource.foursquare.com/places-notice-txt/",
+]
+notes = "How it was verified: Licences confirmed per source on Overture's own attribution page and Places guide by the verifier, by the drafter, and again by this review on 2026-09-23. All three licences are permissive with no share-alike and allow commercial use. The London quality spike is a product check that needs ingest to run, not a licence gate. The attribution wording is still to be re-copied for the pinned release before launch. The attribution string matches Overture's attribution page word for word on two separate fetches, but it is marked unverified for three reasons. First, the 'Changed' date is release-specific and no release is pinned yet. Second, Overture's page says 'Copyright 2024' while Foursquare's own NOTICE page says '© 2026'. Third, a link to NOTICE.txt may not satisfy Apache 2.0 section 4(d) if data is ever redistributed. Overture calls its own citation optional ('you may choose to add'); it is kept as good practice. The Places guide lists about 58.5 million Meta records, 4.6 million Foursquare and 1.6 million AllThePlaces in the August 2026 release. All wording was read through a reader that summarises."
+
+[[source]]
+id = "geolytix-retail-points"
+name = "Geolytix Retail Points (supermarkets and convenience stores)"
+publisher = "Geolytix"
+url = "https://geolytix.com/blog/supermarket-retail-points/"
+dimension = "places"
+licence = "Bespoke-terms"
+licence_url = "https://geolytix.com/blog/supermarket-retail-points/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Retail Points data from Geolytix"
+attribution_verified = false
+conditions = [
+    "There is no formal licence document. Reliance is on the publisher's statement: 'Geolytix release this as open data allowing for unrestricted use, no licensing requirements and without cost.'",
+    "Acknowledgement is requested, not required: 'if you are able to acknowledge us that would be greatly appreciated'.",
+    "Use for grocery chain detection only.",
+]
+status = "gated"
+status_reason = "The permission rests on a blog post first published January 2021 and last updated February 2023. Gate: (1) save a dated copy of the blog statement; (2) confirm the terms of the current release, either from a licence or readme file published with it or from a written reply from Geolytix, and save that too. If the release carries different terms, those govern."
+uses = ["scoring"]
+cadence = "Quarterly"
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = ["https://geolytix.com/blog/supermarket-retail-points/"]
+notes = "Not listed in the plan's section 7 table, so this is optional for v1. The attribution is Burro's wording for the requested acknowledgement."
+
+[[source]]
+id = "openstreetmap-points-of-interest"
+name = "OpenStreetMap points of interest (Greater London extract)"
+publisher = "OpenStreetMap contributors, OpenStreetMap Foundation"
+url = "https://download.geofabrik.de/europe/united-kingdom/england/greater-london.html"
+dimension = "places"
+licence = "ODbL-1.0"
+licence_url = "https://www.openstreetmap.org/copyright"
+commercial_use = "yes_with_conditions"
+share_alike = true
+attribution = "© OpenStreetMap contributors"
+attribution_verified = false
+conditions = [
+    "Internal benchmarking only, producing aggregate quality metrics.",
+    "OSM comparison may set a global threshold. It must never drop, add or correct an individual Overture, FSA or gazetteer record. The OSMF Horizontal Layers guideline lists adding non-OSM data based on comparison with OpenStreetMap data as a case where share-alike applies.",
+    "Never an input to scoring, tags, gazetteer, cells or destination search.",
+    "Keep in its own schema, linked to other data by key only.",
+    "Repeated small extractions count as one large extraction.",
+    "If the credit is ever shown, link it to https://www.openstreetmap.org/copyright so the Open Database Licence is clear.",
+]
+status = "gated"
+status_reason = "Licence is confirmed, but the risk is leakage into scoring. The written policy now exists (ADR 0004 and rule 3 in AGENTS.md) and the registry refuses share-alike sources for scoring. Gate: a CI lineage test that fails when any feature or gazetteer table depends on the OSM extract. It does not exist yet."
+cadence = "Daily extracts. Pin the extract date."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.openstreetmap.org/copyright",
+    "https://osmfoundation.org/wiki/Licence/Attribution_Guidelines",
+    "https://osmfoundation.org/wiki/Licence/Community_Guidelines/Horizontal_Map_Layers_-_Guideline",
+    "https://opendatacommons.org/licenses/odbl/1-0/",
+]
+notes = "Covers points of interest only. OSM for the basemap and the routing street network belongs in separate entries. The OSMF Attribution Guidelines accept 'OpenStreetMap', '© OpenStreetMap contributors' and '© OpenStreetMap'. Internal use that is never shown publicly triggers no attribution, but the credit is recorded for the methods page. The Geofabrik page shows 'ODbL 1.0' and data up to 2026-09-22. Intended use once the gate passes: validation_only."
+
+[[source]]
+id = "parkrun-events"
+name = "parkrun and junior parkrun events in London: location and day"
+publisher = "parkrun"
+url = "https://www.parkrun.org.uk/"
+dimension = "places"
+licence = "Bespoke-terms"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Event locations and days: parkrun, used with permission."
+attribution_verified = false
+conditions = [
+    "Permission in writing, as the founder reports. The founder asked parkrun to use the location and day of each parkrun and junior parkrun event in London in a commercial service, as one kind of place in a vibe about places to meet, and to show the event's name. The founder reports that parkrun answered in writing on 2026-09-23, giving permission.",
+    "The permission covers what was asked and no more. Never results, times or attendance, and nothing about a runner or a volunteer.",
+    "A change of use means asking parkrun again, before the change is made: another field, another area, another purpose, or passing the data on.",
+    "Credit parkrun wherever an event is counted or named. The credit is Burro's wording until the owner publishes its own.",
+    "How the events are to be obtained is not recorded. Until parkrun has said how, no page of its site is fetched by code.",
+    "An event is a place to meet. It is never used to say who lives near it.",
+]
+status = "gated"
+status_reason = "The permission is a written reply that only the founder has read. The founder holds the reply. No published licence stands behind this source: nobody has read parkrun's terms. What would settle it: the founder files a dated note of the reply in registry/evidence."
+uses = ["scoring", "display"]
+verified_how = "secondary_source"
+verified_on = 2026-09-23
+notes = "What the founder reported is noted in registry/evidence/parkrun-events-2026-09-23.md. No page of parkrun's site was read for this entry. The address above is the one the research recorded, and nobody has opened it. The attribution is Burro's own wording, not parkrun's. verified_how is secondary_source because whoever wrote this entry has not read the reply, and so that the entry cannot be approved by changing its status alone. The research found no open route to the same data: Wikidata held two parkrun events for the United Kingdom, and OpenActive did not list parkrun as a publisher."
+
+[[source]]
+id = "alltheplaces-poi"
+name = "AllThePlaces (direct download)"
+publisher = "AllThePlaces project"
+url = "https://www.alltheplaces.xyz/"
+dimension = "places"
+licence = "CC0-1.0"
+licence_url = "https://creativecommons.org/publicdomain/zero/1.0/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "None required. Suggested credit: AllThePlaces, alltheplaces.xyz"
+attribution_verified = false
+conditions = [
+    "The CC0 waiver covers only the project's own rights, not any rights retailers hold in the store-locator data that was scraped.",
+    "Consume only through Overture Places in v1.",
+]
+status = "held"
+status_reason = "Not needed in v1. The strength of the CC0 waiver over scraped retailer data is untested, so direct use waits for a decision."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = ["https://www.alltheplaces.xyz/"]
+
+[[source]]
+id = "companies-house-free-company-data"
+name = "Companies House Free Company Data Product"
+publisher = "Companies House"
+url = "https://download.companieshouse.gov.uk/en_output.html"
+dimension = "places"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "The download page states no licence. The OGL label comes from a data.gov.uk listing, and the OGL line on the GOV.UK guidance page is the site footer, which covers page content rather than this data product.",
+    "Contains personal data such as officer-linked addresses. OGL does not cover personal data.",
+    "Companies House says users are 'responsible for complying with any applicable data protection, copyright and other legislation'.",
+]
+status = "held"
+status_reason = "Rejected on fitness, not licence. A registered office is often an accountant's address, so it distorts local character. The licence would also need confirming from the record page before any release."
+verified_how = "secondary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://download.companieshouse.gov.uk/en_output.html",
+    "https://www.gov.uk/guidance/companies-house-data-products",
+    "https://www.data.gov.uk/search?q=free+company+data+product",
+]
+
+[[source]]
+id = "foursquare-os-places"
+name = "Foursquare Open Source Places (direct download)"
+publisher = "Foursquare Labs, Inc."
+url = "https://docs.foursquare.com/data-products/docs/access-fsq-os-places"
+dimension = "places"
+licence = "Apache-2.0"
+licence_url = "https://www.apache.org/licenses/LICENSE-2.0"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Copyright 2024 Foursquare Labs, Inc. All rights reserved. Licensed under the Apache License, Version 2.0. Full NOTICE.txt must be preserved: https://opensource.foursquare.com/places-notice-txt/"
+attribution_verified = false
+conditions = [
+    "Provide recipients with a copy of the licence, mark changes prominently, and preserve the full NOTICE.txt.",
+    "For distribution through an API, the NOTICE content must appear prominently in the developer documentation.",
+    "Access needs a Places Portal account and token, or gated Hugging Face access, or Snowflake.",
+    "Apache 2.0 has no 'Results' clause.",
+]
+status = "held"
+status_reason = "Not needed in v1. The same records already arrive inside Overture Places, and direct access now needs an account and token."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://docs.foursquare.com/data-products/docs/access-fsq-os-places",
+    "https://opensource.foursquare.com/places-notice-txt/",
+]
+
+[[source]]
+id = "os-points-of-interest"
+name = "OS Points of Interest (paid)"
+publisher = "Ordnance Survey (distributor); PointX, part of Landmark Information Group (owner)"
+url = "https://docs.os.uk/os-downloads/products/addresses-and-names-portfolio/points-of-interest/points-of-interest-overview"
+dimension = "places"
+licence = "Bespoke-terms"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Not determined. Set by the commercial licence."
+attribution_verified = false
+conditions = [
+    "Premium product under a paid commercial licence or partner contract.",
+    "Terms and price for a public consumer app were not confirmed.",
+    "Any use needs a signed licence saved in the registry first.",
+]
+status = "held"
+status_reason = "Paid, outside the open-first budget, and licence terms are unread. Revisit only if open data quality proves inadequate."
+verified_how = "unverified"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://docs.os.uk/os-downloads/products/addresses-and-names-portfolio/points-of-interest/points-of-interest-overview",
+]
+
+[[source]]
+id = "google-places"
+name = "Google Places API"
+publisher = "Google"
+url = "https://cloud.google.com/maps-platform/terms"
+dimension = "places"
+licence = "Bespoke-terms"
+licence_url = "https://cloud.google.com/maps-platform/terms"
+commercial_use = "no"
+share_alike = false
+status = "banned"
+status_reason = "Every step Burro would take (store, aggregate per area, show on a non-Google map) is prohibited by the Google Maps Platform Terms. This includes use to check or enrich other data."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://cloud.google.com/maps-platform/terms",
+    "https://developers.google.com/maps/documentation/places/web-service/policies",
+]
+
+[[source]]
+id = "voa-non-domestic-rating-list"
+name = "VOA non-domestic rating list downloads (business rates)"
+publisher = "Valuation Office Agency"
+url = "https://voaratinglists.blob.core.windows.net/html/rlidata.htm"
+dimension = "places"
+licence = "Bespoke-terms"
+licence_url = "https://www.tax.service.gov.uk/view-my-valuation/terms-and-conditions"
+commercial_use = "no"
+share_alike = false
+status = "banned"
+status_reason = "PLAN section 7 bans it. The publisher's download page says the Open Government Licence does not apply, and the linked terms restrict use and publication to non-domestic rating purposes. A neighbourhood finder is not such a purpose. It is also not needed: FSA and Overture cover venues."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://voaratinglists.blob.core.windows.net/html/rlidata.htm",
+    "https://www.tax.service.gov.uk/view-my-valuation/terms-and-conditions",
+]

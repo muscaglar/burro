@@ -1,0 +1,442 @@
+# Licence registry: transport. Rules are in registry/README.md.
+# Approved first, then gated, held and banned.
+schema_version = 1
+
+[[source]]
+id = "osm-geofabrik-greater-london"
+name = "OpenStreetMap Greater London extract (Geofabrik), routing street network"
+publisher = "OpenStreetMap contributors (extract published by Geofabrik GmbH)"
+url = "https://download.geofabrik.de/europe/united-kingdom/england/greater-london.html"
+dimension = "transport"
+licence = "ODbL-1.0"
+licence_url = "https://opendatacommons.org/licenses/odbl/1-0/"
+commercial_use = "yes_with_conditions"
+share_alike = true
+attribution = "© OpenStreetMap contributors"
+attribution_verified = true
+conditions = [
+    "Routing street network only. Never use for gazetteer, cells, destination search or scoring. Walk-distance features use OS Open Roads.",
+    "Build the street network from OSM alone and load GTFS as separate non-OSM inputs. The OSMF Trivial Transformations guideline lists 'In a format required for routing' as trivial only where the program runs 'Without reading any other observation data (important!)'.",
+    "Publish a methods page naming the OSM extract date, routing engine version and settings. This is what ODbL 4.6(b) would accept in place of the database if share-alike were ever claimed.",
+    "Credit OpenStreetMap beside commute times on web and iOS, not only on the map. Make 'OpenStreetMap' a link to https://www.openstreetmap.org/copyright so it is clear the data is under the Open Database License.",
+    "Keeping matrices server-side is not a protection: ODbL 4.4(c) and 4.6 apply when a Produced Work from a Derivative Database is shown publicly.",
+    "OSM comparison may set a global threshold but must never add, drop or correct an individual Overture or gazetteer record (OSMF Horizontal Layers guideline).",
+    "Accepted residual risk from PLAN section 9: being asked to publish the travel-time table under ODbL.",
+    "Record the extract timestamp in the release manifest. Cut with a few kilometres of buffer so edge cells route correctly.",
+]
+status = "approved"
+uses = ["routing"]
+cadence = "Geofabrik refreshes the extract about daily (123 MB .osm.pbf). Burro pins one extract per data release."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.openstreetmap.org/copyright",
+    "https://download.geofabrik.de/europe/united-kingdom/england/greater-london.html",
+    "https://osmfoundation.org/wiki/Licence/Attribution_Guidelines",
+    "https://osmfoundation.org/wiki/Licence/Community_Guidelines/Trivial_Transformations_-_Guideline",
+    "https://osmfoundation.org/wiki/Licence/Community_Guidelines/Horizontal_Map_Layers_-_Guideline",
+    "https://opendatacommons.org/licenses/odbl/1-0/",
+]
+notes = "How it was verified: ODbL 1.0 confirmed on openstreetmap.org/copyright and on the Geofabrik download page on 2026-09-23. Commercial use is allowed with attribution. PLAN section 9 and ADR 0004 set the written OSM policy that the conditions repeat. All pages except the ODbL text itself were re-read as page text on 2026-09-23. The Geofabrik footer reads 'Data processed by Geofabrik GmbH and created by OpenStreetMap Contributors | License: ODbL 1.0'. The copyright page gives no fixed credit wording and points to the OSMF Attribution Guidelines (adopted 2021-06-25), which say 'Attribution must be to \"OpenStreetMap\"' and that 'The historical forms of attribution \"© OpenStreetMap contributors\" or \"© OpenStreetMap\" are acceptable'. They also say 'Routing engines that use OpenStreetMap data must credit OpenStreetMap' and 'Applications that incorporate such a routing engine must credit OpenStreetMap'. New detail: the Trivial Transformations guideline also lists 'Other applications of geometric and graph algorithms on OSM data (Voronoi diagrams, travelling distances etc.) if they are driven by OSM data only'. Walking and cycling matrices fit that wording. Public transport matrices combine OSM with GTFS, so they rest on the project's own reading, not on an OSMF ruling, and no professional has reviewed it. This entry covers routing only."
+
+[[source]]
+id = "tfl-journey-planner-timetables"
+name = "TfL Journey Planner timetables (TransXChange)"
+publisher = "Transport for London"
+url = "https://tfl.gov.uk/info-for/open-data-users/our-open-data"
+dimension = "transport"
+licence = "TfL-Open-Data"
+licence_url = "https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Powered by TfL Open Data\nContains OS data © Crown copyright and database rights 2016\nGeomni UK Map data © and database rights [2019]"
+attribution_verified = true
+conditions = [
+    "Open question for TfL: the open data page lists this feed with 'How often we publish a fresh copy of the feed: 1440 minutes', 'Maximum time allowed between capturing and displaying the feed: 10 minutes' and 'Maximum time information can be displayed before being updated: 1440 minutes'. TfL's Syndication Developer Guidelines (version 2.0, 2012-05-21), linked at the top of that page, say 'When using a TfL feed (or data service) you agree to follow the appropriate Terms and Conditions and the implementation rules within this User Guide', and state the timeliness rules with 'must'. Those rules are written for TfL's XML feeds and send readers to the per-dataset page for other formats. The Transport Data Service terms themselves have no caching, storage or display-duration clause. Burro plans to show travel times built from a snapshot that is rebuilt quarterly. To clear the gate, save in registry/evidence either TfL's written confirmation that this is acceptable, or a decision record that rebuilds everything derived from this feed on a cadence that meets the published timings.",
+    "Register on the TfL API portal before the first download and keep the registration details accurate. The licence 'shall apply from the date of registration'. The zip linked on the open data page is an example that 'is not updated'.",
+    "Save dated copies of the terms, the open data page entry and the Syndication Developer Guidelines in registry/evidence, and re-read the terms at every data release. The terms page has no version or date and says TfL 'may at any time revise this Licence without notice'.",
+    "Show all three attribution statements on the generated attributions page and credit TfL wherever TfL-derived commute times appear.",
+    "Follow TfL design and branding guidelines: do not use or adapt TfL branding, the roundel, TfL maps or New Johnston font without a licence, do not use TfL trademarks in the app or product name, and do not use terms such as 'official' or 'in partnership'. The words 'London Underground', 'Tube', 'London Buses', 'DLR', 'London Overground', 'London River Services' and 'London Cable Car' may be used only to label services, for service messaging, journey planning and wayfinding, and in app store descriptions and marketing to describe services.",
+    "Do not use the data in a way that suggests official status or TfL endorsement.",
+    "Limit requests to 500 calls per minute per data feed. TfL may throttle or limit access.",
+    "If a condition is broken the licence ends automatically, and the licence gives no right to use the data after it has ended.",
+    "Covers Underground, bus, DLR, tram, cable car and river only. London Overground and Elizabeth line are not in this feed and must come from rail data.",
+    "Label outputs as timetabled times: TfL states the timetables 'do not take account of planned engineering works'.",
+]
+status = "approved"
+before_launch = [
+    "A written answer from TfL, or a decision record, on showing travel times computed from a timetable snapshot that is rebuilt quarterly, given the timing values TfL publishes for this feed.",
+]
+uses = ["routing", "scoring", "display"]
+cadence = "TfL publishes a fresh copy every 1440 minutes (zip, 24.31 MB). TfL says 'The timetables are updated every 7 days.' Burro plans one snapshot per data release (quarterly, plus after major network changes), subject to the gate check."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service",
+    "https://tfl.gov.uk/info-for/open-data-users/our-open-data",
+    "https://content.tfl.gov.uk/syndication-developer-guidelines.pdf",
+    "https://tfl.gov.uk/info-for/open-data-users/design-and-branding",
+]
+notes = "Licence confirmed: the Transport Data Service terms were read on tfl.gov.uk on 2026-09-23 and allow commercial use with attribution. There is no other source for Underground timetables."
+
+[[source]]
+id = "tfl-step-free-station-topology"
+name = "TfL step-free access and station topology data"
+publisher = "Transport for London"
+url = "https://tfl.gov.uk/info-for/open-data-users/our-open-data"
+dimension = "transport"
+licence = "TfL-Open-Data"
+licence_url = "https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Powered by TfL Open Data\nContains OS data © Crown copyright and database rights 2016\nGeomni UK Map data © and database rights [2019]"
+attribution_verified = false
+conditions = [
+    "Files: https://api.tfl.gov.uk/stationdata/tfl-stationdata-gtfs.zip and https://api.tfl.gov.uk/stationdata/tfl-stationdata-detailed.zip.",
+    "The data guide says: 'When using a TfL feed (or data service) you agree to follow the terms and conditions for TfL's free Transport Data Service, and the implementation rules within this user guide.' The guide sets no timing or display rules of its own. Save the guide (specification version 1.0, July 2021) with the licence evidence.",
+    "Register on the TfL API portal first. The licence 'shall apply from the date of registration'. Re-read the terms at every data release, because TfL may revise them without notice.",
+    "Show the TfL attribution statements on the attributions page and wherever a station fact from this data is shown.",
+    "Only step-free pathways are listed. The guide says 'This is NOT an exhaustive list of all pathways through a station, only those that can be taken step-free have been considered.' A missing pathway means 'not recorded as step-free', not 'no route'. Do not present absence as a fact about a station.",
+    "Thameslink data is partial: step and gap values are omitted where a manual ramp is needed, HasStepFreeRouteInformation is False for Thameslink platforms, and lifts, toilets, Blue Badge parking and taxi ranks 'may be present despite information about them not being included'. Treat a blank as unknown.",
+    "Station facts describe buildings, which fits the PLAN fairness rule. Any feature built from this still needs to be on the feature allowlist.",
+    "Follow TfL design and branding guidelines and do not imply official status or endorsement.",
+]
+status = "approved"
+uses = ["scoring", "display"]
+cadence = "TfL states no update frequency for the topology files. Burro snapshots one copy per data release. The live lift disruption feed is not covered by this entry."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://content.tfl.gov.uk/step-free-access-and-toilet-data-guide.pdf",
+    "https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service",
+    "https://tfl.gov.uk/info-for/open-data-users/our-open-data",
+]
+notes = "How it was verified: TfL's own data guide, read page by page on 2026-09-23, states the dataset is under the Transport Data Service terms, and those terms were read on tfl.gov.uk the same day and allow commercial use with attribution. The open data page lists no display timings for these files. I read all ten pages of the guide and every claim in the draft checks out. The guide lists London Underground, London Overground, DLR, TfL Rail (Elizabeth line), Thameslink and Tram, plus Emirates Air Line (now London Cable Car) and riverboat piers. Stations.csv carries a mandatory FareZones column, which answers the research file's open question about a fare zone source. The separate Station facilities and Station locations KML feeds are under the same terms but carry a published display time of 4320 minutes and are not part of this entry."
+
+[[source]]
+id = "tfl-unified-api-journey-planner"
+name = "TfL Unified API: Journey Planner results"
+publisher = "Transport for London"
+url = "https://api.tfl.gov.uk/"
+dimension = "transport"
+licence = "TfL-Open-Data"
+licence_url = "https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Powered by TfL Open Data\nContains OS data © Crown copyright and database rights 2016\nGeomni UK Map data © and database rights [2019]"
+attribution_verified = true
+conditions = [
+    "Display and validation only. Journey Planner results are never an input to ranking or scoring (PLAN section 4 and the transit-routing report).",
+    "Register on the TfL API portal first and keep the registration details accurate. The licence 'shall apply from the date of registration'.",
+    "Rate limit: the licence says 'Limit traffic requests up to a maximum of 500 calls per minute per data feed' and lets TfL throttle further. Do not use the API to build the travel-time matrix.",
+    "The app key stays on the API server and is never shipped to web or iOS clients.",
+    "Show the TfL attribution statements next to any route detail taken from the API.",
+    "Open question for TfL: the open data page asks users of the older XML 'Journey Planner API Beta' to 'Add the attribution \"Powered by the Transport for London Journey Planner API\" in the application credits'. It is not clear whether this also applies to Journey Planner results from the Unified API. Until TfL answers, the three licence statements are the confirmed minimum.",
+    "Open question for TfL: Journey Planner responses can include National Rail legs. The licence does not 'Grant any rights to use any other intellectual property rights (whether owned by TfL or others)'. Until TfL answers, show such results only on demand, as returned, and do not store them.",
+    "Follow TfL design and branding guidelines and do not imply official status or endorsement.",
+    "If responses are cached, keep the cache short-lived. The terms are silent on caching.",
+    "Re-read the terms at every data release. TfL 'may at any time revise this Licence without notice'. If a condition is broken the licence ends automatically.",
+    "This entry covers Journey Planner results only. If StopPoint or Line responses are ever used for scoring, extend the uses list first.",
+]
+status = "approved"
+uses = ["display", "validation_only"]
+cadence = "Live API. Called on demand when a user opens a result, and for a validation sample of about 1,000 origin and destination pairs per data release."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service",
+    "https://tfl.gov.uk/info-for/open-data-users/unified-api",
+    "https://tfl.gov.uk/info-for/open-data-users/our-open-data",
+    "https://tfl.gov.uk/info-for/open-data-users/design-and-branding",
+    "https://api-portal.tfl.gov.uk/",
+]
+notes = "How it was verified: The TfL Transport Data Service terms were read directly on tfl.gov.uk on 2026-09-23 and allow commercial use with attribution. verify-routing-feasibility.md marks as confirmed that the Unified API is free, allows commercial use with attribution, and is limited to 500 requests per minute. Burro calls the API live and on demand, which is the use TfL describes for it, so the display-time question on the timetable feed does not arise here. Terms, open data page, Unified API page and branding page were read as page text on 2026-09-23. The attribution statements match the terms page exactly. TfL's Unified API page says the API 'is designed to allow you to query in realtime and on demand'. The figure of 50 requests per minute for anonymous use comes from the verification file and was not re-read; Burro always uses a key, so it does not matter in practice. The API portal page itself was not opened."
+
+[[source]]
+id = "network-rail-nwr-schedule"
+name = "NWR Schedule (Network Rail CIF train schedule, Rail Data Marketplace)"
+publisher = "Network Rail Infrastructure Limited"
+url = "https://raildata.org.uk/dataProduct/P-dbd92416-2f09-4f72-ad42-d53bbfec50f3/overview"
+dimension = "transport"
+licence = "Network-Rail-OGL-based"
+licence_url = "https://raildata.org.uk/dataProduct/P-dbd92416-2f09-4f72-ad42-d53bbfec50f3/termsAndConditions"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "Gate check 1: register on Rail Data Marketplace, subscribe to NWR Schedule, and save the executed agreement (8 pages including Schedules 1 and 2) together with the RDM terms of use and the Platform Agreement for Data Consumers. The Platform Agreement has not been read by anyone on the project.",
+    "Gate check 2: Schedule 1 section 7 (Territorial use restrictions) permits exercise of the licensed rights in 'UK', while the licence body grants a 'worldwide' licence. Burro serves people relocating from abroad and plans to sell the iOS app outside the UK. Get written confirmation from Network Rail that a UK-operated service readable from abroad is within the licence.",
+    "Gate check 3: in the executed agreement, confirm whether Schedule 1 section 8 (Attribution) names an organisation. It is blank in the public copy, in which case the licence says to use the default statement. If an organisation is named, change the attribution. Set attribution_verified to true only after this check.",
+    "Term is 1 year, renewing automatically, with 1 month notice. Schedule 2 says 'Access to the data will cease upon suspension, termination, or expiry of the Agreement.' Retention: 'May retain any data which has been received'.",
+    "Do not use Network Rail, National Rail or train company brands or logos, and do not call the product 'official' (Network Rail open data feeds page).",
+    "Do not use the data in a way that suggests official status or endorsement by the publisher.",
+    "No rail-derived time may be shown to a user until all three gate checks pass (PLAN section 13).",
+    "Convert with UK2GTFS nr2gtfs or a custom CIF converter. gb-transit cif2gtfs is documented only for the RDG feed.",
+    "Rebuild matrices after the May and December timetable changes.",
+]
+status = "gated"
+status_reason = "The 'Open (OGL3)' label and the full public licence were read on the product page on 2026-09-23 and allow commercial use. PLAN section 7 gates this source until the accepted terms are read and saved. Schedule 1 also carries a 'UK' territorial restriction that conflicts with the 'worldwide' grant and needs a written answer, and the attribution section is blank until the agreement is executed."
+uses = ["routing", "scoring", "display"]
+cadence = "Daily, updated overnight. Burro rebuilds quarterly and after the May and December timetable changes."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://raildata.org.uk/dataProduct/P-dbd92416-2f09-4f72-ad42-d53bbfec50f3/overview",
+    "https://raildata.org.uk/dataProduct/P-dbd92416-2f09-4f72-ad42-d53bbfec50f3/termsAndConditions",
+    "https://raildata.org.uk/helpAndInformation/policies/terms-of-use",
+    "https://www.networkrail.co.uk/who-we-are/transparency-and-ethics/transparency/open-data-feeds/",
+    "https://www.networkrail.co.uk/who-we-are/transparency-and-ethics/transparency/",
+]
+notes = "The licence tab and all 8 pages of the embedded licence were re-read as page text on 2026-09-23 (public page, no sign-in). Every quotation in the draft matches. Public terms: permitted recipients 'All registered users'; permitted purposes 'The raw data may be made freely available or otherwise distributed to third parties'; charging model Free; no fair usage limit; special conditions blank. The licence is the OGL v3.0 text with 'Data Publisher' substituted; it lets users 'exploit the Information commercially and non-commercially' and gives the default attribution statement used here. The public copy is a template (start date shows 'null', Data Consumer is blank), so blank fields may be filled in when the agreement is executed; this is why attribution_verified is false. Network Rail's own licence page now leads to its Transparency page, which carries the 'Data Feeds Licence' text; it gives no attribution wording and applies to the legacy feeds platform, not the RDM product. The RDM terms of use (last updated 17 May 2024) are website terms and add no data restrictions. Includes London Overground and Elizabeth line."
+
+[[source]]
+id = "dft-bods-london-gtfs"
+name = "Bus Open Data Service timetables, London region GTFS"
+publisher = "Department for Transport (Bus Open Data Service)"
+url = "https://data.bus-data.dft.gov.uk/downloads/"
+dimension = "transport"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "Not an input to v1. TfL Journey Planner timetables are the primary source for Tube, DLR, tram and bus.",
+    "To clear check 1: create a BODS account, read any terms shown at sign-up and on the download page, and save them.",
+    "To clear check 2: download the London GTFS and count routes and weekday trips by route_type against the 11 Underground lines, DLR and tram.",
+    "To clear check 3: establish where the London content comes from. The BODS legal duty covers local bus services in England outside London, so London content is from TfL or TNDS and may carry TfL attribution duties.",
+    "If cleared, use for cross-checking only. The quality of its bus data has not been measured.",
+]
+status = "held"
+status_reason = "Not in the PLAN section 7 source table. verify-data-licences.md did not verify the licence or the London coverage. Downloading needs an account, so any dataset-level terms are still unread and the file has not been inspected."
+uses = ["validation_only"]
+verified_how = "unverified"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.bus-data.dft.gov.uk/downloads/",
+    "https://data.bus-data.dft.gov.uk/guidance/requirements/?section=overview",
+    "https://data.bus-data.dft.gov.uk/guide-me/",
+    "https://www.gov.uk/government/collections/bus-open-data-service",
+]
+
+[[source]]
+id = "planarnetwork-gb-transit-rail-gtfs"
+name = "gb-transit prebuilt GB rail GTFS (nightly)"
+publisher = "Planar Network (gb-transit project); upstream data from Rail Delivery Group"
+url = "https://planarnetwork.github.io/gb-transit/"
+dimension = "transport"
+licence = "Bespoke-terms"
+additional_licences = ["OGL-3.0"]
+licence_url = "https://planarnetwork.github.io/gb-transit/"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Not established. The project states rail data is under the 'Rail Settlement Plan data licence' from the Rail Delivery Group and stop data is under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "Internal prototyping only. Nothing built from this feed may be shown to a user or shipped in a data release.",
+    "Main licence is the 'Rail Settlement Plan data licence' for the timetable. The OGL v3.0 part covers only the stop data from the Department for Transport.",
+    "The text of the Rail Settlement Plan data licence has not been read by anyone on the project. The project page links the licence name to the Rail Data Marketplace home page, not to a licence text.",
+    "The equivalent RDG product on Rail Data Marketplace is limited to research and analysis (see rdg-timetable-feed), which makes production use of this derived feed unlikely to clear.",
+    "The converter tools are GPL-3.0. Running them in the pipeline does not affect Burro's code licence, but do not vendor their source into a non-GPL package.",
+    "To clear: read and save the Rail Settlement Plan data licence, and get written confirmation that a third-party rebuild may be used commercially. Otherwise run the converter on rail data Burro has licensed directly.",
+]
+status = "held"
+status_reason = "verify-data-licences.md found this feed is RDG data under the Rail Settlement Plan data licence, not OGL, and says to keep it to internal prototyping. PLAN section 7 holds the RDG rail feed until cleared."
+uses = ["prototyping_only"]
+verified_how = "secondary_source"
+verified_on = 2026-09-23
+evidence_urls = ["https://planarnetwork.github.io/gb-transit/"]
+
+[[source]]
+id = "rdg-timetable-feed"
+name = "RDG Timetable feed (Timetable - Full Refresh, Rail Data Marketplace)"
+publisher = "Rail Delivery Group"
+url = "https://raildata.org.uk/dataProduct/P-4b4a43c6-3507-4c6f-aeed-82d853264236/overview"
+dimension = "transport"
+licence = "Bespoke-terms"
+licence_url = "https://raildata.org.uk/dataProduct/P-4b4a43c6-3507-4c6f-aeed-82d853264236/termsAndConditions"
+commercial_use = "no"
+share_alike = false
+attribution = "Source: Rail Delivery Group"
+attribution_verified = false
+conditions = [
+    "Schedule 1 section 5 (Permitted purposes): 'The raw data may be used, copied, cleansed, adapted and / or aggregated with data from other sources for research & analysis purposes only'.",
+    "Clause 2.3: 'Any copying, storage, transmission, publication, or use, other than as set out in this Agreement is not permitted.' Showing travel times built from this feed to users is therefore outside the licence.",
+    "Territorial permissions: UK and Europe.",
+    "Clause 3.3.1 requires 'an appropriate credit to the Data Publisher' as the source. No fixed attribution string is given and Schedule 1 section 8 is blank in the public copy.",
+    "Even internal prototyping needs an RDM account and acceptance of this agreement. Keep any prototype built on it off every public or shared environment.",
+    "To clear for production, obtain a separate written licence from Rail Delivery Group that names use in a public commercial product, then re-register this entry.",
+    "Do not use as a route around the NWR Schedule gate.",
+]
+status = "held"
+status_reason = "PLAN section 7 holds the RDG rail feed until cleared. The public licence on the product page, read on 2026-09-23, limits use to research and analysis, so it cannot feed anything shown to users without a separate written licence."
+uses = ["prototyping_only"]
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://raildata.org.uk/dataProduct/P-4b4a43c6-3507-4c6f-aeed-82d853264236/overview",
+    "https://raildata.org.uk/dataProduct/P-4b4a43c6-3507-4c6f-aeed-82d853264236/termsAndConditions",
+]
+
+[[source]]
+id = "tfl-cycling-infrastructure-database"
+name = "TfL Cycling Infrastructure Database"
+publisher = "Transport for London"
+url = "https://cycling.data.tfl.gov.uk/"
+dimension = "transport"
+licence = "TfL-Open-Data"
+licence_url = "https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Powered by TfL Open Data. Contains OS data © Crown copyright and database rights 2016 and Geomni UK Map data © and database rights [2019]"
+attribution_verified = false
+conditions = [
+    "Follow TfL's design and branding guidelines. No roundel, TfL maps or New Johnston font without a licence, and no TfL trade marks in the app name.",
+    "Do not suggest official status or TfL endorsement.",
+    "Data files were last modified on 19 September 2021. Do not present them as current infrastructure.",
+    "The terms are based on OGL version 2.0 with TfL amendments, not OGL v3.",
+]
+status = "held"
+status_reason = "Cycle infrastructure is out of v1 and the files are five years old. TfL's Transport Data Service terms allow commercial use with attribution (fetched by the drafter and the reviewer on 2026-09-23, and confirmed in the verification file)."
+uses = ["validation_only"]
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service",
+    "https://data.london.gov.uk/dataset/cycling-infrastructure-database",
+    "https://s3-eu-west-1.amazonaws.com/cycling.data.tfl.gov.uk/?list-type=2&prefix=CyclingInfrastructure/",
+]
+
+[[source]]
+id = "tfl-ptal-2015"
+name = "Public Transport Accessibility Levels (PTAL), 2015, on London Datastore"
+publisher = "Transport for London (published on the Greater London Authority's London Datastore)"
+url = "https://data.london.gov.uk/dataset/public-transport-accessibility-levels-24rz6"
+dimension = "transport"
+licence = "OGL-2.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v2.0."
+attribution_verified = false
+conditions = [
+    "Never a live ranking input. The data is from 2015 and predates the Elizabeth line.",
+    "TfL's own open data page says of PTAL: 'Any data that was previously available is superseded by the data provided currently, and should no longer be used', and that PTAL data from TfL is 'subject to the WebCAT terms of use'. The WebCAT terms are not an open licence. This entry covers only the 2015 files on London Datastore, which that page labels 'Open Government Licence v2'.",
+    "London Datastore site terms apply to every dataset: a reuser 'Should, if you extract and re-use any data from this site, explicitly state that the Greater London Authority cannot warrant the quality or accuracy of the data' and 'Must not in any way imply' GLA endorsement.",
+    "If used at all, use only to sanity-check Burro's own accessibility index on stations unchanged since 2015.",
+    "To clear: confirm on the dataset page whether TfL specifies its own attribution statement, and save the page.",
+]
+status = "held"
+status_reason = "Not used in v1. verify-routing-feasibility.md confirms the downloadable PTAL is 2015 data that predates the Elizabeth line, the research says to build Burro's own index from current timetables instead, and TfL itself says earlier PTAL data should no longer be used."
+uses = ["validation_only"]
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/public-transport-accessibility-levels-24rz6",
+    "https://data.london.gov.uk/about/terms-and-conditions/",
+    "https://tfl.gov.uk/info-for/open-data-users/our-open-data",
+    "https://tfl.gov.uk/corporate/terms-and-conditions/webcat",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/",
+]
+
+[[source]]
+id = "traveline-tnds"
+name = "Traveline National Dataset (TNDS)"
+publisher = "Traveline Information Limited"
+url = "https://www.travelinedata.org.uk/traveline-open-data/traveline-national-dataset/"
+dimension = "transport"
+licence = "OGL-3.0"
+licence_url = "https://www.data.gov.uk/dataset/0447f8d9-8f1b-4a68-bbc8-246981d02256/traveline-national-dataset"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "Not an input to v1. Reference and cross-check only.",
+    "The licence is recorded as OGL-3.0 but the version is not confirmed. The only evidence is a data.gov.uk catalogue record that says 'UK Open Government Licence (OGL)' with no version.",
+    "Access is by FTP after manual registration; Traveline says to allow a couple of working days.",
+    "Excludes National Rail and coach services.",
+    "To clear: register, read any terms sent with the FTP credentials, confirm the OGL version and any publisher attribution statement, and save them.",
+]
+status = "held"
+status_reason = "Not needed in v1: the research marks it reference only and PLAN section 7 does not list it. The licence is known only from the data.gov.uk catalogue record, which gives no OGL version and was last updated on 9 January 2019."
+uses = ["validation_only"]
+verified_how = "secondary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.data.gov.uk/dataset/0447f8d9-8f1b-4a68-bbc8-246981d02256/traveline-national-dataset",
+    "https://www.travelinedata.org.uk/traveline-open-data/traveline-national-dataset/",
+]
+
+[[source]]
+id = "traveltime-api"
+name = "TravelTime API"
+publisher = "TravelTime"
+url = "https://traveltime.com/"
+dimension = "transport"
+licence = "Bespoke-terms"
+licence_url = "https://traveltime.com/terms-of-service"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "No fixed statement. Terms of Service clause 5.4: 'Customer shall display the TravelTime logo or name on the section or page of the Customer's Platform or Third Party Platform where Service Data is displayed'."
+attribution_verified = false
+conditions = [
+    "The free plan cannot be used. Clause 12.5: trial and non-paid services 'are for internal use and evaluation only and are not to be made available to Customer's End Users'. 'No commercial use or profit-making purposes are permitted.'",
+    "Production needs a quoted annual subscription with a 12 month minimum. No price is published.",
+    "Clause 7.3: caching is allowed 'only where and to the extent expressly permitted by TravelTime in the Order'. Cached data must be refreshed 'at least every 60 days' and deleted 'upon termination or expiry of this Agreement'. TravelTime may ask for proof of deletion.",
+    "The terms forbid creating derivative works based on the API or service, storing or displaying any part of it except as granted, and using it to develop a competing product. A stored travel-time matrix must be named in the Order.",
+    "Deleting cached data on termination would remove every stored matrix, so shared links could not be reproduced. Adopt only with caching, retention and reuse rights written into the Order.",
+    "To clear: a signed Order that names precomputed matrices, the cache refresh period, and display on a non-TravelTime map.",
+]
+status = "held"
+status_reason = "Paid fallback only. Not used in v1 because the open-data R5 pipeline is the primary path, the free plan bans commercial use, and no Order exists."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://traveltime.com/terms-of-service",
+    "https://traveltime.com/pricing",
+    "https://docs.traveltime.com/api/tiles/getting-started",
+]
+
+[[source]]
+id = "google-routes-api"
+name = "Google Maps Platform Routes API (including Compute Route Matrix)"
+publisher = "Google"
+url = "https://developers.google.com/maps/documentation/routes"
+dimension = "transport"
+licence = "Bespoke-terms"
+licence_url = "https://cloud.google.com/maps-platform/terms"
+commercial_use = "yes_with_conditions"
+share_alike = false
+status = "banned"
+status_reason = "Google's terms forbid storing or bulk downloading route and matrix results and forbid use with or near a non-Google map, so Burro's precomputed matrices on a MapLibre map cannot comply. PLAN already bans Google Places and Street View and keeps Google Maps keys out of the project."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://cloud.google.com/maps-platform/terms",
+    "https://developers.google.com/maps/documentation/routes/policies",
+    "https://developers.google.com/maps/billing-and-pricing/pricing",
+]
+
+[[source]]
+id = "mapbox-matrix-api"
+name = "Mapbox Matrix API"
+publisher = "Mapbox, Inc."
+url = "https://docs.mapbox.com/api/navigation/matrix/"
+dimension = "transport"
+licence = "Bespoke-terms"
+licence_url = "https://www.mapbox.com/legal/product-terms"
+commercial_use = "yes_with_conditions"
+share_alike = false
+status = "banned"
+status_reason = "Mapbox's Product Terms forbid bulk or automated queries, forbid caching or storing results, and forbid using the service to validate a competing dataset, so neither a precomputed matrix nor a validation run can comply. The API also has no public transport profile."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.mapbox.com/legal/product-terms",
+    "https://cdn.prod.website-files.com/609ed46055e27a02ffc0749b/6a60463142f6478d57642594_Mapbox%20Product%20Terms%20(July%2021%2C%202026).pdf",
+    "https://www.mapbox.com/legal/tos",
+    "https://docs.mapbox.com/api/navigation/matrix/",
+]

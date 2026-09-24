@@ -1,0 +1,90 @@
+# Licence registry: safety. Rules are in registry/README.md.
+# Approved first, then gated, held and banned.
+schema_version = 1
+
+[[source]]
+id = "police-uk-street-level-crime"
+name = "data.police.uk street-level crime and anti-social behaviour (bulk CSV archives)"
+publisher = "Single Online Home National Digital Team (data.police.uk)"
+url = "https://data.police.uk/data/"
+dimension = "safety"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "Download the crime files only. Never ingest the stop and search files: the site says they hold the ethnicity, gender and age of the person stopped, which PLAN section 9 bars from the product. Do not ingest the outcomes files either.",
+    "Locations are anonymised snap points, not where a crime happened. Say so wherever crime figures appear.",
+    "PLAN section 9: recorded crime is off by default, shown as rates by category with caveats, never labelled safe or unsafe, and never rolled into one safety score.",
+    "OGL does not cover personal data. Do not try to link records to individuals or addresses.",
+    "Ingest the bulk CSV archives, not live API calls, so each data release is reproducible.",
+]
+status = "approved"
+uses = ["scoring", "display"]
+cadence = "Monthly. Latest month available on 2026-09-23 was July 2026. The custom download form covers August 2023 to July 2026."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.police.uk/about/",
+    "https://data.police.uk/data/",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+]
+notes = "How it was verified: OGL v3.0 is stated on data.police.uk/about. The drafter and the reviewer each fetched the page on 2026-09-23, and the research confirmed it independently. It is the v1 recorded-crime source in PLAN section 7. The About page says 'The data on this site is published by the Single Online Home National Digital Team'. I did not confirm which legal body that team belongs to. The page gives no attribution statement of its own, so the OGL v3.0 default statement applies (wording checked against the licence text today). Metropolitan Police Service, City of London Police and British Transport Police are all on the download form. The site says geocoding accuracy varies from 60% to 97% by force. Rates need a population denominator, which comes from ons-lsoa-population-estimates. The download form offers three tick boxes: crime, outcomes, and stop and search. Months before August 2023 are not on the form, and I did not check the archive page."
+
+[[source]]
+id = "dft-road-safety-stats19"
+name = "DfT road safety open data (STATS19 collisions, casualties, vehicles)"
+publisher = "Department for Transport"
+url = "https://www.gov.uk/government/statistical-data-sets/road-safety-open-data"
+dimension = "safety"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "Record-level data about injury collisions. Publish area rates only, never individual collision records.",
+    "OGL does not cover personal data. Do not try to identify anyone involved.",
+    "Use the public files only. Do not request the sensitive fields (for example contributory factors), which DfT releases only on application.",
+    "The casualty file describes people (for example age and sex of casualty). If promoted, load collision counts and severity only.",
+]
+status = "held"
+status_reason = "Not in the v1 source list in PLAN section 7. The GOV.UK page states OGL v3.0 (drafter and reviewer both fetched it on 2026-09-23). Promotion needs no further licence work."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.gov.uk/government/statistical-data-sets/road-safety-open-data",
+    "https://www.data.gov.uk/dataset/cb7ae6f0-4be6-4935-9277-47e5ce24a11f/road-safety-data",
+]
+
+[[source]]
+id = "mps-recorded-crime-geographic-breakdown"
+name = "MPS Recorded Crime: Geographic Breakdown (London Datastore)"
+publisher = "Metropolitan Police Service, hosted by the Greater London Authority"
+url = "https://data.london.gov.uk/dataset/mps-recorded-crime-geographic-breakdown-exy3m"
+dimension = "safety"
+licence = "OGL-2.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v2.0."
+attribution_verified = false
+conditions = [
+    "London Datastore site terms: state explicitly that the Greater London Authority cannot warrant the quality or accuracy of the data, and do not imply GLA endorsement.",
+    "Cross-check against data.police.uk at aggregate level only. Do not merge it into the crime feature.",
+    "Sexual offences are omitted at LSOA level, City of London Police and British Transport Police are excluded, and the LSOA vintage (2011 or 2021) is not stated on the page.",
+    "Data added after February 2024 comes from the CONNECT system. The page warns that some measures are no longer available and some values appear as Unknown.",
+]
+status = "held"
+status_reason = "Not a v1 source. PLAN section 7 names data.police.uk for recorded crime and the research rates this file as a cross-check only. The licence allows commercial use, so promotion needs only a decision to use it."
+uses = ["validation_only"]
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/mps-recorded-crime-geographic-breakdown-exy3m",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/",
+    "https://data.london.gov.uk/about/terms-and-conditions/",
+]

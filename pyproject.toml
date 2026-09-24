@@ -1,0 +1,60 @@
+[project]
+name = "burro"
+version = "0.0.0"
+description = "Workspace root for Burro. Holds shared tooling; the code lives in packages/, services/ and apps/."
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "burro-api",
+    "burro-core",
+    "burro-pipeline",
+    # FastAPI's test client needs it, and a test stands in for the provider with it.
+    "httpx2>=2",
+    "pytest>=8",
+    "pytest-socket>=0.7",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["packages/*", "services/*"]
+
+[tool.uv.sources]
+burro-api = { workspace = true }
+burro-core = { workspace = true }
+burro-pipeline = { workspace = true }
+
+[tool.ruff]
+required-version = ">=0.16"
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF", "S", "PTH", "T20"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/cli.py" = ["T201"]
+"tools/*.py" = ["T201", "S603", "S607"]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+include = ["packages", "services", "tools", "evals"]
+extraPaths = ["tools"]
+exclude = ["**/.venv", "**/node_modules"]
+typeCheckingMode = "strict"
+pythonVersion = "3.13"
+reportMissingTypeStubs = false
+
+[tool.pytest.ini_options]
+testpaths = ["packages", "services", "tools", "evals"]
+pythonpath = ["tools"]
+# The socket block stops the test client's event loop from making the local socket
+# pair it wakes itself with. Network sockets stay blocked.
+addopts = "-q --disable-socket --allow-unix-socket --strict-markers --import-mode=importlib"
+# Raised inside the web framework's test client, about a library it uses. Not ours to fix.
+filterwarnings = ["ignore:The anyio.abc.BlockingPortal alias:DeprecationWarning"]

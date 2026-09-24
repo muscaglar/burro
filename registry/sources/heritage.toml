@@ -1,0 +1,87 @@
+# Licence registry: heritage. Rules are in registry/README.md.
+# Approved first, then gated, held and banned.
+schema_version = 1
+
+[[source]]
+id = "historic-england-listed-buildings"
+name = "National Heritage List for England: listed buildings"
+publisher = "Historic England (copy published on the MHCLG Planning Data platform)"
+url = "https://www.planning.data.gov.uk/dataset/listed-building"
+dimension = "heritage"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "© Historic England 2026. Contains Ordnance Survey data © Crown copyright and database right 2026."
+attribution_verified = false
+conditions = [
+    "Approval covers only the copy on planning.data.gov.uk, which states the licence and attribution.",
+    "If data is pulled from Historic England's own site or Open Data Hub instead, read and save its terms first. Neither has been read.",
+    "Update the year in the statement to match the data used.",
+    "The platform warns the data 'may be incomplete and not yet cover all of England'. Treat missing coverage as unknown, not zero.",
+    "Aggregates only in v1, such as listed buildings per square kilometre.",
+]
+status = "approved"
+uses = ["scoring"]
+cadence = "Collector runs daily. Last updated 2026-09-22."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.planning.data.gov.uk/dataset/listed-building",
+    "https://www.data.gov.uk/dataset/8db67112-67b0-43f2-b863-2ac9c58d52bf/listed-buildings-gis-data",
+    "https://www.planning.data.gov.uk/about/",
+]
+notes = "How it was verified: OGL v3 and the attribution statement are shown on the planning.data.gov.uk dataset page, and Historic England's own data.gov.uk record also says OGL. Both fetched by the drafter and again by this review on 2026-09-23. 382,270 records. The attribution is the statement shown for this dataset on the platform, which is identical to the conservation area statement the verifier confirmed. Historic England's own terms may ask for extra wording about the date the data was obtained; they have not been read. Wording was read through a reader that summarises; re-check when saving evidence."
+
+[[source]]
+id = "mhclg-planning-data-conservation-areas"
+name = "Conservation area boundaries"
+publisher = "Ministry of Housing, Communities and Local Government (Planning Data platform), with data from Historic England and local planning authorities"
+url = "https://www.planning.data.gov.uk/dataset/conservation-area"
+dimension = "heritage"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "© Historic England 2026. Contains Ordnance Survey data © Crown copyright and database right 2026."
+attribution_verified = false
+conditions = [
+    "The publisher says the data 'may be incomplete and not yet cover all of England' and 'contains a number of duplicate conservation areas'. De-duplicate at ingest and treat missing coverage as unknown, not zero.",
+    "The page says it 'contains some data created by MHCLG' that is being replaced with authoritative sources. Keep the per-record provider so such records can be told apart.",
+    "Check coverage for all 33 London authorities before the historic character tag relies on it.",
+    "Never let this source decide a tag alone; combine with listed building density and pre-1919 dwelling share.",
+    "Update the year in the statement to match the data used.",
+]
+status = "approved"
+uses = ["scoring"]
+cadence = "Collector runs daily. Last updated 2026-09-23."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.planning.data.gov.uk/dataset/conservation-area",
+    "https://www.planning.data.gov.uk/about/",
+]
+notes = "How it was verified: OGL v3 and the attribution statement are shown on the dataset page. Confirmed by the verifier, by the drafter and again by this review on 2026-09-23. 10,953 records for England from 151 data providers. The platform's about page says it is built by the Ministry of Housing, Communities and Local Government."
+
+[[source]]
+id = "london-boroughs-conservation-area-appraisals"
+name = "Council conservation area appraisals"
+publisher = "London borough councils and the City of London (33 authorities)"
+url = "https://www.planning.data.gov.uk/dataset/conservation-area"
+dimension = "heritage"
+licence = "None-stated"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Not applicable. Not ingested."
+attribution_verified = false
+conditions = [
+    "Copyright of each council, with no default open licence.",
+    "Embedded maps carry restrictive Ordnance Survey notices.",
+    "The UK text and data mining exception covers non-commercial research only.",
+    "Linking out to an appraisal from a profile page is fine. Ingesting, quoting at length or feeding to a prompt is not.",
+]
+status = "held"
+status_reason = "Licence unclear and not audited across the 33 authorities. Permission is needed per council unless that council publishes under OGL."
+verified_how = "unverified"
+verified_on = 2026-09-23
+evidence_urls = ["https://www.planning.data.gov.uk/dataset/conservation-area"]

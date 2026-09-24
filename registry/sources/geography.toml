@@ -1,0 +1,666 @@
+# Licence registry: geography. Rules are in registry/README.md.
+# Approved first, then gated, held and banned.
+schema_version = 1
+
+[[source]]
+id = "gla-town-centre-boundaries"
+name = "Town Centre Boundaries (London Plan)"
+publisher = "Greater London Authority (GLA Planning)"
+url = "https://data.london.gov.uk/dataset/town-centre-boundaries-e55z7/"
+dimension = "geography"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Greater London Authority - Contains public sector information licensed under the Open Government Licence v3.0\nContains OS data © Crown copyright and database rights 2019."
+attribution_verified = false
+conditions = [
+    "London Datastore site terms: if you extract and re-use data, 'explicitly state that the Greater London Authority cannot warrant the quality or accuracy of the data'. Put this on the attributions page.",
+    "London Datastore site terms: do not imply or state that Burro has the endorsement, affiliation, support or approval of the GLA.",
+    "The page says the GIS files 'show the indicative boundaries, please contact the relevant London Borough to confirm accuracy'. Never present them as definitive.",
+    "Keep the year 2019 in the OS statement as the publisher wrote it.",
+    "Save a dated copy of the dataset page in registry/evidence, since the licence rests on the page's own wording.",
+]
+status = "approved"
+uses = ["gazetteer", "scoring"]
+cadence = "Irregular. Page showed an update about nine months before 2026-09-23."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/town-centre-boundaries-e55z7/",
+    "https://data.london.gov.uk/about/terms-and-conditions/",
+]
+notes = "How it was verified: Re-checked by the reviewer on 2026-09-23. The dataset page shows the licence field 'Open Government Licence v3', carries both attribution lines, and states that the boundaries are based on Ordnance Survey mapping and published under Ordnance Survey's 'presumption to publish'. The boundaries research also marks it verified. Used to recentre name seeds and score salience, and as an input to the 'strong high street' tag. GeoPackage, 1.63 MB. Registered per layer as PLAN section 7 requires. This approval does not extend to other GLA datasets. The boundaries research recorded the OS line as 'Contains Ordnance Survey data'; the drafter and reviewer both read 'Contains OS data' on the page. Whether the separator after 'Greater London Authority' is a hyphen or a dash is not known. Total count of centres by class is unconfirmed."
+
+[[source]]
+id = "ons-lsoa-2021"
+name = "Lower layer Super Output Areas (December 2021) Boundaries EW (BGC V5)"
+publisher = "Office for National Statistics"
+url = "https://www.data.gov.uk/dataset/40129cd8-4ebd-4a96-9625-869103493b28/lower-layer-super-output-areas-december-2021-boundaries-ew-bgc-v5"
+dimension = "geography"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics licensed under the Open Government Licence v.3.0\nContains OS data © Crown copyright and database right [year]"
+attribution_verified = false
+conditions = [
+    "Show both statements (ONS and OS). A link to one attributions page is allowed under OGL v3.",
+    "Replace [year] with the year of the data supplied.",
+    "OGL v3 non-endorsement applies.",
+    "This entry covers BGC V5 only. The full-resolution BFC file is a separate ONS item and needs its item page added as evidence before it is ingested.",
+    "In scoring it gives the land area of an LSOA, and places data published by LSOA. No column of it is a measure in its own right.",
+]
+status = "approved"
+uses = ["cells", "scoring"]
+cadence = "Fixed to the 2021 Census. data.gov.uk record dated 24 November 2024; ArcGIS item metadata last modified 11 August 2025."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.ons.gov.uk/methodology/geography/licences",
+    "https://www.arcgis.com/sharing/rest/content/items/68515293204e43ca8ab56fa13ae8a547?f=json",
+    "https://www.data.gov.uk/dataset/40129cd8-4ebd-4a96-9625-869103493b28/lower-layer-super-output-areas-december-2021-boundaries-ew-bgc-v5",
+    "https://open-geography-portalx-ons.hub.arcgis.com/datasets/ons::lower-layer-super-output-areas-december-2021-boundaries-ew-bgc-v5-2",
+]
+file_urls = [
+    "https://open-geography-portalx-ons.hub.arcgis.com/api/download/v1/items/68515293204e43ca8ab56fa13ae8a547/",
+]
+notes = "How it was verified: Re-checked by the reviewer on 2026-09-23. The ONS item metadata for BGC V5 names the ONS geography licences page as its licence; that page gives the OGL statements for digital boundaries. Join level for LSOA-native data. London has 4,994 LSOAs per the boundaries research. The drafter reported a BFC V10 file; the reviewer did not open it. 'scoring' is listed only because a measure is worked out on this geography, and a catalogue row names every source behind its figure. The licence evidence is the same as for its other uses. See ADR 0016. The last address under evidence_urls is the publisher's own portal page for this item, on open-geography-portalx-ons.hub.arcgis.com, as the item's data.gov.uk record lists it. It is there to name the host the files are on. Fetch holds a file to the addresses under file_urls. Of it, only the item's title was read, on 2026-09-23. So it is no evidence of the licence."
+
+[[source]]
+id = "ons-lsoa-population-estimates"
+name = "ONS Lower layer Super Output Area mid-year population estimates and population density"
+publisher = "Office for National Statistics"
+url = "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/lowersuperoutputareamidyearpopulationestimates"
+dimension = "geography"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics licensed under the Open Government Licence v.3.0"
+attribution_verified = false
+conditions = [
+    "Load total population only. Age and sex breakdowns must not enter the product (PLAN section 9).",
+    "Use as denominators and aggregation weights. Population is never a ranking feature that describes residents.",
+    "ONS warns that single-year-of-age figures at LSOA level carry variance and bias that vary by age, sex and geography. Totals are the supported use.",
+]
+status = "approved"
+uses = ["scoring", "cells"]
+cadence = "Annual. Latest edition is mid-2022 revised to mid-2024, released 7 November 2025."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/lowersuperoutputareamidyearpopulationestimates",
+    "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/datasets/lowersuperoutputareapopulationdensity",
+    "https://www.ons.gov.uk/methodology/geography/licences",
+    "https://www.ons.gov.uk/help/termsandconditions",
+    "https://www.nomisweb.co.uk/home/copyright.asp",
+]
+notes = "How it was verified: The ONS dataset page states OGL v3.0 in its footer (drafter and reviewer both fetched it on 2026-09-23), matching the research. PLAN section 7 does not name it, but crime rates by category need a population denominator, so v1 depends on it. Founder to confirm, because this source is not named in PLAN section 7. The attribution is ONS's own wording, but it comes from the ONS licences page for geography products. The dataset page and the ONS terms page give no attribution statement for statistics. The Nomis copyright page, which covers material on the ONS and Nomis websites, asks for the shorter 'Source: Office for National Statistics'. The wording used here contains that line and adds the licence, so it should satisfy both, but no ONS page says it is the required line for this dataset. That is why it is marked unverified. On 2021 LSOAs. I fetched the estimates page today but not the density page."
+
+[[source]]
+id = "ons-lsoa-pwc-2021"
+name = "Lower layer Super Output Areas (December 2021) EW Population Weighted Centroids (service LSOA_PopCentroids_EW_2021_V4)"
+publisher = "Office for National Statistics"
+url = "https://www.data.gov.uk/dataset/e3e903a6-1864-4083-8837-017b6bdf8cc5/lower-layer-super-output-areas-december-2021-ew-population-weighted-centroids2"
+dimension = "geography"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics licensed under the Open Government Licence v.3.0\nContains OS data © Crown copyright and database right [year]"
+attribution_verified = false
+conditions = [
+    "Show both statements (ONS and OS); the item description says it contains both OS and ONS intellectual property rights.",
+    "Replace [year] with the year of the data supplied.",
+    "Pin the service version (LSOA_PopCentroids_EW_2021_V4) in the release manifest. The item title carries no version number.",
+    "Travel times computed from these points run over the OpenStreetMap street network. Those outputs carry the OSM credit and sit in their own tables; see the OSM routing entry and ADR 0004.",
+]
+status = "approved"
+uses = ["cells", "routing"]
+cadence = "Static per census. data.gov.uk record dated 9 December 2025; ArcGIS item metadata last modified 2 March 2026."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.arcgis.com/sharing/rest/content/items/32729e42d05e4e23bc7e43a36aa4ae8b?f=json",
+    "https://www.ons.gov.uk/methodology/geography/licences",
+    "https://www.data.gov.uk/dataset/e3e903a6-1864-4083-8837-017b6bdf8cc5/lower-layer-super-output-areas-december-2021-ew-population-weighted-centroids2",
+]
+notes = "How it was verified: The boundaries research did not verify this: it did not read the dataset page. The reviewer opened the ONS item metadata on 2026-09-23: it names the ONS geography licences page as its licence and states it contains both Ordnance Survey and ONS intellectual property rights. OGL allows commercial use. These 4,994 points are the journey origins for the travel-time matrix (PLAN section 6, ADR 0003). Same category inference as ons-oa-pwc-2021: the ONS licences page does not name centroids."
+
+[[source]]
+id = "ons-msoa-2021"
+name = "Middle layer Super Output Areas (December 2021) Boundaries EW (BGC V3)"
+publisher = "Office for National Statistics"
+url = "https://www.data.gov.uk/dataset/677a5164-3a9e-4752-b8e6-5744d2b280ec/middle-layer-super-output-areas-december-2021-boundaries-ew-bgc-v3"
+dimension = "geography"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics licensed under the Open Government Licence v.3.0\nContains OS data © Crown copyright and database right [year]"
+attribution_verified = false
+conditions = [
+    "Show both statements (ONS and OS). A link to one attributions page is allowed under OGL v3.",
+    "Replace [year] with the year of the data supplied.",
+    "OGL v3 non-endorsement applies.",
+    "This entry covers BGC V3 only. The BFC file is a separate ONS item and needs its item page added as evidence before it is ingested.",
+]
+status = "approved"
+uses = ["cells"]
+cadence = "Fixed to the 2021 Census. data.gov.uk record dated 24 November 2024; ArcGIS item metadata last modified 11 August 2025."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.ons.gov.uk/methodology/geography/licences",
+    "https://www.arcgis.com/sharing/rest/content/items/6b282db29762450881ed5159259a6e4e?f=json",
+    "https://www.data.gov.uk/dataset/677a5164-3a9e-4752-b8e6-5744d2b280ec/middle-layer-super-output-areas-december-2021-boundaries-ew-bgc-v3",
+]
+notes = "How it was verified: Re-checked by the reviewer on 2026-09-23. The ONS item metadata for BGC V3 names the ONS geography licences page as its licence; that page gives the OGL statements for digital boundaries. Join level for MSOA-native data and the geometry behind House of Commons Library MSOA Names (hoc-library-msoa-names, gated). London has 1,002 MSOAs per the boundaries research."
+
+[[source]]
+id = "ons-oa-pwc-2021"
+name = "Output Areas (December 2021) EW Population Weighted Centroids (V4)"
+publisher = "Office for National Statistics"
+url = "https://www.data.gov.uk/dataset/7da4cb73-1cf2-405f-bd93-1ac3916d6e3a/output-areas-december-2021-ew-population-weighted-centroids-v4"
+dimension = "geography"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics licensed under the Open Government Licence v.3.0\nContains OS data © Crown copyright and database right [year]"
+attribution_verified = false
+conditions = [
+    "Show both statements (ONS and OS); the item description says it contains both OS and ONS intellectual property rights.",
+    "Replace [year] with the year of the data supplied.",
+    "Pin the version (V4) in the release manifest.",
+    "In scoring it is the point where an output area's homes are taken to stand, when a value is read or a walk is started there. The point is never a measure in its own right.",
+]
+status = "approved"
+uses = ["cells", "gazetteer", "scoring"]
+cadence = "Static per census. ArcGIS item metadata last modified 6 February 2026."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.arcgis.com/sharing/rest/content/items/558170d37ab04f34845034db91a86914?f=json",
+    "https://www.ons.gov.uk/methodology/geography/licences",
+    "https://www.data.gov.uk/dataset/7da4cb73-1cf2-405f-bd93-1ac3916d6e3a/output-areas-december-2021-ew-population-weighted-centroids-v4",
+    "https://open-geography-portalx-ons.hub.arcgis.com/datasets/ons::output-areas-december-2021-ew-population-weighted-centroids-v4-",
+]
+file_urls = [
+    "https://open-geography-portalx-ons.hub.arcgis.com/api/download/v1/items/558170d37ab04f34845034db91a86914/",
+]
+notes = "How it was verified: The boundaries research did not verify this: it did not read the dataset page. The reviewer opened the ONS item metadata for V4 on 2026-09-23: it names the ONS geography licences page as its licence and states it contains both Ordnance Survey and ONS intellectual property rights. All ONS geography products on that page are under OGL, which allows commercial use. Representative point per Output Area. The ONS licences page does not name centroids as a category. The two statements are the 'digital boundaries' set, chosen because the item declares OS and ONS rights; the wording is verbatim from the page but the category match is an inference. It is a superset of the 'lookups' requirement. Worth a question to ONS. 'scoring' is listed only because a measure is worked out on this geography, and a catalogue row names every source behind its figure. The licence evidence is the same as for its other uses. See ADR 0016. The last address under evidence_urls is the publisher's own portal page for this item, on open-geography-portalx-ons.hub.arcgis.com, as the item's data.gov.uk record lists it. It is there to name the host the files are on. Fetch holds a file to the addresses under file_urls. Of it, only the item's title was read, on 2026-09-23. So it is no evidence of the licence."
+
+[[source]]
+id = "ons-oa21-lsoa21-msoa21-lad22-lookup"
+name = "Output Area (2021) to LSOA to MSOA to LEP to LAD (December 2022) Best Fit Lookup in EN (V2)"
+publisher = "Office for National Statistics"
+url = "https://services1.arcgis.com/ESMARspQHYMw9BZ9/arcgis/rest/services/OA21_LAD22_LSOA21_MSOA21_LEP22_EN_LU_V2/FeatureServer/0"
+dimension = "geography"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics licensed under the Open Government Licence v.3.0"
+attribution_verified = false
+conditions = [
+    "Lookups (excluding UPRN and postcode lookups) need the ONS statement only.",
+    "Pin the lookup version (V2, LAD December 2022 codes) in the release manifest so borough codes stay stable.",
+    "England only. Fine for London; a Wales or UK expansion needs a different lookup.",
+    "In scoring it says which output areas make up an LSOA, an MSOA and a borough, so that a figure can be added up or shared out. No column of it is a measure in its own right.",
+]
+status = "approved"
+uses = ["cells", "gazetteer", "scoring"]
+cadence = "Reissued when geographies change. Item last modified 25 November 2025."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.arcgis.com/sharing/rest/content/items/45fdd4465604493cb7d2238ad642172b?f=json",
+    "https://www.ons.gov.uk/methodology/geography/licences",
+    "https://www.data.gov.uk/dataset/c2235117-cbfd-480d-8fc7-b564bd0f4d58/output-area-2021-to-lsoa-to-msoa-to-lep-to-lad-december-2022-best-fit-lookup-in-en-v2",
+    "https://open-geography-portalx-ons.hub.arcgis.com/datasets/ons::output-area-2021-to-lsoa-to-msoa-to-lep-to-lad-december-2022-best-fit-lookup-in-en-v2",
+]
+file_urls = [
+    "https://open-geography-portalx-ons.hub.arcgis.com/api/download/v1/items/45fdd4465604493cb7d2238ad642172b/",
+]
+notes = "How it was verified: Re-checked by the reviewer on 2026-09-23. The ONS item metadata names the ONS geography licences page as its licence; that page says lookup products are supplied under the Open Government Licence and gives the single ONS statement. The boundaries research also marks it verified. Defines the nesting OA to LSOA to MSOA to borough. Source of the London counts (26,369 OAs, 4,994 LSOAs, 1,002 MSOAs) in the research. Dissolving Output Areas by the LAD code gives borough outlines that nest exactly with the cells, with no extra dataset. 'scoring' is listed only because a measure is worked out on this geography, and a catalogue row names every source behind its figure. The licence evidence is the same as for its other uses. See ADR 0016. The data.gov.uk record under evidence_urls is the page that lists the files of this item: the address above is a table behind a map service, and lists none. The record was read on 2026-09-23 through a reader that extracts. It gave the licence as 'Not set', as it does for the other items, so it is no evidence of the licence. The last address under evidence_urls is the publisher's own portal page for this item, on open-geography-portalx-ons.hub.arcgis.com, as the item's data.gov.uk record lists it. It is there to name the host the files are on. Fetch holds a file to the addresses under file_urls. Of it, only the item's title was read, on 2026-09-23. So it is no evidence of the licence."
+
+[[source]]
+id = "ons-output-areas-2021"
+name = "Output Areas (December 2021) Boundaries EW (BGC V2 for display, BFC V8 for spatial joins)"
+publisher = "Office for National Statistics"
+url = "https://www.data.gov.uk/dataset/4d4e021d-fe98-4a0e-88e2-3ead84538537/output-areas-december-2021-boundaries-ew-bgc-v21"
+dimension = "geography"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics licensed under the Open Government Licence v.3.0\nContains OS data © Crown copyright and database right [year]"
+attribution_verified = false
+conditions = [
+    "Show both statements (the ONS source line and the OS line). OGL v3 allows a link to one attributions page when there are many sources.",
+    "Replace [year] with the year of the data supplied.",
+    "OGL v3 non-endorsement: do not suggest ONS or OS endorse Burro.",
+    "Pin the exact file versions (BGC V2 and BFC V8) in the release manifest.",
+]
+status = "approved"
+uses = ["cells", "gazetteer", "display"]
+cadence = "Fixed to the 2021 Census. data.gov.uk records for BGC V2 and BFC V8 are dated 24 November 2024; ArcGIS item metadata last modified 11 August 2025. Next redraw expected with the 2031 Census."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.ons.gov.uk/methodology/geography/licences",
+    "https://www.arcgis.com/sharing/rest/content/items/6beafcfd9b9c4c9993a06b6b199d7e6d?f=json",
+    "https://www.arcgis.com/sharing/rest/content/items/31dac98df61a4312991646842b147e2f?f=json",
+    "https://www.data.gov.uk/dataset/4d4e021d-fe98-4a0e-88e2-3ead84538537/output-areas-december-2021-boundaries-ew-bgc-v21",
+    "https://www.data.gov.uk/dataset/259052b8-8369-42de-a022-b67d0d225dbe/output-areas-december-2021-boundaries-ew-bfc-v81",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+    "https://open-geography-portalx-ons.hub.arcgis.com/datasets/ons::output-areas-december-2021-boundaries-ew-bgc-v2",
+    "https://open-geography-portalx-ons.hub.arcgis.com/datasets/ons::output-areas-december-2021-boundaries-ew-bfc-v8",
+]
+file_urls = [
+    "https://open-geography-portalx-ons.hub.arcgis.com/api/download/v1/items/6beafcfd9b9c4c9993a06b6b199d7e6d/",
+    "https://open-geography-portalx-ons.hub.arcgis.com/api/download/v1/items/31dac98df61a4312991646842b147e2f/",
+]
+notes = "How it was verified: Re-checked by the reviewer on 2026-09-23. The ONS item metadata for both BGC V2 and BFC V8 names https://www.ons.gov.uk/methodology/geography/licences as the licence. That page says digital boundary products are supplied under the Open Government Licence and gives both statements. OGL v3 text allows commercial use. Canonical cell for neighbourhood membership. London has 26,369 OAs per the boundaries research (counted from the ONS lookup, not re-counted). data.gov.uk shows the licence field as 'Not set' for both files; the licence comes from the ONS item metadata and the ONS licences page. Both item descriptions say 'Contains both Ordnance Survey and ONS Intellectual Property Rights.' Pages were read through a reader that summarises; compare wording with a saved copy before the attributions page ships. The last two addresses under evidence_urls are the publisher's own portal pages for the two items, on open-geography-portalx-ons.hub.arcgis.com, as each item's data.gov.uk record lists it. They are there to name the host the files are on. Fetch holds a file to the addresses under file_urls. Of each, only the item's title was read, on 2026-09-23. So it is no evidence of the licence."
+
+[[source]]
+id = "ons-postcode-directory"
+name = "ONS Postcode Directory (ONSPD)"
+publisher = "Office for National Statistics"
+url = "https://www.ons.gov.uk/methodology/geography/geographicalproducts/postcodeproducts"
+dimension = "geography"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Contains OS data © Crown copyright and database right [year]\nContains Royal Mail data © Royal Mail copyright and database right [year]\nSource: Office for National Statistics licensed under the Open Government Licence v.3.0"
+attribution_verified = false
+conditions = [
+    "All three statements are required for postcode products (OS, Royal Mail, ONS).",
+    "Northern Ireland postcodes (starting 'BT') need a separate licence for commercial use direct from Land and Property Services. Drop every BT row at ingest and add a test that none reaches a release.",
+    "Filter to Greater London local authorities at ingest; do not redistribute the raw national file.",
+    "When ONSPD places postcode-keyed records into cells (for example HM Land Registry Price Paid), postcode-level rows of those records are never displayed, exported or committed as fixtures. The rule is owned by the housing entry and repeated here because ONSPD is the join.",
+    "Replace [year] with the year of the data supplied.",
+    "On first download, save the licence section of the ONSPD user guide from inside the zip as registry evidence.",
+]
+status = "approved"
+uses = ["destination_search", "cells", "scoring"]
+cadence = "Quarterly: February, May, August, November."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.ons.gov.uk/methodology/geography/licences",
+    "https://www.ons.gov.uk/methodology/geography/geographicalproducts/postcodeproducts",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+]
+notes = "How it was verified: Re-checked by the reviewer on 2026-09-23. The ONS geography licences page says postcode products are subject to the Open Government Licence, lists the three statements, and states the BT restriction. OGL v3 allows commercial use. Three research reports and verify-data-licences.md record the same. Maps each postcode to a 1 m grid reference and its OA, LSOA and MSOA. Also the geocoder for postcode-keyed sources (NHS ODS sites, Price Paid). 'scoring' is listed only because it places postcode-keyed features into cells. ONSPD is a Gridlink product with data from Royal Mail, OS, National Records of Scotland, Land and Property Services and ONS. The url is the ONS product page; the specific quarterly item on the Open Geography Portal was not opened, so pin the release and save its item page at ingest."
+
+[[source]]
+id = "os-boundary-line"
+name = "OS Boundary-Line (London borough and ward boundaries)"
+publisher = "Ordnance Survey"
+url = "https://www.ordnancesurvey.co.uk/products/boundary-line"
+dimension = "geography"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains OS data © Crown copyright and database right [year]."
+attribution_verified = false
+conditions = [
+    "Include the same acknowledgement in any sub-licence or onward re-use of the data.",
+    "Replace [year] with the year of the data supplied.",
+    "Pin the release (spring or autumn) in the release manifest.",
+    "On first download, save the licence file from inside the zip as registry evidence and compare its attribution text with this entry.",
+]
+status = "approved"
+uses = ["gazetteer", "display"]
+cadence = "Twice a year, spring and autumn."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.ordnancesurvey.co.uk/products/open-data",
+    "https://docs.os.uk/os-downloads/products/areas-and-zones-portfolio/boundary-line/boundary-line-overview/product-supply.md",
+    "https://www.ordnancesurvey.co.uk/customers/public-sector/public-sector-licensing/copyright-acknowledgments",
+    "https://www.ordnancesurvey.co.uk/products/boundary-line",
+]
+notes = "How it was verified: Re-checked by the reviewer on 2026-09-23. The OS open data page lists Boundary-Line among 18 products 'available for unrestricted, free commercial and personal reuse under the Open Government Licence (OGL)', linking to OGL v3. OS documentation says 'Boundary-Line can be freely downloaded under the Open Government Licence.' Registered source for London borough outlines and for ward names used as naming evidence. The OS acknowledgements page writes the statement as 'Contains OS data © Crown copyright [and database right] [year].'; the bracketed phrase is resolved here because Burro uses the data as a database. That page is addressed to public sector (PSGA) members; ONS quotes the same OS sentence without brackets. That Boundary-Line carries London borough and ward layers was not confirmed on a page the reviewer could read; check on first download. Dissolving Output Areas by borough code is the alternative and nests exactly."
+
+[[source]]
+id = "os-open-names"
+name = "OS Open Names"
+publisher = "Ordnance Survey"
+url = "https://www.ordnancesurvey.co.uk/products/os-open-names"
+dimension = "geography"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains OS data © Crown copyright and database right [year]."
+attribution_verified = false
+conditions = [
+    "Include the same acknowledgement in any sub-licence or onward re-use of the data.",
+    "Replace [year] with the year of the data supplied.",
+    "On first download, save the licence.txt file from inside the zip as registry evidence and compare its attribution text with this entry.",
+    "Drop postcode-type records at ingest. Postcodes in OS products come from Code-Point Open, which carries third-party rights. Take postcodes from ONSPD.",
+]
+status = "approved"
+uses = ["gazetteer", "destination_search"]
+cadence = "Quarterly: January, April, July, October."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.ordnancesurvey.co.uk/products/open-data",
+    "https://www.ordnancesurvey.co.uk/customers/public-sector/public-sector-licensing/copyright-acknowledgments",
+    "https://www.ordnancesurvey.co.uk/products/os-open-names",
+]
+notes = "How it was verified: Re-checked by the reviewer on 2026-09-23. The OS open data page lists OS Open Names among 18 products 'available for unrestricted, free commercial and personal reuse under the Open Government Licence (OGL)', linking to OGL v3. verify-data-licences.md records the same and clears the earlier unverified flag. Primary seed for neighbourhood names and the place-name and road-name layer of destination search. Coverage of London neighbourhood names ('Suburban Area' type) is unmeasured. The OS acknowledgements page writes '[and database right]' in brackets and is addressed to PSGA members; see os-boundary-line. The product page says only 'Free to use for everyone'. The OS docs product-supply page gives the release months but no licence text, so it is not listed as evidence."
+
+[[source]]
+id = "os-open-roads"
+name = "OS Open Roads"
+publisher = "Ordnance Survey"
+url = "https://www.ordnancesurvey.co.uk/products/os-open-roads"
+dimension = "geography"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains OS data © Crown copyright and database right [year]."
+attribution_verified = false
+conditions = [
+    "Include the same acknowledgement in any sub-licence or onward re-use of the data.",
+    "Replace [year] with the year of the data supplied.",
+    "On first download, save the licence file from inside the zip as registry evidence and compare its attribution text with this entry.",
+    "Keep this network separate from the OSM routing network. Nothing computed on OS Open Roads may be blended with OSM-derived tables.",
+]
+status = "approved"
+uses = ["gazetteer", "scoring"]
+cadence = "Every six months, April and October."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.ordnancesurvey.co.uk/products/open-data",
+    "https://www.ordnancesurvey.co.uk/customers/public-sector/public-sector-licensing/copyright-acknowledgments",
+    "https://www.ordnancesurvey.co.uk/products/os-open-roads",
+]
+notes = "How it was verified: Re-checked by the reviewer on 2026-09-23. The OS open data page lists OS Open Roads among 18 products 'available for unrestricted, free commercial and personal reuse under the Open Government Licence (OGL)', linking to OGL v3. Two jobs, both chosen to keep share-alike data out of core tables: network distance for the neighbourhood partition (Thames as a hard barrier), and every walk-distance feature (PLAN section 9, ADR 0004). OS documentation describes classified and unclassified roads only and does not mention footpaths, so walk distances are approximate. It is not the routing network for commute times, which is OSM. Bracket and PSGA note as for os-boundary-line."
+
+[[source]]
+id = "uber-h3"
+name = "H3 hexagonal grid library (h3 core and h3-py bindings)"
+publisher = "Uber Technologies, Inc. (H3 open source project)"
+url = "https://h3geo.org/"
+dimension = "geography"
+licence = "Apache-2.0"
+licence_url = "https://www.apache.org/licenses/LICENSE-2.0"
+commercial_use = "yes"
+share_alike = false
+attribution = "H3. Copyright 2017-2021 Uber Technologies, Inc. Licensed under the Apache License, Version 2.0."
+attribution_verified = false
+conditions = [
+    "This is software, not a dataset. Cell ids and hexagon outlines are computed outputs and carry no data licence.",
+    "If the library is bundled in a shipped artefact (for example a Docker image or the iOS app), the Apache 2.0 LICENSE text and the NOTICE file from the uber/h3 repository must travel with it.",
+    "The DuckDB h3 community extension is a separate project (isaacbrodsky/h3-duckdb, Apache 2.0 per its GitHub repository). It is not covered by this entry; register it before use.",
+    "Pin the library version and the resolution (9) in the release manifest, because cell ids are part of the data contract.",
+]
+status = "approved"
+uses = ["cells"]
+cadence = "Library releases. The grid itself does not change between versions."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://github.com/uber/h3/blob/master/LICENSE",
+    "https://github.com/uber/h3/blob/master/NOTICE",
+    "https://github.com/uber/h3-py/blob/master/LICENSE",
+    "https://h3geo.org/docs/",
+]
+notes = "How it was verified: Re-checked by the reviewer on 2026-09-23. The LICENSE files in the uber/h3 and uber/h3-py repositories are 'Apache License Version 2.0, January 2004', the uber/h3 README says 'H3 is licensed under the Apache 2.0 License.', and h3geo.org says H3 is 'open source under the Apache 2 license'. Apache 2.0 permits commercial use. Resolution 9 hexagons are where journeys end; about 16,700 cells in London by calculation in verify-routing-feasibility.md, to be confirmed by running the polyfill. Apache 2.0 prescribes no attribution sentence for outputs. The attribution here is a credit built from the first lines of the NOTICE file, read once through a reader that summarises; copy the NOTICE text from the installed package and then set attribution_verified. h3-py wraps compiled C code, which conflicts with ADR 0008 (no package that must run its own executable); that is an engineering decision, not a licence one."
+
+[[source]]
+id = "wikidata-places-and-landmarks"
+name = "Wikidata structured data (areas of London and landmarks)"
+publisher = "Wikimedia Foundation (Wikidata contributors)"
+url = "https://www.wikidata.org/wiki/Q2755753"
+dimension = "geography"
+licence = "CC0-1.0"
+licence_url = "https://creativecommons.org/publicdomain/zero/1.0/"
+commercial_use = "yes"
+share_alike = false
+conditions = [
+    "No attribution is required under CC0, so the attribution field is empty. A courtesy credit to Wikidata on the attributions page is optional.",
+    "Ingest structured data from the main namespace only: labels, aliases, coordinates, instance-of, identifiers and sitelinks. Text in other namespaces is CC BY-SA 4.0 and is not covered by this entry.",
+    "Wikipedia article text is a separate source under CC BY-SA 4.0 and must have its own registry entry. Never pull descriptions from Wikipedia through this entry.",
+    "Select items by Wikidata query only. Never use the wikidata tags on OpenStreetMap objects to pick or match records; that would be an OSM-derived join.",
+    "Store the QID and retrieval date for every record so provenance can be shown.",
+    "Coordinates can be arbitrary. Recentre seeds on a town centre, high street or station before partitioning.",
+]
+status = "approved"
+uses = ["gazetteer", "destination_search"]
+cadence = "Continuous. Snapshot per data release."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.wikidata.org/wiki/Wikidata:Licensing",
+    "https://www.wikidata.org/wiki/Wikidata:Copyright",
+    "https://www.wikidata.org/wiki/Q2755753",
+]
+notes = "How it was verified: Re-checked by the reviewer on 2026-09-23. Wikidata:Licensing says 'All structured data in the main, property and lexeme namespaces is made available under the Creative Commons CC0 License'. Wikidata:Copyright says the same and adds the EntitySchema namespace. verify-data-licences.md records the same. Two uses under one licence: neighbourhood name seeds and aliases (720 'area of London' items, 717 with coordinates, per the boundaries research) and landmark points for destination search such as universities and hospitals. CC0 is a waiver by contributors; it cannot clear rights in facts a contributor copied from a restricted source. That residual risk is general to Wikidata, is low for names and coordinates, and was not assessed per record. Landmark coverage is unmeasured and feeds the 90% destination resolution target."
+
+[[source]]
+id = "gla-high-street-boundaries"
+name = "GLA High Street Boundaries"
+publisher = "Greater London Authority"
+url = "https://data.london.gov.uk/dataset/gla-high-street-boundaries"
+dimension = "geography"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Greater London Authority - Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "London Datastore site terms: state explicitly that the GLA cannot warrant the quality or accuracy of the data, and do not imply GLA endorsement.",
+    "This entry covers the boundary polygons only. High street spend and footfall data that the GLA shares against these boundaries is a different dataset with third-party inputs and is not covered.",
+    "If the GLA confirms an Ordnance Survey acknowledgement is needed, add it to the attribution exactly as the GLA words it.",
+]
+status = "gated"
+status_reason = "The page shows the licence field 'Open Government Licence v3', but gives no attribution statement, no method and no statement about source data. The sister town centre layer says it is based on Ordnance Survey mapping and published under OS's 'presumption to publish'; this page is silent, and OGL does not cover third-party rights the publisher cannot license. PLAN section 9 says to ask the owner in writing where terms are silent. Gate: a written reply from GLA GIS (the listed maintainer) confirming OGL v3 covers the polygons, whether they derive from OS mapping, and the attribution wording, saved in registry/evidence. The town centre layer is approved and covers the same job meanwhile."
+uses = ["gazetteer", "scoring"]
+cadence = "One off. Page showed last update over a year before 2026-09-23."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/gla-high-street-boundaries",
+    "https://data.london.gov.uk/about/terms-and-conditions/",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+]
+notes = "Secondary anchor for seed placement and an input to the 'strong high street' tag. File GLA_High_Street_boundaries_2.gpkg, 4.22 MB. The page says 'Boundaries of High Streets as developed by the Regeneration team at the Greater London Authority.' The only copyright line is the site footer. The attribution is the OGL v3 default with the publisher named, in the style the GLA uses on the town centre page; it is not from this page."
+
+[[source]]
+id = "hoc-library-msoa-names"
+name = "House of Commons Library MSOA Names (2021 MSOAs, version 2.3)"
+publisher = "House of Commons Library"
+url = "https://houseofcommonslibrary.github.io/msoanames/"
+dimension = "geography"
+licence = "Open-Parliament-Licence"
+licence_url = "https://www.parliament.uk/site-information/copyright-parliament/open-parliament-licence/"
+commercial_use = "unknown"
+share_alike = false
+attribution = "House of Commons Library MSOA Names. Contains Parliamentary information licensed under the Open Parliament Licence v3.0."
+attribution_verified = false
+conditions = [
+    "Acknowledge the source and, where possible, link to the licence (publisher's own summary of the terms).",
+    "Use as a naming prior and QA check only, not as the neighbourhood unit.",
+    "The names describe ONS MSOA geography, which is registered separately (ons-msoa-2021).",
+]
+status = "gated"
+status_reason = "The licence text has not been read: not in the research, not in the verification pass, and not by the drafter or the reviewer on 2026-09-23. The publisher's page says the dataset is under the Open Parliament Licence, which 'allows you to use the MSOA names in your products as long as you acknowledge the source of the information and, where possible, provide a link to the licence'. Gate: open the licence page in a browser, confirm the version, that commercial use is permitted, and the exact attribution wording, and save a dated copy in registry/evidence."
+uses = ["gazetteer"]
+cadence = "Occasional. Version 2.3 published 13 February 2026."
+verified_how = "secondary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://houseofcommonslibrary.github.io/msoanames/",
+    "https://www.parliament.uk/site-information/copyright-parliament/open-parliament-licence/",
+    "https://www.parliament.uk/site-information/copyright/open-parliament-licence",
+]
+notes = "commercial_use is 'unknown' because it is unproven, not because of a sign of a problem: the publisher's wording points to yes. The attribution is a best guess at the licence's default statement; the publisher's page suggests no wording. The page links the licence at the third evidence URL, which differs slightly from licence_url; neither has been read. verify-data-licences.md rates the impact as none and lists saving the licence as a week-one task. The design documents plan a gazetteer v0 from MSOA names, so this gate blocks that spike until cleared."
+
+[[source]]
+id = "osm-place-nodes"
+name = "OpenStreetMap place nodes in Greater London (QA comparison only)"
+publisher = "OpenStreetMap Foundation (OpenStreetMap contributors)"
+url = "https://www.openstreetmap.org/copyright"
+dimension = "geography"
+licence = "ODbL-1.0"
+licence_url = "https://opendatacommons.org/licenses/odbl/1-0/"
+commercial_use = "yes_with_conditions"
+share_alike = true
+attribution = "© OpenStreetMap contributors"
+attribution_verified = false
+conditions = [
+    "Validation only. OSM place nodes must never be copied into gazetteer, cell, destination-search or scoring tables.",
+    "OSM comparison may set a global threshold or produce aggregate quality metrics. It must never add, drop or correct an individual gazetteer, Wikidata or Overture record. The OSMF Horizontal Layers guideline lists adding non-OSM data 'based on comparison with OpenStreetMap data' as a share-alike trigger.",
+    "Keep OSM extracts in their own tables and files, linked to other data by key only.",
+    "Repeated small extractions count as one large extraction under the OSMF Substantial guideline, so the 'fewer than 100 features' allowance cannot be relied on.",
+    "Where OSM is credited, the word 'OpenStreetMap' must link to https://www.openstreetmap.org/copyright.",
+]
+status = "gated"
+status_reason = "The licence is confirmed (ODbL 1.0) and internal use is outside share-alike under ODbL 4.5. The risk is contamination of the gazetteer, which is the product's core asset. The written policy now exists as ADR 0004. Gate still open: a CI lineage test that fails if any gazetteer, cell, destination-search or feature table reads from an OSM table. Approve for validation_only once that test is merged."
+cadence = "Continuous. The research counts used data timestamped 2026-09-22."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.openstreetmap.org/copyright",
+    "https://opendatacommons.org/licenses/odbl/1-0/",
+    "https://osmfoundation.org/wiki/Licence/Attribution_Guidelines",
+    "https://osmfoundation.org/wiki/Licence/Community_Guidelines/Horizontal_Map_Layers_-_Guideline",
+]
+notes = "790 named place nodes in Greater London, of which 589 carry a Wikidata tag, per the boundaries research. Much of the same QA can be done against Wikidata (CC0) queried directly, with no share-alike question; consider that first. OSM as basemap and as routing street network are separate uses with their own entries. The OSMF attribution guideline says 'Attribution must be to OpenStreetMap' and accepts the historical form '© OpenStreetMap contributors'; it does not concern internal uses. The copyright page has no explicit commercial-use sentence; ODbL itself does not restrict it. Intended use once the gate passes: validation_only."
+
+[[source]]
+id = "gla-statistical-gis-boundary-files"
+name = "Statistical GIS Boundary Files for London"
+publisher = "Greater London Authority"
+url = "https://data.london.gov.uk/dataset/statistical-gis-boundary-files-for-london-20od9"
+dimension = "geography"
+licence = "Bespoke-terms"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Contains National Statistics data © Crown copyright and database right [2015]\nContains Ordnance Survey data © Crown copyright and database right [2015]"
+attribution_verified = false
+conditions = [
+    "The page states 'Open Government Licence v2', which is not in the registry's licence list. 'Bespoke-terms' is used only because no OGL v2 value exists.",
+    "The page links to 'Terms and Conditions of Supply' that nobody on this project has read. They must be read and saved before any use.",
+    "London Datastore site terms apply: state explicitly that the GLA cannot warrant the quality or accuracy of the data, and do not imply GLA endorsement.",
+]
+status = "held"
+status_reason = "Not needed in v1 and the terms are not fully read. The page states OGL v2 rather than v3, it points to unread Terms and Conditions of Supply, and the Output Area layer is 2011 only. Take boundaries from ONS and OS directly. What would settle it: read and save the terms, and confirm the licence version with the GLA."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/statistical-gis-boundary-files-for-london-20od9",
+    "https://data.london.gov.uk/about/terms-and-conditions/",
+]
+
+[[source]]
+id = "ons-msoa-pwc-2021"
+name = "Middle layer Super Output Areas (December 2021) EW Population Weighted Centroids (V2)"
+publisher = "Office for National Statistics"
+url = "https://www.data.gov.uk/dataset/2df7f028-d232-46b2-ad29-86efc5aed8b0/middle-layer-super-output-areas-december-2021-ew-population-weighted-centroids-v2"
+dimension = "geography"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics licensed under the Open Government Licence v.3.0\nContains OS data © Crown copyright and database right [year]"
+attribution_verified = false
+conditions = ["If adopted, show both statements (ONS and OS) and pin the version."]
+status = "held"
+status_reason = "Not needed in v1. The plan uses Output Area and LSOA centroids only. The ONS item metadata points to the ONS geography licences page (opened by the reviewer on 2026-09-23), so this can move to approved without new research if a use appears."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.arcgis.com/sharing/rest/content/items/cc5e6945d6264d28afde5cf675027466?f=json",
+    "https://www.ons.gov.uk/methodology/geography/licences",
+    "https://www.data.gov.uk/dataset/2df7f028-d232-46b2-ad29-86efc5aed8b0/middle-layer-super-output-areas-december-2021-ew-population-weighted-centroids-v2",
+]
+
+[[source]]
+id = "ons-nspl"
+name = "National Statistics Postcode Lookup (NSPL)"
+publisher = "Office for National Statistics"
+url = "https://www.ons.gov.uk/methodology/geography/geographicalproducts/postcodeproducts"
+dimension = "geography"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Contains OS data © Crown copyright and database right [year]\nContains Royal Mail data © Royal Mail copyright and database right [year]\nSource: Office for National Statistics licensed under the Open Government Licence v.3.0"
+attribution_verified = false
+conditions = [
+    "Same terms as ONSPD: three statements, and BT postcodes excluded from commercial use without a separate licence.",
+]
+status = "held"
+status_reason = "Not needed in v1. ONSPD is the chosen postcode product and gives the same Output Area assignment. Licence terms are the same (ONS geography licences page, re-checked 2026-09-23), so this can be approved without new research if best-fit allocation is ever wanted."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.ons.gov.uk/methodology/geography/licences",
+    "https://www.ons.gov.uk/methodology/geography/geographicalproducts/postcodeproducts",
+]
+
+[[source]]
+id = "overture-divisions"
+name = "Overture Maps divisions theme"
+publisher = "Overture Maps Foundation"
+url = "https://docs.overturemaps.org/guides/divisions/"
+dimension = "geography"
+licence = "ODbL-1.0"
+additional_licences = ["CC-BY-4.0"]
+licence_url = "https://opendatacommons.org/licenses/odbl/1-0/"
+commercial_use = "yes_with_conditions"
+share_alike = true
+attribution = "© OpenStreetMap contributors, Overture Maps Foundation"
+attribution_verified = false
+conditions = [
+    "The theme is published under ODbL because OpenStreetMap is its primary source. Share-alike applies to any publicly used derivative database.",
+    "Other listed sources are geoBoundaries, Esri Community Maps contributors and Land Information New Zealand, each under CC BY 4.0, and each needs its own credit if its records are used.",
+    "Under registry rules a share-alike source can never feed gazetteer, cells, destination search or scoring. That rules out use as a neighbourhood seed for other cities unless the founder accepts publishing those polygons under ODbL.",
+    "Do not use GERS ids as primary keys; the research notes they changed to random UUIDs in June 2025.",
+]
+status = "held"
+status_reason = "Not used in v1. For London it inherits OpenStreetMap's lack of neighbourhood polygons, Overture's guide says sub-county 'coverage is often spotty', and London coverage was never measured. The licence is confirmed as ODbL on Overture's attribution page and divisions guide (re-checked 2026-09-23) and by verify-data-licences.md."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://docs.overturemaps.org/attribution/",
+    "https://docs.overturemaps.org/guides/divisions/",
+]
+
+[[source]]
+id = "whosonfirst-gazetteer"
+name = "Who's On First gazetteer (neighbourhood placetype)"
+publisher = "Who's On First"
+url = "https://whosonfirst.org/docs/licenses/"
+dimension = "geography"
+licence = "Bespoke-terms"
+licence_url = "https://whosonfirst.org/docs/licenses/"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Data from Who's On First. License: https://whosonfirst.org/docs/licenses/"
+attribution_verified = false
+conditions = [
+    "Linking back to the licence page is required; crediting Who's On First is recommended.",
+    "The dataset is 'both an original work and a modification of existing open data', drawn from 312 listed sources, each with its own licence. Each source feeding a record must be cleared separately.",
+    "London neighbourhood geometry is reported to derive from Mapzen with Quattroshapes alternates; those upstream licences have not been read.",
+]
+status = "held"
+status_reason = "Not used in v1 and the licence cannot be cleared as a whole. The research rejected it because provenance is too mixed to prove commercial use, and London coverage and geometry quality were never established. What would settle it: a per-source licence audit of the records for Greater London neighbourhoods. Nothing in v1 needs it, so that work is not planned."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = ["https://whosonfirst.org/docs/licenses/"]

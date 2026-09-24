@@ -1,0 +1,20 @@
+[project]
+name = "burro-pipeline"
+version = "0.0.0"
+description = "Builds Burro data releases. Owns the licence registry and the ingest gate."
+requires-python = ">=3.13"
+dependencies = [
+    "burro-core",
+    "pydantic>=2.9",
+]
+
+[project.scripts]
+burro-registry = "burro_pipeline.registry.cli:main"
+burro-release = "burro_pipeline.release.cli:main"
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/burro_pipeline"]

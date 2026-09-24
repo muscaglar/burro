@@ -1,0 +1,400 @@
+# Licence registry: environment. Rules are in registry/README.md.
+# Approved first, then gated, held and banned.
+schema_version = 1
+
+[[source]]
+id = "defra-pcm-background-air"
+name = "Defra UK-AIR modelled background pollution data (PCM): NO2 and PM2.5 annual means on a 1 km grid"
+publisher = "Department for Environment, Food and Rural Affairs"
+url = "https://uk-air.defra.gov.uk/data/pcm-data"
+dimension = "environment"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "© Crown 2026 copyright Defra via uk-air.defra.gov.uk, licenced under the Open Government Licence (OGL)."
+attribution_verified = false
+conditions = [
+    "The v1 feature is NO2 annual mean. PM2.5 is covered by this entry and licence, but needs its own place on the feature allowlist before it is used.",
+    "Values are modelled background levels on a 1 km grid. Do not present them as street-level or measured readings.",
+    "Defra has republished files after errors (2021 NO2 was reissued in February 2024). Store the retrieval date and checksum.",
+    "The year in the attribution is the year shown on UK-AIR when the data was retrieved. Update it at each refresh. Link the statement to the OGL where possible, as UK-AIR asks.",
+]
+status = "approved"
+uses = ["scoring", "display"]
+cadence = "Annual. Latest year is 2024."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://uk-air.defra.gov.uk/data/pcm-data",
+    "https://uk-air.defra.gov.uk/about-these-pages",
+]
+file_urls = [
+    "https://uk-air.defra.gov.uk/datastore/pcm/mapno22024.csv",
+]
+notes = "How it was verified: The PCM data page footer states OGL v3.0 and UK-AIR gives an exact attribution statement (drafter and reviewer both fetched these on 2026-09-23), matching the research. Defra modelled NO2 is a v1 source in PLAN section 7. The data page also says: 'Please acknowledge Defra as the source for this data if using the maps for your work.' The attribution statement is copied from UK-AIR's 'about these pages' text, including its spelling 'licenced'. UK-AIR asks for it in reports, web pages and derived data products."
+
+[[source]]
+id = "mhclg-iod-2025-underlying-indicators"
+name = "English Indices of Deprivation 2025, File 8: underlying indicators"
+publisher = "Ministry of Housing, Communities and Local Government"
+url = "https://www.gov.uk/government/statistics/english-indices-of-deprivation-2025"
+dimension = "environment"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "Only place-based indicators may enter the product, and each needs a feature allowlist entry. The v1 indicator is noise exposure.",
+    "Indicators and domains that describe residents (income, employment, health, education) and the IMD rank or decile must never be inputs to ranking or tags (PLAN section 9). This entry does not approve them for product use.",
+    "The patient-to-GP ratio and broadband speed indicators are out of v1 scope (PLAN section 4).",
+    "Not comparable with the 2019 indices. Do not show change over time.",
+    "At first ingest, read the notes sheet in File 8 for any indicator-level third-party copyright statement and save it to registry/evidence.",
+]
+status = "approved"
+uses = ["scoring", "display"]
+cadence = "Irregular. Published 30 October 2025, updated 17 November 2025. Previous edition was 2019."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.gov.uk/government/statistics/english-indices-of-deprivation-2025",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+    "https://assets.publishing.service.gov.uk/media/691dec012c6b98ecdbc500d4/File_8_IoD2025_Underlying_Indicators.xlsx",
+]
+file_urls = [
+    "https://assets.publishing.service.gov.uk/media/691dec012c6b98ecdbc500d4/File_8_IoD2025_Underlying_Indicators.xlsx",
+]
+notes = "How it was verified: The GOV.UK release page states OGL v3.0 (drafter and reviewer both fetched it on 2026-09-23) and the verification file lists this claim as confirmed. It is a v1 source in PLAN section 7. File 8 is listed as 'File 8: Underlying indicators', an Excel file of 13.8 MB, on 2021 LSOAs. The page asks for no specific attribution statement, so the OGL default applies. File 8 was opened once for research, on a copy that was not kept (docs/research/vibes/grit.md). No step of the pipeline has fetched it, so the notes sheet check in conditions is still to do. Filed under environment because the v1 use is the noise indicator. If the offline proxy audit needs the deprivation domains, add a separate audit-only entry for Files 1 to 7 instead of widening this one. The last address under evidence_urls, on assets.publishing.service.gov.uk, is File 8 itself, as the publisher's page listed it on 2026-09-23. It was read through a reader that extracts, which was asked twice, in different words, and gave the same address both times. GOV.UK hands out files from that host, which has no pages of its own, so an entry can name it only by a file. It is there to name the host the file is on. Fetch holds a file to the addresses under file_urls. It is no evidence of the licence. No file was fetched to read the address. A file that is reissued is given a new address."
+
+[[source]]
+id = "os-open-greenspace"
+name = "OS Open Greenspace"
+publisher = "Ordnance Survey"
+url = "https://www.ordnancesurvey.co.uk/products/os-open-greenspace"
+dimension = "environment"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains OS data © Crown copyright and database right 2026."
+attribution_verified = false
+conditions = [
+    "Set the year in the attribution to the year of the release that was ingested.",
+    "Save the licence.txt file from inside the download to registry/evidence at first ingest.",
+    "The product leaves out woodland, commons and private gardens. Do not describe it as all green space.",
+]
+status = "approved"
+uses = ["scoring", "display"]
+cadence = "Six-monthly, April and October"
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.ordnancesurvey.co.uk/products/open-data",
+    "https://www.ordnancesurvey.co.uk/products/os-open-greenspace",
+    "https://docs.os.uk/os-downloads/products/land-and-terrain-portfolio/os-open-greenspace",
+    "https://www.ordnancesurvey.co.uk/customers/public-sector/public-sector-licensing/copyright-acknowledgments",
+    "https://www.ordnancesurvey.co.uk/opendata/licence",
+]
+notes = "How it was verified: The OS open data page lists OS Open Greenspace among products 'available for unrestricted, free commercial and personal reuse under the Open Government Licence (OGL)' (drafter and reviewer both fetched it on 2026-09-23). The verification file confirms OS OpenData is OGL. It is a v1 source in PLAN section 7. This clears the item the liveability report listed as unverified. OS's acknowledgments page gives the statement as 'Contains OS data © Crown copyright [and database right] [year].' The year is filled in. OS's own licence link returns a permanent redirect to OGL version 3 at the National Archives (checked today). The product page itself names no licence. The licence statement is on the OS open data page. The boundaries workstream also uses this product to cut large parks out of display polygons, so keep one shared entry."
+
+[[source]]
+id = "os-open-rivers"
+name = "OS Open Rivers"
+publisher = "Ordnance Survey"
+url = "https://www.ordnancesurvey.co.uk/products/os-open-rivers"
+dimension = "environment"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains OS data © Crown copyright and database right 2026."
+attribution_verified = false
+conditions = [
+    "Set the year in the attribution to the year of the release that was ingested.",
+    "Save the licence.txt file from inside the download to registry/evidence at first ingest.",
+    "The product is a centre-line network with no river width. Do not use it to claim a waterfront view or frontage.",
+]
+status = "approved"
+uses = ["scoring", "display"]
+cadence = "Six-monthly"
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.ordnancesurvey.co.uk/products/open-data",
+    "https://www.ordnancesurvey.co.uk/products/os-open-rivers",
+    "https://docs.os.uk/os-downloads/products/water-portfolio/os-open-rivers",
+    "https://www.ordnancesurvey.co.uk/customers/public-sector/public-sector-licensing/copyright-acknowledgments",
+    "https://www.ordnancesurvey.co.uk/opendata/licence",
+]
+notes = "How it was verified: The OS open data page lists OS Open Rivers among products 'available for unrestricted, free commercial and personal reuse under the Open Government Licence (OGL)' (drafter and reviewer both fetched it on 2026-09-23). The verification file confirms OS OpenData is OGL. It is a v1 source in PLAN section 7. The liveability research file has no finding for this product. The licence evidence comes from the poi-vibe research, the verification file and today's fetches. The product page says it is 'updated every six months' and covers 'over 144,000 km of water bodies and watercourses', including rivers, tidal estuaries and canals. The page does not name the months, so April and October is not confirmed for this product. Attribution wording is from OS's acknowledgments page, with the year filled in."
+
+[[source]]
+id = "gla-green-cover-2024"
+name = "Green Cover 2024"
+publisher = "Greater London Authority"
+url = "https://data.london.gov.uk/dataset/green-cover-2024-e56n0"
+dimension = "environment"
+licence = "Bespoke-terms"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Green Cover 2024: Greater London Authority, used with permission."
+attribution_verified = false
+conditions = [
+    "Permission in writing, as the founder reports. The founder asked the GLA's GIS team to use the Tree Canopy Cover 2024 and Green Cover 2024 layers in a commercial service, to measure how leafy an area is. The founder reports that the team answered in writing on 2026-09-23, giving permission.",
+    "The permission covers what was asked and no more. A figure for an area only: never the cover of one home, garden or street. The layer itself is never shown and never passed on.",
+    "A change of use means asking the GLA again, before the change is made.",
+    "Credit the Greater London Authority wherever a figure from the layer is shown. The credit is Burro's wording until the owner publishes its own.",
+    "The dataset page shows 'All Rights Reserved', so the reply is the only ground for use. An owner can give only the rights it holds. The page says the layer was made from aerial imagery and height data, and names the Ordnance Survey MasterMap Topography Layer. Whether the reply speaks of those is not recorded: the founder checks it in the reply.",
+    "London Datastore terms apply to every GLA dataset: state that the Greater London Authority cannot warrant the quality or accuracy of the data, and never imply GLA endorsement, affiliation, support or approval.",
+    "Say the date of the imagery wherever a figure appears. The research records it as mostly 2022.",
+]
+status = "gated"
+status_reason = "The dataset page shows 'Licence: All Rights Reserved', so the permission rests on a written reply that only the founder has read. The founder holds the reply. What would settle it: the founder files a dated note of the reply in registry/evidence."
+uses = ["scoring"]
+cadence = "One off, as the dataset page says."
+verified_how = "secondary_source"
+verified_on = 2026-09-23
+evidence_urls = ["https://data.london.gov.uk/dataset/green-cover-2024-e56n0"]
+notes = "What the founder reported is noted in registry/evidence/gla-green-cover-2024-2026-09-23.md. The dataset page was read on 2026-09-23 through a reader that extracts, which is not the page itself. As read: the licence is 'All Rights Reserved', the maintainer is 'GLA GIS', and no credit wording is given. The research opened the page in a browser the same day and records the same licence. The attribution is Burro's own wording, not the GLA's. verified_how is secondary_source because whoever wrote this entry has not read the reply, and so that the entry cannot be approved by changing its status alone. No file was opened. The research records 2 km tiles of polygons, and tables by ward and borough."
+
+[[source]]
+id = "gla-tree-canopy-cover-2024"
+name = "Tree Canopy Cover 2024"
+publisher = "Greater London Authority"
+url = "https://data.london.gov.uk/dataset/tree-canopy-cover-2024-2w4m3"
+dimension = "environment"
+licence = "Bespoke-terms"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Tree Canopy Cover 2024: Greater London Authority, used with permission."
+attribution_verified = false
+conditions = [
+    "Permission in writing, as the founder reports. The founder asked the GLA's GIS team to use the Tree Canopy Cover 2024 and Green Cover 2024 layers in a commercial service, to measure how leafy an area is. The founder reports that the team answered in writing on 2026-09-23, giving permission.",
+    "The permission covers what was asked and no more. A figure for an area only: never the tree cover of one home or one street. The layer itself is never shown and never passed on.",
+    "A change of use means asking the GLA again, before the change is made.",
+    "Credit the Greater London Authority wherever a figure from the layer is shown. The credit is Burro's wording until the owner publishes its own.",
+    "The dataset page shows 'All Rights Reserved', so the reply is the only ground for use. An owner can give only the rights it holds. The research records that the imagery and height data came from a commercial supplier, and that the layer uses Ordnance Survey MasterMap. Whether the reply speaks of those is not recorded: the founder checks it in the reply.",
+    "London Datastore terms apply to every GLA dataset: state that the Greater London Authority cannot warrant the quality or accuracy of the data, and never imply GLA endorsement, affiliation, support or approval.",
+    "Say the date of the imagery wherever a figure appears. The research records it as mostly 2022, with some from 2021 and 2020.",
+]
+status = "gated"
+status_reason = "The dataset page shows 'Licence: All Rights Reserved', so the permission rests on a written reply that only the founder has read. The founder holds the reply. What would settle it: the founder files a dated note of the reply in registry/evidence."
+uses = ["scoring"]
+cadence = "One off, as the dataset page says."
+verified_how = "secondary_source"
+verified_on = 2026-09-23
+evidence_urls = ["https://data.london.gov.uk/dataset/tree-canopy-cover-2024-2w4m3"]
+notes = "What the founder reported is noted in registry/evidence/gla-tree-canopy-cover-2024-2026-09-23.md. The dataset page was read on 2026-09-23 through a reader that extracts, which is not the page itself. As read: the licence is 'All Rights Reserved', the maintainer is 'GLA GIS', and no credit wording is given. The research opened the page in a browser the same day and records the same licence. The attribution is Burro's own wording, not the GLA's. verified_how is secondary_source because whoever wrote this entry has not read the reply, and so that the entry cannot be approved by changing its status alone. No file was opened. The research records 467 tiles of 2 km, and tables by ward and borough."
+
+[[source]]
+id = "defra-noise-mapping-round-4"
+name = "Defra Strategic Noise Mapping Round 4: road and rail noise, all metrics, England"
+publisher = "Department for Environment, Food and Rural Affairs"
+url = "https://environment.data.gov.uk/dataset/562c9d56-7c2d-4d42-83bb-578d6e97a517"
+dimension = "environment"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "© Department for Environment, Food & Rural Affairs copyright and/or database right 2023. All rights reserved."
+attribution_verified = false
+conditions = [
+    "Road and rail are separate datasets. Aircraft noise is not included.",
+    "Data year is 2021. Show the vintage wherever it is displayed.",
+    "The road dataset page links its licence to OGL version 3. The rail dataset was read only on its data.gov.uk record, which says 'Open Government Licence' with no version. Before promoting rail, read the rail dataset's own page on Defra's Data Services Platform and give it its own registry entry.",
+]
+status = "held"
+status_reason = "Not a v1 source. PLAN section 7 takes noise from the Indices of Deprivation 2025 indicator, which also covers aircraft. The road dataset's licence is confirmed, so road can be promoted for a map overlay without further licence work. Rail needs the one page read above."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://environment.data.gov.uk/dataset/562c9d56-7c2d-4d42-83bb-578d6e97a517",
+    "https://www.data.gov.uk/dataset/6747d18d-b43e-4b0e-a45f-e8bc542d657c/rail-noise-all-metrics-england-round-4",
+]
+
+[[source]]
+id = "dft-road-traffic-counts"
+name = "DfT road traffic statistics: count points and annual average daily flow"
+publisher = "Department for Transport"
+url = "https://roadtraffic.dft.gov.uk/downloads"
+dimension = "environment"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "Major roads are counted well and minor roads are sampled. Use it as exposure to busy roads, not as a traffic model.",
+]
+status = "held"
+status_reason = "Not in the v1 source list in PLAN section 7, and no street or traffic feature is in the v1 feature set. The downloads page states OGL v3.0 (drafter and reviewer both fetched it on 2026-09-23). Promotion needs no further licence work."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = ["https://roadtraffic.dft.gov.uk/downloads"]
+
+[[source]]
+id = "ea-risk-of-flooding-rivers-sea"
+name = "Environment Agency Risk of Flooding from Rivers and Sea (NaFRA2)"
+publisher = "Environment Agency"
+url = "https://environment.data.gov.uk/dataset/96ab4342-82c1-4095-87f1-0082e8d84ef1"
+dimension = "environment"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "© Environment Agency copyright and/or database right 2025. All rights reserved."
+attribution_verified = false
+conditions = [
+    "Area-level use only. Never state or imply the flood risk of an individual property.",
+    "Intersect with where people live (residential footprints or Output Area population), not raw land area.",
+]
+status = "held"
+status_reason = "Flood is explicitly out of v1 (PLAN section 4). The dataset page shows the Open Government Licence with a link to version 3 (drafter and reviewer both fetched it on 2026-09-23). Promotion needs no further licence work."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://environment.data.gov.uk/dataset/96ab4342-82c1-4095-87f1-0082e8d84ef1",
+]
+
+[[source]]
+id = "ea-risk-of-flooding-surface-water"
+name = "Environment Agency Risk of Flooding from Surface Water"
+publisher = "Environment Agency"
+url = "https://environment.data.gov.uk/dataset/b5aaa28d-6eb9-460e-8d6f-43caa71fbe0e"
+dimension = "environment"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "© Environment Agency copyright and/or database right 2025. All rights reserved."
+attribution_verified = false
+conditions = [
+    "Area-level use only. Never state or imply the flood risk of an individual property.",
+    "Intersect with where people live (residential footprints or Output Area population), not raw land area.",
+]
+status = "held"
+status_reason = "Flood is explicitly out of v1 (PLAN section 4). The dataset page shows the Open Government Licence with a link to version 3 (drafter and reviewer both fetched it on 2026-09-23). Promotion needs no further licence work."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://environment.data.gov.uk/dataset/b5aaa28d-6eb9-460e-8d6f-43caa71fbe0e",
+]
+
+[[source]]
+id = "gla-laei-2022"
+name = "London Atmospheric Emissions Inventory (LAEI) 2022"
+publisher = "Greater London Authority (GLA and TfL Air Quality)"
+url = "https://data.london.gov.uk/dataset/london-atmospheric-emissions-inventory-laei-2022-2lg5g"
+dimension = "environment"
+licence = "None-stated"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Greater London Authority, London Atmospheric Emissions Inventory 2022 (no licence confirmed, so no attribution statement exists yet)"
+attribution_verified = false
+conditions = [
+    "Do not ingest until the GLA confirms in writing that the 2022 concentration grids may be used commercially, and under which licence.",
+    "Ask specifically about third-party inputs such as TfL and Ordnance Survey data.",
+    "If cleared, the London Datastore accuracy disclaimer and non-endorsement terms apply.",
+]
+status = "held"
+status_reason = "PLAN section 7 holds GLA air quality 2022 until cleared. The dataset page shows no licence, only '© Copyright 2026 Greater London Authority' (re-checked by the drafter and the reviewer on 2026-09-23). The verification file confirms it cannot be assumed OGL. A written reply from the GLA settles it."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/london-atmospheric-emissions-inventory-laei-2022-2lg5g",
+    "https://data.london.gov.uk/about/terms-and-conditions/",
+]
+
+[[source]]
+id = "gla-public-realm-trees"
+name = "London Public Realm Trees (local authority maintained trees)"
+publisher = "Greater London Authority"
+url = "https://data.london.gov.uk/dataset/local-authority-maintained-trees/"
+dimension = "environment"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "London Datastore site terms: state explicitly that the Greater London Authority cannot warrant the quality or accuracy of the data, and do not imply GLA endorsement.",
+    "Before promotion, measure coverage per borough. The page says location data is missing for some or all records in three boroughs, and that large gaps occur in woodlands, reservoirs, airports and where borough data is incomplete.",
+    "Records come from the boroughs, the City of London, TfL, the Royal Parks, the London Legacy Development Corporation and Quintain (Wembley Park). Quintain is a private company. Before promotion, check the file and ask the GLA whether the OGL label covers every contributor's records.",
+]
+status = "held"
+status_reason = "Not in the v1 source list in PLAN section 7, where green space and water come from the two OS products. The dataset page shows Open Government Licence v3 (drafter and reviewer both fetched it on 2026-09-23). Promotion needs the coverage check and the contributor check."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/local-authority-maintained-trees/",
+    "https://data.london.gov.uk/about/terms-and-conditions/",
+]
+
+[[source]]
+id = "mapillary-street-imagery"
+name = "Mapillary street-level imagery and detections"
+publisher = "Mapillary (Meta Platforms)"
+url = "https://www.mapillary.com/terms"
+dimension = "environment"
+licence = "CC-BY-SA-4.0"
+additional_licences = ["Bespoke-terms"]
+licence_url = "https://www.mapillary.com/terms"
+commercial_use = "yes_with_conditions"
+share_alike = true
+attribution = "Mapillary logo shown visibly, with a link to the Mapillary homepage or the image page"
+attribution_verified = false
+conditions = [
+    "Images are CC BY-SA. Service use is under the Mapillary Terms of Use, effective 15 February 2024.",
+    "Commercial use is limited to the purposes the terms list: improving, training and developing products and services, and services for clients.",
+    "Terms require 'visibly displaying the Mapillary logo and linking back to the Mapillary homepage or corresponding Mapillary image page', for images and for data Mapillary extracts from images.",
+    "No scraping or data mining not approved by Mapillary. No re-identification or unblurring.",
+    "Share-alike means it could never feed scoring under registry rules, which rules out a greenery or frontage index.",
+]
+status = "held"
+status_reason = "No imagery in v1. The terms add complexity and share-alike blocks the only use that was proposed."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = ["https://www.mapillary.com/terms"]
+
+[[source]]
+id = "gigl-open-space"
+name = "GiGL open space datasets (Spaces to Visit and related)"
+publisher = "Greenspace Information for Greater London CIC"
+url = "https://data.london.gov.uk/dataset/gigl-spaces-to-visit-2rqo4/"
+dimension = "environment"
+licence = "Bespoke-terms"
+licence_url = "https://www.gigl.org.uk/terms-of-use/"
+commercial_use = "no"
+share_alike = false
+status = "banned"
+status_reason = "The publisher has withdrawn it as open data. The dataset page says 'GiGL are no longer providing this dataset as Open Data', and GiGL's website terms say 'Commercial use is not permitted' (drafter and reviewer both fetched these on 2026-09-23). OS Open Greenspace covers the v1 need."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/gigl-spaces-to-visit-2rqo4/",
+    "https://www.gigl.org.uk/terms-of-use/",
+    "https://www.gigl.org.uk/open-data/",
+]
+
+[[source]]
+id = "google-street-view"
+name = "Google Street View imagery"
+publisher = "Google"
+url = "https://cloud.google.com/maps-platform/terms"
+dimension = "environment"
+licence = "Bespoke-terms"
+licence_url = "https://cloud.google.com/maps-platform/terms"
+commercial_use = "no"
+share_alike = false
+status = "banned"
+status_reason = "Deriving greenery or street character data from the imagery is prohibited, and so is showing it beside Burro's map."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://cloud.google.com/maps-platform/terms",
+    "https://developers.google.com/maps/documentation/streetview/policies",
+]

@@ -1,0 +1,150 @@
+# Critique
+
+The architecture is sound and most verification corrections are genuinely applied: deterministic core, LSOA-to-hexagon routing geometry, licence register before first ingest, degraded modes. The plan fails on sequencing, human capacity and a few product gaps that hit the relocator audience hardest. Its own gate table says counsel's view blocks phase 1 and phase 2 work, yet legal review, DPIA, privacy notice and ICO fee sit in phase 3, after real users' prompts have been sent to Anthropic. Thirteen weeks has no slack, phase 0 alone is a month of work, and the grafts from the trust and experience variants were added without re-estimating. Founder hours are never totalled although the plan names them as the scarce resource. Product-wise, the budget filter runs on stock rents that understate what a new mover pays, commute times are shown with no route, destination search cannot resolve employers or universities, and openly licensed text has been dropped from vibe without asking the founder. Cost and latency figures assume Haiku 4.5 and a 300-token output, neither of which survives the plan's own schema and model-risk decisions. Fixable, but not as a 13-week plan. Checked against all nine research reports.
+
+## Issues
+### [blocker] [sequencing] Legal and privacy work is scheduled after the phases it gates
+where: Section 8 phases 1 to 3; section 11 rows 1, 2 and 10
+problem: Section 11 says the ODbL position blocks showing commute times (phase 1) and the demographic rule blocks the allowlist and tags (phase 2), both pending counsel. The roadmap puts legal review, DPIA, privacy notice and ICO fee in phase 3, with counsel sign-off at phase 3 exit. Meanwhile phase 1 shows commute times to five movers and phase 2 sends 20 to 30 beta users' free-text prompts to Anthropic. That is personal data, possibly special category, processed with no privacy notice, no ICO registration, no DPIA and possibly no legal entity to accept the Anthropic DPA. If counsel rejects the demographic compromise or the Price Paid reading in week 11, tags, allowlist, golden sets and the cost model are reworked two weeks before launch.
+fix: Split legal into two engagements. First, a narrow design opinion in phases 0 to 1 on three questions: demographic tiering and tag names, ODbL for routing outputs, Price Paid postcode aggregation. Make its receipt the phase 1 exit criterion. Second, the documents review in phase 3. Move entity formation, ICO fee, DPA acceptance, a short privacy notice and a first DPIA draft to before the first external user touches the parse call. Until then, test only the form-based page or synthetic prompts.
+
+### [major] [sequencing] No shared datastore until phase 4, but phase 2 features need one
+where: Section 3 components and search flow; section 4 Postgres tables; section 8 phases 2 to 4
+problem: Supabase arrives in the accounts phase, yet llm_calls and events are Postgres tables, and phase 2 ships the parse call, the 24-hour query-to-spec cache, share links and a beta. The API runs on two Fly machines. An in-memory cache is not shared, so the same prompt can yield two different specs, which breaks the stated source of reproducibility. GET /v1/search/{hash}/explain can land on a machine that never saw the hash. The spend circuit breaker, quotas, Turnstile and Sentry are all phase 4, so a public LLM endpoint runs for about five weeks protected only by the Anthropic workspace limit.
+fix: Create the Supabase project in phase 0 (this also does the IPv6, pooler and signing-key checks the verifiers asked for in week one). Put parse cache, search hash, llm_calls and the spend counter in Postgres from phase 2. Ship a basic per-IP rate limit, the workspace spend limit and Sentry with the first deployed parse endpoint. Budget Supabase Pro from phase 2, not phase 4.
+
+### [major] [unrealistic_estimate] Thirteen weeks has no slack and phase 0 is about a month of work
+where: Scorecard; section 8
+problem: Phase 0 lists about fifteen engineering spikes (parallel R5 driver, two timetable conversions, rail through an R toolchain, schema and cache measurements on two models, Overture benchmark, gazetteer v0, clickable prototype) and about ten human tasks in two weeks. Its exit criterion, terms on file, depends on third parties replying. The scorecard credits lean with a commute finder inside a month, but the roadmap delivers it at week five. The grafts from trust and experience (registry with CI gate, fact table, proxy audit, golden sets, diff reports, housing backtest, road-network partition, rule-based parser, prototype testing) were added without changing lean's durations, and the trust variant alone was scored at 20 weeks. Phase 4 packs three sign-in providers, deletion, entitlements, quotas, a spend drill and launch into two weeks over Christmas. iOS at 3 to 4 weeks includes App Review and device testing that agents cannot do.
+fix: Re-plan at 18 to 20 weeks to web launch with a stated buffer per phase, or cut. Candidate cuts that do not touch founder decisions: the rule-based parser (fall back to an empty form with defaults), the BODS cross-check, similar.parquet, the on-device Where am I feature. Split phase 0 into licence and data gates, then routing and LLM spikes. Make exit criteria depend only on things the founder controls, and track external replies as per-dataset gates. Give phase 4 three weeks and iOS six.
+
+### [major] [missing_step] Founder hours are never totalled
+where: Section 8 human tasks column; section 9
+problem: The brief says human time is the scarce resource, but the plan has no hours budget. Curation alone is 100 to 150 hours across nine weeks. On top sit 150 golden queries with field-level assertions, a 40-neighbourhood tag set, allowlist approval, three rounds of user testing (5, 5, then 20 to 30 people, many of them overseas and hard to recruit), DPIA and privacy documents, solicitor briefing, six or more vendor registrations, four sets of emails to chase, and daily review of agent pull requests. My rough total is 300 to 400 hours in 13 weeks, before PR review. The second curator is scheduled as blocking phase 2 exit, which is too late to relieve phases 1 and 2.
+fix: Add a human-hours column to the roadmap and cap it at what the founder can actually give per week. Start the paid second curator in phase 1. Have agents draft golden queries and tag expectations for the founder to correct, not write. Cut user testing to two rounds. State which human tasks can slip without moving launch and which cannot.
+
+### [major] [technical_feasibility] Rail conversion rests on one work-in-progress tool with no fallback, and the matrix will predate the December timetable
+where: Section 6 rail row; section 10 risk 1; section 11 rail conversion path
+problem: All National Rail, Overground and Elizabeth line times depend on NWR Schedule CIF converted by UK2GTFS nr2gtfs. The transit report lists UK2GTFS as a backup converter that describes itself as work in progress, is GPL-3.0 and needs R. NWR delivery is push to cloud storage or SFTP, and CIF carries TIPLOC codes that need coordinate mapping. No fallback is named if terms or conversion fail, and south London is unusable without rail. Separately, matrices built in phase 1 (October to November) predate the December 2026 rail timetable change, and no rebuild is scheduled before a January launch.
+fix: In phase 0 run two rail paths to a written pass test: every Overground and Elizabeth line station present within 100 m of its NaPTAN point, weekday trip counts within 5% of published frequencies. Path one is nr2gtfs; path two is a small in-repo CIF parser using NaPTAN coordinates (option 3 in the verification). Name the paid fallback and its price. Schedule a full rebuild and re-validation in phase 4 after the December change.
+
+### [major] [technical_feasibility] All-required operations schema breaks the cost and latency figures
+where: Section 3 latency targets and degraded modes; section 5 schema limits; section 9 Claude row
+problem: To avoid optional and union fields the plan makes every field required with an unspecified enum value. Typed operations (adjust weight, set budget, add commute, exclude area) have different payloads, so without anyOf each operation must emit every field, mostly as sentinels. Numeric fields such as budget and minutes cannot take an enum sentinel at all. A realistic prompt with two commutes, a budget and four vibe words could emit 800 to 1,200 output tokens, not the 300 behind the USD 18 figure; that is my estimate. Output tokens dominate both cost and latency, so chips at p50 1.2 s is not believable. The 4-second parse timeout also equals the p95 target, so by design about one search in twenty drops to the fallback form.
+fix: Replace the single operations array with parallel homogeneous arrays (budget_ops, commute_ops, weight_ops, tag_ops, area_ops), each item with only its own required fields, empty when unused. No unions, no optionals, compact output. Define numeric sentinels explicitly. Normalise enum case in the reducer. Set the timeout from measured p99, not the p95 target, and re-derive cost and latency from phase 0 measurements before fixing the interaction design.
+
+### [major] [cost] Haiku 4.5 is the base case although its retirement floor is three weeks away
+where: Section 5 model risk; section 9; section 10 risk 7
+problem: The retirement floor is 15 October 2026 with 60 days' notice and launch is January 2027. Every headline number assumes Haiku: USD 18 per 1,000 searches, 27,400 searches under the USD 500 cap, and the latency targets. On Sonnet 5 the same figures are USD 40 and about 12,500 searches a month, roughly 400 a day, which one Reddit thread could exceed. Hitting the tier cap pauses all API use until the first of the next month. Running the golden set on both models proves correctness, not affordability or speed.
+fix: Plan on Sonnet 5 with thinking off as the base case for cost, cap and latency, and treat Haiku as a saving while it lasts. Size anonymous quotas and the circuit breaker from the Sonnet number. Reduce explain from top five to top three by default, since explain is about 70% of per-search cost. Request the higher tier in phase 1, not phase 4.
+
+### [major] [product] Budget filter runs on stock rents that understate what a new mover pays
+where: Section 2 cost row; section 5 ranking hard filters; section 10 risk 5; section 11 asking-rent row
+problem: Rent is anchored on PIPR, which measures all tenancies including long-standing ones. The housing report rates this a high risk for relocators and says the gap to new-let rents was not measured. The plan launches with no asking-rent source and mitigates with a label and a sentence. But budget fit is a hard filter. A label does not fix a filter: every relocator will be shown areas as within budget that are not, on the product's first screen. The relativity layer also rests on nine frozen editions of a workbook ONS says should not be compared between areas, and the published backtest promised in the grafts is not scheduled in any phase.
+fix: Until a licensed asking-rent source exists, make budget a soft constraint by default, test budget fit against the upper quartile not the median, and show the margin. Measure the stock to new-let gap once from a citable published index and publish it on the methods page as a stated uplift. Schedule the backtest in phase 1 with a pass threshold. Decide the PropertyData question by phase 1 exit, not after launch.
+
+### [major] [product] Commute times are shown with no route and no way to check them
+where: Section 2 commute row; section 5 verifier
+problem: Itineraries and direct or one-change labels are cut, and the fact table carries only minutes. The hero capability therefore shows 34 minutes to Canary Wharf with no line, no change count and no link. A relocator has no local knowledge to sanity-check it. A number that cannot be checked undercuts the shows-its-working positioning.
+fix: Add GTFS-derived facts that need no itinerary engine: nearest station and lines within a 10-minute walk, already recommended in the transit report. For the opened result only, call the TfL Journey Planner API on demand (free, commercially usable, 500 calls a minute) and cache the legs as display-only enrichment, never as ranking input. Confirm with TfL that a link to its journey planner is acceptable. Ranking stays on the precomputed matrix, so the founder's precompute preference holds.
+
+### [major] [violates_brief] Openly licensed text has been dropped from vibe without asking the founder
+where: Decision 4; section 2 vibe and profiles rows
+problem: The founder decided vibe comes from data plus openly licensed text. The plan cuts Wikipedia excerpts, LLM prose, photos, named venues and embeddings, leaving Wikidata used only for name seeds. This is not listed in section 11 as a decision for the founder. It also leaves 450 profile pages of templated percentiles with no description and no picture. For someone who has never seen London that is thin, and thin templated pages are weak as a way for a search engine to find Burro.
+fix: Either add it to section 11 as an explicit deviation for sign-off, or restore the minimum the poi-vibe report already cleared: a verbatim, attributed Wikipedia excerpt box marked CC BY-SA 4.0 on each profile, kept out of every generation prompt, plus Wikidata facts in the fact table. One Geograph or Commons photo with automated attribution is optional. None of this touches ranking.
+
+### [major] [product] Destination search cannot resolve employers, universities or hospitals
+where: Section 3 search flow step 1; section 4 places.sqlite
+problem: Destinations are resolved against OS Open Names, Code-Point Open and NaPTAN. That handles postcodes, stations and place names. It does not handle what people type in a natural-language prompt: I work at UCL, my partner is at St Thomas', the Google office in King's Cross. The platform report left this as an open question. An unresolved destination triggers the only clarifying question, so the first step of the hero flow will often start with a failure, worst for relocators who may not know the postcode.
+fix: Add OGL point sets to the places index: universities and schools from GIAS and HESA-listed providers, hospitals from NHS ODS, plus Wikidata landmarks with coordinates. Measure resolution rate on the 150 golden queries in phase 0 and set a target, say 90%. Make the clarifying step a pick-list with a postcode box, not a question. Treat Overture names as a later option because displaying them brings the Foursquare notice duty.
+
+### [major] [legal_or_licence] Relocators are overseas when they use Burro, and the plan does not account for it
+where: Section 3 hosting and latency targets; section 8 phases 3 and 5; section 11
+problem: The first-class audience is, by definition, often outside the UK at the time of use. The plan does not decide App Store storefronts. A UK-only listing is invisible to a relocator whose Apple ID is abroad, while EU storefronts need DSA trader status, which the compliance report flags. Actively offering the service to people in the EU raises whether EU GDPR applies and whether an EU representative is needed; that is a question for counsel and is not in the legal brief. The slider target of 150 ms p50 is also unreachable from Asia or North America against a London-only API.
+fix: Add storefront scope and overseas users to section 11 and to the solicitor's brief. Decide worldwide or UK plus named countries before phase 5. State latency targets separately for UK and overseas users, and return enough data with the first rank response that simple weight changes do not need a round trip only if measurements show the server path is too slow. Disclose transfers in the privacy notice on that basis.
+
+### [major] [legal_or_licence] Proxy audit has no decision rule, and two tags are named after residents
+where: Decision 2; section 5 tags; section 8 phase 3
+problem: The audit will find that price, budget fit, crime and tenure correlate with ethnicity in London, because they do. The plan does not say what happens then. Writing known correlations into the DPIA with no threshold, justification or action creates evidence of knowledge without a defence. Separately, age bands are banned but student share, a strong age proxy, feeds a tag called student-heavy, and family-oriented is likewise named for who lives there. With demographic input capped at 30%, the tag name overstates its own basis.
+fix: Before running the audit, write the rule: for each feature, the legitimate aim it serves, why it is proportionate, a correlation threshold that triggers review, and the actions available (drop, cap, make opt-in). Have counsel review the rule, not only the result. Rename the tags for the place, for example near universities and family amenities, and let the explanation cite amenities first.
+
+### [major] [missing_step] Anonymous quotas and iOS abuse protection are unspecified
+where: Section 3 analytics; section 8 phases 4 and 5; section 11 anonymous search row
+problem: Three anonymous searches a day needs some identifier. A cookie or device token conflicts with the no-persistent-identifiers claim unless it is justified as strictly necessary, and IP-based counting blocks shared offices, universities and mobile networks. The plan does not say what happens at the limit; a login wall would cut against the no-login rule behind guideline 5.1.1(v). On iOS, the research did not confirm that Turnstile works in native apps and did not verify App Attest, and phase 5 lists no abuse control at all, so the app's parse endpoint is callable by anyone.
+fix: Issue a short-lived signed anonymous token after Turnstile on web and App Attest on iOS, documented in the DPIA as security storage. Count quota on the token with a generous IP ceiling. On exhaustion, drop to the form mode with sliders, never to a login wall. Add an App Attest spike to the start of phase 5.
+
+### [major] [technical_feasibility] The verifier can only catch names it already knows
+where: Section 5 verifier; section 8 phase 3 exit criteria
+problem: The verifier checks that every numeral and every place, station or line name appears in a cited fact. Detecting a name requires a dictionary. A venue, street or market that Haiku recalls from training and that is not in Burro's gazetteer is not recognised as a name, so it passes. The phase 3 exit criterion tests only numerals in 500 explanations. The product's central promise is that the model does not invent facts, and names are where invention is most likely.
+fix: Invert the check. Any capitalised token or multi-word proper noun in an explanation must match the cited fact text, the spec, or a small allowlist of ordinary words; everything else fails to the template. Add names to the exit criterion and add a seeded test that plants a plausible invented venue. If the failure rate is high, switch to placeholder substitution, which the LLM report names as the stronger fallback.
+
+### [major] [cost] One-off costs are a launch gate with no figure
+where: Section 9 annual and one-off line; section 11 legal row
+problem: Counsel sign-off gates launch, but the plan gives no number for the legal review, trade mark search, second curator, domain, email provider or the coding agents that build the product. My rough estimate is GBP 5,000 to 10,000 before launch, dominated by a solicitor covering four unrelated topics (Equality Act, ODbL, Price Paid address data, privacy documents). That is outside anything the brief's budget line describes, and there is no fallback if the quote is unaffordable.
+fix: Get two fixed-fee quotes in week one and put the numbers in section 9. Rank the four legal topics so the brief can be cut to the top two if needed. Add lines for email delivery, domain, agent usage and the routing VM. State what launches without sign-off and what does not.
+
+### [minor] [legal_or_licence] Cultural Infrastructure Map 2024 is treated as clean although the third-party rights question is not edition-specific
+where: Section 6 high streets and culture row; held-out list
+problem: The plan holds back the 2025 edition and ships the 2024 edition as OGL v3 with only the GLA disclaimer as a caveat. The poi-vibe report says OGL does not cover third-party rights and that some layers are compiled from third parties; the verifiers asked for the GLA email to name CAMRA and Audience Agency layers specifically. Those layers exist in earlier editions too. Four of the 23 features and several tags depend on this source.
+fix: Register the dataset per layer, not per edition. Until the licence of a layer is settled, use only layers the GLA compiled itself and take pub and bar counts from FHRS business types. The affected tags can ship on FHRS and Overture alone.
+
+### [minor] [contradiction] Walk-distance features may put OSM into scoring against decision 5
+where: Decision 5; section 2 features row; section 7 CI gate
+problem: Decision 5 says OSM is not in scoring. Station access, park proximity and schools within walking distance all need a network. If they reuse the R5 walking network they are OSM-derived feature columns sitting beside OGL columns, which is the mix the CI gate is meant to fail. The plan does not say which network they use.
+fix: State in the metric catalogue that every walk-distance feature is computed on OS Open Roads or as straight-line distance with a detour factor. Add a lineage test that fails if any features table depends on the OSM extract.
+
+### [minor] [contradiction] Tile serving is dated to phase 5 but the web map needs it from phase 1
+where: Section 3 components; section 9 Cloudflare row
+problem: The Worker and the Cloudflare cost line start in phase 5, yet the pipeline writes to R2 from phase 1 and the web map needs a basemap and area tiles from the first deployed page. If web reads PMTiles directly by range request it uses a different source type from iOS, so the one-style-across-clients reason for decision 8 no longer holds, and the platform report notes 500 ms or more on uncached R2 reads. The Vercel budget also assumes tiles never pass through Vercel.
+fix: Build the tile Worker in phase 1 and serve z/x/y to web from day one. It costs USD 5 a month and removes a phase 5 migration. Move the Cloudflare line to phase 1.
+
+### [minor] [sequencing] Long-lead items are left to the last two weeks
+where: Section 8 phase 4 human tasks; section 13 last item
+problem: Phase 4 holds the Anthropic tier request, SMTP and domain setup, the Supabase connection and signing-key checks, and by implication Google consent-screen verification and Sign in with Apple on web, which needs an active Apple Developer membership. The verifiers asked for the Supabase checks in week one and the tier request well before launch. A new Anthropic organisation may start on a lower tier than assumed. The trade mark search is a phase 0 task but not an exit criterion, so a bad result can surface after the domain, bundle ID and OAuth screens carry the name.
+fix: Move the tier request to phase 1 and the Supabase checks to phase 0. Start Google and Apple sign-in configuration in phase 2. Make a clear trade mark result and a registered domain phase 0 exit criteria.
+
+### [minor] [missing_step] Evidence triggers cannot be measured under the chosen privacy posture
+where: Decision 4; section 3 analytics; section 8 phase 6; section 12 last item
+problem: Embeddings are triggered when more than 10% of real queries contain unmatched vibe phrases, and payments wait for retention to price. But raw prompts are not persisted and analytics is aggregate-only with no persistent identifiers. Unmet requests are free text, and retention cannot be measured for anonymous users at all. The plan has triggers with no instrument.
+fix: Define the measurable proxy for each trigger now. Log a count of parses with a non-empty unmet-requests field and a coarse category, never the text. Measure retention only for signed-in users on account ID and say so in the privacy notice. Write both into the DPIA.
+
+### [minor] [product] Share links expose commute destinations
+where: Section 2 share row
+problem: The share URL carries the canonical spec, which includes up to three destinations: a workplace, a partner's workplace, a child's school. The plan hides the raw prompt but not these. They will appear in recipients' browsers, link previews, referrer headers and server logs. It is also unstated whether old release bundles stay loadable so an old link can still show what the sender saw.
+fix: Store the spec server-side and put only an opaque ID in the URL. On share, default to coarsened destinations (station or district) with a toggle to include exact ones. Keep release roll-ups for a stated period and show a notice with a refresh option after that.
+
+### [minor] [unrealistic_estimate] Routing validation criterion is too weak to catch the failures that matter
+where: Section 8 phase 1 exit criteria
+problem: Median error under 5 minutes against TfL Journey Planner can pass while a fifth of pairs are 15 minutes out, for example where rail is missing or a TransXChange conversion dropped a line. TfL's planner answers for one departure time with live data, while R5 returns a percentile over a two-hour window, so some disagreement is structural and a single median hides bias by mode or area.
+fix: Set three criteria: median absolute error, share of pairs within 5 minutes or 15%, and signed bias, each reported by mode mix and by inner, outer, north and south London. Sample several TfL departure times per pair. List the worst 50 pairs for a human to read before sign-off.
+
+### [minor] [technical_feasibility] Churn and student share come from a census taken in lockdown
+where: Decision 2; section 6 housing stock row
+problem: The liveability report says Census 2021 particularly distorts inner London for students, young renters and movement, and recommends using it only for slow-moving structure such as tenure and dwelling type. The plan makes churn rankable and uses student share as a tag input. Those are the two variables most affected, and the data table's only caveat is that the census is five years old.
+fix: Drop churn from the rankable set for v1 or replace it with a current source. For the student tag, lead with distance to university sites and purpose-built student housing counts from Overture or VOA stock, and keep census student share as a minor, dated input.
+
+## Missing from plan
+- A decision on App Store storefronts and whether the service is actively offered to people in the EU, with the resulting trader-status and representative questions put to counsel.
+- A pre-launch matrix rebuild after the December 2026 rail timetable change, and a post-launch refresh calendar with a named owner (monthly crime, Price Paid and PIPR; quarterly routing).
+- A postcode-to-Output-Area lookup (ONSPD or NSPL, with Royal Mail attribution) in the source table and registry. Price Paid aggregation and the rent workbook mapping both need it.
+- Repository visibility (public or private) and a rule that committed fixtures contain no postcode-level Price Paid rows or other restricted fields.
+- Terms of service, accessibility statement, and the data protection complaints route with 30-day acknowledgement that the verifiers listed.
+- An email delivery provider and a monitored inbox for report-a-problem, corrections and data subject requests, with the founder time to run it.
+- Sentry scrubbing rules so request bodies containing prompts never reach error reports, and Sentry listed as a processor.
+- Behaviour of the budget hard filter when an area has no cost estimate, and whether low-population Zone 1 areas such as Soho, Fitzrovia and the Barbican are ranked.
+- A hands-on look at the closest existing products.
+- Backups for user data and a second person with production access. The founder is the single point of failure for operations as well as curation.
+- Primary-source confirmation of the London counts (26,369 Output Areas, 4,994 LSOAs), which the plan states as fact but the verifiers did not re-verify.
+- A Vercel check of CDN requests per page view on a preview deployment, and watches on the CMA Apple case and DMCC subscription regulations, both from the verifiers' first-week list.
+
+## Strongest parts
+- Deterministic core with the model at the edges: typed operations through one reducer, a pure rank function, and the contribution table as the single source for chips, explanations and tests.
+- Routing geometry matches what verification recommended: LSOA centroid origins, hexagon destinations moved onto a walkable street, only the neighbourhood roll-up served from memory, fine matrices kept so boundaries can change without re-routing.
+- Licence register with saved evidence and a CI gate built before the first ingest, with the attributions page generated from it.
+- Phase 1 is a no-LLM commute finder. It puts the hero capability in front of people early and validates the hardest data pipeline first.
+- Gazetteer as a reviewed Output Area to neighbourhood CSV with dissolved polygons, immutable IDs and redirecting slugs. It is diffable and suits agent-drafted, human-approved work.
+- Degraded-mode ladder that handles both the 400 on a workspace limit and the 429 with no retry-after, so a spend cap degrades the product instead of stopping it.
+- Honest cuts: night and evening matrices, broadband, flood, embeddings, LLM-scored tags, payments and PostHog are all out, each with a stated reason.
+- Section 13 traces every verification correction to a concrete change, spike or gate, which makes the plan auditable.
+- TfL's own timetables as primary with BODS demoted to a cross-check, and the gb-transit feed confined to internal prototyping.
+- Entitlement rows with source and period_end and no payment code, which keeps a time-boxed pass and a subscription as the same shape later.

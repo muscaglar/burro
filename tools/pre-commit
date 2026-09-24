@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Blocks a commit if what is staged names a private package host or holds a URL with credentials.
+# Install with `make install-hooks`.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+exec uv run --no-project python tools/check_public_only.py

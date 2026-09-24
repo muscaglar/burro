@@ -1,0 +1,580 @@
+# Licence registry: housing. Rules are in registry/README.md.
+# Approved first, then gated, held and banned.
+schema_version = 1
+
+[[source]]
+id = "hmlr-price-paid"
+name = "HM Land Registry Price Paid Data"
+publisher = "HM Land Registry"
+url = "https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads"
+dimension = "housing"
+licence = "OGL-3.0"
+additional_licences = ["Bespoke-terms"]
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Contains HM Land Registry data © Crown copyright and database right 2021. This data is licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "The publisher states: 'Under the OGL, HM Land Registry permits you to use the Price Paid Data for commercial or non-commercial purposes. However, OGL does not cover the use of third party rights, which we are not authorised to license.'",
+    "Address Data is not plain OGL. The publisher lists it as Postcode, PAON, SAON, Street, Locality, Town/City, District and County. Royal Mail and Ordnance Survey permit its use only 'for personal and/or non-commercial use' or 'to display for the purpose of providing residential property price information services'. Any other use: 'you must contact Royal Mail' (address.management@royalmail.com). This is the Bespoke-terms entry in additional_licences.",
+    "Postcode is itself Address Data, so dropping the other columns does not remove the condition. Burro relies on the second permitted use (residential property price information service).",
+    "Burro uses postcode in two ways: to aggregate sale prices to neighbourhoods, and to build the flat-price ratio that feeds the rent model. The second is one step further from the permitted wording. A question put to HM Land Registry must name both uses.",
+    "Drop PAON, SAON, Street, Locality, Town/City, District and County at ingest. Keep postcode only as a join key for aggregation to neighbourhoods.",
+    "Never display, export or serve postcode-level or transaction-level rows. Only neighbourhood aggregates leave the pipeline.",
+    "The OGL does not cover personal data. Transaction rows identify individual homes, so they stay inside the pipeline.",
+    "Do not suggest HM Land Registry endorses Burro (OGL non-endorsement clause).",
+    "The publisher says separate licence conditions apply to the UPRN and INSPIRE ID lookup tables. They are not covered by this entry.",
+    "A test must prove that no postcode-level or transaction-level row reaches a data release, an API response or an export.",
+]
+status = "approved"
+before_launch = [
+    "HM Land Registry's written reply, or a decision record, on using the postcode field to aggregate sale prices to neighbourhoods and to build the flat-price ratio in the rent model.",
+]
+uses = ["scoring", "display"]
+cadence = "Monthly, on the 20th working day. Latest month July 2026; page updated 28 August 2026."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+]
+notes = "OGL v3.0 and the attribution wording were confirmed on the publisher's page on 2026-09-23. The use of postcode rests on the permitted purpose of providing residential property price information services."
+
+[[source]]
+id = "hmlr-uk-house-price-index"
+name = "UK House Price Index"
+publisher = "HM Land Registry (with ONS, Registers of Scotland and Land and Property Services Northern Ireland)"
+url = "https://www.gov.uk/government/collections/uk-house-price-index-reports"
+dimension = "housing"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains HM Land Registry data © Crown copyright and database right 2020. This data is licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "The publisher asks: 'When you publish the data, be sure to include information about the nature of the data and any relevant dates for the period of time covered.' Show the index month beside any indexed figure.",
+    "Do not suggest HM Land Registry endorses Burro.",
+    "The latest 12 months are revised. Record the release used in every data release.",
+    "This entry covers London borough series only. The publisher's page gives one attribution statement, naming HM Land Registry. If Scottish or Northern Irish series are ever used, check for further statements first.",
+]
+status = "approved"
+uses = ["scoring", "display"]
+cadence = "Monthly. July 2026 data published 16 September 2026; next release 21 October 2026 (per the housing report)."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.gov.uk/government/publications/about-the-uk-house-price-index/about-the-uk-house-price-index",
+    "https://www.gov.uk/government/statistical-data-sets/uk-house-price-index-data-downloads-july-2026",
+]
+notes = "How it was verified: OGL v3.0 and the exact attribution statement are confirmed in section 7 (Republishing data) of the publisher's 'About the UK House Price Index' page, re-fetched by the reviewer on 2026-09-23. Commercial use is allowed with attribution only. Nothing else is needed before ingest. Checked 2026-09-23. The year 2020 in the attribution is as printed on the publisher's page. Used to index older Price Paid sales to the current month by borough and property type. Not listed individually in verify-data-licences.md; confirmed by direct fetch of the publisher's page. The downloads page shows the OGL v3.0 footer and does not state the next release date. Wording was read through a reader that summarises: re-check in a browser when saving evidence."
+
+[[source]]
+id = "ons-census-2021-housing-tables"
+name = "Census 2021 housing tables: TS044 accommodation type, TS050 number of bedrooms"
+publisher = "Office for National Statistics (via Nomis)"
+url = "https://www.nomisweb.co.uk/datasets/c2021ts044"
+dimension = "housing"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics"
+attribution_verified = false
+conditions = [
+    "This entry covers TS044 and TS050 only. TS054 tenure has its own entry with narrower uses: see ons-census-2021-tenure-ts054. Any other census table needs its own entry.",
+    "Census tables on ethnicity, religion, country of birth, language, sexual orientation, gender identity, disability, health and age are not covered here, and must never be loaded under this entry. They never feed a score, a tag or a vibe (PLAN section 9). The census tables that an area's page shows have their own entry, ons-census-2021-resident-tables (ADR 0014).",
+    "Both tables count households, not dwellings. TS050 covers household spaces with at least one usual resident, so empty homes are missing. Present the figures as the mix of homes, never as a description of who lives there.",
+    "State that the data is from Census Day, 21 March 2021, taken during lockdown.",
+    "Link to the Open Government Licence beside the source line on the attributions page.",
+    "Do not suggest ONS endorses Burro.",
+]
+status = "approved"
+uses = ["scoring", "display", "profile_text"]
+cadence = "One-off. Census Day 21 March 2021. Next census not before 2031."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.nomisweb.co.uk/home/copyright.asp",
+    "https://www.nomisweb.co.uk/datasets/c2021ts044",
+    "https://www.nomisweb.co.uk/datasets/c2021ts050",
+]
+file_urls = [
+    "https://www.nomisweb.co.uk/output/census/2021/census2021-ts044.zip",
+]
+notes = "How it was verified: The Nomis copyright page confirms that ONS material may be re-used 'whether commercially or privately' under the OGL, with a source accreditation to ONS. The housing, poi-vibe and liveability reports each record OGL v3.0 as verified. Nothing else is needed before ingest. Checked 2026-09-23. The Nomis copyright page states: 'Users should include a source accreditation to ONS: Source: Office for National Statistics'. That exact wording is now in the attribution field. The draft used the longer ONS geography wording, which Nomis does not print. Household counts from these tables are also used as weights when mapping postcode districts to neighbourhoods. Wording was read through a reader that summarises: re-check in a browser when saving evidence."
+
+[[source]]
+id = "ons-census-2021-tenure-ts054"
+name = "Census 2021 table TS054: tenure"
+publisher = "Office for National Statistics (via Nomis)"
+url = "https://www.nomisweb.co.uk/datasets/c2021ts054"
+dimension = "housing"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics"
+attribution_verified = false
+conditions = [
+    "Tenure describes households, not buildings. PLAN section 9 says nothing that describes residents may be an input to ranking or to any tag. So this table must not feed scoring or tags unless the founder decides otherwise under open decision 4 and records it.",
+    "Intended display is the private-rented share, as a fact about how much rental stock an area has. Whether to show social-rented or owner-occupied shares is a fairness decision for the founder.",
+    "State that the data is from Census Day, 21 March 2021, taken during lockdown.",
+    "Link to the Open Government Licence beside the source line on the attributions page.",
+    "Do not suggest ONS endorses Burro.",
+]
+status = "approved"
+uses = ["display", "profile_text"]
+cadence = "One-off. Census Day 21 March 2021. Next census not before 2031."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.nomisweb.co.uk/home/copyright.asp",
+    "https://www.nomisweb.co.uk/datasets/c2021ts054",
+]
+notes = "How it was verified: The Nomis copyright page confirms that ONS material may be re-used 'whether commercially or privately' under the OGL, with a source accreditation to ONS. The licence allows any use. Uses are limited to display and profile text because of the fairness rule in PLAN section 9, not because of the licence. Added by the reviewer on 2026-09-23 by splitting TS054 out of ons-census-2021-housing-tables, so the registry can enforce narrower uses for tenure. The Nomis page gives 'Units: Households' and lists owned, shared ownership, social rented, private rented and rent free categories. The housing report proposes using the private-rented share to tell a renter how much rental stock exists. If the founder allows tenure in ranking, add 'scoring' to uses with a decision record. Wording was read through a reader that summarises: re-check in a browser when saving evidence."
+
+[[source]]
+id = "ons-median-house-prices-msoa"
+name = "Median house prices by Middle layer Super Output Area (formerly HPSSA dataset 2)"
+publisher = "Office for National Statistics"
+url = "https://www.ons.gov.uk/peoplepopulationandcommunity/housing/datasets/medianhousepricesbymiddlelayersuperoutputarea"
+dimension = "housing"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics licensed under the Open Government Licence v.3.0"
+attribution_verified = false
+conditions = [
+    "Validation only. Used as a regression test of Burro's own Price Paid aggregation. Figures from this file are not shown to users and do not feed ranking.",
+    "If a figure is ever shown, first open the workbook, confirm the attribution wording, and change uses. The data is derived from HM Land Registry Price Paid Data, so an HM Land Registry statement may also be required.",
+]
+status = "approved"
+uses = ["validation_only"]
+cadence = "About twice a year. Latest edition 17 September 2026 (year ending March 2026); next release March 2027."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.ons.gov.uk/peoplepopulationandcommunity/housing/datasets/medianhousepricesbymiddlelayersuperoutputarea",
+    "https://www.ons.gov.uk/methodology/geography/licences",
+]
+notes = "How it was verified: OGL v3.0 is confirmed on the ONS dataset page, fetched by the drafter and again by the reviewer on 2026-09-23. Commercial use is allowed with attribution. The file is used for internal validation only, so nothing else is needed before ingest. Checked 2026-09-23. Excel file, 65.3 MB, not opened. The dataset page gives no attribution wording; the wording here is ONS's statement for geography products and is marked unverified. MSOAs do not match Burro neighbourhoods, which is why it is a cross-check and not a source. The LSOA equivalents were last released in September 2023 and are not covered by this entry. Not listed individually in verify-data-licences.md; confirmed by direct fetch."
+
+[[source]]
+id = "ons-price-index-of-private-rents"
+name = "Price Index of Private Rents, UK: monthly price statistics"
+publisher = "Office for National Statistics"
+url = "https://www.ons.gov.uk/economy/inflationandpriceindices/datasets/priceindexofprivaterentsukmonthlypricestatistics"
+dimension = "housing"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics licensed under the Open Government Licence v.3.0"
+attribution_verified = false
+conditions = [
+    "The dataset page states: 'All content is available under the Open Government Licence v3.0, except where otherwise stated'. The 17.8 MB workbook has not been opened. Check its cover and notes sheets for any statement that differs.",
+    "Confirm the attribution wording before any figure from this release is shown to users. See notes.",
+    "Do not suggest ONS endorses Burro or its rent estimates.",
+    "Label figures as rents across all tenancies, new and existing. They understate what a new tenant pays (PLAN section 7 caveat).",
+    "The latest two months are provisional. Record the release used in every data release.",
+]
+status = "approved"
+uses = ["scoring", "display"]
+cadence = "Monthly. Latest release 16 September 2026 (August 2026 data); next release 21 October 2026. The latest two months are provisional."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.ons.gov.uk/economy/inflationandpriceindices/datasets/priceindexofprivaterentsukmonthlypricestatistics",
+    "https://www.ons.gov.uk/help/termsandconditions",
+    "https://www.ons.gov.uk/methodology/geography/licences",
+]
+notes = "How it was verified: OGL v3.0 is confirmed on the ONS dataset page and in verify-data-licences.md, which also confirms the 16 September 2026 release by local authority and bedroom category. Commercial use is allowed with attribution. Ingest can start. The attribution wording is not confirmed for statistical releases and must be settled before launch. Checked 2026-09-23. The attribution is ONS's own wording, but it comes from the ONS geography licences page, which covers boundaries, lookups, postcode and UPRN products only. The ONS terms page, as fetched twice, gives no attribution wording for statistical releases, and the dataset page gives none. So the wording is a best fit, not a confirmed requirement. The Nomis copyright page gives a shorter form, 'Source: Office for National Statistics', for ONS material. To settle it: open the workbook cover sheet, or ask ONS. The housing report did not open the workbook, so the borough by bedroom layout is unconfirmed; that is a build risk. City of London is not published."
+
+[[source]]
+id = "ons-private-rental-market-london-postcode-district"
+name = "Private rental market in London (postcode-district workbook, user requested data)"
+publisher = "Office for National Statistics"
+url = "https://www.ons.gov.uk/economy/inflationandpriceindices/adhocs/3389privaterentalmarketinlondonapril2025tomarch2026"
+dimension = "housing"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics licensed under the Open Government Licence v.3.0"
+attribution_verified = false
+conditions = [
+    "Only edition 3389 (April 2025 to March 2026) has been licence-checked. Save the release page of any other edition as evidence before that edition is ingested.",
+    "Use as a dated snapshot only. Show the period it covers beside any figure that depends on it.",
+    "Use only as a model input for rent variation within a borough. Never display raw district medians. The housing report records the workbook's own caveat that the figures 'should not be compared across time periods or between areas' and are not comparable with the Price Index of Private Rents.",
+    "The release page states: 'It must be noted that no attempt has been made to account for the change in quality of composition of rented property in these statistics, so should be interpreted with caution.' Say so on the methods page. Say the same of the caveat against comparing areas. At first ingest, read the caveat in the workbook's notes sheet and save it in registry/evidence.",
+    "Counts are rounded to the nearest 10 and statistics from fewer than five observations are suppressed (per the housing report). Do not try to recover suppressed values.",
+    "Confirm the attribution wording before any figure that depends on this file is shown to users.",
+    "Do not suggest ONS endorses Burro's modelled estimates.",
+    "Record the edition reference in each data release.",
+]
+status = "approved"
+uses = ["scoring", "display"]
+cadence = "Was quarterly on a rolling 12 months. Latest edition April 2025 to March 2026, published 27 April 2026. The July 2026 edition was not published by 23 September 2026. Treat as frozen."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.ons.gov.uk/economy/inflationandpriceindices/adhocs/3389privaterentalmarketinlondonapril2025tomarch2026",
+    "https://www.ons.gov.uk/help/termsandconditions",
+    "https://www.ons.gov.uk/methodology/geography/licences",
+]
+notes = "How it was verified: OGL v3.0 is confirmed on the ONS release page (reference 3389, released 27 April 2026) and in verify-data-licences.md. Commercial use is allowed with attribution. The series appears to have stopped, which affects the rent model but not the licence. Ingest of edition 3389 can start. The attribution wording must be settled before launch. Checked 2026-09-23. File: londonrentalstatsaccessibleq12026.xlsx, 129.4 kB. The release page says 'These data were previously published by the Valuation Office Agency.' Archive all nine listed editions now in case they are withdrawn. 'display' covers modelled ranges derived from this file, not the raw figures. The attribution is ONS's wording for geography products; no wording for statistical releases was found on the ONS terms page or the release page, so it is marked unverified. The workbook was opened once for research, and no source line was recorded from it. Two questions for ONS, at hpi@ons.gov.uk: whether the series continues, and what source line ONS requires."
+
+[[source]]
+id = "voa-council-tax-stock-of-properties"
+name = "Council Tax: stock of properties 2025 (tables CTSOP1.1, CTSOP3.1, CTSOP4.1)"
+publisher = "Valuation Office Agency"
+url = "https://www.gov.uk/government/statistics/council-tax-stock-of-properties-2025"
+dimension = "housing"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "Name the Valuation Office Agency as the source beside the statement on the attributions page.",
+    "Open the notes sheet of each workbook and check for a VOA source line before any figure is shown to users.",
+    "Do not suggest VOA endorses Burro.",
+    "Counts are rounded to the nearest 10. Do not present them as exact.",
+    "Do not use council tax band as a price estimate: bands reflect 1991 values.",
+]
+status = "approved"
+uses = ["scoring", "display", "profile_text"]
+cadence = "Annual. 2025 edition published 25 September 2025, updated 22 May 2026. Stock as at 31 March 2025."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.gov.uk/government/statistics/council-tax-stock-of-properties-2025",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+    "https://assets.publishing.service.gov.uk/media/6a0ad444c75cc34a8ff8f397/CTSOP1.1.zip",
+    "https://assets.publishing.service.gov.uk/media/6a0ad462229555d0fe8266f4/CTSOP3.1.zip",
+    "https://assets.publishing.service.gov.uk/media/6a0ad479f7c2e79c33db907d/CTSOP4.1.zip",
+]
+file_urls = [
+    "https://assets.publishing.service.gov.uk/media/6a0ad444c75cc34a8ff8f397/CTSOP1.1.zip",
+    "https://assets.publishing.service.gov.uk/media/6a0ad462229555d0fe8266f4/CTSOP3.1.zip",
+    "https://assets.publishing.service.gov.uk/media/6a0ad479f7c2e79c33db907d/CTSOP4.1.zip",
+]
+notes = "How it was verified: verify-data-licences.md confirms CTSOP3.1 (property type) and CTSOP4.1 (build period) are published at LSOA level under OGL v3.0. The publisher page shows the OGL v3.0 footer and lists CTSOP1.1 for local authority and super output areas. Commercial use is allowed with attribution. Ingest can start. The attribution wording must be checked in the workbooks before launch. Checked 2026-09-23. No VOA-specific attribution statement is on the page, so the attribution is the default statement the OGL requires when the provider gives none. It is marked unverified because the workbooks were not opened. The housing report says the tables include number of bedrooms, but no bedroom table is listed on the 2025 page; use Census 2021 TS050 for bedrooms. CTSOP1.1 was confirmed on the publisher page by the reviewer, not in verify-data-licences.md. The VOA rating list is a different dataset and is banned: see voa-non-domestic-rating-list. The last three addresses under evidence_urls, on assets.publishing.service.gov.uk, are the three files themselves, as the publisher's page listed them on 2026-09-23. It was read through a reader that extracts, which was asked twice, in different words, and gave the same addresses both times. GOV.UK hands out files from that host, which has no pages of its own, so an entry can name it only by a file. They are there to name the host the files are on. Fetch holds a file to the addresses under file_urls. They are no evidence of the licence. No file was fetched. A file that is reissued is given a new address."
+
+[[source]]
+id = "colouring-london-building-attributes"
+name = "Colouring London / Colouring Britain building attributes"
+publisher = "Colouring Cities Research Programme"
+url = "https://colouringbritain.org/data-extracts.html"
+dimension = "housing"
+licence = "ODbL-1.0"
+licence_url = "https://colouringbritain.org/data-extracts.html"
+commercial_use = "yes_with_conditions"
+share_alike = true
+attribution = "Colouring Cities and contributors"
+attribution_verified = false
+conditions = [
+    "Page says contributions are 'open data, licensed under the Open Data Commons Open Database License (ODbL)' and asks reusers to credit 'Colouring Cities and our contributors'.",
+    "Downloading means accepting the data accuracy agreement.",
+    "Building footprint geometries are not in the downloads.",
+    "Share-alike means it could never feed scoring under registry rules.",
+]
+status = "held"
+status_reason = "Not used in v1. Share-alike, patchy crowdsourced coverage and no geometry. VOA council tax stock and Census 2021 cover building age and type cleanly."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = ["https://colouringbritain.org/data-extracts.html"]
+
+[[source]]
+id = "gla-london-living-rent"
+name = "London Living Rent ward benchmark data and methodology note (2026-27)"
+publisher = "Greater London Authority"
+url = "https://www.london.gov.uk/programmes-strategies/housing-and-land/buying-and-owning-home/london-living-rent"
+dimension = "housing"
+licence = "None-stated"
+licence_url = "https://www.london.gov.uk/terms-and-conditions/terms-and-conditions-use-our-website-and-talk-london-website"
+commercial_use = "unknown"
+share_alike = false
+attribution = "© Copyright Greater London Authority 2026"
+attribution_verified = false
+conditions = [
+    "No licence is stated on the page or in the site terms. The london.gov.uk terms say 'The entire contents of the site are protected by copyright law' and do not mention the Open Government Licence.",
+    "The files are not hosted on the London Datastore, so its terms cannot be assumed to apply.",
+    "These are policy rents for an intermediate housing product, not market rents. They must never be shown as rent estimates.",
+    "Do not load the ward benchmark file into the pipeline. Burro may cite the published method by name with a link, without copying figures or text from it.",
+]
+status = "held"
+status_reason = "Not used in v1, and no re-use licence is stated. The benchmark files are not needed: Burro only cites the method as a precedent for its own price-ratio model. Clears only if the GLA confirms in writing that the ward benchmark files may be reused commercially, and only if a use for the figures is ever agreed."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.london.gov.uk/programmes-strategies/housing-and-land/buying-and-owning-home/london-living-rent",
+    "https://www.london.gov.uk/terms-and-conditions/terms-and-conditions-use-our-website-and-talk-london-website",
+    "https://www.london.gov.uk/media/111839/download",
+]
+
+[[source]]
+id = "gla-planning-london-datahub"
+name = "Planning London Datahub"
+publisher = "Greater London Authority"
+url = "https://www.london.gov.uk/programmes-strategies/planning/digital-planning/planning-london-datahub"
+dimension = "housing"
+licence = "None-stated"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Greater London Authority, Planning London Datahub (no licence confirmed, so no attribution statement exists yet)"
+attribution_verified = false
+conditions = [
+    "Do not ingest until the GLA confirms in writing which licence applies and that commercial use is allowed.",
+    "Ask whether borough-supplied records and applicant details carry separate rights or personal data.",
+    "If cleared, the London Datastore accuracy disclaimer and non-endorsement terms apply.",
+]
+status = "held"
+status_reason = "PLAN section 7 holds this source until cleared. The GLA page calls the datahub 'Fully open and transparent' but states no licence (re-checked by the drafter and the reviewer on 2026-09-23). The verification file confirms it cannot be assumed OGL. A written reply from the GLA settles it."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.london.gov.uk/programmes-strategies/planning/digital-planning/planning-london-datahub",
+    "https://planninglondondatahub.london.gov.uk/",
+]
+
+[[source]]
+id = "hmlr-transaction-uprn-lookup"
+name = "HM Land Registry transaction unique identifier to UPRN lookup table"
+publisher = "HM Land Registry"
+url = "https://www.gov.uk/government/statistical-data-sets/transaction-unique-identifier-and-uprn-look-up-table-dataset"
+dimension = "housing"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Contains HM Land Registry data © Crown copyright and database right [year of supply or date of publication]. This data is licensed under the Open Government Licence v3.0.\nUPRNs contain OS data © Crown copyright and database rights [year of supply or date of publication]. This data is licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "Two attribution statements are required: HM Land Registry and OS (for the UPRNs). Replace the bracketed placeholder with the year of supply or date of publication when the statement is shown.",
+    "The publisher states: 'if you use the Look Up Table dataset in conjunction with address data from Price Paid Data, your use of the address data remains subject to the Price Paid Data licensing conditions.' See hmlr-price-paid.",
+    "The file holds only the transaction unique identifier and the UPRN. It is useful only when joined to Price Paid rows, so it cannot be used before the hmlr-price-paid gate has passed.",
+    "Join to other data on UPRN only, never on address.",
+]
+status = "held"
+status_reason = "Not used in v1. Its only purpose is price per square metre, which PLAN section 4 lists as out for now. The publisher's page confirms OGL v3.0 and both attribution statements. Before promotion: the hmlr-price-paid gate must have passed, the EPC entry it joins to must have cleared, and the backfill question must be answered."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.gov.uk/government/statistical-data-sets/transaction-unique-identifier-and-uprn-look-up-table-dataset",
+    "https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads",
+]
+
+[[source]]
+id = "mhclg-epc-non-address-fields"
+name = "Energy Performance Certificate open data: non-address fields and UPRN"
+publisher = "Ministry of Housing, Communities and Local Government"
+url = "https://get-energy-performance-data.communities.gov.uk/"
+dimension = "housing"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "Only fields other than address, address 1, address 2, address 3 and postcode are OGL. The publisher states the OGL fields include Ordnance Survey UPRNs.",
+    "The bulk file as downloaded also contains the five address fields, which are under separate terms and banned: see mhclg-epc-address-fields. Drop them at ingest and never store them.",
+    "Locate records by UPRN, never by postcode or address.",
+    "Never address-match EPC records to Price Paid Data. Join on UPRN through hmlr-transaction-uprn-lookup.",
+    "Record-level certificates relate to individual homes. The housing report says they are personal data; the OGL does not cover personal data. Publish aggregates only.",
+    "Bulk download needs a GOV.UK One Login account.",
+]
+status = "held"
+status_reason = "Not used in v1. PLAN section 7 lists EPC under 'Held out until cleared' and price per square metre is out of v1 scope. The field-level licence is confirmed from the publisher's licensing page. Before promotion: save the licensing page as evidence, write down the data protection position for record-level certificates, and prove in a test that address fields are dropped at ingest."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://get-energy-performance-data.communities.gov.uk/guidance/licensing-restrictions",
+]
+
+[[source]]
+id = "ofcom-connected-nations-2025"
+name = "Ofcom Connected Nations 2025 bulk data downloads (fixed coverage, fixed performance, mobile coverage)"
+publisher = "Ofcom"
+url = "https://www.ofcom.org.uk/phones-and-broadband/coverage-and-speeds/connected-nations-20252/data-downloads-2025"
+dimension = "housing"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "© Ofcom. Connected Nations 2025 data downloads, provided under the Open Government Licence."
+attribution_verified = false
+conditions = [
+    "Use the census Output Area files, which are on 2021 Output Areas for England. Avoid the postcode files, because postcodes bring Royal Mail rights.",
+    "Mobile coverage is published only for local authorities and constituencies, so it cannot rank neighbourhoods.",
+    "Output Area and postcode files report gigabit-capable coverage but not full fibre.",
+    "Ofcom's documents say 'the Open Government Licence' without a version number. Confirm the link target is version 3 when saving evidence.",
+    "The Ofcom logo needs separate permission.",
+]
+status = "held"
+status_reason = "Broadband is explicitly out of v1 (PLAN section 4). The licence question the verification file left open is now closed: all three 2025 'About this data' documents state the data is provided under the Open Government Licence (read by the drafter and again, in full, by the reviewer on 2026-09-23)."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.ofcom.org.uk/phones-and-broadband/coverage-and-speeds/connected-nations-20252/data-downloads-2025",
+    "https://www.ofcom.org.uk/siteassets/resources/documents/research-and-data/multi-sector/infrastructure-research/connected-nations-2025/about-this-data---fixed-broadband-coverage.pdf",
+    "https://www.ofcom.org.uk/siteassets/resources/documents/research-and-data/multi-sector/infrastructure-research/connected-nations-2025/about-this-data---fixed-broadband-performance.pdf",
+    "https://www.ofcom.org.uk/siteassets/resources/documents/research-and-data/multi-sector/infrastructure-research/connected-nations-2025/about-this-data---mobile-coverage.pdf",
+    "https://www.ofcom.org.uk/about-ofcom/our-research/opendata",
+    "https://www.ofcom.org.uk/about-ofcom/website/copyright",
+]
+
+[[source]]
+id = "propertydata-api"
+name = "PropertyData API (asking rents and prices by postcode district or sector)"
+publisher = "PropertyData"
+url = "https://propertydata.co.uk/api"
+dimension = "housing"
+licence = "Bespoke-terms"
+licence_url = "https://propertydata.co.uk/terms"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Source: PropertyData"
+attribution_verified = false
+conditions = [
+    "Permitted: use 'for any lawful purpose, commercial or non-commercial', including 'using the API inside a customer-facing product, including a paid, multi-tenant software-as-a-service product'.",
+    "The terms speak of 'displaying our data to your own users inside such a product, including to paying customers of a subscription product of your own'. They do not say whether public pages that need no login count. It is an open question for PropertyData.",
+    "Not permitted: 'republishing our data, or a substantial part of it, as a dataset, download, feed or API of your own', 'building a searchable copy of our data that other people can query instead of subscribing to us', 'presenting our data as your own original dataset', or sharing the account or API key.",
+    "60-day rule: 'You may store what an API call returns for up to 60 days from the moment you retrieved it. At the end of the 60 days you must either delete that stored copy or replace it by making a fresh call.' No longer period is offered on any plan.",
+    "May be kept indefinitely if never presented as current: dated snapshots, reports already produced, 'aggregate figures you calculate, such as averages, ranges, benchmarks and indices, and anything you publish from them', and 'your own scores, classifications and derived attributes'.",
+    "Anything kept longer than 60 days 'must be clearly marked as a historical observation and show the date it was retrieved' and 'must not be used to answer a question about the present'. So an 'asking rent if you move in now' figure must rest on calls made within the last 60 days.",
+    "When access ends: 'each piece of data you have already retrieved reaches the end of its 60 days as normal and must then be deleted'. Historical records and derived material may be kept but not used to present current information.",
+    "'Screenshots, extracts and PDF downloads must not be altered, and must acknowledge PropertyData as the source.'",
+    "No rights are granted in listing photographs. Do not display, hotlink, copy, store or thumbnail them.",
+    "The API returns forwarding links to listings. The terms allow showing them, but PLAN section 15 rules out linking to property listings. Do not show them.",
+    "The free trial key is for development and testing only, not production.",
+    "Asking data comes from 'Property listings seen on rightmove.co.uk, zoopla.co.uk and onthemarket.com'. That provenance is outside Burro's control.",
+]
+status = "held"
+status_reason = "Not used in v1. PLAN section 7 lists PropertyData under 'Held out until cleared', and open decision 11 defers a paid asking-rent source to the end of phase 1. The terms (updated August 2026) were read and do allow use in a customer-facing product. Clears when it is settled whether blended estimates may appear on public, unauthenticated pages, and the founder takes decision 11."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://propertydata.co.uk/terms",
+    "https://propertydata.co.uk/api/pricing",
+]
+
+[[source]]
+id = "ucl-house-price-per-square-metre"
+name = "House Price Per Square Metre in England and Wales, 1995-2024 (linked Price Paid and EPC dataset)"
+publisher = "University College London (distributed by UK Data Service ReShare and London Datastore)"
+url = "https://reshare.ukdataservice.ac.uk/857911/"
+dimension = "housing"
+licence = "CC-BY-4.0"
+additional_licences = ["None-stated", "Bespoke-terms"]
+licence_url = "https://creativecommons.org/licenses/by/4.0/"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Chi, Bin and Dennett, Adam and Thomas, Oléron-Evans and Robin, Morphet (2025). House Price Per Square Metre in England and Wales, 1995-2024. [Data Collection]. Colchester, Essex: UK Data Service. 10.5255/UKDA-SN-857911"
+attribution_verified = false
+conditions = [
+    "The two distributions disagree. The UK Data Service ReShare record labels both file bundles 'Creative Commons: Attribution 4.0 International (CC BY 4.0)'. The London Datastore copy shows no licence field (None-stated) and its description says the input data was downloaded 'for non-commercial purpose'.",
+    "The dataset was made by address-matching Price Paid Data to EPC records. EPC address fields are limited to eight energy-related purposes, and Price Paid address data has its own condition (Bespoke-terms). A CC BY label cannot grant rights the authors did not hold in those inputs.",
+    "Records are at transaction level. Even if cleared, only aggregates could be shown.",
+]
+status = "held"
+status_reason = "Not used in v1: price per square metre is out of scope. Licence is unclear because the two official copies conflict and the inputs carry address-data restrictions. Clears only with written confirmation from the UCL authors that commercial use is permitted, including for the EPC-derived fields, saved in registry evidence."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://reshare.ukdataservice.ac.uk/857911/",
+    "https://data.london.gov.uk/dataset/house-price-per-square-metre-in-england-and-wales",
+]
+
+[[source]]
+id = "mhclg-epc-address-fields"
+name = "Energy Performance Certificate open data: address and postcode fields"
+publisher = "Ministry of Housing, Communities and Local Government (address data rights held by Ordnance Survey and Royal Mail)"
+url = "https://get-energy-performance-data.communities.gov.uk/"
+dimension = "housing"
+licence = "Bespoke-terms"
+licence_url = "https://get-energy-performance-data.communities.gov.uk/guidance/licensing-restrictions"
+commercial_use = "no"
+share_alike = false
+status = "banned"
+status_reason = "The publisher's copyright and database right notice limits these fields to eight purposes that do not include Burro's. Any other use needs an appropriate licence from Ordnance Survey, which is not planned. The fields also identify individual homes. They must be dropped at ingest and never stored."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://get-energy-performance-data.communities.gov.uk/guidance/licensing-restrictions",
+]
+
+[[source]]
+id = "ofcom-coverage-api"
+name = "Ofcom coverage APIs (fixed and mobile postcode lookups)"
+publisher = "Ofcom"
+url = "https://api.ofcom.org.uk/"
+dimension = "housing"
+licence = "Bespoke-terms"
+licence_url = "https://api.ofcom.org.uk/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+status = "banned"
+status_reason = "The research reports that the API terms forbid building a dataset from responses, and Burro works only from precomputed data releases. The same information is available as open bulk files in ofcom-connected-nations-2025."
+verified_how = "secondary_source"
+verified_on = 2026-09-23
+evidence_urls = ["https://api.ofcom.org.uk/"]
+
+[[source]]
+id = "onthemarket-portal"
+name = "OnTheMarket: listings, site content and deep links"
+publisher = "OnTheMarket (CoStar Group)"
+url = "https://www.onthemarket.com/"
+dimension = "housing"
+licence = "Bespoke-terms"
+licence_url = "https://www.onthemarket.com/terms/"
+commercial_use = "no"
+share_alike = false
+status = "banned"
+status_reason = "Terms prohibit any link without prior written consent, prohibit deep links specifically, restrict automated access, and limit consumer use to domestic and private purposes. No data product or developer programme was found. PLAN section 7 bans portal scraping and section 15 rules out ingesting, scraping or linking to listings."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = ["https://www.onthemarket.com/terms/"]
+
+[[source]]
+id = "rightmove-portal"
+name = "Rightmove: listings, site content, Data Services and deep links"
+publisher = "Rightmove"
+url = "https://www.rightmove.co.uk/"
+dimension = "housing"
+licence = "Bespoke-terms"
+licence_url = "https://www.rightmove.co.uk/c/terms-of-use/"
+commercial_use = "no"
+share_alike = false
+status = "banned"
+status_reason = "Terms of use (last updated February 2026) prohibit scraping, commercial market research on the platform, deep links for commercial gain, and any link from another website or application without written consent. No public read API was found. PLAN section 7 bans portal scraping and section 15 rules out ingesting, scraping or linking to listings."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.rightmove.co.uk/c/terms-of-use/",
+    "https://www.rightmove.co.uk/data/",
+]
+
+[[source]]
+id = "zoopla-portal"
+name = "Zoopla and Hometrack: listings, site content and deep links"
+publisher = "Zoopla (Houseful group)"
+url = "https://www.zoopla.co.uk/"
+dimension = "housing"
+licence = "Bespoke-terms"
+licence_url = "https://www.zoopla.co.uk/terms/"
+commercial_use = "no"
+share_alike = false
+status = "banned"
+status_reason = "Terms (last updated November 2023) limit individuals to personal, non-commercial use and prohibit scraping, text and data mining, commercial or AI use of content without a licence, and links to anything but the home page. No public API was found. PLAN section 7 bans portal scraping and section 15 rules out ingesting, scraping or linking to listings."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.zoopla.co.uk/terms/",
+    "https://www.hometrack.com/data-services/data-hub/",
+]

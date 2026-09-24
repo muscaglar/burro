@@ -1,0 +1,372 @@
+# Licence registry: culture. Rules are in registry/README.md.
+# Approved first, then gated, held and banned.
+schema_version = 1
+
+[[source]]
+id = "arts-council-england-accredited-museums"
+name = "UK Museum Accreditation Scheme: list of accredited museums"
+publisher = "Arts Council England"
+url = "https://www.artscouncil.org.uk/supporting-arts-museums-and-libraries/uk-museum-accreditation-scheme/accreditation-statistics-and-list-accredited-museums"
+dimension = "culture"
+licence = "Bespoke-terms"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "List of accredited museums: Arts Council England, used with permission."
+attribution_verified = false
+conditions = [
+    "Permission in writing, as the founder reports. The founder asked Arts Council England to reuse its basic dataset for libraries, its list of accredited museums and its National Portfolio investment programme data in a commercial service, to count recognised cultural venues and libraries. The founder reports that Arts Council England answered in writing on 2026-09-23, giving permission.",
+    "The permission covers what was asked and no more. Counts only. Showing a museum's name was not asked for.",
+    "A change of use means asking Arts Council England again, before the change is made.",
+    "Credit Arts Council England wherever a count from the list is shown. The credit is Burro's wording until the owner publishes its own.",
+    "Say 'accredited museum' and give the date of the list. Accreditation is a standard for how a museum is run. It is not a rating. Never say 'best' or 'top', and never suggest that Arts Council England backs Burro or an area.",
+    "Drop any field that names a person.",
+]
+status = "gated"
+status_reason = "The permission is a written reply that only the founder has read. The founder holds the reply. No published licence stands behind this source: nobody has read the publisher's pages. What would settle it: the founder files a dated note of the reply in registry/evidence."
+uses = ["scoring"]
+verified_how = "secondary_source"
+verified_on = 2026-09-23
+notes = "What the founder reported is noted in registry/evidence/arts-council-england-accredited-museums-2026-09-23.md. No page of the publisher's site was read for this entry. The address above is the one the research recorded. Nobody has opened it, so it may not be the page. The attribution is Burro's own wording, not the publisher's. verified_how is secondary_source because whoever wrote this entry has not read the reply, and so that the entry cannot be approved by changing its status alone. Nobody has seen the list: whether it holds an address for each museum is not known, and without one a museum cannot be placed."
+
+[[source]]
+id = "arts-council-england-libraries-basic-dataset"
+name = "Basic dataset for libraries"
+publisher = "Arts Council England"
+url = "https://www.artscouncil.org.uk/supporting-arts-museums-and-libraries/supporting-libraries/basic-dataset-libraries"
+dimension = "culture"
+licence = "Bespoke-terms"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Basic dataset for libraries: Arts Council England, used with permission."
+attribution_verified = false
+conditions = [
+    "Permission in writing, as the founder reports. The founder asked Arts Council England to reuse its basic dataset for libraries, its list of accredited museums and its National Portfolio investment programme data in a commercial service, to count recognised cultural venues and libraries. The founder reports that Arts Council England answered in writing on 2026-09-23, giving permission.",
+    "The permission covers what was asked and no more. Counts and distances only. Showing a library's name was not asked for.",
+    "A change of use means asking Arts Council England again, before the change is made.",
+    "Credit Arts Council England wherever a figure from the dataset is shown. The credit is Burro's wording until the owner publishes its own.",
+    "Count a library only where the dataset says it is open. A closed library is not counted.",
+    "Drop any field that names a person.",
+]
+status = "gated"
+status_reason = "The permission is a written reply that only the founder has read. The founder holds the reply. No published licence stands behind this source: nobody has read the publisher's pages. What would settle it: the founder files a dated note of the reply in registry/evidence."
+uses = ["scoring"]
+cadence = "Annual, according to the GOV.UK page for the 2016 edition, as the research records."
+verified_how = "secondary_source"
+verified_on = 2026-09-23
+notes = "What the founder reported is noted in registry/evidence/arts-council-england-libraries-basic-dataset-2026-09-23.md. No page of the publisher's site was read for this entry. The address above is the one the research recorded. Nobody has opened it, so it may not be the page. The attribution is Burro's own wording, not the publisher's. verified_how is secondary_source because whoever wrote this entry has not read the reply, and so that the entry cannot be approved by changing its status alone. Nobody has seen the dataset: its fields and its latest edition are not known. If it clears, it stands in for the held layer gla-cultural-infrastructure-map-2023-libraries."
+
+[[source]]
+id = "arts-council-england-national-portfolio"
+name = "National Portfolio: investment programme data"
+publisher = "Arts Council England"
+url = "https://www.artscouncil.org.uk/how-we-invest-public-money/2023-26-Investment-Programme/2023-26-investment-programme-data"
+dimension = "culture"
+licence = "Bespoke-terms"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "National Portfolio investment programme data: Arts Council England, used with permission."
+attribution_verified = false
+conditions = [
+    "Permission in writing, as the founder reports. The founder asked Arts Council England to reuse its basic dataset for libraries, its list of accredited museums and its National Portfolio investment programme data in a commercial service, to count recognised cultural venues and libraries. The founder reports that Arts Council England answered in writing on 2026-09-23, giving permission.",
+    "The permission covers what was asked and no more. Counts only. Showing an organisation's name or the sum it was given was not asked for.",
+    "A change of use means asking Arts Council England again, before the change is made.",
+    "Credit Arts Council England wherever a count from the data is shown. The credit is Burro's wording until the owner publishes its own.",
+    "Count an organisation only where the data gives the address of a venue the public can visit. An office is not a venue, and a touring company has none.",
+    "Say 'funded by Arts Council England' and give the period. Never say 'best' or 'top', and never suggest that Arts Council England backs Burro or an area. Never shown without the plain count of venues beside it.",
+    "Drop any field that names a person.",
+]
+status = "gated"
+status_reason = "The permission is a written reply that only the founder has read. The founder holds the reply. No published licence stands behind this source: nobody has read the publisher's pages. What would settle it: the founder files a dated note of the reply in registry/evidence."
+uses = ["scoring"]
+cadence = "For each funding round. The period was not read."
+verified_how = "secondary_source"
+verified_on = 2026-09-23
+notes = "What the founder reported is noted in registry/evidence/arts-council-england-national-portfolio-2026-09-23.md. No page of the publisher's site was read for this entry. The address above is the one the research recorded. Nobody has opened it, so it may not be the page. The attribution is Burro's own wording, not the publisher's. verified_how is secondary_source because whoever wrote this entry has not read the reply, and so that the entry cannot be approved by changing its status alone. Nobody has seen the data: whether it holds the address of a venue is not known."
+
+[[source]]
+id = "gla-cultural-infrastructure-map-2023-gla-commissioned-layers"
+name = "Cultural Infrastructure Map 2023: layers commissioned by the GLA and led by WMT Urban Research Unit"
+publisher = "Greater London Authority"
+url = "https://data.london.gov.uk/dataset/cultural-infrastructure-map-2023"
+dimension = "culture"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Source: Greater London Authority, Cultural Infrastructure Map 2023. Contains public sector information licensed under the Open Government Licence v3.0. Contains OS data © Crown copyright and database rights 2019."
+attribution_verified = false
+conditions = [
+    "Covers only the 'CIM 2023' per-layer CSV files whose description says 'Commissioned by the Greater London Authority (GLA). Led by: WMT Urban Research Unit' or 'Led by the Greater London Authority (GLA) in collaboration with WMT Urban Research Unit', each with 'Credit for use: GLA': artists workspaces, makerspaces, creative co-working desk space, creative workspaces, commercial galleries, museums and public galleries, fashion and design, jewellery design, textile design, making and manufacturing, prop and costume making, set and exhibition building, dance performance venues, dance rehearsal studios, theatres, theatre rehearsal studios, music rehearsal studios, music recording studios, cinemas, arts centres, plus Creative Enterprise Zone boundaries.",
+    "Excludes the LGBTQ+ venues, libraries, archives and all music venue, grassroots and nightclub files, the undescribed 2022 capture CSVs, the combined geopackage, the borough and zone zips and the web map service. Each has its own entry or is unregistered.",
+    "The 2023 Summary Note (WMT Urban Research Unit and Mayor of London, 13 January 2023) says the update 'drew on a review of the original datasets alongside other sources and primary research', so 2023 records descend from the 2018 and 2019 capture, which named outside bodies for several layers.",
+    "Layers whose 2019 predecessor named an outside body must be named one by one in any question put to the GLA: theatres (BOP with the Theatres Trust), dance performance and dance rehearsal (We Made That with Dance Umbrella), and, as reported on the 2019 page, cinemas and arts centres.",
+    "The page carries 'Contains Audience Agency data' and 'Contains CAMRA data' without saying which layers. Until the GLA says which, treat both notices as possibly applying to any layer.",
+    "London Datastore terms apply to every GLA dataset: state explicitly that the Greater London Authority cannot warrant the quality or accuracy of the data, and never imply GLA endorsement, affiliation, support or approval.",
+    "Aggregates only. No venue lists and no venue names.",
+    "OGL does not cover third-party rights the GLA is not authorised to license.",
+]
+status = "gated"
+status_reason = "OGL v3 is confirmed on the dataset page, but third-party rights are not cleared. The page carries Audience Agency and CAMRA notices without naming layers, and the Summary Note shows the 2023 layers were built by reviewing the 2018 and 2019 datasets. The five layer data notes read on 2026-09-23 (theatres, cinemas, libraries, and both versions for museums and public galleries) give a definition, counts and a map only. They name no sources and no licence, so reading them cannot pass the gate. Gate: (1) save dated copies of the dataset page, the API record and the Summary Note; (2) get a written GLA reply confirming that OGL v3 covers each named layer, including records carried over from the 2018 and 2019 capture, and saying which layers the Audience Agency and CAMRA notices apply to; (3) any layer the reply does not clear moves to held; (4) set a no-reply date in a decision record, after which the affected tags ship on Overture and FSA alone."
+uses = ["scoring"]
+cadence = "Page says quarterly, but created 2023-10-12 and last updated 2024-03-15. Treat as a dated snapshot of data captured in 2022 and 2023."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/cultural-infrastructure-map-2023",
+    "https://data.london.gov.uk/api/dataset/cultural-infrastructure-map-2023",
+    "https://data.london.gov.uk/download/23697/39b6fbb6-7b3e-47e0-beac-3b5b3da63454/01%20Summary%20Note.pdf",
+    "https://data.london.gov.uk/about/terms-and-conditions/",
+]
+notes = "Correction to the plan: the multi-layer OGL edition is the page titled 'Cultural Infrastructure Map 2023' (89 resources, music files updated March 2024). The page titled 'Cultural Infrastructure Map 2024' holds one layer only. The GLA gives no attribution statement of its own, so the wording is Burro's: the 'Credit for use: GLA' instruction, the OGL default line and the OS notice copied from the page. WMT Urban Research Unit appears to be the research arm of We Made That, which led several 2019 layers; it is an outside contractor. The page also says the data is published under Ordnance Survey's 'presumption to publish'. Only documentation was read; no data file was downloaded or inspected."
+
+[[source]]
+id = "gla-cultural-infrastructure-map-2019"
+name = "Cultural Infrastructure Map (2019 edition, all other layers)"
+publisher = "Greater London Authority"
+url = "https://data.london.gov.uk/dataset/cultural-infrastructure-map"
+dimension = "culture"
+licence = "OGL-3.0"
+additional_licences = ["Bespoke-terms"]
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0. Contains OS data © Crown copyright and database rights 2019. Contains Audience Agency data. Contains CAMRA data."
+attribution_verified = false
+conditions = [
+    "40 resources dated 2018 and 2019.",
+    "Outside bodies named in layer descriptions include: Campaign for Real Ale (pubs), BOP with the Theatres Trust (theatres), We Made That with Dance Umbrella (dance), UCL Urban Lab (LGBT+ night-time venues), DCMS Libraries Taskforce (libraries), National Archives (archives), Music Venue Trust (grassroots music venues), Groundwork (community centres) and We Made That (several production layers). Other names were reported by a reader that summarises and need re-reading: Independent Cinema Office (cinemas), Future Arts Centres (arts centres), Nordicity and Sound Diplomacy (music).",
+    "OGL does not cover third-party rights the GLA is not authorised to license.",
+    "London Datastore terms apply to every GLA dataset: state explicitly that the Greater London Authority cannot warrant the quality or accuracy of the data, and never imply GLA endorsement, affiliation, support or approval.",
+]
+status = "held"
+status_reason = "Superseded by the 2023 edition and seven years old. Several layers come from third parties."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/cultural-infrastructure-map",
+    "https://data.london.gov.uk/api/dataset/cultural-infrastructure-map",
+]
+
+[[source]]
+id = "gla-cultural-infrastructure-map-2023-archives"
+name = "Cultural Infrastructure Map 2023: archives"
+publisher = "Greater London Authority"
+url = "https://data.london.gov.uk/dataset/cultural-infrastructure-map-2023"
+dimension = "culture"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Source: National Archives and Greater London Authority, Cultural Infrastructure Map 2023. Contains public sector information licensed under the Open Government Licence v3.0. Contains OS data © Crown copyright and database rights 2019."
+attribution_verified = false
+conditions = [
+    "Described as 'Greater London Authority (GLA) led research based on National Archives dataset'. Credit for use: National Archives and GLA.",
+    "OGL does not cover third-party rights the GLA is not authorised to license.",
+    "London Datastore terms apply to every GLA dataset: state explicitly that the Greater London Authority cannot warrant the quality or accuracy of the data, and never imply GLA endorsement, affiliation, support or approval.",
+    "Aggregates only.",
+]
+status = "held"
+status_reason = "Layer built on National Archives data whose licence was not checked, and no v1 tag needs it."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/cultural-infrastructure-map-2023",
+    "https://data.london.gov.uk/api/dataset/cultural-infrastructure-map-2023",
+]
+
+[[source]]
+id = "gla-cultural-infrastructure-map-2023-combined-venue-files"
+name = "Cultural Infrastructure Map 2023: combined venue files (geopackage, by borough, by Creative Enterprise Zone)"
+publisher = "Greater London Authority"
+url = "https://data.london.gov.uk/dataset/cultural-infrastructure-map-2023"
+dimension = "culture"
+licence = "OGL-3.0"
+additional_licences = ["Bespoke-terms"]
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0. Contains OS data © Crown copyright and database rights 2019. Contains Audience Agency data. Contains CAMRA data."
+attribution_verified = false
+conditions = [
+    "Files: 'Cultural venues in GIS format 2023', 'Cultural venues by London Borough (2023)', 'Cultural venues by Creative Enterprise Zones 2023', 'Cultural venues by Creative Enterprise Zones', and the web map service.",
+    "These merge every layer, including the third-party ones.",
+    "OGL does not cover third-party rights the GLA is not authorised to license.",
+    "London Datastore terms apply to every GLA dataset: state explicitly that the Greater London Authority cannot warrant the quality or accuracy of the data, and never imply GLA endorsement, affiliation, support or approval.",
+]
+status = "held"
+status_reason = "The combined files mix GLA-commissioned layers with third-party layers and carry the CAMRA and Audience Agency notices. Ingest the per-layer CSVs instead, once they are cleared."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/cultural-infrastructure-map-2023",
+    "https://data.london.gov.uk/api/dataset/cultural-infrastructure-map-2023",
+]
+
+[[source]]
+id = "gla-cultural-infrastructure-map-2023-grassroots-music-venues"
+name = "Cultural Infrastructure Map 2023: grassroots music venues"
+publisher = "Greater London Authority"
+url = "https://data.london.gov.uk/dataset/cultural-infrastructure-map-2023"
+dimension = "culture"
+licence = "OGL-3.0"
+additional_licences = ["Bespoke-terms"]
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Source: Greater London Authority, Cultural Infrastructure Map 2023. Contains public sector information licensed under the Open Government Licence v3.0. Contains OS data © Crown copyright and database rights 2019."
+attribution_verified = false
+conditions = [
+    "Files: 'CIM 2024 Music grassroot.csv' and the September 2022 capture.",
+    "Described as 'Commissioned by the Greater London Authority (GLA). Led by: Music Venue Trust'. Credit for use: GLA.",
+    "OGL does not cover third-party rights the GLA is not authorised to license.",
+    "London Datastore terms apply to every GLA dataset: state explicitly that the Greater London Authority cannot warrant the quality or accuracy of the data, and never imply GLA endorsement, affiliation, support or approval.",
+    "Aggregates only if ever released.",
+]
+status = "held"
+status_reason = "Third-party layer led by Music Venue Trust. Released only by a written GLA reply confirming the rights are cleared for commercial reuse."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/cultural-infrastructure-map-2023",
+    "https://data.london.gov.uk/api/dataset/cultural-infrastructure-map-2023",
+]
+
+[[source]]
+id = "gla-cultural-infrastructure-map-2023-libraries"
+name = "Cultural Infrastructure Map 2023: libraries"
+publisher = "Greater London Authority"
+url = "https://data.london.gov.uk/dataset/cultural-infrastructure-map-2023"
+dimension = "culture"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Source: DCMS Libraries Taskforce and Greater London Authority, Cultural Infrastructure Map 2023. Contains public sector information licensed under the Open Government Licence v3.0. Contains OS data © Crown copyright and database rights 2019."
+attribution_verified = false
+conditions = [
+    "Described as 'Greater London Authority (GLA) led research based on DCMS Libraries Taskforce data'. Credit for use: DCMS Libraries Taskforce and GLA.",
+    "OGL does not cover third-party rights the GLA is not authorised to license.",
+    "London Datastore terms apply to every GLA dataset: state explicitly that the Greater London Authority cannot warrant the quality or accuracy of the data, and never imply GLA endorsement, affiliation, support or approval.",
+    "Aggregates only.",
+]
+status = "held"
+status_reason = "Layer built on another body's data. The upstream is a government dataset and is probably OGL, but that was not checked. Released by finding and saving the DCMS libraries dataset licence, or by a written GLA reply."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/cultural-infrastructure-map-2023",
+    "https://data.london.gov.uk/api/dataset/cultural-infrastructure-map-2023",
+]
+
+[[source]]
+id = "gla-cultural-infrastructure-map-2023-music-venues-and-nightclubs"
+name = "Cultural Infrastructure Map 2023: music venues (all) and nightclubs"
+publisher = "Greater London Authority"
+url = "https://data.london.gov.uk/dataset/cultural-infrastructure-map-2023"
+dimension = "culture"
+licence = "OGL-3.0"
+additional_licences = ["Bespoke-terms"]
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Source: Greater London Authority, Cultural Infrastructure Map 2023. Contains public sector information licensed under the Open Government Licence v3.0. Contains OS data © Crown copyright and database rights 2019."
+attribution_verified = false
+conditions = [
+    "Files: 'CIM 2024 Music all.csv', 'CIM 2024 Music nightclubs.csv' and the September 2022 captures.",
+    "Described as 'Led by: Nordicity, with data sourced from Music Venue Trust, Resident Advisor, and consultations with industry members'. Credit for use: GLA.",
+    "OGL does not cover third-party rights the GLA is not authorised to license.",
+    "London Datastore terms apply to every GLA dataset: state explicitly that the Greater London Authority cannot warrant the quality or accuracy of the data, and never imply GLA endorsement, affiliation, support or approval.",
+    "Aggregates only if ever released.",
+]
+status = "held"
+status_reason = "Third-party layer. The page is OGL v3, but the records come from Music Venue Trust and Resident Advisor and nothing shows their rights were cleared. Released only by a written GLA reply naming these layers."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/cultural-infrastructure-map-2023",
+    "https://data.london.gov.uk/api/dataset/cultural-infrastructure-map-2023",
+]
+
+[[source]]
+id = "gla-cultural-infrastructure-map-2024-lgbtq-venues"
+name = "Cultural Infrastructure Map 2024: LGBTQ+ night-time venues"
+publisher = "Greater London Authority"
+url = "https://data.london.gov.uk/dataset/cultural-infrastructure-map-2024"
+dimension = "culture"
+licence = "OGL-3.0"
+additional_licences = ["Bespoke-terms"]
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Source: Greater London Authority, Cultural Infrastructure Map 2024. Contains public sector information licensed under the Open Government Licence v3.0. Contains OS data © Crown copyright and database rights 2024."
+attribution_verified = false
+conditions = [
+    "Files: 'culture_inf_2024_lgbt_venues.csv' and '240716 LGBTQ venues.pdf'. Also covers 'CIM 2023 Lgbt venues.csv' on the 2023 page.",
+    "Described as 'Led by the Greater London Authority (GLA) in collaboration with LGBTQ+ Venues Forum and WMT Urban Research Unit'. Credit for use: GLA.",
+    "Any release needs a fairness decision under ADR 0006 first. The feature may describe venues only, and must never be used as a proxy for who lives in an area.",
+    "Aggregates only. Never list or name venues.",
+    "OGL does not cover third-party rights the GLA is not authorised to license.",
+    "London Datastore terms apply to every GLA dataset: state explicitly that the Greater London Authority cannot warrant the quality or accuracy of the data, and never imply GLA endorsement, affiliation, support or approval.",
+]
+status = "held"
+status_reason = "Third-party collaborators are named and nothing shows their rights were cleared. Released only by a written GLA reply naming this layer, and a fairness decision."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/cultural-infrastructure-map-2024",
+    "https://data.london.gov.uk/api/dataset/cultural-infrastructure-map-2024",
+]
+
+[[source]]
+id = "gla-cultural-infrastructure-map-2025"
+name = "Cultural Infrastructure Map 2025"
+publisher = "Greater London Authority"
+url = "https://data.london.gov.uk/dataset/cultural-infrastructure-map-2025-2rj5o"
+dimension = "culture"
+licence = "None-stated"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Contains OS data © Crown copyright and database rights 2024."
+attribution_verified = false
+conditions = [
+    "The page shows no licence field and does not mention the Open Government Licence.",
+    "The page says GLA Intelligence 'uses a wide range of information and data sourced from third party suppliers' and that the data is 'published under Ordnance Survey's presumption to publish'.",
+    "The page carries '© Copyright 2026 Greater London Authority'.",
+    "London Datastore terms apply to every GLA dataset: state explicitly that the Greater London Authority cannot warrant the quality or accuracy of the data, and never imply GLA endorsement, affiliation, support or approval.",
+]
+status = "held"
+status_reason = "No licence is stated, confirmed by the verifier, by the drafter and by this review on 2026-09-23. It cannot be assumed OGL. Released only by a written GLA reply giving the licence and the position on third-party layers."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/cultural-infrastructure-map-2025-2rj5o",
+]
+
+[[source]]
+id = "gla-cultural-infrastructure-map-pubs-camra"
+name = "Cultural Infrastructure Map: pubs layer (CAMRA data)"
+publisher = "Greater London Authority"
+url = "https://data.london.gov.uk/dataset/cultural-infrastructure-map"
+dimension = "culture"
+licence = "OGL-3.0"
+additional_licences = ["Bespoke-terms"]
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "unknown"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0. Contains OS data © Crown copyright and database rights 2019. Contains CAMRA data."
+attribution_verified = false
+conditions = [
+    "The 2019 pubs file is described as data provided by the Campaign for Real Ale.",
+    "Applies to CAMRA-sourced pub records wherever they appear in any edition, including inside combined files.",
+    "OGL does not cover third-party rights the GLA is not authorised to license.",
+    "London Datastore terms apply to every GLA dataset: state explicitly that the Greater London Authority cannot warrant the quality or accuracy of the data, and never imply GLA endorsement, affiliation, support or approval.",
+]
+status = "held"
+status_reason = "Third-party data from CAMRA, named by the verifier as needing written GLA confirmation. OGL cannot grant rights the GLA does not hold."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/cultural-infrastructure-map",
+    "https://data.london.gov.uk/api/dataset/cultural-infrastructure-map",
+    "https://data.london.gov.uk/dataset/cultural-infrastructure-map-2023",
+]

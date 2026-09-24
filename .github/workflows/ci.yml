@@ -1,0 +1,98 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.17"
+      # Pinned here until they move into the dev dependency group. See docs/adr/0008.
+      - run: uv tool install ruff==0.16.8 && uv tool install pyright==1.1.414
+      # No lockfile yet, so no --locked. See docs/adr/0008.
+      - run: uv sync
+      - run: make ci
+
+  # The website. It needs nothing from the job above, so the two run side by side.
+  web:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The runner's own Node, whatever its image holds, and so not pinned. No
+      # action that installs Node is pinned by commit in this file yet.
+      - run: node --version && npm --version
+      # No lockfile yet, so `npm install` and not `npm ci`: each run resolves
+      # again, inside the ranges package.json gives. See docs/adr/0008.
+      - run: npm install --no-audit --no-fund
+      # With no API address set, the build reads the recorded answers.
+      - run: npm run check
+
+  # The API's image. Hosted CI is the first place it is ever built.
+  image:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: docker build --file deploy/api/Dockerfile --tag burro-api:ci .
+      - name: The service starts as its own user and passes its own health check
+        run: |
+          docker run --detach --name burro-api burro-api:ci
+          # Whatever happens next, show what the service wrote. Its lines hold
+          # counts, codes and the route template, and nothing that was sent.
+          trap 'docker logs burro-api' EXIT
+          test "$(docker exec burro-api id -u)" = "10001"
+          for attempt in $(seq 1 30); do
+            state="$(docker inspect --format '{{.State.Health.Status}}' burro-api)"
+            if [ "$state" = "healthy" ]; then exit 0; fi
+            if [ "$state" = "unhealthy" ]; then exit 1; fi
+            sleep 2
+          done
+          exit 1
+
+  # The iPhone app. It needs a Mac with Xcode, so it is a job of its own.
+  ios:
+    # The list of images has not been read: the first run will confirm the label and the Xcode.
+    runs-on: macos-26
+    timeout-minutes: 30
+    env:
+      # The project was made with Xcode 26.5. It asks for Swift 6 and for iOS 17 or later.
+      XCODE: /Applications/Xcode_26.5.app
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Select the Xcode, and show that it holds an iOS SDK
+        run: |
+          # If the image does not hold that Xcode, this list says which to name above.
+          ls -d /Applications/Xcode*.app
+          sudo xcode-select --switch "$XCODE"
+          xcodebuild -version
+          xcodebuild -version -sdk iphoneos
+          swift --version
+      # Generated files in step, the tests on macOS, and the app compiled for iOS in Debug and
+      # in Release with signing off. It needs no secret, no team and no simulator.
+      - run: make -C apps/ios check

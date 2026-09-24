@@ -1,0 +1,41 @@
+# Licence registry: residents. Rules are in registry/README.md.
+# Census tables about the people who lived in an area. They are shown as the statistics
+# office's own table on an area's page, and used for nothing else. See ADR 0014.
+# Approved first, then gated, held and banned.
+schema_version = 1
+
+[[source]]
+id = "ons-census-2021-resident-tables"
+name = "Census 2021 tables about residents, for the census table on an area's page and nothing else"
+publisher = "Office for National Statistics (via Nomis)"
+url = "https://www.nomisweb.co.uk/sources/census_2021_bulk"
+dimension = "residents"
+tables = ["TS003", "TS004", "TS007A", "TS021", "TS030"]
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics"
+attribution_verified = false
+conditions = [
+    "Shown on an area's page as the census table, and used for nothing else (ADR 0014). Never an input to a score, a tag, a vibe, a filter, a map layer, a comparison, a likeness, a share, a sentence, or anything sent to a model.",
+    "Kept in a folder of its own, outside the release. No file of a release may cite this entry.",
+    "The office's categories, in its words and its order. No label for any group, no comparison, no colour.",
+    "Shares only, as whole per cents. Under 1% reads 'under 1%'. No count of a category is printed, stored or served. The base of a table is given to the nearest 100.",
+    "State on every panel: Census 2021, taken on 21 March 2021, during a lockdown; an area can change; the figures were added up by Burro.",
+    "TS024 main language is published for local authorities only and must not be shown for an area.",
+    "Nomis terms: do not use the data to attempt to obtain or derive information about an identified person, household or business.",
+    "Link to the Open Government Licence beside the source line. Do not suggest ONS endorses Burro.",
+]
+status = "gated"
+status_reason = "Nobody has read the licence pages by eye for this entry, and no page was opened to write it. It rests on what the audit entry records: that the Nomis copyright page allows reuse under the Open Government Licence, and that the office's page for table TS021 states version 3.0, both read through a reader that summarises on 2026-09-23. What would settle it: a person opens each page under evidence_urls in a browser, saves a dated copy in registry/evidence, confirms the licence, its version and the source line, and then sets verified_how to primary_source. It also waits for the fences around the census table to exist and pass in CI: a release folder that refuses a census file, a record that a release cannot return, and the test that moving the figures between areas changes no other answer (docs/design/london-data-census.md, section 9, tests 9, 10 and 13)."
+uses = ["census_table"]
+cadence = "One-off. Census Day was 21 March 2021."
+verified_how = "secondary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.nomisweb.co.uk/home/copyright.asp",
+    "https://www.nomisweb.co.uk/sources/census_2021_bulk",
+    "https://www.ons.gov.uk/datasets/TS021/editions/2021/versions/3",
+]
+notes = "The limit on use is a fairness rule, not a licence limit (ADR 0006, ADR 0014). The five tables are household composition, country of birth, age by five-year bands, ethnic group and religion. All but TS003 also stand in ons-census-2021-protected-characteristics, for the audit: the two entries are read by different steps, and neither may be used for the other's purpose. The three evidence pages are ones the audit entry already holds. The attribution is the line that entry records from the Nomis copyright page. verified_how is secondary_source so that the entry cannot be approved by changing its status alone. That each table is published for output areas is as the design records it, and has not been checked in a file."

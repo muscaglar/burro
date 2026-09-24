@@ -1,0 +1,65 @@
+# Licence registry: audit. Rules are in registry/README.md.
+# Approved first, then gated, held and banned.
+schema_version = 1
+
+[[source]]
+id = "ons-census-2021-protected-characteristics"
+name = "Census 2021 protected-characteristic tables (Nomis bulk), for the offline proxy audit only"
+publisher = "Office for National Statistics"
+url = "https://www.nomisweb.co.uk/sources/census_2021_bulk"
+dimension = "audit"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics"
+attribution_verified = false
+conditions = [
+    "Gate: before any file is downloaded, two things must exist. First, a store that the product pipeline cannot read, with a CI check that fails if a release build touches this entry. Second, the written proxy audit rule: the aim each feature serves, the correlation threshold that triggers review, and the actions available (PLAN section 9).",
+    "Offline audit only. Nothing read under this entry may be loaded into the feature store, a data release, the API, a prompt, or any page (PLAN sections 9 and 15).",
+    "Four of these tables are also shown on an area's page, as the statistics office's own table: TS004, TS007A, TS021 and TS030 (ADR 0014). They are read for that under their own entry, ons-census-2021-resident-tables, and never under this one.",
+    "Tables covered: ethnic group TS021 to TS023, religion TS030, TS031 and TS075, country of birth TS004 and TS012, national identity TS027 and TS028, language TS024 to TS026 and TS029, sexual orientation TS077 and TS079, gender identity TS070 and TS078, disability TS038 and TS040, general health TS037, age TS007, TS007A and TS009.",
+    "Sex (TS008) and legal partnership status (TS002) may be added if the audit needs them. The research lists both as never rankable.",
+    "Nomis terms: do not use the data to attempt to obtain or derive information about an identified person, household or business.",
+]
+status = "gated"
+status_reason = "The licence is confirmed: the ONS page for table TS021 states OGL v3.0 and the Nomis copyright page allows reuse under the OGL, commercially or privately (drafter and reviewer both fetched these on 2026-09-23). It is gated because the isolated audit store, its CI check and the written proxy audit rule do not exist yet, and an approved status would let the ingest gate pass these tables. The audit is phase 3 work, so the gate delays nothing."
+cadence = "One-off. Census day was 21 March 2021."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.nomisweb.co.uk/sources/census_2021_bulk",
+    "https://www.nomisweb.co.uk/home/copyright.asp",
+    "https://www.ons.gov.uk/datasets/TS021/editions/2021/versions/3",
+    "https://www.ons.gov.uk/census/aboutcensus/censusproducts/topicsummaries",
+]
+notes = "The restriction here is a fairness rule, not a licence limit. The Nomis bulk page itself shows only '© Crown Copyright', so the licence evidence is the ONS table page and the Nomis copyright page. The Nomis copyright page names the OGL without a version. Attribution is the line Nomis asks for: 'Users should include a source accreditation to ONS: Source: Office for National Statistics'. Table codes and titles were read from the Nomis bulk page through a reader that summarises, including TS002 (legal partnership status), TS008 (sex) and TS029 (proficiency in English). The smallest geography for the sexual orientation and gender identity tables is not confirmed. Non-sensitive census tables (tenure, accommodation type) belong in a separate entry owned by the housing domain. Intended use once the gate passes: audit_only."
+
+[[source]]
+id = "gla-loac-2021"
+name = "London Output Area Classification 2021 (LOAC)"
+publisher = "Greater London Authority with the Geographic Data Service (formerly CDRC)"
+url = "https://data.london.gov.uk/dataset/london-output-area-classification-e6600/"
+dimension = "audit"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "LOAC classifies areas by who lives there. It must never be an input to ranking, tags, similar-area matching, explanations or any page (PLAN section 9).",
+    "Cluster names must never be shown to users. The research found that several encode ethnicity or class.",
+    "If it is ever used, it is for the offline proxy audit only, kept where the product pipeline cannot read it.",
+    "London Datastore site terms: state that the GLA cannot warrant the quality or accuracy of the data, and do not imply GLA endorsement.",
+    "The Geographic Data Service copy needs a login and asks for its own citation.",
+]
+status = "held"
+status_reason = "Not needed in v1, and barred from the product by the fairness rules. The London Datastore page shows Open Government Licence v3 and the Geographic Data Service page shows the UK Open Government Licence, linked to version 3 (drafter and reviewer both fetched these on 2026-09-23)."
+uses = ["audit_only"]
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/london-output-area-classification-e6600/",
+    "https://data.geods.ac.uk/dataset/london-oac",
+]

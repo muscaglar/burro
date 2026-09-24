@@ -1,0 +1,41 @@
+# Licence registry: basemap. Rules are in registry/README.md.
+# Approved first, then gated, held and banned.
+schema_version = 1
+
+[[source]]
+id = "protomaps-basemap-london"
+name = "Protomaps basemap, London extract (PMTiles)"
+publisher = "Protomaps LLC"
+url = "https://docs.protomaps.com/basemaps/downloads"
+dimension = "basemap"
+licence = "ODbL-1.0"
+additional_licences = ["CC-BY-4.0", "CC0-1.0"]
+licence_url = "https://github.com/protomaps/basemaps/blob/main/LICENSE_DATA.md"
+commercial_use = "yes_with_conditions"
+share_alike = true
+attribution = "Protomaps © OpenStreetMap\n© ESA WorldCover project 2020 / Contains modified Copernicus Sentinel data (2020) processed by ESA WorldCover consortium"
+attribution_verified = true
+conditions = [
+    "Licences by layer: OpenStreetMap and the osmdata.openstreetmap.de land and water polygons are ODbL (main licence). The landcover layer comes from Daylight landcover, derived from ESA WorldCover, under CC BY 4.0. The map design is CC0. Natural Earth is public domain and the Mapzen icons are MIT; neither has a value in the licence list.",
+    "The tileset is an ODbL Produced Work. Protomaps says 'Web maps and native apps that use this Produced Work must visibly attribute © OpenStreetMap - for example, in the corner of the map display.' Show it in the corner of the map on web and iOS, linked to https://www.openstreetmap.org/copyright. The OSMF guidelines also allow a start-up screen, but PLAN section 9 credits OSM on the map, so do not rely on that allowance.",
+    "The word 'Protomaps' in the credit is requested by the project, not required. Keep it.",
+    "Show the ESA WorldCover line on the attributions page if the landcover layer is displayed. Protomaps documents that layer for zooms 0 to 7. If the London extract starts at zoom 8 or higher, check the layer is absent before dropping the line.",
+    "If the default Light or Dark style icons are used, include the Mapzen MIT notice ('Copyright (c) 2017 Mapzen, Linux Foundation') on the licences page.",
+    "Basemap and display only. Never extract features from the tiles into the gazetteer, cells, destination search or scoring.",
+    "If Burro distributes a modified fork of the styles or tilesets, or provides a tiles API based on them, it must not be named Protomaps. Keep the licence notices from the source repository.",
+    "Pin the Protomaps build version and the OSM data date in the release manifest and name them on the methods page.",
+]
+status = "approved"
+uses = ["basemap", "display"]
+cadence = "Protomaps publishes daily builds. Burro rebuilds its London extract on each data release."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://raw.githubusercontent.com/protomaps/basemaps/main/README.md",
+    "https://raw.githubusercontent.com/protomaps/basemaps/main/LICENSE_DATA.md",
+    "https://docs.protomaps.com/basemaps/downloads",
+    "https://docs.protomaps.com/basemaps/layers",
+    "https://docs.overturemaps.org/attribution/",
+    "https://esa-worldcover.org/en/data-access",
+]
+notes = "How it was verified: Protomaps' README and LICENSE_DATA.md were read directly on 2026-09-23. They confirm the tileset is an ODbL Produced Work with OpenStreetMap attribution required, and every bundled source allows commercial use. README.md and LICENSE_DATA.md were read as page text on 2026-09-23. The README gives the example corner credit as 'Protomaps © OpenStreetMap' with links. LICENSE_DATA.md says 'If displaying the landcover basemap layer, landcover is derived from the ESA WorldCover dataset, available under CC-BY 4.0 DEED' and points to Overture's attribution page, where I read the ESA line character for character. I did not open ESA's own page. The downloads page ('distributed as an Open Database License Produced Work (OpenStreetMap attribution required)') and the layers page (landcover 'for z0-z7') were read through a reader that summarises only; both agree with the README. Code is BSD-3-Clause. Kept as one entry because the tileset is ingested as a single file; the licences differ by layer, not by file."

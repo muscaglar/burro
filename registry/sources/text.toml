@@ -1,0 +1,136 @@
+# Licence registry: text. Rules are in registry/README.md.
+# Approved first, then gated, held and banned.
+schema_version = 1
+
+[[source]]
+id = "wikimedia-wikipedia-excerpts"
+name = "English Wikipedia article excerpts"
+publisher = "Wikimedia Foundation and Wikipedia contributors"
+url = "https://en.wikipedia.org/wiki/Wikipedia:Reusing_Wikipedia_content"
+dimension = "text"
+licence = "CC-BY-SA-4.0"
+licence_url = "https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use"
+commercial_use = "yes_with_conditions"
+share_alike = true
+attribution = "This article uses material from the Wikipedia article \"[article title]\" ([link to the article]), which is released under the Creative Commons Attribution-Share-Alike License 4.0 (https://creativecommons.org/licenses/by-sa/4.0/). The excerpt has been shortened."
+attribution_verified = false
+conditions = [
+    "Show the excerpt verbatim in a marked box with a hyperlink to the article and a licence notice with a link to the licence text.",
+    "Say when the text has been shortened or changed.",
+    "Never pass Wikipedia prose to any prompt that writes Burro's own text. An LLM summary is plausibly adapted material and would have to be shared under CC BY-SA.",
+    "Store in a separate table with licence metadata. Never an input to scoring, tags, gazetteer, cells or destination search.",
+    "Images and other media in articles have their own licences and are not covered.",
+    "Record the article revision ID for each excerpt.",
+    "Text imported into Wikipedia from elsewhere can carry extra attribution duties. Skip any article whose page or footer shows one.",
+]
+status = "approved"
+uses = ["display", "profile_text"]
+cadence = "Continuous. Refresh per data release."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://foundation.wikimedia.org/wiki/Policy:Terms_of_Use",
+    "https://en.wikipedia.org/wiki/Wikipedia:Reusing_Wikipedia_content",
+]
+notes = "How it was verified: CC BY-SA 4.0 and the attribution options are confirmed from the Wikimedia Terms of Use and Wikipedia's reuse page, by the research, the drafter and this review on 2026-09-23. Verbatim attributed display is simple compliance, and share-alike is limited to display and profile text. Wikimedia prescribes the elements (link to the page, licence notice, note of changes), not a fixed string. The attribution now follows the example notice on Wikipedia's reuse page, with Burro's placeholders and a shortened-text sentence added, so it stays unverified. Most text is also available under GFDL. Terms of Use last updated 7 June 2023. Open decision 6 in the plan recommends the excerpt; profiles arrive in phase 3."
+
+[[source]]
+id = "geograph-images"
+name = "Geograph Britain and Ireland photographs"
+publisher = "Geograph Project Limited and contributing photographers"
+url = "https://www.geograph.org.uk/help/terms"
+dimension = "text"
+licence = "CC-BY-SA-2.0"
+licence_url = "https://creativecommons.org/licenses/by-sa/2.0/"
+commercial_use = "yes_with_conditions"
+share_alike = true
+attribution = "© Copyright [photographer name] and licensed for reuse under the Creative Commons Attribution-ShareAlike 2.0 Licence. Link to https://www.geograph.org.uk/photo/[id]"
+attribution_verified = false
+conditions = [
+    "Show the photographer's credit beside every use and state that the image is Creative Commons licensed.",
+    "An adapted image, including a crop with overlays, must itself be CC BY-SA.",
+    "No scraping. The terms forbid 'any robot, spider, scraper or other automated means' without written permission. Use the API with a key, or the database dumps.",
+    "Do not use the live site or live API for bulk collection; use the dumps at data.geograph.org.uk.",
+    "Host copies rather than hotlinking.",
+]
+status = "held"
+status_reason = "Imagery is out of v1. Cleanest photo source if profile pages later need pictures."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.geograph.org.uk/help/terms",
+    "https://www.geograph.org.uk/help/api",
+]
+
+[[source]]
+id = "voyage-ai-embeddings-api"
+name = "Voyage AI embeddings service (Voyage 4 family)"
+publisher = "Voyage AI Innovations, Inc. (MongoDB)"
+url = "https://docs.voyageai.com/docs/pricing"
+dimension = "text"
+licence = "Bespoke-terms"
+licence_url = "https://www.voyageai.com/tos"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "None required"
+attribution_verified = false
+conditions = [
+    "A service, not a dataset. Terms of Service last updated 27 May 2026.",
+    "By default Voyage takes a worldwide, irrevocable, perpetual licence to use customer content to train and improve the service. An opt-out exists on the website, and opting out may void free-token credits.",
+    "Never send user prompts or destination text.",
+    "Never send CC BY-SA text unless the resulting vectors are kept out of scoring.",
+    "A person must read the full terms before any use.",
+]
+status = "held"
+status_reason = "Embeddings are out of v1 in the plan. The full terms have been read only as a summary."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = ["https://www.voyageai.com/tos", "https://docs.voyageai.com/docs/pricing"]
+
+[[source]]
+id = "wikimedia-commons-images"
+name = "Wikimedia Commons images"
+publisher = "Wikimedia Foundation and individual uploaders"
+url = "https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia"
+dimension = "text"
+licence = "CC-BY-SA-4.0"
+additional_licences = ["CC-BY-4.0", "CC0-1.0", "Bespoke-terms"]
+licence_url = "https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia"
+commercial_use = "yes_with_conditions"
+share_alike = true
+attribution = "[Author], [file title with link to its Commons page], [licence name with link]"
+attribution_verified = false
+conditions = [
+    "Every file has its own licence on its description page. Read and store it per file; accept only an allowlist of licences.",
+    "Other CC versions, GFDL and public domain files fall under Bespoke-terms here.",
+    "Wikimedia 'does not provide any warranty regarding the copyright status or correctness of licensing terms'.",
+    "Trademarks, personality rights and privacy rights may apply regardless of copyright. Avoid images of identifiable people.",
+]
+status = "held"
+status_reason = "Imagery is out of v1. Needs per-file licence capture before any use."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia",
+]
+
+[[source]]
+id = "wikimedia-wikivoyage-text"
+name = "Wikivoyage article text"
+publisher = "Wikimedia Foundation and Wikivoyage contributors"
+url = "https://en.wikivoyage.org/wiki/Wikivoyage:Copyleft"
+dimension = "text"
+licence = "CC-BY-SA-4.0"
+licence_url = "https://en.wikivoyage.org/wiki/Wikivoyage:Copyleft"
+commercial_use = "yes_with_conditions"
+share_alike = true
+attribution = "From the Wikivoyage article \"[article title]\" ([link to the article]), released under CC BY-SA 4.0 (https://creativecommons.org/licenses/by-sa/4.0/)."
+attribution_verified = false
+conditions = [
+    "Same handling as Wikipedia: verbatim, attributed, linked, never fed to a generation prompt, never an input to scoring.",
+]
+status = "held"
+status_reason = "Not needed in v1. Coarser than Burro's neighbourhoods and written for visitors. Useful later for international comparisons."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = ["https://en.wikivoyage.org/wiki/Wikivoyage:Copyleft"]

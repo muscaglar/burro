@@ -1,0 +1,98 @@
+# Licence registry: destination search. Rules are in registry/README.md.
+# Approved first, then gated, held and banned.
+schema_version = 1
+
+[[source]]
+id = "dft-naptan"
+name = "National Public Transport Access Nodes (NaPTAN)"
+publisher = "Department for Transport"
+url = "https://beta-naptan.dft.gov.uk/"
+dimension = "destination_search"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "The NaPTAN pages give no dataset-specific attribution statement, so the OGL v3 default statement applies. Name the Department for Transport as the source beside it.",
+    "TfL brand rules still apply to how stations are shown: no roundel, TfL maps or New Johnston font. The words 'London Underground', 'Tube', 'DLR' and 'London Overground' may be used for labelling.",
+    "OGL v3 non-endorsement applies.",
+]
+status = "approved"
+uses = ["destination_search", "routing", "scoring", "display"]
+cadence = "Daily, per data.gov.uk and the transit research. The catalogue record itself was last edited 23 August 2022."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://beta-naptan.dft.gov.uk/terms-conditions",
+    "https://www.data.gov.uk/dataset/ff93ffc1-6656-47d8-9155-85ea0b8f2251/naptan",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+]
+notes = "How it was verified: Re-checked by the reviewer on 2026-09-23. The NaPTAN terms page says 'The NaPTAN dataset is published under the Open Government Licence.' and links to OGL v3.0. The data.gov.uk record for the Department for Transport lists 'UK Open Government Licence (OGL)'. Station and stop names and coordinates for destination search, the nearest-station result detail, and station coordinates for the rail timetable conversion. The attribution is the default that OGL v3 prescribes when the provider gives none; the reviewer confirmed the default wording on the National Archives page and that the NaPTAN terms page gives no wording of its own. The download link is https://naptan.api.dft.gov.uk/v1/access-nodes?dataFormat=csv. The TfL brand note comes from verify-data-licences.md."
+
+[[source]]
+id = "nhs-ods"
+name = "NHS Organisation Data Service (trusts, hospital sites) via Data Search and Export"
+publisher = "NHS England"
+url = "https://digital.nhs.uk/services/organisation-data-service"
+dimension = "destination_search"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Contains information from NHS England, licenced under the current version of the Open Government Licence"
+attribution_verified = false
+conditions = [
+    "Use the public Data Search and Export route or its predefined CSV reports. The bulk XML route through TRUD has its own sign-up and terms, which have not been read and are not covered by this entry.",
+    "NHS England's website terms say 'you should refresh cached content every 24 hours to ensure you have the most up-to-date version'. Burro ships dated snapshots, so show an as-of date on anything sourced from ODS and refresh on every data release.",
+    "NHS England logos, visuals, trade marks and design styles are excluded from the OGL grant. Do not use NHS branding.",
+    "Information owned by third parties is excluded from the grant. Use organisation name, code, type, status and postcode only, and geocode the postcode through ONSPD.",
+    "Ingest organisation and site records only, not records about individual practitioners.",
+    "v1 use is destination search only, to resolve hospital names. GP access features are out of v1 (PLAN section 4).",
+    "Sites are located by postcode, so the ONS postcode product attribution (OS and Royal Mail lines) also applies.",
+]
+status = "approved"
+uses = ["destination_search"]
+cadence = "Nightly refresh at about 02:00."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://digital.nhs.uk/services/organisation-data-service",
+    "https://digital.nhs.uk/about-nhs-digital/terms-and-conditions",
+    "https://digital.nhs.uk/services/organisation-data-service/data-search-and-export",
+    "https://digital.nhs.uk/services/organisation-data-service/data-search-and-export/csv-downloads",
+]
+notes = "How it was verified: Re-checked by the reviewer on 2026-09-23. The ODS service page says 'ODS data is published under Open Government Licence and is therefore available for all to use' and links to OGL v3. NHS England's terms (section 8.2) allow use 'for any purpose, including commercially' and section 8.4 gives the attribution wording. Supplies hospital and trust site names so a named hospital resolves as a destination. GP access is out of v1 scope. The attribution is the 'modified content' form from section 8.4; the spelling 'licenced' is as on the page. The terms cover 'NHS England Content' in general and are applied to ODS because the ODS page gives no wording of its own. Data Search and Export has replaced the legacy CSV files that the liveability research names (epraccur, ebranchs). The 24-hour refresh is phrased as 'should' and is read as advice; ask NHS England if a firmer answer is wanted. Attribution copied from clause 8.4 of NHS England's terms, which gives this form for content that is combined or adapted. The spelling 'licenced' is NHS England's. The unmodified form is 'Information from NHS England, licenced under the current version of the Open Government Licence'. The terms page was last edited on 24 October 2023. The 24-hour refresh in clause 8.5 is worded as 'should', not 'must'. Pages were read through a reader that summarises, so check the wording once in a browser when saving evidence."
+
+[[source]]
+id = "os-code-point-open"
+name = "OS Code-Point Open"
+publisher = "Ordnance Survey"
+url = "https://www.ordnancesurvey.co.uk/products/code-point-open"
+dimension = "destination_search"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains OS data © Crown copyright and database right [year].\nContains Royal Mail data © Royal Mail copyright and database right [year]\nContains National Statistics data © Crown copyright and database rights 20nn"
+attribution_verified = false
+conditions = [
+    "OS says Code-Point Open 'contains additional third party rights'. The full terms are in licence.txt inside the download.",
+    "Replace [year] and 20nn with the year of the data supplied.",
+    "Include the same acknowledgement in any sub-licence or onward re-use.",
+]
+status = "gated"
+status_reason = "OGL and commercial reuse are confirmed on the OS open data page, but the terms that cover the third-party rights are in licence.txt inside the download, which nobody has read. The OS page we could read omits Royal Mail, while OS documentation names Royal Mail's Postcode Address File as an input and ONS requires a Royal Mail statement for products derived from Code-Point Open. Gate: download the zip by hand, read and save Doc/licence.txt in registry/evidence, set the attribution to its wording, then approve. ONSPD is approved and covers postcodes meanwhile."
+uses = ["destination_search"]
+cadence = "Quarterly: February, May, August, November. Full resupply each time."
+verified_how = "primary_source"
+verified_on = 2026-09-23
+evidence_urls = [
+    "https://www.ordnancesurvey.co.uk/products/open-data",
+    "https://www.ordnancesurvey.co.uk/customers/public-sector/public-sector-licensing/copyright-acknowledgments",
+    "https://docs.os.uk/os-downloads/products/areas-and-zones-portfolio/code-point-open/code-point-open-overview/product-supply.md",
+    "https://docs.os.uk/os-downloads/products/areas-and-zones-portfolio/code-point-open/code-point-open-getting-started-guide/requirements-for-using-the-data.md",
+    "https://www.ons.gov.uk/methodology/geography/licences",
+]
+notes = "About 1.7 million Great Britain postcode units as points; Northern Ireland is not included. The OS and National Statistics lines are from the OS acknowledgements page. The Royal Mail line is the wording ONS gives for its postcode products 'derived from Code-Point Open'; it is the reviewer's best wording, not read from an OS page. The boundaries research calls this product redundant with ONSPD. Consider dropping it and using ONSPD alone."
