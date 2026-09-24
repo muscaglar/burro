@@ -1,0 +1,203 @@
+{
+  "scenario": "interpret-notice",
+  "shows": "Part of the request is about who lives somewhere: the neutral notice, and the rest",
+  "captured": true,
+  "request": {
+    "operation_id": "interpret",
+    "method": "POST",
+    "route": "/v1/interpret",
+    "path": "/v1/interpret",
+    "body": {
+      "text": "Quiet and leafy, not too many students, 30 minutes to Cindermoor Works"
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "2447",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-synthetic": "true",
+    "x-request-id": "5c444260-06ea-4910-b4e1-b29a95794d34"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.3.0",
+      "synthetic": true
+    },
+    "data": {
+      "status": "policy_redirect",
+      "operations": {
+        "budget_ops": [],
+        "commute_ops": [
+          {
+            "action": "add",
+            "place_id": "syn-p0021",
+            "mode": "unchanged",
+            "max_minutes": 30,
+            "strictness": "unchanged",
+            "step": "none",
+            "provenance": "stated"
+          }
+        ],
+        "weight_ops": [],
+        "tag_ops": [
+          {
+            "action": "nudge",
+            "tag_id": "quiet_residential",
+            "value": 0.0,
+            "step": "up_large",
+            "provenance": "stated"
+          },
+          {
+            "action": "nudge",
+            "tag_id": "leafy",
+            "value": 0.0,
+            "step": "up_large",
+            "provenance": "stated"
+          }
+        ],
+        "area_ops": [],
+        "setting_ops": []
+      },
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.8,
+          "provenance": "default"
+        },
+        "commutes": [
+          {
+            "place_id": "syn-p0021",
+            "mode": "pt",
+            "max_minutes": 30,
+            "strictness": "soft",
+            "provenance": "stated"
+          }
+        ],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 1.0,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [
+          {
+            "tag_id": "leafy",
+            "weight": 0.5,
+            "provenance": "stated"
+          },
+          {
+            "tag_id": "quiet_residential",
+            "weight": 0.5,
+            "provenance": "stated"
+          }
+        ],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "spec_hash": "a1e77416eee5a30d966bb60127f56ef94df05da0d52b459128a480347b534f9c",
+      "applied": [
+        {
+          "group": "commute_ops",
+          "index": 0,
+          "changed": true
+        },
+        {
+          "group": "tag_ops",
+          "index": 0,
+          "changed": true
+        },
+        {
+          "group": "tag_ops",
+          "index": 1,
+          "changed": true
+        }
+      ],
+      "rejected": [],
+      "assumptions": [
+        {
+          "code": "mode",
+          "group": "commute_ops",
+          "index": 0
+        },
+        {
+          "code": "strictness",
+          "group": "commute_ops",
+          "index": 0
+        }
+      ],
+      "unmet": [],
+      "clarify": [],
+      "notice": "neutral_places",
+      "notice_text": "Burro ranks places by what is there, such as schools, parks, venues and transport, and never by who lives there. The rest of your search has been applied.",
+      "interpreter": "rule",
+      "degraded": false,
+      "rests_on": [
+        {
+          "group": "commute_ops",
+          "index": 0,
+          "start": 40,
+          "end": 70
+        },
+        {
+          "group": "tag_ops",
+          "index": 0,
+          "start": 0,
+          "end": 5
+        },
+        {
+          "group": "tag_ops",
+          "index": 1,
+          "start": 10,
+          "end": 15
+        }
+      ]
+    }
+  }
+}

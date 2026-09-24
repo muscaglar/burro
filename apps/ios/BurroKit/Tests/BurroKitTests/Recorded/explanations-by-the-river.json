@@ -1,0 +1,1044 @@
+{
+  "scenario": "explanations-by-the-river",
+  "shows": "Reasons and a trade-off for the first five, with every fact they cite",
+  "captured": true,
+  "request": {
+    "operation_id": "explain_top",
+    "method": "POST",
+    "route": "/v1/explanations",
+    "path": "/v1/explanations",
+    "body": {
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.8,
+          "provenance": "default"
+        },
+        "commutes": [
+          {
+            "place_id": "syn-p0018",
+            "mode": "cycle",
+            "max_minutes": 20,
+            "strictness": "soft",
+            "provenance": "stated"
+          }
+        ],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 1.0,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [
+          {
+            "tag_id": "historic_character",
+            "weight": 0.5,
+            "provenance": "inferred"
+          },
+          {
+            "tag_id": "waterside",
+            "weight": 0.5,
+            "provenance": "inferred"
+          }
+        ],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "limit": 5
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "15307",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-synthetic": "true",
+    "x-request-id": "8b681ab5-4435-4a3a-90f4-257d4e77012b"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.3.0",
+      "synthetic": true
+    },
+    "data": {
+      "explanations": [
+        {
+          "area_id": "syn-n0021",
+          "orientation": {
+            "text": "Tallowgate is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0021/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By bike to Tallowgate Guild Quarter: about 5 minutes.",
+              "fact_ids": [
+                "syn-n0021/travel/syn-p0018.cycle"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Historic character: ranks above 94% of the 19 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0021/tag/historic_character"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Waterside: ranks above 90% of the 22 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0021/tag/waterside"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Walk to the nearest park of 2 ha or more: 1070 m, further than 80% of the 21 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0021/feature/park_proximity"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0018",
+          "orientation": {
+            "text": "Pellam Cross is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0018/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By bike to Tallowgate Guild Quarter: about 13 minutes.",
+              "fact_ids": [
+                "syn-n0018/travel/syn-p0018.cycle"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Waterside: ranks above 86% of the 22 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0018/tag/waterside"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Historic character: ranks above 68% of the 19 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0018/tag/historic_character"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Walk to the nearest park of 2 ha or more: 1300 m, further than 95% of the 21 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0018/feature/park_proximity"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0023",
+          "orientation": {
+            "text": "Wexmoor is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0023/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By bike to Tallowgate Guild Quarter: about 11 minutes.",
+              "fact_ids": [
+                "syn-n0023/travel/syn-p0018.cycle"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Waterside: ranks above 59% of the 22 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0023/tag/waterside"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Share of homes within a 10-minute walk of a high street or town centre: 66%, more than 61% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0023/feature/highstreet_access"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Historic character: ranks below 63% of the 19 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0023/tag/historic_character"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0007",
+          "orientation": {
+            "text": "Foxholt is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0007/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By bike to Tallowgate Guild Quarter: about 11 minutes.",
+              "fact_ids": [
+                "syn-n0007/travel/syn-p0018.cycle"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Share of homes within a 10-minute walk of a high street or town centre: 88%, more than 90% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0007/feature/highstreet_access"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Lines within a 10-minute walk: 1, more than 31% of the 22 areas compared in this release, and the same as 11 others.",
+              "fact_ids": [
+                "syn-n0007/feature/station_lines"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Waterside: ranks below 40% of the 22 areas compared in this release, and the same as 12 others.",
+            "fact_ids": [
+              "syn-n0007/tag/waterside"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0019",
+          "orientation": {
+            "text": "Sable Reach is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0019/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By bike to Tallowgate Guild Quarter: about 16 minutes.",
+              "fact_ids": [
+                "syn-n0019/travel/syn-p0018.cycle"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Waterside: ranks above 95% of the 22 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0019/tag/waterside"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Walk to the nearest station: 2 min, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
+              "fact_ids": [
+                "syn-n0019/feature/station_walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Historic character: ranks below 94% of the 19 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0019/tag/historic_character"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        }
+      ],
+      "facts": [
+        {
+          "fact_id": "syn-n0021/area/name",
+          "area_id": "syn-n0021",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Tallowgate",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Tallowgate",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/feature/park_proximity",
+          "area_id": "syn-n0021",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Walk to the nearest park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest park of 2 ha or more",
+            "value": "1070 m",
+            "comparative": "further than",
+            "pct": "80",
+            "compared": "21",
+            "standing": "further than 80% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "1070",
+            "80%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/tag/historic_character",
+          "area_id": "syn-n0021",
+          "kind": "tag",
+          "key": "historic_character",
+          "label": "Historic character",
+          "template": "tag",
+          "slots": {
+            "label": "Historic character",
+            "comparative": "above",
+            "pct": "94",
+            "compared": "19",
+            "standing": "above 94% of the 19 areas compared in this release"
+          },
+          "numbers": [
+            "94%",
+            "19"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/tag/waterside",
+          "area_id": "syn-n0021",
+          "kind": "tag",
+          "key": "waterside",
+          "label": "Waterside",
+          "template": "tag",
+          "slots": {
+            "label": "Waterside",
+            "comparative": "above",
+            "pct": "90",
+            "compared": "22",
+            "standing": "above 90% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "90%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/travel/syn-p0018.cycle",
+          "area_id": "syn-n0021",
+          "kind": "travel",
+          "key": "syn-p0018.cycle",
+          "label": "Journey",
+          "template": "travel_other",
+          "slots": {
+            "mode": "By bike",
+            "place": "Tallowgate Guild Quarter",
+            "minutes": "5"
+          },
+          "numbers": [
+            "5"
+          ],
+          "names": [
+            "Tallowgate Guild Quarter"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/area/name",
+          "area_id": "syn-n0018",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Pellam Cross",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Pellam Cross",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/feature/park_proximity",
+          "area_id": "syn-n0018",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Walk to the nearest park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest park of 2 ha or more",
+            "value": "1300 m",
+            "comparative": "further than",
+            "pct": "95",
+            "compared": "21",
+            "standing": "further than 95% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "1300",
+            "95%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/tag/historic_character",
+          "area_id": "syn-n0018",
+          "kind": "tag",
+          "key": "historic_character",
+          "label": "Historic character",
+          "template": "tag",
+          "slots": {
+            "label": "Historic character",
+            "comparative": "above",
+            "pct": "68",
+            "compared": "19",
+            "standing": "above 68% of the 19 areas compared in this release"
+          },
+          "numbers": [
+            "68%",
+            "19"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/tag/waterside",
+          "area_id": "syn-n0018",
+          "kind": "tag",
+          "key": "waterside",
+          "label": "Waterside",
+          "template": "tag",
+          "slots": {
+            "label": "Waterside",
+            "comparative": "above",
+            "pct": "86",
+            "compared": "22",
+            "standing": "above 86% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "86%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/travel/syn-p0018.cycle",
+          "area_id": "syn-n0018",
+          "kind": "travel",
+          "key": "syn-p0018.cycle",
+          "label": "Journey",
+          "template": "travel_other",
+          "slots": {
+            "mode": "By bike",
+            "place": "Tallowgate Guild Quarter",
+            "minutes": "13"
+          },
+          "numbers": [
+            "13"
+          ],
+          "names": [
+            "Tallowgate Guild Quarter"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/area/name",
+          "area_id": "syn-n0023",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Wexmoor",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Wexmoor",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/feature/highstreet_access",
+          "area_id": "syn-n0023",
+          "kind": "feature",
+          "key": "highstreet_access",
+          "label": "Share of homes within a 10-minute walk of a high street or town centre",
+          "template": "feature",
+          "slots": {
+            "label": "Share of homes within a 10-minute walk of a high street or town centre",
+            "value": "66%",
+            "comparative": "more than",
+            "pct": "61",
+            "compared": "21",
+            "standing": "more than 61% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "66%",
+            "61%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/tag/historic_character",
+          "area_id": "syn-n0023",
+          "kind": "tag",
+          "key": "historic_character",
+          "label": "Historic character",
+          "template": "tag",
+          "slots": {
+            "label": "Historic character",
+            "comparative": "below",
+            "pct": "63",
+            "compared": "19",
+            "standing": "below 63% of the 19 areas compared in this release"
+          },
+          "numbers": [
+            "63%",
+            "19"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/tag/waterside",
+          "area_id": "syn-n0023",
+          "kind": "tag",
+          "key": "waterside",
+          "label": "Waterside",
+          "template": "tag",
+          "slots": {
+            "label": "Waterside",
+            "comparative": "above",
+            "pct": "59",
+            "compared": "22",
+            "standing": "above 59% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "59%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/travel/syn-p0018.cycle",
+          "area_id": "syn-n0023",
+          "kind": "travel",
+          "key": "syn-p0018.cycle",
+          "label": "Journey",
+          "template": "travel_other",
+          "slots": {
+            "mode": "By bike",
+            "place": "Tallowgate Guild Quarter",
+            "minutes": "11"
+          },
+          "numbers": [
+            "11"
+          ],
+          "names": [
+            "Tallowgate Guild Quarter"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0007/area/name",
+          "area_id": "syn-n0007",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Foxholt",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Foxholt",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0007/feature/highstreet_access",
+          "area_id": "syn-n0007",
+          "kind": "feature",
+          "key": "highstreet_access",
+          "label": "Share of homes within a 10-minute walk of a high street or town centre",
+          "template": "feature",
+          "slots": {
+            "label": "Share of homes within a 10-minute walk of a high street or town centre",
+            "value": "88%",
+            "comparative": "more than",
+            "pct": "90",
+            "compared": "21",
+            "standing": "more than 90% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "88%",
+            "90%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0007/feature/station_lines",
+          "area_id": "syn-n0007",
+          "kind": "feature",
+          "key": "station_lines",
+          "label": "Lines within a 10-minute walk",
+          "template": "feature",
+          "slots": {
+            "label": "Lines within a 10-minute walk",
+            "value": "1",
+            "comparative": "more than",
+            "pct": "31",
+            "compared": "22",
+            "level": "11",
+            "standing": "more than 31% of the 22 areas compared in this release, and the same as 11 others"
+          },
+          "numbers": [
+            "1",
+            "31%",
+            "22",
+            "11"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0007/tag/waterside",
+          "area_id": "syn-n0007",
+          "kind": "tag",
+          "key": "waterside",
+          "label": "Waterside",
+          "template": "tag",
+          "slots": {
+            "label": "Waterside",
+            "comparative": "below",
+            "pct": "40",
+            "compared": "22",
+            "level": "12",
+            "standing": "below 40% of the 22 areas compared in this release, and the same as 12 others"
+          },
+          "numbers": [
+            "40%",
+            "22",
+            "12"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0007/travel/syn-p0018.cycle",
+          "area_id": "syn-n0007",
+          "kind": "travel",
+          "key": "syn-p0018.cycle",
+          "label": "Journey",
+          "template": "travel_other",
+          "slots": {
+            "mode": "By bike",
+            "place": "Tallowgate Guild Quarter",
+            "minutes": "11"
+          },
+          "numbers": [
+            "11"
+          ],
+          "names": [
+            "Tallowgate Guild Quarter"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0019/area/name",
+          "area_id": "syn-n0019",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Sable Reach",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Sable Reach",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0019/feature/station_walk",
+          "area_id": "syn-n0019",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Walk to the nearest station",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest station",
+            "value": "2 min",
+            "comparative": "closer than",
+            "pct": "77",
+            "compared": "22",
+            "level": "4",
+            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others"
+          },
+          "numbers": [
+            "2",
+            "77%",
+            "22",
+            "4"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0019/tag/historic_character",
+          "area_id": "syn-n0019",
+          "kind": "tag",
+          "key": "historic_character",
+          "label": "Historic character",
+          "template": "tag",
+          "slots": {
+            "label": "Historic character",
+            "comparative": "below",
+            "pct": "94",
+            "compared": "19",
+            "standing": "below 94% of the 19 areas compared in this release"
+          },
+          "numbers": [
+            "94%",
+            "19"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0019/tag/waterside",
+          "area_id": "syn-n0019",
+          "kind": "tag",
+          "key": "waterside",
+          "label": "Waterside",
+          "template": "tag",
+          "slots": {
+            "label": "Waterside",
+            "comparative": "above",
+            "pct": "95",
+            "compared": "22",
+            "standing": "above 95% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "95%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0019/travel/syn-p0018.cycle",
+          "area_id": "syn-n0019",
+          "kind": "travel",
+          "key": "syn-p0018.cycle",
+          "label": "Journey",
+          "template": "travel_other",
+          "slots": {
+            "mode": "By bike",
+            "place": "Tallowgate Guild Quarter",
+            "minutes": "16"
+          },
+          "numbers": [
+            "16"
+          ],
+          "names": [
+            "Tallowgate Guild Quarter"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        }
+      ]
+    }
+  }
+}

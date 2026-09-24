@@ -1,0 +1,298 @@
+{
+  "scenario": "areas",
+  "shows": "Every area of the release, by id",
+  "captured": true,
+  "request": {
+    "operation_id": "list_areas",
+    "method": "GET",
+    "route": "/v1/areas",
+    "path": "/v1/areas"
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "cache-control": "public, max-age=3600",
+    "content-length": "3383",
+    "content-type": "application/json",
+    "etag": "\"syn-2026-09-23-01\"",
+    "vary": "Origin",
+    "x-burro-synthetic": "true",
+    "x-request-id": "cdecfaab-06f9-4c29-b426-f5417e5c564f"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.3.0",
+      "synthetic": true
+    },
+    "data": {
+      "areas": [
+        {
+          "area_id": "syn-n0001",
+          "slug": "alderwick",
+          "name": "Alderwick",
+          "borough": "Quillhaven",
+          "centroid": [
+            -0.016848,
+            0.040758
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0002",
+          "slug": "brackenhythe",
+          "name": "Brackenhythe",
+          "borough": "Quillhaven",
+          "centroid": [
+            -0.040736,
+            0.000531
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0003",
+          "slug": "cindermoor",
+          "name": "Cindermoor",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.059609,
+            -0.000169
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0004",
+          "slug": "dulcimer-green",
+          "name": "Dulcimer Green",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.033997,
+            0.017188
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0005",
+          "slug": "eskerfold",
+          "name": "Eskerfold",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.000634,
+            0.041017
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0006",
+          "slug": "farrowmere",
+          "name": "Farrowmere",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.059088,
+            0.017327
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0007",
+          "slug": "foxholt",
+          "name": "Foxholt",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.015472,
+            0.016975
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0008",
+          "slug": "gorsebeck",
+          "name": "Gorsebeck",
+          "borough": "Quillhaven",
+          "centroid": [
+            -0.040244,
+            0.040059
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0009",
+          "slug": "grapnel-dock",
+          "name": "Grapnel Dock",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.034291,
+            -0.016037
+          ],
+          "rankable": false
+        },
+        {
+          "area_id": "syn-n0010",
+          "slug": "hollinsworth-quay",
+          "name": "Hollinsworth Quay",
+          "borough": "Quillhaven",
+          "centroid": [
+            -0.01763,
+            0.000891
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0011",
+          "slug": "kindlewharf",
+          "name": "Kindlewharf",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.000199,
+            -0.015936
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0012",
+          "slug": "lantern-yard",
+          "name": "Lantern Yard",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.000202,
+            0.017334
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0013",
+          "slug": "larkspur-hill",
+          "name": "Larkspur Hill",
+          "borough": "Quillhaven",
+          "centroid": [
+            -0.040603,
+            0.016882
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0014",
+          "slug": "marrowfen",
+          "name": "Marrowfen",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.033977,
+            0.040649
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0015",
+          "slug": "osierholm",
+          "name": "Osierholm",
+          "borough": "Quillhaven",
+          "centroid": [
+            -0.01685,
+            -0.016721
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0016",
+          "slug": "ostrel-vale",
+          "name": "Ostrel Vale",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.016007,
+            0.040045
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0017",
+          "slug": "otterby-fields",
+          "name": "Otterby Fields",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.058084,
+            -0.016212
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0018",
+          "slug": "pellam-cross",
+          "name": "Pellam Cross",
+          "borough": "Quillhaven",
+          "centroid": [
+            -9.8e-05,
+            0.000412
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0019",
+          "slug": "sable-reach",
+          "name": "Sable Reach",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.015554,
+            -0.016913
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0020",
+          "slug": "sedgewater-marsh",
+          "name": "Sedgewater Marsh",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.0593,
+            0.040889
+          ],
+          "rankable": false
+        },
+        {
+          "area_id": "syn-n0021",
+          "slug": "tallowgate",
+          "name": "Tallowgate",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.01508,
+            0.000189
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0022",
+          "slug": "thrushcombe",
+          "name": "Thrushcombe",
+          "borough": "Quillhaven",
+          "centroid": [
+            -0.016855,
+            0.017169
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0023",
+          "slug": "wexmoor",
+          "name": "Wexmoor",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.033798,
+            0.000242
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0024",
+          "slug": "wickerford",
+          "name": "Wickerford",
+          "borough": "Quillhaven",
+          "centroid": [
+            -0.040119,
+            -0.016828
+          ],
+          "rankable": true
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,1064 @@
+{
+  "scenario": "visit/22-slow-reasons",
+  "shows": "Its reasons",
+  "captured": true,
+  "request": {
+    "operation_id": "explain_top",
+    "method": "POST",
+    "route": "/v1/explanations",
+    "path": "/v1/explanations",
+    "body": {
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.8,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 1.0,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [
+          {
+            "tag_id": "waterside",
+            "weight": 0.5,
+            "provenance": "inferred"
+          }
+        ],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "limit": 5
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "16698",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-synthetic": "true",
+    "x-request-id": "95db0f23-ed7e-4742-b690-44f36c8bf2da"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.3.0",
+      "synthetic": true
+    },
+    "data": {
+      "explanations": [
+        {
+          "area_id": "syn-n0019",
+          "orientation": {
+            "text": "Sable Reach is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0019/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "Waterside: ranks above 95% of the 22 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0019/tag/waterside"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Walk to the nearest station: 2 min, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
+              "fact_ids": [
+                "syn-n0019/feature/station_walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Lines within a 10-minute walk: 1, more than 31% of the 22 areas compared in this release, and the same as 11 others.",
+              "fact_ids": [
+                "syn-n0019/feature/station_lines"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Modelled annual mean nitrogen dioxide: 26.6 µg/m³, higher than 65% of the 20 areas compared in this release, and the same as 1 other.",
+            "fact_ids": [
+              "syn-n0019/feature/air_no2"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0002",
+          "orientation": {
+            "text": "Brackenhythe is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0002/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "Waterside: ranks above 77% of the 22 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0002/tag/waterside"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Walk to the nearest station: 2 min, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
+              "fact_ids": [
+                "syn-n0002/feature/station_walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Walk to the nearest park of 2 ha or more: 480 m, closer than 85% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0002/feature/park_proximity"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Share of homes within a 10-minute walk of a high street or town centre: 55%, less than 57% of the 21 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0002/feature/highstreet_access"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0021",
+          "orientation": {
+            "text": "Tallowgate is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0021/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "Waterside: ranks above 90% of the 22 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0021/tag/waterside"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Walk to the nearest station: 4 min, closer than 50% of the 22 areas compared in this release, and the same as 5 others.",
+              "fact_ids": [
+                "syn-n0021/feature/station_walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Lines within a 10-minute walk: 2, more than 86% of the 22 areas compared in this release, and the same as 1 other.",
+              "fact_ids": [
+                "syn-n0021/feature/station_lines"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Walk to the nearest park of 2 ha or more: 1070 m, further than 80% of the 21 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0021/feature/park_proximity"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0018",
+          "orientation": {
+            "text": "Pellam Cross is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0018/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "Waterside: ranks above 86% of the 22 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0018/tag/waterside"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Walk to the nearest station: 2 min, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
+              "fact_ids": [
+                "syn-n0018/feature/station_walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Lines within a 10-minute walk: 4, more than 95% of the 22 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0018/feature/station_lines"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Modelled annual mean nitrogen dioxide: 34.5 µg/m³, higher than 95% of the 20 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0018/feature/air_no2"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0024",
+          "orientation": {
+            "text": "Wickerford is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0024/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "Waterside: ranks above 63% of the 22 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0024/tag/waterside"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Walk to the nearest station: 2 min, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
+              "fact_ids": [
+                "syn-n0024/feature/station_walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Walk to the nearest park of 2 ha or more: 560 m, closer than 76% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0024/feature/park_proximity"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Share of homes within a 10-minute walk of a high street or town centre: 52%, less than 61% of the 21 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0024/feature/highstreet_access"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        }
+      ],
+      "facts": [
+        {
+          "fact_id": "syn-n0019/area/name",
+          "area_id": "syn-n0019",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Sable Reach",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Sable Reach",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0019/feature/air_no2",
+          "area_id": "syn-n0019",
+          "kind": "feature",
+          "key": "air_no2",
+          "label": "Modelled annual mean nitrogen dioxide",
+          "template": "feature",
+          "slots": {
+            "label": "Modelled annual mean nitrogen dioxide",
+            "value": "26.6 µg/m³",
+            "comparative": "higher than",
+            "pct": "65",
+            "compared": "20",
+            "level": "1",
+            "standing": "higher than 65% of the 20 areas compared in this release, and the same as 1 other"
+          },
+          "numbers": [
+            "26.6",
+            "65%",
+            "20",
+            "1"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0019/feature/station_lines",
+          "area_id": "syn-n0019",
+          "kind": "feature",
+          "key": "station_lines",
+          "label": "Lines within a 10-minute walk",
+          "template": "feature",
+          "slots": {
+            "label": "Lines within a 10-minute walk",
+            "value": "1",
+            "comparative": "more than",
+            "pct": "31",
+            "compared": "22",
+            "level": "11",
+            "standing": "more than 31% of the 22 areas compared in this release, and the same as 11 others"
+          },
+          "numbers": [
+            "1",
+            "31%",
+            "22",
+            "11"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0019/feature/station_walk",
+          "area_id": "syn-n0019",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Walk to the nearest station",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest station",
+            "value": "2 min",
+            "comparative": "closer than",
+            "pct": "77",
+            "compared": "22",
+            "level": "4",
+            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others"
+          },
+          "numbers": [
+            "2",
+            "77%",
+            "22",
+            "4"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0019/tag/waterside",
+          "area_id": "syn-n0019",
+          "kind": "tag",
+          "key": "waterside",
+          "label": "Waterside",
+          "template": "tag",
+          "slots": {
+            "label": "Waterside",
+            "comparative": "above",
+            "pct": "95",
+            "compared": "22",
+            "standing": "above 95% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "95%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0002/area/name",
+          "area_id": "syn-n0002",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Brackenhythe",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Brackenhythe",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0002/feature/highstreet_access",
+          "area_id": "syn-n0002",
+          "kind": "feature",
+          "key": "highstreet_access",
+          "label": "Share of homes within a 10-minute walk of a high street or town centre",
+          "template": "feature",
+          "slots": {
+            "label": "Share of homes within a 10-minute walk of a high street or town centre",
+            "value": "55%",
+            "comparative": "less than",
+            "pct": "57",
+            "compared": "21",
+            "standing": "less than 57% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "55%",
+            "57%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0002/feature/park_proximity",
+          "area_id": "syn-n0002",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Walk to the nearest park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest park of 2 ha or more",
+            "value": "480 m",
+            "comparative": "closer than",
+            "pct": "85",
+            "compared": "21",
+            "standing": "closer than 85% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "480",
+            "85%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0002/feature/station_walk",
+          "area_id": "syn-n0002",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Walk to the nearest station",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest station",
+            "value": "2 min",
+            "comparative": "closer than",
+            "pct": "77",
+            "compared": "22",
+            "level": "4",
+            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others"
+          },
+          "numbers": [
+            "2",
+            "77%",
+            "22",
+            "4"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0002/tag/waterside",
+          "area_id": "syn-n0002",
+          "kind": "tag",
+          "key": "waterside",
+          "label": "Waterside",
+          "template": "tag",
+          "slots": {
+            "label": "Waterside",
+            "comparative": "above",
+            "pct": "77",
+            "compared": "22",
+            "standing": "above 77% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "77%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/area/name",
+          "area_id": "syn-n0021",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Tallowgate",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Tallowgate",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/feature/park_proximity",
+          "area_id": "syn-n0021",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Walk to the nearest park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest park of 2 ha or more",
+            "value": "1070 m",
+            "comparative": "further than",
+            "pct": "80",
+            "compared": "21",
+            "standing": "further than 80% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "1070",
+            "80%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/feature/station_lines",
+          "area_id": "syn-n0021",
+          "kind": "feature",
+          "key": "station_lines",
+          "label": "Lines within a 10-minute walk",
+          "template": "feature",
+          "slots": {
+            "label": "Lines within a 10-minute walk",
+            "value": "2",
+            "comparative": "more than",
+            "pct": "86",
+            "compared": "22",
+            "level": "1",
+            "standing": "more than 86% of the 22 areas compared in this release, and the same as 1 other"
+          },
+          "numbers": [
+            "2",
+            "86%",
+            "22",
+            "1"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/feature/station_walk",
+          "area_id": "syn-n0021",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Walk to the nearest station",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest station",
+            "value": "4 min",
+            "comparative": "closer than",
+            "pct": "50",
+            "compared": "22",
+            "level": "5",
+            "standing": "closer than 50% of the 22 areas compared in this release, and the same as 5 others"
+          },
+          "numbers": [
+            "4",
+            "50%",
+            "22",
+            "5"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/tag/waterside",
+          "area_id": "syn-n0021",
+          "kind": "tag",
+          "key": "waterside",
+          "label": "Waterside",
+          "template": "tag",
+          "slots": {
+            "label": "Waterside",
+            "comparative": "above",
+            "pct": "90",
+            "compared": "22",
+            "standing": "above 90% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "90%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/area/name",
+          "area_id": "syn-n0018",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Pellam Cross",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Pellam Cross",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/feature/air_no2",
+          "area_id": "syn-n0018",
+          "kind": "feature",
+          "key": "air_no2",
+          "label": "Modelled annual mean nitrogen dioxide",
+          "template": "feature",
+          "slots": {
+            "label": "Modelled annual mean nitrogen dioxide",
+            "value": "34.5 µg/m³",
+            "comparative": "higher than",
+            "pct": "95",
+            "compared": "20",
+            "standing": "higher than 95% of the 20 areas compared in this release"
+          },
+          "numbers": [
+            "34.5",
+            "95%",
+            "20"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/feature/station_lines",
+          "area_id": "syn-n0018",
+          "kind": "feature",
+          "key": "station_lines",
+          "label": "Lines within a 10-minute walk",
+          "template": "feature",
+          "slots": {
+            "label": "Lines within a 10-minute walk",
+            "value": "4",
+            "comparative": "more than",
+            "pct": "95",
+            "compared": "22",
+            "standing": "more than 95% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "4",
+            "95%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/feature/station_walk",
+          "area_id": "syn-n0018",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Walk to the nearest station",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest station",
+            "value": "2 min",
+            "comparative": "closer than",
+            "pct": "77",
+            "compared": "22",
+            "level": "4",
+            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others"
+          },
+          "numbers": [
+            "2",
+            "77%",
+            "22",
+            "4"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/tag/waterside",
+          "area_id": "syn-n0018",
+          "kind": "tag",
+          "key": "waterside",
+          "label": "Waterside",
+          "template": "tag",
+          "slots": {
+            "label": "Waterside",
+            "comparative": "above",
+            "pct": "86",
+            "compared": "22",
+            "standing": "above 86% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "86%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0024/area/name",
+          "area_id": "syn-n0024",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Wickerford",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Wickerford",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0024/feature/highstreet_access",
+          "area_id": "syn-n0024",
+          "kind": "feature",
+          "key": "highstreet_access",
+          "label": "Share of homes within a 10-minute walk of a high street or town centre",
+          "template": "feature",
+          "slots": {
+            "label": "Share of homes within a 10-minute walk of a high street or town centre",
+            "value": "52%",
+            "comparative": "less than",
+            "pct": "61",
+            "compared": "21",
+            "standing": "less than 61% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "52%",
+            "61%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0024/feature/park_proximity",
+          "area_id": "syn-n0024",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Walk to the nearest park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest park of 2 ha or more",
+            "value": "560 m",
+            "comparative": "closer than",
+            "pct": "76",
+            "compared": "21",
+            "standing": "closer than 76% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "560",
+            "76%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0024/feature/station_walk",
+          "area_id": "syn-n0024",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Walk to the nearest station",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest station",
+            "value": "2 min",
+            "comparative": "closer than",
+            "pct": "77",
+            "compared": "22",
+            "level": "4",
+            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others"
+          },
+          "numbers": [
+            "2",
+            "77%",
+            "22",
+            "4"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0024/tag/waterside",
+          "area_id": "syn-n0024",
+          "kind": "tag",
+          "key": "waterside",
+          "label": "Waterside",
+          "template": "tag",
+          "slots": {
+            "label": "Waterside",
+            "comparative": "above",
+            "pct": "63",
+            "compared": "22",
+            "standing": "above 63% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "63%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        }
+      ]
+    }
+  }
+}

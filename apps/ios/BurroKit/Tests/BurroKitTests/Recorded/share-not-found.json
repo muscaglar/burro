@@ -1,0 +1,34 @@
+{
+  "scenario": "share-not-found",
+  "shows": "A share id nobody made: 404",
+  "captured": true,
+  "request": {
+    "operation_id": "get_share",
+    "method": "GET",
+    "route": "/v1/shares/{share_id}",
+    "path": "/v1/shares/AAAAAAAAAAAAAAAAAAAAAA"
+  },
+  "status": 404,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "176",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-synthetic": "true",
+    "x-request-id": "823f366a-e4bc-4ba3-837f-4b0711171851"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.3.0",
+      "synthetic": true
+    },
+    "error": {
+      "code": "share_not_found",
+      "message": "There is no such shared search.",
+      "fields": []
+    }
+  }
+}

@@ -1,0 +1,1154 @@
+{
+  "scenario": "area-not-rankable",
+  "shows": "An area the release does not rank",
+  "captured": true,
+  "request": {
+    "operation_id": "get_area",
+    "method": "GET",
+    "route": "/v1/areas/{id_or_slug}",
+    "path": "/v1/areas/grapnel-dock"
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "cache-control": "public, max-age=3600",
+    "content-length": "17463",
+    "content-type": "application/json",
+    "etag": "\"syn-2026-09-23-01\"",
+    "vary": "Origin",
+    "x-burro-synthetic": "true",
+    "x-request-id": "b927fd3c-0f49-4c9e-b921-3d76d2ce95f2"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.3.0",
+      "synthetic": true
+    },
+    "data": {
+      "area": {
+        "area_id": "syn-n0009",
+        "slug": "grapnel-dock",
+        "name": "Grapnel Dock",
+        "borough": "Quillhaven",
+        "aliases": [],
+        "centroid": [
+          0.034291,
+          -0.016037
+        ],
+        "rankable": false,
+        "neighbours": [
+          "syn-n0017",
+          "syn-n0023"
+        ]
+      },
+      "features": [
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "air_no2",
+          "value": 32.5,
+          "percentile": 95.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "conservation_cover",
+          "value": 9.7,
+          "percentile": 31.6,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "crime_burglary_theft",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.05
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "crime_violence_robbery",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.16
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "culture_venues",
+          "value": 0.9,
+          "percentile": 9.5,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "green_cover",
+          "value": 4.8,
+          "percentile": 0.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "highstreet_access",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.44
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "homes_density",
+          "value": 45.7,
+          "percentile": 54.5,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "homes_flats",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.31
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "homes_pre1919",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.34
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "noise_exposure",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.07
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "park_proximity",
+          "value": 1240.0,
+          "percentile": 95.2,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "play_space_proximity",
+          "value": 900.0,
+          "percentile": 100.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "school_primary_attainment",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.29
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "school_primary_nearby",
+          "value": 2.0,
+          "percentile": 11.4,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "school_secondary_attainment",
+          "value": 39.7,
+          "percentile": 0.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "station_lines",
+          "value": 0.0,
+          "percentile": 15.9,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "station_walk",
+          "value": 34.0,
+          "percentile": 90.9,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "university_proximity",
+          "value": 2160.0,
+          "percentile": 13.6,
+          "coverage": 0.86
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "venue_evening",
+          "value": 0.8,
+          "percentile": 0.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "venue_food_drink",
+          "value": 13.6,
+          "percentile": 23.8,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "venue_independent",
+          "value": 37.4,
+          "percentile": 9.5,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "water_access",
+          "value": 16.1,
+          "percentile": 77.3,
+          "coverage": 1.0
+        }
+      ],
+      "tags": [
+        {
+          "area_id": "syn-n0009",
+          "tag_id": "village_feel",
+          "raw": 0.152154,
+          "score": 4.8,
+          "coverage": 0.65
+        },
+        {
+          "area_id": "syn-n0009",
+          "tag_id": "buzzy",
+          "raw": 0.113,
+          "score": 9.5,
+          "coverage": 0.8
+        },
+        {
+          "area_id": "syn-n0009",
+          "tag_id": "leafy",
+          "raw": 0.12815,
+          "score": 9.1,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "tag_id": "creative",
+          "raw": 0.095,
+          "score": 9.5,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "tag_id": "family_amenities",
+          "raw": 0.0584,
+          "score": 4.8,
+          "coverage": 0.75
+        },
+        {
+          "area_id": "syn-n0009",
+          "tag_id": "near_universities",
+          "raw": 0.864,
+          "score": 86.4,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "tag_id": "waterside",
+          "raw": 0.773,
+          "score": 77.3,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "tag_id": "strong_high_street",
+          "raw": null,
+          "score": null,
+          "coverage": 0.5
+        },
+        {
+          "area_id": "syn-n0009",
+          "tag_id": "evening_venues",
+          "raw": 0.0,
+          "score": 0.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "tag_id": "quiet_residential",
+          "raw": 0.819308,
+          "score": 76.2,
+          "coverage": 0.65
+        },
+        {
+          "area_id": "syn-n0009",
+          "tag_id": "foodie",
+          "raw": 0.1808,
+          "score": 14.3,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "tag_id": "historic_character",
+          "raw": null,
+          "score": null,
+          "coverage": 0.5
+        }
+      ],
+      "cost": [],
+      "stations": [
+        {
+          "area_id": "syn-n0009",
+          "station_id": "syn-s0015",
+          "name": "Wexmoor",
+          "walk_minutes": 34,
+          "lines": [
+            "Amber line"
+          ],
+          "step_free": true,
+          "nearest": true
+        }
+      ],
+      "neighbours": [
+        {
+          "area_id": "syn-n0017",
+          "slug": "otterby-fields",
+          "name": "Otterby Fields",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.058084,
+            -0.016212
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0023",
+          "slug": "wexmoor",
+          "name": "Wexmoor",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.033798,
+            0.000242
+          ],
+          "rankable": true
+        }
+      ],
+      "facts": [
+        {
+          "fact_id": "syn-n0009/area/name",
+          "area_id": "syn-n0009",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Grapnel Dock",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Grapnel Dock",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/air_no2",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "air_no2",
+          "label": "Modelled annual mean nitrogen dioxide",
+          "template": "feature",
+          "slots": {
+            "label": "Modelled annual mean nitrogen dioxide",
+            "value": "32.5 µg/m³",
+            "comparative": "higher than",
+            "pct": "95",
+            "compared": "20",
+            "standing": "higher than 95% of the 20 areas compared in this release"
+          },
+          "numbers": [
+            "32.5",
+            "95%",
+            "20"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/conservation_cover",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "conservation_cover",
+          "label": "Share of the area in a conservation area",
+          "template": "feature",
+          "slots": {
+            "label": "Share of the area in a conservation area",
+            "value": "10%",
+            "comparative": "less than",
+            "pct": "68",
+            "compared": "19",
+            "standing": "less than 68% of the 19 areas compared in this release"
+          },
+          "numbers": [
+            "10%",
+            "68%",
+            "19"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/culture_venues",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "culture_venues",
+          "label": "Theatres, cinemas, galleries, museums, libraries and music venues",
+          "template": "feature",
+          "slots": {
+            "label": "Theatres, cinemas, galleries, museums, libraries and music venues",
+            "value": "0.9 per km²",
+            "comparative": "fewer than",
+            "pct": "90",
+            "compared": "21",
+            "standing": "fewer than 90% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "0.9",
+            "90%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/green_cover",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "green_cover",
+          "label": "Public green space as a share of the area",
+          "template": "feature",
+          "slots": {
+            "label": "Public green space as a share of the area",
+            "value": "5%",
+            "comparative": "less green than",
+            "pct": "100",
+            "compared": "22",
+            "standing": "less green than 100% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "5%",
+            "100%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/homes_density",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "homes_density",
+          "label": "Homes per hectare",
+          "template": "feature",
+          "slots": {
+            "label": "Homes per hectare",
+            "value": "45.7 per ha",
+            "comparative": "denser than",
+            "pct": "54",
+            "compared": "22",
+            "standing": "denser than 54% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "45.7",
+            "54%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/park_proximity",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Walk to the nearest park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest park of 2 ha or more",
+            "value": "1240 m",
+            "comparative": "further than",
+            "pct": "95",
+            "compared": "21",
+            "standing": "further than 95% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "1240",
+            "95%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/play_space_proximity",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "play_space_proximity",
+          "label": "Walk to the nearest play space",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest play space",
+            "value": "900 m",
+            "comparative": "further than",
+            "pct": "100",
+            "compared": "21",
+            "standing": "further than 100% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "900",
+            "100%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/school_primary_nearby",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "school_primary_nearby",
+          "label": "State primary schools within a short walk",
+          "template": "feature",
+          "slots": {
+            "label": "State primary schools within a short walk",
+            "value": "2",
+            "comparative": "fewer than",
+            "pct": "77",
+            "compared": "22",
+            "level": "5",
+            "standing": "fewer than 77% of the 22 areas compared in this release, and the same as 5 others"
+          },
+          "numbers": [
+            "2",
+            "77%",
+            "22",
+            "5"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/school_secondary_attainment",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "school_secondary_attainment",
+          "label": "Attainment 8 at nearby secondaries",
+          "template": "feature",
+          "slots": {
+            "label": "Attainment 8 at nearby secondaries",
+            "value": "39.7 points",
+            "comparative": "lower than",
+            "pct": "100",
+            "compared": "21",
+            "standing": "lower than 100% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "39.7",
+            "100%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/station_lines",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "station_lines",
+          "label": "Lines within a 10-minute walk",
+          "template": "feature",
+          "slots": {
+            "label": "Lines within a 10-minute walk",
+            "value": "0",
+            "comparative": "fewer than",
+            "pct": "68",
+            "compared": "22",
+            "level": "7",
+            "standing": "fewer than 68% of the 22 areas compared in this release, and the same as 7 others"
+          },
+          "numbers": [
+            "0",
+            "68%",
+            "22",
+            "7"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/station_walk",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Walk to the nearest station",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest station",
+            "value": "34 min",
+            "comparative": "further than",
+            "pct": "90",
+            "compared": "22",
+            "standing": "further than 90% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "34",
+            "90%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/university_proximity",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "university_proximity",
+          "label": "Distance to the nearest university site",
+          "template": "feature",
+          "slots": {
+            "label": "Distance to the nearest university site",
+            "value": "2160 m",
+            "comparative": "closer than",
+            "pct": "86",
+            "compared": "22",
+            "standing": "closer than 86% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "2160",
+            "86%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/venue_evening",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "venue_evening",
+          "label": "Pubs, bars and evening venues",
+          "template": "feature",
+          "slots": {
+            "label": "Pubs, bars and evening venues",
+            "value": "0.8 per km²",
+            "comparative": "fewer than",
+            "pct": "100",
+            "compared": "21",
+            "standing": "fewer than 100% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "0.8",
+            "100%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/venue_food_drink",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "venue_food_drink",
+          "label": "Places to eat and drink",
+          "template": "feature",
+          "slots": {
+            "label": "Places to eat and drink",
+            "value": "13.6 per km²",
+            "comparative": "fewer than",
+            "pct": "76",
+            "compared": "21",
+            "standing": "fewer than 76% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "13.6",
+            "76%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/venue_independent",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "venue_independent",
+          "label": "Places to eat and drink that are not part of a chain",
+          "template": "feature",
+          "slots": {
+            "label": "Places to eat and drink that are not part of a chain",
+            "value": "37%",
+            "comparative": "fewer than",
+            "pct": "90",
+            "compared": "21",
+            "standing": "fewer than 90% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "37%",
+            "90%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/water_access",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "water_access",
+          "label": "Share of the area within 300 m of a river or canal",
+          "template": "feature",
+          "slots": {
+            "label": "Share of the area within 300 m of a river or canal",
+            "value": "16%",
+            "comparative": "more than",
+            "pct": "77",
+            "compared": "22",
+            "standing": "more than 77% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "16%",
+            "77%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/station/syn-s0015",
+          "area_id": "syn-n0009",
+          "kind": "station",
+          "key": "syn-s0015",
+          "label": "Station",
+          "template": "station",
+          "slots": {
+            "name": "Wexmoor",
+            "walk": "34",
+            "lines": "Amber line"
+          },
+          "numbers": [
+            "34"
+          ],
+          "names": [
+            "Wexmoor",
+            "Amber line"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/tag/buzzy",
+          "area_id": "syn-n0009",
+          "kind": "tag",
+          "key": "buzzy",
+          "label": "Buzzy",
+          "template": "tag",
+          "slots": {
+            "label": "Buzzy",
+            "comparative": "below",
+            "pct": "90",
+            "compared": "21",
+            "standing": "below 90% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "90%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/tag/creative",
+          "area_id": "syn-n0009",
+          "kind": "tag",
+          "key": "creative",
+          "label": "Creative",
+          "template": "tag",
+          "slots": {
+            "label": "Creative",
+            "comparative": "below",
+            "pct": "90",
+            "compared": "21",
+            "standing": "below 90% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "90%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/tag/evening_venues",
+          "area_id": "syn-n0009",
+          "kind": "tag",
+          "key": "evening_venues",
+          "label": "Evening venues",
+          "template": "tag",
+          "slots": {
+            "label": "Evening venues",
+            "comparative": "below",
+            "pct": "100",
+            "compared": "21",
+            "standing": "below 100% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "100%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/tag/family_amenities",
+          "area_id": "syn-n0009",
+          "kind": "tag",
+          "key": "family_amenities",
+          "label": "Family amenities",
+          "template": "tag",
+          "slots": {
+            "label": "Family amenities",
+            "comparative": "below",
+            "pct": "95",
+            "compared": "21",
+            "standing": "below 95% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "95%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/tag/foodie",
+          "area_id": "syn-n0009",
+          "kind": "tag",
+          "key": "foodie",
+          "label": "Foodie",
+          "template": "tag",
+          "slots": {
+            "label": "Foodie",
+            "comparative": "below",
+            "pct": "85",
+            "compared": "21",
+            "standing": "below 85% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "85%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/tag/leafy",
+          "area_id": "syn-n0009",
+          "kind": "tag",
+          "key": "leafy",
+          "label": "Leafy",
+          "template": "tag",
+          "slots": {
+            "label": "Leafy",
+            "comparative": "below",
+            "pct": "90",
+            "compared": "22",
+            "standing": "below 90% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "90%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/tag/near_universities",
+          "area_id": "syn-n0009",
+          "kind": "tag",
+          "key": "near_universities",
+          "label": "Near universities",
+          "template": "tag",
+          "slots": {
+            "label": "Near universities",
+            "comparative": "above",
+            "pct": "86",
+            "compared": "22",
+            "standing": "above 86% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "86%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/tag/quiet_residential",
+          "area_id": "syn-n0009",
+          "kind": "tag",
+          "key": "quiet_residential",
+          "label": "Quiet residential",
+          "template": "tag",
+          "slots": {
+            "label": "Quiet residential",
+            "comparative": "above",
+            "pct": "76",
+            "compared": "21",
+            "standing": "above 76% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "76%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/tag/village_feel",
+          "area_id": "syn-n0009",
+          "kind": "tag",
+          "key": "village_feel",
+          "label": "Village feel",
+          "template": "tag",
+          "slots": {
+            "label": "Village feel",
+            "comparative": "below",
+            "pct": "95",
+            "compared": "21",
+            "standing": "below 95% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "95%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/tag/waterside",
+          "area_id": "syn-n0009",
+          "kind": "tag",
+          "key": "waterside",
+          "label": "Waterside",
+          "template": "tag",
+          "slots": {
+            "label": "Waterside",
+            "comparative": "above",
+            "pct": "77",
+            "compared": "22",
+            "standing": "above 77% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "77%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        }
+      ]
+    }
+  }
+}

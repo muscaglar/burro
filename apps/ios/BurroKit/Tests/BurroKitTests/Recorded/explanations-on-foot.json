@@ -1,0 +1,1221 @@
+{
+  "scenario": "explanations-on-foot",
+  "shows": "Reasons and trade-offs where a journey is beyond the longest time the release holds",
+  "captured": true,
+  "request": {
+    "operation_id": "explain_top",
+    "method": "POST",
+    "route": "/v1/explanations",
+    "path": "/v1/explanations",
+    "body": {
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": 1700,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.8,
+          "provenance": "stated"
+        },
+        "commutes": [
+          {
+            "place_id": "syn-p0021",
+            "mode": "walk",
+            "max_minutes": 35,
+            "strictness": "soft",
+            "provenance": "ui_edit"
+          }
+        ],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 1.0,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [
+          {
+            "tag_id": "leafy",
+            "weight": 0.5,
+            "provenance": "stated"
+          },
+          {
+            "tag_id": "quiet_residential",
+            "weight": 0.5,
+            "provenance": "stated"
+          }
+        ],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "limit": 5
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "17822",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-synthetic": "true",
+    "x-request-id": "97f82f7c-73e7-4972-96b0-f1bdc751faa7"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.3.0",
+      "synthetic": true
+    },
+    "data": {
+      "explanations": [
+        {
+          "area_id": "syn-n0003",
+          "orientation": {
+            "text": "Cindermoor is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0003/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "On foot to Cindermoor Works: about 2 minutes.",
+              "fact_ids": [
+                "syn-n0003/travel/syn-p0021.walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "The upper end is £650 under your budget of £1,700.",
+              "fact_ids": [
+                "syn-n0003/budget_fit/rent.bed_1"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Quiet residential: ranks above 66% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0003/tag/quiet_residential"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Leafy: ranks below 68% of the 22 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0003/tag/leafy"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0006",
+          "orientation": {
+            "text": "Farrowmere is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0006/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "The upper end is £400 under your budget of £1,700.",
+              "fact_ids": [
+                "syn-n0006/budget_fit/rent.bed_1"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "On foot to Cindermoor Works: about 30 minutes.",
+              "fact_ids": [
+                "syn-n0006/travel/syn-p0021.walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Quiet residential: ranks above 80% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0006/tag/quiet_residential"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Walk to the nearest station: 5 min, further than 50% of the 22 areas compared in this release, and the same as 1 other.",
+            "fact_ids": [
+              "syn-n0006/feature/station_walk"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0017",
+          "orientation": {
+            "text": "Otterby Fields is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0017/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "The upper end is £350 under your budget of £1,700.",
+              "fact_ids": [
+                "syn-n0017/budget_fit/rent.bed_1"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "On foot to Cindermoor Works: about 28 minutes.",
+              "fact_ids": [
+                "syn-n0017/travel/syn-p0021.walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Leafy: ranks above 50% of the 22 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0017/tag/leafy"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Walk to the nearest station: 27 min, further than 77% of the 22 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0017/feature/station_walk"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": [
+            {
+              "text": "There is no Modelled annual mean nitrogen dioxide figure for Otterby Fields in this release, so it was left out of the score.",
+              "fact_ids": [
+                "syn-n0017/missing/feature:air_no2"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "There is no Share of homes within a 10-minute walk of a high street or town centre figure for Otterby Fields in this release, so it was left out of the score.",
+              "fact_ids": [
+                "syn-n0017/missing/feature:highstreet_access"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "There is no Share of homes at 55 dB or more of transport noise figure for Otterby Fields in this release, so it was left out of the score.",
+              "fact_ids": [
+                "syn-n0017/missing/feature:noise_exposure"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "There is no Walk to the nearest park of 2 ha or more figure for Otterby Fields in this release, so it was left out of the score.",
+              "fact_ids": [
+                "syn-n0017/missing/feature:park_proximity"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "There is no Quiet residential figure for Otterby Fields in this release, so it was left out of the score.",
+              "fact_ids": [
+                "syn-n0017/missing/tag:quiet_residential"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0008",
+          "orientation": {
+            "text": "Gorsebeck is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0008/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "The upper end is £150 under your budget of £1,700.",
+              "fact_ids": [
+                "syn-n0008/budget_fit/rent.bed_1"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Quiet residential: ranks above 90% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0008/tag/quiet_residential"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Leafy: ranks above 86% of the 22 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0008/tag/leafy"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "On foot to Cindermoor Works: more than 60 minutes.",
+            "fact_ids": [
+              "syn-n0008/travel/syn-p0021.walk"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0014",
+          "orientation": {
+            "text": "Marrowfen is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0014/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "The upper end is £275 under your budget of £1,700.",
+              "fact_ids": [
+                "syn-n0014/budget_fit/rent.bed_1"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Quiet residential: ranks above 85% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0014/tag/quiet_residential"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Leafy: ranks above 59% of the 22 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0014/tag/leafy"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "On foot to Cindermoor Works: more than 60 minutes.",
+            "fact_ids": [
+              "syn-n0014/travel/syn-p0021.walk"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": [
+            {
+              "text": "There is no Share of homes at 55 dB or more of transport noise figure for Marrowfen in this release, so it was left out of the score.",
+              "fact_ids": [
+                "syn-n0014/missing/feature:noise_exposure"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ]
+        }
+      ],
+      "facts": [
+        {
+          "fact_id": "syn-n0003/area/name",
+          "area_id": "syn-n0003",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Cindermoor",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Cindermoor",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/budget_fit/rent.bed_1",
+          "area_id": "syn-n0003",
+          "kind": "budget_fit",
+          "key": "rent.bed_1",
+          "label": "Budget",
+          "template": "budget_under",
+          "slots": {
+            "margin": "650",
+            "amount": "1,700",
+            "upper": "1,050"
+          },
+          "numbers": [
+            "£1700",
+            "£1050",
+            "£650"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/tag/leafy",
+          "area_id": "syn-n0003",
+          "kind": "tag",
+          "key": "leafy",
+          "label": "Leafy",
+          "template": "tag",
+          "slots": {
+            "label": "Leafy",
+            "comparative": "below",
+            "pct": "68",
+            "compared": "22",
+            "standing": "below 68% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "68%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/tag/quiet_residential",
+          "area_id": "syn-n0003",
+          "kind": "tag",
+          "key": "quiet_residential",
+          "label": "Quiet residential",
+          "template": "tag",
+          "slots": {
+            "label": "Quiet residential",
+            "comparative": "above",
+            "pct": "66",
+            "compared": "21",
+            "standing": "above 66% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "66%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/travel/syn-p0021.walk",
+          "area_id": "syn-n0003",
+          "kind": "travel",
+          "key": "syn-p0021.walk",
+          "label": "Journey",
+          "template": "travel_other",
+          "slots": {
+            "mode": "On foot",
+            "place": "Cindermoor Works",
+            "minutes": "2"
+          },
+          "numbers": [
+            "2"
+          ],
+          "names": [
+            "Cindermoor Works"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/area/name",
+          "area_id": "syn-n0006",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Farrowmere",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Farrowmere",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/budget_fit/rent.bed_1",
+          "area_id": "syn-n0006",
+          "kind": "budget_fit",
+          "key": "rent.bed_1",
+          "label": "Budget",
+          "template": "budget_under",
+          "slots": {
+            "margin": "400",
+            "amount": "1,700",
+            "upper": "1,300"
+          },
+          "numbers": [
+            "£1700",
+            "£1300",
+            "£400"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/feature/station_walk",
+          "area_id": "syn-n0006",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Walk to the nearest station",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest station",
+            "value": "5 min",
+            "comparative": "further than",
+            "pct": "50",
+            "compared": "22",
+            "level": "1",
+            "standing": "further than 50% of the 22 areas compared in this release, and the same as 1 other"
+          },
+          "numbers": [
+            "5",
+            "50%",
+            "22",
+            "1"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/tag/quiet_residential",
+          "area_id": "syn-n0006",
+          "kind": "tag",
+          "key": "quiet_residential",
+          "label": "Quiet residential",
+          "template": "tag",
+          "slots": {
+            "label": "Quiet residential",
+            "comparative": "above",
+            "pct": "80",
+            "compared": "21",
+            "standing": "above 80% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "80%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/travel/syn-p0021.walk",
+          "area_id": "syn-n0006",
+          "kind": "travel",
+          "key": "syn-p0021.walk",
+          "label": "Journey",
+          "template": "travel_other",
+          "slots": {
+            "mode": "On foot",
+            "place": "Cindermoor Works",
+            "minutes": "30"
+          },
+          "numbers": [
+            "30"
+          ],
+          "names": [
+            "Cindermoor Works"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/area/name",
+          "area_id": "syn-n0017",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Otterby Fields",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Otterby Fields",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/budget_fit/rent.bed_1",
+          "area_id": "syn-n0017",
+          "kind": "budget_fit",
+          "key": "rent.bed_1",
+          "label": "Budget",
+          "template": "budget_under",
+          "slots": {
+            "margin": "350",
+            "amount": "1,700",
+            "upper": "1,350"
+          },
+          "numbers": [
+            "£1700",
+            "£1350",
+            "£350"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/feature/station_walk",
+          "area_id": "syn-n0017",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Walk to the nearest station",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest station",
+            "value": "27 min",
+            "comparative": "further than",
+            "pct": "77",
+            "compared": "22",
+            "standing": "further than 77% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "27",
+            "77%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/missing/feature:air_no2",
+          "area_id": "syn-n0017",
+          "kind": "missing",
+          "key": "feature:air_no2",
+          "label": "Modelled annual mean nitrogen dioxide",
+          "template": "missing",
+          "slots": {
+            "label": "Modelled annual mean nitrogen dioxide",
+            "name": "Otterby Fields"
+          },
+          "numbers": [],
+          "names": [
+            "Otterby Fields"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/missing/feature:highstreet_access",
+          "area_id": "syn-n0017",
+          "kind": "missing",
+          "key": "feature:highstreet_access",
+          "label": "Share of homes within a 10-minute walk of a high street or town centre",
+          "template": "missing",
+          "slots": {
+            "label": "Share of homes within a 10-minute walk of a high street or town centre",
+            "name": "Otterby Fields"
+          },
+          "numbers": [],
+          "names": [
+            "Otterby Fields"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/missing/feature:noise_exposure",
+          "area_id": "syn-n0017",
+          "kind": "missing",
+          "key": "feature:noise_exposure",
+          "label": "Share of homes at 55 dB or more of transport noise",
+          "template": "missing",
+          "slots": {
+            "label": "Share of homes at 55 dB or more of transport noise",
+            "name": "Otterby Fields"
+          },
+          "numbers": [],
+          "names": [
+            "Otterby Fields"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/missing/feature:park_proximity",
+          "area_id": "syn-n0017",
+          "kind": "missing",
+          "key": "feature:park_proximity",
+          "label": "Walk to the nearest park of 2 ha or more",
+          "template": "missing",
+          "slots": {
+            "label": "Walk to the nearest park of 2 ha or more",
+            "name": "Otterby Fields"
+          },
+          "numbers": [],
+          "names": [
+            "Otterby Fields"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/missing/tag:quiet_residential",
+          "area_id": "syn-n0017",
+          "kind": "missing",
+          "key": "tag:quiet_residential",
+          "label": "Quiet residential",
+          "template": "missing",
+          "slots": {
+            "label": "Quiet residential",
+            "name": "Otterby Fields"
+          },
+          "numbers": [],
+          "names": [
+            "Otterby Fields"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/tag/leafy",
+          "area_id": "syn-n0017",
+          "kind": "tag",
+          "key": "leafy",
+          "label": "Leafy",
+          "template": "tag",
+          "slots": {
+            "label": "Leafy",
+            "comparative": "above",
+            "pct": "50",
+            "compared": "22",
+            "standing": "above 50% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "50%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/travel/syn-p0021.walk",
+          "area_id": "syn-n0017",
+          "kind": "travel",
+          "key": "syn-p0021.walk",
+          "label": "Journey",
+          "template": "travel_other",
+          "slots": {
+            "mode": "On foot",
+            "place": "Cindermoor Works",
+            "minutes": "28"
+          },
+          "numbers": [
+            "28"
+          ],
+          "names": [
+            "Cindermoor Works"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/area/name",
+          "area_id": "syn-n0008",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Gorsebeck",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Gorsebeck",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/budget_fit/rent.bed_1",
+          "area_id": "syn-n0008",
+          "kind": "budget_fit",
+          "key": "rent.bed_1",
+          "label": "Budget",
+          "template": "budget_under",
+          "slots": {
+            "margin": "150",
+            "amount": "1,700",
+            "upper": "1,550"
+          },
+          "numbers": [
+            "£1700",
+            "£1550",
+            "£150"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/tag/leafy",
+          "area_id": "syn-n0008",
+          "kind": "tag",
+          "key": "leafy",
+          "label": "Leafy",
+          "template": "tag",
+          "slots": {
+            "label": "Leafy",
+            "comparative": "above",
+            "pct": "86",
+            "compared": "22",
+            "standing": "above 86% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "86%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/tag/quiet_residential",
+          "area_id": "syn-n0008",
+          "kind": "tag",
+          "key": "quiet_residential",
+          "label": "Quiet residential",
+          "template": "tag",
+          "slots": {
+            "label": "Quiet residential",
+            "comparative": "above",
+            "pct": "90",
+            "compared": "21",
+            "standing": "above 90% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "90%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/travel/syn-p0021.walk",
+          "area_id": "syn-n0008",
+          "kind": "travel",
+          "key": "syn-p0021.walk",
+          "label": "Journey",
+          "template": "travel_beyond",
+          "slots": {
+            "mode": "On foot",
+            "place": "Cindermoor Works",
+            "cutoff": "60"
+          },
+          "numbers": [
+            "60"
+          ],
+          "names": [
+            "Cindermoor Works"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/area/name",
+          "area_id": "syn-n0014",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Marrowfen",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Marrowfen",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/budget_fit/rent.bed_1",
+          "area_id": "syn-n0014",
+          "kind": "budget_fit",
+          "key": "rent.bed_1",
+          "label": "Budget",
+          "template": "budget_under",
+          "slots": {
+            "margin": "275",
+            "amount": "1,700",
+            "upper": "1,425"
+          },
+          "numbers": [
+            "£1700",
+            "£1425",
+            "£275"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/missing/feature:noise_exposure",
+          "area_id": "syn-n0014",
+          "kind": "missing",
+          "key": "feature:noise_exposure",
+          "label": "Share of homes at 55 dB or more of transport noise",
+          "template": "missing",
+          "slots": {
+            "label": "Share of homes at 55 dB or more of transport noise",
+            "name": "Marrowfen"
+          },
+          "numbers": [],
+          "names": [
+            "Marrowfen"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/tag/leafy",
+          "area_id": "syn-n0014",
+          "kind": "tag",
+          "key": "leafy",
+          "label": "Leafy",
+          "template": "tag",
+          "slots": {
+            "label": "Leafy",
+            "comparative": "above",
+            "pct": "59",
+            "compared": "22",
+            "standing": "above 59% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "59%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/tag/quiet_residential",
+          "area_id": "syn-n0014",
+          "kind": "tag",
+          "key": "quiet_residential",
+          "label": "Quiet residential",
+          "template": "tag",
+          "slots": {
+            "label": "Quiet residential",
+            "comparative": "above",
+            "pct": "85",
+            "compared": "21",
+            "standing": "above 85% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "85%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/travel/syn-p0021.walk",
+          "area_id": "syn-n0014",
+          "kind": "travel",
+          "key": "syn-p0021.walk",
+          "label": "Journey",
+          "template": "travel_beyond",
+          "slots": {
+            "mode": "On foot",
+            "place": "Cindermoor Works",
+            "cutoff": "60"
+          },
+          "numbers": [
+            "60"
+          ],
+          "names": [
+            "Cindermoor Works"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        }
+      ]
+    }
+  }
+}

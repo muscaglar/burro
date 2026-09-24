@@ -1,0 +1,1070 @@
+{
+  "scenario": "explanations-nights-out",
+  "shows": "Reasons and a trade-off for the first five, with every fact they cite",
+  "captured": true,
+  "request": {
+    "operation_id": "explain_top",
+    "method": "POST",
+    "route": "/v1/explanations",
+    "path": "/v1/explanations",
+    "body": {
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.8,
+          "provenance": "default"
+        },
+        "commutes": [
+          {
+            "place_id": "syn-p0017",
+            "mode": "pt",
+            "max_minutes": 45,
+            "strictness": "soft",
+            "provenance": "stated"
+          }
+        ],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 1.0,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "venue_evening",
+            "weight": 0.5,
+            "direction": "more",
+            "provenance": "stated"
+          },
+          {
+            "feature_id": "venue_food_drink",
+            "weight": 0.5,
+            "direction": "more",
+            "provenance": "stated"
+          }
+        ],
+        "tags": [
+          {
+            "tag_id": "buzzy",
+            "weight": 0.5,
+            "provenance": "stated"
+          }
+        ],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "limit": 5
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "16053",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-synthetic": "true",
+    "x-request-id": "069d1df8-a3bb-47df-ac41-197db88da956"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.3.0",
+      "synthetic": true
+    },
+    "data": {
+      "explanations": [
+        {
+          "area_id": "syn-n0018",
+          "orientation": {
+            "text": "Pellam Cross is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0018/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By public transport to Pellam Exchange: about 2 minutes on a typical weekday morning, 2 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0018/travel/syn-p0017.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Pubs, bars and evening venues: 46.6 per km², more than 95% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0018/feature/venue_evening"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Places to eat and drink: 140.7 per km², more than 95% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0018/feature/venue_food_drink"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Modelled annual mean nitrogen dioxide: 34.5 µg/m³, higher than 95% of the 20 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0018/feature/air_no2"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0012",
+          "orientation": {
+            "text": "Lantern Yard is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0012/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By public transport to Pellam Exchange: about 10 minutes on a typical weekday morning, 13 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0012/travel/syn-p0017.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Pubs, bars and evening venues: 42 per km², more than 90% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0012/feature/venue_evening"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Places to eat and drink: 117.9 per km², more than 90% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0012/feature/venue_food_drink"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Walk to the nearest park of 2 ha or more: 1140 m, further than 90% of the 21 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0012/feature/park_proximity"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0011",
+          "orientation": {
+            "text": "Kindlewharf is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0011/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By public transport to Pellam Exchange: about 13 minutes on a typical weekday morning, 16 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0011/travel/syn-p0017.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Pubs, bars and evening venues: 29.6 per km², more than 85% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0011/feature/venue_evening"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Places to eat and drink: 96.3 per km², more than 85% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0011/feature/venue_food_drink"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Walk to the nearest station: 6 min, further than 59% of the 22 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0011/feature/station_walk"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0021",
+          "orientation": {
+            "text": "Tallowgate is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0021/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By public transport to Pellam Exchange: about 9 minutes on a typical weekday morning, 11 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0021/travel/syn-p0017.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Buzzy: ranks above 85% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0021/tag/buzzy"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Places to eat and drink: 88.7 per km², more than 80% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0021/feature/venue_food_drink"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Walk to the nearest park of 2 ha or more: 1070 m, further than 80% of the 21 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0021/feature/park_proximity"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0010",
+          "orientation": {
+            "text": "Hollinsworth Quay is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0010/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By public transport to Pellam Exchange: about 10 minutes on a typical weekday morning, 12 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0010/travel/syn-p0017.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Pubs, bars and evening venues: 24.1 per km², more than 80% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0010/feature/venue_evening"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Places to eat and drink: 86 per km², more than 76% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0010/feature/venue_food_drink"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Modelled annual mean nitrogen dioxide: 29.8 µg/m³, higher than 90% of the 20 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0010/feature/air_no2"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        }
+      ],
+      "facts": [
+        {
+          "fact_id": "syn-n0018/area/name",
+          "area_id": "syn-n0018",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Pellam Cross",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Pellam Cross",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/feature/air_no2",
+          "area_id": "syn-n0018",
+          "kind": "feature",
+          "key": "air_no2",
+          "label": "Modelled annual mean nitrogen dioxide",
+          "template": "feature",
+          "slots": {
+            "label": "Modelled annual mean nitrogen dioxide",
+            "value": "34.5 µg/m³",
+            "comparative": "higher than",
+            "pct": "95",
+            "compared": "20",
+            "standing": "higher than 95% of the 20 areas compared in this release"
+          },
+          "numbers": [
+            "34.5",
+            "95%",
+            "20"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/feature/venue_evening",
+          "area_id": "syn-n0018",
+          "kind": "feature",
+          "key": "venue_evening",
+          "label": "Pubs, bars and evening venues",
+          "template": "feature",
+          "slots": {
+            "label": "Pubs, bars and evening venues",
+            "value": "46.6 per km²",
+            "comparative": "more than",
+            "pct": "95",
+            "compared": "21",
+            "standing": "more than 95% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "46.6",
+            "95%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/feature/venue_food_drink",
+          "area_id": "syn-n0018",
+          "kind": "feature",
+          "key": "venue_food_drink",
+          "label": "Places to eat and drink",
+          "template": "feature",
+          "slots": {
+            "label": "Places to eat and drink",
+            "value": "140.7 per km²",
+            "comparative": "more than",
+            "pct": "95",
+            "compared": "21",
+            "standing": "more than 95% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "140.7",
+            "95%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0018/travel/syn-p0017.pt",
+          "area_id": "syn-n0018",
+          "kind": "travel",
+          "key": "syn-p0017.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Pellam Exchange",
+            "typical": "2",
+            "missed": "2"
+          },
+          "numbers": [
+            "2"
+          ],
+          "names": [
+            "Pellam Exchange"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0012/area/name",
+          "area_id": "syn-n0012",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Lantern Yard",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Lantern Yard",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0012/feature/park_proximity",
+          "area_id": "syn-n0012",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Walk to the nearest park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest park of 2 ha or more",
+            "value": "1140 m",
+            "comparative": "further than",
+            "pct": "90",
+            "compared": "21",
+            "standing": "further than 90% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "1140",
+            "90%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0012/feature/venue_evening",
+          "area_id": "syn-n0012",
+          "kind": "feature",
+          "key": "venue_evening",
+          "label": "Pubs, bars and evening venues",
+          "template": "feature",
+          "slots": {
+            "label": "Pubs, bars and evening venues",
+            "value": "42 per km²",
+            "comparative": "more than",
+            "pct": "90",
+            "compared": "21",
+            "standing": "more than 90% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "42",
+            "90%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0012/feature/venue_food_drink",
+          "area_id": "syn-n0012",
+          "kind": "feature",
+          "key": "venue_food_drink",
+          "label": "Places to eat and drink",
+          "template": "feature",
+          "slots": {
+            "label": "Places to eat and drink",
+            "value": "117.9 per km²",
+            "comparative": "more than",
+            "pct": "90",
+            "compared": "21",
+            "standing": "more than 90% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "117.9",
+            "90%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0012/travel/syn-p0017.pt",
+          "area_id": "syn-n0012",
+          "kind": "travel",
+          "key": "syn-p0017.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Pellam Exchange",
+            "typical": "10",
+            "missed": "13"
+          },
+          "numbers": [
+            "10",
+            "13"
+          ],
+          "names": [
+            "Pellam Exchange"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0011/area/name",
+          "area_id": "syn-n0011",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Kindlewharf",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Kindlewharf",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0011/feature/station_walk",
+          "area_id": "syn-n0011",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Walk to the nearest station",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest station",
+            "value": "6 min",
+            "comparative": "further than",
+            "pct": "59",
+            "compared": "22",
+            "standing": "further than 59% of the 22 areas compared in this release"
+          },
+          "numbers": [
+            "6",
+            "59%",
+            "22"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0011/feature/venue_evening",
+          "area_id": "syn-n0011",
+          "kind": "feature",
+          "key": "venue_evening",
+          "label": "Pubs, bars and evening venues",
+          "template": "feature",
+          "slots": {
+            "label": "Pubs, bars and evening venues",
+            "value": "29.6 per km²",
+            "comparative": "more than",
+            "pct": "85",
+            "compared": "21",
+            "standing": "more than 85% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "29.6",
+            "85%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0011/feature/venue_food_drink",
+          "area_id": "syn-n0011",
+          "kind": "feature",
+          "key": "venue_food_drink",
+          "label": "Places to eat and drink",
+          "template": "feature",
+          "slots": {
+            "label": "Places to eat and drink",
+            "value": "96.3 per km²",
+            "comparative": "more than",
+            "pct": "85",
+            "compared": "21",
+            "standing": "more than 85% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "96.3",
+            "85%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0011/travel/syn-p0017.pt",
+          "area_id": "syn-n0011",
+          "kind": "travel",
+          "key": "syn-p0017.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Pellam Exchange",
+            "typical": "13",
+            "missed": "16"
+          },
+          "numbers": [
+            "13",
+            "16"
+          ],
+          "names": [
+            "Pellam Exchange"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/area/name",
+          "area_id": "syn-n0021",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Tallowgate",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Tallowgate",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/feature/park_proximity",
+          "area_id": "syn-n0021",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Walk to the nearest park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest park of 2 ha or more",
+            "value": "1070 m",
+            "comparative": "further than",
+            "pct": "80",
+            "compared": "21",
+            "standing": "further than 80% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "1070",
+            "80%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/feature/venue_food_drink",
+          "area_id": "syn-n0021",
+          "kind": "feature",
+          "key": "venue_food_drink",
+          "label": "Places to eat and drink",
+          "template": "feature",
+          "slots": {
+            "label": "Places to eat and drink",
+            "value": "88.7 per km²",
+            "comparative": "more than",
+            "pct": "80",
+            "compared": "21",
+            "standing": "more than 80% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "88.7",
+            "80%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/tag/buzzy",
+          "area_id": "syn-n0021",
+          "kind": "tag",
+          "key": "buzzy",
+          "label": "Buzzy",
+          "template": "tag",
+          "slots": {
+            "label": "Buzzy",
+            "comparative": "above",
+            "pct": "85",
+            "compared": "21",
+            "standing": "above 85% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "85%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/travel/syn-p0017.pt",
+          "area_id": "syn-n0021",
+          "kind": "travel",
+          "key": "syn-p0017.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Pellam Exchange",
+            "typical": "9",
+            "missed": "11"
+          },
+          "numbers": [
+            "9",
+            "11"
+          ],
+          "names": [
+            "Pellam Exchange"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0010/area/name",
+          "area_id": "syn-n0010",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Hollinsworth Quay",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Hollinsworth Quay",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0010/feature/air_no2",
+          "area_id": "syn-n0010",
+          "kind": "feature",
+          "key": "air_no2",
+          "label": "Modelled annual mean nitrogen dioxide",
+          "template": "feature",
+          "slots": {
+            "label": "Modelled annual mean nitrogen dioxide",
+            "value": "29.8 µg/m³",
+            "comparative": "higher than",
+            "pct": "90",
+            "compared": "20",
+            "standing": "higher than 90% of the 20 areas compared in this release"
+          },
+          "numbers": [
+            "29.8",
+            "90%",
+            "20"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0010/feature/venue_evening",
+          "area_id": "syn-n0010",
+          "kind": "feature",
+          "key": "venue_evening",
+          "label": "Pubs, bars and evening venues",
+          "template": "feature",
+          "slots": {
+            "label": "Pubs, bars and evening venues",
+            "value": "24.1 per km²",
+            "comparative": "more than",
+            "pct": "80",
+            "compared": "21",
+            "standing": "more than 80% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "24.1",
+            "80%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0010/feature/venue_food_drink",
+          "area_id": "syn-n0010",
+          "kind": "feature",
+          "key": "venue_food_drink",
+          "label": "Places to eat and drink",
+          "template": "feature",
+          "slots": {
+            "label": "Places to eat and drink",
+            "value": "86 per km²",
+            "comparative": "more than",
+            "pct": "76",
+            "compared": "21",
+            "standing": "more than 76% of the 21 areas compared in this release"
+          },
+          "numbers": [
+            "86",
+            "76%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0010/travel/syn-p0017.pt",
+          "area_id": "syn-n0010",
+          "kind": "travel",
+          "key": "syn-p0017.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Pellam Exchange",
+            "typical": "10",
+            "missed": "12"
+          },
+          "numbers": [
+            "10",
+            "12"
+          ],
+          "names": [
+            "Pellam Exchange"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        }
+      ]
+    }
+  }
+}

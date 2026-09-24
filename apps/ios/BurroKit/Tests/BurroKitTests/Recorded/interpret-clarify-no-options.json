@@ -1,0 +1,184 @@
+{
+  "scenario": "interpret-clarify-no-options",
+  "shows": "A name that matches nothing: a question with no options, so a search box",
+  "captured": true,
+  "request": {
+    "operation_id": "interpret",
+    "method": "POST",
+    "route": "/v1/interpret",
+    "path": "/v1/interpret",
+    "body": {
+      "text": "Quiet, and I work in Quillfeather"
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "2043",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-synthetic": "true",
+    "x-request-id": "6df8623c-c582-4885-a416-bf6bbb145b22"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.3.0",
+      "synthetic": true
+    },
+    "data": {
+      "status": "clarify",
+      "operations": {
+        "budget_ops": [],
+        "commute_ops": [
+          {
+            "action": "add",
+            "place_id": "",
+            "mode": "unchanged",
+            "max_minutes": 0,
+            "strictness": "unchanged",
+            "step": "none",
+            "provenance": "stated"
+          }
+        ],
+        "weight_ops": [],
+        "tag_ops": [
+          {
+            "action": "nudge",
+            "tag_id": "quiet_residential",
+            "value": 0.0,
+            "step": "up_large",
+            "provenance": "stated"
+          }
+        ],
+        "area_ops": [],
+        "setting_ops": []
+      },
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.8,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 1.0,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [
+          {
+            "tag_id": "quiet_residential",
+            "weight": 0.5,
+            "provenance": "stated"
+          }
+        ],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "spec_hash": "e558dadaa75386e19f6538bf369b6976ff54071e85529f613a83e4780af45425",
+      "applied": [
+        {
+          "group": "tag_ops",
+          "index": 0,
+          "changed": true
+        }
+      ],
+      "rejected": [
+        {
+          "group": "commute_ops",
+          "index": 0,
+          "reason": "unknown_place"
+        }
+      ],
+      "assumptions": [
+        {
+          "code": "mode",
+          "group": "commute_ops",
+          "index": 0
+        },
+        {
+          "code": "max_minutes",
+          "group": "commute_ops",
+          "index": 0
+        },
+        {
+          "code": "strictness",
+          "group": "commute_ops",
+          "index": 0
+        }
+      ],
+      "unmet": [],
+      "clarify": [
+        {
+          "group": "commute_ops",
+          "index": 0,
+          "options": []
+        }
+      ],
+      "notice": "none",
+      "notice_text": "",
+      "interpreter": "rule",
+      "degraded": false,
+      "rests_on": [
+        {
+          "group": "commute_ops",
+          "index": 0,
+          "start": 13,
+          "end": 33
+        },
+        {
+          "group": "tag_ops",
+          "index": 0,
+          "start": 0,
+          "end": 5
+        }
+      ]
+    }
+  }
+}
