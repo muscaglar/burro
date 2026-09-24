@@ -1,5 +1,5 @@
-import { NOTICE, REJECTED, REJECTED_LABEL, UNMET, UNMET_LABEL } from "@/content/search";
-import type { InterpretData, Notice, UnmetCategory } from "@/lib/api/schema";
+import { NOTICE, REJECTED_LABEL, UNMET, UNMET_LABEL, whyRefused } from "@/content/search";
+import type { InterpretData, MetaData, Notice, UnmetCategory } from "@/lib/api/schema";
 import type { Refusal } from "@/lib/search/refusals";
 
 import styles from "./NoticeBlock.module.css";
@@ -50,10 +50,12 @@ interface RejectedProps {
   readonly refusals: readonly Refusal[];
   /** The name of the part a refusal is about, where it has one: the API's label, or a place's name. */
   readonly nameOf: (key: string) => string | null;
+  /** The vibes and the features of the release, for what the rule on recorded crime is true of. */
+  readonly meta?: Pick<MetaData, "tags" | "features">;
 }
 
 /** One line for each edit that was not applied, with what it was about and why. */
-export function RejectedList({ refusals, nameOf }: RejectedProps) {
+export function RejectedList({ refusals, nameOf, meta }: RejectedProps) {
   if (refusals.length === 0) return null;
   return (
     <section className={styles.list} aria-label={REJECTED_LABEL}>
@@ -63,7 +65,7 @@ export function RejectedList({ refusals, nameOf }: RejectedProps) {
           return (
             <li key={`${key ?? "none"}-${reason}-${at}`}>
               {about !== null ? <strong>{about}: </strong> : null}
-              {REJECTED[reason]}
+              {whyRefused(reason, meta)}
             </li>
           );
         })}

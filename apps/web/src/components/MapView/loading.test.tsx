@@ -32,7 +32,7 @@ async function show() {
       onSelect={() => undefined}
       onHover={() => undefined}
       onShowInList={() => undefined}
-      fallback={null}
+      table={null}
     />,
   );
   await arrived();

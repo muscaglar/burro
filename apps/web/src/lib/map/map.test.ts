@@ -9,18 +9,7 @@ import { recordedAnswer } from "@/lib/api/recorded";
 import { themes } from "../../../test/support/contrast";
 import { bandOf, BANDS, fillFor, fitOf, idsBy } from "./fill";
 import { boundsOf, pathOf, projector, ringsOf } from "./project";
-import {
-  buildStyle,
-  fillColour,
-  LAYER,
-  PATTERN_IMAGE,
-  PATTERN_SIZE,
-  patternFilter,
-  patternPixels,
-  SOURCE,
-  THEME_TOKENS,
-  themeFrom,
-} from "./style";
+import { buildStyle, FAR, fillColour, LAYER, NEAR, OUTLINE, PATTERN_IMAGE, PATTERN_SIZE, patternFilter, patternPixels, SOURCE, THEME_TOKENS, themeFrom } from "./style";
 
 const geometry = recordedAnswer("get_geometry", "geometry").body.data;
 const areas = recordedAnswer("list_areas", "areas").body.data.areas;
@@ -47,9 +36,9 @@ describe("what the map shows of each area", () => {
     for (const { area_id: areaId, score } of first.scores) {
       expect(fills.get(areaId)).toEqual({ band: bandOf(score), pattern: "none" });
     }
-    // Recorded: a fit of 80.99 is in the highest band, and one of 78.37 is in the band below it.
-    expect(fills.get("syn-n0006")).toEqual({ band: 5, pattern: "none" });
-    expect(fills.get("syn-n0003")).toEqual({ band: 4, pattern: "none" });
+    // Recorded: a fit of 71.38 is in the fourth band, and one of 51.66 is in the band below it.
+    expect(fills.get("syn-n0006")).toEqual({ band: 4, pattern: "none" });
+    expect(fills.get("syn-n0014")).toEqual({ band: 3, pattern: "none" });
   });
 
   test("test_an_area_with_no_rank_is_told_apart_by_a_pattern_and_not_by_a_colour", () => {
@@ -169,19 +158,29 @@ describe("the style of the map", () => {
   test("test_the_outline_is_wider_on_the_area_under_the_pointer_and_widest_on_the_one_chosen", () => {
     const outline = buildStyle(LIGHT).layers.find((layer) => layer.id === LAYER.outline);
 
+    const width = (plain: number) => [
+      "case",
+      ["boolean", ["feature-state", "selected"], false],
+      3,
+      ["boolean", ["feature-state", "hovered"], false],
+      2,
+      plain,
+    ];
     expect(outline).toMatchObject({
       paint: {
         "line-color": light["--map-line"],
-        "line-width": [
-          "case",
-          ["boolean", ["feature-state", "selected"], false],
-          3,
-          ["boolean", ["feature-state", "hovered"], false],
-          2,
-          1,
-        ],
+        "line-width": ["interpolate", ["linear"], ["zoom"], FAR.zoom, width(FAR.width), NEAR.zoom, width(1)],
       },
     });
+  });
+
+  test("test_seen_from_far_off_an_outline_is_thin_so_that_the_colour_of_a_small_area_shows", () => {
+    // Seen in a browser, on a map of a thousand areas: at the width of the city the outlines
+    // of the small areas in the middle met, and hid the colour that says how well each fits.
+    expect(FAR.zoom).toBeLessThan(NEAR.zoom);
+    expect(FAR.width).toBeLessThanOrEqual(0.4);
+    expect(FAR.width).toBeGreaterThan(0);
+    expect(OUTLINE.plain).toBe(1);
   });
 
   test("test_each_feature_is_known_to_the_map_by_its_area_id", () => {

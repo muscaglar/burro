@@ -1,31 +1,68 @@
 .row {
   display: grid;
-  gap: var(--space-2);
-  /* The row is at least one chip high before it has any, so nothing moves when they come. */
-  min-height: var(--target);
+  gap: var(--space-1);
+  min-width: 0;
 }
 
-/* The heading says what the chips are. It is small, and it is there to be read. */
-.title {
+.row:focus {
+  outline: none;
+}
+
+/* The heading says what the chips are, and who read the words. It is small, and it is there to be read. */
+.heading {
   margin: 0;
   color: var(--muted);
   font-size: var(--size-small);
+}
+
+.title {
   font-weight: 600;
 }
 
-.chips {
+/*
+ * The chips, and after them the button that shows the rest. They wrap: a chip that does
+ * not fit on a line goes onto the next, whole. Nothing is put on one line that scrolls, and
+ * nothing is cut off, so what Burro took from the words is all in sight. The line is one
+ * chip high before it has any, so nothing moves when they come.
+ */
+.line {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  align-items: flex-start;
+  gap: var(--space-1) var(--space-2);
+  min-width: 0;
+  min-height: 2.25rem;
+}
+
+/*
+ * A chip is as high as the buttons beside the settings are, and no higher: there may be
+ * seven of them above the answer. Named with the size class, so that it does not depend
+ * on the order of two style sheets.
+ */
+.main:global(.target),
+.turn:global(.target),
+.remove:global(.target),
+.rest:global(.target),
+.plain {
+  min-height: 2.25rem;
+  padding-block: 0;
+}
+
+/* The chips are laid out with the button that follows them, as one run of things that wrap. */
+.chips {
+  display: contents;
+  flex-wrap: wrap;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/* A chip is never wider than the row. A name too long for one line takes a second inside it. */
 .chip {
   display: grid;
   gap: var(--space-2);
-  max-width: none;
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* A chip that is open takes the row, and its control sits under it. */
@@ -59,10 +96,6 @@
   text-align: left;
 }
 
-.plain {
-  min-height: var(--target);
-}
-
 .label {
   font-weight: 600;
 }
@@ -73,14 +106,35 @@
   font-weight: 400;
 }
 
+/* The words of a chip give way where there is little room. What is pressed beside them does not. */
+.turn,
 .remove {
+  flex: none;
   padding: 0 var(--space-2);
   border: 0;
   border-inline-start: 1px solid var(--border);
-  border-radius: 0 var(--radius) var(--radius) 0;
+  border-radius: 0;
   background: transparent;
+}
+
+.turn {
+  color: var(--accent);
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
+.remove {
   font-size: var(--size-lead);
   line-height: 1;
+}
+
+.head > :last-child {
+  border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.rest {
+  flex: none;
+  font-weight: 600;
 }
 
 .editor {
@@ -94,7 +148,7 @@
   display: none;
 }
 
-/* What explains the chips: what "assumed" means, what the usual settings are, who read the words. */
+/* What explains the chips: what "assumed" means, and what the usual settings are. */
 .hints {
   display: grid;
   gap: var(--space-1);
@@ -104,6 +158,42 @@
 
 .hints p {
   margin: 0;
+}
+
+/*
+ * A narrow screen: a chip is lower and its words smaller, so that what was understood takes
+ * few lines and the first result is whole on the first screen. Each is still as high as
+ * the smallest thing that may be pressed, and more.
+ */
+@media (max-width: 40rem) {
+  .line {
+    gap: var(--space-1) var(--space-2);
+    min-height: 2rem;
+  }
+
+  .main:global(.target),
+  .turn:global(.target),
+  .remove:global(.target),
+  .rest:global(.target),
+  .plain {
+    min-height: 2rem;
+    font-size: var(--size-small);
+  }
+
+  .main:global(.target),
+  .plain {
+    padding-inline: var(--space-2);
+  }
+
+  .turn:global(.target),
+  .remove:global(.target) {
+    min-width: 2rem;
+    padding-inline: var(--space-1);
+  }
+
+  .remove:global(.target) {
+    font-size: var(--size-body);
+  }
 }
 
 @media (forced-colors: active) {

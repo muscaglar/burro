@@ -30,3 +30,19 @@
   flex-basis: 100%;
   margin-block-start: 0;
 }
+
+/*
+ * A narrow screen: the source follows the last word of the sentence, on the same line
+ * where there is room, and what it opens goes under both. Beside the sentence it would
+ * take a line of its own under every sentence.
+ */
+@media (max-width: 40rem) {
+  .sentence {
+    display: block;
+  }
+
+  .text {
+    display: inline;
+    margin-inline-end: var(--space-2);
+  }
+}

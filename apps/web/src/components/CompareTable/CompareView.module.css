@@ -55,6 +55,17 @@
   overflow-wrap: anywhere;
 }
 
+/* A heading and the table under it. */
+.part {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.part h2 {
+  margin: 0;
+}
+
 .back {
   margin: 0;
 }

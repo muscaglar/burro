@@ -10,6 +10,7 @@
 import { failed, type Answer } from "./failure";
 import { pathOf, ROUTES, type DataOf, type OperationId } from "./operations";
 import { REQUIRED_IN_DATA } from "./required";
+import type { Said } from "./said";
 import type { ErrorBody, FieldProblem, Meta } from "./schema";
 
 export interface SendSettings {
@@ -19,6 +20,11 @@ export interface SendSettings {
   readonly fetch?: typeof fetch;
   /** Told what each answer says of the data, as soon as it says it. */
   readonly onSynthetic?: (synthetic: boolean) => void;
+  /**
+   * Told what each answer says of itself: whether its data is made up, and whether its
+   * release is a preview. It is told once for every answer, whatever became of it.
+   */
+  readonly onSaid?: (said: Said) => void;
   /** Settings added to every request, as a build adds how long a page may be kept. */
   readonly init?: RequestInit;
 }
@@ -32,6 +38,7 @@ export interface SendRequest {
 }
 
 const SYNTHETIC_HEADER = "X-Burro-Synthetic";
+const PREVIEW_HEADER = "X-Burro-Preview";
 const REQUEST_ID_HEADER = "X-Request-Id";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -40,10 +47,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function readMeta(value: unknown): Meta | null {
   if (!isRecord(value)) return null;
-  const { release_id, engine_version, synthetic } = value;
+  const { release_id, engine_version, synthetic, preview } = value;
   if (typeof release_id !== "string" || typeof engine_version !== "string") return null;
-  if (typeof synthetic !== "boolean") return null;
-  return { release_id, engine_version, synthetic };
+  if (typeof synthetic !== "boolean" || typeof preview !== "boolean") return null;
+  return { release_id, engine_version, synthetic, preview };
 }
 
 /** More fields than any refusal of the API's could name. An error that holds more is not the API's. */
@@ -99,6 +106,11 @@ function eitherSaysSynthetic(meta: Meta, header: boolean | null): boolean {
   return meta.synthetic || header === true;
 }
 
+/** An unfinished release is never shown as a finished one. Either may say it is a preview. */
+function eitherSaysPreview(meta: Meta, header: boolean | null): boolean {
+  return meta.preview || header === true;
+}
+
 export async function send<Op extends OperationId>(
   operation: Op,
   settings: SendSettings,
@@ -108,7 +120,7 @@ export async function send<Op extends OperationId>(
   if (request.signal?.aborted) return failed("aborted");
   if (isOffline()) return failed("offline");
 
-  const route = ROUTES[operation];
+  const route: (typeof ROUTES)[OperationId] & { readonly neverKept?: true } = ROUTES[operation];
   const doFetch = settings.fetch ?? globalThis.fetch;
   const controller = new AbortController();
   let timedOut = false;
@@ -130,8 +142,8 @@ export async function send<Op extends OperationId>(
     let response: Response;
     try {
       response = await doFetch(`${settings.baseUrl}${pathOf(operation, request.parameter)}`, {
-        // An answer to a search is kept in memory and nowhere else.
-        ...(posting ? { cache: "no-store" as const } : {}),
+        // An answer to a search is kept in memory and nowhere else, and so is a census.
+        ...(posting || route.neverKept === true ? { cache: "no-store" as const } : {}),
         ...settings.init,
         method: route.method,
         headers: posting
@@ -155,9 +167,11 @@ export async function send<Op extends OperationId>(
       synthetic: readFlag(response.headers.get(SYNTHETIC_HEADER)),
       requestId: response.headers.get(REQUEST_ID_HEADER),
     };
+    const previewHeader = readFlag(response.headers.get(PREVIEW_HEADER));
     // Whoever shows the banner hears of each answer once, whatever became of it.
     const unreadable = () => {
       if (seen.synthetic !== null) settings.onSynthetic?.(seen.synthetic);
+      settings.onSaid?.({ synthetic: seen.synthetic, preview: previewHeader });
       return failed("unreadable", seen);
     };
 
@@ -172,6 +186,7 @@ export async function send<Op extends OperationId>(
     if (!isRecord(body) || meta === null) return unreadable();
     const synthetic = eitherSaysSynthetic(meta, seen.synthetic);
     settings.onSynthetic?.(synthetic);
+    settings.onSaid?.({ synthetic, preview: eitherSaysPreview(meta, previewHeader) });
 
     const error = readError(body.error);
     if (error !== null) {

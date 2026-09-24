@@ -47,12 +47,6 @@
   margin: 0;
 }
 
-.caption {
-  color: var(--text);
-  font-size: var(--size-lead);
-  font-weight: 650;
-}
-
 .number {
   text-align: right;
   white-space: nowrap;

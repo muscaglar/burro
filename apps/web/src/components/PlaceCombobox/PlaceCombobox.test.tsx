@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { PLACE } from "@/content/search";
 import { recordedAnswer } from "@/lib/api/recorded";
 
-import { standInApi } from "../../../test/support/api";
+import { answersOnTheirWay, LATE_MS, standInApi } from "../../../test/support/api";
 import { faultsIn } from "../../../test/support/axe";
 import { problemsWith } from "../../../test/support/contract";
 import { PlaceCombobox, WAIT_MS } from "./PlaceCombobox";
@@ -24,7 +24,16 @@ function show(api = standInApi().on("search_places", "places-search"), full: str
 
 const field = () => screen.getByRole<HTMLInputElement>("combobox", { name: PLACE.label });
 const type = (text: string) => fireEvent.input(field(), { target: { value: text } });
-const wait = (ms: number) => act(() => jest.advanceTimersByTimeAsync(ms));
+/**
+ * Moves the clock on, and then lets every answer that is on its way land. The clock is made
+ * up, so an answer that is a moment late lands only when the clock is moved on for it.
+ */
+async function wait(ms: number): Promise<void> {
+  await act(() => jest.advanceTimersByTimeAsync(ms));
+  for (let turns = 0; answersOnTheirWay() > 0 && turns < 100; turns += 1) {
+    await act(() => jest.advanceTimersByTimeAsync(Math.max(LATE_MS, 1)));
+  }
+}
 
 beforeEach(() => jest.useFakeTimers());
 afterEach(() => jest.useRealTimers());

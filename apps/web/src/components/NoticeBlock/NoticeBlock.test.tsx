@@ -44,7 +44,7 @@ describe("what could not be answered, and what was not applied", () => {
 
     expect(screen.getByRole("region", { name: UNMET_LABEL })).toBeInTheDocument();
     expect(screen.getAllByRole("listitem").map((line) => line.textContent)).toEqual(every.map((one) => UNMET[one]));
-    expect(new Set(Object.values(UNMET)).size).toBe(9);
+    expect(new Set(Object.values(UNMET)).size).toBe(15);
   });
 
   test("test_every_reason_an_edit_can_be_refused_for_has_words", () => {
@@ -112,17 +112,59 @@ describe("the lines that say a state", () => {
     expect(statusOf({ ...shared, phase: "empty", ranking: null })).toBe("");
     expect(statusOf({ ...shared, phase: "interpreting", ranking: null })).toBe(STATUS.reading);
     expect(statusOf({ ...shared, phase: "interpreting", ranking })).toBe(STATUS.reading);
-    expect(statusOf({ ...shared, phase: "results", ranking })).toBe("22 areas ranked. First: Farrowmere.");
+    expect(statusOf({ ...shared, phase: "results", ranking })).toBe("21 areas ranked. First: Farrowmere.");
     expect(statusOf({ ...shared, phase: "results", ranking, gaveWay: true })).toBe(
-      `22 areas ranked. First: Farrowmere. ${STATUS.gaveWay}`,
+      `21 areas ranked. First: Farrowmere. ${STATUS.gaveWay}`,
     );
+    // What was asked of the place leads, until a person makes a journey or a budget count for more.
+    const asked = recordedAnswer("interpret", "interpret-first").body.data.spec;
+    expect(statusOf({ ...shared, phase: "results", ranking, gaveWay: true, spec: asked })).toBe(
+      `21 areas ranked. First: Farrowmere. ${STATUS.gaveWay}`,
+    );
+    // Where a journey and a budget outweigh what was asked of the place, the line says so,
+    // whether or not anything gave way: it is what explains the order on screen.
+    const spec = { ...asked, commute_weight: 1, budget: { ...asked.budget, weight: 0.8 } };
+    for (const gaveWay of [true, false]) {
+      expect(statusOf({ ...shared, phase: "results", ranking, gaveWay, spec })).toBe(
+        `21 areas ranked. First: Farrowmere. ${STATUS.leads(1, true)}`,
+      );
+    }
+    expect(statusOf({ ...shared, phase: "results", ranking, moved: 3, spec })).toBe(
+      `3 areas changed place. ${STATUS.leads(1, true)}`,
+    );
+    // With nothing asked of the place, what was asked for is the journey and the budget.
+    const money = recordedAnswer("interpret", "interpret-money-and-work").body.data.spec;
+    expect(statusOf({ ...shared, phase: "results", ranking, gaveWay: true, spec: money })).toBe(
+      `21 areas ranked. First: Farrowmere. ${STATUS.gaveWay}`,
+    );
+    expect([STATUS.leads(1, true), STATUS.leads(2, true), STATUS.leads(1, false), STATUS.leads(2, false), STATUS.leads(0, true)]).toEqual([
+      "Journey and budget count most.",
+      "Journeys and budget count most.",
+      "Journey counts most.",
+      "Journeys count most.",
+      "Budget counts most.",
+    ]);
     expect(statusOf({ ...shared, phase: "results", ranking, moved: 3 })).toBe("3 areas changed place.");
     expect(statusOf({ ...shared, phase: "results", ranking, moved: 1 })).toBe("1 area changed place.");
     expect(statusOf({ ...shared, phase: "results", ranking, moved: 0 })).toBe("No area changed place.");
-    expect(statusOf({ ...shared, phase: "results", ranking: { ...ranking, ranked: [] } })).toBe(
+    // Where no area is ranked, a limit is blamed only where a limit left an area out.
+    const left = [{ area_id: "syn-n0001", reason: "over_budget" as const }];
+    expect(statusOf({ ...shared, phase: "results", ranking: { ...ranking, ranked: [], filtered: left } })).toBe(
       STATUS.nothingMatches,
     );
+    expect(statusOf({ ...shared, phase: "results", ranking: { ...ranking, ranked: [], filtered: [] } })).toBe(
+      STATUS.nothingRanked,
+    );
     expect(statusOf({ ...shared, phase: "empty", ranking: null, asking: true })).toBe(STATUS.question);
+  });
+
+  test("test_a_ranking_that_follows_one_of_no_area_is_said_as_a_first_ranking_is", () => {
+    // Seen in a browser: "1002 areas ranked, 1002 more than before. The rest are in the
+    // order they were." There was no rest: no area had been ranked before.
+    const shared = { areas, gaveWay: false, phase: "results" as const, ranking: first };
+    const now = first.scores.length;
+
+    expect(statusOf({ ...shared, moved: 0, was: 0 })).toBe(`${now} areas ranked. First: Farrowmere.`);
   });
 
   test("test_when_fewer_or_more_areas_are_ranked_the_line_says_so_and_counts_only_those_that_moved", () => {
@@ -150,10 +192,10 @@ describe("the lines that say a state", () => {
     const second = areas.find((area) => area.area_id === rest[0]?.area_id)?.name ?? "no name";
 
     // The first result the page can name is named, and never "First: ." with nothing after it.
-    expect(statusOf({ ...shared, ranking: unknown })).toBe(`22 areas ranked. First: ${second}.`);
+    expect(statusOf({ ...shared, ranking: unknown })).toBe(`21 areas ranked. First: ${second}.`);
     expect(
       statusOf({ ...shared, ranking: { ...first, ranked: first.ranked.map((area) => ({ ...area, area_id: "syn-n9999" })) } }),
-    ).toBe("22 areas ranked.");
+    ).toBe("21 areas ranked.");
   });
 
   test("test_while_an_edit_is_ranked_the_line_keeps_what_it_said", () => {

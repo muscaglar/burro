@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-import { COMPARE } from "@/content/compare";
+import { COMPARE, COMPARE_TABLE } from "@/content/compare";
+import type { CrimeVibe } from "@/content/crime";
 import { NOTICE, PROMPT } from "@/content/search";
 import { api, type Client, type Failure } from "@/lib/api/client";
-import type { CompareData, Defaults, PreferenceSpec } from "@/lib/api/schema";
+import type { CompareData, Defaults, PreferenceSpec, Tag } from "@/lib/api/schema";
 import { isEnough, type Chosen } from "@/lib/compare/list";
 import { paths } from "@/lib/paths";
 import { useOpenSearch } from "@/lib/search/store";
@@ -14,6 +15,7 @@ import { SessionBoundary, useCompare } from "@/lib/session/session";
 
 import { wordsFor } from "../ErrorBlock/ErrorBlock";
 import { Skeleton } from "../Skeleton/Skeleton";
+import { CharacterTable } from "./CharacterTable";
 import { CompareAreas, CompareTable, standingsOf } from "./CompareTable";
 import styles from "./CompareView.module.css";
 
@@ -22,6 +24,10 @@ interface Props {
   readonly chosen: readonly Chosen[];
   /** The settings a search starts from, from route 11. They are what is compared on when no search is open. */
   readonly defaults: Defaults;
+  /** The vibes of the release, from route 11: their names and the names of their ends. */
+  readonly tags: readonly Tag[];
+  /** The vibes whose recipe holds recorded crime, read from route 11 where the page is built. */
+  readonly crime?: readonly CrimeVibe[];
   /** How many slugs of the address named no area. They are counted and never shown. */
   readonly unknown?: number;
   /** How many areas beyond the fourth the address named. */
@@ -53,7 +59,7 @@ export function CompareView(props: Props) {
   );
 }
 
-function Comparison({ chosen, defaults, unknown = 0, dropped = 0, client = api }: Props) {
+function Comparison({ chosen, defaults, tags, crime = [], unknown = 0, dropped = 0, client = api }: Props) {
   const search = useOpenSearch();
   const { set } = useCompare();
   const [attempt, setAttempt] = useState(0);
@@ -154,12 +160,26 @@ function Comparison({ chosen, defaults, unknown = 0, dropped = 0, client = api }
                 {PROMPT.tryAgain}
               </button>
             </div>
-          ) : current.data !== null && current.data.rows.length === 0 ? (
-            <div className={styles.state} role="status">
-              <p>{COMPARE.nothingCounts}</p>
-            </div>
           ) : current.data !== null ? (
-            <CompareTable data={current.data} />
+            <>
+              {/* Where each area sits on each vibe is of the release, and comes first. */}
+              {current.data.character.length > 0 ? (
+                <section className={styles.part} aria-labelledby="compare-character">
+                  <h2 id="compare-character">{COMPARE_TABLE.character.title}</h2>
+                  <CharacterTable data={current.data} tags={tags} crime={crime} />
+                </section>
+              ) : null}
+              <section className={styles.part} aria-labelledby="compare-counts">
+                <h2 id="compare-counts">{COMPARE_TABLE.counts}</h2>
+                {current.data.rows.length === 0 ? (
+                  <div className={styles.state} role="status">
+                    <p>{COMPARE.nothingCounts}</p>
+                  </div>
+                ) : (
+                  <CompareTable data={current.data} combine={spec.commute_combine} tags={tags} />
+                )}
+              </section>
+            </>
           ) : null}
         </>
       )}

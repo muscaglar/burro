@@ -175,6 +175,36 @@
       "shows": "Every area of the release, by id"
     },
     {
+      "scenario": "census",
+      "operation_id": "get_census",
+      "status": 200,
+      "shows": "The census of one area: each figure a share with its count, beside the whole city's"
+    },
+    {
+      "scenario": "census-not-found",
+      "operation_id": "get_census",
+      "status": 404,
+      "shows": "A slug the release lacks: 404"
+    },
+    {
+      "scenario": "census-not-held",
+      "operation_id": "get_census",
+      "status": 200,
+      "shows": "An area the count holds nothing for: every table says so, and none gives a figure"
+    },
+    {
+      "scenario": "census-off",
+      "operation_id": "get_census",
+      "status": 404,
+      "shows": "A service that serves no census: 404, and no figure"
+    },
+    {
+      "scenario": "census-too-few",
+      "operation_id": "get_census",
+      "status": 200,
+      "shows": "An area where too few were counted: every table is left out, and says so"
+    },
+    {
       "scenario": "compare-area-not-found",
       "operation_id": "compare",
       "status": 404,
@@ -205,13 +235,61 @@
       "shows": "Two areas compared with no search open, on a renter's defaults"
     },
     {
+      "scenario": "compare-two-journeys",
+      "operation_id": "compare",
+      "status": 200,
+      "shows": "Four areas on a search with two journeys, which the person weighs above all else: a row for each, one area with no time for one of them, one whose fit rests on part of what counts, and one listed apart"
+    },
+    {
       "scenario": "error-internal",
       "operation_id": "explain_top",
       "status": 500,
       "shows": "A fault in the service: 500, with fixed words and a request id to quote"
     },
     {
+      "scenario": "example-1",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A sentence the first screen offers: it is plain, and every edit of it is applied"
+    },
+    {
+      "scenario": "example-2",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A sentence the first screen offers: it is plain, and every edit of it is applied"
+    },
+    {
+      "scenario": "example-3",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A sentence the first screen offers: it is plain, and every edit of it is applied"
+    },
+    {
+      "scenario": "example-4",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A sentence the first screen offers: it is plain, and every edit of it is applied"
+    },
+    {
+      "scenario": "example-5",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A sentence the first screen offers: it is plain, and every edit of it is applied"
+    },
+    {
+      "scenario": "example-6",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A sentence the first screen offers: it is plain, and every edit of it is applied"
+    },
+    {
       "scenario": "explanations-buyer-family",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Reasons and a trade-off for the first five, with every fact they cite"
+    },
+    {
+      "scenario": "explanations-by-bike-over",
       "operation_id": "explain_top",
       "status": 200,
       "shows": "Reasons and a trade-off for the first five, with every fact they cite"
@@ -229,7 +307,31 @@
       "shows": "Reasons and a trade-off for the first five, with every fact they cite"
     },
     {
+      "scenario": "explanations-gritty",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Reasons and a trade-off for the first five, with every fact they cite"
+    },
+    {
+      "scenario": "explanations-money-and-work",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Reasons and a trade-off for the first five, with every fact they cite"
+    },
+    {
+      "scenario": "explanations-near-a-station",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Reasons and a trade-off for the first five, with every fact they cite"
+    },
+    {
       "scenario": "explanations-nights-out",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Reasons and a trade-off for the first five, with every fact they cite"
+    },
+    {
+      "scenario": "explanations-no-time",
       "operation_id": "explain_top",
       "status": 200,
       "shows": "Reasons and a trade-off for the first five, with every fact they cite"
@@ -241,10 +343,28 @@
       "shows": "Reasons and trade-offs where a journey is beyond the longest time the release holds"
     },
     {
+      "scenario": "explanations-only-one",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Reasons and a trade-off for the first five, with every fact they cite"
+    },
+    {
       "scenario": "explanations-refined",
       "operation_id": "explain_top",
       "status": 200,
       "shows": "The reasons after the refinement"
+    },
+    {
+      "scenario": "explanations-scale",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Reasons and a trade-off for the first five, with every fact they cite"
+    },
+    {
+      "scenario": "explanations-scale-turned",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "The reasons of a search for the other end of a scale"
     },
     {
       "scenario": "explanations-second-sentence",
@@ -253,7 +373,31 @@
       "shows": "Reasons and a trade-off for the first five, with every fact they cite"
     },
     {
+      "scenario": "explanations-share-opened",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "The reasons of the search a share holds"
+    },
+    {
+      "scenario": "explanations-shelf",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "The reasons of a search for one vibe"
+    },
+    {
+      "scenario": "explanations-suggestion-chosen",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "The reasons of a search made of one suggestion"
+    },
+    {
       "scenario": "explanations-two-journeys",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Reasons and a trade-off for the first five, with every fact they cite"
+    },
+    {
+      "scenario": "explanations-two-places",
       "operation_id": "explain_top",
       "status": 200,
       "shows": "Reasons and a trade-off for the first five, with every fact they cite"
@@ -277,16 +421,40 @@
       "shows": "A buyer, so the tenure changes and the buyer's defaults come in"
     },
     {
+      "scenario": "interpret-by-bike-over",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "One area chosen, whose journey by bike is over the limit set for it"
+    },
+    {
       "scenario": "interpret-by-model",
       "operation_id": "interpret",
       "status": 200,
-      "shows": "A sentence read by a model: the same edits, and the answer says who read it"
+      "shows": "A sentence read by a model: nothing is applied, and each thing it read is offered, with Burro's guess marked"
+    },
+    {
+      "scenario": "interpret-by-model-least",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A least distance: Burro cannot keep a search away from a place, and says so, with nothing to press but Skip"
+    },
+    {
+      "scenario": "interpret-by-model-long",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A long sentence read by a model: ten offers, each in four parts, one with a choice of two things, a journey and a budget that may be made firm, words nothing was made of, and five readings of two words that the rules offer with no guess"
+    },
+    {
+      "scenario": "interpret-by-model-place",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A journey to a place the release does not hold: a question, with its minutes, that leads to the place search"
     },
     {
       "scenario": "interpret-by-the-river",
       "operation_id": "interpret",
       "status": 200,
-      "shows": "Two tags and a journey by bike"
+      "shows": "A vibe towards one end, a feature, and a journey by bike"
     },
     {
       "scenario": "interpret-clarify",
@@ -313,16 +481,40 @@
       "shows": "A first sentence, read in full: a budget, two tags and a journey"
     },
     {
+      "scenario": "interpret-gritty",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A word with two meanings, where gritty is a scale"
+    },
+    {
       "scenario": "interpret-invalid-text",
       "operation_id": "interpret",
       "status": 422,
       "shows": "A line of spaces: 422 on the text"
     },
     {
+      "scenario": "interpret-money-and-work",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "Two plain sentences about money and work, read in full, and the place by its name"
+    },
+    {
+      "scenario": "interpret-near-a-station",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "One wish, for something an area can do well or badly"
+    },
+    {
       "scenario": "interpret-nights-out",
       "operation_id": "interpret",
       "status": 200,
       "shows": "A sentence about venues, with a workplace and no budget"
+    },
+    {
+      "scenario": "interpret-no-time",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "One journey, for which an area has no time, so it stands below the twenty listed"
     },
     {
       "scenario": "interpret-nothing-read",
@@ -343,10 +535,40 @@
       "shows": "A model finds nothing about where to live: no edit, and the notice in the API's words"
     },
     {
+      "scenario": "interpret-only-one",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "One area chosen: a journey over its limit is its trade-off, and another has no time"
+    },
+    {
+      "scenario": "interpret-plain-list",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A plain list of wishes, read whole: the sentence the page gives as one Burro reads"
+    },
+    {
+      "scenario": "interpret-refused",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "The provider would not read the words, so the rules did: refused, and still a reading"
+    },
+    {
       "scenario": "interpret-rejected",
       "operation_id": "interpret",
       "status": 200,
-      "shows": "A loose wish for safety: the edit to recorded crime is rejected, the park is applied"
+      "shows": "A cheaper home where no budget is set: the edit is rejected, the park is applied"
+    },
+    {
+      "scenario": "interpret-rules-at-once",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "The same, asked of the rules alone: what they offer is served at once, with no guess, and the answer says that a model has more to read"
+    },
+    {
+      "scenario": "interpret-scale",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A scale, asked for towards its low end"
     },
     {
       "scenario": "interpret-second-sentence",
@@ -355,10 +577,46 @@
       "shows": "A second sentence, sent with the spec the first one left: one thing more, one taken off"
     },
     {
+      "scenario": "interpret-suggest",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A prompt that is not plain: nothing applied, two things noticed, and a stretch not read"
+    },
+    {
+      "scenario": "interpret-suggest-many",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "More things noticed than are shown at first"
+    },
+    {
+      "scenario": "interpret-suggest-newcomer",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A newcomer's own words: six things noticed, of which five have one way to be wanted"
+    },
+    {
+      "scenario": "interpret-suggest-notice",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "Not plain, with a phrase about who lives somewhere: the notice, and what was noticed"
+    },
+    {
+      "scenario": "interpret-suggest-place",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A place noticed in a prompt that is not plain: offered by name, and not added"
+    },
+    {
       "scenario": "interpret-two-journeys",
       "operation_id": "interpret",
       "status": 200,
       "shows": "A firm budget and two journeys, one of them firm"
+    },
+    {
+      "scenario": "interpret-two-places",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "Two flexible journeys, where a listed area has a time for one and none for the other"
     },
     {
       "scenario": "interpret-unmet",
@@ -373,10 +631,52 @@
       "shows": "Everything a form needs, and every source and method"
     },
     {
+      "scenario": "meta-model-reads",
+      "operation_id": "get_meta",
+      "status": 200,
+      "shows": "Who reads, where a model does: what people are told of its provider, in the API's words"
+    },
+    {
+      "scenario": "meta-model-reads-with-settings",
+      "operation_id": "get_meta",
+      "status": 200,
+      "shows": "The same, where the service is set to send the search settings with the words"
+    },
+    {
+      "scenario": "meta-no-census",
+      "operation_id": "get_meta",
+      "status": 200,
+      "shows": "What route 11 says where no census is served"
+    },
+    {
       "scenario": "not-found",
       "operation_id": null,
       "status": 404,
       "shows": "A path that is no route: 404, in the same envelope"
+    },
+    {
+      "scenario": "one-number/area",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of an area whose prices are one number each, and which has no rent"
+    },
+    {
+      "scenario": "one-number/explanations-buyer",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons: the middle price is said to be under the budget, and over it"
+    },
+    {
+      "scenario": "one-number/meta",
+      "operation_id": "get_meta",
+      "status": 200,
+      "shows": "The form of the release"
+    },
+    {
+      "scenario": "one-number/rank-buyer",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A buyer's budget held against the middle price: some areas under it, some over"
     },
     {
       "scenario": "places-search",
@@ -403,7 +703,127 @@
       "shows": "A search that finds schools, each with the station that stands in for it"
     },
     {
+      "scenario": "preview/area-alderwick",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Alderwick in a preview: eight vibes cannot place it"
+    },
+    {
+      "scenario": "preview/area-brackenhythe",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Brackenhythe in a preview: eight vibes cannot place it"
+    },
+    {
+      "scenario": "preview/area-cindermoor",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of Cindermoor in a preview: eight vibes cannot place it"
+    },
+    {
+      "scenario": "preview/areas",
+      "operation_id": "list_areas",
+      "status": 200,
+      "shows": "Its areas, and their bands on the three vibes"
+    },
+    {
+      "scenario": "preview/example-4",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "The same sentence ranked on a preview that can answer all of it"
+    },
+    {
+      "scenario": "preview/example-5",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "The same sentence ranked on a preview that can answer all of it"
+    },
+    {
+      "scenario": "preview/example-6",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "The same sentence ranked on a preview that can answer all of it"
+    },
+    {
+      "scenario": "preview/explanations-lacking",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons: each of the first five has a figure for all that was asked for"
+    },
+    {
+      "scenario": "preview/explanations-plain",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons"
+    },
+    {
+      "scenario": "preview/geometry",
+      "operation_id": "get_geometry",
+      "status": 200,
+      "shows": "The outlines of its areas"
+    },
+    {
+      "scenario": "preview/interpret-home",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A budget that cannot be tested: what is said of the home is kept, the amount is missing"
+    },
+    {
+      "scenario": "preview/interpret-journey",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A workplace, where the release names no place: nothing is asked, and it is missing"
+    },
+    {
+      "scenario": "preview/interpret-long",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A long sentence: what can be answered is offered, and what cannot is named as missing"
+    },
+    {
+      "scenario": "preview/interpret-period",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "Two wishes the release can answer, one of them of a measure an area lacks"
+    },
+    {
+      "scenario": "preview/interpret-plain",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A plain wish for a vibe no area has a band for: named as missing, and the rest applied"
+    },
+    {
+      "scenario": "preview/meta",
+      "operation_id": "get_meta",
+      "status": 200,
+      "shows": "The form of a preview: what it holds of each recipe, and that it holds no journey or cost"
+    },
+    {
+      "scenario": "preview/rank-lacking",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "An area with no figure for a thing that was asked for, below every area that has one"
+    },
+    {
+      "scenario": "preview/rank-plain",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Its ranking, on what the release does hold"
+    },
+    {
+      "scenario": "preview/rank-refused-edits",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A vibe, a budget and a measure that controls asked for and the release cannot answer"
+    },
+    {
       "scenario": "rank-buyer-family",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Another search, ranked"
+    },
+    {
+      "scenario": "rank-by-bike-over",
       "operation_id": "rank",
       "status": 200,
       "shows": "Another search, ranked"
@@ -439,13 +859,37 @@
       "shows": "The first twenty areas"
     },
     {
+      "scenario": "rank-gritty",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Another search, ranked"
+    },
+    {
       "scenario": "rank-invalid-operations",
       "operation_id": "rank",
       "status": 422,
       "shows": "An edit that is not an edit: 422, with paths and codes and nothing that was sent"
     },
     {
+      "scenario": "rank-money-and-work",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Another search, ranked"
+    },
+    {
+      "scenario": "rank-near-a-station",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Another search, ranked"
+    },
+    {
       "scenario": "rank-nights-out",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Another search, ranked"
+    },
+    {
+      "scenario": "rank-no-time",
       "operation_id": "rank",
       "status": 200,
       "shows": "Another search, ranked"
@@ -463,6 +907,12 @@
       "shows": "A journey on foot: for most areas it is beyond the longest time the release holds"
     },
     {
+      "scenario": "rank-only-one",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Another search, ranked"
+    },
+    {
       "scenario": "rank-refined",
       "operation_id": "rank",
       "status": 200,
@@ -475,10 +925,28 @@
       "shows": "An edit the reducer refuses: a budget of one pound. The spec comes back as it was"
     },
     {
+      "scenario": "rank-scale",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Another search, ranked"
+    },
+    {
+      "scenario": "rank-scale-turned",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A scale turned to its other end, with the weight it had"
+    },
+    {
       "scenario": "rank-second-sentence",
       "operation_id": "rank",
       "status": 200,
       "shows": "The search after a second sentence, with a usual setting taken off"
+    },
+    {
+      "scenario": "rank-shelf",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A word of the shelf added to a search: one edit, sent with the defaults"
     },
     {
       "scenario": "rank-stale-spec",
@@ -493,6 +961,12 @@
       "shows": "The same spec, sent with the edit that takes the place out"
     },
     {
+      "scenario": "rank-suggestion-chosen",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A suggestion chosen: its edits, sent as a control's are"
+    },
+    {
       "scenario": "rank-switched-off",
       "operation_id": "rank",
       "status": 200,
@@ -500,6 +974,12 @@
     },
     {
       "scenario": "rank-two-journeys",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Another search, ranked"
+    },
+    {
+      "scenario": "rank-two-places",
       "operation_id": "rank",
       "status": 200,
       "shows": "Another search, ranked"
@@ -545,6 +1025,36 @@
       "operation_id": "get_share",
       "status": 200,
       "shows": "A share opened on a newer release than it was made on: stale, and ranked again"
+    },
+    {
+      "scenario": "variant-a/areas",
+      "operation_id": "list_areas",
+      "status": 200,
+      "shows": "Its areas, and their bands"
+    },
+    {
+      "scenario": "variant-a/explanations-gritty",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons"
+    },
+    {
+      "scenario": "variant-a/interpret-gritty",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A word with two meanings: read as its place part, quoted, and the rest said to be unmet"
+    },
+    {
+      "scenario": "variant-a/meta",
+      "operation_id": "get_meta",
+      "status": 200,
+      "shows": "The form of a release where gritty is built from land use alone"
+    },
+    {
+      "scenario": "variant-a/rank-gritty",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "Its ranking"
     },
     {
       "scenario": "visit/01-first",
@@ -661,19 +1171,67 @@
       "shows": "The reasons of the shared search"
     },
     {
-      "scenario": "visit/20-slow",
+      "scenario": "visit/20-slow-at-once",
       "operation_id": "interpret",
       "status": 200,
-      "shows": "A sentence the model did not answer: read by the rules, and degraded"
+      "shows": "A sentence that is not plain, asked of the rules first: what they offer, at once"
     },
     {
-      "scenario": "visit/21-slow-rank",
+      "scenario": "visit/21-slow",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "The same, asked of a model that did not answer: the rules' offers, and degraded"
+    },
+    {
+      "scenario": "visit/22-slow-rank",
       "operation_id": "rank",
       "status": 200,
-      "shows": "Its ranking"
+      "shows": "What the rules offered, chosen: the edits the API gave with the choice"
     },
     {
-      "scenario": "visit/22-slow-reasons",
+      "scenario": "visit/23-slow-reasons",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons"
+    },
+    {
+      "scenario": "visit/24-shelf-rank",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A word of the shelf added to the defaults: one edit, and no text"
+    },
+    {
+      "scenario": "visit/25-shelf-reasons",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons"
+    },
+    {
+      "scenario": "visit/26-turned-rank",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A scale turned to its other end from its chip"
+    },
+    {
+      "scenario": "visit/27-turned-reasons",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons"
+    },
+    {
+      "scenario": "visit/28-noticed",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A sentence that is not plain: what was noticed, and no edit"
+    },
+    {
+      "scenario": "visit/29-chosen-rank",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "One of the things noticed, chosen: the edits the API gave with the choice"
+    },
+    {
+      "scenario": "visit/30-chosen-reasons",
       "operation_id": "explain_top",
       "status": 200,
       "shows": "Its reasons"

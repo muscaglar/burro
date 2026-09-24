@@ -33,7 +33,7 @@ export interface paths {
         };
         /**
          * List Areas
-         * @description Every area of the release, by id.
+         * @description Every area of the release, by id, and where each sits on every vibe.
          */
         readonly get: operations["list_areas"];
         readonly put?: never;
@@ -76,6 +76,26 @@ export interface paths {
          * @description One area: what the release holds about it, and the facts a profile page shows.
          */
         readonly get: operations["get_area"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/areas/{id_or_slug}/census": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /**
+         * Get Census
+         * @description The census figures of one area, beside the figures of the whole city and nothing else.
+         */
+        readonly get: operations["get_census"];
         readonly put?: never;
         readonly post?: never;
         readonly delete?: never;
@@ -153,7 +173,7 @@ export interface paths {
         };
         /**
          * Get Meta
-         * @description The release that is loaded, the vocabulary, the defaults and the limits.
+         * @description The release that is loaded, the vocabulary, the defaults, the limits, and who reads.
          */
         readonly get: operations["get_meta"];
         readonly put?: never;
@@ -272,6 +292,9 @@ export interface components {
             readonly features: readonly components["schemas"]["FeatureValue"][];
             /** Neighbours */
             readonly neighbours: readonly components["schemas"]["AreaSummary"][];
+            readonly portrait: components["schemas"]["Portrait"];
+            /** Similar */
+            readonly similar: readonly components["schemas"]["Similar"][];
             /** Stations */
             readonly stations: readonly components["schemas"]["StationAccess"][];
             /** Tags */
@@ -318,6 +341,8 @@ export interface components {
         readonly AreasData: {
             /** Areas */
             readonly areas: readonly components["schemas"]["AreaSummary"][];
+            /** Bands */
+            readonly bands: readonly components["schemas"]["VibeBands"][];
         };
         /**
          * Assumption
@@ -328,12 +353,34 @@ export interface components {
             readonly group: components["schemas"]["OpsGroup"];
             /** Index */
             readonly index: number;
+            /**
+             * Word
+             * @default
+             */
+            readonly word: string;
         };
         /**
          * AssumptionCode
          * @enum {string}
          */
-        readonly AssumptionCode: "tenure" | "segment" | "strictness" | "mode" | "max_minutes" | "direction" | "weight";
+        readonly AssumptionCode: "tenure" | "segment" | "strictness" | "mode" | "max_minutes" | "direction" | "weight" | "word";
+        /**
+         * BandMark
+         * @description Where one area sits on one vibe: a band, one of five, and the bands it spans.
+         *
+         *     All three are `null` for an area that cannot be placed. It is never drawn
+         *     in the middle. The score a vibe is ranked on is not here, and is never shown.
+         */
+        readonly BandMark: {
+            /** Area Id */
+            readonly area_id: string;
+            /** Band */
+            readonly band: number | null;
+            /** Spread High */
+            readonly spread_high: number | null;
+            /** Spread Low */
+            readonly spread_low: number | null;
+        };
         /** Budget */
         readonly Budget: {
             /** Amount */
@@ -368,9 +415,149 @@ export interface components {
             /** Margin */
             readonly margin: number;
             /** Upper Quartile */
-            readonly upper_quartile: number;
+            readonly upper_quartile: number | null;
             /** Utility */
             readonly utility: number;
+        };
+        /**
+         * CensusColumns
+         * @description The heading of each column, in the order they are printed.
+         */
+        readonly CensusColumns: {
+            /** City */
+            readonly city: string;
+            /** Count */
+            readonly count: string;
+            /** Label */
+            readonly label: string;
+            /** Share */
+            readonly share: string;
+        };
+        /**
+         * CensusKind
+         * @description What a table counts. It is no `FeatureId` and no `TagId`: no spec or edit can name it.
+         * @enum {string}
+         */
+        readonly CensusKind: "age" | "households" | "country_of_birth" | "ethnic_group" | "religion";
+        /**
+         * CensusLeftOut
+         * @description Why an area has no figure for a table. Nothing is filled in for either.
+         * @enum {string}
+         */
+        readonly CensusLeftOut: "too_few" | "not_held";
+        /**
+         * CensusOffer
+         * @description What the closed block of an area's page says. It holds no figure and names no area.
+         */
+        readonly CensusOffer: {
+            /** Available */
+            readonly available: boolean;
+            /** Heading */
+            readonly heading: string;
+            /** Intro */
+            readonly intro: string;
+        };
+        /**
+         * CensusPanel
+         * @description The census of one area, as its page shows it. Every word but a button's is here.
+         */
+        readonly CensusPanel: {
+            /** Area Id */
+            readonly area_id: string;
+            /** City */
+            readonly city: string;
+            /** Date Line */
+            readonly date_line: string;
+            /** Derivation Line */
+            readonly derivation_line: string;
+            /** Heading */
+            readonly heading: string;
+            /** Licence Line */
+            readonly licence_line: string;
+            /** Notes */
+            readonly notes: readonly string[];
+            /** Output Areas */
+            readonly output_areas: number;
+            /** Source Line */
+            readonly source_line: string;
+            /** Tables */
+            readonly tables: readonly components["schemas"]["CensusPanelTable"][];
+        };
+        /**
+         * CensusPanelRow
+         * @description One row as it is printed: the area's figure, and the whole city's beside it.
+         *
+         *     `share` and `city_share` are words. `percent` and `city_percent` are the
+         *     same shares as whole numbers, for the picture alone, and are `None`
+         *     where the share is under 1 in 100. `count` is as it is printed, and is
+         *     `None` where the share is under 1 in 100: a small count is never given.
+         */
+        readonly CensusPanelRow: {
+            /** City Percent */
+            readonly city_percent: number | null;
+            /** City Share */
+            readonly city_share: string;
+            /** Code */
+            readonly code: string;
+            /** Count */
+            readonly count: string | null;
+            /** Depth */
+            readonly depth: number;
+            /** Heading */
+            readonly heading: string;
+            /** Label */
+            readonly label: string;
+            /** Percent */
+            readonly percent: number | null;
+            /** Share */
+            readonly share: string;
+        };
+        /** CensusPanelTable */
+        readonly CensusPanelTable: {
+            /** Caption */
+            readonly caption: string;
+            readonly columns: components["schemas"]["CensusColumns"];
+            /** Definition */
+            readonly definition: string;
+            readonly kind: components["schemas"]["CensusKind"];
+            /** Left Out */
+            readonly left_out: string | null;
+            /** Note */
+            readonly note: string | null;
+            readonly reason: components["schemas"]["CensusLeftOut"] | null;
+            /** Rows */
+            readonly rows: readonly components["schemas"]["CensusPanelRow"][];
+            /** Shown Only */
+            readonly shown_only: string | null;
+            /** Source Id */
+            readonly source_id: string;
+            /** Source Label */
+            readonly source_label: string;
+            /** Source Url */
+            readonly source_url: string;
+            /** Table Code */
+            readonly table_code: string;
+            /** Title */
+            readonly title: string;
+        };
+        /** CharacterMark */
+        readonly CharacterMark: {
+            /** Area Id */
+            readonly area_id: string;
+            /** Band */
+            readonly band: number | null;
+            /** Fact Id */
+            readonly fact_id: string;
+            /** Spread High */
+            readonly spread_high: number | null;
+            /** Spread Low */
+            readonly spread_low: number | null;
+        };
+        /** CharacterRow */
+        readonly CharacterRow: {
+            /** Marks */
+            readonly marks: readonly components["schemas"]["CharacterMark"][];
+            readonly tag_id: components["schemas"]["TagId"];
         };
         /**
          * Choice
@@ -468,12 +655,21 @@ export interface components {
         readonly CompareData: {
             /** Areas */
             readonly areas: readonly components["schemas"]["ComparedArea"][];
+            /** Character */
+            readonly character: readonly components["schemas"]["CharacterRow"][];
             /** Facts */
             readonly facts: readonly components["schemas"]["Fact"][];
             /** Rows */
             readonly rows: readonly components["schemas"]["CompareRow"][];
         };
-        /** CompareRow */
+        /**
+         * CompareRow
+         * @description One thing that counts, across the areas. The journeys have a row each.
+         *
+         *     Every cell of a journey's row is to the same place. The row is named as
+         *     core keys a journey, `commute.<place_id>.<mode>`, and carries the weight
+         *     of the journeys, which count as one thing between them.
+         */
         readonly CompareRow: {
             /** Cells */
             readonly cells: readonly components["schemas"]["CompareCell"][];
@@ -481,6 +677,7 @@ export interface components {
             readonly component: string;
             /** Label */
             readonly label: string;
+            readonly place: components["schemas"]["NamedPlace"] | null;
             /** Weight */
             readonly weight: number;
         };
@@ -492,20 +689,25 @@ export interface components {
          *     type. A test holds it to `FilterReason` and `UnrankedReason`.
          * @enum {string}
          */
-        readonly CompareStatus: "ranked" | "excluded" | "not_selected" | "over_budget" | "commute_cap" | "not_rankable" | "insufficient_data";
+        readonly CompareStatus: "ranked" | "excluded" | "not_selected" | "over_budget" | "commute_cap" | "not_rankable" | "insufficient_data" | "character_unknown";
         /** ComparedArea */
         readonly ComparedArea: {
             /** Area Id */
             readonly area_id: string;
+            /** Counted */
+            readonly counted: number;
             /** Name */
             readonly name: string;
+            /** Present */
+            readonly present: number;
             readonly status: components["schemas"]["CompareStatus"];
         };
         /**
          * Confidence
+         * @description What a cost rests on. The first three are of a range Burro worked out.
          * @enum {string}
          */
-        readonly Confidence: "high" | "medium" | "low";
+        readonly Confidence: "high" | "medium" | "low" | "unstated";
         /** Contribution */
         readonly Contribution: {
             /** Component */
@@ -525,7 +727,15 @@ export interface components {
             /** Weight */
             readonly weight: number;
         };
-        /** CostEstimate */
+        /**
+         * CostEstimate
+         * @description What a home of one kind costs in one area: a range, or one number where no range is known.
+         *
+         *     A row holds both quartiles or neither. A row with neither is a publisher's
+         *     own median of what was paid for the homes sold in the twelve months that
+         *     end with `as_of`. Nothing stands in for the range, and what the median
+         *     rests on is `unstated`: the publisher gives no count of the sales.
+         */
         readonly CostEstimate: {
             /** Area Id */
             readonly area_id: string;
@@ -533,7 +743,7 @@ export interface components {
             readonly as_of: string;
             readonly confidence: components["schemas"]["Confidence"];
             /** Lower Quartile */
-            readonly lower_quartile: number;
+            readonly lower_quartile: number | null;
             /** Median */
             readonly median: number;
             readonly segment: components["schemas"]["Segment"];
@@ -541,7 +751,7 @@ export interface components {
             readonly source_ids: readonly string[];
             readonly tenure: components["schemas"]["Tenure"];
             /** Upper Quartile */
-            readonly upper_quartile: number;
+            readonly upper_quartile: number | null;
         };
         /** Counts */
         readonly Counts: {
@@ -574,10 +784,16 @@ export interface components {
             readonly rent: components["schemas"]["PreferenceSpec"];
         };
         /**
+         * Describes
+         * @description What a feature is a fact about. There is no value for who lives somewhere.
+         * @enum {string}
+         */
+        readonly Describes: "place" | "buildings" | "events";
+        /**
          * Dimension
          * @enum {string}
          */
-        readonly Dimension: "crime" | "schools" | "green_water" | "air_noise" | "venues_culture" | "homes" | "station_access";
+        readonly Dimension: "crime" | "schools" | "green_water" | "air_noise" | "venues_culture" | "homes" | "station_access" | "services";
         /**
          * Direction
          * @enum {string}
@@ -601,6 +817,11 @@ export interface components {
         /** Envelope[AreasData] */
         readonly Envelope_AreasData_: {
             readonly data: components["schemas"]["AreasData"];
+            readonly meta: components["schemas"]["Meta"];
+        };
+        /** Envelope[CensusPanel] */
+        readonly Envelope_CensusPanel_: {
+            readonly data: components["schemas"]["CensusPanel"];
             readonly meta: components["schemas"]["Meta"];
         };
         /** Envelope[CompareData] */
@@ -660,7 +881,7 @@ export interface components {
          * ErrorCode
          * @enum {string}
          */
-        readonly ErrorCode: "malformed_json" | "body_too_large" | "unsupported_media_type" | "internal_error" | "not_found" | "method_not_allowed" | "invalid_request" | "invalid_text" | "invalid_spec" | "invalid_operations" | "invalid_compare" | "invalid_query" | "unknown_place" | "unknown_area" | "area_not_found" | "share_not_found" | "release_changed";
+        readonly ErrorCode: "malformed_json" | "body_too_large" | "unsupported_media_type" | "internal_error" | "not_found" | "method_not_allowed" | "invalid_request" | "invalid_text" | "invalid_spec" | "invalid_operations" | "invalid_compare" | "invalid_query" | "unknown_place" | "unknown_area" | "area_not_found" | "share_not_found" | "release_changed" | "census_not_available";
         /** ErrorEnvelope */
         readonly ErrorEnvelope: {
             readonly error: components["schemas"]["ErrorBody"];
@@ -702,6 +923,8 @@ export interface components {
             readonly explanations: readonly components["schemas"]["Explanation"][];
             /** Facts */
             readonly facts: readonly components["schemas"]["Fact"][];
+            /** Spec Hash */
+            readonly spec_hash: string;
         };
         /** Fact */
         readonly Fact: {
@@ -734,19 +957,39 @@ export interface components {
          * FactKind
          * @enum {string}
          */
-        readonly FactKind: "area" | "feature" | "tag" | "cost" | "budget_fit" | "travel" | "station" | "missing";
+        readonly FactKind: "area" | "feature" | "tag" | "cost" | "budget_fit" | "travel" | "station" | "missing" | "likeness";
         /** FactSource */
         readonly FactSource: {
             /** Name */
             readonly name: string;
+            /** Publisher */
+            readonly publisher: string;
             /** Source Id */
             readonly source_id: string;
+        };
+        /**
+         * Family
+         * @description The groups of the settings, in the order they are shown.
+         * @enum {string}
+         */
+        readonly Family: "streets_homes" | "pace_food" | "green" | "daily_life";
+        /** FamilyLabel */
+        readonly FamilyLabel: {
+            readonly family: components["schemas"]["Family"];
+            /** Label */
+            readonly label: string;
         };
         /**
          * FeatureId
          * @enum {string}
          */
-        readonly FeatureId: "crime_violence_robbery" | "crime_burglary_theft" | "school_primary_nearby" | "school_primary_attainment" | "school_secondary_attainment" | "university_proximity" | "green_cover" | "park_proximity" | "play_space_proximity" | "water_access" | "air_no2" | "noise_exposure" | "venue_food_drink" | "venue_evening" | "venue_independent" | "culture_venues" | "highstreet_access" | "homes_flats" | "homes_pre1919" | "homes_density" | "conservation_cover" | "station_walk" | "station_lines";
+        readonly FeatureId: "crime_violence_robbery" | "crime_burglary_theft" | "school_primary_nearby" | "school_primary_attainment" | "school_secondary_attainment" | "university_proximity" | "green_cover" | "park_proximity" | "play_space_proximity" | "water_access" | "air_no2" | "noise_exposure" | "venue_food_drink" | "venue_evening" | "venue_independent" | "culture_venues" | "highstreet_access" | "homes_flats" | "homes_pre1919" | "homes_density" | "conservation_cover" | "station_walk" | "station_lines" | "independents_nearby" | "centre_small" | "centre_compact" | "listed_buildings" | "homes_post2000" | "road_major_exposure" | "evening_cluster_exposure" | "land_industry" | "land_storage" | "land_transport_other" | "land_gardens" | "land_woodland" | "park_large_proximity" | "park_facilities" | "grocery_walk" | "incident_criminal_damage" | "incident_antisocial" | "private_outdoor_space" | "cuisine_variety" | "gp_walk" | "pharmacy_walk" | "venue_food_drink_per_homes" | "price_median" | "culture_venues_per_homes";
+        /**
+         * FeatureKind
+         * @description What a person may want of a feature, which decides where it may stand.
+         * @enum {string}
+         */
+        readonly FeatureKind: "taste" | "amenity" | "nuisance" | "on_request";
         /** FeatureValue */
         readonly FeatureValue: {
             /** Area Id */
@@ -845,13 +1088,37 @@ export interface components {
          * @enum {string}
          */
         readonly GeometryType: "Polygon" | "MultiPolygon";
+        /**
+         * GrittyVariant
+         * @description Whether a release carries Gritty, the one vibe that counts recorded crime.
+         * @enum {string}
+         */
+        readonly GrittyVariant: "a" | "b";
         /** Health */
         readonly Health: {
             /** Ok */
             readonly ok: boolean;
         };
+        /**
+         * Holds
+         * @description What a release holds to answer a search with, apart from its measures and its vibes.
+         *
+         *     A first build holds neither. A client then says so where a person would
+         *     look for it, and offers no control that could only be turned away.
+         */
+        readonly Holds: {
+            /** Costs */
+            readonly costs: boolean;
+            /** Journeys */
+            readonly journeys: boolean;
+        };
         /** InterpretBody */
         readonly InterpretBody: {
+            /**
+             * Ask Model
+             * @default true
+             */
+            readonly ask_model: boolean;
             readonly spec?: components["schemas"]["PreferenceSpec"] | null;
             /** Text */
             readonly text: string;
@@ -867,10 +1134,18 @@ export interface components {
             /** Degraded */
             readonly degraded: boolean;
             readonly interpreter: components["schemas"]["InterpreterName"];
+            /** Model Pending */
+            readonly model_pending: boolean;
+            /** Model Refused */
+            readonly model_refused: boolean;
+            /** Not In Release */
+            readonly not_in_release: readonly components["schemas"]["NotInRelease"][];
             readonly notice: components["schemas"]["Notice"];
             /** Notice Text */
             readonly notice_text: string;
             readonly operations: components["schemas"]["Operations"];
+            /** Places */
+            readonly places: readonly components["schemas"]["NamedPlace"][];
             /** Rejected */
             readonly rejected: readonly components["schemas"]["Rejected"][];
             /** Rests On */
@@ -879,24 +1154,32 @@ export interface components {
             /** Spec Hash */
             readonly spec_hash: string;
             readonly status: components["schemas"]["InterpretStatus"];
+            /** Suggestions */
+            readonly suggestions: readonly components["schemas"]["Suggestion"][];
             /** Unmet */
             readonly unmet: readonly components["schemas"]["UnmetCategory"][];
+            /** Unmet At */
+            readonly unmet_at: readonly components["schemas"]["UnmetAt"][];
+            /** Unread */
+            readonly unread: readonly components["schemas"]["Span"][];
         };
         /**
          * InterpretStatus
          * @description In the order that decides the status: the first that applies wins.
          * @enum {string}
          */
-        readonly InterpretStatus: "off_topic" | "policy_redirect" | "clarify" | "ok";
+        readonly InterpretStatus: "off_topic" | "policy_redirect" | "clarify" | "suggest" | "ok";
         /**
          * InterpreterName
          * @enum {string}
          */
-        readonly InterpreterName: "rule" | "claude";
+        readonly InterpreterName: "rule" | "model";
         /** Meta */
         readonly Meta: {
             /** Engine Version */
             readonly engine_version: string;
+            /** Preview */
+            readonly preview: boolean;
             /** Release Id */
             readonly release_id: string;
             /** Synthetic */
@@ -910,13 +1193,23 @@ export interface components {
             readonly built_at: string;
             /** Catalogue Version */
             readonly catalogue_version: number;
+            readonly census: components["schemas"]["CensusOffer"];
             readonly counts: components["schemas"]["Counts"];
             readonly defaults: components["schemas"]["Defaults"];
             /** Engine Version */
             readonly engine_version: string;
+            /** Families */
+            readonly families: readonly components["schemas"]["FamilyLabel"][];
             /** Features */
             readonly features: readonly components["schemas"]["Metric"][];
+            readonly gritty_variant: components["schemas"]["GrittyVariant"];
+            readonly holds: components["schemas"]["Holds"];
             readonly limits: components["schemas"]["ServedLimits"];
+            /** Preview */
+            readonly preview: boolean;
+            readonly reader: components["schemas"]["Reader"];
+            /** Recipes */
+            readonly recipes: readonly components["schemas"]["RecipeHeld"][];
             /** Release Id */
             readonly release_id: string;
             /** Synthetic */
@@ -925,20 +1218,33 @@ export interface components {
             readonly tags: readonly components["schemas"]["Tag"][];
         };
         /**
+         * Method
+         * @enum {string}
+         */
+        readonly Method: "measured" | "modelled" | "averaged";
+        /**
          * Metric
          * @description A feature this release carries. Core decides what it is; the release says where from.
          */
         readonly Metric: {
             /** Definition */
             readonly definition: string;
+            readonly describes: components["schemas"]["Describes"];
             readonly dimension: components["schemas"]["Dimension"];
+            readonly family: components["schemas"]["Family"] | null;
             readonly feature_id: components["schemas"]["FeatureId"];
+            /** In Likeness */
+            readonly in_likeness: boolean;
+            readonly kind: components["schemas"]["FeatureKind"];
             /** Label */
             readonly label: string;
+            readonly method: components["schemas"]["Method"];
             readonly native_resolution: components["schemas"]["NativeResolution"];
             readonly polarity: components["schemas"]["Polarity"];
             /** Rankable */
             readonly rankable: boolean;
+            /** Short Label */
+            readonly short_label: string;
             /** Source Ids */
             readonly source_ids: readonly string[];
             /** Unit */
@@ -966,10 +1272,24 @@ export interface components {
             readonly unit: number;
         };
         /**
+         * NamedPlace
+         * @description A place a spec names, by the release's own name for it. Never what was typed.
+         *
+         *     A spec holds a `place_id` and no name. A name says where someone works as
+         *     an id does, so it is handled as one: served in a body, and in no log.
+         */
+        readonly NamedPlace: {
+            readonly kind: components["schemas"]["PlaceKind"];
+            /** Name */
+            readonly name: string;
+            /** Place Id */
+            readonly place_id: string;
+        };
+        /**
          * NativeResolution
          * @enum {string}
          */
-        readonly NativeResolution: "oa" | "lsoa" | "grid_1km" | "point" | "polygon" | "network";
+        readonly NativeResolution: "oa" | "lsoa" | "msoa" | "grid_1km" | "point" | "polygon" | "network";
         /** Neighbourhood */
         readonly Neighbourhood: {
             /** Aliases */
@@ -991,6 +1311,23 @@ export interface components {
             readonly rankable: boolean;
             /** Slug */
             readonly slug: string;
+        };
+        /**
+         * NotInRelease
+         * @description A thing a person asked for that the release holds for no area, so none is ranked on it.
+         *
+         *     A vibe that no area has a band for, a measure the release does not carry,
+         *     a budget where it holds no cost of that kind of home, a journey where it
+         *     names no place. It is said, so that a person is told what is not there
+         *     yet. It is never offered, and nothing stands in for it.
+         */
+        readonly NotInRelease: {
+            /** Label */
+            readonly label: string;
+            /** Spans */
+            readonly spans: readonly components["schemas"]["Span"][];
+            /** Target */
+            readonly target: string;
         };
         /**
          * Notice
@@ -1050,6 +1387,44 @@ export interface components {
          * @enum {string}
          */
         readonly Polarity: "less" | "more" | "either";
+        /** Portrait */
+        readonly Portrait: {
+            /** Less */
+            readonly less: readonly components["schemas"]["PortraitMark"][];
+            /** More */
+            readonly more: readonly components["schemas"]["PortraitMark"][];
+            /** Others */
+            readonly others: readonly components["schemas"]["PortraitMark"][];
+            /** Scales */
+            readonly scales: readonly components["schemas"]["PortraitMark"][];
+            /** Unplaced */
+            readonly unplaced: readonly components["schemas"]["PortraitMark"][];
+        };
+        /**
+         * PortraitMark
+         * @description One vibe on the portrait. The band and the sentence are in the fact it names.
+         */
+        readonly PortraitMark: {
+            /** Fact Id */
+            readonly fact_id: string;
+            /** Figure Fact Id */
+            readonly figure_fact_id: string | null;
+            /** Parts */
+            readonly parts: readonly components["schemas"]["PortraitPart"][];
+            readonly tag_id: components["schemas"]["TagId"];
+        };
+        /**
+         * PortraitPart
+         * @description One part of a recipe, and the fact that holds this area's figure for it.
+         */
+        readonly PortraitPart: {
+            /** Fact Id */
+            readonly fact_id: string | null;
+            readonly feature_id: components["schemas"]["FeatureId"];
+            /** Hundredths */
+            readonly hundredths: number;
+            readonly reading: components["schemas"]["TermReading"];
+        };
         /** PreferenceSpec */
         readonly PreferenceSpec: {
             /** Areas */
@@ -1088,6 +1463,11 @@ export interface components {
          */
         readonly Provenance: "stated" | "inferred" | "default" | "ui_edit";
         /**
+         * Provider
+         * @enum {string}
+         */
+        readonly Provider: "gemini" | "openai" | "deepseek" | "anthropic";
+        /**
          * PtBasis
          * @enum {string}
          */
@@ -1106,10 +1486,16 @@ export interface components {
         readonly RankData: {
             /** Applied */
             readonly applied: readonly components["schemas"]["Applied"][];
+            /** Areas Listed */
+            readonly areas_listed: number;
+            /** Areas Ranked */
+            readonly areas_ranked: number;
             /** Empty Spec */
             readonly empty_spec: boolean;
             /** Filtered */
             readonly filtered: readonly components["schemas"]["Filtered"][];
+            /** Places */
+            readonly places: readonly components["schemas"]["NamedPlace"][];
             /** Ranked */
             readonly ranked: readonly components["schemas"]["RankedArea"][];
             /** Rejected */
@@ -1135,10 +1521,51 @@ export interface components {
             readonly rank: number;
             /** Score */
             readonly score: number;
+            /** Strip */
+            readonly strip: readonly components["schemas"]["StripMark"][];
             /** Untested Filters */
             readonly untested_filters: readonly components["schemas"]["FilterReason"][];
             /** Weight Coverage */
             readonly weight_coverage: number;
+        };
+        /**
+         * Reader
+         * @description Who reads what a person types, and what people are told of it.
+         *
+         *     It is how the service is set, and no part of the release. A client shows
+         *     `notice` by the box before anything is typed, as it is served, and writes
+         *     no provider's name or terms of its own.
+         */
+        readonly Reader: {
+            /** Company */
+            readonly company: string | null;
+            /** Model Reads */
+            readonly model_reads: boolean;
+            /** Notice */
+            readonly notice: string;
+            readonly provider: components["schemas"]["Provider"] | null;
+            /** Settings Sent */
+            readonly settings_sent: boolean;
+            /** Terms Url */
+            readonly terms_url: string | null;
+        };
+        /**
+         * RecipeHeld
+         * @description How much of one vibe's recipe a release carries, and what the vibe waits on.
+         *
+         *     It is of the release and of no area. An area may have a figure for fewer
+         *     parts than the release carries, and its own fact says so.
+         */
+        readonly RecipeHeld: {
+            /** Held */
+            readonly held: number;
+            /** Needed */
+            readonly needed: number;
+            /** Placed */
+            readonly placed: boolean;
+            readonly tag_id: components["schemas"]["TagId"];
+            /** Waits On */
+            readonly waits_on: readonly components["schemas"]["WaitsOn"][];
         };
         /**
          * RejectReason
@@ -1175,6 +1602,10 @@ export interface components {
         readonly Score: {
             /** Area Id */
             readonly area_id: string;
+            /** Counted */
+            readonly counted: number;
+            /** Present */
+            readonly present: number;
             /** Score */
             readonly score: number;
         };
@@ -1246,12 +1677,16 @@ export interface components {
              * @default 5
              */
             readonly minutes_step_small: number;
+            /** Reason Min Utility */
+            readonly reason_min_utility: number;
             /** @default {
              *       "maximum": 20000,
              *       "minimum": 300,
              *       "unit": 25
              *     } */
             readonly rent: components["schemas"]["MoneyLimits"];
+            /** Trade Off Max Utility */
+            readonly trade_off_max_utility: number;
             /**
              * Weight Step Large
              * @default 0.25
@@ -1301,6 +1736,8 @@ export interface components {
         readonly ShareCreated: {
             /** Coarsened */
             readonly coarsened: boolean;
+            /** Places */
+            readonly places: readonly components["schemas"]["NamedPlace"][];
             /** Share Id */
             readonly share_id: string;
             readonly spec: components["schemas"]["PreferenceSpec"];
@@ -1310,6 +1747,10 @@ export interface components {
          * @description A shared search, ranked now on the release that is loaded.
          */
         readonly ShareData: {
+            /** Areas Listed */
+            readonly areas_listed: number;
+            /** Areas Ranked */
+            readonly areas_ranked: number;
             /** Coarsened */
             readonly coarsened: boolean;
             /** Empty Spec */
@@ -1318,6 +1759,8 @@ export interface components {
             readonly filtered: readonly components["schemas"]["Filtered"][];
             /** Original Release Id */
             readonly original_release_id: string;
+            /** Places */
+            readonly places: readonly components["schemas"]["NamedPlace"][];
             /** Ranked */
             readonly ranked: readonly components["schemas"]["RankedArea"][];
             /** Scores */
@@ -1329,6 +1772,16 @@ export interface components {
             readonly stale: boolean;
             /** Unranked */
             readonly unranked: readonly components["schemas"]["Unranked"][];
+        };
+        /**
+         * Similar
+         * @description One of the areas most like this one. The sentence is in the `likeness` fact it names.
+         */
+        readonly Similar: {
+            /** Area Id */
+            readonly area_id: string;
+            /** Fact Id */
+            readonly fact_id: string;
         };
         /** Source */
         readonly Source: {
@@ -1346,6 +1799,16 @@ export interface components {
             readonly source_id: string;
             /** Url */
             readonly url: string;
+        };
+        /**
+         * Span
+         * @description A stretch of the text: where it starts and ends, counted as `RestsOn` counts.
+         */
+        readonly Span: {
+            /** End */
+            readonly end: number;
+            /** Start */
+            readonly start: number;
         };
         /** StationAccess */
         readonly StationAccess: {
@@ -1379,10 +1842,112 @@ export interface components {
          * @enum {string}
          */
         readonly StrictnessChoice: "soft" | "hard" | "unchanged";
-        /** Tag */
-        readonly Tag: {
+        /**
+         * StripMark
+         * @description Where an area sits on one vibe, for the strip under its name. Shown, never scored.
+         */
+        readonly StripMark: {
+            /** Asked */
+            readonly asked: boolean;
+            /** Band */
+            readonly band: number;
+            /** Fact Id */
+            readonly fact_id: string;
+            /** Spread High */
+            readonly spread_high: number;
+            /** Spread Low */
+            readonly spread_low: number;
+            readonly tag_id: components["schemas"]["TagId"];
+            readonly toward: components["schemas"]["Toward"] | null;
+        };
+        /**
+         * Suggestion
+         * @description An offer: a thing that was noticed, in four parts. The person chooses.
+         *
+         *     What it would do (`does`), the person's own words (`spans`, shown within
+         *     `shown`), what follows for areas (`follows`), and the choices. Every word
+         *     is Burro's own. The person's words are never here: a client cuts them
+         *     from the text it holds, by where they stand.
+         */
+        readonly Suggestion: {
+            /** Add All */
+            readonly add_all: string;
+            /** Asks Place */
+            readonly asks_place: boolean;
+            /** Choices */
+            readonly choices: readonly components["schemas"]["SuggestionChoice"][];
+            /** Does */
+            readonly does: string;
+            /** Follows */
+            readonly follows: string;
             /** Label */
             readonly label: string;
+            readonly named_at: components["schemas"]["Span"] | null;
+            /** Needs */
+            readonly needs: string;
+            /** Note */
+            readonly note: string;
+            /** Options */
+            readonly options: readonly components["schemas"]["ClarifyOption"][];
+            readonly read_by: components["schemas"]["InterpreterName"];
+            /** Said */
+            readonly said: readonly string[];
+            readonly shown: components["schemas"]["Span"];
+            /** Spans */
+            readonly spans: readonly components["schemas"]["Span"][];
+            /** Target */
+            readonly target: string;
+        };
+        /**
+         * SuggestionChoice
+         * @description One way a person may take an offer, and the edits it would make.
+         *
+         *     It has a name of its own here because core has another `Choice`, what a
+         *     setting is set to, and one document cannot hold two records of one name.
+         */
+        readonly SuggestionChoice: {
+            readonly direction: components["schemas"]["SuggestionDirection"];
+            /** Guess */
+            readonly guess: boolean;
+            /** Id */
+            readonly id: string;
+            /** Label */
+            readonly label: string;
+            readonly operations: components["schemas"]["Operations"];
+        };
+        /**
+         * SuggestionDirection
+         * @description What a person may choose of a thing the reader noticed. It never guesses one.
+         * @enum {string}
+         */
+        readonly SuggestionDirection: "more" | "less" | "ignore";
+        /** Tag */
+        readonly Tag: {
+            /** Cannot See */
+            readonly cannot_see: readonly string[];
+            readonly family: components["schemas"]["Family"];
+            /** High End */
+            readonly high_end: string | null;
+            /** Label */
+            readonly label: string;
+            /** Lens */
+            readonly lens: boolean;
+            /** Low End */
+            readonly low_end: string | null;
+            /** Meaning */
+            readonly meaning: string;
+            readonly shape: components["schemas"]["TagShape"];
+            /** Shelf Order */
+            readonly shelf_order: number | null;
+            readonly shelf_toward: components["schemas"]["Toward"] | null;
+            /** Shelf Word */
+            readonly shelf_word: string | null;
+            /** Short Label */
+            readonly short_label: string;
+            /** Strip */
+            readonly strip: boolean;
+            /** Table */
+            readonly table: boolean;
             readonly tag_id: components["schemas"]["TagId"];
             /** Terms */
             readonly terms: readonly components["schemas"]["TagTerm"][];
@@ -1393,14 +1958,23 @@ export interface components {
             readonly provenance: components["schemas"]["EditProvenance"];
             readonly step: components["schemas"]["Step"];
             readonly tag_id: components["schemas"]["TagId"];
+            readonly toward: components["schemas"]["TowardChoice"];
             /** Value */
             readonly value: number;
         };
         /**
          * TagId
+         * @description On screen a tag is a vibe. Seven ids of catalogue version 1 are retired and never reused:
+         *     buzzy, evening_venues, historic_character, creative, strong_high_street,
+         *     near_universities and waterside.
          * @enum {string}
          */
-        readonly TagId: "village_feel" | "buzzy" | "leafy" | "creative" | "family_amenities" | "near_universities" | "waterside" | "strong_high_street" | "evening_venues" | "quiet_residential" | "foodie" | "historic_character";
+        readonly TagId: "leafy" | "village_feel" | "pace" | "quiet_residential" | "built_age" | "everyday_on_foot" | "parks_close_by" | "homes" | "foodie" | "family_amenities" | "works_warehouses" | "street_character";
+        /**
+         * TagShape
+         * @enum {string}
+         */
+        readonly TagShape: "scale" | "one_way";
         /** TagTerm */
         readonly TagTerm: {
             readonly feature_id: components["schemas"]["FeatureId"];
@@ -1408,22 +1982,37 @@ export interface components {
             readonly hundredths: number;
             readonly reading: components["schemas"]["TermReading"];
         };
-        /** TagValue */
+        /**
+         * TagValue
+         * @description Where one area sits on one vibe. `score` is for ranking and is never printed.
+         *
+         *     `band` is what is shown: one of five, counted from the low end. The
+         *     spread is the bands the middle half of the area's homes span, so a mixed
+         *     area is drawn as a range and never as a point in the middle.
+         */
         readonly TagValue: {
             /** Area Id */
             readonly area_id: string;
+            /** Band */
+            readonly band: number | null;
             /** Coverage */
             readonly coverage: number;
             /** Raw */
             readonly raw: number | null;
             /** Score */
             readonly score: number | null;
+            /** Spread High */
+            readonly spread_high: number | null;
+            /** Spread Low */
+            readonly spread_low: number | null;
             readonly tag_id: components["schemas"]["TagId"];
         };
         /** TagWeight */
         readonly TagWeight: {
             readonly provenance: components["schemas"]["Provenance"];
             readonly tag_id: components["schemas"]["TagId"];
+            /** @default high */
+            readonly toward: components["schemas"]["Toward"];
             /** Weight */
             readonly weight: number;
         };
@@ -1431,7 +2020,7 @@ export interface components {
          * TemplateId
          * @enum {string}
          */
-        readonly TemplateId: "area" | "feature" | "feature_crime" | "tag" | "cost_rent" | "cost_buy" | "budget_under" | "budget_over" | "travel_pt" | "travel_other" | "travel_beyond" | "station" | "station_nearby" | "missing";
+        readonly TemplateId: "area" | "feature" | "feature_crime" | "vibe" | "vibe_range" | "vibe_unknown" | "cost_rent" | "cost_buy" | "cost_buy_median" | "budget_under" | "budget_over" | "budget_under_median" | "budget_over_median" | "travel_pt" | "travel_pt_over" | "travel_other" | "travel_other_over" | "travel_beyond" | "station" | "station_nearby" | "missing" | "missing_journey" | "likeness" | "likeness_same";
         /**
          * Tenure
          * @enum {string}
@@ -1448,26 +2037,64 @@ export interface components {
          */
         readonly TermReading: "high" | "low";
         /**
+         * Toward
+         * @description Which end of a vibe is asked for. A one-way vibe has the high end alone.
+         * @enum {string}
+         */
+        readonly Toward: "high" | "low";
+        /**
+         * TowardChoice
+         * @enum {string}
+         */
+        readonly TowardChoice: "high" | "low" | "default";
+        /**
          * TravelStatus
          * @enum {string}
          */
         readonly TravelStatus: "ok" | "beyond_cutoff" | "missing";
         /**
+         * UnmetAt
+         * @description Something that was asked for which nothing measures, and where it was said.
+         */
+        readonly UnmetAt: {
+            readonly category: components["schemas"]["UnmetCategory"];
+            readonly span: components["schemas"]["Span"];
+        };
+        /**
          * UnmetCategory
          * @enum {string}
          */
-        readonly UnmetCategory: "broadband" | "flood_risk" | "health_services" | "driving" | "listings" | "affordability_verdict" | "community_amenities" | "outside_the_city" | "other";
+        readonly UnmetCategory: "broadband" | "flood_risk" | "health_services" | "driving" | "listings" | "affordability_verdict" | "community_amenities" | "outside_the_city" | "street_cleanliness" | "upkeep" | "ratings" | "prices_and_hours" | "mobile_coverage" | "change_over_time" | "other";
         /** Unranked */
         readonly Unranked: {
             /** Area Id */
             readonly area_id: string;
+            /** Missing */
+            readonly missing: readonly string[];
             readonly reason: components["schemas"]["UnrankedReason"];
         };
         /**
          * UnrankedReason
          * @enum {string}
          */
-        readonly UnrankedReason: "not_rankable" | "insufficient_data";
+        readonly UnrankedReason: "not_rankable" | "insufficient_data" | "character_unknown";
+        /** VibeBands */
+        readonly VibeBands: {
+            /** Marks */
+            readonly marks: readonly components["schemas"]["BandMark"][];
+            readonly tag_id: components["schemas"]["TagId"];
+        };
+        /**
+         * WaitsOn
+         * @description A part of a recipe that a release carries no measure for. It is named, never filled in.
+         */
+        readonly WaitsOn: {
+            readonly feature_id: components["schemas"]["FeatureId"];
+            /** Hundredths */
+            readonly hundredths: number;
+            /** Label */
+            readonly label: string;
+        };
         /**
          * WeightAction
          * @enum {string}
@@ -1500,10 +2127,20 @@ export type AreaSummary = components['schemas']['AreaSummary'];
 export type AreasData = components['schemas']['AreasData'];
 export type Assumption = components['schemas']['Assumption'];
 export type AssumptionCode = components['schemas']['AssumptionCode'];
+export type BandMark = components['schemas']['BandMark'];
 export type Budget = components['schemas']['Budget'];
 export type BudgetAction = components['schemas']['BudgetAction'];
 export type BudgetEdit = components['schemas']['BudgetEdit'];
 export type BudgetFit = components['schemas']['BudgetFit'];
+export type CensusColumns = components['schemas']['CensusColumns'];
+export type CensusKind = components['schemas']['CensusKind'];
+export type CensusLeftOut = components['schemas']['CensusLeftOut'];
+export type CensusOffer = components['schemas']['CensusOffer'];
+export type CensusPanel = components['schemas']['CensusPanel'];
+export type CensusPanelRow = components['schemas']['CensusPanelRow'];
+export type CensusPanelTable = components['schemas']['CensusPanelTable'];
+export type CharacterMark = components['schemas']['CharacterMark'];
+export type CharacterRow = components['schemas']['CharacterRow'];
 export type Choice = components['schemas']['Choice'];
 export type Clarify = components['schemas']['Clarify'];
 export type ClarifyOption = components['schemas']['ClarifyOption'];
@@ -1524,12 +2161,14 @@ export type CostEstimate = components['schemas']['CostEstimate'];
 export type Counts = components['schemas']['Counts'];
 export type Cutoffs = components['schemas']['Cutoffs'];
 export type Defaults = components['schemas']['Defaults'];
+export type Describes = components['schemas']['Describes'];
 export type Dimension = components['schemas']['Dimension'];
 export type Direction = components['schemas']['Direction'];
 export type DirectionChoice = components['schemas']['DirectionChoice'];
 export type EditProvenance = components['schemas']['EditProvenance'];
 export type EnvelopeAreaData = components['schemas']['Envelope_AreaData_'];
 export type EnvelopeAreasData = components['schemas']['Envelope_AreasData_'];
+export type EnvelopeCensusPanel = components['schemas']['Envelope_CensusPanel_'];
 export type EnvelopeCompareData = components['schemas']['Envelope_CompareData_'];
 export type EnvelopeExplanationsData = components['schemas']['Envelope_ExplanationsData_'];
 export type EnvelopeGeometryData = components['schemas']['Envelope_GeometryData_'];
@@ -1549,7 +2188,10 @@ export type ExplanationsData = components['schemas']['ExplanationsData'];
 export type Fact = components['schemas']['Fact'];
 export type FactKind = components['schemas']['FactKind'];
 export type FactSource = components['schemas']['FactSource'];
+export type Family = components['schemas']['Family'];
+export type FamilyLabel = components['schemas']['FamilyLabel'];
 export type FeatureId = components['schemas']['FeatureId'];
+export type FeatureKind = components['schemas']['FeatureKind'];
 export type FeatureValue = components['schemas']['FeatureValue'];
 export type FeatureWeight = components['schemas']['FeatureWeight'];
 export type FieldProblem = components['schemas']['FieldProblem'];
@@ -1561,19 +2203,24 @@ export type GeoProperties = components['schemas']['GeoProperties'];
 export type Geometry = components['schemas']['Geometry'];
 export type GeometryData = components['schemas']['GeometryData'];
 export type GeometryType = components['schemas']['GeometryType'];
+export type GrittyVariant = components['schemas']['GrittyVariant'];
 export type Health = components['schemas']['Health'];
+export type Holds = components['schemas']['Holds'];
 export type InterpretBody = components['schemas']['InterpretBody'];
 export type InterpretData = components['schemas']['InterpretData'];
 export type InterpretStatus = components['schemas']['InterpretStatus'];
 export type InterpreterName = components['schemas']['InterpreterName'];
 export type Meta = components['schemas']['Meta'];
 export type MetaData = components['schemas']['MetaData'];
+export type Method = components['schemas']['Method'];
 export type Metric = components['schemas']['Metric'];
 export type Mode = components['schemas']['Mode'];
 export type ModeChoice = components['schemas']['ModeChoice'];
 export type MoneyLimits = components['schemas']['MoneyLimits'];
+export type NamedPlace = components['schemas']['NamedPlace'];
 export type NativeResolution = components['schemas']['NativeResolution'];
 export type Neighbourhood = components['schemas']['Neighbourhood'];
+export type NotInRelease = components['schemas']['NotInRelease'];
 export type Notice = components['schemas']['Notice'];
 export type Operations = components['schemas']['Operations'];
 export type OpsGroup = components['schemas']['OpsGroup'];
@@ -1582,13 +2229,19 @@ export type PlaceKind = components['schemas']['PlaceKind'];
 export type PlaceSearchBody = components['schemas']['PlaceSearchBody'];
 export type PlacesData = components['schemas']['PlacesData'];
 export type Polarity = components['schemas']['Polarity'];
+export type Portrait = components['schemas']['Portrait'];
+export type PortraitMark = components['schemas']['PortraitMark'];
+export type PortraitPart = components['schemas']['PortraitPart'];
 export type PreferenceSpec = components['schemas']['PreferenceSpec'];
 export type Problem = components['schemas']['Problem'];
 export type Provenance = components['schemas']['Provenance'];
+export type Provider = components['schemas']['Provider'];
 export type PtBasis = components['schemas']['PtBasis'];
 export type RankBody = components['schemas']['RankBody'];
 export type RankData = components['schemas']['RankData'];
 export type RankedArea = components['schemas']['RankedArea'];
+export type Reader = components['schemas']['Reader'];
+export type RecipeHeld = components['schemas']['RecipeHeld'];
 export type RejectReason = components['schemas']['RejectReason'];
 export type Rejected = components['schemas']['Rejected'];
 export type RestsOn = components['schemas']['RestsOn'];
@@ -1603,14 +2256,21 @@ export type SettingEdit = components['schemas']['SettingEdit'];
 export type ShareBody = components['schemas']['ShareBody'];
 export type ShareCreated = components['schemas']['ShareCreated'];
 export type ShareData = components['schemas']['ShareData'];
+export type Similar = components['schemas']['Similar'];
 export type Source = components['schemas']['Source'];
+export type Span = components['schemas']['Span'];
 export type StationAccess = components['schemas']['StationAccess'];
 export type Step = components['schemas']['Step'];
 export type Strictness = components['schemas']['Strictness'];
 export type StrictnessChoice = components['schemas']['StrictnessChoice'];
+export type StripMark = components['schemas']['StripMark'];
+export type Suggestion = components['schemas']['Suggestion'];
+export type SuggestionChoice = components['schemas']['SuggestionChoice'];
+export type SuggestionDirection = components['schemas']['SuggestionDirection'];
 export type Tag = components['schemas']['Tag'];
 export type TagEdit = components['schemas']['TagEdit'];
 export type TagId = components['schemas']['TagId'];
+export type TagShape = components['schemas']['TagShape'];
 export type TagTerm = components['schemas']['TagTerm'];
 export type TagValue = components['schemas']['TagValue'];
 export type TagWeight = components['schemas']['TagWeight'];
@@ -1618,10 +2278,15 @@ export type TemplateId = components['schemas']['TemplateId'];
 export type Tenure = components['schemas']['Tenure'];
 export type TenureChoice = components['schemas']['TenureChoice'];
 export type TermReading = components['schemas']['TermReading'];
+export type Toward = components['schemas']['Toward'];
+export type TowardChoice = components['schemas']['TowardChoice'];
 export type TravelStatus = components['schemas']['TravelStatus'];
+export type UnmetAt = components['schemas']['UnmetAt'];
 export type UnmetCategory = components['schemas']['UnmetCategory'];
 export type Unranked = components['schemas']['Unranked'];
 export type UnrankedReason = components['schemas']['UnrankedReason'];
+export type VibeBands = components['schemas']['VibeBands'];
+export type WaitsOn = components['schemas']['WaitsOn'];
 export type WeightAction = components['schemas']['WeightAction'];
 export type WeightEdit = components['schemas']['WeightEdit'];
 export type $defs = Record<string, never>;
@@ -1673,6 +2338,13 @@ export interface operations {
                     readonly "application/json": components["schemas"]["Envelope_AreasData_"];
                 };
             };
+            /** @description The release the caller holds is still loaded */
+            readonly 304: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Internal Server Error */
             readonly 500: {
                 headers: {
@@ -1701,6 +2373,13 @@ export interface operations {
                 content: {
                     readonly "application/json": components["schemas"]["Envelope_GeometryData_"];
                 };
+            };
+            /** @description The release the caller holds is still loaded */
+            readonly 304: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Internal Server Error */
             readonly 500: {
@@ -1731,6 +2410,62 @@ export interface operations {
                 };
                 content: {
                     readonly "application/json": components["schemas"]["Envelope_AreaData_"];
+                };
+            };
+            /** @description The release the caller holds is still loaded */
+            readonly 304: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly get_census: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly id_or_slug: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_CensusPanel_"];
                 };
             };
             /** @description Not Found */
@@ -1995,6 +2730,13 @@ export interface operations {
                 content: {
                     readonly "application/json": components["schemas"]["Envelope_MetaData_"];
                 };
+            };
+            /** @description The release the caller holds is still loaded */
+            readonly 304: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Internal Server Error */
             readonly 500: {

@@ -1,11 +1,12 @@
 .prompt {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
+  min-width: 0;
 }
 
 .form {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 
 .label {
@@ -13,42 +14,99 @@
   font-weight: 650;
 }
 
+.prompt[data-open="true"] .label {
+  font-size: var(--size-body);
+}
+
+/* The label, and beside it, once a search is open, the link to how words are handled. */
+.over {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-3);
+}
+
+/* How many characters are left stands at the far end of the label's line. */
+.count {
+  margin-inline-start: auto;
+}
+
 .hint,
 .words,
-.count {
+.count,
+.wordsLink {
   margin: 0;
   color: var(--muted);
   font-size: var(--size-small);
 }
 
+.wordsLink {
+  color: var(--accent);
+}
+
+/* How words are handled: Burro's own line, what the service says of who else reads, and the way to Methods. */
+.words p {
+  margin: 0;
+}
+
+.words p + p {
+  margin-top: var(--space-1);
+}
+
+/*
+ * The box, and its buttons beside it. Once a search is open the box is one line high, so
+ * that the answer comes first.
+ */
+.line {
+  display: grid;
+  grid-template-columns: minmax(7rem, 1fr) auto;
+  align-items: start;
+  gap: var(--space-2);
+}
+
+/* On one line with the box, a button is no wider than its words. */
+.buttons :global(.target) {
+  min-width: 0;
+  padding-inline: var(--space-3);
+}
+
 .box {
   width: 100%;
-  min-height: calc(3 * var(--leading-text) * 1em + 2 * var(--space-2));
+  min-height: calc(2 * var(--leading-text) * 1em + 2 * var(--space-2));
   resize: vertical;
 }
 
-.under {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2) var(--space-4);
+.prompt[data-open="true"] .box {
+  min-height: var(--target);
 }
 
-/* One line high whether it holds a count or not. */
-.count {
-  min-height: calc(var(--leading-text) * 1em);
+/*
+ * A box of one line shows one line, whole. It held a long sentence on two, and the top of
+ * the second showed under the first, cut through the middle. While nobody types in it,
+ * what it holds is kept on one line, and what does not fit is out of sight.
+ *
+ * Neither rule is keyed on the focus. A rule that is changes the height of the box the
+ * moment a press elsewhere takes the focus, and the press then lands on nothing.
+ */
+.prompt[data-open="true"] .box[data-tall="false"] {
+  white-space: pre;
+  overflow: hidden;
+  resize: none;
+}
+
+/* While it is typed in it wraps as any box does, so that what is typed or selected is in sight. */
+.prompt[data-open="true"] .box[data-tall="true"] {
+  min-height: calc(3 * var(--leading-text) * 1em + 2 * var(--space-2));
 }
 
 .buttons {
   display: flex;
+  justify-content: flex-end;
   gap: var(--space-2);
-  margin-inline-start: auto;
 }
 
-/* Named with its size class, so that its width does not depend on the order of two style sheets. */
+/* Named with its size class, so that it does not depend on the order of two style sheets. */
 .submit:global(.target) {
-  min-width: 7rem;
   background: var(--accent);
   border-color: var(--accent);
   color: var(--on-accent);
@@ -66,7 +124,7 @@
 
 .examples {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 
 .examplesTitle {
@@ -76,16 +134,22 @@
 
 .list {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-1);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+.list li {
+  max-width: none;
+}
+
 .example {
   width: 100%;
+  padding-block: var(--space-1);
   text-align: left;
   background: var(--surface);
+  font-size: var(--size-small);
 }
 
 @media (forced-colors: active) {

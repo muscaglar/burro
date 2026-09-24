@@ -37,6 +37,19 @@
   align-items: center;
 }
 
+/* A narrow screen: the name and the links on one line, so that the page starts higher. */
+@media (max-width: 40rem) {
+  .inner {
+    gap: var(--space-1) var(--space-3);
+    padding-block: var(--space-1);
+  }
+
+  .links {
+    gap: var(--space-1) var(--space-2);
+    font-size: var(--size-small);
+  }
+}
+
 /* The page being read is marked by weight and by an edge, as well as to a screen reader. */
 .link[aria-current="page"] {
   color: var(--text);

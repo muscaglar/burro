@@ -10,6 +10,7 @@ import userEvent from "@testing-library/user-event";
 import SharedPage from "@/app/s/page";
 import { SearchApp } from "@/components/SearchApp/SearchApp";
 import { SharedSearch } from "@/components/SharedSearch/SharedSearch";
+import { SHOWN_AT_FIRST } from "@/components/ResultList/ResultList";
 import { Shell } from "@/components/Shell/Shell";
 import { CHIPS, RESULTS, SEARCH } from "@/content/search";
 import { SETTINGS } from "@/content/settings";
@@ -18,9 +19,22 @@ import { BANNER } from "@/content/site";
 import { readRecorded, recordedAnswer, recordedError } from "@/lib/api/recorded";
 import type { Meta, Operations } from "@/lib/api/schema";
 
-import { setOnline, standInApi, type StandIn } from "../support/api";
+import { reasonsFor, setOnline, standInApi, type StandIn } from "../support/api";
 import { faultsIn } from "../support/axe";
-import { areas, arrived, CANARY, firstSearch, meta, openSearch, results, search, settled } from "../support/search";
+import {
+  areas,
+  arrived,
+  CANARY,
+  everyChip,
+  everyResult,
+  firstSearch,
+  meta,
+  openSearch,
+  removeChip,
+  results,
+  search,
+  settled,
+} from "../support/search";
 import { watch } from "../support/watch";
 
 jest.mock("next/navigation", () => ({ usePathname: () => "/s" }));
@@ -30,12 +44,16 @@ const stale = recordedAnswer("get_share", "share-opened-stale");
 const ID = opened.request.path.split("/").pop() ?? "";
 const STALE_ID = stale.request.path.split("/").pop() ?? "";
 
+/** The reasons of the search a share holds, as they were recorded, said to be for the spec that share holds. */
+const reasonsOf = (scenario: string) =>
+  scenario.startsWith("share-opened") ? reasonsFor(scenario, "explanations-share-opened") : "explanations-share-opened";
+
 /** The service that answers a share, which names the release it holds in every answer it gives. */
 const sharing = (scenario = "share-opened") =>
   standInApi()
     .movedTo((readRecorded(scenario).body as { meta: Meta }).meta.release_id)
     .on("get_share", scenario)
-    .on("explain_top", "explanations-first");
+    .on("explain_top", reasonsOf(scenario));
 
 /** Puts the browser at the page a shared link opens, with what follows the `#` of the link. */
 function goTo(fragment: string | null) {
@@ -76,20 +94,23 @@ describe("opening a shared link", () => {
 
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(SHARED.title);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
+    await everyResult(userEvent.setup({ delay: null }));
     expect(results()).toHaveLength(opened.body.data.ranked.length);
     const first = areas.find((area) => area.area_id === opened.body.data.ranked[0]?.area_id);
     expect(results()[0]).toHaveTextContent(first?.name ?? "no name");
   });
 
   test("test_the_settings_of_the_shared_search_are_shown_as_chips", async () => {
-    await open(ID);
+    const { user } = await open(ID);
     await settled();
+    await everyChip(user);
 
     // No words were read into a shared search, so it is not said to have been understood.
     const chips = within(screen.getByRole("region", { name: CHIPS.setLabel }));
 
     expect(chips.getByText("Leafy")).toBeInTheDocument();
-    expect(chips.getByText("Quiet residential")).toBeInTheDocument();
+    expect(chips.getByText("Quiet streets")).toBeInTheDocument();
     expect(chips.getByText("£1,700 a month")).toBeInTheDocument();
   });
 
@@ -167,7 +188,7 @@ describe("opening a shared link", () => {
   test("test_what_a_share_holds_is_said_while_it_is_being_opened", async () => {
     const api = standInApi();
     const held = api.hold("get_share", "share-opened");
-    api.on("explain_top", "explanations-first");
+    api.on("explain_top", "explanations-share-opened");
     await open(ID, api);
 
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(SHARED.title);
@@ -177,7 +198,7 @@ describe("opening a shared link", () => {
 
     held.release();
     await settled();
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
   });
 
   test("test_a_shared_search_can_be_refined_and_the_edit_goes_with_the_shares_spec", async () => {
@@ -185,7 +206,7 @@ describe("opening a shared link", () => {
     await settled();
     api.on("rank", "rank-refined").on("explain_top", "explanations-refined");
 
-    await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Leafy` }));
+    await removeChip(user, "Leafy");
     await settled();
 
     const sent = api.lastCallTo("rank").body as { spec: unknown; operations: Operations };
@@ -199,7 +220,7 @@ describe("opening a shared link", () => {
     const { api, user, rerender } = await open(ID);
     await settled();
     api.on("rank", "rank-refined").on("explain_top", "explanations-refined");
-    await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Leafy` }));
+    await removeChip(user, "Leafy");
     await settled();
 
     // The person reads another page and comes back to the link.
@@ -220,7 +241,7 @@ describe("opening a shared link", () => {
   test("test_another_link_followed_in_the_same_tab_opens_the_other_share", async () => {
     const api = standInApi()
       .inTurn("get_share", "share-opened", "share-opened-stale")
-      .on("explain_top", "explanations-first");
+      .on("explain_top", "explanations-share-opened");
     await open(ID, api);
     await settled();
 
@@ -240,7 +261,7 @@ describe("opening a shared link", () => {
 
 describe("going back to a link", () => {
   test("test_going_back_to_a_link_in_the_same_tab_opens_it", async () => {
-    const api = standInApi().on("get_share", "share-opened").on("explain_top", "explanations-first");
+    const api = standInApi().on("get_share", "share-opened").on("explain_top", "explanations-share-opened");
     await open(null, api);
     expect(screen.getByRole("main")).toHaveTextContent(SHARED.none.title);
 
@@ -252,7 +273,7 @@ describe("going back to a link", () => {
     await settled();
 
     expect(api.callsTo("get_share").map((call) => call.path)).toEqual([`/v1/shares/${ID}`]);
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
   });
 });
 
@@ -287,7 +308,7 @@ describe("a link that leads nowhere", () => {
     await user.click(within(alert).getByRole("button", { name: SHARED.tryAgain }));
     await settled();
 
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
     expect(screen.queryByRole("alert")).toBeNull();
     expect(api.callsTo("get_share")).toHaveLength(2);
   });
@@ -343,7 +364,7 @@ describe("where the id of a share may be", () => {
       const { api, user, container } = await open(ID);
       await settled();
       api.on("rank", "rank-refined").on("explain_top", "explanations-refined");
-      await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Leafy` }));
+      await removeChip(user, "Leafy");
       await settled();
       await user.click(screen.getByRole("button", { name: SETTINGS.title }));
 
@@ -423,7 +444,7 @@ describe("an opened share, by keyboard and to a screen reader", () => {
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(SEARCH.title);
     expect(screen.getByRole("heading", { level: 2, name: SHARED.title })).toBeInTheDocument();
     expect(screen.getByRole("region", { name: SHARED.title })).toHaveTextContent(SHARED.coarsened);
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
     expect(api.callsTo("get_share")).toHaveLength(1);
   });
 });

@@ -23,7 +23,7 @@ export function namedBy(data: AreaData): { readonly name: string; readonly borou
   return name && borough ? { name, borough } : null;
 }
 
-export function metadataFor(data: AreaData, meta: Pick<Meta, "synthetic">): Metadata {
+export function metadataFor(data: AreaData, meta: Pick<Meta, "synthetic" | "preview">): Metadata {
   const named = namedBy(data);
   // With no fact to name it the page says nothing of itself, and asks not to be indexed.
   if (named === null) return { robots: KEEP_OUT };
@@ -51,7 +51,7 @@ export interface PlaceData {
 }
 
 /** The structured data of an area's page, or `null` when the page may not be indexed. */
-export function structuredDataFor(data: AreaData, meta: Pick<Meta, "synthetic">): PlaceData | null {
+export function structuredDataFor(data: AreaData, meta: Pick<Meta, "synthetic" | "preview">): PlaceData | null {
   const named = namedBy(data);
   if (named === null || !mayBeIndexed(meta)) return null;
   const url = wholeAddress(paths.area(data.area));

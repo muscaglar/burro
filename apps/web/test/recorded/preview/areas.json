@@ -1,0 +1,1941 @@
+{
+  "scenario": "preview/areas",
+  "shows": "Its areas, and their bands on the three vibes",
+  "captured": true,
+  "request": {
+    "operation_id": "list_areas",
+    "method": "GET",
+    "route": "/v1/areas",
+    "path": "/v1/areas"
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-cache",
+    "content-length": "22480",
+    "content-type": "application/json",
+    "etag": "\"syn-2026-09-23-01\"",
+    "vary": "Origin",
+    "x-burro-preview": "true",
+    "x-burro-synthetic": "true",
+    "x-request-id": "6bdc8897-3eee-4356-b717-8bc3c9249946"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": true
+    },
+    "data": {
+      "areas": [
+        {
+          "area_id": "syn-n0001",
+          "slug": "alderwick",
+          "name": "Alderwick",
+          "borough": "Quillhaven",
+          "centroid": [
+            -0.016848,
+            0.040758
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0002",
+          "slug": "brackenhythe",
+          "name": "Brackenhythe",
+          "borough": "Quillhaven",
+          "centroid": [
+            -0.040736,
+            0.000531
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0003",
+          "slug": "cindermoor",
+          "name": "Cindermoor",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.059609,
+            -0.000169
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0004",
+          "slug": "dulcimer-green",
+          "name": "Dulcimer Green",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.033997,
+            0.017188
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0005",
+          "slug": "eskerfold",
+          "name": "Eskerfold",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.000634,
+            0.041017
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0006",
+          "slug": "farrowmere",
+          "name": "Farrowmere",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.059088,
+            0.017327
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0007",
+          "slug": "foxholt",
+          "name": "Foxholt",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.015472,
+            0.016975
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0008",
+          "slug": "gorsebeck",
+          "name": "Gorsebeck",
+          "borough": "Quillhaven",
+          "centroid": [
+            -0.040244,
+            0.040059
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0009",
+          "slug": "grapnel-dock",
+          "name": "Grapnel Dock",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.034291,
+            -0.016037
+          ],
+          "rankable": false
+        },
+        {
+          "area_id": "syn-n0010",
+          "slug": "hollinsworth-quay",
+          "name": "Hollinsworth Quay",
+          "borough": "Quillhaven",
+          "centroid": [
+            -0.01763,
+            0.000891
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0011",
+          "slug": "kindlewharf",
+          "name": "Kindlewharf",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.000199,
+            -0.015936
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0012",
+          "slug": "lantern-yard",
+          "name": "Lantern Yard",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.000202,
+            0.017334
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0013",
+          "slug": "larkspur-hill",
+          "name": "Larkspur Hill",
+          "borough": "Quillhaven",
+          "centroid": [
+            -0.040603,
+            0.016882
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0014",
+          "slug": "marrowfen",
+          "name": "Marrowfen",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.033977,
+            0.040649
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0015",
+          "slug": "osierholm",
+          "name": "Osierholm",
+          "borough": "Quillhaven",
+          "centroid": [
+            -0.01685,
+            -0.016721
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0016",
+          "slug": "ostrel-vale",
+          "name": "Ostrel Vale",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.016007,
+            0.040045
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0017",
+          "slug": "otterby-fields",
+          "name": "Otterby Fields",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.058084,
+            -0.016212
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0018",
+          "slug": "pellam-cross",
+          "name": "Pellam Cross",
+          "borough": "Quillhaven",
+          "centroid": [
+            -9.8e-05,
+            0.000412
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0019",
+          "slug": "sable-reach",
+          "name": "Sable Reach",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.015554,
+            -0.016913
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0020",
+          "slug": "sedgewater-marsh",
+          "name": "Sedgewater Marsh",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.0593,
+            0.040889
+          ],
+          "rankable": false
+        },
+        {
+          "area_id": "syn-n0021",
+          "slug": "tallowgate",
+          "name": "Tallowgate",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.01508,
+            0.000189
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0022",
+          "slug": "thrushcombe",
+          "name": "Thrushcombe",
+          "borough": "Quillhaven",
+          "centroid": [
+            -0.016855,
+            0.017169
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0023",
+          "slug": "wexmoor",
+          "name": "Wexmoor",
+          "borough": "Quillhaven",
+          "centroid": [
+            0.033798,
+            0.000242
+          ],
+          "rankable": true
+        },
+        {
+          "area_id": "syn-n0024",
+          "slug": "wickerford",
+          "name": "Wickerford",
+          "borough": "Quillhaven",
+          "centroid": [
+            -0.040119,
+            -0.016828
+          ],
+          "rankable": true
+        }
+      ],
+      "bands": [
+        {
+          "tag_id": "leafy",
+          "marks": [
+            {
+              "area_id": "syn-n0001",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0002",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0003",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0004",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0005",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0006",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0007",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0008",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0009",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0010",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0011",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0012",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0013",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0014",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0015",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0016",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0017",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0018",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0019",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0020",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0021",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0022",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0023",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0024",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            }
+          ]
+        },
+        {
+          "tag_id": "village_feel",
+          "marks": [
+            {
+              "area_id": "syn-n0001",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0002",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0003",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0004",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0005",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0006",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0007",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0008",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0009",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0010",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0011",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0012",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0013",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0014",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0015",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0016",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0017",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0018",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0019",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0020",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0021",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0022",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0023",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0024",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            }
+          ]
+        },
+        {
+          "tag_id": "pace",
+          "marks": [
+            {
+              "area_id": "syn-n0001",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0002",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0003",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0004",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0005",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0006",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0007",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0008",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0009",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0010",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0011",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0012",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0013",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0014",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0015",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0016",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0017",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0018",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0019",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0020",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0021",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0022",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0023",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0024",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            }
+          ]
+        },
+        {
+          "tag_id": "quiet_residential",
+          "marks": [
+            {
+              "area_id": "syn-n0001",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5
+            },
+            {
+              "area_id": "syn-n0002",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2
+            },
+            {
+              "area_id": "syn-n0003",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2
+            },
+            {
+              "area_id": "syn-n0004",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2
+            },
+            {
+              "area_id": "syn-n0005",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4
+            },
+            {
+              "area_id": "syn-n0006",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3
+            },
+            {
+              "area_id": "syn-n0007",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3
+            },
+            {
+              "area_id": "syn-n0008",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5
+            },
+            {
+              "area_id": "syn-n0009",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0010",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1
+            },
+            {
+              "area_id": "syn-n0011",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1
+            },
+            {
+              "area_id": "syn-n0012",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1
+            },
+            {
+              "area_id": "syn-n0013",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5
+            },
+            {
+              "area_id": "syn-n0014",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0015",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3
+            },
+            {
+              "area_id": "syn-n0016",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3
+            },
+            {
+              "area_id": "syn-n0017",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0018",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1
+            },
+            {
+              "area_id": "syn-n0019",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5
+            },
+            {
+              "area_id": "syn-n0020",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0021",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4
+            },
+            {
+              "area_id": "syn-n0022",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2
+            },
+            {
+              "area_id": "syn-n0023",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4
+            },
+            {
+              "area_id": "syn-n0024",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4
+            }
+          ]
+        },
+        {
+          "tag_id": "built_age",
+          "marks": [
+            {
+              "area_id": "syn-n0001",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0002",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0003",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0004",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0005",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0006",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0007",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0008",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0009",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0010",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0011",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0012",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0013",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0014",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0015",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0016",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0017",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0018",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0019",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0020",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0021",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0022",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0023",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0024",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            }
+          ]
+        },
+        {
+          "tag_id": "everyday_on_foot",
+          "marks": [
+            {
+              "area_id": "syn-n0001",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0002",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0003",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0004",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0005",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0006",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0007",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0008",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0009",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0010",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0011",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0012",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0013",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0014",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0015",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0016",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0017",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0018",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0019",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0020",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0021",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0022",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0023",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0024",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            }
+          ]
+        },
+        {
+          "tag_id": "parks_close_by",
+          "marks": [
+            {
+              "area_id": "syn-n0001",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1
+            },
+            {
+              "area_id": "syn-n0002",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5
+            },
+            {
+              "area_id": "syn-n0003",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1
+            },
+            {
+              "area_id": "syn-n0004",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4
+            },
+            {
+              "area_id": "syn-n0005",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3
+            },
+            {
+              "area_id": "syn-n0006",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2
+            },
+            {
+              "area_id": "syn-n0007",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5
+            },
+            {
+              "area_id": "syn-n0008",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4
+            },
+            {
+              "area_id": "syn-n0009",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1
+            },
+            {
+              "area_id": "syn-n0010",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3
+            },
+            {
+              "area_id": "syn-n0011",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2
+            },
+            {
+              "area_id": "syn-n0012",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1
+            },
+            {
+              "area_id": "syn-n0013",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5
+            },
+            {
+              "area_id": "syn-n0014",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3
+            },
+            {
+              "area_id": "syn-n0015",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4
+            },
+            {
+              "area_id": "syn-n0016",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1
+            },
+            {
+              "area_id": "syn-n0017",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0018",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1
+            },
+            {
+              "area_id": "syn-n0019",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5
+            },
+            {
+              "area_id": "syn-n0020",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5
+            },
+            {
+              "area_id": "syn-n0021",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2
+            },
+            {
+              "area_id": "syn-n0022",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4
+            },
+            {
+              "area_id": "syn-n0023",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2
+            },
+            {
+              "area_id": "syn-n0024",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3
+            }
+          ]
+        },
+        {
+          "tag_id": "homes",
+          "marks": [
+            {
+              "area_id": "syn-n0001",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2
+            },
+            {
+              "area_id": "syn-n0002",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3
+            },
+            {
+              "area_id": "syn-n0003",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1
+            },
+            {
+              "area_id": "syn-n0004",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3
+            },
+            {
+              "area_id": "syn-n0005",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2
+            },
+            {
+              "area_id": "syn-n0006",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5
+            },
+            {
+              "area_id": "syn-n0007",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4
+            },
+            {
+              "area_id": "syn-n0008",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1
+            },
+            {
+              "area_id": "syn-n0009",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0010",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5
+            },
+            {
+              "area_id": "syn-n0011",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3
+            },
+            {
+              "area_id": "syn-n0012",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5
+            },
+            {
+              "area_id": "syn-n0013",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2
+            },
+            {
+              "area_id": "syn-n0014",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1
+            },
+            {
+              "area_id": "syn-n0015",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4
+            },
+            {
+              "area_id": "syn-n0016",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3
+            },
+            {
+              "area_id": "syn-n0017",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1
+            },
+            {
+              "area_id": "syn-n0018",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5
+            },
+            {
+              "area_id": "syn-n0019",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4
+            },
+            {
+              "area_id": "syn-n0020",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0021",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3
+            },
+            {
+              "area_id": "syn-n0022",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1
+            },
+            {
+              "area_id": "syn-n0023",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4
+            },
+            {
+              "area_id": "syn-n0024",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2
+            }
+          ]
+        },
+        {
+          "tag_id": "foodie",
+          "marks": [
+            {
+              "area_id": "syn-n0001",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0002",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0003",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0004",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0005",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0006",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0007",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0008",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0009",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0010",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0011",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0012",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0013",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0014",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0015",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0016",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0017",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0018",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0019",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0020",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0021",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0022",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0023",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0024",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            }
+          ]
+        },
+        {
+          "tag_id": "family_amenities",
+          "marks": [
+            {
+              "area_id": "syn-n0001",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0002",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0003",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0004",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0005",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0006",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0007",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0008",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0009",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0010",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0011",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0012",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0013",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0014",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0015",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0016",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0017",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0018",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0019",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0020",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0021",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0022",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0023",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0024",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            }
+          ]
+        },
+        {
+          "tag_id": "street_character",
+          "marks": [
+            {
+              "area_id": "syn-n0001",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0002",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0003",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0004",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0005",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0006",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0007",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0008",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0009",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0010",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0011",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0012",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0013",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0014",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0015",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0016",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0017",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0018",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0019",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0020",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0021",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0022",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0023",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            },
+            {
+              "area_id": "syn-n0024",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

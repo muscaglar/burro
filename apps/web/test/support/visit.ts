@@ -8,7 +8,8 @@
  * passes here is a visit the service answered, request for request.
  *
  * What is a function of the release alone is answered from the recordings
- * every test uses: an area's profile and the boundaries.
+ * every test uses: an area's profile and the boundaries. So is the form, which
+ * the page asks for as it opens, to hear from the service who reads what is typed.
  */
 
 import { createClient, type Client } from "@/lib/api/client";
@@ -17,7 +18,7 @@ import { readRecorded, recordedFolder, responseFrom, type Recorded } from "@/lib
 import { readdirSync } from "node:fs";
 import path from "node:path";
 
-import { BASE } from "./api";
+import { aMomentLater, BASE } from "./api";
 
 /** The steps of the visit, in the order they were recorded. */
 export function stepsOfTheVisit(): readonly Recorded[] {
@@ -70,6 +71,7 @@ export function visitApi(): VisitApi {
   const unanswered: string[] = [];
 
   const fetch = (async (input: RequestInfo | URL, init: RequestInit = {}) => {
+    await aMomentLater();
     const { pathname } = new URL(String(input));
     const method = init.method ?? "GET";
     const body = typeof init.body === "string" ? (JSON.parse(init.body) as unknown) : undefined;
@@ -79,6 +81,7 @@ export function visitApi(): VisitApi {
       return responseFrom(step);
     }
     if (method === "GET" && pathname === "/v1/areas/geometry") return responseFrom(readRecorded("geometry"));
+    if (method === "GET" && pathname === "/v1/meta") return responseFrom(readRecorded("meta"));
     const area = /^\/v1\/areas\/([a-z0-9-]+)$/.exec(pathname);
     if (method === "GET" && area !== null) return responseFrom(readRecorded(`area/${area[1] ?? ""}`));
     unanswered.push(`${method} ${pathname.replace(/^(\/v1\/shares)\/.+$/, "$1/{share_id}")}`);

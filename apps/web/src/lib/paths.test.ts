@@ -28,7 +28,20 @@ describe("the addresses the website links to", () => {
     expect(paths.sources("os-open-greenspace")).toBe("/sources#os-open-greenspace");
   });
 
+  test("test_a_vibe_is_addressed_by_its_id_in_the_fragment_of_the_vibes_page", () => {
+    const address = new URL(paths.vibes("village_feel"), "https://burro.example");
+
+    expect(paths.vibes()).toBe("/vibes");
+    // A browser sends the fragment to no server, so nobody is told which vibe was read.
+    expect(address.pathname).toBe("/vibes");
+    expect(address.search).toBe("");
+    expect(address.hash).toBe("#village_feel");
+  });
+
   test.each([
+    () => paths.vibes("leafy and quiet"),
+    () => paths.vibes("Leafy"),
+    () => paths.vibes("pace?text=quiet"),
     () => paths.area({ area_id: "syn-n0001", slug: "Cindermoor Works" }),
     () => paths.area({ area_id: "syn-n0001", slug: "a/../b" }),
     () => paths.area({ area_id: "xyz-n0001", slug: "alderwick" }),
@@ -47,6 +60,7 @@ describe("the addresses the website links to", () => {
       () => paths.area({ area_id: "syn-n0001", slug: canary.toUpperCase() }),
       () => paths.compare([`${canary} ${canary}`]),
       () => paths.share(canary),
+      () => paths.vibes(`${canary} ${canary}`),
     ].map((build) => {
       try {
         return build();
@@ -88,13 +102,13 @@ describe("the city of an id", () => {
 });
 
 describe("a date, written for a person", () => {
-  test("test_a_date_is_written_out_and_a_period_is_left_as_the_release_wrote_it", () => {
+  test("test_a_date_is_written_out_and_so_is_each_end_of_a_period", () => {
     expect(readableDate("2026-09-23")).toBe("23 September 2026");
     expect(readableDate("2026-09-23T00:00:00Z")).toBe("23 September 2026");
     // Late in the day in UTC is still that day, wherever the page is built.
     expect(readableDate("2026-09-23T23:59:59Z")).toBe("23 September 2026");
     expect(readableDate("2025")).toBe("2025");
-    expect(readableDate("2024-10 to 2026-09")).toBe("2024-10 to 2026-09");
+    expect(readableDate("2024-10 to 2026-09")).toBe("October 2024 to September 2026");
     expect(readableDate("2026-13-45")).toBe("2026-13-45");
   });
 });

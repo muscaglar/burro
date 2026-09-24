@@ -6,6 +6,7 @@ import { AreaProfile } from "@/components/AreaProfile/AreaProfile";
 import { loadArea, loadAreas, loadGeometry, loadMeta } from "@/lib/api/server";
 import { asScriptText, metadataFor, structuredDataFor } from "@/lib/area/describe";
 import { cityOf, isCity } from "@/lib/city";
+import { bandsToDraw } from "@/lib/holds";
 import { isSlug } from "@/lib/paths";
 
 // A built page is kept for an hour at most: the `max-age` the API sends.
@@ -51,7 +52,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 export default async function AreaPage(props: Props) {
   const loaded = await areaAt(props);
   if (loaded === null) notFound();
-  const [meta, geometry] = await Promise.all([loadMeta(), loadGeometry()]);
+  const [meta, geometry, areas] = await Promise.all([loadMeta(), loadGeometry(), loadAreas()]);
   const structured = structuredDataFor(loaded.data, loaded.meta);
   return (
     <>
@@ -59,7 +60,14 @@ export default async function AreaPage(props: Props) {
         // Data for a search engine to read. It is no program, and nothing runs it.
         <script type="application/ld+json">{asScriptText(structured)}</script>
       )}
-      <AreaProfile data={loaded.data} meta={meta.data} geometry={geometry.data} />
+      <AreaProfile
+        data={loaded.data}
+        meta={meta.data}
+        geometry={geometry.data}
+        // Only what a link to an area needs is handed on.
+        areas={areas.data.areas.map(({ area_id, slug, name }) => ({ area_id, slug, name }))}
+        bands={bandsToDraw(meta.data, areas.data.bands)}
+      />
     </>
   );
 }

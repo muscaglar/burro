@@ -23,15 +23,18 @@ import type {
   InterpretData,
   Meta,
   MetaData,
+  NamedPlace,
   Operations,
   OpsGroup,
   PreferenceSpec,
   RankData,
+  Reader,
   Rejected,
   ShareData,
   Tenure,
 } from "@/lib/api/schema";
 
+import { keyOf } from "./suggestion";
 import { chipOf, countOf, GROUPS, isEmpty, merged, NO_EDITS, saidBy, type ChipKey } from "./edits";
 
 export type Phase = "empty" | "interpreting" | "results" | "refining";
@@ -77,23 +80,54 @@ export interface Read
     | "notice_text"
     | "interpreter"
     | "degraded"
-    // Where the words each edit rests on stand in the text: offsets, and never the words.
+    // True when the rules read the words because the language model would not.
+    | "model_refused"
+    // What the reader noticed and did not apply, for the person to choose from. Each holds
+    // where its words stand in the text, as offsets, and never the words.
+    | "suggestions"
+    // The stretches of the text the reader made nothing of: offsets, and never the words.
     // They mean nothing without the text, which only the box holds.
-    | "rests_on"
+    | "unread"
+    // What was asked for that the release holds for no area, each by the API's name for it.
+    | "not_in_release"
   > {
   /** How many edits the words were read into. */
   readonly edits: number;
   /** True when any of them changed the spec. */
   readonly changed: boolean;
+  /**
+   * True when a stretch of what was typed was not read. It stays true of the ranking when
+   * the box changes, though where the stretch stood can no longer be shown.
+   */
+  readonly partUnread: boolean;
   /** The count of answers when this one came, so the page can tell it is the latest. */
   readonly at: number;
   /** The release and the engine that read the words. */
   readonly by: Served;
+  /**
+   * True while a model reads what the rules left unread. What the rules noticed is on the
+   * page meanwhile: it never waits on a model.
+   */
+  readonly more: boolean;
+  /** The offers the person has chosen of, so that one is not offered again when the model has read. */
+  readonly chosen: readonly string[];
+  /** What one press added, until it is taken back or the box changes. */
+  readonly added: Added | null;
+}
+
+/** What "add all" added at one press, and what it takes to take it all back. */
+export interface Added {
+  readonly count: number;
+  /** What is left for the person, each in the API's words. */
+  readonly needs: readonly string[];
+  /** The search as it stood before the press, and what was offered then. */
+  readonly spec: PreferenceSpec;
+  readonly suggestions: Read["suggestions"];
 }
 
 export type Ranking = Pick<
   RankData,
-  "scores" | "ranked" | "filtered" | "unranked" | "empty_spec"
+  "scores" | "ranked" | "filtered" | "unranked" | "empty_spec" | "areas_ranked" | "areas_listed"
 >;
 
 /** Edits a control sent that the reducer refused, with the edits they point into. */
@@ -127,7 +161,8 @@ export type Kept = Pick<
   | "read"
   | "refused"
   | "assumed"
-  | "tenureSaid"
+  | "quoted"
+  | "placeNames"
   | "gaveWay"
   | "budgetWent"
   | "degraded"
@@ -156,6 +191,14 @@ export interface SearchState {
   readonly areas: readonly AreaSummary[];
   readonly geometry: GeometryData | null;
   readonly geometryFailed: boolean;
+  /**
+   * Who reads what is typed, as the service says now. `null` until it has said: what the
+   * page was built on may be of a service that was set otherwise, so it is never shown in
+   * its place. No sentence is sent while this is `null`.
+   */
+  readonly reader: Reader | null;
+  /** True when the service was asked who reads and could not say. */
+  readonly readerFailed: boolean;
 
   readonly phase: Phase;
   /** The phase to go back to when a request is stopped or fails. */
@@ -224,14 +267,21 @@ export interface SearchState {
   /** Why the profile of an area could not be loaded, by `area_id`. */
   readonly detailFailures: Readonly<Record<string, Failure>>;
 
+  /** The release's own name for each place the spec names, by place id. From the answer that brought the spec. */
   readonly placeNames: Readonly<Record<string, string>>;
   readonly assumed: Assumed;
   /**
-   * True when the person said whether they rent or buy, in words or with a control. The
-   * spec alone cannot say so: said of the tenure a search starts from, it changes nothing,
-   * and the API leaves the tenure marked as a default (docs/design/web.md, section 13).
+   * The word a vibe was read from, where the word has two meanings and the reader took
+   * one: by the key of its chip. It is the lexicon's spelling, which the API sends, and
+   * never what was typed.
    */
-  readonly tenureSaid: boolean;
+  readonly quoted: Readonly<Record<string, string>>;
+  /**
+   * True when the person picked renting or buying before anything was sent. The page then
+   * shows the default the API served for that tenure, and sends nothing, so no answer says
+   * that the tenure was chosen. Once an edit states the tenure, the spec says so itself.
+   */
+  readonly tenurePicked: boolean;
 
   /** The share the search was opened from. `null` for a search the person began. */
   readonly shared: Shared | null;
@@ -254,12 +304,7 @@ export type SearchEvent =
       readonly meta: Meta;
     }
   | { readonly type: "share_answered"; readonly id: string; readonly data: ShareData; readonly meta: Meta }
-  | {
-      readonly type: "explain_answered";
-      readonly data: ExplanationsData;
-      readonly hash: string;
-      readonly meta: Meta;
-    }
+  | { readonly type: "explain_answered"; readonly data: ExplanationsData; readonly meta: Meta }
   | { readonly type: "explain_failed"; readonly hash: string; readonly failure: Failure }
   | { readonly type: "detail_answered"; readonly data: AreaData; readonly meta: Meta }
   | { readonly type: "detail_failed"; readonly areaId: string; readonly failure: Failure }
@@ -269,11 +314,25 @@ export type SearchEvent =
   | { readonly type: "started_again" }
   | { readonly type: "question_answered"; readonly question: Clarify; readonly id: string }
   | { readonly type: "question_left"; readonly question: Clarify }
-  | { readonly type: "place_named"; readonly placeId: string; readonly name: string }
+  // A suggestion goes when the person has chosen of it, whatever they chose. `changes` is
+  // true where the choice holds edits, which change the search. Leaving a thing out holds none.
+  | { readonly type: "suggestion_chosen"; readonly at: number; readonly changes?: boolean }
+  // A model has read what the rules left unread. What it read joins what is offered.
+  | { readonly type: "read_more_answered"; readonly data: InterpretData }
+  // It could not be asked, or did not answer. What the rules offered stands.
+  | { readonly type: "read_more_failed" }
+  // One press added several things. What it added is kept until it is taken back.
+  | { readonly type: "all_added"; readonly ats: readonly number[] }
+  | { readonly type: "all_taken_back" }
+  // Every suggestion goes when the box changes: where its words stand is known for the text that was sent.
+  | { readonly type: "box_changed" }
   | { readonly type: "online_changed"; readonly online: boolean }
   | { readonly type: "settings_opened"; readonly open: boolean }
   | { readonly type: "geometry_loaded"; readonly geometry: GeometryData }
   | { readonly type: "geometry_failed" }
+  // The service said who reads what is typed, or was asked and could not.
+  | { readonly type: "reader_said"; readonly reader: Reader }
+  | { readonly type: "reader_unsaid" }
   | {
       readonly type: "release_changed";
       readonly meta: MetaData;
@@ -286,12 +345,15 @@ export function initialState(
   meta: MetaData,
   areas: readonly AreaSummary[],
   geometry: GeometryData | null = null,
+  reader: Reader | null = null,
 ): SearchState {
   return {
     meta,
     areas,
     geometry,
     geometryFailed: false,
+    reader,
+    readerFailed: false,
     phase: "empty",
     before: "empty",
     kept: null,
@@ -328,7 +390,8 @@ export function initialState(
     detailFailures: {},
     placeNames: {},
     assumed: {},
-    tenureSaid: false,
+    quoted: {},
+    tenurePicked: false,
     shared: null,
     selectedId: null,
     hoveredId: null,
@@ -383,23 +446,28 @@ function withPlacesAdded(assumed: Assumed, operations: Operations): Assumed {
   return next;
 }
 
-/** True when any of these edits says whether the person rents or buys. */
-function saysTheTenure(operations: Operations, by?: (edit: Operations["budget_ops"][number]) => boolean): boolean {
-  return operations.budget_ops.some(
-    (edit) => edit.action === "set" && edit.tenure !== "unchanged" && (by === undefined || by(edit)),
-  );
-}
+/** What can be assumed of a budget: the size of home it is for, and whether it is firm. */
+const OF_A_BUDGET: readonly AssumptionCode[] = ["segment", "strictness"];
 
 /**
- * Whether the tenure is one the person said, once these words have been read. It is when
- * the words state the tenure the spec now holds. It no longer is when the tenure changed
- * and no words stated it, as when it was read into the kind of home.
+ * A budget that is given to a search that had none is assumed in every part its edit does
+ * not state. An offer of a budget holds the amount alone, and so does the number typed in
+ * the settings: nobody chose the size of home or whether the limit is firm, and the chip
+ * must not read as if they had. A budget the person has set a part of before is left as it is.
  */
-function tenureSaidAfter(state: Pick<SearchState, "spec" | "tenureSaid">, data: InterpretData): boolean {
-  if (saysTheTenure(data.operations, (edit) => edit.provenance === "stated" && edit.tenure === data.spec.tenure)) {
-    return true;
-  }
-  return data.spec.tenure === state.spec.tenure ? state.tenureSaid : false;
+function withBudgetSet(assumed: Assumed, budget: PreferenceSpec["budget"], operations: Operations): Assumed {
+  if (budget.amount !== null || budget.provenance !== "default") return assumed;
+  let next = assumed;
+  operations.budget_ops.forEach((edit, index) => {
+    if (edit.action !== "set" || edit.amount === 0) return;
+    for (const { key, states } of saidBy(operations, "budget_ops", index)) {
+      if (key !== "budget") continue;
+      const held = next[key] ?? [];
+      const unsaid = OF_A_BUDGET.filter((code) => !states.includes(code) && !held.includes(code));
+      if (unsaid.length > 0) next = { ...next, [key]: [...held, ...unsaid] };
+    }
+  });
+  return next;
 }
 
 function withAssumptions(assumed: Assumed, data: Pick<InterpretData, "operations" | "assumptions">) {
@@ -411,6 +479,32 @@ function withAssumptions(assumed: Assumed, data: Pick<InterpretData, "operations
     if (!held.includes(code)) next[key] = [...held, code];
   }
   return next;
+}
+
+/** The word each part was read from, where the reader says it took one meaning of a word that has two. */
+function withQuoted(
+  quoted: SearchState["quoted"],
+  data: Pick<InterpretData, "operations" | "assumptions">,
+): SearchState["quoted"] {
+  let next = quoted;
+  for (const { group, index, code, word } of data.assumptions) {
+    if (code !== "word" || word === "") continue;
+    const key = chipOf(data.operations, group, index, code);
+    if (key !== null && next[key] !== word) next = { ...next, [key]: word };
+  }
+  return next;
+}
+
+/** Only what is still among the keys given. The same record where that is all of it. */
+function onlyOf<Value>(record: Readonly<Record<string, Value>>, keys: ReadonlySet<string>) {
+  const kept = Object.keys(record).filter((key) => keys.has(key));
+  if (kept.length === Object.keys(record).length) return record;
+  return Object.fromEntries(kept.map((key) => [key, record[key] as Value]));
+}
+
+/** The name of each place an answer names, by place id. The names are the release's own. */
+export function namesOf(places: readonly NamedPlace[]): Readonly<Record<string, string>> {
+  return Object.fromEntries(places.map((place) => [place.place_id, place.name]));
 }
 
 /** True when both point at the same edit. */
@@ -461,18 +555,6 @@ export function gaveWayBetween(before: PreferenceSpec, after: PreferenceSpec): b
  */
 export function budgetWentBetween(before: PreferenceSpec, after: PreferenceSpec): boolean {
   return before.budget.amount !== null && after.budget.amount === null && before.tenure !== after.tenure;
-}
-
-function namesFrom(facts: readonly Fact[], held: Readonly<Record<string, string>>) {
-  let names = held;
-  for (const fact of facts) {
-    if (fact.kind !== "travel") continue;
-    // The key of a journey's fact is the place and the mode: `syn-p0021.pt`.
-    const placeId = fact.key.slice(0, fact.key.lastIndexOf("."));
-    const name = fact.slots.place;
-    if (placeId && name && names[placeId] !== name) names = { ...names, [placeId]: name };
-  }
-  return names;
 }
 
 type Learned = Pick<SearchState, "facts" | "factsBy">;
@@ -557,8 +639,14 @@ function settledPhase(state: Pick<SearchState, "ranking">): "empty" | "results" 
 }
 
 function keep(state: SearchState): Kept {
-  const { spec, specHash, untouched, read, refused, assumed, tenureSaid, gaveWay, budgetWent, degraded } = state;
-  return { spec, specHash, untouched, read, refused, assumed, tenureSaid, gaveWay, budgetWent, degraded };
+  const { spec, specHash, untouched, read, refused, assumed, quoted, placeNames, gaveWay, budgetWent, degraded } =
+    state;
+  return { spec, specHash, untouched, read, refused, assumed, quoted, placeNames, gaveWay, budgetWent, degraded };
+}
+
+/** The vibes a spec holds, by the key of the chip each has. */
+function vibesOf(spec: PreferenceSpec): ReadonlySet<string> {
+  return new Set(spec.tags.map((tag) => `tag:${tag.tag_id}`));
 }
 
 /**
@@ -640,7 +728,7 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
         // The default that was swapped in is the search now, and is what "Stop" goes back to.
         kept: null,
         // The person chose it, so it is not marked as assumed.
-        tenureSaid: true,
+        tenurePicked: true,
         answers: state.answers + 1,
       };
 
@@ -648,8 +736,11 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
       return {
         ...state,
         pending: merged(state.pending, event.operations),
-        assumed: withPlacesAdded(afterEdits(state.assumed, event.operations), event.operations),
-        tenureSaid: state.tenureSaid || saysTheTenure(event.operations),
+        assumed: withBudgetSet(
+          withPlacesAdded(afterEdits(state.assumed, event.operations), event.operations),
+          state.spec.budget,
+          event.operations,
+        ),
         // The person is using the controls, so the settings are theirs to close.
         settingsByPage: false,
         // That words could not be read is said until the person does something about it:
@@ -674,8 +765,10 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
       const { data } = event;
       const applied = new Set(data.applied.map(({ group, index }) => `${group}.${index}`));
       const changed = data.applied.some((edit) => edit.changed);
+      // Where something was noticed, there is something to choose from, and the settings stay shut.
       const nothingRead =
-        data.status === "off_topic" || (!changed && data.clarify.length === 0);
+        data.status === "off_topic" ||
+        (!changed && data.clarify.length === 0 && data.suggestions.length === 0);
       // An edit made while the words were read has not been answered by the reading.
       const answers = isEmpty(state.pending) ? state.answers + 1 : state.answers;
       return {
@@ -697,17 +790,25 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
           notice_text: data.notice_text,
           interpreter: data.interpreter,
           degraded: data.degraded,
-          rests_on: data.rests_on,
+          model_refused: data.model_refused,
+          suggestions: data.suggestions,
+          unread: data.unread,
+          not_in_release: data.not_in_release,
+          partUnread: data.unread.length > 0,
           edits: countOf(data.operations),
           changed,
           at: answers,
           by: servedBy(event.meta),
+          more: data.model_pending,
+          chosen: [],
+          added: null,
         },
         refused: null,
         degraded: data.degraded,
         ...settingsAfter(state, data.degraded || nothingRead),
         assumed: withAssumptions(afterEdits(state.assumed, data.operations, applied), data),
-        tenureSaid: tenureSaidAfter(state, data),
+        quoted: withQuoted(onlyOf(state.quoted, vibesOf(data.spec)), data),
+        placeNames: namesOf(data.places),
         failure: null,
         failedStep: null,
       };
@@ -731,6 +832,8 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
         filtered: data.filtered,
         unranked: data.unranked,
         empty_spec: data.empty_spec,
+        areas_ranked: data.areas_ranked,
+        areas_listed: data.areas_listed,
       };
       const changed = data.applied.some((edit) => edit.changed);
       const by = servedBy(event.meta);
@@ -750,6 +853,8 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
         ranking,
         rankedHash: data.spec_hash,
         rankedBy: by,
+        placeNames: namesOf(data.places),
+        quoted: onlyOf(state.quoted, vibesOf(data.spec)),
         moved: state.ranking === null ? null : movedBetween(state.ranking, ranking),
         rankedBefore: state.ranking === null ? null : state.ranking.scores.length,
         gaveWay:
@@ -768,7 +873,7 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
       // the search before is carried into it: not a name, not a reason, not an edit.
       const { data } = event;
       return {
-        ...initialState(state.meta, state.areas, state.geometry),
+        ...initialState(state.meta, state.areas, state.geometry, state.reader),
         geometryFailed: state.geometryFailed,
         online: state.online,
         phase: "results",
@@ -777,6 +882,7 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
         answers: state.answers + 1,
         spec: data.spec,
         specHash: data.spec_hash,
+        placeNames: namesOf(data.places),
         untouched: false,
         ranking: {
           scores: data.scores,
@@ -784,6 +890,8 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
           filtered: data.filtered,
           unranked: data.unranked,
           empty_spec: data.empty_spec,
+          areas_ranked: data.areas_ranked,
+          areas_listed: data.areas_listed,
         },
         rankedHash: data.spec_hash,
         rankedBy: servedBy(event.meta),
@@ -798,10 +906,11 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
 
     case "explain_answered": {
       const by = servedBy(event.meta);
-      const { data, hash } = event;
+      const { data } = event;
+      // The answer says which spec its reasons are for. The website keeps no record of its own.
+      const hash = data.spec_hash;
       const learned = {
         ...withFacts(state, data.facts, by, state.rankedBy),
-        placeNames: namesFrom(data.facts, state.placeNames),
         // Whatever was asked for has come, so it is no longer said to have failed.
         explainFailure: state.explainFailure?.hash === hash ? null : state.explainFailure,
       };
@@ -905,7 +1014,7 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
 
     case "started_again":
       return {
-        ...initialState(state.meta, state.areas, state.geometry),
+        ...initialState(state.meta, state.areas, state.geometry, state.reader),
         geometryFailed: state.geometryFailed,
         online: state.online,
         answers: state.answers + 1,
@@ -929,10 +1038,94 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
     case "question_left":
       return { ...state, read: withoutQuestion(state.read, event.question) };
 
-    case "place_named":
-      return state.placeNames[event.placeId] === event.name
-        ? state
-        : { ...state, placeNames: { ...state.placeNames, [event.placeId]: event.name } };
+    case "suggestion_chosen": {
+      const { read } = state;
+      const gone = read?.suggestions[event.at];
+      if (read === null || gone === undefined) return state;
+      const suggestions = read.suggestions.filter((_, at) => at !== event.at);
+      const chosen = [...read.chosen, keyOf(gone)];
+      if (event.changes !== true) return { ...state, read: { ...read, suggestions, chosen } };
+      // The notice was written of the words as they were read, and may end "Nothing you
+      // typed has changed your search". A choice that holds edits changes it. The notice is
+      // the API's, and is never cut or reworded, so it goes whole.
+      return { ...state, read: { ...read, suggestions, chosen, notice: "none", notice_text: "" } };
+    }
+
+    case "read_more_answered": {
+      const { read } = state;
+      if (read === null || !read.more) return state;
+      const { data } = event;
+      // What the person chose of while the model read is not offered again.
+      const suggestions = data.suggestions.filter((one) => !read.chosen.includes(keyOf(one)));
+      return {
+        ...state,
+        degraded: data.degraded,
+        read: {
+          ...read,
+          suggestions,
+          unread: data.unread,
+          unmet: data.unmet,
+          partUnread: data.unread.length > 0,
+          interpreter: data.interpreter,
+          degraded: data.degraded,
+          model_refused: data.model_refused,
+          more: false,
+        },
+      };
+    }
+
+    case "read_more_failed":
+      return state.read?.more ? { ...state, read: { ...state.read, more: false } } : state;
+
+    case "all_added": {
+      const { read } = state;
+      if (read === null) return state;
+      const taken = new Set(event.ats);
+      const added = read.suggestions.filter((_, at) => taken.has(at));
+      if (added.length === 0) return state;
+      const left = read.suggestions.filter((_, at) => !taken.has(at));
+      return {
+        ...state,
+        read: {
+          ...read,
+          suggestions: left,
+          chosen: [...read.chosen, ...added.map(keyOf)],
+          notice: "none",
+          notice_text: "",
+          added: {
+            count: added.length,
+            // What is left for the person: of what was added, and of what was not.
+            needs: [...added, ...left].map((one) => one.needs).filter((needs) => needs !== ""),
+            spec: state.spec,
+            suggestions: read.suggestions,
+          },
+        },
+      };
+    }
+
+    case "all_taken_back": {
+      const { read } = state;
+      if (read === null || read.added === null) return state;
+      const back = new Set(read.added.suggestions.map(keyOf));
+      return {
+        ...state,
+        read: {
+          ...read,
+          suggestions: read.added.suggestions,
+          chosen: read.chosen.filter((key) => !back.has(key)),
+          added: null,
+        },
+      };
+    }
+
+    case "box_changed": {
+      const { read } = state;
+      if (read === null) return state;
+      const nothing = read.suggestions.length === 0 && read.unread.length === 0;
+      if (nothing && !read.more && read.added === null) return state;
+      // Where the words stand is known for the text that was sent, and for no other.
+      return { ...state, read: { ...read, suggestions: [], unread: [], more: false, added: null } };
+    }
 
     case "online_changed":
       return {
@@ -951,11 +1144,25 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
     case "geometry_failed":
       return state.geometry === null ? { ...state, geometryFailed: true } : state;
 
+    case "reader_said":
+      return { ...state, reader: event.reader, readerFailed: false };
+
+    case "reader_unsaid":
+      // What the service said before still stands until it says otherwise.
+      return state.reader === null ? { ...state, readerFailed: true } : state;
+
     case "release_changed":
       // The form and the areas are read again. What the ranking on screen holds is of the
       // release that made the ranking, and goes when a ranking of another comes: the form
-      // may come last, after the reasons and the profiles of the new release are in.
-      return { ...state, meta: event.meta, areas: event.areas };
+      // may come last, after the reasons and the profiles of the new release are in. The
+      // form says who reads what is typed, and it was read from the service just now.
+      return {
+        ...state,
+        meta: event.meta,
+        areas: event.areas,
+        reader: event.meta.reader,
+        readerFailed: false,
+      };
 
     case "selected":
       return { ...state, selectedId: event.areaId };

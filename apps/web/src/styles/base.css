@@ -16,6 +16,12 @@ html {
   text-size-adjust: 100%;
   /* A heading reached by a link is not left under the top edge. */
   scroll-padding-top: var(--space-5);
+  /*
+   * What takes the focus is not left under the tray of areas to compare, which stays at the
+   * foot of the screen once an area is chosen. Measured on a phone 390 wide: 77 px high
+   * with two areas chosen, and 160 with four.
+   */
+  scroll-padding-bottom: calc(2 * var(--space-8) + var(--space-7));
 }
 
 body {

@@ -1,21 +1,46 @@
 .profile {
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-4);
   padding-block-end: var(--space-7);
   min-width: 0;
 }
 
+/* The name and the borough, with the button that compares the area beside them where there is room. */
 .head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-2) var(--space-5);
+}
+
+.named {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-1);
+  min-width: 0;
 }
 
 .head h1 {
   margin: 0;
 }
 
+/* The borough and the source of the name, on one line where there is room. */
+.under {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-4);
+}
+
 .borough {
   margin: 0;
+}
+
+.borough > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-2);
 }
 
 .borough dd {
@@ -24,6 +49,7 @@
 }
 
 .notRanked {
+  flex-basis: 100%;
   margin: 0;
   padding: var(--space-3) var(--space-4);
   max-width: none;
@@ -48,13 +74,8 @@
 }
 
 .compare {
-  display: grid;
-  gap: var(--space-3);
-  justify-items: start;
-}
-
-.compare > :last-child {
-  justify-self: stretch;
+  display: flex;
+  align-items: center;
 }
 
 .part {
@@ -80,15 +101,121 @@
   font-size: var(--size-lead);
 }
 
-/* The picture beside the list that says what it shows. One above the other where there is no room. */
+/*
+ * Where the area is, beside what it is like: the picture, what is next to it, the nearest
+ * station, and how long it takes to the places of the search that is open.
+ */
+.whereShort {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  align-content: start;
+}
+
+.whereShort h3,
+.whereShort h4 {
+  margin: 0;
+}
+
+.whereShort h3 {
+  font-size: var(--size-lead);
+}
+
+.whereShort p {
+  margin: 0;
+  max-width: none;
+}
+
+/* The picture beside the list that says what it shows, at every width: both are small. */
 .where {
   display: grid;
-  gap: var(--space-4);
-  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr);
   align-items: start;
 }
 
-.neighbours,
+.whereSaid {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.whereSaid .small {
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+/* The areas next to it, one after the other on as few lines as they take. */
+.neighbours {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--target-gap) var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.neighbours li {
+  max-width: none;
+}
+
+.station {
+  display: grid;
+  gap: 0;
+}
+
+.journeys {
+  display: grid;
+  gap: var(--space-1);
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--border);
+}
+
+.journeys .small {
+  font-size: var(--size-body);
+}
+
+.legs {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legs li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-2);
+  max-width: none;
+}
+
+/* The areas most like this one: each a name, a sentence, what the two share, and the way on. */
+.alike {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: alike;
+}
+
+.alike > li {
+  display: grid;
+  gap: var(--space-1);
+  max-width: none;
+  padding-block: var(--space-3);
+  border-block-end: 1px solid var(--border);
+}
+
+.alike > li:first-child {
+  border-block-start: 1px solid var(--border);
+}
+
+.alike p {
+  margin: 0;
+}
+
 .sources {
   display: grid;
   gap: var(--space-1);
@@ -142,14 +269,146 @@
   margin: 0;
 }
 
+/* Under a row: the way on from it. */
+.beside {
+  margin: var(--space-2) 0 0;
+}
+
+/*
+ * The parts that are closed until they are pressed, one under the other. Each is opened by
+ * its own heading, and shows a mark that points right when closed and down when open.
+ */
+.closedParts {
+  display: grid;
+  min-width: 0;
+  border-block-start: 1px solid var(--border);
+}
+
+.closed {
+  min-width: 0;
+  border-block-end: 1px solid var(--border);
+}
+
+.closed > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  list-style: none;
+  cursor: pointer;
+}
+
+.closed > summary::-webkit-details-marker {
+  display: none;
+}
+
+.closed > summary::before {
+  content: "";
+  flex: none;
+  width: 0.5em;
+  height: 0.5em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform var(--motion-fast);
+}
+
+.closed[open] > summary::before {
+  transform: rotate(45deg);
+}
+
+.opensTo {
+  margin: 0;
+  font-size: var(--size-lead);
+}
+
+.closed[open] > .part {
+  padding-block-end: var(--space-4);
+}
+
+/* Where to start, and what no figure can say, side by side where there is room. */
+.look {
+  display: grid;
+  gap: var(--space-4) var(--space-6);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+
+/* What each vibe cannot see: its name, and its lines one after the other on as few lines as they take. */
+.unseen {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.unseen dt {
+  color: var(--text);
+  font-size: var(--size-body);
+  font-weight: 600;
+}
+
+.unseen dd {
+  margin: 0;
+  max-width: none;
+}
+
+.unseen ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+}
+
+.unseen li {
+  max-width: none;
+}
+
+.searchFor {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  max-width: none;
+}
+
+.searchForLink {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.searchForHint {
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
 @media (min-width: 40rem) {
-  .where {
-    grid-template-columns: auto minmax(0, 1fr);
+  .unseen > div {
+    display: grid;
+    grid-template-columns: 10rem minmax(0, 1fr);
+    gap: 0 var(--space-3);
+    align-items: baseline;
+  }
+}
+
+@media (min-width: 60rem) {
+  .look {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   }
 }
 
 @media (forced-colors: active) {
-  .rows > li {
+  .rows > li,
+  .alike > li,
+  .journeys,
+  .closedParts,
+  .closed,
+  .searchForLink {
     border-color: CanvasText;
   }
 }

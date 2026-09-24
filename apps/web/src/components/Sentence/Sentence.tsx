@@ -1,5 +1,5 @@
 import { RESULTS } from "@/content/search";
-import type { ExplainedSentence, Fact } from "@/lib/api/schema";
+import type { ExplainedSentence, Fact, MetaData } from "@/lib/api/schema";
 
 import { SourceNote } from "../SourceNote/SourceNote";
 import styles from "./Sentence.module.css";
@@ -10,6 +10,8 @@ interface Props {
   readonly facts: Readonly<Record<string, Fact>> | readonly Fact[];
   /** What the sentence is, to name its "Source" button: "reason 1", "trade-off". */
   readonly of?: string;
+  /** The vibes and the features of the release, for the source of a vibe that counts recorded crime. */
+  readonly meta?: Pick<MetaData, "tags" | "features">;
 }
 
 /** The facts a sentence cites, of those in hand. */
@@ -29,7 +31,7 @@ export function factsCited(
  * to another, nothing added. It ends in its source. A sentence a model wrote
  * says so.
  */
-export function Sentence({ sentence, facts, of }: Props) {
+export function Sentence({ sentence, facts, of, meta }: Props) {
   const cited = factsCited(sentence, facts);
   // The first fact cited is the one the sentence is about. Any other only names the area.
   const about = cited.slice(0, 1);
@@ -37,7 +39,7 @@ export function Sentence({ sentence, facts, of }: Props) {
     <div className={styles.sentence}>
       <p className={styles.text}>{sentence.text}</p>
       {sentence.origin === "model" ? <p className={styles.byModel}>{RESULTS.byModel}</p> : null}
-      <SourceNote facts={about} of={of} />
+      <SourceNote facts={about} of={of} meta={meta} />
     </div>
   );
 }

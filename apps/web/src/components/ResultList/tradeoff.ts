@@ -2,25 +2,29 @@
  * Whether a sentence may stand under the word "Trade-off".
  *
  * A trade-off is something the area does badly: contract 7.5. The API picks
- * it, and since engine 1.3.0 it gives none where an area does nothing badly.
- * The website checks it all the same, against the ranking it already holds,
- * because the heading is the website's own word. An engine before 1.3.0 gave
- * the least good thing as the trade-off even when it was good, and the card
- * then read "Trade-off: a 2 minute walk, closer than 77% of areas".
+ * it, and gives none where an area does nothing badly. The website checks it
+ * all the same, against the ranking it already holds, because the heading is
+ * the website's own word. An engine before 1.3.0 gave the least good thing as
+ * the trade-off even when it was good, and one before 1.4.0 gave a walk of
+ * five minutes, worth a hair under a half.
+ *
+ * How little a thing must be worth to be done badly is the API's to say: it
+ * serves the figure in `limits`, and the website holds no copy of it.
  *
  * Nothing here writes or rewords a sentence. It says whether one is shown
  * under that heading. One that is not is left out, and the card says that no
  * trade-off was found.
  */
 
-import type { Commute, CommuteLeg, Contribution, ExplainedSentence, RankedArea } from "@/lib/api/schema";
+import type {
+  Commute,
+  CommuteLeg,
+  Contribution,
+  ExplainedSentence,
+  RankedArea,
+  ServedLimits,
+} from "@/lib/api/schema";
 import { withinLimit } from "@/lib/search/card";
-
-/**
- * The least a thing must be worth to an area to be something the area does
- * well: `REASON_MIN_UTILITY` of contract 7.5. A test holds it to the contract.
- */
-export const DOES_WELL_FROM = 0.5;
 
 /** The thing that counts which a sentence is about: the one whose fact it cites first. */
 export function partOf(
@@ -59,16 +63,18 @@ function fallsShort(
 
 /**
  * True when the sentence is about something that counts in the search and
- * that the area does badly: it is worth less than a half, or it falls short.
- * Anything else is no trade-off, and is not shown as one.
+ * that the area does badly: it is worth less than `below`, which is the
+ * `trade_off_max_utility` the API serves, or it falls short. Anything else is
+ * no trade-off, and is not shown as one.
  */
 export function isGivenUp(
   area: Pick<RankedArea, "contributions" | "budget" | "legs">,
   sentence: Pick<ExplainedSentence, "fact_ids">,
   commutes: readonly Commute[],
+  below: ServedLimits["trade_off_max_utility"],
 ): boolean {
   const part = partOf(area, sentence);
   if (part === null || !part.present) return false;
   if (fallsShort(area, part, commutes)) return true;
-  return part.utility !== null && part.utility < DOES_WELL_FROM;
+  return part.utility !== null && part.utility < below;
 }

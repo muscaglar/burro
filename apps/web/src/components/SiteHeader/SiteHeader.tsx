@@ -7,12 +7,13 @@ import { NavLink } from "./NavLink";
 import styles from "./SiteHeader.module.css";
 
 const LINKS = [
+  { href: paths.vibes(), label: SITE.nav.vibes },
   { href: paths.methods(), label: SITE.nav.methods },
   { href: paths.sources(), label: SITE.nav.sources },
   { href: paths.accessibility(), label: SITE.nav.accessibility },
 ] as const;
 
-/** The name of the site, which leads to the search, and the three pages about it. */
+/** The name of the site, which leads to the search, and the four pages about it. */
 export function SiteHeader() {
   return (
     <header className={styles.header}>

@@ -15,7 +15,7 @@
           "amount": 1100,
           "segment": "studio",
           "strictness": "hard",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "stated"
         },
         "commutes": [
@@ -36,7 +36,7 @@
         ],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [
           {
             "feature_id": "air_no2",
@@ -47,7 +47,7 @@
           {
             "feature_id": "highstreet_access",
             "weight": 0.05,
-            "direction": "more",
+            "direction": "less",
             "provenance": "default"
           },
           {
@@ -77,7 +77,7 @@
         ],
         "tags": [],
         "areas": [],
-        "tenure_from": "default",
+        "tenure_from": "stated",
         "commute_combine_from": "default",
         "pt_basis_from": "default",
         "commute_weight_from": "default"
@@ -88,21 +88,24 @@
   "status": 200,
   "headers": {
     "access-control-allow-origin": "http://localhost:3000",
-    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "3924",
+    "content-length": "5106",
     "content-type": "application/json",
     "vary": "Origin",
+    "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "57e25fde-55d2-4f3f-89b6-e1b66e636fab"
+    "x-request-id": "abffeda8-2dca-4950-a1b6-57c8636575e8"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.3.0",
-      "synthetic": true
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
     },
     "data": {
+      "spec_hash": "b283b48d90a90366436513da15d0b55e071febe1960557cb073b862598278a1b",
       "explanations": [
         {
           "area_id": "syn-n0016",
@@ -116,7 +119,7 @@
           },
           "reasons": [
             {
-              "text": "Share of homes at 55 dB or more of transport noise: 17%, quieter than 65% of the 20 areas compared in this release.",
+              "text": "Share of residents exposed to 55 dB or more of transport noise: 20%, quieter than 60% of the 20 areas compared in this release.",
               "fact_ids": [
                 "syn-n0016/feature/noise_exposure"
               ],
@@ -124,24 +127,16 @@
               "replaced": false
             },
             {
-              "text": "Modelled annual mean nitrogen dioxide: 19.6 µg/m³, lower than 60% of the 20 areas compared in this release.",
+              "text": "Modelled annual mean nitrogen dioxide: 21.1 µg/m³, lower than 55% of the 20 areas compared in this release.",
               "fact_ids": [
                 "syn-n0016/feature/air_no2"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
-              "text": "Walk to the nearest park of 2 ha or more: 770 m, closer than 52% of the 21 areas compared in this release.",
-              "fact_ids": [
-                "syn-n0016/feature/park_proximity"
               ],
               "origin": "template",
               "replaced": false
             }
           ],
           "trade_off": {
-            "text": "By public transport to Wexmoor University: about 36 minutes on a typical weekday morning, 41 if you just miss a service.",
+            "text": "By public transport to Wexmoor University: about 36 minutes on a typical weekday morning, 41 if you just miss a service, 6 minutes over the 30 you set.",
             "fact_ids": [
               "syn-n0016/travel/syn-p0026.pt"
             ],
@@ -180,7 +175,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-09-23",
@@ -195,22 +191,28 @@
           "template": "feature",
           "slots": {
             "label": "Modelled annual mean nitrogen dioxide",
-            "value": "19.6 µg/m³",
+            "value": "21.1 µg/m³",
+            "band": "3",
             "comparative": "lower than",
-            "pct": "60",
-            "compared": "20",
-            "standing": "lower than 60% of the 20 areas compared in this release"
+            "pct": "55",
+            "standing": "lower than 55% of the 20 areas compared in this release",
+            "comparative_worse": "higher than",
+            "pct_worse": "40",
+            "standing_worse": "higher than 40% of the 20 areas compared in this release",
+            "compared": "20"
           },
           "numbers": [
-            "19.6",
-            "60%",
-            "20"
+            "21.1",
+            "55%",
+            "20",
+            "40%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -221,56 +223,32 @@
           "area_id": "syn-n0016",
           "kind": "feature",
           "key": "noise_exposure",
-          "label": "Share of homes at 55 dB or more of transport noise",
+          "label": "Share of residents exposed to 55 dB or more of transport noise",
           "template": "feature",
           "slots": {
-            "label": "Share of homes at 55 dB or more of transport noise",
-            "value": "17%",
+            "label": "Share of residents exposed to 55 dB or more of transport noise",
+            "value": "20%",
+            "band": "2",
             "comparative": "quieter than",
-            "pct": "65",
-            "compared": "20",
-            "standing": "quieter than 65% of the 20 areas compared in this release"
+            "pct": "60",
+            "standing": "quieter than 60% of the 20 areas compared in this release",
+            "comparative_worse": "noisier than",
+            "pct_worse": "35",
+            "standing_worse": "noisier than 35% of the 20 areas compared in this release",
+            "compared": "20"
           },
           "numbers": [
-            "17%",
-            "65%",
-            "20"
+            "20%",
+            "60%",
+            "20",
+            "35%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0016/feature/park_proximity",
-          "area_id": "syn-n0016",
-          "kind": "feature",
-          "key": "park_proximity",
-          "label": "Walk to the nearest park of 2 ha or more",
-          "template": "feature",
-          "slots": {
-            "label": "Walk to the nearest park of 2 ha or more",
-            "value": "770 m",
-            "comparative": "closer than",
-            "pct": "52",
-            "compared": "21",
-            "standing": "closer than 52% of the 21 areas compared in this release"
-          },
-          "numbers": [
-            "770",
-            "52%",
-            "21"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -294,10 +272,95 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0016/tag/built_age",
+          "area_id": "syn-n0016",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
+          "slots": {
+            "label": "Age of buildings",
+            "band": "2",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "2",
+            "spread_high": "2",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "2",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0016/tag/family_amenities",
+          "area_id": "syn-n0016",
+          "kind": "tag",
+          "key": "family_amenities",
+          "label": "Family amenities",
+          "template": "vibe",
+          "slots": {
+            "label": "Family amenities",
+            "band": "4",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "4",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
           "synthetic": true
         },
         {
@@ -306,16 +369,21 @@
           "kind": "travel",
           "key": "syn-p0026.pt",
           "label": "Journey",
-          "template": "travel_pt",
+          "template": "travel_pt_over",
           "slots": {
             "mode": "By public transport",
             "place": "Wexmoor University",
+            "limit": "30",
+            "margin": "6",
+            "margin_unit": "minutes",
             "typical": "36",
             "missed": "41"
           },
           "numbers": [
             "36",
-            "41"
+            "41",
+            "30",
+            "6"
           ],
           "names": [
             "Wexmoor University"
@@ -323,7 +391,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-09",

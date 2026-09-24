@@ -3,7 +3,8 @@
 import { useId, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 
 import { COMBINE } from "@/content/labels";
-import { CHIPS, PLACE, REJECTED } from "@/content/search";
+import { countsOf } from "@/content/crime";
+import { CHIPS, whyRefused } from "@/content/search";
 import type {
   AreaSummary,
   InterpreterName,
@@ -13,17 +14,25 @@ import type {
   RejectReason,
   Tenure,
 } from "@/lib/api/schema";
-import { chipsOf, type Chip as ChipData } from "@/lib/search/chips";
+import { chipsOf, endAskedFor, type Beside, type Chip as ChipData } from "@/lib/search/chips";
+import { leadsOf } from "@/lib/search/leads";
 import type { Assumed } from "@/lib/search/state";
 
 import { BudgetControl } from "../SettingsPanel/BudgetControl";
 import { CommuteControl, JourneySettings } from "../SettingsPanel/CommuteControl";
 import { TenureChoice } from "../SettingsPanel/TenureChoice";
-import { TagControl, WeightControl } from "../SettingsPanel/WeightControl";
+import { VibeControl } from "../SettingsPanel/VibeControl";
+import { WeightControl } from "../SettingsPanel/WeightControl";
 import { Skeleton } from "../Skeleton/Skeleton";
 import styles from "./ChipRow.module.css";
 
-interface Props {
+/**
+ * How many chips of what was asked for stand in the row before the rest are asked for. The
+ * usual settings are not counted among them: they stand last, whatever else does.
+ */
+export const SHOWN_AT_FIRST = 6;
+
+interface Props extends Beside {
   /** The spec the API last returned. The chips are drawn from it, never from the edits. */
   readonly spec: PreferenceSpec;
   readonly assumed: Assumed;
@@ -39,8 +48,6 @@ interface Props {
   readonly readBy?: InterpreterName | null;
   /** True while a sentence is being read and no chip can be drawn yet. */
   readonly waiting?: boolean;
-  /** True when the person said whether they rent or buy, in words or with a control. */
-  readonly tenureSaid?: boolean;
   /** An id for the row, so that the page can give it the focus. */
   readonly id?: string;
 }
@@ -72,6 +79,7 @@ function withWhichJourneyCounts(chips: readonly ChipData[], spec: PreferenceSpec
     parts: [],
     assumed: notChosen(spec.commute_combine_from),
     removal: null,
+    turn: null,
   };
   // A choice the website has no word for is left out.
   if (which.label === "") return chips;
@@ -85,13 +93,17 @@ function isWhereASearchStarts(spec: PreferenceSpec, defaults: MetaData["defaults
 }
 
 /**
- * What Burro understood, one chip for each thing. A chip opens the same
- * control the settings hold, in place, and can be removed where the setting
- * can be. A part nobody chose carries the word "assumed" and a dashed edge.
+ * What Burro understood, one chip for each thing. What was asked for by way
+ * of character stands first, and the settings nobody chose last. The chips
+ * wrap, so that none is cut off or scrolled out of sight, and each is said in
+ * short until the row is opened out. A chip opens the same control the
+ * settings hold, in place, and can be removed where the setting can be. A
+ * part nobody chose carries the word "assumed" and a dashed edge. A chip of a
+ * scale says which end is asked for, and "Turn" asks for the other.
  *
- * Everything that explains the chips is drawn where it can be seen: the
- * heading, what "assumed" means, what the usual settings are, and why a
- * place is shown by number. None of it is for a screen reader alone.
+ * Everything that explains the chips is drawn where it can be seen, once the
+ * row is opened out: what "assumed" means, and what the usual settings are.
+ * Who read the words is said in the heading, always.
  */
 export function ChipRow({
   spec,
@@ -106,13 +118,15 @@ export function ChipRow({
   refused = new Map(),
   readBy = null,
   waiting = false,
-  tenureSaid = false,
+  tenurePicked = false,
+  quoted = {},
   id: rowId,
 }: Props) {
   const id = useId();
   const [openKey, setOpenKey] = useState<string | null>(null);
+  const [all, setAll] = useState(false);
   const chips = withWhichJourneyCounts(
-    chipsOf(spec, meta, areas, placeNames, assumed, { tenure: tenureSaid }),
+    chipsOf(spec, meta, areas, placeNames, assumed, { tenurePicked, quoted }),
     spec,
   );
   const shared = { limits: meta.limits, onEdit, version };
@@ -125,17 +139,28 @@ export function ChipRow({
       : readBy !== null
         ? CHIPS.label
         : CHIPS.setLabel;
-  const unnamed = spec.commutes.filter((commute) => placeNames[commute.place_id] === undefined).length;
+  // A chip that is open is drawn in full, with its control under it, so the row is opened out
+  // for it. Until the person opens the row or a chip of it, the chips are said in short,
+  // however few they are: the answer comes first.
+  const out = all || openKey !== null;
+  // In the row stand the first six of what the search holds, and then the usual settings,
+  // which are last and are not counted. What is over six waits to be asked for.
+  const asked = chips.filter((chip) => chip.kind !== "usual");
+  const more = Math.max(0, asked.length - SHOWN_AT_FIRST);
+  const shown = out
+    ? chips
+    : [...asked.slice(0, SHOWN_AT_FIRST), ...chips.filter((chip) => chip.kind === "usual")];
   const hints = {
     assumed: chips.some((chip) => chip.assumed),
     usual: chips.some((chip) => chip.kind === "usual"),
-    unnamed: unnamed > 0,
+    // Where a journey or a budget counts for more than what was asked of the place.
+    leads: leadsOf(spec) !== null,
   };
 
   const editorOf = (chip: Drawn): ReactNode => {
     const problem = (() => {
       const reason = refused.get(chip.key);
-      return reason === undefined ? null : REJECTED[reason];
+      return reason === undefined ? null : whyRefused(reason, meta);
     })();
     switch (chip.kind) {
       case "tenure":
@@ -156,7 +181,15 @@ export function ChipRow({
       case "tag": {
         const tag = meta.tags.find((one) => one.tag_id === chip.id);
         const weight = spec.tags.find((one) => one.tag_id === chip.id);
-        return tag ? <TagControl {...shared} tag={tag} weight={weight} problem={problem} /> : null;
+        return tag ? (
+          <VibeControl
+            {...shared}
+            tag={tag}
+            weight={weight}
+            problem={problem}
+            crime={countsOf(tag, meta.features)}
+          />
+        ) : null;
       }
       case "journeys":
         return <JourneySettings {...shared} spec={spec} />;
@@ -165,13 +198,26 @@ export function ChipRow({
     }
   };
 
+  /** What "Turn" says it will do: the name of the vibe, and the end it would ask for. */
+  const turnOf = (chip: Drawn): string | null => {
+    if (chip.turn === null) return null;
+    const tag = meta.tags.find((one) => one.tag_id === chip.id);
+    const weight = spec.tags.find((one) => one.tag_id === chip.id);
+    if (tag === undefined || weight === undefined) return null;
+    const other = endAskedFor(tag, weight.toward === "low" ? "high" : "low");
+    return other === null ? null : CHIPS.turnTo(tag.label, other);
+  };
+
   return (
     // It can be given the focus by the page, as when a question is answered and goes, and
     // is no stop of its own.
     <section id={rowId} className={styles.row} aria-labelledby={`${id}-title`} tabIndex={-1}>
-      <h2 id={`${id}-title`} className={styles.title}>
-        {heading}
-      </h2>
+      <p className={styles.heading}>
+        <span id={`${id}-title`} className={styles.title} role="heading" aria-level={2}>
+          {heading}
+        </span>
+        {!waiting && readBy !== null ? <span className={styles.readBy}> {CHIPS.readBy[readBy]}</span> : null}
+      </p>
       {waiting ? (
         <div className={styles.chips} aria-hidden="true">
           <Skeleton shape="chip" />
@@ -179,23 +225,41 @@ export function ChipRow({
           <Skeleton shape="chip" />
         </div>
       ) : (
-        <ul className={styles.chips}>
-          {chips.map((chip) => (
-            <Chip
-              key={chip.key}
-              chip={chip}
-              open={openKey === chip.key}
-              onToggle={(open) => setOpenKey(open ? chip.key : null)}
-              onRemove={chip.removal ? () => onEdit(chip.removal as Operations) : undefined}
-              onOpenSettings={onOpenSettings}
-              describedBy={`${id}-usual`}
-              editor={editorOf(chip)}
-            />
-          ))}
-        </ul>
+        <div className={styles.line} data-out={out}>
+          <ul className={styles.chips}>
+            {shown.map((chip) => (
+              <Chip
+                key={chip.key}
+                chip={chip}
+                full={out}
+                open={openKey === chip.key}
+                onToggle={(open) => setOpenKey(open ? chip.key : null)}
+                onRemove={chip.removal ? () => onEdit(chip.removal as Operations) : undefined}
+                onTurn={chip.turn ? () => onEdit(chip.turn as Operations) : undefined}
+                turnName={turnOf(chip)}
+                onOpenSettings={onOpenSettings}
+                describedBy={out && hints.usual ? `${id}-usual` : undefined}
+                editor={editorOf(chip)}
+              />
+            ))}
+          </ul>
+          {more > 0 ? (
+            <button
+              type="button"
+              className={`${styles.rest} target`}
+              aria-expanded={out}
+              // While a chip is open the row is opened out for it, and this button does nothing.
+              aria-disabled={openKey !== null ? true : undefined}
+              onClick={() => (openKey === null ? setAll(!all) : undefined)}
+            >
+              {out ? CHIPS.showFewer : CHIPS.rest(more)}
+            </button>
+          ) : null}
+        </div>
       )}
-      {waiting || !(hints.assumed || hints.usual || hints.unnamed || readBy !== null) ? null : (
+      {waiting || !out || !(hints.assumed || hints.usual || hints.leads) ? null : (
         <div className={styles.hints}>
+          {hints.leads ? <p>{CHIPS.leadsHint}</p> : null}
           {hints.assumed ? <p>{CHIPS.assumedHint}</p> : null}
           {/* Beside the chip and not in it, so that it is said once, after the chip's name. */}
           {hints.usual ? (
@@ -203,9 +267,6 @@ export function ChipRow({
               {CHIPS.usualHint} {CHIPS.openSettings}
             </p>
           ) : null}
-          {/* The API gives a place's id and not its name (docs/design/web.md, section 13, gap 1). */}
-          {hints.unnamed ? <p>{PLACE.unnamedHint(unnamed, spec.commutes.length)}</p> : null}
-          {readBy !== null ? <p>{CHIPS.readBy[readBy]}</p> : null}
         </div>
       )}
     </section>
@@ -214,9 +275,14 @@ export function ChipRow({
 
 interface ChipProps {
   readonly chip: Drawn;
+  /** True where the chip says every part of itself. In the row it says what was said, and that the rest was assumed. */
+  readonly full?: boolean;
   readonly open: boolean;
   readonly onToggle: (open: boolean) => void;
   readonly onRemove?: () => void;
+  /** Asks for the other end of a scale. Left out for a chip that is of no scale. */
+  readonly onTurn?: () => void;
+  readonly turnName?: string | null;
   readonly onOpenSettings: () => void;
   /** The id of the line that says what the usual settings are, which describes their chip. */
   readonly describedBy?: string;
@@ -224,18 +290,28 @@ interface ChipProps {
   readonly editor: ReactNode;
 }
 
-function Words({ chip }: { readonly chip: Drawn }) {
-  const whole = chip.assumed && !chip.parts.some((part) => part.assumed);
+function Words({ chip, full }: { readonly chip: Drawn; readonly full: boolean }) {
+  const some = chip.parts.some((part) => part.assumed);
+  const whole = chip.assumed && !some;
+  // In the row a chip says what was said, and says once that the rest was assumed. A word
+  // that was read one way of two is said in the row as well.
+  const unsaid = chip.parts.filter((part) => part.assumed && part.always !== true);
+  // One part that nobody said is named, with the word "assumed" on it and on nothing else:
+  // "rest assumed" stood beside the very words the person typed, and read as if they were.
+  const named = !full && unsaid.length === 1;
+  const parts = full || named ? chip.parts : chip.parts.filter((part) => !part.assumed || part.always === true);
+  const rest = !named && unsaid.length > 0;
   return (
     <span className={styles.words}>
       <span className={styles.label}>{chip.label}</span>
       {whole ? <span className={styles.assumed}> {CHIPS.assumed}</span> : null}
-      {chip.parts.map((part) => (
+      {parts.map((part) => (
         <span key={part.text} className={styles.part}>
           , {part.text}
           {part.assumed ? <span className={styles.assumed}> {CHIPS.assumed}</span> : null}
         </span>
       ))}
+      {!full && rest ? <span className={styles.assumed}>, {CHIPS.restAssumed}</span> : null}
     </span>
   );
 }
@@ -257,7 +333,18 @@ function besideOf(item: HTMLElement | null): HTMLElement | null {
   return item?.closest<HTMLElement>("section") ?? null;
 }
 
-export function Chip({ chip, open, onToggle, onRemove, onOpenSettings, describedBy, editor }: ChipProps) {
+export function Chip({
+  chip,
+  full = true,
+  open,
+  onToggle,
+  onRemove,
+  onTurn,
+  turnName = null,
+  onOpenSettings,
+  describedBy,
+  editor,
+}: ChipProps) {
   const id = useId();
   const button = useRef<HTMLButtonElement>(null);
   const opens = editor !== null;
@@ -294,7 +381,7 @@ export function Chip({ chip, open, onToggle, onRemove, onOpenSettings, described
             aria-controls={`${id}-editor`}
             onClick={() => onToggle(!open)}
           >
-            <Words chip={chip} />
+            <Words chip={chip} full={full} />
           </button>
         ) : chip.kind === "usual" ? (
           <button
@@ -304,13 +391,18 @@ export function Chip({ chip, open, onToggle, onRemove, onOpenSettings, described
             aria-describedby={describedBy}
             onClick={onOpenSettings}
           >
-            <Words chip={chip} />
+            <Words chip={chip} full={full} />
           </button>
         ) : (
           <span className={`${styles.main} ${styles.plain}`}>
-            <Words chip={chip} />
+            <Words chip={chip} full={full} />
           </span>
         )}
+        {onTurn && turnName !== null ? (
+          <button type="button" className={`${styles.turn} target`} aria-label={turnName} onClick={onTurn}>
+            {CHIPS.turn}
+          </button>
+        ) : null}
         {onRemove ? (
           <button
             type="button"

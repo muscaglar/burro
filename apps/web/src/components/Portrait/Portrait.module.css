@@ -1,0 +1,443 @@
+/*
+ * The portrait: one line for each vibe. On a wide screen the heading of each list stands
+ * to the left of its vibes, so that a heading costs no line of its own and the whole
+ * portrait is on the first screen.
+ */
+.portrait {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.portrait h2 {
+  margin: 0;
+}
+
+.lead {
+  margin: 0;
+  max-width: none;
+  color: var(--muted);
+}
+
+/*
+ * What the portrait opens with: what the area is like in short, and beside it where it is.
+ * One above the other on a narrow screen, so that what it is like comes first.
+ */
+.top {
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  min-width: 0;
+}
+
+.short {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.short h3 {
+  margin: 0;
+  font-size: var(--size-lead);
+}
+
+.shortLead,
+.shortUnplaced {
+  margin: 0;
+  max-width: none;
+}
+
+.shortLead {
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.shortUnplaced a {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* One line for each vibe: its name, where the area sits in words, and a figure to picture it by. */
+.shortLines {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.shortLines > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-3);
+  max-width: none;
+  min-width: 0;
+}
+
+.shortName {
+  font-weight: 600;
+}
+
+.shortFigure {
+  flex: 1 1 100%;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+/* How much of its recipe a band rests on. It is said where it can be seen, in the colour of what is small. */
+.part {
+  color: var(--muted);
+}
+
+.group {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+  padding-block-start: var(--space-2);
+  border-block-start: 1px solid var(--border);
+}
+
+.heading h3 {
+  margin: 0;
+  font-size: var(--size-body);
+}
+
+.why {
+  margin: var(--space-1) 0 0;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.marks,
+.parts {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.marks > li,
+.parts > li {
+  max-width: none;
+  min-width: 0;
+}
+
+/* The whole line opens the parts. It shows no marker of the browser's: "Made of" says what it opens. */
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-3);
+  padding-block: var(--space-1);
+  list-style: none;
+  cursor: pointer;
+}
+
+.line::-webkit-details-marker {
+  display: none;
+}
+
+.name {
+  flex: 1 1 8rem;
+  font-weight: 600;
+}
+
+/*
+ * The two ends and the five cells between them. The low end is set against the cells, and
+ * takes as much room in every line, so that the cells of one line stand under the next.
+ */
+.picture {
+  display: inline-grid;
+  grid-template-columns: 4.5rem auto minmax(3rem, max-content);
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.end {
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.end:first-child {
+  text-align: end;
+}
+
+/* Where the area sits, in words a person would use, and under them the band itself. */
+.words {
+  display: grid;
+  flex: 1 1 6rem;
+  min-width: 0;
+}
+
+.detail {
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+/*
+ * The comma between where the area sits and its band. It is read by a screen reader, and is
+ * not drawn where the one stands over the other. On a narrow screen the two run on, and it is.
+ */
+.then {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.figure {
+  flex: 1 1 100%;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.value {
+  color: var(--text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* What the line opens, said at its end, with a mark that points right when closed and down when open. */
+.opens {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--accent);
+  font-size: var(--size-small);
+}
+
+.opens::before {
+  content: "";
+  flex: none;
+  width: 0.5em;
+  height: 0.5em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform var(--motion-fast);
+}
+
+.mark[open] > .line .opens::before {
+  transform: rotate(45deg);
+}
+
+/* What a vibe opens to: a box of its own, so that it reads apart from the line under it. */
+.made {
+  display: grid;
+  gap: var(--space-3);
+  margin-block: var(--space-1) var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.meaning,
+.about {
+  margin: 0;
+}
+
+.small {
+  margin: 0;
+  font-size: var(--size-body);
+}
+
+.parts {
+  gap: var(--space-3);
+}
+
+.noFigure {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.partName,
+.says {
+  margin: 0;
+}
+
+.partName {
+  font-weight: 600;
+}
+
+.says {
+  color: var(--muted);
+}
+
+.columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-5);
+  margin: 0;
+}
+
+.columns dd {
+  margin: 0;
+}
+
+.under {
+  padding-block: var(--space-1);
+}
+
+/* What Burro cannot place: every vibe named in one line, why, and one thing to press. */
+.unplaced {
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.names {
+  margin: 0;
+  max-width: none;
+  font-weight: 600;
+}
+
+.unplaced .why {
+  margin: 0;
+  max-width: none;
+}
+
+.unplaced .line {
+  justify-content: flex-start;
+}
+
+.unplaced .opens {
+  margin-inline-start: 0;
+}
+
+.rests {
+  display: grid;
+  gap: var(--space-1);
+}
+
+/*
+ * A narrow screen: the name and what it opens share the first line, and the rest follows.
+ * The line is one control, so the order it is drawn in changes nothing for a keyboard.
+ */
+@media (max-width: 59.99rem) {
+  .name {
+    order: -2;
+    flex-basis: calc(100% - 7rem);
+  }
+
+  .opens {
+    order: -1;
+    margin-inline-start: auto;
+  }
+
+  /* The picture takes the room its words need and no more, and the words beside it take the rest. */
+  .picture {
+    grid-template-columns: auto auto auto;
+  }
+
+  /*
+   * A vibe that runs one way runs from least to most in every line, and the words beside the
+   * cells say where the area sits. So the two ends are not drawn, and the words have the room.
+   */
+  .mark[data-shape="one_way"] .end {
+    display: none;
+  }
+
+  /* Where the area sits and its band run on, on as few lines as they take. */
+  .words {
+    display: block;
+    flex: 1 1 9rem;
+  }
+
+  .then {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+    overflow: visible;
+    clip-path: none;
+    white-space: normal;
+  }
+}
+
+/*
+ * A wide screen: the heading of a list to the left, its vibes to the right, and each vibe
+ * on one line. The columns are as wide in every list, so that the marks line up.
+ */
+@media (min-width: 60rem) {
+  /* What it is like to the left, and where it is to the right. */
+  .top {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: var(--space-5);
+  }
+
+  .shortLines > li {
+    display: grid;
+    grid-template-columns: 10rem minmax(0, 1fr);
+    gap: 0 var(--space-3);
+  }
+
+  .shortFigure {
+    grid-column: 2;
+  }
+
+  .group {
+    grid-template-columns: 12rem minmax(0, 1fr);
+    gap: 0 var(--space-5);
+    align-items: start;
+  }
+
+  .heading {
+    padding-block-start: var(--space-1);
+  }
+
+  .under {
+    grid-column: 2;
+  }
+
+  .line {
+    flex-wrap: nowrap;
+  }
+
+  .name {
+    flex: 0 0 10rem;
+  }
+
+  .picture {
+    flex: 0 0 auto;
+    grid-template-columns: 4.5rem auto 4.5rem;
+  }
+
+  /* Where it sits takes as much room in every line, so that the figures beside it line up. */
+  .words {
+    flex: 0 0 15rem;
+  }
+
+  .figure {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .opens {
+    flex: none;
+    margin-inline-start: auto;
+  }
+}
+
+@media (forced-colors: active) {
+  .group,
+  .made,
+  .short {
+    border-color: CanvasText;
+  }
+}
+
+/* Over the vibes of each kind that cannot place the area, where there are both. */
+.kind {
+  margin: 0;
+  font-weight: 600;
+}

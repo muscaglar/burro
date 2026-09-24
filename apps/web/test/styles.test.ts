@@ -97,3 +97,90 @@ describe("a sentence and its source", () => {
     expect(rules.filter(holdsTheButton).map((rule) => rule.sets.get("display"))).toEqual(["contents"]);
   });
 });
+
+describe("what stands between what Burro understood and the first result", () => {
+  const SEARCH = rulesOf(readFileSync(path.join(SRC, "components/SearchApp/SearchApp.module.css"), "utf8"));
+
+  test("test_the_line_that_says_which_words_are_selected_takes_no_room_until_it_says_something", () => {
+    // Seen on a phone: once every thing Burro noticed was chosen, the first result was still
+    // cut off at the foot of the screen. An empty line was held above it, for words that are
+    // said only when "Show in the box" is pressed.
+    const held = SEARCH.filter((rule) => isFor(rule.selector, "shown") && (rule.sets.has("min-height") || rule.sets.has("height")));
+
+    expect(held.map((rule) => rule.selector)).toEqual([]);
+  });
+
+  test("test_that_a_part_was_not_read_and_the_way_to_see_it_are_one_line", () => {
+    const line = SEARCH.filter((rule) => isFor(rule.selector, "unread") && rule.under === null);
+
+    expect(line.map((rule) => rule.sets.get("display"))).toContain("flex");
+    expect(line.map((rule) => rule.sets.get("flex-wrap"))).toContain("wrap");
+    expect(line.map((rule) => rule.sets.get("font-size"))).toContain("var(--size-small)");
+  });
+});
+
+describe("what stays at the foot of the screen", () => {
+  test("test_what_takes_the_focus_is_not_left_under_the_tray_that_sticks", () => {
+    // The tray of areas to compare stays at the foot of the screen once an area is chosen.
+    // A browser brings what takes the focus into view, and must bring it clear of the tray.
+    const sticks = RULES.filter(
+      (rule) => rule.sets.get("position") === "sticky" && rule.sets.has("inset-block-end"),
+    );
+    const page = sheet("styles/base.css").filter((rule) => rule.selector.trim() === "html");
+
+    expect(sticks.map((rule) => rule.file)).toEqual(["components/CompareTray/CompareTray.module.css"]);
+    // 176 px. The tray was measured at 160 at its highest, on a phone with four areas chosen.
+    expect(page.map((rule) => rule.sets.get("scroll-padding-bottom")).filter(Boolean)).toEqual([
+      "calc(2 * var(--space-8) + var(--space-7))",
+    ]);
+  });
+
+  test("test_the_tray_takes_no_room_and_does_not_stick_until_an_area_is_chosen", () => {
+    const closed = sheet("components/CompareTray/CompareTray.module.css").filter((rule) =>
+      /data-closed="true"/.test(rule.selector),
+    );
+
+    expect(closed.map((rule) => rule.sets.get("position"))).toEqual(["static"]);
+  });
+});
+
+describe("a press lands where it was aimed", () => {
+  /**
+   * What a rule may set when it holds only while an element has the focus, is under the
+   * pointer or is being pressed: what is drawn, and never where. None of these moves or
+   * resizes anything in the flow of the page.
+   */
+  const DRAWN_ONLY = new Set([
+    "background",
+    "background-color",
+    "border-color",
+    "box-shadow",
+    "color",
+    "cursor",
+    "outline",
+    "outline-color",
+    "outline-offset",
+    "text-decoration",
+    "text-decoration-thickness",
+    "text-underline-offset",
+    // Of a skip link, which is laid out `absolute`: it is moved over the page, and moves nothing.
+    "transform",
+  ]);
+  /** True of a selector that holds only with the focus, the pointer or a press, or only without. */
+  const comesAndGoes = (selector: string) => /:(focus|focus-within|focus-visible|hover|active)\b/.test(selector);
+
+  test("test_nothing_moves_or_changes_size_because_the_focus_or_the_pointer_came_or_went", () => {
+    // Seen in a browser: with the focus the box was three lines high. A press anywhere else
+    // took the focus, the box dropped to one line, and everything under it jumped up between
+    // the button going down and coming up, so the press landed on nothing. The first press
+    // after every typed search was lost.
+    const moved = RULES.filter((rule) => comesAndGoes(rule.selector)).flatMap((rule) =>
+      [...rule.sets.keys()]
+        .filter((property) => !DRAWN_ONLY.has(property))
+        .map((property) => `${rule.file}: ${rule.selector} sets ${property}`),
+    );
+
+    expect(RULES.some((rule) => comesAndGoes(rule.selector))).toBe(true);
+    expect(moved).toEqual([]);
+  });
+});

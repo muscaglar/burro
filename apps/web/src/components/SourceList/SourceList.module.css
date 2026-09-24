@@ -48,3 +48,13 @@
   column-gap: var(--space-6);
   margin: 0;
 }
+
+/* Under a credit that holds a gap: it is said, and nothing is written into the gap. */
+.unfinished {
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  color: var(--notice-text);
+  background: var(--notice-bg);
+  border-radius: var(--radius);
+  font-size: var(--size-small);
+}

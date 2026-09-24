@@ -12,7 +12,9 @@ import { act, fireEvent, screen, waitFor, within } from "@testing-library/react"
 
 import { SearchApp } from "@/components/SearchApp/SearchApp";
 import { Shell } from "@/components/Shell/Shell";
-import { MAP, MAP_CARD } from "@/content/map";
+import { SHOWN_AT_FIRST } from "@/components/ResultList/ResultList";
+import { COMPARE, TRAY } from "@/content/compare";
+import { MAP, MAP_CARD, TABLE } from "@/content/map";
 import {
   CHIPS,
   CLARIFY,
@@ -23,10 +25,11 @@ import {
   PROMPT,
   RESULTS,
   SEARCH,
+  SHELF,
   STATUS,
+  SUGGEST,
   TENURE_CHOICE,
   UNMET,
-  VIEWS,
 } from "@/content/search";
 import { SETTINGS } from "@/content/settings";
 import { SHARE } from "@/content/share";
@@ -34,20 +37,25 @@ import { recordedAnswer, responseFrom } from "@/lib/api/recorded";
 import type { InterpretData, Operations } from "@/lib/api/schema";
 import { NO_EDITS } from "@/lib/search/edits";
 
-import { setOnline, type Responder } from "../support/api";
+import { setOnline, withTheSpecSent, type Responder } from "../support/api";
 import { lastMap } from "../support/maplibre";
 import {
   areas,
   arrived,
+  bands,
   CANARY,
+  everyChip,
   firstSearch,
   meta,
   openSearch,
   promptBox,
+  removeChip,
   results,
   search,
+  settingsAt,
   setWebGL,
   settled,
+  theTable,
 } from "../support/search";
 
 jest.mock("next/navigation", () => ({ usePathname: () => "/" }));
@@ -88,16 +96,15 @@ describe("after Search is pressed", () => {
 
     const line = screen.getAllByRole("status").find((one) => one.textContent?.includes("areas ranked"));
     const chips = chipsRegion();
-    const tenure = screen.getAllByRole("group", { name: TENURE_CHOICE.legend })[0] as HTMLElement;
-    const place = screen.getAllByRole("combobox", { name: PLACE.label })[0] as HTMLElement;
     const settings = screen.getByRole("button", { name: SETTINGS.title });
 
     expect(line).toBeDefined();
     expect(comesBefore(promptBox(), line as HTMLElement)).toBe(true);
-    for (const lower of [tenure, place, settings]) {
-      expect(comesBefore(line as HTMLElement, lower)).toBe(true);
-      expect(comesBefore(chips, lower)).toBe(true);
-    }
+    expect(comesBefore(line as HTMLElement, settings)).toBe(true);
+    expect(comesBefore(chips, settings)).toBe(true);
+    // Renting or buying and the place field are in the settings now, so that the answer comes first.
+    expect(screen.queryByRole("group", { name: TENURE_CHOICE.legend })).toBeNull();
+    expect(screen.queryByRole("combobox", { name: PLACE.label })).toBeNull();
     // Nothing a person must act on stands between the box and what Burro says of the search.
     const between = [...document.querySelectorAll<HTMLElement>("main button, main input, main select, main textarea")]
       .filter((control) => comesBefore(promptBox(), control) && comesBefore(control, line as HTMLElement))
@@ -108,45 +115,164 @@ describe("after Search is pressed", () => {
   test("test_a_question_a_notice_and_a_failure_stand_directly_under_the_box_too", async () => {
     const { user, api } = await openSearch(firstSearch().on("interpret", "interpret-clarify"));
     await search(user, "Leafy, renting, 30 minutes to Pellam");
-    const tenure = () => screen.getAllByRole("group", { name: TENURE_CHOICE.legend })[0] as HTMLElement;
+    /** What comes after everything Burro says: the way to the settings. */
+    const after = () => screen.getByRole("button", { name: SETTINGS.title });
 
-    expect(comesBefore(screen.getByRole("region", { name: CLARIFY.question }), tenure())).toBe(true);
+    expect(comesBefore(screen.getByRole("region", { name: CLARIFY.question }), after())).toBe(true);
 
     api.on("interpret", "interpret-notice");
     await user.clear(promptBox());
     await search(user, sentenceOf("interpret-notice"));
-    expect(comesBefore(screen.getByRole("status", { name: NOTICE.label }), tenure())).toBe(true);
+    expect(comesBefore(screen.getByRole("status", { name: NOTICE.label }), after())).toBe(true);
 
     api.on("rank", "error-internal");
-    await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Leafy` }));
-    expect(comesBefore(await screen.findByRole("alert"), tenure())).toBe(true);
+    await removeChip(user, "Leafy");
+    expect(comesBefore(await screen.findByRole("alert"), after())).toBe(true);
   });
 
-  test("test_before_a_search_the_examples_come_first_and_the_page_is_as_it_was", async () => {
+  test("test_before_a_search_no_link_leads_to_results_that_are_not_there", async () => {
+    // Found by reading the page as it was built: "Skip to results" led to nothing.
+    const { user } = await openSearch();
+    const leadingNowhere = () =>
+      [...document.querySelectorAll<HTMLAnchorElement>("a[href^='#']")]
+        .map((link) => link.getAttribute("href") ?? "")
+        .filter((href) => href.length > 1 && document.getElementById(href.slice(1)) === null);
+
+    expect(screen.queryByRole("link", { name: SEARCH.skipToResults })).toBeNull();
+    expect(leadingNowhere()).toEqual([]);
+
+    await search(user);
+
+    expect(screen.getByRole("link", { name: SEARCH.skipToResults })).toHaveAttribute("href", "#results");
+    expect(leadingNowhere()).toEqual([]);
+  });
+
+  test("test_before_a_search_the_shelf_comes_first_and_nothing_is_said_of_a_search", async () => {
     await openSearch();
 
+    const shelf = screen.getByRole("region", { name: SHELF.title });
+    const tenure = screen.getByRole("group", { name: TENURE_CHOICE.legend });
     const examples = screen.getByRole("heading", { name: PROMPT.examplesTitle });
-    const starts = screen.getByRole("region", { name: CHIPS.startLabel });
-    const tenure = screen.getAllByRole("group", { name: TENURE_CHOICE.legend })[0] as HTMLElement;
 
-    expect(comesBefore(examples, tenure)).toBe(true);
-    expect(comesBefore(tenure, starts)).toBe(true);
+    expect(comesBefore(promptBox(), shelf)).toBe(true);
+    expect(comesBefore(shelf, tenure)).toBe(true);
+    expect(comesBefore(tenure, examples)).toBe(true);
+    expect(comesBefore(examples, screen.getByRole("button", { name: SETTINGS.title }))).toBe(true);
+    // Nothing is understood of anything yet, so there are no chips, no list and nothing to start again.
+    expect(screen.queryByRole("region", { name: CHIPS.startLabel })).toBeNull();
+    expect(screen.queryByRole("list", { name: RESULTS.listLabel })).toBeNull();
     expect(screen.queryByRole("button", { name: PROMPT.startAgain })).toBeNull();
   });
 
-  test("test_there_is_a_way_from_what_was_understood_to_the_results", async () => {
+  test("test_the_results_come_directly_after_what_was_understood_and_the_ways_to_change_it", async () => {
     // Seen on a phone: the first result was 2,100 pixels down, and 6,425 with the settings open.
+    // Now every group of the settings is closed at first, and nothing else stands in between.
+    const { user } = await openSearch();
+    await search(user);
+    const list = screen.getByRole("list", { name: RESULTS.listLabel });
+    const toResults = screen.getByRole("link", { name: SEARCH.skipToResults });
+
+    expect(toResults).toHaveAttribute("href", "#results");
+    expect(document.getElementById("results")?.contains(list)).toBe(true);
+    const between = [...document.querySelectorAll<HTMLElement>("main button, main input, main select, main a[href]")]
+      .filter((control) => comesBefore(chipsRegion(), control) && comesBefore(control, list))
+      .filter((control) => !chipsRegion().contains(control))
+      .map((control) => control.textContent || control.getAttribute("aria-label"));
+    // Nothing: the ways to the settings and to sharing, and the map, stand after the first result.
+    expect(between).toEqual([]);
+    const [one, two] = results();
+    for (const name of [SETTINGS.title, SHARE.open]) {
+      const way = screen.getByRole("button", { name });
+      expect(comesBefore(one as HTMLElement, way)).toBe(true);
+      expect(comesBefore(way, two as HTMLElement)).toBe(true);
+      expect(comesBefore(way, screen.getByRole("region", { name: MAP.label }))).toBe(true);
+    }
+  });
+});
+
+describe("the answer comes first", () => {
+  test("test_the_first_result_stands_before_the_map_and_the_rest_of_them_after_it", async () => {
+    // Seen on a phone: after a search the first screen was the banner, the header, the title,
+    // the box, a line, the chips, two buttons, a strip of map and two more buttons. The first
+    // result began at 750 px and ended at 1,110, on a screen of 844.
+    const { user } = await openSearch();
+    await search(user);
+    const [one, two] = results();
+    const map = screen.getByRole("region", { name: MAP.label });
+
+    expect(comesBefore(chipsRegion(), one as HTMLElement)).toBe(true);
+    expect(comesBefore(one as HTMLElement, map)).toBe(true);
+    expect(comesBefore(map, two as HTMLElement)).toBe(true);
+    // They are one list to whoever reads the page: the first, and then the rest from the second.
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
+    expect(screen.getByRole("list", { name: RESULTS.listLabel }).tagName).toBe("OL");
+    expect(screen.getByRole("list", { name: RESULTS.restLabel })).toHaveAttribute("start", "2");
+  });
+
+  test("test_before_a_search_the_map_stands_where_it_did_and_is_the_same_map_after_one", async () => {
+    // The map is not drawn a second time when the results come: it is moved by nothing.
+    const { user } = await openSearch();
+    const before = screen.getByRole("region", { name: MAP.label });
+
+    await search(user);
+
+    expect(screen.getByRole("region", { name: MAP.label })).toBe(before);
+  });
+
+  test("test_once_a_search_is_open_the_title_takes_no_room_and_is_still_the_heading_of_the_page", async () => {
+    const { user } = await openSearch();
+    const title = () => screen.getByRole("heading", { level: 1 });
+    expect(title()).toHaveTextContent(SEARCH.title);
+    expect(title().classList.contains("visually-hidden")).toBe(false);
+
+    await search(user);
+
+    expect(title()).toHaveTextContent(SEARCH.title);
+    expect(title().classList.contains("visually-hidden")).toBe(true);
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  });
+
+  test("test_the_heading_of_the_results_is_kept_for_a_screen_reader_and_takes_no_room", async () => {
+    // A numbered list of areas directly under "21 areas ranked" says what it is.
     const { user } = await openSearch();
     await search(user);
 
-    const toResults = screen.getByRole("link", { name: RESULTS.goTo });
-    expect(toResults).toHaveAttribute("href", "#results");
-    expect(toResults).toHaveClass("target-min");
-    expect(comesBefore(toResults, screen.getByRole("button", { name: SETTINGS.title }))).toBe(true);
-    // On a narrow screen the results may be behind a tab, so the link brings them forward.
-    await user.click(within(screen.getByRole("tablist", { name: VIEWS.label })).getByRole("tab", { name: VIEWS.table }));
-    await user.click(toResults);
-    expect(document.getElementById("results")).toHaveAttribute("data-narrow", "true");
+    const heading = screen.getByRole("heading", { level: 2, name: RESULTS.title });
+    expect(heading.classList.contains("visually-hidden")).toBe(true);
+    expect(screen.getByRole("region", { name: RESULTS.title })).toBe(document.getElementById("results"));
+  });
+
+  test("test_what_happened_is_one_short_line_and_the_first_result_is_named_by_its_card", async () => {
+    // Seen on a phone: "22 areas ranked. First: Otterby Fields. Settings you did not choose
+    // now count for less." took two lines above the chips, and named the card under it.
+    const { user } = await openSearch();
+    await search(user);
+    const line = screen.getAllByRole("status").find((one) => one.textContent?.includes("areas ranked")) as HTMLElement;
+    const name = within(results()[0] as HTMLElement).getByRole("heading", { level: 3 }).textContent ?? "";
+    const seen = [...line.childNodes]
+      .filter((part) => !(part instanceof HTMLElement && part.classList.contains("visually-hidden")))
+      .map((part) => part.textContent ?? "")
+      .join("")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    // Said whole to a screen reader, which is told when it changes.
+    // The search names a workplace and a budget, and leafy and quiet count for more than either.
+    expect(line.textContent?.replace(/\s+/g, " ").trim()).toBe(`${STATUS.ranked(21, name)} ${STATUS.gaveWay}`);
+    // Drawn without the name, which the first card gives directly under it.
+    expect(seen).toBe(`${STATUS.rankedUnnamed(21)} ${STATUS.gaveWay}`);
+    expect(seen.includes(name)).toBe(false);
+    expect(seen.length).toBeLessThanOrEqual(50);
+  });
+
+  test("test_the_page_says_that_a_search_is_open_so_that_the_banner_can_give_way", async () => {
+    const { user } = await openSearch();
+    const page = () => document.querySelector("[data-search]");
+    expect(page()).toHaveAttribute("data-search", "closed");
+
+    await search(user);
+
+    expect(page()).toHaveAttribute("data-search", "open");
   });
 });
 
@@ -171,6 +297,8 @@ describe("a sentence of which only a part was read", () => {
         assumptions: [],
         unmet: ["other"],
         rests_on: [{ group: "weight_ops", index: 0, ...where(TYPED, "park nearby") }],
+        // The API says which stretches it made nothing of. The website works none of it out.
+        unread: [where(TYPED, UNREAD)],
       })),
     );
 
@@ -200,7 +328,7 @@ describe("a sentence of which only a part was read", () => {
 
   test("test_the_page_shows_which_part_by_selecting_it_in_the_box", async () => {
     const { user } = await typedIt();
-    const show = screen.getByRole("button", { name: NOTICE.showPart });
+    const show = screen.getByRole("button", { name: SUGGEST.showUnread });
 
     await user.click(show);
 
@@ -219,6 +347,7 @@ describe("a sentence of which only a part was read", () => {
         assumptions: [],
         unmet: ["other"],
         rests_on: [{ group: "weight_ops", index: 0, ...where(text, "park nearby") }],
+        unread: [where(text, "Somewhere with llamas."), where(text, "And a nice vibe please!")],
       })),
     );
     const { user } = await openSearch(api);
@@ -227,15 +356,15 @@ describe("a sentence of which only a part was read", () => {
     await settled();
     const selected = () => promptBox().value.slice(promptBox().selectionStart, promptBox().selectionEnd);
 
-    await user.click(screen.getByRole("button", { name: NOTICE.showPart }));
+    await user.click(screen.getByRole("button", { name: SUGGEST.showUnread }));
     expect(selected()).toBe("Somewhere with llamas.");
     expect(status()).toContain(NOTICE.partShown(1, 2));
 
-    await user.click(screen.getByRole("button", { name: NOTICE.showNextPart }));
+    await user.click(screen.getByRole("button", { name: SUGGEST.showNextUnread }));
     expect(selected()).toBe("And a nice vibe please!");
     expect(status()).toContain(NOTICE.partShown(2, 2));
 
-    await user.click(screen.getByRole("button", { name: NOTICE.showNextPart }));
+    await user.click(screen.getByRole("button", { name: SUGGEST.showNextUnread }));
     expect(selected()).toBe("Somewhere with llamas.");
   });
 
@@ -243,11 +372,12 @@ describe("a sentence of which only a part was read", () => {
     // Where the words stand is known for the text that was sent. Once the box holds
     // something else, the same offsets would select the wrong words.
     const { user } = await typedIt();
-    expect(screen.getByRole("button", { name: NOTICE.showPart })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: SUGGEST.showUnread })).toBeInTheDocument();
 
     await user.type(promptBox(), " x");
 
-    expect(screen.queryByRole("button", { name: NOTICE.showPart })).toBeNull();
+    expect(screen.queryByRole("button", { name: SUGGEST.showUnread })).toBeNull();
+    // That a part was left out of the ranking is still true of the ranking, and is still said.
     expect(screen.getByRole("status", { name: NOTICE.partLabel })).toHaveTextContent(NOTICE.partUnread);
   });
 
@@ -256,8 +386,9 @@ describe("a sentence of which only a part was read", () => {
     // the ranking, the box may hold anything by then, and the offsets are of what was sent.
     const { user, api } = await typedIt();
     await user.type(promptBox(), " and more");
-    expect(screen.queryByRole("button", { name: NOTICE.showPart })).toBeNull();
+    expect(screen.queryByRole("button", { name: SUGGEST.showUnread })).toBeNull();
     api.on("rank", "error-internal");
+    await everyChip(user);
     await user.click(within(chipsRegion()).getAllByRole("button", { name: new RegExp(`^${CHIPS.remove}`) })[0] as HTMLElement);
     const alert = await screen.findByRole("alert");
     api.on("rank", "rank-first");
@@ -266,7 +397,7 @@ describe("a sentence of which only a part was read", () => {
     await settled();
 
     expect(api.callsTo("interpret")).toHaveLength(1);
-    expect(screen.queryByRole("button", { name: NOTICE.showPart })).toBeNull();
+    expect(screen.queryByRole("button", { name: SUGGEST.showUnread })).toBeNull();
   });
 
   test("test_what_was_typed_is_written_nowhere_outside_the_box", async () => {
@@ -274,7 +405,7 @@ describe("a sentence of which only a part was read", () => {
     fireEvent.input(promptBox(), { target: { value: TYPED.replace("Cindermoor Works", CANARY) } });
     await opened.user.click(screen.getByRole("button", { name: PROMPT.submit }));
     await settled();
-    await opened.user.click(screen.getByRole("button", { name: NOTICE.showPart }));
+    await opened.user.click(screen.getByRole("button", { name: SUGGEST.showUnread }));
 
     const page = opened.container.cloneNode(true) as HTMLElement;
     page.querySelectorAll("textarea").forEach((box) => box.remove());
@@ -287,47 +418,165 @@ describe("a sentence of which only a part was read", () => {
     await search(user, sentenceOf("interpret-first"));
 
     expect(first.body.data.unmet).toEqual([]);
+    expect(first.body.data.unread).toEqual([]);
     expect(screen.queryByRole("status", { name: NOTICE.partLabel })).toBeNull();
-    expect(screen.queryByRole("button", { name: NOTICE.showPart })).toBeNull();
+    expect(screen.queryByRole("button", { name: SUGGEST.showUnread })).toBeNull();
   });
 });
 
 describe("a notice, when nothing else was read", () => {
-  const onlyTheNotice = () =>
-    firstSearch().on(
-      "interpret",
-      reading("interpret-notice", () => ({
-        operations: NO_EDITS,
-        applied: [],
-        assumptions: [],
-        rests_on: [],
-        unmet: ["other"],
-        spec: meta.data.defaults.rent,
-      })),
-    );
+  /** Recorded: a sentence in part about who lives somewhere, of which nothing was applied. */
+  const alone = recordedAnswer("interpret", "interpret-suggest-notice").body.data;
 
   test("test_the_page_does_not_leave_it_said_that_the_rest_was_applied_when_nothing_was", async () => {
     // Seen in a browser: "The rest of your search has been applied." over chips that read
-    // "What a search starts from", with no result. The sentence is the API's, and is shown
-    // as it came. The page says under it, in its own words, that nothing was changed.
-    const { user, api } = await openSearch(onlyTheNotice());
-    await user.type(promptBox(), "Somewhere leafy with lots of people like me");
+    // "What a search starts from", with no result. The API now says which is true, and the
+    // page shows its sentence as it came and adds no line of its own.
+    const { user, api } = await openSearch(firstSearch().on("interpret", "interpret-suggest-notice"));
+    await user.type(promptBox(), sentenceOf("interpret-suggest-notice"));
     await user.click(screen.getByRole("button", { name: PROMPT.submit }));
     await settled();
 
     const notice = screen.getByRole("status", { name: NOTICE.label });
-    expect(notice).toHaveTextContent(recordedAnswer("interpret", "interpret-notice").body.data.notice_text);
-    expect(status()).toContain(NOTICE.nothingElse);
-    expect(NOTICE.nothingElse).toMatch(/has not changed/);
-    expect(comesBefore(notice, screen.getByText(NOTICE.nothingElse))).toBe(true);
+    expect(alone.applied.filter((edit) => edit.changed)).toEqual([]);
+    expect(alone.notice_text).toMatch(/Nothing you typed has changed your search\.$/);
+    expect(notice.textContent).toBe(alone.notice_text);
+    expect(document.body.textContent?.includes("has been applied")).toBe(false);
+    expect(status()).not.toContain(NOTICE.nothingRead);
     expect(api.callsTo("rank")).toEqual([]);
   });
 
-  test("test_a_notice_with_the_rest_applied_says_nothing_more", async () => {
+  test("test_once_a_thing_is_chosen_the_page_no_longer_says_that_nothing_typed_changed_the_search", async () => {
+    // Seen in a browser: "More pubs and bars" was pressed, 21 areas were ranked, and directly
+    // under "21 areas ranked" the page read "Nothing you typed has changed your search."
+    const { user } = await openSearch(firstSearch().on("interpret", "interpret-suggest-notice"));
+    await user.type(promptBox(), sentenceOf("interpret-suggest-notice"));
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
+    const said = () => document.body.textContent?.includes("Nothing you typed has changed your search") ?? false;
+    expect(said()).toBe(true);
+
+    // Leaving a thing out changes nothing, and what was said still holds.
+    await user.click(screen.getByRole("button", { name: SUGGEST.named("Skip", "Less transport noise") }));
+    expect(said()).toBe(true);
+
+    await user.click(screen.getByRole("button", { name: SUGGEST.named("Add", "Leafy") }));
+    await settled();
+
+    expect(results().length).toBeGreaterThan(0);
+    expect(said()).toBe(false);
+    expect(screen.queryByRole("status", { name: NOTICE.label })).toBeNull();
+  });
+
+  test("test_a_notice_with_the_rest_applied_says_that_it_was", async () => {
     const { user } = await openSearch(firstSearch().on("interpret", "interpret-notice"));
     await search(user, sentenceOf("interpret-notice"));
 
-    expect(status()).not.toContain(NOTICE.nothingElse);
+    const said = recordedAnswer("interpret", "interpret-notice").body.data.notice_text;
+    expect(said).toMatch(/The rest of your search has been applied\.$/);
+    expect(screen.getByRole("status", { name: NOTICE.label }).textContent).toBe(said);
+  });
+});
+
+describe("a natural sentence", () => {
+  /** A service with a model behind it: the rules answer at once, and then the model. */
+  const reading = () =>
+    firstSearch().inTurn("interpret", "interpret-rules-at-once", "interpret-by-model-long");
+
+  test("test_one_press_adds_every_offer_that_one_press_may_add_and_says_what_it_added", async () => {
+    // Seen in a browser: a sentence of five things cost five presses on a desk and six on a
+    // phone, with no way to take them all.
+    const { user, api } = await openSearch(reading());
+    await user.type(promptBox(), sentenceOf("interpret-by-model-long"));
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
+    expect(api.callsTo("rank")).toEqual([]);
+    expect(screen.getByText(SUGGEST.why)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: SUGGEST.addThese(5) }));
+    await settled();
+
+    expect(api.callsTo("rank")).toHaveLength(1);
+    expect(results().length).toBeGreaterThan(0);
+    const block = screen.getByRole("region", { name: SUGGEST.title });
+    expect(within(block).getByRole("status").textContent).toBe(
+      [
+        "5 added. 7 need you: the journey can be made a firm limit; the budget can be made a firm limit",
+        "recorded crime, which is added under its own name",
+        "what homes sell for",
+        "Village feel",
+        "Age of buildings",
+        "nearer a town centre.",
+      ].join("; "),
+    );
+    // What one press may not add is still offered: the two readings of a word for how well off a
+    // place is, and the three of a word for its identity. None has a guess. Four are in sight.
+    expect(within(block).queryAllByRole("listitem")).toHaveLength(4);
+    expect(within(block).getByRole("button", { name: SUGGEST.showAll(5) })).toBeVisible();
+    // The button went with what it added. The focus is on the block that says so, and not on nothing.
+    expect(block === document.activeElement).toBe(true);
+  });
+
+  test("test_one_press_takes_back_all_that_was_added_and_the_offers_are_as_they_were", async () => {
+    const { user, api } = await openSearch(reading());
+    await user.type(promptBox(), sentenceOf("interpret-by-model-long"));
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
+    const before = within(screen.getByRole("region", { name: SUGGEST.title }))
+      .getAllByRole("listitem")
+      .map((item) => item.textContent);
+    await user.click(screen.getByRole("button", { name: SUGGEST.addThese(5) }));
+    await settled();
+
+    await user.click(screen.getByRole("button", { name: SUGGEST.takeBack }));
+    await settled();
+
+    const block = within(screen.getByRole("region", { name: SUGGEST.title }));
+    expect(block.getAllByRole("listitem").map((item) => item.textContent)).toEqual(before);
+    expect(block.queryByRole("button", { name: SUGGEST.takeBack })).toBeNull();
+    // The search that is ranked again is the one that stood before the press.
+    const [added, back] = api.callsTo("rank").map((call) => call.body as { operations?: unknown; spec: unknown });
+    expect(back?.operations).toBeUndefined();
+    expect(back?.spec).toEqual(added?.spec);
+  });
+
+  test("test_each_offer_shows_the_persons_own_words_and_burros_guess", async () => {
+    const { user, api } = await openSearch(reading());
+    await user.type(promptBox(), sentenceOf("interpret-by-model-long"));
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
+
+    const offers = within(screen.getByRole("region", { name: SUGGEST.title })).getAllByRole("listitem");
+    expect(offers.map((offer) => offer.querySelector("q")?.textContent)).toEqual([
+      "I want to live somewhere quiet",
+      "with access to parks",
+      "slightly affluent but with some culture around it",
+      "slightly affluent but with some culture around it",
+      "slightly affluent but with some culture around it",
+      "At most 35-40min commute from Pellam Exchange",
+      "If I'm renting, max \u00a31,900 a month for a 1 bed flat",
+    ]);
+    // The third and the fourth have no guess: they are the two readings of a word for how well
+    // off a place is, which are the rules' to offer.
+    expect(offers.map((offer) => offer.querySelectorAll("[data-guess]").length)).toEqual([1, 1, 0, 0, 1, 1, 1]);
+    // Three readings of a word for the identity of a place wait behind one press.
+    expect(screen.getByRole("button", { name: SUGGEST.showAll(10) })).toBeVisible();
+    // Nothing is ranked until a choice is pressed.
+    expect(api.callsTo("rank")).toEqual([]);
+  });
+
+  test("test_choosing_the_last_thing_burro_noticed_leaves_the_focus_on_what_burro_understood", async () => {
+    const { user } = await openSearch(firstSearch().on("interpret", "interpret-suggest-place"));
+    await user.type(promptBox(), sentenceOf("interpret-suggest-place"));
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
+
+    await user.click(screen.getByRole("button", { name: SUGGEST.named("Add", "Pellam Infirmary") }));
+
+    // What Burro understood is drawn once the service has answered, a moment later.
+    await waitFor(() => expect(chipsRegion() === document.activeElement).toBe(true));
+    await settled();
+    expect(document.activeElement === document.body).toBe(false);
   });
 });
 
@@ -343,7 +592,8 @@ describe("starting a new search", () => {
     expect(screen.queryByRole("button", { name: /^Buying a terraced house/ })).toBeNull();
     expect(screen.queryByRole("alert")).toBeNull();
     expect(screen.getByRole("button", { name: PROMPT.startAgain })).toBeInTheDocument();
-    expect(promptBox()).toHaveAccessibleDescription(PROMPT.hintOpen);
+    // The label of the box says that what is typed now is added to the search that is open.
+    expect(promptBox()).toHaveAccessibleName(PROMPT.labelOpen);
   });
 
   test("test_start_again_goes_back_to_an_empty_box_the_defaults_and_the_examples", async () => {
@@ -355,11 +605,39 @@ describe("starting a new search", () => {
 
     expect(promptBox()).toHaveValue("");
     expect(promptBox()).toHaveFocus();
-    expect(screen.getByRole("region", { name: CHIPS.startLabel })).toBeInTheDocument();
-    expect(screen.getByText(RESULTS.waiting)).toBeInTheDocument();
+    expect(promptBox()).toHaveAccessibleName(PROMPT.label);
+    expect(screen.getByRole("region", { name: SHELF.title })).toBeInTheDocument();
+    expect(screen.queryByRole("list", { name: RESULTS.listLabel })).toBeNull();
     expect(screen.getByRole("button", { name: /^Buying a terraced house/ })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: PROMPT.startAgain })).toBeNull();
     expect(api.calls).toEqual([]);
+  });
+
+  test("test_start_again_leaves_nothing_of_the_search_before_neither_in_the_tray_nor_on_the_map", async () => {
+    // Seen in a browser: after "Start again" the tray still held three areas of the first
+    // search, and the card of the map still named an area that was chosen in it.
+    setWebGL(true);
+    const { user } = await openSearch();
+    await search(user);
+    const [one, two] = results().map((result) => within(result).getByRole("heading", { level: 3 }).textContent ?? "");
+    await user.click(screen.getByRole("button", { name: COMPARE.addNamed(one as string) }));
+    await user.click(screen.getByRole("button", { name: COMPARE.addNamed(two as string) }));
+    await theTable(user);
+    await user.click(screen.getByRole("button", { name: TABLE.select(one as string) }));
+    const tray = () => within(screen.getByRole("region", { name: TRAY.title }));
+    expect(tray().getAllByRole("listitem").map((item) => item.textContent?.includes(one as string))).toContain(true);
+    expect(screen.getByRole("region", { name: MAP_CARD.label })).toHaveTextContent(one as string);
+
+    await user.click(screen.getByRole("button", { name: PROMPT.startAgain }));
+
+    expect(tray().queryAllByRole("listitem").length).toBe(0);
+    expect(tray().queryByRole("link", { name: TRAY.go(2) })).toBeNull();
+    expect(screen.queryByRole("region", { name: MAP_CARD.label })).toBeNull();
+    // Nor does the next search bring either back.
+    await search(user);
+    expect(tray().queryAllByRole("listitem").length).toBe(0);
+    expect(screen.queryByRole("region", { name: MAP_CARD.label })).toBeNull();
+    expect(screen.getByRole("button", { name: COMPARE.addNamed(one as string) })).toBeInTheDocument();
   });
 
   test("test_a_budget_that_goes_when_the_tenure_changes_is_said_to_have_gone", async () => {
@@ -418,7 +696,7 @@ describe("when Burro cannot be reached", () => {
       "leafy and quiet",
     ]);
     expect(screen.queryByRole("alert")).toBeNull();
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
   });
 
   test("test_that_words_could_not_be_read_always_has_a_way_to_try_them_again_beside_it", async () => {
@@ -433,11 +711,12 @@ describe("when Burro cannot be reached", () => {
     expect(within(line()).getByRole("button", { name: PROMPT.tryAgain })).toBeInTheDocument();
 
     // A control is used: the person has done something about it, and the line goes.
-    await user.click(screen.getByRole("switch", { name: "Leafy" }));
+    await settingsAt(user, SETTINGS.airAndNoise);
+    await user.click(screen.getByRole("switch", { name: "Cleaner air" }));
     await settled();
 
     expect(status()).not.toContain(NOTICE.degraded);
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
   });
 });
 
@@ -448,15 +727,19 @@ describe("what is marked as assumed", () => {
     await search(user, sentenceOf("interpret-first"));
 
     expect(sentenceOf("interpret-first")).toMatch(/^Renting/);
-    const tenure = within(chipsRegion()).getAllByRole("listitem")[0] as HTMLElement;
+    const tenure = within(chipsRegion()).getByRole("button", { name: /^Renting/ });
     expect(tenure.textContent).toBe("Renting");
   });
 
   test("test_a_tenure_nobody_said_is_marked_assumed", async () => {
-    const { user } = await openSearch(firstSearch().on("interpret", "interpret-notice"));
+    // The ranking is of the spec that was read, as the API's is.
+    const { user } = await openSearch(
+      firstSearch().on("interpret", "interpret-notice").on("rank", withTheSpecSent("rank-first")),
+    );
     await search(user, sentenceOf("interpret-notice"));
 
-    expect(within(chipsRegion()).getAllByRole("listitem")[0]?.textContent).toBe(`Renting ${CHIPS.assumed}`);
+    expect(recordedAnswer("interpret", "interpret-notice").body.data.spec.tenure_from).toBe("default");
+    expect(within(chipsRegion()).getByRole("button", { name: /^Renting/ }).textContent).toBe(`Renting ${CHIPS.assumed}`);
   });
 
   test("test_a_place_added_from_the_field_is_marked_as_one_read_from_a_sentence_is", async () => {
@@ -470,7 +753,9 @@ describe("what is marked as assumed", () => {
         ...ranked.body.data.spec,
         commutes: [{ place_id: place.place_id, mode: "pt", max_minutes: 45, strictness: "soft", provenance: "ui_edit" }],
       };
-      return responseFrom({ ...ranked, body: { ...ranked.body, data: { ...ranked.body.data, spec } } });
+      // An answer names every place of the spec it returns.
+      const places = [{ place_id: place.place_id, name: place.name, kind: place.kind }];
+      return responseFrom({ ...ranked, body: { ...ranked.body, data: { ...ranked.body.data, spec, places } } });
     };
     const { user } = await openSearch(firstSearch().on("rank", withThePlace));
 
@@ -478,7 +763,10 @@ describe("what is marked as assumed", () => {
     await user.click(await screen.findByRole("option", { name: new RegExp(`^${place.name}`) }));
     await settled();
 
+    // In the row the chip says the name, and that the rest was assumed. Opened, it says every part.
     const chip = within(chipsRegion()).getByRole("button", { name: new RegExp(`^${place.name}`) });
+    expect(chip.textContent).toBe(`${place.name}, ${CHIPS.restAssumed}`);
+    await user.click(chip);
     expect(chip.textContent).toBe(
       `${place.name}, Public transport ${CHIPS.assumed}, within 45 minutes ${CHIPS.assumed}, flexible ${CHIPS.assumed}`,
     );
@@ -548,13 +836,31 @@ describe("reaching the map", () => {
     const toMap = screen.getByRole("link", { name: SEARCH.skipToMap });
     const target = document.getElementById((toMap.getAttribute("href") ?? "").slice(1));
     expect(toMap).toHaveClass("target");
-    expect(target).toBe(screen.getByRole("tabpanel", { name: MAP.label }));
+    expect(target).toBe(screen.getByRole("region", { name: MAP.label }));
     expect(target?.tabIndex).toBe(-1);
     // It stands beside the link that skips to the results, before the box.
     expect(comesBefore(toMap, promptBox())).toBe(true);
-    // On a narrow screen the map is behind a tab, so the link brings it forward.
-    await user.click(toMap);
-    expect(target).toHaveAttribute("data-narrow", "true");
+    // The map is on the page at every width, so the link has nothing to bring forward.
+    expect(screen.queryByRole("tablist")).toBeNull();
+    expect(user).toBeDefined();
+  });
+
+  test("test_there_is_a_link_that_skips_the_map", async () => {
+    // The map stands before the results at every width. By keyboard it is a stop, and its
+    // controls are more: one link passes all of them.
+    const { user } = await openSearch();
+    await search(user);
+    const map = screen.getByRole("region", { name: MAP.label });
+
+    const past = within(map).getByRole("link", { name: SEARCH.skipMap });
+    const target = document.getElementById((past.getAttribute("href") ?? "").slice(1));
+    expect(past).toHaveClass("target");
+    expect(target).not.toBeNull();
+    expect(map.contains(target)).toBe(true);
+    for (const control of map.querySelectorAll("button")) {
+      expect(comesBefore(past, control)).toBe(true);
+      expect(comesBefore(control, target as HTMLElement)).toBe(true);
+    }
   });
 });
 
@@ -563,11 +869,11 @@ describe("how far a fit is to be trusted, wherever it is given", () => {
     const { user } = await openSearch();
     await search(user);
 
-    const table = screen.getByRole("tabpanel", { name: VIEWS.table, hidden: true });
+    const table = await theTable(user);
     const row = within(table)
-      .getAllByRole("row", { hidden: true })
-      .find((one) => one.textContent?.includes("Otterby Fields")) as HTMLElement;
-    expect(row.textContent?.includes(COMPLETENESS.some(5, 10))).toBe(true);
+      .getAllByRole("row")
+      .find((one) => one.textContent?.includes("Marrowfen")) as HTMLElement;
+    expect(row.textContent?.includes(COMPLETENESS.some(9, 10))).toBe(true);
   });
 
   test("test_the_line_says_how_many_areas_went_when_fewer_are_ranked", async () => {
@@ -576,11 +882,11 @@ describe("how far a fit is to be trusted, wherever it is given", () => {
     await search(user);
     api.on("rank", "rank-refined").on("explain_top", "explanations-refined");
 
-    await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Leafy` }));
+    await removeChip(user, "Leafy");
     await settled();
 
     const said = status().join(" ");
-    expect(said).toContain(STATUS.rankedNow(11, -11));
+    expect(said).toContain(STATUS.rankedNow(10, -11));
     expect(said).not.toMatch(/2[0-9] areas changed place/);
   });
 });
@@ -591,7 +897,7 @@ describe("a link that was made", () => {
     const api = firstSearch().on("create_share", "share-made");
     const page = (
       <Shell meta={meta.meta}>
-        <SearchApp meta={meta.data} areas={areas} client={api.client} />
+        <SearchApp meta={meta.data} areas={areas} bands={bands} client={api.client} />
       </Shell>
     );
     const { user, rerender } = await openSearch(api);

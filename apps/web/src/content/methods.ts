@@ -2,10 +2,12 @@
  * Site copy for the methods page. It says how Burro works, in words that stay
  * true whatever release is loaded. Every figure about a place, a feature or a
  * limit comes from the API. The few numbers written here are rules of the
- * method that no route serves: how long a provider keeps words, and how many
- * homes make a cost sure. A test holds each to the project's own record.
+ * method that no route serves: how many homes make a cost sure. A test holds
+ * each to the project's own record. Who reads what is typed, and what becomes
+ * of it there, is the API's to say, and no word of it is written here.
  */
 
+import { CRIME_RULE } from "./crime";
 import { WORDS_LINE } from "./site";
 
 export const METHODS = {
@@ -18,16 +20,18 @@ export const METHODS = {
       "Burro ranks areas by arithmetic over published data. The same search on the same data always gives the same ranking.",
       "Each thing you ask for is scored for each area, and the area's fit is the weighted average of those scores. Settings you did not choose count for less once you have asked for something.",
       "A firm limit removes an area that is known to break it. A flexible limit lowers the area's fit instead.",
-      "When an area has no figure for something you asked for, that thing is left out for that area and the rest count for more. Nothing is filled in, and the result says how complete it is.",
+      "When an area has no figure for something you asked for, that thing is left out for that area and the rest count for more. Nothing is filled in, and the result says how complete it is. Such an area stands below every area that has the figure, whatever its fit.",
+      "An area with a figure for under half of what you asked of the place itself, by how much each thing counts, is not ranked. Journeys and cost do not make up for it. The area says what it lacks.",
       "Burro ranks places by what is there. Nothing that describes who lives somewhere is used.",
-      "Recorded crime counts only when you ask for it or switch it on.",
+      CRIME_RULE,
+      "When your words are not a plain list of what you want, Burro applies none of them. It shows what it noticed, and you choose what to add.",
       "A language model may read your words into settings. It never ranks or scores a place, and never describes one from its own knowledge.",
     ],
   },
 
   features: {
     title: "What is measured",
-    lead: "Each feature describes a place or its buildings. The definition, the period and the source are as the data release states them.",
+    lead: "Each feature describes a place, its buildings or what was recorded there. None describes who lives there. The definition, the period and the source are as the data release states them.",
     columns: {
       feature: "Feature",
       definition: "How it is worked out",
@@ -37,18 +41,19 @@ export const METHODS = {
       sources: "Source",
     },
     notRanked: "Shown, but not used in ranking in this release.",
+    /**
+     * Of a measure no search ranks on alone, which a vibe's recipe holds all the same. The
+     * names of the vibes are the API's.
+     */
+    partOf: (vibes: string) =>
+      `No search ranks on it alone in this release. It counts as a part of ${vibes}.`,
     none: "This release carries no feature in this group.",
   },
 
-  tags: {
-    title: "Tags",
-    lead: "A tag is a fixed formula over the features above. It is named for the place, not for who lives there. The shares of a tag add up to 100.",
-    columns: {
-      feature: "Feature",
-      reading: "How it is read",
-      share: "Share of the tag",
-    },
-    shareOf: "of 100",
+  vibes: {
+    title: "Vibes",
+    lead: "A vibe is a fixed recipe over the features above. It is named for the place, not for who lives there. An area is placed in one of five bands among the areas compared, and never given a score.",
+    link: "Every vibe, its recipe, its sources and what it cannot see",
   },
 
   defaults: {
@@ -65,9 +70,16 @@ export const METHODS = {
     weightOf: "of 100",
   },
 
+  /** In place of a setting or a limit of what the data does not hold. */
+  notInData: "Not in this data yet",
+
   limits: {
     title: "Limits",
     lead: "The form offers no value outside these limits.",
+    /** Said where the data holds no journey, in place of the limits of one. */
+    noJourneys: "This data holds no journey times yet, so it has no limit for a journey.",
+    /** Said where the data holds no rent and no price, in place of the limits of a budget. */
+    noCosts: "This data holds no rents and no prices yet, so it has no limit for a budget.",
     columns: { limit: "Limit", value: "Value" },
     rows: {
       rent: "Monthly rent",
@@ -91,6 +103,8 @@ export const METHODS = {
    */
   journeys: {
     title: "How journeys are timed",
+    /** Said first where the data holds no journey: what follows is what is to come. */
+    notYet: "This data holds no journey times yet. This is how a journey is timed once it does.",
     points: [
       "A journey is timed door to door, at the weekday morning peak.",
       "By public transport there are two times: the typical one, and the time if you just miss a service. The settings choose which of the two counts.",
@@ -107,11 +121,15 @@ export const METHODS = {
    */
   confidence: {
     title: "How sure a cost is",
+    /** Said first where the data holds no rent and no price. */
+    notYet: "This data holds no rents and no prices yet. This is what each word means once it does.",
     lead: "Every range of rents or prices says how far it is to be trusted, in one word. A range is a guide to what homes cost in an area, and says nothing of any one home.",
     rows: {
       high: "High: the range is worked out from at least 50 rents or prices recorded for that kind of home.",
       medium: "Medium: from 10 to 49 were recorded, so the range is blended.",
       low: "Low: the range is modelled.",
+      unstated:
+        "Not stated: the figure is one number, the middle price of the homes of one kind that were sold in a year, as its publisher gives it. The publisher gives no range, and does not say how many sales the figure rests on.",
     },
   },
 
@@ -123,6 +141,7 @@ export const METHODS = {
       engine: "Version of the ranking engine",
       catalogue: "Version of the feature catalogue",
       synthetic: "Made-up data",
+      preview: "A preview that is not finished",
       areas: "Areas",
       rankable: "Areas that can be ranked",
       places: "Places you can name",
@@ -135,6 +154,7 @@ export const METHODS = {
 
   words: {
     title: "How your words are handled",
+    /** What the service says of who else reads what is typed is drawn after the first of these. */
     points: [
       WORDS_LINE,
       "What you type travels in the body of a request. It is never put in a web address.",
@@ -142,5 +162,11 @@ export const METHODS = {
       "A shared link holds an id that says nothing about the search. Each place in it is replaced by the station or district that stands in for it, unless you choose to share the exact places.",
       "There is no analytics on this website, and no script, font or image from anyone else.",
     ],
+    /** Who else reads what is typed: the API's own words, and its link to the company's terms. */
+    reader: {
+      title: "Who else reads what you type",
+      asBuilt:
+        "This is what the service said when this page was built. The line under the search box asks the service again each time the page is opened.",
+    },
   },
 } as const;

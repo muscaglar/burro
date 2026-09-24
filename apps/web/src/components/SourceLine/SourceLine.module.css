@@ -16,3 +16,8 @@
   background: var(--notice-bg);
   border-radius: var(--radius);
 }
+
+/* The date of the data, which is not broken from the words before it where it fits on a line. */
+.dated {
+  display: inline-block;
+}

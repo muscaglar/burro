@@ -14,19 +14,21 @@
   "status": 200,
   "headers": {
     "access-control-allow-origin": "http://localhost:3000",
-    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "2043",
+    "content-length": "2241",
     "content-type": "application/json",
     "vary": "Origin",
+    "x-burro-preview": "false",
     "x-burro-synthetic": "true",
     "x-request-id": "6df8623c-c582-4885-a416-bf6bbb145b22"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.3.0",
-      "synthetic": true
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
     },
     "data": {
       "status": "clarify",
@@ -50,6 +52,7 @@
             "tag_id": "quiet_residential",
             "value": 0.0,
             "step": "up_large",
+            "toward": "high",
             "provenance": "stated"
           }
         ],
@@ -63,13 +66,13 @@
           "amount": null,
           "segment": "bed_1",
           "strictness": "soft",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "default"
         },
         "commutes": [],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [
           {
             "feature_id": "air_no2",
@@ -80,7 +83,7 @@
           {
             "feature_id": "highstreet_access",
             "weight": 0.05,
-            "direction": "more",
+            "direction": "less",
             "provenance": "default"
           },
           {
@@ -112,6 +115,7 @@
           {
             "tag_id": "quiet_residential",
             "weight": 0.5,
+            "toward": "high",
             "provenance": "stated"
           }
         ],
@@ -121,7 +125,7 @@
         "pt_basis_from": "default",
         "commute_weight_from": "default"
       },
-      "spec_hash": "e558dadaa75386e19f6538bf369b6976ff54071e85529f613a83e4780af45425",
+      "spec_hash": "e151577437289d2c0c71d34beaa47ff14819199bc4d8a5bfec460d64592ca634",
       "applied": [
         {
           "group": "tag_ops",
@@ -140,17 +144,20 @@
         {
           "code": "mode",
           "group": "commute_ops",
-          "index": 0
+          "index": 0,
+          "word": ""
         },
         {
           "code": "max_minutes",
           "group": "commute_ops",
-          "index": 0
+          "index": 0,
+          "word": ""
         },
         {
           "code": "strictness",
           "group": "commute_ops",
-          "index": 0
+          "index": 0,
+          "word": ""
         }
       ],
       "unmet": [],
@@ -165,6 +172,7 @@
       "notice_text": "",
       "interpreter": "rule",
       "degraded": false,
+      "model_refused": false,
       "rests_on": [
         {
           "group": "commute_ops",
@@ -178,7 +186,13 @@
           "start": 0,
           "end": 5
         }
-      ]
+      ],
+      "suggestions": [],
+      "unread": [],
+      "not_in_release": [],
+      "unmet_at": [],
+      "model_pending": false,
+      "places": []
     }
   }
 }

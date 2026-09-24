@@ -15,13 +15,13 @@
           "amount": 1700,
           "segment": "bed_1",
           "strictness": "soft",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "stated"
         },
         "commutes": [],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [
           {
             "feature_id": "air_no2",
@@ -32,7 +32,7 @@
           {
             "feature_id": "highstreet_access",
             "weight": 0.05,
-            "direction": "more",
+            "direction": "less",
             "provenance": "default"
           },
           {
@@ -64,16 +64,18 @@
           {
             "tag_id": "leafy",
             "weight": 0.5,
+            "toward": "high",
             "provenance": "stated"
           },
           {
             "tag_id": "quiet_residential",
             "weight": 0.5,
+            "toward": "high",
             "provenance": "stated"
           }
         ],
         "areas": [],
-        "tenure_from": "default",
+        "tenure_from": "stated",
         "commute_combine_from": "default",
         "pt_basis_from": "default",
         "commute_weight_from": "default"
@@ -83,22 +85,24 @@
   "status": 200,
   "headers": {
     "access-control-allow-origin": "http://localhost:3000",
-    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "1161",
+    "content-length": "1221",
     "content-type": "application/json",
     "vary": "Origin",
+    "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "8714123e-80ec-4cd8-a4ea-d084876e7573"
+    "x-request-id": "dd3424a0-ec58-41d6-8111-5c8cca6cc38e"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.3.0",
-      "synthetic": true
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
     },
     "data": {
-      "share_id": "Prqi4-zqlo9VIPSME2DL6A",
+      "share_id": "kat6E3B2_ZuZqLzT_v3P4A",
       "spec": {
         "schema_version": 1,
         "tenure": "rent",
@@ -106,13 +110,13 @@
           "amount": 1700,
           "segment": "bed_1",
           "strictness": "soft",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "stated"
         },
         "commutes": [],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [
           {
             "feature_id": "air_no2",
@@ -123,7 +127,7 @@
           {
             "feature_id": "highstreet_access",
             "weight": 0.05,
-            "direction": "more",
+            "direction": "less",
             "provenance": "default"
           },
           {
@@ -155,21 +159,24 @@
           {
             "tag_id": "leafy",
             "weight": 0.5,
+            "toward": "high",
             "provenance": "stated"
           },
           {
             "tag_id": "quiet_residential",
             "weight": 0.5,
+            "toward": "high",
             "provenance": "stated"
           }
         ],
         "areas": [],
-        "tenure_from": "default",
+        "tenure_from": "stated",
         "commute_combine_from": "default",
         "pt_basis_from": "default",
         "commute_weight_from": "default"
       },
-      "coarsened": false
+      "coarsened": false,
+      "places": []
     }
   }
 }

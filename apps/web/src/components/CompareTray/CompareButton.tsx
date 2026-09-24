@@ -14,11 +14,8 @@ interface Props {
   /** The area, as the API names it. */
   readonly area: Chosen;
   readonly className?: string;
-  /**
-   * True where the tray is far from the button, as it is from a result: the button then
-   * says what the tray would, beside itself, and leads to the comparison.
-   */
-  readonly far?: boolean;
+  /** True where the button stands in a row of small ones, as it does on a result. */
+  readonly small?: boolean;
 }
 
 /**
@@ -27,10 +24,12 @@ interface Props {
  * alone. When four are chosen it can add no more, and says why where it
  * stands: the tray says so too, but the tray may be a long way off.
  *
- * Far from the tray, the button of an area that is chosen leads to the
- * comparison itself, so that the way on is beside what was just pressed.
+ * The tray is at the foot of the screen, which may be a long way from the
+ * button. So the button of an area that is chosen says beside itself what
+ * the tray would, and leads to the comparison: the way on is beside what was
+ * just pressed.
  */
-export function CompareButton({ area, className, far = false }: Props) {
+export function CompareButton({ area, className, small = false }: Props) {
   const id = useId();
   const { chosen: all, has, full, enough, toggle } = useCompare();
   const chosen = has(area.area_id);
@@ -39,23 +38,31 @@ export function CompareButton({ area, className, far = false }: Props) {
     <span className={styles.beside}>
       <button
         type="button"
-        className={["target", className].filter(Boolean).join(" ")}
+        className={[small ? `${styles.small} target-min` : "target", className].filter(Boolean).join(" ")}
         disabled={off}
         aria-describedby={off ? `${id}-why` : undefined}
+        // In a row of small buttons it says what it does in a word, and names the area to a screen reader.
+        aria-label={small ? (chosen ? COMPARE.removeNamed(area.name) : COMPARE.addNamed(area.name)) : undefined}
         onClick={() => toggle(area)}
       >
-        {chosen ? COMPARE.remove(area.name) : COMPARE.add(area.name)}
+        {small
+          ? chosen
+            ? COMPARE.removeShort
+            : COMPARE.addShort
+          : chosen
+            ? COMPARE.remove(area.name)
+            : COMPARE.add(area.name)}
       </button>
       {off ? (
         <span id={`${id}-why`} className={styles.why}>
           {TRAY.full}
         </span>
       ) : null}
-      {far && chosen ? (
+      {chosen ? (
         enough ? (
           // Which page a person reads next is told to no server ahead of time.
           <Link
-            className={`${styles.near} target`}
+            className={`${styles.near} ${small ? "target-min" : "target"}`}
             href={paths.compare(all.map((one) => one.slug))}
             prefetch={false}
           >

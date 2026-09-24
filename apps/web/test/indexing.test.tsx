@@ -159,7 +159,8 @@ describe("when the release is real", () => {
       headerAsksToBeLeftOut: false,
       crawlersAreLetIn: true,
       sitemapNamed: true,
-      listed: 4 + recorded.areas.data.areas.length,
+      // The search, the vibes, methods, sources and the statement, and a page for each area.
+      listed: 5 + recorded.areas.data.areas.length,
       canonical: true,
       structured: true,
     });
@@ -181,6 +182,7 @@ describe("when the release is real", () => {
 
     expect(listed).toEqual([
       `${SITE}/`,
+      `${SITE}/vibes`,
       `${SITE}/methods`,
       `${SITE}/sources`,
       `${SITE}/accessibility`,

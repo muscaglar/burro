@@ -1,7 +1,12 @@
+/*
+ * The table is laid out by the width of its own box, and not by that of the screen: beside
+ * the list on a desk its box is as narrow as a phone is.
+ */
 .whole {
   display: grid;
   gap: var(--space-2);
   min-width: 0;
+  container-type: inline-size;
 }
 
 .table {
@@ -11,12 +16,6 @@
 /* Under the fit and smaller: how much of what counts the fit rests on. */
 .based {
   display: block;
-  color: var(--muted);
-  font-size: var(--size-small);
-}
-
-.note {
-  margin: 0;
   color: var(--muted);
   font-size: var(--size-small);
 }
@@ -52,4 +51,89 @@
 .link {
   display: inline-flex;
   align-items: center;
+}
+
+/* What a cell is of. Shown only where the rows are stacked, and the headings are not drawn. */
+.cellLabel {
+  display: none;
+  color: var(--muted);
+  font-size: var(--size-small);
+  font-weight: 400;
+}
+
+/*
+ * A narrow box: each area is a block, so that the table is no wider than what holds it and
+ * no figure is cut off. The rank, the name and the way to show the area stand on one line,
+ * and under them each of the rest under its own name. The headings of the columns are kept
+ * for a screen reader and not drawn.
+ */
+@container (max-width: 40rem) {
+  .table,
+  .table caption,
+  .table tbody {
+    display: block;
+  }
+
+  .table tr {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0 var(--space-2);
+    padding: var(--space-2) 0;
+    border-block-end: 1px solid var(--border);
+  }
+
+  .head {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .table th,
+  .table td {
+    grid-column: 1 / -1;
+    padding: 0;
+    border: 0;
+  }
+
+  /* The first line of an area: its rank, its name, and the way to show it on the map. */
+  .table .rank {
+    grid-column: 1;
+    grid-row: 1;
+    font-weight: 700;
+  }
+
+  .table .area {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .table .act {
+    grid-column: 3;
+    grid-row: 1;
+  }
+
+  /* The rank is a number before a name, and needs no word over it. */
+  .rank .cellLabel {
+    display: none;
+  }
+
+  .cellLabel {
+    display: inline;
+    margin-inline-end: var(--space-2);
+  }
+
+  .number {
+    white-space: normal;
+  }
+}
+
+@media (forced-colors: active) {
+  .table tr {
+    border-block-end-color: CanvasText;
+  }
 }

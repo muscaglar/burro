@@ -1,5 +1,6 @@
 import Link from "next/link";
 
+import { ONE_NUMBER } from "@/content/facts";
 import { CONFIDENCE, CONFIDENCE_PIPS, COST } from "@/content/search";
 import type { Budget, Confidence, CostEstimate, Fact } from "@/lib/api/schema";
 import { grouped } from "@/lib/format";
@@ -29,15 +30,26 @@ interface Props {
   readonly scale?: Scale | null;
 }
 
+/** A cost with both its ends. One that lacks either is one number, and no range is drawn for it. */
+type Ranged = CostEstimate & { readonly lower_quartile: number; readonly upper_quartile: number };
+
+/** True of a cost that is a range. A publisher's own middle price has no range. */
+export function hasARange(estimate: CostEstimate): estimate is Ranged {
+  return estimate.lower_quartile !== null && estimate.upper_quartile !== null;
+}
+
 /**
- * One scale for several ranges and a budget: from a little under the least
- * figure among them to a little over the most. `null` when there is no range
- * to draw.
+ * One scale for several costs and a budget: from a little under the least
+ * figure among them to a little over the most. A cost that is one number
+ * counts as that number, and nothing stands in for the ends it lacks.
+ * `null` when there is no cost to draw.
  */
 export function scaleOf(estimates: readonly CostEstimate[], amount: number | null): Scale | null {
   if (estimates.length === 0) return null;
   const figures = [
-    ...estimates.flatMap((estimate) => [estimate.lower_quartile, estimate.upper_quartile]),
+    ...estimates.flatMap((estimate) =>
+      hasARange(estimate) ? [estimate.lower_quartile, estimate.upper_quartile] : [estimate.median],
+    ),
     ...(amount === null ? [] : [amount]),
   ];
   const least = Math.min(...figures);
@@ -54,15 +66,78 @@ export function placesOnBar(estimate: CostEstimate, amount: number | null, scale
   // What a scale does not reach is drawn at its end, and never outside the bar.
   const at = (figure: number) => Math.min(100, Math.max(0, Math.round(((figure - from) / width) * 1000) / 10));
   return {
-    lower: at(estimate.lower_quartile),
+    // An end the cost does not have is drawn nowhere.
+    lower: estimate.lower_quartile === null ? null : at(estimate.lower_quartile),
     median: at(estimate.median),
-    upper: at(estimate.upper_quartile),
+    upper: estimate.upper_quartile === null ? null : at(estimate.upper_quartile),
     budget: amount === null ? null : at(amount),
   };
 }
 
-function isConfidence(value: string | undefined): value is Confidence {
+/** A word for how sure a range is. A price that is one number has none. */
+function isConfidence(value: string | undefined): value is Exclude<Confidence, "unstated"> {
   return value === "high" || value === "medium" || value === "low";
+}
+
+/**
+ * A price that is one number: a publisher's own middle price, with no range.
+ *
+ * It is drawn as one number. No range is made of it, no word says how sure it is, and the
+ * line under it says what is not known of it. The figure and the year it is of are slots of
+ * the fact, as the API formatted them. The bar is drawn only where there is a budget to
+ * hold the number against, and says in words where the budget falls.
+ */
+function OneNumber({ fact, estimate, budget, scale = null }: Props) {
+  const { slots } = fact;
+  const amount = budget?.amount ?? null;
+  const at = placesOnBar(estimate, amount, scale);
+  const falls =
+    amount === null
+      ? null
+      : amount < estimate.median
+        ? COST.belowMiddle
+        : amount > estimate.median
+          ? COST.aboveMiddle
+          : COST.atMiddle;
+
+  return (
+    <div className={styles.cost}>
+      <p className={styles.range}>
+        <span className={styles.figure}>£{slots.median}</span>
+      </p>
+      <dl className={styles.facts}>
+        <div>
+          <dt>{fact.label}</dt>
+          <dd>{slots.segment}</dd>
+        </div>
+        <div>
+          <dt>{COST.what}</dt>
+          <dd>{COST.middleOfAll}</dd>
+        </div>
+        {slots.period !== undefined ? (
+          <div>
+            <dt>{COST.soldIn}</dt>
+            <dd>{slots.period}</dd>
+          </div>
+        ) : null}
+        {amount !== null ? (
+          <div>
+            <dt>{COST.budget}</dt>
+            <dd>£{grouped(amount)}</dd>
+          </div>
+        ) : null}
+      </dl>
+      {at.budget !== null ? (
+        <div className={styles.bar} role="img" aria-label={COST.pictureOfOne}>
+          <span className={styles.median} style={{ insetInlineStart: `${at.median}%` }} />
+          <span className={styles.budget} style={{ insetInlineStart: `${at.budget}%` }} />
+        </div>
+      ) : null}
+      {falls !== null ? <p className={styles.falls}>{falls}</p> : null}
+      <p className={styles.falls}>{ONE_NUMBER}</p>
+      <SourceNote facts={[fact]} of={fact.label} />
+    </div>
+  );
 }
 
 /**
@@ -75,9 +150,16 @@ function isConfidence(value: string | undefined): value is Confidence {
  * pips repeat it, and the word leads to what it means.
  */
 export function CostRange({ fact, estimate, budget, scale = null }: Props) {
+  if (!hasARange(estimate)) return <OneNumber fact={fact} estimate={estimate} budget={budget} scale={scale} />;
+  return <Range fact={fact} estimate={estimate} budget={budget} scale={scale} />;
+}
+
+function Range({ fact, estimate, budget, scale = null }: Props & { readonly estimate: Ranged }) {
   const { slots } = fact;
   const amount = budget?.amount ?? null;
   const at = placesOnBar(estimate, amount, scale);
+  const lower = at.lower ?? at.median;
+  const upper = at.upper ?? at.median;
   const rent = fact.template === "cost_rent";
   const confidence = isConfidence(slots.confidence) ? slots.confidence : estimate.confidence;
   const falls =
@@ -136,7 +218,7 @@ export function CostRange({ fact, estimate, budget, scale = null }: Props) {
       <div className={styles.bar} role="img" aria-label={COST.picture}>
         <span
           className={styles.span}
-          style={{ insetInlineStart: `${at.lower}%`, width: `${at.upper - at.lower}%` }}
+          style={{ insetInlineStart: `${lower}%`, width: `${upper - lower}%` }}
         />
         <span className={styles.median} style={{ insetInlineStart: `${at.median}%` }} />
         {at.budget !== null ? (

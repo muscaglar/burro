@@ -1,6 +1,6 @@
 {
   "scenario": "interpret-by-model",
-  "shows": "A sentence read by a model: the same edits, and the answer says who read it",
+  "shows": "A sentence read by a model: nothing is applied, and each thing it read is offered, with Burro's guess marked",
   "captured": true,
   "request": {
     "operation_id": "interpret",
@@ -8,51 +8,35 @@
     "route": "/v1/interpret",
     "path": "/v1/interpret",
     "body": {
-      "text": "Somewhere leafy, 30 minutes to Cindermoor Works"
+      "text": "Ideally somewhere leafy, no more than 30 minutes to Cindermoor Works"
     }
   },
   "status": 200,
   "headers": {
     "access-control-allow-origin": "http://localhost:3000",
-    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "2013",
+    "content-length": "3696",
     "content-type": "application/json",
     "vary": "Origin",
+    "x-burro-preview": "false",
     "x-burro-synthetic": "true",
     "x-request-id": "5ec56e42-4afe-4267-bf21-6f8f586d16bb"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.3.0",
-      "synthetic": true
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
     },
     "data": {
-      "status": "ok",
+      "status": "suggest",
       "operations": {
         "budget_ops": [],
-        "commute_ops": [
-          {
-            "action": "add",
-            "place_id": "syn-p0021",
-            "mode": "unchanged",
-            "max_minutes": 30,
-            "strictness": "unchanged",
-            "step": "none",
-            "provenance": "stated"
-          }
-        ],
+        "commute_ops": [],
         "weight_ops": [],
-        "tag_ops": [
-          {
-            "action": "nudge",
-            "tag_id": "leafy",
-            "value": 0.0,
-            "step": "up_large",
-            "provenance": "stated"
-          }
-        ],
+        "tag_ops": [],
         "area_ops": [],
         "setting_ops": []
       },
@@ -63,118 +47,241 @@
           "amount": null,
           "segment": "bed_1",
           "strictness": "soft",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "default"
         },
-        "commutes": [
-          {
-            "place_id": "syn-p0021",
-            "mode": "pt",
-            "max_minutes": 30,
-            "strictness": "soft",
-            "provenance": "stated"
-          }
-        ],
+        "commutes": [],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [
           {
             "feature_id": "air_no2",
-            "weight": 0.05,
+            "weight": 0.2,
             "direction": "less",
             "provenance": "default"
           },
           {
             "feature_id": "highstreet_access",
-            "weight": 0.05,
-            "direction": "more",
+            "weight": 0.3,
+            "direction": "less",
             "provenance": "default"
           },
           {
             "feature_id": "noise_exposure",
-            "weight": 0.05,
+            "weight": 0.2,
             "direction": "less",
             "provenance": "default"
           },
           {
             "feature_id": "park_proximity",
-            "weight": 0.05,
+            "weight": 0.3,
             "direction": "less",
             "provenance": "default"
           },
           {
             "feature_id": "station_lines",
-            "weight": 0.05,
+            "weight": 0.3,
             "direction": "more",
             "provenance": "default"
           },
           {
             "feature_id": "station_walk",
-            "weight": 0.1,
+            "weight": 0.5,
             "direction": "less",
             "provenance": "default"
           }
         ],
-        "tags": [
-          {
-            "tag_id": "leafy",
-            "weight": 0.5,
-            "provenance": "stated"
-          }
-        ],
+        "tags": [],
         "areas": [],
         "tenure_from": "default",
         "commute_combine_from": "default",
         "pt_basis_from": "default",
         "commute_weight_from": "default"
       },
-      "spec_hash": "ddc15e57c2c5988f69d430e871732e09702f66fca14c7d05744ee4655cb2902c",
-      "applied": [
-        {
-          "group": "commute_ops",
-          "index": 0,
-          "changed": true
-        },
-        {
-          "group": "tag_ops",
-          "index": 0,
-          "changed": true
-        }
-      ],
+      "spec_hash": "6c8de5435684a83166d75f9c1c0c25959efec036499e2359868c9a0f973a6640",
+      "applied": [],
       "rejected": [],
-      "assumptions": [
-        {
-          "code": "mode",
-          "group": "commute_ops",
-          "index": 0
-        },
-        {
-          "code": "strictness",
-          "group": "commute_ops",
-          "index": 0
-        }
+      "assumptions": [],
+      "unmet": [
+        "other"
       ],
-      "unmet": [],
       "clarify": [],
       "notice": "none",
       "notice_text": "",
-      "interpreter": "claude",
+      "interpreter": "model",
       "degraded": false,
-      "rests_on": [
+      "model_refused": false,
+      "rests_on": [],
+      "suggestions": [
         {
-          "group": "commute_ops",
-          "index": 0,
-          "start": 17,
-          "end": 47
+          "target": "tag:leafy",
+          "label": "Leafy",
+          "does": "Add Leafy.",
+          "spans": [
+            {
+              "start": 8,
+              "end": 23
+            },
+            {
+              "start": 18,
+              "end": 23
+            }
+          ],
+          "shown": {
+            "start": 0,
+            "end": 23
+          },
+          "follows": "What it counts: gardens, woodland and trees, and a public park near home. It cannot see: one street or one home. An area is many streets.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Add",
+              "guess": true,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [
+                  {
+                    "action": "nudge",
+                    "tag_id": "leafy",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "toward": "high",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "more",
+          "needs": "",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
         },
         {
-          "group": "tag_ops",
-          "index": 0,
-          "start": 10,
-          "end": 15
+          "target": "commute",
+          "label": "Cindermoor Works",
+          "does": "Add a journey to Cindermoor Works: at most 30 minutes, by public transport.",
+          "spans": [
+            {
+              "start": 25,
+              "end": 68
+            }
+          ],
+          "shown": {
+            "start": 25,
+            "end": 68
+          },
+          "follows": "Areas further off are left out.",
+          "said": [
+            "You named no way of travelling: Burro took public transport."
+          ],
+          "choices": [
+            {
+              "id": "firm",
+              "direction": "more",
+              "label": "Add as a firm limit: areas further off are left out",
+              "guess": true,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [
+                  {
+                    "action": "add",
+                    "place_id": "syn-p0021",
+                    "mode": "unchanged",
+                    "max_minutes": 30,
+                    "strictness": "hard",
+                    "step": "none",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "guide",
+              "direction": "more",
+              "label": "Add as a guide: areas further off rank lower",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [
+                  {
+                    "action": "add",
+                    "place_id": "syn-p0021",
+                    "mode": "unchanged",
+                    "max_minutes": 30,
+                    "strictness": "soft",
+                    "step": "none",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "model",
+          "add_all": "guide",
+          "needs": "the journey can be made a firm limit",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
         }
-      ]
+      ],
+      "unread": [
+        {
+          "start": 0,
+          "end": 7
+        }
+      ],
+      "not_in_release": [],
+      "unmet_at": [],
+      "model_pending": false,
+      "places": []
     }
   }
 }

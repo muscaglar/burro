@@ -15,7 +15,7 @@
           "amount": 450000,
           "segment": "terraced",
           "strictness": "soft",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "stated"
         },
         "commutes": [
@@ -29,7 +29,7 @@
         ],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [
           {
             "feature_id": "air_no2",
@@ -46,7 +46,7 @@
           {
             "feature_id": "highstreet_access",
             "weight": 0.05,
-            "direction": "more",
+            "direction": "less",
             "provenance": "default"
           },
           {
@@ -93,101 +93,25 @@
   "status": 200,
   "headers": {
     "access-control-allow-origin": "http://localhost:3000",
-    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "20246",
+    "content-length": "26661",
     "content-type": "application/json",
     "vary": "Origin",
+    "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "528835fc-ec30-46f4-b592-898461cea95d"
+    "x-request-id": "2b076e0b-5f31-438d-abd1-6d2c7211310f"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.3.0",
-      "synthetic": true
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
     },
     "data": {
+      "spec_hash": "ddb9ce6966b7a801c031a686df51e4a7e1e1ad4c40c3e98778719d94eb724cf1",
       "explanations": [
-        {
-          "area_id": "syn-n0017",
-          "orientation": {
-            "text": "Otterby Fields is in Quillhaven.",
-            "fact_ids": [
-              "syn-n0017/area/name"
-            ],
-            "origin": "template",
-            "replaced": false
-          },
-          "reasons": [
-            {
-              "text": "The upper end is £5,000 under your budget of £450,000.",
-              "fact_ids": [
-                "syn-n0017/budget_fit/buy.terraced"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
-              "text": "By public transport to Dulcimer Green Hospital: about 31 minutes on a typical weekday morning, 36 if you just miss a service.",
-              "fact_ids": [
-                "syn-n0017/travel/syn-p0029.pt"
-              ],
-              "origin": "template",
-              "replaced": false
-            }
-          ],
-          "trade_off": {
-            "text": "Walk to the nearest station: 27 min, further than 77% of the 22 areas compared in this release.",
-            "fact_ids": [
-              "syn-n0017/feature/station_walk"
-            ],
-            "origin": "template",
-            "replaced": false
-          },
-          "missing": [
-            {
-              "text": "There is no Modelled annual mean nitrogen dioxide figure for Otterby Fields in this release, so it was left out of the score.",
-              "fact_ids": [
-                "syn-n0017/missing/feature:air_no2"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
-              "text": "There is no Share of homes within a 10-minute walk of a high street or town centre figure for Otterby Fields in this release, so it was left out of the score.",
-              "fact_ids": [
-                "syn-n0017/missing/feature:highstreet_access"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
-              "text": "There is no Share of homes at 55 dB or more of transport noise figure for Otterby Fields in this release, so it was left out of the score.",
-              "fact_ids": [
-                "syn-n0017/missing/feature:noise_exposure"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
-              "text": "There is no Walk to the nearest park of 2 ha or more figure for Otterby Fields in this release, so it was left out of the score.",
-              "fact_ids": [
-                "syn-n0017/missing/feature:park_proximity"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
-              "text": "There is no Pupils meeting the expected standard at nearby primaries figure for Otterby Fields in this release, so it was left out of the score.",
-              "fact_ids": [
-                "syn-n0017/missing/feature:school_primary_attainment"
-              ],
-              "origin": "template",
-              "replaced": false
-            }
-          ]
-        },
         {
           "area_id": "syn-n0006",
           "orientation": {
@@ -199,6 +123,14 @@
             "replaced": false
           },
           "reasons": [
+            {
+              "text": "Pupils meeting the expected standard at nearby primaries: 73%, higher than 70% of the 20 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0006/feature/school_primary_attainment"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
             {
               "text": "By public transport to Dulcimer Green Hospital: about 22 minutes on a typical weekday morning, 27 if you just miss a service.",
               "fact_ids": [
@@ -214,20 +146,12 @@
               ],
               "origin": "template",
               "replaced": false
-            },
-            {
-              "text": "Modelled annual mean nitrogen dioxide: 15.4 µg/m³, lower than 90% of the 20 areas compared in this release.",
-              "fact_ids": [
-                "syn-n0006/feature/air_no2"
-              ],
-              "origin": "template",
-              "replaced": false
             }
           ],
           "trade_off": {
-            "text": "Pupils meeting the expected standard at nearby primaries: 67%, lower than 60% of the 20 areas compared in this release.",
+            "text": "Straight-line distance to the nearest town centre boundary: 1,460 m, further than 66% of the 21 areas compared in this release.",
             "fact_ids": [
-              "syn-n0006/feature/school_primary_attainment"
+              "syn-n0006/feature/highstreet_access"
             ],
             "origin": "template",
             "replaced": false
@@ -235,59 +159,96 @@
           "missing": []
         },
         {
-          "area_id": "syn-n0003",
+          "area_id": "syn-n0004",
           "orientation": {
-            "text": "Cindermoor is in Quillhaven.",
+            "text": "Dulcimer Green is in Quillhaven.",
             "fact_ids": [
-              "syn-n0003/area/name"
+              "syn-n0004/area/name"
             ],
             "origin": "template",
             "replaced": false
           },
           "reasons": [
             {
-              "text": "The upper end is £165,000 under your budget of £450,000.",
+              "text": "Pupils meeting the expected standard at nearby primaries: 84%, higher than 95% of the 20 areas compared in this release.",
               "fact_ids": [
-                "syn-n0003/budget_fit/buy.terraced"
+                "syn-n0004/feature/school_primary_attainment"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "By public transport to Dulcimer Green Hospital: about 25 minutes on a typical weekday morning, 30 if you just miss a service.",
+              "text": "By public transport to Dulcimer Green Hospital: about 10 minutes on a typical weekday morning, 10 if you just miss a service.",
               "fact_ids": [
-                "syn-n0003/travel/syn-p0029.pt"
+                "syn-n0004/travel/syn-p0029.pt"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "Walk to the nearest station: 2 min, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
+              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 600 m, closer than 66% of the 21 areas compared in this release.",
               "fact_ids": [
-                "syn-n0003/feature/station_walk"
+                "syn-n0004/feature/park_proximity"
               ],
               "origin": "template",
               "replaced": false
             }
           ],
           "trade_off": {
-            "text": "Walk to the nearest park of 2 ha or more: 1080 m, further than 85% of the 21 areas compared in this release.",
+            "text": "The upper end is £200,000 over your budget of £450,000.",
             "fact_ids": [
-              "syn-n0003/feature/park_proximity"
+              "syn-n0004/budget_fit/buy.terraced"
             ],
             "origin": "template",
             "replaced": false
           },
-          "missing": [
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0007",
+          "orientation": {
+            "text": "Foxholt is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0007/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
             {
-              "text": "There is no Pupils meeting the expected standard at nearby primaries figure for Cindermoor in this release, so it was left out of the score.",
+              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 350 m, closer than 95% of the 21 areas compared in this release.",
               "fact_ids": [
-                "syn-n0003/missing/feature:school_primary_attainment"
+                "syn-n0007/feature/park_proximity"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "By public transport to Dulcimer Green Hospital: about 24 minutes on a typical weekday morning, 29 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0007/travel/syn-p0029.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Pupils meeting the expected standard at nearby primaries: 68%, higher than 55% of the 20 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0007/feature/school_primary_attainment"
               ],
               "origin": "template",
               "replaced": false
             }
-          ]
+          ],
+          "trade_off": {
+            "text": "The upper end is £275,000 over your budget of £450,000.",
+            "fact_ids": [
+              "syn-n0007/budget_fit/buy.terraced"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
         },
         {
           "area_id": "syn-n0014",
@@ -309,7 +270,7 @@
               "replaced": false
             },
             {
-              "text": "Walk to the nearest park of 2 ha or more: 800 m, further than 47% of the 21 areas compared in this release.",
+              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 800 m, closer than 52% of the 21 areas compared in this release.",
               "fact_ids": [
                 "syn-n0014/feature/park_proximity"
               ],
@@ -317,25 +278,25 @@
               "replaced": false
             },
             {
-              "text": "Modelled annual mean nitrogen dioxide: 18.5 µg/m³, lower than 65% of the 20 areas compared in this release.",
+              "text": "Pupils meeting the expected standard at nearby primaries: 67%, higher than 50% of the 20 areas compared in this release.",
               "fact_ids": [
-                "syn-n0014/feature/air_no2"
+                "syn-n0014/feature/school_primary_attainment"
               ],
               "origin": "template",
               "replaced": false
             }
           ],
           "trade_off": {
-            "text": "Pupils meeting the expected standard at nearby primaries: 67%, lower than 55% of the 20 areas compared in this release.",
+            "text": "Straight-line distance to the nearest way in to a station: 3,200 m, further than 90% of the 22 areas compared in this release.",
             "fact_ids": [
-              "syn-n0014/feature/school_primary_attainment"
+              "syn-n0014/feature/station_walk"
             ],
             "origin": "template",
             "replaced": false
           },
           "missing": [
             {
-              "text": "There is no Share of homes at 55 dB or more of transport noise figure for Marrowfen in this release, so it was left out of the score.",
+              "text": "There is no Share of residents exposed to 55 dB or more of transport noise figure for Marrowfen in this release, so it was left out of the score.",
               "fact_ids": [
                 "syn-n0014/missing/feature:noise_exposure"
               ],
@@ -345,45 +306,45 @@
           ]
         },
         {
-          "area_id": "syn-n0004",
+          "area_id": "syn-n0005",
           "orientation": {
-            "text": "Dulcimer Green is in Quillhaven.",
+            "text": "Eskerfold is in Quillhaven.",
             "fact_ids": [
-              "syn-n0004/area/name"
+              "syn-n0005/area/name"
             ],
             "origin": "template",
             "replaced": false
           },
           "reasons": [
             {
-              "text": "By public transport to Dulcimer Green Hospital: about 10 minutes on a typical weekday morning, 10 if you just miss a service.",
+              "text": "Pupils meeting the expected standard at nearby primaries: 79%, higher than 80% of the 20 areas compared in this release.",
               "fact_ids": [
-                "syn-n0004/travel/syn-p0029.pt"
+                "syn-n0005/feature/school_primary_attainment"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "Pupils meeting the expected standard at nearby primaries: 84%, higher than 95% of the 20 areas compared in this release.",
+              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 710 m, closer than 61% of the 21 areas compared in this release.",
               "fact_ids": [
-                "syn-n0004/feature/school_primary_attainment"
+                "syn-n0005/feature/park_proximity"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "Walk to the nearest park of 2 ha or more: 600 m, closer than 66% of the 21 areas compared in this release.",
+              "text": "By public transport to Dulcimer Green Hospital: about 34 minutes on a typical weekday morning, 39 if you just miss a service.",
               "fact_ids": [
-                "syn-n0004/feature/park_proximity"
+                "syn-n0005/travel/syn-p0029.pt"
               ],
               "origin": "template",
               "replaced": false
             }
           ],
           "trade_off": {
-            "text": "The upper end is £220,000 over your budget of £450,000.",
+            "text": "The upper end is £190,000 over your budget of £450,000.",
             "fact_ids": [
-              "syn-n0004/budget_fit/buy.terraced"
+              "syn-n0005/budget_fit/buy.terraced"
             ],
             "origin": "template",
             "replaced": false
@@ -392,237 +353,6 @@
         }
       ],
       "facts": [
-        {
-          "fact_id": "syn-n0017/area/name",
-          "area_id": "syn-n0017",
-          "kind": "area",
-          "key": "name",
-          "label": "Area",
-          "template": "area",
-          "slots": {
-            "name": "Otterby Fields",
-            "borough": "Quillhaven"
-          },
-          "numbers": [],
-          "names": [
-            "Otterby Fields",
-            "Quillhaven"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0017/budget_fit/buy.terraced",
-          "area_id": "syn-n0017",
-          "kind": "budget_fit",
-          "key": "buy.terraced",
-          "label": "Budget",
-          "template": "budget_under",
-          "slots": {
-            "margin": "5,000",
-            "amount": "450,000",
-            "upper": "445,000"
-          },
-          "numbers": [
-            "£450000",
-            "£445000",
-            "£5000"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-08",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0017/feature/station_walk",
-          "area_id": "syn-n0017",
-          "kind": "feature",
-          "key": "station_walk",
-          "label": "Walk to the nearest station",
-          "template": "feature",
-          "slots": {
-            "label": "Walk to the nearest station",
-            "value": "27 min",
-            "comparative": "further than",
-            "pct": "77",
-            "compared": "22",
-            "standing": "further than 77% of the 22 areas compared in this release"
-          },
-          "numbers": [
-            "27",
-            "77%",
-            "22"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0017/missing/feature:air_no2",
-          "area_id": "syn-n0017",
-          "kind": "missing",
-          "key": "feature:air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
-          "template": "missing",
-          "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
-            "name": "Otterby Fields"
-          },
-          "numbers": [],
-          "names": [
-            "Otterby Fields"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0017/missing/feature:highstreet_access",
-          "area_id": "syn-n0017",
-          "kind": "missing",
-          "key": "feature:highstreet_access",
-          "label": "Share of homes within a 10-minute walk of a high street or town centre",
-          "template": "missing",
-          "slots": {
-            "label": "Share of homes within a 10-minute walk of a high street or town centre",
-            "name": "Otterby Fields"
-          },
-          "numbers": [],
-          "names": [
-            "Otterby Fields"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0017/missing/feature:noise_exposure",
-          "area_id": "syn-n0017",
-          "kind": "missing",
-          "key": "feature:noise_exposure",
-          "label": "Share of homes at 55 dB or more of transport noise",
-          "template": "missing",
-          "slots": {
-            "label": "Share of homes at 55 dB or more of transport noise",
-            "name": "Otterby Fields"
-          },
-          "numbers": [],
-          "names": [
-            "Otterby Fields"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0017/missing/feature:park_proximity",
-          "area_id": "syn-n0017",
-          "kind": "missing",
-          "key": "feature:park_proximity",
-          "label": "Walk to the nearest park of 2 ha or more",
-          "template": "missing",
-          "slots": {
-            "label": "Walk to the nearest park of 2 ha or more",
-            "name": "Otterby Fields"
-          },
-          "numbers": [],
-          "names": [
-            "Otterby Fields"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0017/missing/feature:school_primary_attainment",
-          "area_id": "syn-n0017",
-          "kind": "missing",
-          "key": "feature:school_primary_attainment",
-          "label": "Pupils meeting the expected standard at nearby primaries",
-          "template": "missing",
-          "slots": {
-            "label": "Pupils meeting the expected standard at nearby primaries",
-            "name": "Otterby Fields"
-          },
-          "numbers": [],
-          "names": [
-            "Otterby Fields"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0017/travel/syn-p0029.pt",
-          "area_id": "syn-n0017",
-          "kind": "travel",
-          "key": "syn-p0029.pt",
-          "label": "Journey",
-          "template": "travel_pt",
-          "slots": {
-            "mode": "By public transport",
-            "place": "Dulcimer Green Hospital",
-            "typical": "31",
-            "missed": "36"
-          },
-          "numbers": [
-            "31",
-            "36"
-          ],
-          "names": [
-            "Dulcimer Green Hospital"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09",
-          "synthetic": true
-        },
         {
           "fact_id": "syn-n0006/area/name",
           "area_id": "syn-n0006",
@@ -642,7 +372,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-09-23",
@@ -669,37 +400,44 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-08",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0006/feature/air_no2",
+          "fact_id": "syn-n0006/feature/highstreet_access",
           "area_id": "syn-n0006",
           "kind": "feature",
-          "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "key": "highstreet_access",
+          "label": "Straight-line distance to the nearest town centre boundary",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
-            "value": "15.4 µg/m³",
-            "comparative": "lower than",
-            "pct": "90",
-            "compared": "20",
-            "standing": "lower than 90% of the 20 areas compared in this release"
+            "label": "Straight-line distance to the nearest town centre boundary",
+            "value": "1,460 m",
+            "band": "4",
+            "comparative": "closer than",
+            "pct": "28",
+            "standing": "closer than 28% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "66",
+            "standing_worse": "further than 66% of the 21 areas compared in this release",
+            "compared": "21"
           },
           "numbers": [
-            "15.4",
-            "90%",
-            "20"
+            "1460",
+            "28%",
+            "21",
+            "66%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -714,22 +452,113 @@
           "template": "feature",
           "slots": {
             "label": "Pupils meeting the expected standard at nearby primaries",
-            "value": "67%",
-            "comparative": "lower than",
-            "pct": "60",
-            "compared": "20",
-            "standing": "lower than 60% of the 20 areas compared in this release"
+            "value": "73%",
+            "band": "4",
+            "comparative": "higher than",
+            "pct": "70",
+            "standing": "higher than 70% of the 20 areas compared in this release",
+            "comparative_worse": "lower than",
+            "pct_worse": "25",
+            "standing_worse": "lower than 25% of the 20 areas compared in this release",
+            "compared": "20"
           },
           "numbers": [
-            "67%",
-            "60%",
-            "20"
+            "73%",
+            "70%",
+            "20",
+            "25%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/tag/built_age",
+          "area_id": "syn-n0006",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
+          "slots": {
+            "label": "Age of buildings",
+            "band": "1",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/tag/homes",
+          "area_id": "syn-n0006",
+          "kind": "tag",
+          "key": "homes",
+          "label": "Houses or flats",
+          "template": "vibe",
+          "slots": {
+            "label": "Houses or flats",
+            "band": "5",
+            "low_end": "Houses",
+            "high_end": "Flats",
+            "compared": "22",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "2",
+            "parts": "3",
+            "share": "75",
+            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "22",
+            "2",
+            "3",
+            "75",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -745,12 +574,17 @@
           "slots": {
             "mode": "By public transport",
             "place": "Dulcimer Green Hospital",
+            "limit": "40",
+            "margin": "18",
+            "margin_unit": "minutes",
             "typical": "22",
             "missed": "27"
           },
           "numbers": [
             "22",
-            "27"
+            "27",
+            "40",
+            "18"
           ],
           "names": [
             "Dulcimer Green Hospital"
@@ -758,342 +592,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0003/area/name",
-          "area_id": "syn-n0003",
-          "kind": "area",
-          "key": "name",
-          "label": "Area",
-          "template": "area",
-          "slots": {
-            "name": "Cindermoor",
-            "borough": "Quillhaven"
-          },
-          "numbers": [],
-          "names": [
-            "Cindermoor",
-            "Quillhaven"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0003/budget_fit/buy.terraced",
-          "area_id": "syn-n0003",
-          "kind": "budget_fit",
-          "key": "buy.terraced",
-          "label": "Budget",
-          "template": "budget_under",
-          "slots": {
-            "margin": "165,000",
-            "amount": "450,000",
-            "upper": "285,000"
-          },
-          "numbers": [
-            "£450000",
-            "£285000",
-            "£165000"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-08",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0003/feature/park_proximity",
-          "area_id": "syn-n0003",
-          "kind": "feature",
-          "key": "park_proximity",
-          "label": "Walk to the nearest park of 2 ha or more",
-          "template": "feature",
-          "slots": {
-            "label": "Walk to the nearest park of 2 ha or more",
-            "value": "1080 m",
-            "comparative": "further than",
-            "pct": "85",
-            "compared": "21",
-            "standing": "further than 85% of the 21 areas compared in this release"
-          },
-          "numbers": [
-            "1080",
-            "85%",
-            "21"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0003/feature/station_walk",
-          "area_id": "syn-n0003",
-          "kind": "feature",
-          "key": "station_walk",
-          "label": "Walk to the nearest station",
-          "template": "feature",
-          "slots": {
-            "label": "Walk to the nearest station",
-            "value": "2 min",
-            "comparative": "closer than",
-            "pct": "77",
-            "compared": "22",
-            "level": "4",
-            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others"
-          },
-          "numbers": [
-            "2",
-            "77%",
-            "22",
-            "4"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0003/missing/feature:school_primary_attainment",
-          "area_id": "syn-n0003",
-          "kind": "missing",
-          "key": "feature:school_primary_attainment",
-          "label": "Pupils meeting the expected standard at nearby primaries",
-          "template": "missing",
-          "slots": {
-            "label": "Pupils meeting the expected standard at nearby primaries",
-            "name": "Cindermoor"
-          },
-          "numbers": [],
-          "names": [
-            "Cindermoor"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0003/travel/syn-p0029.pt",
-          "area_id": "syn-n0003",
-          "kind": "travel",
-          "key": "syn-p0029.pt",
-          "label": "Journey",
-          "template": "travel_pt",
-          "slots": {
-            "mode": "By public transport",
-            "place": "Dulcimer Green Hospital",
-            "typical": "25",
-            "missed": "30"
-          },
-          "numbers": [
-            "25",
-            "30"
-          ],
-          "names": [
-            "Dulcimer Green Hospital"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0014/area/name",
-          "area_id": "syn-n0014",
-          "kind": "area",
-          "key": "name",
-          "label": "Area",
-          "template": "area",
-          "slots": {
-            "name": "Marrowfen",
-            "borough": "Quillhaven"
-          },
-          "numbers": [],
-          "names": [
-            "Marrowfen",
-            "Quillhaven"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0014/feature/air_no2",
-          "area_id": "syn-n0014",
-          "kind": "feature",
-          "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
-          "template": "feature",
-          "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
-            "value": "18.5 µg/m³",
-            "comparative": "lower than",
-            "pct": "65",
-            "compared": "20",
-            "standing": "lower than 65% of the 20 areas compared in this release"
-          },
-          "numbers": [
-            "18.5",
-            "65%",
-            "20"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0014/feature/park_proximity",
-          "area_id": "syn-n0014",
-          "kind": "feature",
-          "key": "park_proximity",
-          "label": "Walk to the nearest park of 2 ha or more",
-          "template": "feature",
-          "slots": {
-            "label": "Walk to the nearest park of 2 ha or more",
-            "value": "800 m",
-            "comparative": "further than",
-            "pct": "47",
-            "compared": "21",
-            "standing": "further than 47% of the 21 areas compared in this release"
-          },
-          "numbers": [
-            "800",
-            "47%",
-            "21"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0014/feature/school_primary_attainment",
-          "area_id": "syn-n0014",
-          "kind": "feature",
-          "key": "school_primary_attainment",
-          "label": "Pupils meeting the expected standard at nearby primaries",
-          "template": "feature",
-          "slots": {
-            "label": "Pupils meeting the expected standard at nearby primaries",
-            "value": "67%",
-            "comparative": "lower than",
-            "pct": "55",
-            "compared": "20",
-            "standing": "lower than 55% of the 20 areas compared in this release"
-          },
-          "numbers": [
-            "67%",
-            "55%",
-            "20"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0014/missing/feature:noise_exposure",
-          "area_id": "syn-n0014",
-          "kind": "missing",
-          "key": "feature:noise_exposure",
-          "label": "Share of homes at 55 dB or more of transport noise",
-          "template": "missing",
-          "slots": {
-            "label": "Share of homes at 55 dB or more of transport noise",
-            "name": "Marrowfen"
-          },
-          "numbers": [],
-          "names": [
-            "Marrowfen"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0014/travel/syn-p0029.pt",
-          "area_id": "syn-n0014",
-          "kind": "travel",
-          "key": "syn-p0029.pt",
-          "label": "Journey",
-          "template": "travel_pt",
-          "slots": {
-            "mode": "By public transport",
-            "place": "Dulcimer Green Hospital",
-            "typical": "24",
-            "missed": "29"
-          },
-          "numbers": [
-            "24",
-            "29"
-          ],
-          "names": [
-            "Dulcimer Green Hospital"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-09",
@@ -1118,7 +618,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-09-23",
@@ -1132,20 +633,21 @@
           "label": "Budget",
           "template": "budget_over",
           "slots": {
-            "margin": "220,000",
+            "margin": "200,000",
             "amount": "450,000",
-            "upper": "670,000"
+            "upper": "650,000"
           },
           "numbers": [
             "£450000",
-            "£670000",
-            "£220000"
+            "£650000",
+            "£200000"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-08",
@@ -1156,26 +658,32 @@
           "area_id": "syn-n0004",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Walk to the nearest park of 2 ha or more",
+          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
           "template": "feature",
           "slots": {
-            "label": "Walk to the nearest park of 2 ha or more",
+            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
             "value": "600 m",
+            "band": "2",
             "comparative": "closer than",
             "pct": "66",
-            "compared": "21",
-            "standing": "closer than 66% of the 21 areas compared in this release"
+            "standing": "closer than 66% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "28",
+            "standing_worse": "further than 28% of the 21 areas compared in this release",
+            "compared": "21"
           },
           "numbers": [
             "600",
             "66%",
-            "21"
+            "21",
+            "28%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1191,21 +699,109 @@
           "slots": {
             "label": "Pupils meeting the expected standard at nearby primaries",
             "value": "84%",
+            "band": "5",
             "comparative": "higher than",
             "pct": "95",
-            "compared": "20",
-            "standing": "higher than 95% of the 20 areas compared in this release"
+            "standing": "higher than 95% of the 20 areas compared in this release",
+            "standing_worse": "lower than none of the 19 other areas compared in this release",
+            "comparative_worse": "lower than",
+            "compared": "20"
           },
           "numbers": [
             "84%",
             "95%",
-            "20"
+            "20",
+            "19"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/tag/built_age",
+          "area_id": "syn-n0004",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
+          "slots": {
+            "label": "Age of buildings",
+            "band": "1",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/tag/family_amenities",
+          "area_id": "syn-n0004",
+          "kind": "tag",
+          "key": "family_amenities",
+          "label": "Family amenities",
+          "template": "vibe",
+          "slots": {
+            "label": "Family amenities",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1221,11 +817,16 @@
           "slots": {
             "mode": "By public transport",
             "place": "Dulcimer Green Hospital",
+            "limit": "40",
+            "margin": "30",
+            "margin_unit": "minutes",
             "typical": "10",
             "missed": "10"
           },
           "numbers": [
-            "10"
+            "10",
+            "40",
+            "30"
           ],
           "names": [
             "Dulcimer Green Hospital"
@@ -1233,7 +834,778 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0007/area/name",
+          "area_id": "syn-n0007",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Foxholt",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Foxholt",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0007/budget_fit/buy.terraced",
+          "area_id": "syn-n0007",
+          "kind": "budget_fit",
+          "key": "buy.terraced",
+          "label": "Budget",
+          "template": "budget_over",
+          "slots": {
+            "margin": "275,000",
+            "amount": "450,000",
+            "upper": "725,000"
+          },
+          "numbers": [
+            "£450000",
+            "£725000",
+            "£275000"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0007/feature/park_proximity",
+          "area_id": "syn-n0007",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "value": "350 m",
+            "band": "1",
+            "comparative": "closer than",
+            "pct": "95",
+            "standing": "closer than 95% of the 21 areas compared in this release",
+            "standing_worse": "further than none of the 20 other areas compared in this release",
+            "comparative_worse": "further than",
+            "compared": "21"
+          },
+          "numbers": [
+            "350",
+            "95%",
+            "21",
+            "20"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0007/feature/school_primary_attainment",
+          "area_id": "syn-n0007",
+          "kind": "feature",
+          "key": "school_primary_attainment",
+          "label": "Pupils meeting the expected standard at nearby primaries",
+          "template": "feature",
+          "slots": {
+            "label": "Pupils meeting the expected standard at nearby primaries",
+            "value": "68%",
+            "band": "3",
+            "comparative": "higher than",
+            "pct": "55",
+            "standing": "higher than 55% of the 20 areas compared in this release",
+            "comparative_worse": "lower than",
+            "pct_worse": "40",
+            "standing_worse": "lower than 40% of the 20 areas compared in this release",
+            "compared": "20"
+          },
+          "numbers": [
+            "68%",
+            "55%",
+            "20",
+            "40%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0007/tag/everyday_on_foot",
+          "area_id": "syn-n0007",
+          "kind": "tag",
+          "key": "everyday_on_foot",
+          "label": "Everyday on foot",
+          "template": "vibe",
+          "slots": {
+            "label": "Everyday on foot",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "5",
+            "share": "70",
+            "partly": "Worked out from 3 of its 5 parts, 70 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "70",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0007/tag/family_amenities",
+          "area_id": "syn-n0007",
+          "kind": "tag",
+          "key": "family_amenities",
+          "label": "Family amenities",
+          "template": "vibe",
+          "slots": {
+            "label": "Family amenities",
+            "band": "4",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "4",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0007/travel/syn-p0029.pt",
+          "area_id": "syn-n0007",
+          "kind": "travel",
+          "key": "syn-p0029.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Dulcimer Green Hospital",
+            "limit": "40",
+            "margin": "16",
+            "margin_unit": "minutes",
+            "typical": "24",
+            "missed": "29"
+          },
+          "numbers": [
+            "24",
+            "29",
+            "40",
+            "16"
+          ],
+          "names": [
+            "Dulcimer Green Hospital"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/area/name",
+          "area_id": "syn-n0014",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Marrowfen",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Marrowfen",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/feature/park_proximity",
+          "area_id": "syn-n0014",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "value": "800 m",
+            "band": "3",
+            "comparative": "closer than",
+            "pct": "52",
+            "standing": "closer than 52% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "42",
+            "standing_worse": "further than 42% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "800",
+            "52%",
+            "21",
+            "42%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/feature/school_primary_attainment",
+          "area_id": "syn-n0014",
+          "kind": "feature",
+          "key": "school_primary_attainment",
+          "label": "Pupils meeting the expected standard at nearby primaries",
+          "template": "feature",
+          "slots": {
+            "label": "Pupils meeting the expected standard at nearby primaries",
+            "value": "67%",
+            "band": "3",
+            "comparative": "higher than",
+            "pct": "50",
+            "standing": "higher than 50% of the 20 areas compared in this release",
+            "comparative_worse": "lower than",
+            "pct_worse": "45",
+            "standing_worse": "lower than 45% of the 20 areas compared in this release",
+            "compared": "20"
+          },
+          "numbers": [
+            "67%",
+            "50%",
+            "20",
+            "45%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/feature/station_walk",
+          "area_id": "syn-n0014",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Straight-line distance to the nearest way in to a station",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest way in to a station",
+            "value": "3,200 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "4",
+            "standing": "closer than 4% of the 22 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "90",
+            "standing_worse": "further than 90% of the 22 areas compared in this release",
+            "compared": "22"
+          },
+          "numbers": [
+            "3200",
+            "4%",
+            "22",
+            "90%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/missing/feature:noise_exposure",
+          "area_id": "syn-n0014",
+          "kind": "missing",
+          "key": "feature:noise_exposure",
+          "label": "Share of residents exposed to 55 dB or more of transport noise",
+          "template": "missing",
+          "slots": {
+            "label": "Share of residents exposed to 55 dB or more of transport noise",
+            "name": "Marrowfen"
+          },
+          "numbers": [],
+          "names": [
+            "Marrowfen"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/tag/built_age",
+          "area_id": "syn-n0014",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
+          "slots": {
+            "label": "Age of buildings",
+            "band": "1",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "3",
+            "parts": "4",
+            "share": "75",
+            "partly": "Worked out from 3 of its 4 parts, 75 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "3",
+            "4",
+            "75",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/tag/homes",
+          "area_id": "syn-n0014",
+          "kind": "tag",
+          "key": "homes",
+          "label": "Houses or flats",
+          "template": "vibe",
+          "slots": {
+            "label": "Houses or flats",
+            "band": "1",
+            "low_end": "Houses",
+            "high_end": "Flats",
+            "compared": "22",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "2",
+            "parts": "3",
+            "share": "75",
+            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "22",
+            "2",
+            "3",
+            "75",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/travel/syn-p0029.pt",
+          "area_id": "syn-n0014",
+          "kind": "travel",
+          "key": "syn-p0029.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Dulcimer Green Hospital",
+            "limit": "40",
+            "margin": "16",
+            "margin_unit": "minutes",
+            "typical": "24",
+            "missed": "29"
+          },
+          "numbers": [
+            "24",
+            "29",
+            "40",
+            "16"
+          ],
+          "names": [
+            "Dulcimer Green Hospital"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/area/name",
+          "area_id": "syn-n0005",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Eskerfold",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Eskerfold",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/budget_fit/buy.terraced",
+          "area_id": "syn-n0005",
+          "kind": "budget_fit",
+          "key": "buy.terraced",
+          "label": "Budget",
+          "template": "budget_over",
+          "slots": {
+            "margin": "190,000",
+            "amount": "450,000",
+            "upper": "640,000"
+          },
+          "numbers": [
+            "£450000",
+            "£640000",
+            "£190000"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/feature/park_proximity",
+          "area_id": "syn-n0005",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "value": "710 m",
+            "band": "2",
+            "comparative": "closer than",
+            "pct": "61",
+            "standing": "closer than 61% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "33",
+            "standing_worse": "further than 33% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "710",
+            "61%",
+            "21",
+            "33%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/feature/school_primary_attainment",
+          "area_id": "syn-n0005",
+          "kind": "feature",
+          "key": "school_primary_attainment",
+          "label": "Pupils meeting the expected standard at nearby primaries",
+          "template": "feature",
+          "slots": {
+            "label": "Pupils meeting the expected standard at nearby primaries",
+            "value": "79%",
+            "band": "5",
+            "comparative": "higher than",
+            "pct": "80",
+            "standing": "higher than 80% of the 20 areas compared in this release",
+            "comparative_worse": "lower than",
+            "pct_worse": "15",
+            "standing_worse": "lower than 15% of the 20 areas compared in this release",
+            "compared": "20"
+          },
+          "numbers": [
+            "79%",
+            "80%",
+            "20",
+            "15%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/tag/built_age",
+          "area_id": "syn-n0005",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
+          "slots": {
+            "label": "Age of buildings",
+            "band": "2",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "2",
+            "spread_high": "2",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "2",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/tag/family_amenities",
+          "area_id": "syn-n0005",
+          "kind": "tag",
+          "key": "family_amenities",
+          "label": "Family amenities",
+          "template": "vibe",
+          "slots": {
+            "label": "Family amenities",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/travel/syn-p0029.pt",
+          "area_id": "syn-n0005",
+          "kind": "travel",
+          "key": "syn-p0029.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Dulcimer Green Hospital",
+            "limit": "40",
+            "margin": "6",
+            "margin_unit": "minutes",
+            "typical": "34",
+            "missed": "39"
+          },
+          "numbers": [
+            "34",
+            "39",
+            "40",
+            "6"
+          ],
+          "names": [
+            "Dulcimer Green Hospital"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-09",

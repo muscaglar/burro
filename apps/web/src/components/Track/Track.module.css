@@ -1,0 +1,55 @@
+/*
+ * Where an area sits on a vibe: five cells, from the low end to the high end. The cell that
+ * is filled differs from the rest in how dark it is, and the band is always said in words
+ * as well: by the name of the picture, or by the words beside it.
+ */
+.track {
+  display: inline-grid;
+  grid-template-columns: repeat(5, 0.75rem);
+  gap: 2px;
+  flex: none;
+}
+
+.cell {
+  height: 0.75rem;
+  border: 1px solid var(--map-line);
+  border-radius: 2px;
+  background: var(--bg);
+}
+
+.cell[data-on="true"] {
+  background: var(--map-line);
+}
+
+/* A range is joined up, so that it reads as one stretch and not as three marks. */
+.track[data-range="true"] {
+  gap: 0;
+}
+
+.track[data-range="true"] .cell {
+  border-radius: 0;
+}
+
+/* A narrow screen: the cells are narrower, so that two marks stand on a line where they can. */
+@media (max-width: 40rem) {
+  .track[data-narrow="true"] {
+    grid-template-columns: repeat(5, 0.5rem);
+    gap: 1px;
+  }
+
+  .track[data-narrow="true"][data-range="true"] {
+    gap: 0;
+  }
+}
+
+@media (forced-colors: active) {
+  .cell {
+    border-color: CanvasText;
+    forced-color-adjust: none;
+    background: Canvas;
+  }
+
+  .cell[data-on="true"] {
+    background: CanvasText;
+  }
+}

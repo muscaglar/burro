@@ -9,6 +9,7 @@ import { MAP, TABLE } from "@/content/map";
 import {
   CHIPS,
   CLARIFY,
+  SHELF,
   FILTERED,
   NOTHING_MATCHES,
   NOTICE,
@@ -16,6 +17,7 @@ import {
   PROMPT,
   REJECTED,
   REJECTED_LABEL,
+  REJECTED_PART,
   RESULTS,
   STATUS,
   TENURE_CHOICE,
@@ -24,23 +26,31 @@ import {
   UNRANKED,
 } from "@/content/search";
 import { BUDGET, JOURNEY, SETTINGS } from "@/content/settings";
+import { SHOWN_AT_FIRST } from "@/components/ResultList/ResultList";
 import { BANNER } from "@/content/site";
 import { recordedAnswer, recordedError, responseFrom } from "@/lib/api/recorded";
 import type { Operations } from "@/lib/api/schema";
 import { edits } from "@/lib/search/edits";
 
-import { setOnline, standInApi, withTheSpecSent } from "../support/api";
+import { reasonsFor, setOnline, standInApi, withTheSpecSent } from "../support/api";
 import { faultsIn } from "../support/axe";
 import {
   areas,
+  chipInFull,
+  everyChip,
+  everyResult,
   firstSearch,
   meta,
   openSearch,
   promptBox,
+  removeChip,
   resultList,
   results,
   search,
+  settingsAt,
   settled,
+  theTable,
+  workingOf,
 } from "../support/search";
 
 jest.mock("next/navigation", () => ({ usePathname: () => "/" }));
@@ -58,13 +68,20 @@ const status = () => screen.getAllByRole("status").map((line) => line.textConten
 const banner = () => screen.getByRole("region", { name: BANNER.label });
 const settingsButton = () => screen.getByRole("button", { name: SETTINGS.title });
 const settingsAreOpen = () => settingsButton().getAttribute("aria-expanded") === "true";
+/** Moves the slider of a vibe that runs one way, as a drag that is let go does. */
+const slide = (name: string, to: number) => {
+  const slider = screen.getByRole("slider", { name });
+  fireEvent.pointerDown(slider);
+  fireEvent.change(slider, { target: { value: String(to) } });
+  fireEvent.pointerUp(slider);
+};
 
 beforeEach(() => setOnline(true));
 afterEach(() => jest.useRealTimers());
 
 describe("empty: before anything is asked for", () => {
   test("test_the_page_opens_on_one_box_the_choice_of_tenure_a_place_search_and_every_area", async () => {
-    const { api } = await openSearch();
+    const { api, user } = await openSearch();
 
     expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
     expect(promptBox()).toHaveValue("");
@@ -73,7 +90,10 @@ describe("empty: before anything is asked for", () => {
     expect(screen.getAllByRole("button", { name: /./ }).map((button) => button.textContent)).toEqual(
       expect.arrayContaining([PROMPT.submit]),
     );
-    // Every area of the release is there by name, as a link to its page.
+    // The vibes are on the shelf, to look at and to add.
+    expect(screen.getByRole("region", { name: SHELF.title })).toBeInTheDocument();
+    // Every area of the release is there by name, as a link to its page, one press from the map.
+    await theTable(user);
     for (const area of areas) {
       expect(screen.getAllByRole("link", { name: area.name })[0]).toHaveAttribute(
         "href",
@@ -82,8 +102,10 @@ describe("empty: before anything is asked for", () => {
     }
     expect(settingsAreOpen()).toBe(false);
     expect(screen.queryByRole("list", { name: RESULTS.listLabel })).toBeNull();
-    // Nothing is sent until something is asked for, but the boundaries for the map.
-    expect(api.calls.map((call) => call.operation)).toEqual(["get_geometry"]);
+    // Nothing is sent until something is asked for, but the boundaries for the map, and the
+    // form, which says who reads what is typed. Neither holds anything of the person.
+    expect(api.calls.map((call) => call.operation)).toEqual(["get_geometry", "get_meta"]);
+    expect(api.calls.map((call) => call.sent)).toEqual([null, null]);
   });
 
   test("test_the_synthetic_banner_is_present_in_every_state", async () => {
@@ -94,7 +116,7 @@ describe("empty: before anything is asked for", () => {
     expect(banner()).toHaveTextContent(BANNER.text);
 
     api.on("rank", "rank-nothing-matches");
-    await user.click(screen.getAllByRole("button", { name: `${CHIPS.remove}: Leafy` })[0] as HTMLElement);
+    await removeChip(user, "Leafy");
     await settled();
     expect(banner()).toHaveTextContent(BANNER.text);
 
@@ -123,10 +145,12 @@ describe("empty: before anything is asked for", () => {
     await user.click(screen.getByRole("radio", { name: TENURE_CHOICE.buy }));
 
     expect(screen.getByRole("radio", { name: TENURE_CHOICE.buy })).toBeChecked();
-    // Nothing has been understood yet: the chips are what a search starts from, and say so.
-    const chips = within(screen.getByRole("region", { name: CHIPS.startLabel }));
-    expect(chips.getByRole("button", { name: /^Buying/ })).toBeInTheDocument();
-    expect(chips.getByRole("button", { name: /^Usual settings: 7/ })).toBeInTheDocument();
+    // Nothing has been asked for yet: the page is as it was, and the settings hold a buyer's.
+    expect(screen.getByRole("region", { name: SHELF.title })).toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: CHIPS.label })).toBeNull();
+    await settingsAt(user, SETTINGS.money);
+    const budget = within(screen.getByRole("group", { name: BUDGET.legend }));
+    expect(budget.getByRole("textbox", { name: BUDGET.amount.buy })).toHaveValue("");
     expect(api.calls).toEqual([]);
   });
 
@@ -231,34 +255,49 @@ describe("results: the ranking came back", () => {
   test("test_the_chips_say_what_was_understood_and_mark_what_was_assumed", async () => {
     const { user } = await openSearch();
     await search(user);
-
     const chips = within(screen.getByRole("region", { name: CHIPS.label }));
-    // The words said "Renting", so the tenure is not marked as assumed, though it is the
-    // tenure a search starts from and the spec still calls it a default.
+    const said = () =>
+      chips.getAllByRole("listitem").map((chip) => (chip.querySelector("[data-main]") ?? chip).textContent);
+    // The words said "Renting", so the tenure is not marked as assumed: the spec says it was stated.
     expect(first.read.operations.budget_ops[0]).toMatchObject({ tenure: "rent", provenance: "stated" });
-    expect(chips.getAllByRole("listitem").map((chip) => chip.textContent?.replace("×", ""))).toEqual([
-      "Renting",
-      "£1,700 a month, One bedroom, flexible assumed",
-      "Cindermoor Works, Public transport assumed, within 35 minutes, flexible assumed",
+    expect(first.read.spec.tenure_from).toBe("stated");
+    // What was asked for by way of character comes first, and the usual settings last.
+    expect(said()).toEqual([
       "Leafy",
-      "Quiet residential",
-      expect.stringMatching(/^Usual settings: 6 assumed/),
+      "Quiet streets",
+      `Cindermoor Works, within 35 minutes, ${CHIPS.restAssumed}`,
+      "£1,700 a month, One bedroom, flexible assumed",
+      "Renting",
+      "Usual settings: 6 assumed",
+    ]);
+    // A chip that is opened opens the row out, and each chip then says every part of itself.
+    await chipInFull(user, /^Cindermoor Works/);
+    expect(said()).toEqual([
+      "Leafy",
+      "Quiet streets",
+      "Cindermoor Works, Public transport assumed, within 35 minutes, flexible assumed",
+      "£1,700 a month, One bedroom, flexible assumed",
+      "Renting",
+      "Usual settings: 6 assumed",
     ]);
     expect(chips.getByText(CHIPS.readBy.rule)).toBeInTheDocument();
   });
 
-  test("test_the_list_is_in_rank_order_with_five_cards_and_fifteen_rows", async () => {
+  test("test_the_list_is_in_rank_order_with_five_cards_and_the_rest_as_rows", async () => {
     const { user } = await openSearch();
     await search(user);
     await settled();
 
-    const names = results().map((one) => within(one).getAllByRole("heading")[0]?.textContent);
-    expect(names).toEqual(first.rank.ranked.map((area) => nameOf(area.area_id)));
+    // Ten at first, and the other ten one press away.
+    const shown = () => results().map((one) => within(one).getAllByRole("heading")[0]?.textContent);
+    expect(shown()).toEqual(first.rank.ranked.slice(0, SHOWN_AT_FIRST).map((area) => nameOf(area.area_id)));
+    await everyResult(user);
+    expect(shown()).toEqual(first.rank.ranked.map((area) => nameOf(area.area_id)));
     expect(resultList().tagName).toBe("OL");
     const withReasons = results().filter((one) => within(one).queryByText(RESULTS.reasonsTitle));
     expect(withReasons).toHaveLength(5);
     expect(screen.getByText(RESULTS.firstFive)).toBeInTheDocument();
-    expect(status()).toContain(`${STATUS.ranked(22, "Farrowmere")} ${STATUS.gaveWay}`);
+    expect(status()).toContain(`${STATUS.ranked(21, "Farrowmere")} ${STATUS.gaveWay}`);
   });
 
   test("test_unmet_requests_are_each_said_in_a_line", async () => {
@@ -277,17 +316,18 @@ describe("results: the ranking came back", () => {
     const { user } = await openSearch(
       firstSearch().on("interpret", "interpret-rejected").on("rank", withTheSpecSent("rank-first")),
     );
-    await search(user, "somewhere safe, near a park");
+    await search(user, "somewhere a bit cheaper, near a park");
 
+    // No budget is set, so there is nothing to make cheaper. The line says what the edit
+    // was about: "That changed nothing." alone says nothing of what did not change.
     const refused = within(screen.getByRole("region", { name: REJECTED_LABEL }));
     expect(refused.getAllByRole("listitem").map((line) => line.textContent)).toEqual([
-      `Recorded violence and robbery: ${REJECTED.crime_needs_explicit_request}`,
-      `Recorded burglary and theft: ${REJECTED.crime_needs_explicit_request}`,
+      `${REJECTED_PART.budget}: ${REJECTED.nothing_to_change}`,
     ]);
-    // The park was applied, and is a chip. Recorded crime was not, and is not.
+    // The park was applied, and is a chip.
+    await everyChip(user);
     const chips = within(screen.getByRole("region", { name: CHIPS.label }));
-    expect(chips.getByRole("button", { name: /^Walk to the nearest park/ })).toBeInTheDocument();
-    expect(chips.queryByRole("button", { name: /^Recorded/ })).toBeNull();
+    expect(chips.getByRole("button", { name: /^Nearer a park/ })).toBeInTheDocument();
   });
 
   test("test_the_results_page_has_no_accessibility_fault", async () => {
@@ -307,14 +347,14 @@ describe("refining: a control changed something", () => {
     await settled();
     const slow = api.hold("rank", "rank-refined");
     api.on("explain_top", "explanations-refined");
-    await user.click(settingsButton());
+    await settingsAt(user, SETTINGS.journeys);
     const journey = within(screen.getByRole("group", { name: JOURNEY.place("Cindermoor Works") }));
 
     await user.click(journey.getByRole("checkbox", { name: JOURNEY.firm }));
 
     expect(journey.getByRole("checkbox", { name: JOURNEY.firm })).toBeChecked();
     expect(resultList()).toHaveAttribute("aria-busy", "true");
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
     expect(api.lastCallTo("rank").body).toEqual({
       spec: first.rank.spec,
       operations: edits.placeStrictness("syn-p0021", "hard"),
@@ -324,11 +364,12 @@ describe("refining: a control changed something", () => {
     slow.release();
     await settled();
     const refined = recordedAnswer("rank", "rank-refined").body.data;
+    await everyResult(user);
     expect(results()).toHaveLength(refined.ranked.length);
     // Every control is drawn again from the spec that came back.
     expect(journey.getByRole("textbox", { name: JOURNEY.longest })).toHaveValue("30");
     // Fewer areas are ranked than were: the line says so, and how many of the rest moved.
-    expect(status().join(" ")).toMatch(/11 areas ranked, 11 fewer than before\. \d+ of the rest changed place\./);
+    expect(status().join(" ")).toMatch(/10 areas ranked, 11 fewer than before\. \d+ of the rest changed place\./);
   });
 
   test("test_a_chip_opens_the_same_control_the_settings_hold_in_place", async () => {
@@ -352,7 +393,7 @@ describe("refining: a control changed something", () => {
     await search(user);
     await settled();
 
-    await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Quiet residential` }));
+    await removeChip(user, "Quiet streets");
     await settled();
 
     expect(api.lastCallTo("rank").body).toMatchObject({
@@ -365,7 +406,7 @@ describe("refining: a control changed something", () => {
     await search(user);
     await settled();
     api.on("rank", "rank-rejected-edit");
-    await user.click(settingsButton());
+    await settingsAt(user, SETTINGS.money);
     const budget = within(screen.getByRole("group", { name: BUDGET.legend }));
     const amount = budget.getByRole("textbox", { name: BUDGET.amount.rent });
 
@@ -377,7 +418,7 @@ describe("refining: a control changed something", () => {
     expect(amount).toHaveValue("1700");
     expect(amount).toHaveAccessibleDescription(expect.stringContaining(REJECTED.out_of_range));
     expect(budget.getByRole("alert")).toHaveTextContent(REJECTED.out_of_range);
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
   });
 
   test("test_hiding_an_area_from_its_card_sends_the_edit_that_hides_it", async () => {
@@ -385,6 +426,8 @@ describe("refining: a control changed something", () => {
     await search(user);
     await settled();
 
+    // Hiding an area is in the working of its result.
+    await workingOf(user, "Farrowmere");
     await user.click(screen.getByRole("button", { name: RESULTS.hide("Farrowmere") }));
     await settled();
 
@@ -494,14 +537,15 @@ describe("nothing matches", () => {
     await settled();
 
     expect(api.lastCallTo("rank").body).toMatchObject({ operations: edits.budgetStrictness("soft") });
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
   });
 
   test("test_the_table_gives_each_area_its_reason_in_words", async () => {
-    await nothingMatches();
+    const { user } = await nothingMatches();
     const nothing = recordedAnswer("rank", "rank-nothing-matches").body.data;
 
-    const table = within(screen.getAllByRole("table", { name: TABLE.caption })[0] as HTMLElement);
+    const table = within(await theTable(user));
+    expect(screen.getByRole("table", { name: TABLE.caption })).toBeInTheDocument();
     for (const { area_id: areaId, reason } of nothing.filtered) {
       const row = table.getByRole("row", { name: new RegExp(`^${TABLE.noRank} ${nameOf(areaId)} `) });
       expect(row).toHaveTextContent(FILTERED[reason]);
@@ -528,8 +572,19 @@ describe("nothing read", () => {
 
     expect(status()).toContain(NOTICE.nothingRead);
     expect(settingsAreOpen()).toBe(true);
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
     expect(api.calls.map((call) => call.operation)).toEqual(["interpret"]);
+  });
+
+  test("test_the_line_says_what_burro_can_read_so_that_a_person_knows_what_to_try", () => {
+    // Seen in a browser: a sentence in Spanish was met with "Nothing in that could be read as
+    // a setting", which led nowhere. Burro cannot tell one language from another. It can say
+    // what it reads, and give a sentence that it does read.
+    expect(NOTICE.nothingRead).toContain("plain English");
+    expect(NOTICE.nothingRead).toContain(NOTICE.readable);
+    // The sentence it gives is one the reader applies whole. It names no place.
+    expect(sentenceOf("interpret-plain-list")).toBe(NOTICE.readable);
+    expect(recordedAnswer("interpret", "interpret-plain-list").body.data).toMatchObject({ status: "ok", unread: [] });
   });
 
   test("test_that_nothing_was_read_is_said_once_and_not_again_as_a_part_that_was_not", async () => {
@@ -545,7 +600,8 @@ describe("nothing read", () => {
     expect(screen.queryByText(UNMET.other)).toBeNull();
 
     // Nor does it come up when the line goes.
-    await user.click(screen.getByRole("switch", { name: "Leafy" }));
+    await settingsAt(user, "Green");
+    slide("Leafy", 50);
     await settled();
     expect(status()).not.toContain(NOTICE.nothingRead);
     expect(screen.queryByText(UNMET.other)).toBeNull();
@@ -590,7 +646,7 @@ describe("nothing read", () => {
     // recorded from the service with a stand-in for the model that answers "off the subject".
     const unread = recordedAnswer("interpret", "interpret-off-topic").body.data;
     const words = unread.notice_text;
-    expect(unread).toMatchObject({ status: "off_topic", notice: "off_topic", interpreter: "claude" });
+    expect(unread).toMatchObject({ status: "off_topic", notice: "off_topic", interpreter: "model" });
     expect(words).not.toBe("");
     const { user, api } = await openSearch(firstSearch().on("interpret", "interpret-off-topic"));
 
@@ -609,11 +665,12 @@ describe("nothing read", () => {
     await user.click(screen.getByRole("button", { name: PROMPT.submit }));
     await waitFor(() => expect(status()).toContain(NOTICE.nothingRead));
 
-    await user.click(screen.getByRole("switch", { name: "Leafy" }));
+    await settingsAt(user, "Green");
+    slide("Leafy", 50);
     await settled();
 
     expect(status()).not.toContain(NOTICE.nothingRead);
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
   });
 });
 
@@ -625,8 +682,50 @@ describe("degraded to a form", () => {
 
     expect(status()).toContain(NOTICE.degraded);
     expect(settingsAreOpen()).toBe(true);
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
     expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  test("test_when_the_language_model_would_not_read_the_words_one_line_says_so_and_that_the_rules_have", async () => {
+    const refused = recordedAnswer("interpret", "interpret-refused").body.data;
+    const { user } = await openSearch(firstSearch().on("interpret", "interpret-refused"));
+    await search(user);
+    await settled();
+
+    expect([refused.model_refused, refused.degraded, refused.interpreter]).toEqual([true, true, "rule"]);
+    expect(status()).toContain(NOTICE.refused);
+    expect(status()).not.toContain(NOTICE.degraded);
+    // The rules read the words as they would with no model, so their results show as usual.
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  test("test_words_the_rules_read_for_any_other_reason_are_not_said_to_have_been_refused", async () => {
+    const { user } = await openSearch(firstSearch().on("interpret", "interpret-degraded"));
+    await search(user);
+    await settled();
+
+    expect(status()).toContain(NOTICE.degraded);
+    expect(status()).not.toContain(NOTICE.refused);
+  });
+
+  test("test_words_that_nothing_read_are_not_said_to_have_been_refused", async () => {
+    // Found by reading the page's code: the reading before is still held when a read fails,
+    // so a sentence that nothing read was said to have been refused by the language model.
+    const api = firstSearch().on("interpret", "interpret-refused");
+    const { user } = await openSearch(api);
+    await search(user);
+    await settled();
+    expect(status()).toContain(NOTICE.refused);
+    api.on("interpret", "error-internal");
+
+    await user.clear(promptBox());
+    await user.type(promptBox(), "leafy");
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await waitFor(() => expect(status()).toContain(NOTICE.degraded));
+
+    expect(status()).not.toContain(NOTICE.refused);
+    expect(screen.getByRole("button", { name: PROMPT.tryAgain })).toBeInTheDocument();
   });
 
   test("test_when_reading_takes_too_long_the_settings_open_on_the_defaults_and_still_work", async () => {
@@ -645,14 +744,15 @@ describe("degraded to a form", () => {
     expect(promptBox()).toHaveValue("leafy and quiet");
 
     // The same controls work as a form, with no words read at all.
-    await user.click(screen.getByRole("switch", { name: "Leafy" }));
+    await settingsAt(user, "Green");
+    slide("Leafy", 50);
     await settled();
     expect(api.lastCallTo("rank").body).toEqual({
       spec: meta.data.defaults.rent,
-      operations: edits.tagOn("leafy"),
+      operations: edits.tagWeight("leafy", 0.5, "high"),
       limit: 20,
     });
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
   });
 
   // A request that cannot leave is another thing: the settings could not reach Burro either.
@@ -671,11 +771,12 @@ describe("degraded to a form", () => {
     await waitFor(() => expect(status()).toContain(NOTICE.degraded));
 
     expect(settingsAreOpen()).toBe(true);
+    await settingsAt(user, SETTINGS.money);
     const budget = within(screen.getByRole("group", { name: BUDGET.legend }));
     await user.type(budget.getByRole("textbox", { name: BUDGET.amount.rent }), "1700{Enter}");
     await settled();
     expect(api.lastCallTo("rank").body).toMatchObject({ operations: edits.budgetAmount(1700) });
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
   });
 
   test("test_try_again_sends_the_same_text_from_the_box", async () => {
@@ -693,7 +794,7 @@ describe("degraded to a form", () => {
       "leafy and quiet",
       "leafy and quiet",
     ]);
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
     expect(status()).not.toContain(NOTICE.degraded);
   });
 
@@ -716,7 +817,7 @@ describe("the neutral notice", () => {
 
     const block = screen.getByRole("status", { name: NOTICE.label });
     expect(block.textContent).toBe(notice.notice_text);
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
   });
 
   test("test_nothing_on_the_page_says_what_was_left_out", async () => {
@@ -737,7 +838,7 @@ describe("the neutral notice", () => {
     await search(user, "Quiet and leafy");
     await settled();
 
-    await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Leafy` }));
+    await removeChip(user, "Leafy");
     await settled();
     expect(screen.getByRole("status", { name: NOTICE.label })).toBeInTheDocument();
 
@@ -789,13 +890,13 @@ describe("an error from the API", () => {
     api.on("rank", "error-internal");
     const fault = recordedError("error-internal");
 
-    await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Leafy` }));
+    await removeChip(user, "Leafy");
     const alert = await screen.findByRole("alert");
 
     expect(alert).toHaveTextContent(fault.body.error.message);
     expect(alert).toHaveTextContent(NOTICE.notUpdated);
     expect(alert).toHaveTextContent(fault.headers["x-request-id"] ?? "no id");
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
 
     api.on("rank", "rank-refined").on("explain_top", "explanations-refined");
     await user.click(within(alert).getByRole("button", { name: PROMPT.tryAgain }));
@@ -822,8 +923,11 @@ describe("an error from the API", () => {
     const alert = await screen.findByRole("alert");
 
     expect(alert).toHaveTextContent(NOTICE.stale);
-    api.on("rank", "rank-stale-spec-repaired");
-    await user.click(within(alert).getByRole("button", { name: NOTICE.takeOut("Place 2") }));
+    api
+      .on("rank", "rank-stale-spec-repaired")
+      .on("explain_top", reasonsFor("rank-stale-spec-repaired", "explanations-first"));
+    // The place is gone from the data, so no answer names it. It is spoken of as the place.
+    await user.click(within(alert).getByRole("button", { name: NOTICE.takeOut(NOTICE.thePlace) }));
     await settled();
 
     expect(api.lastCallTo("rank").body).toEqual(recordedAnswer("rank", "rank-stale-spec-repaired").request.body && {
@@ -832,22 +936,24 @@ describe("an error from the API", () => {
       limit: 20,
     });
     expect(screen.queryByRole("alert")).toBeNull();
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
   });
 
-  test("test_start_again_returns_to_the_defaults", async () => {
+  test("test_start_again_returns_to_the_page_as_it_first_stood", async () => {
     const { user, api } = await openSearch();
     await search(user);
     await settled();
     api.on("rank", "error-internal");
-    await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Leafy` }));
+    await removeChip(user, "Leafy");
 
     await user.click(within(await screen.findByRole("alert")).getByRole("button", { name: PROMPT.startAgain }));
 
     expect(screen.queryByRole("alert")).toBeNull();
     expect(screen.queryByRole("list", { name: RESULTS.listLabel })).toBeNull();
-    const chips = within(screen.getByRole("region", { name: CHIPS.startLabel }));
-    expect(chips.getAllByRole("listitem")).toHaveLength(2);
+    // Nothing is understood of anything: the shelf is back, and the box asks for a search.
+    expect(screen.queryByRole("region", { name: CHIPS.label })).toBeNull();
+    expect(screen.getByRole("region", { name: SHELF.title })).toBeInTheDocument();
+    expect(promptBox()).toHaveAccessibleName(PROMPT.label);
   });
 
   test("test_reasons_that_cannot_be_loaded_are_said_on_the_card_and_the_ranking_stays", async () => {
@@ -856,7 +962,7 @@ describe("an error from the API", () => {
     await settled();
     const fault = recordedError("error-internal");
 
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
     expect(within(results()[0] as HTMLElement).getByText(RESULTS.reasonsFailed)).toBeInTheDocument();
     // Why they could not be loaded is never met with silence: the API's words, the id to
     // quote and "Try again". The results themselves were updated, and are not said not to be.
@@ -872,7 +978,7 @@ describe("an error from the API", () => {
     await search(user);
     await settled();
     api.on("rank", "error-internal");
-    await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Leafy` }));
+    await removeChip(user, "Leafy");
     await screen.findByRole("alert");
 
     expect(await faultsIn(container, { wholePage: true })).toEqual([]);
@@ -890,10 +996,10 @@ describe("offline", () => {
     act(() => void window.dispatchEvent(new Event("offline")));
     expect(status()).toContain(NOTICE.offline);
 
-    await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Leafy` }));
+    await removeChip(user, "Leafy");
     await waitFor(() => expect(status()).toContain(`${NOTICE.offline} ${NOTICE.offlineWaiting}`));
     expect(api.calls).toEqual([]);
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
     expect(screen.queryByRole("alert")).toBeNull();
 
     api.on("rank", "rank-refined").on("explain_top", "explanations-refined");
@@ -913,6 +1019,8 @@ describe("the map, where it cannot be drawn", () => {
     await search(user);
 
     expect(status()).toContain(MAP.noWebGL);
-    expect(screen.getAllByRole("table", { name: TABLE.caption }).length).toBeGreaterThan(0);
+    // It is one press away, as it is where the map can be drawn, so that the answer comes first.
+    await theTable(user);
+    expect(screen.getByRole("table", { name: TABLE.caption })).toBeInTheDocument();
   });
 });

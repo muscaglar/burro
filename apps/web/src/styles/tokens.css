@@ -32,11 +32,11 @@
   --error: #9b1c1c;
   --map-water: #c9dfec;
   --map-land: #eceae2;
-  --map-1: #dcebd3;
-  --map-2: #bedcb4;
-  --map-3: #9ccb98;
-  --map-4: #77b681;
-  --map-5: #559f6f;
+  --map-1: #d6eed1;
+  --map-2: #98d496;
+  --map-3: #58b765;
+  --map-4: #3d965b;
+  --map-5: #287850;
   --map-line: #1b1f23;
 
   /* Type: the system's own fonts, and no font file */
@@ -99,11 +99,11 @@
     --error: #ff9d9d;
     --map-water: #0c2735;
     --map-land: #25282a;
-    --map-1: #1f2e27;
-    --map-2: #274036;
-    --map-3: #2f5444;
-    --map-4: #386a54;
-    --map-5: #438265;
+    --map-1: #1c3328;
+    --map-2: #284d3a;
+    --map-3: #32654a;
+    --map-4: #3b7e58;
+    --map-5: #449866;
     --map-line: #eef0f1;
   }
 }

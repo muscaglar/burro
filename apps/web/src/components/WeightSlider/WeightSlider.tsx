@@ -11,7 +11,10 @@ import styles from "./WeightSlider.module.css";
 export const SETTLE_MS = 150;
 
 interface Props {
-  /** The weight as the API returned it, from 0 to 1. */
+  /**
+   * The weight as the API returned it, from 0 to 1. For a scale it runs from -1, which is
+   * all the way to the low end, through 0, which is no weight, to 1 at the high end.
+   */
   readonly value: number;
   readonly limits: Pick<ServedLimits, "weight_unit" | "weight_step_small">;
   /** What is being weighed. It names the slider, its buttons and its field. */
@@ -24,10 +27,22 @@ interface Props {
    * draws it once for several. Left out, the slider draws the line under itself.
    */
   readonly scale?: string;
+  /**
+   * The names of the two ends of a scale, low and then high, as the API names them. With
+   * them the slider is one slider with two ends: it rests in the middle, which is no
+   * weight, and moves towards either. Its buttons are named for the ends, and it has no
+   * field to type in: a number does not say which end it is towards.
+   */
+  readonly ends?: readonly [low: string, high: string];
 }
 
 const hundredths = (weight: number) => Math.round(weight * 100);
-const within = (value: number) => Math.min(100, Math.max(0, value));
+
+/** What a slider of two ends says its value is, in words: which end, and how far towards it. */
+export function towardsInWords(value: number, [low, high]: readonly [string, string]): string {
+  if (value === 0) return SLIDER.middle;
+  return SLIDER.towards(value < 0 ? low : high, Math.abs(value));
+}
 
 /** The value that was sent, and the count of answers when it was: it waits for the next one. */
 interface Sent {
@@ -53,9 +68,11 @@ interface Sent {
  * What 0 and 100 mean is drawn where it can be seen: under the slider, or
  * once for a group of them by whatever holds the group.
  */
-export function WeightSlider({ value, limits, label, onCommit, version, scale }: Props) {
+export function WeightSlider({ value, limits, label, onCommit, version, scale, ends }: Props) {
   const id = useId();
   const scaleId = scale ?? `${id}-range-hint`;
+  const least = ends === undefined ? 0 : -100;
+  const within = (given: number) => Math.min(100, Math.max(least, given));
   const unit = Math.max(1, hundredths(limits.weight_unit));
   const step = Math.max(unit, hundredths(limits.weight_step_small));
   const [moved, setMoved] = useState<number | null>(null);
@@ -132,24 +149,25 @@ export function WeightSlider({ value, limits, label, onCommit, version, scale }:
       <label className={styles.label} htmlFor={`${id}-range`}>
         {label}
       </label>
-      <div className={styles.row}>
+      <div className={styles.row} data-ends={ends !== undefined}>
         <button
           type="button"
           className={`${styles.step} target`}
-          aria-label={SLIDER.less(label)}
-          aria-disabled={draft <= 0 ? true : undefined}
+          aria-label={ends === undefined ? SLIDER.less(label) : SLIDER.toward(label, ends[0])}
+          aria-disabled={draft <= least ? true : undefined}
           onClick={() => move(-step)}
         >
-          <span aria-hidden="true">−</span>
+          {ends === undefined ? <span aria-hidden="true">−</span> : ends[0]}
         </button>
         <input
           id={`${id}-range`}
           className={`${styles.range} target`}
           type="range"
-          min={0}
+          min={least}
           max={100}
           step={unit}
           value={draft}
+          aria-valuetext={ends === undefined ? undefined : towardsInWords(draft, ends)}
           aria-describedby={scaleId}
           onChange={(event) => {
             const next = snapped(Number(event.currentTarget.value));
@@ -165,28 +183,35 @@ export function WeightSlider({ value, limits, label, onCommit, version, scale }:
         <button
           type="button"
           className={`${styles.step} target`}
-          aria-label={SLIDER.more(label)}
+          aria-label={ends === undefined ? SLIDER.more(label) : SLIDER.toward(label, ends[1])}
           aria-disabled={draft >= 100 ? true : undefined}
           onClick={() => move(step)}
         >
-          <span aria-hidden="true">+</span>
+          {ends === undefined ? <span aria-hidden="true">+</span> : ends[1]}
         </button>
-        <input
-          className={`${styles.number} target`}
-          type="text"
-          inputMode="numeric"
-          autoComplete="off"
-          aria-label={SLIDER.number(label)}
-          aria-describedby={scaleId}
-          value={typed ?? String(draft)}
-          onChange={(event) => setTyped(event.currentTarget.value)}
-          onBlur={typedIn}
-          onKeyDown={onFieldKey}
-        />
+        {ends === undefined ? (
+          <input
+            className={`${styles.number} target`}
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            aria-label={SLIDER.number(label)}
+            aria-describedby={scaleId}
+            value={typed ?? String(draft)}
+            onChange={(event) => setTyped(event.currentTarget.value)}
+            onBlur={typedIn}
+            onKeyDown={onFieldKey}
+          />
+        ) : (
+          // Where the slider stands, in words: a slider of two ends has no number to read.
+          <output className={styles.stands} htmlFor={`${id}-range`}>
+            {towardsInWords(draft, ends)}
+          </output>
+        )}
       </div>
       {scale === undefined ? (
         <p id={scaleId} className={styles.scale}>
-          {SLIDER.range}
+          {ends === undefined ? SLIDER.range : SLIDER.twoEnds}
         </p>
       ) : null}
     </div>

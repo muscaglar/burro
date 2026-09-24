@@ -10,6 +10,7 @@
 import { apiBaseUrl } from "./config";
 import type { Answer } from "./failure";
 import type { BodyOf, DataOf, OperationId } from "./operations";
+import { noteSaid } from "./said";
 import { send, type SendSettings } from "./send";
 import { noteSynthetic } from "./synthetic";
 
@@ -49,6 +50,8 @@ export interface Client {
   readonly getArea: GetOne<"get_area">;
   /** Route 11. What a form needs, and every source and method. */
   readonly getMeta: Get<"get_meta">;
+  /** Route 13. The census figures of one area, by its id or its slug. Only an area's page asks. */
+  readonly getCensus: GetOne<"get_census">;
 }
 
 export interface ClientSettings extends Omit<SendSettings, "baseUrl"> {
@@ -86,8 +89,9 @@ export function createClient(settings: ClientSettings = {}): Client {
     getGeometry: get("get_geometry"),
     getArea: getOne("get_area"),
     getMeta: get("get_meta"),
+    getCensus: getOne("get_census"),
   };
 }
 
 /** The client the website uses. Every answer it reads is heard by the banner. */
-export const api: Client = createClient({ onSynthetic: noteSynthetic });
+export const api: Client = createClient({ onSynthetic: noteSynthetic, onSaid: noteSaid });

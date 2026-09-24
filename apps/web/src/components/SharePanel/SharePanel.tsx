@@ -8,6 +8,7 @@ import type { Answer, Failure } from "@/lib/api/client";
 import type { AreaSummary, MetaData, PreferenceSpec, ShareCreated } from "@/lib/api/schema";
 import { isShareId, paths } from "@/lib/paths";
 import { chipsOf } from "@/lib/search/chips";
+import { namesOf } from "@/lib/search/state";
 import type { MadeShare } from "@/lib/session/session";
 
 import { Disclosure } from "../Disclosure/Disclosure";
@@ -21,8 +22,6 @@ interface Props {
   readonly specHash: string | null;
   readonly meta: Pick<MetaData, "features" | "tags">;
   readonly areas: readonly AreaSummary[];
-  /** The name of each place of the search, by place id, where one is in hand. */
-  readonly placeNames: Readonly<Record<string, string>>;
   /** Route 9, with the spec the store holds. */
   readonly create: (exactPlaces: boolean, signal?: AbortSignal) => Promise<Answer<ShareCreated>>;
   /**
@@ -42,17 +41,6 @@ export function linkTo(shareId: string, origin: string): string | null {
   return `${origin}${paths.share(shareId)}`;
 }
 
-/** A name for each place the stored spec holds: the one in hand, or what stands in for it. */
-function namesFor(share: ShareCreated, sent: PreferenceSpec, held: Readonly<Record<string, string>>) {
-  const wasSent = new Set(sent.commutes.map((commute) => commute.place_id));
-  const names: Record<string, string> = { ...held };
-  share.spec.commutes.forEach((commute, at) => {
-    // A place that was not in the search is the station or district that stands in for one that was.
-    if (!wasSent.has(commute.place_id)) names[commute.place_id] = SHARE.standIn(at + 1);
-  });
-  return names;
-}
-
 /**
  * Makes a link to the search. It says what the link will hold before it is
  * made, and offers to share the exact places, unticked. The link holds an id
@@ -66,7 +54,7 @@ function namesFor(share: ShareCreated, sent: PreferenceSpec, held: Readonly<Reco
  * that it is busy, and a press while it is asks for nothing more. So the
  * focus stays on it, and the next Tab reaches the field that holds the link.
  */
-export function SharePanel({ spec, specHash, meta, areas, placeNames, create, held = null, onMade }: Props) {
+export function SharePanel({ spec, specHash, meta, areas, create, held = null, onMade }: Props) {
   const id = useId();
   const field = useRef<HTMLInputElement>(null);
   const [exact, setExact] = useState(false);
@@ -122,10 +110,9 @@ export function SharePanel({ spec, specHash, meta, areas, placeNames, create, he
     }
   };
 
+  // The answer names each place of the spec it stored: the place that stands in, where one does.
   const chips =
-    current === null
-      ? []
-      : chipsOf(current.share.spec, meta, areas, namesFor(current.share, spec, placeNames), {});
+    current === null ? [] : chipsOf(current.share.spec, meta, areas, namesOf(current.share.places), {});
 
   return (
     // Open at first where it holds a link made before the page was left.

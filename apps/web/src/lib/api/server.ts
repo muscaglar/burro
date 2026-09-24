@@ -86,9 +86,34 @@ export async function loadAreas(): Promise<Loaded<AreasData>> {
   return orStop("list_areas", await read("list_areas", "areas"));
 }
 
+/**
+ * The outlines as they were last read, by the address they were read from, and when.
+ *
+ * The answer of route 5 is larger than the framework will keep, so every page that draws
+ * the areas asked for it again: a thousand times in one build of a thousand areas. It is
+ * kept here for as long as a built page is kept, and no longer, so a page that is built
+ * again in an hour is built on what the service holds then. An answer that failed is never
+ * kept.
+ */
+const outlines = new Map<string, { readonly at: number; readonly read: Promise<Answer<GeometryData>> }>();
+
+/** Lets go of the outlines that were read. For a test, which answers each call its own way. */
+export function forgetTheOutlines(): void {
+  outlines.clear();
+}
+
 /** Route 5. */
 export async function loadGeometry(): Promise<Loaded<GeometryData>> {
-  return orStop("get_geometry", await read("get_geometry", "geometry"));
+  const from = apiBaseUrl() ?? "";
+  const held = outlines.get(from);
+  if (held !== undefined && Date.now() - held.at < REVALIDATE_SECONDS * 1000) {
+    return orStop("get_geometry", await held.read);
+  }
+  const asked = read("get_geometry", "geometry");
+  outlines.set(from, { at: Date.now(), read: asked });
+  const answer = await asked;
+  if (!answer.ok && outlines.get(from)?.read === asked) outlines.delete(from);
+  return orStop("get_geometry", answer);
 }
 
 /** Route 6, by slug. `null` when the release has no such area, which is a 404 and not a fault. */

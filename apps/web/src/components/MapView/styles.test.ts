@@ -28,6 +28,7 @@ const THEIRS = rulesOf(
 const SHARED = [
   { element: "the map", ours: "map", theirs: "maplibregl-map" },
   { element: "a pin", ours: "pin", theirs: "maplibregl-marker" },
+  { element: "the name of an area", ours: "label", theirs: "maplibregl-marker" },
 ] as const;
 
 /** The sides that `inset` sets, so that it is held against a rule that sets one of them. */

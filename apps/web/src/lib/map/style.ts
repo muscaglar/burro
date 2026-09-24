@@ -12,13 +12,7 @@
  * starts, so that tokens.css stays the one place a colour is given.
  */
 
-import type {
-  FilterSpecification,
-  GeoJSONSourceSpecification,
-  LayerSpecification,
-  SourceSpecification,
-  StyleSpecification,
-} from "maplibre-gl";
+import type { ExpressionSpecification, FilterSpecification, GeoJSONSourceSpecification, LayerSpecification, SourceSpecification, StyleSpecification } from "maplibre-gl";
 
 import type { GeometryData } from "@/lib/api/schema";
 
@@ -89,6 +83,23 @@ export const PATTERN_IMAGE: Readonly<Record<Exclude<Pattern, "none">, string>> =
 
 /** The widths of an outline: as it is, under the pointer or the focus, and when chosen. */
 export const OUTLINE = { plain: 1, hovered: 2, selected: 3 } as const;
+/**
+ * How an outline thins as the map is seen from further off. At the width of a city of a
+ * thousand areas the outlines of the small areas met, and hid the colour of each. From
+ * `NEAR` inwards an outline is as wide as it was.
+ */
+export const FAR = { zoom: 9, width: 0.3 } as const;
+export const NEAR = { zoom: 12 } as const;
+
+/** The width of an outline, where a plain one is this wide. The chosen and the pointed at keep theirs. */
+const outlineWidth = (plain: number): ExpressionSpecification => [
+  "case",
+  ["boolean", ["feature-state", "selected"], false],
+  OUTLINE.selected,
+  ["boolean", ["feature-state", "hovered"], false],
+  OUTLINE.hovered,
+  plain,
+];
 
 /** What a basemap adds, when there is one: its sources, and its layers under the areas. */
 export interface Basemap {
@@ -180,12 +191,13 @@ export function buildStyle(
         paint: {
           "line-color": theme.line,
           "line-width": [
-            "case",
-            ["boolean", ["feature-state", "selected"], false],
-            OUTLINE.selected,
-            ["boolean", ["feature-state", "hovered"], false],
-            OUTLINE.hovered,
-            OUTLINE.plain,
+            "interpolate",
+            ["linear"],
+            ["zoom"],
+            FAR.zoom,
+            outlineWidth(FAR.width),
+            NEAR.zoom,
+            outlineWidth(OUTLINE.plain),
           ],
         },
       },

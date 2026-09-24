@@ -22,12 +22,18 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
 const TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
 
+/** A period, as the release writes one: two dates with "to" between them. */
+const PERIOD = /^(\S+) to (\S+)$/;
+
 /**
  * A date or a timestamp, as "23 September 2026", and a month, as "August
- * 2026". Anything else is returned as it came: a year, or a period such as
- * "2024-10 to 2026-09", is the release's own words.
+ * 2026". A period is written the same way at both its ends: "2021 to
+ * 2026-04" is "2021 to April 2026". One page once wrote dates three ways.
+ * Anything else is returned as it came: a year is the release's own word.
  */
 export function readableDate(value: string): string {
+  const period = PERIOD.exec(value);
+  if (period !== null) return `${readableDate(period[1] ?? "")} to ${readableDate(period[2] ?? "")}`;
   if (MONTH.test(value)) {
     const month = new Date(`${value}-01T00:00:00Z`);
     return Number.isNaN(month.getTime()) ? value : MONTH_AND_YEAR.format(month);

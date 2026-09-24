@@ -1,15 +1,64 @@
+/*
+ * The tray stays at the foot of the screen once an area is chosen, in one line where there
+ * is room, so that it is within reach of every button that fills it. Until then it takes no
+ * room at all: what the page is for comes first.
+ */
 .tray {
-  display: grid;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) var(--space-3);
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   border-radius: var(--radius-card);
+}
+
+.tray[data-closed="true"] {
+  position: static;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+/*
+ * A narrow screen: the tray that sticks is short, so that it covers little of the list and
+ * nothing that has the focus. It names the areas and leads to the comparison. An area is
+ * taken out from its own result, where "Remove from compare" stands, or all with "Clear".
+ */
+@media (max-width: 40rem) {
+  .tray[data-closed="false"] {
+    gap: 0 var(--space-2);
+    padding: var(--space-1) var(--space-3);
+  }
+
+  .tray .chosen {
+    gap: 0 var(--space-2);
+    font-size: var(--size-small);
+  }
+
+  .tray .area {
+    border: 0;
+    background: transparent;
+  }
+
+  .tray .name {
+    min-height: 0;
+    padding: 0;
+  }
+
+  .tray .remove,
+  .tray .status:empty {
+    display: none;
+  }
 }
 
 .title {
   margin: 0;
-  font-size: var(--size-lead);
+  font-size: var(--size-body);
 }
 
 .chosen {
@@ -48,10 +97,8 @@
   line-height: 1;
 }
 
-/* The line keeps its height when it has nothing to say, so that nothing moves. */
 .status {
   margin: 0;
-  min-height: calc(var(--leading-text) * 1em);
   color: var(--muted);
   font-size: var(--size-small);
 }
@@ -85,6 +132,15 @@
 .why {
   color: var(--muted);
   font-size: var(--size-small);
+}
+
+/* The button in a row of small ones, as on a result: as high as "Source" is, and no higher. */
+.small {
+  min-height: var(--target-min);
+  padding: 0 var(--space-2);
+  font-size: var(--size-small);
+  color: var(--accent);
+  background: transparent;
 }
 
 .near {

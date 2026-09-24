@@ -12,6 +12,7 @@ import { SourceLine } from "./SourceLine";
 const facts = recordedAnswer("get_area", "area/alderwick").body.data.facts;
 const cost = facts.find((fact) => fact.kind === "cost") as Fact;
 const feature = facts.find((fact) => fact.kind === "feature") as Fact;
+const vibe = facts.find((fact) => fact.kind === "tag") as Fact;
 
 /** A fact as a real release would hold it: two sources, and data that is not made up. */
 const real: Fact = {
@@ -19,10 +20,12 @@ const real: Fact = {
   synthetic: false,
   as_of: "2024-10 to 2026-09",
   sources: [
-    { source_id: "os-open-greenspace", name: "OS Open Greenspace" },
-    { source_id: "ons-boundaries", name: "ONS boundaries" },
+    { source_id: "os-open-greenspace", name: "OS Open Greenspace", publisher: "Ordnance Survey" },
+    { source_id: "ons-boundaries", name: "ONS boundaries", publisher: "Office for National Statistics" },
   ],
 };
+/** The made-up source, as the line names it: what it is called, and who published it. */
+const named = (fact: Fact) => `${fact.sources[0]?.name}, ${SOURCE.by} ${fact.sources[0]?.publisher}`;
 
 describe("the source of a figure, written out", () => {
   test("test_the_line_names_the_source_links_to_it_and_gives_the_date", () => {
@@ -32,8 +35,41 @@ describe("the source of a figure, written out", () => {
 
     expect(link).toHaveAttribute("href", `/sources#${cost.sources[0]?.source_id}`);
     expect(link.closest("p")).toHaveTextContent(
-      `${SOURCE_LINE.source}: ${cost.sources[0]?.name}. ${SOURCE.dataFrom} August 2026. ${SOURCE.madeUp}`,
+      `${SOURCE_LINE.source}: ${named(cost)}. ${SOURCE.dataFrom} August 2026. ${SOURCE.madeUp}`,
     );
+  });
+
+  test("test_each_source_is_named_once_with_its_publisher_and_the_date_is_said_once_after_them", () => {
+    // Seen in a browser: thirteen sources in one paragraph, some three times over, each
+    // followed by the date of the figure, so that a census of 2021 read "Data from April 2026".
+    const other: Fact = { ...real, fact_id: "another", as_of: "2026-04" };
+    const third: Fact = { ...real, fact_id: "a-third", as_of: "2026-04", sources: real.sources.slice(0, 1) };
+    render(<SourceLine facts={[real, other, third]} />);
+    const line = screen.getAllByRole("link")[0]?.closest("p");
+
+    expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual(["OS Open Greenspace", "ONS boundaries"]);
+    expect(line).toHaveTextContent(
+      `${SOURCE_LINE.source}: OS Open Greenspace, ${SOURCE.by} Ordnance Survey; ONS boundaries, ${SOURCE.by} Office for National Statistics. ${SOURCE.dataFrom} October 2024 to September 2026 and April 2026.`,
+    );
+    expect(line?.textContent?.split(SOURCE.dataFrom)).toHaveLength(2);
+  });
+
+  test("test_the_sources_of_a_vibe_are_said_to_be_what_its_recipe_is_made_from", () => {
+    render(<SourceLine facts={[vibe]} />);
+
+    // The words are the API's: a vibe is Burro's own recipe, and the sources are of its parts.
+    expect(vibe.slots.made_from).toBe("Burro's recipe. Made from data published by:");
+    expect(screen.getByRole("link").closest("p")).toHaveTextContent(
+      `${vibe.slots.made_from} ${named(vibe)}. ${SOURCE.dataFrom} ${vibe.as_of}. ${SOURCE.madeUp}`,
+    );
+    expect(screen.getByRole("link").closest("p")?.textContent?.startsWith(SOURCE_LINE.source)).toBe(false);
+  });
+
+  test("test_a_vibe_beside_a_figure_is_given_as_any_source_is", () => {
+    render(<SourceLine facts={[vibe, cost]} />);
+
+    // What is said of a recipe is not said of a figure that is no recipe.
+    expect(screen.getAllByRole("link")[0]?.closest("p")?.textContent?.startsWith(`${SOURCE_LINE.source}:`)).toBe(true);
   });
 
   test("test_made_up_data_is_said_to_be_made_up_and_real_data_is_not", () => {
@@ -45,14 +81,21 @@ describe("the source of a figure, written out", () => {
     expect(container).not.toHaveTextContent(SOURCE.madeUp);
   });
 
-  test("test_every_source_of_a_fact_is_named_and_a_period_is_left_as_the_release_wrote_it", () => {
+  test("test_every_source_of_a_fact_is_named_and_a_period_is_written_as_a_date_is", () => {
     render(<SourceLine facts={[real]} />);
 
     expect(screen.getAllByRole("link").map((link) => link.getAttribute("href"))).toEqual([
       "/sources#os-open-greenspace",
       "/sources#ons-boundaries",
     ]);
-    expect(screen.getAllByText(/2024-10 to 2026-09/)).toHaveLength(2);
+    expect(screen.getAllByText(/October 2024 to September 2026/)).toHaveLength(1);
+  });
+
+  test("test_the_date_is_not_broken_from_the_words_before_it", () => {
+    // Seen on a phone: a line that broke before ". Data from December 2022."
+    render(<SourceLine facts={[cost]} />);
+
+    expect(screen.getByText(`${SOURCE.dataFrom} August 2026.`)).toHaveClass("dated");
   });
 
   test("test_facts_that_share_a_source_and_a_date_are_given_one_line", () => {

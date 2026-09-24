@@ -4,9 +4,10 @@
  *
  * One rule decides every page's `robots`, the header every answer carries,
  * the robots file and the sitemap, so that the four can never disagree. A
- * page may be indexed only when the release is real and the website knows
- * its own address. A made-up place must not be found by a search engine, and
- * a page that cannot say where it lives can give no canonical address.
+ * page may be indexed only when the release is real, is finished, and the
+ * website knows its own address. A made-up place must not be found by a
+ * search engine, nor a figure of a preview that nobody has approved, and a
+ * page that cannot say where it lives can give no canonical address.
  *
  * A crawler is never kept out by the robots file. One that is kept out never
  * fetches a page, so it never reads that the page asks to be left out, and
@@ -31,8 +32,8 @@ export function siteOrigin(): string | null {
 }
 
 /** True when a search engine may index what is built on this release. */
-export function mayBeIndexed(meta: Pick<Meta, "synthetic">): boolean {
-  return !meta.synthetic && siteOrigin() !== null;
+export function mayBeIndexed(meta: Pick<Meta, "synthetic" | "preview">): boolean {
+  return !meta.synthetic && !meta.preview && siteOrigin() !== null;
 }
 
 /** A path of the website as a whole address, or `null` when the website's address is not set. */

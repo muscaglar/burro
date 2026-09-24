@@ -1,0 +1,232 @@
+/* The shelf: two rows of words at most, and the card of the word that is open under them. */
+.shelf {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--size-body);
+}
+
+.words {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.word,
+.more {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--size-small);
+}
+
+.word {
+  background: var(--surface);
+  font-weight: 600;
+}
+
+/* The word that is open says so to a screen reader. The heavy edge repeats it for the eye. */
+.word[aria-expanded="true"] {
+  border-width: 2px;
+  border-color: var(--text);
+}
+
+.more {
+  border-style: dashed;
+}
+
+/* The words that cannot be added yet, under what they are. */
+.apart {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.waiting {
+  margin: 0;
+  font-size: var(--size-small);
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* In the card of such a word: that it cannot be added, where the button would be. */
+.waits {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--info-bg);
+  color: var(--info-text);
+  border-inline-start: 4px solid var(--info-text);
+  border-radius: var(--radius);
+}
+
+.held {
+  margin: 0;
+  font-size: var(--size-small);
+}
+
+/* In the card of a vibe that counts recorded crime: that it does, above what adds it. */
+.crime {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--info-bg);
+  color: var(--info-text);
+  border-inline-start: 4px solid var(--info-text);
+  border-radius: var(--radius);
+}
+
+.card {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+.name {
+  margin: 0;
+  font-size: var(--size-lead);
+}
+
+.small {
+  margin: 0;
+  font-size: var(--size-small);
+  color: var(--muted);
+}
+
+.meaning,
+.ends,
+.note {
+  margin: 0;
+}
+
+.ends,
+.note,
+.reading {
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.recipe,
+.cannot {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  font-size: var(--size-small);
+}
+
+.recipe li,
+.cannot li {
+  max-width: none;
+}
+
+.share {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* How a part is read stands under the part, as a line of its own. */
+.reading {
+  display: block;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/*
+ * The city coloured by the vibe, with what its five bands are. It is for a narrow screen,
+ * where the map is below the form and out of sight of the word that was pressed. On a
+ * wide screen the map is beside the shelf, and is coloured by the same word.
+ */
+.city {
+  display: grid;
+  gap: var(--space-2);
+}
+
+@media (min-width: 60rem) {
+  .city {
+    display: none;
+  }
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--size-small);
+}
+
+.legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  max-width: none;
+}
+
+/* Every colour is a token of the map, so that a band is one colour wherever it is drawn. */
+.swatch {
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  background: var(--map-land);
+  border: 1px solid var(--map-line);
+}
+
+.swatch[data-band="1"] {
+  background: var(--map-1);
+}
+
+.swatch[data-band="2"] {
+  background: var(--map-2);
+}
+
+.swatch[data-band="3"] {
+  background: var(--map-3);
+}
+
+.swatch[data-band="4"] {
+  background: var(--map-4);
+}
+
+.swatch[data-band="5"] {
+  background: var(--map-5);
+}
+
+.swatch[data-band="none"] {
+  background:
+    radial-gradient(circle, var(--map-line) 1px, transparent 1.5px) 0 0 / 5px 5px,
+    var(--map-land);
+}
+
+/* Named with its size class, so that it does not depend on the order of two style sheets. */
+.add:global(.target) {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 650;
+}
+
+@media (forced-colors: active) {
+  .swatch {
+    forced-color-adjust: none;
+  }
+
+  .word[aria-expanded="true"] {
+    border-color: Highlight;
+  }
+
+  .add {
+    border-color: ButtonText;
+  }
+}

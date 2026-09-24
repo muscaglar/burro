@@ -1,9 +1,13 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { act, render, screen, within } from "@testing-library/react";
 
 import { BANNER } from "@/content/site";
 import { forgetSynthetic, noteSynthetic } from "@/lib/api/synthetic";
 
 import { faultsIn } from "../../../test/support/axe";
+import { isFor, rulesOf } from "../../../test/support/css";
 import { LiveSyntheticBanner } from "./LiveSyntheticBanner";
 import { SyntheticBanner } from "./SyntheticBanner";
 
@@ -31,6 +35,27 @@ describe("the banner that says the data is made up", () => {
     const { container } = render(<SyntheticBanner synthetic={false} />);
 
     expect(container).toBeEmptyDOMElement();
+  });
+
+  test("test_on_a_narrow_screen_the_banner_is_one_line_once_a_search_is_open", () => {
+    // Seen on a phone: the banner took three lines, 90 px, above an answer that did not fit
+    // the screen. Before a search it says all of it. Once one is open it says that the data
+    // is made up, in one line, and the rest gives way to the answer.
+    render(<SyntheticBanner synthetic />);
+    const banner = screen.getByRole("region", { name: BANNER.label });
+    const rules = rulesOf(readFileSync(path.join(__dirname, "SyntheticBanner.module.css"), "utf8"));
+    const gives = rules.filter((rule) => isFor(rule.selector, "rest") && rule.sets.get("display") === "none");
+
+    expect(banner.textContent).toBe(BANNER.text);
+    expect(BANNER.text.startsWith(BANNER.short)).toBe(true);
+    expect(BANNER.short).toBe("This is made-up test data.");
+    expect(banner.querySelector(".rest")?.textContent).toBe(BANNER.text.slice(BANNER.short.length).trim());
+    // Only on a narrow screen, and only while the page says a search is open.
+    expect(gives.length).toBeGreaterThan(0);
+    for (const rule of gives) {
+      expect(rule.under).toMatch(/max-width:\s*40rem/);
+      expect(rule.selector).toContain(':has([data-search="open"])');
+    }
   });
 
   test("test_the_banner_has_no_accessibility_fault", async () => {

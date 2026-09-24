@@ -16,7 +16,7 @@
           "amount": 1700,
           "segment": "bed_1",
           "strictness": "soft",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "stated"
         },
         "commutes": [
@@ -37,7 +37,7 @@
         ],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [
           {
             "feature_id": "air_no2",
@@ -54,7 +54,7 @@
           {
             "feature_id": "highstreet_access",
             "weight": 0.0,
-            "direction": "more",
+            "direction": "less",
             "provenance": "stated"
           },
           {
@@ -86,38 +86,43 @@
           {
             "tag_id": "leafy",
             "weight": 0.5,
+            "toward": "high",
             "provenance": "stated"
           },
           {
             "tag_id": "quiet_residential",
             "weight": 0.5,
+            "toward": "high",
             "provenance": "stated"
           }
         ],
         "areas": [],
-        "tenure_from": "default",
+        "tenure_from": "stated",
         "commute_combine_from": "default",
         "pt_basis_from": "default",
         "commute_weight_from": "default"
-      }
+      },
+      "ask_model": false
     }
   },
   "status": 200,
   "headers": {
     "access-control-allow-origin": "http://localhost:3000",
-    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "1739",
+    "content-length": "2062",
     "content-type": "application/json",
     "vary": "Origin",
+    "x-burro-preview": "false",
     "x-burro-synthetic": "true",
     "x-request-id": "14d51a98-285a-4d9b-a7d6-0ce2a4c4b451"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.3.0",
-      "synthetic": true
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
     },
     "data": {
       "status": "ok",
@@ -136,7 +141,7 @@
           "amount": 1700,
           "segment": "bed_1",
           "strictness": "soft",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "stated"
         },
         "commutes": [
@@ -157,7 +162,7 @@
         ],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [
           {
             "feature_id": "air_no2",
@@ -174,7 +179,7 @@
           {
             "feature_id": "highstreet_access",
             "weight": 0.0,
-            "direction": "more",
+            "direction": "less",
             "provenance": "stated"
           },
           {
@@ -206,21 +211,23 @@
           {
             "tag_id": "leafy",
             "weight": 0.5,
+            "toward": "high",
             "provenance": "stated"
           },
           {
             "tag_id": "quiet_residential",
             "weight": 0.5,
+            "toward": "high",
             "provenance": "stated"
           }
         ],
         "areas": [],
-        "tenure_from": "default",
+        "tenure_from": "stated",
         "commute_combine_from": "default",
         "pt_basis_from": "default",
         "commute_weight_from": "default"
       },
-      "spec_hash": "0fc45dfd8e7a48b9f9583fb4ac39d40cde68e6c9c9e5d69faa2f206b7fb16c0b",
+      "spec_hash": "828ca1ba40b3f8999f0ca032437c1a72cbea2719a7d722ca045fc5a3cae7fb3c",
       "applied": [],
       "rejected": [],
       "assumptions": [],
@@ -232,7 +239,30 @@
       "notice_text": "",
       "interpreter": "rule",
       "degraded": false,
-      "rests_on": []
+      "model_refused": false,
+      "rests_on": [],
+      "suggestions": [],
+      "unread": [
+        {
+          "start": 0,
+          "end": 39
+        }
+      ],
+      "not_in_release": [],
+      "unmet_at": [],
+      "model_pending": false,
+      "places": [
+        {
+          "place_id": "syn-p0017",
+          "name": "Pellam Exchange",
+          "kind": "district"
+        },
+        {
+          "place_id": "syn-p0021",
+          "name": "Cindermoor Works",
+          "kind": "district"
+        }
+      ]
     }
   }
 }

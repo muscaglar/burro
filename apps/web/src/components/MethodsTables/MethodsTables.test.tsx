@@ -3,15 +3,23 @@ import path from "node:path";
 
 import { render, screen, within } from "@testing-library/react";
 
-import { DIMENSION, POLARITY } from "@/content/labels";
+import { CRIME_ACCOUNT, CRIME_RULE } from "@/content/crime";
+import { DIMENSION, POLARITY, TENURE } from "@/content/labels";
 import { METHODS } from "@/content/methods";
-import { recordedAnswer } from "@/lib/api/recorded";
+import { CRIME_CAVEAT } from "@/content/settings";
+import { READER } from "@/content/site";
+import { readRecorded, recordedAnswer } from "@/lib/api/recorded";
 import type { MetaData, Metric } from "@/lib/api/schema";
+import { readableDate } from "@/lib/format";
 
 import { faultsIn } from "../../../test/support/axe";
 import { MethodsTables } from "./MethodsTables";
 
 const meta = recordedAnswer("get_meta", "meta").body.data;
+/** The release where gritty is built from land use alone, and holds no figure of crime. */
+const variantA: MetaData = (readRecorded("variant-a/meta").body as { data: MetaData }).data;
+
+const LIST = new Intl.ListFormat("en-GB", { style: "long", type: "conjunction" });
 
 /** The contract, as it is written, with each run of space as one. */
 const contract = () =>
@@ -70,7 +78,8 @@ describe("the methods page", () => {
       const card = within(heading.closest("li")!);
       expect(card.getByText(metric.definition)).toBeInTheDocument();
       expect(card.getByText(metric.unit)).toBeInTheDocument();
-      expect(card.getByText(metric.vintage)).toBeInTheDocument();
+      // The period is the release's, written as every other date on the website is.
+      expect(card.getByText(readableDate(metric.vintage))).toBeInTheDocument();
       expect(card.getByText(POLARITY[metric.polarity])).toBeInTheDocument();
       expect(card.getAllByRole("link").map((link) => link.getAttribute("href"))).toEqual(
         metric.source_ids.map((id) => `/sources#${id}`),
@@ -97,13 +106,85 @@ describe("the methods page", () => {
   });
 
   test("test_a_feature_the_release_does_not_rank_says_so", () => {
-    const real = realLooking();
+    // One that no recipe holds either: it is shown, and counts for nothing.
+    const alone = meta.features.find(
+      (metric) => !meta.tags.some((tag) => tag.terms.some((term) => term.feature_id === metric.feature_id)),
+    );
+    if (!alone) throw new Error("every recorded feature is a part of some vibe");
+    const real = {
+      ...meta,
+      features: meta.features.map((metric) => ({ ...metric, rankable: metric.feature_id !== alone.feature_id })),
+    };
     render(<MethodsTables meta={real} />);
 
     const notes = screen.getAllByText(METHODS.features.notRanked);
 
     expect(notes).toHaveLength(1);
-    expect(notes[0]?.closest("li")).toHaveTextContent(real.features[1]!.label);
+    expect(notes[0]?.closest("li")).toHaveTextContent(alone.label);
+  });
+
+  test("test_a_measure_that_counts_only_as_a_part_of_a_vibe_says_so_and_names_the_vibe", () => {
+    // Seen in a browser: main roads "Shown, but not used in ranking in this release", though
+    // Quiet streets rests on it for 40 of the 70 shares it holds.
+    const preview: MetaData = recordedAnswer("get_meta", "preview/meta").body.data;
+    render(<MethodsTables meta={preview} />);
+    const roads = preview.features.find((one) => one.feature_id === "road_major_exposure");
+    const entry = screen.getByRole("heading", { level: 4, name: roads?.label }).closest("li") as HTMLElement;
+
+    expect(roads?.rankable).toBe(false);
+    expect(preview.tags.find((tag) => tag.tag_id === "quiet_residential")?.terms.map((term) => term.feature_id)).toContain(
+      "road_major_exposure",
+    );
+    // Of the vibes that hold it, only one places any area. A vibe that waits counts in nothing yet.
+    const holding = preview.tags
+      .filter((tag) => tag.terms.some((term) => term.feature_id === "road_major_exposure"))
+      .filter((tag) => preview.recipes.find((held) => held.tag_id === tag.tag_id)?.placed)
+      .map((tag) => tag.label);
+    expect(holding).toEqual(["Quiet streets"]);
+    expect(entry.textContent?.includes(METHODS.features.partOf(LIST.format(holding)))).toBe(true);
+    expect(entry.textContent?.includes(METHODS.features.notRanked)).toBe(false);
+  });
+
+  test("test_what_the_data_does_not_hold_is_said_and_no_limit_is_given_for_it", () => {
+    // Seen in a browser: "Longest journey in this release: 90 minutes", on a release that
+    // names no place and holds no journey.
+    const preview: MetaData = recordedAnswer("get_meta", "preview/meta").body.data;
+    render(<MethodsTables meta={preview} />);
+    const limits = within(screen.getByRole("table", { name: METHODS.limits.title }));
+    const { rows } = METHODS.limits;
+
+    expect(preview.holds).toEqual({ journeys: false, costs: false });
+    for (const name of [rows.rent, rows.buy, rows.minutes, rows.places]) {
+      expect(limits.queryByRole("rowheader", { name })).toBeNull();
+    }
+    expect(limits.queryAllByRole("rowheader", { name: new RegExp(`^${rows.cutoff}`) })).toEqual([]);
+    expect(limits.getByRole("rowheader", { name: rows.text })).toBeInTheDocument();
+    const said = document.body.textContent ?? "";
+    expect(said.includes(METHODS.limits.noJourneys)).toBe(true);
+    expect(said.includes(METHODS.limits.noCosts)).toBe(true);
+    // How a journey is timed, and how sure a cost is, are said as what is to come.
+    expect(screen.getByRole("heading", { name: METHODS.journeys.title }).parentElement?.textContent).toContain(
+      METHODS.journeys.notYet,
+    );
+    expect(screen.getByRole("heading", { name: METHODS.confidence.title }).parentElement?.textContent).toContain(
+      METHODS.confidence.notYet,
+    );
+    // Where a search starts, a budget and a journey are said not to be in the data.
+    for (const tenure of ["rent", "buy"] as const) {
+      const table = within(screen.getByRole("table", { name: TENURE[tenure] }));
+      for (const name of [METHODS.defaults.budget, METHODS.defaults.journeys]) {
+        expect(within(table.getByRole("rowheader", { name }).closest("tr") as HTMLElement).getByText(METHODS.notInData)).toBeInTheDocument();
+      }
+    }
+  });
+
+  test("test_a_release_that_holds_journeys_and_costs_says_none_of_this", () => {
+    render(<MethodsTables meta={meta} />);
+    const said = document.body.textContent ?? "";
+
+    for (const line of [METHODS.limits.noJourneys, METHODS.limits.noCosts, METHODS.journeys.notYet, METHODS.confidence.notYet, METHODS.notInData]) {
+      expect(said.includes(line)).toBe(false);
+    }
   });
 
   test("test_a_dimension_the_release_carries_nothing_for_says_so", () => {
@@ -115,21 +196,66 @@ describe("the methods page", () => {
     );
   });
 
-  test("test_every_tag_shows_its_whole_formula", () => {
+  test("test_how_an_area_with_little_known_of_it_is_ranked_is_said_as_the_contract_defines_it", () => {
     render(<MethodsTables meta={meta} />);
-    const labels = new Map(meta.features.map((metric) => [metric.feature_id, metric.label]));
+    const ranking = screen.getByRole("region", { name: METHODS.ranking.title });
 
-    for (const tag of meta.tags) {
-      const table = within(screen.getByRole("table", { name: tag.label }));
-      const rows = table.getAllByRole("row").slice(1);
-      expect(rows.map((row) => within(row).getByRole("rowheader").textContent)).toEqual(
-        tag.terms.map((term) => labels.get(term.feature_id)),
-      );
-      expect(rows.map((row) => within(row).getAllByRole("cell")[1]?.textContent)).toEqual(
-        tag.terms.map((term) => `${term.hundredths} of 100`),
-      );
-    }
-    expect(meta.tags).toHaveLength(12);
+    // What is missing is left out and the rest count for more. That alone once put first an
+    // area with no figure for anything that was asked of the place.
+    expect(contract()).toContain("An area with a figure for under half of it, by weight, is not scored");
+    expect(contract()).toContain("whatever is known of its journeys and its cost");
+    expect(ranking).toHaveTextContent("under half of what you asked of the place itself");
+    expect(ranking).toHaveTextContent("is not ranked");
+    expect(ranking).toHaveTextContent("Journeys and cost do not make up for it");
+    expect(ranking).toHaveTextContent("Nothing is filled in");
+    // It states no figure of its own: the half is said in words.
+    expect(/\d/.test(METHODS.ranking.points.join(" "))).toBe(false);
+  });
+
+  test("test_what_a_feature_describes_is_said_of_every_kind_the_release_holds", () => {
+    render(<MethodsTables meta={meta} />);
+
+    // A figure of recorded crime describes what was recorded, and not a place or a building.
+    expect(new Set(meta.features.map((metric) => metric.describes))).toEqual(new Set(["place", "buildings", "events"]));
+    expect(METHODS.features.lead).toContain("a place, its buildings or what was recorded there");
+    expect(screen.getByRole("region", { name: METHODS.features.title })).toHaveTextContent(METHODS.features.lead);
+  });
+
+  test("test_when_recorded_crime_counts_is_said_by_the_one_rule_and_the_vibe_that_holds_it_is_named", () => {
+    render(<MethodsTables meta={meta} />);
+    const vibes = screen.getByRole("region", { name: METHODS.vibes.title });
+    const crime = screen.getByRole("region", { name: DIMENSION.crime });
+
+    expect(screen.getByRole("region", { name: METHODS.ranking.title })).toHaveTextContent(CRIME_RULE);
+    // Under what is measured of recorded crime: the rule, and the caveat of every such figure.
+    expect(crime).toHaveTextContent(CRIME_RULE);
+    expect(crime).toHaveTextContent(CRIME_CAVEAT);
+    // Among the vibes: which of them holds it, by the names the API gives, and the way to it.
+    expect(vibes).toHaveTextContent(CRIME_ACCOUNT.vibes);
+    expect(vibes).toHaveTextContent("Recorded criminal damage");
+    expect(vibes).toHaveTextContent("Recorded anti-social behaviour");
+    expect(within(vibes).getByRole("link", { name: "Gritty" })).toHaveAttribute("href", "/vibes#street_character");
+    expect(vibes.textContent?.includes(CRIME_ACCOUNT.noVibe)).toBe(false);
+  });
+
+  test("test_where_no_vibe_holds_recorded_crime_the_methods_say_so_and_name_none", () => {
+    render(<MethodsTables meta={variantA} />);
+    const vibes = screen.getByRole("region", { name: METHODS.vibes.title });
+
+    expect(vibes).toHaveTextContent(CRIME_ACCOUNT.noVibe);
+    expect(vibes.textContent?.includes(CRIME_ACCOUNT.vibes)).toBe(false);
+    expect(within(vibes).queryByRole("link", { name: "Works and warehouses" })).toBeNull();
+  });
+
+  test("test_the_vibes_have_a_page_of_their_own_which_the_methods_lead_to", () => {
+    render(<MethodsTables meta={meta} />);
+    const vibes = screen.getByRole("region", { name: METHODS.vibes.title });
+
+    expect(within(vibes).getByRole("link", { name: METHODS.vibes.link })).toHaveAttribute("href", "/vibes");
+    // No recipe is written out twice: a second copy is a copy that can fall behind.
+    expect(within(vibes).queryByRole("table")).toBeNull();
+    expect(within(vibes).getAllByRole("heading")).toHaveLength(1);
+    expect(screen.queryByRole("table", { name: /^What .* is made of$/ })).toBeNull();
   });
 
   test("test_the_defaults_of_a_renter_and_of_a_buyer_are_both_shown", () => {
@@ -188,14 +314,24 @@ describe("the methods page", () => {
     expect(release).toHaveTextContent(meta.engine_version);
     expect(release).toHaveTextContent("23 September 2026");
     expect(release).toHaveTextContent(`${METHODS.release.rows.synthetic}${METHODS.release.yes}`);
+    expect(release).toHaveTextContent(`${METHODS.release.rows.preview}${METHODS.release.no}`);
+  });
+
+  test("test_a_preview_is_said_to_be_one_beside_whether_its_data_is_made_up", () => {
+    render(<MethodsTables meta={{ ...meta, synthetic: false, preview: true }} />);
+
+    const release = screen.getByRole("region", { name: METHODS.release.title });
+
+    expect(release).toHaveTextContent(`${METHODS.release.rows.synthetic}${METHODS.release.no}`);
+    expect(release).toHaveTextContent(`${METHODS.release.rows.preview}${METHODS.release.yes}`);
   });
 
   test("test_no_figure_is_shown_that_the_api_did_not_send", () => {
     const real = realLooking();
     const { container } = render(<MethodsTables meta={real} />);
     const sent = numbersSent(real);
-    // The numbers site copy states: how long a model's provider may keep what it is sent,
-    // and how many homes make a cost sure. Each is held to the project's own record by a test.
+    // The numbers site copy states: how many homes make a cost sure. Each is held to the
+    // project's own record by a test. How long a provider keeps words is the service's to say.
     const stated = new Set(
       numbersIn([...METHODS.words.points, ...Object.values(METHODS.confidence.rows)].join(" ")),
     );
@@ -218,7 +354,11 @@ describe("the methods page", () => {
       METHODS.confidence.rows.high,
       METHODS.confidence.rows.medium,
       METHODS.confidence.rows.low,
+      METHODS.confidence.rows.unstated,
     ]);
+    // A price that is one number rests on a count nobody gives, and the page says so.
+    expect(contract()).toContain("It is `unstated` because the publisher gives a figure with no count of the sales behind it");
+    expect(METHODS.confidence.rows.unstated).toMatch(/^Not stated: .*no range.*does not say how many sales/);
     expect(METHODS.confidence.rows.high).toMatch(/^High: .*at least 50\b/);
     expect(METHODS.confidence.rows.medium).toMatch(/^Medium: .*10 to 49\b.*blended/);
     expect(METHODS.confidence.rows.low).toMatch(/^Low: .*modelled/);
@@ -251,9 +391,32 @@ describe("the methods page", () => {
     const words = screen.getByRole("region", { name: METHODS.words.title });
 
     expect(words).toHaveTextContent("Burro does not keep it");
-    expect(words).toHaveTextContent("may keep it for up to 30 days");
     expect(words).toHaveTextContent("never put in a web address");
     expect(words).toHaveTextContent("stores nothing in your browser");
+    // Where no model reads, the service says so, and there is no provider to tell of.
+    expect(meta.reader.model_reads).toBe(false);
+    expect(words).toHaveTextContent(meta.reader.notice);
+    expect(words).toHaveTextContent("not sent to a language model");
+    expect(within(words).queryByRole("table")).toBeNull();
+  });
+
+  test("test_what_is_true_of_the_provider_that_reads_is_said_as_the_service_said_it", () => {
+    for (const recorded of ["meta-model-reads", "meta-model-reads-with-settings"]) {
+      const served = recordedAnswer("get_meta", recorded).body.data;
+      const { unmount } = render(<MethodsTables meta={served} />);
+      const words = screen.getByRole("region", { name: METHODS.words.title });
+      const { reader } = served;
+
+      expect(reader.model_reads).toBe(true);
+      expect(words).toHaveTextContent(reader.notice);
+      // What the company does with the words is on the company's own page, and the link
+      // leads there. Nothing the service did not say of the company is said here.
+      expect(within(words).getByRole("link", { name: READER.terms })).toHaveAttribute("href", reader.terms_url);
+      expect(within(words).queryByRole("table")).toBeNull();
+      // A page built ahead of time says that it was, and where what is so now is said.
+      expect(words).toHaveTextContent(METHODS.words.reader.asBuilt);
+      unmount();
+    }
   });
 
   test("test_the_methods_have_no_accessibility_fault", async () => {

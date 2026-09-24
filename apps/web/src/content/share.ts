@@ -41,7 +41,6 @@ export const SHARE = {
     "No place needed replacing: each place in this search is a station or a district already, which says no more than where it is.",
   noPlaces: "This search names no place, so the link holds none.",
   stored: "The settings the link holds",
-  standIn: (position: number) => `Place ${position}, by the station or district that stands in for it`,
   failed: "The link could not be made.",
 } as const;
 

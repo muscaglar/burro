@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -6,6 +9,7 @@ import { recordedAnswer } from "@/lib/api/recorded";
 import { SessionProvider } from "@/lib/session/session";
 
 import { faultsIn } from "../../../test/support/axe";
+import { rulesOf } from "../../../test/support/css";
 import { watch } from "../../../test/support/watch";
 import { CompareButton } from "./CompareButton";
 import { CompareTray, trayStatus } from "./CompareTray";
@@ -34,10 +38,10 @@ const add = (at: number) => screen.getByRole("button", { name: COMPARE.add(areas
 const link = () => within(tray()).queryByRole("link");
 
 describe("the tray of areas to compare", () => {
-  test("test_the_tray_has_its_place_before_anything_is_chosen", () => {
+  test("test_before_anything_is_chosen_the_tray_holds_no_area_and_no_link", () => {
     show();
 
-    expect(tray()).toHaveTextContent(TRAY.none);
+    expect(tray()).toHaveAttribute("data-closed", "true");
     expect(link()).toBeNull();
     expect(within(tray()).queryByRole("list")).toBeNull();
   });
@@ -112,7 +116,7 @@ describe("the tray of areas to compare", () => {
         <ul>
           {areas.slice(0, 3).map((area) => (
             <li key={area.area_id}>
-              <CompareButton area={area} far />
+              <CompareButton area={area} />
             </li>
           ))}
         </ul>
@@ -137,15 +141,6 @@ describe("the tray of areas to compare", () => {
     expect(item(2).queryByRole("link")).toBeNull();
   });
 
-  test("test_beside_the_tray_the_button_does_not_say_again_what_the_tray_says", async () => {
-    const { user } = show();
-
-    await user.click(add(0));
-    await user.click(add(1));
-
-    expect(screen.getAllByRole("link", { name: TRAY.go(2) })).toHaveLength(1);
-  });
-
   test("test_the_button_says_what_it_would_do_so_that_chosen_is_never_told_by_colour_alone", async () => {
     const { user } = show();
 
@@ -154,7 +149,7 @@ describe("the tray of areas to compare", () => {
     expect(screen.queryByRole("button", { name: COMPARE.add(areas[0]?.name ?? "") })).toBeNull();
     await user.click(screen.getByRole("button", { name: COMPARE.remove(areas[0]?.name ?? "") }));
     expect(add(0)).toBeInTheDocument();
-    expect(tray()).toHaveTextContent(TRAY.none);
+    expect(tray()).toHaveAttribute("data-closed", "true");
   });
 
   test("test_an_area_can_be_taken_out_from_the_tray_and_the_tray_can_be_cleared", async () => {
@@ -165,7 +160,7 @@ describe("the tray of areas to compare", () => {
     expect(link()).toHaveAttribute("href", `/compare?a=${areas[0]?.slug}&a=${areas[2]?.slug}`);
 
     await user.click(within(tray()).getByRole("button", { name: TRAY.clear }));
-    expect(tray()).toHaveTextContent(TRAY.none);
+    expect(tray()).toHaveAttribute("data-closed", "true");
     expect(add(1)).toBeInTheDocument();
   });
 
@@ -215,7 +210,93 @@ describe("the tray of areas to compare", () => {
   });
 
   test("test_what_the_tray_says_of_each_count", () => {
-    expect([0, 1, 2, 3].map((count) => trayStatus(count, false))).toEqual([TRAY.none, TRAY.one, "", ""]);
+    // With nothing chosen it says nothing: it takes no room until an area is chosen.
+    expect([0, 1, 2, 3].map((count) => trayStatus(count, false))).toEqual(["", TRAY.one, "", ""]);
     expect(trayStatus(4, true)).toBe(TRAY.full);
+  });
+});
+
+describe("the tray, where it stays within reach", () => {
+  const STYLES = rulesOf(readFileSync(path.join(__dirname, "CompareTray.module.css"), "utf8"));
+
+  function showOnASearch(count = 5) {
+    const user = userEvent.setup({ delay: null });
+    const view = render(
+      <SessionProvider>
+        <ul>
+          {areas.slice(0, count).map((area) => (
+            <li key={area.area_id}>
+              <CompareButton area={area} small />
+            </li>
+          ))}
+        </ul>
+        <CompareTray />
+      </SessionProvider>,
+    );
+    return { user, ...view };
+  }
+  const short = (at: number) => screen.getByRole("button", { name: COMPARE.addNamed(areas[at]?.name ?? "") });
+
+  test("test_it_takes_no_room_until_an_area_is_chosen_and_is_still_there_to_be_told_of", () => {
+    showOnASearch();
+
+    // The answer comes first. The region is on the page, so that a reader is told when it first speaks.
+    expect(tray()).toHaveAttribute("data-closed", "true");
+    expect(within(tray()).getByRole("status")).toBeEmptyDOMElement();
+    expect(tray().textContent).toBe(TRAY.title);
+    expect(within(tray()).queryAllByRole("button")).toEqual([]);
+    const closed = STYLES.filter((rule) => /data-closed="true"/.test(rule.selector));
+    expect(closed.map((rule) => rule.sets.get("padding"))).toContain("0");
+    expect(closed.map((rule) => rule.sets.get("border"))).toContain("0");
+  });
+
+  test("test_once_an_area_is_chosen_it_stays_at_the_foot_of_the_screen", async () => {
+    const { user } = showOnASearch();
+
+    await user.click(short(0));
+
+    expect(tray()).toHaveAttribute("data-closed", "false");
+    expect(within(tray()).getByRole("status")).toHaveTextContent(TRAY.one);
+    expect(within(tray()).getByText(areas[0]?.name ?? "")).toBeInTheDocument();
+    const sticks = STYLES.filter((rule) => rule.selector.trim() === ".tray");
+    expect(sticks.map((rule) => rule.sets.get("position"))).toEqual(["sticky"]);
+    expect(sticks.map((rule) => rule.sets.get("inset-block-end"))).toEqual(["0"]);
+  });
+
+  test("test_the_button_on_a_result_says_what_it_does_in_a_word_and_names_its_area", async () => {
+    const { user } = showOnASearch();
+
+    expect(short(0)).toHaveTextContent(new RegExp(`^${COMPARE.addShort}$`));
+    expect(short(0)).toHaveClass("target-min");
+    await user.click(short(0));
+
+    const chosen = screen.getByRole("button", { name: COMPARE.removeNamed(areas[0]?.name ?? "") });
+    expect(chosen).toHaveTextContent(new RegExp(`^${COMPARE.removeShort}$`));
+    expect(chosen).toHaveFocus();
+    // Whether the area is chosen is said by what the button would do, and never by colour alone.
+    expect(chosen).not.toHaveAttribute("aria-pressed");
+  });
+
+  test("test_with_two_chosen_the_way_to_the_comparison_is_in_the_tray_and_beside_the_button", async () => {
+    const { user } = showOnASearch();
+
+    await user.click(short(0));
+    await user.click(short(1));
+
+    const ways = screen.getAllByRole("link", { name: TRAY.go(2) });
+    expect(ways.length).toBeGreaterThanOrEqual(2);
+    for (const way of ways) {
+      expect(way).toHaveAttribute("href", `/compare?a=${areas[0]?.slug}&a=${areas[1]?.slug}`);
+      expect(way).toHaveAttribute("data-prefetch", "false");
+    }
+    expect(within(tray()).getByRole("link", { name: TRAY.go(2) })).toHaveClass("target");
+  });
+
+  test("test_the_tray_where_it_sticks_has_no_accessibility_fault", async () => {
+    const { user, container } = showOnASearch();
+    await user.click(short(0));
+    await user.click(short(1));
+
+    expect(await faultsIn(container)).toEqual([]);
   });
 });

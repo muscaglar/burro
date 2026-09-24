@@ -7,10 +7,19 @@
 
 import type { Segment, Tenure } from "@/lib/api/schema";
 
+import { SHELF } from "./search";
+
+import { CRIME_RULE } from "./crime";
+
 export const SETTINGS = {
   title: "Settings",
   lead: "Every setting here does what typing does. Change one and the ranking is worked out again.",
   rank: "Rank with these settings",
+  /** The first two groups. The groups after them are named by the API, one for each family of vibes. */
+  money: "Budget and home",
+  journeys: "Journeys",
+  /** Features that belong to no family of vibes and are not recorded crime. */
+  airAndNoise: "Air and noise",
 } as const;
 
 export const BUDGET = {
@@ -28,11 +37,14 @@ export const BUDGET = {
   weight: "How much the budget counts",
   between: (least: string, most: string) => `Between £${least} and £${most}.`,
   notWhole: "Give the amount as a whole number of pounds.",
+  /** In place of the amount, where the data holds no cost to test one against. */
+  notInData: "This data holds no rents and no prices yet, so a budget cannot be set.",
 } as const;
 
 export const JOURNEY = {
-  legend: "Places you need to reach",
   none: "No place named yet.",
+  /** In place of the field and of every control, where the data names no place to reach. */
+  notInData: "This data names no places and holds no journey times yet, so a journey cannot be added.",
   place: (name: string) => `Journey to ${name}`,
   how: "How you travel there",
   longest: "Longest journey, in minutes",
@@ -50,12 +62,16 @@ export const JOURNEY = {
 } as const;
 
 export const FEATURES = {
-  // Not "what you want": a feature names a measure, such as noise, which may be wanted low.
-  legend: "What counts nearby",
-  tagsLegend: "The feel of the place",
-  tagsHint: "A tag is a fixed formula over the features above. Methods says what is in each.",
   weight: (label: string) => `How much it counts: ${label}`,
   direction: (label: string) => `Which way counts as better: ${label}`,
+  /** Opens the parts a vibe is made of, each of which can be made to count by itself. */
+  madeOf: "Made of",
+  madeOfName: (vibe: string) => `${vibe}: made of`,
+  madeOfHint: "A vibe is a fixed recipe over these parts. Each part can also count by itself.",
+  /** Parts of a recipe that this data does not carry, so that none of them can be made to count. */
+  notInData: SHELF.missing,
+  /** The heading over the features of a family that are in no recipe. */
+  others: "Other things that count",
 } as const;
 
 export const SLIDER = {
@@ -63,11 +79,16 @@ export const SLIDER = {
   more: (label: string) => `More: ${label}`,
   number: (label: string) => `${label}, from 0 to 100`,
   range: "From 0, which is not at all, to 100, which is as much as anything can.",
+  /** The button at an end of a slider with two ends. The name of the end is the API's. */
+  toward: (label: string, end: string) => `${label}: towards ${end}`,
+  /** Where a slider with two ends stands: which end, and how far towards it. */
+  towards: (end: string, value: number) => `Towards ${end}, ${value} of 100`,
+  middle: "In the middle: it does not count",
+  twoEnds: "The middle counts for nothing. The further towards an end, the more that end counts, up to 100.",
 } as const;
 
 export const HIDDEN = {
   legend: "Hidden areas",
-  none: "No area is hidden.",
   show: (area: string) => `Show ${area} again`,
   only: (area: string) => `Stop showing only ${area}`,
 } as const;
@@ -80,7 +101,8 @@ export const CRIME_CAVEAT =
   "Recorded crime depends on what is reported, and locations are approximate.";
 
 export const CRIME = {
-  lead: "Recorded crime is off unless you switch it on. It is a count of what was reported, by kind.",
+  // The one account of when recorded crime counts, as every page says it.
+  lead: `${CRIME_RULE} It is a count of what was reported, by kind.`,
 } as const;
 
 /**

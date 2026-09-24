@@ -1,11 +1,17 @@
 "use client";
 
-import { MAP_CARD } from "@/content/map";
-import { COMPLETENESS, FILTERED, RESULTS, UNRANKED } from "@/content/search";
-import type { AreaSummary, Filtered, RankedArea, Score, Unranked } from "@/lib/api/schema";
-import { fitOf } from "@/lib/map/fill";
-import { completenessOf } from "@/lib/search/card";
+import Link from "next/link";
 
+import { MAP_CARD } from "@/content/map";
+import { FILTERED, RESULTS, UNRANKED } from "@/content/search";
+import type { AreaSummary, Filtered, Score, Unranked } from "@/lib/api/schema";
+import { fitOf } from "@/lib/map/fill";
+import { paths } from "@/lib/paths";
+import { basedOn } from "@/lib/search/card";
+import { placedOn, type Lens } from "@/lib/vibes";
+import { saysItsBorough } from "@/lib/area/named";
+
+import { CompareButton } from "../CompareTray/CompareButton";
 import styles from "./MapView.module.css";
 
 interface Props {
@@ -14,8 +20,10 @@ interface Props {
   readonly filtered: readonly Filtered[];
   readonly unranked: readonly Unranked[];
   readonly emptySpec?: boolean;
-  /** The area as the list holds it, where it is among the results in the list. */
-  readonly ranked?: RankedArea;
+  /** True when the area is among the results the list holds. */
+  readonly inList?: boolean;
+  /** The vibe the map is coloured by, before a search. */
+  readonly lens?: Lens | null;
   readonly onShowInList: () => void;
   readonly onClose: () => void;
 }
@@ -24,7 +32,12 @@ interface Props {
  * What the map says of the area chosen on it, in words: its name, its
  * borough, its rank and its fit, or the reason it has no rank. Under the fit,
  * how much of what counts it rests on, as the list says it: a fit with
- * nothing beside it reads as one that rests on everything.
+ * nothing beside it reads as one that rests on everything. Where the map is
+ * coloured by a vibe, the band the colour stands for.
+ *
+ * Its name is the way to the page of the area, in one press, and the area can
+ * be put among those to compare from here: an area pressed on the map once
+ * led nowhere.
  */
 export function MapCard({
   summary,
@@ -32,30 +45,38 @@ export function MapCard({
   filtered,
   unranked,
   emptySpec = false,
-  ranked,
+  inList = false,
+  lens = null,
   onShowInList,
   onClose,
 }: Props) {
   const at = scores.findIndex((score) => score.area_id === summary.area_id);
   const score = scores[at];
-  const reason =
-    filtered.find((one) => one.area_id === summary.area_id)?.reason ??
-    unranked.find((one) => one.area_id === summary.area_id)?.reason;
-  const inList = ranked !== undefined;
-  const rests = ranked === undefined || emptySpec ? null : completenessOf(ranked);
-  const why =
-    reason === undefined
-      ? null
-      : reason === "not_rankable" || reason === "insufficient_data"
-        ? UNRANKED[reason]
-        : FILTERED[reason];
+  const rests = score === undefined || emptySpec ? null : basedOn(score, true);
+  const left = filtered.find((one) => one.area_id === summary.area_id);
+  const apart = unranked.find((one) => one.area_id === summary.area_id);
+  // A reason the page has no words for is left out, and never shown as its code or as a blank.
+  const words: Readonly<Record<string, string | undefined>> = left !== undefined ? FILTERED : UNRANKED;
+  const why = words[left?.reason ?? apart?.reason ?? ""] ?? null;
+  const placed = lens === null ? null : placedOn(lens, summary.area_id);
 
   return (
     <section className={styles.card} aria-label={MAP_CARD.label}>
       <div>
-        <p className={styles.cardName}>{summary.name}</p>
-        <p className={styles.cardBorough}>{summary.borough}</p>
+        <p className={styles.cardName}>
+          {/* Which page a person reads next is told to no server ahead of time. */}
+          <Link className="target-min" href={paths.area(summary)} prefetch={false}>
+            {summary.name}
+          </Link>
+        </p>
+        {/* A name that begins with its borough says it already. */}
+        {saysItsBorough(summary) ? null : <p className={styles.cardBorough}>{summary.borough}</p>}
       </div>
+      {lens !== null && placed !== null ? (
+        <p>
+          {lens.tag.label}: {placed}
+        </p>
+      ) : null}
       {score !== undefined ? (
         <p>
           {RESULTS.rank(at + 1)}
@@ -64,11 +85,7 @@ export function MapCard({
       ) : why !== null ? (
         <p>{why}</p>
       ) : null}
-      {score !== undefined && rests !== null && rests.asked > 0 ? (
-        <p className={styles.cardNote}>
-          {rests.complete ? COMPLETENESS.all : COMPLETENESS.some(rests.present, rests.asked)}
-        </p>
-      ) : null}
+      {rests !== null ? <p className={styles.cardNote}>{rests}</p> : null}
       <div className={styles.cardActions}>
         {inList ? (
           <button type="button" className="target" onClick={onShowInList}>
@@ -77,6 +94,7 @@ export function MapCard({
         ) : score !== undefined ? (
           <p className={styles.cardNote}>{MAP_CARD.notInList}</p>
         ) : null}
+        <CompareButton area={summary} small />
         <button type="button" className="target" onClick={onClose}>
           {MAP_CARD.close}
         </button>

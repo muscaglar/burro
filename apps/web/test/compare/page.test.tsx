@@ -4,7 +4,8 @@
  * rows in the order the API gave them, and every figure from a fact.
  */
 
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { SHOWN_AT_FIRST } from "@/components/ResultList/ResultList";
+import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -13,8 +14,9 @@ import ComparePage from "@/app/compare/page";
 import { CompareView } from "@/components/CompareTable/CompareView";
 import { SearchApp } from "@/components/SearchApp/SearchApp";
 import { Shell } from "@/components/Shell/Shell";
+import { RESTS_ON } from "@/content/bands";
 import { COMPARE, COMPARE_STATUS, COMPARE_TABLE, TRAY } from "@/content/compare";
-import { PROMPT, SOURCE } from "@/content/search";
+import { PROMPT, SOURCE, STRIP } from "@/content/search";
 import { CRIME_CAVEAT } from "@/content/settings";
 import { BANNER } from "@/content/site";
 import { recordedAnswer, recordedError } from "@/lib/api/recorded";
@@ -42,6 +44,7 @@ function comparison(slugs: readonly string[], api: StandIn, more: { unknown?: nu
     <CompareView
       chosen={chosenFrom(slugs, areas).chosen}
       defaults={meta.data.defaults}
+      tags={meta.data.tags}
       client={api.client}
       {...more}
     />
@@ -90,7 +93,8 @@ describe("what a comparison is asked on", () => {
     rerender(inShell(<SearchApp meta={meta.data} areas={areas} client={api.client} />));
     await settled();
 
-    expect(screen.getAllByRole("article")).toHaveLength(ranked.ranked.length);
+    // The list is as it first stands: the first ten of the ranking.
+    expect(screen.getAllByRole("article")).toHaveLength(Math.min(SHOWN_AT_FIRST, ranked.ranked.length));
     // Coming back asks for nothing again: the search was kept, not made again.
     expect(api.callsTo("interpret")).toHaveLength(1);
     expect(api.callsTo("rank")).toHaveLength(1);
@@ -127,6 +131,62 @@ describe("what a comparison is asked on", () => {
   });
 });
 
+describe("the character of the areas compared", () => {
+  const character = () => screen.getByRole("table", { name: COMPARE_TABLE.character.caption });
+
+  test("test_the_vibes_of_each_area_come_before_the_measured_parts", async () => {
+    await openFromASearch(THREE);
+
+    const tables = within(screen.getByRole("main")).getAllByRole("table");
+    const headings = within(screen.getByRole("main"))
+      .getAllByRole("heading", { level: 2 })
+      .map((heading) => heading.textContent);
+
+    expect(tables).toEqual([character(), table()]);
+    expect(headings.slice(0, 2)).toEqual([COMPARE_TABLE.character.title, COMPARE_TABLE.counts]);
+    expect(character().compareDocumentPosition(table()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  test("test_each_vibe_is_one_line_with_a_mark_for_each_area", async () => {
+    await open(TWO);
+
+    const rows = within(character()).getAllByRole("row").slice(1);
+
+    expect(rows).toHaveLength(two.character.length);
+    two.character.forEach((vibe, at) => {
+      const cells = within(rows[at] as HTMLElement).getAllByRole("cell");
+      expect(cells.map((cell) => cell.querySelectorAll("[data-on='true']").length)).toEqual(vibe.marks.map(() => 1));
+      vibe.marks.forEach((mark, column) => expect(cells[column]).toHaveTextContent(STRIP.band(mark.band ?? 0)));
+    });
+  });
+
+  test("test_the_character_is_compared_whatever_the_search_holds", async () => {
+    // The band of an area on a vibe is of the release, and of no search: it is the same
+    // with a search open and with none.
+    await openFromASearch(THREE);
+    const fromASearch = character().textContent;
+    cleanup();
+
+    await open(THREE, standInApi().on("compare", "compare-three"));
+
+    expect(character().textContent).toBe(fromASearch);
+  });
+
+  test("test_with_nothing_set_to_count_the_character_is_still_compared", async () => {
+    const recorded = recordedAnswer("compare", "compare-two-defaults");
+    const api = standInApi().on("compare", () => ({
+      ...recorded,
+      body: { ...recorded.body, data: { ...recorded.body.data, rows: [] } },
+    }));
+
+    await open(TWO, api);
+
+    expect(character()).toBeInTheDocument();
+    expect(screen.getByRole("main")).toHaveTextContent(COMPARE.nothingCounts);
+    expect(screen.queryByRole("table", { name: COMPARE_TABLE.caption })).toBeNull();
+  });
+});
+
 describe("the rows of a comparison", () => {
   test("test_the_rows_are_in_the_order_the_api_gave_which_is_the_order_of_the_weights", async () => {
     await openFromASearch(THREE);
@@ -140,7 +200,8 @@ describe("the rows of a comparison", () => {
     const weights = three.rows.map((row) => row.weight);
     expect(weights).toEqual([...weights].sort((one, other) => other - one));
     expect(weights[0]).toBeGreaterThan(weights.at(-1) ?? 1);
-    expect(headers[0]).toHaveTextContent(COMPARE_TABLE.countsFor(100));
+    // What was asked of the place leads: each vibe counts for 50, the journey for 40.
+    expect(headers[0]).toHaveTextContent(COMPARE_TABLE.countsFor(50));
     expect(headers.at(-1)).toHaveTextContent(COMPARE_TABLE.countsFor(5));
   });
 
@@ -199,6 +260,27 @@ describe("the rows of a comparison", () => {
     }
     ranked.scores.forEach((score, at) => allowed.add(COMPARE_TABLE.standing(at + 1, fitOf(score.score))));
     allowed.add(COMPARE.compared(three.areas.length));
+    // What a weight is: site copy, which holds the two ends of its scale and nothing of a place.
+    allowed.add(COMPARE_TABLE.weights);
+    // How much of what counts each area has a figure for, as the API counts it.
+    for (const area of three.areas) allowed.add(COMPARE_TABLE.basedOn(area.present, area.counted));
+    // A band is said in the words the website has for one. The band itself is the API's.
+    for (const vibe of three.character) {
+      for (const mark of vibe.marks) if (mark.band !== null) allowed.add(STRIP.band(mark.band));
+    }
+    // How many parts of its recipe a band rests on: both counts are slots of the vibe's fact.
+    for (const fact of three.facts.filter((one) => one.kind === "tag")) {
+      allowed.add(RESTS_ON.short(fact.slots.known ?? "", fact.slots.parts ?? ""));
+    }
+    // How many vibes cannot place an area, counted from the marks the API sent.
+    for (const area of three.areas) {
+      const unplaced = three.character.filter(
+        (vibe) => vibe.marks.find((mark) => mark.area_id === area.area_id)?.band === null,
+      ).length;
+      allowed.add(COMPARE_TABLE.character.unplaced(area.name, unplaced, three.character.length));
+      // Beside a fit that rests on part of what counts, the same count is said in a line of its own.
+      allowed.add(`${COMPARE_TABLE.basedOn(area.present, area.counted)}. ${COMPARE_TABLE.restsOnPart}`);
+    }
 
     expect(figuresNotFrom(screen.getByRole("main"), allowed)).toEqual([]);
   });
@@ -212,21 +294,25 @@ describe("the rows of a comparison", () => {
       .filter((value): value is number => value !== null && !Number.isInteger(value))
       .map(String);
 
-    expect(raw.length).toBeGreaterThan(40);
+    expect(raw.length).toBeGreaterThan(30);
     expect(raw.filter((value) => text.includes(value))).toEqual([]);
     expect(/percentile/i.test(text)).toBe(false);
   });
 
   test("test_what_a_thing_adds_to_the_fit_is_rounded_down", async () => {
     await openFromASearch(THREE);
-    const journey = within(table()).getAllByRole("row")[1] as HTMLElement;
+    const at = three.rows.findIndex((row) => row.component === "tag:leafy");
+    const leafy = within(table()).getAllByRole("row")[at + 1] as HTMLElement;
+    const budgetAt = three.rows.findIndex((row) => row.component === "budget");
+    const budget = within(table()).getAllByRole("row")[budgetAt + 1] as HTMLElement;
 
-    // 0.3175 adds 31, and never 32. It is the second area's journey: the first's is 0.254,
-    // which comes to 25 whichever way it is rounded, and so would prove nothing.
-    expect(three.rows[0]?.cells[1]?.contribution).toBe(0.3175);
-    expect(within(journey).getAllByRole("cell")[1]).toHaveTextContent(COMPARE_TABLE.adds(31));
-    expect(within(journey).getAllByRole("cell")[1]).not.toHaveTextContent(COMPARE_TABLE.adds(32));
-    expect(within(journey).getAllByRole("cell")[0]).toHaveTextContent(COMPARE_TABLE.adds(25));
+    // 0.0756 adds 7, and never 8. It is how leafy the second area is. Its budget adds 0.1463,
+    // which comes to 14 whichever way it is rounded, and so would prove nothing.
+    expect(three.rows[at]?.cells[1]?.contribution).toBe(0.0756);
+    expect(within(leafy).getAllByRole("cell")[1]).toHaveTextContent(COMPARE_TABLE.adds(7));
+    expect(within(leafy).getAllByRole("cell")[1]).not.toHaveTextContent(COMPARE_TABLE.adds(8));
+    expect(three.rows[budgetAt]?.cells[1]?.contribution).toBe(0.1463);
+    expect(within(budget).getAllByRole("cell")[1]).toHaveTextContent(COMPARE_TABLE.adds(14));
   });
 
   test("test_every_cell_with_a_figure_ends_in_its_source_and_its_date", async () => {
@@ -296,9 +382,51 @@ describe("the areas of a comparison", () => {
 
     expect(farrowmere).toHaveTextContent(COMPARE_STATUS.ranked);
     expect(alderwick).toHaveTextContent(COMPARE_STATUS.commute_cap);
-    // Its journey was never scored, and the page says that and gives no time.
-    const journey = within(table()).getAllByRole("row")[1] as HTMLElement;
-    expect(within(journey).getAllByRole("cell")[2]).toHaveTextContent(COMPARE_TABLE.notScored);
+    // The journey that left it out is shown, with the limit it is over. It adds nothing: the
+    // area was never scored.
+    const at = three.rows.findIndex((row) => row.place !== null);
+    const journey = within(table()).getAllByRole("row")[at + 1] as HTMLElement;
+    const cell = within(journey).getAllByRole("cell")[2] as HTMLElement;
+    expect(cell).toHaveTextContent("Typical minutes53");
+    expect(cell).toHaveTextContent("Your limit, in minutes30");
+    expect(cell).toHaveTextContent("Over your limit by, in minutes23");
+    expect(/Adds \d+ of 100/.test(cell.textContent ?? "")).toBe(false);
+    expect(within(cell).getByRole("button", { name: /^Source for / })).toBeInTheDocument();
+  });
+
+  test("test_a_compared_area_says_how_much_of_what_counts_it_has_a_figure_for", async () => {
+    // A rank and a fit stood alone beside an area with a figure for 4 of the 10 things that count.
+    const four: CompareData = recordedAnswer("compare", "compare-two-journeys").body.data;
+    await openFromASearch(
+      four.areas.map((area) => slugOf(area.area_id)),
+      firstSearch().on("compare", "compare-two-journeys"),
+    );
+    const compared = within(screen.getByRole("list", { name: COMPARE_TABLE.areas })).getAllByRole("listitem");
+
+    expect(four.areas.map((area) => [area.name, area.status, area.counted, area.present])).toEqual([
+      ["Wexmoor", "ranked", 8, 8],
+      ["Marrowfen", "ranked", 8, 7],
+      ["Gorsebeck", "ranked", 8, 8],
+      ["Otterby Fields", "character_unknown", 0, 0],
+    ]);
+    expect(compared[1]).toHaveTextContent(COMPARE_TABLE.basedOn(7, 8));
+    // One with a figure for everything says nothing more, and one that is not ranked was never scored.
+    expect(compared[0]?.textContent?.includes("things that count")).toBe(false);
+    expect(compared[3]?.textContent?.includes("things that count")).toBe(false);
+    // It says in words why it is not ranked, and is given no rank and no fit.
+    expect(compared[3]).toHaveTextContent(COMPARE_STATUS.character_unknown);
+    expect(/Rank \d|Fit \d/.test(compared[3]?.textContent ?? "")).toBe(false);
+  });
+
+  test("test_with_no_search_open_a_compared_area_still_says_how_much_it_has_a_figure_for", async () => {
+    await open(TWO);
+    const compared = within(screen.getByRole("list", { name: COMPARE_TABLE.areas })).getAllByRole("listitem");
+    const [alderwick] = recordedAnswer("compare", "compare-two-defaults").body.data.areas;
+
+    expect(alderwick).toMatchObject({ counted: 6, present: 5 });
+    expect(compared[0]).toHaveTextContent(COMPARE_TABLE.basedOn(5, 6));
+    // It says nothing of a search, because none is open.
+    expect(COMPARE_TABLE.basedOn(5, 6)).not.toMatch(/your search/);
   });
 
   test("test_a_ranked_area_says_where_it_stands_in_the_search_that_is_open", async () => {
@@ -365,7 +493,7 @@ describe("the areas of a comparison", () => {
     expect(screen.queryByRole("table")).toBeNull();
 
     held.release();
-    expect(await screen.findByRole("table")).toBeInTheDocument();
+    expect(await screen.findByRole("table", { name: COMPARE_TABLE.caption })).toBeInTheDocument();
     expect(screen.getByRole("main")).toHaveTextContent(COMPARE.compared(2));
   });
 
@@ -396,7 +524,7 @@ describe("a comparison that fails", () => {
     api.on("compare", "compare-two-defaults");
     await user.click(within(alert).getByRole("button", { name: PROMPT.tryAgain }));
 
-    expect(await screen.findByRole("table")).toBeInTheDocument();
+    expect(await screen.findByRole("table", { name: COMPARE_TABLE.caption })).toBeInTheDocument();
     expect(screen.queryByRole("alert")).toBeNull();
     expect(api.callsTo("compare")).toHaveLength(2);
   });

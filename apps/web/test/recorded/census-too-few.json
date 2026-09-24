@@ -1,0 +1,156 @@
+{
+  "scenario": "census-too-few",
+  "shows": "An area where too few were counted: every table is left out, and says so",
+  "captured": true,
+  "request": {
+    "operation_id": "get_census",
+    "method": "GET",
+    "route": "/v1/areas/{id_or_slug}/census",
+    "path": "/v1/areas/grapnel-dock/census"
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "4458",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "false",
+    "x-burro-synthetic": "true",
+    "x-request-id": "6bdc8897-3eee-4356-b717-8bc3c9249946",
+    "x-robots-tag": "noindex, nosnippet"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
+    },
+    "data": {
+      "area_id": "syn-n0009",
+      "heading": "A made-up count: who lived here",
+      "date_line": "A made-up count, dated 21 March 2021. Nothing here was counted, and nobody published it.",
+      "notes": [
+        "A real count says here what was unusual about the day it was taken.",
+        "An area can change. These figures are of that day, and not of today.",
+        "Grapnel Dock is drawn by Burro from 1 made-up small area. The figures are made-up counts, added up by Burro.",
+        "Shares are whole numbers and may not add up to 100%. Where fewer than 1 in 100 were counted, the table says so and gives no count.",
+        "Beside each figure is the figure for Quillhaven, and nothing else. Burro says nothing about what a figure means."
+      ],
+      "city": "Quillhaven",
+      "output_areas": 1,
+      "tables": [
+        {
+          "table_code": "SYN-HH",
+          "kind": "households",
+          "title": "Households, made up",
+          "caption": "Households, made up",
+          "definition": "The definition a publisher would give: \"Who shares a home, by how they are related. Made up for testing: it counts nobody.\"",
+          "shown_only": null,
+          "note": null,
+          "columns": {
+            "label": "Household",
+            "share": "Grapnel Dock",
+            "count": "Counted",
+            "city": "Quillhaven"
+          },
+          "reason": "too_few",
+          "left_out": "Households, made up. Too few households lived in Grapnel Dock on the day for Burro to give shares.",
+          "rows": [],
+          "source_id": "synthetic",
+          "source_url": "",
+          "source_label": ""
+        },
+        {
+          "table_code": "SYN-BORN",
+          "kind": "country_of_birth",
+          "title": "Made-up countries, in place of country of birth",
+          "caption": "Made-up countries, in place of country of birth",
+          "definition": "The definition a publisher would give: \"The made-up country a person was born in. Made up for testing: it counts nobody.\"",
+          "shown_only": "Shown here and nowhere else. Burro never ranks, filters or compares on it.",
+          "note": null,
+          "columns": {
+            "label": "Made-up country",
+            "share": "Grapnel Dock",
+            "count": "Counted",
+            "city": "Quillhaven"
+          },
+          "reason": "too_few",
+          "left_out": "Made-up countries, in place of country of birth. Too few people lived in Grapnel Dock on the day for Burro to give shares.",
+          "rows": [],
+          "source_id": "synthetic",
+          "source_url": "",
+          "source_label": ""
+        },
+        {
+          "table_code": "SYN-AGE",
+          "kind": "age",
+          "title": "Age, made up",
+          "caption": "Age, made up",
+          "definition": "The definition a publisher would give: \"A person's age on the day of the made-up count. Made up for testing: it counts nobody.\"",
+          "shown_only": null,
+          "note": null,
+          "columns": {
+            "label": "Age",
+            "share": "Grapnel Dock",
+            "count": "Counted",
+            "city": "Quillhaven"
+          },
+          "reason": "too_few",
+          "left_out": "Age, made up. Too few people lived in Grapnel Dock on the day for Burro to give shares.",
+          "rows": [],
+          "source_id": "synthetic",
+          "source_url": "",
+          "source_label": ""
+        },
+        {
+          "table_code": "SYN-GRP",
+          "kind": "ethnic_group",
+          "title": "Made-up groups, in place of ethnic group",
+          "caption": "Made-up groups, in place of ethnic group",
+          "definition": "The definition a publisher would give: \"The made-up group a person would say they belong to. Made up for testing: it counts nobody.\"",
+          "shown_only": "Shown here and nowhere else. Burro never ranks, filters or compares on it.",
+          "note": null,
+          "columns": {
+            "label": "Made-up group",
+            "share": "Grapnel Dock",
+            "count": "Counted",
+            "city": "Quillhaven"
+          },
+          "reason": "too_few",
+          "left_out": "Made-up groups, in place of ethnic group. Too few people lived in Grapnel Dock on the day for Burro to give shares.",
+          "rows": [],
+          "source_id": "synthetic",
+          "source_url": "",
+          "source_label": ""
+        },
+        {
+          "table_code": "SYN-BLF",
+          "kind": "religion",
+          "title": "Made-up beliefs, in place of religion",
+          "caption": "Made-up beliefs, in place of religion",
+          "definition": "The definition a publisher would give: \"The made-up belief a person would name, or none. Made up for testing: it counts nobody.\"",
+          "shown_only": "Shown here and nowhere else. Burro never ranks, filters or compares on it.",
+          "note": null,
+          "columns": {
+            "label": "Made-up belief",
+            "share": "Grapnel Dock",
+            "count": "Counted",
+            "city": "Quillhaven"
+          },
+          "reason": "too_few",
+          "left_out": "Made-up beliefs, in place of religion. Too few people lived in Grapnel Dock on the day for Burro to give shares.",
+          "rows": [],
+          "source_id": "synthetic",
+          "source_url": "",
+          "source_label": ""
+        }
+      ],
+      "source_line": "Source: made up by Burro for testing. Tables SYN-HH, SYN-BORN, SYN-AGE, SYN-GRP and SYN-BLF. Made on 23 September 2026.",
+      "derivation_line": "Added up by Burro over the 1 made-up small area of Grapnel Dock. The shares are Burro's arithmetic on made-up counts.",
+      "licence_line": "Synthetic data generated by Burro for testing. It describes no real place."
+    }
+  }
+}

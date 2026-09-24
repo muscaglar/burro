@@ -28,9 +28,11 @@ const config: Config = {
   // Files are found by Node alone. A file-watching service, where one is
   // installed, is another program to wait on, and a run can hang on it.
   watchman: false,
-  // A test that draws the whole search page and works it by keyboard takes seconds, and
-  // longer on a machine that is busy with something else. Five seconds is too few for that.
-  testTimeout: 30_000,
+  // A test that draws the whole search page takes seconds. The slowest opens every setting
+  // and checks all of it for faults: it took 21 to 32 seconds with three tests running at
+  // once, and it grows as the release measures more. A hosted runner has four cores, and
+  // slower ones, so a test is given two minutes.
+  testTimeout: 120_000,
   // Tests run offline and leave nothing behind them.
   clearMocks: true,
   restoreMocks: true,

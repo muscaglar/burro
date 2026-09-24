@@ -1,0 +1,246 @@
+/*
+ * The census figures of an area. It is a table first: every figure is in a cell, in words.
+ *
+ * One rule holds for everything drawn here. No colour, shade, weight or size says that a
+ * figure is much or little, or that one row is unlike another. Every row is set in the same
+ * type and the same colour, and every bar is drawn alike. A step in is the only mark of a
+ * row that stands under a group. test/census/shown.test.tsx reads this file for it.
+ */
+
+.shown {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+  max-width: 45rem;
+}
+
+/* The tables, one under the next, each under a rule as the parts of the page are. */
+.tables {
+  display: grid;
+  min-width: 0;
+  border-block-start: 1px solid var(--border);
+}
+
+.shown p {
+  margin: 0;
+}
+
+.date {
+  font-weight: 600;
+}
+
+.notes {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-2) 0;
+  padding-inline-start: var(--space-5);
+}
+
+.legend {
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.state {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+
+.state p {
+  margin: 0;
+}
+
+/* One table, closed under its name until it is pressed, or the sentence that says it is left out. */
+.table {
+  min-width: 0;
+  border-block-end: 1px solid var(--border);
+}
+
+.table > p {
+  margin-block: var(--space-2);
+}
+
+.opened {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  padding-block-end: var(--space-4);
+}
+
+.figures {
+  margin: 0;
+  table-layout: fixed;
+}
+
+.figures caption {
+  color: var(--text);
+  font-size: var(--size-body);
+  font-weight: 600;
+}
+
+/* The share has room for its picture beside it. The rows have what the three leave. */
+.figures thead th:nth-child(2) {
+  width: 11rem;
+}
+
+.figures thead th:nth-child(n + 3) {
+  width: 6.5rem;
+}
+
+.figures th,
+.figures td {
+  overflow-wrap: anywhere;
+}
+
+/* A row under a group stands a step in, and one under that a step more. Nothing else marks it. */
+.label {
+  font-weight: 400;
+}
+
+.label[data-depth="1"] {
+  padding-inline-start: var(--space-5);
+}
+
+.label[data-depth="2"] {
+  padding-inline-start: calc(2 * var(--space-5));
+}
+
+/* The figure in words, and its picture beside it where there is room, or under it. */
+.figure {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+/* The words may wrap: "fewer than 1 in 100" is wider than a column of figures. */
+.said {
+  flex: 0 1 auto;
+  min-width: 2.5rem;
+}
+
+/* Whose figure it is. Shown only where the rows are stacked. */
+.cellName {
+  display: none;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+/* The same share, drawn. Every bar is one colour and one height, whatever it holds. */
+.picture {
+  flex: 1 1 3.5rem;
+  min-width: 3.5rem;
+  max-width: 6rem;
+  height: var(--space-3);
+  overflow: visible;
+}
+
+.line {
+  stroke: var(--border);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.bar {
+  fill: var(--surface);
+  stroke: var(--text);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.mark {
+  stroke: var(--text);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.leftOut {
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border-inline-start: 4px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.under {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--target-gap) var(--space-4);
+}
+
+.links a {
+  display: inline-flex;
+  align-items: center;
+}
+
+.foot {
+  display: grid;
+  gap: var(--space-1);
+  padding-block-start: var(--space-3);
+  border-block-start: 1px solid var(--border);
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+/*
+ * A narrow screen: each row is stacked. The row comes first, and under it the three figures
+ * side by side, each under its own name. The headings of the columns are kept for a screen
+ * reader and not drawn, because each cell now says whose it is.
+ */
+@media (max-width: 39.99rem) {
+  .figures,
+  .figures caption,
+  .figures tbody,
+  .figures th,
+  .figures td {
+    display: block;
+  }
+
+  .head {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0 var(--space-3);
+    padding-block: var(--space-2);
+    border-block-end: 1px solid var(--border);
+  }
+
+  .row > th,
+  .row > td {
+    padding: 0;
+    border: 0;
+  }
+
+  .label {
+    grid-column: 1 / -1;
+    padding-block-end: var(--space-1);
+  }
+
+  .label[data-depth="1"] {
+    padding-inline-start: var(--space-4);
+  }
+
+  .label[data-depth="2"] {
+    padding-inline-start: calc(2 * var(--space-4));
+  }
+
+  .cellName {
+    display: block;
+  }
+}

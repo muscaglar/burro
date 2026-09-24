@@ -1,0 +1,86 @@
+/*
+ * The strip of vibes under a result's name. Each mark is one line high: the name, the low
+ * end, five cells, the high end. Marks stand side by side and wrap.
+ */
+.strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--size-small);
+}
+
+.item {
+  max-width: 100%;
+}
+
+/*
+ * A mark that opens takes the line under it for what it opens to. Its last word stands
+ * clear of the edge of its button.
+ */
+.opens[class] > button {
+  padding: 0 var(--space-1) 0 0;
+  color: inherit;
+}
+
+.opens:has(> button[aria-expanded="true"]) {
+  flex-basis: 100%;
+}
+
+.mark {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-2);
+  min-height: var(--target-min);
+}
+
+.name {
+  font-weight: 600;
+}
+
+.end,
+.group {
+  color: var(--muted);
+}
+
+/* The end that was asked for is drawn heavier. The name of the picture says which it is. */
+.end[data-asked="true"] {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/*
+ * The picture of a vibe beside the sentence that is about it: the two ends and the five
+ * cells, on the line of the sentence, before its first word.
+ */
+.beside {
+  display: inline-flex;
+  align-items: center;
+  gap: 0 var(--space-1);
+  margin-inline-end: var(--space-2);
+  font-size: var(--size-small);
+  vertical-align: baseline;
+}
+
+/*
+ * A narrow screen: the marks stand closer, so that two stand on a line where they can. Where
+ * a vibe was asked for, the strip holds what was asked for and no more, so that a result is
+ * a few lines. The others are on the page of the area, one press from its name.
+ */
+@media (max-width: 40rem) {
+  .strip {
+    column-gap: var(--space-2);
+  }
+
+  .strip[data-asked="true"] .item[data-asked="false"] {
+    display: none;
+  }
+
+  .mark,
+  .opens[class] > button {
+    gap: 0 var(--space-1);
+  }
+}

@@ -76,6 +76,22 @@ describe("the data sources page", () => {
     expect(listed(synthetic)).toEqual([second!.label, third!.label]);
   });
 
+  test("test_a_credit_with_a_gap_left_in_it_says_that_it_is_not_finished", () => {
+    // Seen in a browser: "Contains OS data © Crown copyright and database right [year]."
+    // The gap is the registry's, and which year fills it is not the website's to say.
+    const first = greenspace;
+    const gap = { ...first, source_id: "with-a-gap", attribution: "Contains data © Crown copyright [year]." };
+    const other = { ...first, source_id: "another-gap", attribution: "Contains data © 20nn" };
+    render(<SourceList sources={[first, gap, other]} features={[]} />);
+
+    const notes = screen.getAllByText(SOURCES.unfinished);
+    expect(notes).toHaveLength(2);
+    expect(document.getElementById("with-a-gap")).toContainElement(notes[0] as HTMLElement);
+    // The credit is shown as the API sent it. Nothing is written into the gap.
+    expect(document.getElementById("with-a-gap")).toHaveTextContent("Contains data © Crown copyright [year].");
+    expect(document.getElementById(first.source_id)?.textContent?.includes(SOURCES.unfinished)).toBe(false);
+  });
+
   test("test_a_source_no_feature_names_says_so", () => {
     render(<SourceList sources={[greenspace]} features={meta.features} />);
 

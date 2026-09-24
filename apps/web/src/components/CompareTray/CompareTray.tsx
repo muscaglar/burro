@@ -11,15 +11,16 @@ import styles from "./CompareTray.module.css";
 
 /** What the tray says of how many areas are chosen. It is said aloud when it changes. */
 export function trayStatus(count: number, full: boolean): string {
-  if (count === 0) return TRAY.none;
   if (count === 1) return TRAY.one;
   return full ? TRAY.full : "";
 }
 
 /**
- * The areas chosen to compare, and the link that compares them. It has its
- * place on the page whether or not anything is chosen, so that choosing an
- * area moves nothing.
+ * The areas chosen to compare, and the link that compares them.
+ *
+ * It takes no room until an area is chosen: what the page is for comes first.
+ * It then stays at the foot of the screen, so that it is never a long way
+ * from the button that was pressed.
  *
  * The link holds the slugs of the areas and nothing else. It is followed
  * when it is pressed and not fetched before.
@@ -27,10 +28,11 @@ export function trayStatus(count: number, full: boolean): string {
 export function CompareTray() {
   const id = useId();
   const { chosen, enough, full, toggle, clear } = useCompare();
+  const closed = chosen.length === 0;
   const status = trayStatus(chosen.length, full);
   return (
-    <section className={styles.tray} aria-labelledby={`${id}-title`}>
-      <h2 id={`${id}-title`} className={styles.title}>
+    <section className={styles.tray} data-closed={closed} aria-labelledby={`${id}-title`}>
+      <h2 id={`${id}-title`} className={closed ? "visually-hidden" : styles.title}>
         {TRAY.title}
       </h2>
       {chosen.length > 0 ? (
@@ -50,6 +52,7 @@ export function CompareTray() {
           ))}
         </ul>
       ) : null}
+      {/* It is on the page before anything is chosen, so that a screen reader is told when it first says something. */}
       <p className={styles.status} role="status">
         {status}
       </p>

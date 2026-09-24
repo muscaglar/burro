@@ -18,13 +18,25 @@ const sentSpec = (made.request.body as { spec: PreferenceSpec }).spec;
 const noPlaces: PreferenceSpec = { ...sentSpec, commutes: [] };
 const ORIGIN = window.location.origin;
 
-/** Answers as the API does, from a recording, and keeps what it was asked. */
+/**
+ * How long the stand-in takes to answer, in milliseconds. A service answers a moment after
+ * it is asked, and never at once. On a quick machine an answer that came at once had landed
+ * by the next line of a test, and on a slower one it had not: so the stand-in is always a
+ * moment late, and a test that does not wait for what it looks for fails everywhere.
+ */
+const A_MOMENT = 25;
+
+/** Answers as the API does, from a recording and a moment later, and keeps what it was asked. */
 function creating(scenario = "share-made") {
   const asked: boolean[] = [];
   const client = createClient({
     baseUrl: "https://api.example.test",
-    fetch: (async () =>
-      responseFrom(scenario.startsWith("share") ? recordedAnswer("create_share", scenario) : recordedError(scenario))) as typeof fetch,
+    fetch: (async () => {
+      await new Promise((resolve) => setTimeout(resolve, A_MOMENT));
+      return responseFrom(
+        scenario.startsWith("share") ? recordedAnswer("create_share", scenario) : recordedError(scenario),
+      );
+    }) as typeof fetch,
   });
   const create = (exactPlaces: boolean): Promise<Answer<ShareCreated>> => {
     asked.push(exactPlaces);
@@ -41,7 +53,6 @@ function show(create: ReturnType<typeof creating>["create"], spec = sentSpec, sp
       specHash={nextHash}
       meta={meta}
       areas={areas}
-      placeNames={{ "syn-p0031": "Alderwick Primary School" }}
       create={create}
     />
   );
@@ -57,6 +68,18 @@ async function opened(scenario = "share-made", spec = sentSpec) {
 }
 
 const field = () => screen.queryByRole<HTMLInputElement>("textbox", { name: SHARE.link });
+
+/**
+ * Presses the button that makes a link, and waits for what the service answers.
+ *
+ * The link is made by a call that answers a moment later. While it is made the button says
+ * so, and once the answer has landed it no longer does: that is what is waited for, whether
+ * the answer is a link or a failure.
+ */
+async function make(user: ReturnType<typeof userEvent.setup>, name: string = SHARE.make) {
+  await user.click(screen.getByRole("button", { name }));
+  await waitFor(() => expect(screen.queryByRole("button", { name: SHARE.making })).toBeNull());
+}
 
 describe("what a share is said to hold, before it is made", () => {
   test("test_the_panel_is_closed_at_first_and_opens_in_place", async () => {
@@ -94,7 +117,7 @@ describe("what a share is said to hold, before it is made", () => {
 
     expect(screen.queryByRole("checkbox")).toBeNull();
     expect(screen.getByText(SHARE.noPlaces)).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: SHARE.make }));
+    await make(user);
     expect(asked).toEqual([false]);
   });
 });
@@ -103,7 +126,7 @@ describe("making a link", () => {
   test("test_the_link_is_the_websites_address_with_the_id_in_its_fragment_and_nothing_else", async () => {
     const { user } = await opened();
 
-    await user.click(screen.getByRole("button", { name: SHARE.make }));
+    await make(user);
 
     const link = new URL(field()?.value ?? "");
     expect(link.origin).toBe(ORIGIN);
@@ -116,9 +139,9 @@ describe("making a link", () => {
   test("test_places_are_replaced_unless_the_box_is_ticked", async () => {
     const { user, asked } = await opened();
 
-    await user.click(screen.getByRole("button", { name: SHARE.make }));
+    await make(user);
     await user.click(screen.getByRole("checkbox", { name: SHARE.exact.label }));
-    await user.click(screen.getByRole("button", { name: SHARE.makeAgain }));
+    await make(user, SHARE.makeAgain);
 
     expect(asked).toEqual([false, true]);
   });
@@ -126,7 +149,7 @@ describe("making a link", () => {
   test("test_a_link_whose_places_were_replaced_says_the_ranking_may_differ", async () => {
     const { user } = await opened("share-made");
 
-    await user.click(screen.getByRole("button", { name: SHARE.make }));
+    await make(user);
 
     expect(made.body.data.coarsened).toBe(true);
     expect(screen.getByText(SHARE.coarsened)).toBeInTheDocument();
@@ -137,7 +160,7 @@ describe("making a link", () => {
     const { user } = await opened("share-made-exact");
 
     await user.click(screen.getByRole("checkbox", { name: SHARE.exact.label }));
-    await user.click(screen.getByRole("button", { name: SHARE.make }));
+    await make(user);
 
     expect(exact.body.data.coarsened).toBe(false);
     expect(screen.getByText(SHARE.exactKept)).toBeInTheDocument();
@@ -149,7 +172,7 @@ describe("making a link", () => {
     // in for itself, and the panel said "The link holds the places as you named them."
     const { user, asked } = await opened("share-made-exact");
 
-    await user.click(screen.getByRole("button", { name: SHARE.make }));
+    await make(user);
 
     expect(asked).toEqual([false]);
     expect(exact.body.data.coarsened).toBe(false);
@@ -193,7 +216,6 @@ describe("making a link", () => {
         specHash="hash-one"
         meta={meta}
         areas={areas}
-        placeNames={{}}
         create={creating().create}
         held={held}
       />,
@@ -214,7 +236,6 @@ describe("making a link", () => {
         specHash="hash-one"
         meta={meta}
         areas={areas}
-        placeNames={{}}
         create={creating().create}
         held={held}
       />,
@@ -227,24 +248,28 @@ describe("making a link", () => {
   test("test_the_settings_the_link_holds_are_shown_as_the_api_stored_them", async () => {
     const { user } = await opened("share-made");
 
-    await user.click(screen.getByRole("button", { name: SHARE.make }));
+    await make(user);
     const stored = screen.getByRole("heading", { name: SHARE.stored }).nextElementSibling as HTMLElement;
     const chips = within(stored).getAllByRole("listitem").map((chip) => chip.textContent);
 
-    expect(chips).toContain(`Renting ${CHIPS.assumed}`);
+    expect(chips).toContain("Renting");
+    expect(chips).toContain(`Usual settings: 6 ${CHIPS.assumed}`);
     expect(chips.some((chip) => chip?.startsWith("£1,700 a month"))).toBe(true);
     expect(chips).toContain("Leafy");
-    // The place that was stored is not the one that was named, and is not given its name.
+    // The place that was stored is not the one that was named. It is shown by its own name,
+    // which the answer gives, and the one that was named is not.
     expect(made.body.data.spec.commutes[0]?.place_id).not.toBe(sentSpec.commutes[0]?.place_id);
-    expect(chips.some((chip) => chip?.startsWith(SHARE.standIn(1)))).toBe(true);
+    expect(made.body.data.places.map((place) => place.name)).toEqual(["Eskerfold"]);
+    expect(chips.some((chip) => chip?.startsWith("Eskerfold"))).toBe(true);
     expect(stored.textContent?.includes("Alderwick Primary School")).toBe(false);
+    expect(/Place \d/.test(stored.textContent ?? "")).toBe(false);
   });
 
   test("test_a_place_that_was_kept_as_named_is_shown_by_its_name", async () => {
     const { user } = await opened("share-made-exact");
 
     await user.click(screen.getByRole("checkbox", { name: SHARE.exact.label }));
-    await user.click(screen.getByRole("button", { name: SHARE.make }));
+    await make(user);
     const stored = screen.getByRole("heading", { name: SHARE.stored }).nextElementSibling as HTMLElement;
 
     expect(stored.textContent?.includes("Alderwick Primary School")).toBe(true);
@@ -252,7 +277,7 @@ describe("making a link", () => {
 
   test("test_a_link_made_of_an_earlier_search_is_not_shown_for_this_one", async () => {
     const { user, rerender, panel } = await opened();
-    await user.click(screen.getByRole("button", { name: SHARE.make }));
+    await make(user);
     expect(field()).not.toBeNull();
 
     rerender(panel(noPlaces, "hash-two"));
@@ -264,7 +289,7 @@ describe("making a link", () => {
   test("test_the_field_that_holds_the_link_cannot_be_sent_or_kept_by_the_browser", async () => {
     const { user, container } = await opened();
 
-    await user.click(screen.getByRole("button", { name: SHARE.make }));
+    await make(user);
 
     expect(field()).toHaveAttribute("readonly");
     expect(field()).not.toHaveAttribute("name");
@@ -286,7 +311,7 @@ describe("copying a link", () => {
 
   test("test_copying_puts_the_link_on_the_clipboard_and_says_so", async () => {
     const { user } = await opened();
-    await user.click(screen.getByRole("button", { name: SHARE.make }));
+    await make(user);
     const copied: string[] = [];
     clipboard(async (text) => void copied.push(text));
 
@@ -299,7 +324,7 @@ describe("copying a link", () => {
 
   test("test_where_the_browser_will_not_copy_the_link_is_selected_for_the_person_to_copy", async () => {
     const { user } = await opened();
-    await user.click(screen.getByRole("button", { name: SHARE.make }));
+    await make(user);
     clipboard(async () => {
       throw new Error("not allowed");
     });
@@ -313,7 +338,7 @@ describe("copying a link", () => {
 
   test("test_a_browser_with_no_clipboard_does_not_break_the_page", async () => {
     const { user } = await opened();
-    await user.click(screen.getByRole("button", { name: SHARE.make }));
+    await make(user);
     Reflect.deleteProperty(window.navigator, "clipboard");
 
     await user.click(screen.getByRole("button", { name: SHARE.copy }));
@@ -327,7 +352,7 @@ describe("a link that cannot be made", () => {
     const failure = recordedError("error-internal");
     const { user } = await opened("error-internal");
 
-    await user.click(screen.getByRole("button", { name: SHARE.make }));
+    await make(user);
 
     const alert = screen.getByRole("alert");
     expect(alert).toHaveTextContent(SHARE.failed);
@@ -352,16 +377,16 @@ describe("the share panel, to a screen reader", () => {
   test.each([
     ["before a link is made", false],
     ["with a link made", true],
-  ])("test_the_panel_has_no_accessibility_fault_%s", async (_, make) => {
+  ])("test_the_panel_has_no_accessibility_fault_%s", async (_, link) => {
     const { user, container } = await opened();
-    if (make) await user.click(screen.getByRole("button", { name: SHARE.make }));
+    if (link) await make(user);
 
     expect(await faultsIn(container)).toEqual([]);
   });
 
   test("test_every_control_of_the_panel_takes_a_target_size", async () => {
     const { user, container } = await opened();
-    await user.click(screen.getByRole("button", { name: SHARE.make }));
+    await make(user);
 
     const controls = [...container.querySelectorAll("button, input[type='checkbox'], a")];
 
@@ -369,5 +394,23 @@ describe("the share panel, to a screen reader", () => {
     expect(
       controls.filter((control) => !control.classList.contains("target") && !control.classList.contains("target-min")),
     ).toEqual([]);
+  });
+});
+
+describe("a service that answers a moment later", () => {
+  test("test_nothing_of_a_link_is_on_the_page_until_the_service_has_answered", async () => {
+    // Seen on a slower machine: a test pressed "Make the link" and read the field on its next
+    // line. The answer had not landed, so there was no field to read. The stand-in of this
+    // suite is always a moment late, so that a test which does not wait fails everywhere.
+    const { user } = await opened();
+
+    await user.click(screen.getByRole("button", { name: SHARE.make }));
+
+    expect(A_MOMENT).toBeGreaterThan(0);
+    expect(field()).toBeNull();
+    expect(screen.getByRole("button", { name: SHARE.making })).toBeInTheDocument();
+    expect(await screen.findByRole("textbox", { name: SHARE.link })).toHaveValue(
+      linkTo(made.body.data.share_id, ORIGIN) ?? "no link",
+    );
   });
 });

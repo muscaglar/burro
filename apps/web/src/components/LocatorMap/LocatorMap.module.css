@@ -1,4 +1,21 @@
+/* Two small pictures, side by side: the city with a mark, and the area drawn close. */
 .locator {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-3);
+}
+
+.picture {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.city,
+.close {
   display: block;
   max-width: 100%;
   height: auto;
@@ -8,6 +25,24 @@
 
 .water {
   fill: var(--map-water);
+}
+
+/* The city is one shape. It has no edge of its own, so that the areas inside it draw no lines. */
+.land {
+  fill: var(--map-land);
+  stroke: var(--map-land);
+  stroke-width: 0.6;
+}
+
+/* Where the area stands in the city: a ring, and a spot in the middle of it. */
+.ring {
+  fill: none;
+  stroke: var(--map-line);
+  stroke-width: 1.5;
+}
+
+.spot {
+  fill: var(--map-line);
 }
 
 .area {
@@ -27,16 +62,24 @@
 
 @media (forced-colors: active) {
   .water,
-  .area {
+  .area,
+  .land {
     fill: Canvas;
   }
 
+  .land {
+    fill: GrayText;
+    stroke: GrayText;
+  }
+
   .area,
-  .here {
+  .here,
+  .ring {
     stroke: CanvasText;
   }
 
-  .here {
+  .here,
+  .spot {
     fill: Highlight;
   }
 }

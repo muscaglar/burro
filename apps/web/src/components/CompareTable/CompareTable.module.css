@@ -56,9 +56,53 @@
 }
 
 .label,
+.place,
 .weight,
 .caveat {
   display: block;
+}
+
+/* Where a journey is to: as heavy as the name of the row, which it is part of. */
+.place {
+  font-weight: 600;
+}
+
+/* A fit that rests on part of what counts: marked as a trade-off is, and said in words. */
+.part {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: baseline;
+  color: var(--text);
+}
+
+.partMark {
+  width: 0.625rem;
+  height: 0.625rem;
+  background: var(--tradeoff);
+  border-radius: 2px;
+  transform: rotate(45deg);
+}
+
+/* Said once over the vibes: which areas Burro cannot place on some of them, and why. */
+.unplaced {
+  display: grid;
+  gap: var(--space-1);
+  margin-block-end: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border-inline-start: 4px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.unplaced p {
+  margin: 0;
+  max-width: none;
+}
+
+.why {
+  color: var(--muted);
+  font-size: var(--size-small);
 }
 
 .weight,
@@ -84,8 +128,38 @@
   margin: 0;
 }
 
+/* What a figure is, and the figure, on one line: a cell is then half as tall. */
+.figures > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-2);
+}
+
 .figures dd {
   margin: 0;
+}
+
+/*
+ * Where an area sits on a vibe: the mark on its line, and the band in words beside it. The
+ * way to its source follows on the same line where there is room.
+ */
+.placed {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin: 0 var(--space-3) 0 0;
+  vertical-align: middle;
+}
+
+/* The vibes of each area: every area has as much room as the next, so that the marks line up. */
+.character {
+  table-layout: fixed;
+}
+
+.character .thing {
+  width: 16rem;
 }
 
 .adds,
@@ -154,11 +228,68 @@
     flex-wrap: wrap;
     gap: var(--space-1) var(--space-5);
   }
+
+  /*
+   * Where an area sits on a vibe: the area, and under it one line that holds the mark, the
+   * band in words, and the way to its source at the end. What holds the "Source" button and
+   * what it opens is no box of its own, so that the button stays where it was when it is
+   * pressed, and what it opens takes the whole width under the line.
+   */
+  .table .mark {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0 var(--space-2);
+    padding-block: var(--space-1);
+  }
+
+  .mark .cellName {
+    grid-column: 1 / -1;
+  }
+
+  /* An area the vibe cannot place is one line: its name, and that it is not placed. */
+  .table .mark[data-placed="false"] {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--space-2);
+  }
+
+  .mark .placed {
+    margin: 0;
+  }
+
+  .character .thing {
+    width: auto;
+  }
+
+  .mark > :has(> button[aria-expanded]) {
+    display: contents;
+  }
+
+  .mark > * > button[aria-expanded] + div {
+    grid-column: 1 / -1;
+    margin-block-start: 0;
+  }
 }
 
 @media (forced-colors: active) {
   .area,
-  .row {
+  .row,
+  .unplaced {
     border-color: CanvasText;
   }
+
+  .partMark {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+}
+
+/* What a weight is, said once over the table of what counts. */
+.weights {
+  margin: 0;
+  max-width: var(--measure);
+  color: var(--muted);
+  font-size: var(--size-small);
 }

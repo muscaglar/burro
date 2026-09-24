@@ -1,7 +1,8 @@
-import { act, render, renderHook, screen } from "@testing-library/react";
+import { act, render, renderHook, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 
 import { recordedAnswer } from "@/lib/api/recorded";
+import { edits } from "@/lib/search/edits";
 import { SearchProvider, useOpenSearch, useSearch } from "@/lib/search/store";
 
 import { standInApi } from "../../../test/support/api";
@@ -163,11 +164,9 @@ describe("the search a session holds", () => {
       </SearchProvider>
     );
     const { rerender } = render(page(search));
-    await act(async () => {
-      screen.getByRole("button", { name: "rank" }).click();
-      await new Promise((resolve) => setTimeout(resolve, 0));
-    });
-    expect(screen.getByTestId("hash")).toHaveTextContent(ranked.spec_hash);
+    act(() => screen.getByRole("button", { name: "rank" }).click());
+    // The ranking is answered a moment after it is asked for, so it is waited for.
+    await waitFor(() => expect(screen.getByTestId("hash")).toHaveTextContent(ranked.spec_hash));
 
     // The person follows a link to another page, and then comes back.
     rerender(page(<Elsewhere />));
@@ -205,5 +204,43 @@ describe("the search a session holds", () => {
     );
 
     expect(screen.getByTestId("hash")).toHaveTextContent("none");
+  });
+});
+
+describe("what another page asks the search to add", () => {
+  const leafy = edits.tagOn("leafy", "high");
+
+  test("test_what_was_asked_for_is_taken_once_and_is_then_gone", () => {
+    const { wanted } = createSession();
+
+    expect(wanted.take()).toBeNull();
+    wanted.set(leafy);
+
+    expect(wanted.take()).toEqual(leafy);
+    // The search page takes it when it is drawn. Drawn again, it adds nothing a second time.
+    expect(wanted.take()).toBeNull();
+  });
+
+  test("test_what_is_asked_for_last_is_what_is_added", () => {
+    const { wanted } = createSession();
+    wanted.set(leafy);
+    wanted.set(edits.tagOn("foodie", "high"));
+
+    expect(wanted.take()?.tag_ops.map((edit) => edit.tag_id)).toEqual(["foodie"]);
+  });
+
+  test("test_what_was_asked_for_is_kept_in_memory_and_nowhere_else", () => {
+    const watching = watch();
+    try {
+      const { wanted } = createSession();
+      wanted.set(leafy);
+      wanted.take();
+
+      expect(watching.storage).toEqual([]);
+      expect(watching.history).toEqual([]);
+      expect(watching.console).toEqual([]);
+    } finally {
+      watching.stop();
+    }
   });
 });

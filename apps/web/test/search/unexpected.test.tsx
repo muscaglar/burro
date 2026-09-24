@@ -6,7 +6,7 @@
  * for ever, or put a word such as "undefined" in front of a person.
  */
 
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { SearchApp } from "@/components/SearchApp/SearchApp";
@@ -16,7 +16,22 @@ import { FAILURE, PROMPT, STATUS } from "@/content/search";
 import { readRecorded, recordedAnswer, type Recorded } from "@/lib/api/recorded";
 
 import { setOnline, standInApi, type Responder, type StandIn } from "../support/api";
-import { areas, arrived, firstSearch, meta, openSearch, promptBox, results, settled, setWebGL } from "../support/search";
+import { SHOWN_AT_FIRST } from "@/components/ResultList/ResultList";
+
+import {
+  areas,
+  arrived,
+  everyResult,
+  firstSearch,
+  meta,
+  openSearch,
+  promptBox,
+  results,
+  settled,
+  setWebGL,
+  theTable,
+  theWholeOfIt,
+} from "../support/search";
 import { lastMap } from "../support/maplibre";
 
 jest.mock("next/navigation", () => ({ usePathname: () => "/" }));
@@ -49,6 +64,8 @@ async function searched(api: StandIn) {
   await view.user.type(promptBox(), "leafy and quiet");
   await view.user.click(screen.getByRole("button", { name: PROMPT.submit }));
   await settled();
+  // Everything a search can show is drawn, so that whatever was not filled in is on the page.
+  await theWholeOfIt();
   return { ...view, errors };
 }
 
@@ -187,7 +204,8 @@ describe("an answer with nothing in it", () => {
       firstSearch().on("rank", changed("rank-first", (data) => ({ ...data, ranked: [], scores: [], filtered: [], unranked: [] }))),
     );
 
-    expect(screen.getAllByRole("status").map((line) => line.textContent)).toContain(STATUS.nothingMatches);
+    // No limit left any area out, so the page does not say that one did.
+    expect(screen.getAllByRole("status").map((line) => line.textContent)).toContain(STATUS.nothingRanked);
     expect(leftUnfilled()).toEqual([]);
   });
 });
@@ -249,7 +267,12 @@ describe("a release of the size of London", () => {
           meta: meta.meta,
           data: {
             ...ranking,
-            scores: many.slice(0, RANKED).map((area, at) => ({ area_id: area.area_id, score: Math.max(0, 99 - at * 0.2) })),
+            scores: many.slice(0, RANKED).map((area, at) => ({
+              area_id: area.area_id,
+              score: Math.max(0, 99 - at * 0.2),
+              counted: 10,
+              present: 10,
+            })),
             ranked: ranking.ranked.map((area, at) => ({ ...area, area_id: many[at]?.area_id ?? area.area_id, rank: at + 1 })),
             unranked: many.slice(RANKED).map((area) => ({ area_id: area.area_id, reason: "not_rankable" })),
           },
@@ -278,10 +301,14 @@ describe("a release of the size of London", () => {
     await user.type(promptBox(), "leafy");
     await user.click(screen.getByRole("button", { name: PROMPT.submit }));
     await settled();
-    lastMap().fire("load");
+    act(() => lastMap().fire("load"));
     await arrived();
 
+    // The list holds the first ten, and the rest of its twenty are one press away.
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
+    await everyResult(user);
     expect(results()).toHaveLength(ranking.ranked.length);
+    await theTable(user);
     expect(screen.getAllByRole("status").map((line) => line.textContent).join(" ")).toContain(
       STATUS.ranked(RANKED, many[0]?.name ?? ""),
     );

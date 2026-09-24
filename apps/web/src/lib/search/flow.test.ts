@@ -1,7 +1,7 @@
 import { recordedAnswer, recordedError, responseFrom } from "@/lib/api/recorded";
 import type { Operations, PreferenceSpec } from "@/lib/api/schema";
 
-import { setOnline, standInApi, withTheSpecSent, type StandIn } from "../../../test/support/api";
+import { landed, setOnline, standInApi, withTheSpecSent, type StandIn } from "../../../test/support/api";
 import { problemsWith } from "../../../test/support/contract";
 import { edits, merged, NO_EDITS } from "./edits";
 import { createFlow } from "./flow";
@@ -19,8 +19,9 @@ const first = {
   explain: recordedAnswer("explain_top", "explanations-first").body.data,
 };
 
-function open(api: StandIn) {
-  const store = createStore(initialState(meta, areas));
+/** A search whose page has opened: the service has said who reads what is typed. */
+function open(api: StandIn, reader: SearchState["reader"] = meta.reader) {
+  const store = createStore(initialState(meta, areas, null, reader));
   const seen: SearchState[] = [store.getState()];
   store.subscribe(() => seen.push(store.getState()));
   const flow = createFlow({ client: api.client, ...store });
@@ -35,9 +36,14 @@ function firstSearch(): StandIn {
     .on("explain_top", "explanations-first");
 }
 
-/** Lets what is already on its way arrive. */
+/**
+ * Lets what is already on its way arrive: so many turns, and then every answer that the
+ * stand-in has been asked for and has not yet given. An answer that a test holds back is
+ * not waited for.
+ */
 const arrived = async (turns = 20) => {
   for (let turn = 0; turn < turns; turn += 1) await new Promise((resolve) => setTimeout(resolve, 0));
+  await landed();
 };
 
 /** The release a service moves to, after the page was built on the recorded one. */
@@ -55,6 +61,117 @@ function specsIn(value: unknown, found: PreferenceSpec[] = []): PreferenceSpec[]
 
 beforeEach(() => setOnline(true));
 afterEach(() => jest.useRealTimers());
+
+describe("who reads what is typed", () => {
+  const byAModel = recordedAnswer("get_meta", "meta-model-reads").body.data.reader;
+
+  test("test_the_page_asks_the_service_who_reads_and_takes_nothing_from_what_it_was_built_on", async () => {
+    // The page was built while the rules read. The service has since been set to a model.
+    const api = standInApi().on("get_meta", "meta-model-reads");
+    const { flow, state } = open(api, null);
+
+    expect(meta.reader.model_reads).toBe(false);
+    expect(state().reader).toBeNull();
+    await flow.loadReader();
+
+    expect(state().reader).toEqual(byAModel);
+    expect(state().reader?.model_reads).toBe(true);
+    // It is asked for once. What it said stands until the service says otherwise.
+    await flow.loadReader();
+    expect(api.callsTo("get_meta")).toHaveLength(1);
+    expect(api.calls.map((call) => call.sent)).toEqual([null]);
+  });
+
+  test("test_no_sentence_is_sent_before_the_service_has_said_who_reads_it", async () => {
+    const api = firstSearch();
+    const asked = api.hold("get_meta", "meta-model-reads");
+    const { flow, state } = open(api, null);
+
+    const sent = flow.submitText(`leafy ${CANARY}`);
+    await arrived();
+
+    // The sentence waits. Nothing that holds it has left.
+    expect(api.calls.map((call) => call.operation)).toEqual(["get_meta"]);
+    expect(api.calls.some((call) => call.sent?.includes(CANARY))).toBe(false);
+    asked.release();
+    await sent;
+
+    expect(state().reader).toEqual(byAModel);
+    expect(api.calls.map((call) => call.operation).slice(0, 2)).toEqual(["get_meta", "interpret"]);
+    expect(api.callsTo("interpret")).toHaveLength(1);
+  });
+
+  test("test_a_sentence_is_not_sent_where_the_service_cannot_say_who_reads_it", async () => {
+    const api = firstSearch().unreachable("get_meta");
+    const { flow, state } = open(api, null);
+
+    await flow.submitText(`leafy ${CANARY}`);
+
+    expect(api.callsTo("interpret")).toEqual([]);
+    expect(api.calls.some((call) => call.sent?.includes(CANARY))).toBe(false);
+    expect(state().reader).toBeNull();
+    expect(state().readerFailed).toBe(true);
+    // The page says that Burro could not be reached, and does not blame the words.
+    expect(state().failure?.kind).toBe("network");
+    expect(state().failedStep).toBe("read");
+    expect(state().phase).toBe("empty");
+  });
+
+  test("test_the_service_is_asked_again_by_the_next_sentence_once_it_can_say", async () => {
+    const api = firstSearch().inTurn("get_meta", "error-internal", "meta");
+    const { flow, state } = open(api, null);
+
+    await flow.submitText("leafy");
+    expect(api.callsTo("interpret")).toEqual([]);
+    await flow.submitText("leafy");
+
+    expect(state().reader).toEqual(meta.reader);
+    expect(state().readerFailed).toBe(false);
+    expect(api.callsTo("interpret")).toHaveLength(1);
+    expect(state().phase).toBe("results");
+  });
+
+  test("test_a_sentence_that_is_stopped_while_the_service_is_asked_is_never_sent", async () => {
+    const api = firstSearch();
+    const asked = api.hold("get_meta", "meta");
+    const { flow, state } = open(api, null);
+
+    const sent = flow.submitText(`leafy ${CANARY}`);
+    await arrived();
+    flow.stop();
+    asked.release();
+    await sent;
+    await arrived();
+
+    expect(api.callsTo("interpret")).toEqual([]);
+    expect(state().phase).toBe("empty");
+    expect(state().failure).toBeNull();
+  });
+
+  test("test_what_the_service_said_is_kept_when_the_search_is_started_again", async () => {
+    const { flow, state } = open(firstSearch().on("get_meta", "meta-model-reads"), null);
+    await flow.loadReader();
+    await flow.submitText("leafy");
+
+    flow.startAgain();
+
+    expect(state().phase).toBe("empty");
+    expect(state().reader).toEqual(byAModel);
+  });
+
+  test("test_a_form_read_again_for_a_newer_release_says_who_reads_now", async () => {
+    // A service that moved to another release was started again, and may be set otherwise.
+    const api = firstSearch().movedTo(NEWER).on("get_meta", "meta-model-reads");
+    const { flow, state } = open(api);
+
+    expect(state().reader?.model_reads).toBe(false);
+    await flow.submitText("leafy");
+    await arrived();
+
+    expect(state().meta.release_id).toBe(NEWER);
+    expect(state().reader?.model_reads).toBe(true);
+  });
+});
 
 describe("sending a sentence", () => {
   test("test_a_sentence_is_read_then_ranked_and_explained_and_the_first_five_are_fetched", async () => {
@@ -92,7 +209,10 @@ describe("sending a sentence", () => {
 
     await flow.submitText("leafy");
 
-    expect(api.lastCallTo("interpret").body).toEqual({ text: "leafy", spec: meta.defaults.rent });
+    // The rules are asked first, and answer at once. "leafy" is plain, so no model is asked at all.
+    expect(api.callsTo("interpret").map((call) => call.body)).toEqual([
+      { text: "leafy", spec: meta.defaults.rent, ask_model: false },
+    ]);
     expect(problemsWith("InterpretBody", api.lastCallTo("interpret").body)).toEqual([]);
     expect(problemsWith("RankBody", api.lastCallTo("rank").body)).toEqual([]);
     expect(problemsWith("ExplanationsBody", api.lastCallTo("explain_top").body)).toEqual([]);
@@ -171,7 +291,7 @@ describe("what is kept of what a person typed", () => {
 
     await flow.submitText(`leafy and quiet near ${CANARY}`);
     await flow.searchPlaces(CANARY);
-    await flow.applyEdits(edits.tagOn("waterside"));
+    await flow.applyEdits(edits.tagOn("parks_close_by"));
 
     const holding = api.calls.filter((call) => JSON.stringify([call.url, call.sent, call.init.headers]).includes(CANARY));
     expect(holding.map((call) => [call.operation, call.method])).toEqual([
@@ -309,7 +429,7 @@ describe("moving a control", () => {
     const api = firstSearch();
     const reading = api.hold("interpret", "interpret-first");
     const { flow, state } = open(api);
-    const edit = edits.tagOn("waterside");
+    const edit = edits.tagOn("parks_close_by");
 
     const sent = flow.submitText("leafy and quiet");
     const edited = flow.applyEdits(edit);
@@ -396,18 +516,20 @@ describe("before anything is asked for", () => {
     expect(state().untouched).toBe(false);
   });
 
-  test("test_a_place_added_by_hand_is_an_edit_and_its_name_is_kept_for_the_chip", async () => {
+  test("test_a_place_added_by_hand_is_an_edit_and_the_answer_names_the_place", async () => {
     const api = standInApi().on("rank", "rank-first").on("explain_top", "explanations-first");
     const { flow, state } = open(api);
 
-    await flow.addPlace({ place_id: "syn-p0012", name: "Pellam Cross" });
+    await flow.addPlace({ place_id: "syn-p0021" });
 
     expect(api.lastCallTo("rank").body).toEqual({
       spec: meta.defaults.rent,
-      operations: edits.placeAdd("syn-p0012"),
+      operations: edits.placeAdd("syn-p0021"),
       limit: 20,
     });
-    expect(state().placeNames["syn-p0012"]).toBe("Pellam Cross");
+    // The name on the chip is the release's own, from the answer that brought the spec.
+    expect(first.rank.places).toEqual([{ place_id: "syn-p0021", name: "Cindermoor Works", kind: "district" }]);
+    expect(state().placeNames).toEqual({ "syn-p0021": "Cindermoor Works" });
   });
 });
 
@@ -688,7 +810,8 @@ describe("a control moved while a sentence is being read", () => {
     await flow.applyEdits(edit);
     flow.stop();
     await sent;
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    // The edit waits until the ranking it was sent with has been answered.
+    await arrived();
 
     expect(api.callsTo("rank")).toHaveLength(1);
     expect(api.lastCallTo("rank").body).toMatchObject({ operations: edit });
@@ -740,7 +863,6 @@ describe("a question about a place", () => {
     expect(state().read?.clarify).toEqual([]);
     // The refusal the question stood for goes with it.
     expect(state().read?.rejected).toEqual([]);
-    expect(state().placeNames[option.id]).toBe(option.name);
     // What was assumed of the journey is assumed of the place chosen.
     expect(state().assumed[`place:${option.id}`]).toEqual(["mode", "strictness"]);
   });
@@ -828,7 +950,7 @@ describe("when ranking fails", () => {
     const { flow, state } = open(api);
     await flow.submitText("leafy");
     api.on("rank", "error-internal");
-    const edit = edits.tagOn("waterside");
+    const edit = edits.tagOn("parks_close_by");
 
     await flow.applyEdits(edit);
 
@@ -857,7 +979,7 @@ describe("when ranking fails", () => {
     await flow.submitText("leafy");
     api.on("rank", "rank-stale-spec");
 
-    await flow.applyEdits(edits.tagOn("waterside"));
+    await flow.applyEdits(edits.tagOn("parks_close_by"));
 
     expect(state().failure).toMatchObject({
       kind: "api",
@@ -1005,7 +1127,7 @@ describe("offline", () => {
     const { flow, state } = open(api);
     await flow.submitText("leafy");
     api.calls.length = 0;
-    const edit = edits.tagOn("waterside");
+    const edit = edits.tagOn("parks_close_by");
 
     setOnline(false);
     flow.wentOffline();
@@ -1133,12 +1255,16 @@ describe("a release that changes while the page is open", () => {
     expect(state().meta.release_id).toBe(meta.release_id);
     // The search is whole all the same: nothing of it waits on the form.
     expect(reasonsAreIn(state())).toBe(true);
+    // The form was asked for, and could not be read. How often turns on which answer of the
+    // search came after the failure, which is no part of what is held here.
+    const failed = api.callsTo("get_meta").length;
+    expect(failed).toBeGreaterThanOrEqual(1);
 
     api.on("get_meta", "meta");
     await flow.rankNow();
     await arrived();
 
-    expect(api.callsTo("get_meta")).toHaveLength(2);
+    expect(api.callsTo("get_meta")).toHaveLength(failed + 1);
     expect(state().meta.release_id).toBe(NEWER);
   });
 
@@ -1263,7 +1389,10 @@ describe("a second sentence whose ranking fails", () => {
     const { flow, state } = open(api);
     await flow.submitText("leafy and quiet");
     const shown = state().explanations;
-    api.on("interpret", "interpret-second-sentence").on("rank", "error-internal");
+    api
+      .on("interpret", "interpret-second-sentence")
+      .on("explain_top", "explanations-second-sentence")
+      .on("rank", "error-internal");
 
     await flow.submitText("and near the water");
 
@@ -1347,7 +1476,8 @@ describe("sharing a search", () => {
 describe("opening a shared search", () => {
   const opened = recordedAnswer("get_share", "share-opened");
   const ID = opened.request.path.split("/").pop() ?? "";
-  const sharing = () => standInApi().on("get_share", "share-opened").on("explain_top", "explanations-first");
+  const sharing = () =>
+    standInApi().on("get_share", "share-opened").on("explain_top", "explanations-share-opened");
 
   test("test_a_share_is_opened_by_its_id_then_explained_and_the_first_five_are_fetched", async () => {
     const api = sharing();
@@ -1390,10 +1520,17 @@ describe("opening a shared search", () => {
     const api = firstSearch().on("interpret", "interpret-clarify").on("get_share", "share-opened");
     const { flow, state } = open(api);
     await flow.submitText("leafy and quiet, 30 minutes to the works");
-    await flow.addPlace({ place_id: "syn-p0777", name: `${CANARY} Works` });
+    // The ranking names a place, as the release names it: here, by a name found nowhere else.
+    api.on("rank", () => {
+      const ranked = recordedAnswer("rank", "rank-first");
+      const places = [{ place_id: "syn-p0021", name: `${CANARY} Works`, kind: "district" }];
+      return { ...ranked, body: { ...ranked.body, data: { ...ranked.body.data, places } } };
+    });
+    await flow.addPlace({ place_id: "syn-p0021" });
     flow.select("syn-n0006");
     expect(state().read).not.toBeNull();
-    expect(state().placeNames["syn-p0777"]).toBe(`${CANARY} Works`);
+    expect(state().placeNames["syn-p0021"]).toBe(`${CANARY} Works`);
+    api.on("explain_top", "explanations-share-opened");
 
     await flow.openShare(ID);
 
@@ -1411,11 +1548,11 @@ describe("opening a shared search", () => {
     const { flow, state } = open(api);
     await flow.openShare(ID);
 
-    await flow.applyEdits(edits.tagOn("waterside"));
+    await flow.applyEdits(edits.tagOn("parks_close_by"));
 
     expect(api.lastCallTo("rank").body).toEqual({
       spec: opened.body.data.spec,
-      operations: edits.tagOn("waterside"),
+      operations: edits.tagOn("parks_close_by"),
       limit: 20,
     });
     // It came from a link, and still says so after it is changed.
@@ -1494,9 +1631,308 @@ describe("opening a shared search", () => {
     const { flow } = open(api);
 
     await flow.openShare(ID);
-    await flow.applyEdits(edits.tagOn("waterside"));
+    await flow.applyEdits(edits.tagOn("parks_close_by"));
 
     const naming = api.calls.filter((call) => `${call.url} ${call.sent ?? ""}`.includes(ID));
     expect(naming.map((call) => call.operation)).toEqual(["get_share"]);
+  });
+});
+
+describe("a prompt that is not plain", () => {
+  const noticed = recordedAnswer("interpret", "interpret-suggest").body.data;
+  const chosen = recordedAnswer("rank", "rank-suggestion-chosen");
+  const long = recordedAnswer("interpret", "interpret-by-model-long");
+  // The long sentence holds ten offers. One press may add five of them: two wishes, the culture,
+  // the journey and the budget. The five readings of two words are the person's to choose.
+  const EVERY_OFFER = long.body.data.suggestions.map((_, at) => at);
+  const ONE_PRESS_ADDS = [0, 1, 4, 8, 9];
+  const LEFT_TO_CHOOSE = ["Gritty", "What homes sell for", "Village feel", "Age of buildings", "Nearer a town centre"];
+  const typedOf = (recorded: { request: { body?: unknown } }) => (recorded.request.body as { text: string }).text;
+  const suggesting = () =>
+    standInApi()
+      .on("interpret", "interpret-suggest")
+      .on("rank", "rank-suggestion-chosen")
+      .on("explain_top", "explanations-suggestion-chosen");
+  /** A service with a model behind it: the rules answer at once, and then the model. */
+  const reading = () =>
+    standInApi()
+      .inTurn("interpret", "interpret-rules-at-once", "interpret-by-model-long")
+      .on("rank", "rank-suggestion-chosen")
+      .on("explain_top", "explanations-suggestion-chosen");
+
+  test("test_the_rules_are_asked_first_and_then_the_model_with_the_same_words_and_the_same_search", async () => {
+    const api = reading();
+    const { flow, state } = open(api);
+
+    await flow.submitText(typedOf(long));
+
+    const sent = api.callsTo("interpret").map((call) => call.body as { ask_model: boolean; text: string });
+    expect(sent.map((body) => body.ask_model)).toEqual([false, true]);
+    expect(sent[1]).toEqual({ ...sent[0], ask_model: true });
+    expect(sent.map((body) => problemsWith("InterpretBody", body))).toEqual([[], []]);
+    // What the model read has joined what is offered, and nothing of it is applied.
+    expect(state().read?.more).toBe(false);
+    expect(state().read?.suggestions).toEqual(long.body.data.suggestions);
+    expect(state().spec).toEqual(meta.defaults.rent);
+    expect(api.callsTo("rank")).toEqual([]);
+  });
+
+  test("test_what_the_rules_offer_is_on_the_page_while_the_model_reads", async () => {
+    const atOnce = recordedAnswer("interpret", "interpret-rules-at-once").body.data;
+    // A model that never answers.
+    const api = standInApi().inTurn("interpret", "interpret-rules-at-once", () => new Promise(() => undefined));
+    const { flow, state } = open(api);
+
+    void flow.submitText(typedOf(long));
+    await arrived();
+
+    expect(state().read?.more).toBe(true);
+    expect(state().read?.suggestions).toEqual(atOnce.suggestions);
+    expect(state().read?.suggestions.some((one) => one.choices.some((way) => way.guess))).toBe(false);
+    expect(state().phase).not.toBe("interpreting");
+  });
+
+  test("test_a_model_that_does_not_answer_leaves_what_the_rules_offered", async () => {
+    const atOnce = recordedAnswer("interpret", "interpret-rules-at-once").body.data;
+    const api = standInApi().inTurn("interpret", "interpret-rules-at-once", () => {
+      throw new TypeError("Failed to fetch");
+    });
+    const { flow, state } = open(api);
+
+    await flow.submitText(typedOf(long));
+
+    expect(state().read?.more).toBe(false);
+    expect(state().read?.suggestions).toEqual(atOnce.suggestions);
+    expect(state().failure).toBeNull();
+  });
+
+  test("test_an_offer_chosen_while_the_model_reads_is_not_offered_again", async () => {
+    const api = standInApi()
+      .on("rank", "rank-suggestion-chosen")
+      .on("explain_top", "explanations-suggestion-chosen");
+    let answer: (() => void) | null = null;
+    api.inTurn("interpret", "interpret-rules-at-once", async () => {
+      await new Promise<void>((resolve) => (answer = resolve));
+      return recordedAnswer("interpret", "interpret-by-model-long");
+    });
+    const { flow, state } = open(api);
+    const read = flow.submitText(typedOf(long));
+    await arrived();
+
+    // "Quiet streets" is added while the model reads. A control that is moved does not stop the reading.
+    await flow.choose(0, "more");
+    expect(state().read?.more).toBe(true);
+    (answer as (() => void) | null)?.();
+    await read;
+
+    expect(state().read?.suggestions.map((one) => one.target)).toEqual(
+      long.body.data.suggestions.slice(1).map((one) => one.target),
+    );
+  });
+
+  test("test_the_models_reading_is_let_go_when_the_box_changes", async () => {
+    const api = standInApi().inTurn("interpret", "interpret-rules-at-once", () => new Promise(() => undefined));
+    const { flow, state } = open(api);
+    void flow.submitText(typedOf(long));
+    await arrived();
+    expect(state().read?.more).toBe(true);
+
+    flow.boxChanged();
+
+    expect(state().read).toMatchObject({ more: false, suggestions: [], unread: [], added: null });
+  });
+
+  test("test_nothing_is_ranked_from_what_was_noticed_until_the_person_chooses", async () => {
+    const api = suggesting();
+    const { flow, state } = open(api);
+
+    await flow.submitText(`Pubs are so noisy ${CANARY}`);
+
+    expect(api.calls.map((call) => call.operation)).toEqual(["interpret"]);
+    expect(state().phase).toBe("empty");
+    expect(state().ranking).toBeNull();
+    expect(state().spec).toEqual(meta.defaults.rent);
+    expect(state().read?.suggestions.map((one) => one.label)).toEqual(["Pubs and bars", "Less transport noise"]);
+  });
+
+  test("test_a_choice_sends_the_edits_the_api_gave_it_and_nothing_of_what_was_typed", async () => {
+    const api = suggesting();
+    const { flow, state } = open(api);
+    await flow.submitText(`Pubs are so noisy ${CANARY}`);
+
+    await flow.choose(0, "less");
+
+    // What is sent is what the API was recorded taking: the spec it returned, and the choice's own edits.
+    expect(api.lastCallTo("rank").body).toEqual(chosen.request.body);
+    expect(api.lastCallTo("rank").sent?.includes(CANARY)).toBe(false);
+    expect(state().phase).toBe("results");
+    expect(state().spec).toEqual(chosen.body.data.spec);
+    // The suggestion that was chosen of has gone, and the other is still offered.
+    expect(state().read?.suggestions.map((one) => one.label)).toEqual(["Less transport noise"]);
+    expect(api.unexpected).toEqual([]);
+  });
+
+  test("test_every_offer_one_press_may_add_is_added_in_one_request_with_the_edits_the_api_gave", async () => {
+    const api = reading();
+    const { flow, state } = open(api);
+    await flow.submitText(`${typedOf(long)} ${CANARY}`);
+    const offered = state().read?.suggestions ?? [];
+    expect(offered.flatMap((one, at) => (one.add_all === "" ? [] : [at]))).toEqual(ONE_PRESS_ADDS);
+    expect(ONE_PRESS_ADDS.map((at) => offered[at]?.add_all)).toEqual(["more", "more", "more", "guide", "guide"]);
+
+    await flow.chooseAll(ONE_PRESS_ADDS);
+
+    // One request, which holds the edits of each way as the API gave them, in their order.
+    expect(api.callsTo("rank")).toHaveLength(1);
+    const sent = api.lastCallTo("rank").body as { operations: Operations; spec: PreferenceSpec };
+    const ways = offered.map((one) => one.choices.find((way) => way.id === one.add_all)?.operations ?? NO_EDITS);
+    expect(sent.operations).toEqual(ways.reduce(merged, NO_EDITS));
+    expect(sent.spec).toEqual(long.body.data.spec);
+    expect(problemsWith("Operations", sent.operations)).toEqual([]);
+    expect(api.lastCallTo("rank").sent?.includes(CANARY)).toBe(false);
+    // What one press may not add is still offered.
+    expect(state().read?.suggestions.map((one) => one.label)).toEqual(LEFT_TO_CHOOSE);
+  });
+
+  test("test_one_press_never_adds_what_leaves_areas_out_though_it_is_the_guess", async () => {
+    const api = reading();
+    const { flow, state } = open(api);
+    await flow.submitText(typedOf(long));
+    const journey = state().read?.suggestions.find((one) => one.target === "commute");
+    expect(journey?.choices.find((way) => way.guess)?.id).toBe("firm");
+
+    await flow.chooseAll(EVERY_OFFER);
+
+    const sent = api.lastCallTo("rank").body as { operations: Operations };
+    expect(sent.operations.commute_ops.map((edit) => edit.strictness)).toEqual(["soft"]);
+    expect(sent.operations.budget_ops.map((edit) => edit.strictness)).toEqual(["soft"]);
+    expect(sent.operations.area_ops).toEqual([]);
+  });
+
+  test("test_what_one_press_added_is_said_with_what_still_needs_the_person", async () => {
+    const { flow, state } = open(reading());
+    await flow.submitText(typedOf(long));
+
+    await flow.chooseAll(EVERY_OFFER);
+
+    expect(state().read?.added).toMatchObject({
+      count: 5,
+      needs: [
+        "the journey can be made a firm limit",
+        "the budget can be made a firm limit",
+        "recorded crime, which is added under its own name",
+        "what homes sell for",
+        "Village feel",
+        "Age of buildings",
+        "nearer a town centre",
+      ],
+    });
+  });
+
+  test("test_one_press_takes_it_all_back_and_the_search_is_as_it_was", async () => {
+    const api = reading();
+    const { flow, state } = open(api);
+    await flow.submitText(typedOf(long));
+    const before = { spec: state().spec, offered: state().read?.suggestions };
+    await flow.chooseAll(EVERY_OFFER);
+
+    await flow.takeBack();
+
+    // The search that is ranked is the one that stood before the press, with no edit.
+    const again = api.lastCallTo("rank").body as { operations?: Operations; spec: PreferenceSpec };
+    expect(again.spec).toEqual(before.spec);
+    expect(again.operations).toBeUndefined();
+    expect(state().read?.suggestions).toEqual(before.offered);
+    expect(state().read?.added).toBeNull();
+    // There is nothing more to take back.
+    const calls = api.calls.length;
+    await flow.takeBack();
+    expect(api.calls).toHaveLength(calls);
+  });
+
+  test("test_what_the_api_names_no_way_for_is_never_added_with_the_rest", async () => {
+    const api = suggesting();
+    const { flow, state } = open(api);
+    await flow.submitText("Pubs are so noisy");
+
+    // Pubs and bars run two ways, and the noise stands in doubt. Asked to add both, the flow adds neither.
+    expect(noticed.suggestions.map((one) => one.add_all)).toEqual(["", ""]);
+    await flow.chooseAll([0, 1]);
+
+    expect(api.callsTo("rank")).toEqual([]);
+    expect(state().read?.suggestions).toHaveLength(2);
+    expect(state().read?.added).toBeNull();
+  });
+
+  test("test_with_nothing_one_press_may_add_nothing_is_sent", async () => {
+    const api = suggesting();
+    const { flow, state } = open(api);
+    await flow.submitText("Pubs are so noisy");
+
+    await flow.chooseAll([0]);
+    await flow.chooseAll([]);
+    await flow.chooseAll([9]);
+
+    expect(api.callsTo("rank")).toEqual([]);
+    expect(state().read?.suggestions).toHaveLength(2);
+  });
+
+  test("test_a_journey_with_no_place_is_not_sent_until_a_place_is_chosen_for_it", async () => {
+    const api = standInApi()
+      .on("interpret", "interpret-by-model-place")
+      .on("rank", "rank-suggestion-chosen")
+      .on("explain_top", "explanations-suggestion-chosen");
+    const { flow, state } = open(api);
+    await flow.submitText("At most 40 minutes from Mirrowick Basin, ideally");
+
+    await flow.choose(0, "guide");
+    await flow.chooseAll([0]);
+    expect(api.callsTo("rank")).toEqual([]);
+    expect(state().read?.suggestions).toHaveLength(1);
+
+    await flow.choose(0, "guide", "syn-p0021");
+
+    const sent = api.lastCallTo("rank").body as { operations: Operations };
+    expect(sent.operations.commute_ops).toMatchObject([
+      { action: "add", place_id: "syn-p0021", max_minutes: 40, strictness: "soft" },
+    ]);
+    expect(problemsWith("Operations", sent.operations)).toEqual([]);
+    expect(state().read?.suggestions).toEqual([]);
+  });
+
+  test("test_leaving_a_thing_out_sends_nothing_and_the_suggestion_goes", async () => {
+    const api = suggesting();
+    const { flow, state } = open(api);
+    await flow.submitText("Pubs are so noisy");
+
+    await flow.choose(0, "ignore");
+
+    expect(api.callsTo("rank")).toEqual([]);
+    expect(state().ranking).toBeNull();
+    expect(state().read?.suggestions.map((one) => one.label)).toEqual(["Less transport noise"]);
+  });
+
+  test("test_a_way_the_api_did_not_offer_is_not_sent", async () => {
+    const api = suggesting();
+    const { flow, state } = open(api);
+    await flow.submitText("Pubs are so noisy");
+
+    // Transport noise is offered as less, or not at all.
+    expect(noticed.suggestions[1]?.choices.map((choice) => choice.id)).toEqual(["less", "ignore"]);
+    await flow.choose(1, "more");
+    await flow.choose(7, "less");
+
+    expect(api.callsTo("rank")).toEqual([]);
+    expect(state().read?.suggestions).toHaveLength(2);
+  });
+
+  test("test_every_suggestion_goes_when_the_box_changes", async () => {
+    const { flow, state } = open(suggesting());
+    await flow.submitText("Pubs are so noisy");
+
+    flow.boxChanged();
+
+    expect(state().read?.suggestions).toEqual([]);
+    expect(state().read?.unread).toEqual([]);
   });
 });

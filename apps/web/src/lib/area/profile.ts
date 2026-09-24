@@ -10,16 +10,24 @@
 
 import { DIMENSION_ORDER } from "@/content/labels";
 import { SEGMENTS } from "@/content/settings";
-import type { AreaData, Dimension, Fact, Metric, Tag, Tenure } from "@/lib/api/schema";
+import type {
+  AreaData,
+  AreaSummary,
+  Dimension,
+  Fact,
+  MetaData,
+  Metric,
+  Tag,
+  Tenure,
+  VibeBands,
+} from "@/lib/api/schema";
+import { isRange } from "@/lib/vibes";
+
+import { factsOf, holdsRecordedCrime, portraitOf } from "./portrait";
 
 /** A feature of the release, with the fact the area has for it, if it has one. */
 export interface FeatureRow {
   readonly metric: Metric;
-  readonly fact: Fact | null;
-}
-
-export interface TagRow {
-  readonly tag: Tag;
   readonly fact: Fact | null;
 }
 
@@ -51,11 +59,6 @@ export function featuresByDimension(data: AreaData, features: readonly Metric[])
   })).filter((group) => group.rows.length > 0);
 }
 
-/** The area's tags, in the order the release lists them. */
-export function tagRows(data: AreaData, tags: readonly Tag[]): readonly TagRow[] {
-  return tags.map((tag) => ({ tag, fact: factOf(data, "tag", tag.tag_id) }));
-}
-
 /** What homes cost, for renting or for buying: one fact for each kind of home that has a figure. */
 export function costFacts(data: AreaData, tenure: Tenure): readonly Fact[] {
   return SEGMENTS[tenure].flatMap((segment) => {
@@ -76,17 +79,74 @@ export function stationFacts(data: AreaData): readonly Fact[] {
     });
 }
 
-/** Every fact the page lays out, for the list of sources at its foot. */
-export function factsShown(data: AreaData, features: readonly Metric[], tags: readonly Tag[]): readonly Fact[] {
+/** An area that is like this one, with the fact that says how far. */
+export interface AlikeRow {
+  /** The other area, to link to its page. `null` when the list of areas does not hold it. */
+  readonly area: Pick<AreaSummary, "area_id" | "slug" | "name"> | null;
+  readonly fact: Fact;
+}
+
+/**
+ * The areas most like this one, in the order the API gives them: five at
+ * most, and none where too little is known of the area to say. One whose
+ * fact did not come is left out, because nothing can be said of it.
+ */
+export function alikeRows(
+  data: AreaData,
+  areas: readonly Pick<AreaSummary, "area_id" | "slug" | "name">[],
+): readonly AlikeRow[] {
+  return data.similar.flatMap((one) => {
+    const fact = data.facts.find((held) => held.fact_id === one.fact_id);
+    if (fact === undefined) return [];
+    return [{ area: areas.find((area) => area.area_id === one.area_id) ?? null, fact }];
+  });
+}
+
+/**
+ * The vibes two areas sit in the same band on, in the order the API lists the vibes. Every
+ * band is the API's, from route 4. A vibe that cannot place one of the two is shared by
+ * neither, and nor is one on which either is mixed, which sits at no one point.
+ *
+ * A vibe whose recipe holds recorded crime is never among them: likeness is never counted on
+ * recorded crime, and nobody asked for it here.
+ */
+export function sharedVibes(
+  areaId: string,
+  otherId: string,
+  bands: readonly VibeBands[],
+  meta: Pick<MetaData, "tags" | "features">,
+): readonly Tag[] {
+  if (areaId === otherId) return [];
+  return meta.tags.filter((tag) => {
+    if (holdsRecordedCrime(tag, meta.features)) return false;
+    const marks = bands.find((one) => one.tag_id === tag.tag_id)?.marks ?? [];
+    const [one, other] = [areaId, otherId].map((id) => marks.find((mark) => mark.area_id === id));
+    if (one === undefined || other === undefined) return false;
+    return [one, other].every(sitsAtOnePoint) && one.band === other.band;
+  });
+}
+
+function sitsAtOnePoint({ band, spread_low: low, spread_high: high }: VibeBands["marks"][number]): boolean {
+  return band !== null && low !== null && high !== null && !isRange({ band, spread_low: low, spread_high: high });
+}
+
+/**
+ * Every fact the page lays out, once each, for the list of sources at its
+ * foot. The figure of a part of a recipe is a feature's fact, which the page
+ * also lays out under what is measured: it is one fact, and is listed once.
+ */
+export function factsShown(data: AreaData, meta: Pick<MetaData, "features" | "tags">): readonly Fact[] {
   const area = areaFact(data);
-  return [
+  const shown = [
     ...(area === null ? [] : [area]),
+    ...factsOf(portraitOf(data, meta)),
     ...stationFacts(data),
     ...costFacts(data, "rent"),
     ...costFacts(data, "buy"),
-    ...featuresByDimension(data, features).flatMap((group) =>
+    ...featuresByDimension(data, meta.features).flatMap((group) =>
       group.rows.flatMap((row) => (row.fact === null ? [] : [row.fact])),
     ),
-    ...tagRows(data, tags).flatMap((row) => (row.fact === null ? [] : [row.fact])),
+    ...alikeRows(data, []).map((row) => row.fact),
   ];
+  return [...new Map(shown.map((fact) => [fact.fact_id, fact])).values()];
 }

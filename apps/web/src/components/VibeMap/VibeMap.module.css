@@ -1,0 +1,79 @@
+/*
+ * The city coloured by one vibe. Every colour is a token of the map, the same as the map of
+ * the search page takes, so that a band is one colour wherever it is drawn.
+ */
+.map {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* The outlines a page draws once for all its maps. They take no room, and draw nothing themselves. */
+.shared {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.water {
+  fill: var(--map-water);
+}
+
+.land {
+  fill: var(--map-land);
+}
+
+.dot {
+  fill: var(--map-line);
+}
+
+/*
+ * The outline of an area is as thin as the map is small: it is drawn in the units of the
+ * picture, and not of the screen. On a map of a thousand areas a line of a fixed width hid
+ * the colour of every small area.
+ */
+.area {
+  stroke: var(--map-line);
+  stroke-width: 0.2;
+}
+
+.area[data-band="1"] {
+  fill: var(--map-1);
+}
+
+.area[data-band="2"] {
+  fill: var(--map-2);
+}
+
+.area[data-band="3"] {
+  fill: var(--map-3);
+}
+
+.area[data-band="4"] {
+  fill: var(--map-4);
+}
+
+.area[data-band="5"] {
+  fill: var(--map-5);
+}
+
+/* With forced colours the bands fall away. The areas at each end are named in words beside the map. */
+@media (forced-colors: active) {
+  .water,
+  .land,
+  .area[data-band] {
+    fill: Canvas;
+  }
+
+  .area {
+    stroke: CanvasText;
+  }
+
+  .dot {
+    fill: CanvasText;
+  }
+}

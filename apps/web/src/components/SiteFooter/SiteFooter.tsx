@@ -11,12 +11,13 @@ interface Props {
 }
 
 const LINKS = [
+  { href: paths.vibes(), label: SITE.nav.vibes },
   { href: paths.methods(), label: SITE.nav.methods },
   { href: paths.sources(), label: SITE.nav.sources },
   { href: paths.accessibility(), label: SITE.nav.accessibility },
 ] as const;
 
-/** The three pages about the site, and the release and engine behind every figure. */
+/** The four pages about the site, and the release and engine behind every figure. */
 export function SiteFooter({ meta }: Props) {
   return (
     <footer className={styles.footer}>

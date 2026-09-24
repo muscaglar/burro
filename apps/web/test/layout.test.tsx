@@ -63,10 +63,23 @@ describe("the layout every page is laid out in", () => {
     expect(viewport).not.toHaveProperty("userScalable");
   });
 
-  test("test_a_built_page_is_kept_no_longer_than_the_api_says_its_answer_may_be", () => {
-    const sent = recordedAnswer("get_meta", "meta").headers["cache-control"];
+  test("test_a_built_page_is_built_again_each_hour_and_the_api_is_asked_each_time_by_a_browser", () => {
+    // The API tells a browser to ask each time whether an answer still stands, and names the
+    // release in the answer's tag. A built page is built again each hour, and a browser that
+    // is answered by a newer release reads the form again: docs/design/web.md, section 2.
+    const { headers, body } = recordedAnswer("list_areas", "areas");
+    const form = recordedAnswer("get_meta", "meta");
+    const readByAModel = recordedAnswer("get_meta", "meta-model-reads");
 
-    expect(sent).toBe(`public, max-age=${REVALIDATE_SECONDS}`);
+    expect(headers["cache-control"]).toBe("no-cache");
+    expect(headers.etag).toBe(`"${body.meta.release_id}"`);
+    // The form also says who reads what is typed, which is no part of the release. Its tag
+    // names both, so that an answer which tells of another reader is never kept.
+    expect(form.headers["cache-control"]).toBe("no-cache");
+    expect(form.headers.etag).toMatch(new RegExp(`^"${body.meta.release_id}\\.[0-9a-f]{8}"$`));
+    expect(readByAModel.body.meta.release_id).toBe(body.meta.release_id);
+    expect(readByAModel.headers.etag).not.toBe(form.headers.etag);
+    expect(REVALIDATE_SECONDS).toBe(3_600);
     expect(revalidate).toBe(REVALIDATE_SECONDS);
   });
 });

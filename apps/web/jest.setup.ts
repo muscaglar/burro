@@ -6,6 +6,9 @@ import { createElement, type AnchorHTMLAttributes } from "react";
 // A test that fails says what it looked for and did not find. It does not
 // print the page, which is long, and holds whatever the test typed into it.
 configure({
+  // How long a test waits for the page. The library allows one second, which a slow
+  // machine can use up: test/waits.test.ts says on what.
+  asyncUtilTimeout: 5_000,
   getElementError(message) {
     const error = new Error((message ?? "").split("\n\n", 1)[0]);
     error.name = "TestingLibraryElementError";

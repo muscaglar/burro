@@ -1,27 +1,36 @@
 "use client";
 
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
 
-import { DIMENSION, DIMENSION_ORDER } from "@/content/labels";
-import { REJECTED } from "@/content/search";
+import { DIMENSION } from "@/content/labels";
+import { whyRefused } from "@/content/search";
+import { CRIME_ACCOUNT, countsOf, crimeVibes } from "@/content/crime";
 import { CRIME, CRIME_CAVEAT, FEATURES, HIDDEN, JOURNEY, SETTINGS, SLIDER } from "@/content/settings";
+import type { Answer } from "@/lib/api/client";
 import type {
   AreaSummary,
-  Dimension,
+  FoundPlace,
   MetaData,
+  Metric,
   Operations,
+  PlacesData,
   PreferenceSpec,
   RejectReason,
+  Tenure,
 } from "@/lib/api/schema";
+import { recipeOf } from "@/lib/holds";
 import { namesOfPlaces } from "@/lib/search/chips";
 import { counts } from "@/lib/search/counts";
 import { edits } from "@/lib/search/edits";
 
 import { Disclosure } from "../Disclosure/Disclosure";
+import { PlaceCombobox } from "../PlaceCombobox/PlaceCombobox";
 import { BudgetControl } from "./BudgetControl";
 import { CommuteControl, JourneySettings } from "./CommuteControl";
 import styles from "./SettingsPanel.module.css";
-import { TagControl, WeightControl } from "./WeightControl";
+import { TenureChoice } from "./TenureChoice";
+import { MadeOf, VibeControl } from "./VibeControl";
+import { WeightControl } from "./WeightControl";
 
 interface Props {
   /** The spec the API last returned. Every control is drawn from it. */
@@ -30,6 +39,13 @@ interface Props {
   readonly areas: readonly AreaSummary[];
   readonly placeNames: Readonly<Record<string, string>>;
   readonly onEdit: (operations: Operations) => void;
+  /** Told of a choice of renting or buying. Before anything is asked for, it sends nothing. */
+  readonly onTenure: (tenure: Tenure) => void;
+  /** Route 8, for the field that adds a place to reach. */
+  readonly searchPlaces: (text: string, signal: AbortSignal) => Promise<Answer<PlacesData>>;
+  readonly onAddPlace: (place: FoundPlace) => void;
+  /** Said in place of the field when no more places can be named. */
+  readonly full?: string | null;
   /** Changes with every answer from the API. */
   readonly version: number;
   /** Why the last edit to a part was not taken, by part. */
@@ -41,12 +57,20 @@ interface Props {
   readonly busy?: boolean;
 }
 
+/** True when the feature is recorded crime, which is a group of its own, off unless asked for. */
+const isCrime = (metric: Metric) => metric.dimension === "crime";
+
 /**
- * The settings: the same search as a form. Every control here makes the edit
- * a sentence would, so the page works with no words read at all.
+ * The settings: the same search as a form, in groups, each closed at first.
+ * Money and journeys first, then one group for each family of vibes, as the
+ * API names and orders them, then what belongs to no family, and recorded
+ * crime last. Every control here makes the edit a sentence would, so the page
+ * works with no words read at all.
  *
- * It offers only what the release can rank, within the limits the API
- * served, so it never offers what the reducer would refuse.
+ * In a family each vibe has one slider, and "Made of" opens its parts. A
+ * feature of the family that is in no recipe is under "Other things that
+ * count". It offers only what the release can rank, within the limits the
+ * API served, so it never offers what the reducer would refuse.
  */
 export function SettingsPanel({
   spec,
@@ -54,6 +78,10 @@ export function SettingsPanel({
   areas,
   placeNames,
   onEdit,
+  onTenure,
+  searchPlaces,
+  onAddPlace,
+  full = null,
   version,
   refused = new Map(),
   open,
@@ -66,138 +94,177 @@ export function SettingsPanel({
   const names = namesOfPlaces(spec, placeNames);
   const why = (part: string) => {
     const reason = refused.get(part);
-    return reason === undefined ? null : REJECTED[reason];
+    return reason === undefined ? null : whyRefused(reason, meta);
   };
   const shared = { limits, onEdit, version };
+  const inARecipe = new Set(meta.tags.flatMap((tag) => tag.terms.map((term) => term.feature_id)));
+  const rankable = meta.features.filter((metric) => metric.rankable);
 
-  // What the scale of a slider means is said once for each group of sliders, where it can be
-  // seen, and only while the group shows a slider: a switch that is off shows none.
-  const scales = { features: `${id}-scale-features`, tags: `${id}-scale-tags`, crime: `${id}-scale-crime` };
-  const isCrime = (featureId: string) =>
-    meta.features.some((metric) => metric.feature_id === featureId && metric.dimension === "crime");
-  const slides = {
-    features: spec.weights.some((weight) => counts(weight) && !isCrime(weight.feature_id)),
-    tags: spec.tags.some((weight) => counts(weight)),
-    crime: spec.weights.some((weight) => counts(weight) && isCrime(weight.feature_id)),
-  };
-  const scaleOf = (group: keyof typeof scales) =>
-    slides[group] ? (
-      <p id={scales[group]} className={styles.hint}>
-        {SLIDER.range}
-      </p>
-    ) : null;
+  const controlsOf = (features: readonly Metric[], scale: string) =>
+    features.map((metric) => (
+      <li key={metric.feature_id}>
+        <WeightControl
+          {...shared}
+          metric={metric}
+          weight={spec.weights.find((weight) => weight.feature_id === metric.feature_id)}
+          problem={why(`feature:${metric.feature_id}`)}
+          scale={scale}
+        />
+      </li>
+    ));
 
-  const featuresOf = (dimension: Dimension) =>
-    meta.features
-      .filter((metric) => metric.rankable && metric.dimension === dimension)
-      .map((metric) => (
-        <li key={metric.feature_id}>
-          <WeightControl
-            {...shared}
-            metric={metric}
-            weight={spec.weights.find((weight) => weight.feature_id === metric.feature_id)}
-            problem={why(`feature:${metric.feature_id}`)}
-            scale={scales[dimension === "crime" ? "crime" : "features"]}
-          />
-        </li>
-      ));
+  /** True when any of these features counts, so that its slider is drawn. */
+  const anyCounts = (features: readonly Metric[]) =>
+    features.some((metric) => counts(spec.weights.find((weight) => weight.feature_id === metric.feature_id)));
+
+  /**
+   * One group of the settings, closed at first. What the scale of a slider means is said
+   * once for the group, where it can be seen, and only while the group shows a slider.
+   */
+  const group = (key: string, label: string, slides: boolean, children: (scale: string) => ReactNode) => (
+    <Disclosure key={key} label={label} className={styles.group}>
+      <div className={styles.inside}>
+        {slides ? (
+          <p id={`${id}-${key}`} className={styles.hint}>
+            {SLIDER.range}
+          </p>
+        ) : null}
+        {children(`${id}-${key}`)}
+      </div>
+    </Disclosure>
+  );
+
+  const families = meta.families.map(({ family, label }) => {
+    const vibes = meta.tags.filter((tag) => tag.family === family);
+    const others = rankable.filter(
+      (metric) => metric.family === family && !isCrime(metric) && !inARecipe.has(metric.feature_id),
+    );
+    if (vibes.length === 0 && others.length === 0) return null;
+    // A vibe that runs one way always shows its slider, where any area can be placed on it.
+    // A scale says what its own ends mean.
+    const slides =
+      vibes.some((tag) => tag.shape === "one_way" && recipeOf(meta, tag.tag_id)?.placed !== false) ||
+      anyCounts(others);
+    return group(family, label, slides, (scale) => (
+      <>
+        <ul className={styles.list}>
+          {vibes.map((tag) => (
+            <li key={tag.tag_id} className={styles.vibe}>
+              <VibeControl
+                {...shared}
+                tag={tag}
+                held={recipeOf(meta, tag.tag_id)}
+                weight={spec.tags.find((weight) => weight.tag_id === tag.tag_id)}
+                problem={why(`tag:${tag.tag_id}`)}
+                scale={scale}
+                crime={countsOf(tag, meta.features)}
+              />
+              <MadeOf
+                {...shared}
+                tag={tag}
+                features={meta.features}
+                weights={spec.weights}
+                problemOf={(featureId) => why(`feature:${featureId}`)}
+              />
+            </li>
+          ))}
+        </ul>
+        {others.length > 0 ? (
+          <fieldset className={styles.dimension}>
+            <legend className={styles.legend}>{FEATURES.others}</legend>
+            <ul className={styles.list}>{controlsOf(others, scale)}</ul>
+          </fieldset>
+        ) : null}
+      </>
+    ));
+  });
+
+  const apart = rankable.filter((metric) => metric.family === null && !isCrime(metric));
+  const crime = rankable.filter(isCrime);
 
   return (
-    <Disclosure
-      label={SETTINGS.title}
-      open={open}
-      onToggle={onToggle}
-      className={styles.settings}
-    >
+    <Disclosure label={SETTINGS.title} open={open} onToggle={onToggle} className={styles.settings}>
       <div className={styles.panel} aria-busy={busy}>
         <p className={styles.lead}>{SETTINGS.lead}</p>
 
-        <BudgetControl
-          {...shared}
-          budget={spec.budget}
-          tenure={spec.tenure}
-          problem={why("budget")}
-        />
-
-        <fieldset className={styles.group}>
-          <legend className={styles.groupLegend}>{JOURNEY.legend}</legend>
-          {spec.commutes.length === 0 ? <p className={styles.hint}>{JOURNEY.none}</p> : null}
-          {spec.commutes.map((commute) => (
-            <CommuteControl
+        <Disclosure label={SETTINGS.money} className={styles.group}>
+          <div className={styles.inside}>
+            <TenureChoice tenure={spec.tenure} onChoose={onTenure} version={version} problem={why("tenure")} />
+            <BudgetControl
               {...shared}
-              key={commute.place_id}
-              commute={commute}
-              name={names.get(commute.place_id) ?? ""}
-              problem={why(`place:${commute.place_id}`)}
+              budget={spec.budget}
+              tenure={spec.tenure}
+              problem={why("budget")}
+              costs={meta.holds.costs}
             />
-          ))}
-          {spec.commutes.length > 0 ? <JourneySettings {...shared} spec={spec} /> : null}
-        </fieldset>
+          </div>
+        </Disclosure>
 
-        <fieldset className={styles.group}>
-          <legend className={styles.groupLegend}>{FEATURES.legend}</legend>
-          {scaleOf("features")}
-          {DIMENSION_ORDER.filter((dimension) => dimension !== "crime").map((dimension) => {
-            const controls = featuresOf(dimension);
-            if (controls.length === 0) return null;
-            return (
-              <fieldset key={dimension} className={styles.dimension}>
-                <legend className={styles.legend}>{DIMENSION[dimension]}</legend>
-                <ul className={styles.list}>{controls}</ul>
-              </fieldset>
-            );
-          })}
-        </fieldset>
-
-        <fieldset className={styles.group}>
-          <legend className={styles.groupLegend}>{FEATURES.tagsLegend}</legend>
-          <p className={styles.hint}>{FEATURES.tagsHint}</p>
-          {scaleOf("tags")}
-          <ul className={styles.list}>
-            {meta.tags.map((tag) => (
-              <li key={tag.tag_id}>
-                <TagControl
-                  {...shared}
-                  tag={tag}
-                  weight={spec.tags.find((weight) => weight.tag_id === tag.tag_id)}
-                  problem={why(`tag:${tag.tag_id}`)}
-                  scale={scales.tags}
-                />
-              </li>
+        <Disclosure label={SETTINGS.journeys} className={styles.group}>
+          <div className={styles.inside}>
+            {/* Where the data names no place, there is none to add, and the group says so. */}
+            {meta.holds.journeys ? (
+              <PlaceCombobox search={searchPlaces} onPick={onAddPlace} full={full} />
+            ) : (
+              <p className={styles.hint}>{JOURNEY.notInData}</p>
+            )}
+            {meta.holds.journeys && spec.commutes.length === 0 ? (
+              <p className={styles.hint}>{JOURNEY.none}</p>
+            ) : null}
+            {spec.commutes.map((commute) => (
+              <CommuteControl
+                {...shared}
+                key={commute.place_id}
+                commute={commute}
+                name={names.get(commute.place_id) ?? ""}
+                problem={why(`place:${commute.place_id}`)}
+              />
             ))}
-          </ul>
-        </fieldset>
+            {spec.commutes.length > 0 ? <JourneySettings {...shared} spec={spec} /> : null}
+          </div>
+        </Disclosure>
 
-        {featuresOf("crime").length > 0 ? (
-          // Recorded crime is its own group, closed and off at first, under its caveat.
-          <Disclosure label={DIMENSION.crime} className={styles.crime}>
-            <p>{CRIME.lead}</p>
-            <p>{CRIME_CAVEAT}</p>
-            {scaleOf("crime")}
-            <ul className={styles.list}>{featuresOf("crime")}</ul>
+        {families}
+
+        {apart.length > 0
+          ? group("apart", SETTINGS.airAndNoise, anyCounts(apart), (scale) => (
+              <ul className={styles.list}>{controlsOf(apart, scale)}</ul>
+            ))
+          : null}
+
+        {crime.length > 0
+          ? // Recorded crime is its own group, closed and off at first, under its caveat.
+            group("crime", DIMENSION.crime, anyCounts(crime), (scale) => (
+              <>
+                <p>{CRIME.lead}</p>
+                {/* Where no vibe of the release holds recorded crime, the rule is followed by a line that says so. */}
+                {crimeVibes(meta).length === 0 ? <p>{CRIME_ACCOUNT.noVibe}</p> : null}
+                <p>{CRIME_CAVEAT}</p>
+                <ul className={styles.list}>{controlsOf(crime, scale)}</ul>
+              </>
+            ))
+          : null}
+
+        {spec.areas.length > 0 ? (
+          <Disclosure label={HIDDEN.legend} className={styles.group}>
+            <ul className={styles.list}>
+              {spec.areas.map((rule) => {
+                const name = areas.find((area) => area.area_id === rule.area_id)?.name ?? rule.area_id;
+                return (
+                  <li key={rule.area_id}>
+                    <button
+                      type="button"
+                      className="target"
+                      onClick={() => onEdit(edits.areaClear(rule.area_id))}
+                    >
+                      {rule.rule === "exclude" ? HIDDEN.show(name) : HIDDEN.only(name)}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
           </Disclosure>
         ) : null}
-
-        <fieldset className={styles.group}>
-          <legend className={styles.groupLegend}>{HIDDEN.legend}</legend>
-          {spec.areas.length === 0 ? <p className={styles.hint}>{HIDDEN.none}</p> : null}
-          <ul className={styles.list}>
-            {spec.areas.map((rule) => {
-              const name = areas.find((area) => area.area_id === rule.area_id)?.name ?? rule.area_id;
-              return (
-                <li key={rule.area_id}>
-                  <button
-                    type="button"
-                    className="target"
-                    onClick={() => onEdit(edits.areaClear(rule.area_id))}
-                  >
-                    {rule.rule === "exclude" ? HIDDEN.show(name) : HIDDEN.only(name)}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </fieldset>
 
         {onRank ? (
           <div>

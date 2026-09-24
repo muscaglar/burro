@@ -1,0 +1,176 @@
+{
+  "scenario": "example-4",
+  "shows": "A sentence the first screen offers: it is plain, and every edit of it is applied",
+  "captured": true,
+  "request": {
+    "operation_id": "interpret",
+    "method": "POST",
+    "route": "/v1/interpret",
+    "path": "/v1/interpret",
+    "body": {
+      "text": "Somewhere quiet, near a big park"
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "2055",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "false",
+    "x-burro-synthetic": "true",
+    "x-request-id": "fbfba5e6-b9d4-47c2-b251-1012ab66d1f2"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
+    },
+    "data": {
+      "status": "ok",
+      "operations": {
+        "budget_ops": [],
+        "commute_ops": [],
+        "weight_ops": [],
+        "tag_ops": [
+          {
+            "action": "nudge",
+            "tag_id": "quiet_residential",
+            "value": 0.0,
+            "step": "up_large",
+            "toward": "high",
+            "provenance": "stated"
+          },
+          {
+            "action": "nudge",
+            "tag_id": "parks_close_by",
+            "value": 0.0,
+            "step": "up_large",
+            "toward": "high",
+            "provenance": "stated"
+          }
+        ],
+        "area_ops": [],
+        "setting_ops": []
+      },
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.3,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [
+          {
+            "tag_id": "parks_close_by",
+            "weight": 0.5,
+            "toward": "high",
+            "provenance": "stated"
+          },
+          {
+            "tag_id": "quiet_residential",
+            "weight": 0.5,
+            "toward": "high",
+            "provenance": "stated"
+          }
+        ],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "spec_hash": "0102e8a701e8bcc0eeb4f661a85ba34e359eac78d8229c189d5fa593762a9f11",
+      "applied": [
+        {
+          "group": "tag_ops",
+          "index": 0,
+          "changed": true
+        },
+        {
+          "group": "tag_ops",
+          "index": 1,
+          "changed": true
+        }
+      ],
+      "rejected": [],
+      "assumptions": [],
+      "unmet": [],
+      "clarify": [],
+      "notice": "none",
+      "notice_text": "",
+      "interpreter": "rule",
+      "degraded": false,
+      "model_refused": false,
+      "rests_on": [
+        {
+          "group": "tag_ops",
+          "index": 0,
+          "start": 10,
+          "end": 15
+        },
+        {
+          "group": "tag_ops",
+          "index": 1,
+          "start": 17,
+          "end": 32
+        }
+      ],
+      "suggestions": [],
+      "unread": [],
+      "not_in_release": [],
+      "unmet_at": [],
+      "model_pending": false,
+      "places": []
+    }
+  }
+}

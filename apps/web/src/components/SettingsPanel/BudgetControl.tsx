@@ -22,10 +22,24 @@ interface Props {
   readonly version: number;
   /** Why the last edit to the budget was not taken, in words. */
   readonly problem?: string | null;
+  /**
+   * False where the data holds no cost to test a budget against. No amount is then asked
+   * for: set, it was turned away, and once it left no area ranked. The kind of home can
+   * still be chosen, which a search holds with or without an amount.
+   */
+  readonly costs?: boolean;
 }
 
 /** What a person can pay, for what kind of home, and how much that counts. */
-export function BudgetControl({ budget, tenure, limits, onEdit, version, problem = null }: Props) {
+export function BudgetControl({
+  budget,
+  tenure,
+  limits,
+  onEdit,
+  version,
+  problem = null,
+  costs = true,
+}: Props) {
   const id = useId();
   const money = limits[tenure];
   const [segment, showSegment] = useDraft(budget.segment, version);
@@ -35,6 +49,64 @@ export function BudgetControl({ budget, tenure, limits, onEdit, version, problem
   return (
     <fieldset className={styles.group}>
       <legend className={styles.groupLegend}>{BUDGET.legend}</legend>
+      {costs ? null : <p className={styles.hint}>{BUDGET.notInData}</p>}
+      {costs ? (
+        <Amount budget={budget} tenure={tenure} money={money} problem={problem} onEdit={onEdit} version={version} />
+      ) : null}
+      <div className={styles.field}>
+        <label className={styles.label} htmlFor={`${id}-segment`}>
+          {BUDGET.segment}
+        </label>
+        <select
+          id={`${id}-segment`}
+          className="target"
+          value={kinds.includes(segment) ? segment : ""}
+          onChange={(event) => {
+            const chosen = kinds.find((kind) => kind === event.currentTarget.value);
+            if (chosen === undefined) return;
+            showSegment(chosen);
+            onEdit(edits.budgetSegment(chosen));
+          }}
+        >
+          {kinds.map((kind) => (
+            <option key={kind} value={kind}>
+              {SEGMENT[kind]}
+            </option>
+          ))}
+        </select>
+      </div>
+      {costs ? (
+        <>
+          <Check
+            label={BUDGET.firm}
+            hint={BUDGET.firmHint}
+            checked={firm}
+            onChange={(checked) => {
+              showFirm(checked);
+              onEdit(edits.budgetStrictness(checked ? "hard" : "soft"));
+            }}
+          />
+          <WeightSlider
+            label={BUDGET.weight}
+            value={budget.weight}
+            limits={limits}
+            onCommit={(value) => onEdit(edits.budgetWeight(value))}
+            version={version}
+          />
+        </>
+      ) : null}
+    </fieldset>
+  );
+}
+
+interface AmountProps extends Pick<Props, "budget" | "tenure" | "onEdit" | "version" | "problem"> {
+  readonly money: ServedLimits[Tenure];
+}
+
+/** The amount, the steps either side of it, and the button that takes it off. */
+function Amount({ budget, tenure, money, problem = null, onEdit, version }: AmountProps) {
+  return (
+    <>
       <NumberStepper
         label={BUDGET.amount[tenure]}
         value={budget.amount}
@@ -62,44 +134,6 @@ export function BudgetControl({ budget, tenure, limits, onEdit, version, problem
           {BUDGET.clear}
         </button>
       </div>
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor={`${id}-segment`}>
-          {BUDGET.segment}
-        </label>
-        <select
-          id={`${id}-segment`}
-          className="target"
-          value={kinds.includes(segment) ? segment : ""}
-          onChange={(event) => {
-            const chosen = kinds.find((kind) => kind === event.currentTarget.value);
-            if (chosen === undefined) return;
-            showSegment(chosen);
-            onEdit(edits.budgetSegment(chosen));
-          }}
-        >
-          {kinds.map((kind) => (
-            <option key={kind} value={kind}>
-              {SEGMENT[kind]}
-            </option>
-          ))}
-        </select>
-      </div>
-      <Check
-        label={BUDGET.firm}
-        hint={BUDGET.firmHint}
-        checked={firm}
-        onChange={(checked) => {
-          showFirm(checked);
-          onEdit(edits.budgetStrictness(checked ? "hard" : "soft"));
-        }}
-      />
-      <WeightSlider
-        label={BUDGET.weight}
-        value={budget.weight}
-        limits={limits}
-        onCommit={(value) => onEdit(edits.budgetWeight(value))}
-        version={version}
-      />
-    </fieldset>
+    </>
   );
 }

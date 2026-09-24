@@ -12,6 +12,7 @@ import { NothingMatches, waysOut } from "./NothingMatches";
 
 const areas = recordedAnswer("list_areas", "areas").body.data.areas;
 const nothing = recordedAnswer("rank", "rank-nothing-matches").body.data;
+const meta = recordedAnswer("get_meta", "meta").body.data;
 const NAMES = { "syn-p0021": "Cindermoor Works" };
 
 function show(spec: PreferenceSpec = nothing.spec) {
@@ -88,6 +89,37 @@ describe("when no area passes every limit", () => {
       NOTHING_MATCHES.showAll("Farrowmere"),
     ]);
     expect(ways.map((way) => way.operations)).toEqual([edits.areaClear("syn-n0003"), edits.areaClear("syn-n0006")]);
+  });
+
+  test("test_where_no_limit_left_an_area_out_the_page_does_not_say_that_one_did", () => {
+    // Seen in a browser: "No area passes every limit you set", of a person who had set
+    // none. Every area had no figure for what counted, and nothing on the page named it.
+    const lacking = areas.map((area) => ({
+      area_id: area.area_id,
+      reason: "insufficient_data" as const,
+      missing: ["budget", "tag:leafy"],
+    }));
+    render(
+      <NothingMatches
+        filtered={[]}
+        unranked={lacking}
+        spec={{ ...nothing.spec, budget: { ...nothing.spec.budget, strictness: "soft" }, commutes: [] }}
+        areas={areas}
+        placeNames={NAMES}
+        meta={meta}
+        onEdit={() => undefined}
+      />,
+    );
+
+    expect(screen.queryByRole("region", { name: NOTHING_MATCHES.title })).toBeNull();
+    const block = within(screen.getByRole("region", { name: NOTHING_MATCHES.noData }));
+    expect(document.body.textContent?.includes("limit")).toBe(false);
+    // What has no figure is named, by the names the API gives, with how many areas lack it.
+    const lacks = within(block.getByRole("list", { name: NOTHING_MATCHES.lacks }))
+      .getAllByRole("listitem")
+      .map((item) => item.textContent);
+    expect(lacks).toEqual([`Budget: ${areas.length} areas`, `Leafy: ${areas.length} areas`]);
+    expect(block.queryByRole("button")).toBeNull();
   });
 
   test("test_the_block_has_no_accessibility_fault", async () => {

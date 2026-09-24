@@ -1,6 +1,6 @@
 /** @jest-environment node */
 import { readRecorded, recordedAnswer, recordedError, responseFrom } from "./recorded";
-import { BuildReadError, loadArea, loadAreas, loadGeometry, loadMeta } from "./server";
+import { BuildReadError, forgetTheOutlines, loadArea, loadAreas, loadGeometry, loadMeta } from "./server";
 
 const BASE = "https://api.example.test";
 
@@ -15,6 +15,7 @@ function answerWith(response: () => Response) {
 
 afterEach(() => {
   delete process.env.NEXT_PUBLIC_BURRO_API_URL;
+  forgetTheOutlines();
 });
 
 describe("what a page is built from", () => {
@@ -59,6 +60,49 @@ describe("what a page is built from", () => {
     expect(calls.map(({ url }) => url)).toEqual([`${BASE}/v1/meta`]);
     expect(calls[0]?.init).toMatchObject({ method: "GET", next: { revalidate: 3600 } });
     expect(calls[0]?.init.body).toBeUndefined();
+  });
+
+  test("test_the_outlines_are_asked_for_once_however_many_pages_are_built", async () => {
+    // Seen in a build of a thousand areas: the outlines were asked for once for every page,
+    // a thousand times over, because the answer is too large for the framework to keep.
+    // The service fell behind, and the build stopped on a page that waited too long.
+    process.env.NEXT_PUBLIC_BURRO_API_URL = BASE;
+    const calls = answerWith(() => responseFrom(recordedAnswer("get_geometry", "geometry")));
+
+    const read = await Promise.all([loadGeometry(), loadGeometry(), loadGeometry()]);
+    const again = await loadGeometry();
+
+    expect(calls.map(({ url }) => url)).toEqual([`${BASE}/v1/areas/geometry`]);
+    for (const one of [...read, again]) expect(one).toEqual(readRecorded("geometry").body);
+  });
+
+  test("test_outlines_that_could_not_be_read_are_asked_for_again", async () => {
+    process.env.NEXT_PUBLIC_BURRO_API_URL = BASE;
+    const failing = answerWith(() => responseFrom(recordedError("error-internal")));
+    await expect(loadGeometry()).rejects.toBeInstanceOf(BuildReadError);
+    expect(failing).toHaveLength(1);
+
+    const calls = answerWith(() => responseFrom(recordedAnswer("get_geometry", "geometry")));
+    expect(await loadGeometry()).toEqual(readRecorded("geometry").body);
+    expect(calls).toHaveLength(1);
+  });
+
+  test("test_the_outlines_are_kept_no_longer_than_a_built_page_is", async () => {
+    process.env.NEXT_PUBLIC_BURRO_API_URL = BASE;
+    const calls = answerWith(() => responseFrom(recordedAnswer("get_geometry", "geometry")));
+    const clock = jest.spyOn(Date, "now");
+    try {
+      clock.mockReturnValue(1_000_000);
+      await loadGeometry();
+      clock.mockReturnValue(1_000_000 + 3_599_000);
+      await loadGeometry();
+      expect(calls).toHaveLength(1);
+      clock.mockReturnValue(1_000_000 + 3_601_000);
+      await loadGeometry();
+      expect(calls).toHaveLength(2);
+    } finally {
+      clock.mockRestore();
+    }
   });
 
   test("test_an_area_the_api_does_not_have_is_no_page_and_not_a_fault", async () => {

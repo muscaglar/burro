@@ -1,8 +1,9 @@
 /**
  * One person's whole visit, as a person makes it: a first search, a second
  * sentence, a control, a question answered, the notice, a sentence that holds
- * nothing, an area's page, a comparison, a link made and opened, and a search
- * the model did not answer.
+ * nothing, an area's page, a comparison, a link made and opened, a search
+ * the model did not answer, and a search begun at the shelf: a word added, a
+ * scale turned, and one of the things the reader noticed chosen.
  *
  * Every other test answers the website from a recording whatever it sends.
  * This one answers a request only if it is, to the letter, a request the
@@ -22,8 +23,8 @@ import { SearchApp } from "@/components/SearchApp/SearchApp";
 import { SharedSearch } from "@/components/SharedSearch/SharedSearch";
 import { Shell } from "@/components/Shell/Shell";
 import { COMPARE, COMPARE_TABLE, TRAY } from "@/content/compare";
-import { CHIPS, CLARIFY, NOTICE, RESULTS, STATUS, UNMET } from "@/content/search";
-import { JOURNEY, SETTINGS } from "@/content/settings";
+import { CHIPS, CLARIFY, NOTICE, RESULTS, SHELF, STATUS, SUGGEST, UNMET } from "@/content/search";
+import { FEATURES, JOURNEY, SETTINGS } from "@/content/settings";
 import { SHARE, SHARED } from "@/content/share";
 import { BANNER } from "@/content/site";
 import type {
@@ -39,7 +40,19 @@ import { chosenFrom } from "@/lib/compare/list";
 import { fitOf } from "@/lib/map/fill";
 
 import { setOnline } from "./support/api";
-import { areas, arrived, meta, promptBox, results, settled } from "./support/search";
+import {
+  areas,
+  arrived,
+  bands,
+  everyChip,
+  everyResult,
+  meta,
+  promptBox,
+  results,
+  settingsAt,
+  settled,
+  workingOf,
+} from "./support/search";
 import { stepOfTheVisit, stepsOfTheVisit, visitApi, type VisitApi } from "./support/visit";
 
 jest.mock("next/navigation", () => ({ usePathname: () => "/" }));
@@ -55,7 +68,12 @@ const slugOf = (areaId: string | undefined) => areas.find((area) => area.area_id
 const status = () => screen.getAllByRole("status").map((line) => line.textContent ?? "");
 const chip = (name: string) => screen.getByRole("button", { name: new RegExp(`^${name}`) });
 const inShell = (page: ReactElement) => <Shell meta={meta.meta}>{page}</Shell>;
-const searchPage = (api: VisitApi) => <SearchApp meta={meta.data} areas={areas} client={api.client} />;
+const searchPage = (api: VisitApi) => (
+  <SearchApp meta={meta.data} areas={areas} bands={bands} client={api.client} />
+);
+/** The plain name of a feature, which is what a chip and a switch are named by. */
+const plainNameOf = (featureId: string) =>
+  meta.data.features.find((feature) => feature.feature_id === featureId)?.short_label ?? "";
 
 async function say(user: ReturnType<typeof userEvent.setup>, name: string) {
   await user.clear(promptBox());
@@ -64,7 +82,7 @@ async function say(user: ReturnType<typeof userEvent.setup>, name: string) {
   await settled();
 }
 
-/** The first sentence of each of the first five cards, which is where the area is. */
+/** The first reason of each of the first five cards, which is in the answer. */
 const firstReasons = () =>
   results()
     .slice(0, 5)
@@ -95,10 +113,16 @@ describe("one person's whole visit", () => {
     const first = answerOf<RankData>("first-rank");
     await say(user, "first");
     expect(status().join(" ")).toContain(STATUS.ranked(first.scores.length, nameOf(first.ranked[0]?.area_id)));
+    // Every chip and every result, which stay opened out for the rest of the search.
+    await everyChip(user);
+    await everyResult(user);
     expect(results()).toHaveLength(first.ranked.length);
     expect(results()[0]).toHaveTextContent(RESULTS.fitOf(fitOf(first.ranked[0]?.score ?? 0)));
     for (const [at, explanation] of answerOf<ExplanationsData>("first-reasons").explanations.entries()) {
-      for (const reason of explanation.reasons) expect(firstReasons()[at]).toContain(reason.text);
+      expect(firstReasons()[at]).toContain(explanation.reasons[0]?.text);
+      // The other reasons are in the working of the result.
+      const card = await workingOf(user, nameOf(explanation.area_id));
+      for (const reason of explanation.reasons) expect(card.textContent?.includes(reason.text)).toBe(true);
     }
 
     // A second sentence: one thing more, and one taken off.
@@ -106,14 +130,14 @@ describe("one person's whole visit", () => {
     await say(user, "second");
     const takenOff = second.spec.weights.filter((weight) => weight.weight === 0);
     expect(takenOff.map((weight) => weight.feature_id)).toEqual(["highstreet_access"]);
-    const highStreet = meta.data.features.find((feature) => feature.feature_id === "highstreet_access")?.label ?? "";
+    const highStreet = plainNameOf("highstreet_access");
     expect(chip(highStreet)).toHaveTextContent(CHIPS.off);
     expect(screen.queryByRole("button", { name: `${CHIPS.remove}: ${highStreet}` })).toBeNull();
     expect(results()[0]).toHaveTextContent(nameOf(answerOf<RankData>("second-rank").ranked[0]?.area_id));
 
     // A control: the journey made a firm limit.
     const firm = answerOf<RankData>("firm-rank");
-    await user.click(screen.getByRole("button", { name: SETTINGS.title }));
+    await settingsAt(user, SETTINGS.journeys);
     await user.click(
       within(screen.getByRole("group", { name: JOURNEY.place("Cindermoor Works") })).getByRole("checkbox", {
         name: JOURNEY.firm,
@@ -123,7 +147,8 @@ describe("one person's whole visit", () => {
     expect(firm.filtered.length).toBeGreaterThan(0);
     expect(results()).toHaveLength(firm.ranked.length);
     expect(chip("Cindermoor Works")).toHaveTextContent(CHIPS.firm);
-    // The switch of what was taken off is off, and stays off.
+    // The switch of what was taken off is off, and stays off. It is a part of the recipe of Going out.
+    await settingsAt(user, "Pace and food", FEATURES.madeOfName("Going out"));
     expect(screen.getByRole("switch", { name: highStreet })).not.toBeChecked();
     await user.click(screen.getByRole("button", { name: SETTINGS.title }));
 
@@ -146,7 +171,7 @@ describe("one person's whole visit", () => {
     await say(user, "people");
     expect(people.notice).toBe("neutral_places");
     expect(status().filter((line) => line === people.notice_text)).toHaveLength(1);
-    expect(chip("Walk to the nearest park")).toBeInTheDocument();
+    expect(chip(plainNameOf("park_proximity"))).toBeInTheDocument();
     const last = answerOf<RankData>("people-rank");
     expect(results()[0]).toHaveTextContent(nameOf(last.ranked[0]?.area_id));
 
@@ -158,14 +183,22 @@ describe("one person's whole visit", () => {
 
     // The second result is chosen from the list, and the first from its own page.
     const [one, two] = [last.ranked[0]?.area_id, last.ranked[1]?.area_id];
-    await user.click(within(results()[1] as HTMLElement).getByRole("button", { name: COMPARE.add(nameOf(two)) }));
+    await user.click(within(results()[1] as HTMLElement).getByRole("button", { name: COMPARE.addNamed(nameOf(two)) }));
+    // "More like this" leads to the part of the area's own page that lists what is like it.
+    expect(within(results()[0] as HTMLElement).getByRole("link", { name: RESULTS.moreLikeOf(nameOf(one)) })).toHaveAttribute(
+      "href",
+      `/synthetic/${slugOf(one)}#alike`,
+    );
     view.rerender(inShell(await AreaPage({ params: Promise.resolve({ city: "synthetic", area: slugOf(one) }) })));
     await arrived();
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(nameOf(one));
     expect(screen.getByRole("region", { name: BANNER.label })).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: COMPARE.add(nameOf(one)) }));
-    const go = screen.getByRole("link", { name: TRAY.go(2) });
-    expect(go).toHaveAttribute("href", `/compare?a=${slugOf(two)}&a=${slugOf(one)}`);
+    // The way to the comparison is beside the button that was pressed, and in the tray at the
+    // foot of the screen. Both lead to the same two areas.
+    const ways = screen.getAllByRole("link", { name: TRAY.go(2) });
+    expect(ways).toHaveLength(2);
+    for (const go of ways) expect(go).toHaveAttribute("href", `/compare?a=${slugOf(two)}&a=${slugOf(one)}`);
 
     // The comparison, on the search as it stands.
     const compared = answerOf<CompareData>("compare");
@@ -173,7 +206,7 @@ describe("one person's whole visit", () => {
       inShell(
         <CompareView
           chosen={chosenFrom([slugOf(two), slugOf(one)], areas).chosen}
-          defaults={meta.data.defaults}
+          defaults={meta.data.defaults} tags={meta.data.tags}
           client={api.client}
         />,
       ),
@@ -182,7 +215,15 @@ describe("one person's whole visit", () => {
     await settled();
     expect(screen.getByRole("main")).toHaveTextContent(COMPARE.fromSearch);
     const rows = within(screen.getByRole("table", { name: COMPARE_TABLE.caption })).getAllByRole("rowheader");
+    // One row for each thing that counts, as the service sent them. It sent one for each
+    // place the journeys are to, and every area is timed to the place of its row.
+    const timedTo = compared.rows.flatMap((row) => (row.place === null ? [] : [row.place.name]));
+    expect(timedTo).toHaveLength(2);
+    expect(new Set(timedTo).size).toBe(2);
     expect(rows).toHaveLength(compared.rows.length);
+    for (const place of timedTo) {
+      expect(rows.filter((row) => row.textContent?.includes(COMPARE_TABLE.journeys.to(place)))).toHaveLength(1);
+    }
     // What was taken off counts for nothing, so it is no row of the comparison.
     expect(compared.rows.map((row) => row.component)).not.toContain("feature:highstreet_access");
     expect(screen.getByRole("main")).toHaveTextContent(
@@ -192,6 +233,7 @@ describe("one person's whole visit", () => {
     // Back to the search, which is as it was, and a link made of it.
     view.rerender(inShell(searchPage(api)));
     await settled();
+    await everyResult(user);
     expect(results()).toHaveLength(last.ranked.length);
     const made = answerOf<ShareCreated>("share-made");
     await user.click(screen.getByRole("button", { name: SHARE.open }));
@@ -209,20 +251,72 @@ describe("one person's whole visit", () => {
     await settled();
     const opened = answerOf<ShareData>("share-opened");
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(SHARED.title);
+    await everyChip(user);
+    await everyResult(user);
     expect(results()).toHaveLength(opened.ranked.length);
     expect(results()[0]).toHaveTextContent(nameOf(opened.ranked[0]?.area_id));
     expect(chip(highStreet)).toHaveTextContent(CHIPS.off);
+    // The places of a share are shown by the names the answer gives them.
+    for (const place of opened.places) expect(chip(place.name)).toBeInTheDocument();
 
     // Another day: the model does not answer, and the rules read the words in its place.
     tab.unmount();
     window.history.replaceState(null, "", "/");
-    render(inShell(searchPage(api)));
+    const another = render(inShell(searchPage(api)));
     await arrived();
+    // A model reads, and does not answer. What the rules offer is on the page at once, and
+    // stays when the model's answer does not come.
     const slow = answerOf<InterpretData>("slow");
     await say(user, "slow");
-    expect(slow).toMatchObject({ degraded: true, interpreter: "rule" });
+    expect(answerOf<InterpretData>("slow-at-once")).toMatchObject({ model_pending: true, degraded: false });
+    expect(slow).toMatchObject({ degraded: true, interpreter: "rule", applied: [] });
     expect(status()).toContain(NOTICE.degraded);
+    const water = slow.suggestions[0];
+    await user.click(screen.getByRole("button", { name: SUGGEST.named("Add", water?.label ?? "") }));
+    await settled();
     expect(results()[0]).toHaveTextContent(nameOf(answerOf<RankData>("slow-rank").ranked[0]?.area_id));
+
+    // Another day again, begun at the shelf: a word of it added, with nothing typed.
+    another.unmount();
+    render(inShell(searchPage(api)));
+    await arrived();
+    const shelf = within(screen.getByRole("region", { name: SHELF.title }));
+    await user.click(shelf.getByRole("button", { name: "lively" }));
+    await user.click(screen.getByRole("button", { name: SHELF.add }));
+    await settled();
+    const lively = answerOf<RankData>("shelf-rank");
+    expect(lively.spec.tags).toMatchObject([{ tag_id: "pace", toward: "high" }]);
+    expect(chip(CHIPS.towards("Going out", "Buzzy"))).toBeInTheDocument();
+    expect(results()[0]).toHaveTextContent(nameOf(lively.ranked[0]?.area_id));
+
+    // The chip of the scale is turned: the other end, with the weight it had.
+    await user.click(screen.getByRole("button", { name: CHIPS.turnTo("Going out", "Calm") }));
+    await settled();
+    const calm = answerOf<RankData>("turned-rank");
+    expect(calm.spec.tags).toMatchObject([{ tag_id: "pace", toward: "low", weight: lively.spec.tags[0]?.weight }]);
+    expect(chip(CHIPS.towards("Going out", "Calm"))).toBeInTheDocument();
+    expect(results()[0]).toHaveTextContent(nameOf(calm.ranked[0]?.area_id));
+
+    // A sentence that is not plain. Nothing of it is applied, and nothing is ranked again.
+    const noticed = answerOf<InterpretData>("noticed");
+    await say(user, "noticed");
+    expect(noticed.status).toBe("suggest");
+    expect(noticed.spec).toEqual(calm.spec);
+    const offered = within(screen.getByRole("region", { name: SUGGEST.title }));
+    // Each offer is named by what it would do, in the API's words.
+    const told = offered.getAllByRole("group").map((thing) => thing.getAttribute("aria-labelledby") ?? "");
+    expect(told.map((id) => document.getElementById(id)?.textContent)).toEqual(
+      noticed.suggestions.map((one) => one.does),
+    );
+    expect(results()[0]).toHaveTextContent(nameOf(calm.ranked[0]?.area_id));
+
+    // One of the things noticed is chosen: the edits the API gave with the choice.
+    const fewer = noticed.suggestions[0]?.choices[1];
+    await user.click(offered.getByRole("button", { name: fewer?.label }));
+    await settled();
+    const chosen = answerOf<RankData>("chosen-rank");
+    expect(results()[0]).toHaveTextContent(nameOf(chosen.ranked[0]?.area_id));
+    expect(chip(plainNameOf("venue_evening"))).toBeInTheDocument();
 
     // Nothing was sent that the service was not sent when the visit was recorded,
     // and nothing was recorded that the website does not send.

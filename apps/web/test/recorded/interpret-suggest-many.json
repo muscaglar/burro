@@ -1,0 +1,597 @@
+{
+  "scenario": "interpret-suggest-many",
+  "shows": "More things noticed than are shown at first",
+  "captured": true,
+  "request": {
+    "operation_id": "interpret",
+    "method": "POST",
+    "route": "/v1/interpret",
+    "path": "/v1/interpret",
+    "body": {
+      "text": "My sister wants pubs, a station, a high street, a playground, a river and clean air"
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "7734",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "false",
+    "x-burro-synthetic": "true",
+    "x-request-id": "a6aaeb94-f167-46dc-8bec-df8f7a4d75b2"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
+    },
+    "data": {
+      "status": "suggest",
+      "operations": {
+        "budget_ops": [],
+        "commute_ops": [],
+        "weight_ops": [],
+        "tag_ops": [],
+        "area_ops": [],
+        "setting_ops": []
+      },
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.3,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.2,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.3,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.2,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.3,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.3,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.5,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "spec_hash": "6c8de5435684a83166d75f9c1c0c25959efec036499e2359868c9a0f973a6640",
+      "applied": [],
+      "rejected": [],
+      "assumptions": [],
+      "unmet": [
+        "other"
+      ],
+      "clarify": [],
+      "notice": "none",
+      "notice_text": "",
+      "interpreter": "rule",
+      "degraded": false,
+      "model_refused": false,
+      "rests_on": [],
+      "suggestions": [
+        {
+          "target": "feature:venue_evening",
+          "label": "Pubs and bars",
+          "does": "Pubs and bars: more, or fewer?",
+          "spans": [
+            {
+              "start": 16,
+              "end": 20
+            }
+          ],
+          "shown": {
+            "start": 0,
+            "end": 20
+          },
+          "follows": "What Burro counts: pubs, bars and evening venues.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "More pubs and bars",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "nudge",
+                    "feature_id": "venue_evening",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "direction": "more",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "less",
+              "direction": "less",
+              "label": "Fewer pubs and bars",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "nudge",
+                    "feature_id": "venue_evening",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "direction": "less",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "pubs and bars",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "feature:station_walk",
+          "label": "Nearer a station",
+          "does": "Nearer a station: count it, or stop counting it?",
+          "spans": [
+            {
+              "start": 24,
+              "end": 31
+            }
+          ],
+          "shown": {
+            "start": 22,
+            "end": 31
+          },
+          "follows": "What Burro counts: straight-line distance to the nearest way in to a station.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Add",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "nudge",
+                    "feature_id": "station_walk",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "direction": "default",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "off",
+              "direction": "less",
+              "label": "Stop counting it",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "remove",
+                    "feature_id": "station_walk",
+                    "value": 0.0,
+                    "step": "none",
+                    "direction": "default",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "nearer a station",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "feature:highstreet_access",
+          "label": "Nearer a town centre",
+          "does": "Nearer a town centre: count it, or stop counting it?",
+          "spans": [
+            {
+              "start": 35,
+              "end": 46
+            }
+          ],
+          "shown": {
+            "start": 33,
+            "end": 46
+          },
+          "follows": "What Burro counts: straight-line distance to the nearest town centre boundary.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Add",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "nudge",
+                    "feature_id": "highstreet_access",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "direction": "default",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "off",
+              "direction": "less",
+              "label": "Stop counting it",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "remove",
+                    "feature_id": "highstreet_access",
+                    "value": 0.0,
+                    "step": "none",
+                    "direction": "default",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "nearer a town centre",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "feature:play_space_proximity",
+          "label": "Nearer a play space",
+          "does": "Rank areas higher for this: nearer a play space.",
+          "spans": [
+            {
+              "start": 50,
+              "end": 60
+            }
+          ],
+          "shown": {
+            "start": 48,
+            "end": 60
+          },
+          "follows": "What Burro counts: straight-line distance to the nearest marked way into a play space.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Add",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "nudge",
+                    "feature_id": "play_space_proximity",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "direction": "default",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "more",
+          "needs": "",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "feature:water_access",
+          "label": "Nearer a river or canal",
+          "does": "Rank areas higher for this: nearer a river or canal.",
+          "spans": [
+            {
+              "start": 64,
+              "end": 69
+            }
+          ],
+          "shown": {
+            "start": 62,
+            "end": 83
+          },
+          "follows": "What Burro counts: share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Add",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "nudge",
+                    "feature_id": "water_access",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "direction": "default",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "more",
+          "needs": "",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "feature:air_no2",
+          "label": "Cleaner air",
+          "does": "Rank areas higher for this: cleaner air.",
+          "spans": [
+            {
+              "start": 74,
+              "end": 83
+            }
+          ],
+          "shown": {
+            "start": 62,
+            "end": 83
+          },
+          "follows": "What Burro counts: modelled annual mean nitrogen dioxide.",
+          "said": [],
+          "choices": [
+            {
+              "id": "less",
+              "direction": "less",
+              "label": "Add",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "nudge",
+                    "feature_id": "air_no2",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "direction": "default",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "less",
+          "needs": "",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        }
+      ],
+      "unread": [
+        {
+          "start": 0,
+          "end": 15
+        },
+        {
+          "start": 22,
+          "end": 23
+        },
+        {
+          "start": 33,
+          "end": 34
+        },
+        {
+          "start": 48,
+          "end": 49
+        },
+        {
+          "start": 62,
+          "end": 63
+        },
+        {
+          "start": 70,
+          "end": 73
+        }
+      ],
+      "not_in_release": [],
+      "unmet_at": [],
+      "model_pending": false,
+      "places": []
+    }
+  }
+}

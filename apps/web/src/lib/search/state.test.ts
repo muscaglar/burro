@@ -1,5 +1,6 @@
 import { recordedAnswer } from "@/lib/api/recorded";
 import type { Failure } from "@/lib/api/failure";
+import type { BudgetEdit, Operations } from "@/lib/api/schema";
 
 import { edits, merged, NO_EDITS } from "./edits";
 import { refusals, refusedByPart } from "./refusals";
@@ -54,7 +55,7 @@ describe("the state of a search", () => {
     const copy = JSON.stringify(before);
 
     reduce(before, { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A });
-    reduce(before, { type: "queued", operations: edits.tagOn("waterside") });
+    reduce(before, { type: "queued", operations: edits.tagOn("parks_close_by") });
     reduce(before, { type: "failed", step: "rank", failure: timeout });
 
     expect(JSON.stringify(before)).toBe(copy);
@@ -74,7 +75,8 @@ describe("the state of a search", () => {
       { type: "settled" },
       { type: "failed", step: "rank", failure: timeout },
       { type: "stopped" },
-      { type: "place_named", placeId: "syn-p0021", name: "Cindermoor Works" },
+      { type: "suggestion_chosen", at: 0 },
+      { type: "box_changed" },
       { type: "online_changed", online: false },
       { type: "settings_opened", open: true },
       { type: "geometry_failed" },
@@ -105,14 +107,14 @@ describe("the state of a search", () => {
   test("test_a_failure_returns_to_the_phase_before_and_keeps_what_was_on_screen", () => {
     const state = after(
       { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A },
-      { type: "queued", operations: edits.tagOn("waterside") },
+      { type: "queued", operations: edits.tagOn("parks_close_by") },
       { type: "rank_started", seq: 2 },
       { type: "failed", step: "rank", failure: timeout },
     );
 
     expect(state.phase).toBe("results");
     expect(state.ranking?.ranked).toBe(ranked.ranked);
-    expect(state.pending).toEqual(edits.tagOn("waterside"));
+    expect(state.pending).toEqual(edits.tagOn("parks_close_by"));
     expect(state.degraded).toBe(false);
   });
 
@@ -149,7 +151,6 @@ describe("the state of a search", () => {
       { type: "geometry_loaded", geometry },
       { type: "read_answered", data: read, meta: A },
       { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A },
-      { type: "place_named", placeId: "syn-p0021", name: "Cindermoor Works" },
       { type: "selected", areaId: "syn-n0006" },
       { type: "started_again" },
     );
@@ -163,7 +164,7 @@ describe("the state of a search", () => {
     // The page was built on an older release. Every answer of the search came from the newer one.
     const before = after(
       { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: B },
-      { type: "explain_answered", data: explained, hash: ranked.spec_hash, meta: B },
+      { type: "explain_answered", data: explained, meta: B },
       { type: "detail_answered", data: profile, meta: B },
     );
     expect(Object.keys(before.facts).length).toBeGreaterThan(50);
@@ -183,7 +184,7 @@ describe("the state of a search", () => {
     const profile = recordedAnswer("get_area", "area/farrowmere").body.data;
     const before = after(
       { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A },
-      { type: "explain_answered", data: explained, hash: ranked.spec_hash, meta: A },
+      { type: "explain_answered", data: explained, meta: A },
       { type: "detail_answered", data: profile, meta: A },
     );
     expect(reasonsAreIn(before)).toBe(true);
@@ -210,12 +211,32 @@ describe("the state of a search", () => {
     expect(state.facts).toBe(before.facts);
   });
 
-  test("test_a_place_is_named_from_the_fact_of_its_journey", () => {
+  test("test_a_place_is_named_by_the_answer_that_brought_the_spec_that_names_it", () => {
+    const two = recordedAnswer("interpret", "interpret-two-journeys").body.data;
+    const names = { "syn-p0019": "Foxholt Market", "syn-p0026": "Wexmoor University" };
+
+    const readTwo = after({ type: "read_answered", data: two, meta: A });
+    const then = reduce(readTwo, { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A });
+
+    expect(readTwo.placeNames).toEqual(names);
+    // The names are of the places the spec on screen holds, and of no other.
+    expect(then.placeNames).toEqual({ "syn-p0021": "Cindermoor Works" });
+    expect(after({ type: "share_answered", id: SHARE_ID, data: shared, meta: A }).placeNames).toEqual(
+      Object.fromEntries(shared.places.map((place) => [place.place_id, place.name])),
+    );
+  });
+
+  test("test_the_reasons_are_for_the_spec_their_own_answer_names", () => {
     const explained = recordedAnswer("explain_top", "explanations-first").body.data;
 
-    const state = after({ type: "explain_answered", data: explained, hash: ranked.spec_hash, meta: A });
+    const state = after(
+      { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A },
+      { type: "explain_answered", data: explained, meta: A },
+    );
 
-    expect(state.placeNames).toEqual({ "syn-p0021": "Cindermoor Works" });
+    expect(explained.spec_hash).toBe(ranked.spec_hash);
+    expect(state.explainedHash).toBe(explained.spec_hash);
+    expect(reasonsAreIn(state)).toBe(true);
   });
 });
 
@@ -225,11 +246,11 @@ describe("reasons that come before the ranking they are for", () => {
   const shown = () =>
     after(
       { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A },
-      { type: "explain_answered", data: reasons, hash: ranked.spec_hash, meta: A },
+      { type: "explain_answered", data: reasons, meta: A },
     );
 
   test("test_the_reasons_on_screen_stay_until_the_ranking_the_new_ones_are_for_has_come", () => {
-    const state = reduce(shown(), { type: "explain_answered", data: later, hash: refined.spec_hash, meta: A });
+    const state = reduce(shown(), { type: "explain_answered", data: later, meta: A });
 
     expect(state.explanations).toBe(reasons.explanations);
     expect(state.explainedHash).toBe(ranked.spec_hash);
@@ -240,7 +261,7 @@ describe("reasons that come before the ranking they are for", () => {
 
   test("test_the_reasons_that_waited_are_the_rankings_when_it_comes", () => {
     const state = reduce(
-      reduce(shown(), { type: "explain_answered", data: later, hash: refined.spec_hash, meta: A }),
+      reduce(shown(), { type: "explain_answered", data: later, meta: A }),
       { type: "rank_answered", data: refined, sent: NO_EDITS, meta: A },
     );
 
@@ -251,7 +272,7 @@ describe("reasons that come before the ranking they are for", () => {
 
   test("test_a_ranking_that_fails_leaves_the_list_the_reasons_it_has", () => {
     const state = reduce(
-      reduce(shown(), { type: "explain_answered", data: later, hash: refined.spec_hash, meta: A }),
+      reduce(shown(), { type: "explain_answered", data: later, meta: A }),
       { type: "failed", step: "rank", failure: timeout },
     );
 
@@ -261,7 +282,7 @@ describe("reasons that come before the ranking they are for", () => {
 
   test("test_reasons_that_waited_for_another_ranking_are_not_given_to_this_one", () => {
     const state = reduce(
-      reduce(shown(), { type: "explain_answered", data: later, hash: "a".repeat(64), meta: A }),
+      reduce(shown(), { type: "explain_answered", data: { ...later, spec_hash: "a".repeat(64) }, meta: A }),
       { type: "rank_answered", data: refined, sent: NO_EDITS, meta: A },
     );
 
@@ -271,7 +292,7 @@ describe("reasons that come before the ranking they are for", () => {
   });
 
   test("test_the_first_reasons_of_a_search_are_shown_as_soon_as_they_come", () => {
-    const state = after({ type: "explain_answered", data: reasons, hash: ranked.spec_hash, meta: A });
+    const state = after({ type: "explain_answered", data: reasons, meta: A });
 
     expect(state.explanations).toBe(reasons.explanations);
     expect(state.explanationsAhead).toBeNull();
@@ -280,10 +301,10 @@ describe("reasons that come before the ranking they are for", () => {
   test("test_reasons_for_the_ranking_on_screen_take_the_place_of_ones_that_were_not", () => {
     const mismatched = after(
       { type: "rank_answered", data: refined, sent: NO_EDITS, meta: A },
-      { type: "explain_answered", data: reasons, hash: ranked.spec_hash, meta: A },
+      { type: "explain_answered", data: reasons, meta: A },
     );
 
-    const state = reduce(mismatched, { type: "explain_answered", data: later, hash: refined.spec_hash, meta: A });
+    const state = reduce(mismatched, { type: "explain_answered", data: later, meta: A });
 
     expect(state.explanations).toBe(later.explanations);
     expect(state.explainedHash).toBe(state.rankedHash);
@@ -300,7 +321,7 @@ describe("which release made what is on screen", () => {
     const state = after(
       { type: "read_answered", data: read, meta: A },
       { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A },
-      { type: "explain_answered", data: reasons, hash: ranked.spec_hash, meta: A },
+      { type: "explain_answered", data: reasons, meta: A },
       { type: "detail_answered", data: profile, meta: A },
     );
 
@@ -329,7 +350,7 @@ describe("which release made what is on screen", () => {
     // A hash is of the spec alone, so the two hashes agree whatever release made each answer.
     const state = after(
       { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A },
-      { type: "explain_answered", data: reasons, hash: ranked.spec_hash, meta: other },
+      { type: "explain_answered", data: reasons, meta: other },
     );
 
     expect(state.explainedHash).toBe(state.rankedHash);
@@ -338,7 +359,7 @@ describe("which release made what is on screen", () => {
 
   test("test_reasons_that_came_first_are_not_the_reasons_of_a_ranking_another_release_made", () => {
     const state = after(
-      { type: "explain_answered", data: reasons, hash: ranked.spec_hash, meta: A },
+      { type: "explain_answered", data: reasons, meta: A },
       { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: B },
     );
 
@@ -350,10 +371,10 @@ describe("which release made what is on screen", () => {
     const later = recordedAnswer("explain_top", "explanations-refined").body.data;
     const shown = after(
       { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A },
-      { type: "explain_answered", data: reasons, hash: ranked.spec_hash, meta: A },
+      { type: "explain_answered", data: reasons, meta: A },
     );
 
-    const waiting = reduce(shown, { type: "explain_answered", data: later, hash: refined.spec_hash, meta: B });
+    const waiting = reduce(shown, { type: "explain_answered", data: later, meta: B });
     expect(waiting.explanations).toBe(reasons.explanations);
     expect(reasonsAreIn(waiting)).toBe(true);
 
@@ -369,8 +390,8 @@ describe("which release made what is on screen", () => {
     const later = recordedAnswer("explain_top", "explanations-refined").body.data;
     const state = after(
       { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A },
-      { type: "explain_answered", data: reasons, hash: ranked.spec_hash, meta: A },
-      { type: "explain_answered", data: later, hash: refined.spec_hash, meta: A },
+      { type: "explain_answered", data: reasons, meta: A },
+      { type: "explain_answered", data: later, meta: A },
       { type: "rank_answered", data: refined, sent: NO_EDITS, meta: B },
     );
 
@@ -381,7 +402,7 @@ describe("which release made what is on screen", () => {
   test("test_a_fact_of_the_rankings_release_is_not_given_up_for_one_of_another", () => {
     const shown = after(
       { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A },
-      { type: "explain_answered", data: reasons, hash: ranked.spec_hash, meta: A },
+      { type: "explain_answered", data: reasons, meta: A },
     );
     const [cited] = reasons.facts;
     if (cited === undefined) throw new Error("the recording cites no fact");
@@ -432,7 +453,7 @@ describe("reasons and profiles that could not be loaded", () => {
     const state = after(
       { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A },
       { type: "explain_failed", hash: ranked.spec_hash, failure: fault },
-      { type: "explain_answered", data: reasons, hash: ranked.spec_hash, meta: A },
+      { type: "explain_answered", data: reasons, meta: A },
     );
 
     expect(reasonsFailure(state)).toBeNull();
@@ -488,7 +509,7 @@ describe("stopping after the words were read", () => {
       { type: "read_answered", data: read, meta: A },
       { type: "rank_started", seq: 1 },
       { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A },
-      { type: "explain_answered", data: reasons, hash: ranked.spec_hash, meta: A },
+      { type: "explain_answered", data: reasons, meta: A },
     );
   const readAgain = (from: SearchState) =>
     [
@@ -523,7 +544,6 @@ describe("stopping after the words were read", () => {
     const reading = reduce(readAgain(searched()), {
       type: "explain_answered",
       data: later,
-      hash: second.spec_hash,
       meta: A,
     });
     expect(reading.explanationsAhead?.hash).toBe(second.spec_hash);
@@ -650,7 +670,11 @@ describe("a search opened from a shared link", () => {
       filtered: shared.filtered,
       unranked: shared.unranked,
       empty_spec: shared.empty_spec,
+      // How many areas are ranked, and how many of them the answer holds in full.
+      areas_ranked: shared.areas_ranked,
+      areas_listed: shared.areas_listed,
     });
+    expect([state.ranking?.areas_ranked, state.ranking?.areas_listed]).toEqual([21, 20]);
     expect(state.phase).toBe("results");
   });
 
@@ -663,15 +687,15 @@ describe("a search opened from a shared link", () => {
     const before = after(
       { type: "read_answered", data: read, meta: A },
       { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A },
-      { type: "place_named", placeId: "syn-p0021", name: "Cindermoor Works" },
-      { type: "queued", operations: edits.tagOn("waterside") },
+      { type: "queued", operations: edits.tagOn("pace") },
       { type: "selected", areaId: "syn-n0006" },
     );
 
     const state = reduce(before, { type: "share_answered", id: SHARE_ID, data: shared, meta: A });
 
     expect(state.read).toBeNull();
-    expect(state.placeNames).toEqual({});
+    // The places are the ones the share names, and none of the search before.
+    expect(Object.keys(state.placeNames)).toEqual(shared.spec.commutes.map((commute) => commute.place_id));
     expect(state.pending).toEqual(NO_EDITS);
     expect(state.selectedId).toBeNull();
     expect(state.explanations).toEqual([]);
@@ -684,59 +708,33 @@ describe("a search opened from a shared link", () => {
 });
 
 describe("what the person said, and what was assumed for them", () => {
-  test("test_a_tenure_said_in_words_is_said_though_the_spec_still_calls_it_a_default", () => {
-    // Seen in a browser: "Renting assumed" after the person typed "Renting". The API leaves
-    // `tenure_from` at `default` when the tenure said is the one the spec already had.
+  test("test_a_tenure_said_in_words_is_stated_by_the_spec_itself", () => {
+    // Seen in a browser: "Renting assumed" after the person typed "Renting". The API now
+    // says that the tenure was stated, whether or not it moved, and the page keeps no
+    // record of its own.
     const state = after({ type: "read_started", seq: 1 }, { type: "read_answered", data: read, meta: A });
 
     expect(read.operations.budget_ops[0]).toMatchObject({ tenure: "rent", provenance: "stated" });
-    expect(read.spec.tenure_from).toBe("default");
-    expect(opened().tenureSaid).toBe(false);
-    expect(state.tenureSaid).toBe(true);
+    expect(state.spec.tenure_from).toBe("stated");
+    expect(state.tenurePicked).toBe(false);
   });
 
-  test("test_a_tenure_nobody_said_is_not_said", () => {
-    const notice = recordedAnswer("interpret", "interpret-notice").body.data;
-    const state = after({ type: "read_started", seq: 1 }, { type: "read_answered", data: notice, meta: A });
+  test("test_a_tenure_picked_before_anything_was_sent_is_known_to_be_picked", () => {
+    // The page then shows the default the API served for that tenure, which no edit made.
+    const picked = reduce(opened(), { type: "tenure_swapped", tenure: "buy" });
 
-    expect(notice.operations.budget_ops).toEqual([]);
-    expect(state.tenureSaid).toBe(false);
+    expect(opened().tenurePicked).toBe(false);
+    expect(picked.spec).toBe(meta.defaults.buy);
+    expect(picked.tenurePicked).toBe(true);
+    // An edit that states the tenure is answered with a spec that says so itself.
+    expect(reduce(opened(), { type: "queued", operations: edits.tenure("buy") }).tenurePicked).toBe(false);
   });
 
-  test("test_a_tenure_chosen_with_a_control_is_said", () => {
-    expect(reduce(opened(), { type: "tenure_swapped", tenure: "buy" }).tenureSaid).toBe(true);
-    expect(reduce(opened(), { type: "queued", operations: edits.tenure("buy") }).tenureSaid).toBe(true);
-    expect(reduce(opened(), { type: "queued", operations: edits.budgetAmount(1500) }).tenureSaid).toBe(false);
-  });
+  test("test_starting_again_and_a_shared_search_forget_that_a_tenure_was_picked", () => {
+    const picked = reduce(opened(), { type: "tenure_swapped", tenure: "buy" });
 
-  test("test_a_tenure_that_words_changed_without_saying_it_is_no_longer_said", () => {
-    const said = after({ type: "read_started", seq: 1 }, { type: "read_answered", data: read, meta: A });
-    const inferred = {
-      ...read,
-      operations: { ...NO_EDITS, budget_ops: [{ ...edits.tenure("buy").budget_ops[0]!, provenance: "inferred" as const }] },
-      spec: { ...meta.defaults.buy, tenure_from: "inferred" as const },
-    };
-
-    const state = reduce(said, { type: "read_answered", data: inferred, meta: A });
-
-    expect(state.tenureSaid).toBe(false);
-  });
-
-  test("test_stop_puts_back_whether_the_tenure_was_said", () => {
-    const state = after(
-      { type: "read_started", seq: 1 },
-      { type: "read_answered", data: read, meta: A },
-      { type: "stopped" },
-    );
-
-    expect(state.tenureSaid).toBe(false);
-  });
-
-  test("test_starting_again_and_a_shared_search_say_nothing_of_the_tenure", () => {
-    const said = after({ type: "read_started", seq: 1 }, { type: "read_answered", data: read, meta: A });
-
-    expect(reduce(said, { type: "started_again" }).tenureSaid).toBe(false);
-    expect(reduce(said, { type: "share_answered", id: SHARE_ID, data: shared, meta: A }).tenureSaid).toBe(false);
+    expect(reduce(picked, { type: "started_again" }).tenurePicked).toBe(false);
+    expect(reduce(picked, { type: "share_answered", id: SHARE_ID, data: shared, meta: A }).tenurePicked).toBe(false);
   });
 
   test("test_a_place_added_with_a_control_has_everything_nobody_chose_marked_assumed", () => {
@@ -753,6 +751,38 @@ describe("what the person said, and what was assumed for them", () => {
     const state = reduce(added, { type: "queued", operations: edits.placeMode("syn-p0026", "cycle") });
 
     expect(state.assumed["place:syn-p0026"]).toEqual(["max_minutes", "strictness"]);
+  });
+
+  test("test_a_budget_set_by_its_amount_alone_has_the_rest_marked_assumed", () => {
+    // Seen in a browser: a budget chosen from an offer read "One bedroom, flexible" after its
+    // amount, as if both had been chosen. The edit held the amount and nothing else.
+    expect(opened().spec.budget).toMatchObject({ amount: null, provenance: "default" });
+
+    const state = reduce(opened(), { type: "queued", operations: edits.budgetAmount(1800) });
+
+    expect(state.assumed.budget).toEqual(["segment", "strictness"]);
+  });
+
+  test("test_a_part_of_a_budget_that_its_edit_states_is_not_marked_assumed", () => {
+    const sized: Operations = {
+      ...NO_EDITS,
+      budget_ops: [{ ...(edits.budgetAmount(1800).budget_ops[0] as BudgetEdit), segment: "bed_2" }],
+    };
+
+    expect(reduce(opened(), { type: "queued", operations: sized }).assumed.budget).toEqual(["strictness"]);
+    // What the person sets afterwards is theirs.
+    const set = reduce(opened(), { type: "queued", operations: edits.budgetAmount(1800) });
+    const firm = reduce(set, { type: "queued", operations: edits.budgetStrictness("hard") });
+    expect(firm.assumed.budget).toEqual(["segment"]);
+  });
+
+  test("test_a_budget_the_person_had_already_set_a_part_of_is_not_marked_again", () => {
+    // The size of home was chosen in the settings, and then an amount was given.
+    const chosen = { ...opened(), spec: { ...opened().spec, budget: { ...opened().spec.budget, provenance: "ui_edit" as const } } };
+
+    const state = reduce(chosen, { type: "queued", operations: edits.budgetAmount(1800) });
+
+    expect(state.assumed.budget).toBeUndefined();
   });
 });
 
@@ -871,22 +901,141 @@ describe("settings the page opened for the person", () => {
   });
 });
 
-describe("where the words of a sentence stand", () => {
-  test("test_which_words_each_edit_rests_on_is_kept_as_offsets_and_never_as_words", () => {
-    const state = after({ type: "read_started", seq: 1 }, { type: "read_answered", data: read, meta: A });
+describe("what the reader noticed and did not apply", () => {
+  const noticed = recordedAnswer("interpret", "interpret-suggest").body.data;
+  const offered = () => after({ type: "read_started", seq: 1 }, { type: "read_answered", data: noticed, meta: A });
 
-    expect(state.read?.rests_on).toBe(read.rests_on);
-    expect(read.rests_on.length).toBeGreaterThan(0);
-    for (const where of state.read?.rests_on ?? []) {
-      expect(Object.keys(where).sort()).toEqual(["end", "group", "index", "start"]);
-      expect(typeof where.start).toBe("number");
-      expect(typeof where.end).toBe("number");
+  test("test_nothing_of_a_prompt_that_is_not_plain_is_applied", () => {
+    const state = offered();
+
+    expect(noticed.status).toBe("suggest");
+    expect(state.spec).toEqual(meta.defaults.rent);
+    expect(state.untouched).toBe(true);
+    expect(state.read?.changed).toBe(false);
+    expect(state.read?.suggestions).toBe(noticed.suggestions);
+    expect(state.read?.unread).toBe(noticed.unread);
+  });
+
+  test("test_where_words_stand_is_kept_as_offsets_and_never_as_words", () => {
+    const where = [...(offered().read?.unread ?? []), ...noticed.suggestions.flatMap((one) => one.spans)];
+
+    expect(where.length).toBeGreaterThan(0);
+    for (const span of where) {
+      expect(Object.keys(span).sort()).toEqual(["end", "start"]);
+      expect([typeof span.start, typeof span.end]).toEqual(["number", "number"]);
     }
+    // What is said of a thing that was noticed is the API's name for it, and never the words typed.
+    const names = new Set([...meta.features.map((one) => one.short_label), ...meta.tags.map((one) => one.label)]);
+    expect(noticed.suggestions.map((one) => names.has(one.label))).toEqual([true, true]);
+  });
+
+  test("test_where_something_was_noticed_the_settings_are_not_opened_for_the_person", () => {
+    const nothing = recordedAnswer("interpret", "interpret-nothing-read").body.data;
+
+    expect(offered().settingsOpen).toBe(false);
+    // Where nothing was noticed at all, the settings are the way in, as before.
+    expect(after({ type: "read_answered", data: nothing, meta: A }).settingsOpen).toBe(true);
+  });
+
+  test("test_a_suggestion_goes_when_the_person_has_chosen_of_it", () => {
+    const state = reduce(offered(), { type: "suggestion_chosen", at: 0 });
+
+    expect(state.read?.suggestions).toEqual(noticed.suggestions.slice(1));
+    // One that is not there changes nothing.
+    expect(reduce(state, { type: "suggestion_chosen", at: 5 })).toBe(state);
+  });
+
+  test("test_once_a_choice_has_changed_the_search_it_is_no_longer_said_that_nothing_has", () => {
+    // Seen in a browser: a thing was chosen, the areas were ranked, and directly under the
+    // new ranking the page still read "Nothing you typed has changed your search."
+    const beside = recordedAnswer("interpret", "interpret-suggest-notice").body.data;
+    const told = after({ type: "read_started", seq: 1 }, { type: "read_answered", data: beside, meta: A });
+    expect(told.read?.notice_text).toMatch(/Nothing you typed has changed your search\.$/);
+
+    // Leaving a thing out changes nothing, so what was said still holds.
+    const left = reduce(told, { type: "suggestion_chosen", at: 0 });
+    expect(left.read?.notice_text).toBe(beside.notice_text);
+    // A choice that holds edits changes the search. The notice is the API's, and is never
+    // cut or reworded: it goes whole.
+    const chosen = reduce(told, { type: "suggestion_chosen", at: 0, changes: true });
+    expect(chosen.read?.notice).toBe("none");
+    expect(chosen.read?.notice_text).toBe("");
+    expect(chosen.read?.suggestions).toEqual(beside.suggestions.slice(1));
+  });
+
+  test("test_every_suggestion_goes_when_the_box_changes", () => {
+    // Where the words stand is known for the text that was sent, and for no other.
+    const state = reduce(offered(), { type: "box_changed" });
+
+    expect(state.read?.suggestions).toEqual([]);
+    expect(state.read?.unread).toEqual([]);
+    expect(reduce(state, { type: "box_changed" })).toBe(state);
+    expect(reduce(opened(), { type: "box_changed" })).toEqual(opened());
+  });
+
+  test("test_that_a_part_was_not_read_is_still_known_when_the_box_has_changed", () => {
+    // Where the stretch stood goes with the text. That the ranking left something out is
+    // true of the ranking, and stays until another sentence is read.
+    expect(offered().read?.partUnread).toBe(true);
+    expect(reduce(offered(), { type: "box_changed" }).read?.partUnread).toBe(true);
+    // A sentence that was read in full leaves nothing out.
+    const inFull = recordedAnswer("interpret", "interpret-first").body.data;
+    const read = after({ type: "read_started", seq: 1 }, { type: "read_answered", data: inFull, meta: A });
+    expect(inFull.unread).toEqual([]);
+    expect(read.read?.partUnread).toBe(false);
+  });
+
+  test("test_stop_puts_back_what_was_offered_before_the_sentence_that_was_stopped", () => {
+    const state = after(
+      { type: "read_started", seq: 1 },
+      { type: "read_answered", data: noticed, meta: A },
+      { type: "settled" },
+      { type: "read_started", seq: 2 },
+      { type: "read_answered", data: read, meta: A },
+      { type: "stopped" },
+    );
+
+    expect(state.read?.suggestions).toBe(noticed.suggestions);
+    expect(state.placeNames).toEqual({});
+  });
+});
+
+describe("a word with two meanings", () => {
+  const gritty = recordedAnswer("interpret", "variant-a/interpret-gritty").body.data;
+  const key = "tag:works_warehouses";
+
+  test("test_the_word_a_vibe_was_read_from_is_kept_with_the_vibe", () => {
+    const state = after({ type: "read_answered", data: gritty, meta: A });
+
+    expect(state.quoted).toEqual({ [key]: "gritty" });
+    expect(state.assumed[key]).toEqual(["weight", "word"]);
+  });
+
+  test("test_a_vibe_the_person_then_sets_is_no_longer_said_to_be_read_from_the_word", () => {
+    const state = after(
+      { type: "read_answered", data: gritty, meta: A },
+      { type: "queued", operations: edits.tagWeight("works_warehouses", 0.7) },
+    );
+
+    expect(state.assumed[key]).toBeUndefined();
+  });
+
+  test("test_a_word_is_forgotten_with_the_vibe_it_was_read_as", () => {
+    const state = after(
+      { type: "read_answered", data: gritty, meta: A },
+      { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A },
+    );
+
+    expect(ranked.spec.tags.map((tag) => tag.tag_id)).not.toContain("works_warehouses");
+    expect(state.quoted).toEqual({});
   });
 });
 
 describe("how much a ranking moved", () => {
-  const scores = (...ids: string[]) => ({ ...ranked, scores: ids.map((area_id) => ({ area_id, score: 1 })) });
+  const scores = (...ids: string[]) => ({
+    ...ranked,
+    scores: ids.map((area_id) => ({ area_id, score: 1, counted: 1, present: 1 })),
+  });
 
   test("test_an_area_has_changed_place_when_it_stands_elsewhere_among_those_ranked_both_times", () => {
     expect(movedBetween(scores("a", "b", "c"), scores("a", "b", "c"))).toBe(0);
@@ -924,13 +1073,20 @@ describe("how much a ranking moved", () => {
 });
 
 describe("what was not applied", () => {
-  const safe = recordedAnswer("interpret", "interpret-rejected").body.data;
+  /** A cheaper home where no budget is set: the edit to the budget is refused, and the park is applied. */
+  const cheaper = recordedAnswer("interpret", "interpret-rejected").body.data;
   const asked = recordedAnswer("interpret", "interpret-clarify").body.data;
-  const readOf = (data: typeof safe) => after({ type: "read_answered", data, meta: A }).read;
+  const readOf = (data: typeof cheaper) => after({ type: "read_answered", data, meta: A }).read;
 
   test("test_each_refusal_is_tied_to_the_part_its_edit_was_about", () => {
-    expect(refusals(readOf(safe), null)).toEqual([
-      { key: "feature:crime_violence_robbery", reason: "crime_needs_explicit_request" },
+    expect(refusals(readOf(cheaper), null)).toEqual([{ key: "budget", reason: "nothing_to_change" }]);
+    // An edit to a feature is tied to that feature, whichever its place among the edits.
+    const two = {
+      ...cheaper,
+      operations: { ...cheaper.operations, weight_ops: edits.featureOn("crime_burglary_theft").weight_ops },
+      rejected: [{ group: "weight_ops", index: 0, reason: "crime_needs_explicit_request" }] as const,
+    };
+    expect(refusals(readOf(two), null)).toEqual([
       { key: "feature:crime_burglary_theft", reason: "crime_needs_explicit_request" },
     ]);
   });
@@ -948,7 +1104,7 @@ describe("what was not applied", () => {
 
     expect([...refusedByPart(refused)]).toEqual([["budget", "out_of_range"]]);
     expect([...refusedByPart(null)]).toEqual([]);
-    expect(refusals(readOf(safe), refused)).toHaveLength(3);
+    expect(refusals(readOf(cheaper), refused)).toHaveLength(2);
   });
 });
 

@@ -1,0 +1,421 @@
+{
+  "scenario": "preview/interpret-long",
+  "shows": "A long sentence: what can be answered is offered, and what cannot is named as missing",
+  "captured": true,
+  "request": {
+    "operation_id": "interpret",
+    "method": "POST",
+    "route": "/v1/interpret",
+    "path": "/v1/interpret",
+    "body": {
+      "text": "We would love somewhere quiet near parks, with some culture about. My commute should be short, and we could buy for £350k at the very most.",
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.3,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.2,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.2,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.3,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      }
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "4490",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "true",
+    "x-burro-synthetic": "true",
+    "x-request-id": "e8f25a03-4261-4b31-bc10-6fe2264df17a"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": true
+    },
+    "data": {
+      "status": "suggest",
+      "operations": {
+        "budget_ops": [],
+        "commute_ops": [],
+        "weight_ops": [],
+        "tag_ops": [],
+        "area_ops": [],
+        "setting_ops": []
+      },
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.3,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.2,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.2,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.3,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "spec_hash": "77e33e7e0d87a19ba83c2e543287ad838cfcb4c825f9914e4c5598cf484d5202",
+      "applied": [],
+      "rejected": [],
+      "assumptions": [],
+      "unmet": [
+        "other"
+      ],
+      "clarify": [],
+      "notice": "none",
+      "notice_text": "",
+      "interpreter": "rule",
+      "degraded": false,
+      "model_refused": false,
+      "rests_on": [],
+      "suggestions": [
+        {
+          "target": "tag:quiet_residential",
+          "label": "Quiet streets",
+          "does": "Add Quiet streets.",
+          "spans": [
+            {
+              "start": 24,
+              "end": 29
+            }
+          ],
+          "shown": {
+            "start": 0,
+            "end": 40
+          },
+          "follows": "What it counts: homes away from main roads and from clusters of late venues, with little transport noise. It cannot see: one street or one home. An area is many streets.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Add",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [
+                  {
+                    "action": "nudge",
+                    "tag_id": "quiet_residential",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "toward": "high",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "more",
+          "needs": "",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "feature:park_proximity",
+          "label": "Nearer a park",
+          "does": "Nearer a park: count it, or stop counting it?",
+          "spans": [
+            {
+              "start": 35,
+              "end": 40
+            }
+          ],
+          "shown": {
+            "start": 0,
+            "end": 40
+          },
+          "follows": "What Burro counts: straight-line distance to the nearest marked way into a park of 2 ha or more.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Add",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "nudge",
+                    "feature_id": "park_proximity",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "direction": "default",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "off",
+              "direction": "less",
+              "label": "Stop counting it",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "remove",
+                    "feature_id": "park_proximity",
+                    "value": 0.0,
+                    "step": "none",
+                    "direction": "default",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "nearer a park",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "tenure",
+          "label": "Buying",
+          "does": "Look for a home to buy.",
+          "spans": [
+            {
+              "start": 108,
+              "end": 111
+            }
+          ],
+          "shown": {
+            "start": 95,
+            "end": 138
+          },
+          "follows": "",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Set",
+              "guess": false,
+              "operations": {
+                "budget_ops": [
+                  {
+                    "action": "set",
+                    "tenure": "buy",
+                    "amount": 0,
+                    "segment": "unchanged",
+                    "strictness": "unchanged",
+                    "step": "none",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "buying",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        }
+      ],
+      "unread": [
+        {
+          "start": 0,
+          "end": 23
+        },
+        {
+          "start": 30,
+          "end": 34
+        },
+        {
+          "start": 42,
+          "end": 51
+        },
+        {
+          "start": 60,
+          "end": 69
+        },
+        {
+          "start": 78,
+          "end": 107
+        },
+        {
+          "start": 112,
+          "end": 115
+        },
+        {
+          "start": 122,
+          "end": 138
+        }
+      ],
+      "not_in_release": [
+        {
+          "target": "feature:culture_venues_per_homes",
+          "label": "More culture nearby",
+          "spans": [
+            {
+              "start": 52,
+              "end": 59
+            }
+          ]
+        },
+        {
+          "target": "commute",
+          "label": "A journey",
+          "spans": [
+            {
+              "start": 70,
+              "end": 77
+            }
+          ]
+        },
+        {
+          "target": "budget",
+          "label": "A budget of £350,000",
+          "spans": [
+            {
+              "start": 116,
+              "end": 121
+            }
+          ]
+        }
+      ],
+      "unmet_at": [],
+      "model_pending": false,
+      "places": []
+    }
+  }
+}

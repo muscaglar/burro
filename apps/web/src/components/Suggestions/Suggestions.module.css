@@ -1,0 +1,198 @@
+/*
+ * What Burro read and did not apply. Each offer is drawn in four parts, one under the
+ * other: what it would do, the person's own words, what follows for areas, the choices.
+ */
+.suggestions {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--info-bg);
+  color: var(--info-text);
+  border-radius: var(--radius);
+}
+
+.suggestions:focus {
+  outline: none;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--size-body);
+}
+
+/* Why Burro asks, in one line under the heading. */
+.why {
+  margin: 0;
+  font-size: var(--size-small);
+}
+
+/* The one button that adds every thing there is one way to want. It is the main thing to press. */
+.every:global(.target) {
+  justify-self: start;
+  min-height: 2.25rem;
+  padding-block: var(--space-1);
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 650;
+}
+
+/* What one press added, and that a model is still reading. Empty, it takes no room. */
+.state {
+  margin: 0;
+  font-size: var(--size-small);
+}
+
+.state:empty {
+  display: none;
+}
+
+.back {
+  justify-self: start;
+}
+
+.back:global(.target) {
+  min-height: 2.25rem;
+  padding-block: var(--space-1);
+}
+
+.list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  gap: var(--space-1);
+  max-width: none;
+}
+
+.item p {
+  margin: 0;
+}
+
+/* What the offer would do. It begins with a verb, or is a question. */
+.does {
+  font-weight: 600;
+}
+
+/* The person's own words, cut from the box. A long stretch wraps, and never widens the page. */
+.wrote {
+  font-size: var(--size-small);
+  overflow-wrap: anywhere;
+}
+
+.lead {
+  color: var(--muted);
+}
+
+/* What follows for areas, and what nobody said. */
+.follows {
+  font-size: var(--size-small);
+}
+
+/* The mark on the way Burro reads the words. It is said in words, and not by colour alone. */
+.choice[data-guess] {
+  border-width: 2px;
+  font-weight: 650;
+}
+
+.guess {
+  font-weight: 400;
+  font-size: var(--size-small);
+}
+
+.guess::before {
+  content: "(";
+}
+
+.guess::after {
+  content: ")";
+}
+
+/* Where a place is chosen for a journey whose place Burro does not know. */
+.place {
+  display: grid;
+  gap: var(--space-2);
+}
+
+/* What a person should know before they choose, in the API's words. It takes a line of its own. */
+.note {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.choices {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+}
+
+/* A choice is as high as the buttons beside the settings are: there may be four rows of them. */
+.choice:global(.target) {
+  min-height: 2.25rem;
+  padding: var(--space-1) var(--space-3);
+}
+
+/* Doing nothing is a choice like any other, drawn quieter. */
+.choice[data-way="ignore"] {
+  border-style: dashed;
+}
+
+.show {
+  min-height: var(--target-min);
+  padding: 0 var(--space-2);
+  font-size: var(--size-small);
+  color: var(--accent);
+  background: transparent;
+  border: 0;
+  text-decoration: underline;
+}
+
+.all {
+  justify-self: start;
+}
+
+.all:global(.target) {
+  min-height: 2.25rem;
+  padding-block: var(--space-1);
+}
+
+/*
+ * A narrow screen: what was noticed takes little room, so that a result that is already
+ * on the page still begins on the first screen.
+ */
+@media (max-width: 40rem) {
+  .suggestions {
+    gap: var(--space-1);
+    padding: var(--space-2) var(--space-3);
+  }
+
+  .choice:global(.target),
+  .every:global(.target),
+  .back:global(.target),
+  .all:global(.target) {
+    min-height: 2rem;
+    padding: 0 var(--space-2);
+    font-size: var(--size-small);
+  }
+
+  /* A way that says what it does to areas is long: it wraps inside its button. */
+  .choice:global(.target) {
+    height: auto;
+    padding-block: var(--space-1);
+    text-align: start;
+    white-space: normal;
+  }
+}
+
+@media (forced-colors: active) {
+  .every {
+    border-color: ButtonText;
+  }
+}

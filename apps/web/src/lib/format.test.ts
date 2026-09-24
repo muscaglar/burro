@@ -19,9 +19,16 @@ describe("how a date the API sent is written", () => {
   });
 
   test("test_anything_else_is_shown_as_it_came", () => {
-    for (const asItCame of ["2025", "2024-10 to 2026-09", "2026-13", "", "soon"]) {
+    for (const asItCame of ["2025", "2026-13", "", "soon", "soon to later", "one to two to three"]) {
       expect(readableDate(asItCame)).toBe(asItCame);
     }
+  });
+
+  test("test_a_period_is_written_the_same_way_at_both_its_ends", () => {
+    // Seen in a browser: "2021 to 2026-04" beside "April 2026" and "31 March 2025", on one page.
+    expect(readableDate("2021 to 2026-04")).toBe("2021 to April 2026");
+    expect(readableDate("2024-10 to 2026-09")).toBe("October 2024 to September 2026");
+    expect(readableDate("2025-03-31 to 2026-04")).toBe("31 March 2025 to April 2026");
   });
 
   test("test_a_weight_and_a_whole_number_are_written_for_a_person", () => {

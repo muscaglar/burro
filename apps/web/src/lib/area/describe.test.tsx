@@ -36,6 +36,16 @@ describe("what an area's page tells a search engine", () => {
     expect(everythingElseSaidOf(data).filter((text) => String(description).includes(text))).toEqual([]);
   });
 
+  test("test_the_description_says_what_the_page_opens_with", () => {
+    const description = AREA.description("Alderwick", "Quillhaven");
+
+    // The page opens with what the area is like and where it is, and the description says so.
+    expect(description).toContain("what it is like");
+    expect(description).toContain("where it is");
+    expect(description).toContain("what homes cost");
+    expect(description).toContain("each figure with its source and date");
+  });
+
   test("test_the_description_describes_the_page_and_passes_no_judgement_on_the_place", () => {
     const description = AREA.description("", "");
 

@@ -119,11 +119,12 @@ describe("the design tokens", () => {
   });
 
   test("test_one_score_band_can_be_told_from_the_next_in_both_themes", () => {
-    // The bands are never the only signal, and still each must differ from the next.
+    // The bands are never the only signal, and still each must differ from the next. Seen
+    // in a browser: the three in the middle were so near in tone that a map read as one colour.
     for (const tokens of [light, dark]) {
       const bands = [1, 2, 3, 4, 5].map((band) => tokens[`--map-${band}`] ?? "");
       for (let at = 1; at < bands.length; at += 1) {
-        expect(contrast(bands[at - 1] ?? "", bands[at] ?? "")).toBeGreaterThanOrEqual(1.15);
+        expect(contrast(bands[at - 1] ?? "", bands[at] ?? "")).toBeGreaterThanOrEqual(1.35);
       }
     }
   });

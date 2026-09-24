@@ -8,7 +8,7 @@ import { paths } from "@/lib/paths";
 export const revalidate = 3600;
 
 /**
- * Every page a search engine may index: the search, the three pages about
+ * Every page a search engine may index: the search, the four pages about
  * the website, and one page for each area of the release, from route 4.
  *
  * While the release is made up, or the website does not know its own
@@ -19,6 +19,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (!mayBeIndexed(meta)) return [];
   const pages = [
     paths.home(),
+    paths.vibes(),
     paths.methods(),
     paths.sources(),
     paths.accessibility(),

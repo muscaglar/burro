@@ -1,0 +1,895 @@
+{
+  "scenario": "interpret-by-model-long",
+  "shows": "A long sentence read by a model: ten offers, each in four parts, one with a choice of two things, a journey and a budget that may be made firm, words nothing was made of, and five readings of two words that the rules offer with no guess",
+  "captured": true,
+  "request": {
+    "operation_id": "interpret",
+    "method": "POST",
+    "route": "/v1/interpret",
+    "path": "/v1/interpret",
+    "body": {
+      "text": "I want to live somewhere quiet, with access to parks, slightly affluent but with some culture around it, something with a real identity. At most 35-40min commute from Pellam Exchange. If I'm renting, max £1,900 a month for a 1 bed flat."
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "13216",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "false",
+    "x-burro-synthetic": "true",
+    "x-request-id": "5ec56e42-4afe-4267-bf21-6f8f586d16bb"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
+    },
+    "data": {
+      "status": "suggest",
+      "operations": {
+        "budget_ops": [],
+        "commute_ops": [],
+        "weight_ops": [],
+        "tag_ops": [],
+        "area_ops": [],
+        "setting_ops": []
+      },
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.3,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.2,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.3,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.2,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.3,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.3,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.5,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "spec_hash": "6c8de5435684a83166d75f9c1c0c25959efec036499e2359868c9a0f973a6640",
+      "applied": [],
+      "rejected": [],
+      "assumptions": [],
+      "unmet": [
+        "other"
+      ],
+      "clarify": [],
+      "notice": "none",
+      "notice_text": "",
+      "interpreter": "model",
+      "degraded": false,
+      "model_refused": false,
+      "rests_on": [],
+      "suggestions": [
+        {
+          "target": "tag:quiet_residential",
+          "label": "Quiet streets",
+          "does": "Add Quiet streets.",
+          "spans": [
+            {
+              "start": 15,
+              "end": 30
+            },
+            {
+              "start": 25,
+              "end": 30
+            }
+          ],
+          "shown": {
+            "start": 0,
+            "end": 30
+          },
+          "follows": "What it counts: homes away from main roads and from clusters of late venues, with little transport noise. It cannot see: one street or one home. An area is many streets.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Add",
+              "guess": true,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [
+                  {
+                    "action": "nudge",
+                    "tag_id": "quiet_residential",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "toward": "high",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "more",
+          "needs": "",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "feature:park_proximity",
+          "label": "Nearer a park",
+          "does": "Rank areas higher for this: nearer a park.",
+          "spans": [
+            {
+              "start": 32,
+              "end": 52
+            },
+            {
+              "start": 47,
+              "end": 52
+            }
+          ],
+          "shown": {
+            "start": 32,
+            "end": 52
+          },
+          "follows": "What Burro counts: straight-line distance to the nearest marked way into a park of 2 ha or more.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Add: nearer a park",
+              "guess": true,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "nudge",
+                    "feature_id": "park_proximity",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "direction": "default",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "off",
+              "direction": "less",
+              "label": "Nearer a park: stop counting it",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "remove",
+                    "feature_id": "park_proximity",
+                    "value": 0.0,
+                    "step": "none",
+                    "direction": "default",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "tag:parks_close_by/more",
+              "direction": "more",
+              "label": "Add: Parks close by",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [
+                  {
+                    "action": "nudge",
+                    "tag_id": "parks_close_by",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "toward": "high",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "more",
+          "needs": "",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "tag:street_character",
+          "label": "Gritty",
+          "does": "Add Gritty, towards Polished, counting recorded crime.",
+          "spans": [
+            {
+              "start": 54,
+              "end": 71
+            }
+          ],
+          "shown": {
+            "start": 54,
+            "end": 103
+          },
+          "follows": "Gritty runs from Polished to Gritty. What it counts: works and warehouses, main roads and transport noise, with recorded criminal damage and anti-social behaviour. It cannot see: one street or one home. An area is many streets.",
+          "said": [],
+          "choices": [
+            {
+              "id": "less",
+              "direction": "less",
+              "label": "Towards Polished, counting recorded crime",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [
+                  {
+                    "action": "nudge",
+                    "tag_id": "street_character",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "toward": "low",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "Burro measures places, not the people in them. Gritty counts recorded criminal damage and arson, and recorded anti-social behaviour. Recorded crime depends on what is reported, and locations are approximate.",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "recorded crime, which is added under its own name",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "feature:price_median",
+          "label": "What homes sell for",
+          "does": "Rank areas higher for this: dearer.",
+          "spans": [
+            {
+              "start": 54,
+              "end": 71
+            }
+          ],
+          "shown": {
+            "start": 54,
+            "end": 103
+          },
+          "follows": "What Burro counts: median price paid for a home.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Dearer",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "nudge",
+                    "feature_id": "price_median",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "direction": "more",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "Burro measures places, not the people in them.",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "what homes sell for",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "feature:culture_venues_per_homes",
+          "label": "More culture nearby",
+          "does": "Rank areas a little higher for this: more culture nearby.",
+          "spans": [
+            {
+              "start": 76,
+              "end": 103
+            },
+            {
+              "start": 86,
+              "end": 93
+            }
+          ],
+          "shown": {
+            "start": 54,
+            "end": 103
+          },
+          "follows": "What Burro counts: museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Add",
+              "guess": true,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "nudge",
+                    "feature_id": "culture_venues_per_homes",
+                    "value": 0.0,
+                    "step": "up_small",
+                    "direction": "default",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "more",
+          "needs": "",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "tag:village_feel",
+          "label": "Village feel",
+          "does": "Add Village feel.",
+          "spans": [
+            {
+              "start": 120,
+              "end": 135
+            }
+          ],
+          "shown": {
+            "start": 105,
+            "end": 135
+          },
+          "follows": "What it counts: a small, compact centre of its own, historic streets, independent places. It cannot see: one street or one home. An area is many streets.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Add",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [
+                  {
+                    "action": "nudge",
+                    "tag_id": "village_feel",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "toward": "high",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "Burro cannot measure the character of a place. The nearest it can count are a village feel, the age of the buildings and a town centre nearby. Choose any that fit what you mean.",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "Village feel",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "tag:built_age",
+          "label": "Age of buildings",
+          "does": "Add Age of buildings, towards Historic.",
+          "spans": [
+            {
+              "start": 120,
+              "end": 135
+            }
+          ],
+          "shown": {
+            "start": 105,
+            "end": 135
+          },
+          "follows": "Age of buildings runs from Newer to Historic. What it counts: homes built since 2000 at one end. Period homes, listed buildings and protected streets at the other. It cannot see: one street or one home. An area is many streets.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Towards Historic",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [
+                  {
+                    "action": "nudge",
+                    "tag_id": "built_age",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "toward": "high",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "Burro cannot measure the character of a place. The nearest it can count are a village feel, the age of the buildings and a town centre nearby. Choose any that fit what you mean.",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "Age of buildings",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "feature:highstreet_access",
+          "label": "Nearer a town centre",
+          "does": "Rank areas higher for this: nearer a town centre.",
+          "spans": [
+            {
+              "start": 120,
+              "end": 135
+            }
+          ],
+          "shown": {
+            "start": 105,
+            "end": 135
+          },
+          "follows": "What Burro counts: straight-line distance to the nearest town centre boundary.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Add",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "nudge",
+                    "feature_id": "highstreet_access",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "direction": "default",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "Burro cannot measure the character of a place. The nearest it can count are a village feel, the age of the buildings and a town centre nearby. Choose any that fit what you mean.",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "nearer a town centre",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "commute",
+          "label": "Pellam Exchange",
+          "does": "Add a journey to Pellam Exchange: at most 40 minutes, by public transport.",
+          "spans": [
+            {
+              "start": 137,
+              "end": 182
+            }
+          ],
+          "shown": {
+            "start": 137,
+            "end": 182
+          },
+          "follows": "Areas further off are left out.",
+          "said": [
+            "You gave 35 to 40: Burro took 40.",
+            "You named no way of travelling: Burro took public transport."
+          ],
+          "choices": [
+            {
+              "id": "firm",
+              "direction": "more",
+              "label": "Add as a firm limit: areas further off are left out",
+              "guess": true,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [
+                  {
+                    "action": "add",
+                    "place_id": "syn-p0017",
+                    "mode": "unchanged",
+                    "max_minutes": 40,
+                    "strictness": "hard",
+                    "step": "none",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "guide",
+              "direction": "more",
+              "label": "Add as a guide: areas further off rank lower",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [
+                  {
+                    "action": "add",
+                    "place_id": "syn-p0017",
+                    "mode": "unchanged",
+                    "max_minutes": 40,
+                    "strictness": "soft",
+                    "step": "none",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "guide",
+          "needs": "the journey can be made a firm limit",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "budget",
+          "label": "A budget of £1,900",
+          "does": "Set a budget of £1,900 a month to rent a 1-bedroom home, as a firm limit.",
+          "spans": [
+            {
+              "start": 191,
+              "end": 198
+            },
+            {
+              "start": 200,
+              "end": 218
+            },
+            {
+              "start": 200,
+              "end": 235
+            },
+            {
+              "start": 223,
+              "end": 235
+            }
+          ],
+          "shown": {
+            "start": 184,
+            "end": 235
+          },
+          "follows": "Dearer areas are left out.",
+          "said": [],
+          "choices": [
+            {
+              "id": "firm",
+              "direction": "more",
+              "label": "Set as a firm limit: dearer areas are left out",
+              "guess": true,
+              "operations": {
+                "budget_ops": [
+                  {
+                    "action": "set",
+                    "tenure": "rent",
+                    "amount": 1900,
+                    "segment": "bed_1",
+                    "strictness": "hard",
+                    "step": "none",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "guide",
+              "direction": "more",
+              "label": "Set as a guide: dearer areas rank lower",
+              "guess": false,
+              "operations": {
+                "budget_ops": [
+                  {
+                    "action": "set",
+                    "tenure": "rent",
+                    "amount": 1900,
+                    "segment": "bed_1",
+                    "strictness": "soft",
+                    "step": "none",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "model",
+          "add_all": "guide",
+          "needs": "the budget can be made a firm limit",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        }
+      ],
+      "unread": [
+        {
+          "start": 0,
+          "end": 14
+        },
+        {
+          "start": 72,
+          "end": 75
+        },
+        {
+          "start": 105,
+          "end": 119
+        },
+        {
+          "start": 184,
+          "end": 190
+        }
+      ],
+      "not_in_release": [],
+      "unmet_at": [],
+      "model_pending": false,
+      "places": []
+    }
+  }
+}

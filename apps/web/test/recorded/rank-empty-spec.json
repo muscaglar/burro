@@ -15,13 +15,13 @@
           "amount": null,
           "segment": "bed_1",
           "strictness": "soft",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "default"
         },
         "commutes": [],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [],
         "tags": [],
         "areas": [],
@@ -35,109 +35,155 @@
   "status": 200,
   "headers": {
     "access-control-allow-origin": "http://localhost:3000",
-    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "4182",
+    "content-length": "9982",
     "content-type": "application/json",
     "vary": "Origin",
+    "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "c7902a1d-d8be-4e97-bf89-3f5267069b0d"
+    "x-request-id": "14ff4427-7de9-4d17-8c46-8d29103deb94"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.3.0",
-      "synthetic": true
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
     },
     "data": {
       "scores": [
         {
           "area_id": "syn-n0001",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0002",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0003",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0004",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0005",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0006",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0007",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0008",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0010",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0011",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0012",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0013",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0014",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0015",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0016",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0017",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0018",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0019",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0021",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0022",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0023",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         },
         {
           "area_id": "syn-n0024",
-          "score": 0.0
+          "score": 0.0,
+          "counted": 0,
+          "present": 0
         }
       ],
       "ranked": [
@@ -149,7 +195,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0001/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0001/tag/quiet_residential"
+            }
+          ]
         },
         {
           "area_id": "syn-n0002",
@@ -159,7 +225,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0002/tag/leafy"
+            },
+            {
+              "tag_id": "parks_close_by",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0002/tag/parks_close_by"
+            }
+          ]
         },
         {
           "area_id": "syn-n0003",
@@ -169,7 +255,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "homes",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0003/tag/homes"
+            },
+            {
+              "tag_id": "pace",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0003/tag/pace"
+            }
+          ]
         },
         {
           "area_id": "syn-n0004",
@@ -179,7 +285,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "built_age",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0004/tag/built_age"
+            },
+            {
+              "tag_id": "family_amenities",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0004/tag/family_amenities"
+            }
+          ]
         },
         {
           "area_id": "syn-n0005",
@@ -189,7 +315,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "family_amenities",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0005/tag/family_amenities"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0005/tag/built_age"
+            }
+          ]
         },
         {
           "area_id": "syn-n0006",
@@ -199,7 +345,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "built_age",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0006/tag/built_age"
+            },
+            {
+              "tag_id": "homes",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0006/tag/homes"
+            }
+          ]
         },
         {
           "area_id": "syn-n0007",
@@ -209,7 +375,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "everyday_on_foot",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0007/tag/everyday_on_foot"
+            },
+            {
+              "tag_id": "family_amenities",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0007/tag/family_amenities"
+            }
+          ]
         },
         {
           "area_id": "syn-n0008",
@@ -219,7 +405,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "homes",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0008/tag/homes"
+            },
+            {
+              "tag_id": "leafy",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0008/tag/leafy"
+            }
+          ]
         },
         {
           "area_id": "syn-n0010",
@@ -229,7 +435,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "foodie",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0010/tag/foodie"
+            },
+            {
+              "tag_id": "homes",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0010/tag/homes"
+            }
+          ]
         },
         {
           "area_id": "syn-n0011",
@@ -239,7 +465,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "foodie",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0011/tag/foodie"
+            },
+            {
+              "tag_id": "pace",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0011/tag/pace"
+            }
+          ]
         },
         {
           "area_id": "syn-n0012",
@@ -249,7 +495,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "built_age",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0012/tag/built_age"
+            },
+            {
+              "tag_id": "homes",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0012/tag/homes"
+            }
+          ]
         },
         {
           "area_id": "syn-n0013",
@@ -259,7 +525,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "family_amenities",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0013/tag/family_amenities"
+            },
+            {
+              "tag_id": "leafy",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0013/tag/leafy"
+            }
+          ]
         },
         {
           "area_id": "syn-n0014",
@@ -269,7 +555,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "built_age",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0014/tag/built_age"
+            },
+            {
+              "tag_id": "homes",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0014/tag/homes"
+            }
+          ]
         },
         {
           "area_id": "syn-n0015",
@@ -279,7 +585,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "built_age",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0015/tag/built_age"
+            },
+            {
+              "tag_id": "family_amenities",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0015/tag/family_amenities"
+            }
+          ]
         },
         {
           "area_id": "syn-n0016",
@@ -289,7 +615,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "built_age",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0016/tag/built_age"
+            },
+            {
+              "tag_id": "family_amenities",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0016/tag/family_amenities"
+            }
+          ]
         },
         {
           "area_id": "syn-n0017",
@@ -299,7 +645,18 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "homes",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0017/tag/homes"
+            }
+          ]
         },
         {
           "area_id": "syn-n0018",
@@ -309,7 +666,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "everyday_on_foot",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0018/tag/everyday_on_foot"
+            },
+            {
+              "tag_id": "homes",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0018/tag/homes"
+            }
+          ]
         },
         {
           "area_id": "syn-n0019",
@@ -319,7 +696,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "built_age",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0019/tag/built_age"
+            },
+            {
+              "tag_id": "pace",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0019/tag/pace"
+            }
+          ]
         },
         {
           "area_id": "syn-n0021",
@@ -329,7 +726,27 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "built_age",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0021/tag/built_age"
+            },
+            {
+              "tag_id": "everyday_on_foot",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0021/tag/everyday_on_foot"
+            }
+          ]
         },
         {
           "area_id": "syn-n0022",
@@ -339,18 +756,42 @@
           "contributions": [],
           "legs": [],
           "budget": null,
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "built_age",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0022/tag/built_age"
+            },
+            {
+              "tag_id": "everyday_on_foot",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0022/tag/everyday_on_foot"
+            }
+          ]
         }
       ],
+      "areas_ranked": 22,
+      "areas_listed": 20,
       "filtered": [],
       "unranked": [
         {
           "area_id": "syn-n0009",
-          "reason": "not_rankable"
+          "reason": "not_rankable",
+          "missing": []
         },
         {
           "area_id": "syn-n0020",
-          "reason": "not_rankable"
+          "reason": "not_rankable",
+          "missing": []
         }
       ],
       "empty_spec": true,
@@ -361,13 +802,13 @@
           "amount": null,
           "segment": "bed_1",
           "strictness": "soft",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "default"
         },
         "commutes": [],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [],
         "tags": [],
         "areas": [],
@@ -378,7 +819,8 @@
       },
       "spec_hash": "879be1ff788f9463f2dc60271c9190fdd35ea3df7522cce631dbde9ce8089a6b",
       "applied": [],
-      "rejected": []
+      "rejected": [],
+      "places": []
     }
   }
 }

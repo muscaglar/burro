@@ -5,7 +5,7 @@ import { SLIDER } from "@/content/settings";
 import { recordedAnswer } from "@/lib/api/recorded";
 
 import { faultsIn } from "../../../test/support/axe";
-import { SETTLE_MS, WeightSlider } from "./WeightSlider";
+import { SETTLE_MS, towardsInWords, WeightSlider } from "./WeightSlider";
 
 const { limits } = recordedAnswer("get_meta", "meta").body.data;
 const LABEL = "How much it counts";
@@ -326,6 +326,91 @@ describe("the slider", () => {
 
   test("test_the_slider_has_no_accessibility_fault", async () => {
     const { container } = show(0.5);
+
+    expect(await faultsIn(container)).toEqual([]);
+  });
+});
+
+describe("a slider with two named ends", () => {
+  const ENDS = ["Calm", "Buzzy"] as const;
+
+  function showScale(value = 0, version = 1) {
+    const onCommit = jest.fn();
+    const draw = (shown: number, at: number) => (
+      <WeightSlider value={shown} limits={limits} label="Going out" onCommit={onCommit} version={at} ends={ENDS} />
+    );
+    const view = render(draw(value, version));
+    return { onCommit, again: (next: number, at: number) => view.rerender(draw(next, at)), ...view };
+  }
+  const scale = () => screen.getByRole("slider", { name: "Going out" });
+
+  test("test_it_rests_in_the_middle_which_is_no_weight_and_runs_to_either_end", () => {
+    showScale(0);
+
+    expect(scale()).toHaveAttribute("min", "-100");
+    expect(scale()).toHaveAttribute("max", "100");
+    expect(scale()).toHaveValue("0");
+    expect(scale()).toHaveAttribute("aria-valuetext", SLIDER.middle);
+    expect(screen.getByRole("status")).toHaveTextContent(SLIDER.middle);
+  });
+
+  test("test_where_it_stands_is_said_in_words_with_the_name_of_the_end", () => {
+    const { again } = showScale(-0.5);
+    expect(towardsInWords(-50, ENDS)).toBe(SLIDER.towards("Calm", 50));
+    expect(scale()).toHaveAttribute("aria-valuetext", SLIDER.towards("Calm", 50));
+
+    again(0.75, 2);
+
+    expect(scale()).toHaveValue("75");
+    expect(screen.getByRole("status")).toHaveTextContent(SLIDER.towards("Buzzy", 75));
+  });
+
+  test("test_it_sends_once_on_release_with_the_sign_of_the_end_it_is_towards", () => {
+    const { onCommit } = showScale(0);
+
+    fireEvent.pointerDown(scale());
+    fireEvent.change(scale(), { target: { value: "-30" } });
+    fireEvent.change(scale(), { target: { value: "-60" } });
+    expect(onCommit).not.toHaveBeenCalled();
+    fireEvent.pointerUp(scale());
+
+    expect(onCommit).toHaveBeenCalledTimes(1);
+    expect(onCommit).toHaveBeenCalledWith(-0.6);
+  });
+
+  test("test_each_end_is_a_button_that_moves_it_a_step_towards_that_end_with_no_dragging", () => {
+    jest.useFakeTimers();
+    const { onCommit } = showScale(0);
+
+    fireEvent.click(screen.getByRole("button", { name: SLIDER.toward("Going out", "Calm") }));
+    act(() => void jest.advanceTimersByTime(SETTLE_MS));
+    expect(onCommit).toHaveBeenLastCalledWith(-limits.weight_step_small);
+
+    fireEvent.click(screen.getByRole("button", { name: SLIDER.toward("Going out", "Buzzy") }));
+    fireEvent.click(screen.getByRole("button", { name: SLIDER.toward("Going out", "Buzzy") }));
+    act(() => void jest.advanceTimersByTime(SETTLE_MS));
+    expect(onCommit).toHaveBeenLastCalledWith(limits.weight_step_small);
+  });
+
+  test("test_at_an_end_its_button_says_it_is_off_and_is_not_switched_off", () => {
+    showScale(-1);
+    const calm = screen.getByRole("button", { name: SLIDER.toward("Going out", "Calm") });
+
+    expect(calm).toHaveAttribute("aria-disabled", "true");
+    expect(calm).toBeEnabled();
+    expect(screen.getByRole("button", { name: SLIDER.toward("Going out", "Buzzy") })).not.toHaveAttribute("aria-disabled");
+  });
+
+  test("test_it_has_no_field_to_type_in_because_a_number_does_not_say_which_end", () => {
+    showScale(0.5);
+
+    expect(screen.queryByRole("textbox")).toBeNull();
+    expect(screen.getByText(SLIDER.twoEnds)).toBeVisible();
+    expect(scale()).toHaveAccessibleDescription(SLIDER.twoEnds);
+  });
+
+  test("test_a_slider_with_two_ends_has_no_accessibility_fault", async () => {
+    const { container } = showScale(-0.5);
 
     expect(await faultsIn(container)).toEqual([]);
   });

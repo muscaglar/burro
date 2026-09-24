@@ -22,6 +22,11 @@ interface Props {
   readonly hint?: string;
   /** Said in place of the field when no more places can be named. */
   readonly full?: string | null;
+  /**
+   * True where the data names no place at all. The field is then not drawn: nothing typed
+   * in it could match, and it once said "Try another spelling" of every spelling there is.
+   */
+  readonly noPlaces?: boolean;
 }
 
 /**
@@ -33,7 +38,14 @@ interface Props {
  * name and asks the browser not to keep it. An option is known by its place
  * in the list, so no id of a place is written into the page's markup.
  */
-export function PlaceCombobox({ search, onPick, label = PLACE.label, hint = PLACE.hint, full = null }: Props) {
+export function PlaceCombobox({
+  search,
+  onPick,
+  label = PLACE.label,
+  hint = PLACE.hint,
+  full = null,
+  noPlaces = false,
+}: Props) {
   const id = useId();
   const field = useRef<HTMLInputElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -150,6 +162,14 @@ export function PlaceCombobox({ search, onPick, label = PLACE.label, hint = PLAC
             ? PLACE.failed
             : "";
 
+  if (noPlaces) {
+    return (
+      <div className={styles.combobox}>
+        <p className={styles.label}>{label}</p>
+        <p className={styles.hint}>{PLACE.notInData}</p>
+      </div>
+    );
+  }
   if (full !== null) {
     return (
       <p className={styles.full} role="status">

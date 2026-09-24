@@ -15,7 +15,7 @@ import { recordedAnswer } from "@/lib/api/recorded";
 
 import { setOnline } from "../support/api";
 import { faultsIn } from "../support/axe";
-import { areas, firstSearch, openSearch, search, settled } from "../support/search";
+import { areas, everyResult, firstSearch, openSearch, search, settled } from "../support/search";
 
 jest.mock("next/navigation", () => ({ usePathname: () => "/" }));
 
@@ -139,65 +139,72 @@ describe("comparing, by keyboard", () => {
     const { user } = await searched();
 
     await skipToResults(user);
-    await tabTo(user, () => screen.queryByRole("button", { name: COMPARE.add(nameAt(0)) }));
+    await tabTo(user, () => screen.queryByRole("button", { name: COMPARE.addNamed(nameAt(0)) }));
     await user.keyboard("{Enter}");
-    await tabTo(user, () => screen.queryByRole("button", { name: COMPARE.add(nameAt(1)) }));
+    await tabTo(user, () => screen.queryByRole("button", { name: COMPARE.addNamed(nameAt(1)) }));
     await user.keyboard(" ");
 
     const link = within(tray()).getByRole("link", { name: TRAY.go(2) });
     expect(link.getAttribute("href")).toMatch(/^\/compare\?a=[a-z-]+&a=[a-z-]+$/);
-    // The link is a link like any other: it is in the order of the page, just before the results.
+    // The link is a link like any other, in the order of the page. The tray stays at the foot
+    // of the screen, and the way on is beside the button that was just pressed as well.
     expect(link.getAttribute("tabindex")).toBeNull();
-    expect(link.compareDocumentPosition(screen.getByRole("heading", { name: RESULTS.title }))).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    );
+    const beside = within(screen.getAllByRole("article")[1] as HTMLElement).getByRole("link", { name: TRAY.go(2) });
+    expect(beside.getAttribute("href")).toBe(link.getAttribute("href"));
+    await user.tab();
+    expect(beside).toHaveFocus();
   });
 
   test("test_every_result_can_be_chosen_to_compare_the_rows_among_them", async () => {
     const { user } = await searched();
+    await everyResult(user);
 
-    for (const button of screen.getAllByRole("button", { name: new RegExp(`^${RESULTS.more}`) })) {
-      await user.click(button);
-    }
-    const add = screen.getAllByRole("button", { name: /^Add .+ to compare$/ });
+    const add = screen.getAllByRole("button", { name: new RegExp(`^${COMPARE.addShort}: `) });
 
     expect(add).toHaveLength(ranked.ranked.length);
-    expect(add.filter((button) => !button.classList.contains("target"))).toEqual([]);
+    expect(add.filter((button) => !button.classList.contains("target-min"))).toEqual([]);
   });
 
   test("test_choosing_an_area_does_not_move_the_focus_or_ask_the_api_for_anything", async () => {
     const { user, api } = await searched();
     const calls = api.calls.length;
-    const add = screen.getByRole("button", { name: COMPARE.add(nameAt(0)) });
+    const add = screen.getByRole("button", { name: COMPARE.addNamed(nameAt(0)) });
     act(() => add.focus());
 
     await user.keyboard("{Enter}");
     await settled();
 
-    expect(screen.getByRole("button", { name: COMPARE.remove(nameAt(0)) })).toHaveFocus();
+    expect(screen.getByRole("button", { name: COMPARE.removeNamed(nameAt(0)) })).toHaveFocus();
     expect(api.calls).toHaveLength(calls);
   });
 
   test("test_how_many_areas_are_chosen_is_said_in_words", async () => {
     const { user } = await searched();
-    expect(within(tray()).getByRole("status")).toHaveTextContent(TRAY.none);
+    // Before anything is chosen the tray says nothing, and is there to be heard when it does.
+    expect(within(tray()).getByRole("status")).toBeEmptyDOMElement();
 
-    await user.click(screen.getByRole("button", { name: COMPARE.add(nameAt(0)) }));
+    await user.click(screen.getByRole("button", { name: COMPARE.addNamed(nameAt(0)) }));
 
     expect(within(tray()).getByRole("status")).toHaveTextContent(TRAY.one);
     expect(within(tray()).getByText(nameAt(0))).toBeInTheDocument();
   });
 
-  test("test_the_tray_is_on_the_page_before_anything_is_chosen_so_that_nothing_moves", async () => {
-    await openSearch();
+  test("test_the_tray_takes_no_room_before_anything_is_chosen_and_comes_after_the_results", async () => {
+    const { user } = await searched();
 
-    expect(tray()).toHaveTextContent(TRAY.none);
+    expect(tray()).toHaveAttribute("data-closed", "true");
+    expect(
+      screen.getByRole("heading", { name: RESULTS.title }).compareDocumentPosition(tray()) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    await user.click(screen.getByRole("button", { name: COMPARE.addNamed(nameAt(0)) }));
+    expect(tray()).toHaveAttribute("data-closed", "false");
   });
 
   test("test_the_search_page_with_areas_chosen_has_no_accessibility_fault", async () => {
     const { user, container } = await searched();
     for (const place of [0, 1, 2, 3]) {
-      await user.click(screen.getByRole("button", { name: COMPARE.add(nameAt(place)) }));
+      await user.click(screen.getByRole("button", { name: COMPARE.addNamed(nameAt(place)) }));
     }
 
     expect(await faultsIn(container, { wholePage: true })).toEqual([]);

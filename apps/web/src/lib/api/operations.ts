@@ -27,7 +27,13 @@ export type BodyOf<Op extends OperationId> = operations[Op] extends {
   ? JsonOf<NonNullable<Request>>
   : never;
 
-type Route = { readonly method: "GET" | "POST"; readonly path: string; readonly timeoutMs: number };
+type Route = {
+  readonly method: "GET" | "POST";
+  readonly path: string;
+  readonly timeoutMs: number;
+  /** True for an answer no browser may keep, though it is asked for with a `GET`. */
+  readonly neverKept?: true;
+};
 
 /**
  * Where each operation is served, and how long the website waits for it:
@@ -46,6 +52,13 @@ export const ROUTES = {
   list_areas: { method: "GET", path: "/v1/areas", timeoutMs: 10_000 },
   get_geometry: { method: "GET", path: "/v1/areas/geometry", timeoutMs: 10_000 },
   get_area: { method: "GET", path: "/v1/areas/{id_or_slug}", timeoutMs: 10_000 },
+  // The census of one area. It is asked for when a person opens it, and is never kept.
+  get_census: {
+    method: "GET",
+    path: "/v1/areas/{id_or_slug}/census",
+    timeoutMs: 5_000,
+    neverKept: true,
+  },
   get_meta: { method: "GET", path: "/v1/meta", timeoutMs: 10_000 },
 } as const satisfies Record<OperationId, Route>;
 

@@ -11,6 +11,7 @@
 
 import { screen, waitFor, within } from "@testing-library/react";
 
+import { SHOWN_AT_FIRST } from "@/components/ResultList/ResultList";
 import { CHIPS, NOTICE, PROMPT, RESULTS } from "@/content/search";
 import { BUDGET, FEATURES, SETTINGS, SLIDER } from "@/content/settings";
 import { recordedAnswer, recordedError } from "@/lib/api/recorded";
@@ -19,7 +20,21 @@ import { edits } from "@/lib/search/edits";
 
 import { setOnline, standInApi } from "../support/api";
 import { faultsIn } from "../support/axe";
-import { arrived, firstSearch, meta, openSearch, promptBox, results, search, settled } from "../support/search";
+import {
+  arrived,
+  everyChip,
+  firstSearch,
+  meta,
+  openSearch,
+  promptBox,
+  removeChip,
+  restOfTheList,
+  results,
+  search,
+  settingsAt,
+  settled,
+  workingOf,
+} from "../support/search";
 
 jest.mock("next/navigation", () => ({ usePathname: () => "/" }));
 
@@ -28,13 +43,15 @@ const NEWER = "syn-2026-10-01-01";
 
 const first = recordedAnswer("rank", "rank-first").body.data;
 const second = recordedAnswer("interpret", "interpret-second-sentence").body.data;
+/** The plain name of a feature, which is what a chip and a switch are named by. */
 const labelOf = (featureId: string) =>
-  meta.data.features.find((feature) => feature.feature_id === featureId)?.label ?? "";
+  meta.data.features.find((feature) => feature.feature_id === featureId)?.short_label ?? "";
 const chips = () => within(screen.getByRole("region", { name: CHIPS.label }));
 const skeletons = () => document.querySelectorAll(".skeleton").length;
 const sources = (card: HTMLElement | undefined) =>
   card === undefined ? 0 : within(card).queryAllByRole("button", { name: /Source/ }).length;
-const footOf = (card: HTMLElement | undefined) => card?.querySelector("footer")?.textContent ?? "";
+/** What stands under the list: which results have reasons, and the release that ranked them. */
+const footOfTheList = () => restOfTheList().parentElement?.querySelector("footer")?.textContent ?? "";
 const editsSent = (body: unknown) => (body as { operations?: Operations }).operations;
 
 async function send(user: Awaited<ReturnType<typeof openSearch>>["user"], text: string) {
@@ -53,8 +70,10 @@ describe("a first search on a page built on an older release", () => {
     const slow = api.hold("get_meta", "meta");
 
     await search(user);
+    // The working of the first result holds its reasons and its profile.
+    await workingOf(user, "Farrowmere");
     const before = { cards: results().length, sources: sources(results()[0]) };
-    expect(before.cards).toBe(20);
+    expect(before.cards).toBe(SHOWN_AT_FIRST);
     expect(before.sources).toBeGreaterThan(3);
     expect(slow.waiting()).toBe(1);
 
@@ -63,7 +82,7 @@ describe("a first search on a page built on an older release", () => {
     await arrived();
 
     expect(skeletons()).toBe(0);
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
     expect(sources(results()[0])).toBe(before.sources);
     expect(results()[0]?.textContent?.includes(RESULTS.reasonsFailed)).toBe(false);
     expect(screen.queryByRole("alert")).toBeNull();
@@ -72,16 +91,17 @@ describe("a first search on a page built on an older release", () => {
     expect(api.callsTo("get_area")).toHaveLength(5);
   });
 
-  test("test_the_foot_of_a_card_names_the_release_that_made_the_ranking_and_not_the_one_the_page_was_built_on", async () => {
-    // The form cannot be read again, so the page keeps the release it was built on.
-    const api = firstSearch().movedTo(NEWER).on("get_meta", "error-internal");
+  test("test_the_foot_of_the_list_names_the_release_that_made_the_ranking_and_not_the_one_the_page_was_built_on", async () => {
+    // The form is read as the page opens, to hear who reads what is typed. It cannot be
+    // read again after that, so the page keeps the release it was built on.
+    const api = firstSearch().movedTo(NEWER).inTurn("get_meta", "meta", "error-internal");
     const { user } = await openSearch(api);
 
     await search(user);
 
     expect(meta.meta.release_id).not.toBe(NEWER);
-    expect(footOf(results()[0]).includes(NEWER)).toBe(true);
-    expect(footOf(results()[0]).includes(meta.meta.release_id)).toBe(false);
+    expect(footOfTheList().includes(NEWER)).toBe(true);
+    expect(footOfTheList().includes(meta.meta.release_id)).toBe(false);
   });
 });
 
@@ -90,7 +110,7 @@ describe("an answer that arrives while a number is being typed", () => {
     const api = firstSearch();
     const reading = api.hold("interpret", "interpret-first");
     const { user } = await openSearch(api);
-    await user.click(screen.getByRole("button", { name: SETTINGS.title }));
+    await settingsAt(user, SETTINGS.money);
     const budget = () => screen.getAllByRole<HTMLInputElement>("textbox", { name: BUDGET.amount.rent })[0];
 
     await send(user, "leafy and quiet");
@@ -98,7 +118,7 @@ describe("an answer that arrives while a number is being typed", () => {
     await user.keyboard("18");
     // The words are read, and ranked, while the person is still typing the number.
     reading.release();
-    await waitFor(() => expect(results()).toHaveLength(20));
+    await waitFor(() => expect(results()).toHaveLength(SHOWN_AT_FIRST));
     await arrived();
 
     // The reading named a budget of its own. It is not put in the field over the typing.
@@ -120,6 +140,7 @@ describe("stop, once the words are read", () => {
     const api = firstSearch();
     const view = await openSearch(api);
     await search(view.user);
+    await everyChip(view.user);
     const before = {
       chips: chips().getAllByRole("listitem").map((chip) => chip.textContent),
       cards: results().map((card) => card.textContent),
@@ -169,7 +190,7 @@ describe("stop, once the words are read", () => {
     await settled();
     api.on("rank", "rank-refined").on("explain_top", "explanations-refined");
 
-    await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Leafy` }));
+    await removeChip(user, "Leafy");
     await settled();
 
     expect(api.lastCallTo("rank").body).toEqual({ spec: first.spec, operations: edits.tagOff("leafy"), limit: 20 });
@@ -185,7 +206,7 @@ describe("reasons and profiles that could not be loaded", () => {
     await search(user);
 
     // The ranking stays, and each card says what it lacks.
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
     expect(within(results()[0] as HTMLElement).getByText(RESULTS.reasonsFailed)).toBeInTheDocument();
     const alert = screen.getByRole("alert");
     expect(alert).toHaveTextContent(fault.body.error.message);
@@ -199,7 +220,8 @@ describe("reasons and profiles that could not be loaded", () => {
 
     expect(screen.queryByRole("alert")).toBeNull();
     expect(results()[0]?.textContent?.includes(RESULTS.reasonsFailed)).toBe(false);
-    expect(sources(results()[0])).toBeGreaterThan(3);
+    // The reason and the trade-off of the answer, each with its source.
+    expect(sources(results()[1])).toBeGreaterThanOrEqual(2);
   });
 
   test("test_a_failure_of_a_profile_is_said_and_trying_again_asks_for_that_profile", async () => {
@@ -211,8 +233,9 @@ describe("reasons and profiles that could not be loaded", () => {
 
     await search(user);
 
-    const card = results().find((one) => one.textContent?.includes(RESULTS.detailsFailed));
-    expect(card).toBeDefined();
+    // What a profile holds is in the working of a result, and the working says what it lacks.
+    const card = await workingOf(user, "Farrowmere");
+    expect(card.textContent?.includes(RESULTS.detailsFailed)).toBe(true);
     const alert = screen.getByRole("alert");
     expect(alert).toHaveTextContent(fault.body.error.message);
     expect(alert).toHaveTextContent(fault.headers["x-request-id"] ?? "no id");
@@ -248,6 +271,8 @@ describe("a control moved twice before its answer", () => {
     await user.click(screen.getByRole("button", { name: SETTINGS.rank }));
     await waitFor(() => expect(results().length).toBeGreaterThan(0));
     await arrived();
+    // Pubs and bars are a part of the recipe of Going out.
+    await settingsAt(user, "Pace and food", FEATURES.madeOfName("Going out"));
     const pubs = labelOf("venue_evening");
     const number = screen.getAllByRole("textbox", { name: SLIDER.number(FEATURES.weight(pubs)) })[0] as HTMLElement;
     // No answer comes until all three have been done.

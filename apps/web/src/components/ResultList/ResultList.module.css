@@ -1,18 +1,26 @@
+/*
+ * The results. A card is the answer in a few lines, and a row is one line. What either
+ * opens to has no limit: it is one press away. docs/design/web.md, section 4.1, gives what
+ * was measured of the short forms.
+ */
 .list {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-2);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+.list:focus {
+  outline: none;
+}
+
 /*
  * A list that is being worked out again stays where it is, and says so in words above
  * it. It is not dimmed: at 70% its muted text, its links and its edges all fall below the
- * contrast they need. The line has its height whether or not it says anything.
+ * contrast they need.
  */
-.working {
-  min-height: calc(var(--leading-text) * 1em);
+.workingOut {
   margin: 0 0 var(--space-2);
   font-weight: 600;
 }
@@ -31,15 +39,11 @@
 .card,
 .row {
   display: grid;
-  gap: var(--space-4);
-  padding: var(--space-4);
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
-}
-
-.row {
-  gap: var(--space-2);
 }
 
 /* The chosen area is marked by a heavy edge, and says so to a screen reader. */
@@ -49,54 +53,80 @@
   outline-offset: 1px;
 }
 
+/*
+ * The top of a card: the heading, and what the fit rests on after it, on one line where
+ * there is room and on the next where there is not. A firm limit that was not tested, or
+ * journeys that do not count, take a line of their own: they are not small print.
+ */
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-3);
+}
+
+.top .heading {
+  flex: 1 1 auto;
+}
+
+.top .completeness:has(.untested) {
+  flex-basis: 100%;
+}
+
+/* One line: the rank, the name, the borough, and the fit at the far end. */
 .heading {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: var(--space-2) var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--space-2);
+}
+
+.heading p {
+  margin: 0;
 }
 
 .rank {
+  align-self: center;
   display: grid;
   place-items: center;
-  min-width: 2rem;
-  height: 2rem;
-  margin: 0;
+  min-width: 1.5rem;
+  height: 1.5rem;
   padding: 0 var(--space-1);
-  border-radius: 1rem;
+  border-radius: 0.75rem;
   background: var(--map-line);
   color: var(--bg);
+  font-size: var(--size-small);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
-.names {
-  min-width: 0;
-}
-
 .name {
   margin: 0;
-  font-size: var(--size-h3);
-}
-
-.row .name {
   font-size: var(--size-lead);
 }
 
+.row .name {
+  font-size: var(--size-body);
+}
+
+/* The name of a result is the way to the page of its area. It is drawn as the name is. */
+.toArea {
+  color: inherit;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.toArea:hover {
+  color: var(--accent);
+}
+
 .borough {
-  margin: 0;
   color: var(--muted);
+  font-size: var(--size-small);
 }
 
 .fit {
-  display: grid;
-  gap: var(--space-1);
-  min-width: 7rem;
-  text-align: right;
-}
-
-.fit p {
-  margin: 0;
+  margin-inline-start: auto;
 }
 
 .fitLabel {
@@ -109,28 +139,51 @@
   font-variant-numeric: tabular-nums;
 }
 
-.meter {
-  height: var(--space-2);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-}
-
-.meter span {
-  display: block;
-  height: 100%;
-  background: var(--text);
-}
-
 .part {
   display: grid;
-  gap: var(--space-2);
+  gap: 0;
 }
 
 .part h4 {
   margin: 0;
-  font-size: var(--size-body);
+  font-size: var(--size-small);
   color: var(--muted);
+}
+
+.part p {
+  margin: 0;
+}
+
+/*
+ * In the answer, what a sentence is of runs into it: "Why it fits", and then the sentence
+ * and its source, on the same lines. A heading above each would cost a line of every card.
+ * What a source opens, and whether a journey is within its limit, go under the sentence.
+ */
+.part.runIn {
+  display: block;
+}
+
+.part.runIn h4 {
+  display: inline-flex;
+  margin-inline-end: var(--space-2);
+  vertical-align: baseline;
+}
+
+.part.runIn > div,
+.part.runIn p {
+  display: inline;
+}
+
+.part.runIn p {
+  margin-inline-end: var(--space-2);
+}
+
+/* What holds the place of a sentence that is waited for is a line of its own. */
+.part.runIn > div[aria-hidden="true"],
+.part.runIn .within,
+.part.runIn .over,
+.part.runIn .failed {
+  display: block;
 }
 
 .where {
@@ -145,12 +198,7 @@
   gap: var(--space-2);
 }
 
-/* Room for three reasons, whether there are three or not. */
 .reasons {
-  min-height: calc(3 * var(--leading-text) * 1em + 2 * var(--space-2));
-}
-
-.reasons ol {
   display: grid;
   gap: var(--space-2);
   margin: 0;
@@ -159,10 +207,6 @@
 
 .reasons li {
   max-width: none;
-}
-
-.reasons p {
-  margin: 0;
 }
 
 /* The trade-off is told apart by its word and its mark, as well as its colour. */
@@ -182,12 +226,17 @@
 
 .completeness {
   display: grid;
-  gap: var(--space-1);
+  gap: 0;
+  font-size: var(--size-small);
 }
 
 .based,
 .untested {
   margin: 0;
+}
+
+.based {
+  color: var(--muted);
 }
 
 /*
@@ -199,6 +248,7 @@
   align-items: baseline;
   gap: var(--space-2);
   color: var(--tradeoff);
+  font-size: var(--size-body);
   font-weight: 600;
 }
 
@@ -206,8 +256,51 @@
   flex: none;
 }
 
-.completeness .meter {
-  max-width: 16rem;
+/*
+ * What a result leads to, in one row: its working, the areas like it, and the comparison.
+ * The working opens under the row, as wide as the card.
+ */
+.waysOn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  font-size: var(--size-small);
+}
+
+/* Three ways on stand on one line of a phone: each is as wide as its words and a little more. */
+.waysOn button,
+.waysOn a {
+  padding-inline: var(--space-1);
+}
+
+.working {
+  display: contents;
+}
+
+/* The working comes after the row of buttons, whatever stands in the row. */
+.working > div {
+  order: 1;
+  flex-basis: 100%;
+  font-size: var(--size-body);
+}
+
+.way {
+  font-weight: 600;
+}
+
+.opened {
+  display: grid;
+  gap: var(--space-4);
+  padding-block: var(--space-2);
+}
+
+.opened .part {
+  gap: var(--space-2);
+}
+
+.opened .part h4 {
+  font-size: var(--size-body);
 }
 
 .journeysPart,
@@ -275,11 +368,6 @@
   color: var(--error);
 }
 
-.more {
-  display: grid;
-  gap: var(--space-3);
-}
-
 .actions {
   display: flex;
   flex-wrap: wrap;
@@ -298,24 +386,135 @@
   align-items: center;
 }
 
-.foot {
+/*
+ * Under the list, on one line where there is room: the button that shows the rest, or the
+ * line that says areas are ranked below the last one listed, and the areas that are not ranked.
+ */
+.under {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1) var(--space-4);
+  align-items: flex-start;
+  gap: var(--space-2) var(--space-4);
+  margin-block-start: var(--space-2);
+}
+
+.under:empty {
+  display: none;
+}
+
+.showMore {
+  flex: none;
+}
+
+/* Under the list, where areas are ranked below the last one that is listed. */
+.below {
+  flex: 1 1 100%;
+  margin: 0;
   color: var(--muted);
   font-size: var(--size-small);
 }
 
+/*
+ * The areas that are not ranked, apart from those that are: closed at first, and one line.
+ * Opened, each area is its name, why it is not ranked, and what it has no figure for.
+ */
+.apart {
+  flex: 1 1 16rem;
+}
+
+/* Opened, it takes a line of its own, so that the list stands under its button at full width. */
+.apart:has(> button[aria-expanded="true"]) {
+  flex-basis: 100%;
+}
+
+.apartLead,
+.apartItem p {
+  margin: 0;
+}
+
+.apartList,
+.apartThings {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.apartList {
+  display: grid;
+  gap: var(--space-3);
+  margin-block-start: var(--space-2);
+}
+
+.apartName {
+  font-weight: 600;
+}
+
+.apartLacks {
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.apartThings {
+  padding-inline-start: var(--space-3);
+  font-size: var(--size-small);
+}
+
+/* Under the list: which results have reasons, and the release and the engine that ranked them. */
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-4);
+  margin-block-start: var(--space-2);
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+/*
+ * A row is two lines where there is room: the name and the fit with the ways on beside
+ * them, and then the strip. What the fit rests on is said between them where it is not
+ * all that counts. The working opens under the whole row.
+ *
+ * The ways on come after the strip in the page, and are drawn before it. The strip of a
+ * row holds nothing a keyboard stops at, so the order of the keyboard is the order drawn.
+ */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-2);
+}
+
+.row .heading {
+  flex: 1 1 auto;
+}
+
+.row .waysOn {
+  display: contents;
+  font-size: var(--size-small);
+}
+
+.row .waysOn > *,
+.row .working > button {
+  order: 1;
+  font-size: var(--size-small);
+}
+
+.row .completeness {
+  order: 2;
+  flex-basis: 100%;
+}
+
+.row > ul {
+  order: 3;
+  flex-basis: 100%;
+}
+
+.row .working > div {
+  order: 4;
+  font-size: var(--size-body);
+}
+
 @media (max-width: 40rem) {
-  .heading {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .fit {
-    grid-column: 1 / -1;
-    text-align: left;
-  }
-
   .where {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -388,10 +587,6 @@
   .journeys tr,
   .breakdown tr {
     border-block-end-color: CanvasText;
-  }
-
-  .meter span {
-    background: CanvasText;
   }
 
   .card[aria-current="true"],

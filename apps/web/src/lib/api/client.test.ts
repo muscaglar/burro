@@ -2,6 +2,7 @@ import { createClient } from "./client";
 import { isApiFailure } from "./failure";
 import { recordedAnswer, recordedError, responseFrom } from "./recorded";
 import { send } from "./send";
+import { forgetWhatWasSaid, whatWasSaid, type Said } from "./said";
 import { forgetSynthetic, syntheticSeen } from "./synthetic";
 
 const BASE = "https://api.example.test";
@@ -41,7 +42,7 @@ function json(body: unknown, status = 200, headers: Record<string, string> = {})
   });
 }
 
-const META = { release_id: "syn-2026-09-23-01", engine_version: "1.1.0", synthetic: true };
+const META = { release_id: "syn-2026-09-23-01", engine_version: "1.1.0", synthetic: true, preview: false };
 
 function setOnline(online: boolean) {
   Object.defineProperty(window.navigator, "onLine", { configurable: true, get: () => online });
@@ -49,6 +50,7 @@ function setOnline(online: boolean) {
 
 beforeEach(() => {
   forgetSynthetic();
+  forgetWhatWasSaid();
   setOnline(true);
 });
 
@@ -171,7 +173,7 @@ describe("the API client", () => {
     jest.useFakeTimers();
     const { fetch, calls } = neverAnswers();
 
-    const waiting = createClient({ baseUrl: BASE, fetch }).interpret({ text: "leafy" });
+    const waiting = createClient({ baseUrl: BASE, fetch }).interpret({ text: "leafy", ask_model: true });
     // Reading a sentence is given 8 seconds, and no longer.
     await jest.advanceTimersByTimeAsync(7_999);
     expect(calls[0]?.init.signal?.aborted).toBe(false);
@@ -215,7 +217,7 @@ describe("the API client", () => {
     const { fetch, calls } = neverAnswers();
     const stop = new AbortController();
 
-    const waiting = createClient({ baseUrl: BASE, fetch }).interpret({ text: "leafy" }, stop.signal);
+    const waiting = createClient({ baseUrl: BASE, fetch }).interpret({ text: "leafy", ask_model: true }, stop.signal);
     stop.abort();
 
     expect(await waiting).toMatchObject({ ok: false, failure: { kind: "aborted" } });
@@ -228,7 +230,7 @@ describe("the API client", () => {
     stop.abort();
 
     const answer = await createClient({ baseUrl: BASE, fetch }).interpret(
-      { text: CANARY },
+      { text: CANARY, ask_model: true },
       stop.signal,
     );
 
@@ -239,7 +241,7 @@ describe("the API client", () => {
   test("test_a_request_that_cannot_leave_is_a_network_failure_and_never_thrown", async () => {
     const { fetch } = standIn(new TypeError(`could not send ${CANARY}`));
 
-    const answer = await createClient({ baseUrl: BASE, fetch }).interpret({ text: CANARY });
+    const answer = await createClient({ baseUrl: BASE, fetch }).interpret({ text: CANARY, ask_model: true });
 
     expect(answer).toEqual({
       ok: false,
@@ -266,6 +268,7 @@ describe("the API client", () => {
     ["JSON that is no envelope", json({ detail: "Not Found" }, 404)],
     ["an envelope with no meta", json({ data: { areas: [] } })],
     ["meta with no flag", json({ meta: { ...META, synthetic: undefined }, data: {} })],
+    ["meta that does not say whether it is a preview", json({ meta: { ...META, preview: undefined }, data: {} })],
     ["a 200 with no data", json({ meta: META })],
     ["a 500 that holds data", json({ meta: META, data: {} }, 500)],
   ])("test_an_answer_that_is_not_the_apis_envelope_is_unreadable: %s", async (_, response) => {
@@ -298,7 +301,7 @@ describe("the API client", () => {
     const spec = recordedAnswer("rank", "rank-first").body.data.spec;
 
     const answers = await Promise.all([
-      client.interpret({ text: "leafy" }),
+      client.interpret({ text: "leafy", ask_model: true }),
       client.rank({ spec, limit: 20 }),
       client.explainTop({ spec, limit: 5 }),
       client.compare({ area_ids: ["syn-n0001", "syn-n0002"], spec }),
@@ -345,7 +348,7 @@ describe("the synthetic flag", () => {
       const headers: Record<string, string> =
         inHeader === null ? {} : { "x-burro-synthetic": inHeader };
       const { fetch } = standIn(
-        json({ meta: { ...META, synthetic: inBody }, data: { areas: [] } }, 200, headers),
+        json({ meta: { ...META, synthetic: inBody }, data: { areas: [], bands: [] } }, 200, headers),
       );
 
       const answer = await createClient({ baseUrl: BASE, fetch }).listAreas();
@@ -396,6 +399,58 @@ describe("the synthetic flag", () => {
     expect(heard).toEqual([false, true]);
   });
 
+  test("test_what_each_answer_says_of_its_data_is_heard_whatever_became_of_the_answer", async () => {
+    const heard: Said[] = [];
+    const onSaid = (said: Said) => heard.push(said);
+    const preview = json({ meta: { ...META, synthetic: false, preview: true }, data: { areas: [] } });
+    const unreadable = new Response("not json", {
+      status: 502,
+      headers: { "x-burro-synthetic": "false", "x-burro-preview": "true" },
+    });
+    const silent = new Response("not json", { status: 502 });
+
+    await createClient({ baseUrl: BASE, fetch: standIn(preview).fetch, onSaid }).listAreas();
+    await createClient({
+      baseUrl: BASE,
+      fetch: standIn(responseFrom(recordedError("share-gone"))).fetch,
+      onSaid,
+    }).getShare("AAAAAAAAAAAAAAAAAAAAAA");
+    await createClient({ baseUrl: BASE, fetch: standIn(unreadable).fetch, onSaid }).getMeta();
+    await createClient({ baseUrl: BASE, fetch: standIn(silent).fetch, onSaid }).getMeta();
+
+    expect(heard).toEqual([
+      { synthetic: false, preview: true },
+      { synthetic: true, preview: false },
+      { synthetic: false, preview: true },
+      { synthetic: null, preview: null },
+    ]);
+  });
+
+  test("test_a_preview_is_heard_when_the_body_or_the_header_says_so", async () => {
+    const heard: Said[] = [];
+    const body = json({ meta: { ...META, preview: false }, data: { areas: [] } }, 200, {
+      "x-burro-preview": "true",
+    });
+
+    await createClient({ baseUrl: BASE, fetch: standIn(body).fetch, onSaid: (said) => heard.push(said) }).listAreas();
+
+    // An unfinished release is never shown as a finished one.
+    expect(heard).toEqual([{ synthetic: true, preview: true }]);
+  });
+
+  test("test_the_websites_own_client_hears_what_every_answer_says", async () => {
+    process.env.NEXT_PUBLIC_BURRO_API_URL = BASE;
+    const { api } = await import("./client");
+    expect(whatWasSaid()).toEqual({ madeUp: false, real: false, preview: false, finished: false });
+
+    globalThis.fetch = standIn(
+      json({ meta: { ...META, synthetic: false, preview: true }, data: { areas: [] } }),
+    ).fetch;
+    await api.listAreas();
+
+    expect(whatWasSaid()).toEqual({ madeUp: false, real: true, preview: true, finished: false });
+  });
+
   test("test_the_websites_own_client_turns_the_banner_on_and_never_off", async () => {
     process.env.NEXT_PUBLIC_BURRO_API_URL = BASE;
     const { api } = await import("./client");
@@ -425,7 +480,7 @@ describe("what the client sends, and where", () => {
     );
     const client = createClient({ baseUrl: BASE, fetch });
 
-    await client.interpret({ text: `leafy, near ${CANARY}` });
+    await client.interpret({ text: `leafy, near ${CANARY}`, ask_model: true });
     await client.searchPlaces({ q: CANARY, limit: 8 });
 
     expect(calls).toHaveLength(2);
@@ -485,7 +540,7 @@ describe("what the client sends, and where", () => {
 
     for (const answer of answers) {
       const client = createClient({ baseUrl: BASE, fetch: standIn(answer).fetch });
-      await client.interpret({ text: CANARY, spec });
+      await client.interpret({ text: CANARY, spec, ask_model: true });
       await client.searchPlaces({ q: CANARY, limit: 8 });
     }
 
@@ -509,7 +564,7 @@ describe("where the API is", () => {
   test("test_with_no_address_set_nothing_is_sent", async () => {
     const { fetch, calls } = standIn(responseFrom(recordedAnswer("get_meta", "meta")));
 
-    const answer = await createClient({ fetch }).interpret({ text: CANARY });
+    const answer = await createClient({ fetch }).interpret({ text: CANARY, ask_model: true });
 
     expect(answer).toEqual({
       ok: false,

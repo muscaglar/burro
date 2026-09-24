@@ -31,6 +31,38 @@ export function linesOf(facts: readonly Fact[]): readonly SourceLine[] {
   return [...lines.values()];
 }
 
+/** What some facts rest on: each source once, and each date once. */
+export interface Cited {
+  /** Every source the facts name, once each, in the order the facts name them. */
+  readonly sources: readonly FactSource[];
+  /** Every date the facts give, once each, as the API wrote it, in the order the facts give them. */
+  readonly dates: readonly string[];
+  /** True where any of the facts is made up. */
+  readonly synthetic: boolean;
+}
+
+/**
+ * The sources and the dates of some facts, each said once.
+ *
+ * A date is the date of a figure, and never of a source: a figure worked out in one month
+ * from a census of another year has one date, which is the figure's. The date once stood
+ * beside each source, so that a census of 2021 read "Data from April 2026", and a fact of
+ * five sources said its date five times.
+ */
+export function citedBy(facts: readonly Fact[]): Cited {
+  const sources = new Map<string, FactSource>();
+  const dates = new Set<string>();
+  for (const fact of facts) {
+    for (const source of fact.sources) if (!sources.has(source.source_id)) sources.set(source.source_id, source);
+    if (fact.as_of !== "") dates.add(fact.as_of);
+  }
+  return {
+    sources: [...sources.values()],
+    dates: [...dates],
+    synthetic: facts.some((fact) => fact.synthetic),
+  };
+}
+
 /** Every source the facts name, once each, in the order of their names. */
 export function sourcesOf(facts: readonly Fact[]): readonly FactSource[] {
   const found = new Map<string, FactSource>();

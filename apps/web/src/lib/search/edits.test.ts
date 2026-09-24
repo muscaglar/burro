@@ -37,6 +37,24 @@ describe("the edits a control sends", () => {
     expect(EVERY_EDIT.map(([name]) => name).sort()).toEqual(Object.keys(edits).sort());
   });
 
+  test("test_a_vibe_is_added_towards_the_end_that_is_asked_for", () => {
+    // What the shelf sends for "leafy" is what the API was recorded taking.
+    const sent = recordedAnswer("rank", "rank-shelf").request.body as { operations: Operations };
+
+    expect(edits.tagOn("leafy", "high")).toEqual(sent.operations);
+    expect(edits.tagOn("leafy").tag_ops[0]?.toward).toBe("high");
+    expect(edits.tagOn("pace", "low").tag_ops[0]).toMatchObject({ action: "nudge", step: "up_large", toward: "low" });
+    expect(problemsWith("Operations", edits.tagOn("pace", "low"))).toEqual([]);
+  });
+
+  test("test_how_much_a_vibe_counts_leaves_its_end_as_it_is_unless_one_is_given", () => {
+    const turned = recordedAnswer("rank", "rank-scale-turned").request.body as { operations: Operations };
+
+    expect(edits.tagWeight("pace", 0.25).tag_ops[0]).toMatchObject({ action: "set", value: 0.25, toward: "default" });
+    // Turning a scale is a `set` with the weight it had and the other end.
+    expect(edits.tagWeight("pace", 0.5, "high")).toEqual(turned.operations);
+  });
+
   test.each(EVERY_EDIT)("test_an_edit_is_one_the_contract_accepts: %s", (_, operations) => {
     expect(problemsWith("Operations", operations)).toEqual([]);
   });
@@ -176,8 +194,9 @@ describe("which part of the search an edit is about", () => {
     expect(saidBy(edits.featureDirection("venue_evening", 0.5, "less"), "weight_ops", 0)).toEqual([
       { key: "feature:venue_evening", states: ["weight", "direction"] },
     ]);
+    // A vibe a person set is theirs: it is no longer what a word with two meanings was read as.
     expect(saidBy(edits.tagWeight("leafy", 0.5), "tag_ops", 0)).toEqual([
-      { key: "tag:leafy", states: ["weight"] },
+      { key: "tag:leafy", states: ["weight", "word"] },
     ]);
     expect(saidBy(edits.journeyBasis("typical"), "setting_ops", 0)).toEqual([
       { key: "journeys", states: [] },

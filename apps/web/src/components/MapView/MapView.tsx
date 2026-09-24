@@ -11,7 +11,7 @@ import {
   type ReactNode,
 } from "react";
 
-import { MAP } from "@/content/map";
+import { MAP, TABLE } from "@/content/map";
 import { RESULTS } from "@/content/search";
 import type {
   AreaSummary,
@@ -21,7 +21,9 @@ import type {
   Score,
   Unranked,
 } from "@/lib/api/schema";
-import { fillFor, fitOf, PINS } from "@/lib/map/fill";
+import { fillFor, fillForVibe, fitOf, PINS } from "@/lib/map/fill";
+import { apart } from "@/lib/map/pins";
+import { extentsOf, fits, linesOf, UNDER_A_PIN } from "@/lib/map/labels";
 import { boundsOf } from "@/lib/map/project";
 import {
   addPatterns,
@@ -33,8 +35,10 @@ import {
   themeOfPage,
 } from "@/lib/map/style";
 import { canDrawMap, prefersReducedMotion } from "@/lib/map/webgl";
+import { basedOn } from "@/lib/search/card";
+import type { Lens } from "@/lib/vibes";
 
-import { basedOn } from "../AreaTable/AreaTable";
+import { Disclosure } from "../Disclosure/Disclosure";
 import { MapCard } from "./MapCard";
 import { MapControls } from "./MapControls";
 import { MapLegend } from "./MapLegend";
@@ -56,9 +60,15 @@ interface Props {
   readonly onHover: (areaId: string | null) => void;
   /** Shows the chosen area in the list. */
   readonly onShowInList: (areaId: string) => void;
-  /** What stands in for the map where it cannot be drawn: the table. */
-  readonly fallback: ReactNode;
+  /**
+   * The vibe the map is coloured by, and where each area sits on it. It is for before a
+   * search: a ranking colours the map by fit, and no vibe is given then.
+   */
+  readonly lens?: Lens | null;
+  /** The table that says everything the map does. It is one press away, under the map. */
+  readonly table: ReactNode;
 }
+
 
 const never = () => () => undefined;
 
@@ -76,6 +86,11 @@ const PADDING = 24;
  * area with no rank carries a pattern, and its reason is in the card and in
  * the table. Where the browser cannot draw it, it is not started at all, and
  * the table is shown with a line saying why.
+ *
+ * An area is named on the map where it has room for the whole of its name,
+ * so that a person who has never been to the city has their bearings. The
+ * name is the release's own. It takes no press and covers no area: the
+ * pointer goes through it to the area under it.
  *
  * The list and the map are in step: what is under the pointer or the focus
  * in one is outlined in the other, and what is chosen in one is chosen in
@@ -95,9 +110,12 @@ export function MapView({
   onSelect,
   onHover,
   onShowInList,
-  fallback,
+  lens = null,
+  table,
 }: Props) {
   const id = useId();
+  // On a narrow screen the map is a strip above the list, and the whole of it is one press away.
+  const [taller, setTaller] = useState(false);
   const container = useRef<HTMLDivElement>(null);
   const held = useRef<{ map: MapLibreMap; library: Library } | null>(null);
   const marked = useRef<{ selected: string | null; hovered: string | null }>({
@@ -116,10 +134,11 @@ export function MapView({
   const ready = geometry !== null && readyFor === geometry;
 
   const fills = useMemo(
-    () => fillFor(scores, filtered, unranked, emptySpec),
-    [scores, filtered, unranked, emptySpec],
+    () => (lens === null ? fillFor(scores, filtered, unranked, emptySpec) : fillForVibe(lens.marks)),
+    [lens, scores, filtered, unranked, emptySpec],
   );
   const bounds = useMemo(() => (geometry ? boundsOf(geometry) : null), [geometry]);
+  const extents = useMemo(() => (geometry ? extentsOf(geometry) : null), [geometry]);
 
   useEffect(() => {
     told.current = { onSelect, onHover };
@@ -224,7 +243,7 @@ export function MapView({
 
   // A numbered pin on each of the first ten, in rank order.
   useEffect(() => {
-    if (!ready || held.current === null || emptySpec) return;
+    if (!ready || held.current === null || emptySpec || lens !== null) return;
     const { map, library } = held.current;
     const pins = ranked.slice(0, PINS).flatMap((area) => {
       const summary = areas.find((known) => known.area_id === area.area_id);
@@ -237,7 +256,12 @@ export function MapView({
       button.setAttribute(
         "aria-label",
         // A fit that rests on part of what counts says so wherever it is given.
-        MAP.pin(area.rank, summary.name, RESULTS.fitOf(fitOf(area.score)), basedOn(area)),
+        MAP.pin(
+          area.rank,
+          summary.name,
+          RESULTS.fitOf(fitOf(area.score)),
+          basedOn(scores.find((score) => score.area_id === area.area_id)),
+        ),
       );
       button.addEventListener("click", (event) => {
         event.stopPropagation();
@@ -249,10 +273,85 @@ export function MapView({
       button.addEventListener("focus", () => told.current.onHover(area.area_id));
       button.addEventListener("blur", () => told.current.onHover(null));
       const [longitude, latitude] = summary.centroid;
-      return [new library.Marker({ element: button }).setLngLat([longitude, latitude]).addTo(map)];
+      return [
+        {
+          id: area.area_id,
+          at: [longitude, latitude] as [number, number],
+          marker: new library.Marker({ element: button }).setLngLat([longitude, latitude]).addTo(map),
+        },
+      ];
     });
-    return () => pins.forEach((pin) => pin.remove());
-  }, [ready, ranked, areas, emptySpec]);
+    // Two of the first ten may be next to each other, and from far off their pins would
+    // stand on top of each other. The better ranked keeps its place, and the other is drawn
+    // just beside it. It is worked out again when the map is drawn nearer or further.
+    const spread = () => {
+      const moved = apart(pins.map(({ id, at }) => ({ id, ...map.project(at) })));
+      for (const { id, marker } of pins) {
+        const [x, y] = moved.get(id) ?? [0, 0];
+        marker.setOffset([x, y]);
+        marker.getElement().toggleAttribute("data-moved", x !== 0 || y !== 0);
+      }
+    };
+    spread();
+    map.on("zoomend", spread);
+    map.on("resize", spread);
+    return () => {
+      map.off("zoomend", spread);
+      map.off("resize", spread);
+      pins.forEach(({ marker }) => marker.remove());
+    };
+  }, [ready, ranked, scores, areas, emptySpec, lens]);
+
+  // The name of each area that has room for it, at the centre of the area, and under its pin
+  // where it has one. They are worked out again when the map is drawn nearer or further.
+  useEffect(() => {
+    if (!ready || held.current === null || extents === null) return;
+    const { map, library } = held.current;
+    const pinned = new Set(emptySpec || lens !== null ? [] : ranked.slice(0, PINS).map((area) => area.area_id));
+    let drawn: MapLibreMarker[] = [];
+    const draw = () => {
+      for (const label of drawn) label.remove();
+      drawn = areas.flatMap((area) => {
+        const extent = extents.get(area.area_id);
+        if (extent === undefined) return [];
+        const [one, other] = [map.project([extent.west, extent.north]), map.project([extent.east, extent.south])];
+        const room = { width: Math.abs(other.x - one.x), height: Math.abs(other.y - one.y) };
+        const under = pinned.has(area.area_id);
+        if (!fits(area.name, room, under)) return [];
+        const label = document.createElement("span");
+        label.className = styles.label ?? "";
+        // It is for the eye. Whoever hears the page has the names in the table and on the pins.
+        label.setAttribute("aria-hidden", "true");
+        label.dataset.label = "";
+        for (const words of linesOf(area.name)) {
+          const line = document.createElement("span");
+          line.textContent = words;
+          label.append(line);
+        }
+        const [longitude, latitude] = area.centroid;
+        const marker = new library.Marker({
+          element: label,
+          anchor: under ? "top" : "center",
+          offset: [0, under ? UNDER_A_PIN / 2 : 0],
+        })
+          .setLngLat([longitude, latitude])
+          .addTo(map);
+        // The library says of whatever it is handed that it is a button named "Map marker".
+        // A name is no button, and what it says is its own words.
+        label.removeAttribute("role");
+        label.removeAttribute("aria-label");
+        return [marker];
+      });
+    };
+    draw();
+    map.on("zoomend", draw);
+    map.on("resize", draw);
+    return () => {
+      map.off("zoomend", draw);
+      map.off("resize", draw);
+      for (const label of drawn) label.remove();
+    };
+  }, [ready, extents, areas, ranked, emptySpec, lens]);
 
   // The chosen area and the one under the pointer are outlined. The chosen pin is larger and says so.
   useEffect(() => {
@@ -285,11 +384,18 @@ export function MapView({
     map.panTo([longitude, latitude], { animate: !prefersReducedMotion() });
   }, [ready, selectedId, areas]);
 
+  // The table says everything the map does. It is one press away, whether or not there is a map.
+  const theTable = (
+    <Disclosure label={TABLE.title} className={styles.table}>
+      {table}
+    </Disclosure>
+  );
+
   if (geometryFailed || drawable === false || broken) {
     return (
       <div className={styles.without}>
         <p role="status">{geometryFailed ? MAP.noGeometry : MAP.noWebGL}</p>
-        {fallback}
+        <div className={styles.more}>{theTable}</div>
       </div>
     );
   }
@@ -324,7 +430,7 @@ export function MapView({
   };
 
   return (
-    <div className={styles.view}>
+    <div className={styles.view} data-taller={taller}>
       <div className={styles.frame}>
         {/* The size is set before the map is drawn, so that nothing moves when it is. */}
         <div ref={container} className={styles.map} data-ready={ready} />
@@ -349,12 +455,31 @@ export function MapView({
           filtered={filtered}
           unranked={unranked}
           emptySpec={emptySpec}
-          ranked={ranked.find((area) => area.area_id === chosen.area_id)}
+          inList={ranked.some((area) => area.area_id === chosen.area_id)}
+          lens={lens}
           onShowInList={() => onShowInList(chosen.area_id)}
           onClose={close}
         />
       ) : null}
-      <MapLegend searched={scores.length + filtered.length + unranked.length > 0} emptySpec={emptySpec} />
+      <MapLegend
+        searched={scores.length + filtered.length + unranked.length > 0}
+        emptySpec={emptySpec}
+        lens={lens}
+        filtered={filtered.length > 0}
+        unranked={unranked.length > 0}
+      />
+      <div className={styles.more}>
+        {/* Drawn on a narrow screen only, where the map is a strip. */}
+        <button
+          type="button"
+          className={`${styles.taller} target`}
+          aria-pressed={taller}
+          onClick={() => setTaller(!taller)}
+        >
+          {taller ? MAP.shorter : MAP.taller}
+        </button>
+        {theTable}
+      </div>
     </div>
   );
 }

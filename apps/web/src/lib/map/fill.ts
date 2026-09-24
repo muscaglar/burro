@@ -7,12 +7,15 @@
  * itself is a number, in the pin and in the order of the list.
  */
 
-import type { Filtered, Score, Unranked } from "@/lib/api/schema";
+import type { BandMark, Filtered, Score, Unranked } from "@/lib/api/schema";
 
 /** 0 is an area with no fit to show. 1 to 5 are the bands, from low to high. */
 export type Band = 0 | 1 | 2 | 3 | 4 | 5;
 
-/** Lines on an area a limit left out, dots on one that is not ranked. */
+/**
+ * Lines on an area a limit left out, dots on one that is not ranked. Where the map is
+ * coloured by a vibe, dots are on an area the vibe cannot place.
+ */
 export type Pattern = "none" | "filtered" | "unranked";
 
 export interface Fill {
@@ -70,6 +73,22 @@ export function fillFor(
   }
   for (const { area_id: areaId } of filtered) fills.set(areaId, { band: 0, pattern: "filtered" });
   for (const { area_id: areaId } of unranked) fills.set(areaId, { band: 0, pattern: "unranked" });
+  return fills;
+}
+
+const isBand = (band: number | null): band is Exclude<Band, 0> =>
+  band !== null && Number.isInteger(band) && band >= 1 && band <= 5;
+
+/**
+ * The fill of every area when the map is coloured by one vibe: the band the
+ * API gives the area, counted from the vibe's low end. An area the vibe
+ * cannot place has no band. It is drawn with dots, and never in the middle.
+ */
+export function fillForVibe(marks: readonly BandMark[]): ReadonlyMap<string, Fill> {
+  const fills = new Map<string, Fill>();
+  for (const { area_id: areaId, band } of marks) {
+    fills.set(areaId, isBand(band) ? { band, pattern: "none" } : { band: 0, pattern: "unranked" });
+  }
   return fills;
 }
 

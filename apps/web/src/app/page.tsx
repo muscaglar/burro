@@ -4,6 +4,7 @@ import { SearchApp } from "@/components/SearchApp/SearchApp";
 import { SEARCH } from "@/content/search";
 import { SITE } from "@/content/site";
 import { loadAreas, loadMeta } from "@/lib/api/server";
+import { bandsToDraw } from "@/lib/holds";
 
 // A built page is kept for an hour at most: the `max-age` the API sends.
 export const revalidate = 3600;
@@ -20,5 +21,8 @@ export const metadata: Metadata = { title: { absolute: `${SEARCH.title} · ${SIT
  */
 export default async function HomePage() {
   const [meta, areas] = await Promise.all([loadMeta(), loadAreas()]);
-  return <SearchApp meta={meta.data} areas={areas.data.areas} />;
+  // Only the bands a map can be coloured by go to the browser with the page.
+  return (
+    <SearchApp meta={meta.data} areas={areas.data.areas} bands={bandsToDraw(meta.data, areas.data.bands)} />
+  );
 }

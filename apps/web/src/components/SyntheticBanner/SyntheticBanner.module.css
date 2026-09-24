@@ -11,6 +11,21 @@
   font-weight: 600;
 }
 
+/*
+ * A narrow screen, once a search is open: the banner is one line, so that the first result
+ * is whole on the first screen. It still says that the data is made up. Before a search,
+ * and on every other page, it says all of it.
+ */
+@media (max-width: 40rem) {
+  :global(body):has([data-search="open"]) .banner {
+    padding-block: var(--space-1);
+  }
+
+  :global(body):has([data-search="open"]) .rest {
+    display: none;
+  }
+}
+
 @media (forced-colors: active) {
   .banner {
     border-block-end-color: CanvasText;

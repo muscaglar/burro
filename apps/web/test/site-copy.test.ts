@@ -3,7 +3,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import { readRecorded, recordedFolder } from "@/lib/api/recorded";
-import type { AreaData, AreasData, PlacesData } from "@/lib/api/schema";
+import type { AreaData, AreasData, MetaData, PlacesData } from "@/lib/api/schema";
 
 const CONTENT = path.resolve(__dirname, "..", "src", "content");
 
@@ -49,6 +49,13 @@ function namesOfPlaces(): string[] {
 
 const copy = siteCopy();
 
+/** Every provider the contract names, read from the contract itself. */
+const PROVIDERS: string[] = (
+  JSON.parse(
+    readFileSync(path.resolve(__dirname, "..", "..", "..", "contracts", "openapi.json"), "utf8"),
+  ) as { components: { schemas: { Provider: { enum: string[] } } } }
+).components.schemas.Provider.enum;
+
 /** A decision of the project, as its record states it. */
 const decision = (file: string) =>
   readFileSync(path.resolve(__dirname, "..", "..", "..", "docs", "adr", file), "utf8").replace(/\s+/g, " ");
@@ -79,21 +86,40 @@ describe("site copy", () => {
     expect(loud).toEqual([]);
   });
 
-  test("test_the_line_about_a_persons_words_says_what_the_record_says_of_the_provider", () => {
+  test("test_the_line_about_a_persons_words_says_what_burro_does_and_nothing_of_a_provider", () => {
     const line = copy.find(([where]) => where === "site.ts.WORDS_LINE")?.[1] ?? "";
 
-    // ADR 0005 is where the project says what becomes of the words. The website may not
-    // promise more than it does: the provider keeps them for 30 days, and longer if flagged.
-    expect(decision("0005-raw-prompts-are-never-stored.md")).toContain(
-      "The provider retains inputs for up to 30 days, longer if flagged.",
+    // ADR 0005 is where the project says what becomes of the words in Burro's own hands.
+    // What a provider keeps is no longer said there, for it differs by provider.
+    const record = decision("0005-raw-prompts-are-never-stored.md");
+    expect(record).toContain(
+      "Raw prompt text and destination strings are never written to any log, error report or database table.",
     );
-    expect(line).toContain("Burro does not keep it");
-    expect(line).toContain("for up to 30 days, or longer if it is flagged");
+    expect(record).not.toContain("The provider retains inputs for up to 30 days");
+    expect(line).toBe("What you type is sent to Burro to be read, and Burro does not keep it.");
     // The same line is on the methods page, and is not written a second time there.
-    expect(copy.filter(([, text]) => /30 days/.test(text)).map(([where]) => where)).toEqual([
+    expect(copy.filter(([, text]) => text === line).map(([where]) => where)).toEqual([
       "methods.ts.METHODS.words.points[0]",
       "site.ts.WORDS_LINE",
     ]);
+  });
+
+  test("test_site_copy_names_no_provider_and_states_none_of_its_terms", () => {
+    // Who reads what is typed, how long it is kept, whether it is used to train and where
+    // it is handled differ by provider, and are the service's to say. Every provider the
+    // service can tell of is in its contract and its recorded answers, and none is in site copy.
+    const told = ["meta-model-reads", "meta-model-reads-with-settings"].map(
+      (recorded) => (readRecorded(recorded).body as { data: MetaData }).data.reader,
+    );
+    const names = [...PROVIDERS, ...told.flatMap((reader) => [reader.provider, reader.company])]
+      .filter((name): name is string => typeof name === "string")
+      .map((name) => name.toLowerCase());
+    const terms = /\b\d+ (days?|years?|months?)\b|\bretain|\btrain(s|ed|ing)? (its|their|a|the) models?\b/i;
+
+    expect(new Set(names).size).toBeGreaterThanOrEqual(PROVIDERS.length);
+    expect(copy.filter(([, text]) => names.some((name) => text.toLowerCase().includes(name)))).toEqual([]);
+    expect(copy.filter(([, text]) => terms.test(text))).toEqual([]);
+    expect(copy.filter(([, text]) => told.some((reader) => text.includes(reader.notice)))).toEqual([]);
   });
 
   test("test_a_range_of_cost_is_explained_in_words_a_newcomer_knows", () => {

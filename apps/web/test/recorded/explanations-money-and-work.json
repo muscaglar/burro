@@ -1,0 +1,1609 @@
+{
+  "scenario": "explanations-money-and-work",
+  "shows": "Reasons and a trade-off for the first five, with every fact they cite",
+  "captured": true,
+  "request": {
+    "operation_id": "explain_top",
+    "method": "POST",
+    "route": "/v1/explanations",
+    "path": "/v1/explanations",
+    "body": {
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": 1500,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.3,
+          "provenance": "stated"
+        },
+        "commutes": [
+          {
+            "place_id": "syn-p0021",
+            "mode": "pt",
+            "max_minutes": 45,
+            "strictness": "soft",
+            "provenance": "stated"
+          }
+        ],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [],
+        "areas": [],
+        "tenure_from": "stated",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "limit": 5
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "25804",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "false",
+    "x-burro-synthetic": "true",
+    "x-request-id": "8714123e-80ec-4cd8-a4ea-d084876e7573"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
+    },
+    "data": {
+      "spec_hash": "13c1b604253f93df33da3ea78a73dbf8719c497797f42ca633c4f31102714701",
+      "explanations": [
+        {
+          "area_id": "syn-n0003",
+          "orientation": {
+            "text": "Cindermoor is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0003/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By public transport to Cindermoor Works: about 2 minutes on a typical weekday morning, 2 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0003/travel/syn-p0021.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "The upper end is £450 under your budget of £1,500.",
+              "fact_ids": [
+                "syn-n0003/budget_fit/rent.bed_1"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Straight-line distance to the nearest way in to a station: 160 m, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
+              "fact_ids": [
+                "syn-n0003/feature/station_walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Straight-line distance to the nearest town centre boundary: 1,580 m, further than 80% of the 21 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0003/feature/highstreet_access"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0006",
+          "orientation": {
+            "text": "Farrowmere is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0006/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By public transport to Cindermoor Works: about 21 minutes on a typical weekday morning, 26 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0006/travel/syn-p0021.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "The upper end is £200 under your budget of £1,500.",
+              "fact_ids": [
+                "syn-n0006/budget_fit/rent.bed_1"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Modelled annual mean nitrogen dioxide: 15.4 µg/m³, lower than 90% of the 20 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0006/feature/air_no2"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Straight-line distance to the nearest town centre boundary: 1,460 m, further than 66% of the 21 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0006/feature/highstreet_access"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0014",
+          "orientation": {
+            "text": "Marrowfen is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0014/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "The upper end is £75 under your budget of £1,500.",
+              "fact_ids": [
+                "syn-n0014/budget_fit/rent.bed_1"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "By public transport to Cindermoor Works: about 35 minutes on a typical weekday morning, 40 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0014/travel/syn-p0021.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Modelled annual mean nitrogen dioxide: 18.5 µg/m³, lower than 65% of the 20 areas compared in this release, and the same as 1 other.",
+              "fact_ids": [
+                "syn-n0014/feature/air_no2"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Straight-line distance to the nearest way in to a station: 3,200 m, further than 90% of the 22 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0014/feature/station_walk"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": [
+            {
+              "text": "There is no Share of residents exposed to 55 dB or more of transport noise figure for Marrowfen in this release, so it was left out of the score.",
+              "fact_ids": [
+                "syn-n0014/missing/feature:noise_exposure"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0004",
+          "orientation": {
+            "text": "Dulcimer Green is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0004/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By public transport to Cindermoor Works: about 27 minutes on a typical weekday morning, 32 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0004/travel/syn-p0021.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Straight-line distance to the nearest way in to a station: 320 m, closer than 50% of the 22 areas compared in this release, and the same as 5 others.",
+              "fact_ids": [
+                "syn-n0004/feature/station_walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 600 m, closer than 66% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0004/feature/park_proximity"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "The upper end is £225 over your budget of £1,500.",
+            "fact_ids": [
+              "syn-n0004/budget_fit/rent.bed_1"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0023",
+          "orientation": {
+            "text": "Wexmoor is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0023/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By public transport to Cindermoor Works: about 16 minutes on a typical weekday morning, 18 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0023/travel/syn-p0021.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Straight-line distance to the nearest town centre boundary: 810 m, closer than 71% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0023/feature/highstreet_access"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Lines within a 10-minute walk: 1, more than 31% of the 22 areas compared in this release, and the same as 11 others.",
+              "fact_ids": [
+                "syn-n0023/feature/station_lines"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "The upper end is £325 over your budget of £1,500.",
+            "fact_ids": [
+              "syn-n0023/budget_fit/rent.bed_1"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        }
+      ],
+      "facts": [
+        {
+          "fact_id": "syn-n0003/area/name",
+          "area_id": "syn-n0003",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Cindermoor",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Cindermoor",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/budget_fit/rent.bed_1",
+          "area_id": "syn-n0003",
+          "kind": "budget_fit",
+          "key": "rent.bed_1",
+          "label": "Budget",
+          "template": "budget_under",
+          "slots": {
+            "margin": "450",
+            "amount": "1,500",
+            "upper": "1,050"
+          },
+          "numbers": [
+            "£1500",
+            "£1050",
+            "£450"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/highstreet_access",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "highstreet_access",
+          "label": "Straight-line distance to the nearest town centre boundary",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest town centre boundary",
+            "value": "1,580 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "14",
+            "standing": "closer than 14% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "80",
+            "standing_worse": "further than 80% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1580",
+            "14%",
+            "21",
+            "80%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/station_walk",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Straight-line distance to the nearest way in to a station",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest way in to a station",
+            "value": "160 m",
+            "band": "1",
+            "comparative": "closer than",
+            "pct": "77",
+            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others",
+            "standing_worse": "the same as 4 of the 21 other areas compared in this release",
+            "compared": "22",
+            "level": "4"
+          },
+          "numbers": [
+            "160",
+            "77%",
+            "22",
+            "4",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/tag/homes",
+          "area_id": "syn-n0003",
+          "kind": "tag",
+          "key": "homes",
+          "label": "Houses or flats",
+          "template": "vibe",
+          "slots": {
+            "label": "Houses or flats",
+            "band": "1",
+            "low_end": "Houses",
+            "high_end": "Flats",
+            "compared": "22",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "2",
+            "parts": "3",
+            "share": "75",
+            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "22",
+            "2",
+            "3",
+            "75",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/tag/pace",
+          "area_id": "syn-n0003",
+          "kind": "tag",
+          "key": "pace",
+          "label": "Going out",
+          "template": "vibe",
+          "slots": {
+            "label": "Going out",
+            "band": "1",
+            "low_end": "Calm",
+            "high_end": "Buzzy",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/travel/syn-p0021.pt",
+          "area_id": "syn-n0003",
+          "kind": "travel",
+          "key": "syn-p0021.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Cindermoor Works",
+            "limit": "45",
+            "margin": "43",
+            "margin_unit": "minutes",
+            "typical": "2",
+            "missed": "2"
+          },
+          "numbers": [
+            "2",
+            "45",
+            "43"
+          ],
+          "names": [
+            "Cindermoor Works"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/area/name",
+          "area_id": "syn-n0006",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Farrowmere",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Farrowmere",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/budget_fit/rent.bed_1",
+          "area_id": "syn-n0006",
+          "kind": "budget_fit",
+          "key": "rent.bed_1",
+          "label": "Budget",
+          "template": "budget_under",
+          "slots": {
+            "margin": "200",
+            "amount": "1,500",
+            "upper": "1,300"
+          },
+          "numbers": [
+            "£1500",
+            "£1300",
+            "£200"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/feature/air_no2",
+          "area_id": "syn-n0006",
+          "kind": "feature",
+          "key": "air_no2",
+          "label": "Modelled annual mean nitrogen dioxide",
+          "template": "feature",
+          "slots": {
+            "label": "Modelled annual mean nitrogen dioxide",
+            "value": "15.4 µg/m³",
+            "band": "1",
+            "comparative": "lower than",
+            "pct": "90",
+            "standing": "lower than 90% of the 20 areas compared in this release",
+            "comparative_worse": "higher than",
+            "pct_worse": "5",
+            "standing_worse": "higher than 5% of the 20 areas compared in this release",
+            "compared": "20"
+          },
+          "numbers": [
+            "15.4",
+            "90%",
+            "20",
+            "5%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/feature/highstreet_access",
+          "area_id": "syn-n0006",
+          "kind": "feature",
+          "key": "highstreet_access",
+          "label": "Straight-line distance to the nearest town centre boundary",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest town centre boundary",
+            "value": "1,460 m",
+            "band": "4",
+            "comparative": "closer than",
+            "pct": "28",
+            "standing": "closer than 28% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "66",
+            "standing_worse": "further than 66% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1460",
+            "28%",
+            "21",
+            "66%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/tag/built_age",
+          "area_id": "syn-n0006",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
+          "slots": {
+            "label": "Age of buildings",
+            "band": "1",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/tag/homes",
+          "area_id": "syn-n0006",
+          "kind": "tag",
+          "key": "homes",
+          "label": "Houses or flats",
+          "template": "vibe",
+          "slots": {
+            "label": "Houses or flats",
+            "band": "5",
+            "low_end": "Houses",
+            "high_end": "Flats",
+            "compared": "22",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "2",
+            "parts": "3",
+            "share": "75",
+            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "22",
+            "2",
+            "3",
+            "75",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/travel/syn-p0021.pt",
+          "area_id": "syn-n0006",
+          "kind": "travel",
+          "key": "syn-p0021.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Cindermoor Works",
+            "limit": "45",
+            "margin": "24",
+            "margin_unit": "minutes",
+            "typical": "21",
+            "missed": "26"
+          },
+          "numbers": [
+            "21",
+            "26",
+            "45",
+            "24"
+          ],
+          "names": [
+            "Cindermoor Works"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/area/name",
+          "area_id": "syn-n0014",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Marrowfen",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Marrowfen",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/budget_fit/rent.bed_1",
+          "area_id": "syn-n0014",
+          "kind": "budget_fit",
+          "key": "rent.bed_1",
+          "label": "Budget",
+          "template": "budget_under",
+          "slots": {
+            "margin": "75",
+            "amount": "1,500",
+            "upper": "1,425"
+          },
+          "numbers": [
+            "£1500",
+            "£1425",
+            "£75"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/feature/air_no2",
+          "area_id": "syn-n0014",
+          "kind": "feature",
+          "key": "air_no2",
+          "label": "Modelled annual mean nitrogen dioxide",
+          "template": "feature",
+          "slots": {
+            "label": "Modelled annual mean nitrogen dioxide",
+            "value": "18.5 µg/m³",
+            "band": "2",
+            "comparative": "lower than",
+            "pct": "65",
+            "standing": "lower than 65% of the 20 areas compared in this release, and the same as 1 other",
+            "comparative_worse": "higher than",
+            "pct_worse": "25",
+            "standing_worse": "higher than 25% of the 20 areas compared in this release, and the same as 1 other",
+            "compared": "20",
+            "level": "1"
+          },
+          "numbers": [
+            "18.5",
+            "65%",
+            "20",
+            "1",
+            "25%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/feature/station_walk",
+          "area_id": "syn-n0014",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Straight-line distance to the nearest way in to a station",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest way in to a station",
+            "value": "3,200 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "4",
+            "standing": "closer than 4% of the 22 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "90",
+            "standing_worse": "further than 90% of the 22 areas compared in this release",
+            "compared": "22"
+          },
+          "numbers": [
+            "3200",
+            "4%",
+            "22",
+            "90%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/missing/feature:noise_exposure",
+          "area_id": "syn-n0014",
+          "kind": "missing",
+          "key": "feature:noise_exposure",
+          "label": "Share of residents exposed to 55 dB or more of transport noise",
+          "template": "missing",
+          "slots": {
+            "label": "Share of residents exposed to 55 dB or more of transport noise",
+            "name": "Marrowfen"
+          },
+          "numbers": [],
+          "names": [
+            "Marrowfen"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/tag/built_age",
+          "area_id": "syn-n0014",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
+          "slots": {
+            "label": "Age of buildings",
+            "band": "1",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "3",
+            "parts": "4",
+            "share": "75",
+            "partly": "Worked out from 3 of its 4 parts, 75 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "3",
+            "4",
+            "75",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/tag/homes",
+          "area_id": "syn-n0014",
+          "kind": "tag",
+          "key": "homes",
+          "label": "Houses or flats",
+          "template": "vibe",
+          "slots": {
+            "label": "Houses or flats",
+            "band": "1",
+            "low_end": "Houses",
+            "high_end": "Flats",
+            "compared": "22",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "2",
+            "parts": "3",
+            "share": "75",
+            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "22",
+            "2",
+            "3",
+            "75",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/travel/syn-p0021.pt",
+          "area_id": "syn-n0014",
+          "kind": "travel",
+          "key": "syn-p0021.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Cindermoor Works",
+            "limit": "45",
+            "margin": "10",
+            "margin_unit": "minutes",
+            "typical": "35",
+            "missed": "40"
+          },
+          "numbers": [
+            "35",
+            "40",
+            "45",
+            "10"
+          ],
+          "names": [
+            "Cindermoor Works"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/area/name",
+          "area_id": "syn-n0004",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Dulcimer Green",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Dulcimer Green",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/budget_fit/rent.bed_1",
+          "area_id": "syn-n0004",
+          "kind": "budget_fit",
+          "key": "rent.bed_1",
+          "label": "Budget",
+          "template": "budget_over",
+          "slots": {
+            "margin": "225",
+            "amount": "1,500",
+            "upper": "1,725"
+          },
+          "numbers": [
+            "£1500",
+            "£1725",
+            "£225"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/feature/park_proximity",
+          "area_id": "syn-n0004",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "value": "600 m",
+            "band": "2",
+            "comparative": "closer than",
+            "pct": "66",
+            "standing": "closer than 66% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "28",
+            "standing_worse": "further than 28% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "600",
+            "66%",
+            "21",
+            "28%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/feature/station_walk",
+          "area_id": "syn-n0004",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Straight-line distance to the nearest way in to a station",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest way in to a station",
+            "value": "320 m",
+            "band": "2",
+            "comparative": "closer than",
+            "pct": "50",
+            "standing": "closer than 50% of the 22 areas compared in this release, and the same as 5 others",
+            "comparative_worse": "further than",
+            "pct_worse": "22",
+            "standing_worse": "further than 22% of the 22 areas compared in this release, and the same as 5 others",
+            "compared": "22",
+            "level": "5"
+          },
+          "numbers": [
+            "320",
+            "50%",
+            "22",
+            "5",
+            "22%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/tag/built_age",
+          "area_id": "syn-n0004",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
+          "slots": {
+            "label": "Age of buildings",
+            "band": "1",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/tag/family_amenities",
+          "area_id": "syn-n0004",
+          "kind": "tag",
+          "key": "family_amenities",
+          "label": "Family amenities",
+          "template": "vibe",
+          "slots": {
+            "label": "Family amenities",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/travel/syn-p0021.pt",
+          "area_id": "syn-n0004",
+          "kind": "travel",
+          "key": "syn-p0021.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Cindermoor Works",
+            "limit": "45",
+            "margin": "18",
+            "margin_unit": "minutes",
+            "typical": "27",
+            "missed": "32"
+          },
+          "numbers": [
+            "27",
+            "32",
+            "45",
+            "18"
+          ],
+          "names": [
+            "Cindermoor Works"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/area/name",
+          "area_id": "syn-n0023",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Wexmoor",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Wexmoor",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/budget_fit/rent.bed_1",
+          "area_id": "syn-n0023",
+          "kind": "budget_fit",
+          "key": "rent.bed_1",
+          "label": "Budget",
+          "template": "budget_over",
+          "slots": {
+            "margin": "325",
+            "amount": "1,500",
+            "upper": "1,825"
+          },
+          "numbers": [
+            "£1500",
+            "£1825",
+            "£325"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/feature/highstreet_access",
+          "area_id": "syn-n0023",
+          "kind": "feature",
+          "key": "highstreet_access",
+          "label": "Straight-line distance to the nearest town centre boundary",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest town centre boundary",
+            "value": "810 m",
+            "band": "2",
+            "comparative": "closer than",
+            "pct": "71",
+            "standing": "closer than 71% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "23",
+            "standing_worse": "further than 23% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "810",
+            "71%",
+            "21",
+            "23%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/feature/station_lines",
+          "area_id": "syn-n0023",
+          "kind": "feature",
+          "key": "station_lines",
+          "label": "Lines within a 10-minute walk",
+          "template": "feature",
+          "slots": {
+            "label": "Lines within a 10-minute walk",
+            "value": "1",
+            "band": "2",
+            "comparative": "more than",
+            "pct": "31",
+            "standing": "more than 31% of the 22 areas compared in this release, and the same as 11 others",
+            "comparative_worse": "fewer than",
+            "pct_worse": "13",
+            "standing_worse": "fewer than 13% of the 22 areas compared in this release, and the same as 11 others",
+            "compared": "22",
+            "level": "11"
+          },
+          "numbers": [
+            "1",
+            "31%",
+            "22",
+            "11",
+            "13%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/tag/homes",
+          "area_id": "syn-n0023",
+          "kind": "tag",
+          "key": "homes",
+          "label": "Houses or flats",
+          "template": "vibe",
+          "slots": {
+            "label": "Houses or flats",
+            "band": "4",
+            "low_end": "Houses",
+            "high_end": "Flats",
+            "compared": "22",
+            "span": "2025",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "2",
+            "parts": "3",
+            "share": "75",
+            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "4",
+            "5",
+            "22",
+            "2",
+            "3",
+            "75",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/tag/pace",
+          "area_id": "syn-n0023",
+          "kind": "tag",
+          "key": "pace",
+          "label": "Going out",
+          "template": "vibe",
+          "slots": {
+            "label": "Going out",
+            "band": "5",
+            "low_end": "Calm",
+            "high_end": "Buzzy",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/travel/syn-p0021.pt",
+          "area_id": "syn-n0023",
+          "kind": "travel",
+          "key": "syn-p0021.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Cindermoor Works",
+            "limit": "45",
+            "margin": "29",
+            "margin_unit": "minutes",
+            "typical": "16",
+            "missed": "18"
+          },
+          "numbers": [
+            "16",
+            "18",
+            "45",
+            "29"
+          ],
+          "names": [
+            "Cindermoor Works"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        }
+      ]
+    }
+  }
+}

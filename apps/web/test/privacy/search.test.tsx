@@ -4,18 +4,33 @@
  *
  * Each test plants a canary, a string found nowhere else, in the sentence, in
  * the place search and in the name of a place the API answers with. It then
- * runs a whole search: read, ask, answer, rank, refine, fail, go offline.
+ * runs a whole search: read, ask, answer, rank, refine, fail, go offline, and
+ * a sentence that is not plain, of which the reader offers what it noticed.
  */
 
 import { act, screen, waitFor, within } from "@testing-library/react";
 
-import { CHIPS, NOTICE, PLACE, PROMPT } from "@/content/search";
+import { CHIPS, NOTICE, PLACE, PROMPT, RESULTS, SUGGEST } from "@/content/search";
 import { JOURNEY, SETTINGS } from "@/content/settings";
 import { recordedAnswer, responseFrom } from "@/lib/api/recorded";
 import type { FoundPlace } from "@/lib/api/schema";
 
 import { BASE, setOnline, type StandIn } from "../support/api";
-import { arrived, CANARY, firstSearch, openSearch, promptBox, search, settled } from "../support/search";
+import {
+  arrived,
+  CANARY,
+  everyChip,
+  everyResult,
+  firstSearch,
+  openSearch,
+  promptBox,
+  removeChip,
+  search,
+  settingsAt,
+  settled,
+  theTable,
+  theWholeOfIt,
+} from "../support/search";
 import { watch, type Watch } from "../support/watch";
 
 jest.mock("next/navigation", () => ({ usePathname: () => "/" }));
@@ -37,7 +52,9 @@ function rankedWithThePlace() {
   const ranked = recordedAnswer("rank", "rank-first");
   const { spec } = ranked.body.data;
   const named = { ...spec, commutes: spec.commutes.map((commute) => ({ ...commute, place_id: PLACE_ID })) };
-  return responseFrom({ ...ranked, body: { ...ranked.body, data: { ...ranked.body.data, spec: named } } });
+  // An answer names every place of the spec it returns: that is where the page has the name from.
+  const places = [{ place_id: PLACE_ID, name: PLACE_NAME, kind: "landmark" }];
+  return responseFrom({ ...ranked, body: { ...ranked.body, data: { ...ranked.body.data, spec: named, places } } });
 }
 
 beforeEach(() => setOnline(true));
@@ -48,6 +65,7 @@ async function wholeSearch() {
   const opened = await openSearch(api);
   const { user } = opened;
   await run(api, user);
+  await everyChip(user);
   return opened;
 }
 
@@ -62,12 +80,12 @@ async function run(api: StandIn, user: Awaited<ReturnType<typeof openSearch>>["u
   await settled();
   // Refine with a control.
   api.on("rank", "rank-refined").on("explain_top", "explanations-refined");
-  await user.click(screen.getByRole("button", { name: SETTINGS.title }));
+  await settingsAt(user, SETTINGS.journeys);
   await user.click(screen.getAllByRole("checkbox", { name: JOURNEY.firm })[0] as HTMLElement);
   await settled();
   // Fail, and try again.
   api.on("rank", "error-internal");
-  await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Leafy` }));
+  await removeChip(user, "Leafy");
   await user.click(within(await screen.findByRole("alert")).getByRole("button", { name: PROMPT.tryAgain }));
   await screen.findByRole("alert");
   // A sentence that never reaches Burro, one that cannot be read, and one the API refuses.
@@ -88,16 +106,32 @@ async function run(api: StandIn, user: Awaited<ReturnType<typeof openSearch>>["u
   // Offline, and back.
   setOnline(false);
   act(() => void window.dispatchEvent(new Event("offline")));
-  await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Quiet residential` }));
+  await removeChip(user, "Quiet streets");
   await arrived();
   setOnline(true);
   act(() => void window.dispatchEvent(new Event("online")));
   await arrived();
-  // A place added by hand, from the search at the top of the page.
+  // A sentence that is not plain: nothing of it is applied, and what was noticed is offered.
+  api.on("interpret", "interpret-suggest").on("rank", "rank-first").on("explain_top", "explanations-first");
+  await user.clear(promptBox());
+  await user.type(promptBox(), `Pubs are so noisy near ${CANARY}`);
+  await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+  const offered = within(await screen.findByRole("region", { name: SUGGEST.title }));
+  // The words a thing was noticed in, and the words that were not read, are shown in the box.
+  await user.click(offered.getAllByRole("button", { name: /^Show the words in the box: / })[0] as HTMLElement);
+  await user.click(screen.getByRole("button", { name: SUGGEST.showUnread }));
+  // One is chosen, and one is left out.
+  await user.click(offered.getByRole("button", { name: "Fewer pubs and bars" }));
+  await settled();
+  await user.click(screen.getByRole("button", { name: SUGGEST.named("Skip", "Less transport noise") }));
+  // A place added by hand, from the field in the settings.
   api.on("rank", rankedWithThePlace);
   await user.type(screen.getAllByRole("combobox", { name: PLACE.label })[0] as HTMLElement, CANARY);
   await user.click(await screen.findByRole("option", { name: new RegExp(CANARY) }));
   await settled();
+  // Everything that is one press away is opened, so that whatever it holds is on the page.
+  await everyResult(user);
+  await theTable(user);
 }
 
 /** What one whole search left behind it, everywhere it could have left anything. */
@@ -147,7 +181,7 @@ describe("what a person types", () => {
     const operations = new Set(seen.calls.map((call) => call.operation));
 
     expect([...operations].sort()).toEqual(
-      ["explain_top", "get_area", "get_geometry", "interpret", "rank", "search_places"].sort(),
+      ["explain_top", "get_area", "get_geometry", "get_meta", "interpret", "rank", "search_places"].sort(),
     );
     expect(seen.calls.length).toBeGreaterThan(12);
     expect(seen.placeIsOnThePage).toBe(true);
@@ -181,7 +215,7 @@ describe("what a person types", () => {
     const holding = seen.calls.filter((call) =>
       JSON.stringify([call.url, call.sent, call.init.headers]).includes(CANARY),
     );
-    expect(holding.length).toBeGreaterThan(3);
+    expect(holding.length).toBeGreaterThan(4);
     expect(new Set(holding.map((call) => `${call.method} ${call.path}`))).toEqual(
       new Set(["POST /v1/interpret", "POST /v1/places/search"]),
     );
@@ -216,9 +250,31 @@ describe("what a person types", () => {
 
     // A link to an area is followed when it is pressed. Fetching it before would
     // tell the website's own server which areas a search had led to.
+    await theWholeOfIt();
     const toAreas = [...document.querySelectorAll<HTMLAnchorElement>("main a[href^='/synthetic/']")];
-    expect(toAreas.length).toBeGreaterThan(40);
+    // "More like this" on each result, its page from its working, and every area of the table.
+    expect(toAreas.length).toBeGreaterThan(60);
     expect(toAreas.filter((link) => link.dataset.prefetch !== "false")).toEqual([]);
+  });
+
+  test("test_more_like_this_on_a_result_leads_to_the_areas_page_and_holds_nothing_that_was_typed", async () => {
+    const { user, api } = await openSearch();
+    await search(user, `leafy and quiet ${CANARY}`);
+    await everyResult(user);
+    const sentBefore = api.calls.length;
+
+    const links = screen.getAllByRole("link", { name: new RegExp(`^${RESULTS.moreLike}`) });
+
+    // The address is the area's own page and the name of a part of it. It holds nothing of the
+    // search, so opening it tells no one what was typed, and the page it opens was built
+    // before the search was made.
+    expect(links.length).toBeGreaterThanOrEqual(10);
+    for (const link of links) {
+      expect(link.getAttribute("href")).toMatch(/^\/synthetic\/[a-z0-9]+(-[a-z0-9]+)*#alike$/);
+      expect(link.getAttribute("href")?.includes(CANARY)).toBe(false);
+      expect(link).toHaveAttribute("data-prefetch", "false");
+    }
+    expect(api.calls).toHaveLength(sentBefore);
   });
 
   test("test_the_prompt_form_cannot_be_sent_as_a_get", async () => {
@@ -260,5 +316,74 @@ describe("what a person types", () => {
     const page = document.body.cloneNode(true) as HTMLElement;
     page.querySelectorAll("textarea, input").forEach((field) => field.remove());
     expect(page.textContent?.includes(CANARY)).toBe(false);
+  });
+
+  test("test_the_words_beside_an_offer_are_cut_from_the_box_and_are_nowhere_else_on_the_page", async () => {
+    const { user, api, container } = await openSearch(firstSearch().on("interpret", "interpret-suggest"));
+    const typed = `Pubs are so noisy near ${CANARY}`;
+
+    await user.type(promptBox(), typed);
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    const offered = within(await screen.findByRole("region", { name: SUGGEST.title }));
+    await user.click(offered.getAllByRole("button", { name: /^Show the words in the box: / })[0] as HTMLElement);
+    await user.click(screen.getByRole("button", { name: SUGGEST.showUnread }));
+
+    // The words are selected where they stand, and those an offer rests on are drawn beside it.
+    expect(promptBox()).toHaveValue(typed);
+    expect(promptBox().selectionEnd).toBeGreaterThan(promptBox().selectionStart);
+    const quoted = [...container.querySelectorAll("q")];
+    expect(quoted.map((words) => words.textContent)).toEqual(["Pubs are so noisy", "Pubs are so noisy"]);
+    expect(quoted.every((words) => words.closest("section")?.getAttribute("aria-labelledby"))).toBe(true);
+    // They are in the text of the page there, and in no attribute, no id and no other place.
+    const page = container.cloneNode(true) as HTMLElement;
+    page.querySelectorAll("textarea, q").forEach((held) => held.remove());
+    expect(page.innerHTML.includes(CANARY)).toBe(false);
+    expect(page.innerHTML.includes("so noisy")).toBe(false);
+    // What nothing was made of is drawn nowhere.
+    expect(container.innerHTML.replace(/<textarea[\s\S]*?<\/textarea>/g, "").includes(CANARY)).toBe(false);
+    // Nothing is ranked from what was noticed until the person chooses.
+    expect(api.callsTo("rank")).toEqual([]);
+
+    api.on("rank", "rank-suggestion-chosen").on("explain_top", "explanations-suggestion-chosen");
+    await user.click(offered.getByRole("button", { name: "Fewer pubs and bars" }));
+    await settled();
+
+    // What is sent is the edit the API gave with the choice, and nothing of what was typed.
+    const chosen = recordedAnswer("rank", "rank-suggestion-chosen");
+    expect(api.lastCallTo("rank").body).toEqual(chosen.request.body);
+    expect(api.lastCallTo("rank").sent?.includes(CANARY)).toBe(false);
+    expect(api.callsTo("interpret")).toHaveLength(1);
+  });
+
+  test("test_the_words_beside_an_offer_go_when_the_box_changes", async () => {
+    const { user, container } = await openSearch(firstSearch().on("interpret", "interpret-suggest"));
+
+    await user.type(promptBox(), `Pubs are so noisy near ${CANARY}`);
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await screen.findByRole("region", { name: SUGGEST.title });
+    expect(container.querySelectorAll("q")).toHaveLength(2);
+    await user.type(promptBox(), " and more");
+
+    // Where the words stand is known for the text that was sent, and for no other.
+    expect(container.querySelectorAll("q")).toHaveLength(0);
+    expect(screen.queryByRole("region", { name: SUGGEST.title })).toBeNull();
+  });
+
+  test("test_the_words_are_sent_twice_where_a_model_reads_and_each_time_in_the_body_of_a_post", async () => {
+    const api = firstSearch().inTurn("interpret", "interpret-rules-at-once", "interpret-by-model-long");
+    const { user } = await openSearch(api);
+
+    await user.type(promptBox(), `quiet, honestly ${CANARY}`);
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await screen.findByRole("region", { name: SUGGEST.title });
+    await settled();
+
+    const calls = api.callsTo("interpret");
+    expect(calls.map((call) => (call.body as { ask_model: boolean }).ask_model)).toEqual([false, true]);
+    expect(calls.every((call) => call.method === "POST" && !call.url.includes(CANARY))).toBe(true);
+    expect(calls.every((call) => call.sent?.includes(CANARY))).toBe(true);
+    // No other call holds a word of them.
+    const others = api.calls.filter((call) => call.operation !== "interpret");
+    expect(others.some((call) => call.url.includes(CANARY) || call.sent?.includes(CANARY))).toBe(false);
   });
 });

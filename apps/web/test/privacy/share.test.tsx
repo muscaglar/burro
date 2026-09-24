@@ -17,13 +17,25 @@ import { SearchApp } from "@/components/SearchApp/SearchApp";
 import { Shell } from "@/components/Shell/Shell";
 import { COMPARE, TRAY } from "@/content/compare";
 import { PLACE } from "@/content/search";
+import { SETTINGS } from "@/content/settings";
 import { SHARE } from "@/content/share";
 import { recordedAnswer, responseFrom } from "@/lib/api/recorded";
 import type { FoundPlace, PreferenceSpec } from "@/lib/api/schema";
 import { chosenFrom } from "@/lib/compare/list";
 
 import { BASE, setOnline, type StandIn } from "../support/api";
-import { areas, arrived, CANARY, firstSearch, meta, search, settled } from "../support/search";
+import {
+  areas,
+  arrived,
+  bands,
+  CANARY,
+  firstSearch,
+  meta,
+  search,
+  settingsAt,
+  settled,
+  theWholeOfIt,
+} from "../support/search";
 import { watch, type Watch } from "../support/watch";
 
 jest.mock("next/navigation", () => ({ usePathname: () => "/" }));
@@ -80,22 +92,26 @@ beforeAll(async () => {
       configurable: true,
       value: { writeText: async (text: string) => void copied.push(text) },
     });
-    const view = render(inShell(<SearchApp meta={meta.data} areas={areas} client={api.client} />));
+    const view = render(inShell(<SearchApp meta={meta.data} areas={areas} bands={bands} client={api.client} />));
     await arrived();
 
     // A sentence with the canary in it, and a place with the canary in its name.
     await search(user, `leafy and quiet, near ${CANARY}`);
+    // An answer names every place of the spec it returns.
+    const places = [{ place_id: PLACE_ID, name: PLACE_NAME, kind: "landmark" }];
     api.on("rank", () =>
-      responseFrom({ ...ranked, body: { ...ranked.body, data: { ...ranked.body.data, spec: withThePlace } } }),
+      responseFrom({ ...ranked, body: { ...ranked.body, data: { ...ranked.body.data, spec: withThePlace, places } } }),
     );
+    // Once a search is open, a place is added from the settings.
+    await settingsAt(user, SETTINGS.journeys);
     await user.type(screen.getAllByRole("combobox", { name: PLACE.label })[0] as HTMLElement, CANARY);
     await user.click(await screen.findByRole("option", { name: new RegExp(CANARY) }));
     await settled();
 
     // Two areas to compare.
     const [one, two] = ranked.body.data.ranked.map((area) => areas.find((known) => known.area_id === area.area_id));
-    await user.click(screen.getByRole("button", { name: COMPARE.add(one?.name ?? "") }));
-    await user.click(screen.getByRole("button", { name: COMPARE.add(two?.name ?? "") }));
+    await user.click(screen.getByRole("button", { name: COMPARE.addNamed(one?.name ?? "") }));
+    await user.click(screen.getByRole("button", { name: COMPARE.addNamed(two?.name ?? "") }));
     const compareLink =
       within(screen.getByRole("region", { name: TRAY.title })).getByRole("link").getAttribute("href") ?? "";
 
@@ -105,6 +121,8 @@ beforeAll(async () => {
     const field = () => screen.findByRole<HTMLInputElement>("textbox", { name: SHARE.link });
     const links = [(await field()).value];
     await user.click(screen.getByRole("button", { name: SHARE.copy }));
+    // Everything that is one press away is opened, so that every link the page can hold is on it.
+    await theWholeOfIt();
     const hrefs = [...document.querySelectorAll("[href]")].map((link) => link.getAttribute("href") ?? "");
     const page = document.body.cloneNode(true) as HTMLElement;
     page.querySelectorAll("input, textarea").forEach((one) => one.remove());
@@ -118,7 +136,7 @@ beforeAll(async () => {
       inShell(
         <CompareView
           chosen={chosenFrom([one?.slug ?? "", two?.slug ?? ""], areas).chosen}
-          defaults={meta.data.defaults}
+          defaults={meta.data.defaults} tags={meta.data.tags}
           client={api.client}
         />,
       ),

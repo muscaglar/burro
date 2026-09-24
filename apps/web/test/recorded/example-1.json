@@ -1,0 +1,216 @@
+{
+  "scenario": "example-1",
+  "shows": "A sentence the first screen offers: it is plain, and every edit of it is applied",
+  "captured": true,
+  "request": {
+    "operation_id": "interpret",
+    "method": "POST",
+    "route": "/v1/interpret",
+    "path": "/v1/interpret",
+    "body": {
+      "text": "Renting a one bedroom flat for about £1,700 a month, somewhere leafy and quiet"
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "2427",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "false",
+    "x-burro-synthetic": "true",
+    "x-request-id": "2701590c-e88e-4f5b-a89a-360842d27cc5"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
+    },
+    "data": {
+      "status": "ok",
+      "operations": {
+        "budget_ops": [
+          {
+            "action": "set",
+            "tenure": "rent",
+            "amount": 1700,
+            "segment": "bed_1",
+            "strictness": "unchanged",
+            "step": "none",
+            "provenance": "stated"
+          }
+        ],
+        "commute_ops": [],
+        "weight_ops": [],
+        "tag_ops": [
+          {
+            "action": "nudge",
+            "tag_id": "leafy",
+            "value": 0.0,
+            "step": "up_large",
+            "toward": "high",
+            "provenance": "stated"
+          },
+          {
+            "action": "nudge",
+            "tag_id": "quiet_residential",
+            "value": 0.0,
+            "step": "up_large",
+            "toward": "high",
+            "provenance": "stated"
+          }
+        ],
+        "area_ops": [],
+        "setting_ops": []
+      },
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": 1700,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.3,
+          "provenance": "stated"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [
+          {
+            "tag_id": "leafy",
+            "weight": 0.5,
+            "toward": "high",
+            "provenance": "stated"
+          },
+          {
+            "tag_id": "quiet_residential",
+            "weight": 0.5,
+            "toward": "high",
+            "provenance": "stated"
+          }
+        ],
+        "areas": [],
+        "tenure_from": "stated",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "spec_hash": "e5ac53022ebb564b4daaba30cb20d8c6b023ef079c36132b707fc02fa208243f",
+      "applied": [
+        {
+          "group": "budget_ops",
+          "index": 0,
+          "changed": true
+        },
+        {
+          "group": "tag_ops",
+          "index": 0,
+          "changed": true
+        },
+        {
+          "group": "tag_ops",
+          "index": 1,
+          "changed": true
+        }
+      ],
+      "rejected": [],
+      "assumptions": [
+        {
+          "code": "strictness",
+          "group": "budget_ops",
+          "index": 0,
+          "word": ""
+        }
+      ],
+      "unmet": [],
+      "clarify": [],
+      "notice": "none",
+      "notice_text": "",
+      "interpreter": "rule",
+      "degraded": false,
+      "model_refused": false,
+      "rests_on": [
+        {
+          "group": "budget_ops",
+          "index": 0,
+          "start": 0,
+          "end": 7
+        },
+        {
+          "group": "budget_ops",
+          "index": 0,
+          "start": 10,
+          "end": 21
+        },
+        {
+          "group": "budget_ops",
+          "index": 0,
+          "start": 31,
+          "end": 43
+        },
+        {
+          "group": "tag_ops",
+          "index": 0,
+          "start": 63,
+          "end": 68
+        },
+        {
+          "group": "tag_ops",
+          "index": 1,
+          "start": 73,
+          "end": 78
+        }
+      ],
+      "suggestions": [],
+      "unread": [],
+      "not_in_release": [],
+      "unmet_at": [],
+      "model_pending": false,
+      "places": []
+    }
+  }
+}

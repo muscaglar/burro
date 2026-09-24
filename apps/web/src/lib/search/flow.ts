@@ -16,6 +16,10 @@
  * one release. Every answer names the release that made it, and that is kept
  * with what the answer brought. Reasons are a ranking's only when the same
  * release made both.
+ *
+ * And a fifth: no sentence is sent before the service has said who reads it.
+ * The page is built ahead of time, and the service may since have been set
+ * to another reader, so what the page was built on is never taken for it.
  */
 
 import type { Answer, Client, Failure } from "@/lib/api/client";
@@ -33,7 +37,8 @@ import type {
   Tenure,
 } from "@/lib/api/schema";
 
-import { answered, edits, isEmpty } from "./edits";
+import { answered, edits, isEmpty, merged, NO_EDITS } from "./edits";
+import { addedWithOthers, namesItsPlaces, withPlace } from "./suggestion";
 import {
   EXPLAINED,
   failureOfTheCards,
@@ -61,11 +66,27 @@ export interface Flow {
   /** Sends the edits of one control. */
   applyEdits(operations: Operations): Promise<void>;
   /** Answers "Which place did you mean?" with the place that was picked. */
-  answerClarify(question: Clarify, option: Pick<ClarifyOption, "id" | "name">): Promise<void>;
+  answerClarify(question: Clarify, option: Pick<ClarifyOption, "id">): Promise<void>;
   /** "Leave it out": the question goes, and nothing is sent. */
   leaveOut(question: Clarify): void;
+  /**
+   * Takes one of the choices of an offer, by its id. The offer goes, whatever was chosen.
+   * A choice that holds edits sends them, as a control does. "Skip" holds none, and sends
+   * nothing. A journey to a place the release does not hold is sent with the place the
+   * person chose for it, and is not sent without one.
+   */
+  choose(at: number, id: string, placeId?: string): Promise<void>;
+  /**
+   * Takes, of each of these offers, the way the API says one press may add, in one
+   * request. What is the person's to choose is left as it is.
+   */
+  chooseAll(ats: readonly number[]): Promise<void>;
+  /** Takes back all that the last "add all" added: the search and the offers are as they were. */
+  takeBack(): Promise<void>;
+  /** Told that the box changed, and never what to. What rested on the text that was sent goes. */
+  boxChanged(): void;
   /** Adds a place picked from the place search as a journey. */
-  addPlace(place: Pick<FoundPlace, "place_id" | "name">): Promise<void>;
+  addPlace(place: Pick<FoundPlace, "place_id">): Promise<void>;
   setTenure(tenure: Tenure): Promise<void>;
   /** Ranks the settings as they stand, with no edit. */
   rankNow(): Promise<void>;
@@ -93,6 +114,8 @@ export interface Flow {
   hover(areaId: string | null): void;
   openSettings(open: boolean): void;
   loadGeometry(): Promise<void>;
+  /** Asks the service who reads what is typed, if it has not yet said. Route 11. */
+  loadReader(): Promise<void>;
   wentOffline(): void;
   wentOnline(): Promise<void>;
   /** Route 8, for the place search. What is typed goes in the body of the call. */
@@ -102,6 +125,8 @@ export interface Flow {
 export function createFlow({ client, getState, dispatch }: FlowDeps): Flow {
   let current = 0;
   let readingRun: number | null = null;
+  /** The model's reading of what the rules left unread, while it is under way. */
+  let reading: AbortController | null = null;
   let inFlight: AbortController | null = null;
   /** The release the form is being read again for, while it is, so that it is not asked for twice at once. */
   let catchingUp: { readonly release: string; readonly done: Promise<void> } | null = null;
@@ -157,7 +182,7 @@ export function createFlow({ client, getState, dispatch }: FlowDeps): Flow {
   async function explain(mine: number, signal: AbortSignal, spec: PreferenceSpec, hash: string) {
     const answer = await client.explainTop({ spec, limit: EXPLAINED }, signal);
     if (isStale(mine)) return;
-    if (answer.ok) dispatch({ type: "explain_answered", data: answer.data, hash, meta: answer.meta });
+    if (answer.ok) dispatch({ type: "explain_answered", data: answer.data, meta: answer.meta });
     else if (answer.failure.kind !== "aborted") {
       dispatch({ type: "explain_failed", hash, failure: answer.failure });
     }
@@ -257,13 +282,42 @@ export function createFlow({ client, getState, dispatch }: FlowDeps): Flow {
     await rerank();
   }
 
+  /**
+   * Who reads what is typed, asked of the service if it has not yet said. It answers with
+   * the failure where the service could not say, and with `null` once it has.
+   */
+  async function whoReads(signal?: AbortSignal): Promise<Failure | null> {
+    if (getState().reader !== null) return null;
+    const answer = await client.getMeta(signal);
+    if (answer.ok) {
+      dispatch({ type: "reader_said", reader: answer.data.reader });
+      return null;
+    }
+    if (answer.failure.kind !== "aborted") dispatch({ type: "reader_unsaid" });
+    return answer.failure;
+  }
+
   async function submitText(text: string) {
     const said = text.trim();
     if (said === "") return;
+    stopReading();
     const { mine, signal } = begin();
     readingRun = mine;
     dispatch({ type: "read_started", seq: mine });
-    const answer = await client.interpret({ text: said, spec: getState().spec }, signal);
+    // The sentence waits until the service has said who reads it. If it cannot say, the
+    // sentence is not sent, and the page says that Burro could not be reached.
+    if (getState().reader === null) {
+      const unsaid = await whoReads(signal);
+      if (isStale(mine)) return;
+      if (unsaid !== null) {
+        readingRun = null;
+        fail("read", unsaid);
+        return;
+      }
+    }
+    // The rules are asked first, and answer at once. What they offer never waits on a model.
+    const sent = getState().spec;
+    const answer = await client.interpret({ text: said, spec: sent, ask_model: false }, signal);
     if (isStale(mine)) return;
     readingRun = null;
     if (!answer.ok) {
@@ -274,6 +328,8 @@ export function createFlow({ client, getState, dispatch }: FlowDeps): Flow {
     }
     heard(answer.meta);
     dispatch({ type: "read_answered", data: answer.data, meta: answer.meta });
+    // Then the model, where one reads and the rules left words unread.
+    const more = answer.data.model_pending ? readMore(said, sent) : null;
     const changed = answer.data.applied.some((edit) => edit.changed);
     const { pending } = getState();
     if (changed || !isEmpty(pending)) {
@@ -281,6 +337,28 @@ export function createFlow({ client, getState, dispatch }: FlowDeps): Flow {
     } else {
       dispatch({ type: "settled" });
     }
+    await more;
+  }
+
+  /**
+   * Asks again, of the model this time, for the same words and the same search. It has a
+   * stop of its own: a control that is moved meanwhile ranks, and does not stop the reading.
+   * The words go to the call and nowhere else.
+   */
+  async function readMore(said: string, sent: PreferenceSpec) {
+    const mine = new AbortController();
+    reading = mine;
+    const answer = await client.interpret({ text: said, spec: sent, ask_model: true }, mine.signal);
+    if (reading !== mine) return;
+    reading = null;
+    if (answer.ok) dispatch({ type: "read_more_answered", data: answer.data });
+    else dispatch({ type: "read_more_failed" });
+  }
+
+  /** Stops the model's reading, where one is under way. What it would have added is let go. */
+  function stopReading() {
+    reading?.abort();
+    reading = null;
   }
 
   return {
@@ -292,9 +370,6 @@ export function createFlow({ client, getState, dispatch }: FlowDeps): Flow {
       if (read === null) return;
       const operations = answered(read.operations, question.group, question.index, option.id);
       if (operations === null) return;
-      if (question.group === "commute_ops") {
-        dispatch({ type: "place_named", placeId: option.id, name: option.name });
-      }
       dispatch({ type: "question_answered", question, id: option.id });
       await applyEdits(operations);
     },
@@ -303,8 +378,49 @@ export function createFlow({ client, getState, dispatch }: FlowDeps): Flow {
       dispatch({ type: "question_left", question });
     },
 
+    async choose(at, id, placeId) {
+      const choice = getState().read?.suggestions[at]?.choices.find((one) => one.id === id);
+      if (choice === undefined) return;
+      const operations = placeId === undefined ? choice.operations : withPlace(choice.operations, placeId);
+      // A journey that does not say where it leads is not sent: the person has yet to say.
+      if (!namesItsPlaces(operations)) return;
+      dispatch({ type: "suggestion_chosen", at, changes: !isEmpty(operations) });
+      await applyEdits(operations);
+    },
+
+    async chooseAll(ats) {
+      const offered = getState().read?.suggestions ?? [];
+      // What the API names no way for is left: it is the person's to choose.
+      const taken = [...new Set(ats)]
+        .sort((one, other) => one - other)
+        .flatMap((at) => {
+          const suggestion = offered[at];
+          const only = suggestion === undefined ? null : addedWithOthers(suggestion);
+          return only === null || !namesItsPlaces(only.operations) ? [] : [{ at, operations: only.operations }];
+        });
+      if (taken.length === 0) return;
+      dispatch({ type: "all_added", ats: taken.map(({ at }) => at) });
+      // The edits of each choice, as the API gave them, in the order the things were noticed.
+      await applyEdits(taken.reduce((edits, one) => merged(edits, one.operations), NO_EDITS));
+    },
+
+    async takeBack() {
+      const added = getState().read?.added ?? null;
+      if (added === null) return;
+      dispatch({ type: "all_taken_back" });
+      // The search as it stood before the press, ranked again. Nothing of what was added is kept.
+      const { mine, signal } = begin();
+      readingRun = null;
+      await settle(mine, signal, added.spec, null, NO_EDITS);
+    },
+
+    boxChanged() {
+      stopReading();
+      dispatch({ type: "box_changed" });
+    },
+
     async addPlace(place) {
-      dispatch({ type: "place_named", placeId: place.place_id, name: place.name });
+      // The answer names the place: the spec holds its id, and `places` the release's name for it.
       await applyEdits(edits.placeAdd(place.place_id));
     },
 
@@ -353,6 +469,7 @@ export function createFlow({ client, getState, dispatch }: FlowDeps): Flow {
     stop() {
       // "Stop" is offered until the ranking of the words is in, which is after they are read.
       const wasReading = getState().phase === "interpreting";
+      stopReading();
       inFlight?.abort();
       inFlight = null;
       current += 1;
@@ -363,6 +480,7 @@ export function createFlow({ client, getState, dispatch }: FlowDeps): Flow {
     },
 
     startAgain() {
+      stopReading();
       inFlight?.abort();
       inFlight = null;
       current += 1;
@@ -387,6 +505,10 @@ export function createFlow({ client, getState, dispatch }: FlowDeps): Flow {
       const answer = await client.getGeometry();
       if (answer.ok) dispatch({ type: "geometry_loaded", geometry: answer.data });
       else dispatch({ type: "geometry_failed" });
+    },
+
+    async loadReader() {
+      await whoReads();
     },
 
     wentOffline() {

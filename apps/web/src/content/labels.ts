@@ -27,6 +27,7 @@ export const DIMENSION: Readonly<Record<Dimension, string>> = {
   venues_culture: "Venues and culture",
   homes: "Homes",
   station_access: "Stations",
+  services: "Shops and services",
 };
 
 /** The order the dimensions are shown in. Recorded crime is last: it is off unless asked for. */
@@ -35,6 +36,7 @@ export const DIMENSION_ORDER: readonly Dimension[] = [
   "green_water",
   "air_noise",
   "venues_culture",
+  "services",
   "schools",
   "homes",
   "crime",
@@ -52,8 +54,14 @@ export const DIRECTION: Readonly<Record<Direction, string>> = {
 };
 
 export const READING: Readonly<Record<TermReading, string>> = {
-  high: "A higher figure counts towards the tag",
-  low: "A lower figure counts towards the tag",
+  high: "A higher figure counts towards the vibe",
+  low: "A lower figure counts towards the vibe",
+};
+
+/** How a part of a scale is read. The name of the end is the API's. */
+export const READING_TOWARDS: Readonly<Record<TermReading, (end: string) => string>> = {
+  high: (end) => `A higher figure counts towards ${end}`,
+  low: (end) => `A lower figure counts towards ${end}`,
 };
 
 export const TENURE: Readonly<Record<Tenure, string>> = {

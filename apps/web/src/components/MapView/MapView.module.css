@@ -9,17 +9,90 @@
   margin: 0;
 }
 
-/* The frame has its size before the map is drawn in it, so nothing moves when it is. */
+/*
+ * The frame has its size before the map is drawn in it, so nothing moves when it is. On a
+ * narrow screen it is a strip, 240 px high, which stands after the first result: the
+ * answer comes first. It was 176 px while it stood above the list, and ten pins lay over
+ * one another in it. The whole map is one press away.
+ */
 .frame {
   position: relative;
-  aspect-ratio: 4 / 3;
-  min-height: 18rem;
-  max-height: 70vh;
+  height: 240px;
   width: 100%;
   background: var(--map-water);
   border: 1px solid var(--border);
   border-radius: var(--radius-card);
   overflow: hidden;
+}
+
+.view[data-taller="true"] .frame {
+  height: 70vh;
+}
+
+/*
+ * Under the map: the button that shows the whole of it, and the table that says
+ * everything the map does. What the table opens to goes under both, as wide as the map.
+ */
+.more {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.table {
+  display: contents;
+}
+
+/* In a row of their own, above the answer, the buttons are no higher than they need be. */
+.more > button,
+.table > button {
+  min-height: 2.25rem;
+  padding-block: var(--space-1);
+}
+
+.table > div {
+  order: 1;
+  flex-basis: 100%;
+  min-width: 0;
+}
+
+/*
+ * While the map is a strip, what moves it and what explains it wait with the whole map:
+ * a strip is for a glance. A pin is as small as a thing that is pressed may be, so that
+ * ten of them stand apart.
+ */
+@media (max-width: 59.99rem) {
+  .view[data-taller="false"] .under,
+  .view[data-taller="false"] .legend {
+    display: none;
+  }
+
+  .view .pin {
+    width: 24px;
+    height: 24px;
+    font-size: 0.75rem;
+  }
+
+  .view .pin[aria-current="true"] {
+    width: 32px;
+    height: 32px;
+    font-size: var(--size-small);
+  }
+}
+
+@media (min-width: 60rem) {
+  .view .frame {
+    height: auto;
+    aspect-ratio: 4 / 3;
+    min-height: 18rem;
+    max-height: 60vh;
+  }
+
+  /* Beside the list the map is whole already. */
+  .taller {
+    display: none;
+  }
 }
 
 /*
@@ -72,6 +145,26 @@
 /* The map places a pin. No space is added beside it, as is between two small buttons in a row. */
 .pin:global(.target-min) {
   margin: 0;
+}
+
+/*
+ * The name of an area, drawn over it where it has room for the whole of it. It takes no
+ * press: the pointer goes through it to the area under it. It is drawn on the colour of
+ * the page, so that it reads the same on every band and on every pattern.
+ */
+.label {
+  display: grid;
+  justify-items: center;
+  padding: 0 var(--space-1);
+  background: var(--bg);
+  border-radius: 2px;
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 /* The chosen pin is larger, and says so to a screen reader. */
@@ -163,6 +256,12 @@
   gap: var(--space-2);
 }
 
+.legendTitle {
+  margin: 0 0 var(--space-1);
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
 .legend ul {
   display: flex;
   flex-wrap: wrap;
@@ -235,6 +334,11 @@
 }
 
 @media (forced-colors: active) {
+  .label {
+    background: Canvas;
+    color: CanvasText;
+  }
+
   .pin,
   .pinSwatch {
     border: 2px solid ButtonText;

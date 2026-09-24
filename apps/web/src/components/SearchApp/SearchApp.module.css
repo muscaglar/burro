@@ -1,10 +1,15 @@
+/*
+ * The search page. After a search the answer comes first: docs/design/web.md, section 1,
+ * gives the heights this is held to, and test/search/budget.test.tsx holds them.
+ */
 .search {
   display: grid;
-  gap: var(--space-3);
-  padding-block-end: var(--space-7);
+  gap: var(--space-2);
+  padding-block-end: var(--space-5);
 }
 
-.search h1 {
+/* Once a search is open the title gives way to the answer, and takes no room. */
+.title {
   margin: 0;
 }
 
@@ -13,78 +18,102 @@
   color: var(--muted);
 }
 
-/* A skip link is drawn only while it has the focus. */
+/*
+ * A skip link is drawn only while it has the focus. It takes no room either way: it is laid
+ * over the start of what holds it, so that nothing moves when the focus comes or goes.
+ */
 .skip {
   position: absolute;
-  inset-inline-start: -9999px;
+  z-index: 10;
   display: inline-flex;
   align-items: center;
+  justify-self: start;
   padding: var(--space-2) var(--space-3);
   background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  /* Off the screen until a keyboard reaches it. It stays in the reading order. */
+  transform: translateY(-9999px);
 }
 
 .skip:focus-visible {
-  position: static;
-  justify-self: start;
+  transform: none;
 }
 
-/* Narrow screens: one column, and the list, the map and the table under three tabs. */
+/*
+ * A narrow screen: one column, in the order of the page. The form, then the first result,
+ * whole on the first screen, then the ways to the settings and to sharing, then the map as
+ * a strip, then the rest of the results.
+ */
 .columns {
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-3);
   grid-template-columns: minmax(0, 1fr);
+  align-items: start;
 }
 
-.left,
-.right {
+.form,
+.map,
+.results,
+.rest {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-3);
   align-content: start;
   min-width: 0;
 }
 
-.form {
-  display: grid;
-  gap: var(--space-4);
+.map:focus,
+.results:focus {
+  outline: none;
 }
 
 .beside {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-3);
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
   align-items: start;
 }
 
 /*
- * What Burro says of the search: what happened, what was not read, a question, a failure,
- * and what was understood. It stands directly under the box, where it is seen when Search
- * is pressed.
+ * What Burro says of the search: what happened, a notice, a question, a failure, what was
+ * understood, and what was noticed and not applied. It stands directly under the box,
+ * where it is seen when Search is pressed.
  */
 .says {
   display: grid;
-  gap: var(--space-3);
+  gap: var(--space-2);
   min-width: 0;
 }
 
+/* A narrow screen: what happened is said small, so that it is one line. */
+@media (max-width: 40rem) {
+  .says > [role="status"][aria-live] {
+    font-size: var(--size-small);
+  }
+}
+
 /*
- * Before a search the line that says what happened has nothing to say, and holds no room:
- * the examples follow the box as they did. It is on the page all the same, so that a screen
- * reader is told when it first says something.
+ * Before a search the line that says what happened has nothing to say, and holds no room.
+ * It is on the page all the same, so that a screen reader is told when it first says something.
  */
 .says[data-open="false"] > [role="status"]:empty {
   min-height: 0;
 }
 
 .degraded,
-.part {
-  display: grid;
+.unread {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: var(--space-2);
-  justify-items: start;
+}
+
+.degraded > :first-child {
+  flex: 1 1 16rem;
 }
 
 /* That a part was not read changes what the ranking means, so it is drawn as the notice is. */
-.partSaid {
-  justify-self: stretch;
+.part {
   padding: var(--space-3) var(--space-4);
   background: var(--notice-bg);
   color: var(--notice-text);
@@ -92,77 +121,92 @@
   border-radius: var(--radius);
 }
 
-.partSaid p,
-.partShown,
-.goTo {
+.part p,
+.unread p,
+.shown {
   margin: 0;
 }
 
-/* One line high whether it says anything or not, so that pressing the button moves nothing. */
-.partShown {
-  min-height: calc(var(--leading-text) * 1em);
+.unread {
+  font-size: var(--size-small);
+}
+
+/* Beside its line the button is as small as a button may be, so that the two are one line. */
+.unread > button {
+  min-height: var(--target-min);
+  padding: 0 var(--space-2);
+  font-size: var(--size-small);
+  color: var(--accent);
+}
+
+/*
+ * It takes no room until it says something. An empty line was once held for it above the
+ * first result, which was then cut off at the foot of a phone's screen. It is on the page
+ * all the same, so that a screen reader is told when it first says something.
+ */
+.shown {
   color: var(--muted);
   font-size: var(--size-small);
 }
 
-.degraded > :first-child {
-  justify-self: stretch;
+/* While it says nothing it does not hold the space between two lines either. */
+.shown:empty {
+  margin-block-start: calc(-1 * var(--space-2));
 }
 
-.resultsTitle {
-  margin: 0 0 var(--space-3);
-  font-size: var(--size-h2);
-}
-
-.note {
-  margin: 0 0 var(--space-3);
-  color: var(--muted);
-  font-size: var(--size-small);
-}
-
-.panel {
+/*
+ * What is one press away, side by side: the settings and sharing. What either opens to
+ * goes under both, as wide as the form. They stand under the form before a search, and
+ * under the first result after one.
+ */
+.tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
   min-width: 0;
 }
 
-.panel:focus {
-  outline: none;
+.tools > div {
+  display: contents;
 }
 
-.wideTabs {
-  display: none;
+.tools > div > div {
+  order: 1;
+  flex-basis: 100%;
+  min-width: 0;
 }
 
-.panel[data-narrow="false"] {
-  display: none;
+/* In a row of their own the buttons are no higher than they need be. */
+.tools > div > button {
+  min-height: 2.25rem;
+  padding-block: var(--space-1);
 }
 
-/* Wide screens: the list beside the map. The list is always there, and two tabs choose map or table. */
+/*
+ * A wide screen: the form and the results in one column, and the map beside them. The map
+ * comes after the first result in the page and first in the second column, and stays in
+ * sight as the list scrolls.
+ */
 @media (min-width: 60rem) {
   .columns {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: start;
+    grid-template-columns: minmax(0, 8fr) minmax(0, 5fr);
+    gap: var(--space-3) var(--space-5);
   }
 
-  .right {
+  .form,
+  .results,
+  .tools,
+  .rest {
+    grid-column: 1;
+  }
+
+  .map {
+    grid-column: 2;
+    grid-row: 1 / span 4;
     position: sticky;
     inset-block-start: var(--space-4);
     max-height: calc(100vh - 2 * var(--space-4));
     overflow-y: auto;
-  }
-
-  .narrowTabs {
-    display: none;
-  }
-
-  .wideTabs {
-    display: block;
-  }
-
-  .panel[data-narrow="false"] {
-    display: block;
-  }
-
-  .panel[data-wide="false"] {
-    display: none;
   }
 }

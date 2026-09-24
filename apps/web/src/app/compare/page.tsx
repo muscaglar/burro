@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { CompareView } from "@/components/CompareTable/CompareView";
 import { COMPARE } from "@/content/compare";
+import { crimeVibes } from "@/content/crime";
 import { loadAreas, loadMeta } from "@/lib/api/server";
 import { chosenFrom } from "@/lib/compare/list";
 import { KEEP_OUT } from "@/lib/indexing";
@@ -34,5 +35,14 @@ export default async function ComparePage({ searchParams }: Props) {
   const given = (a === undefined ? [] : typeof a === "string" ? [a] : a).slice(0, MOST_READ);
   // Only what is the slug of an area of the release is kept. The rest is counted, and gone.
   const { chosen, unknown, dropped } = chosenFrom(given, areas.data.areas);
-  return <CompareView chosen={chosen} defaults={meta.data.defaults} unknown={unknown} dropped={dropped} />;
+  return (
+    <CompareView
+      chosen={chosen}
+      defaults={meta.data.defaults}
+      tags={meta.data.tags}
+      crime={crimeVibes(meta.data)}
+      unknown={unknown}
+      dropped={dropped}
+    />
+  );
 }

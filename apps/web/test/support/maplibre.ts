@@ -23,11 +23,18 @@ const maps: Map[] = [];
 
 export class Marker {
   readonly element: HTMLElement;
+  /** What the marker was made with: where it is tied to its place, and how far from it. */
+  readonly options: { element?: HTMLElement; anchor?: string; offset?: readonly [number, number] };
   position: [number, number] | null = null;
   map: Map | null = null;
 
-  constructor(options: { element?: HTMLElement } = {}) {
+  constructor(options: { element?: HTMLElement; anchor?: string; offset?: readonly [number, number] } = {}) {
+    this.options = options;
     this.element = options.element ?? document.createElement("div");
+    // As the library does: whatever it is handed is named a marker and said to be a button,
+    // unless it says otherwise itself. Seen in a browser, on the name of an area.
+    if (!this.element.hasAttribute("aria-label")) this.element.setAttribute("aria-label", "Map marker");
+    if (!this.element.hasAttribute("role")) this.element.setAttribute("role", "button");
   }
 
   setLngLat(position: [number, number]): this {
@@ -44,6 +51,18 @@ export class Marker {
 
   getElement(): HTMLElement {
     return this.element;
+  }
+
+  /** How far from its place the marker is drawn, in pixels. */
+  offset: readonly [number, number] = [0, 0];
+
+  setOffset(offset: readonly [number, number]): this {
+    this.offset = offset;
+    return this;
+  }
+
+  getLngLat(): { lng: number; lat: number } {
+    return { lng: this.position?.[0] ?? 0, lat: this.position?.[1] ?? 0 };
   }
 
   remove(): this {
@@ -63,6 +82,11 @@ export class Map {
   removed = false;
   /** What is on screen, as the map would say it. A test may set it. */
   view: { contains: (position: unknown) => boolean } = { contains: () => true };
+  /**
+   * How many pixels of the screen a degree takes, as how near the map is drawn. A test may
+   * set it, as zooming does. At 1,000 an area of the made-up city is some 20 pixels wide.
+   */
+  pixelsPerDegree = 1_000;
 
   private listeners: Listener[] = [];
   private readonly canvas: HTMLCanvasElement;
@@ -189,6 +213,11 @@ export class Map {
 
   getBounds() {
     return this.view;
+  }
+
+  /** Where a place is on the screen, in pixels. North is up. */
+  project([longitude, latitude]: readonly [number, number]): { x: number; y: number } {
+    return { x: longitude * this.pixelsPerDegree, y: -latitude * this.pixelsPerDegree };
   }
 
   fitBounds(bounds: unknown, options?: unknown): this {

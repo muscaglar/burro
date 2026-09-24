@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 
-import { COMPARE_STATUS, COMPARE_TABLE } from "@/content/compare";
+import { COMPARE_TABLE, statusWords } from "@/content/compare";
+import { COMBINE } from "@/content/labels";
 import { CRIME_CAVEAT } from "@/content/settings";
-import type { CompareCell, CompareData, CompareRow, ComparedArea, Fact } from "@/lib/api/schema";
+import type { Combine, CompareData, ComparedArea, Tag } from "@/lib/api/schema";
+import { placedBy } from "@/lib/area/portrait";
 import type { Chosen } from "@/lib/compare/list";
+import { drawnRows, type DrawnCell, type DrawnRow } from "@/lib/compare/rows";
 import { outOfHundred } from "@/lib/format";
 import { fitOf } from "@/lib/map/fill";
 import { paths } from "@/lib/paths";
@@ -15,6 +18,7 @@ import { columnsOf } from "../FactRow/FactRow";
 import { Skeleton } from "../Skeleton/Skeleton";
 import { SourceNote } from "../SourceNote/SourceNote";
 import styles from "./CompareTable.module.css";
+import { VibeMark } from "./VibeMark";
 
 /** Where an area stands in the search that is open: its place in the order, and its fit. */
 export interface Standing {
@@ -25,6 +29,10 @@ export interface Standing {
 
 interface Props {
   readonly data: CompareData;
+  /** Which journey counts where the search names two places or more: the spec's own choice. */
+  readonly combine?: Combine;
+  /** The vibes of the release, from route 11: the names of their ends. */
+  readonly tags?: readonly Tag[];
 }
 
 interface AreasProps {
@@ -48,15 +56,10 @@ export function standingsOf(
   );
 }
 
-function factsById(facts: readonly Fact[]): ReadonlyMap<string, Fact> {
-  return new Map(facts.map((fact) => [fact.fact_id, fact]));
-}
-
 interface CellProps {
-  readonly cell: CompareCell | undefined;
-  readonly fact: Fact | undefined;
-  readonly row: CompareRow;
-  readonly area: ComparedArea;
+  readonly drawn: DrawnCell;
+  readonly row: DrawnRow;
+  readonly tags: readonly Tag[];
 }
 
 /**
@@ -65,9 +68,16 @@ interface CellProps {
  * the cell itself is not shown: it is the same figure unformatted, and the
  * percentile beside it is never printed.
  */
-function Cell({ cell, fact, row, area }: CellProps) {
+function Cell({ drawn, row, tags }: CellProps) {
+  const { area, cell, fact } = drawn;
   const adds = hundredths(cell?.contribution ?? null);
-  const columns = fact === undefined || fact.template === "missing" ? [] : columnsOf(fact);
+  // A vibe is drawn as it is everywhere: a mark on its line, and where the area sits in words.
+  const tag = fact?.kind === "tag" ? tags.find((one) => one.tag_id === fact.key) : undefined;
+  const placed = fact === undefined || tag === undefined ? null : placedBy(fact);
+  // A fact that says a journey has no time holds no figure: it is said in words, with its source.
+  const noTime = fact?.template === "missing_journey";
+  const columns = fact === undefined || fact.template === "missing" || noTime ? [] : columnsOf(fact);
+  const of = `${row.place === null ? row.row.label : `${row.row.label}, ${row.place}`}, ${area.name}`;
   return (
     // The role is the cell's own. It is said again because a narrow screen stacks the
     // rows, and a browser may then forget that a cell is a cell. The rule takes any
@@ -79,24 +89,45 @@ function Cell({ cell, fact, row, area }: CellProps) {
       <span className={styles.cellName} aria-hidden="true">
         {area.name}
       </span>
-      {columns.length > 0 && fact !== undefined ? (
+      {fact !== undefined && tag !== undefined ? (
+        <>
+          {placed === null ? (
+            // It is said to be so, and is never put in the middle.
+            <p className={styles.none}>{COMPARE_TABLE.character.notPlaced}</p>
+          ) : (
+            <VibeMark tag={tag} placed={placed} fact={fact} />
+          )}
+          {adds !== null ? <p className={styles.adds}>{COMPARE_TABLE.adds(adds)}</p> : null}
+          <SourceNote facts={[fact]} of={of} />
+        </>
+      ) : columns.length > 0 && fact !== undefined ? (
         <>
           <dl className={styles.figures}>
-            {columns.map(([column, value]) => (
-              <div key={column}>
-                <dt>{column}</dt>
-                <dd>{value}</dd>
-              </div>
-            ))}
+            {columns
+              // The row says where a journey is to, so its cells do not say it again.
+              .filter(([, value]) => !(row.journey && value === row.place))
+              .map(([column, value]) => (
+                <div key={column}>
+                  <dt>{column}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
           </dl>
           {adds !== null ? <p className={styles.adds}>{COMPARE_TABLE.adds(adds)}</p> : null}
-          <SourceNote facts={[fact]} of={`${row.label}, ${area.name}`} />
+          <SourceNote facts={[fact]} of={of} />
+        </>
+      ) : noTime && fact !== undefined ? (
+        <>
+          <p className={styles.none}>{COMPARE_TABLE.journeys.missing}</p>
+          <SourceNote facts={[fact]} of={of} />
         </>
       ) : (
         <p className={styles.none}>
           {cell === undefined || (cell.fact_id === null && area.status !== "ranked")
             ? COMPARE_TABLE.notScored
-            : COMPARE_TABLE.noFigure}
+            : row.journey
+              ? COMPARE_TABLE.journeys.missing
+              : COMPARE_TABLE.noFigure}
         </p>
       )}
     </td>
@@ -121,9 +152,21 @@ export function CompareAreas({ chosen, compared = [], waiting = false, standings
             <p className={styles.areaName}>{area.name}</p>
             {/* The line has its place before it has its words, so that nothing moves when they come. */}
             <div className={styles.status}>
-              {said !== undefined ? <p>{COMPARE_STATUS[said.status]}</p> : waiting ? <Skeleton /> : null}
+              {/* A status the website has no words for is left out, and never shown as its code. */}
+              {said !== undefined ? <p>{statusWords(said.status)}</p> : waiting ? <Skeleton /> : null}
               {said?.status === "ranked" && standing !== undefined ? (
                 <p>{COMPARE_TABLE.standing(standing.rank, standing.fit)}</p>
+              ) : null}
+              {/* A fit never stands alone where it rests on part of what counts. The API says how much. */}
+              {said?.status === "ranked" && said.present < said.counted ? (
+                <p className={styles.part} data-part="true">
+                  <span className={styles.partMark} aria-hidden="true" />
+                  <span>
+                    {COMPARE_TABLE.basedOn(said.present, said.counted)}
+                    {/* Where there is a fit to trust the less for it, it is said so. */}
+                    {standing !== undefined && standing.fit !== null ? `. ${COMPARE_TABLE.restsOnPart}` : null}
+                  </span>
+                </p>
               ) : null}
             </div>
             {/* A page is fetched when its link is pressed, and not before. */}
@@ -149,15 +192,20 @@ export function CompareAreas({ chosen, compared = [], waiting = false, standings
 /**
  * Two to four areas side by side: one row for each thing that counts, in the
  * order the API gave them, which is the order of the weights from high to
- * low. One column for each area.
+ * low. One column for each area. A journey has a row for each place, with
+ * the same destination across the row. The journeys count as one thing, so
+ * what they count for, and which of them counts, is said once, under the
+ * first of their rows.
  *
  * On a narrow screen each row is stacked: the thing that counts, and under it
  * each area by name. It stays a table to a screen reader either way.
  */
-export function CompareTable({ data }: Props) {
-  const facts = factsById(data.facts);
+export function CompareTable({ data, combine, tags = [] }: Props) {
+  const rows = drawnRows(data);
+  const journeys = rows.filter((row) => row.journey).length;
   return (
     <div className={styles.compare}>
+      <p className={styles.weights}>{COMPARE_TABLE.weights}</p>
       <table role="table" className={styles.table}>
         <caption>{COMPARE_TABLE.caption}</caption>
         {/* The role is the group's own, said again as the rows' and the cells' are: stacked,
@@ -177,19 +225,35 @@ export function CompareTable({ data }: Props) {
         </thead>
         {/* eslint-disable-next-line jsx-a11y/no-redundant-roles */}
         <tbody role="rowgroup">
-          {data.rows.map((row) => {
-            const caveat = row.cells.some(
-              (cell) => cell.fact_id !== null && facts.get(cell.fact_id)?.template === "feature_crime",
-            );
+          {rows.map((row, at) => {
+            const caveat = row.cells.some(({ fact }) => fact?.template === "feature_crime");
+            // The first of the rows of journeys says which of them counts, where there are two or more.
+            const firstJourney = row.journey && rows.findIndex((one) => one.journey) === at;
+            const several = firstJourney && journeys > 1 && combine !== undefined;
+            const notes = [
+              // What the journeys count for is the weight of them all, and is said once.
+              row.first ? COMPARE_TABLE.countsFor(Number(outOfHundred(row.row.weight))) : null,
+              several ? COMBINE[combine] : null,
+              // Where every journey counts, the API gives what they add for none of them.
+              several && combine === "mean" ? COMPARE_TABLE.journeys.together : null,
+            ].filter((note): note is string => note !== null);
             return (
-              <tr role="row" key={row.component} className={styles.row}>
+              <tr role="row" key={row.key} className={styles.row}>
                 <th role="rowheader" scope="row" className={styles.thing}>
                   {/* Each is a line of its own to the eye. The full stops part them for a screen reader. */}
-                  <span className={styles.label}>{row.label}</span>
-                  <span className="visually-hidden">. </span>
-                  <span className={styles.weight}>
-                    {COMPARE_TABLE.countsFor(Number(outOfHundred(row.weight)))}
-                  </span>
+                  <span className={styles.label}>{row.row.label}</span>
+                  {row.place === null ? null : (
+                    <>
+                      <span className="visually-hidden">. </span>
+                      <span className={styles.place}>{COMPARE_TABLE.journeys.to(row.place)}</span>
+                    </>
+                  )}
+                  {notes.map((note) => (
+                    <span key={note}>
+                      <span className="visually-hidden">. </span>
+                      <span className={styles.weight}>{note}</span>
+                    </span>
+                  ))}
                   {caveat ? (
                     <>
                       <span className="visually-hidden">. </span>
@@ -197,11 +261,9 @@ export function CompareTable({ data }: Props) {
                     </>
                   ) : null}
                 </th>
-                {data.areas.map((area) => {
-                  const cell = row.cells.find((one) => one.area_id === area.area_id);
-                  const fact = cell?.fact_id == null ? undefined : facts.get(cell.fact_id);
-                  return <Cell key={area.area_id} cell={cell} fact={fact} row={row} area={area} />;
-                })}
+                {row.cells.map((drawn) => (
+                  <Cell key={drawn.area.area_id} drawn={drawn} row={row} tags={tags} />
+                ))}
               </tr>
             );
           })}

@@ -25,6 +25,25 @@
   line-height: 1;
 }
 
+/*
+ * One slider with two named ends. Each end is a button that moves the slider towards it,
+ * and where the slider stands is said in words under it.
+ */
+.row[data-ends="true"] {
+  grid-template-columns: auto minmax(3rem, 1fr) auto;
+}
+
+.row[data-ends="true"] .step {
+  padding: 0 var(--space-2);
+  font-size: var(--size-small);
+  font-weight: 600;
+}
+
+.stands {
+  grid-column: 1 / -1;
+  font-size: var(--size-small);
+}
+
 .range {
   width: 100%;
   min-width: 0;

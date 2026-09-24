@@ -22,7 +22,7 @@ import {
   type ReactNode,
 } from "react";
 
-import type { ShareCreated } from "@/lib/api/schema";
+import type { Operations, ShareCreated } from "@/lib/api/schema";
 import { isChosen, isEnough, isFull, toggled, type Chosen } from "@/lib/compare/list";
 import type { Held } from "@/lib/search/store";
 
@@ -55,6 +55,18 @@ export interface MadeLink {
   readonly subscribe: (listener: Listener) => () => void;
 }
 
+/**
+ * What a page other than the search page asked the search to add: the edits of a
+ * button that was pressed there, as "Search for this character" is on the page of an
+ * area. They hold the ids of vibes and nothing a person typed. The search page takes
+ * them when it is next drawn, and they are then gone.
+ */
+export interface Wanted {
+  readonly set: (operations: Operations) => void;
+  /** What was asked for, once. `null` when nothing was, and the second time it is asked. */
+  readonly take: () => Operations | null;
+}
+
 export interface Session {
   /** The search that is open, or `null` when none has been opened since the page was loaded. */
   readonly search: () => Held | null;
@@ -63,6 +75,22 @@ export interface Session {
   readonly compare: CompareList;
   /** The link the person last made, so that it is still there when they come back to the search. */
   readonly link: MadeLink;
+  /** What another page asked the search to add, until the search page takes it. */
+  readonly wanted: Wanted;
+}
+
+function createWanted(): Wanted {
+  let held: Operations | null = null;
+  return {
+    set(operations) {
+      held = operations;
+    },
+    take() {
+      const taken = held;
+      held = null;
+      return taken;
+    },
+  };
 }
 
 function createMadeLink(): MadeLink {
@@ -120,6 +148,7 @@ export function createSession(): Session {
     },
     compare: createCompareList(),
     link: createMadeLink(),
+    wanted: createWanted(),
   };
 }
 

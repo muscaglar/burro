@@ -10,6 +10,9 @@ interface Props {
   readonly features: readonly Metric[];
 }
 
+/** A gap a publisher's words leave to be filled: "[year]", or "20nn". */
+const GAP = /\[[a-z ]+\]|\b20nn\b/i;
+
 /** A web address is linked only if it is one. Anything else in the field is shown as text. */
 function webAddress(url: string): string | null {
   try {
@@ -51,6 +54,7 @@ export function SourceList({ sources, features }: Props) {
                 {source.name}
               </h2>
               <p className={styles.attribution}>{source.attribution}</p>
+              {GAP.test(source.attribution) ? <p className={styles.unfinished}>{SOURCES.unfinished}</p> : null}
               <dl className={styles.facts}>
                 <div>
                   <dt>{rows.publisher}</dt>

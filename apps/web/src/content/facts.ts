@@ -18,6 +18,9 @@ export const FACT_COLUMNS = {
   asOf: "As of",
   confidence: "Confidence",
   upper: "Upper end of the range",
+  // A price that is one number: the middle of what homes of one kind sold for.
+  middleOfAll: "Middle price, homes of all sizes",
+  soldIn: "Homes sold in",
   amount: "Your budget",
   under: "Under your budget by",
   over: "Over your budget by",
@@ -33,22 +36,57 @@ export const FACT_COLUMNS = {
   walk: "Minutes on foot",
   lines: "Lines",
   to: "to",
+  limit: "Your limit, in minutes",
+  underLimit: "Under your limit by, in minutes",
+  overLimit: "Over your limit by, in minutes",
+  band: "Band, of five",
+  bands: "Varies within this area, across bands",
+  ends: "Counted from",
+  compared: "Areas compared in this release",
+  partsDated: "Parts dated",
+  partsKnown: "Parts with a figure in this release",
+  parts: "Parts in the recipe",
+  // No figure stands in the name of a column: every figure on a page is a slot of a fact.
+  share: "Share of the recipe they carry, in hundredths",
+  other: "Alike",
+  same: "Measures in the same band",
+  measures: "Measures compared",
+  leastAlike: "Least alike in",
 } as const;
+
+/** Said of an area a vibe cannot place, in place of a band. It names a state and no figure. */
+export const CANNOT_PLACE = "Burro cannot place this area on it";
+
+/**
+ * Said of a price that is one number, where a range would stand its two ends. It is of the
+ * kind of figure and of no place: a publisher's own middle price holds no more than this.
+ */
+export const ONE_NUMBER = "The publisher gives no range, and does not say how many sales this figure rests on.";
 
 /** What each kind of row is called when nothing else names it. */
 export const FACT_KIND: Readonly<Record<TemplateId, string>> = {
   area: "Area",
   feature: "Feature",
   feature_crime: "Recorded crime",
-  tag: "Tag",
+  vibe: "Vibe",
+  vibe_range: "Vibe",
+  vibe_unknown: "Vibe",
   cost_rent: "Rent",
   cost_buy: "Price",
+  cost_buy_median: "Price",
   budget_under: "Budget",
   budget_over: "Budget",
+  budget_under_median: "Budget",
+  budget_over_median: "Budget",
   travel_pt: "Journey",
+  travel_pt_over: "Journey",
   travel_other: "Journey",
+  travel_other_over: "Journey",
   travel_beyond: "Journey",
   station: "Nearest station",
   station_nearby: "Station within a short walk",
   missing: "No figure",
+  missing_journey: "No journey time",
+  likeness: "Likeness",
+  likeness_same: "Likeness",
 };

@@ -9,7 +9,7 @@ import path from "node:path";
 
 import { EXAMPLES } from "@/content/search";
 import { readRecorded } from "@/lib/api/recorded";
-import type { AreasData } from "@/lib/api/schema";
+import type { AreasData, MetaData } from "@/lib/api/schema";
 import { contentSecurityPolicy } from "@/lib/headers";
 
 const SRC = path.resolve(__dirname, "..", "..", "src");
@@ -37,7 +37,41 @@ const code = (file: string) => written(file).replace(/\/\*[\s\S]*?\*\/|(?<![:"'`
  */
 const VOCABULARY = { file: path.join("lib", "area", "describe.ts"), address: "https://schema.org" };
 
+/**
+ * Every provider of a model the service can tell of, and the company of each, read from
+ * the contract and from the recorded answers. None is written here.
+ */
+function providers(): string[] {
+  const contract = JSON.parse(
+    readFileSync(path.resolve(SRC, "..", "..", "..", "contracts", "openapi.json"), "utf8"),
+  ) as { components: { schemas: { Provider: { enum: string[] } } } };
+  const told = ["meta-model-reads", "meta-model-reads-with-settings"].map(
+    (recorded) => (readRecorded(recorded).body as { data: MetaData }).data.reader,
+  );
+  const names = [...contract.components.schemas.Provider.enum, ...told.map((reader) => reader.company)];
+  return [...new Set(names.filter((name): name is string => typeof name === "string"))];
+}
+
 describe("what the source holds", () => {
+  test("test_no_providers_name_or_terms_is_written_in_the_websites_own_source", () => {
+    // What people are told of a provider is served by the API, from one table, and the
+    // website shows it as served. The generated types quote the contract, which lists the
+    // providers the service can name, so they are left out: nothing in them is shown.
+    const own = source.filter((file) => !file.endsWith("schema.d.ts") && !file.endsWith("required.ts"));
+    const names = providers();
+    const word = (name: string) => new RegExp(`\\b${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i");
+    const naming = own.flatMap((file) =>
+      names.filter((name) => word(name).test(written(file))).map((name) => `${named(file)} ${name}`),
+    );
+    const terms = /\b\d+ (days?|years?)\b[^\n]{0,40}\b(kept|keep|flagged|retain)|\b(kept|keeps?|retains?)\b[^\n]{0,40}\b\d+ (days?|years?)\b/i;
+
+    expect(names.length).toBeGreaterThanOrEqual(4);
+    expect(own.length).toBeGreaterThan(80);
+    expect(naming).toEqual([]);
+    expect(own.filter((file) => terms.test(code(file))).map(named)).toEqual([]);
+  });
+
+
   test("test_nothing_is_loaded_from_another_origin", () => {
     const anAddress = /\b(https?:)?\/\/[a-z0-9-]+(\.[a-z0-9-]+)+/gi;
     // The generated types quote the contract, which names no address either.

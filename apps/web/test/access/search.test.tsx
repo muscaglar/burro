@@ -9,18 +9,23 @@
 
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 
+import { SHOWN_AT_FIRST } from "@/components/ResultList/ResultList";
 import { MAP, TABLE } from "@/content/map";
 import {
+  APART,
+  BREAKDOWN,
   CHIPS,
   COMPLETENESS,
   CONFIDENCE,
+  COST,
   JOURNEYS,
   PROMPT,
   RESULTS,
   SEARCH,
+  SHELF,
   SOURCE,
   STATUS,
-  VIEWS,
+  UNRANKED,
 } from "@/content/search";
 import { BUDGET, FEATURES, JOURNEY, SETTINGS, SLIDER } from "@/content/settings";
 import { recordedAnswer } from "@/lib/api/recorded";
@@ -33,13 +38,21 @@ import { lastMap } from "../support/maplibre";
 import {
   areas,
   arrived,
+  everyChip,
   firstSearch,
+  meta,
   openSearch,
   promptBox,
+  removeChip,
   results,
+  saidIn,
   search,
-  setWebGL,
+  settingsAt,
   settled,
+  setWebGL,
+  theTable,
+  theWholeOfIt,
+  workingOf,
 } from "../support/search";
 
 jest.mock("next/navigation", () => ({ usePathname: () => "/" }));
@@ -76,17 +89,30 @@ describe("the keyboard", () => {
     await user.keyboard("leafy and quiet{Enter}");
     await settled();
     expect(api.callsTo("interpret")).toHaveLength(1);
-    expect(results()).toHaveLength(20);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
 
-    // Refine it: open the settings, reach a checkbox, press Space.
+    // Refine it: open the settings and the group of the journeys, reach a checkbox, press Space.
     api.on("rank", "rank-refined").on("explain_top", "explanations-refined");
     await tabTo(user, () => screen.getByRole("button", { name: SETTINGS.title }));
     await user.keyboard("{Enter}");
-    await tabTo(user, () => screen.getAllByRole("checkbox", { name: JOURNEY.firm })[0] ?? null);
+    await tabTo(user, () => screen.getByRole("button", { name: SETTINGS.journeys }));
+    await user.keyboard("{Enter}");
+    await tabTo(user, () => screen.queryAllByRole("checkbox", { name: JOURNEY.firm })[0] ?? null);
     await user.keyboard(" ");
     await settled();
     expect(sentEdits(api.lastCallTo("rank").body)).toEqual(edits.placeStrictness("syn-p0021", "hard"));
+    // Every area that is still ranked is listed, and no button is left that would show more.
     expect(results()).toHaveLength(refined.ranked.length);
+    expect(screen.queryByRole("button", { name: /^Show \d+ more$/ })).toBeNull();
+
+    // Open the working of a result: reach "Show the working", press Enter, close it with Escape.
+    const working = () => within(results()[1] as HTMLElement).getByRole("button", { name: /^Show the working: / });
+    await tabTo(user, working);
+    await user.keyboard("{Enter}");
+    expect(working()).toHaveAttribute("aria-expanded", "true");
+    await user.keyboard("{Escape}");
+    expect(working()).toHaveAttribute("aria-expanded", "false");
+    expect(working()).toHaveFocus();
 
     // Read a source: reach the first "Source" of the first card, open it, close it with Escape.
     const source = () => within(results()[0] as HTMLElement).getAllByRole("button", { name: /^Source/ })[0] ?? null;
@@ -97,6 +123,28 @@ describe("the keyboard", () => {
     await user.keyboard("{Escape}");
     expect(source()).toHaveAttribute("aria-expanded", "false");
     expect(source()).toHaveFocus();
+  });
+
+  test("test_the_rest_of_the_list_can_be_shown_by_keyboard_alone", async () => {
+    const { user } = await searched();
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
+
+    // Reach "Show 10 more", press Enter. The focus goes to the list it added to.
+    await tabTo(user, () => screen.queryByRole("button", { name: RESULTS.showMore(10) }));
+    await user.keyboard("{Enter}");
+
+    expect(results()).toHaveLength(first.ranked.length);
+    // The focus goes to the part of the list that the button added to: the rest, from the second.
+    expect(screen.getByRole("list", { name: RESULTS.restLabel }) === document.activeElement).toBe(true);
+    // The areas that are not ranked open with Enter and close with Escape, which puts the focus back.
+    const apart = screen.getByRole("button", { name: APART.title(first.unranked.length) });
+    act(() => apart.focus());
+    await user.keyboard("{Enter}");
+    expect(apart).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("list", { name: APART.label })).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    expect(apart).toHaveAttribute("aria-expanded", "false");
+    expect(apart).toHaveFocus();
   });
 
   test("test_a_place_can_be_found_and_picked_by_keyboard_alone", async () => {
@@ -122,9 +170,42 @@ describe("the keyboard", () => {
     await settled();
 
     expect(sentEdits(api.lastCallTo("rank").body)).toEqual(edits.placeAdd("syn-p0012"));
+    // The field was for a first search, and has gone with the shelf now that one is open.
+    // The focus is on what Burro understood, and never on nothing.
+    expect(field).not.toBeInTheDocument();
+    expect(document.activeElement).not.toBe(document.body);
+    expect(screen.getByRole("region", { name: new RegExp(`^(${CHIPS.label}|${CHIPS.setLabel})$`) })).toHaveFocus();
+  });
+
+  test("test_a_place_picked_from_the_settings_leaves_the_focus_in_its_field", async () => {
+    const { user, api } = await searched();
+    await settingsAt(user, SETTINGS.journeys);
+    const field = screen.getByRole("combobox", { name: /place you need to reach/i });
+
+    await user.type(field, "pel");
+    await screen.findAllByRole("option");
+    await user.keyboard("{Home}{Enter}");
+    await settled();
+
+    expect(sentEdits(api.lastCallTo("rank").body)).toEqual(edits.placeAdd("syn-p0012"));
     expect(field).toHaveValue("");
     expect(field).toHaveFocus();
     expect(field).toHaveAttribute("aria-expanded", "false");
+  });
+
+  test("test_a_vibe_added_from_the_shelf_leaves_the_focus_on_what_was_understood", async () => {
+    const { user, api } = await openSearch(firstSearch().on("rank", "rank-shelf").on("explain_top", "explanations-shelf"));
+    const shelf = within(screen.getByRole("region", { name: SHELF.title }));
+
+    await tabTo(user, () => shelf.getAllByRole("button")[0] ?? null);
+    await user.keyboard("{Enter}");
+    await tabTo(user, () => screen.queryByRole("button", { name: /^Add to my search/ }));
+    await user.keyboard("{Enter}");
+    await settled();
+
+    expect(api.lastCallTo("rank").body).toEqual(recordedAnswer("rank", "rank-shelf").request.body);
+    expect(screen.queryByRole("region", { name: SHELF.title })).toBeNull();
+    expect(screen.getByRole("region", { name: new RegExp(`^(${CHIPS.label}|${CHIPS.setLabel})$`) })).toHaveFocus();
   });
 
   test("test_escape_closes_the_list_of_places_and_keeps_what_was_typed", async () => {
@@ -142,7 +223,8 @@ describe("the keyboard", () => {
 
   test("test_every_control_can_be_reached_with_tab_and_none_is_taken_out_of_the_order", async () => {
     const { user } = await searched();
-    await user.click(screen.getByRole("button", { name: SETTINGS.title }));
+    await settingsAt(user, SETTINGS.money, SETTINGS.journeys, ...meta.data.families.map((one) => one.label));
+    await theWholeOfIt();
 
     const controls = [...document.querySelectorAll<HTMLElement>("a[href], button, input, select, textarea")];
     const out = controls.filter((control) => control.tabIndex < 0 || control.hasAttribute("disabled") === false && control.getAttribute("tabindex") === "-1");
@@ -157,7 +239,7 @@ describe("the keyboard", () => {
     await searched();
 
     const toResults = screen.getByRole("link", { name: SEARCH.skipToResults });
-    const pastMap = screen.getByRole("link", { name: VIEWS.skipMap });
+    const pastMap = screen.getByRole("link", { name: SEARCH.skipMap });
 
     for (const link of [toResults, pastMap]) {
       const target = document.getElementById((link.getAttribute("href") ?? "").slice(1));
@@ -168,39 +250,32 @@ describe("the keyboard", () => {
     expect(toResults.getAttribute("href")).toBe("#results");
     expect(document.getElementById("results")).toContainElement(results()[0] as HTMLElement);
     // The link past the map comes before the map, and its target after it.
-    const panel = screen.getByRole("tabpanel", { name: MAP.label });
+    const panel = screen.getByRole("region", { name: MAP.label });
     expect(panel.firstElementChild).toBe(pastMap);
     expect(panel.lastElementChild?.id).toBe("after-map");
   });
 
-  test("test_the_tabs_move_with_the_arrow_keys_and_each_names_its_panel", async () => {
+  test("test_the_list_the_map_and_the_table_are_on_one_page_at_every_width_with_no_tabs", async () => {
+    // The answer comes first at every width. Nothing is behind a tab: the map is a strip on a
+    // narrow screen, and the table is one press from it.
     const { user } = await searched();
-    const tabs = within(screen.getByRole("tablist", { name: VIEWS.label }));
 
-    await user.click(tabs.getByRole("tab", { name: VIEWS.list }));
-    await user.keyboard("{ArrowRight}");
-    expect(tabs.getByRole("tab", { name: VIEWS.map })).toHaveAttribute("aria-selected", "true");
-    expect(tabs.getByRole("tab", { name: VIEWS.map })).toHaveFocus();
-    await user.keyboard("{End}");
-    expect(tabs.getByRole("tab", { name: VIEWS.table })).toHaveAttribute("aria-selected", "true");
-    await user.keyboard("{ArrowRight}");
-    expect(tabs.getByRole("tab", { name: VIEWS.list })).toHaveAttribute("aria-selected", "true");
-
-    for (const tab of screen.getAllByRole("tab")) {
-      expect(document.getElementById(tab.getAttribute("aria-controls") ?? "")).not.toBeNull();
-    }
-    // On a narrow screen one of the three is shown. On a wide one the list always is.
-    await user.click(tabs.getByRole("tab", { name: VIEWS.table }));
-    expect(document.getElementById("results")).toHaveAttribute("data-narrow", "false");
-    expect(document.getElementById("results")).toHaveAttribute("data-wide", "true");
-    expect(screen.getByRole("tabpanel", { name: VIEWS.table })).toHaveAttribute("data-narrow", "true");
-    expect(screen.getByRole("tabpanel", { name: MAP.label })).toHaveAttribute("data-wide", "false");
+    expect(screen.queryByRole("tablist")).toBeNull();
+    expect(screen.queryAllByRole("tab")).toEqual([]);
+    expect(screen.getByRole("region", { name: MAP.label })).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: RESULTS.listLabel })).toBeInTheDocument();
+    const table = screen.getByRole("button", { name: TABLE.title });
+    await tabTo(user, () => table);
+    await user.keyboard("{Enter}");
+    expect(screen.getByRole("table", { name: TABLE.caption })).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+    expect(table).toHaveFocus();
   });
 
   test("test_moving_a_control_does_not_move_focus", async () => {
     const { user, api } = await searched();
     api.on("rank", "rank-refined").on("explain_top", "explanations-refined");
-    await user.click(screen.getByRole("button", { name: SETTINGS.title }));
+    await settingsAt(user, SETTINGS.journeys, SETTINGS.airAndNoise, "Green");
     const at = window.scrollY;
 
     const firm = screen.getAllByRole("checkbox", { name: JOURNEY.firm })[0] as HTMLElement;
@@ -208,8 +283,15 @@ describe("the keyboard", () => {
     await settled();
     expect(firm).toHaveFocus();
 
-    const leafy = screen.getByRole("switch", { name: "Leafy" });
-    await user.click(leafy);
+    const air = screen.getByRole("switch", { name: "Cleaner air" });
+    await user.click(air);
+    await settled();
+    expect(air).toHaveFocus();
+
+    // A slider moved with the keyboard keeps the focus when its answer comes.
+    const leafy = screen.getByRole("slider", { name: "Leafy" });
+    leafy.focus();
+    fireEvent.change(leafy, { target: { value: "70" } });
     await settled();
     expect(leafy).toHaveFocus();
 
@@ -225,47 +307,68 @@ describe("the keyboard", () => {
 describe("sliders", () => {
   test("test_every_slider_can_be_set_without_dragging", async () => {
     const { user, api } = await searched();
-    await user.click(screen.getByRole("button", { name: SETTINGS.title }));
+    await settingsAt(
+      user,
+      SETTINGS.money,
+      SETTINGS.journeys,
+      ...meta.data.families.map((one) => one.label),
+      SETTINGS.airAndNoise,
+    );
+    const scales = meta.data.tags.filter((tag) => tag.shape === "scale");
 
     const sliders = screen.getAllByRole("slider");
-    expect(sliders.length).toBeGreaterThan(5);
+    expect(sliders.length).toBeGreaterThan(10);
     for (const slider of sliders) {
       const label = slider.getAttribute("aria-label") ?? document.querySelector(`label[for="${slider.id}"]`)?.textContent ?? "";
       const row = within(slider.parentElement as HTMLElement);
+      const scale = scales.find((tag) => tag.label === label);
       expect(label).not.toBe("");
-      expect(row.getByRole("button", { name: SLIDER.less(label) })).toBeInTheDocument();
-      expect(row.getByRole("button", { name: SLIDER.more(label) })).toBeInTheDocument();
-      expect(row.getByRole("textbox", { name: SLIDER.number(label) })).toBeInTheDocument();
+      if (scale === undefined) {
+        expect(row.getByRole("button", { name: SLIDER.less(label) })).toBeInTheDocument();
+        expect(row.getByRole("button", { name: SLIDER.more(label) })).toBeInTheDocument();
+        expect(row.getByRole("textbox", { name: SLIDER.number(label) })).toBeInTheDocument();
+      } else {
+        // A scale has a button at each end, named for the end, that moves it a step that way.
+        expect(row.getByRole("button", { name: SLIDER.toward(label, scale.low_end ?? "") })).toBeInTheDocument();
+        expect(row.getByRole("button", { name: SLIDER.toward(label, scale.high_end ?? "") })).toBeInTheDocument();
+      }
     }
+    expect(sliders.filter((slider) => slider.getAttribute("min") === "-100")).toHaveLength(scales.length);
 
     // With the button.
     api.calls.length = 0;
-    const leafy = FEATURES.weight("Leafy");
-    await user.click(screen.getByRole("button", { name: SLIDER.less(leafy) }));
+    await user.click(screen.getByRole("button", { name: SLIDER.less("Leafy") }));
     await waitFor(() => expect(api.callsTo("rank")).toHaveLength(1));
-    expect(sentEdits(api.lastCallTo("rank").body)).toEqual(edits.tagWeight("leafy", 0.4));
+    expect(sentEdits(api.lastCallTo("rank").body)).toEqual(edits.tagWeight("leafy", 0.4, "high"));
     await settled();
 
     // With the number field.
-    const field = screen.getByRole("textbox", { name: SLIDER.number(leafy) });
+    const field = screen.getByRole("textbox", { name: SLIDER.number("Leafy") });
     await user.clear(field);
     await user.type(field, "73{Enter}");
     await settled();
-    expect(sentEdits(api.lastCallTo("rank").body)).toEqual(edits.tagWeight("leafy", 0.75));
+    expect(sentEdits(api.lastCallTo("rank").body)).toEqual(edits.tagWeight("leafy", 0.75, "high"));
 
     // With the arrow keys.
-    const slider = screen.getByRole("slider", { name: leafy });
+    const slider = screen.getByRole("slider", { name: "Leafy" });
     slider.focus();
     fireEvent.change(slider, { target: { value: "55" } });
     await waitFor(() =>
-      expect(sentEdits(api.lastCallTo("rank").body)).toEqual(edits.tagWeight("leafy", 0.55)),
+      expect(sentEdits(api.lastCallTo("rank").body)).toEqual(edits.tagWeight("leafy", 0.55, "high")),
     );
+    await settled();
+
+    // A scale, with the button at one of its ends.
+    api.calls.length = 0;
+    await user.click(screen.getByRole("button", { name: SLIDER.toward("Going out", "Calm") }));
+    await waitFor(() => expect(api.callsTo("rank")).toHaveLength(1));
+    expect(sentEdits(api.lastCallTo("rank").body)).toEqual(edits.tagWeight("pace", 0.1, "low"));
     await settled();
   });
 
   test("test_the_budget_and_the_longest_journey_have_buttons_and_a_field_too", async () => {
     const { user, api } = await searched();
-    await user.click(screen.getByRole("button", { name: SETTINGS.title }));
+    await settingsAt(user, SETTINGS.money, SETTINGS.journeys);
 
     await user.click(screen.getByRole("button", { name: BUDGET.more }));
     await settled();
@@ -310,9 +413,16 @@ describe("target sizes", () => {
     const { user } = await searched(firstSearch().on("interpret", "interpret-clarify"));
     act(() => lastMap().fire("load"));
     await arrived();
-    await user.click(screen.getByRole("button", { name: SETTINGS.title }));
+    await settingsAt(
+      user,
+      SETTINGS.money,
+      SETTINGS.journeys,
+      ...meta.data.families.map((one) => one.label),
+      SETTINGS.airAndNoise,
+    );
+    await theWholeOfIt();
     await user.click(screen.getAllByRole("button", { name: /^Source/ })[0] as HTMLElement);
-    await user.click(screen.getByRole("button", { name: /^Leafy/ }));
+    await user.click(within(screen.getByRole("region", { name: CHIPS.label })).getByRole("button", { name: /^Leafy/ }));
     await user.type(screen.getAllByRole("combobox")[0] as HTMLElement, "pel");
     await screen.findAllByRole("option");
 
@@ -320,10 +430,29 @@ describe("target sizes", () => {
     expect(unsized()).toEqual([]);
   });
 
+  test("test_every_control_of_the_page_before_a_search_takes_a_target_size", async () => {
+    const { user } = await openSearch();
+    const shelf = within(screen.getByRole("region", { name: SHELF.title }));
+    await user.click(shelf.getAllByRole("button")[0] as HTMLElement);
+
+    expect(shelf.getAllByRole("button").length).toBeGreaterThan(5);
+    expect(unsized()).toEqual([]);
+  });
+
+  test("test_every_control_of_what_the_reader_noticed_takes_a_target_size", async () => {
+    const { user } = await openSearch(firstSearch().on("interpret", "interpret-suggest-many"));
+    await user.type(promptBox(), "My sister wants pubs");
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
+
+    expect(screen.getAllByRole("button", { name: /^Skip: / }).length).toBeGreaterThan(3);
+    expect(unsized()).toEqual([]);
+  });
+
   test("test_the_controls_of_a_failure_take_a_target_size", async () => {
     const { user, api } = await searched();
     api.on("rank", "error-internal");
-    await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Leafy` }));
+    await removeChip(user, "Leafy");
     await screen.findByRole("alert");
 
     expect(unsized()).toEqual([]);
@@ -333,6 +462,7 @@ describe("target sizes", () => {
 describe("colour is never the only signal", () => {
   test("test_everything_the_map_shows_is_in_the_table", async () => {
     const { user, api } = await searched();
+    await theTable(user);
     const table = () => within(screen.getAllByRole("table", { name: TABLE.caption })[0] as HTMLElement);
     const rowOf = (areaId: string) =>
       table()
@@ -340,11 +470,13 @@ describe("colour is never the only signal", () => {
         .find((row) => within(row).queryByRole("link", { name: nameOf(areaId) })) as HTMLElement;
 
     first.scores.forEach(({ area_id: areaId, score }, at) => {
-      const cells = within(rowOf(areaId)).getAllByRole("cell").map((cell) => cell.textContent);
+      const cells = within(rowOf(areaId)).getAllByRole("cell").map(saidIn);
       // A fit that rests on part of what counts says so beside the fit, as its card does.
-      const parts = first.ranked.find((area) => area.area_id === areaId)?.contributions ?? [];
-      const has = parts.filter((part) => part.present).length;
-      const based = has === parts.length ? "" : ` ${COMPLETENESS.some(has, parts.length)}`;
+      const counts = first.scores.find((one) => one.area_id === areaId);
+      const based =
+        counts === undefined || counts.present === counts.counted
+          ? ""
+          : ` ${COMPLETENESS.some(counts.present, counts.counted)}`;
       expect(cells.slice(0, 4)).toEqual([
         String(at + 1),
         "Quillhaven",
@@ -352,13 +484,15 @@ describe("colour is never the only signal", () => {
         TABLE.ranked,
       ]);
     });
-    for (const { area_id: areaId } of first.unranked) {
-      expect(rowOf(areaId)).toHaveTextContent("Not ranked in this data");
+    // An area with no rank says why in words: the data does not rank it, or too little is known of it.
+    for (const { area_id: areaId, reason } of first.unranked) {
+      expect(rowOf(areaId)).toHaveTextContent(UNRANKED[reason]);
     }
+    expect(new Set(first.unranked.map((area) => area.reason))).toEqual(new Set(["not_rankable", "insufficient_data"]));
     expect(table().getAllByRole("row")).toHaveLength(areas.length + 1);
 
     api.on("rank", "rank-refined").on("explain_top", "explanations-refined");
-    await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Leafy` }));
+    await removeChip(user, "Leafy");
     await settled();
     for (const { area_id: areaId } of refined.filtered) {
       expect(rowOf(areaId)).toHaveTextContent("A journey is longer than a firm limit");
@@ -377,17 +511,27 @@ describe("colour is never the only signal", () => {
     await arrived();
 
     // Rank: a number in the card, in the pin and in the table.
-    const [card] = results();
+    const card = await workingOf(user, "Farrowmere");
+    await everyChip(user);
     expect(within(card as HTMLElement).getByText(RESULTS.rank(1))).toBeInTheDocument();
-    expect(within(card as HTMLElement).getByText(`${RESULTS.fitOf(80)}`)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: MAP.pin(1, "Farrowmere", RESULTS.fitOf(80)) })).toBeInTheDocument();
+    expect(within(card as HTMLElement).getByText(`${RESULTS.fitOf(71)}`)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: MAP.pin(1, "Farrowmere", RESULTS.fitOf(71)) })).toBeInTheDocument();
     // Within and over: words.
     expect(within(card as HTMLElement).getByText(JOURNEYS.within)).toBeInTheDocument();
-    // Assumed, and flexible or firm: words.
+    // Assumed, and flexible or firm: words. In the row a chip says that the rest was assumed,
+    // and opened it says which part.
     const chips = screen.getByRole("region", { name: CHIPS.label });
+    expect(chips).toHaveTextContent(CHIPS.restAssumed);
+    await user.click(within(chips).getByRole("button", { name: /^Cindermoor Works/ }));
     expect(chips).toHaveTextContent(`${CHIPS.flexible} ${CHIPS.assumed}`);
+    await user.click(within(chips).getByRole("button", { name: /^Cindermoor Works/ }));
+    // Where an area sits on a vibe: a band, in words, on the picture that draws it.
+    for (const picture of within(card).getAllByRole("img", { name: /^band/ })) {
+      expect(picture.getAttribute("aria-label")).toMatch(/^bands? \d/);
+    }
     // Confidence: a word. The pips are hidden from a reader.
-    expect(within(card as HTMLElement).getByText(CONFIDENCE.medium, { exact: false })).toBeInTheDocument();
+    const cost = within(card as HTMLElement).getByRole("heading", { name: COST.title }).parentElement as HTMLElement;
+    expect(within(cost).getByText(CONFIDENCE.high, { exact: false })).toBeInTheDocument();
     for (const pips of document.querySelectorAll("[class*='pips']")) {
       expect(pips).toHaveAttribute("aria-hidden", "true");
     }
@@ -397,14 +541,15 @@ describe("colour is never the only signal", () => {
     // Chosen: said to a reader on the card, the pin and the table row.
     await user.click(screen.getByRole("button", { name: RESULTS.showOnMap("Farrowmere") }));
     expect(card).toHaveAttribute("aria-current", "true");
-    expect(screen.getByRole("button", { name: MAP.pin(1, "Farrowmere", RESULTS.fitOf(80)) })).toHaveAttribute(
+    expect(screen.getByRole("button", { name: MAP.pin(1, "Farrowmere", RESULTS.fitOf(71)) })).toHaveAttribute(
       "aria-current",
       "true",
     );
+    await theTable(user);
     expect(document.querySelectorAll("tr[aria-current='true']").length).toBeGreaterThan(0);
 
     api.on("rank", "rank-refined").on("explain_top", "explanations-refined");
-    await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Leafy` }));
+    await removeChip(user, "Leafy");
     await settled();
     expect(screen.getByRole("region", { name: CHIPS.label })).toBeInTheDocument();
   });
@@ -417,12 +562,12 @@ describe("colour is never the only signal", () => {
     const cards = results();
 
     // From the list to the map: the card under the pointer or the focus is outlined on the map.
-    await user.hover(cards[2] as HTMLElement);
-    expect(lastMap().states.get("syn-n0003")).toMatchObject({ hovered: true });
-    await user.unhover(cards[2] as HTMLElement);
-    expect(lastMap().states.get("syn-n0003")).toMatchObject({ hovered: false });
-    act(() => within(cards[1] as HTMLElement).getAllByRole("button")[0]?.focus());
-    expect(lastMap().states.get("syn-n0017")).toMatchObject({ hovered: true });
+    await user.hover(cards[1] as HTMLElement);
+    expect(lastMap().states.get("syn-n0005")).toMatchObject({ hovered: true });
+    await user.unhover(cards[1] as HTMLElement);
+    expect(lastMap().states.get("syn-n0005")).toMatchObject({ hovered: false });
+    act(() => within(cards[0] as HTMLElement).getAllByRole("button")[0]?.focus());
+    expect(lastMap().states.get("syn-n0006")).toMatchObject({ hovered: true });
 
     // From the map to the list: pressing a pin chooses the card, and the focus stays on the
     // pin that was pressed. It is not taken to the card, and it is never left on nothing.
@@ -431,12 +576,27 @@ describe("colour is never the only signal", () => {
     expect(cards[3]).toHaveAttribute("aria-current", "true");
     expect(cards.filter((card) => card.hasAttribute("aria-current"))).toHaveLength(1);
     expect(pin).toHaveFocus();
-    expect(lastMap().states.get("syn-n0004")).toMatchObject({ selected: true });
+    expect(lastMap().states.get("syn-n0003")).toMatchObject({ selected: true });
 
-    // "Show in the list" brings the list forward and gives the card the focus.
+    // "Show in the list" gives the card the focus.
     await user.click(screen.getByRole("button", { name: "Show in the list" }));
     expect(cards[3]).toHaveFocus();
-    expect(document.getElementById("results")).toHaveAttribute("data-narrow", "true");
+  });
+
+  test("test_an_area_chosen_on_the_map_that_is_past_the_first_ten_is_shown_in_the_list", async () => {
+    setWebGL(true);
+    const { user } = await searched();
+    act(() => lastMap().fire("load"));
+    await arrived();
+    const far = first.ranked[14];
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
+
+    act(() => lastMap().fire("click", { features: [{ id: far?.area_id }] }, "areas-fill"));
+    await user.click(screen.getByRole("button", { name: "Show in the list" }));
+
+    expect(results()).toHaveLength(first.ranked.length);
+    expect(results()[14]).toHaveAttribute("aria-current", "true");
+    expect(results()[14]).toHaveFocus();
   });
 });
 
@@ -454,18 +614,20 @@ describe("what is said, and when", () => {
 
     await search(user);
     api.on("rank", "rank-refined").on("explain_top", "explanations-refined");
-    await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Leafy` }));
+    await removeChip(user, "Leafy");
     await settled();
     api.on("rank", "rank-nothing-matches");
-    await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Quiet residential` }));
+    await removeChip(user, "Quiet streets");
     await settled();
     watcher.disconnect();
 
     expect(said).toEqual([
       STATUS.reading,
-      `${STATUS.ranked(22, "Farrowmere")} ${STATUS.gaveWay}`,
+      `${STATUS.ranked(21, "Farrowmere")} ${STATUS.gaveWay}`,
       // Eleven areas went, which moves no other. It is said that they went, and how many of the rest moved.
-      expect.stringMatching(/^11 areas ranked, 11 fewer than before\. (The rest are in the order they were|\d+ of the rest changed place)\.$/),
+      expect.stringMatching(
+        /^10 areas ranked, 11 fewer than before\. (The rest are in the order they were|\d+ of the rest changed place)\.$/,
+      ),
       STATUS.nothingMatches,
     ]);
     // There is one polite line for the state of the search.
@@ -479,7 +641,7 @@ describe("what is said, and when", () => {
     expect(screen.getByRole("status", { name: "About your search" })).toBeInTheDocument();
 
     api.on("rank", "error-internal");
-    await user.click(screen.getByRole("button", { name: `${CHIPS.remove}: Leafy` }));
+    await removeChip(user, "Leafy");
     expect(await screen.findAllByRole("alert")).toHaveLength(1);
   });
 });
@@ -487,12 +649,41 @@ describe("what is said, and when", () => {
 describe("automated checks of each state with everything open", () => {
   test("test_the_results_with_the_settings_a_chip_and_a_source_open_have_no_fault", async () => {
     const { user, container } = await searched();
-    await user.click(screen.getByRole("button", { name: SETTINGS.title }));
+    await settingsAt(
+      user,
+      SETTINGS.money,
+      SETTINGS.journeys,
+      ...meta.data.families.map((one) => one.label),
+      SETTINGS.airAndNoise,
+      "Recorded crime",
+      FEATURES.madeOfName("Going out"),
+    );
+    await theWholeOfIt();
     await user.click(screen.getByRole("button", { name: /^Cindermoor Works/ }));
     await user.click(within(results()[0] as HTMLElement).getAllByRole("button", { name: /^Source/ })[0] as HTMLElement);
-    await user.click(within(results()[0] as HTMLElement).getByRole("button", { name: /^How the fit is worked out/ }));
-    await user.click(within(results()[7] as HTMLElement).getByRole("button", { name: /^More about this result/ }));
-    await user.click(screen.getByRole("button", { name: "Recorded crime" }));
+    expect(within(results()[1] as HTMLElement).getByRole("table", { name: BREAKDOWN.caption })).toBeInTheDocument();
+
+    expect(await faultsIn(container, { wholePage: true })).toEqual([]);
+  });
+
+  test("test_the_results_as_they_first_stand_have_no_fault", async () => {
+    const { container } = await searched();
+
+    expect(await faultsIn(container, { wholePage: true })).toEqual([]);
+  });
+
+  test("test_the_page_before_a_search_with_a_vibe_open_has_no_fault", async () => {
+    const { user, container } = await openSearch();
+    await user.click(within(screen.getByRole("region", { name: SHELF.title })).getAllByRole("button")[0] as HTMLElement);
+
+    expect(await faultsIn(container, { wholePage: true })).toEqual([]);
+  });
+
+  test("test_the_page_with_what_the_reader_noticed_has_no_fault", async () => {
+    const { user, container } = await openSearch(firstSearch().on("interpret", "interpret-suggest-notice"));
+    await user.type(promptBox(), "leafy with lots of students. My street is noisy.");
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
 
     expect(await faultsIn(container, { wholePage: true })).toEqual([]);
   });

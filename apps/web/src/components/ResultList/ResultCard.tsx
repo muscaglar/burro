@@ -1,18 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
 
 import { COST, JOURNEYS, RESULTS } from "@/content/search";
 import type {
   AreaData,
   AreaSummary,
+  ExplainedSentence,
   Explanation,
-  Meta,
+  GeometryData,
   MetaData,
   Operations,
   PreferenceSpec,
   RankedArea,
+  StripMark,
 } from "@/lib/api/schema";
 import { fitOf } from "@/lib/map/fill";
 import { paths } from "@/lib/paths";
@@ -23,14 +25,18 @@ import { CompareButton } from "../CompareTray/CompareButton";
 import { CostRange, type Scale } from "../CostRange/CostRange";
 import { Disclosure } from "../Disclosure/Disclosure";
 import { FactRow } from "../FactRow/FactRow";
-import { LocatorMap, type Outline } from "../LocatorMap/LocatorMap";
+import { saysItsBorough } from "@/lib/area/named";
+
+import { LocatorMap } from "../LocatorMap/LocatorMap";
 import { Sentence } from "../Sentence/Sentence";
 import { Skeleton } from "../Skeleton/Skeleton";
+import { Picture, Strip } from "../Strip/Strip";
+import stripStyles from "../Strip/Strip.module.css";
 import { Completeness, JourneyList, Missing, ScoreBreakdown } from "./parts";
 import styles from "./ResultList.module.css";
 import { isGivenUp, legOf } from "./tradeoff";
 
-/** How many reasons a card keeps room for. */
+/** How many reasons the API writes for a result, at most. The first is in the short form. */
 const REASONS = 3;
 
 interface Shared {
@@ -49,36 +55,40 @@ interface Shared {
   readonly onEdit: (operations: Operations) => void;
 }
 
-function Heading({ area, summary, noFit, id }: Pick<Shared, "area" | "summary" | "noFit"> & { id: string }) {
-  const fit = fitOf(area.score);
+interface HeadingProps extends Pick<Shared, "area" | "summary" | "noFit"> {
+  readonly id: string;
+  /** True on a row, which gives the rank, the name and the fit. The borough is in the table and on the area's page. */
+  readonly short?: boolean;
+}
+
+function Heading({ area, summary, noFit, id, short = false }: HeadingProps) {
   return (
     <header className={styles.heading}>
       <p className={styles.rank}>
         <span className="visually-hidden">{RESULTS.rank(area.rank)}</span>
         <span aria-hidden="true">{area.rank}</span>
       </p>
-      <div className={styles.names}>
-        <h3 id={id} className={styles.name}>
+      <h3 id={id} className={styles.name}>
+        {/* One press from the name of a result to the page of its area. The page is fetched
+            when the link is pressed, and not before: which areas a search led to is not told
+            to anyone by fetching their pages ahead of time. */}
+        <Link className={`${styles.toArea} target-min`} href={paths.area(summary)} prefetch={false}>
           {summary.name}
-        </h3>
-        <p className={styles.borough}>{summary.borough}</p>
-      </div>
+        </Link>
+      </h3>
+      {/* A name that begins with its borough says it already. */}
+      {short || saysItsBorough(summary) ? null : <p className={styles.borough}>{summary.borough}</p>}
       {noFit ? null : (
-        <div className={styles.fit}>
-          <p>
-            <span className={styles.fitLabel}>{RESULTS.fit} </span>
-            <span className={styles.fitFigure}>{RESULTS.fitOf(fit)}</span>
-          </p>
-          {/* The bar repeats the figure beside it, so it is kept from a screen reader. */}
-          <div className={styles.meter} aria-hidden="true">
-            <span style={{ width: `${fit}%` }} />
-          </div>
-        </div>
+        <p className={styles.fit}>
+          <span className={styles.fitLabel}>{RESULTS.fit} </span>
+          <span className={styles.fitFigure}>{RESULTS.fitOf(fitOf(area.score))}</span>
+        </p>
       )}
     </header>
   );
 }
 
+/** What is one press away, inside the working: the area's page, the map, and hiding the area. */
 function Actions({ summary, onSelect, onEdit }: Pick<Shared, "summary" | "onSelect" | "onEdit">) {
   return (
     <ul className={styles.actions} aria-label={RESULTS.actions}>
@@ -88,10 +98,6 @@ function Actions({ summary, onSelect, onEdit }: Pick<Shared, "summary" | "onSele
         <Link className={`${styles.action} target`} href={paths.area(summary)} prefetch={false}>
           {RESULTS.openArea(summary.name)}
         </Link>
-      </li>
-      <li>
-        {/* The tray is above the results, which may be a long way up from this card. */}
-        <CompareButton area={summary} far />
       </li>
       <li>
         <button type="button" className="target" onClick={() => onSelect(summary.area_id)}>
@@ -107,6 +113,42 @@ function Actions({ summary, onSelect, onEdit }: Pick<Shared, "summary" | "onSele
   );
 }
 
+interface WayOnProps extends Pick<Shared, "summary"> {
+  /** The full working of the result, which "Show the working" opens in place. */
+  readonly children: ReactNode;
+}
+
+/**
+ * The three things a result leads to, in one row: its full working, which
+ * opens in place, the areas most like it, which are on its own page, and the
+ * comparison. The button that fills the comparison says beside itself what
+ * the tray would, and leads to the comparison.
+ */
+function WaysOn({ summary, children }: WayOnProps) {
+  return (
+    <div className={styles.waysOn}>
+      <Disclosure
+        label={RESULTS.showWorking}
+        name={RESULTS.workingOf(summary.name)}
+        size="small"
+        className={styles.working}
+      >
+        {children}
+      </Disclosure>
+      {/* Which page a person reads next is told to no server ahead of time. */}
+      <Link
+        className={`${styles.way} target-min`}
+        href={paths.area(summary, "alike")}
+        aria-label={RESULTS.moreLikeOf(summary.name)}
+        prefetch={false}
+      >
+        {RESULTS.moreLike}
+      </Link>
+      <CompareButton area={summary} small />
+    </div>
+  );
+}
+
 interface CardProps extends Shared {
   /** The reasons for this area, where the API gave any. */
   readonly explanation?: Explanation;
@@ -117,14 +159,49 @@ interface CardProps extends Shared {
   /** The area's profile, once it is in. */
   readonly detail?: AreaData;
   readonly detailFailed?: boolean;
-  readonly outlines: readonly Outline[];
+  /** The boundary of every area, once it has come. The working draws where the area is from it. */
+  readonly geometry: GeometryData | null;
   /** The scale the cost of every card of the list is drawn on. */
   readonly scale?: Scale | null;
-  /** The release and the engine behind the card. */
-  readonly served: Pick<Meta, "release_id" | "engine_version">;
 }
 
-interface TradeOffProps extends Pick<Shared, "area" | "summary" | "facts" | "spec"> {
+/**
+ * The mark of the strip that a sentence is about: the one whose fact the sentence cites.
+ * It is drawn beside its sentence, and not a second time in the strip above it.
+ */
+function markOf(area: RankedArea, sentence: ExplainedSentence | null | undefined): StripMark | undefined {
+  if (sentence === null || sentence === undefined) return undefined;
+  return area.strip.find((mark) => sentence.fact_ids.includes(mark.fact_id));
+}
+
+/** The trade-off as the card shows it: the API's, where the ranking says the area does that thing badly. */
+function tradeOffOf(
+  area: RankedArea,
+  explanation: Explanation | undefined,
+  spec: PreferenceSpec,
+  meta: MetaData,
+): ExplainedSentence | null {
+  const given = explanation?.trade_off ?? null;
+  return given !== null && isGivenUp(area, given, spec.commutes, meta.limits.trade_off_max_utility) ? given : null;
+}
+
+interface BesideProps {
+  readonly mark: StripMark | undefined;
+  readonly meta: MetaData;
+}
+
+/** The picture of the vibe a sentence is about, on the line of the sentence and before it. */
+function Beside({ mark, meta }: BesideProps) {
+  const tag = mark === undefined ? undefined : meta.tags.find((one) => one.tag_id === mark.tag_id);
+  if (mark === undefined || tag === undefined) return null;
+  return (
+    <span className={stripStyles.beside}>
+      <Picture mark={mark} tag={tag} />
+    </span>
+  );
+}
+
+interface TradeOffProps extends Pick<Shared, "area" | "summary" | "facts" | "spec" | "meta"> {
   readonly explanation?: Explanation;
   readonly waiting: boolean;
 }
@@ -135,26 +212,30 @@ interface TradeOffProps extends Pick<Shared, "area" | "summary" | "facts" | "spe
  * does that thing badly, so that a strength is never put under the word.
  * With none to show, the card says that none was found.
  *
- * A sentence about a journey gives the minutes and not the limit the person
- * set. The card holds both, and says beside the sentence which way it falls,
- * in the words the table of journeys uses.
+ * Beside a sentence about a journey the card says which way it falls against
+ * the limit the person set, in the words the table of journeys uses.
  */
-function TradeOff({ area, summary, explanation, facts, spec, waiting }: TradeOffProps) {
-  const given = explanation?.trade_off ?? null;
-  const sentence = given !== null && isGivenUp(area, given, spec.commutes) ? given : null;
+function TradeOff({ area, summary, explanation, facts, spec, meta, waiting }: TradeOffProps) {
+  const sentence = tradeOffOf(area, explanation, spec, meta);
   const leg = sentence === null ? null : legOf(area, sentence);
   const commute = leg === null ? undefined : spec.commutes.find((one) => one.place_id === leg.place_id);
   const within = leg === null ? null : withinLimit(leg, commute);
   return (
-    <div className={styles.part}>
-      <h4 className={styles.tradeOff}>
-        <span className={styles.tradeOffMark} aria-hidden="true" />
-        {RESULTS.tradeOffTitle}
-      </h4>
+    <div className={`${styles.part} ${styles.runIn}`}>
+      {/* The mark warns of something. Where no trade-off was found there is nothing to warn of. */}
+      {explanation && sentence === null ? (
+        <h4>{RESULTS.tradeOffTitle}</h4>
+      ) : (
+        <h4 className={styles.tradeOff}>
+          <span className={styles.tradeOffMark} aria-hidden="true" />
+          {RESULTS.tradeOffTitle}
+        </h4>
+      )}
       {explanation ? (
         sentence !== null ? (
           <>
-            <Sentence sentence={sentence} facts={facts} of={`${summary.name}, ${RESULTS.tradeOffTitle}`} />
+            <Beside mark={markOf(area, sentence)} meta={meta} />
+            <Sentence sentence={sentence} facts={facts} of={`${summary.name}, ${RESULTS.tradeOffTitle}`} meta={meta} />
             {commute !== undefined && within !== null ? (
               <p className={within ? styles.within : styles.over}>
                 {within
@@ -174,13 +255,14 @@ function TradeOff({ area, summary, explanation, facts, spec, waiting }: TradeOff
 }
 
 /**
- * One of the first five results, in full: how complete the data is, where
- * the area is, three reasons, one trade-off, what has no figure, each
- * journey, the cost, and how the fit is worked out. Every sentence is the
- * API's, and every line ends in its source.
+ * One of the first five results. Its short form is the answer: rank, name and
+ * borough, the fit and how much of what counts it rests on, where the area
+ * sits on the vibes, one reason and the trade-off. Everything else is the
+ * working, one press away: where the area is, the other reasons, what has no
+ * figure, each journey, the cost, and how the fit is worked out.
  *
- * Each part has its size before it has its content, so text that comes late
- * moves nothing.
+ * Every sentence is the API's, and every line ends in its source. Opening
+ * one result closes no other.
  */
 export function ResultCard({
   area,
@@ -195,9 +277,8 @@ export function ResultCard({
   meta,
   names,
   noFit,
-  outlines,
+  geometry,
   scale = null,
-  served,
   selected,
   onSelect,
   onHover,
@@ -209,6 +290,13 @@ export function ResultCard({
   const waitingForDetail = detail === undefined && !detailFailed;
   const waitingForReasons = !explained && !explainFailed;
   const { area_id: areaId } = area;
+  const [reason, ...others] = explanation?.reasons.slice(0, REASONS) ?? [];
+  // A vibe that is the reason, or the trade-off, is drawn beside its sentence. The strip
+  // holds the rest: the same vibe twice, one directly under the other, said nothing more.
+  const beside = [markOf(area, reason), markOf(area, tradeOffOf(area, explanation, spec, meta))].filter(
+    (mark): mark is StripMark => mark !== undefined,
+  );
+  const inStrip = area.strip.filter((mark) => !beside.includes(mark));
 
   return (
     <li
@@ -226,45 +314,33 @@ export function ResultCard({
         // It can be given the focus by "Show in the list", and is no stop of its own.
         tabIndex={-1}
       >
-        <Heading area={area} summary={summary} noFit={noFit} id={`${id}-name`} />
-        {/* Directly under the fit, as on a row: it says how far the fit is to be trusted. */}
-        <Completeness area={area} commutes={spec.commutes} />
-
-        <div className={styles.part}>
-          <h4>{RESULTS.whereTitle}</h4>
-          <div className={styles.where}>
-            <div className={styles.whereWords}>
-              {explanation ? (
-                <Sentence sentence={explanation.orientation} facts={facts} of={summary.name} />
-              ) : waitingForReasons ? (
-                <Skeleton />
-              ) : null}
-              {station ? <FactRow fact={station} /> : waitingForDetail ? <Skeleton /> : null}
-            </div>
-            <LocatorMap outlines={outlines} areaId={areaId} name={summary.name} />
-          </div>
+        {/* Directly after the fit, on its line where there is room: it says how far the fit is to be trusted. */}
+        <div className={styles.top}>
+          <Heading area={area} summary={summary} noFit={noFit} id={`${id}-name`} />
+          <Completeness area={area} meta={meta} spec={spec} />
         </div>
+        <Strip
+          marks={inStrip}
+          tags={meta.tags}
+          facts={facts}
+          of={summary.name}
+          also={beside.some((mark) => mark.asked)}
+        />
 
-        <div className={styles.part}>
+        <div className={`${styles.part} ${styles.runIn}`}>
           <h4>{RESULTS.reasonsTitle}</h4>
-          {/* Room for three is kept whether there are three or not. */}
-          <div className={styles.reasons}>
-            {explanation ? (
-              explanation.reasons.length > 0 ? (
-                <ol>
-                  {explanation.reasons.slice(0, REASONS).map((reason, at) => (
-                    <li key={reason.fact_ids.join(" ")}>
-                      <Sentence sentence={reason} facts={facts} of={`${summary.name}, ${at + 1}`} />
-                    </li>
-                  ))}
-                </ol>
-              ) : (
-                <p>{RESULTS.noReasons}</p>
-              )
-            ) : waitingForReasons ? (
-              <Skeleton lines={REASONS} />
-            ) : null}
-          </div>
+          {explanation ? (
+            reason !== undefined ? (
+              <>
+                <Beside mark={markOf(area, reason)} meta={meta} />
+                <Sentence sentence={reason} facts={facts} of={`${summary.name}, 1`} meta={meta} />
+              </>
+            ) : (
+              <p>{RESULTS.noReasons}</p>
+            )
+          ) : waitingForReasons ? (
+            <Skeleton />
+          ) : null}
           {explainFailed && !explanation ? <p className={styles.failed}>{RESULTS.reasonsFailed}</p> : null}
         </div>
 
@@ -274,58 +350,83 @@ export function ResultCard({
           explanation={explanation}
           facts={facts}
           spec={spec}
+          meta={meta}
           waiting={waitingForReasons}
         />
 
-        <Missing area={area} missing={explanation?.missing} waiting={waitingForReasons} facts={facts} />
+        <WaysOn summary={summary}>
+          <div className={styles.opened}>
+            <div className={styles.part}>
+              <h4>{RESULTS.whereTitle}</h4>
+              <div className={styles.where}>
+                <div className={styles.whereWords}>
+                  {explanation ? (
+                    <Sentence sentence={explanation.orientation} facts={facts} of={summary.name} />
+                  ) : waitingForReasons ? (
+                    <Skeleton />
+                  ) : null}
+                  {station ? <FactRow fact={station} /> : waitingForDetail ? <Skeleton /> : null}
+                </div>
+                <LocatorMap geometry={geometry} areaId={areaId} name={summary.name} />
+              </div>
+            </div>
 
-        {area.legs.length > 0 ? (
-          <div className={styles.part}>
-            <h4>{JOURNEYS.title}</h4>
-            <JourneyList
-              area={area}
-              commutes={spec.commutes}
-              combine={spec.commute_combine}
-              cutoffs={meta.limits.cutoff_minutes}
-              names={names}
-              facts={facts}
-            />
+            {others.length > 0 ? (
+              <div className={styles.part}>
+                <h4>{RESULTS.moreReasons}</h4>
+                <ol className={styles.reasons} start={2}>
+                  {others.map((other, at) => (
+                    <li key={other.fact_ids.join(" ")}>
+                      <Sentence sentence={other} facts={facts} of={`${summary.name}, ${at + 2}`} meta={meta} />
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            ) : null}
+
+            <Missing area={area} missing={explanation?.missing} waiting={waitingForReasons} facts={facts} />
+
+            {area.legs.length > 0 ? (
+              <div className={styles.part}>
+                <h4>{JOURNEYS.title}</h4>
+                <JourneyList
+                  area={area}
+                  commutes={spec.commutes}
+                  combine={spec.commute_combine}
+                  cutoffs={meta.limits.cutoff_minutes}
+                  names={names}
+                  facts={facts}
+                />
+              </div>
+            ) : null}
+
+            <div className={styles.part}>
+              <h4>{COST.title}</h4>
+              {cost ? (
+                <CostRange fact={cost.fact} estimate={cost.estimate} budget={spec.budget} scale={scale} />
+              ) : waitingForDetail ? (
+                <Skeleton lines={2} />
+              ) : detailFailed ? (
+                <p className={styles.failed}>{RESULTS.detailsFailed}</p>
+              ) : (
+                <p>{COST.none}</p>
+              )}
+            </div>
+
+            <ScoreBreakdown area={area} meta={meta} name={summary.name} facts={facts} />
+            <Actions summary={summary} onSelect={onSelect} onEdit={onEdit} />
           </div>
-        ) : null}
-
-        <div className={styles.part}>
-          <h4>{COST.title}</h4>
-          {cost ? (
-            <CostRange fact={cost.fact} estimate={cost.estimate} budget={spec.budget} scale={scale} />
-          ) : waitingForDetail ? (
-            <Skeleton lines={2} />
-          ) : detailFailed ? (
-            <p className={styles.failed}>{RESULTS.detailsFailed}</p>
-          ) : (
-            <p>{COST.none}</p>
-          )}
-        </div>
-
-        <ScoreBreakdown area={area} meta={meta} name={summary.name} facts={facts} />
-        <Actions summary={summary} onSelect={onSelect} onEdit={onEdit} />
-
-        <footer className={styles.foot}>
-          <span>
-            {RESULTS.foot.release} <code>{served.release_id}</code>
-          </span>
-          <span>
-            {RESULTS.foot.engine} <code>{served.engine_version}</code>
-          </span>
-        </footer>
+        </WaysOn>
       </article>
     </li>
   );
 }
 
 /**
- * One of results 6 to 20: rank, name, borough, fit and how complete, opening
- * to the journeys and to how the fit is worked out. The API writes reasons
- * for the first five only, so a row has none.
+ * One of results 6 to 20, in one line: rank, name, fit, how much of what
+ * counts the fit rests on, and the strip. The API writes reasons for the
+ * first five only, so a row has none. Its working is one press away: the
+ * journeys, and how the fit is worked out.
  */
 export function ResultRow({
   area,
@@ -358,22 +459,28 @@ export function ResultRow({
         // It can be given the focus by "Show in the list", and is no stop of its own.
         tabIndex={-1}
       >
-        <Heading area={area} summary={summary} noFit={noFit} id={`${id}-name`} />
-        <Completeness area={area} commutes={spec.commutes} />
-        <Disclosure label={RESULTS.more} name={`${RESULTS.more}: ${summary.name}`}>
-          <div className={styles.more}>
-            <JourneyList
-              area={area}
-              commutes={spec.commutes}
-              combine={spec.commute_combine}
-              cutoffs={meta.limits.cutoff_minutes}
-              names={names}
-              facts={facts}
-            />
+        <Heading area={area} summary={summary} noFit={noFit} id={`${id}-name`} short />
+        <Completeness area={area} meta={meta} spec={spec} />
+        <Strip marks={area.strip} tags={meta.tags} facts={facts} of={summary.name} />
+        <WaysOn summary={summary}>
+          <div className={styles.opened}>
+            {area.legs.length > 0 ? (
+              <div className={styles.part}>
+                <h4>{JOURNEYS.title}</h4>
+                <JourneyList
+                  area={area}
+                  commutes={spec.commutes}
+                  combine={spec.commute_combine}
+                  cutoffs={meta.limits.cutoff_minutes}
+                  names={names}
+                  facts={facts}
+                />
+              </div>
+            ) : null}
             <ScoreBreakdown area={area} meta={meta} name={summary.name} facts={facts} />
             <Actions summary={summary} onSelect={onSelect} onEdit={onEdit} />
           </div>
-        </Disclosure>
+        </WaysOn>
       </article>
     </li>
   );

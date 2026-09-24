@@ -91,6 +91,7 @@ describe("the recorded answers", () => {
       "interpret-notice",
       "interpret-nothing-read",
       "interpret-degraded",
+      "interpret-refused",
       "interpret-rejected",
       "interpret-unmet",
       "rank-first",

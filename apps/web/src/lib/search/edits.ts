@@ -27,6 +27,7 @@ import type {
   TagEdit,
   TagId,
   Tenure,
+  Toward,
   WeightEdit,
 } from "@/lib/api/schema";
 
@@ -74,6 +75,8 @@ const TAG: Omit<TagEdit, "tag_id"> = {
   action: "set",
   value: 0,
   step: "none",
+  // Which end is asked for is left as it is unless the edit says: the high end for a vibe not yet asked for.
+  toward: "default",
   provenance: BY_A_CONTROL,
 };
 
@@ -155,8 +158,11 @@ export const edits = {
     weight(featureId, { value, direction }),
   featureOff: (featureId: FeatureId) => weight(featureId, { action: "remove" }),
 
-  tagOn: (tagId: TagId) => tag(tagId, { action: "nudge", step: "up_large" }),
-  tagWeight: (tagId: TagId, value: number) => tag(tagId, { value }),
+  /** A vibe added is worth what a word is: a large step, towards the end asked for. */
+  tagOn: (tagId: TagId, toward: Toward = "high") => tag(tagId, { action: "nudge", step: "up_large", toward }),
+  /** How much a vibe counts. Which end is asked for is left as it is, unless one is given. */
+  tagWeight: (tagId: TagId, value: number, toward: Toward | "default" = "default") =>
+    tag(tagId, { value, toward }),
   tagOff: (tagId: TagId) => tag(tagId, { action: "remove" }),
 
   areaHide: (areaId: string) => area(areaId, "exclude"),
@@ -272,7 +278,8 @@ export function saidBy(operations: Operations, group: OpsGroup, index: number): 
     case "tag_ops": {
       const edit = operations.tag_ops[index];
       if (!edit) return [];
-      return [{ key: `tag:${edit.tag_id}`, states: edit.provenance === "inferred" ? [] : ["weight"] }];
+      // A vibe a person set is theirs: it is no longer what a word with two meanings was read as.
+      return [{ key: `tag:${edit.tag_id}`, states: edit.provenance === "inferred" ? [] : ["weight", "word"] }];
     }
     case "area_ops": {
       const edit = operations.area_ops[index];

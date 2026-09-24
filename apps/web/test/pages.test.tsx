@@ -12,9 +12,11 @@ import NotFound, { metadata as notFoundMetadata } from "@/app/not-found";
 import HomePage, { metadata as homeMetadata } from "@/app/page";
 import SharedPage from "@/app/s/page";
 import SourcesPage from "@/app/sources/page";
+import VibesPage from "@/app/vibes/page";
 import { Shell } from "@/components/Shell/Shell";
 import { ACCESSIBILITY } from "@/content/accessibility";
 import { BANNER, FAULT, NOT_FOUND, SITE } from "@/content/site";
+import { VIBES } from "@/content/vibes";
 import { recordedAnswer } from "@/lib/api/recorded";
 import { forgetSynthetic, noteSynthetic, syntheticSeen } from "@/lib/api/synthetic";
 
@@ -31,6 +33,7 @@ const PAGES: readonly (readonly [string, () => ReactElement | Promise<ReactEleme
   // With no address set for the API the browser's client sends nothing, so these are as they are built.
   ["a comparison", () => ComparePage({ searchParams: Promise.resolve({ a: ["alderwick", "pellam-cross"] }) })],
   ["the page a shared link opens", SharedPage],
+  ["the vibes", VibesPage],
   ["methods", MethodsPage],
   ["data sources", SourcesPage],
   ["the accessibility statement", AccessibilityPage],
@@ -142,16 +145,23 @@ describe.each(PAGES)("%s", (_, page) => {
 });
 
 describe("the pages built from the API", () => {
-  test("test_the_methods_page_holds_every_feature_and_tag_of_the_release", async () => {
+  test("test_the_methods_page_holds_every_feature_of_the_release", async () => {
     await show(MethodsPage);
 
     for (const metric of data.features) {
       expect(screen.getByRole("heading", { name: metric.label })).toBeInTheDocument();
     }
+    expect(data.features).toHaveLength(43);
+  });
+
+  test("test_the_vibes_page_holds_every_vibe_of_the_release_with_its_recipe", async () => {
+    await show(VibesPage);
+
     for (const tag of data.tags) {
-      expect(screen.getByRole("table", { name: tag.label })).toBeInTheDocument();
+      expect(screen.getByRole("heading", { level: 2, name: tag.label })).toBeInTheDocument();
+      expect(screen.getByRole("table", { name: VIBES.recipe.caption(tag.label) })).toBeInTheDocument();
     }
-    expect(data.features).toHaveLength(23);
+    expect(data.tags).toHaveLength(11);
   });
 
   test("test_the_sources_page_holds_every_source_of_the_release", async () => {
@@ -206,8 +216,15 @@ describe("the accessibility statement", () => {
     expect(screen.getByRole("heading", { name: ACCESSIBILITY.short.title })).toBeInTheDocument();
     for (const fault of ACCESSIBILITY.short.points) expect(screen.getByText(fault)).toBeInTheDocument();
     expect(ACCESSIBILITY.short.points.join(" ")).toMatch(/language/);
-    // The table of every area is not yet stacked on a narrow screen, as the other tables are.
-    expect(ACCESSIBILITY.short.points.join(" ")).toMatch(/table of every area/);
+    // The table of every area is stacked on a narrow screen now, as the other tables are, so the
+    // statement no longer says that it is not. It says that nobody has seen it on a phone.
+    expect(ACCESSIBILITY.short.points.join(" ")).not.toMatch(/table of every area/);
+    expect(ACCESSIBILITY.built.points.join(" ")).toMatch(/each area of the table is a block/);
+    expect(ACCESSIBILITY.notTested.points.join(" ")).toMatch(/table of every area on a narrow screen/);
+    // Nor do the chips stand on one line that scrolls sideways.
+    expect(ACCESSIBILITY.short.points.join(" ")).not.toMatch(/scroll sideways/);
+    // What a phone does not draw, so that the answer comes first, is said as a shortfall.
+    expect(ACCESSIBILITY.short.points.join(" ")).toMatch(/kept for a screen reader and are not drawn/);
     // The scale of a slider is drawn now, so the statement no longer says that it is not.
     expect(ACCESSIBILITY.short.points.join(" ")).not.toMatch(/scale of a slider/);
     expect(ACCESSIBILITY.built.points.join(" ")).toMatch(/0 and 100 mean/);

@@ -52,8 +52,17 @@ describe("whether a search engine may index the website", () => {
   ])("test_only_real_data_at_a_known_address_may_be_indexed: synthetic %s at %s", (synthetic, address, may) => {
     if (address !== undefined) process.env.BURRO_SITE_URL = address;
 
-    expect(mayBeIndexed({ synthetic })).toBe(may);
+    expect(mayBeIndexed({ synthetic, preview: false })).toBe(may);
   });
+
+  test.each([true, false])(
+    "test_a_preview_is_never_indexed_whether_its_data_is_real_or_made_up: synthetic %s",
+    (synthetic) => {
+      process.env.BURRO_SITE_URL = "https://burro.example";
+
+      expect(mayBeIndexed({ synthetic, preview: true })).toBe(false);
+    },
+  );
 
   test("test_keeping_out_means_neither_indexing_nor_following", () => {
     expect(KEEP_OUT).toEqual({ index: false, follow: false });

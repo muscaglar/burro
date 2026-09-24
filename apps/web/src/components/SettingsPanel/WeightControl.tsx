@@ -2,15 +2,7 @@
 
 import { DIRECTION, POLARITY } from "@/content/labels";
 import { FEATURES } from "@/content/settings";
-import type {
-  Direction,
-  FeatureWeight,
-  Metric,
-  Operations,
-  ServedLimits,
-  Tag,
-  TagWeight,
-} from "@/lib/api/schema";
+import type { Direction, FeatureWeight, Metric, Operations, ServedLimits } from "@/lib/api/schema";
 import { counts } from "@/lib/search/counts";
 import { useDraft } from "@/lib/search/draft";
 import { edits } from "@/lib/search/edits";
@@ -42,8 +34,9 @@ interface WeightProps extends Shared {
 /**
  * One feature: a switch that says whether it counts, and, while it does, how
  * much. Where more or fewer can be the better, which one. Its name is the
- * API's own label for it, which names a measure and not a wish: so under the
- * switch the form says which way counts as better, in the words Methods uses.
+ * plain name the API gives it, which says the wish where there is one way to
+ * wish, and the measure where there are two. Under the switch the form says
+ * which way counts as better, in the words Methods uses.
  */
 export function WeightControl({
   metric,
@@ -54,7 +47,7 @@ export function WeightControl({
   problem = null,
   scale,
 }: WeightProps) {
-  const { feature_id: featureId, label } = metric;
+  const { feature_id: featureId, short_label: label } = metric;
   const [on, showOn] = useDraft(counts(weight), version);
   const [direction, showDirection] = useDraft(weight?.direction ?? "more", version);
   // The weight the person set since the last answer, which is on its way and not yet in the spec.
@@ -98,48 +91,6 @@ export function WeightControl({
               }}
             />
           ) : null}
-        </div>
-      ) : null}
-      {problem ? (
-        <p className={styles.problem} role="alert">
-          {problem}
-        </p>
-      ) : null}
-    </div>
-  );
-}
-
-interface TagProps extends Shared {
-  readonly tag: Tag;
-  readonly weight?: TagWeight;
-}
-
-/** One tag: a switch, and how much it counts while it is on. */
-export function TagControl({ tag, weight, limits, onEdit, version, problem = null, scale }: TagProps) {
-  const { tag_id: tagId, label } = tag;
-  const [on, showOn] = useDraft(counts(weight), version);
-
-  return (
-    <div className={styles.weight} role="group" aria-label={label}>
-      <Check
-        as="switch"
-        label={label}
-        checked={on}
-        onChange={(checked) => {
-          showOn(checked);
-          onEdit(checked ? edits.tagOn(tagId) : edits.tagOff(tagId));
-        }}
-      />
-      {weight !== undefined && counts(weight) && on ? (
-        <div className={styles.inner}>
-          <WeightSlider
-            label={FEATURES.weight(label)}
-            value={weight.weight}
-            limits={limits}
-            onCommit={(value) => onEdit(edits.tagWeight(tagId, value))}
-            version={version}
-            scale={scale}
-          />
         </div>
       ) : null}
       {problem ? (

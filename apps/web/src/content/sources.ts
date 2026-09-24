@@ -15,6 +15,11 @@ export const SOURCES = {
     usedFor: "Used for",
   },
   noLink: "None",
+  /**
+   * Under a credit that holds a gap the publisher's words leave to be filled, such as the
+   * year of the data. Nothing is written into it here: which year it is has a source too.
+   */
+  unfinished: "This credit is not finished. The year of the data has yet to be filled in.",
   notUsed: "No feature in this release",
   none: "This release names no source.",
 } as const;

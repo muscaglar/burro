@@ -1,0 +1,1498 @@
+{
+  "scenario": "preview/example-5",
+  "shows": "The same sentence ranked on a preview that can answer all of it",
+  "captured": true,
+  "request": {
+    "operation_id": "rank",
+    "method": "POST",
+    "route": "/v1/rank",
+    "path": "/v1/rank",
+    "body": {
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.3,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.5,
+            "direction": "less",
+            "provenance": "inferred"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.5,
+            "direction": "less",
+            "provenance": "stated"
+          }
+        ],
+        "tags": [],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "limit": 20
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "19518",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "true",
+    "x-burro-synthetic": "true",
+    "x-request-id": "552d8b8e-8634-4e60-a222-91e4e34321c2"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": true
+    },
+    "data": {
+      "scores": [
+        {
+          "area_id": "syn-n0008",
+          "score": 90.74,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0013",
+          "score": 89.83,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0002",
+          "score": 84.93,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0006",
+          "score": 70.88,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0005",
+          "score": 70.74,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0004",
+          "score": 65.36,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0007",
+          "score": 63.26,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0022",
+          "score": 62.4,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0014",
+          "score": 62.4,
+          "counted": 3,
+          "present": 2
+        },
+        {
+          "area_id": "syn-n0024",
+          "score": 59.45,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0019",
+          "score": 52.55,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0015",
+          "score": 48.69,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0023",
+          "score": 41.07,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0003",
+          "score": 39.17,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0016",
+          "score": 36.02,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0021",
+          "score": 18.55,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0010",
+          "score": 16.88,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0011",
+          "score": 16.74,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0012",
+          "score": 13.26,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0018",
+          "score": 2.45,
+          "counted": 3,
+          "present": 3
+        },
+        {
+          "area_id": "syn-n0001",
+          "score": 40.86,
+          "counted": 3,
+          "present": 2
+        }
+      ],
+      "ranked": [
+        {
+          "area_id": "syn-n0008",
+          "rank": 1,
+          "score": 90.74,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.975,
+              "contribution": 0.4643,
+              "loss": 0.0119,
+              "fact_ids": [
+                "syn-n0008/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.833,
+              "contribution": 0.3967,
+              "loss": 0.0795,
+              "fact_ids": [
+                "syn-n0008/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.975,
+              "contribution": 0.0464,
+              "loss": 0.0012,
+              "fact_ids": [
+                "syn-n0008/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "homes",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0008/tag/homes"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0008/tag/quiet_residential"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0013",
+          "rank": 2,
+          "score": 89.83,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.929,
+              "contribution": 0.4424,
+              "loss": 0.0338,
+              "fact_ids": [
+                "syn-n0013/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.875,
+              "contribution": 0.4167,
+              "loss": 0.0595,
+              "fact_ids": [
+                "syn-n0013/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.825,
+              "contribution": 0.0393,
+              "loss": 0.0083,
+              "fact_ids": [
+                "syn-n0013/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "parks_close_by",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0013/tag/parks_close_by"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0013/tag/quiet_residential"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0002",
+          "rank": 3,
+          "score": 84.93,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.881,
+              "contribution": 0.4195,
+              "loss": 0.0567,
+              "fact_ids": [
+                "syn-n0002/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.825,
+              "contribution": 0.3929,
+              "loss": 0.0833,
+              "fact_ids": [
+                "syn-n0002/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.775,
+              "contribution": 0.0369,
+              "loss": 0.0107,
+              "fact_ids": [
+                "syn-n0002/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "parks_close_by",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0002/tag/parks_close_by"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0006",
+          "rank": 4,
+          "score": 70.88,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.925,
+              "contribution": 0.4405,
+              "loss": 0.0357,
+              "fact_ids": [
+                "syn-n0006/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.476,
+              "contribution": 0.2267,
+              "loss": 0.2495,
+              "fact_ids": [
+                "syn-n0006/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.875,
+              "contribution": 0.0417,
+              "loss": 0.006,
+              "fact_ids": [
+                "syn-n0006/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "homes",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0006/tag/homes"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0005",
+          "rank": 5,
+          "score": 70.74,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.775,
+              "contribution": 0.369,
+              "loss": 0.1071,
+              "fact_ids": [
+                "syn-n0005/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.643,
+              "contribution": 0.3062,
+              "loss": 0.17,
+              "fact_ids": [
+                "syn-n0005/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.675,
+              "contribution": 0.0321,
+              "loss": 0.0155,
+              "fact_ids": [
+                "syn-n0005/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "homes",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0005/tag/homes"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0005/tag/quiet_residential"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0004",
+          "rank": 6,
+          "score": 65.36,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.69,
+              "contribution": 0.3286,
+              "loss": 0.1476,
+              "fact_ids": [
+                "syn-n0004/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.625,
+              "contribution": 0.2976,
+              "loss": 0.1786,
+              "fact_ids": [
+                "syn-n0004/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.575,
+              "contribution": 0.0274,
+              "loss": 0.0202,
+              "fact_ids": [
+                "syn-n0004/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "parks_close_by",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0004/tag/parks_close_by"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0007",
+          "rank": 7,
+          "score": 63.26,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.976,
+              "contribution": 0.4648,
+              "loss": 0.0114,
+              "fact_ids": [
+                "syn-n0007/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.325,
+              "contribution": 0.1548,
+              "loss": 0.3214,
+              "fact_ids": [
+                "syn-n0007/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.275,
+              "contribution": 0.0131,
+              "loss": 0.0345,
+              "fact_ids": [
+                "syn-n0007/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "parks_close_by",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0007/tag/parks_close_by"
+            },
+            {
+              "tag_id": "homes",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0007/tag/homes"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0022",
+          "rank": 8,
+          "score": 62.4,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.738,
+              "contribution": 0.3514,
+              "loss": 0.1248,
+              "fact_ids": [
+                "syn-n0022/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.525,
+              "contribution": 0.25,
+              "loss": 0.2262,
+              "fact_ids": [
+                "syn-n0022/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.475,
+              "contribution": 0.0226,
+              "loss": 0.025,
+              "fact_ids": [
+                "syn-n0022/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "homes",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0022/tag/homes"
+            },
+            {
+              "tag_id": "parks_close_by",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0022/tag/parks_close_by"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0014",
+          "rank": 9,
+          "score": 62.4,
+          "weight_coverage": 0.9524,
+          "contributions": [
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.5,
+              "utility": 0.7,
+              "contribution": 0.35,
+              "loss": 0.15,
+              "fact_ids": [
+                "syn-n0014/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.5,
+              "utility": 0.548,
+              "contribution": 0.274,
+              "loss": 0.226,
+              "fact_ids": [
+                "syn-n0014/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": false,
+              "weight": 0.05,
+              "share": 0.0,
+              "utility": null,
+              "contribution": 0.0,
+              "loss": 0.0,
+              "fact_ids": [
+                "syn-n0014/missing/feature:noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "homes",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0014/tag/homes"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0024",
+          "rank": 10,
+          "score": 59.45,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.7,
+              "contribution": 0.3333,
+              "loss": 0.1429,
+              "fact_ids": [
+                "syn-n0024/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.476,
+              "contribution": 0.2267,
+              "loss": 0.2495,
+              "fact_ids": [
+                "syn-n0024/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.725,
+              "contribution": 0.0345,
+              "loss": 0.0131,
+              "fact_ids": [
+                "syn-n0024/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "homes",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0024/tag/homes"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0024/tag/quiet_residential"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0019",
+          "rank": 11,
+          "score": 52.55,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.786,
+              "contribution": 0.3743,
+              "loss": 0.1019,
+              "fact_ids": [
+                "syn-n0019/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.275,
+              "contribution": 0.131,
+              "loss": 0.3452,
+              "fact_ids": [
+                "syn-n0019/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.425,
+              "contribution": 0.0202,
+              "loss": 0.0274,
+              "fact_ids": [
+                "syn-n0019/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "parks_close_by",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0019/tag/parks_close_by"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0019/tag/quiet_residential"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0015",
+          "rank": 12,
+          "score": 48.69,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.595,
+              "contribution": 0.2833,
+              "loss": 0.1929,
+              "fact_ids": [
+                "syn-n0015/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.375,
+              "contribution": 0.1786,
+              "loss": 0.2976,
+              "fact_ids": [
+                "syn-n0015/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.525,
+              "contribution": 0.025,
+              "loss": 0.0226,
+              "fact_ids": [
+                "syn-n0015/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "homes",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0015/tag/homes"
+            },
+            {
+              "tag_id": "parks_close_by",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0015/tag/parks_close_by"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0023",
+          "rank": 13,
+          "score": 41.07,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.425,
+              "contribution": 0.2024,
+              "loss": 0.2738,
+              "fact_ids": [
+                "syn-n0023/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.405,
+              "contribution": 0.1929,
+              "loss": 0.2833,
+              "fact_ids": [
+                "syn-n0023/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.325,
+              "contribution": 0.0155,
+              "loss": 0.0321,
+              "fact_ids": [
+                "syn-n0023/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "homes",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0023/tag/homes"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0023/tag/quiet_residential"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0003",
+          "rank": 14,
+          "score": 39.17,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.475,
+              "contribution": 0.2262,
+              "loss": 0.25,
+              "fact_ids": [
+                "syn-n0003/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.31,
+              "contribution": 0.1476,
+              "loss": 0.3286,
+              "fact_ids": [
+                "syn-n0003/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.375,
+              "contribution": 0.0179,
+              "loss": 0.0298,
+              "fact_ids": [
+                "syn-n0003/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "homes",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0003/tag/homes"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0016",
+          "rank": 15,
+          "score": 36.02,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.575,
+              "contribution": 0.2738,
+              "loss": 0.2024,
+              "fact_ids": [
+                "syn-n0016/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.119,
+              "contribution": 0.0567,
+              "loss": 0.4195,
+              "fact_ids": [
+                "syn-n0016/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.625,
+              "contribution": 0.0298,
+              "loss": 0.0179,
+              "fact_ids": [
+                "syn-n0016/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": []
+        },
+        {
+          "area_id": "syn-n0021",
+          "rank": 16,
+          "score": 18.55,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.2,
+              "contribution": 0.0952,
+              "loss": 0.381,
+              "fact_ids": [
+                "syn-n0021/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.167,
+              "contribution": 0.0795,
+              "loss": 0.3967,
+              "fact_ids": [
+                "syn-n0021/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.225,
+              "contribution": 0.0107,
+              "loss": 0.0369,
+              "fact_ids": [
+                "syn-n0021/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "quiet_residential",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0021/tag/quiet_residential"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0010",
+          "rank": 17,
+          "score": 16.88,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.262,
+              "contribution": 0.1248,
+              "loss": 0.3514,
+              "fact_ids": [
+                "syn-n0010/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.075,
+              "contribution": 0.0357,
+              "loss": 0.4405,
+              "fact_ids": [
+                "syn-n0010/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.175,
+              "contribution": 0.0083,
+              "loss": 0.0393,
+              "fact_ids": [
+                "syn-n0010/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "homes",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0010/tag/homes"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0011",
+          "rank": 18,
+          "score": 16.74,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.214,
+              "contribution": 0.1019,
+              "loss": 0.3743,
+              "fact_ids": [
+                "syn-n0011/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.125,
+              "contribution": 0.0595,
+              "loss": 0.4167,
+              "fact_ids": [
+                "syn-n0011/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.125,
+              "contribution": 0.006,
+              "loss": 0.0417,
+              "fact_ids": [
+                "syn-n0011/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": []
+        },
+        {
+          "area_id": "syn-n0012",
+          "rank": 19,
+          "score": 13.26,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.2,
+              "contribution": 0.0952,
+              "loss": 0.381,
+              "fact_ids": [
+                "syn-n0012/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.071,
+              "contribution": 0.0338,
+              "loss": 0.4424,
+              "fact_ids": [
+                "syn-n0012/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.075,
+              "contribution": 0.0036,
+              "loss": 0.044,
+              "fact_ids": [
+                "syn-n0012/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "homes",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0012/tag/homes"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0018",
+          "rank": 20,
+          "score": 2.45,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.025,
+              "contribution": 0.0119,
+              "loss": 0.4643,
+              "fact_ids": [
+                "syn-n0018/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.4762,
+              "utility": 0.024,
+              "contribution": 0.0114,
+              "loss": 0.4648,
+              "fact_ids": [
+                "syn-n0018/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0476,
+              "utility": 0.025,
+              "contribution": 0.0012,
+              "loss": 0.0464,
+              "fact_ids": [
+                "syn-n0018/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "homes",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0018/tag/homes"
+            }
+          ]
+        }
+      ],
+      "areas_ranked": 21,
+      "areas_listed": 20,
+      "filtered": [],
+      "unranked": [
+        {
+          "area_id": "syn-n0009",
+          "reason": "not_rankable",
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0017",
+          "reason": "insufficient_data",
+          "missing": [
+            "feature:air_no2",
+            "feature:noise_exposure",
+            "feature:park_proximity"
+          ]
+        },
+        {
+          "area_id": "syn-n0020",
+          "reason": "not_rankable",
+          "missing": []
+        }
+      ],
+      "empty_spec": false,
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.3,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.5,
+            "direction": "less",
+            "provenance": "inferred"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.5,
+            "direction": "less",
+            "provenance": "stated"
+          }
+        ],
+        "tags": [],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "spec_hash": "cb373fe67f3db9a3d90057958bbfe21478469591e6369da7b0a27dc2b51129e3",
+      "applied": [],
+      "rejected": [],
+      "places": []
+    }
+  }
+}

@@ -12,6 +12,50 @@ import { readRecorded, responseFrom, type Recorded } from "@/lib/api/recorded";
 
 export const BASE = "https://api.example.test";
 
+/**
+ * How long a stand-in takes to answer, in milliseconds. A service answers a moment after it
+ * is asked, and a test that reads the page straight after a press passes only where the
+ * answer has landed by then. With nothing set a stand-in answers as soon as it can. Run the
+ * tests with `BURRO_TEST_LATE_MS=25` and every answer is that much later, so that a test
+ * which does not wait for what it looks for fails. The wait is on the clock of the test: a
+ * test that makes up its own clock moves it on as it does for anything else that waits.
+ */
+export const LATE_MS = Number(process.env.BURRO_TEST_LATE_MS ?? "0") || 0;
+
+/** Waits as long as a stand-in takes to answer. */
+export async function aMomentLater(): Promise<void> {
+  if (LATE_MS > 0) await new Promise((resolve) => setTimeout(resolve, LATE_MS));
+}
+
+let onTheirWay = 0;
+
+/**
+ * How many answers are on their way: asked for, and not yet given. An answer that a test
+ * holds back, or that is never given, is not on its way. A test that waits for the page
+ * waits for these to land, and not for a turn of the clock.
+ */
+export function answersOnTheirWay(): number {
+  return onTheirWay;
+}
+
+/** How long answers that are on their way are waited for, in milliseconds, before a test goes on. */
+const LAND_WITHIN_MS = 2_000;
+/** How many turns in a row nothing must be on its way, so that an answer that leads to a call is seen. */
+const QUIET_TURNS = 5;
+
+/**
+ * Waits until every answer that is on its way has landed, and whatever each led the page to
+ * ask for has landed too. It is a wait for the answers, and not for a turn of the clock: how
+ * long an answer takes differs from one machine to the next.
+ */
+export async function landed(): Promise<void> {
+  const until = Date.now() + LAND_WITHIN_MS;
+  for (let quiet = 0; quiet < QUIET_TURNS && Date.now() < until; ) {
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    quiet = onTheirWay === 0 ? quiet + 1 : 0;
+  }
+}
+
 export interface Call {
   readonly operation: OperationId | null;
   readonly method: string;
@@ -102,6 +146,8 @@ export function standInApi(): StandIn {
   const responders = new Map<OperationId, Responder[]>();
   /** Responders that answer even when the call was stopped. */
   const deaf = new Set<Responder>();
+  /** Responders that wait on the test, or never answer: what they hold is not on its way. */
+  const waits = new Set<Responder>();
   /** The release every answer names, once the service has moved to another. */
   let release: string | null = null;
   for (const [operation, responder] of Object.entries(OF_THE_RELEASE)) {
@@ -120,8 +166,18 @@ export function standInApi(): StandIn {
   }
 
   async function answer(responder: Responder, call: Call): Promise<Response> {
-    const made = typeof responder === "string" ? readRecorded(responder) : await responder(call);
-    return made instanceof Response ? made : responseFrom(asTheReleaseNow(made, call));
+    if (typeof responder !== "string" && waits.has(responder)) {
+      const held = await responder(call);
+      return held instanceof Response ? held : responseFrom(asTheReleaseNow(held, call));
+    }
+    onTheirWay += 1;
+    try {
+      await aMomentLater();
+      const made = typeof responder === "string" ? readRecorded(responder) : await responder(call);
+      return made instanceof Response ? made : responseFrom(asTheReleaseNow(made, call));
+    } finally {
+      onTheirWay -= 1;
+    }
   }
 
   const fetch = (async (input: RequestInfo | URL, init: RequestInit = {}) => {
@@ -162,6 +218,7 @@ export function standInApi(): StandIn {
       waiting -= 1;
       return answer(responder, call);
     };
+    waits.add(held);
     return { held, handle: { release: () => open(), waiting: () => waiting } };
   }
 
@@ -198,7 +255,9 @@ export function standInApi(): StandIn {
       return standIn;
     },
     silent(operation) {
-      responders.set(operation, [() => new Promise<Response>(() => undefined)]);
+      const never: Responder = () => new Promise<Response>(() => undefined);
+      waits.add(never);
+      responders.set(operation, [never]);
       return standIn;
     },
     movedTo(next) {
@@ -226,6 +285,21 @@ export function withTheSpecSent(scenario: string): Responder {
     const sent = (call.body as { spec?: unknown } | undefined)?.spec;
     const body = recorded.body as { data: Record<string, unknown> };
     return { ...recorded, body: { ...body, data: { ...body.data, spec: sent ?? body.data.spec } } };
+  };
+}
+
+/**
+ * Answers with the reasons of one recording, said to be for the spec of
+ * another: a ranking, or a share that was opened. An answer names the spec its
+ * reasons are for, and the website holds reasons only against the ranking they
+ * are for. It is for a test whose recorded ranking has no reasons recorded.
+ */
+export function reasonsFor(ranking: string, reasons: string): Responder {
+  return () => {
+    const recorded = readRecorded(reasons);
+    const of = readRecorded(ranking).body as { data: { spec_hash: string } };
+    const body = recorded.body as { data: Record<string, unknown> };
+    return { ...recorded, body: { ...body, data: { ...body.data, spec_hash: of.data.spec_hash } } };
   };
 }
 

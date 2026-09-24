@@ -1,0 +1,457 @@
+{
+  "scenario": "rank-only-one",
+  "shows": "Another search, ranked",
+  "captured": true,
+  "request": {
+    "operation_id": "rank",
+    "method": "POST",
+    "route": "/v1/rank",
+    "path": "/v1/rank",
+    "body": {
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.3,
+          "provenance": "default"
+        },
+        "commutes": [
+          {
+            "place_id": "syn-p0021",
+            "mode": "pt",
+            "max_minutes": 35,
+            "strictness": "soft",
+            "provenance": "stated"
+          },
+          {
+            "place_id": "syn-p0026",
+            "mode": "pt",
+            "max_minutes": 40,
+            "strictness": "soft",
+            "provenance": "stated"
+          }
+        ],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [],
+        "areas": [
+          {
+            "area_id": "syn-n0008",
+            "rule": "only",
+            "provenance": "stated"
+          }
+        ],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "limit": 20
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "4729",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "false",
+    "x-burro-synthetic": "true",
+    "x-request-id": "f23e1ab4-17cb-4969-a19e-a8b04a5c0cc5"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
+    },
+    "data": {
+      "scores": [
+        {
+          "area_id": "syn-n0008",
+          "score": 20.08,
+          "counted": 7,
+          "present": 7
+        }
+      ],
+      "ranked": [
+        {
+          "area_id": "syn-n0008",
+          "rank": 1,
+          "score": 20.08,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0667,
+              "utility": 0.975,
+              "contribution": 0.065,
+              "loss": 0.0017,
+              "fact_ids": [
+                "syn-n0008/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0667,
+              "utility": 0.975,
+              "contribution": 0.065,
+              "loss": 0.0017,
+              "fact_ids": [
+                "syn-n0008/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0667,
+              "utility": 0.833,
+              "contribution": 0.0555,
+              "loss": 0.0111,
+              "fact_ids": [
+                "syn-n0008/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0667,
+              "utility": 0.159,
+              "contribution": 0.0106,
+              "loss": 0.0561,
+              "fact_ids": [
+                "syn-n0008/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.1333,
+              "utility": 0.023,
+              "contribution": 0.0031,
+              "loss": 0.1303,
+              "fact_ids": [
+                "syn-n0008/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0667,
+              "utility": 0.024,
+              "contribution": 0.0016,
+              "loss": 0.0651,
+              "fact_ids": [
+                "syn-n0008/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 0.4,
+              "share": 0.5333,
+              "utility": 0.0,
+              "contribution": 0.0,
+              "loss": 0.5333,
+              "fact_ids": [
+                "syn-n0008/travel/syn-p0021.pt",
+                "syn-n0008/missing/commute.syn-p0026.pt"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0021",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 63,
+              "minutes_typical": 63,
+              "minutes_just_missed": 68,
+              "utility": 0.0
+            },
+            {
+              "place_id": "syn-p0026",
+              "mode": "pt",
+              "status": "missing",
+              "minutes": null,
+              "minutes_typical": null,
+              "minutes_just_missed": null,
+              "utility": null
+            }
+          ],
+          "budget": null,
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "homes",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0008/tag/homes"
+            },
+            {
+              "tag_id": "leafy",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0008/tag/leafy"
+            }
+          ]
+        }
+      ],
+      "areas_ranked": 1,
+      "areas_listed": 1,
+      "filtered": [
+        {
+          "area_id": "syn-n0001",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0002",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0003",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0004",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0005",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0006",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0007",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0010",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0011",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0012",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0013",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0014",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0015",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0016",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0017",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0018",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0019",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0021",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0022",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0023",
+          "reason": "not_selected"
+        },
+        {
+          "area_id": "syn-n0024",
+          "reason": "not_selected"
+        }
+      ],
+      "unranked": [
+        {
+          "area_id": "syn-n0009",
+          "reason": "not_rankable",
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0020",
+          "reason": "not_rankable",
+          "missing": []
+        }
+      ],
+      "empty_spec": false,
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.3,
+          "provenance": "default"
+        },
+        "commutes": [
+          {
+            "place_id": "syn-p0021",
+            "mode": "pt",
+            "max_minutes": 35,
+            "strictness": "soft",
+            "provenance": "stated"
+          },
+          {
+            "place_id": "syn-p0026",
+            "mode": "pt",
+            "max_minutes": 40,
+            "strictness": "soft",
+            "provenance": "stated"
+          }
+        ],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [],
+        "areas": [
+          {
+            "area_id": "syn-n0008",
+            "rule": "only",
+            "provenance": "stated"
+          }
+        ],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "spec_hash": "e985420b994177d50030d195ecf5dd7d7e868beb3fb5927bc80e184f6f244a2c",
+      "applied": [],
+      "rejected": [],
+      "places": [
+        {
+          "place_id": "syn-p0021",
+          "name": "Cindermoor Works",
+          "kind": "district"
+        },
+        {
+          "place_id": "syn-p0026",
+          "name": "Wexmoor University",
+          "kind": "university"
+        }
+      ]
+    }
+  }
+}

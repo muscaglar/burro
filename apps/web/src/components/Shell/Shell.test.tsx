@@ -1,9 +1,10 @@
-import { render, screen, within } from "@testing-library/react";
+import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { BANNER, SITE } from "@/content/site";
+import { BANNER, DISAGREES, PREVIEW_BANNER, SITE } from "@/content/site";
 import { recordedAnswer } from "@/lib/api/recorded";
-import { forgetSynthetic } from "@/lib/api/synthetic";
+import { forgetWhatWasSaid, noteSaid } from "@/lib/api/said";
+import { forgetSynthetic, noteSynthetic } from "@/lib/api/synthetic";
 
 import { faultsIn } from "../../../test/support/axe";
 import { Shell } from "./Shell";
@@ -13,6 +14,7 @@ jest.mock("next/navigation", () => ({ usePathname: () => pathname }));
 
 const { meta } = recordedAnswer("get_meta", "meta").body;
 const real = { ...meta, release_id: "lon-2027-01-20-01", synthetic: false };
+const preview = { ...real, preview: true };
 
 function page(of = meta) {
   return render(
@@ -26,7 +28,16 @@ function page(of = meta) {
 beforeEach(() => {
   pathname = "/";
   forgetSynthetic();
+  forgetWhatWasSaid();
 });
+
+/** An answer of the API arrives, and says this of its data. */
+function anAnswerSays(said: { synthetic: boolean; preview: boolean }) {
+  act(() => {
+    noteSynthetic(said.synthetic);
+    noteSaid(said);
+  });
+}
 
 describe("what every page has", () => {
   test("test_every_page_says_the_data_is_made_up_while_it_is", () => {
@@ -39,6 +50,36 @@ describe("what every page has", () => {
     page(real);
 
     expect(screen.queryByRole("region", { name: BANNER.label })).toBeNull();
+  });
+
+  test("test_a_page_built_on_a_preview_of_real_data_says_it_is_a_preview_and_not_that_it_is_made_up", () => {
+    const { container } = page(preview);
+
+    expect(screen.getByRole("region", { name: PREVIEW_BANNER.label })).toHaveTextContent(PREVIEW_BANNER.text);
+    expect(screen.queryByRole("region", { name: BANNER.label })).toBeNull();
+    // It stands where the other banner stands: before everything but the skip link.
+    const order = [...container.querySelectorAll("a[href='#main'], section, header, main, footer")];
+    expect(order.map((element) => element.tagName.toLowerCase())).toEqual([
+      "a",
+      "section",
+      "header",
+      "main",
+      "footer",
+    ]);
+  });
+
+  test("test_a_finished_release_has_no_banner_of_either_kind", () => {
+    page(real);
+
+    expect(screen.queryByRole("region", { name: PREVIEW_BANNER.label })).toBeNull();
+    expect(screen.queryByRole("region", { name: BANNER.label })).toBeNull();
+  });
+
+  test("test_a_made_up_preview_says_both", () => {
+    page({ ...meta, preview: true });
+
+    expect(screen.getByRole("region", { name: BANNER.label })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: PREVIEW_BANNER.label })).toBeInTheDocument();
   });
 
   test("test_the_first_thing_a_keyboard_reaches_skips_to_the_page_itself", async () => {
@@ -81,7 +122,7 @@ describe("what every page has", () => {
   });
 
   test.each(["banner", "contentinfo"] as const)(
-    "test_methods_sources_and_accessibility_are_linked_from_the_%s",
+    "test_vibes_methods_sources_and_accessibility_are_linked_from_the_%s",
     (landmark) => {
       page();
 
@@ -91,8 +132,9 @@ describe("what every page has", () => {
         links.map((link) => [link.textContent, link.getAttribute("href")]),
       ).toEqual(
         expect.arrayContaining([
+          ["Vibes", "/vibes"],
           ["Methods", "/methods"],
-          ["Data sources", "/sources"],
+          ["Sources", "/sources"],
           ["Accessibility", "/accessibility"],
         ]),
       );
@@ -113,7 +155,7 @@ describe("what every page has", () => {
 
     const nav = within(screen.getByRole("navigation", { name: SITE.navLabel }));
 
-    expect(nav.getByRole("link", { name: "Data sources" })).toHaveAttribute("aria-current", "page");
+    expect(nav.getByRole("link", { name: "Sources" })).toHaveAttribute("aria-current", "page");
     expect(nav.getByRole("link", { name: "Methods" })).not.toHaveAttribute("aria-current");
   });
 
@@ -147,6 +189,93 @@ describe("what every page has", () => {
 
   test("test_the_shell_has_no_accessibility_fault", async () => {
     const { container } = page();
+
+    expect(await faultsIn(container, { wholePage: true })).toEqual([]);
+  });
+});
+
+describe("a page read while the service answers with another kind of data than it was built on", () => {
+  const WHAT_THE_PAGE_SAYS = "What the page says.";
+
+  test("test_a_page_built_on_made_up_data_shows_no_real_figure_under_the_words_made_up", () => {
+    // Read in the code, by a checker: a website built while the service held the made-up
+    // release, and read once it held a preview of real data, said "made-up" over London.
+    page(meta);
+    expect(screen.getByRole("main")).toHaveTextContent(WHAT_THE_PAGE_SAYS);
+
+    anAnswerSays({ synthetic: false, preview: true });
+
+    const main = screen.getByRole("main");
+    expect(main).not.toHaveTextContent(WHAT_THE_PAGE_SAYS);
+    expect(within(main).getByRole("alert")).toHaveTextContent(DISAGREES.text);
+    expect(screen.queryByRole("heading", { name: "A page" })).toBeNull();
+  });
+
+  test("test_a_page_built_on_real_data_shows_no_made_up_figure_as_real", () => {
+    page(preview);
+
+    anAnswerSays({ synthetic: true, preview: true });
+
+    expect(screen.getByRole("main")).not.toHaveTextContent(WHAT_THE_PAGE_SAYS);
+    expect(screen.getByRole("alert")).toHaveTextContent(DISAGREES.text);
+    expect(screen.getByRole("region", { name: BANNER.label })).toBeInTheDocument();
+  });
+
+  test("test_a_page_built_on_a_finished_release_says_so_when_an_answer_is_of_a_preview", () => {
+    page(real);
+    expect(screen.queryByRole("region", { name: PREVIEW_BANNER.label })).toBeNull();
+
+    anAnswerSays({ synthetic: false, preview: true });
+
+    expect(screen.getByRole("region", { name: PREVIEW_BANNER.label })).toHaveTextContent(
+      PREVIEW_BANNER.text,
+    );
+    expect(screen.getByRole("main")).not.toHaveTextContent(WHAT_THE_PAGE_SAYS);
+    expect(screen.getByRole("alert")).toHaveTextContent(DISAGREES.text);
+  });
+
+  test("test_a_page_built_on_a_preview_shows_nothing_when_an_answer_is_of_a_finished_release", () => {
+    page(preview);
+
+    anAnswerSays({ synthetic: false, preview: false });
+
+    expect(screen.getByRole("main")).not.toHaveTextContent(WHAT_THE_PAGE_SAYS);
+    // The banner stays: the page was built on a preview, and says so still.
+    expect(screen.getByRole("region", { name: PREVIEW_BANNER.label })).toBeInTheDocument();
+  });
+
+  test.each([
+    ["made up", meta, { synthetic: true, preview: false }],
+    ["a preview of real data", preview, { synthetic: false, preview: true }],
+    ["finished", real, { synthetic: false, preview: false }],
+  ])("test_a_page_and_an_answer_that_are_both_%s_show_the_page", (_, built, said) => {
+    page(built);
+
+    anAnswerSays(said);
+
+    expect(screen.getByRole("main")).toHaveTextContent(WHAT_THE_PAGE_SAYS);
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  test("test_a_release_that_moved_on_to_another_of_the_same_kind_changes_nothing_here", () => {
+    // Every answer names its release, and the search keeps what each release made apart.
+    page(preview);
+
+    anAnswerSays({ synthetic: false, preview: true });
+    anAnswerSays({ synthetic: false, preview: true });
+
+    expect(screen.getByRole("main")).toHaveTextContent(WHAT_THE_PAGE_SAYS);
+  });
+
+  test("test_what_is_said_in_place_of_the_page_holds_no_figure_and_names_no_place", () => {
+    expect(/\d/.test(DISAGREES.text)).toBe(false);
+    expect(DISAGREES.text.includes("London")).toBe(false);
+  });
+
+  test("test_what_is_said_in_place_of_the_page_has_no_accessibility_fault", async () => {
+    const { container } = page(meta);
+
+    anAnswerSays({ synthetic: false, preview: true });
 
     expect(await faultsIn(container, { wholePage: true })).toEqual([]);
   });

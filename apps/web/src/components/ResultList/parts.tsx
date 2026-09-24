@@ -12,6 +12,7 @@ import type {
   ExplainedSentence,
   Fact,
   MetaData,
+  PreferenceSpec,
   RankedArea,
 } from "@/lib/api/schema";
 import { outOfHundred } from "@/lib/format";
@@ -53,45 +54,97 @@ function CellLabel({ children }: { readonly children: string }) {
   );
 }
 
+/**
+ * What an area has no figure for, by the names the chips give: what the person asked for,
+ * and then the settings nobody chose. A vibe, a journey and a budget are always asked for.
+ * A thing the page has no name for is left out.
+ */
+export function lackedBy(
+  area: Pick<RankedArea, "contributions">,
+  meta: Pick<MetaData, "features" | "tags">,
+  spec: Pick<PreferenceSpec, "weights">,
+): { readonly asked: readonly string[]; readonly usual: readonly string[] } {
+  const asked: string[] = [];
+  const usual: string[] = [];
+  for (const { component, present } of area.contributions) {
+    if (present) continue;
+    const [kind, id] = component.split(":", 2);
+    const name =
+      component === "commute"
+        ? BREAKDOWN.journey
+        : component === "budget"
+          ? BREAKDOWN.budget
+          : kind === "feature"
+            ? meta.features.find((one) => one.feature_id === id)?.short_label
+            : meta.tags.find((one) => one.tag_id === id)?.label;
+    if (name === undefined) continue;
+    const byDefault =
+      kind === "feature" &&
+      spec.weights.find((weight) => weight.feature_id === id)?.provenance === "default";
+    (byDefault ? usual : asked).push(name);
+  }
+  return { asked, usual };
+}
+
 interface CompletenessProps {
   readonly area: RankedArea;
-  /** The places of the search, each with the longest journey the person set. */
-  readonly commutes?: readonly Commute[];
+  /**
+   * The names the API gives what counts, and the spec that was ranked. With both in hand
+   * the result names what the area has no figure for, where it has none for something.
+   */
+  readonly meta?: Pick<MetaData, "features" | "tags">;
+  readonly spec?: Pick<PreferenceSpec, "weights">;
+  /**
+   * True where nothing is said of a fit that rests on everything that counts, which is
+   * on every result. Where a fit rests on part of what counts, it is always said.
+   */
+  readonly quiet?: boolean;
 }
 
 /**
- * How much of what counts the area has a figure for: in words, and as a bar
- * that draws what the words count and nothing else. Under it, each firm
- * limit that could not be tested here, with the weight of a trade-off: it is
- * the one thing the person called firm, and it was not applied.
+ * How much of what counts the area has a figure for, in words. Under it, each
+ * firm limit that could not be tested here, with the weight of a trade-off:
+ * it is the one thing the person called firm, and it was not applied.
  *
- * So is it said when the journeys count for nothing in the fit, because one
- * of them has no time: the person named the places, and the fit did not
- * weigh them.
+ * So is it said when the journeys count for nothing in the fit, because none
+ * of them has a time: the person named the places, and the fit did not weigh
+ * them.
  *
- * It sits directly under the fit, because it says how far to trust it.
+ * It sits directly under the fit, because it says how far to trust it. Where
+ * the fit rests on everything that counts, no more is said of it on a result:
+ * it was said on most of them, and told a person nothing to act on.
  */
-export function Completeness({ area, commutes = [] }: CompletenessProps) {
+export function Completeness({ area, quiet = true, meta, spec }: CompletenessProps) {
   const { asked, present, complete } = completenessOf(area);
   if (asked === 0) return null;
-  const leftOut = journeysLeftOut(area, commutes);
+  const lacked = meta === undefined || spec === undefined ? null : lackedBy(area, meta, spec);
+  const leftOut = journeysLeftOut(area);
+  // A code the website has no word for is left out.
+  const untested = area.untested_filters.filter((reason) => Boolean(UNTESTED[reason]));
+  if (quiet && complete && leftOut === null && untested.length === 0) return null;
   return (
     <div className={styles.completeness}>
-      <p className={styles.based}>{complete ? COMPLETENESS.all : COMPLETENESS.some(present, asked)}</p>
-      {/* The bar repeats the words above it, so it is kept from a screen reader. */}
-      <div className={styles.meter} aria-hidden="true">
-        <span style={{ width: `${(100 * present) / asked}%` }} />
-      </div>
+      {quiet && complete ? null : (
+        <p className={styles.based}>{complete ? COMPLETENESS.all : COMPLETENESS.some(present, asked)}</p>
+      )}
+      {/* What is dropped is said, and by name. What was asked for is said first, with the
+          weight of a trade-off: the person asked for it, and the fit does not hold it. */}
+      {lacked !== null && lacked.asked.length > 0 ? (
+        <p className={styles.untested}>
+          <span className={styles.tradeOffMark} aria-hidden="true" />
+          {COMPLETENESS.lacksAsked(lacked.asked)}
+        </p>
+      ) : null}
+      {lacked !== null && lacked.usual.length > 0 ? (
+        <p className={styles.based}>{COMPLETENESS.lacks(lacked.usual)}</p>
+      ) : null}
       {leftOut !== null ? (
         <p className={styles.untested}>
           <span className={styles.tradeOffMark} aria-hidden="true" />
-          {JOURNEYS.notCounted(leftOut.journeys, leftOut.over)}
+          {JOURNEYS.notCounted(leftOut)}
         </p>
       ) : null}
-      {area.untested_filters
-        // A code the website has no word for is left out.
-        .filter((reason) => Boolean(UNTESTED[reason]))
-        .map((reason) => (
+      {untested.map((reason) => (
           <p key={reason} className={styles.untested}>
             <span className={styles.tradeOffMark} aria-hidden="true" />
             {UNTESTED[reason]}
@@ -161,10 +214,10 @@ export function JourneyList({ area, commutes, combine, cutoffs, names, facts }: 
   if (area.legs.length === 0) return null;
   const { columns } = JOURNEYS;
   const driver = combine === "slowest" ? drivingLeg(area) : null;
-  const leftOut = journeysLeftOut(area, commutes);
+  const leftOut = journeysLeftOut(area);
   const uses =
     leftOut !== null
-      ? JOURNEYS.usesNone(leftOut.journeys)
+      ? JOURNEYS.usesNone(leftOut)
       : area.legs.length < 2
         ? null
         : combine === "mean"

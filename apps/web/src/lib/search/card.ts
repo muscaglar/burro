@@ -5,6 +5,7 @@
  * Nothing here writes a word about a place. It finds what the API sent.
  */
 
+import { COMPLETENESS } from "@/content/search";
 import type {
   AreaData,
   Commute,
@@ -15,6 +16,7 @@ import type {
   MetaData,
   PreferenceSpec,
   RankedArea,
+  Score,
 } from "@/lib/api/schema";
 
 export type Facts = Readonly<Record<string, Fact>>;
@@ -71,25 +73,18 @@ export function withinLimit(leg: CommuteLeg, commute: Commute | undefined): bool
 }
 
 /**
- * Whether the journeys of an area count for nothing in its fit, though the search names
- * places to reach: the ranking gave their part of the fit no figure. It does so when a
- * journey has no time in the data, whatever the others take. `null` when they count, or
- * when the search sets nothing by them. `over` is true when a journey that has a time is
- * over the longest the person set for it.
+ * How many journeys an area has, where they count for nothing in its fit though the
+ * search names places to reach: the ranking gave their part of the fit no figure. It does
+ * so only when no journey has a time in the data. One that has none is left out, and the
+ * rest still count. `null` when the journeys count, or when the search sets nothing by them.
  */
-export function journeysLeftOut(
-  area: Pick<RankedArea, "contributions" | "legs">,
-  commutes: readonly Commute[],
-): { readonly journeys: number; readonly over: boolean } | null {
+export function journeysLeftOut(area: Pick<RankedArea, "contributions" | "legs">): number | null {
   const part = area.contributions.find((contribution) => contribution.component === "commute");
   if (part === undefined || part.present || area.legs.length === 0) return null;
-  const over = area.legs.some(
-    (leg) => withinLimit(leg, commutes.find((one) => one.place_id === leg.place_id)) === false,
-  );
-  return { journeys: area.legs.length, over };
+  return area.legs.length;
 }
 
-/** The name of what a contribution is for: the API's label for a feature or a tag. */
+/** The name of what a contribution is for: the API's label for a feature or a vibe. */
 export function labelOf(
   contribution: Pick<Contribution, "component">,
   meta: Pick<MetaData, "features" | "tags">,
@@ -110,6 +105,20 @@ export function labelOf(
 export function hundredths(share: number | null): number | null {
   if (share === null || !Number.isFinite(share)) return null;
   return Math.min(100, Math.max(0, Math.floor(share * 100 + 1e-9)));
+}
+
+/**
+ * How much of what counts a fit rests on, in words. The API says it of every
+ * ranked area: how many things count, and for how many the area has a
+ * figure. Where the fit rests on all of it nothing is said, unless `always`.
+ */
+export function basedOn(
+  score: Pick<Score, "counted" | "present"> | undefined,
+  always = false,
+): string | null {
+  if (score === undefined || score.counted === 0) return null;
+  if (score.present >= score.counted) return always ? COMPLETENESS.all : null;
+  return COMPLETENESS.some(score.present, score.counted);
 }
 
 /** How many of the things asked for have data for this area, and how many were asked for. */
