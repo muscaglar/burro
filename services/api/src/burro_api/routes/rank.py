@@ -10,20 +10,30 @@ from dataclasses import dataclass
 
 from burro_core.catalogue import FEATURES, TAGS
 from burro_core.explain import Explanation, explain
-from burro_core.facts import Fact, cost_key, fact_id, facts_for
+from burro_core.facts import (
+    Fact,
+    cost_key,
+    fact_id,
+    facts_for,
+    journey_key,
+    scored_on_just_missed,
+    travel_key,
+)
 from burro_core.ids import (
     BUDGET,
     COMMUTE,
+    Combine,
     FactKind,
     FeatureId,
+    PtBasis,
     TagId,
     component_for_feature,
     component_for_tag,
 )
-from burro_core.rank import Contribution, RankedArea, RankResult, rank
+from burro_core.rank import Contribution, RankResult, budget_held_against, rank
 from burro_core.reducer import apply
 from burro_core.release import Release
-from burro_core.spec import PreferenceSpec
+from burro_core.spec import Commute, PreferenceSpec
 from fastapi import APIRouter
 
 from burro_api import logs
@@ -37,9 +47,12 @@ from burro_api.routes.common import (
     RequestId,
     check,
     envelope,
+    places_of,
     ranking,
 )
 from burro_api.wire import (
+    CharacterMark,
+    CharacterRow,
     CompareBody,
     CompareCell,
     ComparedArea,
@@ -50,6 +63,7 @@ from burro_api.wire import (
     ErrorCode,
     ExplanationsBody,
     ExplanationsData,
+    NamedPlace,
     RankBody,
     RankData,
 )
@@ -78,15 +92,23 @@ def rank_areas(body: RankBody, context: Ctx) -> Envelope[RankData]:
             spec_hash=result.spec_hash,
             applied=reduced.applied if reduced else (),
             rejected=reduced.rejected if reduced else (),
+            places=places_of(spec, release),
             **ranking(result, body.limit),
         ),
     )
 
 
 def _cited(
-    explanations: tuple[Explanation, ...], release: Release, spec: PreferenceSpec
+    explanations: tuple[Explanation, ...],
+    result: RankResult,
+    release: Release,
+    spec: PreferenceSpec,
 ) -> tuple[Fact, ...]:
-    """Every fact a sentence cites, so that each number shown has its source and its date."""
+    """Every fact a sentence cites, and the fact of every mark on the strip of an area explained.
+
+    So each number and each band that is shown has its source and its date.
+    """
+    strips = {area.area_id: area.strip for area in result.ranked}
     found: list[Fact] = []
     for explanation in explanations:
         sentences = (
@@ -96,6 +118,7 @@ def _cited(
             *explanation.missing,
         )
         cited = {cited_id for sentence in sentences for cited_id in sentence.fact_ids}
+        cited |= {mark.fact_id for mark in strips.get(explanation.area_id, ())}
         facts = facts_for(release, explanation.area_id, spec)
         found += [fact for fact in facts if fact.fact_id in cited]
     return tuple(found)
@@ -123,6 +146,8 @@ def explain_top(
             at=context.timestamp(),
             endpoint=Endpoint.EXPLAIN,
             interpreter=Caller.TEMPLATE,
+            # The sentences are written from templates. No provider is asked.
+            provider="",
             model="",
             status=CallStatus.OK,
             degraded=False,
@@ -144,26 +169,43 @@ def explain_top(
     )
     return envelope(
         context,
-        ExplanationsData(explanations=explained, facts=_cited(explained, release, body.spec)),
+        ExplanationsData(
+            # Served to the caller, who holds the spec. It is in no line and no record.
+            spec_hash=result.spec_hash,
+            explanations=explained,
+            facts=_cited(explained, result, release, body.spec),
+        ),
     )
 
 
 @dataclass(frozen=True)
 class _Component:
-    """One requested component of the score: a row of the comparison."""
+    """One row of the comparison: a thing that counts, or one journey of those that count."""
 
     name: str
     label: str
     weight: float
     feature_id: FeatureId | None = None
     tag_id: TagId | None = None
+    # The journey of the row. The journeys count as one thing and are shown
+    # one to a row, so that every cell of a row is to the same place.
+    journey: Commute | None = None
+
+    @property
+    def scored_as(self) -> str:
+        """The component of the score this row is part of."""
+        return COMMUTE if self.journey is not None else self.name
 
 
 def _components(spec: PreferenceSpec) -> tuple[_Component, ...]:
-    """Every requested component, by weight from high to low, then by name."""
+    """Every row, by weight from high to low, then by name. The journeys keep the spec's order."""
     found: list[_Component] = []
     if spec.commute_requested:
-        found.append(_Component(COMMUTE, LABELS[COMMUTE], spec.commute_weight))
+        # Named as core keys a journey, which puts them in the order of their places.
+        found += [
+            _Component(journey_key(c), LABELS[COMMUTE], spec.commute_weight, journey=c)
+            for c in spec.commutes
+        ]
     if spec.budget_requested:
         found.append(_Component(BUDGET, LABELS[BUDGET], spec.budget.weight))
     found += [
@@ -188,15 +230,6 @@ def _status(area_id: str, result: RankResult) -> CompareStatus:
     return CompareStatus(reasons.get(area_id, CompareStatus.RANKED.value))
 
 
-def _driver(area: RankedArea, scored: Contribution) -> int | None:
-    """The minutes of the journey that drove the score: the first fact the component cites."""
-    for leg in area.legs:
-        key = f"{leg.place_id}.{leg.mode}"
-        if fact_id(area.area_id, FactKind.TRAVEL, key) == scored.fact_ids[0]:
-            return leg.minutes
-    return None
-
-
 class _Comparison:
     """Works out each cell of a comparison, and collects the facts the cells cite."""
 
@@ -219,20 +252,23 @@ class _Comparison:
             return fact_id(area_id, FactKind.FEATURE, component.feature_id)
         if component.tag_id is not None:
             return fact_id(area_id, FactKind.TAG, component.tag_id)
-        if component.name == BUDGET:
-            key = cost_key(self._spec.tenure, self._spec.budget.segment)
-            return fact_id(area_id, FactKind.BUDGET_FIT, key)
-        # Which journey drives the score is decided by scoring, so an area that
-        # was not scored shows no journey. Working it out here would be a second
-        # copy of the arithmetic in `rank()`.
-        return ""
+        if component.journey is not None:
+            return fact_id(area_id, FactKind.TRAVEL, travel_key(component.journey))
+        key = cost_key(self._spec.tenure, self._spec.budget.segment)
+        return fact_id(area_id, FactKind.BUDGET_FIT, key)
 
     def _fact_id(
         self, area_id: str, component: _Component, scored: Contribution | None
     ) -> str | None:
         """The fact behind a cell, if there is one. A cell never cites a fact that is not served."""
         facts = self._facts_of(area_id)
-        wanted = scored.fact_ids[0] if scored else self._expected(area_id, component)
+        if scored is not None and component.journey is None:
+            wanted = scored.fact_ids[0]
+        else:
+            # An area that was not scored, or a journey: each journey has a
+            # fact of its own, whichever of them the score cites first.
+            wanted = self._expected(area_id, component)
+        # A journey with no time is said to have none, by the fact core keys as the row is.
         missing = fact_id(area_id, FactKind.MISSING, component.name)
         for candidate in (wanted, missing):
             if candidate in facts:
@@ -240,37 +276,96 @@ class _Comparison:
                 return candidate
         return None
 
-    def _figures(
-        self, area_id: str, component: _Component, scored: Contribution | None
-    ) -> tuple[float | None, float | None]:
+    def _minutes(self, area_id: str, journey: Commute) -> int | None:
+        """The time of one journey that is scored, as the release holds it, or `None`."""
+        place = self._release.place(journey.place_id)
+        if place is None:
+            return None
+        late = scored_on_just_missed(journey, self._spec)
+        basis = PtBasis.JUST_MISSED if late else PtBasis.TYPICAL
+        return self._release.travel(area_id, place.destination_id, journey.mode, basis).minutes
+
+    def _figures(self, area_id: str, component: _Component) -> tuple[float | None, float | None]:
         """The value and the percentile, read from the release. `None` where there is none."""
         release, spec = self._release, self._spec
         if component.feature_id is not None:
             row = release.feature(area_id, component.feature_id)
             return (row.value, row.percentile) if row else (None, None)
         if component.tag_id is not None:
-            tag = release.tag(area_id, component.tag_id)
-            return None, tag.score if tag else None
-        if component.name == BUDGET:
-            estimate = release.cost(area_id, spec.tenure, spec.budget.segment)
-            return (estimate.upper_quartile if estimate else None), None
+            # A vibe is shown as a band, which is in `character`. The score it
+            # is ranked on is no figure of its fact, and is never printed.
+            return None, None
+        if component.journey is not None:
+            return self._minutes(area_id, component.journey), None
+        estimate = release.cost(area_id, spec.tenure, spec.budget.segment)
+        # The figure the budget was held against: the median, where a cost has no range.
+        return (budget_held_against(estimate) if estimate else None), None
+
+    def _journey(
+        self, area_id: str, journey: Commute, scored: Contribution | None
+    ) -> tuple[float | None, float | None]:
+        """What one journey is worth, and what the journeys add where this one is all that counts.
+
+        Both are core's: a route works out neither. What the journeys add is
+        one figure for them all. It stands in the cell of the journey that
+        drove the score, which is the first fact the component cites, where
+        that journey alone decides it: the slowest counts, or there is one
+        journey. Where every journey counts, what one of them adds is not
+        something the ranking says, so no cell holds it.
+        """
         area = self._ranked.get(area_id)
-        return (_driver(area, scored) if area and scored and scored.present else None), None
+        if area is None or scored is None:
+            return None, None  # an area that is not ranked was not scored
+        worth = next((leg.utility for leg in area.legs if leg.place_id == journey.place_id), None)
+        alone = self._spec.commute_combine is Combine.SLOWEST or len(self._spec.commutes) == 1
+        timed = fact_id(area_id, FactKind.TRAVEL, travel_key(journey))
+        drove = scored.present and scored.fact_ids[0] == timed
+        return worth, (scored.contribution if alone and drove else None)
+
+    def mark(self, area_id: str, tag_id: TagId) -> CharacterMark:
+        """Where an area sits on a vibe, as the release holds it, and the fact that says so."""
+        row = self._release.tag(area_id, tag_id)
+        said = fact_id(area_id, FactKind.TAG, tag_id)
+        self.cited[said] = self._facts_of(area_id)[said]
+        return CharacterMark(
+            area_id=area_id,
+            band=row.band if row else None,
+            spread_low=row.spread_low if row else None,
+            spread_high=row.spread_high if row else None,
+            fact_id=said,
+        )
+
+    def counted(self, area_id: str) -> tuple[int, int]:
+        """How many things count, and for how many the area has a figure. 0 if it is not ranked."""
+        area = self._ranked.get(area_id)
+        return (area.counted, area.present) if area else (0, 0)
 
     def cell(self, area_id: str, component: _Component) -> CompareCell:
         area = self._ranked.get(area_id)
         contributions = area.contributions if area else ()
-        scored = next((c for c in contributions if c.component == component.name), None)
-        value, percentile = self._figures(area_id, component, scored)
+        scored = next((c for c in contributions if c.component == component.scored_as), None)
+        value, percentile = self._figures(area_id, component)
+        if component.journey is not None:
+            utility, contribution = self._journey(area_id, component.journey, scored)
+        else:
+            # An area that is not ranked was not scored, so it has neither.
+            utility = scored.utility if scored else None
+            contribution = scored.contribution if scored and scored.present else None
         return CompareCell(
             area_id=area_id,
             value=value,
             percentile=percentile,
-            # An area that is not ranked was not scored, so it has neither.
-            utility=scored.utility if scored else None,
-            contribution=scored.contribution if scored and scored.present else None,
+            utility=utility,
+            contribution=contribution,
             fact_id=self._fact_id(area_id, component, scored),
         )
+
+    def place(self, component: _Component) -> NamedPlace | None:
+        """Where the journey of a row is to, by the release's name. `None` for any other row."""
+        found = self._release.place(component.journey.place_id) if component.journey else None
+        if found is None:
+            return None
+        return NamedPlace(place_id=found.place_id, name=found.name, kind=found.kind)
 
 
 @router.post("/compare", response_model=Envelope[CompareData], responses=WITH_BODY | NOT_FOUND)
@@ -283,11 +378,20 @@ def compare(body: CompareBody, context: Ctx) -> Envelope[CompareData]:
     check(body.spec, release)
     result = rank(body.spec, release)
     comparison = _Comparison(body.spec, release, result)
+    character = tuple(
+        CharacterRow(
+            tag_id=vibe.tag_id,
+            marks=tuple(comparison.mark(area_id, vibe.tag_id) for area_id in body.area_ids),
+        )
+        for vibe in release.vibes
+        if vibe.table
+    )
     rows = tuple(
         CompareRow(
             component=component.name,
             label=component.label,
             weight=component.weight,
+            place=comparison.place(component),
             cells=tuple(comparison.cell(area_id, component) for area_id in body.area_ids),
         )
         for component in _components(body.spec)
@@ -297,11 +401,17 @@ def compare(body: CompareBody, context: Ctx) -> Envelope[CompareData]:
         CompareData(
             areas=tuple(
                 ComparedArea(
-                    area_id=area.area_id, name=area.name, status=_status(area.area_id, result)
+                    area_id=area.area_id,
+                    name=area.name,
+                    status=_status(area.area_id, result),
+                    counted=counted,
+                    present=present,
                 )
                 for area in areas
                 if area is not None
+                for counted, present in [comparison.counted(area.area_id)]
             ),
+            character=character,
             rows=rows,
             facts=tuple(fact for _, fact in sorted(comparison.cited.items())),
         ),

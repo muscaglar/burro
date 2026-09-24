@@ -10,6 +10,7 @@ from burro_api.providers.interface import (
     ModelCapped,
     ModelError,
     ModelFailure,
+    ModelRefused,
     ModelReply,
     ModelTimeout,
 )
@@ -152,21 +153,21 @@ def test_a_count_for_the_cache_must_be_a_count_when_it_is_there(name: str, value
     assert type(failing(ANTHROPIC.made(answering(answer)), ANTHROPIC)) is ModelError
 
 
-def test_the_refusal_in_the_providers_own_example_is_an_error():
+def test_the_refusal_in_the_providers_own_example_is_a_refusal():
     failure = failing(ANTHROPIC.made(answering(loaded(documents.ANTHROPIC_REFUSAL))), ANTHROPIC)
 
-    assert type(failure) is ModelError
+    assert type(failure) is ModelRefused
     assert_bare(failure)
 
 
 @pytest.mark.parametrize("reason", NOT_FINISHED, ids=str)
-def test_any_stop_reason_but_the_end_of_the_turn_is_an_error(reason: str | None):
+def test_any_stop_reason_but_the_end_of_the_turn_is_a_failure(reason: str | None):
     # Read before the text is: an answer that was cut short or refused still holds text.
     failure = failing(
         ANTHROPIC.made(answering(ANTHROPIC.whole(ANSWER) | {"stop_reason": reason})), ANTHROPIC
     )
 
-    assert type(failure) is ModelError
+    assert type(failure) is (ModelRefused if reason == "refusal" else ModelError)
     assert_bare(failure)
 
 

@@ -4,7 +4,7 @@ from typing import Any
 
 import pytest
 from burro_api.providers.gemini import GeminiClient
-from burro_api.providers.interface import ModelCapped, ModelError, ModelReply
+from burro_api.providers.interface import ModelCapped, ModelError, ModelRefused, ModelReply
 
 from . import documents
 from .cases import (
@@ -49,6 +49,9 @@ NOT_FINISHED = (
     None,
 )
 BLOCKED = ("SAFETY", "OTHER", "BLOCKLIST", "PROHIBITED_CONTENT", "IMAGE_SAFETY", "NOT_YET_INVENTED")
+# The reasons to stop that say the provider would not read or answer, for
+# safety or for its own terms. Any other is a fault, or an answer cut short.
+WOULD_NOT = ("SAFETY", "BLOCKLIST", "PROHIBITED_CONTENT", "SPII")
 
 
 def with_usage(**counts: Any) -> dict[str, Any]:
@@ -130,13 +133,13 @@ def test_a_count_that_may_be_left_out_must_be_a_count_when_it_is_there(name: str
 
 
 @pytest.mark.parametrize("reason", NOT_FINISHED, ids=str)
-def test_any_finish_reason_but_stop_is_an_error(reason: str | None):
+def test_any_finish_reason_but_stop_is_a_failure_and_a_block_is_a_refusal(reason: str | None):
     answer = GEMINI.whole(ANSWER)
     answer["candidates"][0]["finishReason"] = reason
 
     failure = failing(GEMINI.made(answering(answer)), GEMINI)
 
-    assert type(failure) is ModelError
+    assert type(failure) is (ModelRefused if reason in WOULD_NOT else ModelError)
     assert_bare(failure)
 
 
@@ -148,10 +151,13 @@ def test_an_answer_with_no_finish_reason_is_an_error():
 
 
 @pytest.mark.parametrize("reason", BLOCKED)
-def test_a_prompt_that_was_blocked_is_an_error_whatever_else_is_there(reason: str):
+def test_a_prompt_that_was_blocked_is_a_refusal_whatever_else_is_there(reason: str):
     answer = GEMINI.whole(ANSWER) | {"promptFeedback": {"blockReason": reason}}
 
-    assert type(failing(GEMINI.made(answering(answer)), GEMINI)) is ModelError
+    failure = failing(GEMINI.made(answering(answer)), GEMINI)
+
+    assert type(failure) is ModelRefused
+    assert_bare(failure)
 
 
 def test_feedback_that_blocks_nothing_is_no_error():

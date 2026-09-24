@@ -29,12 +29,17 @@ LOGGABLE = frozenset(
         "release_id",
         "engine_version",
         "synthetic",
+        "preview",
         # Nothing worked out from a spec is on the list, and no hash of one of
         # any kind: a spec is a small space, and a hash of it can be matched
         # to a workplace by trying specs (ADR 0011).
         "endpoint",
         "interpreter",
+        # Which provider of a model, by its name in the closed list of four. Never a key.
+        "provider",
         "model",
+        # Why a provider that was named is not used: a fixed word, and never what was set.
+        "reason",
         "interpret_status",
         "call_status",
         "degraded",
@@ -72,6 +77,11 @@ def _write(level: int, name: str, fields: dict[str, Value]) -> None:
 def event(name: str, **fields: Value) -> None:
     """Write one line. `name` is fixed text, and every field is on the list."""
     _write(logging.INFO, name, fields)
+
+
+def warning(name: str, **fields: Value) -> None:
+    """Write one line that whoever runs the service should see, held to the same list."""
+    _write(logging.WARNING, name, fields)
 
 
 def _frames(error: BaseException) -> tuple[str, ...]:

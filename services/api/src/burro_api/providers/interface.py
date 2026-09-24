@@ -1,10 +1,8 @@
-"""All that the reader knows of a provider: one method, one reply and three failures.
+"""All that the reader knows of a provider: one method, one reply and four failures.
 
-These are the names `burro_api.claude` defines, written again here so that an
-adapter needs nothing of the reader or of the engine under it. They are the
-same in every field and every word. The step that wires the adapters in makes
-them one: the reader imports these and drops its own
-(`docs/design/models.md`). Until then a test holds the two to the same shape.
+They are defined here and nowhere else, so that an adapter needs nothing of
+the reader or of the engine under it. The reader imports them, and so does
+the route, which is how an adapter's timeout is counted as a timeout.
 
 A failure carries no message. What went wrong underneath can hold the
 request, and the request holds what the person typed.
@@ -25,6 +23,13 @@ class ModelTimeout(ModelFailure):
 
 class ModelCapped(ModelFailure):
     """A rate limit or a spend limit was reached."""
+
+
+class ModelRefused(ModelFailure):
+    """The provider would not read what was sent, for safety or for its own terms.
+
+    Why it would not is never read: the words of a refusal can repeat what was typed.
+    """
 
 
 class ModelError(ModelFailure):

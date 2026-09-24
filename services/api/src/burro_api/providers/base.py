@@ -1,7 +1,7 @@
 """How an adapter reaches its provider: one HTTPS POST, made with the standard library.
 
 `over_https` is the one function that sends. It answers with a status and a
-body, or raises one of the three failures. It follows no redirect, reads no
+body, or raises a timeout or an error. It follows no redirect, reads no
 more than `MAX_BYTES`, gives the whole call one deadline, checks the
 provider's certificate, and tries once. It writes no log line and keeps
 nothing of what it sent or received.
@@ -9,11 +9,12 @@ nothing of what it sent or received.
 `Adapter` is what the four providers share. A provider's module says what to
 send and how to read the answer, and no more.
 
-Every failure is `ModelTimeout`, `ModelCapped` or `ModelError`, with no
-message, no cause and no context. What goes wrong underneath can hold the
-request, the key or the answer: a JSON error holds the whole document, and a
-header error holds the header. So the work is done where nothing is raised,
-and the failure is raised afterwards from a frame that holds none of it.
+Every failure is `ModelTimeout`, `ModelCapped`, `ModelRefused` or
+`ModelError`, with no message, no cause and no context. What goes wrong
+underneath can hold the request, the key or the answer: a JSON error holds
+the whole document, and a header error holds the header. So the work is done
+where nothing is raised, and the failure is raised afterwards from a frame
+that holds none of it.
 """
 
 import http.client

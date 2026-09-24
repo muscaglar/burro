@@ -17,6 +17,7 @@ from typing import Protocol
 from burro_core.ids import TIMESTAMP_PATTERN, ReleaseId
 from pydantic import Field
 
+from burro_api.providers.terms import Provider
 from burro_api.wire import Wire
 
 KEEP_DAYS = 30
@@ -24,6 +25,8 @@ KEEP_AT_MOST = 10_000
 
 UUID_PATTERN = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
 MODEL_PATTERN = r"^([a-z0-9][a-z0-9.-]{0,63})?$"
+# One of the providers by name, or empty where the rules read. A closed list.
+PROVIDER_PATTERN = rf"^({'|'.join(provider.value for provider in Provider)})?$"
 VERSION_PATTERN = r"^\d+\.\d+\.\d+$"
 TIMESTAMP_FORMAT = "%Y-%m-%dT%H:%M:%SZ"
 
@@ -35,17 +38,21 @@ class Endpoint(StrEnum):
 
 class Caller(StrEnum):
     RULE = "rule"
-    CLAUDE = "claude"
+    MODEL = "model"
     TEMPLATE = "template"
 
 
 class CallStatus(StrEnum):
     OK = "ok"
+    # Nothing was applied, and what was noticed was offered.
+    SUGGEST = "suggest"
     CLARIFY = "clarify"
     OFF_TOPIC = "off_topic"
     POLICY_REDIRECT = "policy_redirect"
     TIMEOUT = "timeout"
     CAPPED = "capped"
+    # The provider would not read what was sent, and the rules read it.
+    REFUSED = "refused"
     ERROR = "error"
 
 
@@ -57,6 +64,8 @@ class CallRecord(Wire):
     endpoint: Endpoint
     # The interpreter or explainer that was asked, whether or not it answered.
     interpreter: Caller
+    # The provider of the model that was asked, or empty where the rules read.
+    provider: str = Field(pattern=PROVIDER_PATTERN)
     model: str = Field(pattern=MODEL_PATTERN)  # the configured model id, or empty
     status: CallStatus
     degraded: bool

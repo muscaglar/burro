@@ -13,7 +13,7 @@ MODULES = sorted(SOURCE.glob("*.py"))
 # What a module may import as it is loaded, beside the standard library.
 OURS = ("burro_api.providers", "burro_api.logs")
 # What one module may import when it is asked for a reader, and no sooner.
-WHEN_ASKED = {"measure.py": {"burro_api.claude", "burro_core.interpret"}}
+WHEN_ASKED = {"measure.py": {"burro_api.reader", "burro_core.interpret"}}
 
 
 def imports_of(path: Path) -> list[tuple[str, bool]]:
@@ -92,7 +92,7 @@ def test_nothing_is_printed_and_nothing_is_logged_but_through_the_list():
             assert "burro_api.logs" not in imported, module.name
 
 
-def test_the_only_line_that_is_logged_is_the_one_that_names_the_provider():
+def test_the_only_line_that_is_logged_is_the_one_that_says_a_provider_is_not_used():
     tree = ast.parse((SOURCE / "choose.py").read_text(encoding="utf-8"))
     written = [
         node
@@ -101,9 +101,13 @@ def test_the_only_line_that_is_logged_is_the_one_that_names_the_provider():
     ]
 
     [line] = written
-    assert ast.unparse(line.func) == "logs.event"
-    # One argument, the name of the event, and no field beside it.
-    assert len(line.args) == 1 and line.keywords == []
+    assert ast.unparse(line.func) == "logs.warning"
+    # The name of the event, the provider and the reason, and no field beside them.
+    assert len(line.args) == 1 and ast.unparse(line.args[0]) == "NOT_USED"
+    assert {keyword.arg for keyword in line.keywords} <= {"provider", "reason", None}
+    # Each is the word of an enum of ours, so nothing that was set can stand in it.
+    source = (SOURCE / "choose.py").read_text(encoding="utf-8")
+    assert "def _warn(provider: Provider | None, refusal: Refusal) -> None:" in source
 
 
 def test_no_address_is_built_from_a_setting():

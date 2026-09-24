@@ -11,13 +11,13 @@ from typing import Any
 
 import pytest
 from burro_api.providers.base import PATIENCE, REST_S, STUCK
-from burro_api.providers.choose import ADAPTERS, Refusal
+from burro_api.providers.choose import ADAPTERS, Refusal, choose
 from burro_api.providers.terms import (
-    ADVICE,
     FORMS,
     RULES_NOTICE,
     SETTINGS,
     TERMS,
+    WORDS_ALONE,
     Provider,
     Question,
 )
@@ -48,35 +48,24 @@ def asks_the_chooser() -> bool:
     return "providers.choose" in app or "providers import choose" in app
 
 
-def reads_with(monkeypatch: pytest.MonkeyPatch, env: dict[str, str]) -> str:
+def reads_with(env: dict[str, str]) -> str:
     """The name of what the service would read with, given `env` and nothing else."""
     try:
-        from burro_api import app
+        from burro_api.app import deps_from
         from burro_api.settings import Settings
     except ImportError:
         pytest.skip("the service cannot be loaded: it is being rebuilt")
-    for name in (*KEYS, "BURRO_MODEL_PROVIDER", "BURRO_MODEL_TERMS_ACCEPTED", "BURRO_MODEL_ID"):
-        monkeypatch.delenv(name, raising=False)
-    for name, value in env.items():
-        monkeypatch.setenv(name, value)
-    chosen: Any = getattr(app, "_interpreter", None)
-    if chosen is None:
-        pytest.skip("the service no longer chooses its reader where it did")
-    return type(chosen(Settings.from_env(env))).__name__
+    chosen = choose(env, warn=lambda provider, refusal: None)
+    return type(deps_from(Settings.from_env(env), chosen).interpreter).__name__
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="until the chooser is wired in, one provider's key alone turns the model on: "
-    "docs/design/models.md, section 8, step 5",
-)
-def test_in_the_service_as_it_stands_a_key_alone_turns_nothing_on(
-    monkeypatch: pytest.MonkeyPatch,
-):
-    # When this passes, the service asks the chooser. Take the mark off, and
-    # take the three warnings out of the design document.
+def test_in_the_service_as_it_stands_a_key_alone_turns_nothing_on():
+    # The service asks the chooser, so the warnings are out of the design document.
     for variable in sorted(KEYS):
-        assert reads_with(monkeypatch, {variable: MADE_UP}) == "RuleInterpreter", variable
+        assert reads_with({variable: MADE_UP}) == "RuleInterpreter", variable
+    # And the command line hands the chooser the environment, and no other reader is made.
+    cli = (SERVICE / "cli.py").read_text(encoding="utf-8")
+    assert "choose(os.environ)" in cli and asks_the_chooser()
 
 
 def test_the_design_warns_in_bold_for_as_long_as_a_key_alone_turns_the_model_on():
@@ -130,7 +119,7 @@ def test_the_design_holds_the_forms_of_words_as_they_are_built():
 
     for question in Question:
         assert f"| `{question.value}` | {FORMS[question].said} | {FORMS[question].unsaid} |" in told
-    assert f"> {SETTINGS}" in told
+    assert f"> {SETTINGS}" in told and f"> {WORDS_ALONE}" in told
     assert RULES_NOTICE in told
 
 
@@ -152,9 +141,22 @@ def test_the_design_holds_every_answer_as_it_is_built():
 def test_the_notice_the_design_shows_is_the_one_that_is_built():
     gemini = TERMS[Provider.GEMINI]
 
-    assert f"> {gemini.notice}\n" in section(6)
-    assert gemini.notice.endswith(ADVICE)
+    # As it is unless the settings are asked for, and as it is where they are.
+    for with_settings in (False, True):
+        assert f"> {gemini.notice(with_settings)}\n" in section(6)
     assert "sends your words to" not in DESIGN
+    # And the link that goes with each provider's notice.
+    for terms in TERMS.values():
+        assert f"| {terms.company} | <{terms.terms_url}> |" in section(6)
+
+
+def test_the_design_says_that_the_table_of_terms_is_shown_to_nobody():
+    told, table = section(6).split("### The table of terms", 1)
+
+    assert "checked by nobody" in table and "shown to nobody" in table
+    # No sentence of the table stands where the document says what people are told.
+    for terms in TERMS.values():
+        assert not [q for q in Question if terms.says(q) in told], terms.provider
 
 
 @pytest.mark.parametrize("terms", TERMS.values(), ids=lambda terms: terms.provider.value)
@@ -168,10 +170,22 @@ def test_the_design_says_who_has_been_checked_as_the_table_has_it(terms: Any):
     assert said == ("Yes" if terms.checked else "No")
 
 
-def test_the_design_says_at_its_head_whether_any_provider_can_be_turned_on():
-    none = "| Which can be turned on today | None. "
+def test_the_design_says_at_its_head_which_providers_can_be_turned_on():
+    [row] = [line for line in DESIGN.splitlines() if line.startswith("| Which can be turned on")]
+    named = {"gemini": "Gemini", "openai": "OpenAI", "deepseek": "DeepSeek", "anthropic": "Claude"}
 
-    assert (none in DESIGN) is not any(terms.checked for terms in TERMS.values())
+    # As the service would answer whoever names a provider, holds its key and accepts its terms.
+    for provider, terms in TERMS.items():
+        env = {
+            "BURRO_MODEL_PROVIDER": provider.value,
+            terms.key_variable: MADE_UP,
+            "BURRO_MODEL_TERMS_ACCEPTED": provider.value,
+        }
+        reads = choose(env, warn=lambda provider, refusal: None).client is not None
+        assert (f"{named[provider.value]} never" in row) is not reads, provider
+        assert named[provider.value] in row
+    # Nothing waits on a person's check, and the document no longer says that it does.
+    assert "until a person has checked" not in row
 
 
 def test_the_design_says_what_is_left_to_the_first_real_call():

@@ -6,7 +6,7 @@ from typing import Any
 import pytest
 from burro_api.providers.base import inlined
 from burro_api.providers.deepseek import DeepSeekClient, nothing_asked
-from burro_api.providers.interface import ModelError, ModelReply
+from burro_api.providers.interface import ModelError, ModelRefused, ModelReply
 
 from . import documents
 from .cases import (
@@ -239,13 +239,13 @@ def test_details_that_are_no_record_are_an_error():
 
 
 @pytest.mark.parametrize("reason", NOT_FINISHED, ids=str)
-def test_any_finish_reason_but_stop_is_an_error(reason: str | None):
+def test_any_finish_reason_but_stop_is_a_failure_and_a_filter_is_a_refusal(reason: str | None):
     answer = DEEPSEEK.whole(ANSWER)
     answer["choices"][0]["finish_reason"] = reason
 
     failure = failing(DEEPSEEK.made(answering(answer)), DEEPSEEK)
 
-    assert type(failure) is ModelError
+    assert type(failure) is (ModelRefused if reason == "content_filter" else ModelError)
     assert_bare(failure)
 
 

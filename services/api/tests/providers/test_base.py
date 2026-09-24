@@ -281,14 +281,16 @@ def test_the_whole_call_has_one_deadline_however_the_time_is_spent(play: Play):
     with provider(play) as far, pytest.raises(ModelFailure) as failed:
         began = time.monotonic()
         try:
-            over_https(request(), 0.15, connect=far.connect)
+            over_https(request(), 0.2, connect=far.connect)
         finally:
             took[0] = time.monotonic() - began
 
     failure = failed.value
     assert type(failure) is ModelTimeout
-    # Each read that worked was given only what was left, and none was given more.
-    assert 0.12 < took[0] < 1.0
+    # Each read that worked was given only what was left, and none was given more. The
+    # deadline is a fifth of a second: long enough for several reads of each kind, and
+    # short, because three tests wait it out on a real clock.
+    assert 0.15 < took[0] < 1.0
     assert_bare(failure)
 
 

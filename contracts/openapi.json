@@ -67,6 +67,16 @@
             "title": "Neighbours",
             "type": "array"
           },
+          "portrait": {
+            "$ref": "#/components/schemas/Portrait"
+          },
+          "similar": {
+            "items": {
+              "$ref": "#/components/schemas/Similar"
+            },
+            "title": "Similar",
+            "type": "array"
+          },
           "stations": {
             "items": {
               "$ref": "#/components/schemas/StationAccess"
@@ -89,6 +99,8 @@
           "cost",
           "stations",
           "neighbours",
+          "portrait",
+          "similar",
           "facts"
         ],
         "title": "AreaData",
@@ -210,10 +222,18 @@
             },
             "title": "Areas",
             "type": "array"
+          },
+          "bands": {
+            "items": {
+              "$ref": "#/components/schemas/VibeBands"
+            },
+            "title": "Bands",
+            "type": "array"
           }
         },
         "required": [
-          "areas"
+          "areas",
+          "bands"
         ],
         "title": "AreasData",
         "type": "object"
@@ -231,6 +251,11 @@
           "index": {
             "title": "Index",
             "type": "integer"
+          },
+          "word": {
+            "default": "",
+            "title": "Word",
+            "type": "string"
           }
         },
         "required": [
@@ -249,10 +274,69 @@
           "mode",
           "max_minutes",
           "direction",
-          "weight"
+          "weight",
+          "word"
         ],
         "title": "AssumptionCode",
         "type": "string"
+      },
+      "BandMark": {
+        "additionalProperties": false,
+        "description": "Where one area sits on one vibe: a band, one of five, and the bands it spans.\n\nAll three are `null` for an area that cannot be placed. It is never drawn\nin the middle. The score a vibe is ranked on is not here, and is never shown.",
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "band": {
+            "anyOf": [
+              {
+                "maximum": 5.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Band"
+          },
+          "spread_high": {
+            "anyOf": [
+              {
+                "maximum": 5.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spread High"
+          },
+          "spread_low": {
+            "anyOf": [
+              {
+                "maximum": 5.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spread Low"
+          }
+        },
+        "required": [
+          "area_id",
+          "band",
+          "spread_low",
+          "spread_high"
+        ],
+        "title": "BandMark",
+        "type": "object"
       },
       "Budget": {
         "additionalProperties": false,
@@ -357,8 +441,15 @@
             "type": "integer"
           },
           "upper_quartile": {
-            "title": "Upper Quartile",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upper Quartile"
           },
           "utility": {
             "title": "Utility",
@@ -373,6 +464,415 @@
           "as_of"
         ],
         "title": "BudgetFit",
+        "type": "object"
+      },
+      "CensusColumns": {
+        "additionalProperties": false,
+        "description": "The heading of each column, in the order they are printed.",
+        "properties": {
+          "city": {
+            "title": "City",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "share": {
+            "title": "Share",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "share",
+          "count",
+          "city"
+        ],
+        "title": "CensusColumns",
+        "type": "object"
+      },
+      "CensusKind": {
+        "description": "What a table counts. It is no `FeatureId` and no `TagId`: no spec or edit can name it.",
+        "enum": [
+          "age",
+          "households",
+          "country_of_birth",
+          "ethnic_group",
+          "religion"
+        ],
+        "title": "CensusKind",
+        "type": "string"
+      },
+      "CensusLeftOut": {
+        "description": "Why an area has no figure for a table. Nothing is filled in for either.",
+        "enum": [
+          "too_few",
+          "not_held"
+        ],
+        "title": "CensusLeftOut",
+        "type": "string"
+      },
+      "CensusOffer": {
+        "additionalProperties": false,
+        "description": "What the closed block of an area's page says. It holds no figure and names no area.",
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "heading": {
+            "title": "Heading",
+            "type": "string"
+          },
+          "intro": {
+            "title": "Intro",
+            "type": "string"
+          }
+        },
+        "required": [
+          "available",
+          "heading",
+          "intro"
+        ],
+        "title": "CensusOffer",
+        "type": "object"
+      },
+      "CensusPanel": {
+        "additionalProperties": false,
+        "description": "The census of one area, as its page shows it. Every word but a button's is here.",
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "city": {
+            "title": "City",
+            "type": "string"
+          },
+          "date_line": {
+            "title": "Date Line",
+            "type": "string"
+          },
+          "derivation_line": {
+            "title": "Derivation Line",
+            "type": "string"
+          },
+          "heading": {
+            "title": "Heading",
+            "type": "string"
+          },
+          "licence_line": {
+            "title": "Licence Line",
+            "type": "string"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "output_areas": {
+            "title": "Output Areas",
+            "type": "integer"
+          },
+          "source_line": {
+            "title": "Source Line",
+            "type": "string"
+          },
+          "tables": {
+            "items": {
+              "$ref": "#/components/schemas/CensusPanelTable"
+            },
+            "title": "Tables",
+            "type": "array"
+          }
+        },
+        "required": [
+          "area_id",
+          "heading",
+          "date_line",
+          "notes",
+          "city",
+          "output_areas",
+          "tables",
+          "source_line",
+          "derivation_line",
+          "licence_line"
+        ],
+        "title": "CensusPanel",
+        "type": "object"
+      },
+      "CensusPanelRow": {
+        "additionalProperties": false,
+        "description": "One row as it is printed: the area's figure, and the whole city's beside it.\n\n`share` and `city_share` are words. `percent` and `city_percent` are the\nsame shares as whole numbers, for the picture alone, and are `None`\nwhere the share is under 1 in 100. `count` is as it is printed, and is\n`None` where the share is under 1 in 100: a small count is never given.",
+        "properties": {
+          "city_percent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "City Percent"
+          },
+          "city_share": {
+            "title": "City Share",
+            "type": "string"
+          },
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "count": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count"
+          },
+          "depth": {
+            "title": "Depth",
+            "type": "integer"
+          },
+          "heading": {
+            "title": "Heading",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "percent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percent"
+          },
+          "share": {
+            "title": "Share",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "heading",
+          "label",
+          "depth",
+          "share",
+          "percent",
+          "count",
+          "city_share",
+          "city_percent"
+        ],
+        "title": "CensusPanelRow",
+        "type": "object"
+      },
+      "CensusPanelTable": {
+        "additionalProperties": false,
+        "properties": {
+          "caption": {
+            "title": "Caption",
+            "type": "string"
+          },
+          "columns": {
+            "$ref": "#/components/schemas/CensusColumns"
+          },
+          "definition": {
+            "title": "Definition",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/CensusKind"
+          },
+          "left_out": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Left Out"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "reason": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CensusLeftOut"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/CensusPanelRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "shown_only": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shown Only"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          },
+          "source_label": {
+            "title": "Source Label",
+            "type": "string"
+          },
+          "source_url": {
+            "title": "Source Url",
+            "type": "string"
+          },
+          "table_code": {
+            "title": "Table Code",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "table_code",
+          "kind",
+          "title",
+          "caption",
+          "definition",
+          "shown_only",
+          "note",
+          "columns",
+          "reason",
+          "left_out",
+          "rows",
+          "source_id",
+          "source_url",
+          "source_label"
+        ],
+        "title": "CensusPanelTable",
+        "type": "object"
+      },
+      "CharacterMark": {
+        "additionalProperties": false,
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "band": {
+            "anyOf": [
+              {
+                "maximum": 5.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Band"
+          },
+          "fact_id": {
+            "title": "Fact Id",
+            "type": "string"
+          },
+          "spread_high": {
+            "anyOf": [
+              {
+                "maximum": 5.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spread High"
+          },
+          "spread_low": {
+            "anyOf": [
+              {
+                "maximum": 5.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spread Low"
+          }
+        },
+        "required": [
+          "area_id",
+          "band",
+          "spread_low",
+          "spread_high",
+          "fact_id"
+        ],
+        "title": "CharacterMark",
+        "type": "object"
+      },
+      "CharacterRow": {
+        "additionalProperties": false,
+        "properties": {
+          "marks": {
+            "items": {
+              "$ref": "#/components/schemas/CharacterMark"
+            },
+            "title": "Marks",
+            "type": "array"
+          },
+          "tag_id": {
+            "$ref": "#/components/schemas/TagId"
+          }
+        },
+        "required": [
+          "tag_id",
+          "marks"
+        ],
+        "title": "CharacterRow",
         "type": "object"
       },
       "Choice": {
@@ -706,6 +1206,13 @@
             "title": "Areas",
             "type": "array"
           },
+          "character": {
+            "items": {
+              "$ref": "#/components/schemas/CharacterRow"
+            },
+            "title": "Character",
+            "type": "array"
+          },
           "facts": {
             "items": {
               "$ref": "#/components/schemas/Fact"
@@ -723,6 +1230,7 @@
         },
         "required": [
           "areas",
+          "character",
           "rows",
           "facts"
         ],
@@ -731,6 +1239,7 @@
       },
       "CompareRow": {
         "additionalProperties": false,
+        "description": "One thing that counts, across the areas. The journeys have a row each.\n\nEvery cell of a journey's row is to the same place. The row is named as\ncore keys a journey, `commute.<place_id>.<mode>`, and carries the weight\nof the journeys, which count as one thing between them.",
         "properties": {
           "cells": {
             "items": {
@@ -747,6 +1256,16 @@
             "title": "Label",
             "type": "string"
           },
+          "place": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/NamedPlace"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "weight": {
             "title": "Weight",
             "type": "number"
@@ -756,6 +1275,7 @@
           "component",
           "label",
           "weight",
+          "place",
           "cells"
         ],
         "title": "CompareRow",
@@ -770,7 +1290,8 @@
           "over_budget",
           "commute_cap",
           "not_rankable",
-          "insufficient_data"
+          "insufficient_data",
+          "character_unknown"
         ],
         "title": "CompareStatus",
         "type": "string"
@@ -783,9 +1304,17 @@
             "title": "Area Id",
             "type": "string"
           },
+          "counted": {
+            "title": "Counted",
+            "type": "integer"
+          },
           "name": {
             "title": "Name",
             "type": "string"
+          },
+          "present": {
+            "title": "Present",
+            "type": "integer"
           },
           "status": {
             "$ref": "#/components/schemas/CompareStatus"
@@ -794,16 +1323,20 @@
         "required": [
           "area_id",
           "name",
-          "status"
+          "status",
+          "counted",
+          "present"
         ],
         "title": "ComparedArea",
         "type": "object"
       },
       "Confidence": {
+        "description": "What a cost rests on. The first three are of a range Burro worked out.",
         "enum": [
           "high",
           "medium",
-          "low"
+          "low",
+          "unstated"
         ],
         "title": "Confidence",
         "type": "string"
@@ -869,6 +1402,7 @@
       },
       "CostEstimate": {
         "additionalProperties": false,
+        "description": "What a home of one kind costs in one area: a range, or one number where no range is known.\n\nA row holds both quartiles or neither. A row with neither is a publisher's\nown median of what was paid for the homes sold in the twelve months that\nend with `as_of`. Nothing stands in for the range, and what the median\nrests on is `unstated`: the publisher gives no count of the sales.",
         "properties": {
           "area_id": {
             "pattern": "^(syn|lon)-n[0-9a-z]+$",
@@ -884,9 +1418,16 @@
             "$ref": "#/components/schemas/Confidence"
           },
           "lower_quartile": {
-            "minimum": 0.0,
-            "title": "Lower Quartile",
-            "type": "integer"
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lower Quartile"
           },
           "median": {
             "minimum": 0.0,
@@ -909,9 +1450,16 @@
             "$ref": "#/components/schemas/Tenure"
           },
           "upper_quartile": {
-            "minimum": 0.0,
-            "title": "Upper Quartile",
-            "type": "integer"
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upper Quartile"
           }
         },
         "required": [
@@ -1015,6 +1563,16 @@
         "title": "Defaults",
         "type": "object"
       },
+      "Describes": {
+        "description": "What a feature is a fact about. There is no value for who lives somewhere.",
+        "enum": [
+          "place",
+          "buildings",
+          "events"
+        ],
+        "title": "Describes",
+        "type": "string"
+      },
       "Dimension": {
         "enum": [
           "crime",
@@ -1023,7 +1581,8 @@
           "air_noise",
           "venues_culture",
           "homes",
-          "station_access"
+          "station_access",
+          "services"
         ],
         "title": "Dimension",
         "type": "string"
@@ -1086,6 +1645,23 @@
           "data"
         ],
         "title": "Envelope[AreasData]",
+        "type": "object"
+      },
+      "Envelope_CensusPanel_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CensusPanel"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[CensusPanel]",
         "type": "object"
       },
       "Envelope_CompareData_": {
@@ -1285,7 +1861,8 @@
           "unknown_area",
           "area_not_found",
           "share_not_found",
-          "release_changed"
+          "release_changed",
+          "census_not_available"
         ],
         "title": "ErrorCode",
         "type": "string"
@@ -1419,9 +1996,14 @@
             },
             "title": "Facts",
             "type": "array"
+          },
+          "spec_hash": {
+            "title": "Spec Hash",
+            "type": "string"
           }
         },
         "required": [
+          "spec_hash",
           "explanations",
           "facts"
         ],
@@ -1518,7 +2100,8 @@
           "budget_fit",
           "travel",
           "station",
-          "missing"
+          "missing",
+          "likeness"
         ],
         "title": "FactKind",
         "type": "string"
@@ -1530,6 +2113,10 @@
             "title": "Name",
             "type": "string"
           },
+          "publisher": {
+            "title": "Publisher",
+            "type": "string"
+          },
           "source_id": {
             "title": "Source Id",
             "type": "string"
@@ -1537,9 +2124,39 @@
         },
         "required": [
           "source_id",
-          "name"
+          "name",
+          "publisher"
         ],
         "title": "FactSource",
+        "type": "object"
+      },
+      "Family": {
+        "description": "The groups of the settings, in the order they are shown.",
+        "enum": [
+          "streets_homes",
+          "pace_food",
+          "green",
+          "daily_life"
+        ],
+        "title": "Family",
+        "type": "string"
+      },
+      "FamilyLabel": {
+        "additionalProperties": false,
+        "properties": {
+          "family": {
+            "$ref": "#/components/schemas/Family"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "family",
+          "label"
+        ],
+        "title": "FamilyLabel",
         "type": "object"
       },
       "FeatureId": {
@@ -1566,9 +2183,44 @@
           "homes_density",
           "conservation_cover",
           "station_walk",
-          "station_lines"
+          "station_lines",
+          "independents_nearby",
+          "centre_small",
+          "centre_compact",
+          "listed_buildings",
+          "homes_post2000",
+          "road_major_exposure",
+          "evening_cluster_exposure",
+          "land_industry",
+          "land_storage",
+          "land_transport_other",
+          "land_gardens",
+          "land_woodland",
+          "park_large_proximity",
+          "park_facilities",
+          "grocery_walk",
+          "incident_criminal_damage",
+          "incident_antisocial",
+          "private_outdoor_space",
+          "cuisine_variety",
+          "gp_walk",
+          "pharmacy_walk",
+          "venue_food_drink_per_homes",
+          "price_median",
+          "culture_venues_per_homes"
         ],
         "title": "FeatureId",
+        "type": "string"
+      },
+      "FeatureKind": {
+        "description": "What a person may want of a feature, which decides where it may stand.",
+        "enum": [
+          "taste",
+          "amenity",
+          "nuisance",
+          "on_request"
+        ],
+        "title": "FeatureKind",
         "type": "string"
       },
       "FeatureValue": {
@@ -1878,6 +2530,15 @@
         "title": "GeometryType",
         "type": "string"
       },
+      "GrittyVariant": {
+        "description": "Whether a release carries Gritty, the one vibe that counts recorded crime.",
+        "enum": [
+          "a",
+          "b"
+        ],
+        "title": "GrittyVariant",
+        "type": "string"
+      },
       "Health": {
         "additionalProperties": false,
         "properties": {
@@ -1892,9 +2553,34 @@
         "title": "Health",
         "type": "object"
       },
+      "Holds": {
+        "additionalProperties": false,
+        "description": "What a release holds to answer a search with, apart from its measures and its vibes.\n\nA first build holds neither. A client then says so where a person would\nlook for it, and offers no control that could only be turned away.",
+        "properties": {
+          "costs": {
+            "title": "Costs",
+            "type": "boolean"
+          },
+          "journeys": {
+            "title": "Journeys",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "journeys",
+          "costs"
+        ],
+        "title": "Holds",
+        "type": "object"
+      },
       "InterpretBody": {
         "additionalProperties": false,
         "properties": {
+          "ask_model": {
+            "default": true,
+            "title": "Ask Model",
+            "type": "boolean"
+          },
           "spec": {
             "anyOf": [
               {
@@ -1949,6 +2635,21 @@
           "interpreter": {
             "$ref": "#/components/schemas/InterpreterName"
           },
+          "model_pending": {
+            "title": "Model Pending",
+            "type": "boolean"
+          },
+          "model_refused": {
+            "title": "Model Refused",
+            "type": "boolean"
+          },
+          "not_in_release": {
+            "items": {
+              "$ref": "#/components/schemas/NotInRelease"
+            },
+            "title": "Not In Release",
+            "type": "array"
+          },
           "notice": {
             "$ref": "#/components/schemas/Notice"
           },
@@ -1958,6 +2659,13 @@
           },
           "operations": {
             "$ref": "#/components/schemas/Operations"
+          },
+          "places": {
+            "items": {
+              "$ref": "#/components/schemas/NamedPlace"
+            },
+            "title": "Places",
+            "type": "array"
           },
           "rejected": {
             "items": {
@@ -1983,11 +2691,32 @@
           "status": {
             "$ref": "#/components/schemas/InterpretStatus"
           },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/Suggestion"
+            },
+            "title": "Suggestions",
+            "type": "array"
+          },
           "unmet": {
             "items": {
               "$ref": "#/components/schemas/UnmetCategory"
             },
             "title": "Unmet",
+            "type": "array"
+          },
+          "unmet_at": {
+            "items": {
+              "$ref": "#/components/schemas/UnmetAt"
+            },
+            "title": "Unmet At",
+            "type": "array"
+          },
+          "unread": {
+            "items": {
+              "$ref": "#/components/schemas/Span"
+            },
+            "title": "Unread",
             "type": "array"
           }
         },
@@ -2005,7 +2734,14 @@
           "notice_text",
           "interpreter",
           "degraded",
-          "rests_on"
+          "model_refused",
+          "rests_on",
+          "suggestions",
+          "unread",
+          "not_in_release",
+          "unmet_at",
+          "model_pending",
+          "places"
         ],
         "title": "InterpretData",
         "type": "object"
@@ -2016,6 +2752,7 @@
           "off_topic",
           "policy_redirect",
           "clarify",
+          "suggest",
           "ok"
         ],
         "title": "InterpretStatus",
@@ -2024,7 +2761,7 @@
       "InterpreterName": {
         "enum": [
           "rule",
-          "claude"
+          "model"
         ],
         "title": "InterpreterName",
         "type": "string"
@@ -2035,6 +2772,10 @@
           "engine_version": {
             "title": "Engine Version",
             "type": "string"
+          },
+          "preview": {
+            "title": "Preview",
+            "type": "boolean"
           },
           "release_id": {
             "pattern": "^(syn|lon)-\\d{4}-\\d{2}-\\d{2}-\\d{2}$",
@@ -2049,7 +2790,8 @@
         "required": [
           "release_id",
           "engine_version",
-          "synthetic"
+          "synthetic",
+          "preview"
         ],
         "title": "Meta",
         "type": "object"
@@ -2072,6 +2814,9 @@
             "title": "Catalogue Version",
             "type": "integer"
           },
+          "census": {
+            "$ref": "#/components/schemas/CensusOffer"
+          },
           "counts": {
             "$ref": "#/components/schemas/Counts"
           },
@@ -2082,6 +2827,13 @@
             "title": "Engine Version",
             "type": "string"
           },
+          "families": {
+            "items": {
+              "$ref": "#/components/schemas/FamilyLabel"
+            },
+            "title": "Families",
+            "type": "array"
+          },
           "features": {
             "items": {
               "$ref": "#/components/schemas/Metric"
@@ -2089,8 +2841,28 @@
             "title": "Features",
             "type": "array"
           },
+          "gritty_variant": {
+            "$ref": "#/components/schemas/GrittyVariant"
+          },
+          "holds": {
+            "$ref": "#/components/schemas/Holds"
+          },
           "limits": {
             "$ref": "#/components/schemas/ServedLimits"
+          },
+          "preview": {
+            "title": "Preview",
+            "type": "boolean"
+          },
+          "reader": {
+            "$ref": "#/components/schemas/Reader"
+          },
+          "recipes": {
+            "items": {
+              "$ref": "#/components/schemas/RecipeHeld"
+            },
+            "title": "Recipes",
+            "type": "array"
           },
           "release_id": {
             "pattern": "^(syn|lon)-\\d{4}-\\d{2}-\\d{2}-\\d{2}$",
@@ -2113,17 +2885,33 @@
           "release_id",
           "built_at",
           "synthetic",
+          "preview",
           "engine_version",
           "catalogue_version",
           "counts",
+          "holds",
           "attributions",
           "features",
           "tags",
+          "recipes",
+          "families",
+          "gritty_variant",
           "defaults",
-          "limits"
+          "limits",
+          "reader",
+          "census"
         ],
         "title": "MetaData",
         "type": "object"
+      },
+      "Method": {
+        "enum": [
+          "measured",
+          "modelled",
+          "averaged"
+        ],
+        "title": "Method",
+        "type": "string"
       },
       "Metric": {
         "additionalProperties": false,
@@ -2134,15 +2922,38 @@
             "title": "Definition",
             "type": "string"
           },
+          "describes": {
+            "$ref": "#/components/schemas/Describes"
+          },
           "dimension": {
             "$ref": "#/components/schemas/Dimension"
+          },
+          "family": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Family"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "feature_id": {
             "$ref": "#/components/schemas/FeatureId"
           },
+          "in_likeness": {
+            "title": "In Likeness",
+            "type": "boolean"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/FeatureKind"
+          },
           "label": {
             "title": "Label",
             "type": "string"
+          },
+          "method": {
+            "$ref": "#/components/schemas/Method"
           },
           "native_resolution": {
             "$ref": "#/components/schemas/NativeResolution"
@@ -2153,6 +2964,10 @@
           "rankable": {
             "title": "Rankable",
             "type": "boolean"
+          },
+          "short_label": {
+            "title": "Short Label",
+            "type": "string"
           },
           "source_ids": {
             "items": {
@@ -2176,9 +2991,15 @@
         "required": [
           "feature_id",
           "label",
+          "short_label",
           "dimension",
           "unit",
           "polarity",
+          "kind",
+          "describes",
+          "family",
+          "method",
+          "in_likeness",
           "native_resolution",
           "source_ids",
           "vintage",
@@ -2231,10 +3052,36 @@
         "title": "MoneyLimits",
         "type": "object"
       },
+      "NamedPlace": {
+        "additionalProperties": false,
+        "description": "A place a spec names, by the release's own name for it. Never what was typed.\n\nA spec holds a `place_id` and no name. A name says where someone works as\nan id does, so it is handled as one: served in a body, and in no log.",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/PlaceKind"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "place_id": {
+            "pattern": "^(syn|lon)-p[0-9a-z]+$",
+            "title": "Place Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "place_id",
+          "name",
+          "kind"
+        ],
+        "title": "NamedPlace",
+        "type": "object"
+      },
       "NativeResolution": {
         "enum": [
           "oa",
           "lsoa",
+          "msoa",
           "grid_1km",
           "point",
           "polygon",
@@ -2316,6 +3163,34 @@
           "neighbours"
         ],
         "title": "Neighbourhood",
+        "type": "object"
+      },
+      "NotInRelease": {
+        "additionalProperties": false,
+        "description": "A thing a person asked for that the release holds for no area, so none is ranked on it.\n\nA vibe that no area has a band for, a measure the release does not carry,\na budget where it holds no cost of that kind of home, a journey where it\nnames no place. It is said, so that a person is told what is not there\nyet. It is never offered, and nothing stands in for it.",
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "spans": {
+            "items": {
+              "$ref": "#/components/schemas/Span"
+            },
+            "title": "Spans",
+            "type": "array"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target",
+          "label",
+          "spans"
+        ],
+        "title": "NotInRelease",
         "type": "object"
       },
       "Notice": {
@@ -2475,6 +3350,129 @@
         "title": "Polarity",
         "type": "string"
       },
+      "Portrait": {
+        "additionalProperties": false,
+        "properties": {
+          "less": {
+            "items": {
+              "$ref": "#/components/schemas/PortraitMark"
+            },
+            "title": "Less",
+            "type": "array"
+          },
+          "more": {
+            "items": {
+              "$ref": "#/components/schemas/PortraitMark"
+            },
+            "title": "More",
+            "type": "array"
+          },
+          "others": {
+            "items": {
+              "$ref": "#/components/schemas/PortraitMark"
+            },
+            "title": "Others",
+            "type": "array"
+          },
+          "scales": {
+            "items": {
+              "$ref": "#/components/schemas/PortraitMark"
+            },
+            "title": "Scales",
+            "type": "array"
+          },
+          "unplaced": {
+            "items": {
+              "$ref": "#/components/schemas/PortraitMark"
+            },
+            "title": "Unplaced",
+            "type": "array"
+          }
+        },
+        "required": [
+          "scales",
+          "more",
+          "less",
+          "others",
+          "unplaced"
+        ],
+        "title": "Portrait",
+        "type": "object"
+      },
+      "PortraitMark": {
+        "additionalProperties": false,
+        "description": "One vibe on the portrait. The band and the sentence are in the fact it names.",
+        "properties": {
+          "fact_id": {
+            "title": "Fact Id",
+            "type": "string"
+          },
+          "figure_fact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Figure Fact Id"
+          },
+          "parts": {
+            "items": {
+              "$ref": "#/components/schemas/PortraitPart"
+            },
+            "title": "Parts",
+            "type": "array"
+          },
+          "tag_id": {
+            "$ref": "#/components/schemas/TagId"
+          }
+        },
+        "required": [
+          "tag_id",
+          "fact_id",
+          "figure_fact_id",
+          "parts"
+        ],
+        "title": "PortraitMark",
+        "type": "object"
+      },
+      "PortraitPart": {
+        "additionalProperties": false,
+        "description": "One part of a recipe, and the fact that holds this area's figure for it.",
+        "properties": {
+          "fact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fact Id"
+          },
+          "feature_id": {
+            "$ref": "#/components/schemas/FeatureId"
+          },
+          "hundredths": {
+            "title": "Hundredths",
+            "type": "integer"
+          },
+          "reading": {
+            "$ref": "#/components/schemas/TermReading"
+          }
+        },
+        "required": [
+          "feature_id",
+          "hundredths",
+          "reading",
+          "fact_id"
+        ],
+        "title": "PortraitPart",
+        "type": "object"
+      },
       "PreferenceSpec": {
         "additionalProperties": false,
         "properties": {
@@ -2591,6 +3589,16 @@
         "title": "Provenance",
         "type": "string"
       },
+      "Provider": {
+        "enum": [
+          "gemini",
+          "openai",
+          "deepseek",
+          "anthropic"
+        ],
+        "title": "Provider",
+        "type": "string"
+      },
       "PtBasis": {
         "enum": [
           "typical",
@@ -2639,6 +3647,14 @@
             "title": "Applied",
             "type": "array"
           },
+          "areas_listed": {
+            "title": "Areas Listed",
+            "type": "integer"
+          },
+          "areas_ranked": {
+            "title": "Areas Ranked",
+            "type": "integer"
+          },
           "empty_spec": {
             "title": "Empty Spec",
             "type": "boolean"
@@ -2648,6 +3664,13 @@
               "$ref": "#/components/schemas/Filtered"
             },
             "title": "Filtered",
+            "type": "array"
+          },
+          "places": {
+            "items": {
+              "$ref": "#/components/schemas/NamedPlace"
+            },
+            "title": "Places",
             "type": "array"
           },
           "ranked": {
@@ -2689,13 +3712,16 @@
         "required": [
           "scores",
           "ranked",
+          "areas_ranked",
+          "areas_listed",
           "filtered",
           "unranked",
           "empty_spec",
           "spec",
           "spec_hash",
           "applied",
-          "rejected"
+          "rejected",
+          "places"
         ],
         "title": "RankData",
         "type": "object"
@@ -2743,6 +3769,13 @@
             "title": "Score",
             "type": "number"
           },
+          "strip": {
+            "items": {
+              "$ref": "#/components/schemas/StripMark"
+            },
+            "title": "Strip",
+            "type": "array"
+          },
           "untested_filters": {
             "items": {
               "$ref": "#/components/schemas/FilterReason"
@@ -2765,9 +3798,111 @@
           "contributions",
           "legs",
           "budget",
-          "untested_filters"
+          "untested_filters",
+          "strip"
         ],
         "title": "RankedArea",
+        "type": "object"
+      },
+      "Reader": {
+        "additionalProperties": false,
+        "description": "Who reads what a person types, and what people are told of it.\n\nIt is how the service is set, and no part of the release. A client shows\n`notice` by the box before anything is typed, as it is served, and writes\nno provider's name or terms of its own.",
+        "properties": {
+          "company": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Company"
+          },
+          "model_reads": {
+            "title": "Model Reads",
+            "type": "boolean"
+          },
+          "notice": {
+            "title": "Notice",
+            "type": "string"
+          },
+          "provider": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Provider"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "settings_sent": {
+            "title": "Settings Sent",
+            "type": "boolean"
+          },
+          "terms_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Terms Url"
+          }
+        },
+        "required": [
+          "model_reads",
+          "provider",
+          "company",
+          "notice",
+          "terms_url",
+          "settings_sent"
+        ],
+        "title": "Reader",
+        "type": "object"
+      },
+      "RecipeHeld": {
+        "additionalProperties": false,
+        "description": "How much of one vibe's recipe a release carries, and what the vibe waits on.\n\nIt is of the release and of no area. An area may have a figure for fewer\nparts than the release carries, and its own fact says so.",
+        "properties": {
+          "held": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Held",
+            "type": "integer"
+          },
+          "needed": {
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Needed",
+            "type": "integer"
+          },
+          "placed": {
+            "title": "Placed",
+            "type": "boolean"
+          },
+          "tag_id": {
+            "$ref": "#/components/schemas/TagId"
+          },
+          "waits_on": {
+            "items": {
+              "$ref": "#/components/schemas/WaitsOn"
+            },
+            "title": "Waits On",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tag_id",
+          "held",
+          "needed",
+          "placed",
+          "waits_on"
+        ],
+        "title": "RecipeHeld",
         "type": "object"
       },
       "RejectReason": {
@@ -2846,6 +3981,14 @@
             "title": "Area Id",
             "type": "string"
           },
+          "counted": {
+            "title": "Counted",
+            "type": "integer"
+          },
+          "present": {
+            "title": "Present",
+            "type": "integer"
+          },
           "score": {
             "title": "Score",
             "type": "number"
@@ -2853,7 +3996,9 @@
         },
         "required": [
           "area_id",
-          "score"
+          "score",
+          "counted",
+          "present"
         ],
         "title": "Score",
         "type": "object"
@@ -2957,6 +4102,10 @@
             "title": "Minutes Step Small",
             "type": "integer"
           },
+          "reason_min_utility": {
+            "title": "Reason Min Utility",
+            "type": "number"
+          },
           "rent": {
             "$ref": "#/components/schemas/MoneyLimits",
             "default": {
@@ -2964,6 +4113,10 @@
               "minimum": 300,
               "unit": 25
             }
+          },
+          "trade_off_max_utility": {
+            "title": "Trade Off Max Utility",
+            "type": "number"
           },
           "weight_step_large": {
             "default": 0.25,
@@ -2984,7 +4137,9 @@
         "required": [
           "cutoff_minutes",
           "max_text",
-          "max_body_bytes"
+          "max_body_bytes",
+          "reason_min_utility",
+          "trade_off_max_utility"
         ],
         "title": "ServedLimits",
         "type": "object"
@@ -3066,6 +4221,13 @@
             "title": "Coarsened",
             "type": "boolean"
           },
+          "places": {
+            "items": {
+              "$ref": "#/components/schemas/NamedPlace"
+            },
+            "title": "Places",
+            "type": "array"
+          },
           "share_id": {
             "pattern": "^[A-Za-z0-9_-]{22}$",
             "title": "Share Id",
@@ -3078,7 +4240,8 @@
         "required": [
           "share_id",
           "spec",
-          "coarsened"
+          "coarsened",
+          "places"
         ],
         "title": "ShareCreated",
         "type": "object"
@@ -3087,6 +4250,14 @@
         "additionalProperties": false,
         "description": "A shared search, ranked now on the release that is loaded.",
         "properties": {
+          "areas_listed": {
+            "title": "Areas Listed",
+            "type": "integer"
+          },
+          "areas_ranked": {
+            "title": "Areas Ranked",
+            "type": "integer"
+          },
           "coarsened": {
             "title": "Coarsened",
             "type": "boolean"
@@ -3106,6 +4277,13 @@
             "pattern": "^(syn|lon)-\\d{4}-\\d{2}-\\d{2}-\\d{2}$",
             "title": "Original Release Id",
             "type": "string"
+          },
+          "places": {
+            "items": {
+              "$ref": "#/components/schemas/NamedPlace"
+            },
+            "title": "Places",
+            "type": "array"
           },
           "ranked": {
             "items": {
@@ -3143,6 +4321,8 @@
         "required": [
           "scores",
           "ranked",
+          "areas_ranked",
+          "areas_listed",
           "filtered",
           "unranked",
           "empty_spec",
@@ -3150,9 +4330,31 @@
           "spec_hash",
           "coarsened",
           "stale",
-          "original_release_id"
+          "original_release_id",
+          "places"
         ],
         "title": "ShareData",
+        "type": "object"
+      },
+      "Similar": {
+        "additionalProperties": false,
+        "description": "One of the areas most like this one. The sentence is in the `likeness` fact it names.",
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "fact_id": {
+            "title": "Fact Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "area_id",
+          "fact_id"
+        ],
+        "title": "Similar",
         "type": "object"
       },
       "Source": {
@@ -3203,6 +4405,26 @@
           "retrieved_on"
         ],
         "title": "Source",
+        "type": "object"
+      },
+      "Span": {
+        "additionalProperties": false,
+        "description": "A stretch of the text: where it starts and ends, counted as `RestsOn` counts.",
+        "properties": {
+          "end": {
+            "title": "End",
+            "type": "integer"
+          },
+          "start": {
+            "title": "Start",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ],
+        "title": "Span",
         "type": "object"
       },
       "StationAccess": {
@@ -3286,12 +4508,301 @@
         "title": "StrictnessChoice",
         "type": "string"
       },
-      "Tag": {
+      "StripMark": {
         "additionalProperties": false,
+        "description": "Where an area sits on one vibe, for the strip under its name. Shown, never scored.",
         "properties": {
+          "asked": {
+            "title": "Asked",
+            "type": "boolean"
+          },
+          "band": {
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Band",
+            "type": "integer"
+          },
+          "fact_id": {
+            "title": "Fact Id",
+            "type": "string"
+          },
+          "spread_high": {
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Spread High",
+            "type": "integer"
+          },
+          "spread_low": {
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Spread Low",
+            "type": "integer"
+          },
+          "tag_id": {
+            "$ref": "#/components/schemas/TagId"
+          },
+          "toward": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Toward"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "tag_id",
+          "band",
+          "spread_low",
+          "spread_high",
+          "asked",
+          "toward",
+          "fact_id"
+        ],
+        "title": "StripMark",
+        "type": "object"
+      },
+      "Suggestion": {
+        "additionalProperties": false,
+        "description": "An offer: a thing that was noticed, in four parts. The person chooses.\n\nWhat it would do (`does`), the person's own words (`spans`, shown within\n`shown`), what follows for areas (`follows`), and the choices. Every word\nis Burro's own. The person's words are never here: a client cuts them\nfrom the text it holds, by where they stand.",
+        "properties": {
+          "add_all": {
+            "title": "Add All",
+            "type": "string"
+          },
+          "asks_place": {
+            "title": "Asks Place",
+            "type": "boolean"
+          },
+          "choices": {
+            "items": {
+              "$ref": "#/components/schemas/SuggestionChoice"
+            },
+            "title": "Choices",
+            "type": "array"
+          },
+          "does": {
+            "title": "Does",
+            "type": "string"
+          },
+          "follows": {
+            "title": "Follows",
+            "type": "string"
+          },
           "label": {
             "title": "Label",
             "type": "string"
+          },
+          "named_at": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Span"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "needs": {
+            "title": "Needs",
+            "type": "string"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/ClarifyOption"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "read_by": {
+            "$ref": "#/components/schemas/InterpreterName"
+          },
+          "said": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Said",
+            "type": "array"
+          },
+          "shown": {
+            "$ref": "#/components/schemas/Span"
+          },
+          "spans": {
+            "items": {
+              "$ref": "#/components/schemas/Span"
+            },
+            "title": "Spans",
+            "type": "array"
+          },
+          "target": {
+            "title": "Target",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target",
+          "label",
+          "does",
+          "spans",
+          "shown",
+          "follows",
+          "said",
+          "choices",
+          "note",
+          "read_by",
+          "add_all",
+          "needs",
+          "asks_place",
+          "named_at",
+          "options"
+        ],
+        "title": "Suggestion",
+        "type": "object"
+      },
+      "SuggestionChoice": {
+        "additionalProperties": false,
+        "description": "One way a person may take an offer, and the edits it would make.\n\nIt has a name of its own here because core has another `Choice`, what a\nsetting is set to, and one document cannot hold two records of one name.",
+        "properties": {
+          "direction": {
+            "$ref": "#/components/schemas/SuggestionDirection"
+          },
+          "guess": {
+            "title": "Guess",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "operations": {
+            "$ref": "#/components/schemas/Operations"
+          }
+        },
+        "required": [
+          "id",
+          "direction",
+          "label",
+          "guess",
+          "operations"
+        ],
+        "title": "SuggestionChoice",
+        "type": "object"
+      },
+      "SuggestionDirection": {
+        "description": "What a person may choose of a thing the reader noticed. It never guesses one.",
+        "enum": [
+          "more",
+          "less",
+          "ignore"
+        ],
+        "title": "SuggestionDirection",
+        "type": "string"
+      },
+      "Tag": {
+        "additionalProperties": false,
+        "properties": {
+          "cannot_see": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cannot See",
+            "type": "array"
+          },
+          "family": {
+            "$ref": "#/components/schemas/Family"
+          },
+          "high_end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "High End"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "lens": {
+            "title": "Lens",
+            "type": "boolean"
+          },
+          "low_end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Low End"
+          },
+          "meaning": {
+            "title": "Meaning",
+            "type": "string"
+          },
+          "shape": {
+            "$ref": "#/components/schemas/TagShape"
+          },
+          "shelf_order": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shelf Order"
+          },
+          "shelf_toward": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Toward"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "shelf_word": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Shelf Word"
+          },
+          "short_label": {
+            "maxLength": 40,
+            "minLength": 1,
+            "title": "Short Label",
+            "type": "string"
+          },
+          "strip": {
+            "title": "Strip",
+            "type": "boolean"
+          },
+          "table": {
+            "title": "Table",
+            "type": "boolean"
           },
           "tag_id": {
             "$ref": "#/components/schemas/TagId"
@@ -3307,6 +4818,19 @@
         "required": [
           "tag_id",
           "label",
+          "short_label",
+          "family",
+          "shape",
+          "low_end",
+          "high_end",
+          "meaning",
+          "cannot_see",
+          "lens",
+          "strip",
+          "table",
+          "shelf_word",
+          "shelf_toward",
+          "shelf_order",
           "terms"
         ],
         "title": "Tag",
@@ -3327,6 +4851,9 @@
           "tag_id": {
             "$ref": "#/components/schemas/TagId"
           },
+          "toward": {
+            "$ref": "#/components/schemas/TowardChoice"
+          },
           "value": {
             "title": "Value",
             "type": "number"
@@ -3337,27 +4864,37 @@
           "tag_id",
           "value",
           "step",
+          "toward",
           "provenance"
         ],
         "title": "TagEdit",
         "type": "object"
       },
       "TagId": {
+        "description": "On screen a tag is a vibe. Seven ids of catalogue version 1 are retired and never reused:\nbuzzy, evening_venues, historic_character, creative, strong_high_street,\nnear_universities and waterside.",
         "enum": [
-          "village_feel",
-          "buzzy",
           "leafy",
-          "creative",
-          "family_amenities",
-          "near_universities",
-          "waterside",
-          "strong_high_street",
-          "evening_venues",
+          "village_feel",
+          "pace",
           "quiet_residential",
+          "built_age",
+          "everyday_on_foot",
+          "parks_close_by",
+          "homes",
           "foodie",
-          "historic_character"
+          "family_amenities",
+          "works_warehouses",
+          "street_character"
         ],
         "title": "TagId",
+        "type": "string"
+      },
+      "TagShape": {
+        "enum": [
+          "scale",
+          "one_way"
+        ],
+        "title": "TagShape",
         "type": "string"
       },
       "TagTerm": {
@@ -3386,11 +4923,25 @@
       },
       "TagValue": {
         "additionalProperties": false,
+        "description": "Where one area sits on one vibe. `score` is for ranking and is never printed.\n\n`band` is what is shown: one of five, counted from the low end. The\nspread is the bands the middle half of the area's homes span, so a mixed\narea is drawn as a range and never as a point in the middle.",
         "properties": {
           "area_id": {
             "pattern": "^(syn|lon)-n[0-9a-z]+$",
             "title": "Area Id",
             "type": "string"
+          },
+          "band": {
+            "anyOf": [
+              {
+                "maximum": 5.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Band"
           },
           "coverage": {
             "maximum": 1.0,
@@ -3424,6 +4975,32 @@
             ],
             "title": "Score"
           },
+          "spread_high": {
+            "anyOf": [
+              {
+                "maximum": 5.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spread High"
+          },
+          "spread_low": {
+            "anyOf": [
+              {
+                "maximum": 5.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spread Low"
+          },
           "tag_id": {
             "$ref": "#/components/schemas/TagId"
           }
@@ -3433,7 +5010,10 @@
           "tag_id",
           "raw",
           "score",
-          "coverage"
+          "coverage",
+          "band",
+          "spread_low",
+          "spread_high"
         ],
         "title": "TagValue",
         "type": "object"
@@ -3446,6 +5026,10 @@
           },
           "tag_id": {
             "$ref": "#/components/schemas/TagId"
+          },
+          "toward": {
+            "$ref": "#/components/schemas/Toward",
+            "default": "high"
           },
           "weight": {
             "maximum": 1.0,
@@ -3467,17 +5051,27 @@
           "area",
           "feature",
           "feature_crime",
-          "tag",
+          "vibe",
+          "vibe_range",
+          "vibe_unknown",
           "cost_rent",
           "cost_buy",
+          "cost_buy_median",
           "budget_under",
           "budget_over",
+          "budget_under_median",
+          "budget_over_median",
           "travel_pt",
+          "travel_pt_over",
           "travel_other",
+          "travel_other_over",
           "travel_beyond",
           "station",
           "station_nearby",
-          "missing"
+          "missing",
+          "missing_journey",
+          "likeness",
+          "likeness_same"
         ],
         "title": "TemplateId",
         "type": "string"
@@ -3507,6 +5101,24 @@
         "title": "TermReading",
         "type": "string"
       },
+      "Toward": {
+        "description": "Which end of a vibe is asked for. A one-way vibe has the high end alone.",
+        "enum": [
+          "high",
+          "low"
+        ],
+        "title": "Toward",
+        "type": "string"
+      },
+      "TowardChoice": {
+        "enum": [
+          "high",
+          "low",
+          "default"
+        ],
+        "title": "TowardChoice",
+        "type": "string"
+      },
       "TravelStatus": {
         "enum": [
           "ok",
@@ -3515,6 +5127,24 @@
         ],
         "title": "TravelStatus",
         "type": "string"
+      },
+      "UnmetAt": {
+        "additionalProperties": false,
+        "description": "Something that was asked for which nothing measures, and where it was said.",
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/UnmetCategory"
+          },
+          "span": {
+            "$ref": "#/components/schemas/Span"
+          }
+        },
+        "required": [
+          "category",
+          "span"
+        ],
+        "title": "UnmetAt",
+        "type": "object"
       },
       "UnmetCategory": {
         "enum": [
@@ -3526,6 +5156,12 @@
           "affordability_verdict",
           "community_amenities",
           "outside_the_city",
+          "street_cleanliness",
+          "upkeep",
+          "ratings",
+          "prices_and_hours",
+          "mobile_coverage",
+          "change_over_time",
           "other"
         ],
         "title": "UnmetCategory",
@@ -3539,13 +5175,21 @@
             "title": "Area Id",
             "type": "string"
           },
+          "missing": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Missing",
+            "type": "array"
+          },
           "reason": {
             "$ref": "#/components/schemas/UnrankedReason"
           }
         },
         "required": [
           "area_id",
-          "reason"
+          "reason",
+          "missing"
         ],
         "title": "Unranked",
         "type": "object"
@@ -3553,10 +5197,58 @@
       "UnrankedReason": {
         "enum": [
           "not_rankable",
-          "insufficient_data"
+          "insufficient_data",
+          "character_unknown"
         ],
         "title": "UnrankedReason",
         "type": "string"
+      },
+      "VibeBands": {
+        "additionalProperties": false,
+        "properties": {
+          "marks": {
+            "items": {
+              "$ref": "#/components/schemas/BandMark"
+            },
+            "title": "Marks",
+            "type": "array"
+          },
+          "tag_id": {
+            "$ref": "#/components/schemas/TagId"
+          }
+        },
+        "required": [
+          "tag_id",
+          "marks"
+        ],
+        "title": "VibeBands",
+        "type": "object"
+      },
+      "WaitsOn": {
+        "additionalProperties": false,
+        "description": "A part of a recipe that a release carries no measure for. It is named, never filled in.",
+        "properties": {
+          "feature_id": {
+            "$ref": "#/components/schemas/FeatureId"
+          },
+          "hundredths": {
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Hundredths",
+            "type": "integer"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "feature_id",
+          "label",
+          "hundredths"
+        ],
+        "title": "WaitsOn",
+        "type": "object"
       },
       "WeightAction": {
         "enum": [
@@ -3604,9 +5296,9 @@
     }
   },
   "info": {
-    "description": "Ranks named neighbourhoods for a preference spec and shows its working. Every response says whether the data behind it is synthetic.",
+    "description": "Ranks named neighbourhoods for a preference spec and shows its working. Every response says whether the data behind it is synthetic, and whether the release is a preview that is not finished.",
     "title": "Burro API",
-    "version": "1"
+    "version": "2"
   },
   "openapi": "3.1.0",
   "paths": {
@@ -3641,7 +5333,7 @@
     },
     "/v1/areas": {
       "get": {
-        "description": "Every area of the release, by id.",
+        "description": "Every area of the release, by id, and where each sits on every vibe.",
         "operationId": "list_areas",
         "responses": {
           "200": {
@@ -3653,6 +5345,9 @@
               }
             },
             "description": "Successful Response"
+          },
+          "304": {
+            "description": "The release the caller holds is still loaded"
           },
           "500": {
             "content": {
@@ -3682,6 +5377,9 @@
               }
             },
             "description": "Successful Response"
+          },
+          "304": {
+            "description": "The release the caller holds is still loaded"
           },
           "500": {
             "content": {
@@ -3723,6 +5421,9 @@
             },
             "description": "Successful Response"
           },
+          "304": {
+            "description": "The release the caller holds is still loaded"
+          },
           "404": {
             "content": {
               "application/json": {
@@ -3755,6 +5456,66 @@
           }
         },
         "summary": "Get Area"
+      }
+    },
+    "/v1/areas/{id_or_slug}/census": {
+      "get": {
+        "description": "The census figures of one area, beside the figures of the whole city and nothing else.",
+        "operationId": "get_census",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id_or_slug",
+            "required": true,
+            "schema": {
+              "title": "Id Or Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_CensusPanel_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Census"
       }
     },
     "/v1/compare": {
@@ -4006,7 +5767,7 @@
     },
     "/v1/meta": {
       "get": {
-        "description": "The release that is loaded, the vocabulary, the defaults and the limits.",
+        "description": "The release that is loaded, the vocabulary, the defaults, the limits, and who reads.",
         "operationId": "get_meta",
         "responses": {
           "200": {
@@ -4018,6 +5779,9 @@
               }
             },
             "description": "Successful Response"
+          },
+          "304": {
+            "description": "The release the caller holds is still loaded"
           },
           "500": {
             "content": {

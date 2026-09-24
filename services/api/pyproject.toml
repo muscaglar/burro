@@ -10,8 +10,6 @@ dependencies = [
     "fastapi>=0.141,<0.142",
     # Runs the app. The plain package, without the `standard` extra and its native tools.
     "uvicorn>=0.30",
-    # The provider's SDK. Imported by `claude_sdk.py` alone, and only when a key is present.
-    "anthropic>=1,<2",
 ]
 
 [project.scripts]

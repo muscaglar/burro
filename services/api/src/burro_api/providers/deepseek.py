@@ -4,7 +4,7 @@
 valid JSON and nothing about its shape: there is no `json_schema` type. So
 the schema is written into the instructions, with one empty answer as an
 example, as the provider's guide asks. What holds the answer to the schema is
-the validation that follows every adapter (`claude._parsed`), and nothing
+the validation that follows every adapter (`reader._parsed`), and nothing
 else. The provider also says an answer may come back empty, which is an error
 here.
 
@@ -32,11 +32,12 @@ from burro_api.providers.base import (
     record,
     words,
 )
-from burro_api.providers.interface import ModelError, ModelReply
+from burro_api.providers.interface import ModelError, ModelRefused, ModelReply
 
 HOST = "api.deepseek.com"
 PATH = "/chat/completions"
 FINISHED = "stop"
+FILTERED = "content_filter"
 # The provider's reference gives two values for `model`, and `thinking` as
 # "enabled" or "disabled" with no model left out. Two of its pages disagree
 # about which model answers to the second name: see `docs/design/models.md`.
@@ -111,8 +112,10 @@ class DeepSeekClient(Adapter):
     def read(self, answer: dict[str, object]) -> Outcome:
         [only] = listed(answer.get("choices"))
         choice = record(only)
+        if choice.get("finish_reason") == FILTERED:
+            return ModelRefused
         if choice.get("finish_reason") != FINISHED:
-            # Cut short, cut by a filter, interrupted, or a call to a tool nobody offered.
+            # Cut short, interrupted, or a call to a tool nobody offered.
             return ModelError
         usage = record(answer.get("usage"))
         cached = _cached(usage)

@@ -30,12 +30,19 @@ from burro_api.providers.base import (
     refused,
     words,
 )
-from burro_api.providers.interface import ModelCapped, ModelError, ModelFailure, ModelReply
+from burro_api.providers.interface import (
+    ModelCapped,
+    ModelError,
+    ModelFailure,
+    ModelRefused,
+    ModelReply,
+)
 
 HOST = "api.anthropic.com"
 PATH = "/v1/messages"
 VERSION = "2023-06-01"
 FINISHED = "end_turn"
+REFUSED = "refusal"
 BAD_REQUEST = 400
 # How the provider begins its message when a limit on spending that the
 # customer set has been reached. It answers 400 then, as it does for a bad
@@ -96,9 +103,11 @@ class AnthropicClient(Adapter):
         return refused(response.status)
 
     def read(self, answer: dict[str, object]) -> Outcome:
+        if answer.get("stop_reason") == REFUSED:
+            return ModelRefused
         if answer.get("stop_reason") != FINISHED:
-            # A refusal, an answer cut short, or a reason that did not exist
-            # when this was written. Read before the text is.
+            # An answer cut short, or a reason that did not exist when this
+            # was written. Read before the text is.
             return ModelError
         blocks = [record(block) for block in listed(answer.get("content"))]
         said = [words(block.get("text")) for block in blocks if block.get("type") == "text"]

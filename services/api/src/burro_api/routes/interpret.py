@@ -3,7 +3,13 @@
 The text is read and dropped. What is kept about the call is metadata: which
 interpreter was asked, how it went, how long it took and how many edits came
 of it. If a model is slow, capped or broken, the rules answer in its place and
-the person still gets their form.
+the person still gets their form. So they do where the provider would not
+read what was typed, and the answer says that it would not.
+
+Only what the rules read is applied. What a model read is served as offers,
+each in four parts, and moves nothing until a person presses it. A caller
+that will not wait for a model asks for the rules alone, and is told whether
+a model has more to read.
 """
 
 from collections import Counter
@@ -11,25 +17,49 @@ from collections.abc import Callable
 from concurrent.futures import Future
 from threading import Thread
 
-from burro_core.ids import Tenure
+from burro_core.grammar import Grammar
+from burro_core.ids import InterpreterName, Tenure
 from burro_core.interpret import (
-    NOTICES,
     InterpretRequest,
     InterpretResult,
+    NotInRelease,
     RestsOn,
     RuleInterpreter,
+    Span,
+    not_in_release_of,
+    notice_text,
 )
 from burro_core.ops import Operations
 from burro_core.reducer import ReducerResult, apply
-from burro_core.spec import spec_hash
+from burro_core.spec import PreferenceSpec, spec_hash
 from fastapi import APIRouter
 
 from burro_api import logs
 from burro_api.calls import Caller, CallRecord, CallStatus, Endpoint
-from burro_api.claude import ModelCapped, ModelTimeout
 from burro_api.deps import Context, Ctx, Deps
-from burro_api.routes.common import PREFIX, WITH_BODY, RequestId, check, default_for, envelope
-from burro_api.wire import Envelope, InterpretBody, InterpretData
+from burro_api.guard import settled
+from burro_api.offers import of_the_rules
+from burro_api.providers.interface import ModelCapped, ModelRefused, ModelTimeout
+from burro_api.reader import Read, asks_a_model
+from burro_api.routes.common import (
+    PREFIX,
+    WITH_BODY,
+    RequestId,
+    check,
+    default_for,
+    envelope,
+    places_of,
+)
+from burro_api.typed import CYCLES, WALKS, Typed, holds
+from burro_api.wire import (
+    Envelope,
+    InterpretBody,
+    InterpretData,
+    Suggestion,
+    SuggestionChoice,
+    UnmetAt,
+)
+from burro_api.wording import worded
 
 router = APIRouter(prefix=PREFIX)
 
@@ -53,14 +83,35 @@ def within[T](seconds: float, call: Callable[[], T]) -> T:
     return outcome.result(timeout=seconds)
 
 
+RESTING = "model_resting"
+# The rules, for when they answer in a model's place or are asked for alone.
+# They make the names of a release ready once, so one is kept for every call.
+_RULES = RuleInterpreter()
+
+
+def _note_a_rest(deps: Deps) -> None:
+    """Say once, by the provider's name, that it is left alone for a while. Nothing of a call."""
+    begins = getattr(deps.interpreter, "begins_to_rest", None)
+    if callable(begins) and begins() and deps.told.provider is not None:
+        logs.warning(RESTING, provider=deps.told.provider)
+
+
 def answer(
-    deps: Deps, request: InterpretRequest, request_id: str = ""
+    deps: Deps, request: InterpretRequest, request_id: str = "", ask_model: bool = True
 ) -> tuple[InterpretResult, CallStatus]:
-    """The interpreter's answer, or the rules' if it fails. It never raises for a model."""
+    """The interpreter's answer, or the rules' if it fails. It never raises for a model.
+
+    Where the caller asked for the rules alone, the rules answer at once and
+    no model is asked.
+    """
     asked = deps.interpreter
-    if isinstance(asked, RuleInterpreter):
-        result = asked.interpret(request)
+    if isinstance(asked, RuleInterpreter) or not ask_model:
+        by_rules = asked if isinstance(asked, RuleInterpreter) else _RULES
+        result = by_rules.interpret(request)
         return result, CallStatus(result.status.value)
+    # Looked at before the call as well as after, so that a rest which ended
+    # with nobody asking is known to have ended.
+    _note_a_rest(deps)
     try:
         result = within(deps.model_timeout_s, lambda: asked.interpret(request))
         return result, CallStatus(result.status.value)
@@ -68,11 +119,14 @@ def answer(
         failed = CallStatus.TIMEOUT
     except ModelCapped:
         failed = CallStatus.CAPPED
+    except ModelRefused:
+        # Sent as it was typed, and not read. Nothing of it is written down.
+        failed = CallStatus.REFUSED
     except Exception as error:
         failed = CallStatus.ERROR
         logs.log_failure(error, request_id=request_id)
-    fallback = RuleInterpreter().interpret(request)
-    return fallback.replace(degraded=True), failed
+    _note_a_rest(deps)
+    return _RULES.interpret(request).replace(degraded=True), failed
 
 
 def _edits(operations: Operations) -> dict[str, int]:
@@ -87,6 +141,10 @@ def _edits(operations: Operations) -> dict[str, int]:
     }
 
 
+def _in_the_text(start: int, end: int, text: str) -> bool:
+    return 0 <= start < end <= len(text)
+
+
 def as_sent(result: InterpretResult, text: str, lead: int) -> tuple[RestsOn, ...]:
     """Which words each edit rests on, as offsets into the text as it was sent.
 
@@ -99,7 +157,101 @@ def as_sent(result: InterpretResult, text: str, lead: int) -> tuple[RestsOn, ...
         rests.replace(start=rests.start + lead, end=rests.end + lead)
         for rests in result.rests_on
         if 0 <= rests.index < served[rests.group.value]
-        and 0 <= rests.start < rests.end <= len(text)
+        and _in_the_text(rests.start, rests.end, text)
+    )
+
+
+def stretches(spans: tuple[Span, ...], text: str, lead: int) -> tuple[Span, ...]:
+    """Some stretches of the text, as offsets into the text as it was sent. Never the words."""
+    return tuple(
+        Span(start=span.start + lead, end=span.end + lead)
+        for span in spans
+        if _in_the_text(span.start, span.end, text)
+    )
+
+
+def offered(
+    result: InterpretResult, text: str, lead: int, spec: PreferenceSpec, typed: Typed
+) -> tuple[Suggestion, ...]:
+    """What was noticed, each in its four parts, with where its words stand as the text was sent.
+
+    An offer says where its words stand, so one that points at nothing in
+    the text is not served. The words of every part are Burro's own, made
+    here for the rules' offers and a model's alike.
+    """
+    found: list[Suggestion] = []
+    for suggestion in result.suggestions:
+        spans = stretches(suggestion.spans, text, lead)
+        if not spans:
+            continue
+        offer = of_the_rules(suggestion)
+        # All that the offer rests on is shown: the words that end last may
+        # not be the ones that begin last.
+        around = (
+            min(span.start for span in suggestion.spans),
+            max(span.end for span in suggestion.spans),
+        )
+        sentences = typed.sentences(around)
+        shown = sentences if offer.whole_sentence else typed.clause(around)
+        # A word for walking or cycling that the offer did not take is said to be so.
+        names_a_way = holds(typed.said(sentences), (*WALKS, *CYCLES))
+        words = worded(offer, spec, typed.release, settled(offer, typed), names_a_way)
+        named = () if offer.named_at is None else stretches((offer.named_at,), text, lead)
+        found.append(
+            Suggestion(
+                target=offer.target,
+                label=words.label,
+                does=words.does,
+                spans=spans,
+                shown=Span(start=shown[0] + lead, end=shown[1] + lead),
+                follows=words.follows,
+                said=words.said,
+                choices=tuple(
+                    SuggestionChoice(
+                        id=way.id,
+                        direction=way.direction,
+                        label=label,
+                        guess=way.guess,
+                        operations=way.operations,
+                    )
+                    for way, label in zip(offer.choices, words.labels, strict=True)
+                ),
+                note=offer.note,
+                read_by=offer.read_by,
+                add_all=words.add_all,
+                needs=words.needs,
+                asks_place=offer.asks_place,
+                named_at=named[0] if named else None,
+                options=offer.options,
+            )
+        )
+    return tuple(found)
+
+
+def unmet_at(result: InterpretResult, text: str, lead: int) -> tuple[UnmetAt, ...]:
+    """Where the words stand that ask for what nothing measures, where a reader said which."""
+    if not isinstance(result, Read):
+        return ()
+    return tuple(
+        UnmetAt(category=category, span=span)
+        for category, where in result.unmet_at
+        for span in stretches((where,), text, lead)
+    )
+
+
+def missing(
+    result: InterpretResult, reduced: ReducerResult, text: str, lead: int
+) -> tuple[NotInRelease, ...]:
+    """What was asked for that the release holds for no area, each by its name.
+
+    It is said of every reading alike, whoever read the words: what the
+    reducer turned away as not in the release, and what the reader noticed
+    and did not offer. The words are given as offsets into the text as it
+    was sent, and a thing is named whether or not its words can be pointed at.
+    """
+    return tuple(
+        thing.replace(spans=stretches(thing.spans, text, lead))
+        for thing in not_in_release_of(result, reduced.rejected)
     )
 
 
@@ -112,8 +264,13 @@ def _record(
     latency_ms: int,
 ) -> None:
     deps, meta = context.deps, context.meta
-    asked = Caller(deps.interpreter.name.value)
-    model = deps.model_id if asked is Caller.CLAUDE else ""
+    # A model was asked where it answered, or where the rules answered in its
+    # place. A prompt the rules applied by themselves is the rules' call.
+    by_model = result.interpreter is InterpreterName.MODEL or result.degraded
+    asked = Caller.MODEL if by_model else Caller.RULE
+    model = deps.model_id if by_model else ""
+    # The provider that was asked, whether or not it answered. One of the four by name.
+    provider = (deps.told.provider or "") if by_model else ""
     # Nothing of the spec is kept or logged, not even a hash of it (ADR 0011).
     deps.calls.add(
         CallRecord(
@@ -121,6 +278,7 @@ def _record(
             at=context.timestamp(),
             endpoint=Endpoint.INTERPRET,
             interpreter=asked,
+            provider=provider,
             model=model,
             status=status,
             degraded=result.degraded,
@@ -137,6 +295,7 @@ def _record(
         request_id=request_id,
         endpoint=Endpoint.INTERPRET.value,
         interpreter=asked.value,
+        provider=provider,
         model=model,
         interpret_status=result.status.value,
         call_status=status.value,
@@ -160,7 +319,8 @@ def interpret(body: InterpretBody, context: Ctx, request_id: RequestId) -> Envel
 
     began = deps.clock.elapsed()
     asked = InterpretRequest(text=body.text, spec=spec, release=release)
-    result, status = answer(deps, asked, request_id)
+    result, status = answer(deps, asked, request_id, body.ask_model)
+    # Every edit here is the rules' own. Nothing a model read is among them.
     reduced = apply(spec, result.operations, release)
     latency_ms = round((deps.clock.elapsed() - began) * 1000)
     # The call was made, so it is on record whether or not its spec can be ranked.
@@ -168,6 +328,10 @@ def interpret(body: InterpretBody, context: Ctx, request_id: RequestId) -> Envel
     # The spec is checked as the edits leave it, so that a spec which names
     # what a newer release has dropped can be put right in words.
     check(reduced.spec, release)
+    # "The rest of your search has been applied" is untrue where nothing was.
+    changed = any(edit.changed for edit in reduced.applied)
+    typed = Typed(body.text, Grammar(context.names, release), release)
+    by_rules = isinstance(deps.interpreter, RuleInterpreter)
 
     return envelope(
         context,
@@ -182,9 +346,18 @@ def interpret(body: InterpretBody, context: Ctx, request_id: RequestId) -> Envel
             unmet=result.unmet,
             clarify=result.clarify,
             notice=result.notice,
-            notice_text=NOTICES[result.notice],
+            notice_text=notice_text(result.notice, changed),
             interpreter=result.interpreter,
             degraded=result.degraded,
+            model_refused=status is CallStatus.REFUSED,
             rests_on=as_sent(result, body.text, body.lead),
+            # Served to the caller, who holds the text. They are in no line and
+            # no record, and no other route takes or returns them.
+            suggestions=offered(result, body.text, body.lead, spec, typed),
+            unread=stretches(result.unread, body.text, body.lead),
+            not_in_release=missing(result, reduced, body.text, body.lead),
+            unmet_at=unmet_at(result, body.text, body.lead),
+            model_pending=not by_rules and not body.ask_model and asks_a_model(result),
+            places=places_of(reduced.spec, release),
         ),
     )

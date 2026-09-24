@@ -255,7 +255,7 @@ def test_a_reference_that_leads_out_of_the_schema_or_back_to_itself_is_refused(
 def reader() -> Any:
     """The reader's own module, or a skip that says why there is none."""
     try:
-        import burro_api.claude as found
+        import burro_api.reader as found
     except ImportError:
         pytest.skip("the reader cannot be loaded: the engine under it is being rebuilt")
     return found

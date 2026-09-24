@@ -22,6 +22,7 @@ from burro_api.routes.common import (
     WITH_BODY,
     check,
     envelope,
+    places_of,
     ranking,
 )
 from burro_api.stores import StoredShare
@@ -61,7 +62,14 @@ def create_share(body: ShareBody, context: Ctx) -> Envelope[ShareCreated]:
     )
     deps.shares.put(made)
     return envelope(
-        context, ShareCreated(share_id=made.share_id, spec=made.spec, coarsened=made.coarsened)
+        context,
+        ShareCreated(
+            share_id=made.share_id,
+            spec=made.spec,
+            coarsened=made.coarsened,
+            # Of the spec as stored, so a place that was replaced is never named.
+            places=places_of(made.spec, release),
+        ),
     )
 
 
@@ -89,6 +97,7 @@ def get_share(share_id: str, context: Ctx) -> Envelope[ShareData]:
             coarsened=found.coarsened,
             stale=found.original_release_id != context.meta.release_id,
             original_release_id=found.original_release_id,
+            places=places_of(found.spec, release),
             **ranking(result, DEFAULT_LIMIT),
         ),
     )

@@ -1,33 +1,62 @@
 """The routes of the contract, driven through the app on the committed synthetic release."""
 
 import copy
+import json
 import re
+from collections.abc import Iterator
 from dataclasses import replace
 from functools import cache
 from typing import Any, cast
 
 import pytest
 from burro_api.app import deps_from
-from burro_api.claude import ClaudeInterpreter
 from burro_api.deps import Deps
-from burro_api.routes.common import default_for
+from burro_api.providers.choose import BY_RULES, told_of
+from burro_api.providers.terms import (
+    RULES_NOTICE,
+    SETTINGS,
+    TERMS,
+    WORDS_ALONE,
+    Provider,
+    Question,
+)
+from burro_api.reader import ModelInterpreter
+from burro_api.routes.common import default_for, told_tag
 from burro_api.settings import Settings
 from burro_api.stores import InMemoryShareStore
 from burro_api.wire import BODIES, CompareStatus
-from burro_core import ENGINE_VERSION, apply, check_spec, rank, spec_hash
-from burro_core.catalogue import FEATURES, TAGS, default_direction
+from burro_core import ENGINE_VERSION, apply, check_spec, portrait, rank, similar, spec_hash
+from burro_core.catalogue import (
+    FAMILIES,
+    FEATURES,
+    JUDGEMENT,
+    TAGS,
+    default_direction,
+    tags_of,
+)
+from burro_core.explain import REASON_MIN_UTILITY, TRADE_OFF_MAX_UTILITY
 from burro_core.ids import (
+    Combine,
     Direction,
     FeatureId,
     FilterReason,
+    GrittyVariant,
     InterpreterName,
+    Notice,
     OpsGroup,
     Provenance,
     TagId,
     Tenure,
+    Toward,
     UnrankedReason,
 )
-from burro_core.interpret import InterpretRequest, InterpretResult, RuleInterpreter
+from burro_core.interpret import (
+    InterpretRequest,
+    InterpretResult,
+    RuleInterpreter,
+    Span,
+    notice_text,
+)
 from burro_core.release import InMemoryRelease
 from burro_core.spec import FeatureWeight, PreferenceSpec, TagWeight
 from fastapi import FastAPI
@@ -36,6 +65,8 @@ from fastapi.testclient import TestClient
 from .support import (
     MODEL,
     NOW,
+    SCHOOL,
+    SCHOOL_COARSE,
     WORKS,
     FakeModelClient,
     budget,
@@ -44,6 +75,7 @@ from .support import (
     make_deps,
     model_commute,
     model_output,
+    reader_asking,
     release,
     renter,
     searching,
@@ -52,11 +84,33 @@ from .support import (
 
 GETS = ("/v1/areas", "/v1/areas/geometry", "/v1/areas/syn-n0001", "/v1/meta")
 OF_THE_RELEASE = GETS
+LOADED = '"syn-2026-09-23-01"'
+# Route 11 says who reads what is typed, which is no part of the release. Its tag names
+# the release and what is told, so that an answer which tells of another reader is never kept.
+META = "/v1/meta"
+META_BY_RULES = f'"syn-2026-09-23-01.{told_tag(BY_RULES)}"'
+
+
+def tag_of(path: str) -> str:
+    """The tag a browser is given for a route, where the rules read what is typed."""
+    return META_BY_RULES if path == META else LOADED
 
 
 @pytest.fixture
-def client() -> TestClient:
-    return client_for(make_deps())
+def client() -> Iterator[TestClient]:
+    # Kept open for the whole test, so that each request does not start a loop of its own.
+    with client_for(make_deps()) as kept:
+        yield kept
+
+
+def fields_of(value: Any) -> set[str]:
+    """The name of every field of an answer, however deep."""
+    if isinstance(value, dict):
+        held = cast(dict[str, Any], value)
+        return set(held) | {name for inner in held.values() for name in fields_of(inner)}
+    if isinstance(value, list):
+        return {name for inner in cast(list[Any], value) for name in fields_of(inner)}
+    return set()
 
 
 def data(response: Any) -> dict[str, Any]:
@@ -80,7 +134,8 @@ def posts(share_id: str = "") -> list[tuple[str, dict[str, Any]]]:
     return [
         ("/v1/interpret", {"text": "somewhere leafy, 40 minutes to Cindermoor Works"}),
         ("/v1/rank", {"spec": spec}),
-        ("/v1/explanations", {"spec": spec}),
+        # One area is explained: these are asked for how a call is answered, and not what with.
+        ("/v1/explanations", {"spec": spec, "limit": 1}),
         ("/v1/compare", {"area_ids": ["syn-n0001", "syn-n0002"], "spec": spec}),
         ("/v1/places/search", {"q": "Wexmoor"}),
         ("/v1/shares", {"spec": spec}),
@@ -112,12 +167,17 @@ def test_every_route_works_with_no_key_configured():
     assert interpreted["interpreter"] == "rule" and interpreted["degraded"] is False
 
 
-@pytest.mark.parametrize("synthetic", [True, False])
-def test_every_response_carries_the_synthetic_flag(synthetic: bool):
+@pytest.mark.parametrize(
+    ("synthetic", "preview"), [(True, False), (False, False), (False, True), (True, True)]
+)
+def test_every_response_says_whether_it_is_synthetic_and_whether_it_is_a_preview(
+    synthetic: bool, preview: bool
+):
     loaded = release()
-    told = replace(loaded, manifest=loaded.manifest.replace(synthetic=synthetic))
+    told = replace(loaded, manifest=loaded.manifest.replace(synthetic=synthetic, preview=preview))
     client = client_for(make_deps(release=told))
     flag = "true" if synthetic else "false"
+    unfinished = "true" if preview else "false"
     made = client.post("/v1/shares", json={"spec": wire(searching())}).json()["data"]
 
     answered = [client.post(path, json=body) for path, body in posts()]
@@ -137,14 +197,17 @@ def test_every_response_carries_the_synthetic_flag(synthetic: bool):
     assert [r.status_code for r in refused] == [422, 400, 415, 422, 404, 404, 404, 405]
     for response in (*answered, *refused):
         assert response.headers["x-burro-synthetic"] == flag
+        assert response.headers["x-burro-preview"] == unfinished
         assert response.json()["meta"] == {
             "release_id": "syn-2026-09-23-01",
             "engine_version": ENGINE_VERSION,
             "synthetic": synthetic,
+            "preview": preview,
         }
-    # The health check says nothing about the release, but it too carries the flag.
+    # The health check says nothing about the release, but it too carries the flags.
     health = client.get("/healthz")
     assert health.json() == {"ok": True} and health.headers["x-burro-synthetic"] == flag
+    assert health.headers["x-burro-preview"] == unfinished
 
 
 def test_every_fact_served_is_marked_synthetic(client: TestClient):
@@ -170,6 +233,7 @@ def test_no_route_but_a_share_returns_a_spec_it_was_not_sent(client: TestClient)
     assert isinstance(app, FastAPI)
     assert [path for path in app.openapi()["paths"] if "{" in path] == [
         "/v1/areas/{id_or_slug}",
+        "/v1/areas/{id_or_slug}/census",
         "/v1/shares/{share_id}",
     ]
 
@@ -234,13 +298,72 @@ def test_only_a_route_that_is_a_function_of_the_release_may_be_cached(client: Te
 
     for path in OF_THE_RELEASE:
         headers = client.get(path).headers
-        assert headers["cache-control"] == "public, max-age=3600"
-        assert headers["etag"] == '"syn-2026-09-23-01"'
+        # A browser may keep the answer, and asks each time whether it still stands.
+        assert headers["cache-control"] == "no-cache"
+        assert headers["etag"] == tag_of(path)
     kept_out = [client.post(path, json=body) for path, body in posts()]
     kept_out += [client.get(f"/v1/shares/{made['share_id']}"), client.get("/v1/areas/nowhere")]
     for response in kept_out:
         assert response.headers["cache-control"] == "no-store"
         assert "etag" not in response.headers
+
+
+@pytest.mark.parametrize("held", ["{tag}", "W/{tag}", '"syn-2026-01-01-01", {tag}'])
+def test_a_browser_that_holds_the_loaded_release_is_told_that_it_still_stands(
+    client: TestClient, held: str
+):
+    for path in OF_THE_RELEASE:
+        answered = client.get(path, headers={"if-none-match": held.format(tag=tag_of(path))})
+
+        assert (answered.status_code, answered.content) == (304, b""), path
+        assert answered.headers["etag"] == tag_of(path)
+        assert answered.headers["cache-control"] == "no-cache"
+        # It has no body to say so in, so the header says it alone.
+        assert answered.headers["x-burro-synthetic"] == "true"
+        assert "Origin" in answered.headers["vary"]
+
+
+@pytest.mark.parametrize("held", ['"syn-2026-01-01-01"', "syn-2026-09-23-01", "*", '""', ""])
+def test_a_browser_that_holds_anything_else_is_answered_in_full(client: TestClient, held: str):
+    for path in OF_THE_RELEASE:
+        answered = client.get(path, headers={"if-none-match": held})
+
+        assert answered.status_code == 200 and answered.json()["meta"]["synthetic"] is True
+        assert answered.headers["etag"] == tag_of(path)
+
+
+def test_an_answer_that_stands_is_as_readable_from_the_web_app_as_any_other():
+    client = client_for(make_deps(allowed_origins=LISTED))
+    held = {"if-none-match": META_BY_RULES}
+
+    allowed = client.get("/v1/meta", headers=held | {"origin": LISTED[0]})
+    elsewhere = client.get("/v1/meta", headers=held | {"origin": "https://elsewhere.example"})
+
+    assert allowed.status_code == elsewhere.status_code == 304
+    assert about_origins(allowed) == {
+        "access-control-allow-origin": LISTED[0],
+        "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    }
+    assert about_origins(elsewhere) == {}
+    # It has no body to say what kind of data it is of, so its headers say both.
+    for answered in (allowed, elsewhere):
+        assert answered.headers["x-burro-synthetic"] == "true"
+        assert answered.headers["x-burro-preview"] == "false"
+
+
+def test_only_an_answer_that_would_be_given_is_said_to_stand(client: TestClient):
+    asked = {"if-none-match": LOADED}
+    made = data(client.post("/v1/shares", json={"spec": wire(searching())}))
+
+    nowhere = client.get("/v1/areas/nowhere", headers=asked)
+    shared = client.get(f"/v1/shares/{made['share_id']}", headers=asked)
+    ranked = client.post("/v1/rank", json={"spec": wire(searching())}, headers=asked)
+
+    # An area the release lacks is still not found, and what is no function
+    # of the release alone is answered in full each time.
+    assert (nowhere.status_code, nowhere.json()["error"]["code"]) == (404, "area_not_found")
+    assert shared.status_code == ranked.status_code == 200
+    assert "etag" not in shared.headers and "etag" not in ranked.headers
 
 
 # Origins.
@@ -282,25 +405,24 @@ def called_from(origin: str, deps: Deps | None = None) -> list[Any]:
     """One call to every route, and one of every kind of refusal, as a browser makes them."""
     sent = {"origin": origin}
     deps = deps or make_deps()
-    client = client_for(deps)
-    made = client.post("/v1/shares", json={"spec": wire(searching())}).json()["data"]
-    broken = client_for(replace(deps, calls=Unkept()))
     huge = b'{"text": "' + b"x" * 20_000 + b'"}'
     as_json = sent | {"content-type": "application/json"}
-    return [
-        *(client.post(path, json=body, headers=sent) for path, body in posts()),
-        *(client.get(path, headers=sent) for path in (*GETS, "/healthz")),
-        client.get(f"/v1/shares/{made['share_id']}", headers=sent),
-        client.post("/v1/rank", json={"spec": "no"}, headers=sent),
-        client.post("/v1/rank", content=b"{", headers=as_json),
-        client.post("/v1/rank", content=b"{}", headers=sent | {"content-type": "text/plain"}),
-        client.post("/v1/interpret", content=huge, headers=as_json),
-        client.get("/v1/areas/nowhere", headers=sent),
-        client.get("/v1/nothing", headers=sent),
-        client.get("/v1/meta/", headers=sent),
-        client.delete("/v1/meta", headers=sent),
-        broken.post("/v1/interpret", json={"text": "somewhere leafy"}, headers=sent),
-    ]
+    with client_for(deps) as client, client_for(replace(deps, calls=Unkept())) as broken:
+        made = client.post("/v1/shares", json={"spec": wire(searching())}).json()["data"]
+        return [
+            *(client.post(path, json=body, headers=sent) for path, body in posts()),
+            *(client.get(path, headers=sent) for path in (*GETS, "/healthz")),
+            client.get(f"/v1/shares/{made['share_id']}", headers=sent),
+            client.post("/v1/rank", json={"spec": "no"}, headers=sent),
+            client.post("/v1/rank", content=b"{", headers=as_json),
+            client.post("/v1/rank", content=b"{}", headers=sent | {"content-type": "text/plain"}),
+            client.post("/v1/interpret", content=huge, headers=as_json),
+            client.get("/v1/areas/nowhere", headers=sent),
+            client.get("/v1/nothing", headers=sent),
+            client.get("/v1/meta/", headers=sent),
+            client.delete("/v1/meta", headers=sent),
+            broken.post("/v1/interpret", json={"text": "somewhere leafy"}, headers=sent),
+        ]
 
 
 def about_origins(response: Any) -> dict[str, str]:
@@ -315,7 +437,7 @@ def test_a_browser_may_call_from_the_web_app_on_this_machine_unless_told_otherwi
         # An error is as readable from the web app as an answer is.
         assert about_origins(response) == {
             "access-control-allow-origin": WEB_APP,
-            "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+            "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
         }
 
 
@@ -364,7 +486,7 @@ def test_a_browser_that_asks_first_is_told_what_it_may_send(path: str):
         "access-control-allow-methods": "GET, POST",
         "access-control-allow-headers": "Content-Type",
         "access-control-max-age": "600",
-        "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+        "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     }
     assert asked.headers["x-burro-synthetic"] == "true" and "Origin" in asked.headers["vary"]
 
@@ -400,7 +522,7 @@ def test_no_answer_allows_every_origin_or_asks_for_a_cookie():
 @pytest.mark.parametrize("text", ["", "   ", "\n\t ", "x" * 601])
 def test_a_prompt_with_nothing_in_it_is_refused_before_a_model_is_asked(text: str):
     model = FakeModelClient(model_output())
-    asked = ClaudeInterpreter(model, model=MODEL, max_tokens=512, timeout_s=1.0)
+    asked = ModelInterpreter(model, model=MODEL, max_tokens=512, timeout_s=1.0)
     client = client_for(make_deps(interpreter=asked, model_id=MODEL))
 
     refused = client.post("/v1/interpret", json={"text": text})
@@ -430,7 +552,8 @@ def test_a_sentence_becomes_edits_and_the_reducer_applies_them(client: TestClien
             "provenance": "stated",
         }
     ]
-    assert {"code": "mode", "group": "commute_ops", "index": 0} in found["assumptions"]
+    assumed = {"code": "mode", "group": "commute_ops", "index": 0, "word": ""}
+    assert assumed in found["assumptions"]
 
 
 def test_each_edit_says_which_words_of_the_text_it_rests_on(client: TestClient):
@@ -460,11 +583,6 @@ def test_each_edit_says_which_words_of_the_text_it_rests_on(client: TestClient):
         "   leafy",
         "\n\t leafy \n",
         "\N{NO-BREAK SPACE}\N{IDEOGRAPHIC SPACE}leafy\N{EM SPACE}",
-        # A sentence the reader does not read, with characters that are two
-        # units long in UTF-16, and then one it reads.
-        "  \N{DECIDUOUS TREE}\N{DECIDUOUS TREE} trees!\nI want somewhere leafy  ",
-        "caf\N{LATIN SMALL LETTER E WITH ACUTE}s? \N{REGIONAL INDICATOR SYMBOL LETTER G}"
-        "\N{REGIONAL INDICATOR SYMBOL LETTER B}!\nI want somewhere leafy",
     ],
 )
 def test_where_the_words_stand_is_counted_in_the_text_as_it_was_sent(client: TestClient, text: str):
@@ -476,13 +594,43 @@ def test_where_the_words_stand_is_counted_in_the_text_as_it_was_sent(client: Tes
     assert text[rests["start"] : rests["end"]] == "leafy"
     assert (rests["group"], rests["index"]) == ("tag_ops", 0)
     assert [edit["tag_id"] for edit in found["operations"]["tag_ops"]] == ["leafy"]
+    assert found["suggestions"] == found["unread"] == []
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Pubs are so noisy",
+        "   Pubs are so noisy",
+        "\n\t Pubs are so noisy \n",
+        # A sentence the reader makes nothing of, with characters that are two
+        # units long in UTF-16, and then one it notices things in.
+        "  \N{DECIDUOUS TREE}\N{DECIDUOUS TREE} trees!\nPubs are so noisy  ",
+        "caf\N{LATIN SMALL LETTER E WITH ACUTE}s? \N{REGIONAL INDICATOR SYMBOL LETTER G}"
+        "\N{REGIONAL INDICATOR SYMBOL LETTER B}!\nPubs are so noisy",
+    ],
+)
+def test_where_what_was_noticed_stands_is_counted_in_the_text_as_it_was_sent(
+    client: TestClient, text: str
+):
+    found = data(client.post("/v1/interpret", json={"text": text}))
+
+    def words(spans: list[dict[str, int]]) -> list[str]:
+        return [text[span["start"] : span["end"]] for span in spans]
+
+    noticed = {s["target"]: words(s["spans"]) for s in found["suggestions"]}
+    assert noticed["feature:venue_evening"] == ["Pubs"]
+    assert noticed["feature:noise_exposure"] == ["noisy"]
+    assert words(found["unread"])[-1] == "are so"
+    # Nothing was applied, so no edit rests on anything.
+    assert found["rests_on"] == [] and found["applied"] == []
 
 
 def test_an_interpreter_cannot_point_outside_the_text_or_at_an_edit_it_did_not_make():
     text = "somewhere leafy"
 
     class Wild:
-        name = InterpreterName.CLAUDE
+        name = InterpreterName.MODEL
 
         def interpret(self, request: InterpretRequest) -> InterpretResult:
             read = RuleInterpreter().interpret(request)
@@ -504,6 +652,32 @@ def test_an_interpreter_cannot_point_outside_the_text_or_at_an_edit_it_did_not_m
     assert [(r["start"], r["end"]) for r in found["rests_on"]] == [(12, 17)]
 
 
+def test_an_interpreter_cannot_offer_or_leave_unread_what_is_outside_the_text():
+    text = "Pubs are so noisy"
+    beyond = [(0, len(text) + 1), (-1, 3), (5, 5), (9, 4)]
+
+    class Wild:
+        name = InterpreterName.MODEL
+
+        def interpret(self, request: InterpretRequest) -> InterpretResult:
+            read = RuleInterpreter().interpret(request)
+            wild = tuple(Span(start=start, end=end) for start, end in beyond)
+            pubs, noise = read.suggestions
+            offered = (pubs.replace(spans=(*wild, *pubs.spans)), noise.replace(spans=wild))
+            return read.replace(
+                suggestions=offered, unread=(*wild, *read.unread), interpreter=self.name
+            )
+
+    client = client_for(make_deps(interpreter=Wild(), model_id=MODEL))
+    found = data(client.post("/v1/interpret", json={"text": f"  {text}"}))
+
+    # A suggestion that points at nothing in the text is not served at all.
+    assert [(s["target"], s["spans"]) for s in found["suggestions"]] == [
+        ("feature:venue_evening", [{"start": 2, "end": 6}])
+    ]
+    assert found["unread"] == [{"start": 7, "end": 13}]
+
+
 def test_a_second_sentence_edits_the_spec_that_is_sent_with_it(client: TestClient):
     first = data(client.post("/v1/interpret", json={"text": "work at Cindermoor Works"}))
     second = data(
@@ -512,7 +686,9 @@ def test_a_second_sentence_edits_the_spec_that_is_sent_with_it(client: TestClien
 
     assert [c["place_id"] for c in second["spec"]["commutes"]] == [WORKS]
     # A thing named for the first time is worth a half, however it is asked for.
-    assert second["spec"]["tags"] == [{"tag_id": "leafy", "weight": 0.5, "provenance": "stated"}]
+    assert second["spec"]["tags"] == [
+        {"tag_id": "leafy", "weight": 0.5, "toward": "high", "provenance": "stated"}
+    ]
 
 
 def test_request_to_avoid_a_group_gets_the_neutral_notice_and_the_rest_is_served(
@@ -529,8 +705,316 @@ def test_request_to_avoid_a_group_gets_the_neutral_notice_and_the_rest_is_served
 def test_a_wish_for_safety_never_weights_crime_without_being_asked(client: TestClient):
     found = data(client.post("/v1/interpret", json={"text": "somewhere safe"}))
 
-    assert {r["reason"] for r in found["rejected"]} == {"crime_needs_explicit_request"}
+    # "Safe" names no crime, so nothing is applied and nothing is turned away.
+    assert (found["status"], found["operations"], found["rejected"]) == ("suggest", NO_EDITS, [])
     assert not [w for w in found["spec"]["weights"] if w["feature_id"].startswith("crime")]
+    # Recorded crime is offered by its name, with what Burro cannot say of a place.
+    assert [(s["target"], s["choices"][0]["label"]) for s in found["suggestions"]] == [
+        ("feature:crime_violence_robbery", "Less recorded violence and robbery"),
+        ("feature:crime_burglary_theft", "Less recorded burglary and theft"),
+    ]
+    for offered in found["suggestions"]:
+        assert offered["note"].startswith("Burro cannot say how safe a place is.")
+        assert "Recorded crime depends on what is reported" in offered["note"]
+    # To press one is to ask for it by name, and then it counts.
+    pressed = found["suggestions"][0]["choices"][0]["operations"]
+    ranked = data(client.post("/v1/rank", json={"spec": found["spec"], "operations": pressed}))
+    assert ranked["rejected"] == []
+    assert [w["feature_id"] for w in ranked["spec"]["weights"] if w["provenance"] == "ui_edit"] == [
+        "crime_violence_robbery"
+    ]
+
+
+NO_EDITS: dict[str, list[dict[str, Any]]] = {
+    f"{group}_ops": [] for group in ("budget", "commute", "weight", "tag", "area", "setting")
+}
+MONEY_AND_WORK = (
+    "I rent and can pay up to £1,500 a month for a one bed flat. I work at Cindermoor Works."
+)
+THE_WORKS = {"place_id": WORKS, "name": "Cindermoor Works", "kind": "district"}
+
+
+def test_a_plain_prompt_about_money_and_work_is_read_in_full(client: TestClient):
+    found = data(client.post("/v1/interpret", json={"text": MONEY_AND_WORK}))
+
+    assert (found["status"], found["unmet"]) == ("ok", [])
+    assert found["suggestions"] == found["unread"] == found["rejected"] == []
+    held = found["spec"]["budget"]
+    assert (found["spec"]["tenure"], held["amount"], held["segment"]) == ("rent", 1500, "bed_1")
+    assert [c["place_id"] for c in found["spec"]["commutes"]] == [WORKS]
+    # The place is given by the release's own name, so nothing reads "Place 1".
+    assert found["places"] == [THE_WORKS]
+
+
+def test_a_prompt_that_is_not_plain_applies_nothing_and_offers_what_was_noticed(
+    client: TestClient,
+):
+    text = "Pubs are so noisy"
+    start = wire(default_for(release(), Tenure.RENT))
+    found = data(client.post("/v1/interpret", json={"text": text}))
+
+    assert (found["status"], found["unmet"], found["notice"]) == ("suggest", ["other"], "none")
+    # Not even a guess at which way: the spec is the one a search starts from.
+    assert found["operations"] == NO_EDITS and found["spec"] == start
+    assert found["applied"] == found["rests_on"] == found["places"] == []
+    assert found["unread"] == [{"start": 5, "end": 11}]
+    pubs, noise = found["suggestions"]
+    assert (pubs["target"], pubs["label"]) == ("feature:venue_evening", "Pubs and bars")
+    assert pubs["spans"] == [{"start": 0, "end": 4}]
+    assert [(c["direction"], c["label"]) for c in pubs["choices"]] == [
+        ("more", "More pubs and bars"),
+        ("less", "Fewer pubs and bars"),
+        ("ignore", "Skip"),
+    ]
+    # The rules never guess which way a thing was meant.
+    assert pubs["does"] == "Pubs and bars: more, or fewer?"
+    assert not any(c["guess"] for offer in found["suggestions"] for c in offer["choices"])
+    assert (noise["target"], noise["label"]) == ("feature:noise_exposure", "Less transport noise")
+    assert [c["direction"] for c in noise["choices"]] == ["less", "ignore"]
+    for suggestion in found["suggestions"]:
+        *chosen, ignored = suggestion["choices"]
+        assert ignored["operations"] == NO_EDITS
+        for choice in chosen:
+            edits = [edit for group in choice["operations"].values() for edit in group]
+            # The person pressed it, so the edit is a control's and no reading.
+            assert [edit["provenance"] for edit in edits] == ["ui_edit"]
+
+
+def test_a_choice_that_is_pressed_is_an_edit_that_route_2_takes_as_it_is(client: TestClient):
+    found = data(client.post("/v1/interpret", json={"text": "Pubs are so noisy"}))
+    [fewer] = [c for c in found["suggestions"][0]["choices"] if c["direction"] == "less"]
+
+    ranked = data(
+        client.post("/v1/rank", json={"spec": found["spec"], "operations": fewer["operations"]})
+    )
+
+    assert ranked["applied"] == [{"group": "weight_ops", "index": 0, "changed": True}]
+    [pubs] = [w for w in ranked["spec"]["weights"] if w["feature_id"] == "venue_evening"]
+    assert (pubs["direction"], pubs["provenance"]) == ("less", "ui_edit")
+    assert ranked["ranked"] and ranked["rejected"] == []
+
+
+# Prompts that are not plain, of which something is noticed. Each was read
+# wrongly, or led nowhere, when the first slice was walked.
+OFFERED = (
+    "Pubs are so noisy",
+    "gritty but safe",
+    "I am new here. My budget is about \N{POUND SIGN}2,000 a month for a two bed flat.",
+    "Happy anywhere as long as it is under \N{POUND SIGN}450k",
+    "30 minutes to Pellam Cross by bike is too long",
+    "I love Cindermoor",
+    "My partner works at Pellam Infirmary",
+    "near a gym",
+    "a sense of community",
+    "I want a big garden",
+    "street character",
+    "pace",
+)
+
+
+def test_every_choice_that_is_offered_is_an_edit_that_route_2_applies(client: TestClient):
+    labels: list[str] = []
+    for text in OFFERED:
+        found = data(client.post("/v1/interpret", json={"text": text}))
+        assert found["operations"] == NO_EDITS and found["suggestions"], text
+        for offer in found["suggestions"]:
+            *choices, ignored = offer["choices"]
+            assert choices and ignored["operations"] == NO_EDITS, text
+            for choice in choices:
+                pressed = {"spec": found["spec"], "operations": choice["operations"], "limit": 1}
+                ranked = data(client.post("/v1/rank", json=pressed))
+                # Nothing that is offered is turned away, and each changes the search.
+                assert ranked["rejected"] == [], (text, choice["label"])
+                assert [edit["changed"] for edit in ranked["applied"]] == [True], choice["label"]
+                labels.append(choice["label"])
+            labels.append(offer["does"])
+    # What an offer says it would do, and what each way of it is called, say
+    # all that it holds: what is counted, how far, which tenure.
+    assert {
+        "Towards Gritty, counting recorded crime",
+        "Less recorded violence and robbery",
+        "Set a budget of \N{POUND SIGN}2,000 a month.",
+        "Look for a 2-bedroom home.",
+        "Set a budget of \N{POUND SIGN}450,000 to buy.",
+        "Add a journey to Pellam Cross: at most 30 minutes, by public transport.",
+        "Look only in Cindermoor",
+        "Leave it out of the results",
+        "Towards Calm",
+    } <= set(labels)
+
+
+@pytest.mark.parametrize(
+    ("text", "note"),
+    [
+        ("somewhere safe", "Burro cannot say how safe a place is."),
+        ("near a gym", "Burro has no data on gyms, pools or leisure centres yet."),
+        ("a sense of community", "Burro cannot measure whether neighbours know each other."),
+        ("I want a big garden", "Burro cannot see whether one home has a garden."),
+        # The name the scale had. It names no end, so it is offered with both.
+        ("street character", "Gritty counts recorded criminal damage"),
+    ],
+)
+def test_what_burro_cannot_do_is_said_beside_what_it_offers_in_its_place(
+    client: TestClient, text: str, note: str
+):
+    found = data(client.post("/v1/interpret", json={"text": text}))
+
+    assert (found["status"], found["operations"]) == ("suggest", NO_EDITS)
+    assert found["suggestions"] and all(s["note"].startswith(note) for s in found["suggestions"])
+    # Most things that are noticed need nothing said of them.
+    plain = data(client.post("/v1/interpret", json={"text": "Pubs are so noisy"}))
+    assert [s["note"] for s in plain["suggestions"]] == ["", ""]
+
+
+@pytest.mark.parametrize(
+    ("text", "unmet"),
+    [("cheap", "affordability_verdict"), ("somewhere with low rent", "affordability_verdict")],
+)
+def test_a_verdict_burro_does_not_give_is_heard_and_nothing_is_offered_for_it(
+    client: TestClient, text: str, unmet: str
+):
+    found = data(client.post("/v1/interpret", json={"text": text}))
+
+    assert (found["status"], found["unmet"]) == ("ok", [unmet])
+    assert found["operations"] == NO_EDITS and found["suggestions"] == found["unread"] == []
+
+
+def test_an_everyday_hedge_is_read_as_a_word_of_degree(client: TestClient):
+    found = data(client.post("/v1/interpret", json={"text": "somewhere leafy and fairly quiet"}))
+
+    # "Fairly" made the whole prompt a question, where "a bit" was read.
+    assert (found["status"], found["unmet"], found["unread"]) == ("ok", [], [])
+    assert [(e["tag_id"], e["step"]) for e in found["operations"]["tag_ops"]] == [
+        ("leafy", "up_large"),
+        ("quiet_residential", "up_small"),
+    ]
+    assert [tag["provenance"] for tag in found["spec"]["tags"]] == ["stated", "stated"]
+
+
+@pytest.mark.parametrize(
+    ("text", "mode", "strictness"),
+    [
+        ("I work at Cindermoor Works. A 40 minute commute on foot.", "walk", "soft"),
+        ("I work at Cindermoor Works, a 35 minute commute by bike", "cycle", "soft"),
+        ("I work at Cindermoor Works, no more than 35 minutes", "pt", "hard"),
+    ],
+)
+def test_minutes_said_apart_from_a_place_keep_how_they_are_travelled_and_their_limit(
+    client: TestClient, text: str, mode: str, strictness: str
+):
+    found = data(client.post("/v1/interpret", json={"text": text}))
+
+    [journey] = found["spec"]["commutes"]
+    assert (found["status"], found["unread"], found["places"]) == ("ok", [], [THE_WORKS])
+    assert (journey["mode"], journey["strictness"]) == (mode, strictness)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "I don't want pubs or restaurants nearby",
+        "I don't want nightlife or pubs on my doorstep",
+        "no pubs or nightlife nearby",
+        "avoid pubs and restaurants nearby",
+    ],
+)
+def test_the_last_thing_of_a_turned_list_is_never_raised(client: TestClient, text: str):
+    found = data(client.post("/v1/interpret", json={"text": text}))
+
+    # It was applied as plain, with the last thing of the list raised.
+    assert found["status"] in ("ok", "suggest") and found["rejected"] == []
+    raised = [w for w in found["spec"]["weights"] if w["provenance"] == "stated"]
+    assert {w["direction"] for w in raised} <= {"less"}
+    assert {tag["toward"] for tag in found["spec"]["tags"]} <= {"low"}
+    assert (found["status"] == "suggest") is (found["operations"] == NO_EDITS)
+
+
+def test_what_nothing_was_made_of_is_the_whole_text_when_nothing_was_noticed(client: TestClient):
+    text = "boozers on every corner would finish me off"
+    found = data(client.post("/v1/interpret", json={"text": text}))
+
+    assert (found["status"], found["unmet"]) == ("ok", ["other"])
+    assert found["suggestions"] == [] and found["operations"] == NO_EDITS
+    assert found["unread"] == [{"start": 0, "end": len(text)}]
+
+
+@pytest.mark.parametrize(
+    ("text", "changed"),
+    [
+        ("Somewhere leafy with lots of young professionals like me", True),
+        # Nothing is applied of a prompt that is not plain, whatever was noticed in it.
+        ("My street is leafy, with lots of young professionals like me", False),
+        ("lots of young professionals like me", False),
+    ],
+)
+def test_the_notice_says_the_rest_was_applied_only_where_something_was(
+    client: TestClient, text: str, changed: bool
+):
+    found = data(client.post("/v1/interpret", json={"text": text}))
+
+    assert (found["status"], found["notice"]) == ("policy_redirect", "neutral_places")
+    assert any(edit["changed"] for edit in found["applied"]) is changed
+    assert found["notice_text"] == notice_text(Notice(found["notice"]), changed)
+    assert found["notice_text"].endswith(
+        "The rest of your search has been applied."
+        if changed
+        else "Nothing you typed has changed your search."
+    )
+
+
+def test_a_tenure_that_is_said_is_the_persons_own_whether_or_not_it_moves(client: TestClient):
+    start = default_for(release(), Tenure.RENT)
+    found = data(client.post("/v1/interpret", json={"text": "Renting a one bed flat"}))
+
+    # A search starts from renting. Said, it is no longer assumed.
+    assert wire(start)["tenure_from"] == "default"
+    assert (found["spec"]["tenure"], found["spec"]["tenure_from"]) == ("rent", "stated")
+    assert found["applied"] == [{"group": "budget_ops", "index": 0, "changed": True}]
+    assert found["spec_hash"] == spec_hash(start)
+
+
+def test_a_status_the_reader_gives_is_one_a_call_can_be_recorded_with():
+    deps = make_deps()
+    client = client_for(deps)
+    for text in ("Pubs are so noisy", "leafy", "I work at Pellam", "leafy, no students"):
+        assert client.post("/v1/interpret", json={"text": text}).status_code == 200
+
+    said = [record.status.value for record in deps.calls.records(NOW)]
+    assert said == ["suggest", "ok", "clarify", "policy_redirect"]
+
+
+# The places of a spec, by name.
+
+
+def test_every_place_of_a_spec_that_is_returned_is_given_by_name(client: TestClient):
+    spec = renter(commutes=(commute(SCHOOL, 30), commute(WORKS, 40)))
+    sent = {"spec": wire(spec)}
+    school = {"place_id": SCHOOL, "name": "Alderwick Primary School", "kind": "school"}
+    station = {"place_id": SCHOOL_COARSE, "name": "Eskerfold", "kind": "station"}
+
+    read = data(client.post("/v1/interpret", json=sent | {"text": "leafy"}))
+    ranked = data(client.post("/v1/rank", json=sent))
+    exact = data(client.post("/v1/shares", json=sent | {"exact_destinations": True}))
+    coarse = data(client.post("/v1/shares", json=sent))
+    opened = data(client.get(f"/v1/shares/{coarse['share_id']}"))
+
+    # One for each journey of the spec that is returned, in the spec's order.
+    for found in (read, ranked, exact):
+        assert found["places"] == [THE_WORKS, school]
+        assert [p["place_id"] for p in found["places"]] == [
+            c["place_id"] for c in found["spec"]["commutes"]
+        ]
+    # A share names the place that stands in, which is the one it stores.
+    assert coarse["places"] == opened["places"] == [station, THE_WORKS]
+    assert data(client.post("/v1/rank", json={"spec": wire(renter())}))["places"] == []
+
+
+def test_a_place_is_named_as_the_release_names_it_and_never_as_it_was_typed(client: TestClient):
+    found = data(client.post("/v1/interpret", json={"text": "i work at CINDERMOOR   works"}))
+    searched = data(client.post("/v1/places/search", json={"q": "cindermoor works"}))["places"]
+
+    assert found["places"] == [THE_WORKS]
+    assert searched[0]["name"] == found["places"][0]["name"]
 
 
 # Route 2.
@@ -543,13 +1027,44 @@ def test_ranking_over_the_wire_is_the_ranking_core_gives(client: TestClient):
     expected = rank(spec, release())
     assert found["spec_hash"] == expected.spec_hash == spec_hash(spec)
     assert found["scores"] == [
-        {"area_id": area.area_id, "score": area.score} for area in expected.ranked
+        {
+            "area_id": area.area_id,
+            "score": area.score,
+            "counted": area.counted,
+            "present": area.present,
+        }
+        for area in expected.ranked
     ]
     assert found["ranked"] == [area.model_dump(mode="json") for area in expected.ranked[:5]]
     assert found["unranked"] == [u.model_dump(mode="json") for u in expected.unranked]
     assert found["empty_spec"] is False
     every = found["scores"] + found["filtered"] + found["unranked"]
     assert len({row["area_id"] for row in every}) == 24
+
+
+def test_a_ranking_says_how_many_areas_are_ranked_and_how_many_of_them_are_listed(
+    client: TestClient,
+):
+    # Journeys alone ask nothing of the place itself, so every rankable area is ranked.
+    spec = renter(commutes=(commute(),), weights=(), tags=())
+    expected = len(rank(spec, release()).ranked)
+    assert expected == 22
+    sent = {"spec": wire(spec)}
+    as_usual = data(client.post("/v1/rank", json=sent))
+    a_few = data(client.post("/v1/rank", json=sent | {"limit": 5}))
+    every = data(client.post("/v1/rank", json=sent | {"limit": 100}))
+    made = data(client.post("/v1/shares", json=sent | {"exact_destinations": True}))
+    opened = data(client.get(f"/v1/shares/{made['share_id']}"))
+
+    # The list stopped at 20 and nothing said that two areas stood below it.
+    for found, listed in ((as_usual, 20), (a_few, 5), (every, 22), (opened, 20)):
+        assert (found["areas_ranked"], found["areas_listed"]) == (expected, listed)
+        assert len(found["scores"]) == expected and len(found["ranked"]) == listed
+    # Where an area is left out or listed apart, it is not among those ranked.
+    firm = data(client.post("/v1/rank", json={"spec": wire(searching(budget=budget(900, True)))}))
+    assert firm["filtered"] and firm["unranked"]
+    assert firm["areas_ranked"] == len(firm["scores"]) == firm["areas_listed"] < 20
+    assert firm["areas_ranked"] + len(firm["filtered"]) + len(firm["unranked"]) == 24
 
 
 def test_the_same_request_ranks_the_same_every_time(client: TestClient):
@@ -576,6 +1091,7 @@ def test_slider_and_chat_edits_reach_the_same_spec(client: TestClient):
                             "tag_id": "quiet_residential",
                             "value": 1.0,
                             "step": "none",
+                            "toward": "default",
                             "provenance": "ui_edit",
                         }
                     ],
@@ -589,6 +1105,260 @@ def test_slider_and_chat_edits_reach_the_same_spec(client: TestClient):
     # Provenance says who asked. The spec that is ranked is the same.
     assert slid["spec_hash"] == said["spec_hash"]
     assert slid["applied"] == [{"group": "tag_ops", "index": 0, "changed": True}]
+
+
+def towards(tag_id: str, toward: str, value: float = 0.5) -> dict[str, Any]:
+    edit = {"action": "set", "tag_id": tag_id, "value": value, "step": "none"}
+    return NO_EDITS | {"tag_ops": [edit | {"toward": toward, "provenance": "ui_edit"}]}
+
+
+def names_of(found: dict[str, Any], first: int) -> list[str]:
+    named = {area.area_id: area.name for area in release().neighbourhoods}
+    return [named[score["area_id"]] for score in found["scores"][:first]]
+
+
+def test_a_scale_is_ranked_towards_the_end_that_is_asked_for_and_can_be_turned(
+    client: TestClient,
+):
+    said = data(client.post("/v1/interpret", json={"text": "not buzzy"}))
+    calm = data(client.post("/v1/rank", json={"spec": said["spec"]}))
+    turned = data(
+        client.post("/v1/rank", json={"spec": said["spec"], "operations": towards("pace", "high")})
+    )
+
+    [asked] = said["spec"]["tags"]
+    assert (asked["tag_id"], asked["toward"]) == ("pace", "low")
+    assert "Lantern Yard" not in names_of(calm, 10)
+    # To turn a scale is one edit, and it changes the spec though no weight moves.
+    assert turned["applied"] == [{"group": "tag_ops", "index": 0, "changed": True}]
+    assert [(t["tag_id"], t["toward"], t["weight"]) for t in turned["spec"]["tags"]] == [
+        ("pace", "high", asked["weight"])
+    ]
+    assert names_of(turned, 3) == ["Pellam Cross", "Tallowgate", "Lantern Yard"]
+    assert turned["spec_hash"] != calm["spec_hash"]
+
+
+def test_an_end_that_is_left_out_of_a_spec_is_the_high_end_and_is_always_returned(
+    client: TestClient,
+):
+    leafy = {"tag_id": "leafy", "weight": 0.5, "provenance": "stated"}
+    sent = wire(renter()) | {"tags": [leafy]}
+
+    found = data(client.post("/v1/rank", json={"spec": sent}))
+
+    assert found["spec"]["tags"] == [leafy | {"toward": "high"}]
+    # A spec published before a vibe had ends keeps its hash.
+    high = TagWeight(tag_id=TagId.LEAFY, weight=0.5, provenance=Provenance.STATED)
+    assert high.toward is Toward.HIGH and found["spec_hash"] == spec_hash(renter(tags=(high,)))
+
+
+def test_an_edit_to_a_vibe_must_say_which_end_and_a_one_way_vibe_has_one(client: TestClient):
+    spec = wire(renter())
+    unsaid = towards("pace", "high")
+    del unsaid["tag_ops"][0]["toward"]
+
+    refused = client.post("/v1/rank", json={"spec": spec, "operations": unsaid})
+    low = data(client.post("/v1/rank", json={"spec": spec, "operations": towards("leafy", "low")}))
+    held = wire(renter()) | {
+        "tags": [{"tag_id": "leafy", "weight": 0.5, "toward": "low", "provenance": "stated"}]
+    }
+    against = client.post("/v1/rank", json={"spec": held})
+
+    assert (refused.status_code, refused.json()["error"]["code"]) == (422, "invalid_operations")
+    assert refused.json()["error"]["fields"] == [
+        {"path": "operations.tag_ops[0].toward", "problem": "missing"}
+    ]
+    assert low["rejected"] == [{"group": "tag_ops", "index": 0, "reason": "direction_not_allowed"}]
+    assert against.json()["error"]["fields"] == [
+        {"path": "spec.tags[0].toward", "problem": "direction_not_allowed"}
+    ]
+
+
+@pytest.mark.parametrize("retired", ["buzzy", "evening_venues", "historic_character", "waterside"])
+def test_a_vibe_that_was_retired_is_no_longer_a_vibe(client: TestClient, retired: str):
+    held = {"tag_id": retired, "weight": 0.5, "provenance": "stated"}
+    edits = towards("pace", "high")
+    edits["tag_ops"][0]["tag_id"] = retired
+
+    in_a_spec = client.post("/v1/rank", json={"spec": wire(renter()) | {"tags": [held]}})
+    in_an_edit = client.post("/v1/rank", json={"spec": wire(renter()), "operations": edits})
+
+    assert (in_a_spec.status_code, in_a_spec.json()["error"]["code"]) == (422, "invalid_spec")
+    assert in_a_spec.json()["error"]["fields"] == [
+        {"path": "spec.tags[0].tag_id", "problem": "not_allowed"}
+    ]
+    assert in_an_edit.json()["error"]["code"] == "invalid_operations"
+    assert retired not in in_a_spec.text + in_an_edit.text
+
+
+def test_a_vibe_the_release_does_not_carry_cannot_be_ranked_on():
+    # A release that holds no recorded crime carries every vibe but Gritty.
+    client = client_for(make_deps(release=built_from_land_use()))
+    other = TagId.STREET_CHARACTER
+    assert other not in {vibe.tag_id for vibe in built_from_land_use().vibes}
+    held = TagWeight(tag_id=other, weight=0.5, provenance=Provenance.STATED)
+
+    in_a_spec = client.post("/v1/rank", json={"spec": wire(renter(tags=(held,)))})
+    edits = towards(other.value, "high")
+    in_an_edit = data(client.post("/v1/rank", json={"spec": wire(renter()), "operations": edits}))
+
+    assert in_a_spec.json()["error"]["fields"] == [
+        {"path": "spec.tags[0].tag_id", "problem": "not_in_release"}
+    ]
+    assert in_an_edit["rejected"] == [{"group": "tag_ops", "index": 0, "reason": "not_in_release"}]
+
+
+def test_every_result_shows_where_it_sits_on_the_vibes_that_were_asked_for(client: TestClient):
+    pace = TagWeight(tag_id=TagId.PACE, weight=0.5, toward=Toward.LOW, provenance=Provenance.STATED)
+    leafy = TagWeight(tag_id=TagId.LEAFY, weight=0.8, provenance=Provenance.STATED)
+    spec = renter(tags=(pace, leafy))
+    found = data(client.post("/v1/rank", json={"spec": wire(spec), "limit": 100}))
+
+    expected = {area.area_id: area for area in rank(spec, release()).ranked}
+    carried = {vibe.tag_id.value for vibe in release().vibes}
+    for area in found["ranked"]:
+        strip = area["strip"]
+        assert strip == [m.model_dump(mode="json") for m in expected[area["area_id"]].strip]
+        assert 1 <= len(strip) <= 6 and {mark["tag_id"] for mark in strip} <= carried
+        asked = [(mark["tag_id"], mark["toward"]) for mark in strip if mark["asked"]]
+        # Heaviest first. A vibe the area cannot be placed on is left out.
+        assert asked in ([("leafy", "high"), ("pace", "low")], [])
+        for mark in strip:
+            assert mark["fact_id"] == f"{area['area_id']}/tag/{mark['tag_id']}"
+            assert 1 <= mark["spread_low"] <= mark["band"] <= mark["spread_high"] <= 5
+            assert (mark["toward"] is None) is not mark["asked"]
+    # The strip is shown and never scored: no result holds a score for a vibe to print.
+    assert "percentile" not in str([area["strip"] for area in found["ranked"]])
+
+
+def test_how_much_of_what_counts_an_area_has_a_figure_for_is_said_of_every_area(
+    client: TestClient,
+):
+    gap = next(row for row in release().features if row.value is None)
+    # Beside a thing the area has a figure for, so that it has one for half of
+    # the character asked for and is ranked.
+    known = next(
+        row.feature_id
+        for row in release().features
+        if row.area_id == gap.area_id and row.value is not None
+    )
+    spec = searching(weights=(asking_for(gap.feature_id, 0.3), asking_for(known, 0.3)))
+    found = data(client.post("/v1/rank", json={"spec": wire(spec), "limit": 1}))
+
+    assert len(found["ranked"]) == 1 and len(found["scores"]) >= 20
+    by_area = {score["area_id"]: score for score in found["scores"]}
+    for area in rank(spec, release()).ranked:
+        said = by_area[area.area_id]
+        assert said["counted"] == len(area.contributions) == 4
+        assert said["present"] == sum(c.present for c in area.contributions)
+    assert by_area[gap.area_id]["present"] == 3
+
+
+# Each journey is a guide: "in 35 minutes" is no limit, where "within 35 minutes" is one.
+TO_WORK_AND_TO_STUDY = (
+    "I work at Cindermoor Works and want to get there in 35 minutes. "
+    "I study at Wexmoor University and want to get there in 40 minutes."
+)
+NEWCOMER = (
+    "I have a job at Cindermoor Works and I have never lived in the city. "
+    "I want somewhere leafy and fairly quiet, not too far from a decent pub. "
+    "I can spend about \N{POUND SIGN}1,600 a month on a one bed flat."
+)
+OTTERBY_FIELDS = "syn-n0017"  # the new town, of which little is known
+
+
+def chosen(client: TestClient, text: str) -> dict[str, Any]:
+    """The spec a person holds once they have pressed the first choice of all that was offered."""
+    read = data(client.post("/v1/interpret", json={"text": text}))
+    assert read["status"] == "suggest" and read["applied"] == []
+    spec = read["spec"]
+    for offer in read["suggestions"]:
+        pressed = {"spec": spec, "operations": offer["choices"][0]["operations"], "limit": 1}
+        taken = data(client.post("/v1/rank", json=pressed))
+        assert taken["rejected"] == []
+        spec = taken["spec"]
+    return spec
+
+
+def test_an_area_with_no_figure_for_what_was_asked_is_listed_apart_with_what_it_lacks(
+    client: TestClient,
+):
+    spec = chosen(client, NEWCOMER)
+    found = data(client.post("/v1/rank", json={"spec": spec, "limit": 100}))
+
+    assert [place["name"] for place in found["places"]] == ["Cindermoor Works"]
+    assert [(tag["tag_id"], tag["toward"]) for tag in spec["tags"]] == [
+        ("leafy", "high"),
+        ("quiet_residential", "high"),
+    ]
+    # It came first, fit 88, with a journey, a rent and no figure for leafy, quiet or pubs.
+    # What is said of the place now leads, so an area with no figure for any of it lacks
+    # more than half of all that was asked, by weight, and is listed apart for that.
+    [apart] = [area for area in found["unranked"] if area["area_id"] == OTTERBY_FIELDS]
+    assert apart["reason"] == "insufficient_data"
+    assert {"tag:leafy", "tag:quiet_residential", "feature:venue_evening"} <= set(apart["missing"])
+    assert "commute" not in apart["missing"] and "budget" not in apart["missing"]
+    ranked = [score["area_id"] for score in found["scores"]]
+    assert OTTERBY_FIELDS not in ranked and len(ranked) == found["areas_ranked"] == 21
+    # An area that is not rankable was never scored, so it says nothing of what it lacks.
+    others = [area for area in found["unranked"] if area["area_id"] != OTTERBY_FIELDS]
+    assert {(area["reason"], tuple(area["missing"])) for area in others} == {("not_rankable", ())}
+    # Every area that is ranked has a figure for half of the character that was asked for.
+    for area in found["ranked"]:
+        character = [c for c in area["contributions"] if c["component"][:3] in ("tag", "fea")]
+        present = sum(c["weight"] for c in character if c["present"])
+        assert 2 * present >= sum(c["weight"] for c in character)
+
+
+def test_an_area_that_is_listed_apart_is_compared_with_what_it_lacks(client: TestClient):
+    spec = chosen(client, NEWCOMER)
+    first = data(client.post("/v1/rank", json={"spec": spec, "limit": 1}))["ranked"][0]
+    body = {"area_ids": [OTTERBY_FIELDS, first["area_id"]], "spec": spec}
+    found = data(client.post("/v1/compare", json=body))
+
+    apart, ranked = found["areas"]
+    assert (apart["status"], apart["counted"], apart["present"]) == ("insufficient_data", 0, 0)
+    assert (ranked["status"], ranked["counted"]) == ("ranked", len(first["contributions"]))
+    served = {fact["fact_id"]: fact for fact in found["facts"]}
+    rows = {row["component"]: row["cells"][0] for row in found["rows"]}
+    said = {"tag:quiet_residential": "vibe_unknown", "feature:venue_evening": "missing"}
+    for lacking, template in said.items():
+        cell = rows[lacking]
+        # Nothing is filled in, and nothing is credited to an area that was not scored.
+        assert (cell["value"], cell["utility"], cell["contribution"]) == (None, None, None)
+        # The fact it cites says that there is no figure, and holds none about the place.
+        assert served[cell["fact_id"]]["template"] == template
+    # What is known of it is still shown: its journey and its rent.
+    journey, rent = rows["commute.syn-p0021.pt"], rows["budget"]
+    assert served[journey["fact_id"]]["kind"] == "travel" and journey["value"] is not None
+    assert served[rent["fact_id"]]["kind"] == "budget_fit" and rent["value"] is not None
+    assert (journey["utility"], rent["utility"]) == (None, None)
+
+
+def test_an_area_far_from_one_workplace_is_not_first_because_another_has_no_time(
+    client: TestClient,
+):
+    read = data(client.post("/v1/interpret", json={"text": TO_WORK_AND_TO_STUDY}))
+    found = data(client.post("/v1/rank", json={"spec": read["spec"], "limit": 100}))
+
+    assert [(c["max_minutes"], c["strictness"]) for c in read["spec"]["commutes"]] == [
+        (35, "soft"),
+        (40, "soft"),
+    ]
+    assert [place["name"] for place in read["places"]] == ["Cindermoor Works", "Wexmoor University"]
+    assert "Gorsebeck" not in names_of(found, 5)
+    [gorsebeck] = [a for a in found["ranked"] if a["area_id"] == "syn-n0008"]
+    works, campus = gorsebeck["legs"]
+    assert (works["minutes"], campus["minutes"], campus["status"]) == (63, None, "missing")
+    [journeys] = [c for c in gorsebeck["contributions"] if c["component"] == "commute"]
+    # Scored on the journey that has a time, which is far over its limit.
+    assert (journeys["present"], journeys["utility"]) == (True, 0.0)
+    assert journeys["fact_ids"] == [
+        "syn-n0008/travel/syn-p0021.pt",
+        "syn-n0008/missing/commute.syn-p0026.pt",
+    ]
+    explained = data(client.post("/v1/explanations", json={"spec": read["spec"], "limit": 5}))
+    assert "syn-n0008" not in [e["area_id"] for e in explained["explanations"]]
 
 
 def test_bad_edit_is_rejected_and_the_rest_applied(client: TestClient):
@@ -718,21 +1488,23 @@ def test_a_stale_spec_is_still_refused_unless_the_edit_puts_it_right(client: Tes
     assert (unknown.status_code, unknown.json()["error"]["code"]) == (422, "unknown_area")
 
 
-def test_words_can_put_a_stale_spec_right_when_a_model_reads_them():
+def test_words_put_no_stale_spec_right_whoever_reads_them():
     gone = model_commute(action="remove", position=2, words="I no longer work there")
     answer = model_output(commute_ops=[gone])
-    asked = ClaudeInterpreter(FakeModelClient(answer), model=MODEL, max_tokens=512, timeout_s=1.0)
+    model = FakeModelClient(answer)
+    asked = ModelInterpreter(model, model=MODEL, max_tokens=512, timeout_s=1.0)
     deps = make_deps(interpreter=asked, model_id=MODEL)
     body = {"text": "I no longer work there", "spec": wire(stale_place())}
 
-    found = data(client_for(deps).post("/v1/interpret", json=body))
+    found = client_for(deps).post("/v1/interpret", json=body)
     ruled = client_for(make_deps()).post("/v1/interpret", json=body)
 
-    # The places are in id order, so the one the release has dropped is the second.
-    assert [c["place_id"] for c in found["spec"]["commutes"]] == [WORKS]
-    # The rules never remove a commute from words, so with them it stays refused.
-    assert (ruled.status_code, ruled.json()["error"]["code"]) == (422, "unknown_place")
+    # The rules never remove a commute from words, and nothing a model reads
+    # is applied. So it stays refused, and the control that takes it out puts it right.
+    for refused in (found, ruled):
+        assert (refused.status_code, refused.json()["error"]["code"]) == (422, "unknown_place")
     # The call was made, so it is on record, whether or not the spec could then be ranked.
+    assert len(model.calls) == 1
     assert [record.status for record in deps.calls.records(NOW)] == ["ok"]
 
 
@@ -772,6 +1544,7 @@ def every_number() -> dict[str, dict[str, Any]]:
                 "tag_id": "leafy",
                 "value": 0.5,
                 "step": "none",
+                "toward": "default",
                 "provenance": "ui_edit",
             }
         ],
@@ -933,6 +1706,150 @@ def test_every_sentence_of_an_explanation_cites_a_fact_that_is_served(client: Te
     assert all(fact["sources"] and fact["as_of"] for fact in served.values())
 
 
+def test_an_explanation_says_which_spec_it_is_for(client: TestClient):
+    spec = searching()
+    found = data(client.post("/v1/explanations", json={"spec": wire(spec), "limit": 1}))
+    ranked = data(client.post("/v1/rank", json={"spec": wire(spec)}))
+
+    assert found["spec_hash"] == ranked["spec_hash"] == spec_hash(spec)
+    assert re.fullmatch(r"[0-9a-f]{64}", found["spec_hash"])
+
+
+def test_every_mark_on_a_result_that_is_explained_has_its_fact_served(client: TestClient):
+    leafy = TagWeight(tag_id=TagId.LEAFY, weight=0.8, provenance=Provenance.STATED)
+    spec = searching(tags=(leafy,))
+    found = data(client.post("/v1/explanations", json={"spec": wire(spec), "limit": 5}))
+    ranked = data(client.post("/v1/rank", json={"spec": wire(spec), "limit": 5}))
+
+    served = {fact["fact_id"]: fact for fact in found["facts"]}
+    marks = [mark for area in ranked["ranked"] for mark in area["strip"]]
+    # Each fact is served once, however many sentences and marks name it.
+    assert len(marks) > 5 and len(served) == len(found["facts"])
+    for mark in marks:
+        fact = served[mark["fact_id"]]
+        assert (fact["kind"], fact["key"]) == ("tag", mark["tag_id"])
+        assert fact["template"] in ("vibe", "vibe_range")
+        assert fact["slots"]["band"] == str(mark["band"])
+        # A vibe is said as a band, and never as a share of areas.
+        assert "pct" not in fact["slots"] and not [n for n in fact["numbers"] if "%" in n]
+
+
+def test_a_reason_is_said_from_its_better_side_and_a_trade_off_from_its_worse(
+    client: TestClient,
+):
+    read = data(client.post("/v1/interpret", json={"text": "near a station"}))
+    found = data(client.post("/v1/explanations", json={"spec": read["spec"], "limit": 5}))
+    ranked = data(client.post("/v1/rank", json={"spec": read["spec"], "limit": 5}))
+
+    facts = {fact["fact_id"]: fact for fact in found["facts"]}
+    worth = {
+        (area["area_id"], c["fact_ids"][0]): c["utility"]
+        for area in ranked["ranked"]
+        for c in area["contributions"]
+        if c["present"]
+    }
+    told = 0
+    for explanation in found["explanations"]:
+        area_id = explanation["area_id"]
+        for reason in explanation["reasons"]:
+            fact = facts[reason["fact_ids"][0]]
+            assert worth[area_id, fact["fact_id"]] >= REASON_MIN_UTILITY
+            if fact["kind"] == "feature":
+                assert fact["slots"]["standing"] in reason["text"]
+                told += 1
+        if explanation["trade_off"] is not None:
+            fact = facts[explanation["trade_off"]["fact_ids"][0]]
+            assert worth[area_id, fact["fact_id"]] < TRADE_OFF_MAX_UTILITY
+            if fact["kind"] == "feature":
+                assert fact["slots"]["standing_worse"] in explanation["trade_off"]["text"]
+                assert fact["slots"]["comparative"] not in explanation["trade_off"]["text"]
+    assert told >= 5
+    # A walk of a few minutes to a station is nothing an area gives up.
+    walks = [f for f in facts.values() if f["key"] == "station_walk"]
+    given_up = [e["trade_off"]["fact_ids"][0] for e in found["explanations"] if e["trade_off"]]
+    assert walks and not [fact for fact in walks if fact["fact_id"] in given_up]
+
+
+def test_a_band_that_rests_on_part_of_its_recipe_says_how_much_wherever_it_is_said(
+    client: TestClient,
+):
+    on_foot = TagWeight(tag_id=TagId.EVERYDAY_ON_FOOT, weight=1.0, provenance=Provenance.STATED)
+    found = data(client.post("/v1/explanations", json={"spec": wire(renter(tags=(on_foot,)))}))
+
+    facts = {fact["fact_id"]: fact for fact in found["facts"]}
+    clause = "Worked out from 3 of its 5 parts, 70 of 100 by weight."
+    said = 0
+    for explanation in found["explanations"]:
+        for sentence in explanation["reasons"]:
+            fact = facts[sentence["fact_ids"][0]]
+            if fact["key"] != "everyday_on_foot":
+                continue
+            # The release lacks two parts of the recipe. The band was said as any other.
+            slots = fact["slots"]
+            assert (slots["known"], slots["parts"], slots["share"]) == ("3", "5", "70")
+            assert slots["partly"] == clause and clause in sentence["text"]
+            # It is the template's own sentence, and the verifier passed it.
+            assert sentence["replaced"] is False and {"70", "100"} <= set(fact["numbers"])
+            said += 1
+    assert said == len(found["explanations"]) == 3
+    # A band that rests on the whole of its recipe says nothing more than it did.
+    whole = data(client.get("/v1/areas/alderwick"))["facts"]
+    [leafy] = [fact for fact in whole if (fact["kind"], fact["key"]) == ("tag", "leafy")]
+    assert (leafy["slots"]["share"], leafy["slots"]["partly"]) == ("100", "")
+    # How much of a recipe is no percentage of anything about the place.
+    vibes = [fact for fact in whole if fact["kind"] == "tag"]
+    assert not [number for fact in vibes for number in fact["numbers"] if "%" in number]
+
+
+def test_a_vibe_that_is_a_reason_is_said_in_short_and_its_fact_holds_the_rest(
+    client: TestClient,
+):
+    leafy = TagWeight(tag_id=TagId.LEAFY, weight=1.0, provenance=Provenance.STATED)
+    found = data(client.post("/v1/explanations", json={"spec": wire(renter(tags=(leafy,)))}))
+
+    facts = {fact["fact_id"]: fact for fact in found["facts"]}
+    said = 0
+    for explanation in found["explanations"]:
+        for sentence in explanation["reasons"]:
+            fact = facts[sentence["fact_ids"][0]]
+            if fact["kind"] != "tag":
+                continue
+            # A result says in a few lines why this place: the band, and no more.
+            assert sentence["text"].endswith("compared in this release.")
+            assert "Parts dated" not in sentence["text"]
+            assert "judgement" not in sentence["text"]
+            # What was left out is served with the sentence, to be shown with its source.
+            assert fact["slots"]["judgement"] == JUDGEMENT
+            assert fact["as_of"] == fact["slots"]["span"] and fact["sources"]
+            said += 1
+    assert said == len(found["explanations"]) == 3
+
+
+def test_a_station_560_metres_off_is_not_what_an_area_gives_up(client: TestClient):
+    spec = data(client.post("/v1/interpret", json={"text": TO_WORK_AND_TO_STUDY}))["spec"]
+    found = data(client.post("/v1/explanations", json={"spec": spec, "limit": 1}))
+    ranked = data(client.post("/v1/rank", json={"spec": spec, "limit": 1}))
+
+    [first], [explained] = ranked["ranked"], found["explanations"]
+    assert first["area_id"] == explained["area_id"] == WEXMOOR
+    [walk] = [c for c in first["contributions"] if c["component"] == "feature:station_walk"]
+    # It is worth less than a trade-off must be, because fourteen areas are closer still.
+    assert walk["utility"] < TRADE_OFF_MAX_UTILITY
+    cited = [s["fact_ids"][0] for s in (explained["trade_off"], *explained["reasons"]) if s]
+    assert f"{WEXMOOR}/feature/station_walk" not in cited
+    assert explained["trade_off"]["fact_ids"] != walk["fact_ids"]
+
+
+def test_a_distance_of_a_thousand_metres_is_written_as_people_write_it(client: TestClient):
+    found = data(client.get("/v1/areas/alderwick"))
+
+    far = {f["key"]: f for f in found["facts"] if f["slots"].get("value", "").endswith("0 m")}
+    assert (far["university_proximity"]["slots"]["value"]) == "8,230 m"
+    # The number it may be checked against holds no separator, as every number of a fact.
+    assert "8230" in far["university_proximity"]["numbers"]
+    assert not [f for f in far.values() if re.search(r"\d{4}", f["slots"]["value"])]
+
+
 def test_invented_venue_or_changed_number_is_replaced_by_a_template():
     from burro_core.explain import ExplainInput, TemplateExplainer
     from burro_core.ids import SentenceOrigin
@@ -979,7 +1896,7 @@ def test_a_comparison_orders_its_rows_by_the_persons_own_weights(client: TestCli
 
     assert [(row["component"], row["weight"]) for row in found["rows"]] == [
         ("tag:leafy", 1.0),
-        ("commute", 0.9),
+        ("commute.syn-p0021.pt", 0.9),
         ("budget", 0.5),
         ("feature:green_cover", 0.5),
     ]
@@ -1005,17 +1922,28 @@ def test_every_number_in_a_comparison_names_the_fact_behind_it(client: TestClien
     served = {fact["fact_id"]: fact for fact in found["facts"]}
     by_area = {area.area_id: area for area in ranked.ranked}
     for row in found["rows"]:
+        # The journeys count as one thing. With one journey, its row is all of it.
+        component = "commute" if row["place"] else row["component"]
         for cell in row["cells"]:
             scored = {c.component: c for c in by_area[cell["area_id"]].contributions}
-            assert cell["utility"] == scored[row["component"]].utility
-            assert cell["contribution"] == scored[row["component"]].contribution
+            assert cell["utility"] == scored[component].utility
+            assert cell["contribution"] == scored[component].contribution
             if cell["value"] is not None or cell["percentile"] is not None:
                 fact = served[cell["fact_id"]]
                 assert fact["area_id"] == cell["area_id"] and fact["sources"] and fact["as_of"]
-    [journey] = [row for row in found["rows"] if row["component"] == "commute"]
+    [journey] = journeys_of(found)
+    assert journey["component"] == "commute.syn-p0021.pt"
     for cell in journey["cells"]:
         [leg] = by_area[cell["area_id"]].legs
         assert cell["value"] == leg.minutes and cell["percentile"] is None
+    # A vibe is shown as a band. The score it is ranked on is no figure of its
+    # fact, so no cell holds it to be printed.
+    [vibe] = [row for row in found["rows"] if row["component"] == "tag:leafy"]
+    [bands] = [row for row in found["character"] if row["tag_id"] == "leafy"]
+    for cell, mark in zip(vibe["cells"], bands["marks"], strict=True):
+        assert (cell["value"], cell["percentile"]) == (None, None)
+        assert cell["fact_id"] == mark["fact_id"] and mark["band"] in range(1, 6)
+        assert not [n for n in served[cell["fact_id"]]["numbers"] if "%" in n or "." in n]
 
 
 def test_an_area_that_is_not_ranked_is_compared_with_its_reason(client: TestClient):
@@ -1059,6 +1987,218 @@ def test_a_comparison_shows_a_gap_as_a_gap(client: TestClient):
     assert served[missing["fact_id"]]["numbers"] == []
 
 
+CAMPUS = "syn-p0026"  # Wexmoor University
+WEXMOOR, CINDERMOOR, GORSEBECK = "syn-n0023", "syn-n0003", "syn-n0008"
+
+
+def two_journeys(**changes: Any) -> PreferenceSpec:
+    """A renter who must reach the works within 35 minutes and the campus within 40."""
+    return renter(commutes=(commute(WORKS, 35), commute(CAMPUS, 40)), **changes)
+
+
+def journeys_of(found: dict[str, Any]) -> list[dict[str, Any]]:
+    return [row for row in found["rows"] if row["place"] is not None]
+
+
+def test_a_comparison_has_one_row_for_each_journey_with_the_same_destination_across_it(
+    client: TestClient,
+):
+    spec = two_journeys()
+    areas = (WEXMOOR, CINDERMOOR, GORSEBECK)
+    found = data(client.post("/v1/compare", json=comparing(spec, *areas)))
+
+    served = {fact["fact_id"]: fact for fact in found["facts"]}
+    journeys = journeys_of(found)
+    # One for each journey of the spec, in the spec's order, named as core keys a journey.
+    assert [(row["component"], row["place"]) for row in journeys] == [
+        (
+            "commute.syn-p0021.pt",
+            {"place_id": WORKS, "name": "Cindermoor Works", "kind": "district"},
+        ),
+        (
+            "commute.syn-p0026.pt",
+            {"place_id": CAMPUS, "name": "Wexmoor University", "kind": "university"},
+        ),
+    ]
+    for row in journeys:
+        assert (row["label"], row["weight"]) == ("Journey", spec.commute_weight)
+        assert [cell["area_id"] for cell in row["cells"]] == list(areas)
+        for cell in row["cells"]:
+            fact = served[cell["fact_id"]]
+            # It was one row, in which one area was timed to the works and the
+            # next to the campus.
+            assert (fact["area_id"], fact["slots"]["place"]) == (
+                cell["area_id"],
+                row["place"]["name"],
+            )
+    # No row holds the journeys to two places, and no other row names a place.
+    assert "commute" not in [row["component"] for row in found["rows"]]
+    assert len(journeys) == 2 and len(found["rows"]) > 2
+
+
+def test_a_journey_with_no_time_is_shown_as_having_none(client: TestClient):
+    found = data(client.post("/v1/compare", json=comparing(two_journeys(), WEXMOOR, GORSEBECK)))
+
+    served = {fact["fact_id"]: fact for fact in found["facts"]}
+    to_the_works, to_the_campus = journeys_of(found)
+    far, unknown = to_the_works["cells"][1], to_the_campus["cells"][1]
+    assert (far["value"], far["utility"], far["fact_id"]) == (
+        63,
+        0.0,
+        f"{GORSEBECK}/travel/syn-p0021.pt",
+    )
+    assert served[far["fact_id"]]["template"] == "travel_pt_over"
+    # Not known is `null`, and it is said: the journey has a cell, and a fact of its own.
+    assert (unknown["value"], unknown["utility"], unknown["contribution"]) == (None, None, None)
+    assert unknown["fact_id"] == f"{GORSEBECK}/missing/commute.syn-p0026.pt"
+    said = served[unknown["fact_id"]]
+    assert (said["template"], said["numbers"]) == ("missing_journey", [])
+    assert said["slots"] == {"name": "Gorsebeck", "place": "Wexmoor University"}
+
+
+def test_what_the_journeys_add_stands_once_beside_the_journey_that_counts(client: TestClient):
+    spec = two_journeys()
+    ranked = {area.area_id: area for area in rank(spec, release()).ranked}
+    found = data(client.post("/v1/compare", json=comparing(spec, WEXMOOR, CINDERMOOR, GORSEBECK)))
+
+    for at, area_id in enumerate((WEXMOOR, CINDERMOOR, GORSEBECK)):
+        area = ranked[area_id]
+        [scored] = [c for c in area.contributions if c.component == "commute"]
+        cells = [row["cells"][at] for row in journeys_of(found)]
+        for cell, leg in zip(cells, area.legs, strict=True):
+            # Each journey is worth what core says it is, and shows the time that was scored.
+            assert (cell["value"], cell["utility"]) == (leg.minutes, leg.utility)
+        # What the journeys add is said once, beside the one that drove the score.
+        adds = {cell["fact_id"]: cell["contribution"] for cell in cells}
+        assert adds.pop(scored.fact_ids[0]) == scored.contribution
+        assert set(adds.values()) == {None}
+    # The slowest counts, so two areas are held to two different journeys.
+    drove = {
+        next(c for c in ranked[area_id].contributions if c.component == "commute").fact_ids[0]
+        for area_id in (WEXMOOR, CINDERMOOR)
+    }
+    assert drove == {f"{WEXMOOR}/travel/syn-p0021.pt", f"{CINDERMOOR}/travel/syn-p0026.pt"}
+
+
+def test_where_every_journey_counts_no_one_journey_is_said_to_add_the_whole(client: TestClient):
+    spec = two_journeys(commute_combine=Combine.MEAN)
+    ranked = {area.area_id: area for area in rank(spec, release()).ranked}
+    found = data(client.post("/v1/compare", json=comparing(spec, WEXMOOR, CINDERMOOR)))
+
+    for row in journeys_of(found):
+        for cell in row["cells"]:
+            # What one journey of several adds is not something the ranking
+            # says, and nothing is worked out here in its place.
+            assert cell["contribution"] is None and cell["utility"] is not None
+    # One journey alone is all the journeys there are, whichever way they are put together.
+    one = renter(commutes=(commute(WORKS, 35),), commute_combine=Combine.MEAN)
+    alone = data(client.post("/v1/compare", json=comparing(one, WEXMOOR, CINDERMOOR)))
+    [row] = journeys_of(alone)
+    scored = {area.area_id: area for area in rank(one, release()).ranked}
+    for cell in row["cells"]:
+        [journeys] = [c for c in scored[cell["area_id"]].contributions if c.component == "commute"]
+        assert cell["contribution"] == journeys.contribution
+    assert ranked[WEXMOOR].legs[0].utility != ranked[WEXMOOR].contributions[0].utility
+
+
+def test_an_area_that_is_not_ranked_still_shows_each_of_its_journeys(client: TestClient):
+    spec = two_journeys().replace(commutes=(commute(WORKS, 20, hard=True), commute(CAMPUS, 40)))
+    ranked = rank(spec, release())
+    capped = next(f.area_id for f in ranked.filtered if f.reason is FilterReason.COMMUTE_CAP)
+    small = next(u.area_id for u in ranked.unranked if u.reason is UnrankedReason.NOT_RANKABLE)
+    found = data(client.post("/v1/compare", json=comparing(spec, capped, small)))
+
+    served = {fact["fact_id"]: fact for fact in found["facts"]}
+    assert [area["status"] for area in found["areas"]] == ["commute_cap", "not_rankable"]
+    to_the_works, _ = journeys_of(found)
+    over = to_the_works["cells"][0]
+    # The journey that left the area out is shown, with the limit it is over.
+    assert over["fact_id"] == f"{capped}/travel/syn-p0021.pt" and over["value"] > 20
+    assert served[over["fact_id"]]["template"] == "travel_pt_over"
+    assert served[over["fact_id"]]["slots"]["limit"] == "20"
+    for row in journeys_of(found):
+        for cell in row["cells"]:
+            fact = served[cell["fact_id"]]
+            assert fact["slots"]["place"] == row["place"]["name"]
+            assert (cell["value"] is None) is (fact["template"] == "missing_journey")
+            # It was not scored, so its journeys are worth nothing that can be said.
+            assert (cell["utility"], cell["contribution"]) == (None, None)
+
+
+def test_a_comparison_begins_with_where_each_area_sits_on_every_vibe(client: TestClient):
+    areas = ("syn-n0007", "syn-n0017", "syn-n0009")  # mixed, all but unknown, not rankable
+    found = data(client.post("/v1/compare", json=comparing(searching(), *areas)))
+
+    shown = [vibe.tag_id.value for vibe in release().vibes if vibe.table]
+    assert [row["tag_id"] for row in found["character"]] == shown and len(shown) == 11
+    served = {fact["fact_id"]: fact for fact in found["facts"]}
+    for row in found["character"]:
+        assert [mark["area_id"] for mark in row["marks"]] == list(areas)
+        for mark in row["marks"]:
+            held = release().tag(mark["area_id"], TagId(row["tag_id"]))
+            assert held is not None
+            assert (mark["band"], mark["spread_low"], mark["spread_high"]) == (
+                held.band,
+                held.spread_low,
+                held.spread_high,
+            )
+            # Placed or not, the mark names the fact that says so, and it is served.
+            fact = served[mark["fact_id"]]
+            assert (fact["area_id"], fact["kind"], fact["key"]) == (
+                mark["area_id"],
+                "tag",
+                row["tag_id"],
+            )
+            assert (fact["template"] == "vibe_unknown") is (mark["band"] is None)
+    [pace] = [row for row in found["character"] if row["tag_id"] == "pace"]
+    # The third has too few homes for a figure of two of the three parts of Going out.
+    assert [(m["band"], m["spread_low"], m["spread_high"]) for m in pace["marks"]] == [
+        (4, 3, 5),
+        (None, None, None),
+        (None, None, None),
+    ]
+
+
+def test_a_comparison_says_how_much_each_fit_is_based_on(client: TestClient):
+    spec = searching(commutes=(commute(minutes=20, hard=True),))
+    ranked = rank(spec, release())
+    capped = next(f.area_id for f in ranked.filtered if f.reason is FilterReason.COMMUTE_CAP)
+    kept = ranked.ranked[0]
+    found = data(client.post("/v1/compare", json=comparing(spec, kept.area_id, capped)))
+
+    first, second = found["areas"]
+    assert (first["counted"], first["present"]) == (kept.counted, kept.present)
+    assert kept.counted == len(found["rows"]) > 0
+    # An area that is not ranked was not scored, so nothing of it was counted.
+    assert (second["status"], second["counted"], second["present"]) == ("commute_cap", 0, 0)
+
+
+def test_every_cell_of_a_row_is_said_from_one_side(client: TestClient):
+    spec = renter(weights=(asking_for(FeatureId.VENUE_EVENING, 0.5, Direction.LESS),))
+    areas = [area.area_id for area in rank(spec, release()).ranked]
+    found = data(client.post("/v1/compare", json=comparing(spec, areas[0], areas[-1])))
+    other = data(
+        client.post(
+            "/v1/compare",
+            json=comparing(
+                renter(weights=(asking_for(FeatureId.VENUE_EVENING, 0.5, Direction.MORE),)),
+                areas[0],
+                areas[-1],
+            ),
+        )
+    )
+
+    def comparatives(answer: dict[str, Any]) -> set[str]:
+        facts = {fact["fact_id"]: fact for fact in answer["facts"]}
+        [row] = answer["rows"]
+        return {facts[cell["fact_id"]]["slots"]["comparative"] for cell in row["cells"]}
+
+    feature = FEATURES[FeatureId.VENUE_EVENING]
+    # The side is the spec's, the same for every cell: fewer pubs for one who asked for fewer.
+    assert comparatives(found) == {f"{feature.lower} than"}
+    assert comparatives(other) == {f"{feature.higher} than"}
+
+
 @pytest.mark.parametrize(
     "area_ids",
     [["syn-n0001"], ["syn-n0001"] * 2, [f"syn-n000{n}" for n in range(1, 6)], "syn-n0001", []],
@@ -1088,6 +2228,45 @@ def test_areas_are_listed_by_id_with_their_boundaries(client: TestClient):
         assert shape["geometry"]["type"] in ("Polygon", "MultiPolygon")
 
 
+def test_the_map_can_be_coloured_by_any_vibe_from_one_answer(client: TestClient):
+    found = data(client.get("/v1/areas"))
+
+    lenses = [vibe for vibe in release().vibes if vibe.lens]
+    assert [row["tag_id"] for row in found["bands"]] == [vibe.tag_id.value for vibe in lenses]
+    assert len(lenses) == 11
+    for row in found["bands"]:
+        # One mark for each area, so that an area with no band is drawn as that.
+        assert [mark["area_id"] for mark in row["marks"]] == [a["area_id"] for a in found["areas"]]
+        for mark in row["marks"]:
+            held = release().tag(mark["area_id"], TagId(row["tag_id"]))
+            assert held is not None and set(mark) == {
+                "area_id",
+                "band",
+                "spread_low",
+                "spread_high",
+            }
+            assert (mark["band"], mark["spread_low"], mark["spread_high"]) == (
+                held.band,
+                held.spread_low,
+                held.spread_high,
+            )
+    # It is a band, one of five. The score an area is ranked on is not served here.
+    assert "score" not in str(found["bands"]) and "raw" not in str(found["bands"])
+    unplaced = [m for row in found["bands"] for m in row["marks"] if m["band"] is None]
+    assert len(unplaced) == 24 and {m["spread_low"] for m in unplaced} == {None}
+
+
+def test_a_vibe_the_release_keeps_off_the_map_is_not_among_the_bands():
+    loaded = release()
+    hidden = tuple(v.replace(lens=v.tag_id is not TagId.STREET_CHARACTER) for v in loaded.vibes)
+    client = client_for(make_deps(release=replace(loaded, vibes=hidden)))
+
+    found = data(client.get("/v1/areas"))
+
+    assert len(found["bands"]) == 10
+    assert "street_character" not in [row["tag_id"] for row in found["bands"]]
+
+
 def test_an_area_is_found_by_its_id_or_its_slug(client: TestClient):
     by_id = client.get("/v1/areas/syn-n0004").json()
     by_slug = client.get("/v1/areas/dulcimer-green").json()
@@ -1095,9 +2274,11 @@ def test_an_area_is_found_by_its_id_or_its_slug(client: TestClient):
     assert by_id == by_slug
     profile = by_id["data"]
     assert profile["area"]["name"] == "Dulcimer Green"
-    assert len(profile["features"]) == 23 and len(profile["tags"]) == 12
+    # Every feature the release carries, and every vibe: the ten, and Gritty.
+    assert len(profile["features"]) == 43 and len(profile["tags"]) == 11
     assert {n["area_id"] for n in profile["neighbours"]} == set(profile["area"]["neighbours"])
     assert profile["stations"] and profile["cost"]
+    assert [row["tag_id"] for row in profile["tags"]] == [v.tag_id.value for v in release().vibes]
     # Built with no spec: nothing about a journey or a budget.
     assert {fact["kind"] for fact in profile["facts"]} == {
         "area",
@@ -1105,8 +2286,100 @@ def test_an_area_is_found_by_its_id_or_its_slug(client: TestClient):
         "tag",
         "cost",
         "station",
+        "likeness",
     }
     assert client.get("/v1/areas/Dulcimer%20Green").status_code == 404
+
+
+def marks_of(found: dict[str, Any]) -> dict[str, list[str]]:
+    return {name: [mark["tag_id"] for mark in marks] for name, marks in found["portrait"].items()}
+
+
+def test_the_portrait_of_an_area_is_the_same_for_everyone_and_holds_no_sentence(
+    client: TestClient,
+):
+    found = data(client.get("/v1/areas/foxholt"))
+
+    expected = portrait(release(), "syn-n0007")
+    assert expected is not None and found["portrait"] == expected.model_dump(mode="json")
+    assert marks_of(found) == {
+        "scales": ["homes", "pace", "built_age", "street_character"],
+        "more": ["everyday_on_foot", "parks_close_by", "family_amenities"],
+        "less": ["village_feel"],
+        "others": ["leafy", "quiet_residential", "foodie"],
+        "unplaced": [],
+    }
+    facts = {fact["fact_id"]: fact for fact in found["facts"]}
+    every = [mark for marks in found["portrait"].values() for mark in marks]
+    assert len(every) == 11
+    for mark in every:
+        # Each mark names the fact that holds its sentence, and each part its figure.
+        assert facts[mark["fact_id"]]["kind"] == "tag"
+        assert facts[mark["figure_fact_id"]]["kind"] == "feature"
+        for part in mark["parts"]:
+            assert set(part) == {"feature_id", "hundredths", "reading", "fact_id"}
+            assert part["fact_id"] is None or facts[part["fact_id"]]["key"] == part["feature_id"]
+        assert sum(part["hundredths"] for part in mark["parts"]) == 100
+    # A mixed area is a range, and is said to vary.
+    pace = facts["syn-n0007/tag/pace"]
+    assert pace["template"] == "vibe_range"
+    assert (pace["slots"]["spread_low"], pace["slots"]["spread_high"]) == ("3", "5")
+    assert (pace["slots"]["low_end"], pace["slots"]["high_end"]) == ("Calm", "Buzzy")
+    assert pace["as_of"] == "2025" != release().manifest.built_at
+
+
+def test_an_area_that_cannot_be_placed_is_said_to_be_that_and_is_like_nothing(
+    client: TestClient,
+):
+    found = data(client.get("/v1/areas/otterby-fields"))
+
+    placed = marks_of(found)
+    assert placed["scales"] == ["homes"] and len(placed["unplaced"]) == 10
+    assert placed["more"] == placed["less"] == placed["others"] == []
+    facts = {fact["fact_id"]: fact for fact in found["facts"]}
+    for mark in found["portrait"]["unplaced"]:
+        fact = facts[mark["fact_id"]]
+        # It holds no figure about the place: only how much of the recipe is known.
+        assert fact["template"] == "vibe_unknown" and "band" not in fact["slots"]
+        known = [part for part in mark["parts"] if part["fact_id"] is not None]
+        assert fact["slots"]["known"] == str(len(known))
+        # Too little of the recipe to place it by, and nothing stands in for the rest.
+        assert sum(part["hundredths"] for part in known) < 60
+    assert found["similar"] == []
+    assert "likeness" not in {fact["kind"] for fact in found["facts"]}
+    # A part that is in no release yet has no figure, and none is made up.
+    [homes] = found["portrait"]["scales"]
+    outdoor = [p for p in homes["parts"] if p["feature_id"] == "private_outdoor_space"]
+    assert [part["fact_id"] for part in outdoor] == [None]
+
+
+def test_the_areas_most_like_an_area_are_named_with_a_sentence_each(client: TestClient):
+    found = data(client.get("/v1/areas/thrushcombe"))
+
+    expected = similar(release(), "syn-n0022")
+    assert [like["area_id"] for like in found["similar"]] == [like.area_id for like in expected]
+    assert len(found["similar"]) == 5 and "syn-n0024" in {s["area_id"] for s in found["similar"]}
+    facts = {fact["fact_id"]: fact for fact in found["facts"]}
+    labels = set(FAMILIES.values())
+    for like in found["similar"]:
+        # What orders them is never served: a distance is not a fact about a place.
+        assert set(like) == {"area_id", "fact_id"}
+        fact = facts[like["fact_id"]]
+        assert (fact["kind"], fact["key"]) == ("likeness", like["area_id"])
+        assert fact["slots"]["family"] in labels and int(fact["slots"]["measures"]) == 23
+        assert fact["sources"] and fact["as_of"]
+        # Nor is it in the sentence of the likeness, by any name or as a figure of its own.
+        assert not [name for name in fact["slots"] if "distance" in name]
+    # No field of the answer is a distance between two areas, whatever else its name holds.
+    # A measure may be a distance on the ground, and its label then says so: that is a fact
+    # about a place, and it is a value and never the name of a field.
+    assert not [name for name in fields_of(found) if "distance" in name]
+    # What is served of a likeness never says the word, in a name or in a value.
+    likenesses = [facts[like["fact_id"]] for like in found["similar"]]
+    assert "distance" not in str(found["similar"]) and "distance" not in str(likenesses)
+    # Most alike first, by the count each sentence gives: it read 10, 10, 5, 7, 8.
+    same = [int(facts[like["fact_id"]]["slots"]["same"]) for like in found["similar"]]
+    assert same == sorted(same, reverse=True) and same[0] > same[-1]
 
 
 # Route 8.
@@ -1156,6 +2429,7 @@ def test_a_shared_search_is_ranked_again_when_it_is_opened(client: TestClient):
     assert opened["stale"] is False and opened["original_release_id"] == "syn-2026-09-23-01"
     for field in ("scores", "ranked", "filtered", "unranked", "empty_spec"):
         assert opened[field] == ranked[field]
+    assert (opened["areas_ranked"], opened["areas_listed"]) == (len(ranked["scores"]), 20)
 
 
 def test_a_share_outlives_the_release_it_was_made_on():
@@ -1192,8 +2466,12 @@ def test_meta_gives_a_form_everything_it_needs(client: TestClient):
 
     assert found["release_id"] == "syn-2026-09-23-01" and found["synthetic"] is True
     assert found["built_at"] == "2026-09-23T00:00:00Z"
-    assert [f["feature_id"] for f in found["features"]] == sorted(FeatureId)
+    # The 43 features the release carries. Four of the catalogue's wait for a source.
+    carried = sorted(metric.feature_id for metric in release().metrics)
+    assert [f["feature_id"] for f in found["features"]] == carried
+    assert len(carried) == 43 and set(carried) < set(FeatureId)
     assert {t["tag_id"]: len(t["terms"]) for t in found["tags"]}["village_feel"] == 5
+    assert found["catalogue_version"] == 12 and found["preview"] is False
     assert found["limits"]["cutoff_minutes"] == {"pt": 90, "cycle": 60, "walk": 60}
     assert found["limits"]["rent"] == {"minimum": 300, "maximum": 20000, "unit": 25}
     assert found["limits"]["max_text"] == 600
@@ -1203,6 +2481,187 @@ def test_meta_gives_a_form_everything_it_needs(client: TestClient):
     for tenure in ("rent", "buy"):
         assert found["defaults"][tenure]["tenure"] == tenure
         assert client.post("/v1/rank", json={"spec": found["defaults"][tenure]}).status_code == 200
+
+
+def test_meta_says_that_no_language_model_reads_what_is_typed_where_none_does(
+    client: TestClient,
+):
+    found = data(client.get(META))["reader"]
+
+    assert found == {
+        "model_reads": False,
+        "provider": None,
+        "company": None,
+        "notice": RULES_NOTICE,
+        "terms_url": None,
+        "settings_sent": False,
+    }
+    assert "not sent to a language model" in found["notice"]
+    assert not [terms.company for terms in TERMS.values() if terms.company in str(found)]
+
+
+@pytest.mark.parametrize("provider", Provider, ids=lambda provider: provider.value)
+@pytest.mark.parametrize("with_settings", [False, True], ids=["alone", "with settings"])
+def test_meta_says_what_is_true_of_the_provider_that_reads(provider: Provider, with_settings: bool):
+    terms = TERMS[provider]
+    told = told_of(terms, with_settings)
+    reads = reader_asking(FakeModelClient(model_output()), with_settings)
+
+    found = data(client_for(make_deps(interpreter=reads, told=told)).get(META))["reader"]
+
+    assert (found["model_reads"], found["provider"]) == (True, provider.value)
+    assert (found["company"], found["settings_sent"]) == (terms.company, with_settings)
+    # The notice, and the link to the company's own terms. No more is served.
+    assert found["notice"] == terms.notice(with_settings)
+    assert (SETTINGS in found["notice"], WORDS_ALONE in found["notice"]) == (
+        with_settings,
+        not with_settings,
+    )
+    assert found["terms_url"] == terms.terms_url
+    assert sorted(found) == [
+        "company",
+        "model_reads",
+        "notice",
+        "provider",
+        "settings_sent",
+        "terms_url",
+    ]
+    told_by_the_company = f"What you type is sent to a language model run by {terms.company}, "
+    assert found["notice"].startswith(told_by_the_company)
+    assert "Do not type anything private." in found["notice"]
+    assert "Burro itself keeps nothing of what you type." in found["notice"]
+    # Nothing of the table of terms is served: nobody has checked it. Not how
+    # long words are kept, whether they are used to train, or where they go.
+    served = json.dumps(found)
+    for question in Question:
+        given = terms.answer(question)
+        assert terms.says(question) not in served
+        assert not given.answer or given.answer not in served
+        assert not [quoted for quoted in given.rests_on if quoted in served]
+    # Nothing of how the service is set is served: no key, no variable, no model's name.
+    assert "API_KEY" not in str(found) and terms.model not in str(found)
+
+
+def test_an_answer_that_tells_of_another_reader_is_never_said_to_stand():
+    gemini, openai = (told_of(TERMS[p], with_settings=False) for p in list(Provider)[:2])
+    reads = reader_asking(FakeModelClient(model_output()))
+    tellings = {
+        "rules": make_deps(),
+        "gemini": make_deps(interpreter=reads, told=gemini),
+        "openai": make_deps(interpreter=reads, told=openai),
+        "gemini, with settings": make_deps(
+            interpreter=reader_asking(FakeModelClient(model_output()), True),
+            told=told_of(TERMS[Provider.GEMINI], with_settings=True),
+        ),
+    }
+    tags = {name: client_for(deps).get(META).headers["etag"] for name, deps in tellings.items()}
+
+    # One release, and a tag for each thing people can be told.
+    assert len(set(tags.values())) == len(tellings)
+    assert all(re.fullmatch(r'"syn-2026-09-23-01\.[0-9a-f]{8}"', tag) for tag in tags.values())
+    for name, deps in tellings.items():
+        client = client_for(deps)
+        for held_by, tag in tags.items():
+            answered = client.get(META, headers={"if-none-match": tag})
+            # A browser that holds what another reader was told of is answered in full.
+            assert answered.status_code == (304 if held_by == name else 200), (name, held_by)
+            assert answered.headers["etag"] == tags[name]
+        # The release alone is no longer enough to say that route 11 stands.
+        assert client.get(META, headers={"if-none-match": LOADED}).status_code == 200
+        # The routes that are of the release alone are tagged as they were.
+        assert client.get("/v1/areas").headers["etag"] == LOADED
+
+
+def test_meta_gives_the_vibes_the_release_carries_with_all_a_shelf_needs(client: TestClient):
+    found = data(client.get("/v1/meta"))
+
+    carried = release().vibes
+    assert found["gritty_variant"] == "b"
+    assert found["tags"] == [vibe.model_dump(mode="json") for vibe in carried]
+    assert [t["tag_id"] for t in found["tags"]] == [
+        t.tag_id.value for t in tags_of(GrittyVariant.B)
+    ]
+    shelf = [tag for tag in found["tags"] if tag["shelf_word"] is not None]
+    assert [tag["shelf_word"] for tag in shelf] == [
+        "leafy",
+        "villagey",
+        "lively",
+        "quiet street",
+        "period",
+        "walkable",
+        "near a big park",
+    ]
+    # Works and warehouses is the eleventh of the catalogue, and no release that carries
+    # Gritty carries it.
+    assert [tag["shelf_order"] for tag in found["tags"]] == [*range(1, 11), 12]
+    for tag in found["tags"]:
+        assert tag["cannot_see"][0] == "One street or one home. An area is many streets."
+        assert len(tag["cannot_see"]) > 1 and tag["meaning"]
+        scale = tag["shape"] == "scale"
+        assert (tag["low_end"] is not None) is (tag["high_end"] is not None) is scale
+        assert (tag["shelf_toward"] is None) is (tag["shelf_word"] is None)
+    ends = {t["tag_id"]: (t["low_end"], t["high_end"]) for t in found["tags"] if t["low_end"]}
+    assert ends == {
+        "pace": ("Calm", "Buzzy"),
+        "built_age": ("Newer", "Historic"),
+        "homes": ("Houses", "Flats"),
+        "street_character": ("Polished", "Gritty"),
+    }
+    assert found["families"] == [
+        {"family": "streets_homes", "label": "Streets and homes"},
+        {"family": "pace_food", "label": "Pace and food"},
+        {"family": "green", "label": "Green"},
+        {"family": "daily_life", "label": "Daily life"},
+    ]
+    assert found["limits"]["reason_min_utility"] == REASON_MIN_UTILITY == 0.5
+    assert found["limits"]["trade_off_max_utility"] == TRADE_OFF_MAX_UTILITY == 0.35
+
+
+def test_every_thing_a_form_shows_has_a_plain_name_of_a_few_words(client: TestClient):
+    found = data(client.get("/v1/meta"))
+
+    named = [*found["features"], *found["tags"]]
+    assert len(named) == 54
+    places = {area.name for area in release().neighbourhoods}
+    for thing in named:
+        short = thing["short_label"]
+        assert 0 < len(short) <= 40 and not re.search(r"\d", short), short
+        assert not [name for name in places if name in short]
+    shorts = {f["feature_id"]: f["short_label"] for f in found["features"]}
+    assert shorts["venue_evening"] == "Pubs and bars"
+    assert shorts["noise_exposure"] == "Less transport noise"
+
+
+def built_from_land_use() -> InMemoryRelease:
+    """The committed release as one that holds no recorded crime, and so carries no Gritty."""
+    loaded = release()
+    return replace(
+        loaded,
+        manifest=loaded.manifest.replace(gritty_variant=GrittyVariant.A),
+        vibes=tags_of(GrittyVariant.A),
+        tags=tuple(row for row in loaded.tags if row.tag_id is not TagId.STREET_CHARACTER),
+    )
+
+
+def test_which_way_gritty_is_built_is_the_releases_to_say():
+    client = client_for(make_deps(release=built_from_land_use()))
+
+    found = data(client.get("/v1/meta"))
+    profile = data(client.get("/v1/areas/cindermoor"))
+    listed = data(client.get("/v1/areas"))
+    said = data(client.post("/v1/interpret", json={"text": "somewhere a bit gritty"}))
+
+    assert found["gritty_variant"] == "a"
+    carried = [tag["tag_id"] for tag in found["tags"]]
+    assert len(carried) == 11 and "works_warehouses" in carried
+    assert "street_character" not in carried
+    for served in (profile["tags"], listed["bands"], profile["portrait"]["more"]):
+        assert "street_character" not in str(served)
+    assert "works_warehouses" in [row["tag_id"] for row in listed["bands"]]
+    # The word is read as its place part alone, and the chip quotes the word.
+    assert [edit["tag_id"] for edit in said["operations"]["tag_ops"]] == ["works_warehouses"]
+    assert {"code": "word", "group": "tag_ops", "index": 0, "word": "gritty"} in said["assumptions"]
+    assert "street_cleanliness" in said["unmet"]
 
 
 def test_a_default_weights_only_what_the_release_can_rank():

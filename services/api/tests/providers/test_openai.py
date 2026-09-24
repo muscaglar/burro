@@ -4,7 +4,13 @@ import re
 from typing import Any
 
 import pytest
-from burro_api.providers.interface import ModelCapped, ModelError, ModelFailure, ModelReply
+from burro_api.providers.interface import (
+    ModelCapped,
+    ModelError,
+    ModelFailure,
+    ModelRefused,
+    ModelReply,
+)
 from burro_api.providers.openai import SCHEMA_NAME, OpenAIClient
 
 from . import documents
@@ -107,14 +113,14 @@ def test_the_answer_in_the_providers_own_example_is_read_as_it_stands():
     assert (reply.input_tokens, reply.output_tokens, reply.cache_read_tokens) == (36, 87, 0)
 
 
-def test_the_refusal_in_the_providers_own_example_is_an_error():
+def test_the_refusal_in_the_providers_own_example_is_a_refusal():
     # Its status is `completed`. Only the kind of its content says it is a refusal.
     example = loaded(documents.OPENAI_REFUSAL)
     assert example["status"] == "completed"
 
     failure = failing(OPENAI.made(answering(example)), OPENAI)
 
-    assert type(failure) is ModelError
+    assert type(failure) is ModelRefused
     assert_bare(failure)
 
 
@@ -124,7 +130,7 @@ def test_the_words_of_a_refusal_are_never_the_answer():
 
     failure = failing(OPENAI.made(answering(answer)), OPENAI)
 
-    assert type(failure) is ModelError
+    assert type(failure) is ModelRefused
     assert_bare(failure)
 
 
@@ -174,7 +180,12 @@ def test_a_count_from_the_cache_must_be_a_count_when_it_is_there(cached: object)
             {"status": "incomplete", "incomplete_details": {"reason": "max_output_tokens"}},
             ModelError,
         ),
-        ({"status": "incomplete", "incomplete_details": {"reason": "content_filter"}}, ModelError),
+        (
+            {"status": "incomplete", "incomplete_details": {"reason": "content_filter"}},
+            ModelRefused,
+        ),
+        ({"status": "incomplete", "incomplete_details": None}, ModelError),
+        ({"status": "incomplete", "incomplete_details": "content_filter"}, ModelError),
         ({"status": "incomplete", "incomplete_details": {"reason": "max_messages"}}, ModelError),
         ({"status": "incomplete", "incomplete_details": {"reason": "steered"}}, ModelError),
         ({"status": "in_progress"}, ModelError),
@@ -184,7 +195,7 @@ def test_a_count_from_the_cache_must_be_a_count_when_it_is_there(cached: object)
         ({"status": None}, ModelError),
         ({"status": "completed", "error": {"code": "server_error"}}, ModelError),
     ],
-    ids=range(15),
+    ids=range(17),
 )
 def test_any_status_but_completed_is_a_failure(
     changes: dict[str, object], expected: type[ModelFailure]

@@ -25,7 +25,7 @@ from burro_api.providers.base import (
     record,
     words,
 )
-from burro_api.providers.interface import ModelCapped, ModelError, ModelReply
+from burro_api.providers.interface import ModelCapped, ModelError, ModelRefused, ModelReply
 
 HOST = "api.openai.com"
 PATH = "/v1/responses"
@@ -33,6 +33,9 @@ PATH = "/v1/responses"
 SCHEMA_NAME = "burro_edits"
 FINISHED = "completed"
 FAILED = "failed"
+# An answer the provider's filter cut: not finished, and this is the reason it gives.
+INCOMPLETE = "incomplete"
+FILTERED = "content_filter"
 # The one code inside a 200 that is a limit and not a fault.
 RATE_LIMITED = "rate_limit_exceeded"
 # The provider's guide to reasoning says "GPT-6 Astra does not support `none`
@@ -87,8 +90,11 @@ class OpenAIClient(Adapter):
         if status == FAILED:
             limited = record(answer.get("error")).get("code") == RATE_LIMITED
             return ModelCapped if limited else ModelError
+        cut = answer.get("incomplete_details") if status == INCOMPLETE else None
+        if cut is not None and record(cut).get("reason") == FILTERED:
+            return ModelRefused
         if status != FINISHED or answer.get("error") is not None:
-            # Cut short, cut by a filter, or not finished.
+            # Cut short, or not finished.
             return ModelError
         # The message is found by what it is. Something else may stand before it.
         found = [record(item) for item in listed(answer.get("output"))]
@@ -96,8 +102,10 @@ class OpenAIClient(Adapter):
         if message.get("status") not in (None, FINISHED):
             return ModelError
         parts = [record(part) for part in listed(message.get("content"))]
-        if not parts or any(part.get("type") != "output_text" for part in parts):
+        if any(part.get("type") == "refusal" for part in parts):
             # A refusal is finished too. Its words are never read.
+            return ModelRefused
+        if not parts or any(part.get("type") != "output_text" for part in parts):
             return ModelError
         usage = record(answer.get("usage"))
         details = usage.get("input_tokens_details")

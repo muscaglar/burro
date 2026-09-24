@@ -22,6 +22,7 @@ from burro_api.providers.interface import (
     ModelCapped,
     ModelError,
     ModelFailure,
+    ModelRefused,
     ModelReply,
     ModelTimeout,
 )
@@ -30,7 +31,6 @@ from burro_api.providers.terms import TERMS, Read
 from .cases import (
     ANSWER,
     CASES,
-    CHECKED,
     KEY_TEXT,
     KEYED,
     TYPED,
@@ -69,6 +69,7 @@ def failures(case: Case) -> Iterator[tuple[Sender, dict[str, Any]]]:
     for raised in (
         ModelTimeout(LEAKY),
         ModelCapped(LEAKY),
+        ModelRefused(LEAKY),
         ModelError(LEAKY),
         ModelFailure(LEAKY),
         TimeoutError(LEAKY),
@@ -121,7 +122,7 @@ def test_no_failure_gives_away_what_was_typed_or_the_key(
             client = case.made(send)
             failure = failing(client, case, **changes)
             made += 1
-            assert type(failure) in (ModelTimeout, ModelCapped, ModelError)
+            assert type(failure) in (ModelTimeout, ModelCapped, ModelRefused, ModelError)
             assert str(failure) == "" and failure.args == () and vars(failure) == {}
             assert failure.__cause__ is None and failure.__context__ is None
             seen.append(everything_of(failure))
@@ -233,14 +234,12 @@ def test_the_function_that_sends_gives_away_nothing_when_it_fails(
     ],
     ids=range(10),
 )
-@pytest.mark.parametrize("table", [TERMS, CHECKED], ids=["as it stands", "checked"])
 def test_choosing_gives_away_nothing_that_was_set(
-    env: dict[str, str], table: Any, capsys: pytest.CaptureFixture[str]
+    env: dict[str, str], capsys: pytest.CaptureFixture[str]
 ):
-    # With a table that a person has checked, one of these turns a model on,
-    # and the adapter that is made holds the key.
+    # One of these turns a model on, and the adapter that is made holds the key.
     with listening() as records:
-        choice = choose(env, table=table)
+        choice = choose(env)
         written = [all_of(record) for record in records]
         lines = [json.dumps(vars(record), default=repr) for record in records]
 
@@ -275,7 +274,7 @@ def test_the_tables_and_the_modules_hold_nothing_of_a_call_after_it():
         "BURRO_MODEL_TERMS_ACCEPTED": "openai",
         "OPENAI_API_KEY": KEY_TEXT,
     }
-    assert choose(turned_on, table=CHECKED).client is not None
+    assert choose(turned_on).client is not None
 
     held = "\n".join(
         repr(vars(module)) for module in (base, gemini, openai, deepseek, anthropic, choosing)

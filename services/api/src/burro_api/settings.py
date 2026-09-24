@@ -1,8 +1,9 @@
 """Settings, read once from the environment when the service starts.
 
-The model id lives here, because a model can be retired during the life of a
-release. The key does not: only whether one is present is recorded, and the
-provider's SDK reads it for itself.
+Nothing of a provider of a model is held here: not which provider, not its
+key, not whether its terms were accepted, and not its model. Those are read
+by `providers.choose`, which decides who reads what is typed. What is here
+of a model is how long it is waited for and how much it may answer.
 """
 
 import re
@@ -12,18 +13,21 @@ from typing import Annotated
 
 from pydantic import AfterValidator, Field
 
-from burro_api.calls import MODEL_PATTERN
 from burro_api.wire import Wire
 
 # The committed synthetic release, so that a fresh checkout runs with nothing set.
 SYNTHETIC_FIXTURE = (
     Path(__file__).resolve().parents[4] / "data" / "fixtures" / "synthetic" / "syn-2026-09-23-01"
 )
-# The smallest current model. Reading a sentence into typed edits needs no more.
-DEFAULT_MODEL_ID = "claude-haiku-4-5"
+# The made-up count that was made for it. It is kept outside the folder of releases.
+RESIDENTS_FOLDER = "-residents"
+SYNTHETIC_CENSUS = (
+    SYNTHETIC_FIXTURE.parents[1] / "residents" / f"{SYNTHETIC_FIXTURE.name}{RESIDENTS_FOLDER}"
+)
+# The one word that switches the census off.
+OFF = "off"
 DEFAULT_TIMEOUT_S = 6.0
 DEFAULT_MAX_TOKENS = 2048
-KEY_VARIABLE = "ANTHROPIC_API_KEY"
 # The web app as it runs on a developer's machine. Whoever deploys the service
 # names the address the web app is served from.
 DEFAULT_ORIGINS = ("http://localhost:3000",)
@@ -65,13 +69,35 @@ def _origins(listed: str) -> tuple[str, ...]:
     return tuple(origin.strip() for origin in listed.split(","))
 
 
+def _census_dir(env: Mapping[str, str]) -> Path | None:
+    """Where the census of the release is looked for, or `None` where it is switched off.
+
+    With nothing set it is the made-up count that is committed. With a release
+    named it is the folder beside the release, named for it with `-residents`
+    after. `BURRO_CENSUS_DIR` names another folder, and `BURRO_CENSUS=off`
+    serves none, whatever is there.
+    """
+    if env.get("BURRO_CENSUS", "").strip().lower() == OFF:
+        return None
+    if named := env.get("BURRO_CENSUS_DIR"):
+        return Path(named)
+    if release := env.get("BURRO_RELEASE_DIR"):
+        folder = Path(release).resolve()
+        return folder.with_name(f"{folder.name}{RESIDENTS_FOLDER}")
+    return SYNTHETIC_CENSUS
+
+
 class Settings(Wire):
     release_dir: Path
-    model_id: str = Field(pattern=MODEL_PATTERN, min_length=1)
+    # The folder of the census that was made for the release, or `None` where none is
+    # served. A folder that is not there is no census. One that is there is held to
+    # every rule, and the service does not start on one that breaks any.
+    census_dir: Path | None
+    # Whether the folder was named by whoever runs the service. One that was named and
+    # is not there is a fault, and not the want of a census.
+    census_named: bool
     model_timeout_s: float = Field(gt=0, le=60)
     model_max_tokens: int = Field(ge=256, le=16_000)
-    # Whether a key is in the environment. The key itself is never held here.
-    model_key_present: bool
     host: str
     port: int = Field(ge=1, le=65_535)
     # The origins a browser may call from. A call from any other is answered,
@@ -83,10 +109,10 @@ class Settings(Wire):
         return cls.model_validate(
             {
                 "release_dir": env.get("BURRO_RELEASE_DIR") or SYNTHETIC_FIXTURE,
-                "model_id": env.get("BURRO_MODEL_ID") or DEFAULT_MODEL_ID,
+                "census_dir": _census_dir(env),
+                "census_named": bool(env.get("BURRO_CENSUS_DIR")),
                 "model_timeout_s": env.get("BURRO_MODEL_TIMEOUT_S") or DEFAULT_TIMEOUT_S,
                 "model_max_tokens": env.get("BURRO_MODEL_MAX_TOKENS") or DEFAULT_MAX_TOKENS,
-                "model_key_present": bool(env.get(KEY_VARIABLE, "").strip()),
                 # The local machine only, unless whoever deploys it says otherwise.
                 "host": env.get("BURRO_HOST") or "127.0.0.1",
                 "port": env.get("BURRO_PORT") or 8000,

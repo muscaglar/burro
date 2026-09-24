@@ -26,12 +26,15 @@ from burro_api.providers.base import (
     record,
     words,
 )
-from burro_api.providers.interface import ModelError, ModelReply
+from burro_api.providers.interface import ModelError, ModelRefused, ModelReply
 
 HOST = "generativelanguage.googleapis.com"
 # The model's name is part of the address, which is why it is held to a pattern.
 PATH = "/v1beta/models/{model}:generateContent"
 FINISHED = "STOP"
+# The reasons to stop that say the answer was blocked, for safety or for the
+# provider's own terms, as Google's published definition of the API lists them.
+BLOCKED = frozenset({"SAFETY", "BLOCKLIST", "PROHIBITED_CONTENT", "SPII"})
 # The least the small models can be asked to think. They cannot be told not
 # to, and thinking is paid for as output and counted against the limit.
 THINKING = "minimal"
@@ -71,11 +74,13 @@ class GeminiClient(Adapter):
         feedback = answer.get("promptFeedback")
         if feedback is not None and record(feedback).get("blockReason") is not None:
             # The prompt was blocked. It is a 200 all the same.
-            return ModelError
+            return ModelRefused
         [only] = listed(answer.get("candidates"))
         candidate = record(only)
+        if candidate.get("finishReason") in BLOCKED:
+            return ModelRefused
         if candidate.get("finishReason") != FINISHED:
-            # Cut short, blocked, or a reason that did not exist when this was written.
+            # Cut short, or a reason that did not exist when this was written.
             return ModelError
         parts = [record(part) for part in listed(record(candidate.get("content")).get("parts"))]
         # A thought can repeat what the person typed, and is no part of the answer.

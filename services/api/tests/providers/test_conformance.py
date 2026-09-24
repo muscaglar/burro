@@ -20,6 +20,7 @@ from burro_api.providers.interface import (
     ModelCapped,
     ModelError,
     ModelFailure,
+    ModelRefused,
     ModelTimeout,
 )
 
@@ -192,10 +193,13 @@ def test_the_schema_is_sent_with_every_reference_written_out(case: Case):
 
 
 @each
-def test_a_refusal_is_an_error_though_it_arrives_as_a_success(case: Case):
+def test_a_refusal_is_said_to_be_one_though_it_arrives_as_a_success(case: Case):
+    # The provider would not read what was sent, for safety or for its own
+    # terms. It is told apart from a fault, so that a person can be told.
     failure = failing(case.made(answering(case.refusal())), case)
 
-    assert type(failure) is ModelError
+    assert type(failure) is ModelRefused
+    # Why it would not is never read. The words of a refusal can repeat what was typed.
     assert_bare(failure)
 
 

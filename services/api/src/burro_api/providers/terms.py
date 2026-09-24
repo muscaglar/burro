@@ -1,24 +1,25 @@
-"""What people are told about where their words go, for each provider.
+"""What people are told about where their words go, and what was read of each provider's terms.
 
-The words a person types can hold their workplace, their health or their
-religion, and their search settings go with them. Before they type, they are
-told who receives both, whether they are used to train a model, how long
-they are kept, who may read them and where. That differs by provider, so it
-is held here, by provider, and served by the API. The website and the app
-show what is served and write none of it themselves, so neither can state
-one provider's terms while another is in use.
+**What people are told** is a few sentences, served by the API (`notice`):
+that what is typed is sent to a language model run by the company, to be
+read, what goes with it, that nothing private should be typed, and that
+Burro itself keeps nothing of it. With them goes the address of the
+company's own terms (`terms_url`). The notice states nothing about the
+company as fact: not how long it keeps words, not whether it trains on them.
+Nobody has checked those, and the link serves in their place (ADR 0023). The
+website and the app show what is served and write none of it themselves.
 
-The same questions are put to every provider, in the same order, and each
-is answered in the same form of words (`FORMS`). Where a provider's
-documents, as read, do not answer a question, the sentence says that they do
-not. So no provider is told of in softer words than another.
+The words go alone unless the service is set to send the search settings
+with them. Which of the two is so is said in every notice, and whoever makes
+a notice says which: there is no default.
 
-Every answer says which of the provider's own documents it rests on, when
-it was read and how. None of that turns a provider on. `choose` turns a
-provider on only when a person has compared every sentence of its entry
-with the page at each address, and has written down who they are and the
-day (`checked_by`, `checked_on`). As this file was written no entry has been
-checked, by anyone, for any of the four.
+**The table is research, and is shown to nobody.** It holds the same
+questions for every provider, each answered in one form of words (`FORMS`),
+with the provider's own pages, the day they were read and how. A tool read
+them. No person has compared a sentence with its page: `checked_by` and
+`checked_on` are empty in every entry. Nothing of the table is served, put in
+a notice or waited for. What `choose` reads of an entry is the company's
+name, the variable of its key, its model and the address of its terms.
 
 A dated snapshot. Terms change: read them again before relying on a sentence.
 Nothing here is legal advice. See `docs/design/models.md`.
@@ -150,7 +151,10 @@ class Terms:
     key_variable: str
     # The smallest model the research found fit for the job on the day.
     model: str
-    # One answer to each question, in the order of the questions.
+    # The company's own page of terms, which people are pointed to.
+    terms_url: str
+    # One answer to each question, in the order of the questions. Research,
+    # checked by nobody and shown to nobody.
     answers: tuple[Answer, ...]
     # What must be so for the notice to be true. For whoever turns the provider on.
     holds_if: tuple[str, ...] = ()
@@ -163,7 +167,7 @@ class Terms:
         return self.answers[list(Question).index(question)]
 
     def says(self, question: Question) -> str:
-        """What a person is told in answer to `question`, in the form every provider shares."""
+        """What the table holds in answer to `question`, in the form every provider shares."""
         given = self.answer(question)
         form = FORMS[question]
         if given.answer is None:
@@ -174,16 +178,32 @@ class Terms:
     def checked(self) -> bool:
         return all(answer.checked for answer in self.answers)
 
-    @property
-    def notice(self) -> str:
-        first, *rest = (self.says(question) for question in Question)
-        return " ".join((first, SETTINGS, *rest, ADVICE))
+    def sent_with(self, with_settings: bool) -> str:
+        """What a person is told goes with their words. It is Burro's to say, whoever receives."""
+        return SETTINGS if with_settings else WORDS_ALONE
+
+    def notice(self, with_settings: bool) -> str:
+        """The whole of what a person is told, as one paragraph.
+
+        Whose model reads the words, what goes with them, and Burro's own
+        three sentences. Nothing of `answers` is in it.
+        """
+        return " ".join(
+            (
+                SENT.format(company=self.company),
+                self.sent_with(with_settings),
+                PRIVATE,
+                KEEPS_NOTHING,
+                ITS_TERMS.format(company=self.company),
+            )
+        )
 
 
-# What goes with the words: each field of a search as the reader sends it,
-# and the words of `SETTINGS` that tell of it. `None` is a field that says
-# nothing of the person. A test holds this to what the reader sends, so a
-# field that is added to a search is not sent before people are told of it.
+# What goes with the words where the service is set to send the search: each
+# field of a search as the reader sends it, and the words of `SETTINGS` that
+# tell of it. `None` is a field that says nothing of the person. A test holds
+# this to what the reader sends, so a field that is added to a search is not
+# sent before people are told of it.
 SENT_WITH: Mapping[str, str | None] = MappingProxyType(
     {
         "schema_version": None,
@@ -198,13 +218,19 @@ SENT_WITH: Mapping[str, str | None] = MappingProxyType(
         "areas": "the areas you have ruled in or out",
     }
 )
-# Burro's own statement of what it sends, the same whoever receives it.
+# Burro's own statement of what it sends, the same whoever receives it: where
+# the search is sent with the words, and where the words go alone.
 SETTINGS = (
     "With it go your search settings: your budget, whether you rent or buy, how long you "
     "will travel, what matters to you, and the areas you have ruled in or out."
 )
-# Burro's own advice, the same whoever receives the words.
-ADVICE = "Leave out your health, your religion and anything else you would not want kept."
+WORDS_ALONE = "Your words go alone: none of your search settings is sent with them."
+# The rest of the notice, the same whoever receives the words. It names the
+# company and says nothing of what the company does.
+SENT = "What you type is sent to a language model run by {company}, to be read."
+PRIVATE = "Do not type anything private."
+KEEPS_NOTHING = "Burro itself keeps nothing of what you type."
+ITS_TERMS = "What {company} does with it is in {company}'s own terms."
 # What is said when no model reads what is typed.
 RULES_NOTICE = (
     "What you type is read by rules that are part of Burro. It is not sent to a language model."
@@ -248,6 +274,7 @@ _GEMINI = Terms(
     company="Google",
     key_variable="GEMINI_API_KEY",
     model="gemini-3.5-flash-lite",
+    terms_url=_GEMINI_TERMS,
     answers=(
         _said(
             Question.RECEIVER,
@@ -339,6 +366,7 @@ _GEMINI = Terms(
     ),
 )
 
+_OPENAI_TERMS = "https://openai.com/policies/services-agreement/"
 _OPENAI_DATA = "https://developers.openai.com/api/docs/guides/your-data"
 _OPENAI_AGREEMENT = "https://openai.com/policies/data-processing-addendum/"
 _OPENAI_READ_ONCE = (
@@ -356,6 +384,7 @@ _OPENAI = Terms(
     company="OpenAI",
     key_variable="OPENAI_API_KEY",
     model="gpt-6-luna",
+    terms_url=_OPENAI_TERMS,
     answers=(
         _said(
             Question.RECEIVER,
@@ -364,7 +393,7 @@ _OPENAI = Terms(
                 "OpenAI OpCo, LLC, for Customers located outside the EEA or Switzerland",
                 "Data importer(s): OpenAI OpCo, LLC, 1455 3rd Street, San Francisco, CA 94158",
             ),
-            ("https://openai.com/policies/services-agreement/", _OPENAI_AGREEMENT),
+            (_OPENAI_TERMS, _OPENAI_AGREEMENT),
             Read.PAGE,
             note=_OPENAI_READ_ONCE,
         ),
@@ -448,6 +477,7 @@ _DEEPSEEK = Terms(
     company="DeepSeek",
     key_variable="DEEPSEEK_API_KEY",
     model="deepseek-flash",
+    terms_url=_DEEPSEEK_PLATFORM,
     answers=(
         _said(
             Question.RECEIVER,
@@ -564,6 +594,7 @@ _ANTHROPIC = Terms(
     company="Anthropic",
     key_variable="ANTHROPIC_API_KEY",
     model="claude-haiku-4-5-20251001",
+    terms_url=_ANTHROPIC_TERMS,
     answers=(
         _said(
             Question.RECEIVER,

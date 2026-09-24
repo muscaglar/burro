@@ -7,8 +7,11 @@
 Every sentence of the evaluation set is made up, so a provider can be
 measured before anybody's words are sent to it. That is why this asks for the
 provider and its key and for no more: not that its terms were accepted for
-what real people type, and not that what people are told was read at the
-source. Each case is a call that is paid for.
+what real people type, and not that it is a provider that may read it. Each
+case is a call that is paid for.
+
+It sends what the service would send. The words go alone unless
+`BURRO_MODEL_SENDS_SETTINGS` is `yes`, as in the service.
 
 The service never uses this. There, `choose` is the only way a provider is
 turned on.
@@ -16,16 +19,20 @@ turned on.
 
 import os
 from collections.abc import Mapping
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from burro_api.providers.base import Key, Send, over_https
-from burro_api.providers.choose import ADAPTERS, MODEL_VARIABLE, PROVIDER_VARIABLE
+from burro_api.providers.choose import (
+    ADAPTERS,
+    MODEL_VARIABLE,
+    PROVIDER_VARIABLE,
+    SENDS_SETTINGS,
+    SETTINGS_VARIABLE,
+)
 from burro_api.providers.terms import TERMS, Provider
 
 if TYPE_CHECKING:
     from burro_core.interpret import Interpreter
-
-    from burro_api.claude import ModelClient
 
 TIMEOUT_VARIABLE = "BURRO_MODEL_TIMEOUT_S"
 MAX_TOKENS_VARIABLE = "BURRO_MODEL_MAX_TOKENS"
@@ -73,11 +80,12 @@ def reader(env: Mapping[str, str] | None = None, send: Send = over_https) -> "In
         )
     timeout_s = _number(env, TIMEOUT_VARIABLE, TIMEOUT_S)
     max_tokens = _number(env, MAX_TOKENS_VARIABLE, MAX_TOKENS)
+    # As the service reads it, so that a provider is measured on what it would be sent.
+    with_settings = env.get(SETTINGS_VARIABLE, "").strip().lower() == SENDS_SETTINGS
 
     # Imported here, so that choosing a provider needs nothing of the engine.
-    from burro_api.claude import ClaudeInterpreter
+    from burro_api.reader import ModelInterpreter
 
-    # The reader's client and the adapters' are the same in shape, and are
-    # made one when the adapters are wired in.
-    client = cast("ModelClient", ADAPTERS[provider](key, send))
-    return ClaudeInterpreter(client, model, max_tokens, timeout_s)
+    return ModelInterpreter(
+        ADAPTERS[provider](key, send), model, max_tokens, timeout_s, with_settings
+    )

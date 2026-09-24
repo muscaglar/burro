@@ -9,17 +9,19 @@ from burro_core.interpret import Interpreter, RuleInterpreter
 from burro_core.spec import SpecError
 from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.routing import APIRoute
 from starlette.exceptions import HTTPException
 
-from burro_api import logs
 from burro_api.boundary import ERROR_CODE, Boundary
 from burro_api.calls import InMemoryCallLog
 from burro_api.deps import Context, Deps, RandomIds, SystemClock, context_for
 from burro_api.errors import ApiError, error_response, from_validation, spec_refused
-from burro_api.loading import load_release
-from burro_api.routes import areas, interpret, meta, places, rank, shares
+from burro_api.loading import load_census, load_release
+from burro_api.providers.choose import Choice, by_rules
+from burro_api.reader import ModelInterpreter
+from burro_api.routes import areas, census, interpret, meta, places, rank, shares
+from burro_api.routes.common import NotModified
 from burro_api.settings import Settings
 from burro_api.stores import InMemoryShareStore
 from burro_api.wire import ErrorCode, FieldProblem
@@ -28,10 +30,11 @@ __all__ = ["Deps", "create_app", "deps_from"]
 
 TITLE = "Burro API"
 # The version of the contract the routes are built to, not of the code.
-CONTRACT_VERSION = "1"
+CONTRACT_VERSION = "2"
 DESCRIPTION = (
     "Ranks named neighbourhoods for a preference spec and shows its working. "
-    "Every response says whether the data behind it is synthetic."
+    "Every response says whether the data behind it is synthetic, and whether the release "
+    "is a preview that is not finished."
 )
 
 _CODE_FOR_STATUS = {
@@ -97,6 +100,11 @@ def _install_handlers(app: FastAPI, context: Context) -> None:
             response.headers["Allow"] = allow
         return response
 
+    def unchanged(request: Request, error: Exception) -> Response:
+        assert isinstance(error, NotModified)
+        return Response(status_code=304, headers=error.headers)
+
+    app.add_exception_handler(NotModified, unchanged)
     app.add_exception_handler(RequestValidationError, invalid)
     app.add_exception_handler(ApiError, refused)
     app.add_exception_handler(SpecError, unrankable)
@@ -122,7 +130,8 @@ def create_app(deps: Deps) -> FastAPI:
     app.state.context = context
 
     gates = [Depends(identify), Depends(admit)]
-    routers = [group.router for group in (interpret, rank, areas, places, shares, meta)]
+    groups = (interpret, rank, areas, census, places, shares, meta)
+    routers = [group.router for group in groups]
     for router in routers:
         app.include_router(router, dependencies=gates)
     app.include_router(meta.health)
@@ -135,39 +144,39 @@ def create_app(deps: Deps) -> FastAPI:
     return app
 
 
-def _interpreter(settings: Settings) -> Interpreter:
-    """The model-backed interpreter if a key is present, and otherwise the rules."""
-    if not settings.model_key_present:
+def _reader(settings: Settings, choice: Choice) -> Interpreter:
+    """The model-backed reader if a provider was chosen, and otherwise the rules."""
+    if choice.client is None:
         return RuleInterpreter()
-    try:
-        # Imported here, so that a service with no key never loads the SDK.
-        from burro_api.claude import ClaudeInterpreter
-        from burro_api.claude_sdk import AnthropicModelClient
-
-        return ClaudeInterpreter(
-            AnthropicModelClient(),
-            model=settings.model_id,
-            max_tokens=settings.model_max_tokens,
-            timeout_s=settings.model_timeout_s,
-        )
-    except Exception as error:
-        # A model that cannot be set up is a model that is absent.
-        logs.log_failure(error)
-        return RuleInterpreter()
+    return ModelInterpreter(
+        choice.client,
+        model=choice.model,
+        max_tokens=settings.model_max_tokens,
+        timeout_s=settings.model_timeout_s,
+        with_settings=choice.with_settings,
+    )
 
 
-def deps_from(settings: Settings) -> Deps:
-    """What the running service depends on: one release, loaded now, and nothing on disk."""
-    interpreter = _interpreter(settings)
+def deps_from(settings: Settings, choice: Choice | None = None) -> Deps:
+    """What the running service depends on: one release, loaded now, and nothing on disk.
+
+    `choice` is who reads what is typed, as `providers.choose` made it of the
+    environment. The reader and what people are told are both taken from it,
+    so the two cannot be at odds. With none given, the rules read.
+    """
+    choice = by_rules() if choice is None else choice
+    release = load_release(settings.release_dir)
     return Deps(
-        release=load_release(settings.release_dir),
-        interpreter=interpreter,
+        release=release,
+        census=load_census(settings.census_dir, release, settings.census_named),
+        interpreter=_reader(settings, choice),
         explainer=TemplateExplainer(),
         shares=InMemoryShareStore(),
         calls=InMemoryCallLog(),
         clock=SystemClock(),
         ids=RandomIds(),
-        model_id="" if isinstance(interpreter, RuleInterpreter) else settings.model_id,
+        told=choice.told,
+        model_id=choice.model,
         model_timeout_s=settings.model_timeout_s,
         allowed_origins=settings.allowed_origins,
     )

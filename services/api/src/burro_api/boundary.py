@@ -3,7 +3,8 @@
 One middleware, outermost, does five things that must hold for every route:
 
 - it refuses a body that is not JSON or is larger than 16 KiB, before anything reads it;
-- it puts the synthetic flag on every response, errors included;
+- it says on every response, errors included, whether the release is synthetic and
+  whether it is a preview;
 - it catches whatever a route lets fall, so that the server never gets to
   print a traceback, whose last line is the exception's message;
 - it writes the one log line for the request, from the route template;
@@ -40,7 +41,7 @@ JSON = "application/json"
 # What a page on an allowed origin may send, and which of our headers it may read.
 ALLOWED_METHODS = "GET, POST"
 ALLOWED_HEADERS = "Content-Type"
-EXPOSED_HEADERS = "X-Burro-Synthetic, X-Request-Id"
+EXPOSED_HEADERS = "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id"
 # How long a browser may remember that it asked, in seconds.
 ASK_AGAIN_AFTER = "600"
 
@@ -159,6 +160,7 @@ class Boundary:
                 status = message["status"]
                 headers = MutableHeaders(scope=message)
                 headers["X-Burro-Synthetic"] = "true" if meta.synthetic else "false"
+                headers["X-Burro-Preview"] = "true" if meta.preview else "false"
                 headers["X-Request-Id"] = request_id
                 # Only a route that is a function of the release alone says otherwise.
                 headers.setdefault("Cache-Control", NO_STORE)
@@ -210,6 +212,7 @@ class Boundary:
                 "release_id": meta.release_id,
                 "engine_version": meta.engine_version,
                 "synthetic": meta.synthetic,
+                "preview": meta.preview,
             }
             code = scope.get(ERROR_CODE)
             if isinstance(code, str):

@@ -7,12 +7,14 @@ import sys
 from pathlib import Path
 
 import uvicorn
+from burro_core.census import CensusError
 from burro_core.release import ReleaseError
 from fastapi import FastAPI
 from pydantic import ValidationError
 
 from burro_api import logs
 from burro_api.app import create_app, deps_from
+from burro_api.providers.choose import Choice, choose
 from burro_api.settings import Settings
 
 
@@ -21,7 +23,7 @@ def openapi_document(app: FastAPI) -> str:
     return json.dumps(app.openapi(), indent=2, sort_keys=True, ensure_ascii=False) + "\n"
 
 
-def _refusal(folder: Path, error: ReleaseError) -> str:
+def _refusal(folder: Path, error: ReleaseError | CensusError) -> str:
     """Why a release was refused, in one line: the folder, the file, the row and the rule.
 
     Never a value from a file. `burro-release check` says the same in more words.
@@ -30,16 +32,20 @@ def _refusal(folder: Path, error: ReleaseError) -> str:
     return f"{folder}: {where} [{error.rule}]" if where else f"{folder} [{error.rule}]"
 
 
-def _serve(settings: Settings) -> int:
-    logs.configure_logging()
-    deps = deps_from(settings)
+def serve(settings: Settings, choice: Choice) -> int:
+    """Run the service, with `choice` as who reads what is typed."""
+    deps = deps_from(settings, choice)
     manifest = deps.release.manifest
+    # The provider is named where one reads. Where none does, no field says so.
+    reads = {} if deps.told.provider is None else {"provider": deps.told.provider}
     logs.event(
         "starting",
         release_id=manifest.release_id,
         synthetic=manifest.synthetic,
+        preview=manifest.preview,
         interpreter=deps.interpreter.name.value,
         model=deps.model_id,
+        **reads,
     )
     try:
         uvicorn.run(
@@ -71,14 +77,18 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
 
     folder = Path()
+    census: Path | None = None
     try:
         serving = args.command == "serve"
         # The OpenAPI document does not depend on the release, so it is written
         # from the fixture, whatever the environment says.
         settings = Settings.from_env(os.environ if serving else {})
-        folder = settings.release_dir
+        folder, census = settings.release_dir, settings.census_dir
         if serving:
-            return _serve(settings)
+            logs.configure_logging()
+            # Who reads what is typed is decided here, once, from the
+            # environment. A key alone turns nothing on.
+            return serve(settings, choose(os.environ))
         document = openapi_document(create_app(deps_from(settings)))
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(document, encoding="utf-8")
@@ -88,6 +98,10 @@ def main(argv: list[str] | None = None) -> int:
         return 2
     except ReleaseError as error:
         print(f"error: the release could not be loaded: {_refusal(folder, error)}", file=sys.stderr)
+        return 2
+    except CensusError as error:
+        where = _refusal(census or Path(), error)
+        print(f"error: the census could not be loaded: {where}", file=sys.stderr)
         return 2
     except OSError as error:
         print(f"error: {error.strerror}", file=sys.stderr)

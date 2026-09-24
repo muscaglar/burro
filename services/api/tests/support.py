@@ -20,13 +20,18 @@ import httpx2
 from anyio.from_thread import BlockingPortal
 from burro_api.app import create_app
 from burro_api.calls import InMemoryCallLog
-from burro_api.claude import ClaudeInterpreter, ModelReply
 from burro_api.deps import Deps
-from burro_api.loading import load_release
+from burro_api.loading import load_census, load_release
 from burro_api.logs import JsonFormatter
-from burro_api.settings import SYNTHETIC_FIXTURE
+from burro_api.offers import Offer, Way, of_the_rules
+from burro_api.providers.choose import BY_RULES, told_of
+from burro_api.providers.interface import ModelError
+from burro_api.providers.terms import TERMS, Provider
+from burro_api.reader import ModelInterpreter, ModelReply
+from burro_api.settings import SYNTHETIC_CENSUS, SYNTHETIC_FIXTURE
 from burro_api.stores import InMemoryShareStore
 from burro_core import RuleInterpreter, TemplateExplainer, default_spec
+from burro_core.census import Census
 from burro_core.ids import Mode, Provenance, Strictness, Tenure
 from burro_core.interpret import InterpretRequest, InterpretResult
 from burro_core.release import InMemoryRelease
@@ -48,6 +53,14 @@ ACADEMY = "syn-p0032"  # Eskerfold Academy, which coarsens to the same station
 @cache
 def release() -> InMemoryRelease:
     return load_release(SYNTHETIC_FIXTURE)
+
+
+@cache
+def census() -> Census:
+    """The made-up count that is committed, which is what the service serves with nothing set."""
+    found = load_census(SYNTHETIC_CENSUS, release())
+    assert found is not None
+    return found
 
 
 class FixedClock:
@@ -85,8 +98,16 @@ class CountedIds:
         return f"share{self._next():017d}"
 
 
+# What people are told in a test where a model reads. No test here calls a provider.
+A_MODEL_READS = told_of(TERMS[Provider.GEMINI], with_settings=False)
+
+
 def make_deps(**changes: Any) -> Deps:
-    """What the service depends on, with a fixed clock, counted ids and the rules."""
+    """What the service depends on, with a fixed clock, counted ids and the rules.
+
+    People are told what fits whoever reads, unless the test says what they are told.
+    """
+    by_rules = isinstance(changes.get("interpreter", RuleInterpreter()), RuleInterpreter)
     deps = Deps(
         release=release(),
         interpreter=RuleInterpreter(),
@@ -95,8 +116,12 @@ def make_deps(**changes: Any) -> Deps:
         calls=InMemoryCallLog(),
         clock=FixedClock(),
         ids=CountedIds(),
+        told=BY_RULES,
     )
-    return replace(deps, **changes)
+    # The committed count is of the committed release. A test that serves another
+    # release serves no census, unless it brings one made for that release.
+    changes.setdefault("census", None if "release" in changes else census())
+    return replace(deps, **({"told": BY_RULES if by_rules else A_MODEL_READS} | changes))
 
 
 # The event loop the tests have started, if they have. A test client starts a loop of
@@ -214,6 +239,7 @@ def model_tag(tag_id: str, **changes: Any) -> dict[str, Any]:
         "tag_id": tag_id,
         "value": 0.0,
         "step": "up_large",
+        "toward": "default",
         "provenance": "stated",
         "words": "",
     }
@@ -275,8 +301,14 @@ def resting_on(answer: Any, words: str) -> Any:
     return found
 
 
-class _Handed:
-    """The stand-in of the test that is running, behind the one interpreter the tests share."""
+class _Switch:
+    """The one client the tests' reader asks. It hands each call to the stand-in of the moment.
+
+    A reader makes the names and the words of a release ready once, and that
+    takes longer than reading a sentence. So the tests share one reader, as
+    the service has one, and what changes from one test to the next is the
+    model that answers it.
+    """
 
     def __init__(self) -> None:
         self.to: FakeModelClient | None = None
@@ -286,36 +318,160 @@ class _Handed:
         return self.to.complete(**sent)
 
 
-# One interpreter reads for every test. It keeps the names of the release, which it
-# would otherwise normalise again for every sentence, and it keeps nothing else. Each
-# test hands it a stand-in of its own.
-_HANDED = _Handed()
-_READER = ClaudeInterpreter(_HANDED, model=MODEL, max_tokens=512, timeout_s=2.5)
+_SWITCH = _Switch()
+# One that sends the words alone, as the service does unless it is set
+# otherwise, and one that sends the settings with them.
+_READERS = {
+    with_settings: ModelInterpreter(
+        _SWITCH, model=MODEL, max_tokens=512, timeout_s=2.5, with_settings=with_settings
+    )
+    for with_settings in (False, True)
+}
 
 
-def reading_through(client: FakeModelClient) -> ClaudeInterpreter:
-    """The interpreter the tests share, asking this stand-in until it is given another."""
-    _HANDED.to = client
-    return _READER
+def reader_asking(client: FakeModelClient, with_settings: bool = False) -> ModelInterpreter:
+    """The model-backed reader of these tests, with `client` as the model it asks."""
+    _SWITCH.to = client
+    return _READERS[with_settings]
+
+
+# Words the rules leave unread, so that a model is asked about them.
+NOT_PLAIN = "somewhere, honestly"
 
 
 def asked(
-    answer: Any, text: str = "somewhere", spec: PreferenceSpec | None = None
+    answer: Any,
+    text: str = NOT_PLAIN,
+    spec: PreferenceSpec | None = None,
+    with_settings: bool = False,
 ) -> tuple[InterpretResult, FakeModelClient]:
     """What the model-backed interpreter makes of `text` when the model answers `answer`."""
     client = FakeModelClient(resting_on(answer, text))
     request = InterpretRequest(text=text, spec=spec or renter(), release=release())
-    return reading_through(client).interpret(request), client
+    return reader_asking(client, with_settings).interpret(request), client
 
 
 def through_the_route(answer: Any, text: str, spec: PreferenceSpec | None = None) -> dict[str, Any]:
     """The same, as route 1 serves it."""
-    interpreter = reading_through(FakeModelClient(resting_on(answer, text)))
+    interpreter = reader_asking(FakeModelClient(resting_on(answer, text)))
     client = client_for(make_deps(interpreter=interpreter, model_id=MODEL))
     body = {"text": text} | ({"spec": wire(spec)} if spec else {})
     response = client.post("/v1/interpret", json=body)
     assert response.status_code == 200
     return response.json()["data"]
+
+
+def _loggers() -> list[logging.Logger]:
+    held = logging.getLogger().manager.loggerDict.values()
+    return [each for each in held if isinstance(each, logging.Logger)]
+
+
+@contextmanager
+def logging_put_back() -> Generator[None]:
+    """Leave logging as it was found: the root's handlers, and the level of every logger.
+
+    The service sets the level of its own logger when it starts, and a test may set a
+    library's. Left so, the next test hears less than it says it hears, and which test is
+    next depends on the order the tests run in and on the process each is given.
+    """
+    root = logging.getLogger()
+    handlers, level = root.handlers[:], root.level
+    levels = {each.name: each.level for each in _loggers()}
+    try:
+        yield
+    finally:
+        root.handlers[:] = handlers
+        root.setLevel(level)
+        for each in _loggers():
+            # One made since then goes back to what a new one has: no level of its own.
+            each.setLevel(levels.get(each.name, logging.NOTSET))
+
+
+# --- What is offered ---------------------------------------------------------------------------
+
+
+def offers(result: InterpretResult) -> dict[str, Offer]:
+    """Each offer of an answer by what it is of. Two of one kind are told apart by their order."""
+    found: dict[str, Offer] = {}
+    for offer in (of_the_rules(suggestion) for suggestion in result.suggestions):
+        name = offer.target
+        while name in found:
+            name += "+"
+        found[name] = offer
+    return found
+
+
+def ways(offer: Offer) -> dict[str, Way]:
+    """The ways of an offer by their ids, doing nothing among them."""
+    return {way.id: way for way in offer.choices}
+
+
+def guessed(result: InterpretResult) -> dict[str, str]:
+    """For each offer that holds a guess, which way of it Burro guesses."""
+    return {
+        name: way.id for name, offer in offers(result).items() for way in offer.choices if way.guess
+    }
+
+
+def quoted(result: InterpretResult, text: str) -> dict[str, list[str]]:
+    """The words each offer rests on, as the caller finds them in the text it sent."""
+    return {
+        name: [text[span.start : span.end] for span in offer.spans]
+        for name, offer in offers(result).items()
+    }
+
+
+# --- The answers of a model that are on disk ---------------------------------------------------
+
+ANSWERS = Path(__file__).resolve().parents[3] / "evals" / "reader" / "answers"
+ANSWERED_BY = "gemini-3.5-flash-lite"
+
+
+@cache
+def answers_on_disk() -> dict[tuple[str, int], dict[str, Any]]:
+    """Every answer a model gave to a made-up sentence, by the sentence's id and the look.
+
+    Each is what the provider answered, word for word. None is made again: a
+    stand-in hands it to the reader, and no call is made.
+    """
+    lines = (ANSWERS / f"{ANSWERED_BY}.jsonl").read_text(encoding="utf-8").splitlines()
+    rows = [cast(dict[str, Any], json.loads(line)) for line in lines if line.strip()]
+    return {(str(row["id"]), int(row["look"])): row for row in rows}
+
+
+# Words the rules make nothing of. Put before a sentence that the rules read the whole of,
+# they leave it for a model to read, as it was when the answer on disk was given.
+UNREAD_FIRST = "Honestly. "
+
+
+def on_disk(
+    case: str, look: int = 1, before: str = ""
+) -> tuple[str, PreferenceSpec, FakeModelClient]:
+    """The sentence of an answer on disk, the search it was typed into, and the answer.
+
+    `before` is put before the sentence. The answer quotes the sentence, so
+    its words still stand in what was typed.
+    """
+    row = answers_on_disk()[(case, look)]
+    answer: str | Exception = str(row["output"]) if "output" in row else ModelError()
+    text = before + str(row["text"])
+    return text, default_spec(Tenure(row["tenure"])), FakeModelClient(answer)
+
+
+def read_again(case: str, look: int = 1, before: str = "") -> tuple[InterpretResult, str]:
+    """What the reader makes of an answer on disk, and the sentence it answered."""
+    text, spec, client = on_disk(case, look, before)
+    request = InterpretRequest(text=text, spec=spec, release=release())
+    return reader_asking(client).interpret(request), text
+
+
+def served_again(case: str, look: int = 1, before: str = "") -> tuple[dict[str, Any], str]:
+    """The same, as route 1 serves it."""
+    text, spec, client = on_disk(case, look, before)
+    deps = make_deps(interpreter=reader_asking(client), model_id=MODEL)
+    response = client_for(deps).post("/v1/interpret", json={"text": text, "spec": wire(spec)})
+    assert response.status_code == 200
+    return response.json()["data"], text
 
 
 # The test client is the caller, not the service. What it logs about the

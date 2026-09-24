@@ -5,20 +5,21 @@ One event loop serves the requests of every test.
 The service sets logging up for the whole process when it starts. A test that
 starts it must not leave the next test writing JSON to a stream that is gone.
 
-The whole suite has to stay under 30 seconds, and a generated test that puts
-every sign of doubt beside every thing in every order does not fit in that.
+The whole suite has to stay within the limit `AGENTS.md` states, and a
+generated test that puts every sign of doubt beside every thing in every order
+does not fit in that.
 So each has two forms: the sample, which always runs and is the same
 sentences every time, and the whole, which is marked `full` and is skipped
 unless it is asked for: `make test ARGS="-m full"`.
 """
 
-import logging
 from collections.abc import Iterator
 
 import pytest
 from anyio.from_thread import start_blocking_portal
+from burro_api.providers.terms import TERMS
 
-from .support import LOOP
+from .support import LOOP, logging_put_back
 
 FULL = "full"
 
@@ -52,11 +53,18 @@ def one_loop() -> Iterator[None]:
 
 
 @pytest.fixture(autouse=True)
+def nothing_chosen(monkeypatch: pytest.MonkeyPatch) -> None:
+    """No test finds a provider, a key or accepted terms in the shell it runs in.
+
+    The service reads them from the environment when it starts. A test that
+    wants one set says so itself.
+    """
+    chosen_by = ("BURRO_MODEL_PROVIDER", "BURRO_MODEL_TERMS_ACCEPTED", "BURRO_MODEL_ID")
+    for name in (*chosen_by, *(terms.key_variable for terms in TERMS.values())):
+        monkeypatch.delenv(name, raising=False)
+
+
+@pytest.fixture(autouse=True)
 def logging_as_it_was() -> Iterator[None]:
-    root = logging.getLogger()
-    library = logging.getLogger("anthropic")
-    handlers, levels = root.handlers[:], (root.level, library.level)
-    yield
-    root.handlers[:] = handlers
-    root.setLevel(levels[0])
-    library.setLevel(levels[1])
+    with logging_put_back():
+        yield

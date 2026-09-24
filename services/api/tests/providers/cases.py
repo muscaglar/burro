@@ -7,7 +7,7 @@ in the provider's place, with what the provider's documents show.
 import json
 import logging
 import traceback
-from collections.abc import Callable, Generator, Mapping
+from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass, field, replace
 from pathlib import Path
@@ -20,7 +20,7 @@ from burro_api.providers.deepseek import DeepSeekClient
 from burro_api.providers.gemini import GeminiClient
 from burro_api.providers.interface import ModelFailure, ModelReply
 from burro_api.providers.openai import OpenAIClient
-from burro_api.providers.terms import TERMS, Provider, Terms
+from burro_api.providers.terms import Provider, Terms
 
 from . import documents
 
@@ -83,21 +83,6 @@ def key() -> Key:
 def with_each(terms: Terms, **changes: object) -> Terms:
     """`terms`, with the same change made to every answer of it."""
     return replace(terms, answers=tuple(replace(answer, **changes) for answer in terms.answers))  # type: ignore[arg-type]
-
-
-def as_checked(terms: Terms) -> Terms:
-    return with_each(terms, checked_by="A. Person", checked_on=terms.answers[0].read_on)
-
-
-def as_unchecked(terms: Terms) -> Terms:
-    return with_each(terms, checked_by="", checked_on=None)
-
-
-# Made-up tables. The first is as the table will stand once a person has
-# compared every sentence with its page. The second is as it stands before
-# anyone has. Neither says which providers have been checked in fact.
-CHECKED: Mapping[Provider, Terms] = {p: as_checked(terms) for p, terms in TERMS.items()}
-UNCHECKED: Mapping[Provider, Terms] = {p: as_unchecked(terms) for p, terms in TERMS.items()}
 
 
 Answers = Response | BaseException | Callable[[Request], Response]

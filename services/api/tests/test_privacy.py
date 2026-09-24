@@ -24,15 +24,16 @@ from typing import Any, get_args, get_origin
 import pytest
 from burro_api import logs
 from burro_api.calls import CallRecord, CallStatus
-from burro_api.claude import (
-    ClaudeInterpreter,
+from burro_api.deps import Deps
+from burro_api.logs import configure_logging
+from burro_api.reader import (
     ModelCapped,
     ModelError,
     ModelFailure,
+    ModelInterpreter,
+    ModelRefused,
     ModelTimeout,
 )
-from burro_api.deps import Deps
-from burro_api.logs import configure_logging
 from burro_api.wire import MAX_BODY_BYTES, ExplanationsBody
 from burro_core import default_spec
 from burro_core.explain import ExplainInput, TemplateExplainer
@@ -71,8 +72,12 @@ from .support import (
 )
 
 LIBRARY_LINE = {"at", "level", "event", "logger", "where", "exception", "errno"}
-# Two sentences the reader reads, so that there are edits whose words could leak,
-# and one it does not, which holds the canary among words it does not know.
+# A prompt that is plain, so that there are edits whose words could leak. The
+# canary stands where a plain prompt may hold words nobody knows: after a cue.
+PLAIN = f"I work at {CANARY}. Somewhere quiet, near a park."
+# And one that is not, which holds the canary among words the reader does not
+# know. Nothing of it is applied. What is noticed in it is offered, and what is
+# made nothing of is pointed at, so that there are offsets that could leak.
 PROMPT = (
     f"I work at {CANARY}. I want a quiet flat near a park. Or {CANARY} park for {CANARY} pounds."
 )
@@ -92,6 +97,8 @@ INTERPRET_LINE = {
     "request_id",
     "endpoint",
     "interpreter",
+    # One of the four providers by name, or empty where the rules read.
+    "provider",
     "model",
     "interpret_status",
     "call_status",
@@ -134,12 +141,12 @@ def clean(capsys: pytest.CaptureFixture[str]) -> Clean:
     return check
 
 
-def claude(answer: Any) -> ClaudeInterpreter:
-    return ClaudeInterpreter(FakeModelClient(answer), model=MODEL, max_tokens=512, timeout_s=1)
+def by_a_model(answer: Any) -> ModelInterpreter:
+    return ModelInterpreter(FakeModelClient(answer), model=MODEL, max_tokens=512, timeout_s=1)
 
 
 def with_model(answer: Any) -> Deps:
-    return make_deps(interpreter=claude(answer), model_id=MODEL)
+    return make_deps(interpreter=by_a_model(answer), model_id=MODEL)
 
 
 # The prompt.
@@ -147,19 +154,28 @@ def with_model(answer: Any) -> Deps:
 
 def test_a_prompt_is_read_and_appears_nowhere_afterwards(watch: Watch, clean: Clean):
     seen = watch()
-    response = seen.post("/v1/interpret", {"text": PROMPT})
+    read = seen.post("/v1/interpret", {"text": PLAIN})
+    offered = seen.post("/v1/interpret", {"text": PROMPT})
 
-    assert response.status_code == 200
+    assert read.status_code == offered.status_code == 200
+    # A workplace the release does not hold is asked about in both, plain or not.
+    assert [r.json()["data"]["status"] for r in (read, offered)] == ["clarify", "clarify"]
     out = clean(seen)
-    [line] = seen.events("interpret")
-    assert line["interpreter"] == "rule" and line["edits"]["tag_ops"] == 1
+    applied, nothing = seen.events("interpret")
+    assert applied["interpreter"] == "rule" and applied["edits"]["tag_ops"] == 1
+    # What was offered is not counted, named or pointed at: nothing was applied. The one
+    # edit is the question, which carries no place and is turned away by the reducer.
+    assert nothing["edits"] == dict.fromkeys(nothing["edits"], 0) | {"commute_ops": 1}
+    assert nothing["rejections"] == {"unknown_place": 1}
+    assert offered.json()["data"]["applied"] == []
+    assert set(applied) == set(nothing) <= {*INTERPRET_LINE, "at", "level", "event"}
     # The service really did write its log, as JSON, to standard output.
     assert any(json.loads(row)["event"] == "interpret" for row in out.splitlines())
 
 
 def test_interpret_result_holds_no_user_text(watch: Watch, clean: Clean):
     seen = watch()
-    response = seen.post("/v1/interpret", {"text": f"{PROMPT} Not in {CANARY}."})
+    response = seen.post("/v1/interpret", {"text": PLAIN})
 
     data = response.json()["data"]
     # The name that matched nothing is asked about, and is not repeated.
@@ -176,7 +192,7 @@ def test_interpret_result_holds_no_user_text(watch: Watch, clean: Clean):
     clean(seen)
 
 
-def test_a_destination_the_model_names_is_resolved_and_dropped(watch: Watch, clean: Clean):
+def test_a_destination_the_model_names_is_asked_about_and_dropped(watch: Watch, clean: Clean):
     answer = model_output(
         commute_ops=[model_commute(destination_text=CANARY, words=f"I work at {CANARY}")]
     )
@@ -184,8 +200,13 @@ def test_a_destination_the_model_names_is_resolved_and_dropped(watch: Watch, cle
     response = seen.post("/v1/interpret", {"text": PROMPT})
 
     data = response.json()["data"]
-    assert data["interpreter"] == "claude" and data["status"] == "clarify"
-    assert data["operations"]["commute_ops"][0]["place_id"] == ""
+    assert data["interpreter"] == "model" and data["status"] == "suggest"
+    assert data["operations"]["commute_ops"] == []
+    # The release holds no such place, so the person is asked which. What is
+    # served of the name is where it stands, and no word of it.
+    [asks] = [offer for offer in data["suggestions"] if offer["asks_place"]]
+    named = asks["named_at"]
+    assert PROMPT[named["start"] : named["end"]] == CANARY and asks["options"] == []
     clean(seen)
     [line] = seen.events("interpret")
     assert line["model"] == MODEL and line["input_tokens"] == 812
@@ -207,7 +228,7 @@ def test_a_name_the_model_brought_itself_is_left_out_and_appears_nowhere(
     response = seen.post("/v1/interpret", {"text": PROMPT})
 
     data = response.json()["data"]
-    assert (data["status"], data["unmet"]) == ("ok", ["other"])
+    assert (data["status"], data["unmet"]) == ("suggest", ["other"])
     assert data["operations"]["commute_ops"] == [] and data["operations"]["area_ops"] == []
     clean(seen)
     [line] = seen.events("interpret")
@@ -228,6 +249,7 @@ def test_a_name_the_model_brought_itself_is_left_out_and_appears_nowhere(
     [
         (ModelTimeout(), CallStatus.TIMEOUT),
         (ModelCapped(), CallStatus.CAPPED),
+        (ModelRefused(), CallStatus.REFUSED),
         (ModelError(), CallStatus.ERROR),
         # A failure that is not one of ours, with the prompt in its message.
         (RuntimeError(f"could not read: {PROMPT}"), CallStatus.ERROR),
@@ -266,7 +288,7 @@ def test_an_interpreter_that_is_too_slow_is_not_waited_for(watch: Watch, clean: 
     release_it = threading.Event()
 
     class Slow:
-        name = InterpreterName.CLAUDE
+        name = InterpreterName.MODEL
 
         def interpret(self, request: InterpretRequest) -> InterpretResult:
             release_it.wait(5)
@@ -443,6 +465,11 @@ def test_request_log_names_the_route_template_not_the_path(watch: Watch, clean: 
         ("GET", "/v1/areas/alderwick", 200, "/v1/areas/{id_or_slug}"),
         ("GET", f"/v1/areas/{CANARY}", 404, "/v1/areas/{id_or_slug}"),
         ("GET", f"/v1/areas?near={CANARY}", 200, "/v1/areas"),
+        # The census of an area takes nothing: a query is refused, and is in no line.
+        ("GET", "/v1/areas/alderwick/census", 200, "/v1/areas/{id_or_slug}/census"),
+        ("GET", f"/v1/areas/{CANARY}/census", 404, "/v1/areas/{id_or_slug}/census"),
+        ("GET", f"/v1/areas/alderwick/census?{CANARY}=1", 422, "/v1/areas/{id_or_slug}/census"),
+        ("POST", f"/v1/areas/{CANARY}/census", 405, "/v1/areas/{id_or_slug}/census"),
         ("GET", f"/v1/{CANARY}", 404, "unmatched"),
         ("GET", f"/{CANARY}/v1/meta", 404, "unmatched"),
         ("DELETE", f"/v1/areas/{CANARY}", 405, "/v1/areas/{id_or_slug}"),
@@ -475,6 +502,56 @@ def test_request_log_names_the_route_template_not_the_path(watch: Watch, clean: 
     # Neither the share id nor the slug that was asked for.
     assert made not in out and "alderwick" not in out
     assert made not in json.dumps(seen.lines())
+
+
+def test_what_a_browser_says_it_holds_is_compared_and_never_logged_or_sent_back(
+    watch: Watch, clean: Clean
+):
+    seen = watch()
+    gets = ("/v1/meta", "/v1/areas", "/v1/areas/geometry", "/v1/areas/alderwick")
+    for path in gets:
+        # The tag of the route, which for route 11 names what people are told as well.
+        loaded = seen.send("GET", path).headers["etag"]
+        assert loaded.startswith('"syn-2026-09-23-01') and CANARY not in loaded
+        held = [CANARY, f'"{CANARY}"', f'W/"{CANARY}", {loaded}', f"{loaded}, {CANARY}", loaded]
+        answered = [seen.send("GET", path, headers={"if-none-match": tag}) for tag in held]
+
+        assert [r.status_code for r in answered] == [200, 200, 304, 304, 304]
+        # What is sent back is the service's own tag, whatever was sent.
+        assert {r.headers["etag"] for r in answered} == {loaded}
+        assert {r.content for r in answered[2:]} == {b""}
+
+    out = clean(seen)
+    lines = seen.events("request")
+    assert [line["status"] for line in lines] == [200, 200, 200, 304, 304, 304] * len(gets)
+    # The line for an answer that stands is the line for any other, but for its status.
+    assert {json.dumps(sorted(line)) for line in lines} == {json.dumps(sorted(lines[0]))}
+    assert "etag" not in out.casefold() and "none_match" not in out.casefold()
+    assert "alderwick" not in out
+
+
+def test_the_name_of_a_place_is_in_an_answer_and_in_no_line(watch: Watch, clean: Clean):
+    seen = watch()
+    text = "I work at Cindermoor Works. I study at Wexmoor University."
+    read = seen.post("/v1/interpret", {"text": text}).json()["data"]
+    sent = {"spec": read["spec"]}
+    ranked = seen.post("/v1/rank", sent).json()["data"]
+    made = seen.post("/v1/shares", sent | {"exact_destinations": True}).json()["data"]
+    opened = seen.send("GET", f"/v1/shares/{made['share_id']}").json()["data"]
+    compared = seen.post("/v1/compare", sent | {"area_ids": ["syn-n0001", "syn-n0002"]})
+
+    named = [{"name": "Cindermoor Works"}, {"name": "Wexmoor University"}]
+    for found in (read, ranked, made, opened):
+        assert [{"name": place["name"]} for place in found["places"]] == named
+    # A comparison names the place of each journey, one to a row.
+    rows = compared.json()["data"]["rows"]
+    assert [{"name": row["place"]["name"]} for row in rows if row["place"]] == named
+    out = clean(seen)
+    # A name says where someone works as its id does, and is handled as one.
+    written = out + json.dumps(seen.lines()) + str(seen.deps.calls.records(NOW))
+    for said in ("Cindermoor", "Wexmoor", "University", "syn-p", "syn-n", made["share_id"]):
+        assert said not in written, said
+    assert not [name for name in (*logs.LOGGABLE, *CallRecord.model_fields) if "place" in name]
 
 
 def test_what_a_browser_says_of_itself_is_neither_logged_nor_sent_back(watch: Watch, clean: Clean):
@@ -535,12 +612,14 @@ def test_a_stale_spec_is_put_right_without_the_place_being_named(watch: Watch, c
     kept = seen.post("/v1/rank", {"spec": spec, "operations": keep})
 
     assert [c["place_id"] for c in ranked.json()["data"]["spec"]["commutes"]] == [WORKS]
-    assert [c["place_id"] for c in read.json()["data"]["spec"]["commutes"]] == [WORKS]
-    assert (kept.status_code, kept.json()["error"]["code"]) == (422, "unknown_place")
-    assert kept.json()["error"]["fields"] == [
-        {"path": "spec.commutes[1].place_id", "problem": "unknown_place"}
-    ]
-    assert stale not in kept.text
+    # Nothing a model reads is applied, so words alone put no search right:
+    # the control that takes the journey out does.
+    for refused in (read, kept):
+        assert (refused.status_code, refused.json()["error"]["code"]) == (422, "unknown_place")
+        assert refused.json()["error"]["fields"] == [
+            {"path": "spec.commutes[1].place_id", "problem": "unknown_place"}
+        ]
+        assert stale not in refused.text
     out = clean(seen)
     # A place is where someone works, whether or not the release still has it.
     written = out + json.dumps(seen.lines()) + str(seen.deps.calls.records(NOW))
@@ -571,6 +650,7 @@ def test_what_is_withheld_from_a_model_is_withheld_in_silence(watch: Watch, clea
                 "tag_id": "family_amenities",
                 "value": 1.0,
                 "step": "none",
+                "toward": "default",
                 "provenance": "stated",
                 "words": people,
             }
@@ -585,18 +665,16 @@ def test_what_is_withheld_from_a_model_is_withheld_in_silence(watch: Watch, clea
     data = response.json()["data"]
     assert (data["status"], data["notice"]) == ("policy_redirect", "neutral_places")
     # The place and the area were never named, and the tag is what was asked
-    # about people. "Safe" is heard, as the rules hear it, and turned away.
+    # about people. "Safe" names no crime, so the rules make no edit of it,
+    # and what a model made of it is withheld with the rest.
     edits = data["operations"]
     assert edits["commute_ops"] == edits["area_ops"] == edits["tag_ops"] == []
-    assert [edit["provenance"] for edit in edits["weight_ops"]] == ["inferred"]
-    assert data["rejected"] == [
-        {"group": "weight_ops", "index": 0, "reason": "crime_needs_explicit_request"}
-    ]
+    assert (edits["weight_ops"], data["rejected"]) == ([], [])
     assert data["spec"]["tags"] == [] and data["spec"]["weights"] == wire(renter())["weights"]
     clean(seen)
     [line] = seen.events("interpret")
     assert (line["interpret_status"], line["unmet"]) == ("policy_redirect", ["other"])
-    assert line["rejections"] == {"crime_needs_explicit_request": 1}
+    assert line["rejections"] == {}
 
 
 def test_what_is_withheld_for_doubt_is_withheld_in_silence(watch: Watch, clean: Clean):
@@ -637,7 +715,7 @@ def test_what_is_withheld_for_doubt_is_withheld_in_silence(watch: Watch, clean: 
     response = seen.post("/v1/interpret", {"text": f"{text}Wexmoor, {CANARY}"})
 
     data = response.json()["data"]
-    assert (data["status"], data["unmet"]) == ("ok", ["other"])
+    assert (data["status"], data["unmet"]) == ("suggest", ["other"])
     assert data["operations"] == {f"{g}_ops": [] for g in KINDS} and data["applied"] == []
     out = clean(seen)
     [line] = seen.events("interpret")
@@ -761,7 +839,9 @@ def _holds_no_free_text(annotation: Any, info: FieldInfo) -> bool:
 
 # The hash of a spec.
 
-README = "Renting a 1 bed up to \N{POUND SIGN}1,700 a month, leafy, 35 minutes to Cindermoor Works"
+README = (
+    "Renting a 1 bed for about \N{POUND SIGN}1,700 a month, leafy, 35 minutes to Cindermoor Works"
+)
 
 
 def near_the_default(found: PreferenceSpec) -> Iterator[PreferenceSpec]:
@@ -800,6 +880,9 @@ def test_nothing_worked_out_from_a_spec_is_logged_or_kept(watch: Watch, clean: C
     body = {"spec": found["spec"]}
     for path in ("/v1/explanations", "/v1/rank", "/v1/shares"):
         assert seen.post(path, body).status_code == 200
+    # The plain hash is served with the sentences too, to the caller that holds the spec.
+    explained = seen.responses[1].json()["data"]
+    assert explained["spec_hash"] == found["spec_hash"]
     compared = seen.post("/v1/compare", body | {"area_ids": ["syn-n0001", "syn-n0002"]})
     assert compared.status_code == 200
 
@@ -944,6 +1027,7 @@ def _call() -> dict[str, Any]:
         "at": "2026-09-23T12:00:00Z",
         "endpoint": "interpret",
         "interpreter": "rule",
+        "provider": "",
         "model": "",
         "status": "ok",
         "degraded": False,
@@ -960,7 +1044,7 @@ def test_a_call_is_recorded_for_each_interpretation_and_each_explanation(
     watch: Watch, clean: Clean
 ):
     seen = watch()
-    seen.post("/v1/interpret", {"text": PROMPT})
+    seen.post("/v1/interpret", {"text": PLAIN})
     seen.post("/v1/explanations", {"spec": wire(searching())})
     seen.post("/v1/rank", {"spec": wire(searching())})
 
@@ -968,11 +1052,13 @@ def test_a_call_is_recorded_for_each_interpretation_and_each_explanation(
     assert (first.endpoint, first.interpreter, first.status) == ("interpret", "rule", "clarify")
     assert (second.endpoint, second.interpreter, second.status) == ("explain", "template", "ok")
     assert first.at == second.at == "2026-09-23T12:00:00Z"
+    assert (first.provider, second.provider) == ("", "")
     assert set(type(first).model_fields) == {
         "call_id",
         "at",
         "endpoint",
         "interpreter",
+        "provider",
         "model",
         "status",
         "degraded",
@@ -1082,20 +1168,44 @@ def test_share_id_is_not_derived_from_the_spec():
 
 # The words an edit rests on.
 
-# A sentence only a model reads, one the reader reads, and one it asks about.
-RESTING = f"My {CANARY} swears by a proper brunch spot. I want somewhere leafy. I work at {CANARY}."
+# A sentence the reader reads, and one it asks about: a prompt that is plain.
+RESTING_PLAINLY = f"I want somewhere leafy. I work at {CANARY}."
+# The same after a sentence only a model reads, which makes the prompt not plain.
+RESTING = f"My {CANARY} lives for a proper brunch spot. {RESTING_PLAINLY}"
 QUOTING = model_output(
     commute_ops=[model_commute(destination_text=CANARY, words=f"I work at {CANARY}")],
-    weight_ops=[model_weight("venue_food_drink", words=f"My {CANARY} swears by a proper brunch")],
+    weight_ops=[
+        model_weight("venue_food_drink_per_homes", words=f"My {CANARY} lives for a proper brunch")
+    ],
     tag_ops=[
         model_tag("leafy", words="I want somewhere leafy"),
         # Words the person never typed, and words of theirs from two sentences.
         model_tag("foodie", words=f"the {CANARY} of brunch"),
-        model_tag("buzzy", words=f"somewhere leafy. I work at {CANARY}"),
+        model_tag("pace", words=f"somewhere leafy. I work at {CANARY}"),
     ],
 )
 # Nothing that is written may name a field for them, whatever it holds.
-NEVER_WRITTEN = ("rests_on", "words", "start", "end", "offset", "span")
+NEVER_WRITTEN = (
+    "rests_on",
+    "words",
+    "start",
+    "end",
+    "offset",
+    "span",
+    "spans",
+    "suggestions",
+    "unread",
+    "choices",
+    "label",
+    "places",
+)
+
+
+def wire_of_an_offer() -> tuple[str, ...]:
+    """Every field of an offer as it is served. None of them can hold the person's words."""
+    from burro_api.wire import Suggestion
+
+    return tuple(Suggestion.model_fields)
 
 
 def words_of(response: Any, text: str) -> dict[str, str]:
@@ -1107,7 +1217,23 @@ def words_of(response: Any, text: str) -> dict[str, str]:
 
 
 READ_BY_THE_RULES = {"commute_ops 0": f"work at {CANARY}", "tag_ops 0": "leafy"}
-READ_BY_A_MODEL = {"weight_ops 0": f"My {CANARY} swears by a proper brunch"}
+# What a model read is offered, and each offer says where its words stand.
+OFFERED_BY_A_MODEL = {
+    "feature:venue_food_drink_per_homes": [f"My {CANARY} lives for a proper brunch"],
+    # A scale the model named for words either side of a full stop stands beside it.
+    "tag:leafy": ["I want somewhere leafy", f"somewhere leafy. I work at {CANARY}", "leafy"],
+    "commute": [f"I work at {CANARY}", CANARY],
+}
+
+
+def stretches_of(response: Any, text: str) -> tuple[dict[str, list[str]], list[str]]:
+    """The words of each suggestion and each unread stretch, as the caller finds them."""
+    data = response.json()["data"]
+    noticed = {
+        found["target"]: [text[span["start"] : span["end"]] for span in found["spans"]]
+        for found in data["suggestions"]
+    }
+    return noticed, [text[span["start"] : span["end"]] for span in data["unread"]]
 
 
 def assert_where_the_words_stand_is_written_nowhere(seen: Seen) -> None:
@@ -1125,26 +1251,121 @@ def assert_where_the_words_stand_is_written_nowhere(seen: Seen) -> None:
         assert all(isinstance(count, int) for count in line["edits"].values())
 
 
-@pytest.mark.parametrize("reader", ["rule", "claude"])
+@pytest.mark.parametrize(
+    ("reader", "text"), [("rule", RESTING_PLAINLY), ("model", RESTING)], ids=["rule", "model"]
+)
 def test_the_words_an_edit_rests_on_are_returned_as_offsets_and_written_nowhere(
-    watch: Watch, clean: Clean, reader: str
+    watch: Watch, clean: Clean, reader: str, text: str
 ):
-    seen = watch(with_model(QUOTING) if reader == "claude" else None)
-    response = seen.post("/v1/interpret", {"text": RESTING})
+    seen = watch(with_model(QUOTING) if reader == "model" else None)
+    response = seen.post("/v1/interpret", {"text": text})
 
     data = response.json()["data"]
     assert (data["interpreter"], data["degraded"]) == (reader, False)
     # The caller holds the text, and is told where in it each edit's words stand.
-    expected = READ_BY_THE_RULES | (READ_BY_A_MODEL if reader == "claude" else {})
-    assert words_of(response, RESTING) == expected
-    # Every edit says which words it rests on, the one that is asked about among them.
-    assert len(expected) == len(data["applied"]) + len(data["rejected"])
-    assert [r["reason"] for r in data["rejected"]] == ["unknown_place"]
+    if reader == "rule":
+        assert words_of(response, text) == READ_BY_THE_RULES
+        # Every edit says which words it rests on, the one that is asked about among them.
+        assert len(READ_BY_THE_RULES) == len(data["applied"]) + len(data["rejected"])
+        assert [r["reason"] for r in data["rejected"]] == ["unknown_place"]
+    else:
+        # Nothing of a model's is applied. What it read is offered, by where the words stand.
+        assert data["rests_on"] == data["applied"] == data["rejected"] == []
+        assert stretches_of(response, text)[0] == OFFERED_BY_A_MODEL
     # The words themselves are in no response, no line and no record.
     clean(seen)
     assert_where_the_words_stand_is_written_nowhere(seen)
     [line] = seen.events("interpret")
-    assert line["unmet"] == ["other"]
+    assert line["unmet"] == (["other"] if reader == "model" else [])
+
+
+# What was noticed, and what nothing was made of.
+
+# A place, an area and an amount beside the canary, in words that are not plain.
+NOTICED = (
+    f"My {CANARY} works at Pellam Infirmary, not {CANARY} Wexmoor. "
+    f"Pubs are so {CANARY}. Maybe \N{POUND SIGN}1,450 a month, {CANARY}?"
+)
+# What may be said of a place is its name in the release, and only in an answer.
+NAMED = ("Pellam", "Infirmary", "Wexmoor", "syn-p0028", "syn-n0023", "1450", "1,450")
+
+
+@pytest.mark.parametrize("reader", ["rule", "model"])
+def test_what_was_noticed_and_what_was_left_unread_are_offsets_and_written_nowhere(
+    watch: Watch, clean: Clean, reader: str
+):
+    seen = watch(with_model(model_output()) if reader == "model" else None)
+    response = seen.post("/v1/interpret", {"text": f"  {NOTICED}"})
+
+    data = response.json()["data"]
+    assert (data["interpreter"], data["status"]) == (reader, "suggest")
+    # Words were left unread, and that is said whoever read.
+    unmet = ["other"]
+    assert data["unmet"] == unmet
+    assert data["operations"] == {f"{g}_ops": [] for g in KINDS} and data["rests_on"] == []
+    # The caller holds the text, and is told where in it each thing was noticed.
+    noticed, unread = stretches_of(response, f"  {NOTICED}")
+    assert noticed == {
+        "commute": ["Pellam Infirmary"],
+        "area": ["Wexmoor"],
+        "feature:venue_evening": ["Pubs"],
+        "budget": ["\N{POUND SIGN}1,450 a month"],
+    }
+    # The canary is what nothing was made of, and the answer points at it.
+    assert len([stretch for stretch in unread if CANARY in stretch]) == 4
+    # It holds where the words stand, and no word of them.
+    for found in data["suggestions"]:
+        assert set(found) == set(wire_of_an_offer())
+        assert {key for span in found["spans"] for key in span} == {"start", "end"}
+        assert set(found["shown"]) == {"start", "end"} and found["named_at"] is None
+        assert {key for choice in found["choices"] for key in choice} == {
+            "id",
+            "direction",
+            "label",
+            "guess",
+            "operations",
+        }
+    assert {key for span in data["unread"] for key in span} == {"start", "end"}
+    assert [found["label"] for found in data["suggestions"]] == [
+        "Pellam Infirmary",
+        "Wexmoor",
+        "Pubs and bars",
+        "A budget of \N{POUND SIGN}1,450 a month",
+    ]
+    out = clean(seen)
+    assert_where_the_words_stand_is_written_nowhere(seen)
+    # Nor is what was noticed: a place says where someone works, in words or as an id.
+    written = out + json.dumps(seen.lines()) + str(seen.deps.calls.records(NOW))
+    assert not [name for name in NAMED if name in written]
+    [line] = seen.events("interpret")
+    assert (line["interpret_status"], line["unmet"]) == ("suggest", unmet)
+    assert set(line["edits"].values()) == {0} and line["assumptions"] == []
+    [record] = seen.deps.calls.records(NOW)
+    assert record.status is CallStatus.SUGGEST
+
+
+def test_what_a_line_says_of_a_prompt_does_not_tell_what_was_noticed_in_it(
+    watch: Watch, clean: Clean
+):
+    seen = watch()
+    texts = [
+        "Pubs are so noisy",
+        f"My {CANARY} works at Pellam Infirmary",
+        f"cross Cindermoor off my {CANARY}",
+        f"Pubs? parks? a station? {CANARY}? Wexmoor? \N{POUND SIGN}900?",
+    ]
+    for text in texts:
+        assert seen.post("/v1/interpret", {"text": text}).json()["data"]["suggestions"]
+
+    # However much was noticed, and whatever it was, the line is the same.
+    lines = [line for line in _ours(seen) if line["event"] == "interpret"]
+    assert len(lines) == len(texts)
+    assert {json.dumps(line | {"latency_ms": 0}) for line in lines} == {
+        json.dumps(lines[0] | {"latency_ms": 0})
+    }
+    records = _kept(seen)
+    assert {json.dumps(record) for record in records} == {json.dumps(records[0])}
+    clean(seen)
 
 
 @pytest.mark.parametrize(
@@ -1152,6 +1373,7 @@ def test_the_words_an_edit_rests_on_are_returned_as_offsets_and_written_nowhere(
     [
         (ModelTimeout(), CallStatus.TIMEOUT),
         (ModelCapped(), CallStatus.CAPPED),
+        (ModelRefused(), CallStatus.REFUSED),
         (ModelError(), CallStatus.ERROR),
         (RuntimeError(f"could not read: {RESTING}"), CallStatus.ERROR),
         # An answer that quotes the person and does not fit the schema.
@@ -1167,24 +1389,36 @@ def test_the_words_an_edit_rests_on_are_returned_as_offsets_and_written_nowhere(
         (json.dumps(QUOTING | {"rests_on": [{"words": RESTING}]}), CallStatus.ERROR),
         (json.dumps(QUOTING)[:-40], CallStatus.ERROR),
     ],
-    ids=range(9),
+    ids=range(10),
 )
 def test_where_the_words_stand_is_written_nowhere_when_a_model_fails(
     watch: Watch, clean: Clean, failure: Exception | str, status: CallStatus
 ):
     seen = watch(with_model(failure))
+    plainly = seen.post("/v1/interpret", {"text": RESTING_PLAINLY})
     response = seen.post("/v1/interpret", {"text": RESTING})
     ruled = watch().post("/v1/interpret", {"text": RESTING})
 
-    # The rules answered in the model's place, and say which words they read.
+    # A plain prompt is the rules' to read, and no model was asked about it.
+    assert plainly.json()["data"]["degraded"] is False
+    assert words_of(plainly, RESTING_PLAINLY) == READ_BY_THE_RULES
+    # Of a prompt that is not plain they say what they noticed, and what they did not read.
     data = response.json()["data"]
     assert response.status_code == 200 and data["degraded"] is True
-    assert data["rests_on"] == ruled.json()["data"]["rests_on"] != []
-    assert words_of(response, RESTING) == READ_BY_THE_RULES
+    # Nothing is applied. The one edit is the question of which place was meant.
+    assert words_of(response, RESTING) == {"commute_ops 0": f"work at {CANARY}"}
+    assert data["applied"] == [] and data["status"] == "clarify"
+    assert data["suggestions"] == ruled.json()["data"]["suggestions"] != []
+    assert data["unread"] == ruled.json()["data"]["unread"] != []
+    noticed, unread = stretches_of(response, RESTING)
+    assert noticed == {"tag:leafy": ["leafy"]}
+    assert len([stretch for stretch in unread if CANARY in stretch]) == 1
     clean(seen)
     assert_where_the_words_stand_is_written_nowhere(seen)
-    [record] = seen.deps.calls.records(NOW)
-    assert record.status is status and record.degraded
+    first, second = seen.deps.calls.records(NOW)
+    assert (first.interpreter, first.degraded) == ("rule", False)
+    # The rules answered in the model's place, and the call is on record as what it was.
+    assert second.status is status and second.degraded
 
 
 def test_where_the_words_stand_is_written_nowhere_when_the_route_itself_fails(
@@ -1199,7 +1433,7 @@ def test_where_the_words_stand_is_written_nowhere_when_the_route_itself_fails(
 
     stale = wire(renter(commutes=(commute("syn-p9999"),)))
     seen = watch(with_model(QUOTING))
-    broken = watch(make_deps(interpreter=claude(QUOTING), model_id=MODEL, calls=Broken()))
+    broken = watch(make_deps(interpreter=by_a_model(QUOTING), model_id=MODEL, calls=Broken()))
     refused = seen.post("/v1/interpret", {"text": RESTING, "spec": stale})
     failed = broken.post("/v1/interpret", {"text": RESTING})
 
@@ -1218,9 +1452,11 @@ def test_where_the_words_stand_is_written_nowhere_when_the_route_itself_fails(
 
 def test_no_other_route_takes_or_returns_where_the_words_stand(watch: Watch, clean: Clean):
     seen = watch()
-    read = seen.post("/v1/interpret", {"text": RESTING}).json()["data"]
-    assert read["rests_on"]
+    read = seen.post("/v1/interpret", {"text": RESTING_PLAINLY}).json()["data"]
+    offered = seen.post("/v1/interpret", {"text": RESTING}).json()["data"]
+    assert read["rests_on"] and offered["suggestions"] and offered["unread"]
     spec = read["spec"] | {"commutes": []}
+    served_by_route_1_alone = ("rests_on", "suggestions", "unread")
     bodies = {
         "/v1/rank": {"spec": spec},
         "/v1/explanations": {"spec": spec},
@@ -1230,24 +1466,36 @@ def test_no_other_route_takes_or_returns_where_the_words_stand(watch: Watch, cle
     }
     for path, body in bodies.items():
         answered = seen.post(path, body)
-        assert answered.status_code == 200 and "rests_on" not in answered.text, path
+        assert answered.status_code == 200, path
+        assert not [name for name in served_by_route_1_alone if name in answered.text], path
         # Sent back to a route that does not take it, it is refused, and not repeated.
-        for extra in ({"rests_on": read["rests_on"]}, {"words": RESTING}):
+        for extra in (
+            {"rests_on": read["rests_on"]},
+            {"suggestions": offered["suggestions"]},
+            {"unread": offered["unread"]},
+            {"words": RESTING},
+        ):
             refused = seen.post(path, body | extra)
             assert (refused.status_code, refused.json()["error"]["fields"]) == (
                 422,
                 [{"path": "", "problem": "unknown_field"}],
             )
     inside = seen.post("/v1/rank", {"spec": spec | {"rests_on": read["rests_on"]}})
-    assert inside.status_code == 422
+    within = seen.post("/v1/rank", {"spec": spec | {"unread": offered["unread"]}})
+    assert inside.status_code == within.status_code == 422
+    # Nor does route 1 take them back with the next sentence.
+    again = seen.post("/v1/interpret", {"text": "leafy", "unread": offered["unread"]})
+    assert again.status_code == 422
 
     # A share is the one thing that is stored, and it stores the spec and no more.
     made = seen.post("/v1/shares", {"spec": spec}).json()["data"]
     stored = seen.deps.shares.get(made["share_id"])
-    assert stored is not None and "rests_on" not in stored.model_dump_json()
-    assert "rests_on" not in seen.send("GET", f"/v1/shares/{made['share_id']}").text
-    for path in ("/v1/meta", "/v1/areas", "/v1/areas/alderwick", "/v1/areas/geometry", "/healthz"):
-        assert "rests_on" not in seen.send("GET", path).text
+    opened = seen.send("GET", f"/v1/shares/{made['share_id']}").text
+    gets = ("/v1/meta", "/v1/areas", "/v1/areas/alderwick", "/v1/areas/geometry", "/healthz")
+    assert stored is not None
+    for name in served_by_route_1_alone:
+        assert name not in stored.model_dump_json() and name not in opened
+        assert not [path for path in gets if name in seen.send("GET", path).text]
     clean(seen)
     assert_where_the_words_stand_is_written_nowhere(seen)
 
@@ -1265,7 +1513,7 @@ def test_where_the_words_stand_cannot_be_logged_or_kept_about_a_call(name: str):
 def test_what_a_model_is_sent_and_what_it_answers_are_in_no_repr():
     # A failure is logged by its type and its frames, and a debugger prints a
     # repr. Neither may hold the words a model copied from the person.
-    from burro_api.claude import ModelOutput
+    from burro_api.reader import ModelOutput
 
     parsed = ModelOutput.model_validate(QUOTING)
     shown = repr(parsed) + str(parsed) + repr(parsed.tag_ops) + repr(parsed.commute_ops[0])

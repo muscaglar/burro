@@ -11,13 +11,14 @@ from typing import Any
 import pytest
 from burro_api.providers.base import Request, Response
 from burro_api.providers.measure import reader
-from burro_api.providers.terms import SENT_WITH, SETTINGS, TERMS
+from burro_api.providers.terms import SENT_WITH, SETTINGS, TERMS, WORDS_ALONE
 
 from .cases import CASES, KEY_TEXT, KEYED, SPEC, Case, Sender, listening
 
 each = pytest.mark.parametrize("case", CASES, ids=str)
 
-TEXT = "30 minutes to Cindermoor Works"
+# Not plain, so that the rules leave words unread and a model is asked.
+TEXT = "Honestly, 30 minutes to Cindermoor Works"
 KEYS = {
     "gemini": "GEMINI_API_KEY",
     "openai": "OPENAI_API_KEY",
@@ -30,7 +31,7 @@ KEYS = {
 def engine() -> Any:
     """What the reader is made of, or a skip that says why there is none."""
     try:
-        import burro_api.claude as claude
+        import burro_api.reader as found_reader
         from burro_api.loading import load_release
         from burro_api.settings import SYNTHETIC_FIXTURE
         from burro_core import default_spec
@@ -43,8 +44,8 @@ def engine() -> Any:
         pytest.skip("the reader cannot be loaded: the engine under it is being rebuilt")
 
     class Engine:
-        reader = claude
-        ok = InterpretStatus.OK
+        reader = found_reader
+        suggest = InterpretStatus.SUGGEST
 
         @staticmethod
         def asked(text: str) -> Any:
@@ -113,11 +114,15 @@ def test_a_sentence_goes_all_the_way_through_the_adapter_and_back(case: Case, en
     assert json.loads(case.user_in(sent))["request"] == TEXT
     assert (request.host, request.path) == (case.host, case.path)
     assert request.key.for_header() == KEY_TEXT
-    # And the answer is held to the rules, as it is whoever gave it.
-    assert result.status is engine.ok and not result.degraded
-    assert [edit.max_minutes for edit in result.operations.commute_ops] == [30]
+    # And the answer is held to the guard, as it is whoever gave it: nothing
+    # of it is applied, and what it read is offered as Burro's guess.
+    assert result.status is engine.suggest and not result.degraded
     assert result.operations == engine.by_rules(TEXT).operations
-    assert [(rests.start, rests.end) for rests in result.rests_on] == [(0, len(TEXT))]
+    assert result.operations.count == 0
+    [offer] = result.suggestions
+    guessed = [way for way in offer.choices if getattr(way, "guess", False)]
+    assert [edit.max_minutes for way in guessed for edit in way.operations.commute_ops] == [30]
+    assert (offer.spans[0].start, offer.spans[0].end) == (0, len(TEXT))
     counts = (result.usage.input_tokens, result.usage.output_tokens, result.usage.cache_read_tokens)
     assert counts == case.counts
 
@@ -160,15 +165,19 @@ def test_an_answer_that_does_not_fit_the_schema_is_refused_whoever_gave_it(
 
 @each
 def test_every_field_that_leaves_with_the_words_is_one_people_are_told_of(case: Case, engine: Any):
-    # What leaves is the words and the search as it stands. The notice must
-    # name every part of the search that is sent, whoever receives it. A
-    # field that is added to a search fails here until the notice tells of it.
+    # Where the settings are sent, what leaves is the words and the search as
+    # it stands. The notice must name every part of the search that is sent,
+    # whoever receives it. A field that is added to a search fails here until
+    # the notice tells of it.
     send = answering_with(case, lambda: journey(engine))
+    env = named(case, BURRO_MODEL_SENDS_SETTINGS="yes")
 
-    reader(named(case), send).interpret(engine.asked_with_a_search(TEXT))
+    reader(env, send).interpret(engine.asked_with_a_search(TEXT))
 
-    turn = json.loads(case.user_in(json.loads(send.requests[0].body)))
+    sent_whole = json.loads(send.requests[0].body)
+    turn = json.loads(case.user_in(sent_whole))
     assert sorted(turn) == ["request", "spec"]
+    assert case.system_in(sent_whole).startswith(engine.reader.SYSTEM_WITH_SETTINGS)
     sent = turn["spec"]
     # The search that is sent is a whole one: what a person can pay, and
     # where they will and will not live.
@@ -176,13 +185,46 @@ def test_every_field_that_leaves_with_the_words_is_one_people_are_told_of(case: 
     assert {rule["rule"] for rule in sent["areas"]} == {"exclude", "only"}
     assert sent["commutes"] and sent["tags"] and sent["weights"]
     assert set(sent) == set(SENT_WITH)
+    notice = TERMS[case.provider].notice(with_settings=True)
     for name in sent:
         told = SENT_WITH[name]
-        assert told is None or (told in SETTINGS and told in TERMS[case.provider].notice), name
+        assert told is None or (told in SETTINGS and told in notice), name
     # The one thing that is taken out is where a journey leads.
     assert not any("place_id" in journey or "place" in journey for journey in sent["commutes"])
     # And the stand-in the other tests send is made of the same fields.
     assert set(SPEC) <= set(sent)
+
+
+@each
+@pytest.mark.parametrize("set_to", [None, "no", "true"], ids=["unset", "no", "not the word"])
+def test_unless_it_is_asked_for_nothing_of_the_search_leaves_with_the_words(
+    case: Case, engine: Any, set_to: str | None
+):
+    # The words go alone, and the notice says so. Nothing of what the person
+    # can pay, where they travel to, or where they will not live is sent.
+    send = answering_with(case, lambda: journey(engine))
+    env = named(case, **({} if set_to is None else {"BURRO_MODEL_SENDS_SETTINGS": set_to}))
+    asked = engine.asked_with_a_search(TEXT)
+
+    reader(env, send).interpret(asked)
+
+    [request] = send.requests
+    sent_whole = json.loads(request.body)
+    assert json.loads(case.user_in(sent_whole)) == {"request": TEXT}
+    assert case.system_in(sent_whole).startswith(engine.reader.SYSTEM)
+    assert "`spec`" not in case.system_in(sent_whole)
+    body = request.body.decode()
+    held = json.loads(asked.spec.model_dump_json())
+    # The instructions hold a figure or two of their own, as examples. The
+    # person's turn holds their words and no figure of their search.
+    assert held["budget"]["amount"] == 1700 and "1700" not in case.user_in(sent_whole)
+    for area in held["areas"]:
+        assert area["area_id"] not in body
+    for commute in held["commutes"]:
+        assert commute["place_id"] not in body
+    assert "syn-" not in body
+    notice = TERMS[case.provider].notice(with_settings=False)
+    assert WORDS_ALONE in notice and SETTINGS not in notice
 
 
 @each
@@ -269,11 +311,11 @@ def test_it_says_what_is_missing_and_never_what_was_set(env: dict[str, str], say
 def test_it_asks_nothing_of_the_terms_because_no_person_typed_the_sentences(
     case: Case, engine: Any
 ):
-    # Every provider is held back from real people's words until a person
-    # has checked what people are told of it. Each can be measured all the same.
+    # One provider never reads what real people type, and the others read it
+    # only once their terms are accepted. Each can be measured all the same.
     made = reader(named(case), answering_with(case, lambda: journey(engine)))
 
-    assert made.interpret(engine.asked(TEXT)).status is engine.ok
+    assert made.interpret(engine.asked(TEXT)).status is engine.suggest
 
 
 @each

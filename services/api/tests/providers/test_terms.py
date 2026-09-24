@@ -1,4 +1,4 @@
-"""What people are told, by provider: the same questions, the same words, each with its source."""
+"""What people are told of a provider, and the table of its terms, which is shown to nobody."""
 
 import re
 from dataclasses import replace
@@ -8,12 +8,16 @@ from urllib.parse import urlsplit
 import pytest
 from burro_api.providers.choose import ADAPTERS
 from burro_api.providers.terms import (
-    ADVICE,
     FORMS,
+    ITS_TERMS,
+    KEEPS_NOTHING,
+    PRIVATE,
     RULES_NOTICE,
+    SENT,
     SENT_WITH,
     SETTINGS,
     TERMS,
+    WORDS_ALONE,
     Answer,
     Provider,
     Question,
@@ -148,13 +152,13 @@ def test_the_forms_have_one_verb_each_and_say_an_absence_in_one_way():
     for form in FORMS.values():
         assert "does not say" in form.unsaid and "{answer}" not in form.unsaid
     for terms in TERMS.values():
-        notice = terms.notice.lower()
-        assert "delete" not in notice and "retain" not in notice and "holds" not in notice
+        said = " ".join(terms.says(question) for question in Question)
+        assert "delete" not in said.lower() and "retain" not in said.lower()
         # What a provider's documents lack is said as a lack of theirs, and
         # never as a thing the provider has refused.
-        for lack in re.findall(r"[^.]*\bno way\b[^.]*\.", terms.notice):
+        for lack in re.findall(r"[^.]*\bno way\b[^.]*\.", said):
             assert "Its documents name no way" in lack
-        assert "refuses to" not in notice and "will not let" not in notice
+        assert "refuses to" not in said.lower() and "will not let" not in said.lower()
 
 
 @every_question
@@ -207,12 +211,6 @@ def test_a_longer_time_by_law_is_asked_of_all_four_and_not_said_of_one_alone():
     )
 
 
-def test_the_longest_any_provider_keeps_what_it_flags_is_in_its_notice():
-    notice = TERMS[Provider.ANTHROPIC].notice
-
-    assert "up to 2 years" in notice and "up to 7 years" in notice
-
-
 def test_who_may_read_is_asked_of_all_four():
     for terms in TERMS.values():
         said = terms.says(Question.READ_BY)
@@ -246,16 +244,60 @@ def test_a_note_says_that_a_page_was_not_read_and_not_what_a_site_answered(terms
 
 
 @each
-def test_the_notice_is_the_sentences_in_order_with_what_is_sent_and_the_advice(terms: Terms):
-    first, *rest = [terms.says(question) for question in Question]
+def test_the_notice_is_a_few_plain_sentences_and_ends_at_the_companys_own_terms(terms: Terms):
+    sent = f"What you type is sent to a language model run by {terms.company}, to be read."
+    its_terms = f"What {terms.company} does with it is in {terms.company}'s own terms."
 
-    assert terms.notice == " ".join([first, SETTINGS, *rest, ADVICE])
-    # Who receives the words is named in the sentence that says they are sent.
-    assert f"Burro sends it to {terms.company} (" in first
-    assert terms.notice.endswith(ADVICE)
+    assert (SENT.format(company=terms.company), PRIVATE) == (sent, "Do not type anything private.")
+    assert KEEPS_NOTHING == "Burro itself keeps nothing of what you type."
+    assert ITS_TERMS.format(company=terms.company) == its_terms
+    for with_settings, goes in ((True, SETTINGS), (False, WORDS_ALONE)):
+        assert terms.notice(with_settings) == " ".join(
+            [sent, goes, PRIVATE, KEEPS_NOTHING, its_terms]
+        )
+    assert terms.sent_with(True) == SETTINGS and terms.sent_with(False) == WORDS_ALONE
 
 
-def test_the_notice_says_that_the_search_goes_with_the_words():
+@each
+@pytest.mark.parametrize("with_settings", [False, True])
+def test_the_notice_states_nothing_about_the_company_as_fact(terms: Terms, with_settings: bool):
+    # Nobody has checked what a provider's pages say, so none of it is said:
+    # not how long words are kept, not whether they are used to train, not
+    # who may read them or where. The link to the company's own terms serves.
+    notice = terms.notice(with_settings)
+
+    for question in Question:
+        assert terms.says(question) not in notice
+        given = terms.answer(question).answer
+        assert not given or given not in notice, question
+    unsaid = r"\b\d+\b|\b(days?|years?|train|kept|keeps|stored|handled|staff|law|misuse)\b"
+    assert re.findall(unsaid, notice.replace(KEEPS_NOTHING, ""), flags=re.IGNORECASE) == []
+    # The company is named, and nothing else of it: no legal name and no country.
+    assert notice.count(terms.company) == 3
+    assert not re.search(r"\b(LLC|Ltd|Limited|United States|Ireland|China)\b", notice)
+
+
+@each
+def test_the_link_is_to_a_page_of_the_companys_own_terms_that_the_table_read(terms: Terms):
+    parts = urlsplit(terms.terms_url)
+
+    assert parts.scheme == "https" and parts.hostname in OWN_HOSTS[terms.provider]
+    assert not parts.query and not parts.username and not parts.fragment
+    assert "terms" in terms.terms_url or "agreement" in terms.terms_url
+    # One of the pages the table was read on, and not an address made up for the link.
+    assert terms.terms_url in {a for answer in terms.answers for a in answer.addresses}
+    # The address is served beside the notice, and is no part of its words.
+    assert "http" not in terms.notice(with_settings=False)
+
+
+def test_no_entry_of_the_table_has_been_checked_by_a_person():
+    # The table is research that a tool read. It is marked as unchecked, and
+    # nothing of it is served. Whoever checks an entry changes this with it.
+    assert not any(answer.checked for terms in TERMS.values() for answer in terms.answers)
+    assert not any(terms.checked for terms in TERMS.values())
+
+
+def test_the_notice_says_that_the_search_goes_with_the_words_where_it_does():
     assert SETTINGS.startswith("With it go your search settings: ")
     for told in ("your budget", "the areas you have ruled in or out", "how long you will travel"):
         assert told in SETTINGS
@@ -263,18 +305,39 @@ def test_the_notice_says_that_the_search_goes_with_the_words():
     assert all(told is None or told in SETTINGS for told in SENT_WITH.values())
     assert [name for name, told in SENT_WITH.items() if told is None] == ["schema_version"]
     for terms in TERMS.values():
-        assert SETTINGS in terms.notice
-        assert "sends your words to" not in terms.notice
+        assert SETTINGS in terms.notice(with_settings=True)
+        assert WORDS_ALONE not in terms.notice(with_settings=True)
+        assert "sends your words to" not in terms.notice(with_settings=True)
+
+
+def test_the_notice_says_that_the_words_go_alone_where_they_do():
+    assert WORDS_ALONE == "Your words go alone: none of your search settings is sent with them."
+    for terms in TERMS.values():
+        notice = terms.notice(with_settings=False)
+        assert WORDS_ALONE in notice and SETTINGS not in notice
+        # Nothing of a search is said to go, by any of the words that tell of one.
+        told = {told for told in SENT_WITH.values() if told is not None}
+        assert not [words for words in told if words in notice]
+
+
+def test_which_notice_is_made_is_never_left_to_a_default():
+    # Whoever makes a notice says whether the settings go. A default would be
+    # a sentence about what is sent that nobody chose.
+    with pytest.raises(TypeError):
+        TERMS[Provider.GEMINI].notice()  # type: ignore[call-arg]
+    with pytest.raises(TypeError):
+        TERMS[Provider.GEMINI].sent_with()  # type: ignore[call-arg]
 
 
 @each
-def test_the_notice_is_plain(terms: Terms):
-    notice = terms.notice
+@pytest.mark.parametrize("with_settings", [False, True])
+def test_the_notice_is_plain(terms: Terms, with_settings: bool):
+    notice = terms.notice(with_settings)
     assert "!" not in notice and "  " not in notice and "\n" not in notice
     assert notice.isascii()
-    assert len(notice) < 1000
+    assert len(notice) < 400
     sentences = [sentence for sentence in re.split(r"(?<=\.) (?=[A-Z])", notice) if sentence]
-    assert len(sentences) >= len(Question) + 2
+    assert len(sentences) == 5
     assert all(len(sentence.split()) <= 32 for sentence in sentences)
     unwanted = ("seamless", "powerful", "cutting-edge", "state-of-the-art", "leading", "trusted")
     assert not any(word in notice.lower() for word in unwanted)
