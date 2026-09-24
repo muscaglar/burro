@@ -29,17 +29,27 @@ from burro_pipeline.evidence.lock import (
 from burro_pipeline.evidence.made_up import made_up_evidence
 from burro_pipeline.evidence.method import Kind, Method
 from burro_pipeline.evidence.receipt import (
+    EditionFrom,
     Geography,
     How,
     Member,
     Period,
     Receipt,
+    Taken,
+    Where,
     clean_url,
     made_up_receipt,
 )
 from burro_pipeline.evidence.record import EvidenceRecord, file_id_of, in_words
 from burro_pipeline.evidence.row import EvidenceRow, Flag, State, state_of
-from burro_pipeline.evidence.served import Finding, counted, evidence_key, served, unevidenced
+from burro_pipeline.evidence.served import (
+    Finding,
+    counted,
+    evidence_key,
+    rows_behind,
+    served,
+    unevidenced,
+)
 from burro_pipeline.evidence.store import Evidence
 
 __all__ = [
@@ -48,6 +58,7 @@ __all__ = [
     "ClaimKind",
     "Coverage",
     "Derived",
+    "EditionFrom",
     "Evidence",
     "EvidenceRecord",
     "EvidenceRow",
@@ -69,6 +80,8 @@ __all__ = [
     "ReviewStatus",
     "Reviewer",
     "State",
+    "Taken",
+    "Where",
     "claim_id_of",
     "clean_url",
     "counted",
@@ -82,6 +95,7 @@ __all__ = [
     "read_lock",
     "read_receipts",
     "report",
+    "rows_behind",
     "seal",
     "served",
     "state_of",

@@ -7,6 +7,13 @@ that is not public, and a publisher that is too slow. It refuses an address
 that holds a letter outside ASCII, which a request cannot be written with. It
 reads no proxy, no cookie and no login from the machine it runs on.
 
+A file may also be asked for a piece at a time, by `InPieces`: each piece is
+one GET that names the bytes it wants, and is held to the same rules. A piece
+is kept only if the publisher says it is the bytes that were asked for, of a
+file of the size the first piece gave. A publisher that answers with the whole
+file is not read. Where the publisher marks the version of the file, each
+later piece is asked of that version, so that the pieces are of one file.
+
 A refusal is a reason from a fixed list, with at most a status or a host name
 beside it. It never repeats an address, a header or anything the network said,
 because a build's log is public.
@@ -33,6 +40,13 @@ HOST = re.compile(
 NOT_IN_AN_ADDRESS = re.compile(r"[\x00-\x20\x7f-\x9f\\]")
 CONTACT = re.compile(r"[!-~]{3,200}")
 REDIRECTS = frozenset({301, 302, 303, 307, 308})
+# What a publisher answers a piece with, and what it answers when the file is no longer the
+# version that was asked of.
+A_PIECE, NOT_THAT_VERSION = 206, 412
+# What a publisher says a piece is: its first and its last byte, and the size of the whole.
+SAID_OF_A_PIECE = re.compile(r"bytes (\d{1,18})-(\d{1,18})/(\d{1,18})")
+# A mark a publisher gives a version of a file, where it is one that tells two versions apart.
+A_MARK = re.compile(r'"[\x21\x23-\x7e]{1,200}"')
 PORTS = {"https": 443, "http": 80}
 # Names that stand for the machine itself or its own network. Refused without a lookup.
 LOCAL_NAMES = ("localhost", ".localhost", ".local", ".internal", ".home.arpa")
@@ -53,6 +67,9 @@ class Reason(StrEnum):
     TOO_LARGE = "the file is over the size stated for it"
     CUT_SHORT = "the file stopped before its end"
     NOT_WRITTEN = "the file could not be written"
+    NOT_IN_PIECES = "the publisher did not give the piece that was asked for"
+    CHANGED = "the file changed while pieces of it were taken"
+    NOT_LAID_OUT = "the file is not laid out so that part of it can be taken"
 
 
 class DownloadRefused(Exception):
@@ -218,7 +235,11 @@ def _file_name(headers: Message, address: _Address) -> str:
 
 
 def _ask(
-    address: _Address, agent: str, limits: Limits, loopback_for_tests: bool
+    address: _Address,
+    agent: str,
+    limits: Limits,
+    loopback_for_tests: bool,
+    more: tuple[tuple[str, str], ...] = (),
 ) -> tuple[_Connection, http.client.HTTPResponse]:
     def check(peer: str) -> None:
         found = ipaddress.ip_address(peer.split("%", 1)[0])
@@ -234,6 +255,8 @@ def _ask(
         connection.putheader("Accept", "*/*")
         connection.putheader("User-Agent", agent)
         connection.putheader("Connection", "close")
+        for name, value in more:
+            connection.putheader(name, value)
         connection.endheaders()
         return connection, connection.getresponse()
     except BaseException:
@@ -330,3 +353,155 @@ def _keep(
     if stated is not None and size != int(stated):
         raise DownloadRefused(Reason.CUT_SHORT)
     return digest.hexdigest(), size
+
+
+class InPieces:
+    """One file, asked for a piece at a time. What is said of `download` holds of each piece.
+
+    The size of the whole file is what the publisher says of the first piece
+    that arrives, and every later piece must say the same. The time limit and
+    the size limit are of all the pieces together.
+    """
+
+    def __init__(
+        self,
+        address: str,
+        limits: Limits,
+        *,
+        agent: str,
+        may_redirect_to: tuple[str, ...] = (),
+        loopback_for_tests: bool = False,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        self._address, self._limits, self._agent = address, limits, agent
+        self._may_redirect_to, self._loopback = may_redirect_to, loopback_for_tests
+        self._clock, self._started = clock, clock()
+        self._whole: int | None = None
+        self._ended_at: _Address | None = None
+        self._name, self._mark = "", ""
+        # How many bytes have arrived, of every piece.
+        self.arrived = 0
+
+    @property
+    def of_bytes(self) -> int:
+        """The size of the whole file, as the publisher gave it with the first piece."""
+        if self._whole is None:
+            raise DownloadRefused(Reason.BAD_ANSWER)
+        return self._whole
+
+    @property
+    def final_url(self) -> str:
+        """The address the pieces came from in the end."""
+        if self._ended_at is None:
+            raise DownloadRefused(Reason.BAD_ANSWER)
+        return self._ended_at.whole
+
+    @property
+    def file_name(self) -> str:
+        return self._name or "file"
+
+    def end(self, count: int) -> bytes:
+        """The last so many bytes of the file."""
+        held = bytearray()
+        self._piece(f"bytes=-{count}", None, count, held.extend)
+        return bytes(held)
+
+    def piece(self, first: int, count: int, keep: Callable[[bytes], object]) -> None:
+        """So many bytes of the file from a first byte, handed to `keep` as they arrive."""
+        if first < 0 or count < 1:
+            raise DownloadRefused(Reason.NOT_IN_PIECES)
+        self._piece(f"bytes={first}-{first + count - 1}", first, count, keep)
+
+    def _piece(
+        self, asked: str, first: int | None, count: int, keep: Callable[[bytes], object]
+    ) -> None:
+        try:
+            self._one(asked, first, count, keep)
+        except DownloadRefused:
+            raise
+        except TimeoutError:
+            raise DownloadRefused(Reason.TIMED_OUT) from None
+        except ssl.SSLError:
+            raise DownloadRefused(Reason.NOT_SECURE) from None
+        except http.client.IncompleteRead:
+            raise DownloadRefused(Reason.CUT_SHORT) from None
+        except http.client.HTTPException:
+            raise DownloadRefused(Reason.BAD_ANSWER) from None
+        except OSError:
+            raise DownloadRefused(Reason.NO_CONNECTION) from None
+
+    def _one(
+        self, asked: str, first: int | None, count: int, keep: Callable[[bytes], object]
+    ) -> None:
+        if self.arrived + count > self._limits.max_bytes:
+            raise DownloadRefused(Reason.TOO_LARGE)
+        more = [("Range", asked)]
+        if self._mark:
+            more.append(("If-Match", self._mark))
+        current = self._address
+        for _ in range(self._limits.max_redirects + 1):
+            here = _read(current)
+            _allowed(here, self._loopback)
+            connection, answer = _ask(here, self._agent, self._limits, self._loopback, tuple(more))
+            try:
+                if answer.status in REDIRECTS:
+                    location = answer.getheader("Location")
+                    if not location:
+                        raise DownloadRefused(Reason.BAD_ANSWER)
+                    current = next_address(current, location, self._may_redirect_to)
+                    continue
+                self._held(answer, here, first, count)
+                self._kept(answer, count, keep)
+                return
+            finally:
+                connection.close()
+        raise DownloadRefused(Reason.TOO_MANY_REDIRECTS)
+
+    def _held(
+        self, answer: http.client.HTTPResponse, here: _Address, first: int | None, count: int
+    ) -> None:
+        """Refuse an answer that is not the piece asked for, of the file the first piece was of."""
+        if answer.status == NOT_THAT_VERSION and self._mark:
+            raise DownloadRefused(Reason.CHANGED)
+        if answer.status == 200:
+            # The publisher does not give a file in pieces. The whole file is not read.
+            raise DownloadRefused(Reason.NOT_IN_PIECES)
+        if answer.status != A_PIECE:
+            raise DownloadRefused(Reason.STATUS, str(answer.status))
+        said = SAID_OF_A_PIECE.fullmatch((answer.getheader("Content-Range") or "").strip())
+        if said is None:
+            raise DownloadRefused(Reason.NOT_IN_PIECES)
+        start, last, whole = (int(part) for part in said.groups())
+        if first is None:
+            first = whole - count
+        if (start, last) != (first, first + count - 1) or not 0 <= start <= last < whole:
+            raise DownloadRefused(Reason.NOT_IN_PIECES)
+        length = answer.getheader("Content-Length")
+        if length is not None and length != str(count):
+            raise DownloadRefused(Reason.NOT_IN_PIECES)
+        if self._whole is None:
+            self._whole, self._ended_at = whole, here
+            self._name = _file_name(answer.headers, here)
+            mark = (answer.getheader("ETag") or "").strip()
+            self._mark = mark if A_MARK.fullmatch(mark) else ""
+        elif whole != self._whole or self._ended_at is None or here.whole != self._ended_at.whole:
+            raise DownloadRefused(Reason.CHANGED)
+
+    def _kept(
+        self, answer: http.client.HTTPResponse, count: int, keep: Callable[[bytes], object]
+    ) -> None:
+        """Hand the bytes of a piece over as they arrive, and stop at either limit."""
+        size = 0
+        while piece := answer.read1(PIECE):
+            size += len(piece)
+            if size > count:
+                raise DownloadRefused(Reason.NOT_IN_PIECES)
+            if self._clock() - self._started > self._limits.total_seconds:
+                raise DownloadRefused(Reason.TIMED_OUT)
+            try:
+                keep(piece)
+            except OSError:
+                raise DownloadRefused(Reason.NOT_WRITTEN) from None
+        if size != count:
+            raise DownloadRefused(Reason.CUT_SHORT)
+        self.arrived += size

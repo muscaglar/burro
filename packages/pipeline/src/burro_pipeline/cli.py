@@ -13,9 +13,12 @@ import sys
 from collections.abc import Callable, Sequence
 from types import ModuleType
 
+from burro_pipeline.assemble import cli as assemble
+from burro_pipeline.cells import cli as cells
 from burro_pipeline.command import PROG, Step
 from burro_pipeline.evidence import cli as evidence
 from burro_pipeline.fetch import cli as fetch
+from burro_pipeline.travel import cli as travel
 
 # The steps, in the order a build takes them. `why` comes last: it is no step of a
 # build, and says what the numbers in a line of fetch mean.
@@ -27,11 +30,14 @@ ORDER = (
     "held",
     "describe",
     "seal",
+    "cells",
+    "travel",
+    "preview",
     "check",
     "coverage",
     "why",
 )
-_OWNERS: tuple[ModuleType, ...] = (fetch, evidence)
+_OWNERS: tuple[ModuleType, ...] = (fetch, evidence, cells, travel, assemble)
 _OWNER: dict[str, ModuleType] = {step.name: owner for owner in _OWNERS for step in owner.STEPS}
 _KNOWN: dict[str, Step] = {step.name: step for owner in _OWNERS for step in owner.STEPS}
 STEPS: dict[str, Step] = {name: _KNOWN[name] for name in ORDER}
@@ -46,9 +52,12 @@ The steps of a data build, in the order a build takes them.
 {PROG} STEP --help says what a step reads and writes, what it
 reaches, and gives examples that work as they stand.
 
-Only `fetch` reaches a publisher. It, `by-hand`, `receipts`, `held` and
-`describe` reach the store, which the environment names. No other step reaches
-a network. Run each with `uv run` before it, from the top of the repository.
+Only `fetch` reaches a publisher. It, `by-hand`, `receipts`, `held`, `describe`,
+`cells` and `preview` reach the store, which the environment names. No other
+step reaches a network. Run each with `uv run` before it, from the top of the
+repository. `preview` is the whole of a first build in one command: it seals,
+makes the geography, works out each measure, and writes a release. `travel`
+routes the made-up town alone, until the engine that routes London is installed.
 What a step prints for anyone to read is one line of key=value: step names,
 registry ids, counts and hashes. Why a step stopped is said in words beside it.
 """

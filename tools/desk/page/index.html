@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en-GB" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Loading - Burro review desk</title>
+<link rel="stylesheet" href="/page/desk.css">
+<script type="module" src="/page/desk.mjs"></script>
+</head>
+<body>
+
+<header id="top">
+  <p id="banner" class="banner unknown">Loading. Which data this is will be said here. Decide nothing yet.</p>
+  <p id="progress"></p>
+  <p id="reviewer"></p>
+</header>
+
+<div id="status">
+  <p id="trouble" role="alert"></p>
+  <p id="said" role="status" aria-live="polite"></p>
+  <p id="warn"></p>
+</div>
+
+<main id="item" tabindex="-1" aria-labelledby="title">
+  <h1 id="title"></h1>
+  <div id="map-box" hidden>
+    <canvas id="map" tabindex="0" role="img" aria-label="Map" aria-describedby="map-says">The map is said in words beside it.</canvas>
+    <p id="map-credit"></p>
+    <p id="map-says" class="unseen"></p>
+  </div>
+  <div id="text-box" hidden>
+    <p id="text-before" class="grey"></p>
+    <p id="text-body"><mark id="text-mark"></mark></p>
+    <p id="text-after" class="grey"></p>
+  </div>
+  <dl id="record" hidden></dl>
+  <p id="wait">Loading.</p>
+</main>
+
+<aside id="side" aria-label="What is known, the question and the answers">
+  <div id="known">
+    <p id="flags"></p>
+    <ol id="picks" aria-label="Spellings. Choose one with its letter."></ol>
+    <p id="of"></p>
+    <p id="dispute"></p>
+    <p id="mine"></p>
+    <ul id="others" aria-label="Other reviewers"></ul>
+    <ul id="moves" aria-label="Cells you moved"></ul>
+    <dl id="lines"></dl>
+  </div>
+  <p id="more" hidden>More below. Press <kbd>.</kbd> to read on, and <kbd>,</kbd> to go back.</p>
+  <div id="ask">
+    <h2 id="question"></h2>
+    <details id="rule-box" open hidden>
+      <summary>The rule</summary>
+      <p id="rule"></p>
+    </details>
+    <details id="aside-box" hidden>
+      <summary id="aside-short"></summary>
+      <p id="aside"></p>
+    </details>
+    <p id="not-offered" hidden></p>
+    <ol id="answers" aria-label="Answers. Each is one key."></ol>
+    <p class="field">
+      <label for="note">Note <kbd>n</kbd></label>
+      <input id="note" type="text" maxlength="500" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off" aria-describedby="note-hint">
+    </p>
+    <p id="note-hint">A note may be published. Write nothing about yourself or anyone else.</p>
+    <p class="field">
+      <input id="second" type="checkbox">
+      <label for="second">Ask a second reviewer <kbd>f</kbd></label>
+    </p>
+  </div>
+</aside>
+
+<footer id="bar" aria-label="Keys"></footer>
+
+<dialog id="panel" aria-labelledby="panel-title">
+  <p id="panel-banner" class="banner unknown"></p>
+  <h2 id="panel-title"></h2>
+  <ol id="panel-rows"></ol>
+  <p id="panel-foot"></p>
+</dialog>
+
+<noscript><p class="banner unknown">This page needs JavaScript. It asks nothing of any other machine.</p></noscript>
+
+</body>
+</html>

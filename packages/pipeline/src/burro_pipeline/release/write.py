@@ -44,7 +44,7 @@ USE_OF = {
 FLOAT_DECIMALS = 6
 
 
-def _cited(release: InMemoryRelease) -> Iterator[tuple[str, str]]:
+def cited(release: InMemoryRelease) -> Iterator[tuple[str, str]]:
     """Every source the release names, with the file that names it."""
     for source_id in release.neighbourhoods_origin.source_ids:
         yield NEIGHBOURHOODS, source_id
@@ -73,7 +73,7 @@ def _check_sources(release: InMemoryRelease, registry: Registry | None) -> None:
         return
     if registry is None:
         raise ReleaseError(MANIFEST, "real_release_needs_a_registry")
-    for file, source_id in sorted(set(_cited(release))):
+    for file, source_id in sorted(set(cited(release))):
         try:
             registry.require(source_id, USE_OF[file])
         except RegistryError as error:

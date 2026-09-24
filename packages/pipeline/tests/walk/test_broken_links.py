@@ -725,7 +725,7 @@ def test_a_figure_with_no_row_of_evidence_fails_the_check_and_is_written_down(wa
     walk.evidence.write_bytes(without_the_row(walk).canonical())
     said = walk.check()
     assert said.code == 1 and said.words == ""
-    assert f"step=check status=failed release={RELEASE_ID} facts=1119 rows=1224 " in said.lines[0]
+    assert f"step=check status=failed release={RELEASE_ID} facts=1669 rows=1776 " in said.lines[0]
     assert said.lines[0].endswith(" fact_has_a_row=1")
     assert FACT not in said.everything
     assert walk.findings.read_text(encoding="utf-8") == (
@@ -739,6 +739,7 @@ def test_a_check_that_fails_with_nowhere_to_write_says_how_to_see_what_it_found(
     said = walk.step(
         *("check", walk.folder_of_the_release(), "--evidence", walk.evidence),
         *("--lock", walk.locks / f"{RELEASE_ID}.json", "--registry", walk.registry),
+        *("--hashes", walk.write_hashes()),
     )
     words = stopped(said, 1)
     assert "1 fact may not be served" in words and "--list FILE" in words
@@ -835,14 +836,16 @@ def test_a_figure_that_rests_on_a_file_the_registry_does_not_allow_for_it_fails_
         said = walk.check()
     # The release cites the approved source alone, and the file of it stands behind the row.
     assert said.code == 1, said.everything
-    assert f"step=check status=failed release={RELEASE_ID} facts=1119 " in said.lines[0]
-    assert " findings=840 " in said.lines[0]
-    assert said.lines[0].endswith(" input_is_allowed=840")
+    assert f"step=check status=failed release={RELEASE_ID} facts=1669 " in said.lines[0]
+    # The rows of 43 measures and 11 vibes, in each of 24 areas.
+    assert " findings=1296 " in said.lines[0]
+    assert said.lines[0].endswith(" input_is_allowed=1296")
     found = walk.findings.read_text(encoding="utf-8").splitlines()
-    assert len(found) == 840
+    assert len(found) == 1296
     assert (
         f"{FACT} rests on a file that the licence registry does not allow for what this "
-        "figure is used for, or that was fetched for an internal use [input_is_allowed]"
+        "figure is used for, or that was fetched for an internal use, or is a file of the "
+        "release that cites a source the registry does not allow for it [input_is_allowed]"
     ) in found
     for hidden in (CANARY, "Traceback", "made-up.example", "127.0.0.1", "made-up-prices"):
         assert hidden not in said.everything

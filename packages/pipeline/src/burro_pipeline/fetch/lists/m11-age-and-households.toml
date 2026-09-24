@@ -1,0 +1,64 @@
+# Age and household composition: the two census tables that say who lived in an
+# area and that may feed a vibe and a ranking. The founder decided it on
+# 24 September 2026, for these two tables and for no other table about residents.
+# See ADR 0006 as amended that day.
+#
+# Written before any fetch. Each `page` is one the registry entry holds. The
+# address of each file was read on the publisher's page of bulk downloads on
+# 2026-09-24, through a reader that extracts the text of a page. An extraction is
+# not the page. So no person has seen an address here, and no fetch has tried
+# one. Neither was guessed, and neither was built from a pattern. The reader was
+# asked twice, in different words, and gave the same two addresses both times,
+# letter for letter. The page writes each as a path from the top of the site.
+#
+# Since then both were fetched, on 2026-09-24, and each has a receipt under
+# data/receipts. Each address gave the zip it names: 5.7 MB of age and 6.2 MB
+# of households. No person has yet opened either address in a browser.
+#
+# Not listed, and why:
+#   - The zip of extra areas of TS003, census2021-ts003-extra.zip: it holds the
+#     geographies added after the first release, and a figure is read from the
+#     row of an MSOA, which is in the first.
+#   - TS007, age by single year: the bands of five years are enough for every
+#     measure that is built, and a single year of age is a finer cut of who lives
+#     somewhere than was decided on.
+#   - Every other census table about residents. Country of birth, ethnic group
+#     and religion are shown on an area's page and never ranked on, and their
+#     entry is gated. No file of them is listed anywhere.
+#
+# Each file is a zip with a table for each geography. The measures read the table
+# by MSOA and no other. A person who opens the zip reads a table about residents:
+# it holds counts of people by age, and of households by what they are made of.
+#
+# `uv run python -m burro_pipeline plan --list m11-age-and-households --words`
+# says what each file still needs.
+schema_version = 1
+build = "m11-age-and-households"
+
+[[file]]
+item = "census-ts007a"
+source_id = "ons-census-2021-age-and-household-tables"
+use = "scoring"
+what = "Census 2021 table TS007A, age by five-year age bands: usual residents, in a zip with a table for each geography"
+format = "zip"
+page = "https://www.nomisweb.co.uk/sources/census_2021_bulk"
+url = "https://www.nomisweb.co.uk/output/census/2021/census2021-ts007a.zip"
+max_bytes = 200_000_000
+edition = "Census 2021 TS007A"
+data_period = { as_at = "2021-03-21" }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-24, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page writes it as a path from the top of the site, /output/census/2021/census2021-ts007a.zip, under the words 'TS007A - Output areas'. Open it once in a browser. The page lists one zip for this table and no zip of extra areas. It says a zip holds the geographies of the first release: output areas, super output areas, local authorities, regions and countries. No size is shown. The zip of TS044, which is listed on the same page and was fetched on 2026-09-23, is 3.1 MB and holds a table for each of seven geographies, with the table by MSOA named census2021-ts044-msoa.csv. This table has 19 columns of counts where that one has 9, so the zip is thought to be under 10 MB. The size under max_bytes is set far above that. The edition is the table's code, as the list m1 gives it for TS044. The period is Census Day, which the table's own page gives as 21 March 2021. The table's own page, https://www.nomisweb.co.uk/datasets/c2021ts007a, gives the variable as 'Age (19 categories)': a total, and 18 bands from 'Aged 4 years and under' to 'Aged 85 years and over'. It counts usual residents. What the columns of the file are called is not on any page: the step that reads the file finds each by the name of its category, and stops where one is missing."
+
+[[file]]
+item = "census-ts003"
+source_id = "ons-census-2021-age-and-household-tables"
+use = "scoring"
+what = "Census 2021 table TS003, household composition: households, in a zip with a table for each geography"
+format = "zip"
+page = "https://www.nomisweb.co.uk/sources/census_2021_bulk"
+url = "https://www.nomisweb.co.uk/output/census/2021/census2021-ts003.zip"
+max_bytes = 200_000_000
+edition = "Census 2021 TS003"
+data_period = { as_at = "2021-03-21" }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-24, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page writes it as a path from the top of the site, /output/census/2021/census2021-ts003.zip, under the words 'TS003 - Output areas'. Open it once in a browser. The page lists a second zip, of extra areas, which is not taken. It says a zip holds the geographies of the first release: output areas, super output areas, local authorities, regions and countries. No size is shown. The zip of TS044, which is listed on the same page and was fetched on 2026-09-23, is 3.1 MB. This table has 22 columns of counts where that one has 9, so the zip is thought to be under 10 MB. The size under max_bytes is set far above that. The edition is the table's code. The period is Census Day, 21 March 2021. The table's own page, https://www.nomisweb.co.uk/datasets/c2021ts003, gives the variable as 'Household composition (22 categories)' and counts households. The statistics office's own page for the table, https://www.ons.gov.uk/datasets/TS003/editions/2021/versions/4, says version 4 was published on 16 November 2023 and replaced version 3 of 13 December 2022. No page says which version the zip holds: read the notes inside the zip, under metadata, before a figure is shown. The same page says there are quality considerations around consistency of census data on household and family composition and legal partnership status. The measures add up the total, one-person households and the four categories with dependent children. Single family households and other household types are read only to hold each row to its total, and are not kept. No other column is read. What the columns of the file are called is not on any page: the step that reads the file finds each by the name of its category, and stops where one is missing."

@@ -1,0 +1,51 @@
+# Land use: the one file that works and warehouses, gardens and woodland are
+# measured from. Milestone M10 of docs/design/london-data.md.
+#
+# The `page` is the registry entry's own `url`. The address of the file was read
+# on that page on 2026-09-24, through a reader that extracts the text of a page.
+# An extraction is not the page. So no person has seen the address. It was not
+# guessed, and it was not built from a pattern. The reader was asked twice, in
+# different words, and gave the same address both times, letter for letter,
+# written whole.
+#
+# The file was fetched once on 2026-09-24 and kept with no receipt, because the
+# period was not yet sure. It was then read with the step `describe`, which
+# gives the words of a sheet and never a row that holds a number. A program
+# read it, and no person has. Whether that stands is the founder's to decide,
+# as it is for the files of list m1. What was read, and where in the file, is in
+# the item's notes and in docs/research/data/land-use.md. Fetched again with
+# its period stated, the same file arrived, and its receipt was written.
+#
+# Not listed, and why:
+#   - The national live tables of the same edition, 2.32 MB: they hold no figure
+#     below a local authority or a constituency, and a borough's figure is no
+#     figure for a neighbourhood.
+#   - The technical notes and the factsheet: each is a document and no file of
+#     data. The registry entry holds the address of the technical notes as
+#     evidence.
+#   - The editions for 2017 to 2021: the registry entry covers 2022 alone, and no
+#     change over time is shown.
+#   - A lookup from the LSOAs of 2011 to those of 2021: the file says its rows are
+#     of the LSOAs of 2021, so none is needed.
+#   - Recorded crime: it is in the list m2-living, as police-crime-london, to be
+#     saved by a person.
+#
+# docs/data-builds.md, section 7, says how a receipt is written.
+#
+# `uv run python -m burro_pipeline plan --list m10-land-use --words` says what
+# the gate says of the file.
+schema_version = 1
+build = "m10-land-use"
+
+[[file]]
+item = "land-use-lsoa-2022"
+source_id = "mhclg-land-use-statistics-2022"
+use = "scoring"
+what = "Land use statistics: England 2022, live tables by LSOA and MSOA, which hold Live Table P405"
+format = "other"
+page = "https://www.gov.uk/government/statistics/land-use-in-england-2022"
+url = "https://assets.publishing.service.gov.uk/media/6356f96ce90e0777a7af42af/Live_Tables_-_Land_Use_Stock_2022_-_LSOA.ods"
+max_bytes = 60_000_000
+edition = "2022"
+data_period = { as_at = "2022" }
+notes = "Address read on 2026-09-24, on the page above, through a reader that extracts. It is written whole on the page. The reader was asked twice, in different words, and gave the same address both times. GOV.UK hands out files from assets.publishing.service.gov.uk, which has no pages of its own, and the registry entry names this file's address under file_urls. The page gives the file as ODS, 36.4 MB, and says it was published on 27 October 2022 and not updated since. The format is given as other because a list has no name for an OpenDocument spreadsheet: it is a zip, and fetch reads the names inside it. What was fetched on 2026-09-24 is f-b8db326abd8b, of 38,142,392 bytes. It was read that day with the step describe, which gives every row of a sheet that holds words alone and no row that holds a number. The edition and the period were read in it: the title of each of its two sheets, in row 1 and column A, ends ', 2022'. That is the whole of what the file says of its date. It states no month and no day, so the period is the year, and a figure is shown as of 2022. The statistical release says 'As at April 2022', and the technical notes of the same release say the dates of the products the figures rest on were 'chosen to centre around April 2021'. Neither is in the file, and neither is stated here. The file holds two sheets, P404a and P404b, whose titles call them Table 405a and Table 405b. Row 3 of each says its unit in column AW: 'Per cent' in the first and 'Hectares' in the second. Rows 4 to 6 name the columns. It holds no cover, no sheet of notes and no sheet by MSOA: the MSOA of each LSOA is a column of its row. Under each table stand two notes. The first says the data is mapped to the LSOA boundaries of 2021 at the mean high tide mark. The second says the grand total is the sum of all the categories, and is not the definitive size of an area. The file states no licence, no copyright, no right of Ordnance Survey's and no term of use. It does not say what a dash in a cell of figures stands for: the step that reads it holds a dash to the arithmetic of its own row. National: every LSOA of England, and no file for London is offered. 33,772 rows of each sheet hold something, of which 7 hold words alone. The figures are estimates, as the technical notes say."

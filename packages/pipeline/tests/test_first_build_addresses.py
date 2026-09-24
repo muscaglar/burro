@@ -1,7 +1,7 @@
 """Where the files of the first real build are, as the registry and the list have it.
 
-Nothing is fetched here and no socket is opened. No file has been fetched at all: every
-address was read on a publisher's page, through a reader that extracts the text of a page.
+Nothing is fetched here and no socket is opened. Every address was read on a publisher's
+page, through a reader that extracts the text of a page.
 """
 
 import re

@@ -1,0 +1,306 @@
+{
+  "desk": 1,
+  "queues": [
+    {
+      "id": "rules",
+      "version": 1,
+      "title": "Rules",
+      "text": "Shall this rule settle what it fits, with no person reading each?",
+      "rule": "None is adopted until you say yes. Read what could go wrong and the items drawn at random. Yes settles each item it fits that you have not answered, and names the rule in its line. No changes nothing. Undo takes it back.",
+      "view": "text",
+      "adds": [],
+      "after": [],
+      "open_to": "founder",
+      "public": true,
+      "answers": [
+        {"code": "yes", "label": "Yes, adopt the rule"},
+        {"code": "no", "label": "No, a person reads each"}
+      ],
+      "flags": {}
+    },
+    {
+      "id": "know",
+      "version": 1,
+      "title": "Boroughs you know",
+      "text": "How well do you know this borough?",
+      "rule": "Go by the ground you have lived on, worked on or walked.",
+      "view": "map",
+      "adds": [],
+      "after": [],
+      "open_to": "all",
+      "public": false,
+      "answers": [
+        {"code": "well", "label": "I know it well"},
+        {"code": "a_little", "label": "I know it a little"},
+        {"code": "not", "label": "I do not know it"}
+      ],
+      "flags": {}
+    },
+    {
+      "id": "kinds",
+      "version": 1,
+      "title": "Kinds of venue",
+      "text": "Is this a {kind}?",
+      "rule": "Go by the name and the category as written. If they do not say, answer that you cannot tell.",
+      "view": "text",
+      "adds": [],
+      "after": [],
+      "open_to": "founder",
+      "public": true,
+      "answers": [
+        {"code": "yes", "label": "Yes"},
+        {"code": "no", "label": "No"},
+        {"code": "cannot_tell", "label": "I cannot tell"}
+      ],
+      "flags": {
+        "name_says_another_kind": "its name says another kind of place",
+        "one_of_many_records": "the same name is on more than one record",
+        "in_two_kinds": "the record stands under two kinds"
+      }
+    },
+    {
+      "id": "commons",
+      "version": 1,
+      "title": "Commons",
+      "text": "Is this place in the file, with a name and a way in?",
+      "rule": "Go by what the file holds. A way in is a gate or a path that the file marks.",
+      "view": "text",
+      "adds": [],
+      "after": [],
+      "open_to": "founder",
+      "public": true,
+      "answers": [
+        {"code": "in_file", "label": "In the file, with a name and a way in"},
+        {"code": "no_name_or_way_in", "label": "In the file, with no name or no way in"},
+        {"code": "not_in_file", "label": "Not in the file"}
+      ],
+      "flags": {
+        "no_match": "nothing in the file has a name like it",
+        "no_name": "the nearest match has no name",
+        "no_way_in": "the nearest match has no way in"
+      }
+    },
+    {
+      "id": "figures",
+      "version": 1,
+      "title": "Figures",
+      "text": "Does this figure look wrong for this area?",
+      "rule": "Your answer changes no figure. It makes the list to read before a release is approved.",
+      "view": "text",
+      "adds": [],
+      "after": [],
+      "open_to": "founder",
+      "public": true,
+      "answers": [
+        {"code": "looks_right", "label": "It looks right"},
+        {"code": "looks_wrong", "label": "It looks wrong"},
+        {"code": "cannot_say", "label": "I cannot say"}
+      ],
+      "flags": {
+        "no_evidence": "no record of evidence stands behind it",
+        "moved_between_releases": "it moved by a fifth or more since the release before",
+        "far_from_neighbours": "it is far above or far below every area beside it",
+        "zero_thin_cover": "it is zero, and the source covers only part of the area"
+      }
+    },
+    {
+      "id": "sentences",
+      "version": 1,
+      "title": "Sentences",
+      "text": "Is this sentence fit to quote about the place?",
+      "rule": "Choose the first fault that holds. If none holds, it is fit. Judge what it says, not whether it is true.",
+      "view": "text",
+      "adds": [],
+      "after": [],
+      "open_to": "founder",
+      "public": false,
+      "answers": [
+        {"code": "fit", "label": "Fit to quote"},
+        {"code": "residents", "label": "About who lives there"},
+        {"code": "safety", "label": "About safety or crime"},
+        {"code": "praise", "label": "Praise, or a superlative"},
+        {"code": "person", "label": "About a person"},
+        {"code": "change_or_price", "label": "About change, or a price"},
+        {"code": "not_a_place", "label": "Not about the place"}
+      ],
+      "flags": {}
+    },
+    {
+      "id": "names",
+      "version": 1,
+      "title": "Names",
+      "text": "Is this the name of an area?",
+      "rule": "Use what you know and what the page shows. Copy no name and no border from a map or a website. Move a border for the ground, never for who lives there. If you rely on a document, give its address in the note.",
+      "view": "map",
+      "adds": ["pick"],
+      "after": ["rules"],
+      "open_to": "founder",
+      "public": true,
+      "answers": [
+        {"code": "area", "label": "An area"},
+        {"code": "same_ground", "label": "Another name, same ground"},
+        {"code": "inside", "label": "A smaller place inside"},
+        {"code": "wide", "label": "A wider name"},
+        {"code": "drop", "label": "Not a name to keep"}
+      ],
+      "set_aside": {
+        "answers": ["same_ground", "inside", "wide", "drop"],
+        "mark": "waits",
+        "cells": {
+          "short": "This area has ground. To turn its name down waits for a new draft.",
+          "words": "The desk cannot take ground from an area. Turn this name down and the answer is saved, and set aside when a build's files are made. Read every name first. Then make the draft again from the answers. Then look at borders.",
+          "saved": "It is set aside until the draft is made again from the answers."
+        },
+        "names": {
+          "short": "Other names are given to this area. To turn its name down waits on them.",
+          "words": "An area goes only once no other name is given to it. Turn this name down and the answer is saved, and set aside while another name of the area is kept. Decide its other names first.",
+          "saved": "It is set aside while another name is given to this area."
+        }
+      },
+      "flags": {
+        "one_publisher": "one publisher writes this name, and one is not enough for it",
+        "same_name_elsewhere": "the same name stands in another place",
+        "describes_residents": "the name may say who lives there",
+        "no_receipt": "it rests on a file that has no receipt",
+        "look_hard": "the draft has a mark on it to settle"
+      }
+    },
+    {
+      "id": "borders",
+      "version": 1,
+      "title": "Borders",
+      "text": "Is this boundary right?",
+      "rule": "Use what you know and what the page shows. Copy no name and no border from a map or a website. Move a border for the ground, never for who lives there. If you rely on a document, give its address in the note.",
+      "view": "map",
+      "adds": ["move"],
+      "after": ["rules", "names"],
+      "open_to": "all",
+      "public": true,
+      "answers": [
+        {"code": "right", "label": "Right"},
+        {"code": "wrong", "label": "Wrong"},
+        {"code": "unknown", "label": "I do not know this ground"}
+      ],
+      "moved": {
+        "text": "With your moves, is it right now?",
+        "answers": {"right": "Right now", "wrong": "Still wrong"}
+      },
+      "flags": {
+        "margin_under_10": "a border cell is nearly as close to the next area",
+        "least_compact": "its shape is among the least compact",
+        "two_boroughs": "it lies in two boroughs",
+        "two_centres": "it holds two town centres",
+        "one_publisher": "one publisher writes its name, and one is not enough for it",
+        "seeds_close": "its seed is close to the seed of another area",
+        "follows_nothing": "its border follows no line that can be named",
+        "size_unlike_neighbours": "it is far larger or far smaller than the areas beside it",
+        "two_pieces": "it is in two pieces",
+        "both_banks": "it lies on both banks of the tidal water",
+        "seed_outside": "its seed lies outside it",
+        "no_receipt": "it rests on a file that has no receipt"
+      }
+    },
+    {
+      "id": "whole",
+      "version": 1,
+      "title": "Whole boroughs",
+      "text": "Is anything wrong in this borough?",
+      "rule": "Use what you know and what the page shows. Copy no name and no border from a map or a website. Move a border for the ground, never for who lives there. If you rely on a document, give its address in the note.",
+      "view": "map",
+      "adds": ["move"],
+      "after": ["rules", "names"],
+      "open_to": "founder",
+      "public": true,
+      "answers": [
+        {"code": "right", "label": "Nothing is wrong"},
+        {"code": "wrong", "label": "Something is wrong"},
+        {"code": "unknown", "label": "I do not know this borough"}
+      ],
+      "moved": {
+        "text": "With your moves, is anything still wrong in this borough?",
+        "answers": {"right": "Nothing is wrong now", "wrong": "Something is still wrong"}
+      },
+      "flags": {
+        "margin_under_10": "an area here has a border cell nearly as close to the next area",
+        "least_compact": "an area here is among the least compact",
+        "two_boroughs": "an area here lies in two boroughs",
+        "two_centres": "an area here holds two town centres",
+        "one_publisher": "one publisher writes an area's name here, and one is not enough for it",
+        "seeds_close": "the seed of an area here is close to the seed of another",
+        "follows_nothing": "the border of an area here follows no line that can be named",
+        "size_unlike_neighbours": "an area here is far larger or far smaller than those beside it",
+        "two_pieces": "an area here is in two pieces",
+        "both_banks": "an area here lies on both banks of the tidal water",
+        "seed_outside": "the seed of an area here lies outside it",
+        "no_receipt": "an area here rests on a file that has no receipt"
+      }
+    },
+    {
+      "id": "ratings",
+      "version": 1,
+      "title": "Ratings",
+      "text": "{rubric}",
+      "rule": "Rate the streets, buildings and places you know. Not the people who live there, and not what you have heard. The rubric says what 1 and 5 mean.",
+      "view": "map",
+      "adds": [],
+      "after": ["names"],
+      "open_to": "all",
+      "public": false,
+      "answers": [
+        {"code": "1", "label": "1"},
+        {"code": "2", "label": "2"},
+        {"code": "3", "label": "3"},
+        {"code": "4", "label": "4"},
+        {"code": "5", "label": "5"},
+        {"code": "cannot_say", "label": "I cannot say"}
+      ],
+      "covers": {"by": "area_id", "code": "cannot_say", "label": "I do not know this area"},
+      "flags": {}
+    },
+    {
+      "id": "articles",
+      "version": 1,
+      "title": "Articles",
+      "text": "Is this the article about this place?",
+      "rule": "Go by the title and by what you know of the place. Open no page: the words of an article are read later, claim by claim.",
+      "view": "text",
+      "adds": [],
+      "after": ["names"],
+      "open_to": "founder",
+      "public": true,
+      "answers": [
+        {"code": "its_article", "label": "Yes, it is about this place"},
+        {"code": "not_its_article", "label": "No, it is about another"},
+        {"code": "cannot_tell", "label": "I cannot tell"}
+      ],
+      "flags": {
+        "two_areas": "two areas claim this article",
+        "unsure_match": "the names do not match letter for letter",
+        "near_the_edge": "the item's point lies near the edge of the area"
+      }
+    },
+    {
+      "id": "claims",
+      "version": 1,
+      "title": "Claims",
+      "text": "May this be shown as the source's words about this area?",
+      "rule": "Accept only if it is about this place, describes no people, passes no judgement, and a resident would find it fair.",
+      "view": "text",
+      "adds": [],
+      "after": ["articles"],
+      "open_to": "all",
+      "public": false,
+      "answers": [
+        {"code": "accept", "label": "Yes, show it"},
+        {"code": "not_this_place", "label": "No. It is not about this place"},
+        {"code": "describes_people", "label": "No. It describes people"},
+        {"code": "passes_judgement", "label": "No. It passes judgement"},
+        {"code": "not_fair", "label": "No. A resident would not find it fair"}
+      ],
+      "flags": {
+        "names_another_area": "the words name another area",
+        "no_reference": "the source gives no reference for it"
+      }
+    }
+  ]
+}

@@ -59,7 +59,7 @@ STORE = (ENDPOINT, "BURRO_STORE_BUCKET", KEY_ID, KEY)
 # Where a publisher can write to. It is sent to publishers, and kept out of this repository.
 CONTACT = "BURRO_FETCH_CONTACT"
 # Which secrets each environment holds. A workflow may name no other.
-SECRETS_OF = {"data-fetch": (*STORE, CONTACT), "data-build": STORE}
+SECRETS_OF = {"data-fetch": (*STORE, CONTACT), "data-build": STORE, "data-travel": STORE}
 SECRET_NAMES = (*STORE, CONTACT)
 # The run's own token. The runner sets it, and no step here is given it.
 TOKENS = ("GITHUB_TOKEN", "GH_TOKEN", "ACTIONS_RUNTIME_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN")
@@ -165,6 +165,11 @@ COUNTS = frozenset(
         # The lock, the check of the evidence, and the coverage report.
         "inputs",
         "development",
+        # Of the files that state their own edition: how many a build took, how many of
+        # those it was told to take, and how many receipts of other editions it left.
+        "own_edition",
+        "named",
+        "passed_over",
         "facts",
         "rows",
         "findings",
@@ -173,6 +178,48 @@ COUNTS = frozenset(
         "values",
         "gaps",
         "no_record",
+        # The geography of a build.
+        "output_areas",
+        "lsoas",
+        "msoas",
+        "boroughs",
+        # The journeys of a build: what the timetable holds, and what was routed.
+        "stops",
+        "routes",
+        "trips",
+        "running",
+        "calls",
+        "origins",
+        "destinations",
+        "departures",
+        "shards",
+        "pairs",
+        "beyond",
+    }
+)
+# The rules of the travel step: of the timetable it reads, and of what it routes. A refusal
+# names its rule. A test of the pipeline holds this list to the rules there are.
+TRAVEL_RULES = frozenset(
+    {
+        "answers_are_whole",
+        "calendar_covers_the_day",
+        "calendar_is_readable",
+        "destination_is_on_a_street",
+        "engine_is_installed",
+        "feed_holds_its_tables",
+        "feed_is_a_zip",
+        "homes_have_a_weight",
+        "ids_are_unique",
+        "no_trip_is_a_headway",
+        "origin_is_on_a_street",
+        "origins_are_given_once",
+        "references_resolve",
+        "same_twice",
+        "stop_has_a_point",
+        "stop_is_on_a_street",
+        "table_holds_its_columns",
+        "times_are_in_order",
+        "window_is_in_the_timetable",
     }
 )
 # The rules of the lock and of the evidence. A refusal names its rule, and a check
@@ -181,13 +228,17 @@ RULES = frozenset(
     {
         "commit_is_checked_out",
         "commit_is_named",
+        "build_is_as_it_was_written",
+        "credit_is_the_registrys",
         "evidence_is_for_the_product",
         "evidence_is_of_this_release",
         "fact_has_a_row",
         "file_is_for_the_product",
         "file_is_in_the_vault",
         "gate_refuses",
+        "input_has_one_receipt",
         "input_is_allowed",
+        "input_is_as_described",
         "input_is_for_the_product",
         "input_is_locked",
         "licence_evidence_is_saved",
@@ -197,18 +248,31 @@ RULES = frozenset(
         "lock_is_for_the_product",
         "lock_is_valid",
         "made_up_is_consistent",
+        "measure_has_a_figure",
+        "measure_is_as_core_says",
+        "measure_is_not_held_back",
         "method_is_found",
+        "named_edition_has_a_receipt",
         "one_receipt_for_a_file",
+        "percentile_is_cores",
         "real_build_needs_a_registry",
         "real_release_needs_a_lock",
         "real_release_needs_a_registry",
+        "real_release_needs_its_hashes",
+        "receipt_is_as_committed",
         "receipt_is_listed",
+        "receipt_is_the_locked_file",
         "receipt_is_valid",
         "repository_is_read",
         "row_has_a_fact",
         "row_has_a_value",
+        "row_holds_the_coverage",
+        "row_holds_the_figure",
+        "row_names_its_method",
+        "row_rests_on_its_file",
         "source_has_a_file",
         "source_is_registered",
+        "tag_is_cores",
         "tree_has_no_changes",
     }
 )
@@ -233,8 +297,62 @@ KINDS = frozenset(
         "xls",
         "ods",
         "gzip",
+        "parquet",
         "empty",
         "unknown",
+    }
+)
+# The measures a build may name: the ids of core's catalogue, which is in this repository.
+# A test holds this list to it. An id names an idea and holds nothing from a file.
+FEATURES = frozenset(
+    {
+        "air_no2",
+        "centre_compact",
+        "centre_small",
+        "conservation_cover",
+        "crime_burglary_theft",
+        "crime_violence_robbery",
+        "cuisine_variety",
+        "culture_venues",
+        "culture_venues_per_homes",
+        "evening_cluster_exposure",
+        "gp_walk",
+        "green_cover",
+        "grocery_walk",
+        "highstreet_access",
+        "homes_density",
+        "homes_flats",
+        "homes_post2000",
+        "homes_pre1919",
+        "incident_antisocial",
+        "incident_criminal_damage",
+        "independents_nearby",
+        "land_gardens",
+        "land_industry",
+        "land_storage",
+        "land_transport_other",
+        "land_woodland",
+        "listed_buildings",
+        "noise_exposure",
+        "park_facilities",
+        "park_large_proximity",
+        "park_proximity",
+        "pharmacy_walk",
+        "play_space_proximity",
+        "price_median",
+        "private_outdoor_space",
+        "road_major_exposure",
+        "school_primary_attainment",
+        "school_primary_nearby",
+        "school_secondary_attainment",
+        "station_lines",
+        "station_walk",
+        "university_proximity",
+        "venue_evening",
+        "venue_food_drink",
+        "venue_food_drink_per_homes",
+        "venue_independent",
+        "water_access",
     }
 )
 # What is shown as a hash: of a file, or of what a step wrote.
@@ -284,12 +402,14 @@ def _may_be_shown(key: str, value: str) -> bool:
         return value in RELEASE_FILES
     if key == "kind":
         return value in KINDS
+    if key == "feature":
+        return value in FEATURES
     shape = (
         SHA256
         if key in HASHES
         # Fetch counts its files by how each ended, so a status is a name too.
         else COUNT
-        if key in COUNTS or key in RULES or key in STATUSES
+        if key in COUNTS or key in RULES or key in TRAVEL_RULES or key in STATUSES
         else {
             "release": RELEASE_ID,
             "file_id": FILE_ID,

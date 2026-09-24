@@ -142,7 +142,12 @@ BEHIND = re.compile(
 # and the secrets each reads. A step is given those and no other. A step is added here
 # when a workflow first runs it, in a change that a person reads.
 STEPS_OF_A_RUN: dict[str, dict[str, tuple[str, ...]]] = {
-    "python -m burro_pipeline": {"fetch": SECRETS_OF["data-fetch"], "held": STORE},
+    "python -m burro_pipeline": {
+        "fetch": SECRETS_OF["data-fetch"],
+        "held": STORE,
+        # The made-up town reads nothing. The day the step reads the store, this changes.
+        "travel": (),
+    },
     "burro-release": {"build-synthetic": (), "check": ()},
 }
 # What these print holds names from a file's own layout. No run shows it, and none runs them.

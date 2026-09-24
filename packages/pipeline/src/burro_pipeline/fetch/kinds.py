@@ -37,6 +37,7 @@ class Kind(StrEnum):
     XLS = "xls"
     ODS = "ods"
     GZIP = "gzip"
+    PARQUET = "parquet"
     EMPTY = "empty"
     UNKNOWN = "unknown"
 
@@ -45,6 +46,7 @@ MARKS: tuple[tuple[bytes, Kind], ...] = (
     (b"%PDF", Kind.PDF),
     (b"\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1", Kind.XLS),
     (b"\x1f\x8b", Kind.GZIP),
+    (b"PAR1", Kind.PARQUET),
 )
 
 

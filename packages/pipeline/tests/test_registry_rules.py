@@ -3,7 +3,7 @@ from typing import Any
 
 import pytest
 from burro_pipeline.registry import Dimension, Severity, Source, Use, check
-from burro_pipeline.registry.model import HOUSING_TABLES, SHOWN_TABLES
+from burro_pipeline.registry.model import HOUSING_TABLES, SCORED_TABLES, SHOWN_TABLES
 
 TODAY = date(2026, 9, 23)
 
@@ -42,6 +42,15 @@ RESIDENTS: dict[str, Any] = APPROVED | {
     "dimension": "residents",
     "tables": ["TS003", "TS021"],
     "uses": ["census_table"],
+}
+
+# The two census tables about residents that may feed a score too: age and household
+# composition. The founder decided it on 24 September 2026. See ADR 0006 as amended.
+AGE_AND_HOUSEHOLDS: dict[str, Any] = RESIDENTS | {
+    "id": "ons-census-2021-age-and-household-tables",
+    "name": "Census 2021 tables of age and of household composition",
+    "tables": ["TS003", "TS007A"],
+    "uses": ["scoring", "census_table"],
 }
 
 FEEDS_NOTHING_ELSE = "resident_sources_feed_the_census_table_and_nothing_else"
@@ -126,6 +135,105 @@ def test_a_resident_source_that_feeds_only_the_census_table_has_no_problems():
 def test_a_resident_source_may_feed_the_census_table_and_nothing_else(use: Use):
     assert FEEDS_NOTHING_ELSE in rules_broken(source(RESIDENTS, uses=["census_table", use]))
     assert FEEDS_NOTHING_ELSE in rules_broken(source(RESIDENTS, uses=[use]))
+
+
+def test_age_and_household_composition_may_feed_a_score_and_no_other_table_may():
+    assert {"TS003", "TS007A"} == SCORED_TABLES
+    assert SCORED_TABLES < SHOWN_TABLES
+
+
+@pytest.mark.parametrize("tables", [["TS003", "TS007A"], ["TS003"], ["TS007A"]])
+@pytest.mark.parametrize("uses", [["scoring", "census_table"], ["scoring"], ["census_table"]])
+def test_a_source_of_age_and_household_composition_may_feed_a_score(
+    tables: list[str], uses: list[str]
+):
+    assert check([source(AGE_AND_HOUSEHOLDS, tables=tables, uses=uses)], TODAY) == []
+
+
+# Over every use there is, so that a use added later is refused until someone allows it.
+@pytest.mark.parametrize("use", sorted(set(Use) - {Use.CENSUS_TABLE, Use.SCORING}))
+def test_a_source_of_age_and_household_composition_gains_scoring_and_no_other_use(use: Use):
+    assert FEEDS_NOTHING_ELSE in rules_broken(source(AGE_AND_HOUSEHOLDS, uses=["scoring", use]))
+    assert FEEDS_NOTHING_ELSE in rules_broken(source(AGE_AND_HOUSEHOLDS, uses=[use]))
+
+
+# Over every other table an area's page may show, and some that it may not.
+@pytest.mark.parametrize(
+    "table", [*sorted(SHOWN_TABLES - SCORED_TABLES), "TS007", "TS024", "TS038", "TS077", "TS078"]
+)
+def test_one_table_of_any_other_kind_keeps_a_resident_source_out_of_scoring(table: str):
+    assert table not in SCORED_TABLES
+    mixed = source(AGE_AND_HOUSEHOLDS, tables=["TS003", "TS007A", table])
+    assert FEEDS_NOTHING_ELSE in rules_broken(mixed)
+    alone = source(AGE_AND_HOUSEHOLDS, tables=[table])
+    assert FEEDS_NOTHING_ELSE in rules_broken(alone)
+
+
+def test_a_resident_source_that_names_no_table_is_never_scored():
+    unnamed = source(AGE_AND_HOUSEHOLDS, tables=[])
+    assert [
+        problem.message for problem in check([unnamed], TODAY) if problem.rule == FEEDS_NOTHING_ELSE
+    ] == [
+        "a source about residents may not be used for scoring",
+        "a source about residents must name its tables",
+    ]
+
+
+BULK = "https://www.nomisweb.co.uk/output/census/2021"
+ITS_OWN_FILES = [f"{BULK}/census2021-ts003.zip", f"{BULK}/census2021-ts007a.zip"]
+
+
+def test_a_scored_source_may_name_the_addresses_of_its_own_two_tables():
+    named = source(
+        AGE_AND_HOUSEHOLDS,
+        name="Census 2021: TS007A age by five-year age bands, TS003 household composition",
+        url="https://www.nomisweb.co.uk/datasets/c2021ts007a",
+        evidence_urls=[
+            "https://www.nomisweb.co.uk/datasets/c2021ts003",
+            "https://www.ons.gov.uk/datasets/TS003/editions/2021/versions/4",
+        ],
+        file_urls=ITS_OWN_FILES,
+    )
+    assert check([named], TODAY) == []
+
+
+# What `tables` says is what an entry says of itself. An address says what is fetched.
+@pytest.mark.parametrize(
+    "changed",
+    [
+        {"file_urls": [*ITS_OWN_FILES, f"{BULK}/census2021-ts021.zip"]},
+        {"file_urls": [f"{BULK}/census2021-ts030.zip"]},
+        {"file_urls": [f"{BULK}/census2021-ts004-extra.zip"]},
+        # Age by single year is a finer cut than the bands of five years that were listed.
+        {"file_urls": [f"{BULK}/census2021-ts007.zip"]},
+        {"file_urls": [f"{BULK}/census2021-TS%30%32%31.zip"]},
+        {"url": "https://www.nomisweb.co.uk/datasets/c2021ts021"},
+        {"evidence_urls": ["https://www.ons.gov.uk/datasets/TS030/editions/2021/versions/3"]},
+        {"name": "Census 2021 tables of age, household composition and TS021 ethnic group"},
+        {"id": "ons-census-2021-ts004-and-age"},
+    ],
+    ids=lambda changed: next(iter(changed)),
+)
+def test_a_scored_source_that_names_any_other_table_anywhere_is_refused(changed: dict[str, Any]):
+    """`tables` names age and households, and an address of the entry names another table."""
+    assert FEEDS_NOTHING_ELSE in rules_broken(source(AGE_AND_HOUSEHOLDS, **changed))
+
+
+def test_the_same_names_are_no_fault_of_a_source_that_feeds_the_census_table_alone():
+    """A source that is shown and never scored may name the tables it shows."""
+    shown = source(
+        RESIDENTS,
+        uses=["census_table"],
+        evidence_urls=["https://www.ons.gov.uk/datasets/TS021/editions/2021/versions/3"],
+    )
+    assert FEEDS_NOTHING_ELSE not in rules_broken(shown)
+
+
+@pytest.mark.parametrize("dimension", sorted(set(Dimension) - {Dimension.RESIDENTS}))
+def test_the_table_of_age_is_scored_under_no_other_heading(dimension: Dimension):
+    elsewhere = source(AGE_AND_HOUSEHOLDS, dimension=dimension, uses=["scoring"])
+    broken = rules_broken(elsewhere)
+    assert broken & {UNDER_RESIDENTS, "audit_data_stays_internal"}
 
 
 @pytest.mark.parametrize("status", ["gated", "held"])

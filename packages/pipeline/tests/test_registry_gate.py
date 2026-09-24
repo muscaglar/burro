@@ -14,7 +14,7 @@ from burro_pipeline.registry import (
     load,
 )
 from burro_pipeline.registry.cli import main
-from burro_pipeline.registry.model import SHOWN_TABLES
+from burro_pipeline.registry.model import SCORED_TABLES, SHOWN_TABLES
 from burro_pipeline.release.write import USE_OF
 
 REPO_REGISTRY = Path(__file__).parents[3] / "registry" / "sources"
@@ -538,15 +538,59 @@ def test_geography_behind_a_measure_rests_on_the_publishers_own_licence_page(sou
     assert source.licence == "OGL-3.0"
 
 
+AGE_AND_HOUSEHOLDS = "ons-census-2021-age-and-household-tables"
+SHOWN_AND_NEVER_SCORED = "ons-census-2021-resident-tables"
+
+
 def test_the_real_registry_keeps_resident_sources_under_residents():
     registry = of_the_repository()
-    shown = [source for source in registry if Use.CENSUS_TABLE in source.uses]
-    assert [source.id for source in shown] == ["ons-census-2021-resident-tables"]
-    assert [source.id for source in registry if source.dimension == "residents"] == [
-        "ons-census-2021-resident-tables"
+    shown = {source.id: source for source in registry if Use.CENSUS_TABLE in source.uses}
+    assert sorted(shown) == [AGE_AND_HOUSEHOLDS, SHOWN_AND_NEVER_SCORED]
+    assert sorted(source.id for source in registry if source.dimension == "residents") == [
+        AGE_AND_HOUSEHOLDS,
+        SHOWN_AND_NEVER_SCORED,
     ]
-    assert set(shown[0].tables) == SHOWN_TABLES
-    assert shown[0].uses == (Use.CENSUS_TABLE,)
+    # Between them they hold the tables an area's page may show, and no table twice.
+    assert set(shown[AGE_AND_HOUSEHOLDS].tables) == SCORED_TABLES
+    assert set(shown[SHOWN_AND_NEVER_SCORED].tables) == SHOWN_TABLES - SCORED_TABLES
+    assert shown[SHOWN_AND_NEVER_SCORED].uses == (Use.CENSUS_TABLE,)
+
+
+def test_the_real_tables_of_age_and_household_composition_pass_the_gate_for_scoring():
+    """The founder's decision of 24 September 2026, as the gate gives it."""
+    registry = of_the_repository()
+    assert registry.require(AGE_AND_HOUSEHOLDS, Use.SCORING).tables == ("TS003", "TS007A")
+    assert registry.require(AGE_AND_HOUSEHOLDS, Use.CENSUS_TABLE).id == AGE_AND_HOUSEHOLDS
+    assert registry.require(AGE_AND_HOUSEHOLDS, USE_OF["catalogue.json"]).id == AGE_AND_HOUSEHOLDS
+
+
+# Over every use there is, so that a use added later is refused without anyone remembering to.
+@pytest.mark.parametrize("use", sorted(set(Use) - {Use.CENSUS_TABLE, Use.SCORING}))
+def test_the_real_tables_of_age_and_household_composition_are_refused_every_other_use(use: Use):
+    with pytest.raises(RegistryError, match=f"not registered for {use}"):
+        of_the_repository().require(AGE_AND_HOUSEHOLDS, use)
+
+
+def test_the_real_entry_that_may_be_scored_rests_on_the_decision_and_on_pages_that_were_opened():
+    entry = of_the_repository().get(AGE_AND_HOUSEHOLDS)
+    assert entry.verified_how == "primary_source" and entry.licence == "OGL-3.0"
+    assert "https://www.nomisweb.co.uk/home/copyright.asp" in entry.evidence_urls
+    assert "founder's decision of 24 September 2026" in entry.notes
+    # Read through a reader that extracts. A person has still to open each page.
+    assert not entry.attribution_verified and entry.before_launch
+
+
+@pytest.mark.parametrize("source_id", [SHOWN_AND_NEVER_SCORED])
+@pytest.mark.parametrize("table", ["TS004", "TS021", "TS030"])
+def test_no_real_table_of_ethnic_group_religion_or_country_of_birth_may_be_scored(
+    source_id: str, table: str
+):
+    entry = of_the_repository().get(source_id)
+    assert table in entry.tables and Use.SCORING not in entry.uses
+    allowed = Source.model_validate(entry.model_dump() | {"uses": ["census_table", "scoring"]})
+    assert "resident_sources_feed_the_census_table_and_nothing_else" in {
+        problem.rule for problem in check([allowed], date.today())
+    }
 
 
 def test_the_real_census_entry_cannot_be_approved_by_changing_its_status_alone():

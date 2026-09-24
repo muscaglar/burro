@@ -62,9 +62,14 @@ def asking(
     tags: dict[TagId, float] | None = None,
     weights: dict[FeatureId, float] | None = None,
 ) -> PreferenceSpec:
-    """A spec that weights what is named and nothing else, so each case stands on its own."""
+    """A spec that weights what is named and nothing else, so each case stands on its own.
+
+    A journey and a budget each weigh all they can, whatever a search gives them at first.
+    """
     base = default_spec(tenure)
     return base.replace(
+        commute_weight=1.0,
+        commute_weight_from=STATED,
         budget=Budget(
             amount=budget[0] if budget else None,
             segment=budget[1] if budget else base.budget.segment,
@@ -109,11 +114,17 @@ def cases() -> list[Case]:
         ),
         Case(
             "bars, restaurants and things to do at night",
-            asking(tags={TagId.BUZZY: 1.0, TagId.EVENING_VENUES: 0.7, TagId.CREATIVE: 0.5}),
+            asking(
+                tags={TagId.PACE: 1.0},
+                weights={
+                    FeatureId.VENUE_EVENING: 0.7,
+                    FeatureId.CULTURE_VENUES_PER_HOMES: 0.5,
+                },
+            ),
             first=("Pellam Cross", "Lantern Yard"),
             because="the centre and the nightlife quarter one stop north of it hold more of "
             "the city's venues than anywhere else",
-            above_all="tag:buzzy",
+            above_all="tag:pace",
             not_for_them="Alderwick",
         ),
         Case(
@@ -127,11 +138,11 @@ def cases() -> list[Case]:
         ),
         Case(
             "old streets with some history, and the river close by",
-            asking(tags={TagId.HISTORIC_CHARACTER: 1.0, TagId.WATERSIDE: 0.6}),
+            asking(tags={TagId.BUILT_AGE: 1.0}, weights={FeatureId.WATER_ACCESS: 0.6}),
             first=("Tallowgate",),
             because="the old town has the oldest homes and the most protected streets in "
             "the city, and it stands on the north bank",
-            above_all="tag:historic_character",
+            above_all="tag:built_age",
             not_for_them="Farrowmere",
         ),
         Case(
@@ -210,7 +221,12 @@ def test_words_about_the_made_up_city_reach_a_ranking_with_no_model():
     assert [(name_of(f.area_id), f.reason) for f in result.filtered] == [
         ("Cindermoor", FilterReason.EXCLUDED)
     ]
-    assert len(result.ranked) == 21
+    # The new town has a journey time and a rent and little else, so it is
+    # listed apart from the areas that can be placed on what counts.
+    assert len(result.ranked) == 20
+    assert [(name_of(u.area_id), u.reason) for u in result.unranked if u.missing] == [
+        ("Otterby Fields", UnrankedReason.CHARACTER_UNKNOWN)
+    ]
 
 
 def ranked(result: RankResult, name: str) -> RankedArea:
@@ -256,21 +272,25 @@ def test_an_area_most_surveys_have_not_reached_is_left_unranked_and_not_guessed_
         "Sedgewater Marsh": UnrankedReason.NOT_RANKABLE,
     }
     # Asked only about what is known of it, the same area is ranked like any other.
-    asked = rank(asking(tags={TagId.LEAFY: 1.0, TagId.NEAR_UNIVERSITIES: 0.5}), release())
-    assert ranked(asked, "Otterby Fields").weight_coverage == 1.0
+    known = asking(tags={TagId.HOMES: 1.0}, weights={FeatureId.WATER_ACCESS: 0.5})
+    assert ranked(rank(known, release()), "Otterby Fields").weight_coverage == 1.0
 
 
 def test_a_missing_figure_is_dropped_for_that_area_and_the_coverage_reported():
-    quiet = asking(weights={FeatureId.GREEN_COVER: 0.6}, tags={TagId.HISTORIC_CHARACTER: 0.4})
-    result = rank(quiet, release())
-    # Gorsebeck has no conservation figure, so nothing can be said of its historic character.
-    gorsebeck = ranked(result, "Gorsebeck")
-    assert gorsebeck.weight_coverage == 0.6
-    dropped = [c for c in gorsebeck.contributions if not c.present]
-    assert [(c.component, c.utility, c.share) for c in dropped] == [
-        ("tag:historic_character", None, 0.0)
-    ]
+    green = asking(weights={FeatureId.GREEN_COVER: 0.6}, tags={TagId.LEAFY: 0.4})
+    result = rank(green, release())
+    # Otterby Fields has a figure for its public green space and none for its
+    # gardens or its woodland, so it cannot be placed on Leafy.
+    otterby = ranked(result, "Otterby Fields")
+    assert otterby.weight_coverage == 0.6
+    dropped = [c for c in otterby.contributions if not c.present]
+    assert [(c.component, c.utility, c.share) for c in dropped] == [("tag:leafy", None, 0.0)]
     assert ranked(result, "Wickerford").weight_coverage == 1.0
+    # A recipe that is short of one part still places an area: Gorsebeck has no
+    # conservation figure, and is placed on Built age by the parts it has.
+    built = release().tag(otterby.area_id.replace("0017", "0008"), TagId.BUILT_AGE)
+    assert built is not None and name_of(built.area_id) == "Gorsebeck"
+    assert (built.coverage, built.band is not None) == (0.75, True)
 
 
 def test_a_journey_that_was_never_computed_drops_the_commute_and_is_not_scored_as_zero():

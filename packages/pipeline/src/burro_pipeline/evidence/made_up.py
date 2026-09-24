@@ -4,19 +4,21 @@ It reads nothing: no file, no dataset, no network. It is unmistakably made up.
 Every receipt is of a file that does not exist, cites the source `synthetic`
 and says `made_up`. The one method says that it measures nothing. A row takes
 its state from what the synthetic release itself holds, so the gaps the
-release has on purpose are gaps here too.
+release has on purpose are gaps here too. A measure that core knows and the
+release does not carry has a row that says so, for every area.
 """
 
 import math
 from collections.abc import Iterator
 
+from burro_core.catalogue import FEATURES
 from burro_core.facts import cost_key, fact_id
 from burro_core.ids import FactKind, Mode, Tenure, segments_for
 from burro_core.release import InMemoryRelease
 
 from burro_pipeline.evidence.method import Kind, Method
 from burro_pipeline.evidence.receipt import Geography, Period, Receipt, made_up_receipt
-from burro_pipeline.evidence.row import EvidenceRow, state_of
+from burro_pipeline.evidence.row import EvidenceRow, not_carried, state_of
 from burro_pipeline.evidence.served import BOUNDARY, NAME, NEAREST, journeys
 from burro_pipeline.evidence.store import Evidence
 from burro_pipeline.registry.model import Use
@@ -55,7 +57,7 @@ class _Files:
             )
             return made_up_receipt(name, use, geography, period, built)
 
-        named = release.neighbourhoods_origin.as_of
+        named = release.neighbourhoods_origin.as_of or built[:10]
         self.areas = file("made-up-areas.gpkg", Use.GAZETTEER, Geography.POLYGON, named)
         self.homes = file("made-up-homes.csv", Use.SCORING, Geography.OA21, named)
         self.measures = file(
@@ -64,11 +66,19 @@ class _Files:
         self.costs = file(
             "made-up-costs.csv", Use.SCORING, Geography.POSTCODE, months[0], months[-1]
         )
+        # A made-up preview may hold no journey and no station, and then dates neither. Its
+        # made-up files are dated as its areas are: no row will rest on them.
         self.timetable = file(
-            "made-up-timetable.zip", Use.ROUTING, Geography.NONE, release.travel_table.as_of
+            "made-up-timetable.zip",
+            Use.ROUTING,
+            Geography.NONE,
+            release.travel_table.as_of or named,
         )
         self.stations = file(
-            "made-up-stations.csv", Use.DISPLAY, Geography.POINT, release.stations_origin.as_of
+            "made-up-stations.csv",
+            Use.DISPLAY,
+            Geography.POINT,
+            release.stations_origin.as_of or named,
         )
 
     def all(self) -> tuple[Receipt, ...]:
@@ -82,7 +92,13 @@ class _Files:
         )
 
 
-def _row(key: str, files: tuple[Receipt, ...], has_value: bool, covered: float) -> EvidenceRow:
+def _row(
+    key: str,
+    files: tuple[Receipt, ...],
+    has_value: bool,
+    covered: float,
+    value: float | None = None,
+) -> EvidenceRow:
     inputs = tuple(sorted(files, key=lambda receipt: receipt.file_id))
     return EvidenceRow(
         fact_id=key,
@@ -94,18 +110,24 @@ def _row(key: str, files: tuple[Receipt, ...], has_value: bool, covered: float) 
         units_expected=UNITS,
         weight_covered=covered,
         state=state_of(has_value, covered),
+        value=value,
     )
 
 
 def _rows(release: InMemoryRelease, files: _Files) -> Iterator[EvidenceRow]:
     known = journeys(release)
     measured = (files.homes, files.measures)
+    carried = {metric.feature_id for metric in release.metrics}
+    for area in release.neighbourhoods:
+        for feature_id in sorted(FEATURES):
+            if feature_id not in carried:
+                yield not_carried(fact_id(area.area_id, FactKind.FEATURE, feature_id))
     for value in release.features:
         key = fact_id(value.area_id, FactKind.FEATURE, value.feature_id)
-        yield _row(key, measured, value.value is not None, value.coverage)
+        yield _row(key, measured, value.value is not None, value.coverage, value.value)
     for tag in release.tags:
         key = fact_id(tag.area_id, FactKind.TAG, tag.tag_id)
-        yield _row(key, measured, tag.score is not None, tag.coverage)
+        yield _row(key, measured, tag.score is not None, tag.coverage, tag.score)
     for area in release.neighbourhoods:
         area_id = area.area_id
         yield _row(fact_id(area_id, FactKind.AREA, NAME), (files.areas,), True, 1.0)

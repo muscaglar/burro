@@ -1,0 +1,62 @@
+# The file of places that culture nearby is counted from: one file of one
+# release of Overture Maps Places, and of it the part round London. It is a
+# list of its own because it is the one file that fetch takes in part.
+#
+# Written before any fetch. A first fetch kept the part with no receipt,
+# because no person had then stated the period below. The founder has since
+# stated it, and the part has its receipt:
+# docs/research/data/culture-venues.md says what is built to read it, and
+# docs/research/data/overture-places.md what a first look at the same release
+# found.
+#
+# The publisher gives the places of the world as 16 files for each release,
+# each a Parquet file packed with zstd, and gives no file for a country or a
+# city. Its catalogue gives the box each file covers. One file covers the box
+# below, and it is the one listed. The other 15 lie wholly outside it.
+#
+# What `take` says, and where each part of it comes from:
+#   box       West, south, east and north, in degrees. The centres of London's
+#             26,369 output areas, read through the licence gate in the file of
+#             centres of the first build, span -0.497233 to 0.295567 degrees
+#             east and 51.298417 to 51.681978 degrees north. The box is that
+#             and 2,000 metres more on every side, rounded outward to two
+#             decimal places. 2,000 metres is over twice the 800 metres a
+#             measure reaches from a home. A box is not London: it holds land
+#             outside it, and a measure leaves out what it does not want.
+#   box_in    The column that holds the box each row fits in. The publisher's
+#             page on the layout of a place names it `bbox`, with the parts
+#             `xmin`, `ymin`, `xmax` and `ymax`.
+#   columns   The columns a measure of venues reads: where a place is, what
+#             kind it is, how sure the publisher is that it exists, whether it
+#             is open, and which of the publisher's own sources gave it, which
+#             the licence registry asks to be kept with every record. No name,
+#             no address, no telephone number, no website and no id of a place
+#             is taken. `sources` is taken whole, and it holds the id that the
+#             first publisher of a record gave it. A step reads the name of
+#             the dataset in it and nothing else. The file's layout names that
+#             column `sources.list.element.dataset`. To take it alone is
+#             another part, and so another fetch and another receipt.
+#
+# `uv run python -m burro_pipeline plan --list m2-culture --words` says what
+# the file still needs.
+schema_version = 1
+build = "m2-culture"
+
+[[file]]
+item = "overture-places-london"
+source_id = "overture-places"
+use = "scoring"
+what = "Overture Maps Places, release 2026-09-23.0, file 00007 of 16: the row groups that may hold a place in a box round London"
+format = "parquet"
+page = "https://docs.overturemaps.org/guides/places/"
+url = "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-09-23.0/theme=places/type=place/part-00007-61ac23fc-0af6-5d61-8c46-5776ba7e6bf0-c000.zstd.parquet"
+# The most the part may hold, its footer included. The whole file is 728,373,349 bytes, and
+# the part as a first fetch kept it is 42,484,081.
+max_bytes = 60_000_000
+edition = "2026-09-23.0"
+# The period was stated by the founder on 2026-09-24: as at the publisher's release of
+# 2026-09-23. It is the day of the release and not of each record: many records were
+# last changed years before it, and the words beside a figure must say so.
+data_period = { as_at = "2026-09-23" }
+take = { box = [-0.53, 51.28, 0.33, 51.71], box_in = "bbox", columns = ["geometry", "bbox", "taxonomy", "confidence", "operating_status", "sources"] }
+notes = "Address read on 2026-09-24 in the publisher's own catalogue, which the page above links to as its STAC catalog: https://stac.overturemaps.org/catalog.json names release 2026-09-23.0 as the latest, and https://stac.overturemaps.org/2026-09-23.0/places/place/00007/00007.json gives this address for the file, written whole, as its copy on AWS, with 728,373,349 bytes, 5,152,063 rows and 256 row groups. The catalogue was read as the JSON it is, and the address was copied from it letter for letter. No person has seen it. The same record gives a copy of the file on Azure, which is not listed. Which file holds London was read in https://stac.overturemaps.org/2026-09-23.0/places/place/collection.json, which gives the box of each of the 16 files: file 00007 covers -1.587778 to 6.285976 degrees east and 40.384407 to 62.686970 degrees north, and no other file's box meets the box taken. The edition is the release, which the address names and the catalogue states. The period stated here is the day of the release, which the catalogue gives as the day of the file. It was under unsure, and no receipt was written, until a person had decided that the day of a release is when its places are as at. The period was stated by the founder on 2026-09-24: the file is as at its publisher's release of 2026-09-23, and many records are years older. A first look found that most records of one of its sources were last changed in 2019 or before. So the period is the day of the release and not of each record, and the words beside a figure must say so. max_bytes was a guess of 250,000,000 until a first fetch kept the part, on 2026-09-24, with no receipt: describe gives 42,484,081 bytes for it, and says that it looks like a Parquet file. So max_bytes is set above that and is no longer under unsure. Describe reads no footer of a Parquet file, so it says nothing of the rows, of the period, or of how the layout names the columns inside sources. Whether the publisher sends a request on to another host is not known. The publisher's guide says that the property categories was removed from the layout with this release, and that taxonomy and basic_category stand in its place."

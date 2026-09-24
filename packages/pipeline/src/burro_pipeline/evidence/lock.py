@@ -9,6 +9,30 @@ It refuses a file that is kept for the audit or for the census table, which
 the gate lets through. A build then reads nothing the lock does not name:
 `Lock.admit` hashes what it is handed and refuses it if the hash is not there.
 
+A file that states its own edition. A publisher that replaces a file under one
+address leaves the list no edition to state, so the list says where the file
+states its own, and fetch writes the receipt from what it reads there. The
+store may then hold several editions of one file of the list, each with its
+receipt. Which one a build takes is this rule, and `take` is the one place
+that applies it:
+
+1. A receipt is of the item when fetch could have written it from the item: it
+   gives the item's source and use, the list's own address for the file, the
+   place the list says the edition is read in, and an edition that is the
+   list's words and then a day or a time. Where the file gives the edition
+   alone, the period is the list's, and the receipt gives that too.
+2. A build takes the edition it is told to take, named as the receipt writes
+   it. Told nothing, it takes the newest: the one whose edition states the
+   latest day. The day is the one the file states. It is never the day the
+   file was retrieved, and never the order of a folder.
+3. The lock says what was taken: beside the hash of such a file, the name the
+   list gives the file and the edition of the receipt. So the lock alone says
+   what was read, and a build that is told to take the editions a lock names
+   seals that lock again, whatever has arrived since.
+4. Two receipts of one item that state one edition stop the build: one edition
+   is one file, and nothing says which of the two is meant. So does an edition
+   that is named and that no receipt states.
+
 Every lock is the lock of a product release. The step that builds the census
 table, and the audit, are not built, and neither will read this lock.
 
@@ -22,20 +46,29 @@ never holds a row, a key or the address of the vault.
 """
 
 import hashlib
+import re
 from collections.abc import Iterable, Mapping, Sequence
+from dataclasses import dataclass
 from enum import StrEnum
 from pathlib import Path, PurePosixPath
-from typing import Literal, Protocol, Self
+from typing import Any, Literal, Protocol, Self
 
 from burro_core.ids import SYNTHETIC_PREFIX, ReleaseId, SourceId
-from pydantic import Field, ValidationError, model_validator
+from pydantic import (
+    Field,
+    SerializerFunctionWrapHandler,
+    ValidationError,
+    model_serializer,
+    model_validator,
+)
 
 from burro_pipeline.evidence.fence import is_kept_apart
-from burro_pipeline.evidence.receipt import Period, Receipt
+from burro_pipeline.evidence.receipt import EditionFrom, Period, Receipt, clean_url
 from burro_pipeline.evidence.record import (
     MADE_UP_SOURCE,
     EvidenceRecord,
     Sha256,
+    Text,
     Timestamp,
     file_id_of,
     in_words,
@@ -49,10 +82,23 @@ SCHEMA_VERSION = 1
 LOCKS_FOLDER = PurePosixPath("data/locks")
 COMMIT_PATTERN = r"^([0-9a-f]{40}|[0-9a-f]{64})$"
 NAME_PATTERN = r"^[a-z0-9][a-z0-9_.-]*(/[a-z0-9][a-z0-9_.-]*)*$"
+# The name a list gives a file, as fetch's lists write it.
+ITEM_PATTERN = r"^[a-z0-9]+(-[a-z0-9]+)*$"
+# A day or a time, as fetch writes it in the edition of a file that states its own.
+STATED = re.compile(r"\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}:\d{2}Z)?")
 CHUNK = 1 << 20
 
 MEANING: Mapping[str, str] = {
     "input_is_locked": "is not an input of this build: its hash is not in the lock",
+    "input_has_one_receipt": "has no receipt among those the step was given, or has more "
+    "than one that fits what the step asked for",
+    "input_is_as_described": "is not what the step was written to read",
+    "measure_is_as_core_says": "is not named or measured as the catalogue in core says the "
+    "measure is, so no release may carry it",
+    "measure_has_a_figure": "has a figure for no area, so there is nothing of it to carry",
+    "measure_is_not_held_back": "is held back: a check of its figures found that they do not "
+    "yet say what the measure is named for, so no release carries it, whatever the catalogue "
+    "in core says",
     "gate_refuses": "may not be used as its receipt says",
     "file_is_for_the_product": "is kept for the audit or for the census table, and no such "
     "file is an input of a product release",
@@ -65,10 +111,16 @@ MEANING: Mapping[str, str] = {
     "or names fewer times than there are receipts",
     "listed_file_has_one_receipt": "is one of two receipts of a file of one name, source, "
     "edition and period, and the list names each file once",
+    "named_edition_has_a_receipt": "is the edition of no receipt of a file of the list that "
+    "states its own edition",
     "real_release_needs_a_lock": "is not made up, and such a release is checked only against "
     "the lock of its build",
     "real_release_needs_a_registry": "is not made up, and such a release is checked only with "
     "the licence registry to hold its evidence to",
+    "real_release_needs_its_hashes": "is not made up, and such a release is checked only "
+    "against the hashes of its build",
+    "build_is_as_it_was_written": "is not as it was when the release was built: it has "
+    "changed since, or it is of another build",
     "file_is_in_the_vault": "is not in the vault, or is not the size its receipt gives",
     "licence_evidence_is_saved": "names licence evidence that is not saved in registry/evidence/",
     "one_receipt_for_a_file": "has more than one receipt",
@@ -112,6 +164,12 @@ class LockedInput(EvidenceRecord):
     bytes: int = Field(ge=1)
     # The registry entry the file was fetched under. Null for what is not a publisher's file.
     source_id: SourceId | None = None
+    # For a file that states its own edition: the name the list gives the file, and the
+    # edition the build took of it, as its receipt writes it. The list states no edition
+    # for such a file, so the lock does. A lock leaves both out for every other input,
+    # and is written as it was before the fields.
+    item: str | None = Field(default=None, pattern=ITEM_PATTERN)
+    edition: Text | None = None
 
     @model_validator(mode="after")
     def _holds_together(self) -> Self:
@@ -120,7 +178,22 @@ class LockedInput(EvidenceRecord):
             raise ValueError("a source is named exactly for a publisher's file")
         if from_a_publisher and self.name != file_id_of(self.sha256):
             raise ValueError("a publisher's file is named by its file_id")
+        if (self.item is None) != (self.edition is None):
+            raise ValueError("a file of the list and the edition taken of it are named together")
+        if self.edition is not None and not from_a_publisher:
+            raise ValueError("an edition is named for a publisher's file, and for nothing else")
         return self
+
+    @model_serializer(mode="wrap")
+    def _written_as_before_where_no_edition_was_taken(
+        self, written_by: SerializerFunctionWrapHandler
+    ) -> dict[str, Any]:
+        """An input whose edition the list states is the same bytes as it was before the fields."""
+        written: dict[str, Any] = written_by(self)
+        for later in ("item", "edition"):
+            if written.get(later) is None:
+                written.pop(later, None)
+        return written
 
 
 def _sha256_of(path: Path) -> tuple[str, int]:
@@ -183,6 +256,14 @@ class Lock(EvidenceRecord):
         return LOCKS_FOLDER / f"{self.release_id}.json"
 
 
+class Dated(Protocol):
+    """Where a file states its own edition, as an item of fetch's list says it."""
+
+    @property
+    def words(self) -> str: ...
+    def in_a_receipt(self) -> EditionFrom: ...
+
+
 class Wanted(Protocol):
     """One file of the list of a build, as `seal` reads it. An item of fetch's list is one.
 
@@ -198,24 +279,133 @@ class Wanted(Protocol):
     @property
     def use(self) -> Use: ...
     @property
+    def url(self) -> str: ...
+    @property
     def edition(self) -> str: ...
     @property
     def data_period(self) -> Period | None: ...
+    @property
+    def edition_from(self) -> Dated | None: ...
 
 
 # What a receipt and an item of the list both say of a file.
 Said = tuple[str, Use, str, Period | None]
 
 
-def _of_the_list(receipts: Sequence[Receipt], listed: Sequence[Wanted]) -> None:
-    """Refuse a folder of receipts that is not the receipts of the list, each once.
+def stated_in(receipt: Receipt, file: Wanted) -> str | None:
+    """The day or the time a receipt states, where it is a receipt of this file of a list.
+
+    It is one where fetch could have written it from the item: see the rule
+    at the top of this module. A receipt of anything else gives nothing, and
+    so does every receipt for a file whose edition the list states.
+    """
+    there = file.edition_from
+    if there is None or not file.url or receipt.edition_from != there.in_a_receipt():
+        return None
+    if (receipt.source_id, receipt.use) != (file.source_id, file.use):
+        return None
+    if receipt.listed_url != clean_url(file.url):
+        return None
+    if not there.in_a_receipt().period_too and receipt.data_period != file.data_period:
+        return None
+    words = f"{there.words} " if there.words else ""
+    found = receipt.edition.removeprefix(words)
+    if not receipt.edition.startswith(words) or not STATED.fullmatch(found):
+        return None
+    return found
+
+
+@dataclass(frozen=True)
+class Taken:
+    """The one edition of a file of a list that a build takes, of those that have a receipt."""
+
+    # The name the list gives the file.
+    item: str
+    receipt: Receipt
+    # The receipts of its other editions, the oldest first. They are no part of the build.
+    passed_over: tuple[Receipt, ...]
+    # Whether the build was told to take this edition. If not, it is the newest.
+    named: bool
+
+
+def take(
+    receipts: Iterable[Receipt],
+    listed: Iterable[Wanted],
+    editions: Mapping[str, str] | None = None,
+) -> tuple[tuple[Taken, ...], tuple[str, ...]]:
+    """For each file of a list that states its own edition, the receipt a build takes.
+
+    `editions` is what the build was told to take: the edition of a file, as
+    its receipt writes it, by the name the list gives the file. A file that is
+    not named there is taken at its newest edition, by the day the file
+    states. Also gives the names of the files that have no receipt at all, in
+    the order of the list. Nothing stands in for one.
+
+    Refuses two receipts of one file that state one edition, and an edition
+    that was named and that no receipt states. A file whose edition the list
+    states is left alone: it has the one edition, and none is named for it.
+    """
+    given = sorted(receipts, key=lambda receipt: receipt.file_id)
+    told = dict(editions or {})
+    found: list[Taken] = []
+    without: list[str] = []
+    for file in listed:
+        if file.edition_from is None:
+            continue
+        by_day: dict[str, Receipt] = {}
+        for receipt in given:
+            day = stated_in(receipt, file)
+            if day is None:
+                continue
+            if day in by_day:
+                raise LockError("listed_file_has_one_receipt", receipt.file_id)
+            by_day[day] = receipt
+        named = told.pop(file.item, None)
+        if named is not None:
+            chosen = [day for day, receipt in by_day.items() if receipt.edition == named]
+            if not chosen:
+                # What was named is not repeated: it may be anything.
+                raise LockError("named_edition_has_a_receipt", f"the edition named for {file.item}")
+        elif by_day:
+            chosen = [max(by_day)]
+        else:
+            without.append(file.item)
+            continue
+        others = tuple(by_day[day] for day in sorted(by_day) if day != chosen[0])
+        found.append(Taken(file.item, by_day[chosen[0]], others, named is not None))
+    if told:
+        raise LockError(
+            "named_edition_has_a_receipt",
+            "an edition that was named",
+            "the file it is named for is no such file of the list",
+        )
+    return tuple(found), tuple(without)
+
+
+def _of_the_list(
+    receipts: Sequence[Receipt], listed: Sequence[Wanted], editions: Mapping[str, str] | None
+) -> tuple[list[Receipt], dict[str, str]]:
+    """The receipts of the list, each once, or a refusal of a folder that is not those.
+
+    A file that states its own edition may have a receipt for each of several
+    editions. `take` says which one the build takes, and the others are put
+    aside. Also gives the name the list gives each such file, by the id of the
+    receipt that was taken.
 
     Files of one source, use, edition and period cannot be told apart by what
     the list says of them. They are counted: as many receipts as the list names
     files, each of a file with a name of its own.
     """
+    taken, without = take(receipts, listed, editions)
+    if without:
+        raise LockError("listed_file_has_a_receipt", without[0])
+    aside = {held.file_id for one in taken for held in (one.receipt, *one.passed_over)}
+    item_of = {one.receipt.file_id: one.item for one in taken}
+    receipts = [receipt for receipt in receipts if receipt.file_id not in aside]
     wanted: dict[Said, list[Wanted]] = {}
     for file in listed:
+        if file.edition_from is not None:
+            continue
         said = (file.source_id, file.use, file.edition, file.data_period)
         wanted.setdefault(said, []).append(file)
     found: dict[Said, list[Receipt]] = {}
@@ -233,16 +423,24 @@ def _of_the_list(receipts: Sequence[Receipt], listed: Sequence[Wanted]) -> None:
         for receipt in there:
             if names.count(receipt.publisher_file) > 1:
                 raise LockError("listed_file_has_one_receipt", receipt.file_id)
+    kept = [*receipts, *(one.receipt for one in taken)]
+    return sorted(kept, key=lambda receipt: receipt.file_id), item_of
 
 
-def locked(receipt: Receipt) -> LockedInput:
-    """A publisher's file as a lock names it."""
+def locked(receipt: Receipt, item: str | None = None) -> LockedInput:
+    """A publisher's file as a lock names it.
+
+    `item` is the name the list gives a file that states its own edition. The
+    lock then says which edition of it the build took.
+    """
     return LockedInput(
         name=receipt.file_id,
         kind=InputKind.PUBLISHER_FILE,
         sha256=receipt.sha256,
         bytes=receipt.bytes,
         source_id=receipt.source_id,
+        item=item,
+        edition=None if item is None else receipt.edition,
     )
 
 
@@ -303,6 +501,7 @@ def seal(
     packages: str | None = None,
     others: Iterable[LockedInput] = (),
     listed: Sequence[Wanted] | None = None,
+    editions: Mapping[str, str] | None = None,
 ) -> Lock:
     """The lock of a build, or a refusal that names the first file that may not be in it.
 
@@ -317,6 +516,10 @@ def seal(
     listing: the size of each file by its key. `others` are the inputs that are
     not a publisher's file. A made-up file is in no vault, under no registry
     entry and in no list, so none is asked about it.
+
+    `editions` is what the build is told to take of a file that states its own
+    edition: the edition, by the name the list gives the file. Of a file that
+    is not named there the newest edition is taken, and the lock says which.
     """
     made_up = release_id.startswith(SYNTHETIC_PREFIX)
     commit = code_at(root, commit)
@@ -331,14 +534,15 @@ def seal(
         # out of a build.
         if is_kept_apart(receipt, registry):
             raise LockError("file_is_for_the_product", receipt.file_id)
+    item_of: dict[str, str] = {}
     if listed is not None:
-        _of_the_list(given, listed)
+        given, item_of = _of_the_list(given, listed, editions)
     sealed: dict[str, LockedInput] = {}
     for receipt in given:
         if receipt.file_id in sealed:
             raise LockError("one_receipt_for_a_file", receipt.file_id)
         _kept(receipt, vault, root)
-        sealed[receipt.file_id] = locked(receipt)
+        sealed[receipt.file_id] = locked(receipt, item_of.get(receipt.file_id))
     inputs = sorted([*sealed.values(), *others], key=lambda locked: locked.name)
     if not made_up and not inputs:
         raise LockError("lock_has_an_input", "the lock")

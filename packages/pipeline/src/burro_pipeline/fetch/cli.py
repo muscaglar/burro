@@ -34,7 +34,7 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from burro_pipeline.command import PROG, Step, add_step
-from burro_pipeline.evidence import Receipt
+from burro_pipeline.evidence import Receipt, Where
 from burro_pipeline.evidence.receipt import RECEIPTS_FOLDER
 from burro_pipeline.fetch import gate
 from burro_pipeline.fetch.by_hand import keep_by_hand
@@ -47,6 +47,7 @@ from burro_pipeline.fetch.run import (
     Downloader,
     Outcome,
     Status,
+    Taker,
     Why,
     fetch,
     host_mark,
@@ -54,7 +55,14 @@ from burro_pipeline.fetch.run import (
     summary,
     write_receipt,
 )
-from burro_pipeline.fetch.sources import FetchList, Listed, ListError, load_list
+from burro_pipeline.fetch.sources import (
+    FetchList,
+    InTheFile,
+    Listed,
+    ListError,
+    Take,
+    load_list,
+)
 from burro_pipeline.fetch.store import (
     FOLDER_VARIABLE,
     S3_VARIABLES,
@@ -64,6 +72,7 @@ from burro_pipeline.fetch.store import (
     find,
     store_from_environment,
 )
+from burro_pipeline.fetch.take import take_part
 from burro_pipeline.registry import Registry, RegistryError, load
 
 RECEIPTS = Path(RECEIPTS_FOLDER)
@@ -90,7 +99,9 @@ STEPS = (
 Run it before a fetch. For each file of the list it says whether the registry
 allows the source for the use the list gives, whether the file is as the
 registry entry of its source has it, whether the list holds the address of
-the file, and whether its edition and its period are stated.
+the file, and whether its edition and its period are stated. A file whose
+publisher names no edition is ready where the list says, under `edition_from`,
+where the file states its own: fetch reads it in what arrives.
 
 A file is as its entry has it when its page is one the entry holds, its
 address is one the entry names for its files under `file_urls`, and nothing
@@ -125,6 +136,12 @@ anything is asked of a publisher, and each file is held to the registry entry
 of its source. If one file of the list is refused, no file is fetched, whether
 or not that file was asked for.
 
+Where the list says under `take` which part of a file to take, the end of the
+file and its footer are asked for first, and then the bytes of that part and
+no other. What is kept is the part, and its receipt says which file it is
+part of, which row groups were taken, and where in the file each run of bytes
+lies. `plan --words` says what the list asks for.
+
 This is the only step that reaches a publisher.
 
 {THE_STORE}
@@ -135,8 +152,10 @@ publisher can reach a person. It is sent with every request.
 
 Writes each file to the store, and its receipt under --receipts. A receipt is
 written only when the list states the file's edition and period and is sure
-of both. Commit the receipts: every figure is cited to one. A copy of each is
-kept in the store too, and the step `receipts` brings the copies back.
+of both, or says where the file states its own. That is read in what arrives,
+before it is kept, and nothing else of the file is. Commit the receipts: every
+figure is cited to one. A copy of each is kept in the store too, and the step
+`receipts` brings the copies back.
 
 What goes wrong with one file is said of that file, and the run goes on to
 the next: an address that cannot be asked, a publisher that refuses, a fault
@@ -245,8 +264,12 @@ always tell. So treat all it prints as if it held a row, and paste it nowhere
 that others can read. No workflow runs it.
 
   a CSV          its column names and its row count
-  a workbook     its sheets, and the same for each sheet
-  a GeoPackage   its layers, their fields and how many features each holds
+  a workbook     its sheets, and the same for each sheet. For an OpenDocument
+                 workbook, --sheet gives the words of one sheet too: each row
+                 that holds words alone, as a cover, notes and the title over
+                 a table do. A row that holds a number is never given
+  a GeoPackage   its layers, their fields, how many features each holds, and
+                 the day each says it was last changed
   a zip          the names and sizes inside. With --inside, the shape of each
 
 Name a stored file by its file id or its hash, or a file on disk with --path.
@@ -258,7 +281,12 @@ reaches no network.
 
 Prints JSON in plain ASCII. For a stored file its last field, `store`, says
 which kind of store it was given: a folder, or an object store.""",
-        ("f-0123456789ab", "f-0123456789ab --inside", "--path saved/File_8.xlsx"),
+        (
+            "f-0123456789ab",
+            "f-0123456789ab --inside",
+            "f-0123456789ab --sheet Notes",
+            "--path saved/File_8.xlsx",
+        ),
         {0: "The shape was printed", 2: "The file could not be found or read", 3: A_FAULT},
     ),
     Step(
@@ -306,7 +334,8 @@ def _chosen(listed: FetchList, only: Sequence[str]) -> list[tuple[int, Listed]]:
 BEFORE_A_RUN = {
     Why.NOT_SURE: (
         "A fetch would store the file and write no receipt, because the list does not state "
-        "its edition and its period, or is not sure of them. State both in the list"
+        "its edition and its period, or is not sure of them. State both in the list. Where "
+        "the file states its own edition and the list says where, state the period"
     ),
 }
 
@@ -343,6 +372,10 @@ def _plan(args: argparse.Namespace) -> int:
             if args.words:
                 unsure = f" Not sure of: {', '.join(file.unsure)}." if file.unsure else ""
                 print(f"  {file.item}: {file.what}. Page: {file.page}{unsure}")
+                if file.edition_from is not None:
+                    print(f"  {_read_in_the_file(file.edition_from)}")
+                if file.take is not None:
+                    print(f"  {_taken_in_part(file.take)}")
                 print(f"  Hosts, each with what a run prints for it: {_hosts_of(file, registry)}")
                 if why is not None:
                     before = BEFORE_A_RUN.get(why)
@@ -351,6 +384,24 @@ def _plan(args: argparse.Namespace) -> int:
     status = Status.OK if ready else Status.MISSING
     print(f"step=plan status={status} files={len(listed.files)} ready={good}")
     return 0 if ready else 1
+
+
+def _read_in_the_file(there: InTheFile) -> str:
+    """Where fetch reads the edition of a file that states its own, for a person."""
+    if there.where is Where.RETRIEVED:
+        return "The file holds no date. Its edition is the day it is retrieved."
+    period = "and its period too" if there.period_too else "and its period is the list's"
+    return f"Fetch reads its edition in the file, {period}: {there.where}, at {there.at}."
+
+
+def _taken_in_part(take: Take) -> str:
+    """Which part of a file fetch takes, for a person."""
+    west, south, east, north = take.box
+    return (
+        f"Fetch takes part of the file: the row groups that may hold a row between {west} and "
+        f"{east} degrees east and between {south} and {north} degrees north, by {take.box_in}, "
+        f"and of those the columns {', '.join(sorted(take.columns))}."
+    )
 
 
 def _hosts_of(file: Listed, registry: Registry) -> str:
@@ -372,7 +423,12 @@ def _cannot_be_asked(file: Listed) -> Why | None:
     return None
 
 
-def _fetch(args: argparse.Namespace, environment: Mapping[str, str], downloader: Downloader) -> int:
+def _fetch(
+    args: argparse.Namespace,
+    environment: Mapping[str, str],
+    downloader: Downloader,
+    taker: Taker = take_part,
+) -> int:
     listed, registry = _list(args), _registry(args)
     chosen = _chosen(listed, args.only)
     try:
@@ -389,6 +445,7 @@ def _fetch(args: argparse.Namespace, environment: Mapping[str, str], downloader:
         agent=agent,
         only={file.item for _, file in chosen},
         downloader=downloader,
+        taker=taker,
         said=lambda outcome: _say(outcome, args.words),
         debug=environment.get(DEBUG) == "1",
     )
@@ -422,14 +479,14 @@ def _describe(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
         raise Stop("describe takes a file id or a hash, or --path and a file, and not both")
     try:
         if args.path is not None:
-            shape = describe(args.path, inside=args.inside)
+            shape = describe(args.path, inside=args.inside, sheet=args.sheet)
         else:
             store = _store(environment)
             held = find(store, args.reference)
             with tempfile.TemporaryDirectory(prefix="burro-describe-") as folder:
                 copy = Path(folder) / "file"
                 store.get(held.sha256, copy)
-                found = describe(copy, inside=args.inside)
+                found = describe(copy, inside=args.inside, sheet=args.sheet)
             shape = {"file_id": held.file_id, "source": held.source_id, "sha256": held.sha256}
             # What is printed is read as JSON, so the kind of store is a field of it, and
             # the last: a file read from a folder must not look like one read from the store.
@@ -603,6 +660,11 @@ def build(prog: str = PROG) -> tuple[argparse.ArgumentParser, dict[str, argparse
     step["describe"].add_argument(
         "--inside", action="store_true", help="for a zip, give the shape of each file inside it"
     )
+    step["describe"].add_argument(
+        "--sheet",
+        metavar="NAME",
+        help="for an OpenDocument workbook, give the words of this one sheet too",
+    )
     return whole, step
 
 
@@ -615,6 +677,7 @@ def main(
     argv: Sequence[str] | None = None,
     environment: Mapping[str, str] | None = None,
     downloader: Downloader = download,
+    taker: Taker = take_part,
 ) -> int:
     args = parsed(argv)
     environment = os.environ if environment is None else environment
@@ -622,7 +685,7 @@ def main(
         if args.command == "plan":
             return _plan(args)
         if args.command == "fetch":
-            return _fetch(args, environment, downloader)
+            return _fetch(args, environment, downloader, taker)
         if args.command == "by-hand":
             return _by_hand(args, environment)
         if args.command == "describe":

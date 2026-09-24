@@ -56,7 +56,18 @@ LOADS_BY_NAME = {"importlib", "runpy", "pkgutil", "zipimport"}
 # Every package the pipeline and core may import that is not part of Python. One that is
 # added may be able to reach a network by itself, so it is added here by a person, with
 # a reason in the change. Rule 12 of AGENTS.md.
-PACKAGES_ALLOWED = {"burro_core", "burro_pipeline", "pydantic"}
+# `shapely` joins and measures outlines, and `pyproj` turns the National Grid to longitude and
+# latitude. Both are named in section 13 of the pipeline design, and one module imports them:
+# `cells/shapes.py`. Neither is asked to reach a network: the coordinate library's own
+# fetching of grid files is turned off there, and a test holds it off.
+# `pyarrow` reads the one publisher's file that is laid out as Parquet and packed with zstd,
+# which Python cannot unpack by itself. One module imports it: `derive/culture_file.py`. It
+# is handed a file that is open and never an address, and it is asked for the reader of
+# Parquet alone: the parts of it that open a file by its address are never named.
+PACKAGES_ALLOWED = {"burro_core", "burro_pipeline", "pydantic", "pyarrow", "pyproj", "shapely"}
+# The one module that names the Parquet library, and the parts of the library it may name.
+READS_PARQUET = Path(burro_pipeline.__file__).parent / "derive" / "culture_file.py"
+OF_THE_PARQUET_LIBRARY = {"pyarrow", "pyarrow.parquet"}
 NEVER_CALLED = {"__import__", "eval", "exec", "compile", "breakpoint"}
 
 
@@ -138,6 +149,61 @@ def test_every_package_that_is_not_part_of_python_is_one_a_person_allowed(path: 
     tops = {name.split(".")[0] for name in imported(path) if name}
     outside = tops - set(sys.stdlib_module_names) - PACKAGES_ALLOWED
     assert not outside, f"{label(path)} imports {sorted(outside)}: see PACKAGES_ALLOWED"
+
+
+def test_one_module_names_the_parquet_library_and_only_its_reader():
+    """The library can open a file on an object store by its address. It is never asked to."""
+    naming = {
+        path: {name for name in imported(path) if name.split(".")[0] == "pyarrow"}
+        for path in MODULES
+    }
+    assert {path for path, names in naming.items() if names} == {READS_PARQUET}
+    assert naming[READS_PARQUET] == OF_THE_PARQUET_LIBRARY
+
+
+def test_the_parquet_library_is_handed_a_file_that_is_open_and_never_an_address():
+    """Handed words in place of a file, the library opens what they name, and may reach for it.
+
+    So the one module that names the library asks it for two things and no other: to read a
+    file, and to read a footer. Each is handed a file that is open, by its name in the
+    module, or bytes that are held. Nothing else of the library is named but its types.
+    """
+    tree = parsed(READS_PARQUET)
+    short = {"pq": "pyarrow.parquet", "pa": "pyarrow"}
+    asked = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Attribute)
+        and isinstance(node.value, ast.Name)
+        and node.value.id in short
+    ]
+    assert {(node.value.id, node.attr) for node in asked if isinstance(node.value, ast.Name)} == {
+        ("pq", "ParquetFile"),
+        ("pq", "read_metadata"),
+        ("pa", "types"),
+        ("pa", "ArrowException"),
+    }
+    calls = [
+        node
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "pq"
+    ]
+    assert len(calls) == 3
+    for call in calls:
+        assert {word.arg for word in call.keywords} <= {"metadata", "pre_buffer"}
+        (handed,) = call.args
+        assert ast.unparse(handed) in ("file", "view", "io.BytesIO(view.footer_alone())")
+    opened = [
+        ast.unparse(item.context_expr)
+        for node in ast.walk(tree)
+        if isinstance(node, ast.With)
+        for item in node.items
+    ]
+    assert "opened.path.open('rb')" in opened
+    assert "TakenFile(opened.path, taken.runs, taken.of_bytes)" in opened
 
 
 def test_the_downloader_reads_no_proxy_cookie_or_login_from_the_machine():

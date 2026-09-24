@@ -4,6 +4,10 @@ Its key is the `fact_id` of contract 7.1, so a fact and its evidence cannot
 part. It says which files the figure was worked out from, by which method, how
 much of the area the data covered, and in which state that leaves the figure.
 A missing figure has a row too: the row is what says why it is missing.
+
+The row of a measure or of a tag holds the figure too. A row that only said
+there was a figure would stand behind any figure at all. The row of a cost
+holds it where the cost is one number: a publisher's median, with no range.
 """
 
 from enum import StrEnum
@@ -24,7 +28,8 @@ from burro_pipeline.evidence.record import (
 )
 
 # The kinds of fact that have a row of their own. A `budget_fit` rests on the row of its
-# cost, a `missing` on the row of the area's name, and a journey on the row of its mode.
+# cost, a `missing` on the row of the area's name, and a journey on the row of its mode. A
+# `likeness` rests on the rows of the measures it was counted from.
 ROW_KINDS = (
     FactKind.AREA,
     FactKind.FEATURE,
@@ -34,6 +39,10 @@ ROW_KINDS = (
     FactKind.TRAVEL,
 )
 ROW_ID_PATTERN = rf"^(syn|lon)-n[0-9a-z]+/({'|'.join(ROW_KINDS)})/[0-9a-z][0-9a-z_.-]*$"
+# The kinds of fact that are one number: the figure of a measure, the score of a tag, and a
+# cost that is a publisher's median with no range. A cost that is a range is three numbers,
+# and its row holds none.
+HOLDS_A_FIGURE = (FactKind.FEATURE, FactKind.TAG, FactKind.COST)
 # At or above this share of an area's homes, a figure is said to cover the area.
 FULLY_COVERED = 0.99
 
@@ -49,7 +58,7 @@ class State(StrEnum):
     SOURCE_GAP = "source_gap"  # the publisher holds nothing for these units
     SUPPRESSED = "suppressed"  # the publisher withheld it
     NOT_PUBLISHED = "not_published"  # the publisher does not publish it for areas this small
-    NOT_CARRIED = "not_carried"  # this release has no cleared source for the measure
+    NOT_CARRIED = "not_carried"  # this build does not work the measure out
 
 
 HAS_A_VALUE = frozenset({State.PRESENT, State.PARTIAL})
@@ -64,6 +73,21 @@ class Flag(StrEnum):
     ROUNDED_IN_SOURCE = "rounded_in_source"
     SUPPRESSED_IN_SOURCE = "suppressed_in_source"
     UNIT_SPLIT = "unit_split"
+
+
+def not_carried(fact_id: str) -> "EvidenceRow":
+    """The row that says a release holds no figure, because it carries no such measure."""
+    return EvidenceRow(
+        fact_id=fact_id,
+        derivation_id=None,
+        inputs=(),
+        data_period=None,
+        retrieved_on=None,
+        units_used=0,
+        units_expected=0,
+        weight_covered=0.0,
+        state=State.NOT_CARRIED,
+    )
 
 
 def state_of(has_value: bool, covered: float) -> State:
@@ -93,6 +117,10 @@ class EvidenceRow(EvidenceRecord):
     weight_covered: Share
     state: State
     flags: tuple[Flag, ...] = ()
+    # The figure itself, as the release gives it: the value of a measure, the score of a
+    # tag, or the median of a cost that has no range. `check` holds the release to it, so a
+    # figure changed after the build is found.
+    value: float | None = Field(default=None, allow_inf_nan=False)
 
     @model_validator(mode="after")
     def _holds_together(self) -> Self:
@@ -109,6 +137,12 @@ class EvidenceRow(EvidenceRecord):
             raise ValueError("a method, a period and a date are given exactly when a file is")
         if not self._weight_suits_the_state():
             raise ValueError("weight_covered does not suit the state")
+        if self.value is not None and self.state not in HAS_A_VALUE:
+            raise ValueError("a figure is held only by a row that has one")
+        if self.value is not None and self.fact_id.split("/")[1] not in HOLDS_A_FIGURE:
+            raise ValueError(
+                "a figure is held only by a row of a measure or of a tag, or of a cost"
+            )
         return self
 
     def _weight_suits_the_state(self) -> bool:

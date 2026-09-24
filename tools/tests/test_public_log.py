@@ -8,11 +8,13 @@ from pathlib import Path
 import pytest
 from public_log import (
     COUNTS,
+    FEATURES,
     HASHES,
     RULES,
     SECRET_NAMES,
     SECRETS_OF,
     STATUSES,
+    TRAVEL_RULES,
     forms_of,
     is_public,
     main,
@@ -158,6 +160,27 @@ def test_every_rule_the_evidence_names_may_be_counted_and_no_other():
     from burro_pipeline.evidence.served import MEANING as of_the_check
 
     assert set(of_the_lock) | set(of_the_check) == RULES
+
+
+def test_every_rule_the_travel_step_names_may_be_counted_and_no_other():
+    from burro_pipeline.travel.engine import MEANING as of_what_is_routed
+    from burro_pipeline.travel.feed import MEANING as of_the_timetable
+
+    assert set(of_the_timetable) | set(of_what_is_routed) == TRAVEL_RULES
+    assert not TRAVEL_RULES & (COUNTS | RULES | HASHES)
+    assert all(is_public(f"step=travel status=refused {rule}=1") for rule in TRAVEL_RULES)
+    assert not any(is_public(f"{rule}={HASH}") for rule in TRAVEL_RULES)
+
+
+def test_a_measure_is_named_by_its_id_in_cores_catalogue_and_by_nothing_else():
+    from burro_core.ids import FeatureId
+
+    assert {feature.value for feature in FeatureId} == FEATURES
+    assert is_public("step=derive status=ok feature=homes_flats areas=24 values=24 files=3")
+    assert is_public("step=derive status=skipped feature=noise_exposure input_has_one_receipt=1")
+    assert is_public("step=derive status=skipped feature=venue_evening measure_is_not_held_back=1")
+    for line in ("feature=brackenhythe", "feature=3", "feature=homes_flats,0.5", "measure=x"):
+        assert not is_public(line)
 
 
 # What fetch says of a store, of what arrived, and of a host

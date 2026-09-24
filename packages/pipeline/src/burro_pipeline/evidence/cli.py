@@ -21,12 +21,21 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import cast
 
-from burro_core.release import InMemoryRelease
+from burro_core.release import EVIDENCE, HASHES, LOCK, MANIFEST, Hashes, InMemoryRelease
 from pydantic import ValidationError
 
 from burro_pipeline.command import PROG, Step, add_step
-from burro_pipeline.evidence.coverage import cover, report, summary
-from burro_pipeline.evidence.lock import LOCKS_FOLDER, LockError, read_lock, read_receipts, seal
+from burro_pipeline.evidence.coverage import LeftOut, cover, report, summary
+from burro_pipeline.evidence.lock import (
+    LOCKS_FOLDER,
+    MEANING,
+    LockError,
+    Taken,
+    read_lock,
+    read_receipts,
+    seal,
+    take,
+)
 from burro_pipeline.evidence.made_up import made_up_evidence
 from burro_pipeline.evidence.receipt import RECEIPTS_FOLDER
 from burro_pipeline.evidence.record import FILE_ID_PATTERN, given, in_words
@@ -41,11 +50,24 @@ FILE_ID = re.compile(FILE_ID_PATTERN)
 STEP = {"seal": "seal", "check": "check", "coverage": "report"}
 
 SYNTHETIC = "data/fixtures/synthetic/syn-2026-09-23-01"
+# Where the record of a build says what it left out.
+LEFT_OUT = "measures_left_out"
 UNREADABLE = "An input could not be read, or an argument is wrong. The reason is said in words"
 REFUSED = "A file may not be in the build, or an input could not be read. The line names the rule"
 MADE_UP = """\
 With --made-up it runs on a synthetic release and on evidence made up for it,
 so that the step can be tried before any file is fetched."""
+# What `seal` and `preview` both say of a file that states its own edition.
+OWN_EDITION = """\
+A file that states its own edition may have a receipt for each of several
+editions: its publisher puts another file at the same address, and each that
+was fetched stands beside the last. The build takes one of them. With
+--edition ITEM=EDITION it takes the edition that is named, of the file the
+list calls ITEM, written as its receipt writes it. Told nothing, it takes the
+newest, by the day the file states of itself. The lock says which edition was
+taken of each such file, so a later build that is given the editions a lock
+names reads the files that lock names, whatever has arrived since. Two
+receipts of one file that state one edition stop the build."""
 
 STEPS = (
     Step(
@@ -71,6 +93,8 @@ folder must hold no receipt that the list does not name. So a receipt of an
 edition that is no longer listed is moved out of the folder first. It stays
 in the history of the repository.
 
+{OWN_EDITION}
+
 For each receipt, in this order: the licence registry is asked again whether
 the file may be used as its receipt says, because a source can lose its
 approval after it was fetched. Then the vault's listing must hold the file, at
@@ -89,6 +113,9 @@ receipts: to approve a release is to commit its lock.
         (
             "--release-id lon-2026-10-02-01 --built-at 2026-10-02T09:00:00Z "
             "--list m1 --vault-listing listing.json",
+            "--release-id lon-2026-10-02-01 --built-at 2026-10-02T09:00:00Z "
+            "--list m2-places --vault-listing listing.json "
+            '--edition fsa-camden="extract of 2026-09-16"',
             f"--made-up {SYNTHETIC} --out scratch/locks",
         ),
         {0: "The lock was written", 2: REFUSED},
@@ -102,6 +129,10 @@ fact the release would show, and looks for the row of evidence behind each: a
 row with a figure, resting on a file from every source the fact cites. Every
 file a row rests on must be in the lock of the build. A release that is not
 made up is not checked without its lock.
+
+The row of a measure or of a tag holds the figure, and the release is held to
+it. A release that is not made up is held to the hashes of its build too: the
+manifest, the evidence and the lock must each be as they were written.
 
 Every method the evidence holds must name a module of the pipeline or of core
 that is there, so that a person can read how a figure was worked out.
@@ -121,7 +152,7 @@ Which facts were found is never printed: it goes to the file --list names.
         (
             f"{SYNTHETIC} --made-up",
             "releases/lon-2026-10-02-01 --evidence evidence.json "
-            "--lock data/locks/lon-2026-10-02-01.json --list findings.txt",
+            "--lock data/locks/lon-2026-10-02-01.json --hashes hashes.json --list findings.txt",
         ),
         {0: "Every fact has evidence behind it", 1: "Some fact has none", 2: UNREADABLE},
     ),
@@ -134,7 +165,13 @@ gives one of seven states, and the report counts them by source, by measure
 and by area, and lists every gap. Nothing is filled in: a figure that is
 missing is counted as missing.
 
-Reads the release, and its evidence if one is given. Reaches no network.
+A build may work a measure out and leave it out of the release. Give --build
+the record the build wrote beside the release, and the report says of each
+such measure which rule kept it out and what it waits on. Without it such a
+measure reads as one that no step works out.
+
+Reads the release, its evidence if one is given, and the record of the build
+if one is given. Reaches no network.
 
 Writes the report, in Markdown, to the file --out names. The report names
 areas, so it is written to a file and never printed. Prints one line of counts.
@@ -143,7 +180,7 @@ areas, so it is written to a file and never printed. Prints one line of counts.
         (
             f"{SYNTHETIC} --made-up --out coverage.md",
             "releases/lon-2026-10-02-01 --evidence evidence.json --out coverage.md "
-            "--homes homes.json --json coverage.json",
+            "--homes homes.json --json coverage.json --build build.json",
         ),
         {0: "The report was written", 2: UNREADABLE},
     ),
@@ -153,6 +190,18 @@ areas, so it is written to a file and never printed. Prints one line of counts.
 # What a person can do about each refusal of the lock. It is said after what is wrong.
 TO_DO = {
     "input_is_locked": "Seal the lock again if the file belongs in the build",
+    "input_has_one_receipt": f"Fetch the file, or bring its receipt back with `{PROG} "
+    "receipts`. If two editions of it have a receipt, move the one that is no part of this "
+    "build out of the folder",
+    "input_is_as_described": f"See what the file holds with `{PROG} describe`. If its "
+    "publisher has changed its layout, the step that reads it is changed to suit",
+    "measure_is_as_core_says": "Change the catalogue in core or the measure, in a change a "
+    "person reads. Until then the measure is left out of the release",
+    "measure_has_a_figure": f"See what the file holds with `{PROG} describe`. Until an area "
+    "has a figure the measure is left out of the release",
+    "measure_is_not_held_back": "Settle what the measure says holds it back, and take that out "
+    "of its module in a change a person reads. Until then the measure is left out of the "
+    "release",
     "gate_refuses": "The registry entry says what would change this. Until it does, take the "
     "receipt out of the build",
     "file_is_for_the_product": "Take its receipt out of the build. A file about residents is "
@@ -165,8 +214,15 @@ TO_DO = {
     "not, move its receipt out of the folder: it stays in the history of the repository",
     "listed_file_has_one_receipt": "Move the receipt of the file that is no part of this build "
     "out of the folder",
+    "named_edition_has_a_receipt": "Give --edition the name the list gives the file, and an "
+    "edition as a receipt of that file writes it. Or leave --edition out, and the build takes "
+    "the newest",
     "real_release_needs_a_lock": "Give --lock, with the lock that was sealed for the build",
     "real_release_needs_a_registry": "Give --registry, or run the step in the repository",
+    "real_release_needs_its_hashes": "Give --hashes, with the hashes the build wrote beside "
+    "the release",
+    "build_is_as_it_was_written": "Build the release again under a new id. A release, its "
+    "evidence and its lock are never changed once written",
     "file_is_in_the_vault": f"Make the listing again with `{PROG} held --out FILE`. If the file "
     "is not in it, fetch the file again",
     "licence_evidence_is_saved": "Save a dated copy of the terms there, under the name the "
@@ -204,6 +260,74 @@ def public(step: str, status: str, **counted: object) -> str:
     """One line that may be read by anyone: the step, its status, counts and hashes."""
     pairs = {"step": step, "status": status} | counted
     return " ".join(f"{key}={value}" for key, value in pairs.items())
+
+
+def an_edition(given: str) -> tuple[str, str]:
+    """What `--edition` names: a file of the list, and the edition to take of it."""
+    item, _, edition = given.partition("=")
+    if not item or not edition:
+        # What was given is not repeated: it may be anything.
+        raise argparse.ArgumentTypeError(
+            "it is given as ITEM=EDITION: the name the list gives the file, and the edition "
+            "as a receipt of the file writes it"
+        )
+    return item, edition
+
+
+def add_edition(step: argparse.ArgumentParser) -> None:
+    """Let a step be told which edition to take of a file that states its own."""
+    step.add_argument(
+        "--edition",
+        action="append",
+        type=an_edition,
+        metavar="ITEM=EDITION",
+        help="the edition to take of a file that states its own: the name the list gives "
+        'the file, and the edition as its receipt writes it, as fsa-camden="extract of '
+        '2026-09-16". Give it once for each file. Of a file that is not named the newest '
+        "edition is taken",
+    )
+
+
+def editions_of(args: argparse.Namespace) -> dict[str, str]:
+    """What a build was told to take, by the name the list gives each file."""
+    return dict(args.edition or ())
+
+
+def named_once(args: argparse.Namespace) -> bool:
+    """Whether `--edition` names each file once. Named twice, nothing says which is meant."""
+    return len(editions_of(args)) == len(args.edition or ())
+
+
+def taken_counted(taken: Sequence[Taken]) -> dict[str, int]:
+    """What a line says of the files that state their own edition. It names none of them.
+
+    How many the build took, how many of those it was told to take, and how
+    many receipts of other editions it passed over. A build that reads no
+    such file says nothing of them, and prints as it did before there were any.
+    """
+    if not taken:
+        return {}
+    return {
+        "own_edition": len(taken),
+        "named": sum(one.named for one in taken),
+        "passed_over": sum(len(one.passed_over) for one in taken),
+    }
+
+
+def taken_in_words(taken: Sequence[Taken]) -> list[str]:
+    """A note for each file of which the build took one edition of several, or a named one."""
+    notes: list[str] = []
+    for one in taken:
+        if not (one.named or one.passed_over):
+            continue
+        editions = len(one.passed_over) + 1
+        held = "1 edition" if editions == 1 else f"{editions} editions"
+        how = "the one that was named" if one.named else "the newest"
+        notes.append(
+            f"note: {one.item} has {held} with a receipt. This build takes {how}, and its "
+            f"lock says which. To take another, give --edition {one.item}=EDITION"
+        )
+    return notes
 
 
 def _json(path: Path, what: str) -> object:
@@ -245,6 +369,7 @@ def _list(which: str) -> FetchList:
 
 
 def _seal(args: argparse.Namespace) -> int:
+    editions = editions_of(args)
     if args.made_up:
         release = read_release(args.made_up)
         receipts = made_up_evidence(release).receipts
@@ -270,7 +395,9 @@ def _seal(args: argparse.Namespace) -> int:
         args.root,
         packages,
         listed=listed,
+        editions=editions,
     )
+    taken, _ = take(receipts, listed or (), editions)
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / lock.path().name).write_bytes(lock.canonical())
     print(
@@ -279,15 +406,49 @@ def _seal(args: argparse.Namespace) -> int:
             "ok",
             release=lock.release_id,
             inputs=len(lock.inputs),
+            **taken_counted(taken),
             development=int(lock.development),
             lock_sha256=lock.digest(),
         )
     )
+    for note in taken_in_words(taken):
+        print(note, file=sys.stderr)
     return 0
+
+
+def _sha256(path: Path, what: str) -> str:
+    try:
+        return hashlib.sha256(path.read_bytes()).hexdigest()
+    except OSError as error:
+        raise Refused(f"cannot read {what} {path.name}: {error.strerror}") from None
+
+
+def _hold_to_the_hashes(args: argparse.Namespace, release: InMemoryRelease) -> None:
+    """Refuse a release that is not made up unless it is as the hashes of its build say."""
+    release_id = release.manifest.release_id
+    if args.lock is None:
+        raise LockError("real_release_needs_a_lock", release_id)
+    if args.hashes is None:
+        raise LockError("real_release_needs_its_hashes", release_id)
+    try:
+        hashes = Hashes.model_validate(_json(args.hashes, "the hashes"))
+    except ValidationError:
+        raise Refused(f"{args.hashes.name} is not the hashes of a build") from None
+    held = (
+        (HASHES, hashes.release_id, release_id),
+        (MANIFEST, hashes.manifest_sha256, _sha256(args.folder / MANIFEST, "the manifest")),
+        (EVIDENCE, hashes.evidence_sha256, _sha256(args.evidence, "evidence")),
+        (LOCK, hashes.lock_sha256, _sha256(args.lock, "the lock")),
+    )
+    for name, written, found in held:
+        if written != found:
+            raise LockError("build_is_as_it_was_written", name)
 
 
 def _check(args: argparse.Namespace) -> int:
     release = read_release(args.folder)
+    if not release.manifest.synthetic:
+        _hold_to_the_hashes(args, release)
     evidence = _evidence(args, release)
     # A made-up release cites no source, so no registry is read for it.
     registry = None if release.manifest.synthetic else load(args.registry)
@@ -316,15 +477,38 @@ def _check(args: argparse.Namespace) -> int:
     return 1 if findings else 0
 
 
+def _left_out(path: Path) -> list[LeftOut]:
+    """What a build worked out and left out of its release, from the record it wrote."""
+    what = "the record of the build"
+    found = _json(path, what)
+    listed = cast(dict[str, object], found).get(LEFT_OUT) if isinstance(found, dict) else None
+    if not isinstance(listed, list):
+        raise Refused(f"{what} {path.name} does not say what was left out")
+    said: list[LeftOut] = []
+    for one in cast(list[object], listed):
+        row = cast(dict[str, object], one) if isinstance(one, dict) else {}
+        feature, rule, waits_on = row.get("feature_id"), row.get("rule"), row.get("waits_on")
+        if not (isinstance(feature, str) and isinstance(rule, str) and rule in MEANING):
+            raise Refused(f"{what} {path.name} names a measure left out by no rule of a build")
+        sentences = cast(list[object], waits_on) if isinstance(waits_on, list) else []
+        if not all(isinstance(sentence, str) for sentence in sentences):
+            raise Refused(f"{what} {path.name} does not say in words what a measure waits on")
+        waits = tuple(str(sentence) for sentence in sentences)
+        said.append(LeftOut(f"feature/{feature}", rule, MEANING[rule], waits))
+    return said
+
+
 def _coverage(args: argparse.Namespace) -> int:
     release = read_release(args.folder)
     evidence = _evidence(args, release) if args.made_up or args.evidence else None
     homes = _numbers(args.homes, "the count of homes") if args.homes else None
+    left_out = _left_out(args.build) if args.build else []
     try:
         coverage = cover(release, evidence, homes)
+        written = report(coverage, left_out)
     except ValueError as error:
         raise Refused(str(error)) from None
-    args.out.write_text(report(coverage), encoding="utf-8")
+    args.out.write_text(written, encoding="utf-8")
     if args.json:
         args.json.write_bytes(coverage.canonical())
     print(f"{public('report', 'ok')} {summary(coverage)}")
@@ -361,6 +545,7 @@ def build(prog: str = PROG) -> tuple[argparse.ArgumentParser, dict[str, argparse
         help="the list of the build, as fetch takes it: a name, as m1, or the path of a "
         ".toml file shaped like it",
     )
+    add_edition(sealing)
     sealing.add_argument(
         "--receipts",
         type=Path,
@@ -426,6 +611,13 @@ def build(prog: str = PROG) -> tuple[argparse.ArgumentParser, dict[str, argparse
         "release, and for no other",
     )
     step["check"].add_argument(
+        "--hashes",
+        type=Path,
+        metavar="FILE",
+        help="the hashes of the build, as the build wrote them beside the release. They may "
+        "be left out for a made-up release, and for no other",
+    )
+    step["check"].add_argument(
         "--registry",
         type=Path,
         help="the licence registry, a file or a folder (default: this repository's). It is "
@@ -440,6 +632,13 @@ def build(prog: str = PROG) -> tuple[argparse.ArgumentParser, dict[str, argparse
         metavar="FILE",
         help="the count of homes in each area, as JSON. With it a share of the whole is a "
         "share of homes. Without it every area counts once, and the report says so",
+    )
+    step["coverage"].add_argument(
+        "--build",
+        type=Path,
+        metavar="FILE",
+        help="the record the build wrote beside the release, as JSON. With it the report "
+        "says why each measure that was worked out and left out is not in the release",
     )
     step["coverage"].add_argument(
         "--out", type=Path, required=True, metavar="REPORT", help="write the report here"
@@ -460,6 +659,10 @@ def parsed(argv: Sequence[str] | None = None, prog: str = PROG) -> argparse.Name
             whole.error(
                 "seal takes --made-up, or --release-id, --built-at, --list and --vault-listing"
             )
+        if args.made_up is not None and args.edition:
+            whole.error("seal takes --edition for a list, and a made-up release has none")
+        if not named_once(args):
+            whole.error("seal takes --edition once for each file")
     elif args.command == "check" and bool(args.made_up) == bool(args.evidence):
         whole.error("check takes --evidence or --made-up")
     elif args.made_up and args.evidence:

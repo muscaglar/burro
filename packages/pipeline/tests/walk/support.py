@@ -2,7 +2,8 @@
 
 Nothing here is real, and nothing reaches a publisher. The city is the
 synthetic one, under ids shaped like London's, because a file that was fetched
-may only stand behind a release that is not called synthetic. The publisher is
+may only stand behind a release that is not called synthetic. It carries
+gritty as land use, which is one of the two ways a release may. The publisher is
 a server on the loopback address. Its files are made from the city's own
 figures, so that a figure worked out from a file can be held to the figure the
 release serves.
@@ -14,6 +15,7 @@ Every other row of evidence is carried over from the made-up evidence.
 
 import contextlib
 import csv
+import hashlib
 import io
 import json
 import tempfile
@@ -24,7 +26,7 @@ from pathlib import Path
 from typing import Any, cast
 from urllib.parse import urlsplit
 
-from burro_core.ids import FactKind, FeatureId
+from burro_core.ids import FactKind, FeatureId, GrittyVariant
 from burro_core.release import MANIFEST, InMemoryRelease, parse_release
 from burro_pipeline import cli
 from burro_pipeline.evidence import (
@@ -43,13 +45,12 @@ from burro_pipeline.fetch import cli as fetch_cli
 from burro_pipeline.fetch.download import Downloaded, Limits, download
 from burro_pipeline.fetch.store import FolderStore
 from burro_pipeline.registry import Registry, load
-from burro_pipeline.release import read_release
+from burro_pipeline.release import build_synthetic
 from burro_pipeline.release.write import write_release
 
 from ..fetch.support import Answer, Served, serving
 
 REPOSITORY = Path(__file__).parents[4]
-FIXTURE = REPOSITORY / "data" / "fixtures" / "synthetic" / "syn-2026-09-23-01"
 RELEASE_ID = "lon-2026-09-23-01"
 BUILT_AT = "2026-09-23T00:00:00Z"
 COMMIT = "0123456789abcdef0123456789abcdef01234567"
@@ -104,20 +105,33 @@ METHOD = Method(
 
 
 @cache
+def made_up_city() -> InMemoryRelease:
+    """The synthetic city with gritty built from land use, which holds no recorded crime."""
+    return build_synthetic(gritty_variant=GrittyVariant.A)
+
+
+@cache
 def city() -> InMemoryRelease:
     """The synthetic city under ids shaped like London's, every file citing the made-up source."""
-    text = json.dumps(read_release(FIXTURE).documents()).replace("syn-", "lon-")
+    text = json.dumps(made_up_city().documents()).replace("syn-", "lon-")
     documents: dict[str, Any] = json.loads(text.replace('"synthetic"', f'"{SURVEY}"'))
     documents[MANIFEST].pop(SURVEY)
     documents[MANIFEST].update(synthetic=False, city="lon", seed=None)
-    documents[MANIFEST]["sources"][0]["attribution"] = "Contains made-up data."
+    # The city credits its one source as the registry of the walk does.
+    documents[MANIFEST]["sources"][0].update(
+        name="Made-up survey",
+        publisher="Made-up Office",
+        licence="OGL-3.0",
+        attribution="Contains made-up data.",
+        url="https://made-up.example/survey",
+    )
     return parse_release(documents)
 
 
 @cache
 def made_up() -> Evidence:
     """The made-up evidence of the synthetic city. The walk takes its rows and its files' names."""
-    return made_up_evidence(read_release(FIXTURE))
+    return made_up_evidence(made_up_city())
 
 
 @cache
@@ -244,6 +258,10 @@ def rows_of(receipts: Sequence[Receipt], figures: Mapping[str, Figure]) -> Itera
     now = {old.file_id: named[old.publisher_file] for old in before.receipts}
     for row in before.rows:
         key = row.fact_id.replace("syn-", "lon-")
+        if not row.inputs:
+            # A measure the city does not carry rests on no file, and its row says so.
+            yield EvidenceRow.model_validate(row.model_dump(mode="json") | {"fact_id": key})
+            continue
         inputs = tuple(sorted((now[old] for old in row.inputs), key=lambda found: found.file_id))
         fields = row.model_dump(mode="json") | {
             "fact_id": key,
@@ -259,6 +277,7 @@ def rows_of(receipts: Sequence[Receipt], figures: Mapping[str, Figure]) -> Itera
                 "units_expected": figure.units_expected,
                 "weight_covered": figure.covered,
                 "state": state_of(figure.value is not None, figure.covered),
+                "value": figure.value,
             }
         yield EvidenceRow.model_validate(fields)
 
@@ -329,6 +348,7 @@ class Walk:
         self.list = self.root / "made-up.toml"
         self.listing = self.root / "listing.json"
         self.evidence = self.root / "evidence.json"
+        self.hashes = self.root / "hashes.json"
         self.report = self.root / "coverage.md"
         self.findings = self.root / "findings.txt"
         self.environment = {"BURRO_STORE_FOLDER": str(self.store), "BURRO_FETCH_CONTACT": CONTACT}
@@ -399,11 +419,25 @@ class Walk:
         self.evidence.write_bytes(found.canonical())
         return found
 
+    def write_hashes(self) -> Path:
+        """The hashes of the build, as a build writes them: of what stands there now."""
+        held = {
+            "manifest_sha256": self.folder_of_the_release() / MANIFEST,
+            "evidence_sha256": self.evidence,
+            "lock_sha256": self.locks / f"{RELEASE_ID}.json",
+        }
+        hashes = {
+            name: hashlib.sha256(path.read_bytes()).hexdigest() for name, path in held.items()
+        }
+        self.hashes.write_text(json.dumps({"release_id": RELEASE_ID} | hashes), encoding="utf-8")
+        return self.hashes
+
     def check(self) -> Said:
         lock = self.locks / f"{RELEASE_ID}.json"
         return self.step(
             *("check", self.folder_of_the_release(), "--evidence", self.evidence),
             *("--lock", lock, "--registry", self.registry, "--list", self.findings),
+            *("--hashes", self.write_hashes()),
         )
 
     def coverage(self) -> Said:

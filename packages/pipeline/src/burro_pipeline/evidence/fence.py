@@ -12,6 +12,15 @@ A file is kept apart when any of these holds. One is enough.
 - The registry holds its source under the heading `audit` or `residents`.
 - The registry holds its source for the audit or for the census table, under any heading.
 
+One kind of source about residents is part of the product: one that the
+registry holds for scoring, which its rules allow only where every table of the
+source is of age or of household composition (the amendment of 24 September
+2026 to ADR 0006). Every table the source names is asked about: under `tables`,
+in its id, in its name and in every address it holds. A file of it is kept
+apart only where its receipt says it was fetched for the census table. No other
+source under `residents` is part of the product, and no source under `audit`
+ever is.
+
 A file kept apart is never sealed into the lock of a product release, and no
 row of evidence may rest on it. Nor may one rest on a file whose source the
 registry does not hold: nothing shows that such a file is not kept apart.
@@ -20,6 +29,7 @@ registry does not hold: nothing shows that such a file is not kept apart.
 from burro_pipeline.evidence.receipt import Receipt
 from burro_pipeline.registry import Registry, RegistryError
 from burro_pipeline.registry.model import Dimension, Source, Use
+from burro_pipeline.registry.rules import may_be_scored
 
 # The uses that are no part of the product: one feeds the audit, the other a table that is
 # shown as its publisher wrote it and is never scored.
@@ -27,8 +37,19 @@ USES_KEPT_APART = frozenset({Use.AUDIT_ONLY, Use.CENSUS_TABLE})
 HEADINGS_KEPT_APART = frozenset({Dimension.AUDIT, Dimension.RESIDENTS})
 
 
+def is_scored(source: Source) -> bool:
+    """Whether a source about residents is held for scoring, and may be.
+
+    The registry's own rule is asked what may be scored, and not only what the
+    entry lists: a registry may be read without its rules being enforced.
+    """
+    return Use.SCORING in source.uses and may_be_scored(source)
+
+
 def source_is_kept_apart(source: Source) -> bool:
-    """Whether the registry holds a source for the audit or for the census table."""
+    """Whether the registry holds a source for the audit or for the census table alone."""
+    if is_scored(source):
+        return False
     return source.dimension in HEADINGS_KEPT_APART or not USES_KEPT_APART.isdisjoint(source.uses)
 
 

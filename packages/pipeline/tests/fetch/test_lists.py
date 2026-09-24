@@ -4,6 +4,7 @@ import tomllib
 from pathlib import Path
 
 import pytest
+from burro_pipeline.evidence import EditionFrom, Where
 from burro_pipeline.fetch.sources import LISTS, Format, ListError, load_list
 from burro_pipeline.registry import Use, load
 
@@ -119,6 +120,107 @@ def test_a_file_with_no_address_yet_is_listed_and_says_so(tmp_path: Path):
 )
 def test_what_nobody_is_sure_of_cannot_stand_in_a_receipt(tmp_path: Path, old: str, new: str):
     assert not load_list(changed(tmp_path, old, new)).files[0].ready_for_a_receipt
+
+
+# A file that states its own edition. Its publisher puts another file at the same address
+# and names no edition on its page, so the list cannot state one for what a fetch will bring.
+STATED = 'edition = "2025"\ndata_period = { as_at = "2025-03-31" }\n'
+IN_THE_HEADER = (
+    'edition_from = { where = "xml_header", at = "Header/ExtractDate", '
+    'words = "extract of", period_too = true }\n'
+)
+LAST_CHANGE = (
+    'edition_from = { where = "geopackage", at = "gpkg_contents.last_change", '
+    'words = "last changed", period_too = false }\n'
+)
+RUNS_TO = (
+    'edition_from = { where = "street_extract", '
+    'at = "OSMHeader.osmosis_replication_timestamp", period_too = true }\n'
+)
+THE_DAY_RETRIEVED = (
+    'edition_from = { where = "retrieved", at = "", words = "retrieved", period_too = true }\n'
+)
+AS_XML = ('format = "csv"', 'format = "xml"')
+AS_A_GEOPACKAGE = ('format = "csv"', 'format = "gpkg"')
+AS_ANOTHER_KIND = ('format = "csv"', 'format = "other"')
+
+
+def dated(tmp_path: Path, said: str, *swaps: tuple[str, str]) -> Path:
+    """The made-up list, with what it says of the edition changed for `said`."""
+    assert STATED in LIST
+    text = LIST.replace(STATED, said, 1)
+    for old, new in swaps:
+        assert old in text
+        text = text.replace(old, new, 1)
+    return written(tmp_path, text)
+
+
+def test_a_list_may_say_that_a_file_states_its_own_edition_and_where(tmp_path: Path):
+    (file,) = load_list(dated(tmp_path, IN_THE_HEADER, AS_XML)).files
+    assert file.edition == "" and file.data_period is None
+    assert file.edition_from is not None
+    assert file.edition_from.in_a_receipt() == EditionFrom(
+        where=Where.XML_HEADER, at="Header/ExtractDate", period_too=True
+    )
+    assert file.edition_from.written("2026-09-16") == "extract of 2026-09-16"
+    assert file.ready_for_a_receipt
+
+
+def test_a_list_may_say_that_an_edition_is_the_day_a_file_was_retrieved(tmp_path: Path):
+    (file,) = load_list(dated(tmp_path, THE_DAY_RETRIEVED)).files
+    assert file.edition_from is not None and file.edition_from.where is Where.RETRIEVED
+    assert file.edition_from.written("2026-09-24") == "retrieved 2026-09-24"
+    assert file.ready_for_a_receipt
+
+
+def test_a_time_a_file_gives_may_be_written_with_no_words_before_it(tmp_path: Path):
+    (file,) = load_list(dated(tmp_path, RUNS_TO, AS_ANOTHER_KIND)).files
+    assert file.edition_from is not None
+    assert file.edition_from.written("2026-09-22T20:22:59Z") == "2026-09-22T20:22:59Z"
+    assert file.ready_for_a_receipt
+
+
+@pytest.mark.parametrize(
+    ("said", "swaps", "refused"),
+    [
+        # A list states an edition, or says that the file states its own. Never both.
+        (f'edition = "2025"\n{IN_THE_HEADER}', (AS_XML,), "and not both"),
+        (f'{IN_THE_HEADER}unsure = ["edition"]\n', (AS_XML,), "and not both"),
+        # Where the file gives the period too, the list states none.
+        (f'{IN_THE_HEADER}data_period = {{ as_at = "2025-03-31" }}\n', (AS_XML,), "period"),
+        (f'{IN_THE_HEADER}unsure = ["data_period"]\n', (AS_XML,), "period"),
+        # A place is of one kind of file.
+        (IN_THE_HEADER, (), "format"),
+        (LAST_CHANGE, (AS_XML,), "format"),
+        (RUNS_TO, (AS_XML,), "format"),
+        # A file that a person saves is dated by that person.
+        (f"{THE_DAY_RETRIEVED}by_hand = true\n", (), "by hand"),
+        # A day that is about the file, or about the fetch, says in words which it is.
+        (LAST_CHANGE.replace('words = "last changed", ', ""), (AS_A_GEOPACKAGE,), "words"),
+        (THE_DAY_RETRIEVED.replace('words = "retrieved", ', ""), (), "words"),
+        (IN_THE_HEADER.replace("extract of", "Extract of 2026"), (AS_XML,), "words"),
+        (IN_THE_HEADER.replace("extract of", "x" * 41), (AS_XML,), "words"),
+        # The day a GeoPackage was last changed is never the period of its data.
+        (LAST_CHANGE.replace("false", "true"), (AS_A_GEOPACKAGE,), "about the file"),
+        (IN_THE_HEADER.replace("Header/ExtractDate", "ExtractDate"), (AS_XML,), "header"),
+    ],
+)
+def test_a_list_that_says_two_things_of_an_edition_is_refused(
+    tmp_path: Path, said: str, swaps: tuple[tuple[str, str], ...], refused: str
+):
+    with pytest.raises(ListError, match=refused):
+        load_list(dated(tmp_path, said, *swaps))
+
+
+def test_where_a_file_gives_its_edition_alone_the_list_states_the_period(tmp_path: Path):
+    """The day a GeoPackage was last changed is about the file. The period is the list's."""
+    period = 'data_period = { as_at = "2025-03-31" }\n'
+    (sure,) = load_list(dated(tmp_path, LAST_CHANGE + period, AS_A_GEOPACKAGE)).files
+    assert sure.ready_for_a_receipt
+    assert sure.data_period is not None and sure.data_period.as_at == "2025-03-31"
+    for said in (LAST_CHANGE, f'{LAST_CHANGE}{period}unsure = ["data_period"]\n'):
+        (unsure,) = load_list(dated(tmp_path, said, AS_A_GEOPACKAGE)).files
+        assert not unsure.ready_for_a_receipt
 
 
 def test_a_list_is_found_by_its_name():

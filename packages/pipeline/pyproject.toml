@@ -6,6 +6,9 @@ requires-python = ">=3.13"
 dependencies = [
     "burro-core",
     "pydantic>=2.9",
+    "pyarrow>=25",
+    "pyproj>=3.7",
+    "shapely>=2.1",
 ]
 
 [project.scripts]

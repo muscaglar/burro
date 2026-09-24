@@ -1,8 +1,9 @@
 """What the tests of evidence share: the synthetic release, its made-up evidence, and a real one.
 
 Nothing here is real. The release is the committed synthetic one. The "real"
-release is the same made-up city with real ids, which is the only way this
-build has of making one. No file of a publisher is read.
+release is the same made-up city with real ids and with gritty built from land
+use, which is the only way this build has of making one. No file of a
+publisher is read.
 """
 
 import json
@@ -16,6 +17,7 @@ from functools import cache
 from pathlib import Path
 from typing import Any
 
+from burro_core.ids import GrittyVariant
 from burro_core.release import MANIFEST, InMemoryRelease, parse_release
 from burro_pipeline.evidence.lock import Lock, locked
 from burro_pipeline.evidence.made_up import made_up_evidence
@@ -34,7 +36,7 @@ from burro_pipeline.registry import (
     VerifiedHow,
     check,
 )
-from burro_pipeline.release import read_release
+from burro_pipeline.release import build_synthetic, read_release
 
 REPOSITORY = Path(__file__).parents[4]
 RELEASE_ID, REAL_ID = "syn-2026-09-23-01", "lon-2026-09-23-01"
@@ -60,6 +62,16 @@ def release() -> InMemoryRelease:
 @cache
 def evidence() -> Evidence:
     return made_up_evidence(release())
+
+
+@cache
+def from_land_use() -> InMemoryRelease:
+    """The made-up city with gritty built from land use, under the id of the committed one.
+
+    It holds no recorded crime, and so carries every vibe but Gritty. The "real"
+    release of these tests is made from this one.
+    """
+    return build_synthetic(release_id=RELEASE_ID, gritty_variant=GrittyVariant.A)
 
 
 def with_rows(rows: Iterable[EvidenceRow], of: Evidence | None = None) -> Evidence:
@@ -88,18 +100,27 @@ def changed(fact_id: str, change: Callable[[dict[str, Any]], object]) -> Evidenc
 @cache
 def real_release() -> InMemoryRelease:
     """The synthetic release with real ids, every file citing the one made-up source."""
-    text = json.dumps(release().documents()).replace("syn-", "lon-")
+    text = json.dumps(from_land_use().documents()).replace("syn-", "lon-")
     documents: dict[str, Any] = json.loads(text.replace('"synthetic"', f'"{SURVEY}"'))
     documents[MANIFEST].pop(SURVEY)
     documents[MANIFEST].update(synthetic=False, city="lon", seed=None)
-    documents[MANIFEST]["sources"][0]["attribution"] = "Contains made-up data."
+    # A release credits a source as the licence registry does: see `registered`.
+    held = registered(SURVEY)
+    documents[MANIFEST]["sources"][0].update(
+        name=held.name,
+        publisher=held.publisher,
+        licence=held.licence.value,
+        attribution=held.attribution,
+        url=held.url,
+    )
     return parse_release(documents)
 
 
 @cache
 def real_evidence() -> Evidence:
     """Evidence for the made-up real release: the made-up evidence, under real ids."""
-    fields = json.loads(evidence().canonical().decode().replace("syn-", "lon-"))
+    made_up = made_up_evidence(from_land_use())
+    fields = json.loads(made_up.canonical().decode().replace("syn-", "lon-"))
     for receipt in fields["receipts"]:
         name = receipt["publisher_file"]
         receipt.update(source_id=SURVEY, how="fetched", url=f"https://data.example.org/{name}")

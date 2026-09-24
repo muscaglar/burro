@@ -1,0 +1,584 @@
+/* The review desk. One screen, for one tired person late at night.
+
+   Nothing moves, nothing is smaller than 16 pixels, and no file is fetched
+   from here. The colours follow the system's light or dark, and
+   test/page.test.mjs works out that each can be read. */
+
+:root {
+  color-scheme: light dark;
+  --paper: #fbfaf7;
+  --panel: #efede6;
+  --ink: #14161a;
+  --soft: #41454e;
+  --line: #5b606b;
+  --key: #e2dfd6;
+  --focus: #0a3fa8;
+  --mark: #ffe9a3;
+  --mark-ink: #14161a;
+  --stands: #d5e8d4;
+  --stands-ink: #10230f;
+  --trouble: #7a1410;
+  --trouble-ink: #ffffff;
+  --made-up: #ffd166;
+  --made-up-ink: #231a00;
+  --real: #7a1410;
+  --real-ink: #ffffff;
+  --unknown: #2b2f36;
+  --unknown-ink: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #14161a;
+    --panel: #1e2127;
+    --ink: #f2f2ee;
+    --soft: #c3c6cd;
+    --line: #8a8f99;
+    --key: #30343c;
+    --focus: #9cc2ff;
+    --mark: #4a3d0c;
+    --mark-ink: #fff6d6;
+    --stands: #1d3a1f;
+    --stands-ink: #e6f5e6;
+    --trouble: #ffb4a8;
+    --trouble-ink: #2a0502;
+    --made-up: #ffd166;
+    --made-up-ink: #231a00;
+    --real: #8c1d18;
+    --real-ink: #ffffff;
+    --unknown: #d8dbe2;
+    --unknown-ink: #14161a;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html {
+  font-size: 100%;
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  min-width: 60rem;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 22rem;
+  /* The top line, what was saved, the item beside the question, the keys. */
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  overflow: hidden;
+  font: 1rem/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+p,
+h1,
+h2,
+dl,
+ol,
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+ol,
+ul {
+  list-style: none;
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+kbd {
+  display: inline-block;
+  min-width: 1.6rem;
+  padding: 0 0.35rem;
+  border: 1px solid var(--line);
+  border-radius: 0.25rem;
+  background: var(--key);
+  color: var(--ink);
+  font: 700 1rem/1.4 ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  text-align: center;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+  padding: 0.2rem 0.4rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--line);
+}
+
+/* The top line: which data this is, and how far along. */
+
+#top {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: flex;
+  align-items: stretch;
+  gap: 1rem;
+  border-bottom: 2px solid var(--line);
+  background: var(--panel);
+}
+
+.banner {
+  padding: 0.35rem 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.banner.made-up {
+  background: var(--made-up);
+  color: var(--made-up-ink);
+}
+
+.banner.real {
+  background: var(--real);
+  color: var(--real-ink);
+}
+
+.banner.unknown {
+  background: var(--unknown);
+  color: var(--unknown-ink);
+}
+
+#progress {
+  flex: 1;
+  padding: 0.35rem 0;
+  font-variant-numeric: tabular-nums;
+}
+
+#reviewer {
+  padding: 0.35rem 0.75rem;
+  color: var(--soft);
+}
+
+/* What was saved, and what went wrong: one place, under the top line, where it
+   is never below a fold. It is two lines high whatever it holds, so that the
+   map and the answers stay where they are from one item to the next. */
+
+#status {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 1.5rem;
+  align-content: start;
+  min-height: 3.5rem;
+  padding: 0.3rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+#trouble {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+
+#said {
+  grid-column: 1;
+  grid-row: 2;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+#warn {
+  grid-column: 2;
+  grid-row: 2;
+  max-width: 24rem;
+  text-align: right;
+}
+
+/* The item: its name, and the map or the text. */
+
+#item {
+  grid-column: 1;
+  grid-row: 3;
+  min-height: 0;
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+}
+
+#item > * {
+  grid-row: 2;
+  grid-column: 1;
+}
+
+/* The name of the item, once, over the item. */
+#title {
+  grid-row: 1;
+  grid-column: 1;
+  padding: 0.35rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+#title:empty {
+  display: none;
+}
+
+#item:focus-visible {
+  outline-offset: -3px;
+}
+
+#map-box {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+  min-width: 0;
+}
+
+#map {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  touch-action: none;
+  cursor: grab;
+}
+
+#map.can-move {
+  cursor: crosshair;
+}
+
+#map:focus-visible {
+  outline-offset: -3px;
+}
+
+#map-credit {
+  /* One line high before its words come, so that the map is measured once. */
+  min-height: 1.9rem;
+  padding: 0.2rem 0.75rem;
+  color: var(--soft);
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.unseen {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+#text-box,
+#record,
+#wait {
+  align-self: start;
+  margin-top: 1.5rem;
+  justify-self: center;
+  width: min(44rem, 100% - 4rem);
+  max-height: calc(100% - 1.5rem);
+  overflow-y: auto;
+  font-size: 1.375rem;
+  line-height: 1.5;
+}
+
+#text-box p + p {
+  margin-top: 1rem;
+}
+
+.grey {
+  color: var(--soft);
+}
+
+mark {
+  background: var(--mark);
+  color: var(--mark-ink);
+  padding: 0.1rem 0.2rem;
+}
+
+#record dt {
+  color: var(--soft);
+  font-size: 1rem;
+  margin-top: 1rem;
+}
+
+#record dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* The column: what is known, the question, the answers. */
+
+#side {
+  grid-column: 2;
+  grid-row: 3;
+  min-height: 0;
+  border-left: 2px solid var(--line);
+  display: grid;
+  /* The question takes the height it needs, and what is known takes what is
+     left. Between them is the line that says there is more to read. */
+  grid-template-rows: minmax(0, 1fr) auto minmax(0, max-content);
+}
+
+/* Where what is known is long it keeps a floor, and the question gives way.
+   The page sets this only where there is that much to read, so that a short
+   item takes nothing from the answers. */
+#side.floor {
+  grid-template-rows: minmax(8rem, 1fr) auto minmax(0, max-content);
+}
+
+/* What is known of the item scrolls, by the wheel and by a key. The question
+   and the answers are in view whatever the item holds. */
+#known,
+#ask {
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#known {
+  grid-row: 1;
+  padding: 0.6rem 0.75rem;
+  gap: 0.4rem;
+}
+
+#more {
+  grid-row: 2;
+  padding: 0.15rem 0.75rem;
+  border-top: 1px solid var(--line);
+  color: var(--soft);
+}
+
+#ask {
+  grid-row: 3;
+  padding: 0.5rem 0.75rem;
+  gap: 0.4rem;
+  border-top: 2px solid var(--line);
+  background: var(--panel);
+}
+
+#known > :empty,
+#ask > :empty,
+#warn:empty {
+  display: none;
+}
+
+summary {
+  cursor: pointer;
+  color: var(--soft);
+}
+
+/* That an answer will be set aside is read before the answer is given. */
+#aside-short {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+h1 {
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+
+h2 {
+  font-size: 1.125rem;
+  line-height: 1.3;
+  margin-top: 0.25rem;
+}
+
+#flags,
+#rule,
+#aside,
+#not-offered,
+#note-hint,
+#mine,
+#others,
+#moves,
+#warn {
+  color: var(--soft);
+}
+
+/* A label begins the line of its value, and the value has the width of the
+   column. A label may be as long as a publisher and the name of its file: in a
+   column of its own it left the value a few letters to the line. */
+#lines {
+  display: flow-root;
+}
+
+#lines dt {
+  float: left;
+  clear: left;
+  margin-right: 0.4rem;
+  color: var(--soft);
+}
+
+#lines dt::after {
+  content: ":";
+}
+
+#lines dd {
+  margin: 0 0 0.3rem;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+
+#answers button,
+#picks button,
+#panel-rows button {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  width: 100%;
+  border-color: var(--line);
+  margin-bottom: 0.2rem;
+}
+
+/* Seven answers, a note and a mark must fit a laptop with the question over them. */
+#answers button,
+#picks button {
+  padding: 0.1rem 0.4rem;
+}
+
+#answers kbd,
+#picks kbd {
+  line-height: 1.25;
+}
+
+#answers button[aria-current="true"],
+#picks button[aria-pressed="true"],
+#panel-rows button[aria-current="true"] {
+  background: var(--stands);
+  color: var(--stands-ink);
+  border-width: 2px;
+  font-weight: 700;
+}
+
+.field {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+#note {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 0.25rem;
+  padding: 0.3rem 0.4rem;
+}
+
+#second {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  accent-color: var(--focus);
+}
+
+#trouble {
+  background: var(--trouble);
+  color: var(--trouble-ink);
+  font-weight: 700;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+}
+
+#trouble:empty {
+  padding: 0;
+  background: none;
+}
+
+body.busy #answers,
+body.paused #answers {
+  opacity: 0.6;
+}
+
+/* The bottom line: the keys. */
+
+#bar {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  padding: 0.3rem 0.75rem;
+  border-top: 2px solid var(--line);
+  background: var(--panel);
+}
+
+#bar span,
+#bar button {
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: baseline;
+  padding: 0.1rem 0.3rem;
+}
+
+/* A list over the page: the queues, the groups, the keys. */
+
+/* Eleven queues, each on one line where the window is wide enough, fit a
+   laptop with the key of the last in view. A longer list scrolls in itself. */
+dialog {
+  width: min(62rem, 100% - 2rem);
+  max-height: calc(100% - 2rem);
+  overflow-y: auto;
+  padding: 1rem;
+  border: 2px solid var(--ink);
+  border-radius: 0.25rem;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+dialog::backdrop {
+  background: rgb(0 0 0 / 0.55);
+}
+
+#panel-banner {
+  margin: -1rem -1rem 0.5rem;
+}
+
+#panel-rows li {
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  margin-top: 0.2rem;
+  break-inside: avoid;
+}
+
+#panel-rows button {
+  margin-bottom: 0;
+}
+
+/* The keys are many and their words are short: two columns of them. */
+#panel-rows[data-kind="keys"] {
+  columns: 2;
+  column-gap: 2rem;
+}
+
+#panel-foot {
+  margin-top: 0.5rem;
+  color: var(--soft);
+}
+
+@media (forced-colors: active) {
+  .banner,
+  #trouble,
+  #answers button[aria-current="true"],
+  #picks button[aria-pressed="true"],
+  #panel-rows button[aria-current="true"] {
+    border: 2px solid CanvasText;
+  }
+}

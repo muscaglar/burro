@@ -13,7 +13,7 @@ from burro_pipeline.fetch.kinds import Kind
 from burro_pipeline.fetch.run import Outcome, Status, Why
 from burro_pipeline.fetch.store import Held
 from check_data_workflows import INSTALL, MASK_MADE_UP, PACKAGES_BEFORE, WORKFLOWS
-from public_log import COUNTS, HASHES, RULES, SECRETS_OF, STATUSES, STORE
+from public_log import COUNTS, HASHES, RULES, SECRETS_OF, STATUSES, STORE, TRAVEL_RULES
 
 ROOT = Path(__file__).resolve().parents[2]
 GUIDE = (ROOT / "docs" / "data-builds.md").read_text(encoding="utf-8")
@@ -21,10 +21,11 @@ GUIDE = (ROOT / "docs" / "data-builds.md").read_text(encoding="utf-8")
 NAMES = (
     COUNTS
     | RULES
+    | TRAVEL_RULES
     | HASHES
     | STATUSES
     | {
-        *("step", "status", "copy", "source", "file", "release", "file_id"),
+        *("step", "status", "copy", "source", "file", "release", "file_id", "feature"),
         *("seconds", "why", "http", "host", "kind"),
     }
 )
@@ -109,10 +110,21 @@ def test_the_guide_says_where_an_entry_names_the_addresses_of_its_files():
 
 # The receipt of a file, which is written once somebody has read the file
 
-# The items of the first list whose file a person has read as a fetch stored it, and whose
-# edition and period were found in it. None has been: no file has been fetched. An item is
+# The items of the first list whose file has been read as a fetch stored it. An item is
 # named here in the commit that takes `edition` and `data_period` out of its `unsure`.
-READ_IN_THE_FILE: frozenset[str] = frozenset()
+#
+# All eleven were fetched on 2026-09-23, and each has its receipt in `data/receipts`. A
+# program read each one, and no person has: `docs/research/data/m1-files.md` says what each
+# holds. The guide asks that a person read a file before its receipt is written. Whether
+# what a program read is enough is for the founder to say.
+READ_IN_THE_FILE: frozenset[str] = frozenset(
+    {
+        *("oa-lookup", "oa-boundaries-bgc", "oa-boundaries-bfc", "oa-centres"),
+        *("lsoa-boundaries-bgc", "census-ts044"),
+        *("voa-ctsop-1-1", "voa-ctsop-3-1", "voa-ctsop-4-1"),
+        *("iod-file-8", "defra-no2-2024"),
+    }
+)
 
 
 def section(heading: str) -> str:
@@ -133,6 +145,32 @@ def test_no_receipt_is_written_for_a_file_of_the_first_list_that_nobody_has_read
         assert file.ready_for_a_receipt == (file.item in READ_IN_THE_FILE), file.item
         if file.item not in READ_IN_THE_FILE:
             assert {"edition", "data_period"} <= set(file.unsure), file.item
+
+
+def test_a_file_that_is_named_as_read_has_the_receipt_that_the_list_would_write():
+    """A name in `READ_IN_THE_FILE` is no more than a word. The receipt is the record."""
+    import json
+    from collections import Counter
+
+    from burro_pipeline.fetch.sources import load_list
+
+    def stated(edition: str, period: dict[str, str | None]) -> tuple[str, ...]:
+        return (edition, *(period.get(key) or "" for key in ("as_at", "start", "end")))
+
+    kept = Counter(
+        (held["source_id"], *stated(held["edition"], held["data_period"]))
+        for held in (
+            json.loads(path.read_text(encoding="utf-8"))
+            for path in (ROOT / "data" / "receipts").glob("*/f-*.json")
+        )
+    )
+    named = Counter(
+        (file.source_id, *stated(file.edition, file.data_period.model_dump(mode="json")))
+        for file in load_list("m1").files
+        if file.item in READ_IN_THE_FILE and file.data_period is not None
+    )
+    assert sum(named.values()) == len(READ_IN_THE_FILE)
+    assert {key: count for key, count in named.items() if kept[key] < count} == {}
 
 
 def test_the_guide_gives_the_count_that_plan_gives_of_the_first_list():
@@ -183,7 +221,7 @@ def environments_with_made_up_secrets() -> set[str]:
 
 
 def test_a_workflow_that_reads_no_secret_is_one_there_is():
-    assert environments_with_made_up_secrets() == {"data-build"}
+    assert environments_with_made_up_secrets() == {"data-build", "data-travel"}
 
 
 def test_the_guide_keeps_a_real_secret_only_where_a_step_reads_it():

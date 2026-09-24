@@ -12,12 +12,14 @@ from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass
 from datetime import date, timedelta
 from enum import StrEnum
+from urllib.parse import unquote
 
 from burro_pipeline.registry.addresses import held_by_two, written_wrongly
 from burro_pipeline.registry.model import (
     HOUSING_TABLES,
     INTERNAL_USES,
     NO_ATTRIBUTION_LICENCES,
+    SCORED_TABLES,
     SHARE_ALIKE_ALLOWED_USES,
     SHARE_ALIKE_LICENCES,
     SHOWN_TABLES,
@@ -40,6 +42,12 @@ _SIGNS = r"[\W_]*"
 CENSUS_TABLE_CODE = re.compile(
     rf"t{_SIGNS}s{_SIGNS}(\d){_SIGNS}(\d){_SIGNS}(\d)(?!\d)([a-z]?)", re.IGNORECASE
 )
+# The same code, with every letter that stands straight after it.
+_CODE_AND_LETTERS = re.compile(
+    rf"t{_SIGNS}s{_SIGNS}(\d){_SIGNS}(\d){_SIGNS}(\d)(?!\d)([a-z]*)", re.IGNORECASE
+)
+# How many times a text is decoded to find what a server would read in it.
+_DECODED = 3
 
 
 class Severity(StrEnum):
@@ -99,16 +107,79 @@ def audit_data_stays_internal(source: Source, today: date) -> Iterator[str]:
             yield f"audit data may not be used for {use}"
 
 
+def census_tables_read_one_way(text: str) -> set[str]:
+    """Every census table's code that a text holds, each read one way and no other.
+
+    `census_tables_written_in` reads a code with the letter after it and
+    without, which suits a rule that refuses what is named. A rule that allows
+    only what is named needs one reading: TS007A is age by five-year bands, and
+    TS007 is age by single year. So one letter straight after the digits is part
+    of the code, and two or more are the start of a word. The text is read as it
+    is written and as a server would read it, decoded.
+    """
+    found: set[str] = set()
+    for _ in range(_DECODED + 1):
+        plain = unicodedata.normalize("NFKC", text)
+        for first, second, third, letters in _CODE_AND_LETTERS.findall(plain):
+            letter = letters.upper() if len(letters) == 1 else ""
+            found.add(f"TS{first}{second}{third}{letter}")
+        decoded = unquote(text)
+        if decoded == text:
+            break
+        text = decoded
+    return found
+
+
+def _named_anywhere(source: Source) -> set[str]:
+    """Every census table a source names, each read one way: in `tables`, its id, its name
+    or an address."""
+    addresses = (source.url, *source.evidence_urls, *source.file_urls)
+    written = " ".join((source.id, source.name, *addresses))
+    return {*source.tables, *census_tables_read_one_way(written)}
+
+
+def may_be_scored(source: Source) -> bool:
+    """Whether a source about residents holds age and household composition and nothing else.
+
+    Such a source may feed a score. One that names any other table may not,
+    and nor may one that names no table: nothing shows what it holds. What
+    `tables` says is what an entry says of itself, and an address says what is
+    fetched. So every table the entry names is asked about, wherever it names
+    it: under `tables`, in its id, in its name, and in every address it holds.
+    """
+    return (
+        source.dimension is Dimension.RESIDENTS
+        and bool(source.tables)
+        and _named_anywhere(source) <= SCORED_TABLES
+    )
+
+
 def resident_sources_feed_the_census_table_and_nothing_else(
     source: Source, today: date
 ) -> Iterator[str]:
+    """A source about residents feeds the census table on an area's page, and no other use.
+
+    One exception was decided, on 24 September 2026: a source whose every
+    table is of age or of household composition may feed a score too. It
+    gains that use and no other. A source that names one table of any other
+    kind is held as before, whatever else it names.
+    """
     if source.dimension is not Dimension.RESIDENTS:
         return
     # Not an internal use either: it would let a file about residents be fetched before
     # its licence page is saved and the fences around the census table exist.
+    allowed = {Use.CENSUS_TABLE, Use.SCORING} if may_be_scored(source) else {Use.CENSUS_TABLE}
     for use in source.uses:
-        if use is not Use.CENSUS_TABLE:
+        if use not in allowed:
             yield f"a source about residents may not be used for {use}"
+    if Use.SCORING in source.uses:
+        # Said apart, so that a person sees why: `tables` may name the two and no other,
+        # while an address of the entry names a third.
+        for table in sorted(_named_anywhere(source) - SCORED_TABLES - set(source.tables)):
+            yield (
+                f"census table {table} is named in the id, the name or an address of a "
+                "source that lists scoring, and is no table of age or of household composition"
+            )
     if not source.tables:
         yield "a source about residents must name its tables"
     for table in source.tables:

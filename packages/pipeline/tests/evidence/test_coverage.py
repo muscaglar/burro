@@ -14,6 +14,7 @@ from burro_core.ids import FeatureId
 from burro_pipeline.evidence.claim import Claim, claim_id_of
 from burro_pipeline.evidence.coverage import (
     Coverage,
+    LeftOut,
     cover,
     essentials,
     measures_of,
@@ -29,12 +30,27 @@ from .support import CANARY, RELEASE_ID, changed, evidence, release, with_rows, 
 
 COMMITTED = Path(__file__).parent / "fixtures" / f"coverage-{RELEASE_ID}.md"
 PARK = "feature/park_proximity"
-# Set by hand in the synthetic release: no cost, no tags, a journey that was not routed.
+# Set by hand in the synthetic release: no cost, one vibe alone, a journey that was not routed.
 NO_COST, NOT_MEASURED, NOT_ROUTED = "syn-n0016", "syn-n0017", "syn-n0008"
 
 
 def covered() -> Coverage:
     return cover(release(), evidence())
+
+
+def not_carried(fact_id: str) -> EvidenceRow:
+    """The row that says a release holds no figure, because it carries no such measure."""
+    return EvidenceRow(
+        fact_id=fact_id,
+        derivation_id=None,
+        inputs=(),
+        data_period=None,
+        retrieved_on=None,
+        units_used=0,
+        units_expected=0,
+        weight_covered=0,
+        state=State.NOT_CARRIED,
+    )
 
 
 def states(coverage: Coverage, area_id: str, kind: str) -> Counter[State]:
@@ -50,8 +66,8 @@ def states(coverage: Coverage, area_id: str, kind: str) -> Counter[State]:
 
 def test_every_area_and_every_measure_has_a_state():
     coverage = covered()
-    assert len(coverage.areas) == 24 and len(coverage.measures) == 51
-    assert len(coverage.cells) == 24 * 51
+    assert len(coverage.areas) == 24 and len(coverage.measures) == 74
+    assert len(coverage.cells) == 24 * 74
     assert {(c.area_id, c.measure) for c in coverage.cells} == {
         (area.area_id, measure)
         for area in release().neighbourhoods
@@ -62,22 +78,30 @@ def test_every_area_and_every_measure_has_a_state():
 
 def test_a_release_is_held_to_every_measure_a_result_needs():
     kinds = Counter(measure.split("/")[0] for measure in measures_of(release()))
-    assert kinds == {"area": 2, "travel": 3, "cost": 10, "station": 1, "feature": 23, "tag": 12}
+    # Every feature core knows, and the vibes the release carries: the ten, and Gritty.
+    assert kinds == {"area": 2, "travel": 3, "cost": 10, "station": 1, "feature": 47, "tag": 11}
 
 
 def test_the_gaps_the_synthetic_release_has_on_purpose_are_counted():
     coverage = covered()
-    assert len(coverage.gaps) == 82
+    assert len(coverage.gaps) == 223
     assert Counter(cell.state for cell in coverage.gaps) == {
-        # 34 features and 8 tags with too little covered.
-        State.BELOW_THRESHOLD: 42,
-        # 33 costs with no estimate, and 7 tags with none of their parts.
-        State.SOURCE_GAP: 40,
+        # 70 features and 13 vibes with too little covered.
+        State.BELOW_THRESHOLD: 83,
+        # 33 costs with no estimate, and 11 vibes with none of their parts.
+        State.SOURCE_GAP: 44,
+        # Four features that core knows and no release carries yet, in each of 24 areas.
+        State.NOT_CARRIED: 96,
     }
-    # One rankable area has no cost, one has no tag that could be worked out,
-    # and one has journeys that were not routed.
+    # One rankable area has no cost, one can be placed on one vibe alone and on part of its
+    # recipe, and one has journeys that were not routed.
     assert states(coverage, NO_COST, "cost") == {State.SOURCE_GAP: 10}
-    assert states(coverage, NOT_MEASURED, "tag")[State.PRESENT] == 2
+    # Of Gritty it holds no part now that homes per hectare is none.
+    assert states(coverage, NOT_MEASURED, "tag") == {
+        State.PARTIAL: 1,
+        State.BELOW_THRESHOLD: 3,
+        State.SOURCE_GAP: 7,
+    }
     assert states(coverage, NOT_ROUTED, "travel") == {State.PARTIAL: 3}
     assert coverage.cell(NOT_ROUTED, "travel/pt").weight_covered == pytest.approx(38 / 40)
 
@@ -97,7 +121,9 @@ def test_a_cell_takes_the_state_its_row_gives():
         if row.measure in coverage.measures:
             cell = coverage.cell(row.area_id, row.measure)
             assert (cell.state, cell.record) == (row.state, True)
-            assert cell.weight_covered == row.weight_covered
+            # Of a measure that is not carried there is nothing to cover a share of.
+            carried = row.state is not State.NOT_CARRIED
+            assert cell.weight_covered == (row.weight_covered if carried else None)
     assert coverage.without_a_record == ()
 
 
@@ -105,18 +131,18 @@ def test_the_reason_a_publisher_gives_is_kept():
     gap = next(row for row in evidence().rows if row.state is State.BELOW_THRESHOLD)
 
     def withheld(row: dict[str, Any]) -> None:
-        row.update(state=State.SUPPRESSED, flags=["suppressed_in_source"])
+        row.update(state=State.SUPPRESSED, flags=["suppressed_in_source"], value=None)
 
     def too_small(row: dict[str, Any]) -> None:
         row.update(state=State.NOT_PUBLISHED, weight_covered=0, units_used=0)
 
     suppressed = cover(release(), changed(gap.fact_id, withheld))
     assert suppressed.cell(gap.area_id, gap.measure).state is State.SUPPRESSED
-    assert len(suppressed.gaps) == 82
+    assert len(suppressed.gaps) == 223
     unpublished = cover(release(), changed(gap.fact_id, too_small))
     assert unpublished.cell(gap.area_id, gap.measure).state is State.NOT_PUBLISHED
     # What no source could close is said once, and is not counted as a gap.
-    assert len(unpublished.gaps) == 81
+    assert len(unpublished.gaps) == 222
     assert "| Not published for areas this small | 1 |" in report(unpublished)
 
 
@@ -144,7 +170,7 @@ def test_with_no_evidence_no_cell_has_a_record_and_every_cell_still_has_a_state(
 
 def test_a_row_that_disagrees_with_the_release_is_no_record():
     def suppress(row: dict[str, Any]) -> None:
-        row.update(state=State.SUPPRESSED, weight_covered=0, units_used=0)
+        row.update(state=State.SUPPRESSED, weight_covered=0, units_used=0, value=None)
 
     cell = cover(release(), changed(f"syn-n0001/{PARK}", suppress)).cell("syn-n0001", PARK)
     # The release holds a figure, so the cell says so, and says that nothing stands behind it.
@@ -165,22 +191,43 @@ def test_a_feature_the_release_does_not_carry_is_not_carried_in_every_area():
     assert not any(cell.record for cell in cells)
     assert "A source the licence registry approves" in report(coverage)
     # A row that says so is a record of it.
-    rows = [
-        EvidenceRow(
-            fact_id=f"{area.area_id}/{PARK}",
-            derivation_id=None,
-            inputs=(),
-            data_period=None,
-            retrieved_on=None,
-            units_used=0,
-            units_expected=0,
-            weight_covered=0,
-            state=State.NOT_CARRIED,
-        )
-        for area in coverage.areas
-    ]
+    rows = [not_carried(f"{area.area_id}/{PARK}") for area in coverage.areas]
     said = cover(thinner, with_rows([*kept.rows, *rows]))
     assert all(said.cell(area.area_id, PARK).record for area in said.areas)
+
+
+def without_a_cost() -> tuple[Coverage, Coverage]:
+    """A release that holds no cost at all, with and without the rows that say so."""
+    bare = dataclasses.replace(release(), costs=())
+    kept = [row for row in evidence().rows if not row.measure.startswith("cost/")]
+    rows = [
+        not_carried(f"{area.area_id}/{measure}")
+        for area in bare.neighbourhoods
+        for measure in measures_of(bare)
+        if measure.startswith("cost/")
+    ]
+    return cover(bare, with_rows(kept)), cover(bare, with_rows([*kept, *rows]))
+
+
+def test_what_a_release_does_not_carry_at_all_is_no_gap_in_a_source():
+    """A first build holds no cost, no journey and no station. No source was read for one."""
+    unsaid, said = without_a_cost()
+    for area in said.areas:
+        # With no row, all that can be said is that no figure is there.
+        assert states(unsaid, area.area_id, "cost") == {State.SOURCE_GAP: 10}
+        assert states(said, area.area_id, "cost") == {State.NOT_CARRIED: 10}
+    costs = [cell for cell in said.cells if cell.measure.startswith("cost/")]
+    assert all(cell.record and cell.weight_covered is None for cell in costs)
+    assert not any(cell.record for cell in unsaid.cells if cell.measure.startswith("cost/"))
+
+
+def test_a_row_that_says_not_carried_is_no_record_of_a_figure_the_release_holds():
+    rows = [
+        not_carried(row.fact_id) if row.fact_id == f"syn-n0001/{PARK}" else row
+        for row in evidence().rows
+    ]
+    cell = cover(release(), with_rows(rows)).cell("syn-n0001", PARK)
+    assert (cell.has_a_value, cell.record) == (True, False)
 
 
 # What an honest result needs.
@@ -282,10 +329,96 @@ def test_the_report_has_the_five_tables_and_a_row_for_every_gap():
     titles = ("By source", "By measure", "By area", "Gaps", "Claims")
     assert [line[3:] for line in text.splitlines() if line.startswith("## ")] == list(titles)
     gaps = text.split("## Gaps")[1].split("## Claims")[0]
-    assert len([line for line in gaps.splitlines() if line.startswith("| syn-")]) == 82
+    # Of 223 gaps, 96 are of the four measures no area has. Each of those is said once.
+    assert len([line for line in gaps.splitlines() if line.startswith("| syn-")]) == 223 - 96
+    assert len([line for line in gaps.splitlines() if "| not_carried | yes |" in line]) == 4
     by_area = text.split("## By area")[1].split("## Gaps")[0]
     assert len([line for line in by_area.splitlines() if line.startswith("| syn-")]) == 24
     assert text.endswith("|\n") or text.endswith(".\n")
+
+
+def test_the_report_says_once_what_no_area_has_and_not_once_for_every_area():
+    _, said = without_a_cost()
+    gaps = report(said).split("## Gaps")[1].split("## Claims")[0]
+    # No cost of ten, and none of the four measures that no release carries yet.
+    assert "Of the 74 things Burro measures, 60 have a figure in at least one area." in gaps
+    assert gaps.count("| cost/rent.bed_1 | not_carried | yes |") == 1
+    assert not [line for line in gaps.splitlines() if "| cost/" in line and "| syn-" in line]
+    # What some areas lack is still listed for each of them.
+    assert len([line for line in gaps.splitlines() if line.startswith("| syn-")]) == 127 - 33
+    whole = report(covered())
+    assert "Of the 74 things Burro measures, 70 have a figure in at least one area." in whole
+
+
+def test_a_measure_that_was_worked_out_and_left_out_is_said_with_its_rule_and_what_it_waits_on():
+    """A build that works a measure out and leaves it out is not a build that lacks a source."""
+    dropped = FeatureId.PARK_PROXIMITY
+    thinner = dataclasses.replace(
+        release(),
+        metrics=tuple(m for m in release().metrics if m.feature_id != dropped),
+        features=tuple(f for f in release().features if f.feature_id != dropped),
+    )
+    rows = [row for row in evidence().rows if row.measure != PARK]
+    rows += [not_carried(f"{area.area_id}/{PARK}") for area in release().neighbourhoods]
+    coverage = cover(thinner, with_rows(rows))
+    left_out = LeftOut(
+        measure=PARK,
+        rule="measure_is_as_core_says",
+        why="is not named as core names it",
+        waits_on=("Core names it a walk.", "The figure is a straight line."),
+    )
+    text = report(coverage, [left_out])
+    titles = [line[3:] for line in text.splitlines() if line.startswith("## ")]
+    assert titles == [
+        "By source",
+        "By measure",
+        "By area",
+        "Worked out and left out",
+        "Gaps",
+        "Claims",
+    ]
+    section = text.split("## Worked out and left out")[1].split("## Gaps")[0]
+    assert (
+        f"| {PARK} | measure_is_as_core_says | It is not named as core names it | "
+        "Core names it a walk. The figure is a straight line. |"
+    ) in section
+    gaps = text.split("## Gaps")[1].split("## Claims")[0]
+    (said,) = [line for line in gaps.splitlines() if line.startswith(f"| {PARK} |")]
+    assert "Worked out, and left out of the release" in said
+    assert "This build does not work the measure out" not in said
+    # With nothing left out the report is as it was, and says nothing of it.
+    assert "Worked out and left out" not in report(coverage)
+    assert report(coverage, []) == report(coverage)
+
+
+def test_what_is_said_of_a_measure_left_out_is_of_a_measure_the_release_does_not_carry():
+    """A reason that is given for a measure the release holds would be said of a figure."""
+    carried = LeftOut(measure=PARK, rule="measure_is_as_core_says", why="is not", waits_on=())
+    with pytest.raises(ValueError, match="left out"):
+        report(covered(), [carried])
+
+
+def test_a_tag_that_too_few_measures_stand_behind_in_any_area_is_said_once_too():
+    """A first build has too few measures for any tag, so each is below the threshold."""
+    rows = [
+        EvidenceRow.model_validate(
+            row.model_dump(mode="json")
+            | {"state": "below_threshold", "weight_covered": 0.5, "units_used": 1, "value": None}
+        )
+        if row.measure == "tag/leafy"
+        else row
+        for row in evidence().rows
+    ]
+    bare = dataclasses.replace(
+        release(),
+        tags=tuple(
+            tag.replace(raw=None, score=None, coverage=0.5) if tag.tag_id == "leafy" else tag
+            for tag in release().tags
+        ),
+    )
+    gaps = report(cover(bare, with_rows(rows))).split("## Gaps")[1].split("## Claims")[0]
+    assert gaps.count("| tag/leafy | below_threshold | yes |") == 1
+    assert not [line for line in gaps.splitlines() if "| tag/leafy |" in line and "| syn-" in line]
 
 
 def test_the_report_is_written_from_the_coverage_and_nothing_else():
@@ -304,7 +437,7 @@ def test_a_share_is_rounded_down_so_that_it_never_says_more_than_is_so():
 def test_what_a_build_prints_holds_counts_and_a_hash_and_names_no_area():
     line = summary(covered())
     assert line == (
-        f"release={RELEASE_ID} areas=24 measures=51 values=1142 gaps=82 no_record=0 "
+        f"release={RELEASE_ID} areas=24 measures=74 values=1553 gaps=223 no_record=0 "
         f"coverage_sha256={covered().digest()}"
     )
     assert is_public(line)

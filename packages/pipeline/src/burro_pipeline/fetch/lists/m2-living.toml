@@ -1,0 +1,385 @@
+# Homes, journeys, schools and safety: the files of milestones M2, M4 and M5 of
+# docs/design/london-data.md that come under the registry's headings for housing,
+# transport, schools, safety and air, with the stops and the health sites that the
+# registry keeps under destination search.
+#
+# Written before any fetch. Every `page` is the registry entry's own: its
+# `url`, or an address under its `evidence_urls`. Every address of a file was read
+# on a publisher's page on 2026-09-23, through a reader that extracts the text of a
+# page. An extraction is not the page. So no person has seen an address here, and
+# no fetch has tried one. No address was guessed, and none was built from a
+# pattern. The reader was asked twice of each page, in different words, and an
+# address is kept only where it gave the same both times. The page itself may have
+# been fetched only once. Each file's notes say where its address was read.
+#
+# Each address was then read a second time, the same day, by a reader that was
+# asked for it twice, in different words, and was never given the address. Every
+# one came out as it stands here, letter for letter. That is still an extraction.
+#
+# In the order to fetch: what the most building waits on first, and the small
+# before the large where two files serve the same end. First what the second
+# milestone needs, then cost and the places to reach of the fourth, then what no
+# milestone names.
+#
+# Four kinds of file stand here.
+#
+#   Ready to fetch, eleven. Seven whose page is on the host the file is on:
+#   osm-greater-london, rents-london-districts, rents-index, median-prices-msoa,
+#   sales-msoa, lower-quartile-prices-msoa and air-pm25-2024. Each has "url"
+#   under `unsure`, because its page writes the address as a path and not whole.
+#   And four whose publisher hands the file out from another host:
+#   ofsted-latest-inspections, uk-hpi-full-file, nhs-trust-sites and nhs-trusts.
+#   Each of the four has "url" under `unsure` too. The registry entry of each of
+#   the eleven names the address of its file under `file_urls`. Open each of the
+#   eleven once in a browser before the first fetch.
+#
+#   Read, and waiting on the registry, three: price-paid-2025, price-paid-2024
+#   and price-paid-2023. The publisher hands them out from
+#   price-paid-data.publicdata.landregistry.gov.uk. The registry entry of the
+#   source names no address there under `file_urls`, and fetch refuses an
+#   address that the entry does not name. It refuses the whole list with it. So
+#   `url` is left empty, and the address that was read is in the notes. When
+#   the entry names the address, in a change that a person reads, move it from
+#   the notes to `url`.
+#
+#   Named by the registry since, and fetched, one: naptan-national, on
+#   naptan.api.dft.gov.uk. It waited on the registry as the three above do. The
+#   entry now names its address under `file_urls`. It was fetched on 2026-09-24
+#   and has its receipt. It states no edition, so its edition is the day it was
+#   retrieved.
+#
+#   Saved by a person, three: naptan-london, gias-establishments and
+#   police-crime-london. Each is made by a form on the publisher's page, so it has
+#   no address to read. Save it in a browser and hand it over with the step
+#   `by-hand`, which holds the address it was saved from to the registry entry as
+#   fetch does. Each was saved on 2026-09-24. The address is the one the browser
+#   recorded on the file, and the registry entry of each names it. Two of the
+#   three came from a host that is not the host of the publisher's pages.
+#
+# The sizes the pages give come to about 0.8 GB, with the sales file for 2023
+# taken as 164 MB. With a guess for each file whose page gives none, or gives one
+# that is not believed, the list is about 1.1 GB: recorded crime about 300 MB, the
+# price index 35 MB, and the rest about 20 MB together. The limits under
+# `max_bytes` come to more, as each is set above its file.
+#
+# Not listed, and why:
+#   - The stock of homes, voa-council-tax-stock-of-properties: it is in list m1.
+#   - Nitrogen dioxide and File 8 of the Indices of Deprivation: both are in list m1.
+#   - Census tables of homes and of tenure: not yet listed.
+#   - TfL's timetables, its station files and its planner: each asks for an account
+#     on TfL's portal first, and the licence runs from the day of registration.
+#   - The archive of data.police.uk: each month's file holds stop and search and
+#     outcomes, which the registry entry forbids. Only the form is used.
+#   - Other editions of the London rent workbook: the entry holds edition 3389 alone.
+#   - The children's centre file of GIAS: nobody has confirmed that the entry covers it.
+#   - GP practices, branch surgeries and dispensaries, the reports epraccur, ebranchs
+#     and edispensary: the entry nhs-ods is named for trusts and hospital sites, and
+#     its conditions give its use as resolving the names of hospitals. They were
+#     listed here and were taken out. They come back when the entry covers them, in
+#     a change that a person reads. The page that lists them,
+#     .../csv-downloads/gp-and-gp-practice-related-data on digital.nhs.uk, lists
+#     reports about people too, and none of those may ever be listed.
+#   - Every source that is gated, held or banned, whatever the plan says of it:
+#     the rail schedule, school results, the noise maps for roads and railways,
+#     Ofcom's coverage files, London's own air quality grids.
+#   - The postcode directory, the centres of LSOAs and the population estimates:
+#     cost, journeys and crime rates need them, and the registry keeps them under
+#     geography, which is another list's.
+#
+# Editions. The street extract and the two NHS reports have no edition on their
+# publisher's page. Each was fetched on 2026-09-23 and kept in the store with no
+# receipt. On 2026-09-24 each was opened for what dates it, and for nothing else.
+# The rule that is followed, in three lines:
+#   1. The edition is what the publisher calls this version: a label, a number, a time.
+#   2. Where it calls it nothing and the file gives a day, the edition is that day.
+#   3. Where neither gives one, it is the day the file was retrieved, written so.
+# Never a guess. The period is the day the data is as at. A day that is about the
+# file and not about its data is not the period of its data.
+#
+# A list cannot state the edition of a file that its publisher replaces under one
+# address: what a list states is written on whatever arrives. So the list states
+# none for these three, and says under `edition_from` where the file states its own.
+# Fetch reads that in what arrives, before anything is kept, and reads nothing else
+# of the file. The receipt says where its edition was read. A file that holds no time
+# there is kept with no receipt, `why=34`. A file that holds the edition of a file
+# that has its receipt, and is not that file, is refused, `why=35`.
+#
+# The street extract gives its edition and its period: the time its header block
+# says its data runs to. An NHS report holds no date. Its edition is the day it was
+# retrieved, which fetch writes from its own clock. Its period is that day: the
+# report is made when it is asked for, and its page says the data behind it is
+# updated each night. docs/research/data/m2-files.md says what each file held on
+# 2026-09-24.
+#
+# `uv run python -m burro_pipeline plan --list m2-living --words` says what each
+# file still needs.
+schema_version = 1
+build = "m2-living"
+
+# 1. What the second milestone needs: stops and stations for the station walk, schools,
+# and the streets for the routing benchmark. The first two are saved by a person.
+
+[[file]]
+item = "naptan-london"
+source_id = "dft-naptan"
+use = "scoring"
+what = "NaPTAN stops and stations for Greater London / London (490), by local authority"
+format = "csv"
+page = "https://beta-naptan.dft.gov.uk/"
+max_bytes = 20_000_000
+edition = "saved 2026-09-24"
+data_period = { as_at = "2026-09-24" }
+by_hand = true
+notes = "Saved by a person on 2026-09-24, from the form for a download by authority, with 'Greater London / London (490)' chosen and CSV. It arrived as a CSV and in no zip, of 4,507,776 bytes, under the name 490Stops.csv. The browser recorded on the file the address it was saved from, https://beta-naptan.dft.gov.uk/Download/MultipleLa, and that it was sent there from the page above. The registry entry names that address under file_urls, and by-hand is given it. The publisher's pages for downloads, https://beta-naptan.dft.gov.uk/download and https://beta-naptan.dft.gov.uk/download/la, were read on 2026-09-23 through a reader that extracts, twice, in different words, and the second again on 2026-09-24. It is a form: an authority is chosen, then CSV or XML, then a button is pressed. The page shows no address of a file. The pages say the data is under the Open Government Licence v3.0. No sign-in was asked for. Neither the page nor the name of the file states an edition, so the edition is the day the file was saved, written so, and the period is that day: the publisher says the data changes daily. The use is scoring, which is what the file is first put to. A step that routes, searches or shows a station asks the gate for its own use when it opens the file, and the entry allows each. One station is many nodes. The stops of London alone leave out a station just past London's edge. The national file is listed on the record at data.gov.uk that the registry entry holds, as https://naptan.api.dft.gov.uk/v1/access-nodes?dataFormat=csv , on a host the entry does not name. It is listed below as naptan-national, and is held back until the entry names that address."
+
+[[file]]
+item = "naptan-national"
+source_id = "dft-naptan"
+use = "scoring"
+what = "NaPTAN stops and stations, every stop of England, Scotland and Wales, as one CSV"
+format = "csv"
+page = "https://www.data.gov.uk/dataset/ff93ffc1-6656-47d8-9155-85ea0b8f2251/naptan"
+url = "https://naptan.api.dft.gov.uk/v1/access-nodes?dataFormat=csv"
+url_parameters = ["dataFormat"]
+max_bytes = 150_000_000
+# The file states no edition, and is made again each day under one address.
+edition_from = { where = "retrieved", at = "", words = "retrieved", period_too = true }
+unsure = ["max_bytes"]
+notes = "Address read on 2026-09-24, on the page above, through a reader that extracts: https://naptan.api.dft.gov.uk/v1/access-nodes?dataFormat=csv . The page is the record of the dataset at data.gov.uk. The record names the Department for Transport as its publisher, and lists the address as the national dataset in CSV. The reader was asked twice, in different words, and gave the same address both times, written whole. The parameter dataFormat names the format and is part of the address. The host is naptan.api.dft.gov.uk. The publisher's own page for the national download, https://beta-naptan.dft.gov.uk/download/national, was read the same day. It names that host as the publisher's API, and offers the same file from a form, as a CSV of 96.9MB or as XML of 552.2MB, with no address of a file. The registry entry names the address under file_urls, beside the one address the file of London was saved from. The file was fetched on 2026-09-24 and has its receipt: a CSV of 101,596,247 bytes, which the publisher names Stops.csv. Why it is wanted: the file of London holds the ways in to a station and no station, and holds nothing outside London. So a home near London's edge may have a nearer station outside, and the measure leaves such a home out. The national file holds the stations and their platforms, which the publisher issues under the authorities 910 and 940, and the ways in of every authority round London. A step that reads it keeps the rows within reach of London and drops the rest. The page states no edition and the address names none, and the file is made again each day, so a later file arrives at this address. So the list states no edition. The file states none of its own: each row holds the day it was made and the day it was last changed, and nothing dates the file as a whole. That was seen on 2026-09-24 in the file kept in the store on 2026-09-24, f-7fbe1ec6aaff. So the edition is the day the file was retrieved, written as such: fetch writes the day of the fetch, and reads nothing of the file for it. The period is that day, because the file is the list of stops as the publisher held it when it was asked for. The same file retrieved on a later day keeps the day of its first receipt. It is laid out as the file of London is, in the same 43 columns, and holds 435,633 rows. No measure reads it yet: docs/research/data/stations.md says what the nearest station and the table of stations as places must change to read it."
+
+[[file]]
+item = "gias-establishments"
+source_id = "dfe-gias"
+use = "scoring"
+what = "Get Information About Schools, all establishment data, every establishment in England"
+format = "zip"
+page = "https://get-information-schools.service.gov.uk/Downloads"
+max_bytes = 40_000_000
+edition = "2026-09-24"
+data_period = { as_at = "2026-09-24" }
+by_hand = true
+notes = "Saved by a person on 2026-09-24, from the form on the page above. It arrived as a zip of 8,119,289 bytes, under the name extract.zip, with one file inside, edubasealldata20260924.csv, of 64,682,618 bytes. The browser recorded on the file the address it was saved from, https://ea-edubase-api-prod.azurewebsites.net/edubase/downloads/File.xhtml with one parameter, and that it was sent there from the publisher's site. That host is not the host of the publisher's pages. The registry entry names the address under file_urls, with no parameter, and by-hand is given it so. No page of this publisher was read for this list, by any program. Its acceptable use policy, as the registry entry records it, forbids reading the site's pages with a program, and names the public downloads as the route for taking the data. The edition is the day in the name of the file inside the zip, which is the day it was saved, and the period is that day: the publisher says the data changes daily. The use is scoring, which is what the file is first put to. A step that searches for a school or shows one asks the gate for its own use when it opens the file, and the entry allows each. National: no file for London is offered. The file holds the names of head teachers and counts of pupils: read named columns only, and drop both at ingest, as the registry entry says. The religious character of a school is never read. The children's centre file is not listed: nobody has confirmed that the registry entry covers it."
+
+[[file]]
+item = "osm-greater-london"
+source_id = "osm-geofabrik-greater-london"
+use = "routing"
+what = "OpenStreetMap extract of Greater London, greater-london-latest.osm.pbf, for the routing network only"
+format = "other"
+page = "https://download.geofabrik.de/europe/united-kingdom/england/greater-london.html"
+url = "https://download.geofabrik.de/europe/united-kingdom/england/greater-london-latest.osm.pbf"
+max_bytes = 180_000_000
+edition_from = { where = "street_extract", at = "OSMHeader.osmosis_replication_timestamp", period_too = true }
+unsure = ["url"]
+notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page writes it as a name beside the page, greater-london-latest.osm.pbf, and the address here is that name worked out against the page's own address, as a browser does. Open it once in a browser. The page gives 123 MB. The edition is the time the publisher says the file holds data up to. The file is replaced about daily under the same address. So the list states no edition, and says where the file states its own: fetch reads the time in the header block of what arrives, and writes the receipt from it. The period is the day of that time. It was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-8b4ac76b6f23: its header block gives 2026-09-22T20:22:59Z as the time its data runs to, which is what the page said on 2026-09-23, and the publisher's name for the file holds the same day, as 260922. If that file arrives again, its edition is 2026-09-22T20:22:59Z. For London only. Whether the extract reaches a few kilometres past London's edge, as the registry asks, is not known. For routing only: it never enters the gazetteer, the cells or a score."
+
+[[file]]
+item = "ofsted-latest-inspections"
+source_id = "ofsted-state-funded-schools-mi"
+use = "display"
+what = "State-funded schools, management information, latest inspections as at 31 August 2026"
+format = "csv"
+page = "https://www.gov.uk/government/statistical-data-sets/monthly-management-information-ofsteds-school-inspections-outcomes"
+url = "https://assets.publishing.service.gov.uk/media/6aa0175392e72b8ac437ef37/Management_information_-_state-funded_schools_-_latest_inspections_as_at_31_August_2026.csv"
+max_bytes = 25_000_000
+edition = "as at 31 August 2026"
+data_period = { as_at = "2026-08-31" }
+unsure = ["url"]
+notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. It is written whole on the page. The reader was asked twice, in different words, and gave the same address both times. GOV.UK hands out files from assets.publishing.service.gov.uk, which has no pages of its own, and the registry entry of this source names that host by this file's address, as the entries of the first build do. Whether a download is sent on to another host is not known. The page gives 16.3 MB, and says it was last updated on 10 September 2026. National: no file for London is offered. The page lists two more files for the month, a workbook of 10.4 MB and the inspections of the year to date, 1.51 MB. Neither is taken: this one holds each school's most recent inspection. Three inspection regimes stand in it, and no grade is made from them. From memory it holds a column on the deprivation of a school's pupils: read named columns only, and never that one."
+
+# 2. Cost: rents, the index that moves a sale, and sale prices. Milestone M4.
+
+[[file]]
+item = "rents-london-districts"
+source_id = "ons-private-rental-market-london-postcode-district"
+use = "scoring"
+what = "Private rental market in London by postcode district, April 2025 to March 2026, reference 3389"
+format = "xlsx"
+page = "https://www.ons.gov.uk/economy/inflationandpriceindices/adhocs/3389privaterentalmarketinlondonapril2025tomarch2026"
+url = "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/adhocs/3389privaterentalmarketinlondonapril2025tomarch2026/londonrentalstatsaccessibleq12026.xlsx"
+url_parameters = ["uri"]
+max_bytes = 1_000_000
+edition = "3389"
+data_period = { start = "2025-04", end = "2026-03" }
+unsure = ["url"]
+notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page writes it as a path from the top of the site, and the address here is that path on the page's own host. Open it once in a browser. The page gives 129.4 kB, and says it was released on 27 April 2026. For London only. The page says no attempt was made to account for a change in the quality or the mix of what is rented, so the figures are read with caution. The registry entry holds this edition alone: another edition needs its own page saved first."
+
+[[file]]
+item = "rents-index"
+source_id = "ons-price-index-of-private-rents"
+use = "scoring"
+what = "Price Index of Private Rents, monthly price statistics, the edition of 16 September 2026"
+format = "xlsx"
+page = "https://www.ons.gov.uk/economy/inflationandpriceindices/datasets/priceindexofprivaterentsukmonthlypricestatistics"
+url = "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/priceindexofprivaterentsukmonthlypricestatistics/16september2026/priceindexofprivaterentsukmonthlypricestatistics.xlsx"
+url_parameters = ["uri"]
+max_bytes = 30_000_000
+edition = "16 September 2026"
+data_period = { as_at = "2026-08" }
+unsure = ["url"]
+notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page writes it as a path from the top of the site, /file?uri=/economy/..., and the address here is that path on the page's own host. Open it once in a browser. The parameter uri names the file and is part of its address. Whether the site sends the request on to another host is not known. The page gives 17.8 MB, and says the next edition is due on 21 October 2026. The month the data runs to, August 2026, is as the registry entry records it, and was not read on the page. National: one workbook for the United Kingdom, and the page offers none for London. Nobody has opened it, so its sheets are not known. The City of London is not published, as the registry says."
+
+[[file]]
+item = "uk-hpi-full-file"
+source_id = "hmlr-uk-house-price-index"
+use = "scoring"
+what = "UK House Price Index, the full file, data for July 2026"
+format = "csv"
+page = "https://www.gov.uk/government/statistical-data-sets/uk-house-price-index-data-downloads-july-2026"
+url = "https://publicdata.landregistry.gov.uk/market-trend-data/house-price-index-data/UK-HPI-full-file-2026-07.csv"
+max_bytes = 100_000_000
+edition = "July 2026"
+data_period = { as_at = "2026-07" }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. On the page the link also carries four parameters after a question mark, utm_medium, utm_source, utm_campaign and utm_term. They are taken to say where a reader came from and to be no part of the file's address, and are left out here: a person should confirm that the address answers without them. Two things were read that say so. One link of the same page, to the revisions for Northern Ireland, carries no parameter. And the listing that the host gives of itself names each file by its folder and its name alone. The host is HM Land Registry's own, and the registry entry names it by that listing, https://publicdata.landregistry.gov.uk/. The listing stops at 1,000 names, before this file. Whether a download is sent on to another host is not known. The page gives 34KB, which was read both times and is not believed: the file holds every area and month. The limit is set far above it. The page says it was published on 16 September 2026. National: the page offers no file for London. The registry entry covers the series of London's boroughs only, so keep those rows and no other. The period is the last month the file holds. A new page and a new file come each month: the next is due on 21 October 2026."
+
+[[file]]
+item = "price-paid-2025"
+source_id = "hmlr-price-paid"
+use = "scoring"
+what = "Price Paid Data, the yearly file for 2025, complete, England and Wales"
+format = "csv"
+page = "https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads"
+# Empty until the registry entry names the address of the file. The address is in the notes.
+url = ""
+max_bytes = 200_000_000
+edition = "2025 file, as published with the data for July 2026"
+data_period = { start = "2025-01-01", end = "2025-12-31" }
+unsure = ["url"]
+notes = "Address as read on 2026-09-23: https://price-paid-data.publicdata.landregistry.gov.uk/pp-2025.csv . It was not on the page above, which links to a page for the yearly files, https://www.gov.uk/government/statistical-data-sets/price-paid-data-yearly-file, which the registry entry does not hold. The reader was asked twice of that page, in different words, and gave the same address both times, written whole and starting https. The host is HM Land Registry's own, and the registry entry names only www.gov.uk, so fetch would refuse it: the entry needs the address of the file under file_urls first. Nobody has read a page or a record on that host that the entry could hold, so the entry was left as it was. That page gives 129MB for this file, and says it was last updated on 28 August 2026 and holds data to July 2026. The publisher offers no file for London or for a region: a yearly file is national. The file is replaced each month, on the twentieth working day, so after 28 September 2026 the edition is another. The page says a yearly file holds the transactions received at HM Land Registry from 1 January to 31 December of its year: the period here is that, and is not the day of each sale. No header row, from memory. Every row is one sale of one home: no row goes to a log, and every address column but the postcode is dropped at ingest, as the registry entry says."
+
+[[file]]
+item = "price-paid-2024"
+source_id = "hmlr-price-paid"
+use = "scoring"
+what = "Price Paid Data, the yearly file for 2024, complete, England and Wales"
+format = "csv"
+page = "https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads"
+# Empty until the registry entry names the address of the file. The address is in the notes.
+url = ""
+max_bytes = 220_000_000
+edition = "2024 file, as published with the data for July 2026"
+data_period = { start = "2024-01-01", end = "2024-12-31" }
+unsure = ["url"]
+notes = "Address as read on 2026-09-23: https://price-paid-data.publicdata.landregistry.gov.uk/pp-2024.csv . Read on the page for the yearly files, as price-paid-2025 says, and the reader gave the same address both times. The registry entry does not name the host. That page gives 157MB. National: no file for London is offered. Whether a past year's file still changes each month is not said on the page: the hash in the receipt says which was fetched."
+
+[[file]]
+item = "price-paid-2023"
+source_id = "hmlr-price-paid"
+use = "scoring"
+what = "Price Paid Data, the yearly file for 2023, complete, England and Wales"
+format = "csv"
+page = "https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads"
+# Empty until the registry entry names the address of the file. The address is in the notes.
+url = ""
+max_bytes = 250_000_000
+edition = "2023 file, as published with the data for July 2026"
+data_period = { start = "2023-01-01", end = "2023-12-31" }
+unsure = ["url", "max_bytes"]
+notes = "Address as read on 2026-09-23: https://price-paid-data.publicdata.landregistry.gov.uk/pp-2023.csv . Read on the page for the yearly files, as price-paid-2025 says, and the reader gave the same address both times. The registry entry does not name the host. The size is not sure. The reader gave 73MB for the complete file both times, and 73MB and 91MB for its two halves, which the page also lists. A whole cannot be smaller than its halves together, so either the page or the reader is wrong, and the file is taken to be about 164 MB. A later reading gave the same sizes, and 141MB for the text file of the year. The page gives the text files of 2024 and of 2025 as 5 MB under their CSV, so the file may be about 146 MB. Look at the page in a browser. National: no file for London is offered."
+
+# 3. Health sites, as places to reach. Milestone M4.
+
+[[file]]
+item = "nhs-trust-sites"
+source_id = "nhs-ods"
+use = "destination_search"
+what = "NHS trust sites, the predefined report ets: hospitals and other sites of NHS trusts"
+format = "csv"
+page = "https://digital.nhs.uk/services/organisation-data-service/data-search-and-export/csv-downloads"
+url = "https://www.odsdatasearchandexport.nhs.uk/api/getReport?report=ets"
+url_parameters = ["report"]
+max_bytes = 50_000_000
+edition_from = { where = "retrieved", at = "", words = "retrieved", period_too = true }
+unsure = ["url", "format", "max_bytes"]
+notes = "Address read on 2026-09-23, through a reader that extracts. It was not on the page above, which links to a page for each group of reports. It was read on https://digital.nhs.uk/services/organisation-data-service/data-search-and-export/csv-downloads/other-nhs-organisations, which the registry entry does not hold. The reader was asked twice, in different words, and gave the same address both times, written whole. The parameter report names the file and is part of its address, so it is named under url_parameters. The host is the publisher's own Data Search and Export service, and the registry entry names it by the publisher's specification of this report, which that page lists beside it. Whether a download is sent on to another host is not known. The page gives no size and names no sign-in. It says the reports are made from data that is updated each night. Neither the page nor the file states an edition: the name of the file holds no date, and every line of the file is a row. That was seen on 2026-09-24 in the file kept in the store on 2026-09-23, f-e0235c482e76, of which no cell was read. So the edition is the day the file was retrieved, written as such, and the list says so: fetch writes the day of the fetch, and reads nothing of the file for it. The period is that day, because the report is made when it is asked for, from data that the page says is updated each night. The same file retrieved on a later day keeps the day of its first receipt. National: no report for London is offered. Sites are placed by postcode. Closed sites may be listed."
+
+[[file]]
+item = "nhs-trusts"
+source_id = "nhs-ods"
+use = "destination_search"
+what = "NHS trusts, the predefined report etr: the trust each site belongs to"
+format = "csv"
+page = "https://digital.nhs.uk/services/organisation-data-service/data-search-and-export/csv-downloads"
+url = "https://www.odsdatasearchandexport.nhs.uk/api/getReport?report=etr"
+url_parameters = ["report"]
+max_bytes = 50_000_000
+edition_from = { where = "retrieved", at = "", words = "retrieved", period_too = true }
+unsure = ["url", "format", "max_bytes"]
+notes = "Address read on 2026-09-23, through a reader that extracts. Read where nhs-trust-sites says, and the reader gave the same address both times. The parameter report names the file and is part of its address. The registry entry names the host, as nhs-trust-sites says. No size is given. Neither the page nor the file states an edition: the name of the file holds no date, and every line of the file is a row. That was seen on 2026-09-24 in the file kept in the store on 2026-09-23, f-335b14b70c2e, of which no cell was read. So the edition is the day the file was retrieved, written as such, and the list says so: fetch writes the day of the fetch, and reads nothing of the file for it. The period is that day, because the report is made when it is asked for, from data that the page says is updated each night. The same file retrieved on a later day keeps the day of its first receipt. National."
+
+# 4. What a home sells for, as its publisher gives it for an MSOA: the median, the count
+# of sales behind it and the lower quartile. Then what no milestone names: air beyond
+# nitrogen dioxide, and recorded crime at street level, which is saved by a person.
+
+[[file]]
+item = "median-prices-msoa"
+source_id = "ons-median-house-prices-msoa"
+use = "scoring"
+what = "Median house prices by middle layer super output area, year ending March 2026"
+format = "xlsx"
+page = "https://www.ons.gov.uk/peoplepopulationandcommunity/housing/datasets/medianhousepricesbymiddlelayersuperoutputarea"
+url = "https://www.ons.gov.uk/file?uri=/peoplepopulationandcommunity/housing/datasets/medianhousepricesbymiddlelayersuperoutputarea/yearendingmarch2026/medianpricepaidformsoa.xlsx"
+url_parameters = ["uri"]
+max_bytes = 90_000_000
+edition = "Year ending March 2026"
+data_period = { start = "2025-04", end = "2026-03" }
+unsure = ["url"]
+notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page writes it as a path from the top of the site, and the address here is that path on the page's own host. Open it once in a browser. The page gives 65.3 MB, and says it was released on 17 September 2026. National: England and Wales, and the page offers no file for London. The period is that of the newest year in the workbook, which holds earlier years too. It is what a home sells for in a preview build: the median for each kind of home, shown and held against a budget, since the founder decided on 2026-09-24 that prices may be shown (ADR 0021). Until then the list named it for validation only, and it was fetched so on 2026-09-23: the receipt of that fetch gives that use, and a file that was fetched for an internal use stands behind no figure. So the file is fetched again for the use named here, once a person has settled how the receipt of a file is written again for a wider use."
+
+[[file]]
+item = "sales-msoa"
+source_id = "ons-residential-property-sales-msoa"
+use = "scoring"
+what = "Number of residential property sales by middle layer super output area, year ending March 2026"
+format = "xlsx"
+page = "https://www.ons.gov.uk/peoplepopulationandcommunity/housing/datasets/residentialpropertysalesbymiddlelayersuperoutputarea"
+url = "https://www.ons.gov.uk/file?uri=/peoplepopulationandcommunity/housing/datasets/residentialpropertysalesbymiddlelayersuperoutputarea/yearendingmarch2026/salesmsoa.xlsx"
+url_parameters = ["uri"]
+max_bytes = 80_000_000
+edition = "Year ending March 2026"
+data_period = { start = "2025-04", end = "2026-03" }
+unsure = ["url"]
+notes = "Address read on 2026-09-24, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page writes it as a path from the top of the site, and the address here is that path on the page's own host. Open it once in a browser. The page gives 56.1 MB, and says it was released on 17 September 2026. National: England and Wales, and the page offers no file for London. The period is that of the newest year in the workbook, as the workbook of median prices of the same release gives it: this workbook has not been opened, so that is to be held to its contents before a figure is read. It is the count of sales that stands behind a median of median-prices-msoa. No step reads it yet. It is listed for scoring from the first fetch, because a file that is fetched for an internal use stands behind no figure afterwards."
+
+[[file]]
+item = "lower-quartile-prices-msoa"
+source_id = "ons-lower-quartile-price-paid-msoa"
+use = "scoring"
+what = "Lower quartile price paid by middle layer super output area, year ending March 2026"
+format = "xlsx"
+page = "https://www.ons.gov.uk/peoplepopulationandcommunity/housing/datasets/lowerquartilepricepaidbymiddlelayersuperoutputareamsoa"
+url = "https://www.ons.gov.uk/file?uri=/peoplepopulationandcommunity/housing/datasets/lowerquartilepricepaidbymiddlelayersuperoutputareamsoa/yearendingmarch2026/lowerquartilepricepaidformsoa.xlsx"
+url_parameters = ["uri"]
+max_bytes = 90_000_000
+edition = "Year ending March 2026"
+data_period = { start = "2025-04", end = "2026-03" }
+unsure = ["url"]
+notes = "Address read on 2026-09-24, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page writes it as a path from the top of the site, and the address here is that path on the page's own host. Open it once in a browser. The page gives 67.6 MB, and says it was released on 17 September 2026. National: England and Wales, and the page offers no file for London. The period is that of the newest year in the workbook, as the workbook of median prices of the same release gives it: this workbook has not been opened, so that is to be held to its contents before a figure is read. It is the price a quarter of the homes of a kind sold for no more than. No step reads it yet, and the contract has no place for one quartile without the other. It is listed for scoring from the first fetch, because a file that is fetched for an internal use stands behind no figure afterwards."
+
+[[file]]
+item = "air-pm25-2024"
+source_id = "defra-pcm-background-air"
+use = "scoring"
+what = "Modelled background PM2.5, annual mean 2024, on a 1 km grid"
+format = "csv"
+page = "https://uk-air.defra.gov.uk/data/pcm-data"
+url = "https://uk-air.defra.gov.uk/datastore/pcm/mappm252024g.csv"
+max_bytes = 30_000_000
+edition = "2024"
+data_period = { as_at = "2024" }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page writes the address as a path that starts from the page, ../datastore/pcm/mappm252024g.csv, under the link mappm252024g. The address here is that path worked out against the page's own address, as a browser does, and as the file for nitrogen dioxide in list m1 was. Open it once in a browser. The page says the g stands for gravimetric units. The page gives no size: the file for nitrogen dioxide of the same year is 7.9 MB, as its receipt says. National: one CSV for the United Kingdom, and no file for London is offered. The page says the first four rows hold the pollutant, the year, the metric and the units, and the data begins on row 6. It says new maps are made available by the middle of October, so a 2025 map may be days away. The registry entry covers nitrogen dioxide and PM2.5 alone: the page also lists PM10 and nitrogen oxides, which are not taken. PM2.5 needs its own place on the list of features before it is used."
+
+[[file]]
+item = "police-crime-london"
+source_id = "police-uk-street-level-crime"
+use = "scoring"
+what = "Street-level crime, Metropolitan Police Service and City of London Police, August 2023 to July 2026, as the form made it with all three boxes ticked: the crime files alone are read"
+format = "zip"
+page = "https://data.police.uk/data/"
+max_bytes = 700_000_000
+edition = "August 2023 to July 2026"
+data_period = { start = "2023-08", end = "2026-07" }
+by_hand = true
+notes = "Saved by a person on 2026-09-24, from the form on the page above, for the two forces and for every month the form offers. All three boxes of the form were ticked. So the zip, of 333,736,416 bytes, holds 215 files in 36 folders, one for each month from 2023-08 to 2026-07: 72 that end -street.csv, which are the crime files, 72 that end -outcomes.csv and 71 that end -stop-and-search.csv. The registry entry forbids reading the last two kinds, and stop and search holds the ethnicity, the gender and the age of a person stopped. The founder decided on 2026-09-24 that the zip is kept as it was saved, that the crime files alone are read, and that the rest is never opened. derive/street_crime_files.py is the one reader of this source: it opens a file whose name ends -street.csv and refuses any other, and a test holds it to that. The next file is saved with 'Include crime data' ticked and the other two boxes not. The browser recorded on the file the address it was saved from, https://policeuk-data.s3.amazonaws.com/download/8af8d28d28ffb22827ea2b9ee45fb67e9dd724fd.zip, and that it was sent there from the publisher's site. That host is not the host of the publisher's pages. The registry entry names the address under file_urls, and by-hand is given it. Never take a file from the archive, at /data/archive/ on the publisher's site: a month's file there holds every force, with outcomes and stop and search. Never the API. The months were read from the names of the folders. The rows bear them out: every row of each of the 72 crime files states a month, and it is the month of its folder, from 2023-08 to 2026-07. A point is a snapped point and not where a crime happened. Which census the LSOA code of a row follows is not known. The registry says months of the Metropolitan Police are missing in 2024: the zip holds a crime file for each force and month, and no file of 2024 holds fewer records than the months beside it. The files of the Metropolitan Police for May, June and July 2026 hold about a twentieth of the criminal damage and arson of any earlier month, and nothing in them says why."

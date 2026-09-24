@@ -10,7 +10,7 @@ from typing import Any
 import pytest
 from burro_pipeline.evidence.claim import Claim, claim_id_of
 from burro_pipeline.evidence.method import Method
-from burro_pipeline.evidence.receipt import Period, Receipt, clean_url
+from burro_pipeline.evidence.receipt import Period, Receipt, Where, clean_url
 from burro_pipeline.evidence.record import EvidenceRecord, file_id_of, in_words
 from burro_pipeline.evidence.row import EvidenceRow, State, state_of
 from burro_pipeline.release import canonical_json
@@ -60,11 +60,12 @@ def test_a_record_is_written_one_way_and_reads_back_the_same(record: EvidenceRec
 
 
 def test_the_examples_have_the_hashes_written_here():
-    # If one moves, the canonical form moved, and every hash ever written with it.
+    # If one moves, the canonical form moved, and every hash ever written with it. The row
+    # moved on 2026-09-24, when it came to hold its figure. No release had been approved.
     assert [record.digest()[:16] for record in EXAMPLES] == [
         "d937248d82ca6f38",
         "a5259d0b7e9fd33d",
-        "77dcc9c034d1fbf6",
+        "841a77ce20af32a9",
         "7932fe2d55aba4d9",
     ]
 
@@ -181,6 +182,75 @@ def test_a_receipt_with_no_listed_address_is_written_as_it_was_before_the_field(
     # A made-up file has no address of either kind, and the README's example is of one.
     assert "listed_url" not in RECEIPT.model_dump(mode="json")
     assert "has no address" in refusal(Receipt, changed(RECEIPT, listed_url=LISTED))
+
+
+# Where an edition was read, when no page of the publisher states one.
+IN_THE_HEADER = {"where": "xml_header", "at": "Header/ExtractDate", "period_too": True}
+LAST_CHANGE = {"where": "geopackage", "at": "gpkg_contents.last_change", "period_too": False}
+RUNS_TO = {
+    "where": "street_extract",
+    "at": "OSMHeader.osmosis_replication_timestamp",
+    "period_too": True,
+}
+THE_DAY_RETRIEVED = {"where": "retrieved", "at": "", "period_too": True}
+
+
+@pytest.mark.parametrize("read", [IN_THE_HEADER, LAST_CHANGE, RUNS_TO, THE_DAY_RETRIEVED])
+def test_a_receipt_says_where_its_edition_was_read_when_no_page_stated_it(read: dict[str, Any]):
+    receipt = Receipt.model_validate(fetched(edition_from=read))
+    assert receipt.edition_from is not None
+    assert receipt.edition_from.where is Where(read["where"])
+    assert json.loads(receipt.canonical())["edition_from"] == read
+    assert Receipt.model_validate_json(receipt.canonical()) == receipt
+
+
+def test_a_receipt_of_an_edition_that_a_page_stated_is_written_as_it_was_before_the_field():
+    """So a reader tells the two apart, and every receipt written before reads back the same."""
+    stated = Receipt.model_validate(fetched())
+    assert stated.edition_from is None
+    assert "edition_from" not in json.loads(stated.canonical())
+    assert Receipt.model_validate(fetched(edition_from=None)) == stated
+    before = canonical_json({k: v for k, v in fetched().items() if k != "edition_from"})
+    assert Receipt.model_validate_json(before).canonical() == before
+    assert "edition_from" not in RECEIPT.model_dump(mode="json")
+    # Two receipts that state one edition are not the same record if one read it in the file.
+    assert Receipt.model_validate(fetched(edition_from=IN_THE_HEADER)) != stated
+
+
+def test_the_day_a_geopackage_was_last_changed_is_never_the_period_of_its_data():
+    """The day is about the file. When its data is as at, the file does not say."""
+    said = refusal(Receipt, fetched(edition_from=LAST_CHANGE | {"period_too": True}))
+    assert "is about the file" in said
+
+
+@pytest.mark.parametrize(
+    ("read", "said"),
+    [
+        ({"where": "xml_header", "at": "", "period_too": True}, "the header and the element"),
+        ({"where": "xml_header", "at": "ExtractDate", "period_too": True}, "the header and"),
+        ({"where": "xml_header", "at": "Header/Extract Date", "period_too": True}, "the header"),
+        ({"where": "xml_header", "at": f"Header/{CANARY}", "period_too": True}, "the header"),
+        ({"where": "xml_header", "at": "A/B/C", "period_too": True}, "the header"),
+        ({"where": "geopackage", "at": "", "period_too": False}, "gpkg_contents.last_change"),
+        ({"where": "geopackage", "at": "layer.updated", "period_too": False}, "last_change"),
+        ({"where": "street_extract", "at": "", "period_too": True}, "osmosis_replication"),
+        ({"where": "retrieved", "at": "Header/ExtractDate", "period_too": True}, "names no place"),
+        ({"where": "the page", "at": "", "period_too": True}, "where"),
+        ({"where": "retrieved", "at": ""}, "period_too"),
+        ({"where": "retrieved", "at": "", "period_too": True, "words": "retrieved"}, "does not"),
+    ],
+)
+def test_where_an_edition_was_read_is_a_place_that_kind_of_file_has(
+    read: dict[str, Any], said: str
+):
+    found = refusal(Receipt, fetched(edition_from=read))
+    assert said in found and CANARY not in found
+
+
+def test_a_made_up_file_states_no_place_its_edition_was_read():
+    assert "has no edition that was read" in refusal(
+        Receipt, changed(RECEIPT, edition_from=THE_DAY_RETRIEVED)
+    )
 
 
 def test_a_made_up_file_cites_the_source_synthetic_and_nothing_else_does():
@@ -345,7 +415,8 @@ def test_a_row_is_keyed_by_the_id_of_its_fact():
 )
 def test_the_state_of_a_row_suits_the_share_covered(state: str, covered: float, fits: bool):
     used = 0 if covered == 0 else 5
-    fields = changed(ROW, state=state, weight_covered=covered, units_used=used)
+    value = ROW.value if state in ("present", "partial") else None
+    fields = changed(ROW, state=state, weight_covered=covered, units_used=used, value=value)
     if fits:
         assert EvidenceRow.model_validate(fields).has_a_value == (state in ("present", "partial"))
     else:
@@ -355,7 +426,7 @@ def test_the_state_of_a_row_suits_the_share_covered(state: str, covered: float, 
 def test_a_row_names_its_files_unless_no_file_was_read():
     bare: dict[str, Any] = {"inputs": [], "derivation_id": None}
     bare |= {"data_period": None, "retrieved_on": None}
-    nothing = bare | {"weight_covered": 0, "units_used": 0, "units_expected": 0}
+    nothing = bare | {"weight_covered": 0, "units_used": 0, "units_expected": 0, "value": None}
     for state in (State.NOT_CARRIED, State.NOT_PUBLISHED):
         assert not EvidenceRow.model_validate(changed(ROW, state=state, **nothing)).has_a_value
     assert "names the files it rests on" in refusal(EvidenceRow, changed(ROW, **bare))
@@ -364,6 +435,16 @@ def test_a_row_names_its_files_unless_no_file_was_read():
     )
     for name in ("derivation_id", "data_period", "retrieved_on"):
         assert "exactly when a file is" in refusal(EvidenceRow, changed(ROW, **{name: None}))
+
+
+def test_a_row_holds_a_figure_only_where_it_has_one_and_is_one_number():
+    assert ROW.value == 290.0 and ROW.has_a_value
+    gap = changed(ROW, state="below_threshold", weight_covered=0.3)
+    assert "a figure is held only by a row that has one" in refusal(EvidenceRow, gap)
+    label = changed(ROW, fact_id="syn-n0001/area/name")
+    assert "only by a row of a measure or of a tag" in refusal(EvidenceRow, label)
+    assert EvidenceRow.model_validate(changed(ROW, value=None)).has_a_value
+    assert "value" in refusal(EvidenceRow, changed(ROW, value="about 290"))
 
 
 def test_a_row_lists_its_files_and_its_flags_in_order_each_once():

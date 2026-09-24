@@ -13,13 +13,24 @@ and no workflow runs it.
 |---|---|
 | A CSV | The column names, if a row can be told to be names, and the row count |
 | A workbook | The sheet names, and for each sheet the same as for a CSV |
-| A GeoPackage | The layers, their fields and how many features each holds |
+| An OpenDocument workbook | The same. With `sheet`, the words of that one sheet too |
+| A GeoPackage | The layers, their fields, their feature counts, and the day each last changed |
 | A zip | The names and sizes inside. With `inside`, the shape of each member |
 | Anything else | What it looks like, and nothing from it |
+
+The words of a sheet are what a workbook says of itself: its cover, its notes,
+the title over a table. They are given of one sheet that a person names: each
+row of it that holds words alone. A row that holds a number is never given.
 
 A name comes from the file, so it is written as a JSON string in plain ASCII:
 it cannot start a line, end one, or colour a terminal. An error is a fixed
 sentence with at most a row number. All of it runs with sockets refused.
+
+The day a layer was last changed is the one thing given that is no name and no
+count. It is what a list states as the period of a file of boundaries, where
+neither the file nor its page states a day the outlines are as at. It is given
+as a day and as nothing else: what the file writes there that is no day, or no
+time of a day, is not given.
 """
 
 import csv
@@ -29,13 +40,17 @@ import sqlite3
 import tempfile
 import zipfile
 from collections import Counter
+from datetime import date
 from pathlib import Path
 from typing import cast
 
+from burro_pipeline.fetch.dated import A_CHANGE
 from burro_pipeline.fetch.headers import KEPT, Row, find_names, most_common_width
 from burro_pipeline.fetch.kinds import Kind, read_only, sniff
 from burro_pipeline.fetch.markup import Limited
 from burro_pipeline.fetch.offline import sockets_refused
+from burro_pipeline.fetch.opendocument import OpenDocumentError
+from burro_pipeline.fetch.opendocument import sheets as sheets_of_an_opendocument
 from burro_pipeline.fetch.workbook import WorkbookError, sheets
 
 # The largest cell that is read. A quote that never closes makes one cell of the
@@ -73,18 +88,28 @@ def describe(
     inside: bool = False,
     member_limit: int = MEMBER_LIMIT,
     cell_limit: int = CELL_LIMIT,
+    sheet: str | None = None,
 ) -> Shape:
-    """The shape of the file at `path`."""
+    """The shape of the file at `path`. With `sheet`, the words of that sheet of a workbook."""
     with sockets_refused():
         try:
-            return _describe(path, inside, member_limit, cell_limit)
+            return _describe(path, inside, member_limit, cell_limit, sheet)
         except OSError:
             raise DescribeError("the file could not be read from disk") from None
 
 
-def _describe(path: Path, inside: bool, member_limit: int, cell_limit: int) -> Shape:
+def _describe(
+    path: Path, inside: bool, member_limit: int, cell_limit: int, sheet: str | None = None
+) -> Shape:
     kind = sniff(path)
     found: Shape = {"kind": kind.value, "bytes": path.stat().st_size}
+    if kind is Kind.ODS:
+        try:
+            return found | {"sheets": sheets_of_an_opendocument(path, words_of=sheet)}
+        except OpenDocumentError as error:
+            raise DescribeError(f"the workbook could not be read: {error}") from None
+    if sheet is not None:
+        raise DescribeError("the words of a sheet are given of an OpenDocument workbook alone")
     if kind is Kind.CSV:
         return found | _csv(path, cell_limit)
     if kind is Kind.ZIP:
@@ -216,9 +241,40 @@ def _layers(path: Path) -> list[Shape]:
         listed = database.execute(
             "SELECT table_name, data_type, srs_id FROM gpkg_contents ORDER BY table_name"
         ).fetchmany(MEMBERS)
-        return [_layer(database, *cast(tuple[object, object, object], row)) for row in listed]
+        changed = _last_changed(database)
+        return [
+            _layer(database, *cast(tuple[object, object, object], row))
+            | ({"last_changed": changed[row[0]]} if row[0] in changed else {})
+            for row in listed
+        ]
     finally:
         database.close()
+
+
+def _last_changed(database: sqlite3.Connection) -> dict[object, str]:
+    """The day each layer says its contents were last changed, where the file keeps one.
+
+    It is the day `fetch/dated.py` reads for the edition of a GeoPackage. A
+    file that keeps no such column gives none, and so does a layer whose last
+    change is no day the calendar has.
+    """
+    try:
+        rows = database.execute("SELECT table_name, last_change FROM gpkg_contents").fetchmany(
+            MEMBERS
+        )
+    except sqlite3.Error:
+        return {}
+    found: dict[object, str] = {}
+    for name, changed in rows:
+        match = A_CHANGE.fullmatch(changed) if isinstance(changed, str) else None
+        if match is None:
+            continue
+        try:
+            date.fromisoformat(match[1])
+        except ValueError:
+            continue
+        found[name] = match[1]
+    return found
 
 
 def _layer(database: sqlite3.Connection, name: object, data: object, srs: object) -> Shape:

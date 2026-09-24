@@ -300,24 +300,27 @@ def test_the_plan_of_the_first_build_names_each_page_to_a_person_and_to_no_log(
     capsys: pytest.CaptureFixture[str],
 ):
     registry = str(Path(__file__).parents[4] / "registry" / "sources")
-    assert main(["plan", "--list", "m1", "--registry", registry], {}, never) == 1
+    assert main(["plan", "--list", "m1", "--registry", registry], {}, never) == 0
     quiet, _ = printed(capsys)
     assert all(public_log.is_public(line) for line in quiet)
-    # Every file has an address. None has been read, so none is ready for a receipt.
-    assert quiet[-1] == "step=plan status=missing files=11 ready=0"
+    # Every file has an address, an edition and a period, so each is ready for a receipt.
+    assert quiet[-1] == "step=plan status=ok files=11 ready=11"
     assert "https://" not in "\n".join(quiet)
     main(["plan", "--list", "m1", "--registry", registry, "--words"], {}, never)
     spoken, _ = printed(capsys)
     assert any("https://uk-air.defra.gov.uk/data/pcm-data" in line for line in spoken)
     assert not any("The list holds no address for the file" in line for line in spoken)
-    assert any("does not state its edition and its period" in line for line in spoken)
+    assert not any("does not state its edition and its period" in line for line in spoken)
 
 
-def test_plan_says_of_no_file_that_it_is_stored(capsys: pytest.CaptureFixture[str]):
+def test_plan_says_of_no_file_that_it_is_stored(
+    folders: Folders, capsys: pytest.CaptureFixture[str]
+):
     """Plan fetches nothing. The words of a run say what a run did, and plan has done none of it."""
-    registry = str(Path(__file__).parents[4] / "registry" / "sources")
-    main(["plan", "--list", "m1", "--registry", registry, "--words"], {}, never)
+    folders.list.write_text(LIST.replace('data_period = { as_at = "2025-03-31" }\n', ""))
+    assert main(["plan", *folders.common(), "--words"], {}, never) == 1
     spoken, _ = printed(capsys)
+    assert any("does not state its edition and its period" in line for line in spoken)
     assert [line for line in spoken if "is stored" in line or "was written" in line] == []
     assert any("A fetch would store the file and write no receipt" in line for line in spoken)
 

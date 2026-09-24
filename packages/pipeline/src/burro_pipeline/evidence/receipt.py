@@ -9,8 +9,9 @@ import hashlib
 import re
 from enum import StrEnum
 from functools import lru_cache
+from itertools import pairwise
 from pathlib import PurePosixPath
-from typing import Any, Self
+from typing import Annotated, Any, Self
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from burro_core.ids import SourceId
@@ -50,6 +51,29 @@ class How(StrEnum):
     MADE_UP = "made_up"  # no file at all: made up for testing, under the source `synthetic`
 
 
+class Where(StrEnum):
+    """Where the edition of a file was read, when no page of its publisher states one."""
+
+    # An element of the header of an XML file. The header is the first element under the root.
+    XML_HEADER = "xml_header"
+    # The last change a GeoPackage records of its contents. It is about the file.
+    GEOPACKAGE = "geopackage"
+    # The time the header block of a street extract says its data runs to.
+    STREET_EXTRACT = "street_extract"
+    # Nowhere. The file holds no date, and its edition is the day it was retrieved.
+    RETRIEVED = "retrieved"
+
+
+# The name of an element, as a list may give it: no prefix, and nothing that could be markup.
+ELEMENT = r"[A-Za-z_][A-Za-z0-9_.-]{0,63}"
+# The place in a file that holds the edition, where the kind of file fixes it.
+PLACE = {
+    Where.GEOPACKAGE: "gpkg_contents.last_change",
+    Where.STREET_EXTRACT: "OSMHeader.osmosis_replication_timestamp",
+    Where.RETRIEVED: "",
+}
+
+
 class Geography(StrEnum):
     """What a file's rows are keyed by. It is read from the file and never assumed."""
 
@@ -57,6 +81,7 @@ class Geography(StrEnum):
     LSOA21 = "lsoa21"
     LSOA11 = "lsoa11"
     MSOA21 = "msoa21"
+    MSOA11 = "msoa11"
     LAD = "lad"
     POSTCODE = "postcode"
     POINT = "point"
@@ -97,6 +122,110 @@ class Period(EvidenceRecord):
     def days(self) -> tuple[str, str]:
         """The first and the last day of the period."""
         return _days(self.as_at or self.start or "", self.as_at or self.end or "")
+
+
+class EditionFrom(EvidenceRecord):
+    """Where an edition was read, when no page of the publisher states one.
+
+    A publisher that replaces a file under one address, and names no edition on
+    its page, leaves the file itself as the one thing that says which file it
+    is. Fetch reads that from what arrives. A receipt that holds this says so,
+    and a receipt that does not holds an edition that a page stated.
+    """
+
+    where: Where
+    # The place, as the file names it. For XML, the header and the element in it, as
+    # `Header/ExtractDate`. Empty where the edition is the day the file was retrieved.
+    at: str
+    # Whether the period of the data was read there too. A day that is about the file and
+    # not about its data is not the period of its data.
+    period_too: bool
+
+    @model_validator(mode="after")
+    def _is_a_place_the_kind_of_file_has(self) -> Self:
+        if self.where is Where.XML_HEADER:
+            if not re.fullmatch(rf"{ELEMENT}/{ELEMENT}", self.at):
+                raise ValueError("at names the header and the element in it, as Header/ExtractDate")
+        elif self.at != PLACE[self.where]:
+            fixed = PLACE[self.where]
+            raise ValueError(f"at is {fixed}" if fixed else "at names no place in the file")
+        if self.where is Where.GEOPACKAGE and self.period_too:
+            raise ValueError(
+                "the day a GeoPackage was last changed is about the file, and is never the "
+                "period of its data"
+            )
+        return self
+
+
+# The name of a column of a file, as a list may give it: letters, digits and `_`. A column
+# inside another is named from the top, as the file's own layout names it, with a dot
+# between: `sources.list.element.dataset`.
+_NAME = r"[A-Za-z_][A-Za-z0-9_]{0,63}"
+COLUMN = rf"^{_NAME}(\.{_NAME}){{0,7}}$"
+Column = Annotated[str, Field(pattern=COLUMN)]
+
+
+class Taken(EvidenceRecord):
+    """Which part of a publisher's file was taken, where fetch took part of one.
+
+    Some publishers give the whole world as a few large files, laid out so
+    that a reader can take the rows of one place. What is kept is then not the
+    file at the address, and the receipt says so: the size of the whole file,
+    what was wanted of it, which row groups were taken, and where in the file
+    each run of bytes that was kept lies. The hash of the receipt is of those
+    runs, one after another. So the same part can be taken again from the
+    address, and is the same bytes.
+    """
+
+    # The size of the whole file at the publisher, in bytes.
+    of_bytes: int = Field(ge=1)
+    # The box the rows were wanted in, in degrees: west, south, east and north.
+    box: tuple[float, float, float, float]
+    # The column of the file that holds the box each row fits in.
+    box_in: Column
+    # The columns that were taken, in name order. A name takes the column and every column
+    # inside it.
+    columns: tuple[Column, ...] = Field(min_length=1)
+    # How many row groups the file holds, and which were taken, counted from 0.
+    of_row_groups: int = Field(ge=0)
+    row_groups: tuple[int, ...]
+    # How many rows the file holds, and how many the row groups taken hold.
+    of_rows: int = Field(ge=0)
+    rows: int = Field(ge=0)
+    # The runs of bytes that were kept: the first byte of each and how many, in the order
+    # of the file. The first is the start of the file and the last is its footer.
+    runs: tuple[tuple[Annotated[int, Field(ge=0)], Annotated[int, Field(ge=1)]], ...] = Field(
+        min_length=1
+    )
+
+    @model_validator(mode="after")
+    def _holds_together(self) -> Self:
+        west, south, east, north = self.box
+        if not (-180 <= west < east <= 180 and -90 <= south < north <= 90):
+            raise ValueError("box runs from west to east and from south to north, in degrees")
+        if any(round(part, 6) != part for part in self.box):
+            raise ValueError("box is given to six decimal places at most")
+        if not strictly_increasing(self.columns):
+            raise ValueError("columns are in name order, each once")
+        if self.box_in not in self.columns:
+            raise ValueError("box_in is one of the columns that were taken")
+        groups = (-1, *self.row_groups, self.of_row_groups)
+        if not all(a < b for a, b in pairwise(groups)):
+            raise ValueError("row_groups are those taken, counted from 0, each once")
+        if self.rows > self.of_rows or (not self.row_groups and self.rows):
+            raise ValueError("the row groups taken hold no more rows than the file")
+        if self.runs[0][0] != 0:
+            raise ValueError("the part starts with the start of the file")
+        if not all(a + count < b for (a, count), (b, _) in pairwise(self.runs)):
+            raise ValueError("runs are in the order of the file, and no two touch")
+        if sum(self.runs[-1]) != self.of_bytes:
+            raise ValueError("the part ends with the end of the file")
+        return self
+
+    @property
+    def bytes(self) -> int:
+        """How many bytes the runs come to."""
+        return sum(count for _, count in self.runs)
 
 
 class Member(EvidenceRecord):
@@ -165,6 +294,14 @@ class Receipt(EvidenceRecord):
     how: How
     # The publisher's own label: a version, a release month, a reference number.
     edition: Text
+    # Where the edition was read, when no page of the publisher states one. A receipt of
+    # an edition that a page stated leaves the field out, and is written as it was before
+    # the field.
+    edition_from: EditionFrom | None = None
+    # Which part of the file was taken, where fetch took part of one. `sha256` and `bytes`
+    # are then of the part. A receipt of a whole file leaves the field out, and is written
+    # as it was before the field.
+    taken: Taken | None = None
     data_period: Period
     # Null until it has been read from the file.
     geography: Geography | None = None
@@ -182,10 +319,17 @@ class Receipt(EvidenceRecord):
         if self.how is How.MADE_UP:
             if self.url or self.listed_url is not None:
                 raise ValueError("a made-up file has no address")
+            if self.edition_from is not None:
+                raise ValueError("a made-up file has no edition that was read anywhere")
         elif not is_clean(self.url):
             raise ValueError("url is an https address with no login, key or fragment in it")
         if self.listed_url is not None and not is_clean(self.listed_url):
             raise ValueError("listed_url is an https address with no login, key or fragment in it")
+        if self.taken is not None:
+            if self.how is not How.FETCHED:
+                raise ValueError("only a file that was fetched is taken in part")
+            if self.taken.bytes != self.bytes:
+                raise ValueError("a part holds as many bytes as its runs come to")
         if self.licence_evidence is not None:
             path = PurePosixPath(self.licence_evidence)
             inside = path.parent == EVIDENCE_FOLDER and str(path) == self.licence_evidence
@@ -194,13 +338,18 @@ class Receipt(EvidenceRecord):
         return self
 
     @model_serializer(mode="wrap")
-    def _written_as_before_where_no_address_was_listed(
+    def _written_as_before_where_a_later_field_is_not_given(
         self, written_by: SerializerFunctionWrapHandler
     ) -> dict[str, Any]:
-        """A receipt with no `listed_url` is the same bytes as it was before the field."""
+        """A receipt with no `listed_url` is the same bytes as it was before the field.
+
+        So is one with no `edition_from`: every receipt of an edition that a page stated.
+        And one with no `taken`: every receipt of a whole file.
+        """
         written: dict[str, Any] = written_by(self)
-        if written.get("listed_url") is None:
-            written.pop("listed_url", None)
+        for later in ("listed_url", "edition_from", "taken"):
+            if written.get(later) is None:
+                written.pop(later, None)
         return written
 
     @property

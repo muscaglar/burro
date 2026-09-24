@@ -10,10 +10,10 @@ release alone, and the cell says that no record stands behind it.
 """
 
 from collections import Counter
-from collections.abc import Iterable, Mapping
-from typing import Literal, Self
+from collections.abc import Iterable, Mapping, Sequence
+from typing import Literal, NamedTuple, Self
 
-from burro_core.catalogue import FEATURES, TAGS
+from burro_core.catalogue import FEATURES
 from burro_core.facts import cost_key
 from burro_core.ids import (
     AreaId,
@@ -50,10 +50,32 @@ REASONS: Mapping[State, tuple[str, str]] = {
     State.SOURCE_GAP: ("The source holds nothing for this area", "A source that holds it"),
     State.SUPPRESSED: ("The publisher withheld the figure", "Nothing. The publisher decides"),
     State.NOT_CARRIED: (
-        "This release has no cleared source for the measure",
+        "This build does not work the measure out",
         "A source the licence registry approves",
     ),
 }
+
+
+# What is said of a measure that a build worked out and left out of its release.
+LEFT_OUT = "Worked out, and left out of the release"
+
+
+class LeftOut(NamedTuple):
+    """A measure that a build worked out and left out of its release, and why.
+
+    It is what the build says, and no part of the coverage: a report is given
+    it beside the coverage, so that a reader is not told that nothing works
+    the measure out.
+    """
+
+    # The measure, as a report names it: `feature/green_cover`.
+    measure: str
+    # The rule of the build that kept it out, and what the rule means, in words that
+    # finish a sentence beginning "It".
+    rule: str
+    why: str
+    # What is not settled, and whose it is to settle. Each is a sentence or two.
+    waits_on: tuple[str, ...]
 
 
 class Area(EvidenceRecord):
@@ -157,7 +179,9 @@ def measures_of(release: InMemoryRelease) -> tuple[str, ...]:
     """Every measure a release is held to, in the order a report lists them.
 
     A feature that core knows and the release does not carry is a measure too:
-    it is `not_carried` in every area.
+    it is `not_carried` in every area. The vibes are the ones the release
+    carries: gritty is built one of two ways, and a release holds the one its
+    manifest names.
     """
     return (
         f"{FactKind.AREA}/{NAME}",
@@ -170,7 +194,7 @@ def measures_of(release: InMemoryRelease) -> tuple[str, ...]:
         ),
         f"{FactKind.STATION}/{NEAREST}",
         *(f"{FactKind.FEATURE}/{feature_id}" for feature_id in sorted(FEATURES)),
-        *(f"{FactKind.TAG}/{tag_id}" for tag_id in sorted(TAGS)),
+        *(f"{FactKind.TAG}/{tag_id}" for tag_id in sorted(vibe.tag_id for vibe in release.vibes)),
     )
 
 
@@ -225,6 +249,16 @@ class _Reader:
                 weight_covered=None,
             )
         has_value, covered = held
+        if row is not None and row.state is State.NOT_CARRIED and not has_value:
+            # The release holds no journey, no cost or no station at all, and its
+            # evidence says so. That is not a gap in a source: there is no source.
+            return Cell(
+                area_id=area_id,
+                measure=measure,
+                state=State.NOT_CARRIED,
+                record=True,
+                weight_covered=None,
+            )
         if row is not None and row.has_a_value == has_value and row.state is not State.NOT_CARRIED:
             return Cell(
                 area_id=area_id,
@@ -445,12 +479,69 @@ def _by_area(coverage: Coverage) -> list[str]:
     return _table(head, rows)
 
 
-def _gaps(coverage: Coverage) -> list[str]:
+def held_nowhere(coverage: Coverage) -> tuple[str, ...]:
+    """The measures that are a gap in every area: the release has no figure for one at all."""
+    gaps = dict.fromkeys(coverage.measures, 0)
+    for cell in coverage.gaps:
+        gaps[cell.measure] += 1
+    return tuple(m for m in coverage.measures if gaps[m] and gaps[m] == len(coverage.areas))
+
+
+def _why(one: LeftOut) -> tuple[str, str]:
+    """Why a measure that was worked out is not in the release, and what would bring it in."""
+    return f"{LEFT_OUT}: it {one.why} [{one.rule}]", " ".join(one.waits_on)
+
+
+def _left_out(left_out: Sequence[LeftOut]) -> list[str]:
+    """What the build worked out and left out of the release, each with its rule."""
+    return [
+        "Each of these has a figure and a row of evidence, made by this build. None is in the "
+        "release, and nothing stands in for one.",
+        "",
+        *_table(
+            ("Measure", "Rule", "Why", "What it waits on"),
+            ((one.measure, one.rule, f"It {one.why}", " ".join(one.waits_on)) for one in left_out),
+        ),
+    ]
+
+
+def _said_once(coverage: Coverage, nowhere: set[str], left_out: Mapping[str, LeftOut]) -> list[str]:
+    """What no area has a figure for, said once and not once for every area."""
+    cells: dict[str, list[Cell]] = {measure: [] for measure in nowhere}
+    for cell in coverage.cells:
+        if cell.measure in nowhere:
+            cells[cell.measure].append(cell)
+    rows: list[tuple[object, ...]] = []
+    for measure in coverage.measures:
+        if measure not in nowhere:
+            continue
+        states = sorted({cell.state for cell in cells[measure]})
+        recorded = "yes" if all(cell.record for cell in cells[measure]) else "no"
+        reasons = REASONS[states[0]] if len(states) == 1 else ("It differs by area", "")
+        if measure in left_out:
+            reasons = _why(left_out[measure])
+        rows.append((measure, ", ".join(states), recorded, *reasons))
+    held = len(coverage.measures) - len(nowhere)
+    return [
+        f"Of the {len(coverage.measures)} things Burro measures, {held} have a figure in at "
+        f"least one area. Each of the other {len(nowhere)} is a gap in every area, and is "
+        "listed once.",
+        "",
+        *_table(("Measure", "State", "Record", "Reason", "What would close it"), rows),
+    ]
+
+
+def _gaps(coverage: Coverage, left_out: Mapping[str, LeftOut]) -> list[str]:
     if not coverage.gaps:
         return ["No area lacks a measure.", ""]
     order = {measure: index for index, measure in enumerate(coverage.measures)}
+    nowhere = set(held_nowhere(coverage))
+    lines = _said_once(coverage, nowhere, left_out) if nowhere else []
+    here = [cell for cell in coverage.gaps if cell.measure not in nowhere]
+    if not here:
+        return [*lines, "No area lacks a measure that some other area has.", ""]
     head = ("Area", "Measure", "State", "Record", "Reason", "What would close it")
-    return _table(
+    return lines + _table(
         head,
         (
             (
@@ -460,7 +551,7 @@ def _gaps(coverage: Coverage) -> list[str]:
                 "yes" if cell.record else "no",
                 *REASONS[cell.state],
             )
-            for cell in sorted(coverage.gaps, key=lambda cell: (cell.area_id, order[cell.measure]))
+            for cell in sorted(here, key=lambda cell: (cell.area_id, order[cell.measure]))
         ),
     )
 
@@ -484,9 +575,31 @@ def _claims_table(coverage: Coverage) -> list[str]:
     )
 
 
-def report(coverage: Coverage) -> str:
-    """The coverage report: what a person reads before a release is approved."""
+def _not_in_the_release(coverage: Coverage, left_out: Sequence[LeftOut]) -> dict[str, LeftOut]:
+    """What was left out, by measure. Refused if the release carries one of them after all."""
+    found = {one.measure: one for one in left_out}
+    for measure in found:
+        carried = measure in coverage.measures and any(
+            coverage.cell(area.area_id, measure).state is not State.NOT_CARRIED
+            for area in coverage.areas
+        )
+        if carried or measure not in coverage.measures or len(found) != len(left_out):
+            raise ValueError(
+                "what is said to be left out is a measure of the release, is no measure at all, "
+                "or is said twice"
+            )
+    return found
+
+
+def report(coverage: Coverage, left_out: Sequence[LeftOut] = ()) -> str:
+    """The coverage report: what a person reads before a release is approved.
+
+    `left_out` is what the build worked out and left out of the release, as
+    the build says it. With it the report says of each why it is not there.
+    Without it such a measure reads as one that no step works out.
+    """
     cells = coverage.cells
+    kept_out = _not_in_the_release(coverage, left_out)
     unpublished = sum(cell.state is State.NOT_PUBLISHED for cell in cells)
     counted_by = {
         "homes": "homes",
@@ -519,14 +632,16 @@ def report(coverage: Coverage) -> str:
         "gate and not yet a confirmed one.",
         "",
     ]
-    for title, table in (
-        ("By source", _by_source),
-        ("By measure", _by_measure),
-        ("By area", _by_area),
-        ("Gaps", _gaps),
-        ("Claims", _claims_table),
-    ):
-        lines += [f"## {title}", "", *table(coverage)]
+    sections = [
+        ("By source", _by_source(coverage)),
+        ("By measure", _by_measure(coverage)),
+        ("By area", _by_area(coverage)),
+        *([("Worked out and left out", _left_out(left_out))] if left_out else []),
+        ("Gaps", _gaps(coverage, kept_out)),
+        ("Claims", _claims_table(coverage)),
+    ]
+    for title, table in sections:
+        lines += [f"## {title}", "", *table]
     return "\n".join(lines).rstrip("\n") + "\n"
 
 

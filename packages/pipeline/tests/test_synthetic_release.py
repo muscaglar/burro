@@ -40,6 +40,7 @@ from burro_pipeline.release.synthetic import (
     journeys,
     names,
 )
+from burro_pipeline.release.synthetic.build import METRES_A_MINUTE
 from burro_pipeline.release.write import packed
 
 FIXTURE = Path(__file__).parents[3] / "data" / "fixtures" / "synthetic" / RELEASE_ID
@@ -356,7 +357,16 @@ def test_every_place_and_area_is_found_by_its_own_name():
         assert resolve_area(found.name, release).resolved == found.area_id
 
 
-def test_every_fact_about_every_area_can_be_said_and_passes_the_verifier():
+# The areas `make ci` says every fact of: each with a gap left on purpose, the centre
+# with its two stations, and the first and the last by name.
+SAMPLED = (
+    *("Alderwick", "Gorsebeck", "Grapnel Dock", "Ostrel Vale", "Otterby Fields"),
+    *("Pellam Cross", "Sedgewater Marsh", "Wickerford"),
+)
+
+
+def said_of(areas: list[Neighbourhood]) -> set[str]:
+    """The templates of every fact of some areas, each said and passed through the verifier."""
     release = fixture()
     place_id = {place.name: place.place_id for place in release.places}
     # A budget, and journeys of each kind: by train, on foot, to a postcode, beyond the cutoff.
@@ -380,13 +390,25 @@ def test_every_fact_about_every_area_can_be_said_and_passes_the_verifier():
         ),
     )
     said = set[str]()
-    for found in release.neighbourhoods:
+    for found in areas:
         facts = {fact.fact_id: fact for fact in facts_for(release, found.area_id, spec)}
         for fact in facts.values():
             assert fact.sources and fact.as_of and fact.synthetic
             assert verify(render(fact), facts).ok, fact.fact_id
             said.add(fact.template.value)
-    assert {"travel_pt", "travel_other", "travel_beyond", "missing", "station_nearby"} <= said
+    return said
+
+
+EVERY_KIND = {"travel_pt", "travel_other", "travel_beyond", "missing", "station_nearby"}
+
+
+def test_every_fact_about_an_area_can_be_said_and_passes_the_verifier():
+    assert said_of([area(name) for name in SAMPLED]) >= EVERY_KIND
+
+
+@pytest.mark.full
+def test_every_fact_about_every_area_can_be_said_and_passes_the_verifier():
+    assert said_of(list(fixture().neighbourhoods)) >= EVERY_KIND
 
 
 SYNTHETIC_PACKAGE = Path(build.__file__).parent
@@ -493,7 +515,8 @@ def test_the_shortest_journeys_of_the_release_are_held_at_two_minutes():
     for name in ("Brackenhythe", "Wickerford"):
         (nearest, *_) = release.stations(area(name).area_id)
         assert (nearest.name, nearest.walk_minutes) == (name, 2)
-        assert value(name, FeatureId.STATION_WALK) == 2
+        # The made-up town has no streets, so a straight line is as long as the walk.
+        assert value(name, FeatureId.STATION_WALK) == 2 * METRES_A_MINUTE
         on_foot = release.travel(area(name).area_id, destination(name), Mode.WALK, PtBasis.TYPICAL)
         assert on_foot.minutes == nearest.walk_minutes
 
@@ -548,7 +571,7 @@ def test_station_features_say_what_the_station_rows_say():
     for found in release.neighbourhoods:
         rows = release.stations(found.area_id)
         assert [row.nearest for row in rows] == [True] + [False] * (len(rows) - 1)
-        assert value(found.name, FeatureId.STATION_WALK) == rows[0].walk_minutes
+        assert value(found.name, FeatureId.STATION_WALK) == (METRES_A_MINUTE * rows[0].walk_minutes)
         nearby = [row for row in rows if row.walk_minutes <= NEARBY_STATION_MINUTES]
         lines = {line for row in nearby for line in row.lines}
         assert value(found.name, FeatureId.STATION_LINES) == len(lines)
@@ -640,10 +663,14 @@ def test_gaps_are_left_on_purpose_and_nothing_fills_them():
     for name, features in build.NOT_MEASURED.items():
         assert all(value(name, feature_id) is None for feature_id in features)
 
-    # A tag is unknown where too little of its formula is known.
+    # A vibe is unknown where too little of its recipe is known, and an area
+    # that lacks one part of four is still placed.
     unknown = {(row.area_id, row.tag_id.value) for row in release.tags if row.score is None}
-    assert (area("Gorsebeck").area_id, "historic_character") in unknown
+    assert (area("Otterby Fields").area_id, "leafy") in unknown
+    assert (area("Gorsebeck").area_id, "built_age") not in unknown
     assert (area("Gorsebeck").area_id, "leafy") not in unknown
+    for row in release.tags:
+        assert (row.band is None) == (row.score is None) == (row.raw is None)
 
     # One area that can be ranked has no cost estimate at all.
     costed = {row.area_id for row in release.costs}

@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import BinaryIO
 from urllib.parse import quote, urlsplit
 
-from burro_pipeline.evidence.receipt import KEPT_PREFIX, VAULT_PREFIX
+from burro_pipeline.evidence.receipt import VAULT_PREFIX
 from burro_pipeline.fetch.markup import MarkupError, read
 from burro_pipeline.fetch.store import (
     LARGEST_RECEIPT,
@@ -38,6 +38,7 @@ from burro_pipeline.fetch.store import (
     checked_receipt_key,
     copy_checked,
     held_at,
+    kept_under,
 )
 
 UNRESERVED = "-_.~"
@@ -326,9 +327,9 @@ class S3Store:
             raise StoreError(f"the store answered {_said(status, said)} when asked for a receipt")
         return checked_as_kept(said)
 
-    def receipts(self) -> dict[str, bytes]:
+    def receipts(self, source_id: str = "") -> dict[str, bytes]:
         found: dict[str, bytes] = {}
-        for key, size in self._keys(KEPT_PREFIX):
+        for key, size in self._keys(kept_under(source_id)):
             if RECEIPT_KEY.fullmatch(key) and size <= LARGEST_RECEIPT:
                 status, _, said = self._ask("GET", key)
                 if status != 200:

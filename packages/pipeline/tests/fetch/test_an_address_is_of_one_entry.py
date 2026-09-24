@@ -453,7 +453,10 @@ def as_a_file_of(entry: Source, address: str) -> Listed:
             "format": "other",
             "page": entry.url,
             "url": address.split("#")[0],
-            "url_parameters": [name for name, _ in parse_qsl(urlsplit(address).query)],
+            # A parameter with no value is a part of the address too, and a list names it.
+            "url_parameters": [
+                name for name, _ in parse_qsl(urlsplit(address).query, keep_blank_values=True)
+            ],
             "max_bytes": 10,
             "edition": "made up",
             "data_period": {"as_at": "2021"},

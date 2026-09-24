@@ -55,6 +55,7 @@ ROW = EvidenceRow(
     weight_covered=0.97,
     state=State.PARTIAL,
     flags=(Flag.UNIT_SPLIT,),
+    value=290.0,
 )
 
 # A made-up page of a made-up encyclopaedia, and the one sentence a claim quotes from it.

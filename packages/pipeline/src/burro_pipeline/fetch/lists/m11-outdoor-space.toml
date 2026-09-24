@@ -1,0 +1,66 @@
+# Private outdoor space: the workbook the share of addresses with private
+# outdoor space is measured from, and the lookup that says which areas kept
+# their outline between the censuses of 2011 and 2021. The measure is a part of
+# the vibe Homes.
+#
+# The `page` is the registry entry's own `url`. The address of the file was read
+# on that page on 2026-09-24, through a reader that extracts the text of a page,
+# asked twice in different words. Both times it gave the same path, letter for
+# letter. The first fetch stored a workbook from the address, and wrote no
+# receipt. The workbook was then read as it was stored, on 2026-09-24, by a
+# program and by no person: `describe`, and then its sheet of notes and the two
+# rows of names of each sheet. What the item states below is what was found, and
+# its notes say where each was read. Whether what a program read is enough is the
+# founder's to say.
+#
+# Not listed, and why:
+#   - "Access to garden space, England, 2014 to 2019", of the same page: it is a
+#     survey of people by age and ethnic group. It describes residents, and the
+#     registry entry says it is never fetched.
+#   - "Access to public parks and playing fields, Great Britain, April 2020", of
+#     the same page: it is another table, and no entry of the registry covers it.
+#
+# The lookup is listed and has not been fetched. Its address was read on the
+# page of its item on 2026-09-24, through a reader that extracts, asked twice in
+# different words. Nobody has read the file, so its edition and its period are
+# named as not yet sure, and its first fetch stores it and writes no receipt.
+# It says of each area of 2011 whether it is unchanged, split, merged or none
+# of these. It is read to say which areas kept their outline, and never to
+# share a figure out.
+#
+# `uv run python -m burro_pipeline plan --list m11-outdoor-space --words` says
+# what the file still needs.
+schema_version = 1
+build = "m11-outdoor-space"
+
+[[file]]
+item = "private-outdoor-space-2020"
+source_id = "ons-access-to-garden-space-2020"
+use = "scoring"
+what = "Access to garden space, Great Britain, April 2020: the private outdoor space reference tables, by country, region, local authority and MSOA"
+format = "xlsx"
+page = "https://www.ons.gov.uk/economy/environmentalaccounts/datasets/accesstogardensandpublicgreenspaceingreatbritain"
+url = "https://www.ons.gov.uk/file?uri=/economy/environmentalaccounts/datasets/accesstogardensandpublicgreenspaceingreatbritain/accesstogardenspacegreatbritainapril2020/osprivateoutdoorspacereferencetables.xlsx"
+url_parameters = ["uri"]
+max_bytes = 10_000_000
+edition = "April 2020"
+data_period = { as_at = "2020-04" }
+notes = "Where each was read. The address: on the page above, on 2026-09-24, through a reader that extracts, asked twice in different words. Both readings gave the same path, and the page writes it as a path from the top of the site, so the address here is that path on the page's own host. The first fetch stored a workbook from it, of 3,123,969 bytes, where the page says 3.0 MB. The format: the page lists the file as xlsx, and what was stored is a workbook of five sheets: Readme, Country gardens, Region gardens, LAD gardens and MSOA gardens. The edition: 'April 2020' is the publisher's name for the file on its page, 'Access to garden space, Great Britain, April 2020'. The workbook itself states no edition. The period: the workbook states no month and no day. Its sheet of notes says the figures are 'based upon UPRN-level dataset providing private outdoor space estimates for 28,818,909 residential address records from epoch 74 of OS AddressBase Plus', and its line of rights gives the year 2020. So the period is the page's, from the name of the edition, and the notes of the workbook agree with it as far as they go. What day epoch 74 is of was read on no page. Days that are about the file and are not the period of its data: the page gives its release as 14 May 2020, a notice of 18 May 2020 that the layout of the tables was changed and no figure, and a correction of 20 May 2022 to the estimates for countries, where the labels of Scotland and Wales had been wrongly assigned. The workbook's own properties say it was made on 4 May 2020 and last saved on 15 March 2021. The hash in the receipt says which file was fetched. The geography: the sheet MSOA gardens holds 8,480 rows of an area, 6,791 of England, 410 of Wales and 1,279 of Scotland, each with a code. It names no census. Its codes are not those of 2021: of London's 1,002 areas of 2021 it holds 963 and lacks 39, and it holds 20 areas of London that are no area of 2021. The layout: the names of the columns stand in rows 1 and 2. Row 1 names the columns that say which area a row is of, and holds three headings, each merged across its columns: 'Property type: Houses', 'Property type: Flats' and 'Property type: Total'. Row 2 holds the names of the counts under each heading, and the names are the same under each. The step reads 'MSOA code', and under 'Property type: Total' the columns 'Address count' and 'Adress with private outdoor space count', as the publisher spells it. No cell of either count is empty or holds text. The rights: the notes and the foot of every sheet say 'Source: Ordnance Survey' and '© Crown copyright and database rights 2020 OS 100019153'. The workbook states no licence and no term of use. The registry entry holds what that means for the credit. Great Britain: the page offers no file for London."
+
+[[file]]
+item = "msoa-2011-to-2021-lookup"
+source_id = "ons-msoa11-msoa21-lad22-lookup"
+use = "cells"
+what = "MSOA of 2011 to MSOA of 2021 to local authority of 2022, exact-fit lookup, England and Wales, V2"
+format = "csv"
+page = "https://www.data.gov.uk/dataset/3c944c27-4fe0-4371-8c4f-75af4534fae5/msoa-2011-to-msoa-2021-to-local-authority-district-2022-exact-fit-lookup-for-ew-v21"
+url = "https://open-geography-portalx-ons.hub.arcgis.com/api/download/v1/items/94b5259bdd5e4216b8b70c2a79932312/csv?layers=0"
+# The hosts the portal handed the downloads of list m1 on to, as a fetch saw on
+# 2026-09-23. No fetch has asked for this file yet. Take out what it does not use.
+may_redirect_to = ["services1.arcgis.com", "stg-arcgisazurecdataprod1.az.arcgis.com"]
+url_parameters = ["layers"]
+max_bytes = 10_000_000
+edition = "V2"
+data_period = { as_at = "2022-12" }
+unsure = ["url", "format", "max_bytes", "edition", "data_period"]
+notes = "Where each was read. The address: on the page above, on 2026-09-24, through a reader that extracts, asked twice in different words. Both readings gave the same address, letter for letter, and the item it names is the one the registry entry holds. No fetch has taken the file from it, so it is named as not yet sure. The format: the page lists the file as CSV, beside the same table as KML, GeoJSON and a shapefile. The size: the page gives none. The item's record gives 1,613,824 bytes for the hosted table, which is not the download. The edition: 'V2' is in the title of the item, and its record says 'This version 2 has had some changes to the change indicator field where splits have gone to complexes in under 10 MSOAs'. The period: the record says the lookup is between areas 'as at December 2011' and 'as at December 2021' and local authorities 'as at December 2022', so the period stated is the last of the three, as the lookup of the first list states its own. Nobody has read either in the file. What the record says the file holds: eight columns, MSOA11CD, MSOA11NM, CHGIND, MSOA21CD, MSOA21NM, LAD22CD, LAD22NM and LAD22NMW, and in CHGIND one of four marks, U, S, M or X. When the file is stored, read it with `describe`, hold it to those columns and marks, and take the edition and the period out of `unsure`. What to count in it: of London's 1,002 areas of 2021, 963 have a row in the workbook of private outdoor space and 39 have none, and the workbook holds 20 areas of London that are no area of 2021. If the lookup is what it says, the 963 carry the mark U, and the 20 areas of 2011 are split into the 39. England and Wales: the page offers no file for London."

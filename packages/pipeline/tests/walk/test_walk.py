@@ -157,7 +157,7 @@ def test_the_figure_worked_out_from_the_file_is_the_figure_the_release_serves(wa
     }
     found = {area: (figure.value, figure.covered) for area, figure in walked.figures.items()}
     assert found == served
-    assert found[AREA] == (28.2, 1.0)
+    assert found[AREA] == (32.4, 1.0)
     assert sum(value is None for value, _ in found.values()) == 2
 
 
@@ -176,7 +176,7 @@ def test_every_fact_has_evidence_and_every_file_behind_it_is_in_the_lock(walked:
     held = load(walk.registry)
     assert unevidenced(walk.release, walked.evidence, walk.lock(), held) == ()
     check = walked.said["check"]
-    assert check.lines[0].startswith(f"step=check status=ok release={RELEASE_ID} facts=1119 ")
+    assert check.lines[0].startswith(f"step=check status=ok release={RELEASE_ID} facts=1669 ")
     assert f" files={len(walk.files)} findings=0 " in check.lines[0]
     assert walk.findings.read_text(encoding="utf-8") == ""
 
@@ -189,7 +189,9 @@ def test_the_coverage_report_counts_what_is_there_and_what_is_missing(walked: Wa
     assert "| feature/homes_flats | 21 | 1 | 2 | 0 | 0 | 0 | 0 | 0 |" in report
     assert "| lon-n0009 | feature/homes_flats | below_threshold | yes | Too little" in report
     assert f"| {SURVEY} | 6 |" in report
-    assert " gaps=82 no_record=0 " in coverage.lines[0]
+    # 70 figures of a measure, 33 costs and 22 vibes that an area lacks, and the four
+    # measures that no release carries yet, in each of 24 areas.
+    assert " gaps=221 no_record=0 " in coverage.lines[0]
     assert "made up" not in coverage.everything
 
 
@@ -197,7 +199,7 @@ def test_a_figure_on_the_screen_is_traced_back_to_the_hash_of_the_file_behind_it
     walk, evidence = walked.walk, walked.evidence
     # The screen: a sentence, made from a fact that core gives.
     (fact,) = [fact for fact in facts_for(walk.release, AREA, None) if fact.fact_id == FACT]
-    assert fact.slots["value"] == "28%"
+    assert fact.slots["value"] == "32%"
     assert [source.source_id for source in fact.sources] == [SURVEY]
     # The fact has a row of evidence, under its own id.
     row = evidence.row(fact.fact_id)
@@ -258,6 +260,7 @@ def test_the_walk_wrote_nothing_outside_its_own_folder(walked: Walked):
         "data",
         "evidence.json",
         "findings.txt",
+        "hashes.json",
         "listing.json",
         "made-up.toml",
         "registry.toml",

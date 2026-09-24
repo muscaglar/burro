@@ -1,0 +1,54 @@
+# High streets: the one file that a high street within a walk would be measured
+# from. The town centres, which the size and the shape of a centre are measured
+# from, are in the list m2-places.
+#
+# The `page` is the registry entry's own `url`. The address of the file was read
+# on that page on 2026-09-24, through a reader that extracts the text of a page.
+# An extraction is not the page, so no person has seen the address. It was not
+# guessed, and it was not built from a pattern. The reader was asked twice, in
+# different words, and gave the same address both times, letter for letter,
+# written whole. The publisher's own record of the dataset gives the same
+# address. A fetch has since tried it: the file arrived on 2026-09-24 and is
+# kept as f-5ce73f61b1c4.
+#
+# The licence registry holds its source as approved, for scoring alone: the page
+# shows the licence field 'Open Government Licence v3', and the entry says what
+# was read and what is left over. The page says nothing of where the outlines
+# were drawn from, so the file is read for a statement of rights at first ingest.
+#
+# Not listed, and why:
+#   - Ordnance Survey's retail areas, which hold its high streets for Great
+#     Britain: the product is premium, and the registry holds it as
+#     os-functional-areas. No page gives an address of a file.
+#   - The authority's data on spend and footfall by high street: it is another
+#     dataset with inputs of third parties, and the registry entry does not
+#     cover it.
+#   - The interactive map the page links to: it is a page and no file.
+#
+# The page states no edition and the address names none, so the list states no
+# edition, and says where the file states its own: fetch reads the day its
+# contents were last changed, in what arrives. Fetch takes no period from that
+# day: the period is the list's to state. The page states no period, and the
+# file states no day that its outlines are as at. A boundary is as the file
+# holds it, as the list m2-places says of the town centres. So the period is
+# the day the contents of the file were last changed, which the step describe
+# gave on 2026-09-24. The first fetch stored the file and wrote no receipt. The
+# next writes one. docs/data-builds.md, section 7, says how.
+#
+# `uv run python -m burro_pipeline plan --list m11-high-streets --words` says what
+# the file still needs.
+schema_version = 1
+build = "m11-high-streets"
+
+[[file]]
+item = "gla-high-streets"
+source_id = "gla-high-street-boundaries"
+use = "scoring"
+what = "High street boundaries of the Greater London Authority, GeoPackage"
+format = "gpkg"
+page = "https://data.london.gov.uk/dataset/gla-high-street-boundaries"
+url = "https://data.london.gov.uk/download/2rq4w/894c1d85-774b-487e-9c5a-30c71d41a104/GLA_High_Street_boundaries_2.gpkg"
+max_bytes = 6_000_000
+edition_from = { where = "geopackage", at = "gpkg_contents.last_change", words = "last changed", period_too = false }
+data_period = { as_at = "2025-06-19" }
+notes = "Address read on 2026-09-24, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. It is written whole on the page. The publisher's own record of the dataset, https://data.london.gov.uk/api/dataset/gla-high-street-boundaries, gives the same address, 4,427,776 bytes, and 2025-06-19 as the day the file was last checked and the dataset updated. The page gives 4.22 MB. London only. Whether a download is sent on to another host is not known. The page states no edition, and the address names none, so a later file may arrive at it. So the list states no edition, and says where the file states its own: fetch reads the day its contents were last changed, in its table gpkg_contents, in what arrives. It was read on 2026-09-24, with the step describe, in the file kept in the store on 2026-09-24, f-5ce73f61b1c4: the table gives 2025-06-19 as the last change of its one layer, which is the day the publisher's record gives. If that file arrives again, its edition is last changed 2025-06-19. That day is about the file, and fetch never takes it for the period of the data: the period is the list's to state. The file says no more of when. The step describe gave one layer, Table1, of 640 outlines on the National Grid, with 7 columns: three numbers that tell one outline from another, the name of the high street, its size in hectares, the outline, and one that the publisher's software keeps. None is a column for a day. So the file states no day that its outlines are as at. The page states no day and no year that the outlines are as at: it says 'One off' and 'Last Update: over 1 year ago', and the publisher's record leaves both ends of the period it covers empty. So the page states no period either. The period stated here is the day of that last change, for one reason: a boundary is as the file holds it. An outline counts nothing over a span of days, as a register or a census does. It is a line its publisher draws, and what the publisher's file held when it was last changed is what the publisher gave the outlines as, as at that day. What the period does not say: the day any high street was drawn, which the file does not give, or that nothing has changed on the ground since. So beside a figure the words are that the outlines are as the publisher's file held them on that day, and never that a high street was drawn on it. A program read the file and the pages, and no person has: whether the period stands is the founder's to confirm. The period is of the file that was read and of no other: if the line of a fetch reads new=1, another file has arrived, and the period is stated again before its receipt is used. What was not read: a figure of the file, the name of any high street, and the file's own metadata. The step describe reads no metadata, so whether the file holds a statement of rights there is still not known: read it at first ingest, as the registry entry asks. The registry entry is approved for scoring, so a fetch may ask for the file: the first stored it and wrote no receipt, because the period was not stated, and the next writes the receipt."

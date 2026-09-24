@@ -8,10 +8,33 @@ own arguments by a test, and what each exit code means.
 import argparse
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Protocol
 
 # How the command is run. It is written in every usage line and every example.
 PROG = "python -m burro_pipeline"
+# The folders of the repository that git takes nothing in from. What a step makes from a
+# publisher's file is written under one of them, or outside the repository. A test holds
+# each to the repository's own list of what git ignores.
+IGNORED_BY_GIT = ("data/releases", "data/raw", "scratch")
+NOT_IGNORED = (
+    "is inside the repository, where git would take in what the step writes. What is made "
+    "from a publisher's file is never committed. Name a folder under data/releases/ or "
+    "scratch/, or one outside the repository"
+)
+
+
+def may_be_written(folder: Path, root: Path) -> bool:
+    """Whether a step may write what it makes from a publisher's file to a folder.
+
+    It may where git would not take it in: outside the repository at `root`,
+    or under a folder of it that git ignores. A `root` that is no repository
+    holds nothing git would take in.
+    """
+    top, target = root.resolve(), folder.resolve()
+    if not (top / ".git").exists() or top not in (target, *target.parents):
+        return True
+    return any((top / ignored) in (target, *target.parents) for ignored in IGNORED_BY_GIT)
 
 
 @dataclass(frozen=True)

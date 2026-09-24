@@ -15,7 +15,9 @@ from pathlib import Path
 import check_data_workflows
 import pytest
 from burro_pipeline import cli
-from burro_pipeline.command import PROG
+from burro_pipeline.assemble import cli as assemble_cli
+from burro_pipeline.cells import cli as cells_cli
+from burro_pipeline.command import IGNORED_BY_GIT, PROG, may_be_written
 from burro_pipeline.fetch.sources import LISTS, load_list
 from burro_pipeline.release.cli import parser as release_parser
 
@@ -31,12 +33,15 @@ STEPS = [
     "held",
     "describe",
     "seal",
+    "cells",
+    "travel",
+    "preview",
     "check",
     "coverage",
     "why",
 ]
 # The steps a person runs from the Makefile.
-MADE = ["plan", "fetch", "by-hand", "describe", "seal", "coverage"]
+MADE = ["plan", "fetch", "by-hand", "describe", "seal", "cells", "preview", "coverage"]
 Printed = pytest.CaptureFixture[str]
 
 
@@ -127,7 +132,7 @@ def test_it_runs_as_a_module():
         cwd=REPOSITORY,
     )
     assert (done.returncode, done.stderr) == (0, "")
-    assert done.stdout.startswith("step=check status=ok release=syn-2026-09-23-01 facts=1119 ")
+    assert done.stdout.startswith("step=check status=ok release=syn-2026-09-23-01 facts=1669 ")
 
 
 def test_there_is_one_way_to_run_a_step():
@@ -220,7 +225,7 @@ def test_every_command_a_workflow_runs_is_one_the_pipeline_takes():
 
 def test_a_workflow_runs_the_steps_it_is_named_for():
     steps = {words[3] for command, words in commands_of_the_workflows() if command == PROG}
-    assert steps == {"held", "fetch"}
+    assert steps == {"held", "fetch", "travel"}
 
 
 def test_the_lists_a_fetch_may_be_started_with_are_the_lists_there_are():
@@ -233,3 +238,40 @@ def test_the_lists_a_fetch_may_be_started_with_are_the_lists_there_are():
     options = offered["options"]
     assert options == sorted(path.stem for path in LISTS.glob("*.toml"))
     assert isinstance(options, list) and offered["default"] in options
+
+
+# Where a step may write what it makes from a publisher's file
+
+
+def a_repository(folder: Path) -> Path:
+    """A folder that is the top of a working copy, as far as a step looks: it holds `.git`."""
+    (folder / ".git").mkdir(parents=True)
+    return folder
+
+
+def test_what_a_step_writes_goes_outside_the_repository_or_where_git_ignores(tmp_path: Path):
+    root = a_repository(tmp_path / "repository")
+    for folder in ("data/releases", "data/releases/lon-2026-10-02-01", "scratch/copies"):
+        assert may_be_written(root / folder, root), folder
+    for folder in ("", "out", "data", "data/locks", "data/receipts/copies", "docs/scratch"):
+        assert not may_be_written(root / folder, root), folder
+    assert may_be_written(tmp_path / "elsewhere", root)
+    # A folder that is no repository holds nothing git would take in.
+    assert may_be_written(tmp_path / "plain" / "out", tmp_path / "plain")
+
+
+def test_every_folder_a_step_may_write_to_is_one_git_ignores():
+    ignored = (REPOSITORY / ".gitignore").read_text(encoding="utf-8").splitlines()
+    for folder in IGNORED_BY_GIT:
+        assert f"{folder}/" in ignored, folder
+
+
+def test_every_folder_an_example_writes_to_is_one_git_ignores():
+    """The help says an example works as it stands. One left copies of files where git saw them."""
+    for step in (*assemble_cli.STEPS, *cells_cli.STEPS):
+        for example in step.examples:
+            words = example.split()
+            for flag in ("--out", "--work"):
+                if flag in words:
+                    folder = words[words.index(flag) + 1]
+                    assert may_be_written(REPOSITORY / folder, REPOSITORY), (step.name, folder)

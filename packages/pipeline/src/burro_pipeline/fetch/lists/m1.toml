@@ -1,12 +1,13 @@
 # The files of the first real build: milestone M1 of docs/design/london-data.md.
 # Five measures for all of London, on official census areas.
 #
-# Nothing here has been fetched. Every `page` is the registry entry's own: its
-# `url`, or an address under its `evidence_urls`. Every `url` was read on a
-# publisher's page on 2026-09-23, through a reader that extracts the text of a
-# page. An extraction is not the page. So no person has seen an address here,
-# and no fetch has tried one. No address was guessed, and none was built from a
-# pattern. Each file's notes say where its address was read.
+# Every file here was fetched on 2026-09-23, and its receipt is in
+# data/receipts. Every `page` is the registry entry's own: its `url`, or an
+# address under its `evidence_urls`. Every `url` was read on a publisher's page
+# on 2026-09-23, through a reader that extracts the text of a page. An
+# extraction is not the page. So no person has seen an address here. No address
+# was guessed, and none was built from a pattern. Each file's notes say where
+# its address was read.
 #
 #   Sure of: voa-ctsop-1-1, voa-ctsop-3-1, voa-ctsop-4-1 and iod-file-8. Each
 #   address is written whole on the entry's own page. The reader was asked
@@ -33,14 +34,17 @@
 # the file is stored, and the step `describe` shows its shape, but nothing
 # can be cited to it until a person has stated both.
 #
-# No file here has been fetched, so none has been read as a fetch will store
-# it. Each edition and each period below was read on a publisher's page, and
-# not in the file that a receipt will name. So
-# every file names "edition" and "data_period" under `unsure`, and the first
-# fetch stores each file and writes no receipt. When a person has read a file,
-# and found its edition and its period in it, both are taken out of `unsure`
-# in a commit, and the next fetch writes the receipt. docs/data-builds.md,
-# section 7, says how, and how a receipt that is wrong is put right.
+# Each edition and each period below was first read on a publisher's page.
+# Every file has since been fetched, and a program has read each one:
+# docs/research/data/m1-files.md says what each holds. The steps of the first
+# build read ten of them, and the full-resolution boundaries are read by no
+# step. No person has read one. So no file names "edition" or "data_period"
+# under `unsure`, and each has its receipt. A file that is added here names
+# both under `unsure` until it has been read, and its first fetch stores it and
+# writes no receipt. When a person has read a file, and found its edition and
+# its period in it, both are taken out of `unsure` in a commit, and the next
+# fetch writes the receipt. docs/data-builds.md, section 7, says how, and how a
+# receipt that is wrong is put right.
 #
 # `uv run python -m burro_pipeline plan --list m1 --words` says what each file
 # still needs. Each step's own --help says how to run it.
@@ -59,11 +63,13 @@ what = "Output area to LSOA to MSOA to local authority, best-fit lookup, England
 format = "csv"
 page = "https://www.data.gov.uk/dataset/c2235117-cbfd-480d-8fc7-b564bd0f4d58/output-area-2021-to-lsoa-to-msoa-to-lep-to-lad-december-2022-best-fit-lookup-in-en-v2"
 url = "https://open-geography-portalx-ons.hub.arcgis.com/api/download/v1/items/45fdd4465604493cb7d2238ad642172b/csv?layers=0"
+# The portal hands a download on to the hosts that hold the file. Seen on 2026-09-23.
+may_redirect_to = ["services1.arcgis.com", "stg-arcgisazurecdataprod1.az.arcgis.com"]
 url_parameters = ["layers"]
 max_bytes = 100_000_000
 edition = "V2"
 data_period = { as_at = "2022-12" }
-unsure = ["url", "format", "max_bytes", "edition", "data_period"]
+unsure = ["url", "format", "max_bytes"]
 notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The page lists it as CSV. The item named in the address is the one the registry entry holds. Open it once in a browser: from memory, the portal makes a file when it is asked for, and may send the download on to another host, or answer that the file is not ready. The page gives no size. The hosted table is 65,355,776 bytes, as its item record says, which is not the download. The registry entry's own address is a table behind a map service, which answers in pages of rows and lists no file. About 179,000 rows for England, from memory. Count the London rows against 26,369 before use."
 
 [[file]]
@@ -74,11 +80,13 @@ what = "Output area boundaries, December 2021, generalised and clipped (BGC V2),
 format = "gpkg"
 page = "https://www.data.gov.uk/dataset/4d4e021d-fe98-4a0e-88e2-3ead84538537/output-areas-december-2021-boundaries-ew-bgc-v21"
 url = "https://open-geography-portalx-ons.hub.arcgis.com/api/download/v1/items/6beafcfd9b9c4c9993a06b6b199d7e6d/geoPackage?layers=0"
+# The portal hands a download on to the hosts that hold the file. Seen on 2026-09-23.
+may_redirect_to = ["services1.arcgis.com", "stg-arcgisazurecdataprod1.az.arcgis.com"]
 url_parameters = ["layers"]
 max_bytes = 1_000_000_000
 edition = "BGC V2"
 data_period = { as_at = "2021-12" }
-unsure = ["url", "format", "max_bytes", "edition", "data_period"]
+unsure = ["url", "format", "max_bytes"]
 notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The page lists it as GeoPackage. The item named in the address is the one the registry entry holds. Open it once in a browser: from memory, the portal makes a file when it is asked for, and may send the download on to another host, or answer that the file is not ready. The page gives no size. The publisher's record gives 370,442,240 bytes for the hosted layer of England and Wales, which is not the download. The plan says the first build may leave output area boundaries to milestone M3."
 
 [[file]]
@@ -89,11 +97,13 @@ what = "Output area boundaries, December 2021, full resolution and clipped (BFC 
 format = "gpkg"
 page = "https://www.data.gov.uk/dataset/259052b8-8369-42de-a022-b67d0d225dbe/output-areas-december-2021-boundaries-ew-bfc-v81"
 url = "https://open-geography-portalx-ons.hub.arcgis.com/api/download/v1/items/31dac98df61a4312991646842b147e2f/geoPackage?layers=0"
+# The portal hands a download on to the hosts that hold the file. Seen on 2026-09-23.
+may_redirect_to = ["services1.arcgis.com", "stg-arcgisazurecdataprod1.az.arcgis.com"]
 url_parameters = ["layers"]
 max_bytes = 3_000_000_000
 edition = "BFC V8"
 data_period = { as_at = "2021-12" }
-unsure = ["url", "format", "max_bytes", "edition", "data_period"]
+unsure = ["url", "format", "max_bytes"]
 notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The page lists it as GeoPackage. The item named in the address is the one the registry entry holds. Open it once in a browser: from memory, the portal makes a file when it is asked for, and may send the download on to another host, or answer that the file is not ready. The page gives no size. The publisher's record gives 1,494,728,704 bytes for the hosted layer of England and Wales, which is not the download. The registry entry holds this page under its evidence, and not as its own address: one entry covers both files. The plan says the first build may leave output area boundaries to milestone M3."
 
 [[file]]
@@ -104,11 +114,13 @@ what = "Output areas, December 2021, population weighted centroids, V4"
 format = "csv"
 page = "https://www.data.gov.uk/dataset/7da4cb73-1cf2-405f-bd93-1ac3916d6e3a/output-areas-december-2021-ew-population-weighted-centroids-v4"
 url = "https://open-geography-portalx-ons.hub.arcgis.com/api/download/v1/items/558170d37ab04f34845034db91a86914/csv?layers=0"
+# The portal hands a download on to the hosts that hold the file. Seen on 2026-09-23.
+may_redirect_to = ["hub.arcgis.com", "stg-arcgisazurecdataprod1.az.arcgis.com"]
 url_parameters = ["layers"]
 max_bytes = 100_000_000
 edition = "V4"
 data_period = { as_at = "2021-12" }
-unsure = ["url", "format", "max_bytes", "edition", "data_period"]
+unsure = ["url", "format", "max_bytes"]
 notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The page lists four files: CSV, GeoJSON, KML and Shapefile. It lists no GeoPackage. The item named in the address is the one the registry entry holds. Open it once in a browser: from memory, the portal makes a file when it is asked for, and may send the download on to another host, or answer that the file is not ready. The page gives no size, and says it was last updated on 11 February 2026. About 189,000 points for England and Wales, from memory."
 
 [[file]]
@@ -119,11 +131,13 @@ what = "LSOA boundaries, December 2021, generalised and clipped (BGC V5), for th
 format = "gpkg"
 page = "https://www.data.gov.uk/dataset/40129cd8-4ebd-4a96-9625-869103493b28/lower-layer-super-output-areas-december-2021-boundaries-ew-bgc-v5"
 url = "https://open-geography-portalx-ons.hub.arcgis.com/api/download/v1/items/68515293204e43ca8ab56fa13ae8a547/geoPackage?layers=0"
+# The portal hands a download on to the hosts that hold the file. Seen on 2026-09-23.
+may_redirect_to = ["services1.arcgis.com", "stg-arcgisazurecdataprod1.az.arcgis.com"]
 url_parameters = ["layers"]
 max_bytes = 500_000_000
 edition = "BGC V5"
 data_period = { as_at = "2021-12" }
-unsure = ["url", "format", "max_bytes", "edition", "data_period"]
+unsure = ["url", "format", "max_bytes"]
 notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The page lists it as GeoPackage. The item named in the address is the one the registry entry holds. Open it once in a browser: from memory, the portal makes a file when it is asked for, and may send the download on to another host, or answer that the file is not ready. The page gives no size. The table of files in the plan does not list this file. ADR 0016 does: homes per hectare needs the land area of each LSOA. The registry entry covers BGC V5 only."
 
 [[file]]
@@ -137,7 +151,7 @@ url = "https://www.nomisweb.co.uk/output/census/2021/census2021-ts044.zip"
 max_bytes = 200_000_000
 edition = "Census 2021 TS044"
 data_period = { as_at = "2021-03-21" }
-unsure = ["url", "max_bytes", "edition", "data_period"]
+unsure = ["url", "max_bytes"]
 notes = "Address read on 2026-09-23 through a reader that extracts. It was not on the page above, which listed no file. It was read on the publisher's page of bulk downloads, https://www.nomisweb.co.uk/sources/census_2021_bulk, which the registry entry does not hold. The reader was asked twice, in different words, and gave the same address both times. That page writes the address as a path from the top of the site, /output/census/2021/census2021-ts044.zip, under the words 'TS044 - Output areas'. Open it once in a browser. The page says the zip holds a CSV for each geography: output areas, super output areas, local authorities, regions and countries. It lists a second zip of extra areas, which is not taken. No size is shown."
 
 [[file]]
@@ -151,7 +165,6 @@ url = "https://assets.publishing.service.gov.uk/media/6a0ad444c75cc34a8ff8f397/C
 max_bytes = 5_000_000
 edition = "2025"
 data_period = { as_at = "2025-03-31" }
-unsure = ["edition", "data_period"]
 notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page gives 732 KB. It says it was published on 25 September 2025 and last updated on 22 May 2026, so the file may not be the one first published: the hash in the receipt says which was fetched. What is inside the zip is not known. The page does not say which census its LSOA codes follow: test every code against both code lists."
 
 [[file]]
@@ -165,7 +178,6 @@ url = "https://assets.publishing.service.gov.uk/media/6a0ad462229555d0fe8266f4/C
 max_bytes = 40_000_000
 edition = "2025"
 data_period = { as_at = "2025-03-31" }
-unsure = ["edition", "data_period"]
 notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page gives 7.53 MB. It says it was published on 25 September 2025 and last updated on 22 May 2026, so the file may not be the one first published: the hash in the receipt says which was fetched. What is inside the zip is not known. The page does not say which census its LSOA codes follow: test every code against both code lists."
 
 [[file]]
@@ -179,7 +191,6 @@ url = "https://assets.publishing.service.gov.uk/media/6a0ad479f7c2e79c33db907d/C
 max_bytes = 30_000_000
 edition = "2025"
 data_period = { as_at = "2025-03-31" }
-unsure = ["edition", "data_period"]
 notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page gives 5.87 MB. It says it was published on 25 September 2025 and last updated on 22 May 2026, so the file may not be the one first published: the hash in the receipt says which was fetched. What is inside the zip is not known. The build-period bands have not been read. A 2026 edition may be published soon: record the edition fetched."
 
 [[file]]
@@ -192,8 +203,10 @@ page = "https://www.gov.uk/government/statistics/english-indices-of-deprivation-
 url = "https://assets.publishing.service.gov.uk/media/691dec012c6b98ecdbc500d4/File_8_IoD2025_Underlying_Indicators.xlsx"
 max_bytes = 60_000_000
 edition = "2025"
-unsure = ["edition", "data_period"]
-notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page gives 13.8 MB. It says it was published on 30 October 2025 and last updated on 17 November 2025. The period the noise indicator describes is not on the page, and is not in the registry or the design, so none is stated here and no receipt is written until one is. It is on the notes sheet of the file. Read named columns only: the file also holds income and health."
+# The period of the noise indicator, which is the one column a build reads. The workbook
+# holds other indicators, each with a period of its own.
+data_period = { as_at = "2021" }
+notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page gives 13.8 MB. It says it was published on 30 October 2025 and last updated on 17 November 2025. The period is not on the page. It was read on 2026-09-23 from the file itself, which was stored that day with no receipt: on its notes sheet, the row of the indicator 'Noise pollution' gives 2021 under 'Data time point'. The step that reads the column reads that row again, and stops if the receipt states another year. The notes sheet says the file was reissued on 13 November 2025. A receipt is written when a file is fetched, so fetch the file again for its receipt to be written. Read named columns only: the file also holds income and health."
 
 [[file]]
 item = "defra-no2-2024"
@@ -206,5 +219,5 @@ url = "https://uk-air.defra.gov.uk/datastore/pcm/mapno22024.csv"
 max_bytes = 100_000_000
 edition = "2024"
 data_period = { as_at = "2024" }
-unsure = ["url", "max_bytes", "edition", "data_period"]
+unsure = ["url", "max_bytes"]
 notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page writes the address as a path that starts from the page, ../datastore/pcm/mapno22024.csv, in the row for NO2, 2024, annual mean. The address here is that path worked out against the page's own address, as a browser does. Open it once in a browser. One CSV for each pollutant and year. The page says the first four rows hold the pollutant, the year, the metric and the units, and the data begins on row 6. It says new maps are made available by the middle of October. Files are reissued after errors: the hash in the receipt says which was used."

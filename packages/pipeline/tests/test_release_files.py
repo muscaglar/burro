@@ -4,7 +4,6 @@ import dataclasses
 import hashlib
 import json
 import re
-import tempfile
 from datetime import date
 from functools import cache
 from pathlib import Path
@@ -41,6 +40,7 @@ from burro_pipeline.release import (
 from burro_pipeline.release.cli import main
 from burro_pipeline.release.read import IGNORED, MEANING
 from burro_pipeline.release.synthetic import RELEASE_ID
+from burro_pipeline.release.write import packed
 
 REAL_ID = "lon-2026-09-23-01"
 # A string found nowhere else. If a refusal repeats what a file says, this shows up in it.
@@ -58,17 +58,20 @@ def written(tmp_path: Path) -> Path:
 
 
 @cache
-def as_written() -> dict[str, bytes]:
-    """The files of the synthetic release, as `write_release` writes them. Written once."""
-    with tempfile.TemporaryDirectory() as folder:
-        return {file.name: file.read_bytes() for file in written(Path(folder)).iterdir()}
+def files() -> dict[str, bytes]:
+    return packed(synthetic())
 
 
-def a_copy(tmp_path: Path) -> Path:
-    """The release as it was written, for a test of reading to break. It tests no writing."""
+def on_disk(tmp_path: Path) -> Path:
+    """A folder that holds the synthetic release, for a test of what is read from one.
+
+    The writer checks a release against every rule before it writes, which is
+    most of what writing costs, and a test of the reader needs only the bytes.
+    They are the bytes the writer writes: a test below holds them to it.
+    """
     folder = tmp_path / RELEASE_ID
-    folder.mkdir()
-    for name, content in as_written().items():
+    folder.mkdir(parents=True)
+    for name, content in files().items():
         (folder / name).write_bytes(content)
     return folder
 
@@ -99,6 +102,10 @@ def test_written_release_reads_back_the_same(tmp_path: Path):
     as_written = write_release(synthetic(), tmp_path)
     read = read_release(tmp_path / RELEASE_ID)
     assert read == as_written
+    # And the folder the tests of the reader are given holds what the writer wrote.
+    wrote = {file.name: file.read_bytes() for file in (tmp_path / RELEASE_ID).iterdir()}
+    given = on_disk(tmp_path / "given")
+    assert {file.name: file.read_bytes() for file in given.iterdir()} == wrote
     # All that writing adds to what was built is the manifest's list of files.
     assert dataclasses.replace(read, manifest=synthetic().manifest) == synthetic()
     assert {entry.name for entry in read.manifest.files} == set(DATA_FILES)
@@ -140,7 +147,7 @@ def test_the_manifest_counts_what_was_written_and_not_what_the_builder_claimed(t
 
 @pytest.mark.parametrize("name", [MANIFEST, *DATA_FILES])
 def test_a_missing_file_is_refused_in_one_readable_line(tmp_path: Path, name: str):
-    folder = a_copy(tmp_path)
+    folder = on_disk(tmp_path)
     (folder / name).unlink()
     error = refusal(folder)
     assert (error.file, error.rule) == (name, "files_match_manifest")
@@ -148,7 +155,7 @@ def test_a_missing_file_is_refused_in_one_readable_line(tmp_path: Path, name: st
 
 
 def test_a_changed_file_is_refused_in_one_readable_line(tmp_path: Path):
-    folder = a_copy(tmp_path)
+    folder = on_disk(tmp_path)
     content = (folder / "cost.json").read_bytes()
     (folder / "cost.json").write_bytes(content.replace(b"1", b"2", 1))
     error = refusal(folder)
@@ -158,7 +165,7 @@ def test_a_changed_file_is_refused_in_one_readable_line(tmp_path: Path):
 
 
 def test_a_file_that_does_not_belong_is_refused(tmp_path: Path):
-    folder = a_copy(tmp_path)
+    folder = on_disk(tmp_path)
     (folder / "notes.txt").write_text("not part of any release")
     assert refusal(folder).file == "notes.txt"
     (folder / "notes.txt").unlink()
@@ -183,7 +190,7 @@ def test_a_file_the_finder_leaves_behind_is_ignored(
 
 
 def test_a_release_with_a_file_missing_is_refused_whatever_the_finder_left(tmp_path: Path):
-    folder = a_copy(tmp_path)
+    folder = on_disk(tmp_path)
     (folder / IGNORED).write_bytes(b"")
     (folder / "cost.json").unlink()
     assert (refusal(folder).file, refusal(folder).rule) == ("cost.json", "files_match_manifest")
@@ -208,7 +215,7 @@ STRAY = [
 
 @pytest.mark.parametrize("name", STRAY)
 def test_every_other_stray_file_is_still_refused(tmp_path: Path, name: str):
-    folder = a_copy(tmp_path)
+    folder = on_disk(tmp_path)
     (folder / name).write_bytes(b"")
     error = refusal(folder)
     assert (error.file, error.rule) == (name, "files_match_manifest")
@@ -217,7 +224,7 @@ def test_every_other_stray_file_is_still_refused(tmp_path: Path, name: str):
 
 def test_a_folder_by_the_name_of_the_file_the_finder_leaves_is_refused(tmp_path: Path):
     # Only a file is left out. A folder of that name is nothing the Finder made.
-    folder = a_copy(tmp_path)
+    folder = on_disk(tmp_path)
     (folder / IGNORED).mkdir()
     assert (refusal(folder).file, refusal(folder).rule) == (IGNORED, "file_is_readable")
 
@@ -266,6 +273,31 @@ def unknown_area(folder: Path) -> None:
     changed(folder, "cost.json", rename)
 
 
+def percentile_moved(folder: Path) -> None:
+    def move(document: dict[str, Any]) -> None:
+        row = document["rows"][7]
+        row["percentile"] = 40.0 if row["percentile"] == 50.0 else 50.0
+
+    changed(folder, "features.json", move)
+
+
+def more_of_a_recipe_claimed(folder: Path) -> None:
+    def claim(document: dict[str, Any]) -> None:
+        # Food and drink, of which no release holds every part yet.
+        assert document["rows"][3]["coverage"] < 1
+        document["rows"][3]["coverage"] = 1.0
+
+    changed(folder, "tags.json", claim)
+
+
+def score_moved(folder: Path) -> None:
+    def move(document: dict[str, Any]) -> None:
+        row = document["rows"][3]
+        row["score"] = 40.0 if row["score"] == 50.0 else 50.0
+
+    changed(folder, "tags.json", move)
+
+
 MALFORMED = [
     (not_json, "travel.json", "json_is_valid", "travel.json is not valid JSON"),
     (manifest_cut_short, MANIFEST, "json_is_valid", "manifest.json is not valid JSON"),
@@ -289,6 +321,27 @@ MALFORMED = [
         "references_resolve",
         "cost.json, at rows[0], names an area, destination, place, station or source that",
     ),
+    # What is ranked on never parts from what is shown. A figure that was changed by hand,
+    # or worked out wrongly, is refused as plainly as a file that was cut short.
+    (
+        percentile_moved,
+        "features.json",
+        "percentiles_match_values",
+        "features.json, at rows[7], holds a percentile that is not the one its values give",
+    ),
+    (
+        more_of_a_recipe_claimed,
+        "tags.json",
+        "raw_matches_recipe",
+        "tags.json, at rows[3], places an area on a vibe by figures that are not the ones the "
+        "release holds for it, or says more of the recipe was there than was",
+    ),
+    (
+        score_moved,
+        "tags.json",
+        "scores_match_raw",
+        "tags.json, at rows[3], holds a score for a vibe that is not the one its raw values give",
+    ),
 ]
 
 
@@ -298,7 +351,7 @@ MALFORMED = [
 def test_a_malformed_file_is_refused_in_one_readable_line(
     tmp_path: Path, spoil: Any, file: str, rule: str, says: str
 ):
-    folder = a_copy(tmp_path)
+    folder = on_disk(tmp_path)
     spoil(folder)
     error = refusal(folder)
     assert (error.file, error.rule) == (file, rule)
@@ -320,7 +373,7 @@ def test_a_folder_that_is_not_there_is_refused_in_one_readable_line(tmp_path: Pa
 
 
 def test_a_release_in_a_folder_of_another_name_is_refused(tmp_path: Path):
-    moved = a_copy(tmp_path).rename(tmp_path / "syn-2026-09-24-01")
+    moved = on_disk(tmp_path).rename(tmp_path / "syn-2026-09-24-01")
     error = refusal(moved)
     assert error.rule == "release_id_matches_folder"
     assert "names a release other than the folder it is in" in str(error)
@@ -329,13 +382,13 @@ def test_a_release_in_a_folder_of_another_name_is_refused(tmp_path: Path):
 def test_a_release_is_read_by_its_folders_own_name_however_the_path_is_written(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    folder = a_copy(tmp_path)
+    folder = on_disk(tmp_path)
     monkeypatch.chdir(folder)
     assert read_release(Path()) == read_release(folder)
 
 
 def test_every_refusal_core_can_make_has_a_meaning_in_plain_words():
-    # The ten rules of the contract, and the five refusals core adds to them.
+    # The rules of the contract, and the five refusals core adds to them.
     beyond_the_rules = {
         "shape_is_valid",
         "files_are_expected",
@@ -406,15 +459,26 @@ def cite(row: dict[str, Any], source_id: str) -> None:
     row[key] = [source_id] if key == "source_ids" else source_id
 
 
+@cache
+def renamed() -> str:
+    """The synthetic release with real ids, as one text, made once."""
+    # Gritty as land use alone: as a scale it holds recorded crime, and no real
+    # release may carry it.
+    return json.dumps(build_synthetic(gritty_variant="a").documents()).replace("syn-", "lon-")
+
+
 def real_release(**cited_in: str) -> InMemoryRelease:
     """The synthetic release with real ids, each file citing the source that `SOURCE_FOR` gives.
 
     `cited_in` changes the source one file cites: `catalogue="made-up-timetable"`.
     """
-    sources = SOURCE_FOR | {f"{file}.json": source for file, source in cited_in.items()}
-    documents: dict[str, Any] = json.loads(
-        json.dumps(synthetic().documents()).replace("syn-", "lon-")
-    )
+    return cited(tuple(sorted(cited_in.items())))
+
+
+@cache
+def cited(cited_in: tuple[tuple[str, str], ...]) -> InMemoryRelease:
+    sources = SOURCE_FOR | {f"{file}.json": source for file, source in cited_in}
+    documents: dict[str, Any] = json.loads(renamed())
     manifest = documents[MANIFEST]
     manifest.update(synthetic=False, city="lon", seed=None)
     manifest["sources"] = [
@@ -495,6 +559,18 @@ def test_a_release_that_breaks_a_rule_is_never_written(tmp_path: Path):
     assert list(tmp_path.iterdir()) == []
 
 
+def test_a_release_whose_scores_part_from_what_it_shows_is_never_written(tmp_path: Path):
+    first, *rest = synthetic().tags
+    assert first.score is not None
+    parted = dataclasses.replace(
+        synthetic(), tags=(first.replace(score=40.0 if first.score == 50.0 else 50.0), *rest)
+    )
+    with pytest.raises(ReleaseError) as caught:
+        write_release(parted, tmp_path)
+    assert caught.value.rule == "scores_match_raw"
+    assert list(tmp_path.iterdir()) == []
+
+
 def test_a_real_release_is_never_written_over(tmp_path: Path):
     write_release(real_release(), tmp_path, registry())
     before = (tmp_path / REAL_ID / MANIFEST).read_bytes()
@@ -538,14 +614,14 @@ def test_the_command_builds_the_release_and_checks_it(
     assert main(["check", str(tmp_path / RELEASE_ID)]) == 0
     built, checked = capsys.readouterr().out.splitlines()
     assert built == checked
-    assert built.startswith(f"{RELEASE_ID}: 24 areas (22 rankable), 40 destinations")
+    assert built.startswith(f"{RELEASE_ID}: 24 areas (22 rankable), 43 measures, 40 destinations")
     assert built.endswith(", synthetic")
 
 
 def test_the_command_refuses_a_broken_release_in_one_line(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ):
-    folder = a_copy(tmp_path)
+    folder = on_disk(tmp_path)
     (folder / "geometry.json").unlink()
     assert main(["check", str(folder)]) == 2
     captured = capsys.readouterr()

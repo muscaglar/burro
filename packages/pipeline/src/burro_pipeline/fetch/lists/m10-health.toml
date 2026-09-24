@@ -1,0 +1,74 @@
+# Doctors and pharmacies: the two files that the walk to a GP practice and the walk
+# to a pharmacy are measured from. They are two parts of Everyday on foot, at 15 in
+# 100 each. Milestone M10 of docs/design/london-data.md names the pharmacy list.
+#
+# Written before any fetch. Every `page` is the registry entry's own `url`. Every
+# address of a file was read on a publisher's page on 2026-09-24, through a reader
+# that extracts the text of a page. An extraction is not the page. So no person has
+# seen an address here, and no fetch has tried one. No address was guessed, and none
+# was built from a pattern. The reader was asked twice of each page, in different
+# words, and gave each address the same both times, written whole.
+#
+# Each file gives a place by its postcode and by no point. The step that reads one
+# places it by the postcode directory, which is in the list m2-places as
+# postcode-directory.
+#
+# Not listed, and why:
+#   - The reports of practitioners, of nurse prescribers and of private prescribers
+#     of controlled drugs, egpcur, epracmem, enurse and epcdp, on the page of
+#     gp-practices: each is a record about named people. None may ever be listed.
+#   - Branch surgeries, ebranchs: the publisher's specification says that the kind
+#     also marks vaccination sites, and the report has no column for a status. The
+#     registry entry does not cover it.
+#   - Dispensaries, edispensary, from the Organisation Data Service: one list of
+#     pharmacies is read, and the other names its columns. It is not registered.
+#   - The earlier quarters of the pharmacy list: no change over time is shown.
+#   - NHS trust sites and NHS trusts: they are in the list m2-living, under the entry
+#     nhs-ods, for destination search alone.
+#
+# The report of practices has no edition on its publisher's page, and is made when
+# it is asked for. So the list states none, and says under `edition_from` that the
+# edition is the day the file is retrieved, as the two NHS reports of m2-living do.
+# The period of the pharmacy list is not yet sure, so the first fetch stores that
+# file and writes no receipt. docs/data-builds.md, section 7, says how a receipt is
+# then written.
+#
+# Both were fetched on 2026-09-24. The report of practices has its receipt. The
+# pharmacy list is in the store with no receipt, as said above: its period is
+# still under `unsure`.
+#
+# `uv run python -m burro_pipeline plan --list m10-health --words` says what each
+# file still needs.
+schema_version = 1
+build = "m10-health"
+
+[[file]]
+item = "gp-practices"
+source_id = "nhs-ods-gp-practices"
+use = "scoring"
+what = "GP practices, the predefined report epraccur: every prescribing cost centre of England and Wales, of which GP practices are a part"
+format = "csv"
+page = "https://digital.nhs.uk/services/organisation-data-service/data-search-and-export/csv-downloads/gp-and-gp-practice-related-data"
+url = "https://www.odsdatasearchandexport.nhs.uk/api/getReport?report=epraccur"
+url_parameters = ["report"]
+max_bytes = 50_000_000
+edition_from = { where = "retrieved", at = "", words = "retrieved", period_too = true }
+unsure = ["url", "format", "max_bytes"]
+notes = "Address read on 2026-09-24, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times, written whole. The parameter report names the file and is part of its address, so it is named under url_parameters. The host is the publisher's own Data Search and Export service, where the two reports of m2-living were fetched from. The file was fetched on 2026-09-24 and has its receipt. The download was not sent on to another host: the receipt gives the address it arrived from, which is the address here. It is 3,316,877 bytes. The page gives no size and names no sign-in. It says the predefined reports are dynamic and the source data updates nightly. Neither the page nor the specification states an edition. The two reports of the same service that are in the store hold no date, no row of names and 27 cells to a line, and the specification of this report gives it 27 columns too. So the edition is taken to be the day the file is retrieved, written as such, and the period that day. Look at the first file before its receipt is relied on: that it has no row of names, that column 13 holds a status written in full, and that column 26 holds RO76 for a GP practice. The step that reads it stops at a file that is laid out otherwise. The first file was looked at on 2026-09-24, through the gate and its receipt, for the three columns the step holds it to and for no name, address or postcode: it is f-13acc2be00fb, of 15,651 lines, each of 27 columns, with no row of names. Column 13 holds ACTIVE in 12,591 lines, INACTIVE in 2,808 and DORMANT in 252. The step names active, closed, dormant and proposed, so it stops at INACTIVE. Every line that says INACTIVE holds a day it closed, and no line that says ACTIVE holds one. Column 26 holds RO76 alone in 8,187 lines, and two roles joined by a bar in 27, which the step stops at too. So the receipt stands and no figure is made from the file until the step is put right: docs/research/data/postcodes.md holds the counts. England and Wales: no report for London is offered. A practice is placed by its postcode. Closed practices are listed."
+
+[[file]]
+item = "pharmacy-list-2026-27-q1"
+source_id = "nhsbsa-consolidated-pharmaceutical-list"
+use = "scoring"
+what = "Consolidated Pharmaceutical List, 2026-27 Quarter 1: NHS pharmacies, appliance contractors and local pharmaceutical services contractors in England"
+format = "csv"
+page = "https://opendata.nhsbsa.net/dataset/consolidated-pharmaceutical-list"
+url = "https://opendata.nhsbsa.net/dataset/240d142d-df82-4e97-b051-12371519e4e1/resource/ce6c7ad3-a3b5-442f-bb0a-a45d7c962944/download/consol_pharmacy_list_202606q1.csv"
+# The publisher hands the download on to a store of its own. A fetch saw the host on
+# 2026-09-24. No receipt bears it out yet: the file is stored with none.
+may_redirect_to = ["83025b28472d6aa2bf5ae59f3724aa78.eu.r2.cloudflarestorage.com"]
+max_bytes = 50_000_000
+edition = "2026-27 Quarter 1"
+data_period = { start = "2026-04-01", end = "2026-06-30" }
+unsure = ["url", "format", "max_bytes", "data_period"]
+notes = "Address read on 2026-09-24, on the page above and on the page of the file, through a reader that extracts. Each page was read twice, in different words, and all four readings gave the same address, written whole. The name of the file ends 202606q1, where the four files before it end in the two years of their financial year, as 202526q4: it is written as it was read. The publisher hands the download on to a store of its own, on the host named under may_redirect_to, as a fetch saw on 2026-09-24. The file was stored that day with no receipt, because its period is not sure. It is 2,574,037 bytes. Neither page gives a size. The edition is the publisher's own title for the file. The period is not sure. It is written as the first quarter of the financial year the title names, April to June 2026, which no page states. The page of the file gives the day it was made and last changed as 29 July 2026, and one reading of the dataset's page gave 18 August 2026. No page says what day the list is as at. Read what the file says of its own date before the period is taken out of unsure. The page of the file lists 25 fields by name. Two are read: POST_CODE and CONTRACT_TYPE. England: no file for London is offered. A pharmacy is placed by its postcode. The list has no column that says a pharmacy serves by post alone."

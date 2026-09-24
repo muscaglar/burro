@@ -12,6 +12,7 @@ import re
 from pathlib import Path
 
 import pytest
+from burro_core.release import MANIFEST, Hashes
 from burro_pipeline.evidence.cli import main
 from burro_pipeline.evidence.lock import Lock, read_lock
 from burro_pipeline.evidence.receipt import Receipt
@@ -49,6 +50,9 @@ from .support import (
 )
 
 PARK = "syn-n0001/feature/park_proximity"
+# A measure that is a part of no vibe and that likeness is not counted on: no fact rests
+# on its row but its own.
+ALONE = "syn-n0001/feature/venue_independent"
 # A commit as it is given where there is no repository to read it from. The tests may
 # themselves be run in a working copy, so each names a folder that is in none.
 COMMITTED = ("--commit", COMMIT, "--root", str(NO_REPOSITORY))
@@ -84,27 +88,27 @@ def test_check_passes_when_every_fact_has_evidence(tmp_path: Path, capsys: Print
     assert main(["check", str(FIXTURE), "--made-up"]) == 0
     assert main(["check", str(FIXTURE), "--evidence", written(tmp_path, evidence())]) == 0
     line = (
-        f"step=check status=ok release={RELEASE_ID} facts=1119 rows=1225 files=6 findings=0 "
+        f"step=check status=ok release={RELEASE_ID} facts=1669 rows=1777 files=6 findings=0 "
         f"evidence_sha256={evidence().digest()}"
     )
     assert said(capsys) == ([line, line], [])
 
 
 def test_check_fails_and_prints_counts_when_a_fact_has_no_evidence(tmp_path: Path, capsys: Printed):
-    planted = without(PARK, "syn-n0002/travel/pt")
+    planted = without(ALONE, "syn-n0002/travel/pt")
     found = tmp_path / "findings.txt"
     args = ["check", str(FIXTURE), "--evidence", written(tmp_path, planted), "--list", str(found)]
     assert main(args) == 1
     assert said(capsys) == (
         [
-            f"step=check status=failed release={RELEASE_ID} facts=1119 rows=1223 files=6 "
+            f"step=check status=failed release={RELEASE_ID} facts=1669 rows=1775 files=6 "
             f"findings=2 evidence_sha256={planted.digest()} fact_has_a_row=2"
         ],
         [],
     )
     # Which facts they are is written where the caller asked, and is not printed.
     assert found.read_text(encoding="utf-8").splitlines() == [
-        f"{PARK} is served, and no row of evidence stands behind it [fact_has_a_row]",
+        f"{ALONE} is served, and no row of evidence stands behind it [fact_has_a_row]",
         "syn-n0002/travel/pt is served, and no row of evidence stands behind it [fact_has_a_row]",
     ]
 
@@ -135,12 +139,24 @@ def real(tmp_path_factory: pytest.TempPathFactory) -> Path:
 
 
 def checking(real: Path, tmp_path: Path, found: Evidence) -> list[str]:
-    """The arguments that check the real release against some evidence and its lock."""
+    """The arguments that check the real release against some evidence, its lock and its hashes."""
     (tmp_path / "lock.json").write_bytes(lock_of(found).canonical())
+    hashes = Hashes(
+        release_id=REAL_ID,
+        manifest_sha256=sha256(real / "releases" / REAL_ID / MANIFEST),
+        evidence_sha256=found.digest(),
+        lock_sha256=lock_of(found).digest(),
+    )
+    (tmp_path / "hashes.json").write_text(hashes.model_dump_json(), encoding="utf-8")
     return [
         *("check", str(real / "releases" / REAL_ID), "--evidence", written(tmp_path, found)),
         *("--lock", str(tmp_path / "lock.json"), "--registry", str(real / "registry.toml")),
+        *("--hashes", str(tmp_path / "hashes.json")),
     ]
+
+
+def sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def test_check_passes_a_real_release_held_to_its_lock_and_the_registry(
@@ -148,7 +164,7 @@ def test_check_passes_a_real_release_held_to_its_lock_and_the_registry(
 ):
     assert main(checking(real, tmp_path, real_evidence())) == 0
     line = (
-        f"step=check status=ok release={REAL_ID} facts=1119 rows=1225 files=6 findings=0 "
+        f"step=check status=ok release={REAL_ID} facts=1669 rows=1777 files=6 findings=0 "
         f"evidence_sha256={real_evidence().digest()}"
     )
     assert said(capsys) == ([line], [])
@@ -164,12 +180,12 @@ def test_check_fails_when_a_figure_rests_on_a_file_kept_for_the_audit(
     public, words = said(capsys)
     assert words == []
     assert public == [
-        f"step=check status=failed release={REAL_ID} facts=1119 rows=1225 files=6 "
-        f"findings=2222 evidence_sha256={planted.digest()} "
-        "evidence_is_for_the_product=1070 input_is_for_the_product=1152"
+        f"step=check status=failed release={REAL_ID} facts=1669 rows=1777 files=6 "
+        f"findings=3217 evidence_sha256={planted.digest()} "
+        "evidence_is_for_the_product=1609 input_is_for_the_product=1608"
     ]
     listed = found.read_text(encoding="utf-8").splitlines()
-    assert len(listed) == 2222
+    assert len(listed) == 3217
     assert (
         "lon-n0001/feature/park_proximity rests on a file kept for the audit or for the "
         "census table [input_is_for_the_product]"
@@ -189,6 +205,47 @@ def test_check_of_a_real_release_is_not_run_without_the_lock_of_its_build(
         "lock of its build. Give --lock, with the lock that was sealed for the build "
         "[real_release_needs_a_lock]"
     ]
+
+
+def test_check_of_a_real_release_is_not_run_without_the_hashes_of_its_build(
+    real: Path, tmp_path: Path, capsys: Printed
+):
+    args = checking(real, tmp_path, real_evidence())
+    assert main(args[: args.index("--hashes")]) == 2
+    public, words = said(capsys)
+    assert public == ["step=check status=refused real_release_needs_its_hashes=1"]
+    assert words == [
+        f"error: {REAL_ID} is not made up, and such a release is checked only against the "
+        "hashes of its build. Give --hashes, with the hashes the build wrote beside the release "
+        "[real_release_needs_its_hashes]"
+    ]
+
+
+@pytest.mark.parametrize("changed", ["evidence.json", "lock.json", "hashes.json"])
+def test_check_refuses_evidence_a_lock_or_hashes_changed_after_the_build(
+    real: Path, tmp_path: Path, capsys: Printed, changed: str
+):
+    """Evidence that was changed stayed well formed, and nothing minded. Now each is hashed."""
+    args = checking(real, tmp_path, real_evidence())
+    if changed == "hashes.json":
+        hashes = json.loads((tmp_path / changed).read_bytes()) | {"manifest_sha256": "0" * 64}
+        (tmp_path / changed).write_text(json.dumps(hashes), encoding="utf-8")
+    else:
+        (tmp_path / changed).write_bytes((tmp_path / changed).read_bytes() + b" ")
+    assert main(args) == 2
+    public, words = said(capsys)
+    assert public == ["step=check status=refused build_is_as_it_was_written=1"]
+    assert len(words) == 1 and words[0].endswith("[build_is_as_it_was_written]")
+    assert "is not as it was when the release was built" in words[0]
+
+
+def test_check_refuses_the_hashes_of_another_release(real: Path, tmp_path: Path, capsys: Printed):
+    args = checking(real, tmp_path, real_evidence())
+    hashes = json.loads((tmp_path / "hashes.json").read_bytes())
+    other = json.dumps(hashes | {"release_id": "lon-2026-09-22-01"})
+    (tmp_path / "hashes.json").write_text(other, encoding="utf-8")
+    assert main(args) == 2
+    assert said(capsys)[0] == ["step=check status=refused build_is_as_it_was_written=1"]
 
 
 def test_check_of_a_made_up_release_needs_no_lock(tmp_path: Path, capsys: Printed):
@@ -268,16 +325,44 @@ def test_coverage_writes_the_report_and_prints_one_line_of_counts(tmp_path: Path
     public, words = said(capsys)
     assert words == [] and len(public) == 1
     assert public[0].startswith(
-        f"step=report status=ok release={RELEASE_ID} areas=24 measures=51 values=1142 gaps=82 "
+        f"step=report status=ok release={RELEASE_ID} areas=24 measures=74 values=1553 gaps=223 "
     )
     assert public[0].endswith(f" coverage_sha256={hashlib.sha256(table.read_bytes()).hexdigest()}")
     committed = Path(__file__).parent / "fixtures" / f"coverage-{RELEASE_ID}.md"
     assert out.read_bytes() == committed.read_bytes()
 
 
+def test_coverage_takes_what_the_build_left_out_and_says_why(tmp_path: Path, capsys: Printed):
+    """The build writes `build.json` beside the release. It says what was left out, by rule."""
+    record, out = tmp_path / "build.json", tmp_path / "coverage.md"
+    dropped = "park_proximity"
+    left_out = {
+        "feature_id": dropped,
+        "rule": "measure_is_as_core_says",
+        "why": "It is not named as core names it. Change one of them",
+        "waits_on": ["Core names it a walk."],
+    }
+    record.write_text(json.dumps({"measures_left_out": [left_out]}))
+    args = ["coverage", str(FIXTURE), "--made-up", "--out", str(out), "--build", str(record)]
+    # The made-up release carries the measure, so nothing may be said of why it is left out.
+    assert main(args) == 2
+    public, words = said(capsys)
+    assert public == ["step=report status=unreadable"]
+    assert "left out" in words[0]
+    for wrong in ("[]", json.dumps({"measures_left_out": [{"rule": CANARY}]}), "not json"):
+        record.write_text(wrong)
+        assert main(args) == 2
+        assert said(capsys)[0] == ["step=report status=unreadable"]
+    record.write_text(json.dumps({"measures_left_out": []}))
+    assert main(args) == 0
+    committed = Path(__file__).parent / "fixtures" / f"coverage-{RELEASE_ID}.md"
+    assert out.read_bytes() == committed.read_bytes()
+
+
 def test_coverage_with_no_evidence_says_that_nothing_has_a_record(tmp_path: Path, capsys: Printed):
     assert main(["coverage", str(FIXTURE), "--out", str(tmp_path / "coverage.md")]) == 0
-    assert " no_record=1224 " in said(capsys)[0][0]
+    # Every pair of an area and a measure: 71 measures in 24 areas.
+    assert " no_record=1776 " in said(capsys)[0][0]
 
 
 def test_coverage_counts_by_homes_when_it_is_given_them(tmp_path: Path, capsys: Printed):

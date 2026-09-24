@@ -64,6 +64,11 @@ SHARE_ALIKE_ALLOWED_USES = frozenset(
 # age by five-year bands, ethnic group and religion. See ADR 0014.
 SHOWN_TABLES = frozenset({"TS003", "TS004", "TS007A", "TS021", "TS030"})
 
+# The two of them that may also feed a score: household composition and age by five-year
+# bands. The founder decided it on 24 September 2026, for these two and no other. See the
+# amendment of that day to ADR 0006.
+SCORED_TABLES = frozenset({"TS003", "TS007A"})
+
 # The census tables held under housing: accommodation type, bedrooms and tenure. Every
 # other census table is taken to be about residents, so that a table nobody has thought
 # about is fenced, not let through.

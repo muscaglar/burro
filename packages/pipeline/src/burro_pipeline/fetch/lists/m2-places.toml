@@ -1,0 +1,747 @@
+# The files of places and the land: what milestones M2 and M3 of
+# docs/design/london-data.md need under the registry's headings for geography,
+# the environment, heritage and places. Homes, journeys, schools and safety
+# are in the list m2-living.
+#
+# Written before any fetch. Every `page` is the registry entry's own: its
+# `url`, or an address under its `evidence_urls`. Every address of a file was
+# read on a publisher's page on 2026-09-23, through a reader that extracts the
+# text of a page. An extraction is not the page. The reader was asked twice of
+# each page, in different words, and an address was kept only where both
+# answers gave the same. The page itself may have been fetched only once. No
+# address was guessed, and none was built from a pattern. Each file's notes say
+# where its address was read.
+#
+# Each of the 44 addresses was then read a second time, the same day, by a
+# reader that was asked for it twice, in different words, and was never given
+# the address. All 44 came out as they stand here, letter for letter. So did
+# the size and the md5 of each file of Ordnance Survey, and the version of each
+# product. That is still an extraction: no person has seen an address here,
+# and no fetch has tried one.
+#
+# In the order to fetch: what the most building waits on first, and the small
+# before the large where two files serve the same end. First what naming areas
+# and every walk wait on. Then what the measures of the second milestone need.
+# Then what is needed later, or gives least for its size.
+#
+#   With an address that a fetch may ask, 44 files. The registry entry of each
+#   names its address under `file_urls`. The town centre boundaries
+#   and the 33 files of the food hygiene register, one for each London
+#   authority: the address of the first is written whole on its page, and each
+#   of the 33 is written there as a path, so "url" is under `unsure`. None of
+#   the 34 has an edition on its page. Each was fetched on 2026-09-23 and kept
+#   in the store with no receipt. The list says where each file states its own
+#   edition, and fetch reads it in what arrives: see Editions, below.
+#   And eight whose publisher hands the file out from another host than its
+#   pages: the six files of Ordnance Survey, on api.os.uk, and the two of the
+#   statistics office, on open-geography-portalx-ons.hub.arcgis.com. Each
+#   entry also holds the publisher's own record or page on that host, and says
+#   in its notes what was read of it.
+#
+#   And the two of Planning Data, on files.planning.data.gov.uk. They were
+#   held back until 2026-09-24, while the registry entry of each named no
+#   address on that host. The address first read was of the CSV. A person then
+#   read the address of the GeoJSON on each page, in a browser, and the entry
+#   names it. Each was fetched that day, and has its receipt.
+#
+#   Saved by a person, 1 file: the postcode directory, on 2026-09-24, from the
+#   publisher's portal. Its notes say what was read of it.
+#
+# Where a download is handed on to is known for the statistics office alone:
+# its hosts are those the first fetch met on 2026-09-23. Ordnance Survey's
+# documentation says a download is answered with a redirect, and does not say
+# to which host. For every other publisher here nothing is known. A fetch that
+# is sent on to a host the list does not name stops, and prints the start of a
+# hash of that host's name. Open the address once in a browser, and name the
+# host under `may_redirect_to`.
+#
+# What the 44 files whose address was read come to: about 2.4 GB. 1,989 MB of
+# it is sizes the publishers give, to the byte. The rest was a guess: about
+# 100 MB for the food register, 300 MB for the two files of Planning Data, and
+# 35 MB for the two of the statistics office. The two of Planning Data came to
+# 271 MB as fetched on 2026-09-24. Their limits come to 3,877 MB,
+# so no fetch of them can pass 4 GB. The postcode directory is saved by a
+# person and is not counted: it is 254 MB.
+#
+# Not listed, and why:
+#   overture-places: in the list m2-culture, which takes London's part of
+#     one file
+#   wikidata-places-and-landmarks: no file, but a query that nobody has written
+#   uber-h3: software, and no file
+#   ons-lsoa-population-estimates: the file holds age and sex for each area
+#   defra-pcm-background-air, mhclg-iod-2025-underlying-indicators, and the
+#     boundaries, centres and lookup of output areas and LSOAs: in the list m1
+#   dft-naptan, for the stations a reviewer of a border is shown: in the list
+#     m2-living, as naptan-london, to be saved by a person
+#   every source that is gated, held or banned
+#
+# Editions. The town centre boundaries and the 33 files of the food hygiene register
+# have no edition on their publisher's page. Each was fetched on 2026-09-23 and kept
+# in the store with no receipt. On 2026-09-24 each was opened for what dates it,
+# and for nothing else.
+# The rule that is followed, in three lines:
+#   1. The edition is what the publisher calls this version: a label, a number, a time.
+#   2. Where it calls it nothing and the file gives a day, the edition is that day.
+#   3. Where neither gives one, it is the day the file was retrieved, written so.
+# Never a guess. The period is the day the data is as at. For a register, that is
+# the day of its extract. A day that is about the file and not about its data is
+# not the period of its data. A boundary is as the file holds it, so for a file of
+# boundaries the day it was last changed is the day its data is as at, and the list
+# states it so.
+#
+# A list cannot state the edition of a file that its publisher replaces under one
+# address: what a list states is written on whatever arrives. So under rules 2 and 3
+# the list states none, and says under `edition_from` where the file states its own.
+# Fetch reads that in what arrives, before anything is kept, and reads nothing else
+# of the file. The receipt says where its edition was read. A file that holds no day
+# there is kept with no receipt, `why=34`. A file that holds the day of a file that
+# has its receipt, and is not that file, is refused, `why=35`.
+#
+# The 33 files of the food register give their edition and their period: the day
+# that `ExtractDate` holds, in the header. The town centre boundaries give their
+# edition, the day the file was last changed, and fetch takes no period from it.
+# The list states the period, as that same day: neither the file nor any page
+# states a day the boundaries are as at, and a boundary is as the file holds it.
+# The notes of the item say what was read, and what the period does not say. A
+# program read it, and no person has: whether it stands is the founder's to confirm.
+# docs/research/data/m2-files.md says what each file held on 2026-09-24.
+#
+# `uv run python -m burro_pipeline plan --list m2-places --words` says what each
+# file still needs.
+schema_version = 1
+build = "m2-places"
+
+# 1. What naming areas and every walk wait on: the centres, the areas of the preview,
+# the names of places, and the roads. Milestones M2 and M3.
+
+[[file]]
+item = "gla-town-centres"
+source_id = "gla-town-centre-boundaries"
+use = "scoring"
+what = "Town centre boundaries of the London Plan, GeoPackage"
+format = "gpkg"
+page = "https://data.london.gov.uk/dataset/town-centre-boundaries-e55z7/"
+url = "https://data.london.gov.uk/download/e55z7/84b3939e-c301-48e5-85e0-31699b1cb751/Town_Centres_Boundaries.gpkg"
+max_bytes = 2_000_000
+edition_from = { where = "geopackage", at = "gpkg_contents.last_change", words = "last changed", period_too = false }
+data_period = { as_at = "2025-12-22" }
+notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. It is written whole on the page. The publisher's own record of the dataset, https://data.london.gov.uk/api/dataset/town-centre-boundaries-e55z7, gives the same address, 1,712,128 bytes, and 2025-12-23 as the day the file was last checked. The page gives 1.63 MB. London only. Whether a download is sent on to another host is not known. The page states no edition, and the address names none, so a later file may arrive at it. So the list states no edition, and says where the file states its own: fetch reads the day its contents were last changed, in its table gpkg_contents, in what arrives. It was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-4076c2bc276b: the table gives 2025-12-22T16:37:50.337Z as the last change of its one layer, which is the day before the day the publisher's record gives. If that file arrives again, its edition is last changed 2025-12-22. That day is about the file, and fetch never takes it for the period of the data: the period is the list's to state. The file says no more of when: its columns for the day a boundary was added, updated or removed are empty in every row, and its metadata holds no date. The step describe read the same file on 2026-09-24: one layer, town_centres, of 234 outlines on the National Grid, with 30 columns, of which firstaddeddate, lastupdateddate and removeddate are the three for a day. So the file states no day that its boundaries are as at. The page was read again on 2026-09-24, through a reader that extracts, asked for every date on it. It gives one, 'Last Update: 9 months ago', and states no day and no year that the boundaries are as at, and no plan that they are of. The page holds one year beside it, in its statement of rights: it names 2019 for the Ordnance Survey data the boundaries are based on. That is the year of the mapping, and the page does not say it is the year the boundaries are as at. The publisher's own record of the dataset gives 2019-08-30 as the day it was created and 2025-12-23 as the day it was updated, and leaves both ends of the period it covers empty. So the page states no period either. The London Plan's own page of its town centre network, https://www.london.gov.uk/programmes-strategies/planning/london-plan/the-london-plan-2021-online/annex-1-town-centre-network, was read on 2026-09-24, through a reader that extracts, asked twice in different words. Both readings gave 'Publication date: Monday 1 March 2021' and the status 'Adopted'. Both found that the page classes the centres, gives no day on which a centre was designated or a boundary drawn, and does not say who draws a boundary. The page of the chapter that holds the plan's policies on town centres was cut short by the reader before it reached them, and was not read. So no page states a day of designation that could stand as the period. The period stated here is the day of that last change, for one reason: a boundary is as the file holds it. An outline counts nothing over a span of days, as a register or a census does. It is a line its publisher draws, and what the publisher's file held when it was last changed is what the publisher gave the boundaries as, as at that day. It is the day before its record says the dataset was updated. What the period does not say: the day any boundary was drawn or adopted, which the file does not give, or that no borough has changed one since. So beside a figure the words are that the boundaries are as the publisher's file held them on that day, and never that a centre was designated on it. A program read the file and the pages, and no person has. The founder confirmed on 2026-09-24 that the period stands. The period is of the file that was read and of no other: if the line of a fetch reads new=1, another file has arrived, and the period is stated again before its receipt is used. The boundaries are indicative, as the page says. Each boundary carries a name and a class: docs/research/data/m3-files.md has the eight classes the file writes. The seeds of the named areas read it too, under the use gazetteer, which the entry allows."
+
+[[file]]
+item = "msoa-boundaries-bgc"
+source_id = "ons-msoa-2021"
+use = "cells"
+what = "MSOA boundaries, December 2021, generalised and clipped (BGC V3), for the preview and as a prior for names"
+format = "gpkg"
+page = "https://www.data.gov.uk/dataset/677a5164-3a9e-4752-b8e6-5744d2b280ec/middle-layer-super-output-areas-december-2021-boundaries-ew-bgc-v3"
+url = "https://open-geography-portalx-ons.hub.arcgis.com/api/download/v1/items/6b282db29762450881ed5159259a6e4e/geoPackage?layers=0"
+# The portal hands a download on to the hosts that hold the file. Seen on 2026-09-23, in the first fetch.
+may_redirect_to = ["services1.arcgis.com", "hub.arcgis.com", "stg-arcgisazurecdataprod1.az.arcgis.com"]
+url_parameters = ["layers"]
+max_bytes = 100_000_000
+edition = "BGC V3"
+data_period = { as_at = "2021-12" }
+unsure = ["url", "format", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page lists it as GeoPackage. The item named in the address is the one the registry entry holds. The page lists the publisher's own portal page for the item as https://open-geography-portalx-ons.hub.arcgis.com/datasets/ons::middle-layer-super-output-areas-december-2021-boundaries-ew-bgc-v3-2, which is what the entries behind the first build hold to name that host, and what the registry entry of this source holds too. The reader gave 27 MB as the size on the page, in one reading: whether that is the download is not known. The LSOA file of the same kind was 50,098,176 bytes when it was fetched. England and Wales: the publisher offers no file for London. The registry entry covers BGC V3 only."
+
+[[file]]
+item = "os-open-names"
+source_id = "os-open-names"
+use = "gazetteer"
+what = "OS Open Names, Great Britain, CSV"
+format = "zip"
+page = "https://www.ordnancesurvey.co.uk/products/os-open-names"
+url = "https://api.os.uk/downloads/v1/products/OpenNames/downloads?area=GB&format=CSV&redirect"
+# The download service hands a download on to the store that holds the file. Seen on 2026-09-23.
+may_redirect_to = ["omseprd1stdstordownload.blob.core.windows.net"]
+url_parameters = ["area", "format", "redirect"]
+max_bytes = 110_000_000
+edition = "2026-07"
+data_period = { as_at = "2026-07" }
+unsure = ["url"]
+notes = "Address read on 2026-09-23 through a reader that extracts. It was not on the page above, which holds no address of a file. It was read on the publisher's own listing of the downloads of this product, https://api.os.uk/downloads/v1/products/OpenNames/downloads. That address was read in the publisher's record of the product, and that record's address in its list of products, https://api.os.uk/downloads/v1/products, which its documentation at docs.os.uk names. The reader was asked twice, in different words, and gave the same address both times. The listing gives the file as opname_csv_gb.zip, of 103,259,564 bytes, with md5 4a7d2d0d24be0470771b9cc170ca2aee, and the publisher's list of products gives the version as 2026-07. The publisher offers Great Britain only, as CSV, GML and GeoPackage. CSV is the smallest: the GeoPackage is 212,485,849 bytes. Drop postcode records at ingest. The address names no release, so a later release will arrive at the same address: if what arrives is not the size above, the edition here is wrong. The documentation says the address answers with status 307 and the address of the file, and does not say on which host: open it once in a browser, and name that host under may_redirect_to. What is inside the zip is not known. Save the licence file from inside it, as the registry entry asks. The registry entry names api.os.uk by the publisher's record of this product in its download service."
+
+[[file]]
+item = "os-open-roads"
+source_id = "os-open-roads"
+use = "scoring"
+what = "OS Open Roads, Great Britain, GeoPackage: the network every walk is measured on"
+format = "zip"
+page = "https://www.ordnancesurvey.co.uk/products/os-open-roads"
+url = "https://api.os.uk/downloads/v1/products/OpenRoads/downloads?area=GB&format=GeoPackage&redirect"
+# The download service hands a download on to the store that holds the file. Seen on 2026-09-23.
+may_redirect_to = ["omseprd1stdstordownload.blob.core.windows.net"]
+url_parameters = ["area", "format", "redirect"]
+max_bytes = 1_070_000_000
+edition = "2026-04"
+data_period = { as_at = "2026-04" }
+unsure = ["url"]
+notes = "Address read on 2026-09-23 through a reader that extracts. It was not on the page above, which holds no address of a file. It was read on the publisher's own listing of the downloads of this product, https://api.os.uk/downloads/v1/products/OpenRoads/downloads. That address was read in the publisher's record of the product, and that record's address in its list of products, https://api.os.uk/downloads/v1/products, which its documentation at docs.os.uk names. The reader was asked twice, in different words, and gave the same address both times. The listing gives the file as oproad_gpkg_gb.zip, of 1,016,021,285 bytes, with md5 2ee5d30899c4a44df321e5e1a66989ac, and the publisher's list of products gives the version as 2026-04. The publisher offers Great Britain only. It is the largest file of this list. The draft of the named areas reads it too, under the use gazetteer, which the entry allows. Never blended with the OpenStreetMap network. The address names no release, so a later release will arrive at the same address: if what arrives is not the size above, the edition here is wrong. The documentation says the address answers with status 307 and the address of the file, and does not say on which host: open it once in a browser, and name that host under may_redirect_to. What is inside the zip is not known. Save the licence file from inside it, as the registry entry asks. The registry entry names api.os.uk by the publisher's record of this product in its download service."
+
+# 2. What the measures of the second milestone need: parks, water, places to eat, heritage.
+
+[[file]]
+item = "os-open-greenspace-tq"
+source_id = "os-open-greenspace"
+use = "scoring"
+what = "OS Open Greenspace, grid square TQ, GML 3: the square that holds nearly all of London"
+format = "zip"
+page = "https://www.ordnancesurvey.co.uk/products/os-open-greenspace"
+url = "https://api.os.uk/downloads/v1/products/OpenGreenspace/downloads?area=TQ&format=GML&subformat=3&redirect"
+# The download service hands a download on to the store that holds the file. Seen on 2026-09-23.
+may_redirect_to = ["omseprd1stdstordownload.blob.core.windows.net"]
+url_parameters = ["area", "format", "subformat", "redirect"]
+max_bytes = 6_000_000
+edition = "2026-04"
+data_period = { as_at = "2026-04" }
+unsure = ["url"]
+notes = "Address read on 2026-09-23 through a reader that extracts. It was not on the page above, which holds no address of a file. It was read on the publisher's own listing of the downloads of this product, https://api.os.uk/downloads/v1/products/OpenGreenspace/downloads, which the publisher's documentation at docs.os.uk names. The reader was asked twice, in different words, and gave the same address both times. The listing gives the file as opgrsp_gml3_tq.zip, of 5,203,830 bytes, with md5 246e6c80083be7271d82d0b1c78f8da9, and the publisher's list of products gives the version as 2026-04. That TQ holds London but for its northern edge is from general knowledge, and was read on no page: count the London sites in it against the borough outlines. The publisher offers a tile as Shapefile and as GML, and as no GeoPackage. Great Britain as one GeoPackage is 59,489,052 bytes, in the same listing, if the build reads that format alone. The address names no release, so a later release will arrive at the same address: if what arrives is not the size above, the edition here is wrong. The documentation says the address answers with status 307 and the address of the file, and does not say on which host: open it once in a browser, and name that host under may_redirect_to. What is inside the zip is not known. Save the licence file from inside it, as the registry entry asks. The registry entry names api.os.uk by the publisher's record of this product in its download service."
+
+[[file]]
+item = "os-open-greenspace-tl"
+source_id = "os-open-greenspace"
+use = "scoring"
+what = "OS Open Greenspace, grid square TL, GML 3: the square north of TQ, for the northern edge of London"
+format = "zip"
+page = "https://www.ordnancesurvey.co.uk/products/os-open-greenspace"
+url = "https://api.os.uk/downloads/v1/products/OpenGreenspace/downloads?area=TL&format=GML&subformat=3&redirect"
+# The download service hands a download on to the store that holds the file. Seen on 2026-09-23.
+may_redirect_to = ["omseprd1stdstordownload.blob.core.windows.net"]
+url_parameters = ["area", "format", "subformat", "redirect"]
+max_bytes = 3_000_000
+edition = "2026-04"
+data_period = { as_at = "2026-04" }
+unsure = ["url"]
+notes = "Address read on 2026-09-23 through a reader that extracts. It was not on the page above, which holds no address of a file. It was read on the publisher's own listing of the downloads of this product, https://api.os.uk/downloads/v1/products/OpenGreenspace/downloads, which the publisher's documentation at docs.os.uk names. The reader was asked twice, in different words, and gave the same address both times. The listing gives the file as opgrsp_gml3_tl.zip, of 2,362,522 bytes, with md5 155b87e9cb727c703c77357b3e900c2a, and the publisher's list of products gives the version as 2026-04. That the northern edge of London lies in TL is from general knowledge, and was read on no page. If no site of London is in it, drop it. The publisher offers a tile as Shapefile and as GML, and as no GeoPackage. Great Britain as one GeoPackage is 59,489,052 bytes, in the same listing, if the build reads that format alone. The address names no release, so a later release will arrive at the same address: if what arrives is not the size above, the edition here is wrong. The documentation says the address answers with status 307 and the address of the file, and does not say on which host: open it once in a browser, and name that host under may_redirect_to. What is inside the zip is not known. Save the licence file from inside it, as the registry entry asks. The registry entry names api.os.uk by the publisher's record of this product in its download service."
+
+[[file]]
+item = "os-open-rivers"
+source_id = "os-open-rivers"
+use = "scoring"
+what = "OS Open Rivers, Great Britain, GeoPackage: centre lines of rivers and canals"
+format = "zip"
+page = "https://www.ordnancesurvey.co.uk/products/os-open-rivers"
+url = "https://api.os.uk/downloads/v1/products/OpenRivers/downloads?area=GB&format=GeoPackage&redirect"
+# The download service hands a download on to the store that holds the file. Seen on 2026-09-23.
+may_redirect_to = ["omseprd1stdstordownload.blob.core.windows.net"]
+url_parameters = ["area", "format", "redirect"]
+max_bytes = 56_000_000
+edition = "2026-04"
+data_period = { as_at = "2026-04" }
+unsure = ["url"]
+notes = "Address read on 2026-09-23 through a reader that extracts. It was not on the page above, which holds no address of a file. It was read on the publisher's own listing of the downloads of this product, https://api.os.uk/downloads/v1/products/OpenRivers/downloads. That address was read in the publisher's record of the product, and that record's address in its list of products, https://api.os.uk/downloads/v1/products, which its documentation at docs.os.uk names. The reader was asked twice, in different words, and gave the same address both times. The listing gives the file as oprvrs_gpkg_gb.zip, of 52,490,978 bytes, with md5 4b62effb1c7980f3320d400b76b4f4b0, and the publisher's list of products gives the version as 2026-04. The publisher offers Great Britain only. Centre lines with no width. The address names no release, so a later release will arrive at the same address: if what arrives is not the size above, the edition here is wrong. The documentation says the address answers with status 307 and the address of the file, and does not say on which host: open it once in a browser, and name that host under may_redirect_to. What is inside the zip is not known. Save the licence file from inside it, as the registry entry asks. The registry entry names api.os.uk by the publisher's record of this product in its download service."
+
+# The food hygiene register: one file for each of London's 33 authorities.
+
+[[file]]
+item = "fsa-barking-and-dagenham"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Barking and Dagenham, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS501en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS501en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 1,464 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-e52332fb6d6e: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-barnet"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Barnet, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS502en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS502en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 2,854 businesses and 16/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-d551c83b8e1c: it says 2026-09-15, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-15. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-bexley"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Bexley, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS503en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS503en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 1,768 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-701001035f0f: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-brent"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Brent, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS504en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS504en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 2,501 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-a8e55bea5a18: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-bromley"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Bromley, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS505en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS505en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 2,479 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-226f0de88c98: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-camden"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Camden, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS506en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS506en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 4,271 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-ec8bc6d7c67f: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-city-of-london"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for City of London Corporation, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS508en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS508en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 1,847 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-017275d19ed2: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-croydon"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Croydon, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS507en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS507en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 3,119 businesses and 16/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-48ba5c4587cd: it says 2026-09-15, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-15. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-ealing"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Ealing, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS509en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS509en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 3,813 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-cef79a1a88df: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-enfield"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Enfield, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS510en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS510en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 2,420 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-2fdedc688e9f: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-greenwich"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Greenwich, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS511en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS511en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 2,420 businesses and 14/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-6fb09f7d740c: it says 2026-09-13, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-13. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-hackney"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Hackney, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS512en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS512en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 2,433 businesses and 16/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-96ba52cfc162: it says 2026-09-15, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-15. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-hammersmith-and-fulham"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Hammersmith and Fulham, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS513en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS513en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 2,015 businesses and 16/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-6308cfa32855: it says 2026-09-15, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-15. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-haringey"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Haringey, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS514en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS514en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 1,951 businesses and 12/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-c6005e98fa2d: it says 2026-09-11, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-11. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-harrow"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Harrow, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS515en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS515en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 1,914 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-252a97ad6b2d: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-havering"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Havering, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS516en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS516en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 1,996 businesses and 11/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-a48d61187adf: it says 2026-09-10, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-10. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-hillingdon"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Hillingdon, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS517en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS517en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 2,246 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-6ec852da4c3b: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-hounslow"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Hounslow, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS518en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS518en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 2,347 businesses and 10/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-24f7b9b86310: it says 2026-09-09, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-09. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-islington"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Islington, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS519en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS519en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 2,616 businesses and 13/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-6b680733a645: it says 2026-09-12, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-12. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-kensington-and-chelsea"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Kensington and Chelsea, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS520en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS520en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 2,003 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-a36761ff63a6: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-kingston-upon-thames"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Kingston-Upon-Thames, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS521en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS521en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 1,430 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-36b44c8b864e: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-lambeth"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Lambeth, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS522en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS522en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 2,669 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-ff84aa13f0a3: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-lewisham"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Lewisham, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS523en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS523en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 2,484 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-4ef7236097e9: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-merton"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Merton, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS524en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS524en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 1,597 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-7748328221af: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-newham"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Newham, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS525en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS525en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 2,647 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-70368809f675: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-redbridge"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Redbridge, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS526en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS526en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 2,199 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-c816f809c3b5: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-richmond-upon-thames"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Richmond-Upon-Thames, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS527en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS527en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 1,605 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-3effd4b548b8: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-southwark"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Southwark, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS528en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS528en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 3,313 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-6b7dc726bc20: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-sutton"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Sutton, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS529en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS529en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 1,317 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-44ce943cb2ed: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-tower-hamlets"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Tower Hamlets, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS530en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS530en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 3,187 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-125ae9b9e31a: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-waltham-forest"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Waltham Forest, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS531en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS531en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 1,976 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-d2dc7b1edcdb: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-wandsworth"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Wandsworth, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS532en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS532en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 2,921 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-ecfa6fa9419f: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+[[file]]
+item = "fsa-westminster"
+source_id = "fsa-food-hygiene-ratings"
+use = "scoring"
+what = "Food hygiene register, open data file for Westminster, in English"
+format = "xml"
+page = "https://ratings.food.gov.uk/open-data"
+url = "https://ratings.food.gov.uk/api/open-data-files/FHRS533en-GB.xml"
+max_bytes = 20_000_000
+edition_from = { where = "xml_header", at = "Header/ExtractDate", words = "extract of", period_too = true }
+unsure = ["url", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, under London, through a reader that extracts. The reader was asked twice, in different words, and gave the same both times. The page writes it as a path from the top of the site, /api/open-data-files/FHRS533en-GB.xml, and the address here is that path worked out against the page's own address, as a browser does. In one reading the page gave 5,748 businesses and 17/09/2026 as the last update. It gives no size, so the limit is a guess. The page states no edition, and the publisher replaces the file under this address. So the list states none, and says where the file states its own: fetch reads the day that ExtractDate holds in the header of what arrives, and writes the receipt from it. The period is that day: the register as it stood at the extract. The header was read on 2026-09-24 in the file kept in the store on 2026-09-23, f-d70af216bda4: it says 2026-09-16, which is the day before the last update the page gave. If that file arrives again, its edition is extract of 2026-09-16. Counts only: never a rating, never a row."
+
+# Heritage. Neither page gives a size. As fetched on 2026-09-24 the two came to 64 MB
+# and 207 MB.
+
+[[file]]
+item = "conservation-areas"
+source_id = "mhclg-planning-data-conservation-areas"
+use = "scoring"
+what = "Conservation area boundaries, England, GeoJSON"
+format = "json"
+page = "https://www.planning.data.gov.uk/dataset/conservation-area"
+# The address was read by a person on the page above, in a browser, on 2026-09-24.
+url = "https://files.planning.data.gov.uk/dataset/conservation-area.geojson"
+max_bytes = 500_000_000
+# The file is made again each day under one address and states no edition.
+edition_from = { where = "retrieved", at = "", words = "retrieved", period_too = true }
+unsure = ["max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. It is written whole on the page, which offers CSV, JSON, GeoJSON and Parquet. The address read that day was of the CSV. The address here is of the GeoJSON: a person read it on the page in a browser on 2026-09-24, the reader gave the same address twice that day, and the registry entry names it under file_urls. The page gives 10,953 conservation areas, from 151 providers, for England and no size, so the limit was a guess. It offers no file for London or for one authority. It says the collector last ran on 2026-09-23. The page states no edition and the address names none, and the file is made again each day, so a later file arrives at this address. So the list states no edition. The file states none of its own: each record holds the day it was entered, and nothing dates the file as a whole. That was seen on 2026-09-24 in the file kept in the store on 2026-09-24, f-450c57d438cb, which is 64,446,422 bytes. So the edition is the day the file was retrieved, written as such: fetch writes the day of the fetch, and reads nothing of the file for it. The period is that day, because the file is the register as the platform held it when it was asked for. The same file retrieved on a later day keeps the day of its first receipt. The download was not sent on to another host: the receipt gives the address it arrived from, which is the address here. The page says the data may be incomplete and may not yet cover all of England, and that it holds a number of duplicates: an authority that sent nothing is unknown, and never zero."
+
+[[file]]
+item = "listed-buildings"
+source_id = "historic-england-listed-buildings"
+use = "scoring"
+what = "Listed buildings of the National Heritage List for England, as Planning Data holds them, GeoJSON"
+format = "json"
+page = "https://www.planning.data.gov.uk/dataset/listed-building"
+# The address was read by a person on the page above, in a browser, on 2026-09-24.
+url = "https://files.planning.data.gov.uk/dataset/listed-building.geojson"
+max_bytes = 500_000_000
+# The file is made again each day under one address and states no edition.
+edition_from = { where = "retrieved", at = "", words = "retrieved", period_too = true }
+unsure = ["max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. It is written whole on the page, which offers CSV, JSON, GeoJSON and Parquet. The address read that day was of the CSV. The address here is of the GeoJSON: a person read it on the page in a browser on 2026-09-24, the reader gave the same address twice that day, and the registry entry names it under file_urls. The page gives 382,270 listed buildings for England and no size, so the limit was a guess. It offers no file for London or for one authority. It says the collector last ran on 2026-09-23. The page states no edition and the address names none, and the file is made again each day, so a later file arrives at this address. So the list states no edition. The file states none of its own: each record holds the day it was entered, and nothing dates the file as a whole. That was seen on 2026-09-24 in the file kept in the store on 2026-09-24, f-3d843cc2d377, which is 206,846,502 bytes. So the edition is the day the file was retrieved, written as such: fetch writes the day of the fetch, and reads nothing of the file for it. The period is that day, because the file is the register as the platform held it when it was asked for. The same file retrieved on a later day keeps the day of its first receipt. The download was not sent on to another host: the receipt gives the address it arrived from, which is the address here. The page says the data may be incomplete and may not yet cover all of England: an authority that sent nothing is unknown, and never zero. Aggregates only: never a record, and never its name."
+
+# 3. Needed later, or of least use for its size: where journeys start, for milestone M5.
+# Ward names, which weigh least among the evidence for a name. The postcode directory,
+# which is saved by a person.
+
+[[file]]
+item = "lsoa-centres"
+source_id = "ons-lsoa-pwc-2021"
+use = "routing"
+what = "LSOAs, December 2021, population weighted centroids, V4: where each journey starts"
+format = "csv"
+page = "https://www.data.gov.uk/dataset/e3e903a6-1864-4083-8837-017b6bdf8cc5/lower-layer-super-output-areas-december-2021-ew-population-weighted-centroids2"
+url = "https://open-geography-portalx-ons.hub.arcgis.com/api/download/v1/items/32729e42d05e4e23bc7e43a36aa4ae8b/csv?layers=0"
+# The portal hands a download on to the hosts that hold the file. Seen on 2026-09-23, in the first fetch.
+may_redirect_to = ["services1.arcgis.com", "hub.arcgis.com", "stg-arcgisazurecdataprod1.az.arcgis.com"]
+url_parameters = ["layers"]
+max_bytes = 20_000_000
+edition = "V4"
+data_period = { as_at = "2021-12" }
+unsure = ["url", "format", "max_bytes"]
+notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page lists it as CSV. The item named in the address is the one the registry entry holds. The page lists the publisher's own portal page for the item as https://open-geography-portalx-ons.hub.arcgis.com/datasets/ons::lower-layer-super-output-areas-december-2021-ew-population-weighted-centroids-3, which is what the entries behind the first build hold to name that host, and what the registry entry of this source holds too. The reader gave 4 MB as the size on the page, in one reading. The file of the same kind for output areas was 22,030,298 bytes when it was fetched. England and Wales: the publisher offers no file for London. Milestone M5 needs it, and nothing before. The edition is from the name of the service, as the registry entry gives it: the title on the page carries no version."
+
+[[file]]
+item = "os-boundary-line"
+source_id = "os-boundary-line"
+use = "gazetteer"
+what = "OS Boundary-Line, Great Britain, GeoPackage: borough and ward boundaries, for ward names"
+format = "zip"
+page = "https://www.ordnancesurvey.co.uk/products/boundary-line"
+url = "https://api.os.uk/downloads/v1/products/BoundaryLine/downloads?area=GB&format=GeoPackage&redirect"
+# The download service hands a download on to the store that holds the file. Seen on 2026-09-23.
+may_redirect_to = ["omseprd1stdstordownload.blob.core.windows.net"]
+url_parameters = ["area", "format", "redirect"]
+max_bytes = 850_000_000
+edition = "2026-05"
+data_period = { as_at = "2026-05" }
+unsure = ["url"]
+notes = "Address read on 2026-09-23 through a reader that extracts. It was not on the page above, which holds no address of a file. It was read on the publisher's own listing of the downloads of this product, https://api.os.uk/downloads/v1/products/BoundaryLine/downloads. That address was read in the publisher's record of the product, and that record's address in its list of products, https://api.os.uk/downloads/v1/products, which its documentation at docs.os.uk names. The reader was asked twice, in different words, and gave the same address both times. The listing gives the file as bdline_gpkg_gb.zip, of 807,724,473 bytes, with md5 cfbda533db08e69f5b4fc37631ba1779, and the publisher's list of products gives the version as 2026-05. The publisher offers Great Britain only. The GML is 167,677,814 bytes, if this is too large for what it gives. The publisher describes the product as 'From parliamentary constituencies to council wards'. That it holds the boroughs and wards of London was not read on any page: three pages of its documentation were read, and none names them. Look on first fetch. Borough outlines can be made from output areas instead, and nest exactly. The address names no release, so a later release will arrive at the same address: if what arrives is not the size above, the edition here is wrong. The documentation says the address answers with status 307 and the address of the file, and does not say on which host: open it once in a browser, and name that host under may_redirect_to. What is inside the zip is not known. Save the licence file from inside it, as the registry entry asks. The registry entry names api.os.uk by the publisher's record of this product in its download service."
+
+[[file]]
+item = "postcode-directory"
+source_id = "ons-postcode-directory"
+use = "cells"
+what = "ONS Postcode Directory, August 2026, as the zip that holds its user guide"
+format = "zip"
+page = "https://www.ons.gov.uk/methodology/geography/geographicalproducts/postcodeproducts"
+max_bytes = 600_000_000
+edition = "August 2026"
+data_period = { as_at = "2026-08" }
+by_hand = true
+notes = "Saved by a person on 2026-09-24, from the publisher's portal, which the page above links to. It arrived as a zip of 253,928,895 bytes, under the name ONSPD_AUG_2026.zip. The portal's own record of the item, https://geoportal.statistics.gov.uk/api/search/v1/collections/all/items/9e5a92a3cfb14dc7ad43d6ea7a7b8c7f, was opened on 2026-09-24 through a reader that extracts, twice, in different words: it gives the title 'ONS Postcode Directory (August 2026)', the same name and the same size to the byte. It says an update of 07/09/2026 corrected the names of the fields in the header of the CSV and did not alter the data. So the edition is the publisher's own, and the file is the one as it stood after that update. The period is the month of the edition. The browser recorded on the file the address it was saved from, on www.arcgis.com, with a signed key among its parameters. The registry entry names the address under file_urls with every parameter left out, and by-hand is given it so: the key is written nowhere. That host is not the host of the portal's pages. The zip holds 226 names, four of them folders: the whole directory once as a CSV of 1,483,120,391 bytes and once as text, the same again as a CSV for each of 124 postcode areas, 94 files of names and codes, and the user guide twice, as a PDF and as an OpenDocument text. The names were read from the list the zip keeps of itself, before any file in it was opened. The licence section of the guide is saved as registry/evidence/ons-postcode-directory-2026-09-24.txt, as the registry entry asks. data.gov.uk held no record of the zip for August 2026 that day: it held the user guide and the hosted table, which is not the zip. The United Kingdom only: the publisher offers no file for London. Keep the rows of London's authorities and no other, and never pass the national file on. Drop every row of Northern Ireland at ingest: the file for the postcode area BT is never opened, and a row of the whole file whose postcode begins BT is dropped. Milestone M4 needs it, and the check that every postcode of London maps to an area."

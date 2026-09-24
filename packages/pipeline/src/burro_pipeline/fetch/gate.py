@@ -46,7 +46,10 @@ from burro_pipeline.fetch.sources import Listed
 from burro_pipeline.fetch.store import Part
 from burro_pipeline.registry import Dimension, RegistryError, Source, Use
 from burro_pipeline.registry.addresses import holds, holds_however_it_is_read, is_a_file_of, read
-from burro_pipeline.registry.rules import resident_tables_sit_under_residents_or_audit
+from burro_pipeline.registry.rules import (
+    may_be_scored,
+    resident_tables_sit_under_residents_or_audit,
+)
 
 # How many times an address is decoded to find what a server would read in it.
 DECODED = 3
@@ -114,7 +117,11 @@ def _names_a_table_about_residents(source: Source, said: Iterable[str]) -> bool:
     # The entry as it would stand if it named what the file names. The rule reads an
     # entry's name, and refuses nothing of an entry that may hold such a table.
     as_if = source.model_copy(update={"name": f"{source.name} {_every_way(said)}"})
-    return any(True for _ in resident_tables_sit_under_residents_or_audit(as_if, date.min))
+    if any(True for _ in resident_tables_sit_under_residents_or_audit(as_if, date.min)):
+        return True
+    # A source about residents that may feed a score holds age and household composition
+    # and no other table. So what names a file of it names no other table either.
+    return may_be_scored(source) and not may_be_scored(as_if)
 
 
 def hold_the_address(source: Source, address: str) -> None:

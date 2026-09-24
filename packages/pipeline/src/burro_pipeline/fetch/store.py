@@ -120,8 +120,11 @@ class Store(Protocol):
         """The receipt kept under a key, as it is kept. Nothing if none is kept there."""
         ...
 
-    def receipts(self) -> dict[str, bytes]:
-        """Every receipt kept, by its key, in the order of the keys."""
+    def receipts(self, source_id: str = "") -> dict[str, bytes]:
+        """Every receipt kept, by its key, in the order of the keys.
+
+        With a source named, the receipts of that source and no other.
+        """
         ...
 
 
@@ -180,6 +183,13 @@ def checked_receipt_key(key: str) -> None:
     """Refuse to read what is not kept where a receipt is kept."""
     if not RECEIPT_KEY.fullmatch(key):
         raise StoreError("that is not the key of a receipt, so nothing was read")
+
+
+def kept_under(source_id: str) -> str:
+    """Where the receipts of one source are kept, or of every source if none is named."""
+    if source_id and not SOURCE_ID.fullmatch(source_id):
+        raise StoreError("the source id is not a registry id, so nothing was read")
+    return f"{KEPT_PREFIX}{source_id}/" if source_id else KEPT_PREFIX
 
 
 def checked_as_kept(content: bytes) -> bytes:
@@ -299,9 +309,9 @@ class FolderStore:
         except OSError as error:
             raise StoreError("the receipt could not be read from the store") from error
 
-    def receipts(self) -> dict[str, bytes]:
+    def receipts(self, source_id: str = "") -> dict[str, bytes]:
         found: dict[str, bytes] = {}
-        for folder, _, names in os.walk(self.folder / KEPT_PREFIX):
+        for folder, _, names in os.walk(self.folder / kept_under(source_id)):
             for name in names:
                 path = Path(folder) / name
                 key = path.relative_to(self.folder).as_posix()

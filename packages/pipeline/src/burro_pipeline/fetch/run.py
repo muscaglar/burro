@@ -10,6 +10,14 @@ receipt is written last. It holds the address the list gave and the address
 the file came from in the end, and is written only
 from an edition and a period that somebody is sure of.
 
+Where the list says that a file states its own edition, that is read in what
+arrived, before anything is kept, and the receipt is written from it. One
+edition is one file: what arrives under the edition of a file that has its
+receipt, and is not that file, is refused.
+
+Where the list says which part of a file to take, that part is asked for and
+no other byte, and the receipt says which part it was: `take.py`.
+
 What a run says is a line of `key=value` for each file: the step, the source,
 a status, a hash, counts. A reason is a number, from the table in `WORDS`.
 No line holds an address, a row, a key or anything a publisher or the store said.
@@ -31,13 +39,15 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 from pydantic import ValidationError
 
-from burro_pipeline.evidence import How, Receipt, clean_url, file_id_of
+from burro_pipeline.evidence import How, Period, Receipt, Taken, Where, clean_url, file_id_of
 from burro_pipeline.evidence.receipt import RECEIPTS_FOLDER
 from burro_pipeline.fetch import gate
+from burro_pipeline.fetch.dated import Found, found_in
 from burro_pipeline.fetch.download import Downloaded, DownloadRefused, Limits, Reason, download
 from burro_pipeline.fetch.kinds import Kind, sniff
-from burro_pipeline.fetch.sources import Listed
-from burro_pipeline.fetch.store import Held, Part, Store, StoreError
+from burro_pipeline.fetch.sources import InTheFile, Listed, Take
+from burro_pipeline.fetch.store import Held, Part, Store, StoreError, hash_file
+from burro_pipeline.fetch.take import take_part
 from burro_pipeline.registry import Registry
 
 STEP = "fetch"
@@ -89,6 +99,11 @@ class Why(IntEnum):
     CUT_SHORT = 31
     NOT_WRITTEN = 32
     NOT_ASCII = 33
+    NOT_DATED = 34
+    SAME_EDITION_OTHER_BYTES = 35
+    NOT_IN_PIECES = 36
+    CHANGED = 37
+    NOT_LAID_OUT = 38
 
 
 # Each says what happened, and then what a person can do about it.
@@ -105,7 +120,8 @@ WORDS: dict[Why, str] = {
     "Open the address in a browser: if it asks for a sign-in or for terms to be accepted, "
     "save the file by hand",
     Why.NOT_SURE: "The file is stored. No receipt was written, because the list does not state "
-    "its edition and its period, or is not sure of them. State both in the list and fetch again",
+    "its edition and its period, or is not sure of them. State both in the list and fetch "
+    "again. Where the file states its own edition and the list says where, state the period",
     Why.RECEIPT_DIFFERS: "A receipt of this file exists and says something else. It was left "
     "as it is. Compare the list with the receipt: one of them has the edition, the period or "
     "the use wrong",
@@ -175,6 +191,29 @@ WORDS: dict[Why, str] = {
     Why.NOT_ASCII: "The address, or one the publisher sent the request on to, holds a letter "
     "outside ASCII. Nothing was asked of that address. Write the address in the list as a "
     "browser sends it, with each such letter percent-encoded, or save the file by hand",
+    Why.NOT_DATED: "The file is stored. No receipt was written, because the list says under "
+    "edition_from where the file states its own edition, and what arrived states none there: "
+    "the place is not in the file, or is there twice, or holds what is not a day, or a day "
+    "that has not come. What it holds there is not said. Run describe on the file by its "
+    "file id, on a machine of your own, and put edition_from right in the list",
+    Why.SAME_EDITION_OTHER_BYTES: "What arrived states the edition of a file of this item that "
+    "has its receipt, and is not that file. One edition is one file, so this should not be. "
+    "Nothing was kept, and no receipt was written. Fetch again on a later day. If it still "
+    "arrives so, the place the list names does not tell one file of this publisher from the "
+    "next: name another place under edition_from",
+    Why.NOT_IN_PIECES: "The list says to take part of the file, and the publisher did not give "
+    "a piece that was asked for: it answered with the whole file, or with other bytes than "
+    "were asked for, or did not say which bytes it gave. Nothing was kept. A publisher that "
+    "does not give a file in pieces gives it whole: take `take` out of the list, and raise "
+    "max_bytes to the size of the file",
+    Why.CHANGED: "The file changed at the publisher while pieces of it were taken, so the "
+    "pieces are not of one file. Nothing was kept. Fetch again. If the publisher has put a "
+    "new file at the address, see that the list still states its edition",
+    Why.NOT_LAID_OUT: "The list says to take part of the file, and the file is not laid out "
+    "so that the part can be taken: it is no Parquet file, its footer could not be read, it "
+    "lacks a column the list names, or it does not hold the box of each row in the column the "
+    "list names. Nothing was kept. Read the publisher's page on how the file is laid out, and "
+    "put `take` right in the list",
 }
 
 OF_A_DOWNLOAD = {reason: Why[reason.name] for reason in Reason}
@@ -203,6 +242,19 @@ class Downloader(Protocol):
         agent: str,
         may_redirect_to: tuple[str, ...] = (),
     ) -> Downloaded: ...
+
+
+class Taker(Protocol):
+    def __call__(
+        self,
+        address: str,
+        to: Path,
+        limits: Limits,
+        wanted: Take,
+        *,
+        agent: str,
+        may_redirect_to: tuple[str, ...] = (),
+    ) -> tuple[Downloaded, Taken]: ...
 
 
 @dataclass(frozen=True)
@@ -311,6 +363,7 @@ def fetch(
     only: Collection[str] = (),
     now: Callable[[], datetime] = lambda: datetime.now(UTC),
     downloader: Downloader = download,
+    taker: Taker = take_part,
     clock: Callable[[], float] = time.monotonic,
     said: Callable[[Outcome], None] = lambda _: None,
     debug: bool = False,
@@ -325,6 +378,7 @@ def fetch(
     the next. With `debug` the fault is raised, for a developer who asks.
     """
     stopped = _stopped_at_the_gate(files, registry, store.part, debug)
+    standing = Standing(store, receipts)
     outcomes: list[Outcome] = []
     for n, file in enumerate(files, start=1):
         started = clock()
@@ -337,7 +391,9 @@ def fetch(
             outcome = Outcome(n, file.source_id, Status.SKIPPED, Why.ANOTHER_WAS_REFUSED)
         else:
             try:
-                outcome = _fetch_one(n, file, registry, store, receipts, agent, now, downloader)
+                outcome = _fetch_one(
+                    n, file, registry, store, standing, receipts, agent, now, downloader, taker
+                )
             except Exception as found:
                 if debug:
                     raise
@@ -353,10 +409,12 @@ def _fetch_one(
     file: Listed,
     registry: Registry,
     store: Store,
+    standing: "Standing",
     receipts: Path,
     agent: str,
     now: Callable[[], datetime],
     downloader: Downloader,
+    taker: Taker,
 ) -> Outcome:
     try:
         source = gate.ask(file, registry, store.part)
@@ -369,19 +427,22 @@ def _fetch_one(
 
     with tempfile.TemporaryDirectory(prefix="burro-fetch-") as folder:
         arrived = Path(folder) / "arrived"
+        limits, taken = Limits(max_bytes=file.max_bytes), None
+        sent_on = file.may_redirect_to
         try:
-            got = downloader(
-                file.url,
-                arrived,
-                Limits(max_bytes=file.max_bytes),
-                agent=agent,
-                may_redirect_to=file.may_redirect_to,
-            )
+            if file.take is None:
+                got = downloader(file.url, arrived, limits, agent=agent, may_redirect_to=sent_on)
+            else:
+                got, taken = taker(
+                    file.url, arrived, limits, file.take, agent=agent, may_redirect_to=sent_on
+                )
         except DownloadRefused as stopped:
             why = OF_A_DOWNLOAD[stopped.reason]
             http = stopped.detail if stopped.reason is Reason.STATUS else ""
-            detail = stopped.detail if stopped.reason is Reason.REDIRECT_ELSEWHERE else ""
-            host = host_mark(detail) if detail else ""
+            elsewhere = stopped.detail if stopped.reason is Reason.REDIRECT_ELSEWHERE else ""
+            # What is not laid out is said in fixed words, which hold nothing of the file.
+            detail = stopped.detail if stopped.reason is Reason.NOT_LAID_OUT else elsewhere
+            host = host_mark(elsewhere) if elsewhere else ""
             return Outcome(
                 n, file.source_id, Status.FAILED, why, http=http, detail=detail, host=host
             )
@@ -390,8 +451,10 @@ def _fetch_one(
             gate.hold_the_file(source, arrived, got.final_url, got.file_name)
         except gate.Refused as refused:
             return refusal(n, file, refused)
-        arrival = Arrival(arrived, got.file_name, got.final_url, timestamp(now()), How.FETCHED)
-        return keep(n, file, arrival, store, receipts)
+        arrival = Arrival(
+            arrived, got.file_name, got.final_url, timestamp(now()), How.FETCHED, taken
+        )
+        return keep(n, file, arrival, store, receipts, standing)
 
 
 @dataclass(frozen=True)
@@ -403,10 +466,89 @@ class Arrival:
     address: str
     retrieved_at: str
     how: How
+    # Which part of the file this is, where fetch took part of one.
+    taken: Taken | None = None
 
 
-def keep(n: int, file: Listed, arrival: Arrival, store: Store, receipts: Path) -> Outcome:
-    """Look at a file that has arrived, store it, and write its receipt."""
+class Standing:
+    """The receipts that stand, of each source a run asks about: in the folder and in the store.
+
+    A register is a file for each authority, all of one source. So the receipts
+    of a source are read once in a run, and what the run writes is added.
+    What is kept as a receipt and is none is left out: `settle` answers for it.
+    """
+
+    def __init__(self, store: Store, receipts: Path) -> None:
+        self._store, self._receipts = store, receipts
+        self._of: dict[str, dict[str, Receipt]] = {}
+
+    def of(self, source_id: str) -> tuple[Receipt, ...]:
+        """Every receipt that stands of a source, the folder's first. Raises `StoreError`."""
+        if source_id not in self._of:
+            folder = self._receipts / source_id
+            written = [
+                path.read_bytes() for path in sorted(folder.glob("f-*.json")) if path.is_file()
+            ]
+            kept = self._store.receipts(source_id).values()
+            found: dict[str, Receipt] = {}
+            for content in (*written, *kept):
+                try:
+                    receipt = Receipt.model_validate_json(content)
+                except ValidationError:
+                    continue
+                if receipt.source_id == source_id and not receipt.made_up:
+                    found.setdefault(receipt.file_id, receipt)
+            self._of[source_id] = found
+        return tuple(self._of[source_id].values())
+
+    def add(self, receipt: Receipt) -> None:
+        if receipt.source_id in self._of:
+            self._of[receipt.source_id].setdefault(receipt.file_id, receipt)
+
+
+class _OneEditionIsOneFile(Exception):
+    """What arrived states the edition of a file that has its receipt, and is not that file."""
+
+
+def _stated_by_the_file(
+    file: Listed, there: InTheFile, arrival: Arrival, standing: Standing
+) -> Found | None:
+    """The edition a file states of itself, read before it is kept. Nothing if it states none.
+
+    A file that holds no date is dated by the day it was first retrieved: where
+    a receipt of these bytes stands and says so, its day stands.
+    """
+    sha256, _ = hash_file(arrival.path)
+    stands = standing.of(file.source_id)
+    if there.where is Where.RETRIEVED:
+        for receipt in stands:
+            first = receipt.edition_from
+            if receipt.sha256 == sha256 and first is not None and first.where is Where.RETRIEVED:
+                return Found(receipt.edition, receipt.data_period if there.period_too else None)
+    found = found_in(there, arrival.path, arrival.retrieved_at)
+    if found is None:
+        return None
+    listed = written_down(file.url, file.url) if file.url else None
+    for receipt in stands:
+        same = (receipt.listed_url, receipt.edition) == (listed, found.edition)
+        if same and receipt.sha256 != sha256:
+            raise _OneEditionIsOneFile
+    return found
+
+
+def keep(
+    n: int,
+    file: Listed,
+    arrival: Arrival,
+    store: Store,
+    receipts: Path,
+    standing: Standing | None = None,
+) -> Outcome:
+    """Look at a file that has arrived, store it, and write its receipt.
+
+    `standing` is the run's memory of the receipts that stand. With none given,
+    they are read here.
+    """
     by_hand = arrival.how is How.BY_HAND
     found = sniff(arrival.path)
     expected = file.format.kind
@@ -420,13 +562,26 @@ def keep(n: int, file: Listed, arrival: Arrival, store: Store, receipts: Path) -
         # An address that cannot be read, or that may hold a key. Nothing is kept from it.
         why = Why.ADDRESS_GIVEN if by_hand else Why.BAD_ANSWER
         return Outcome(n, file.source_id, Status.FAILED, why, by_hand=by_hand)
+    standing = standing or Standing(store, receipts)
+    there, dated = file.edition_from, None
     try:
+        if there is not None:
+            dated = _stated_by_the_file(file, there, arrival, standing)
         held, new = store.put(file.source_id, arrival.name, arrival.path)
+    except _OneEditionIsOneFile:
+        why = Why.SAME_EDITION_OTHER_BYTES
+        return Outcome(n, file.source_id, Status.REFUSED, why, by_hand=by_hand)
     except StoreError as error:
         return Outcome(
             n, file.source_id, Status.FAILED, Why.STORE, detail=str(error), by_hand=by_hand
         )
-    if not file.ready_for_a_receipt or file.data_period is None:
+    if there is not None and dated is None:
+        return Outcome(n, file.source_id, Status.MISSING, Why.NOT_DATED, held, new, by_hand=by_hand)
+    edition = file.edition if dated is None else dated.edition
+    period: Period | None = file.data_period
+    if dated is not None and dated.period is not None:
+        period = dated.period
+    if not file.ready_for_a_receipt or period is None:
         return Outcome(n, file.source_id, Status.MISSING, Why.NOT_SURE, held, new, by_hand=by_hand)
     try:
         receipt = Receipt(
@@ -440,8 +595,10 @@ def keep(n: int, file: Listed, arrival: Arrival, store: Store, receipts: Path) -
             bytes=held.bytes,
             retrieved_at=arrival.retrieved_at,
             how=arrival.how,
-            edition=file.edition,
-            data_period=file.data_period,
+            edition=edition,
+            edition_from=None if there is None else there.in_a_receipt(),
+            taken=arrival.taken,
+            data_period=period,
         )
     except ValueError:
         # A receipt that does not hold together.
@@ -452,6 +609,8 @@ def keep(n: int, file: Listed, arrival: Arrival, store: Store, receipts: Path) -
         status, why = settle(receipt, receipts, store)
     except StoreError as error:
         status, why, detail = Status.FAILED, Why.STORE, str(error)
+    if status is Status.OK:
+        standing.add(receipt)
     return Outcome(n, file.source_id, status, why, held, new, detail=detail, by_hand=by_hand)
 
 

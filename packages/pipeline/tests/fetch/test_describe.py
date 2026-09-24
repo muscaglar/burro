@@ -386,6 +386,48 @@ def test_a_geopackage_gives_its_layers_fields_and_feature_counts(tmp_path: Path)
     ]
 
 
+def dated(path: Path, changes: dict[str, object]) -> Path:
+    """A made-up GeoPackage whose record of its contents says when each layer was last changed."""
+    made_up_geopackage(path, {layer: ([("code", "TEXT")], 2) for layer in changes})
+    database = sqlite3.connect(path)
+    try:
+        database.execute("ALTER TABLE gpkg_contents ADD COLUMN last_change DATETIME")
+        for layer, change in changes.items():
+            database.execute(
+                "UPDATE gpkg_contents SET last_change = ? WHERE table_name = ?", (change, layer)
+            )
+        database.commit()
+    finally:
+        database.close()
+    return path
+
+
+def test_a_geopackage_gives_the_day_each_layer_says_it_was_last_changed(tmp_path: Path):
+    """It is what a list states as the period of boundaries that state no other day."""
+    path = dated(
+        tmp_path / "areas.gpkg",
+        {"made_up_first": "2025-12-22T16:37:50.337Z", "made_up_second": "2024-02-29"},
+    )
+    found = {layer["name"]: layer.get("last_changed") for layer in shape(path)["layers"]}
+    assert found == {"made_up_first": "2025-12-22", "made_up_second": "2024-02-29"}
+
+
+@pytest.mark.parametrize(
+    "change", [CANARY_ROW, f"2025-12-22 {CANARY_ROW}", "2025-13-40", "22/12/2025", 20251222, None]
+)
+def test_a_last_change_that_is_no_day_is_not_given(tmp_path: Path, change: object):
+    path = dated(tmp_path / "areas.gpkg", {"made_up": change})
+    (layer,) = shape(path)["layers"]
+    assert "last_changed" not in layer
+    assert (layer["name"], layer["features"]) == ("made_up", 2)
+
+
+def test_a_geopackage_that_keeps_no_last_change_gives_none(tmp_path: Path):
+    path = made_up_geopackage(tmp_path / "areas.gpkg", {"made_up": ([("code", "TEXT")], 2)})
+    (layer,) = shape(path)["layers"]
+    assert "last_changed" not in layer
+
+
 def test_a_layer_name_cannot_run_a_query_of_its_own(tmp_path: Path):
     hostile = 'areas"; DROP TABLE gpkg_contents; --'
     path = made_up_geopackage(tmp_path / "hostile.gpkg", {hostile: ([("code", "TEXT")], 3)})

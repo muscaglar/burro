@@ -30,12 +30,16 @@ class AreaPlan:
     Rows run south to north and columns west to east. Each trait runs from 0
     to 1. How central an area is, how much of it is near the river and how
     far it is from a station are not set here: they are measured from the map.
+
+    No two traits go together across the city, so that no two vibes find the
+    same areas: there are flats that are quiet, a leafy area on a main road,
+    an old one with no green, and a lively one where little is independent.
     """
 
     name: str
     row: int
     col: int
-    green: float  # parks, trees and open ground
+    green: float  # gardens, trees and open ground
     lively: float  # places to eat, drink and go out
     indie: float  # how much of that is not part of a chain
     old: float  # homes built before 1919, streets that are protected
@@ -44,75 +48,114 @@ class AreaPlan:
     industry: float  # works, depots and the roads that serve them
     rankable: bool = True
     aliases: tuple[str, ...] = ()
+    # What the seven traits cannot say. Only the parts that came with the vibes read
+    # these two, so that adding them moved no older figure.
+    offices: float = 0.0  # how much of it is offices, which empty at night and sell no food
+    works: float | None = None  # yards and workshops still in use. As `industry` where not set
+    # Where an area is not what its place on the map and its green would make it. Where
+    # one is not set, homes are flats towards the centre, a park is where the green is,
+    # and the main roads follow the centre, the high street and the works.
+    flats: float | None = None  # flats, and homes close together
+    parks: float | None = None  # public parks within a walk
+    roads: float | None = None  # homes that stand on a main road
 
 
 # In name order, which is the order of their ids. After the name and the cell come the
 # seven traits: green, lively, indie, old, family, street, industry.
 AREAS = (
-    # Leafy hillside of large houses, a long walk from any station.
-    AreaPlan("Alderwick", 3, 1, 0.95, 0.08, 0.45, 0.45, 0.65, 0.30, 0.00),
-    # Meadows along the north bank, west of the centre.
-    AreaPlan("Brackenhythe", 1, 0, 0.80, 0.25, 0.60, 0.55, 0.60, 0.50, 0.00),
-    # Works and depots at the eastern end of the Amber line.
-    AreaPlan("Cindermoor", 1, 5, 0.15, 0.20, 0.30, 0.25, 0.30, 0.40, 0.85),
-    # Schools and playgrounds, half way out on the Cobalt line.
+    # A leafy hillside of large old houses in their own grounds, a long walk from any
+    # station. Few schools, and the green is private: no park is near.
+    AreaPlan("Alderwick", 3, 1, 0.95, 0.08, 0.30, 0.70, 0.30, 0.30, 0.00, parks=0.30, roads=0.20),
+    # Meadows along the north bank, west of the centre, and the river road through them.
+    AreaPlan("Brackenhythe", 1, 0, 0.80, 0.25, 0.60, 0.55, 0.35, 0.50, 0.00, roads=0.60),
+    # Works and depots at the eastern end of the Amber line, and the cafes that feed them.
+    AreaPlan("Cindermoor", 1, 5, 0.20, 0.20, 0.70, 0.25, 0.30, 0.40, 0.85),
+    # Schools and playgrounds, built new along the main road, half way out on the Cobalt line.
     AreaPlan(
-        "Dulcimer Green", 2, 4, 0.65, 0.22, 0.40, 0.30, 0.92, 0.55, 0.05, aliases=("Dulcimer",)
+        "Dulcimer Green",
+        2,
+        4,
+        0.65,
+        0.22,
+        0.40,
+        0.10,
+        0.92,
+        0.55,
+        0.05,
+        aliases=("Dulcimer",),
+        roads=0.75,
     ),
     # A northern suburb at the end of the Birch line.
     AreaPlan("Eskerfold", 3, 2, 0.60, 0.18, 0.35, 0.25, 0.80, 0.50, 0.00),
-    # Cheap and far out, but on the Cobalt line.
-    AreaPlan("Farrowmere", 2, 5, 0.40, 0.15, 0.25, 0.10, 0.50, 0.45, 0.25),
-    # The busiest high street outside the centre.
-    AreaPlan("Foxholt", 2, 3, 0.30, 0.55, 0.50, 0.40, 0.50, 0.95, 0.10),
-    # The north-western edge: fields, few shops, no station.
-    AreaPlan("Gorsebeck", 3, 0, 0.70, 0.05, 0.30, 0.20, 0.40, 0.15, 0.10),
+    # Cheap and far out, but on the Cobalt line: estates of flats beside the trunk road.
+    AreaPlan("Farrowmere", 2, 5, 0.40, 0.15, 0.25, 0.10, 0.70, 0.45, 0.25, flats=0.95, roads=0.65),
+    # The busiest high street outside the centre, most of it chains. A large park lies
+    # behind it, and the homes stand in quiet streets off it.
+    AreaPlan("Foxholt", 2, 3, 0.30, 0.50, 0.25, 0.40, 0.50, 0.95, 0.10, parks=0.90, roads=0.15),
+    # The north-western edge: fields, few shops, no station, and the yards of a depot.
+    AreaPlan("Gorsebeck", 3, 0, 0.70, 0.05, 0.30, 0.20, 0.40, 0.15, 0.10, works=0.60),
     # Working docks east of the river. Too few homes to rank.
     AreaPlan("Grapnel Dock", 0, 4, 0.05, 0.10, 0.20, 0.30, 0.05, 0.10, 1.00, rankable=False),
-    # Old quays turned studios and theatres, one stop west of the centre.
+    # Old quays turned studios and theatres, one stop west of the centre. Those who come
+    # for a show eat at a chain.
     AreaPlan(
         "Hollinsworth Quay",
         1,
         1,
         0.30,
         0.70,
-        0.90,
+        0.45,
         0.60,
         0.30,
-        0.70,
+        0.60,
         0.15,
         aliases=("Hollinsworth",),
     ),
-    # The south bank opposite the centre: kitchens, bars and an art school.
-    AreaPlan("Kindlewharf", 0, 2, 0.25, 0.78, 0.85, 0.45, 0.35, 0.75, 0.20),
-    # Where the city goes out at night, one stop north of the centre.
-    AreaPlan("Lantern Yard", 2, 2, 0.15, 0.95, 0.65, 0.50, 0.15, 0.85, 0.05),
-    # A leafy western suburb with no station of its own.
-    AreaPlan("Larkspur Hill", 2, 0, 0.88, 0.12, 0.50, 0.50, 0.75, 0.40, 0.00),
-    # Cheap and far out, and nowhere near a line.
-    AreaPlan("Marrowfen", 3, 4, 0.45, 0.08, 0.20, 0.05, 0.45, 0.25, 0.30),
-    # Family streets along the south bank.
-    AreaPlan("Osierholm", 0, 1, 0.60, 0.25, 0.45, 0.35, 0.85, 0.55, 0.05),
-    # An ordinary northern suburb. It has no cost estimate, on purpose.
-    AreaPlan("Ostrel Vale", 3, 3, 0.50, 0.20, 0.35, 0.20, 0.60, 0.45, 0.05),
+    # The south bank opposite the centre: kitchens, bars and an art school, in low terraces.
+    AreaPlan("Kindlewharf", 0, 2, 0.25, 0.70, 0.85, 0.45, 0.35, 0.60, 0.20, flats=0.35),
+    # Where the city goes out at night, one stop north of the centre: bars and clubs, most
+    # of them chains, in old yards that are still workshops by day.
+    AreaPlan("Lantern Yard", 2, 2, 0.15, 0.95, 0.20, 0.75, 0.15, 0.85, 0.05, works=0.30),
+    # A leafy western suburb with no station of its own, and a parade of shops and cafes.
+    AreaPlan("Larkspur Hill", 2, 0, 0.88, 0.30, 0.50, 0.50, 0.75, 0.40, 0.00),
+    # Cheap and far out, nowhere near a line, and beside the orbital road.
+    AreaPlan("Marrowfen", 3, 4, 0.45, 0.08, 0.20, 0.05, 0.45, 0.25, 0.30, roads=0.80),
+    # Family streets along the south bank, built between the wars.
+    AreaPlan("Osierholm", 0, 1, 0.60, 0.25, 0.45, 0.15, 0.85, 0.55, 0.05, roads=0.30),
+    # An ordinary northern suburb of plain streets. It has no cost estimate, on purpose.
+    AreaPlan("Ostrel Vale", 3, 3, 0.20, 0.15, 0.35, 0.20, 0.60, 0.45, 0.05),
     # A new town in the south-east that most surveys have not reached yet.
     AreaPlan(
         "Otterby Fields", 0, 5, 0.35, 0.10, 0.15, 0.00, 0.55, 0.30, 0.15, aliases=("Otterby",)
     ),
-    # The centre.
-    AreaPlan("Pellam Cross", 1, 2, 0.08, 0.90, 0.40, 0.55, 0.10, 1.00, 0.10, aliases=("Pellam",)),
-    # New flats on the inside of the river's bend, water on two sides.
-    AreaPlan("Sable Reach", 0, 3, 0.30, 0.45, 0.40, 0.05, 0.30, 0.50, 0.10),
+    # The centre. Much of it is offices, so it is busiest by day, and what is open is a chain.
+    AreaPlan(
+        "Pellam Cross",
+        1,
+        2,
+        0.08,
+        0.90,
+        0.10,
+        0.55,
+        0.10,
+        1.00,
+        0.10,
+        aliases=("Pellam",),
+        offices=1.0,
+    ),
+    # New flats on the inside of the river's bend, water on two sides: a riverside park,
+    # no road through, and little open in the evening.
+    AreaPlan("Sable Reach", 0, 3, 0.25, 0.10, 0.40, 0.05, 0.30, 0.45, 0.10, parks=0.70, roads=0.10),
     # Marsh and reservoir in the far north-east. Too few homes to rank.
     AreaPlan("Sedgewater Marsh", 3, 5, 0.90, 0.00, 0.20, 0.10, 0.05, 0.00, 0.05, rankable=False),
-    # The old town, beside the centre.
-    AreaPlan("Tallowgate", 1, 3, 0.25, 0.65, 0.80, 1.00, 0.30, 0.85, 0.00),
-    # A village swallowed by the city, with its green and its own shops.
-    AreaPlan("Thrushcombe", 2, 1, 0.70, 0.35, 0.95, 0.85, 0.65, 0.80, 0.00),
-    # Around the university.
-    AreaPlan("Wexmoor", 1, 4, 0.40, 0.60, 0.55, 0.30, 0.25, 0.60, 0.10),
-    # A quiet old riverside village in the south-west corner.
-    AreaPlan("Wickerford", 0, 0, 0.75, 0.15, 0.70, 0.80, 0.50, 0.45, 0.00),
+    # The old town, beside the centre: terraces on lanes too narrow for a main road.
+    AreaPlan("Tallowgate", 1, 3, 0.25, 0.55, 0.80, 1.00, 0.30, 0.85, 0.00, flats=0.30, roads=0.10),
+    # A village swallowed by the city, with its green, its own shops and its cottages.
+    AreaPlan("Thrushcombe", 2, 1, 0.70, 0.35, 0.95, 0.85, 0.65, 0.80, 0.00, flats=0.20),
+    # Around the university: student bars, most of them chains, and a campus closed to cars.
+    AreaPlan("Wexmoor", 1, 4, 0.40, 0.90, 0.15, 0.30, 0.25, 0.70, 0.10, roads=0.10),
+    # A quiet old riverside village in the south-west corner: stone quays more than gardens.
+    AreaPlan("Wickerford", 0, 0, 0.50, 0.15, 0.90, 0.80, 0.30, 0.40, 0.00),
 )
 
 CENTRE = "Pellam Cross"
