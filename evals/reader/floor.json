@@ -1,0 +1,7 @@
+{
+  "about": "The least a reader may score before a run fails. One reversed case fails a run whatever is here. correct_share is the least share of all cases read correctly. unasked_ceiling is the most cases that may hold an edit nobody asked for. null means no limit yet. groups may hold a floor for one group by its file name. See evals/README.md.",
+  "rule": {"correct_share": 0.48, "unasked_ceiling": 2, "groups": {}},
+  "claude": {"correct_share": null, "unasked_ceiling": null, "groups": {}},
+  "nothing": {"correct_share": null, "unasked_ceiling": null},
+  "keywords": {"correct_share": null, "unasked_ceiling": null}
+}

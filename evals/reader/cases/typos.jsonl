@@ -1,0 +1,44 @@
+{"id": "typo-001", "text": "I don;t want pubs nearby", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening", "tag:evening_venues"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "a contraction broken by a slip"}
+{"id": "typo-002", "text": "I don,t want a station nearby", "tenure": "rent", "expect": {"fall": ["feature:station_walk"], "not_rise": ["feature:station_lines"]}, "why": "a contraction broken by a slip"}
+{"id": "typo-003", "text": "I do n't want bars", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening", "tag:evening_venues"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "a contraction broken by a space"}
+{"id": "typo-004", "text": "I dinnae want pubs", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening", "tag:evening_venues"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "dialect for don't"}
+{"id": "typo-005", "text": "i do nt want a park", "tenure": "rent", "expect": {"fall": ["feature:park_proximity"]}, "why": "a contraction broken by a space"}
+{"id": "typo-006", "text": "I do't want a park", "tenure": "rent", "expect": {"fall": ["feature:park_proximity"]}, "why": "a contraction with a letter lost"}
+{"id": "typo-007", "text": "I font want pubs", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening", "tag:evening_venues"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "the next key along"}
+{"id": "typo-008", "text": "Id ont want bars", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening", "tag:evening_venues"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "a space in the wrong place"}
+{"id": "typo-009", "text": "I dob't want pubs", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening", "tag:evening_venues"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "the next key along"}
+{"id": "typo-010", "text": "I dint want pubs", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening", "tag:evening_venues"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "a vowel swapped"}
+{"id": "typo-011", "text": "i dun want pubs", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening", "tag:evening_venues"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "don't, as it is said"}
+{"id": "typo-012", "text": "I donut want a station", "tenure": "rent", "expect": {"fall": ["feature:station_walk"], "not_rise": ["feature:station_lines"]}, "why": "a word put right by the phone"}
+{"id": "typo-013", "text": "quite area near a prak", "tenure": "rent", "expect": {"rise": ["feature:park_proximity"], "rise_any": [["tag:quiet_residential", "feature:noise_exposure"]]}, "why": "'quite' for 'quiet', and letters swapped"}
+{"id": "typo-014", "text": "leefy and quiet", "tenure": "rent", "expect": {"rise_any": [["tag:leafy", "feature:green_cover"], ["tag:quiet_residential", "feature:noise_exposure"]]}, "why": "one misspelt word beside one that is right"}
+{"id": "typo-015", "text": "neer a staton", "tenure": "rent", "expect": {"rise_any": [["feature:station_walk", "feature:station_lines"]]}, "why": "every word misspelt"}
+{"id": "typo-016", "text": "good resturants and cafes", "tenure": "rent", "expect": {"rise_any": [["feature:venue_food_drink", "tag:foodie"]], "not_fall": ["feature:venue_independent"]}, "why": "a common misspelling"}
+{"id": "typo-017", "text": "i wnat a park", "tenure": "rent", "expect": {"rise": ["feature:park_proximity"]}, "why": "letters swapped in the verb"}
+{"id": "typo-018", "text": "no pubs pls", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening", "tag:evening_venues"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "a short form"}
+{"id": "typo-019", "text": "I work at Cindermor Works", "tenure": "rent", "expect": {"journeys": {"add": [{"to": "Cindermoor Works"}]}, "ask": "ok"}, "why": "a name with a letter lost. To ask is fair"}
+{"id": "typo-020", "text": "30 mins to pellam exchnage", "tenure": "rent", "expect": {"journeys": {"add": [{"to": "Pellam Exchange", "max_minutes": 30}]}, "ask": "ok"}, "why": "a name with letters swapped"}
+{"id": "typo-021", "text": "I study at wexmoor uni", "tenure": "rent", "expect": {"journeys": {"add": [{"to": "Wexmoor University"}]}, "not_fall": ["tag:near_universities", "feature:university_proximity"], "ask": "ok"}, "why": "a short form of a name: the campus, and not the station of the same town"}
+{"id": "typo-022", "text": "2bed upto 1800pcm", "tenure": "rent", "expect": {"budget": {"amount": 1800, "segment": "bed_2"}}, "why": "words run together"}
+{"id": "typo-023", "text": "£1500pcm max, 1bed", "tenure": "rent", "expect": {"budget": {"amount": 1500, "segment": "bed_1"}}, "why": "words run together"}
+{"id": "typo-024", "text": "budjet 1400", "tenure": "rent", "expect": {"budget": {"amount": 1400}}, "why": "a misspelt cue"}
+{"id": "typo-025", "text": "nera the rivver", "tenure": "rent", "expect": {"rise_any": [["tag:waterside", "feature:water_access"]]}, "why": "every word misspelt"}
+{"id": "typo-026", "text": "somehwere quiet", "tenure": "rent", "expect": {"rise_any": [["tag:quiet_residential", "feature:noise_exposure"]]}, "why": "a misspelt word that carries nothing"}
+{"id": "typo-027", "text": "parks!!!!", "tenure": "rent", "expect": {"rise": ["feature:park_proximity"]}, "why": "marks of feeling"}
+{"id": "typo-028", "text": "SOMEWHERE QUIET NEAR A PARK", "tenure": "rent", "expect": {"rise": ["feature:park_proximity"], "rise_any": [["tag:quiet_residential", "feature:noise_exposure"]]}, "why": "all in capitals"}
+{"id": "typo-029", "text": "near apark", "tenure": "rent", "expect": {"rise": ["feature:park_proximity"]}, "why": "a space lost"}
+{"id": "typo-030", "text": "nopubs", "tenure": "rent", "expect": {"not_rise": ["feature:venue_evening", "tag:evening_venues"]}, "why": "a space lost in a negative"}
+{"id": "typo-031", "text": "i want too be near a station", "tenure": "rent", "expect": {"rise_any": [["feature:station_walk", "feature:station_lines"]]}, "why": "'too' for 'to'"}
+{"id": "typo-032", "text": "their has to be a park", "tenure": "rent", "expect": {"rise": ["feature:park_proximity"]}, "why": "'their' for 'there'"}
+{"id": "typo-033", "text": "not to noisy", "tenure": "rent", "expect": {"rise_any": [["tag:quiet_residential", "feature:noise_exposure"]]}, "why": "'to' for 'too'"}
+{"id": "typo-034", "text": "avoid cindermor", "tenure": "rent", "expect": {"areas": {"exclude": ["Cindermoor"]}, "ask": "ok"}, "why": "an area with a letter lost. To ask is fair"}
+{"id": "typo-035", "text": "Tallowgate Gild Quarter, 20 min walk", "tenure": "rent", "expect": {"journeys": {"add": [{"to": "Tallowgate Guild Quarter", "mode": "walk", "max_minutes": 20}]}, "ask": "ok"}, "why": "a name with a letter lost"}
+{"id": "typo-036", "text": "i cant live with out a park", "tenure": "rent", "expect": {"rise": ["feature:park_proximity"]}, "why": "a double negative, and two slips"}
+{"id": "typo-037", "text": "dont want to be far form a station", "tenure": "rent", "expect": {"rise_any": [["feature:station_walk", "feature:station_lines"]]}, "why": "a double negative, and letters swapped"}
+{"id": "typo-038", "text": "quiet,leafy,near station", "tenure": "rent", "expect": {"rise_any": [["tag:quiet_residential", "feature:noise_exposure"], ["tag:leafy", "feature:green_cover"], ["feature:station_walk", "feature:station_lines"]]}, "why": "no spaces after the commas"}
+{"id": "typo-039", "text": "lokking for somwhere with good scools", "tenure": "rent", "expect": {"rise_any": [["feature:school_primary_attainment", "feature:school_secondary_attainment", "feature:school_primary_nearby", "tag:family_amenities"]]}, "why": "three misspellings"}
+{"id": "typo-040", "text": "no  pubs   please", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening", "tag:evening_venues"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "spaces doubled"}
+{"id": "typo-041", "text": "I dont want nightlfe", "tenure": "rent", "expect": {"not_rise": ["tag:evening_venues", "feature:venue_evening", "tag:buzzy"]}, "why": "the thing itself is misspelt"}
+{"id": "typo-042", "text": "pubs are a nono", "tenure": "rent", "expect": {"not_rise": ["feature:venue_evening", "tag:evening_venues"]}, "why": "a negative run together"}
+{"id": "typo-043", "text": "I wan't a park", "tenure": "rent", "expect": {"rise": ["feature:park_proximity"]}, "why": "an apostrophe where none belongs: this is 'want'"}
+{"id": "typo-044", "text": "quiet.leafy.cheap", "tenure": "rent", "expect": {"rise_any": [["tag:quiet_residential", "feature:noise_exposure"], ["tag:leafy", "feature:green_cover"]]}, "why": "full stops for commas"}
