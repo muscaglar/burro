@@ -10,7 +10,7 @@ import dataclasses
 import re
 
 import pytest
-from burro_core.catalogue import FEATURES
+from burro_core.catalogue import FEATURES, band_of
 from burro_core.explain import render
 from burro_core.facts import Fact, facts_for
 from burro_core.ids import (
@@ -20,12 +20,14 @@ from burro_core.ids import (
     Mode,
     Notice,
     Provenance,
+    SentenceRole,
     Strictness,
-    TagId,
+    TemplateId,
     Tenure,
     UnmetCategory,
+    UnrankedReason,
 )
-from burro_core.interpret import InterpretRequest, InterpretResult, RuleInterpreter
+from burro_core.interpret import InterpretRequest, InterpretResult, RuleInterpreter, Suggestion
 from burro_core.ops import NO_OPERATIONS
 from burro_core.places import resolve_area, resolve_place
 from burro_core.rank import RankedArea, RankResult, rank
@@ -49,7 +51,7 @@ def name_of(area_id: str) -> str:
     return found.name
 
 
-# One reader for every test: it keeps the names of the release and nothing else.
+# One reader for them all: it makes the names of the release ready once.
 READER = RuleInterpreter()
 
 
@@ -121,8 +123,8 @@ def test_four_different_wishes_put_four_different_areas_first():
 
 
 def waterside(area_id: str) -> float:
-    row = release().tag(area_id, TagId.WATERSIDE)
-    return 0.0 if row is None or row.score is None else row.score
+    row = release().feature(area_id, FeatureId.WATER_ACCESS)
+    return 0.0 if row is None or row.value is None else row.value
 
 
 def test_the_places_most_like_what_was_asked_for_are_all_near_the_top():
@@ -269,6 +271,61 @@ def test_exactly_half_the_default_weight_present_is_ranked_whichever_half_it_is(
         assert area.weight_coverage == 0.5
 
 
+def chosen(*pressed: str, spec: PreferenceSpec = RENTER) -> PreferenceSpec:
+    """The search after a person has pressed the first choice of each of some suggestions.
+
+    What they typed is not plain, so nothing of it was applied. Each thing
+    that was noticed was offered, and they pressed what they had asked for.
+    """
+    text = (
+        "I start at Cindermoor Works in three months. Somewhere leafy and fairly quiet, not "
+        "too far from a decent pub. About £1,600 a month on a one bed flat."
+    )
+    # The first thing offered of each kind: of the budget, its amount.
+    offered: dict[str, Suggestion] = {}
+    for found in read(text, spec).suggestions:
+        offered.setdefault(found.target, found)
+    assert set(pressed) <= set(offered)
+    for target in pressed:
+        spec = apply(spec, offered[target].choices[0].operations, release()).spec
+    return spec
+
+
+def test_an_area_with_no_figure_for_what_was_asked_of_a_place_is_listed_apart_and_never_first():
+    # Otterby Fields is the new town: it has a journey time, a rent, and a
+    # station, and no figure for how leafy or quiet it is or for its pubs.
+    # It came first, 14 points clear, for a newcomer who asked for all three.
+    spec = chosen(
+        "commute", "tag:leafy", "tag:quiet_residential", "feature:venue_evening", "budget"
+    )
+    result = rank(spec, release())
+    assert "Otterby Fields" not in first_names(result, len(result.ranked))
+    apart = {name_of(found.area_id): found for found in result.unranked}
+    # What is said of the place leads, so an area with no figure for any of it lacks more
+    # than half of all that was asked, by weight, and is listed apart for that.
+    assert apart["Otterby Fields"].reason is UnrankedReason.INSUFFICIENT_DATA
+    assert {"tag:leafy", "tag:quiet_residential", "feature:venue_evening"} <= set(
+        apart["Otterby Fields"].missing
+    )
+    # Whoever is ranked has a figure for half or more of the character asked for.
+    wished = {c.component for c in result.ranked[0].contributions} - {"commute", "budget"}
+    for area in result.ranked:
+        weights = {c.component: (c.weight, c.present) for c in area.contributions}
+        asked = sum(weights[name][0] for name in wished)
+        known = sum(weights[name][0] for name in wished if weights[name][1])
+        assert 2 * round(known * 20) >= round(asked * 20), name_of(area.area_id)
+
+
+def test_a_journey_and_a_rent_alone_do_not_rank_an_area_of_which_little_else_is_known():
+    # With a workplace and a budget and nothing said of character, what is
+    # left of the usual settings is the character that counts. Otterby Fields
+    # has a figure for two of those six, and was second of 22.
+    result = rank(chosen("commute", "budget"), release())
+    apart = {name_of(found.area_id): found.reason for found in result.unranked}
+    assert apart["Otterby Fields"] is UnrankedReason.CHARACTER_UNKNOWN
+    assert first_names(result, 1) == ["Cindermoor"]
+
+
 BEYOND = re.compile(
     r"(?P<word>[a-z ]+?)(?: than)? (?P<pct>\d+)% of the (?P<compared>\d+) areas compared in "
     r"this release(?:, and the same as (?P<level>\d+) others?)?\.(?: Recorded crime .*)?"
@@ -277,22 +334,40 @@ LEVEL = re.compile(
     r"the same as (?:(?P<level>\d+) of the |all )(?P<others>\d+) other areas compared in this "
     r"release\.(?: Recorded crime .*)?"
 )
+NONE = re.compile(
+    r"(?P<word>[a-z ]+?)(?: than)? none of the (?P<others>\d+) other areas compared in this "
+    r"release\.(?: Recorded crime .*)?"
+)
+# What a band says where it rests on part of its recipe, and nowhere else.
+PARTLY = (
+    r"(?:Worked out from (?P<known>\d+) of its (?P<parts>\d+) parts, "
+    r"(?P<share>\d+) of 100 by weight\. )?"
+)
+VIBE = re.compile(
+    r"band (?P<band>[1-5]) of 5, counted from (?P<low>[A-Za-z ]+) to (?P<high>[A-Za-z ]+), among "
+    rf"the (?P<compared>\d+) areas compared in this release\. {PARTLY}"
+    r"Parts dated (?P<span>[0-9 to]+)\. The recipe is Burro's own\. The weights are a judgement\."
+)
+VIBE_RANGE = re.compile(
+    r"varies within this area, from band (?P<low_band>[1-5]) to band (?P<high_band>[1-5]) of 5, "
+    rf"counted from (?P<low>[A-Za-z ]+) to (?P<high>[A-Za-z ]+)\. {PARTLY}"
+    r"Parts dated (?P<span>[0-9 to]+)\. The recipe is Burro's own\. The weights are a judgement\."
+)
+VIBE_UNKNOWN = re.compile(
+    r"Burro cannot place (?P<what>.+)\. Parts with a figure in this release: "
+    r"(?P<known>\d+) of (?P<parts>\d+)\."
+)
 
 
 def figures(fact: Fact) -> tuple[list[float], float, tuple[str, str]]:
     """The figure of every rankable area, this area's own, and the words for above and below."""
     known = release()
+    feature_id = FeatureId(fact.key)
 
     def figure(area_id: str) -> float | None:
-        if fact.kind is FactKind.TAG:
-            tag = known.tag(area_id, TagId(fact.key))
-            return None if tag is None or tag.score is None else tag.raw
-        feature = known.feature(area_id, FeatureId(fact.key))
+        feature = known.feature(area_id, feature_id)
         return None if feature is None else feature.value
 
-    words = ("ranks above", "ranks below")
-    if fact.kind is FactKind.FEATURE:
-        words = (FEATURES[FeatureId(fact.key)].higher, FEATURES[FeatureId(fact.key)].lower)
     population = [
         found
         for area in known.neighbourhoods
@@ -300,7 +375,66 @@ def figures(fact: Fact) -> tuple[list[float], float, tuple[str, str]]:
     ]
     mine = figure(fact.area_id)
     assert mine is not None
-    return population, mine, words
+    return population, mine, (FEATURES[feature_id].higher, FEATURES[feature_id].lower)
+
+
+def vibe_is_true(text: str, fact: Fact, area: Neighbourhood) -> bool:
+    """Whether what a sentence says of a vibe is literally true of the committed release."""
+    known = release()
+    vibe = next(found for found in known.vibes if found.tag_id == fact.key)
+    rows = [known.tag(found.area_id, vibe.tag_id) for found in known.neighbourhoods]
+    raws = [None if row is None else row.raw for row in rows]
+    rankable = [found.rankable for found in known.neighbourhoods]
+    band = band_of(raws, rankable)[known.neighbourhoods.index(area)]
+    mine = known.tag(area.area_id, vibe.tag_id)
+    assert mine is not None
+    compared = sum(
+        1 for raw, ranked in zip(raws, rankable, strict=True) if ranked and raw is not None
+    )
+    ends = (vibe.low_end or "least", vibe.high_end or "most")
+    carried = {metric.feature_id for metric in known.metrics}
+    have = sum(
+        1
+        for term in vibe.terms
+        if term.feature_id in carried
+        and (row := known.feature(area.area_id, term.feature_id)) is not None
+        and row.value is not None
+    )
+
+    def rests_on(said: re.Match[str]) -> bool:
+        """What it says of how much of its recipe it rests on, against the release's own row."""
+        if mine.coverage == 1:
+            return said["share"] is None
+        return (said["known"], said["parts"], said["share"]) == (
+            str(have),
+            str(len(vibe.terms)),
+            str(round(100 * mine.coverage)),
+        )
+
+    if (said := VIBE_UNKNOWN.fullmatch(text)) is not None:
+        named = said["what"] == f"{area.name} on {vibe.label}"
+        return (
+            named
+            and mine.raw is None
+            and (int(said["known"]), int(said["parts"]))
+            == (
+                have,
+                len(vibe.terms),
+            )
+        )
+    claim = text.split(": ", 1)[1]
+    if (said := VIBE_RANGE.fullmatch(claim)) is not None:
+        spread = (int(said["low_band"]), int(said["high_band"]))
+        placed = spread == (mine.spread_low, mine.spread_high)
+        return placed and (said["low"], said["high"]) == ends and rests_on(said)
+    said = VIBE.fullmatch(claim)
+    return (
+        said is not None
+        and int(said["band"]) == band == mine.band
+        and int(said["compared"]) == compared
+        and (said["low"], said["high"]) == ends
+        and rests_on(said)
+    )
 
 
 def true_of_the_release(text: str, fact: Fact, area: Neighbourhood) -> bool:
@@ -309,16 +443,24 @@ def true_of_the_release(text: str, fact: Fact, area: Neighbourhood) -> bool:
     It is worked out here from the rows of the release, and not from the fact,
     so that a fact that carried a wrong number would be caught.
     """
+    if fact.kind is FactKind.TAG:
+        return vibe_is_true(text, fact, area)
     population, mine, (above, below) = figures(fact)
     lower = sum(1 for figure in population if figure < mine)
     higher = sum(1 for figure in population if figure > mine)
     level = sum(1 for figure in population if figure == mine) - area.rankable
-    claim = text.split(": ", 1)[1]
-    claim = claim if fact.kind is FactKind.TAG else claim.split(", ", 1)[1]
-    if (said := LEVEL.fullmatch(claim.removeprefix("ranks "))) is not None:
-        few = 100 * max(lower, higher) < len(population)
-        others = lower + higher + level
-        return few and (int(said["level"] or others), int(said["others"])) == (level, others)
+    claim = text.split(": ", 1)[1].split(", ", 1)[1]
+    others = lower + higher + level
+    if (said := LEVEL.fullmatch(claim)) is not None:
+        # It is said from one side, where no area is beyond this one.
+        none_beyond = min(lower, higher) == 0
+        return none_beyond and (int(said["level"] or others), int(said["others"])) == (
+            level,
+            others,
+        )
+    if (said := NONE.fullmatch(claim)) is not None:
+        beyond = lower if said["word"] == above else higher
+        return said["word"] in (above, below) and (beyond, level) == (0, 0)
     said = BEYOND.fullmatch(claim)
     if said is None or said["word"] not in (above, below):
         return False
@@ -344,21 +486,41 @@ def comparisons() -> list[tuple[Neighbourhood, Fact]]:
 
 def test_every_comparison_said_of_the_release_is_literally_true():
     checked = comparisons()
+    sides: set[str] = set()
     for area, fact in checked:
-        text = render(fact).text
-        assert true_of_the_release(text, fact, area), text
-    # Every feature and every tag of every area, the two that are not ranked included.
-    assert len(checked) > 750
+        # A figure is said from the side of its role, and both sides are true.
+        for role in (SentenceRole.REASON, SentenceRole.TRADE_OFF):
+            text = render(fact, role).text
+            assert true_of_the_release(text, fact, area), text
+            sides.add(text)
+    # Every feature and every vibe of every area, the two that are not ranked included.
+    assert len(checked) > 1_100 and len(sides) > 1_500
     assert {area.rankable for area, _ in checked} == {True, False}
-    assert {fact.key for _, fact in checked} == {*FeatureId, *TagId}
+    carried = {metric.feature_id for metric in release().metrics}
+    assert {fact.key for _, fact in checked} == {*carried, *(v.tag_id for v in release().vibes)}
+    assert len(carried) == 43 and len(release().vibes) == 11
+    # Every way a vibe can be said is said of some area of the release.
+    assert {fact.template for _, fact in checked if fact.kind is FactKind.TAG} == {
+        TemplateId.VIBE,
+        TemplateId.VIBE_RANGE,
+        TemplateId.VIBE_UNKNOWN,
+    }
+
+
+def test_no_sentence_about_a_vibe_prints_a_score_a_share_or_a_rank():
+    for _, fact in comparisons():
+        if fact.kind is FactKind.TAG:
+            text = render(fact).text
+            assert "%" not in text and "ranks" not in text and "score" not in text, text
+            assert "percentile" not in fact.slots
+
+
+# The name of the share of homes near water, as every sentence of it begins.
+WATER = FEATURES[FeatureId.WATER_ACCESS].label
 
 
 def scored_on(fact: Fact) -> float:
-    """The mid-rank percentile the area is scored on for this feature or tag."""
-    if fact.kind is FactKind.TAG:
-        tag = release().tag(fact.area_id, TagId(fact.key))
-        assert tag is not None and tag.score is not None
-        return tag.score
+    """The mid-rank percentile the area is scored on for this feature."""
     feature = release().feature(fact.area_id, FeatureId(fact.key))
     assert feature is not None and feature.percentile is not None
     return feature.percentile
@@ -370,64 +532,81 @@ def test_a_share_worked_out_from_the_mid_rank_percentile_is_not_true_where_areas
     of = "areas compared in this release."
     untrue: list[str] = []
     for area, fact in comparisons():
+        if fact.kind is FactKind.TAG or "compared" not in fact.slots:
+            continue  # a vibe is said in bands, and prints no share at all
         percentile = scored_on(fact)
         _, _, (above, below) = figures(fact)
         compared = fact.slots["compared"]
-        if fact.kind is FactKind.TAG:
-            old = f"{fact.label}: ranks above {round(percentile)}% of the {compared} {of}"
-        else:
-            higher = percentile >= 50
-            pct = round(percentile) if higher else 100 - round(percentile)
-            word = above if higher else below
-            old = f"{fact.label}: 0, {word} than {pct}% of the {compared} {of}"
+        higher = percentile >= 50
+        pct = round(percentile) if higher else 100 - round(percentile)
+        word = above if higher else below
+        old = f"{fact.label}: 0, {word} than {pct}% of the {compared} {of}"
         if not true_of_the_release(old, fact, area):
             untrue.append(old)
     assert len(untrue) > 600
-    # An area with no water at all was said to rank above 30% of areas for it.
-    assert f"Waterside: ranks above 30% of the 22 {of}" in untrue
-    assert (
-        "Share of the area within 300 m of a river or canal: 0, less than 70% of the 22 "
-        f"{of}" in untrue
-    )
+    # An area with no water at all was said to have less than 70% of areas.
+    assert f"{WATER}: 0, less than 70% of the 22 {of}" in untrue
 
 
+REASON, TRADE_OFF = SentenceRole.REASON, SentenceRole.TRADE_OFF
 TIED = [
-    # An area with no water at all. Thirteen of the 22 have none.
+    # An area with no water at all. Thirteen of the 22 have none. Said as what
+    # the area does badly, it is from the side of the areas that have more.
     (
         "Thrushcombe",
         "feature/water_access",
-        "Share of the area within 300 m of a river or canal: 0%, less than 40% of the 22 "
-        "areas compared in this release, and the same as 12 others.",
+        TRADE_OFF,
+        f"{WATER}: 0%, less than 40% of the 22 areas compared in this release, and the same "
+        "as 12 others.",
     ),
+    # From the better side no area has less, so it says only which are level.
     (
         "Thrushcombe",
-        "tag/waterside",
-        "Waterside: ranks below 40% of the 22 areas compared in this release, and the same "
-        "as 12 others.",
+        "feature/water_access",
+        REASON,
+        f"{WATER}: 0%, the same as 12 of the 21 other areas compared in this release.",
     ),
     # An area on one line, as twelve are. Seven have none.
     (
         "Wickerford",
         "feature/station_lines",
+        REASON,
         "Lines within a 10-minute walk: 1, more than 31% of the 22 areas compared in this "
         "release, and the same as 11 others.",
     ),
     (
         "Thrushcombe",
         "feature/school_primary_nearby",
-        "State primary schools within a short walk: 4, more than 50% of the 22 areas "
-        "compared in this release, and the same as 7 others.",
+        REASON,
+        "State primary schools within 800 m in a straight line: 4, more than 54% of the 22 "
+        "areas compared in this release, and the same as 6 others.",
+    ),
+    # A vibe is said in bands, whichever role it has.
+    (
+        "Foxholt",
+        "tag/pace",
+        TRADE_OFF,
+        "Going out: varies within this area, from band 3 to band 5 of 5, counted from Calm to "
+        "Buzzy. Parts dated 2025. The recipe is Burro's own. The weights are a judgement.",
+    ),
+    (
+        "Otterby Fields",
+        "tag/leafy",
+        REASON,
+        "Burro cannot place Otterby Fields on Leafy. Parts with a figure in this release: 1 of 3.",
     ),
 ]
 
 
-@pytest.mark.parametrize(("name", "key", "text"), TIED, ids=[f"{t[0]} {t[1]}" for t in TIED])
+@pytest.mark.parametrize(
+    ("name", "key", "role", "text"), TIED, ids=[f"{t[0]} {t[1]} {t[2].value}" for t in TIED]
+)
 def test_where_areas_tie_the_sentence_says_how_many_and_beats_none_of_them(
-    name: str, key: str, text: str
+    name: str, key: str, role: SentenceRole, text: str
 ):
     area = next(found for found in release().neighbourhoods if found.name == name)
     facts = {fact.fact_id: fact for fact in facts_for(release(), area.area_id, None)}
-    assert render(facts[f"{area.area_id}/{key}"]).text == text
+    assert render(facts[f"{area.area_id}/{key}"], role).text == text
 
 
 def test_every_sentence_that_can_be_said_of_the_release_passes_the_verifier():

@@ -7,20 +7,20 @@
 {"id": "ask-007", "text": "how far is the station from Foxholt Market?", "tenure": "rent", "expect": {"journeys": {"may_add": ["Foxholt Market"]}, "not_fall": ["feature:station_walk", "feature:station_lines"]}, "why": "a question that names a place"}
 {"id": "ask-008", "text": "What's the crime like in Tallowgate?", "tenure": "rent", "expect": {"still": ["feature:crime_violence_robbery", "feature:crime_burglary_theft"]}, "why": "a question about crime weighs nothing"}
 {"id": "ask-009", "text": "Who'd want to live near a station?", "tenure": "rent", "expect": {"not_rise": ["feature:station_walk", "feature:station_lines"]}, "why": "a question that means nobody would"}
-{"id": "ask-010", "text": "Why would anyone want a pub next door?", "tenure": "rent", "expect": {"not_rise": ["feature:venue_evening", "tag:evening_venues"]}, "why": "a question that means nobody would"}
-{"id": "ask-011", "text": "Do I look like I want a pub next door?", "tenure": "rent", "expect": {"not_rise": ["feature:venue_evening", "tag:evening_venues"]}, "why": "a question that means no"}
+{"id": "ask-010", "text": "Why would anyone want a pub next door?", "tenure": "rent", "expect": {"not_rise": ["feature:venue_evening", "tag:pace"]}, "why": "a question that means nobody would"}
+{"id": "ask-011", "text": "Do I look like I want a pub next door?", "tenure": "rent", "expect": {"not_rise": ["feature:venue_evening", "tag:pace"]}, "why": "a question that means no"}
 {"id": "ask-012", "text": "Who in their right mind wants a station at the end of the garden?", "tenure": "rent", "expect": {"not_rise": ["feature:station_walk", "feature:station_lines"]}, "why": "a question that means nobody would"}
 {"id": "ask-013", "text": "Can you find me somewhere quiet near a park?", "tenure": "rent", "expect": {"rise": ["feature:park_proximity"], "rise_any": [["tag:quiet_residential", "feature:noise_exposure"]]}, "why": "a request, asked politely"}
 {"id": "ask-014", "text": "could I get a two bed for £1,600 near Pellam Exchange?", "tenure": "rent", "expect": {"budget": {"amount": 1600, "segment": "bed_2"}, "journeys": {"add": [{"to": "Pellam Exchange"}]}}, "why": "a request, asked politely"}
-{"id": "ask-015", "text": "Is there anywhere leafy within 30 minutes of Cindermoor Works?", "tenure": "rent", "expect": {"rise_any": [["tag:leafy", "feature:green_cover"]], "journeys": {"add": [{"to": "Cindermoor Works", "max_minutes": 30}]}}, "why": "a request, asked politely"}
-{"id": "ask-016", "text": "what about somewhere with more pubs?", "tenure": "rent", "expect": {"rise_any": [["feature:venue_evening", "tag:evening_venues"]]}, "why": "a follow-up, asked as a question"}
-{"id": "ask-017", "text": "Do you have anything by the river?", "tenure": "rent", "expect": {"rise_any": [["tag:waterside", "feature:water_access"]]}, "why": "a request, asked politely"}
+{"id": "ask-015", "text": "Is there anywhere leafy within 30 minutes of Cindermoor Works?", "tenure": "rent", "expect": {"rise_any": [["tag:leafy", "feature:green_cover"]], "journeys": {"add": [{"to": "Cindermoor Works", "max_minutes": 30, "strictness": "hard"}]}}, "why": "a request, asked politely"}
+{"id": "ask-016", "text": "what about somewhere with more pubs?", "tenure": "rent", "expect": {"rise_any": [["feature:venue_evening", "tag:pace"]]}, "why": "a follow-up, asked as a question"}
+{"id": "ask-017", "text": "Do you have anything by the river?", "tenure": "rent", "expect": {"rise": ["feature:water_access"]}, "why": "a request, asked politely"}
 {"id": "ask-018", "text": "Why not Cindermoor?", "tenure": "rent", "expect": {"areas": {"not_exclude": ["Cindermoor"]}}, "why": "a question that argues for the area"}
 {"id": "ask-019", "text": "A park? no thanks", "tenure": "rent", "expect": {"fall": ["feature:park_proximity"]}, "why": "an answer that turns the thing down"}
 {"id": "ask-020", "text": "a park? yes please", "tenure": "rent", "expect": {"rise": ["feature:park_proximity"]}, "why": "an answer that takes the thing up"}
-{"id": "ask-021", "text": "Pubs? Love them.", "tenure": "rent", "expect": {"rise_any": [["feature:venue_evening", "tag:evening_venues"]]}, "why": "an answer that takes the thing up"}
-{"id": "ask-022", "text": "Pubs? Can't stand them.", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening", "tag:evening_venues"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "an answer that turns the thing down"}
-{"id": "ask-023", "text": "Lively and buzzy? Not really my thing.", "tenure": "rent", "expect": {"fall_any": [["tag:evening_venues", "feature:venue_evening", "tag:buzzy"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "an answer that turns the thing down"}
+{"id": "ask-021", "text": "Pubs? Love them.", "tenure": "rent", "expect": {"rise_any": [["feature:venue_evening", "tag:pace"]]}, "why": "an answer that takes the thing up"}
+{"id": "ask-022", "text": "Pubs? Can't stand them.", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening", "tag:pace"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "an answer that turns the thing down"}
+{"id": "ask-023", "text": "Lively and buzzy? Not really my thing.", "tenure": "rent", "expect": {"fall_any": [["tag:pace", "feature:venue_evening"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "an answer that turns the thing down"}
 {"id": "ask-024", "text": "What does leafy mean?", "tenure": "rent", "expect": {"still": ["tag:leafy", "feature:green_cover"]}, "why": "a question about a word"}
 {"id": "ask-025", "text": "how does this work?", "tenure": "rent", "expect": {"notice": "any"}, "why": "a question about Burro"}
 {"id": "ask-026", "text": "Where should I live?", "tenure": "rent", "expect": {"notice": "any"}, "why": "the whole question, with no wish in it"}
@@ -29,12 +29,12 @@
 {"id": "ask-029", "text": "What's the commute like from Foxholt to Pellam Exchange?", "tenure": "rent", "expect": {"journeys": {"may_add": ["Pellam Exchange"]}, "areas": {"may_only": ["Foxholt"]}}, "why": "a question that names two places"}
 {"id": "ask-030", "text": "Any chance of a garden?", "tenure": "rent", "expect": {}, "why": "nothing Burro can weigh"}
 {"id": "ask-031", "text": "do I need a car in Gorsebeck?", "tenure": "rent", "expect": {"areas": {"may_only": ["Gorsebeck"]}}, "why": "a question about driving"}
-{"id": "ask-032", "text": "Can I have somewhere with no pubs?", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening", "tag:evening_venues"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "a request with a negative in it"}
+{"id": "ask-032", "text": "Can I have somewhere with no pubs?", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening", "tag:pace"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "a request with a negative in it"}
 {"id": "ask-033", "text": "is it possible to be near both a park and a station?", "tenure": "rent", "expect": {"rise": ["feature:park_proximity"], "rise_any": [["feature:station_walk", "feature:station_lines"]]}, "why": "a request, asked politely"}
 {"id": "ask-034", "text": "Which is quieter, Alderwick or Foxholt?", "tenure": "rent", "expect": {"not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "a comparison of two areas"}
 {"id": "ask-035", "text": "would a park be too much to ask?", "tenure": "rent", "expect": {"rise": ["feature:park_proximity"]}, "why": "a request, asked shyly"}
-{"id": "ask-036", "text": "is nightlife a given round here? because I'd rather not", "tenure": "rent", "expect": {"not_rise": ["tag:evening_venues", "feature:venue_evening", "tag:buzzy"]}, "why": "a question, then a refusal"}
+{"id": "ask-036", "text": "is nightlife a given round here? because I'd rather not", "tenure": "rent", "expect": {"not_rise": ["tag:pace", "feature:venue_evening"]}, "why": "a question, then a refusal"}
 {"id": "ask-037", "text": "Could you take Cindermoor off the list?", "tenure": "rent", "expect": {"areas": {"exclude": ["Cindermoor"]}}, "why": "a request, asked politely"}
 {"id": "ask-038", "text": "can we drop the station thing?", "tenure": "rent", "expect": {"fall": ["feature:station_walk"], "not_rise": ["feature:station_lines"]}, "why": "a request to take a weight off"}
-{"id": "ask-039", "text": "What if I said I hate pubs?", "tenure": "rent", "expect": {"not_rise": ["feature:venue_evening", "tag:evening_venues"]}, "why": "a supposition"}
+{"id": "ask-039", "text": "What if I said I hate pubs?", "tenure": "rent", "expect": {"not_rise": ["feature:venue_evening", "tag:pace"]}, "why": "a supposition"}
 {"id": "ask-040", "text": "Is 35 minutes to Pellam Exchange realistic?", "tenure": "rent", "expect": {"journeys": {"may_add": [{"to": "Pellam Exchange", "max_minutes": "any"}]}}, "why": "a question that gives a journey and a number"}

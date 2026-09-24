@@ -20,7 +20,7 @@ from typing import NamedTuple
 
 from burro_core._record import Record
 from burro_core.facts import Fact
-from burro_core.ids import SentenceOrigin, VerdictReason
+from burro_core.ids import FactKind, SentenceOrigin, VerdictReason
 
 
 class Sentence(Record):
@@ -44,6 +44,8 @@ ORDINARY_WORDS = frozenset(
         "and",
         "as",
         "at",
+        # The product's own name, where it says what it cannot do.
+        "burro",
         "but",
         "by",
         "confidence",
@@ -59,6 +61,7 @@ ORDINARY_WORDS = frozenset(
         "no",
         "of",
         "on",
+        "parts",
         "price",
         "recorded",
         "rent",
@@ -92,6 +95,33 @@ BANNED_WORDS = frozenset(
     )
     for ending in endings
 )
+
+# Praise and blame with nothing behind it. No dataset rates a place, says its
+# people are friendly or says where it is heading, so no sentence may. "Gritty"
+# and "polished" pass only as the name of an end of a scale or of the vibe
+# itself, from the fact of that vibe which a sentence cites, and nowhere else.
+VERDICT_WORDS = frozenset(
+    stem + ending
+    for stem, endings in (
+        ("best", ("",)),
+        ("top", ("", "s")),
+        ("acclaimed", ("",)),
+        ("friendl", _SOFT),
+        ("unfriendl", _SOFT),
+        ("vibran", ("t", "tly", "cy")),
+        ("gritt", _SOFT),
+        ("polished", ("",)),
+        ("closeknit", ("",)),
+    )
+    for ending in endings
+)
+VERDICT_PHRASES: tuple[tuple[str, ...], ...] = (
+    ("highly", "rated"),
+    ("up", "and", "coming"),
+    ("close", "knit"),
+)
+# The slots that name the ends of a scale.
+_ENDS = ("low_end", "high_end")
 
 # A quantity with no number behind it can never be checked against a fact. A
 # length of time and a fraction said in words are two: no fact holds "an hour".
@@ -343,6 +373,21 @@ def _tokens(text: str) -> tuple[str, ...]:
     return tuple(match.group().casefold() for match in _TOKEN.finditer(text))
 
 
+def _passes_a_verdict(words: list[str], ends: frozenset[str]) -> bool:
+    """Whether a sentence holds praise or blame that no fact can stand behind.
+
+    `ends` holds the names of the ends of the scales the cited facts are
+    about. A word that is one of them is a name and not a verdict.
+    """
+    if any(word in VERDICT_WORDS and word not in ends for word in words):
+        return True
+    return any(
+        tuple(words[at : at + len(phrase)]) == phrase
+        for phrase in VERDICT_PHRASES
+        for at in range(len(words) - len(phrase) + 1)
+    )
+
+
 def _within(run: tuple[str, ...], allowed: Iterable[tuple[str, ...]]) -> bool:
     size = len(run)
     return any(
@@ -403,7 +448,13 @@ def verify(sentence: Sentence, facts: Mapping[str, Fact]) -> Verdict:
             return failed(VerdictReason.UNSUPPORTED_NUMBER)
     if unsupported_name:
         return failed(VerdictReason.UNSUPPORTED_NAME)
-    if any(word in BANNED_WORDS for word in _words(_read_as(sentence.text))):
+    read = list(_words(_read_as(sentence.text)))
+    # The name of a vibe is a name as the name of an end is: Gritty is named for its high
+    # end, and is said by name of an area it cannot place, whose fact holds no end.
+    ends = frozenset(
+        fact.slots[end].casefold() for fact in cited for end in _ENDS if end in fact.slots
+    ) | {fact.label.casefold() for fact in cited if fact.kind is FactKind.TAG}
+    if any(word in BANNED_WORDS for word in read) or _passes_a_verdict(read, ends):
         return failed(VerdictReason.BANNED_WORD)
     # A word in letters of another alphabet is one nothing here can read,
     # unless it is the fact's own: the unit of a figure, or a name.

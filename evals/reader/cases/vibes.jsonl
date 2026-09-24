@@ -1,0 +1,37 @@
+{"id": "vibe-001", "text": "a house with a garden and a drive", "tenure": "rent", "expect": {"fall": ["tag:homes"]}, "why": "a sentence for homes"}
+{"id": "vibe-002", "text": "proper city living, flats are fine", "tenure": "rent", "expect": {"rise": ["tag:homes"]}, "why": "a sentence for homes"}
+{"id": "vibe-003", "text": "more suburban, we want space", "tenure": "rent", "expect": {"fall": ["tag:homes"]}, "why": "a sentence for homes"}
+{"id": "vibe-004", "text": "period houses", "tenure": "rent", "plain": true, "expect": {"rise": ["tag:built_age"]}, "why": "a sentence for built age"}
+{"id": "vibe-005", "text": "somewhere with history", "tenure": "rent", "expect": {"rise": ["tag:built_age"]}, "why": "a sentence for built age"}
+{"id": "vibe-006", "text": "a newer area with modern flats", "tenure": "rent", "expect": {"fall": ["tag:built_age"]}, "why": "a sentence for built age"}
+{"id": "vibe-007", "text": "villagey", "tenure": "rent", "plain": true, "expect": {"rise": ["tag:village_feel"]}, "why": "a sentence for village feel"}
+{"id": "vibe-008", "text": "a little centre with its own shops", "tenure": "rent", "expect": {"rise_any": [["tag:village_feel", "feature:centre_small", "feature:highstreet_access"]]}, "why": "a sentence for village feel"}
+{"id": "vibe-009", "text": "a small-town feel", "tenure": "rent", "expect": {"rise": ["tag:village_feel"]}, "why": "a sentence for village feel"}
+{"id": "vibe-010", "text": "quiet streets", "tenure": "rent", "plain": true, "expect": {"rise": ["tag:quiet_residential"]}, "why": "a sentence for quiet residential"}
+{"id": "vibe-011", "text": "a quiet street near a lively high street", "tenure": "rent", "expect": {"rise": ["tag:quiet_residential"], "free": ["tag:pace", "feature:highstreet_access"]}, "why": "a sentence for quiet residential"}
+{"id": "vibe-012", "text": "peaceful, residential", "tenure": "rent", "plain": true, "expect": {"rise": ["tag:quiet_residential"]}, "why": "a sentence for quiet residential"}
+{"id": "vibe-013", "text": "lively, lots going on in the evening", "tenure": "rent", "expect": {"rise": ["tag:pace"]}, "why": "a sentence for pace"}
+{"id": "vibe-014", "text": "calm", "tenure": "rent", "plain": true, "expect": {"fall": ["tag:pace"]}, "why": "a sentence for pace"}
+{"id": "vibe-015", "text": "nothing much going on", "tenure": "rent", "expect": {"fall": ["tag:pace"]}, "why": "a sentence for pace"}
+{"id": "vibe-016", "text": "a great food scene", "tenure": "rent", "plain": true, "expect": {"rise": ["tag:foodie"]}, "why": "a sentence for foodie"}
+{"id": "vibe-017", "text": "independent cafes", "tenure": "rent", "plain": true, "expect": {"rise_any": [["tag:foodie", "feature:venue_food_drink_per_homes", "feature:venue_independent"]]}, "why": "a sentence for foodie"}
+{"id": "vibe-018", "text": "lots of different food", "tenure": "rent", "expect": {"rise_any": [["tag:foodie", "feature:venue_food_drink_per_homes", "feature:venue_independent"]]}, "why": "a sentence for foodie"}
+{"id": "vibe-019", "text": "leafy streets", "tenure": "rent", "plain": true, "expect": {"rise": ["tag:leafy"]}, "why": "a sentence for leafy"}
+{"id": "vibe-020", "text": "tree-lined streets", "tenure": "buy", "plain": true, "expect": {"rise": ["tag:leafy"]}, "why": "a sentence for leafy"}
+{"id": "vibe-021", "text": "green, with gardens", "tenure": "rent", "plain": true, "expect": {"rise": ["tag:leafy"], "free": ["feature:land_gardens"]}, "why": "a sentence for leafy"}
+{"id": "vibe-022", "text": "near a big park", "tenure": "rent", "plain": true, "expect": {"rise": ["tag:parks_close_by"]}, "why": "a sentence for parks close by"}
+{"id": "vibe-023", "text": "a park I can run in", "tenure": "rent", "expect": {"rise_any": [["tag:parks_close_by", "feature:park_proximity"]]}, "why": "a sentence for parks close by"}
+{"id": "vibe-024", "text": "tennis courts and a playground", "tenure": "rent", "expect": {"rise_any": [["tag:parks_close_by", "feature:play_space_proximity", "feature:park_facilities"]]}, "why": "a sentence for parks close by"}
+{"id": "vibe-025", "text": "good for families", "tenure": "rent", "plain": true, "expect": {"rise": ["tag:family_amenities"]}, "why": "a sentence for family amenities"}
+{"id": "vibe-026", "text": "primary schools and playgrounds", "tenure": "rent", "expect": {"rise_any": [["tag:family_amenities", "feature:school_primary_nearby", "feature:school_primary_attainment"]], "free": ["feature:play_space_proximity", "feature:school_secondary_attainment"]}, "why": "a sentence for family amenities"}
+{"id": "vibe-027", "text": "family friendly streets", "tenure": "rent", "plain": true, "expect": {"rise": ["tag:family_amenities"]}, "why": "a sentence for family amenities"}
+{"id": "vibe-028", "text": "walkable", "tenure": "rent", "plain": true, "expect": {"rise": ["tag:everyday_on_foot"]}, "why": "a sentence for everyday on foot"}
+{"id": "vibe-029", "text": "a GP and a chemist nearby", "tenure": "rent", "expect": {"free": ["tag:everyday_on_foot"], "unmet": ["health_services"]}, "why": "a sentence for everyday on foot"}
+{"id": "vibe-030", "text": "I do not want to need a car", "tenure": "rent", "expect": {"rise": ["tag:everyday_on_foot"], "unmet": ["driving"]}, "why": "a sentence for everyday on foot"}
+{"id": "vibe-031", "text": "a bit gritty", "tenure": "rent", "plain": true, "expect": {"rise": ["tag:street_character"]}, "why": "a sentence for street character"}
+{"id": "vibe-032", "text": "polished", "tenure": "rent", "plain": true, "expect": {"fall": ["tag:street_character"]}, "why": "a sentence for street character"}
+{"id": "vibe-033", "text": "not gritty", "tenure": "rent", "plain": true, "expect": {"fall": ["tag:street_character"]}, "why": "a sentence for street character"}
+{"id": "vibe-034", "text": "somewhere with street character", "tenure": "rent", "plain": false, "expect": {"still": ["tag:street_character"]}, "why": "the name of a scale names neither of its ends, so no end may be chosen for the person"}
+{"id": "vibe-035", "text": "I want street character", "tenure": "rent", "plain": false, "expect": {"still": ["tag:street_character"]}, "why": "the name of a scale after a wish of the speaker's"}
+{"id": "vibe-036", "text": "pace", "tenure": "rent", "plain": false, "expect": {"still": ["tag:pace"]}, "why": "the name of a scale alone: calm or buzzy is the person's to say"}
+{"id": "vibe-037", "text": "built age", "tenure": "rent", "plain": false, "expect": {"still": ["tag:built_age"]}, "why": "the name of a scale alone: newer or historic is the person's to say"}

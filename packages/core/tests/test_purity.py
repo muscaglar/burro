@@ -26,7 +26,7 @@ ALLOWED = {
 }
 # Builtins that do IO, or run code that could. None may be called or even named.
 FORBIDDEN_NAMES = {"open", "print", "input", "eval", "exec", "compile", "breakpoint", "__import__"}
-THE_THIRTEEN = {
+THE_MODULES = {
     "ids",
     "catalogue",
     "release",
@@ -35,11 +35,19 @@ THE_THIRTEEN = {
     "reducer",
     "rank",
     "places",
+    "likeness",
     "facts",
+    "portrait",
     "explain",
     "verify",
     "interpret",
+    # The rule-based reader: its words, how it reads a text, and what is plain.
     "vocabulary",
+    "lexicon",
+    "reading",
+    "grammar",
+    # The census of an area's page. Nothing above imports it: `test_census.py` holds that.
+    "census",
 }
 
 
@@ -56,7 +64,7 @@ def imported(tree: ast.AST) -> set[str]:
 
 def test_core_holds_the_modules_the_contract_names():
     names = {path.stem for path in MODULES if not path.stem.startswith("_")}
-    assert names == THE_THIRTEEN
+    assert names == THE_MODULES
     assert not [path for path in SOURCE.iterdir() if path.is_dir() and path.name != "__pycache__"]
 
 
@@ -77,6 +85,6 @@ def test_core_depends_on_pydantic_only():
 
 
 def test_the_engine_names_its_version():
-    assert burro_core.ENGINE_VERSION == "1.3.0"
-    assert burro_core.CATALOGUE_VERSION == 1
+    assert burro_core.ENGINE_VERSION == "1.12.0"
+    assert burro_core.CATALOGUE_VERSION == 12
     assert set(burro_core.__all__) <= set(dir(burro_core))

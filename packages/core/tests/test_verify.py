@@ -1,11 +1,39 @@
-import pytest
-from burro_core.explain import TEMPLATES, render
-from burro_core.facts import STANDINGS, Fact, facts_for
-from burro_core.ids import Mode, Provenance, SentenceOrigin, Strictness, TemplateId, VerdictReason
-from burro_core.spec import Commute, PreferenceSpec
-from burro_core.verify import BANNED_WORDS, ORDINARY_WORDS, Sentence, verify
+import dataclasses
 
-from .support import area_id, build_worked_release, build_worked_spec, place_id, small_release
+import pytest
+from burro_core.catalogue import FEATURES, TAGS
+from burro_core.explain import IN_SHORT, TEMPLATES, render
+from burro_core.facts import STANDINGS, Fact, facts_for
+from burro_core.ids import (
+    GrittyVariant,
+    Mode,
+    Provenance,
+    SentenceOrigin,
+    SentenceRole,
+    Strictness,
+    TagShape,
+    TemplateId,
+    VerdictReason,
+)
+from burro_core.spec import Commute, PreferenceSpec
+from burro_core.verify import (
+    BANNED_WORDS,
+    ORDINARY_WORDS,
+    VERDICT_PHRASES,
+    VERDICT_WORDS,
+    Sentence,
+    verify,
+)
+
+from . import no_range
+from .support import (
+    area_id,
+    build_worked_release,
+    build_worked_spec,
+    place_id,
+    small_release,
+    with_figures,
+)
 
 AREA = area_id(1)
 PARK = f"{AREA}/feature/park_proximity"
@@ -45,11 +73,13 @@ def reason(text: str, *cited: str) -> VerdictReason:
 def test_the_facts_these_tests_lean_on_are_what_they_say():
     found = facts()
     assert found[PARK].slots["value"] == "20 m"
-    # Of the seven areas compared, four are further from a park and five are noisier.
-    assert found[PARK].numbers == ("20", "57%", "7")
-    assert found[NOISE].numbers == ("15%", "71%", "7")
+    # Of the seven areas compared, four are further from a park and two are closer.
+    # Five are noisier and one is quieter.
+    assert found[PARK].numbers == ("20", "57%", "7", "28%")
+    assert found[NOISE].numbers == ("15%", "71%", "7", "14%")
     assert found[NAME].names == ("Alderwick", "Quillhaven")
-    assert found[JOURNEY].numbers == ("15", "20")
+    # The two times, the limit that was set, and how far inside it the journey is.
+    assert found[JOURNEY].numbers == ("15", "20", "40", "25")
     assert found[STATION].names == ("Pellam Cross", "Amber line", "Birch line")
     assert found[RENT].numbers == ("£1100", "£1250", "£1400", "2026", "08", "8")
 
@@ -258,8 +288,8 @@ def test_a_digit_that_is_not_ascii_is_a_number_nothing_can_support(text: str):
 
 def test_a_number_said_with_the_sign_of_another_kind_of_number_is_rejected():
     found = facts()
-    assert found[PARK].numbers == ("20", "57%", "7")
-    # Each number is the park's own. None of them is money, and only one is a share.
+    assert found[PARK].numbers == ("20", "57%", "7", "28%")
+    # Each number is the park's own. None of them is money, and only two are shares.
     for text in (
         "Rent is \u00a357 a month.",
         "Rent is \u00a320.",
@@ -428,41 +458,165 @@ def test_the_superscript_in_a_unit_is_not_a_number():
 
 
 def every_fact() -> list[Fact]:
-    release = small_release()
-    found = [f for area in release.neighbourhoods for f in facts_for(release, area.area_id, spec())]
+    small = small_release()
+    # One area that holds both ends of every scale, and a release in which every
+    # area is like every other.
+    mixed = dataclasses.replace(
+        small,
+        tags=tuple(
+            row.replace(spread_low=1, spread_high=5) if row.area_id == AREA and row.band else row
+            for row in small.tags
+        ),
+    )
+    carried = {metric.feature_id for metric in small.metrics}
+    level = with_figures(
+        small, {f: (1.0,) * 8 for f, x in FEATURES.items() if x.in_likeness and f in carried}
+    )
+    found = [
+        fact
+        for release in (small, small_release(GrittyVariant.A), mixed, level)
+        for area in release.neighbourhoods
+        for searched in (spec(), None)
+        for fact in facts_for(release, area.area_id, searched)
+    ]
     worked = build_worked_release()
     found += [
         f
         for area in worked.neighbourhoods
         for f in facts_for(worked, area.area_id, build_worked_spec())
     ]
+    # A price that is one number, under a budget and over one.
+    found += [
+        f
+        for area in no_range.FLATS
+        for f in facts_for(no_range.priced(), area, no_range.buyer(Strictness.SOFT))
+    ]
     return found
 
 
 def test_every_template_passes_the_verifier():
     seen: set[TemplateId] = set()
+    # One sentence said of one fact is checked once, in whichever role and
+    # release it is said: what the verifier makes of it rests on nothing else.
+    checked: set[tuple[object, ...]] = set()
+    in_short = 0
     for fact in every_fact():
-        sentence = render(fact)
-        assert sentence.origin is SentenceOrigin.TEMPLATE
-        assert sentence.fact_ids == (fact.fact_id,)
-        assert "{" not in sentence.text
-        verdict = verify(sentence, {fact.fact_id: fact})
-        assert verdict.ok, (fact.template, verdict.reason)
+        for role in SentenceRole:
+            # In full, and as an explanation says it, which is shorter for a vibe.
+            for short in (False, True) if fact.template in IN_SHORT else (False,):
+                sentence = render(fact, role, short=short)
+                assert sentence.origin is SentenceOrigin.TEMPLATE
+                assert sentence.fact_ids == (fact.fact_id,)
+                assert "{" not in sentence.text
+                said = (sentence.text, fact.fact_id, fact.label, fact.numbers, fact.names)
+                said = (*said, tuple(sorted(fact.slots.items())))
+                if said not in checked:
+                    checked.add(said)
+                    in_short += short
+                    verdict = verify(sentence, {fact.fact_id: fact})
+                    assert verdict.ok, (fact.template, verdict.reason)
         seen.add(fact.template)
     assert seen == set(TemplateId) == set(TEMPLATES)
+    assert len(checked) > 1_000
+    assert in_short > 100
+
+
+PRAISE = [
+    "It is the best area of the release.",
+    "It is in the top areas for parks.",
+    "It has highly rated theatres.",
+    "An acclaimed food scene.",
+    "A friendly place.",
+    "The friendliest streets.",
+    "A close-knit place.",
+    "A close knit place.",
+    "A vibrant high street.",
+    "An up and coming area.",
+    "An up-and-coming area.",
+    "A gritty area.",
+    "It is grittier than most.",
+    "A polished area.",
+]
+
+
+@pytest.mark.parametrize("text", PRAISE)
+def test_no_sentence_may_praise_or_blame_with_nothing_behind_it(text: str):
+    assert reason(text) is VerdictReason.BANNED_WORD
+    assert reason(text, PARK) is VerdictReason.BANNED_WORD
+    assert reason(text.upper()) is not VerdictReason.OK
+
+
+def test_the_words_of_praise_are_held_in_every_form_and_the_phrases_word_by_word():
+    assert {"best", "top", "acclaimed", "friendly", "vibrant", "gritty", "polished"} <= (
+        VERDICT_WORDS
+    )
+    assert {" ".join(phrase) for phrase in VERDICT_PHRASES} == {
+        "highly rated",
+        "up and coming",
+        "close knit",
+    }
+    # A word that only holds one says something else.
+    for text in ("It is near the hilltop.", "A laptop is no part of it.", "It goes up and down."):
+        assert reason(text) is VerdictReason.OK, text
+    # No word of praise is the name of a place of the release.
+    assert not VERDICT_WORDS & ORDINARY_WORDS
+
+
+def test_the_name_of_an_end_of_a_scale_passes_only_from_the_fact_it_is_an_end_of():
+    found = facts()
+    street = found[f"{AREA}/tag/street_character"]
+    assert (street.slots["low_end"], street.slots["high_end"]) == ("Polished", "Gritty")
+    # The vibe is named for its high end, so its name passes as the name of the end does.
+    assert street.label == "Gritty"
+    said_of_it = "Gritty: counted from Polished to Gritty."
+    assert reason(said_of_it, street.fact_id) is VerdictReason.OK
+    assert reason(said_of_it.lower(), street.fact_id) is VerdictReason.OK
+    # Cited of anything else it is a name no fact holds, and a verdict.
+    assert reason(said_of_it, f"{AREA}/tag/pace") is VerdictReason.UNSUPPORTED_NAME
+    assert reason("It is on Gritty.", f"{AREA}/tag/pace") is VerdictReason.UNSUPPORTED_NAME
+    assert reason("it is on gritty.", f"{AREA}/tag/pace") is VerdictReason.BANNED_WORD
+    assert reason("It is on Gritty.", street.fact_id) is VerdictReason.OK
+    assert reason(said_of_it.lower(), f"{AREA}/tag/pace") is VerdictReason.BANNED_WORD
+    assert reason(said_of_it.lower(), PARK) is VerdictReason.BANNED_WORD
+    # And so is any other form of the word, whatever is cited.
+    assert reason("It is grittier than most.", street.fact_id) is VerdictReason.BANNED_WORD
+    # The ends of the other scales are plain words, and pass as any word does.
+    ends = {
+        end.casefold()
+        for tag in TAGS.values()
+        if tag.shape is TagShape.SCALE
+        for end in (tag.low_end, tag.high_end)
+        if end
+    }
+    assert ends & VERDICT_WORDS == {"gritty", "polished"}
+    assert not ends & BANNED_WORDS
 
 
 def test_no_template_names_a_city_or_passes_judgement():
-    for text in (*TEMPLATES.values(), *STANDINGS.values()):
+    for text in (*TEMPLATES.values(), *IN_SHORT.values(), *STANDINGS.values()):
         lowered = text.lower()
         assert "london" not in lowered
         assert not set(lowered.replace(".", " ").replace(",", " ").split()) & BANNED_WORDS
         assert not {"good", "bad", "best", "worst", "nice", "affordable", "cheap"} & set(
             lowered.replace(".", " ").split()
         )
+        words = lowered.replace(".", " ").replace(",", " ").split()
+        assert not set(words) & VERDICT_WORDS
+        # No template prints a percentage of its own: a share is a slot of a fact.
+        assert "%" not in text.replace("{pct}%", "")
     # A comparison is with areas of this release, and says so whichever way it is put.
-    assert all("{standing}" in TEMPLATES[t] for t in (TemplateId.FEATURE, TemplateId.TAG))
+    assert all("{standing}" in TEMPLATES[t] for t in (TemplateId.FEATURE, TemplateId.FEATURE_CRIME))
     assert all(" in this release" in text for text in STANDINGS.values())
+    # A vibe is a band, and its sentence holds no standing and no share.
+    for template in (TemplateId.VIBE, TemplateId.VIBE_RANGE, TemplateId.VIBE_UNKNOWN):
+        assert "{standing}" not in TEMPLATES[template] and "{pct}" not in TEMPLATES[template]
+        assert " in this release" in TEMPLATES[template] or "varies" in TEMPLATES[template]
+    # What an explanation says of a vibe is the start of its full statement, and no other
+    # fact has a short form. What it leaves out is the dates and the line about judgement.
+    assert set(IN_SHORT) == {TemplateId.VIBE, TemplateId.VIBE_RANGE}
+    for template, short in IN_SHORT.items():
+        assert TEMPLATES[template] == f"{short} Parts dated {{span}}. {{judgement}}"
+        assert " in this release" in short or "varies" in short
 
 
 def test_a_template_sentence_fails_when_it_is_cited_to_the_wrong_fact():

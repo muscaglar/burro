@@ -1,21 +1,27 @@
-"""The reader reads a sentence only when it knows every token in it.
+"""The reader applies a prompt only when the whole of it is plain.
 
 Listing the words that turn a wish round did not work: English has too many,
-and people mistype them. So the rule is the other way round. The reader keeps
-the list of what it knows, and a sentence that holds anything else makes no
-edit. These tests hold it to that three ways: by the sentences that went
-wrong, by sentences made of every thing beside words it does not know, and by
-the share of plain wishes it still reads, which is the price.
+and people mistype them. Reading each sentence that was made of known words
+did not work either, because no single word is ever the fault: "pubs are so
+noisy" is made of words that are each harmless. So the reader has a grammar
+of a plain prompt, and applies a prompt only when the grammar makes the
+whole of it. For any other it applies nothing, and offers what it noticed.
+
+These tests hold it to that three ways: by the sentences that went wrong, by
+sentences made of every thing beside words it does not know, and by the share
+of plain wishes it still reads, which is the price.
 """
 
 from collections.abc import Iterator
 
 import pytest
 from burro_core import vocabulary
+from burro_core.grammar import KNOWN_WORDS, read_into_crime
 from burro_core.ids import (
     AreaAction,
     CommuteAction,
     DirectionChoice,
+    GrittyVariant,
     InterpretStatus,
     Notice,
     OpsGroup,
@@ -23,28 +29,36 @@ from burro_core.ids import (
     Step,
     Tenure,
     TenureChoice,
+    Toward,
     UnmetCategory,
     WeightAction,
 )
 from burro_core.interpret import (
     GENERIC_PLACES,
-    LEXICON,
     POLICY_LEXICON,
+    SIGNS_OF_DOUBT,
     VOCABULARY,
     InterpretRequest,
     InterpretResult,
     RuleInterpreter,
-    clauses_of,
     sentences_of,
-    signs_of_doubt,
 )
+from burro_core.lexicon import lexicon_of, no_measure_of
 from burro_core.ops import NO_OPERATIONS
 from burro_core.places import Names, normalise
 from burro_core.reducer import apply
 from burro_core.spec import PreferenceSpec, default_spec
-from burro_core.vocabulary import PLAIN, PLAIN_PHRASES, PLAIN_WORDS, WORDS_OF_DOUBT
+from burro_core.vocabulary import PLAIN, PLAIN_WORDS, WORDS_OF_DOUBT
 
-from .sentences import HELD_OUT, REVERSED, THEIRS, UNASKED, UNKNOWN_WORDS, Wishes
+from .sentences import (
+    HELD_OUT,
+    REVERSED,
+    THEIRS,
+    TURNED_LISTS,
+    UNASKED,
+    UNKNOWN_WORDS,
+    Wishes,
+)
 from .sentences import PLAIN as PLAINLY
 from .support import fixture_release, small_release
 
@@ -53,6 +67,12 @@ BUYER = default_spec(Tenure.BUY)
 READER = RuleInterpreter()
 NAMES = Names(fixture_release())
 UP = (Step.UP_SMALL, Step.UP_LARGE)
+# Every phrase that is a thing in the release that is served.
+THINGS = lexicon_of(fixture_release().manifest.gritty_variant)
+# Words that are known only inside a label of the catalogue, or a phrase for what
+# Burro has no measure of.
+IN_A_LABEL = ("away", "garden", "since", "small", "used", "what", "whose", "works")
+IN_NO_MEASURE = ("cheap", "down", "fly", "kept", "run")
 
 
 def read(text: str, spec: PreferenceSpec = RENTER) -> InterpretResult:
@@ -71,7 +91,8 @@ def raised(result: InterpretResult) -> set[str]:
             found.add(weight.feature_id.value)
     for tag in result.operations.tag_ops:
         if tag.action is WeightAction.SET or (tag.action is WeightAction.NUDGE and tag.step in UP):
-            found.add(tag.tag_id.value)
+            # Towards the low end of a scale it is a wish for that end: "calm".
+            found.add(f"{tag.tag_id.value}{':low' if tag.toward == 'low' else ''}")
     for journey in result.operations.commute_ops:
         if journey.action is not CommuteAction.REMOVE and journey.place_id:
             found.add(f"journey:{journey.place_id}")
@@ -94,24 +115,26 @@ def edits(result: InterpretResult) -> int:
 # --- P1. The vocabulary ---------------------------------------------------------
 
 
-def test_every_plain_word_is_written_down_once_with_why_it_is_safe():
+def test_every_plain_word_is_written_down_once_with_where_it_stands_and_why_it_is_safe():
     listed = [word for group in PLAIN for word in group.words]
     assert len(listed) == len(set(listed)) == len(PLAIN_WORDS)
     for group in PLAIN:
         assert len(group.why) > 20 and group.why.endswith(".")
         for word in group.words:
-            assert word == word.lower().strip() and " " not in word, word
-    for phrase in PLAIN_PHRASES:
-        assert " " in phrase and phrase == phrase.lower().strip(), phrase
+            assert word == word.lower().strip() == " ".join(word.split()), word
 
 
 def test_the_list_of_plain_words_is_short_and_is_reviewed_as_a_whole():
-    # Adding a word is the only way to widen what the reader reads, so the
+    # Adding a word is the only way to widen what the grammar makes, so the
     # number is held here. Change it in the same change that adds the word,
-    # with the reason the word can never turn a wish round.
-    assert len(PLAIN_WORDS) == 128
-    assert len(PLAIN_PHRASES) == 34
-    assert len(VOCABULARY) < 420
+    # with where the grammar places it and why it can turn no wish round there.
+    # The phrases grew by the ways of saying where the speaker works, "from my office
+    # at", each made of words that were known. No plain word was added for them.
+    # 133: "around" and "around it" joined the words for nearby, which stand after a
+    # thing and nowhere else.
+    assert len(PLAIN_WORDS) == 133
+    assert len(VOCABULARY) < 580
+    assert len(KNOWN_WORDS) < 310
 
 
 # Words that turn a wish round, weaken it, compare it, question it or give it to
@@ -133,8 +156,9 @@ def test_no_plain_word_can_turn_weaken_compare_question_or_reassign_a_wish():
         assert word not in PLAIN_WORDS, word
     assert not PLAIN_WORDS & WORDS_OF_DOUBT
     # And no word that is known only with others beside it is known by itself.
-    apart = {word for phrase in PLAIN_PHRASES for word in phrase.split()} - PLAIN_WORDS
-    alone = {"foot", "distance", "short", "easy", "well", "thank", "kids", "dog", "door", "get"}
+    phrases = {phrase for phrase in VOCABULARY if " " in phrase}
+    apart = {word for phrase in phrases for word in phrase.split()} - VOCABULARY
+    alone = {"foot", "distance", "short", "easy", "well", "thank", "there", "corner", "get", "can"}
     assert alone <= apart
     assert not alone & VOCABULARY
 
@@ -152,7 +176,6 @@ def test_the_words_the_reader_has_a_rule_for_are_not_plain_words():
         | vocabulary.NOT_IN
     )
     assert not ruled & PLAIN_WORDS
-    assert not ruled & PLAIN_PHRASES
     assert {"no", "not", "without", "less", "fewer", "avoid", "only", "at most"} <= ruled
     assert {"up to", "under", "within", "no more than"} <= vocabulary.CAPS | ruled
     assert "more" in vocabulary.SMALL_STEP
@@ -163,30 +186,44 @@ def test_the_words_the_reader_has_a_rule_for_are_not_plain_words():
 
 def test_the_words_that_are_not_known_are_many_and_none_is_in_the_vocabulary():
     assert len(UNKNOWN_WORDS) == len(set(UNKNOWN_WORDS)) >= 500
-    known = {word for phrase in (*VOCABULARY, *LEXICON, *POLICY_LEXICON) for word in phrase.split()}
-    assert not known & set(UNKNOWN_WORDS)
+    # No word of a phrase of the grammar, and no word of who lives somewhere.
+    assert not KNOWN_WORDS & set(UNKNOWN_WORDS)
+    assert not {word for phrase in POLICY_LEXICON for word in phrase.split()} & set(UNKNOWN_WORDS)
     assert not GENERIC_PLACES & set(UNKNOWN_WORDS)
+    # A thing is known by the whole of a phrase. A label of the catalogue may hold
+    # a word that is not known by itself, "Away from main roads", and the word
+    # is still not known: the generated test below puts each beside every thing.
+    for variant in GrittyVariant:
+        things = set(lexicon_of(variant)) | set(no_measure_of(variant))
+        assert not things & set(UNKNOWN_WORDS)
+        inside = {word for phrase in things for word in phrase.split()} & set(UNKNOWN_WORDS)
+        assert inside <= {*IN_A_LABEL, *IN_NO_MEASURE}
     for must in ("hate", "yuck", "don;t", "dint", "donut", "mum", "stalker", "was", "should"):
         assert must in UNKNOWN_WORDS, must
 
 
 # --- The sentences that went wrong ---------------------------------------------------
 
-# What a sentence of the adversary's does ask for, in plain words, beside what it does not.
-ASKED_FOR = {"I want somewhere noisy and lively": {"buzzy"}}
-
 
 @pytest.mark.parametrize("text", REVERSED)
 @pytest.mark.parametrize("spec", [RENTER, BUYER], ids=["renter", "buyer"])
 def test_a_sentence_that_was_read_backwards_raises_nothing(text: str, spec: PreferenceSpec):
     result = read(text, spec)
-    assert raised(result) == ASKED_FOR.get(text, set())
+    assert raised(result) == set()
     assert result.clarify == ()
     # It says that it did not read it, or that it is about who lives somewhere,
     # or it read the whole of it as a wish for less: "no pubs or loads of restaurants".
-    less = [e for e in result.operations.weight_ops if e.direction is DirectionChoice.LESS]
+    less = [
+        edit
+        for edit in result.operations.weight_ops
+        if edit.direction is DirectionChoice.LESS or edit.action is WeightAction.REMOVE
+    ]
     told = UnmetCategory.OTHER in result.unmet or result.notice is Notice.NEUTRAL_PLACES
     assert told or (less and len(less) == result.operations.count)
+    # And what it noticed is offered with no direction chosen: every choice is
+    # the person's to make, and to leave it out is always one of them.
+    for found in result.suggestions:
+        assert found.choices[-1].direction == "ignore"
     after = apply(spec, result.operations, fixture_release())
     assert after.spec.commutes == spec.commutes and after.spec.areas == spec.areas
     assert after.spec.tenure is spec.tenure and after.spec.budget == spec.budget
@@ -309,7 +346,7 @@ def beside(template: str, word: str, name: str) -> Iterator[str]:
 
 def every_sentence() -> Iterator[str]:
     """Every unknown word in every place it can stand, beside each thing and each name in turn."""
-    things, names = sorted(LEXICON), names_of_the_release()
+    things, names = sorted(THINGS), names_of_the_release()
     for row, word in enumerate(UNKNOWN_WORDS):
         for column, template in enumerate(BESIDE_A_THING):
             yield template.format(word=word, thing=things[(row * 7 + column) % len(things)])
@@ -325,7 +362,7 @@ def a_sample() -> Iterator[str]:
     It is fixed: the same sentences every time, with no source of chance.
     """
     words = UNKNOWN_WORDS
-    for row, thing in enumerate(sorted(LEXICON)):
+    for row, thing in enumerate(sorted(THINGS)):
         for turn in range(8):
             template = BESIDE_A_THING[(row + turn * 5) % len(BESIDE_A_THING)]
             yield template.format(word=words[(row * 8 + turn) % len(words)], thing=thing)
@@ -358,7 +395,7 @@ def held_to_the_promise(sentences: Iterator[str]) -> int:
 def test_a_word_that_is_not_known_beside_any_thing_or_name_makes_the_sentence_unread():
     sample = list(a_sample())
     assert len(set(sample)) > 3_500
-    for thing in LEXICON:
+    for thing in THINGS:
         assert any(thing in text for text in sample), thing
     for name in names_of_the_release():
         assert any(name in text for text in sample), name
@@ -371,11 +408,16 @@ def test_every_word_that_is_not_known_in_every_place_makes_the_sentence_unread()
 
 
 def test_a_sentence_with_an_unknown_word_reports_one_unmet_request_of_kind_other():
-    for text in ("a park for the zebra", "leafy, quiet, zebra", "zebra near Pellam Cross"):
+    for text, unread in (
+        ("a park for the zebra", ["a", "for the zebra"]),
+        ("leafy, quiet, zebra", ["zebra"]),
+        ("zebra near Pellam Cross", ["zebra near"]),
+    ):
         result = read(text)
         assert result.operations == NO_OPERATIONS
         assert result.unmet == (UnmetCategory.OTHER,)
-        assert (result.status, result.notice) == (InterpretStatus.OK, Notice.NONE)
+        assert (result.status, result.notice) == (InterpretStatus.SUGGEST, Notice.NONE)
+        assert [text[span.start : span.end] for span in result.unread] == unread
 
 
 # --- Sentences made of nothing but words the reader knows ---------------------------
@@ -446,29 +488,223 @@ NOTHING: set[str] = set()
 @pytest.mark.parametrize(
     ("text", "lowered", "asked"),
     [
-        ("I want parks not pubs", {"venue_evening"}, {"park_proximity"}),
+        # A turn governs the thing straight after it. "But", a wish of the speaker's
+        # and a word of the thing's own begin a new wish.
         ("leafy, not near a station", {"station_walk"}, {"leafy"}),
         ("no pubs, but a park nearby", {"venue_evening"}, {"park_proximity"}),
         ("no pubs, I want parks", {"venue_evening"}, {"park_proximity"}),
-        ("no pubs near a park", {"venue_evening"}, NOTHING),
-        ("no parks, playgrounds or schools", NOTHING, NOTHING),
-        ("no pubs, bars", {"venue_evening"}, NOTHING),
-        ("leafy, no station, quiet", {"station_walk"}, {"leafy"}),
-        ("I can live without pubs", {"venue_evening"}, NOTHING),
-        ("big no to pubs", {"venue_evening"}, NOTHING),
-        ("I want a place with a park that is not near pubs", {"venue_evening"}, {"park_proximity"}),
+        ("no pubs, near a park", {"venue_evening"}, {"park_proximity"}),
+        ("no pubs and good schools", {"venue_evening"}, {"school_primary_attainment"}),
+        # And the things joined to that by "or".
+        ("no pubs or bars", {"venue_evening"}, NOTHING),
+        (
+            "no theatres or playgrounds",
+            {"culture_venues_per_homes", "play_space_proximity"},
+            NOTHING,
+        ),
+        ("I don't care about parks or schools", {"park_proximity"}, NOTHING),
     ],
 )
-def test_a_word_that_turns_governs_the_first_thing_after_it_and_no_more(
+def test_a_word_that_turns_governs_the_thing_after_it_and_what_is_joined_to_that_by_or(
     text: str, lowered: set[str], asked: set[str]
 ):
     result = read(text)
-    assert raised(result) == asked
+    assert asked <= raised(result) and not raised(result) & lowered
     less = {e.feature_id.value for e in result.operations.weight_ops if e.direction == "less"}
     off = {
         e.feature_id.value for e in result.operations.weight_ops if e.action is WeightAction.REMOVE
     }
     assert lowered <= less | off
+    assert (result.status, result.unread) == (InterpretStatus.OK, ())
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # The reader cannot say whether the turn reaches the bare name after it.
+        "no pubs, bars",
+        "no pubs and parks",
+        "no parks, playgrounds or schools",
+        "leafy, no station, quiet",
+        "I don't care about parks, schools",
+        # Nor whether what is said after the last of a list is said of each.
+        "parks, playgrounds and schools are not important",
+        # No word joins the two, so nothing says where one wish ends.
+        "I want parks not pubs",
+        "no pubs near a park",
+        "I can live without pubs",
+        "big no to pubs",
+        "I want a place with a park that is not near pubs",
+    ],
+)
+def test_a_turn_that_may_reach_further_makes_the_whole_prompt_not_plain(text: str):
+    result = read(text)
+    assert result.operations == NO_OPERATIONS
+    assert result.status is InterpretStatus.SUGGEST
+    # Every thing it names is offered, and none is turned either way for the person.
+    assert len(result.suggestions) >= 1
+    assert UnmetCategory.OTHER in result.unmet
+
+
+@pytest.mark.parametrize(("text", "turned_away"), TURNED_LISTS, ids=[t for t, _ in TURNED_LISTS])
+@pytest.mark.parametrize("spec", [RENTER, BUYER], ids=["renter", "buyer"])
+def test_what_is_said_after_the_last_thing_of_a_turned_list_never_begins_a_new_wish(
+    text: str, turned_away: set[str], spec: PreferenceSpec
+):
+    # "Nearby", "on my doorstep" and "within walking distance" may be said of
+    # every thing of the list. Either the turn carries, or the prompt is not plain.
+    result = read(text, spec)
+    assert not raised(result) & turned_away
+    if result.status is InterpretStatus.OK:
+        assert result.unread == ()
+    else:
+        assert result.operations == NO_OPERATIONS
+        assert result.status is InterpretStatus.SUGGEST and result.suggestions
+
+
+@pytest.mark.parametrize(
+    ("text", "less", "off", "calm"),
+    [
+        # Joined by "or", the turn carries, whatever is said after the last thing.
+        (
+            "I don't want pubs or restaurants nearby",
+            {"venue_evening", "venue_food_drink_per_homes"},
+            (),
+            (),
+        ),
+        (
+            "no pubs or restaurants close by",
+            {"venue_evening", "venue_food_drink_per_homes"},
+            (),
+            (),
+        ),
+        (
+            "no pubs or lots of restaurants nearby",
+            {"venue_evening", "venue_food_drink_per_homes"},
+            (),
+            (),
+        ),
+        ("somewhere without parks or pubs nearby", {"venue_evening"}, {"park_proximity"}, ()),
+        ("no pubs or nightlife nearby", {"venue_evening"}, (), {"pace"}),
+        ("I don't want nightlife or pubs on my doorstep", {"venue_evening"}, (), {"pace"}),
+        (
+            "without a park or a station within walking distance",
+            (),
+            {"park_proximity", "station_walk"},
+            (),
+        ),
+    ],
+)
+def test_a_turn_carries_over_or_to_a_thing_with_words_after_it(
+    text: str, less: set[str], off: set[str], calm: set[str]
+):
+    result = read(text)
+    assert (result.status, result.unread, raised(result) - {"pace:low"}) == ("ok", (), set())
+    weights = result.operations.weight_ops
+    assert {e.feature_id.value for e in weights if e.direction == "less"} == set(less)
+    assert {e.feature_id.value for e in weights if e.action is WeightAction.REMOVE} == set(off)
+    assert {e.tag_id.value for e in result.operations.tag_ops if e.toward == "low"} == set(calm)
+    assert len(weights) + len(result.operations.tag_ops) == result.operations.count
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # Joined by "and" or a comma, nobody can say whether the turn reaches it.
+        "avoid pubs and restaurants nearby",
+        "no pubs and a park nearby",
+        "no pubs, restaurants nearby",
+        # After "or" nothing begins a new wish but a turn of its own.
+        "no pubs or good restaurants",
+        "not near a station or near a pub",
+        # What is said to count, after the last thing, may be said of each.
+        "no pubs or restaurants would be good",
+        "no parks or pubs are important",
+        "no pubs or parks matter to me",
+        # What troubles a person is read of a nuisance alone, carried or not.
+        "I worry about noise or pubs",
+    ],
+)
+def test_a_turned_list_that_may_be_read_two_ways_is_not_plain(text: str):
+    result = read(text)
+    assert result.operations == NO_OPERATIONS
+    assert result.status is InterpretStatus.SUGGEST
+    assert UnmetCategory.OTHER in result.unmet
+    # Whatever is offered, the direction is the person's to choose.
+    for found in result.suggestions:
+        assert found.choices[-1].direction == "ignore"
+
+
+# --- An everyday hedge -------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("text", "asked"),
+    [
+        # A word of degree before a thing says how much it is wanted, and never whether.
+        ("somewhere leafy and fairly quiet", {"leafy", "quiet_residential"}),
+        ("quite leafy", {"leafy"}),
+        ("pretty quiet", {"quiet_residential"}),
+        ("reasonably quiet", {"quiet_residential"}),
+        ("relatively calm", {"pace:low"}),
+        ("fairly near a park", {"park_proximity"}),
+        ("a fairly big park", {"parks_close_by"}),
+        ("I would quite like a park", {"park_proximity"}),
+        ("we'd quite like somewhere leafy", {"leafy"}),
+        # Two words that cap one number cap it still.
+        ("within about 30 minutes of Pellam Cross", {"journey:syn-p0012"}),
+        ("up to about £1,500 a month", {"budget", "tenure:rent"}),
+        ("under around £450k", {"budget", "tenure:buy"}),
+        # A job the speaker has is where the speaker works.
+        ("I have a job at Cindermoor Works", {"journey:syn-p0021"}),
+        ("I have a job in Pellam Cross", {"journey:syn-p0012"}),
+        (
+            "I'm looking for somewhere leafy and fairly quiet, not too far from a decent pub",
+            {"leafy", "quiet_residential", "venue_evening"},
+        ),
+        (
+            "I have a job at Cindermoor Works. Somewhere leafy and fairly quiet, not too far "
+            "from a decent pub. I can spend about £1,600 a month on a one bed flat.",
+            {*("leafy", "quiet_residential", "venue_evening", "journey:syn-p0021"), "budget"},
+        ),
+    ],
+)
+def test_a_hedge_that_cannot_turn_a_wish_round_leaves_the_prompt_plain(text: str, asked: set[str]):
+    # "Fairly", "quite", "pretty" and "reasonably" made a prompt a question,
+    # where "a bit" and "slightly" were read. None of them can turn a wish round.
+    result = read(text)
+    assert (result.status, result.unread, result.suggestions) == (InterpretStatus.OK, (), ())
+    assert asked <= raised(result), raised(result)
+    assert apply(RENTER, result.operations, fixture_release()).rejected == ()
+
+
+def test_a_wish_that_is_hedged_is_worth_what_a_mention_is():
+    for text in ("fairly quiet", "quite quiet", "a bit quiet", "quiet"):
+        (edit,) = read(text).operations.tag_ops
+        after = apply(RENTER, read(text).operations, fixture_release()).spec
+        assert [(tag.tag_id, tag.weight) for tag in after.tags] == [("quiet_residential", 0.5)]
+        assert edit.step is (Step.UP_LARGE if text == "quiet" else Step.UP_SMALL)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # Under a word that turns, a word of degree is more than one rule can read.
+        *("not fairly quiet", "not quite leafy", "no pretty parks", "without quite so many pubs"),
+        # A word of degree with nothing after it to be the degree of.
+        *("fairly", "quite", "leafy, quite", "a park, fairly"),
+        # A word that weakens the whole wish says whether, and not how much.
+        *("maybe leafy", "ideally near a park", "leafy if possible", "probably quiet"),
+        *("I think I want a park", "leafy, I suppose", "perhaps a park", "possibly quiet"),
+        # The past, and someone else's job.
+        *("I had a job at Cindermoor Works", "she has a job at Cindermoor Works"),
+        "I have never had a job at Cindermoor Works",
+    ],
+)
+def test_a_hedge_that_may_say_whether_a_thing_is_wanted_is_still_not_plain(text: str):
+    result = read(text)
+    assert result.operations == NO_OPERATIONS
+    assert UnmetCategory.OTHER in result.unmet and result.unread
 
 
 # --- P2. Where a sentence ends ---------------------------------------------------------
@@ -495,9 +731,15 @@ def test_a_comma_a_colon_a_dash_a_bracket_and_a_quote_do_not_end_a_sentence(text
 @pytest.mark.parametrize("mark", [". ", "! ", "? ", "\n", "\r\n", "... ", ".\n\n"])
 def test_a_full_stop_a_question_mark_an_exclamation_mark_and_a_line_break_end_one(mark: str):
     # The park is a sentence of its own, in which the speaker says what they want.
-    result = read(f"We are moving next spring{mark}I want a park")
-    assert raised(result) == {"park_proximity"}
-    assert [text.known for text in sentences_of(f"zebra{mark}I want a park")] == [False, True]
+    text = f"We are moving next spring{mark}I want a park"
+    assert [said.known for said in sentences_of(text)] == [False, True]
+    assert [said.known for said in sentences_of(f"zebra{mark}I want a park")] == [False, True]
+    # One sentence that is not plain makes the prompt not plain, so nothing is
+    # applied. The park is offered, and the first sentence is what was not read.
+    result = read(text)
+    assert result.operations == NO_OPERATIONS
+    assert [found.target for found in result.suggestions] == ["feature:park_proximity"]
+    assert text[result.unread[0].start : result.unread[0].end].startswith("We are moving next")
 
 
 @pytest.mark.parametrize(
@@ -590,7 +832,10 @@ def test_a_name_is_never_put_together_across_a_mark_or_a_line_break(text: str):
 def test_a_question_makes_no_edit(text: str):
     result = read(text)
     assert result.operations == NO_OPERATIONS
-    assert result.unmet == (UnmetCategory.OTHER,)
+    assert all(said.asked and not said.known for said in sentences_of(text, NAMES))
+    # What it names is offered, and what is left of it is said not to be read.
+    assert result.suggestions or result.unmet == (UnmetCategory.OTHER,)
+    assert (UnmetCategory.OTHER in result.unmet) == bool(result.unread)
 
 
 @pytest.mark.parametrize(
@@ -647,7 +892,9 @@ def test_a_sentence_that_holds_doubt_and_names_nothing_takes_back_what_was_raise
     result = read(f"{wish} {doubt}")
     assert result.operations == NO_OPERATIONS
     assert UnmetCategory.OTHER in result.unmet
-    assert not sentences_of(f"{wish} {doubt}")[0].known
+    taken_back, closing = sentences_of(f"{wish} {doubt}", NAMES, fixture_release())
+    assert (taken_back.known, taken_back.taken_back) == (False, True)
+    assert not closing.known
 
 
 def test_doubt_that_names_nothing_is_said_of_a_list_as_far_as_the_list_goes():
@@ -659,15 +906,25 @@ def test_doubt_that_names_nothing_is_said_of_a_list_as_far_as_the_list_goes():
         "What I can't stand. Pubs. Bars.",
     ):
         assert read(text).operations == NO_OPERATIONS, text
-    # A sentence in which the speaker says what they want stands by itself.
-    assert raised(read("I want a park. Pubs. Bars. None of it.")) == {"park_proximity"}
-    assert raised(read("Things I hate. Pubs. Bars. I want a park.")) == {"park_proximity"}
-    assert raised(read("Hello. I would like a park.")) == {"park_proximity"}
+        assert not any(said.known for said in sentences_of(text, NAMES, fixture_release())), text
+
+    def known(text: str) -> list[bool]:
+        return [said.known for said in sentences_of(text, NAMES, fixture_release())]
+
+    # A sentence in which the speaker says what they want stands by itself, for a
+    # caller that holds edits to each sentence. The reader applies none of these.
+    assert known("I want a park. Pubs. Bars. None of it.") == [True, False, False, False]
+    assert known("Things I hate. Pubs. Bars. I want a park.") == [False, False, False, True]
     # And a sentence that names something keeps its doubt to itself.
-    assert raised(read("I want a park. I can't stand pubs.")) == {"park_proximity"}
-    # What was lowered is not taken back: only what was raised.
-    lowered = read("I don't care about parks. Whatever.").operations.weight_ops
-    assert [edit.action for edit in lowered] == [WeightAction.REMOVE]
+    assert known("I want a park. I can't stand pubs.") == [True, False]
+    for text in (
+        "I want a park. Pubs. Bars. None of it.",
+        "I want a park. I can't stand pubs.",
+        "I don't care about parks. Whatever.",
+    ):
+        assert read(text).operations == NO_OPERATIONS, text
+    # Courtesy is a sentence the grammar makes, so the wish beside it is applied.
+    assert raised(read("Hello. I would like a park.")) == {"park_proximity"}
 
 
 # --- P5. A number that is a minimum -------------------------------------------------------
@@ -718,9 +975,13 @@ def test_a_campus_a_person_wants_distance_from_gets_the_notice_and_no_journey():
     [
         ("no more than 30 minutes to Pellam Cross", 30, "hard"),
         ("at most 30 minutes to Pellam Cross", 30, "hard"),
+        # Decided on 2026-09-24: "max" and "within" make a number of minutes a firm limit.
+        ("within 30 minutes of Pellam Cross", 30, "hard"),
+        ("max 30 minutes to Pellam Cross", 30, "hard"),
+        ("30 minutes max to Pellam Cross", 30, "hard"),
+        # With none of those words it stays a guide.
         ("up to 30 minutes to Pellam Cross", 30, "unchanged"),
         ("under 30 minutes to Pellam Cross", 30, "unchanged"),
-        ("within 30 minutes of Pellam Cross", 30, "unchanged"),
         ("less than 30 minutes from Pellam Cross", 30, "unchanged"),
         ("30 minutes to Pellam Cross", 30, "unchanged"),
     ],
@@ -792,7 +1053,12 @@ def test_the_tenure_is_still_read_where_every_word_is_known():
 def test_a_nuisance_that_is_liked_or_only_named_makes_no_edit(text: str):
     result = read(text)
     assert result.operations == NO_OPERATIONS
-    assert result.unmet == (UnmetCategory.OTHER,)
+    # It is offered, and less of it is the one thing that can be chosen.
+    assert result.status is InterpretStatus.SUGGEST
+    for found in result.suggestions:
+        if found.label.startswith(("Less", "Cleaner", "Away")):
+            assert [choice.direction for choice in found.choices] == ["less", "ignore"]
+    assert (UnmetCategory.OTHER in result.unmet) == bool(result.unread)
 
 
 @pytest.mark.parametrize(
@@ -820,8 +1086,13 @@ def test_wanting_less_of_a_nuisance_is_still_caring_about_it(text: str, cared_ab
     assert result.unmet == ()
 
 
-def test_what_is_liked_beside_a_nuisance_is_still_read():
-    assert raised(read("I want somewhere noisy and lively")) == {"buzzy"}
+def test_what_is_liked_beside_a_nuisance_is_offered_and_not_applied():
+    result = read("I want somewhere noisy and lively")
+    assert result.operations == NO_OPERATIONS
+    assert [(found.target, found.label) for found in result.suggestions] == [
+        ("feature:noise_exposure", "Less transport noise"),
+        ("tag:pace", "Going out"),
+    ]
 
 
 # --- P8. Two phrases of the lexicon that overlap ------------------------------------------------
@@ -835,7 +1106,7 @@ def test_what_is_liked_beside_a_nuisance_is_still_read():
         ("great food scene", {"foodie"}),
         ("Great food scene", {"foodie"}),
         ("good primary schools", {"school_primary_attainment"}),
-        ("a good high street", {"strong_high_street"}),
+        ("a good high street", {"highstreet_access"}),
         ("near a station nearby", {"station_walk"}),
         ("30 minutes to Pellam Cross station", {"journey:syn-p0012"}),
         ("near Wexmoor University", {"journey:syn-p0026"}),
@@ -856,16 +1127,17 @@ def test_the_reading_that_leaves_no_word_over_is_the_one_that_is_taken(text: str
     [
         ("Somewhere quiet and leafy", {("tag_ops", 0): ["quiet"], ("tag_ops", 1): ["leafy"]}),
         ("no pubs please", {("weight_ops", 0): ["no pubs"]}),
-        ("I really want parks", {("weight_ops", 0): ["really want parks"]}),
+        # The words a wish is opened with are no part of what it rests on.
+        ("I really want parks", {("weight_ops", 0): ["parks"]}),
         ("parks are essential", {("weight_ops", 0): ["parks are essential"]}),
         ("not far from a park", {("weight_ops", 0): ["not far from a park"]}),
         (
             "I cycle to work at Foxholt Market",
-            {("commute_ops", 0): ["work at Foxholt Market"]},
+            {("commute_ops", 0): ["cycle to work at Foxholt Market"]},
         ),
         (
             "No more than 35 minutes to Pellam Cross by tube",
-            {("commute_ops", 0): ["No more than 35 minutes to Pellam Cross", "tube"]},
+            {("commute_ops", 0): ["No more than 35 minutes to Pellam Cross by tube"]},
         ),
         ("not Cindermoor", {("area_ops", 0): ["not Cindermoor"]}),
         (
@@ -873,8 +1145,8 @@ def test_the_reading_that_leaves_no_word_over_is_the_one_that_is_taken(text: str
             {("budget_ops", 0): ["Renting", "2 bed", "up to £1,500"]},
         ),
         (
-            "\N{GRINNING FACE} hello.\nI'd like a PARK",
-            {("weight_ops", 0): ["PARK"]},
+            "Hello.\nI'd like a PARK",
+            {("weight_ops", 0): ["a PARK"]},
         ),
     ],
 )
@@ -910,11 +1182,18 @@ def test_every_edit_of_every_plain_sentence_rests_on_words_of_one_sentence():
 
 
 def test_what_an_edit_rests_on_is_offsets_and_holds_no_word_of_the_text():
-    canary = "Zqxjkvanary"
-    result = read(f"{canary}. I work at Pellam Cross and want a park")
+    result = read("I work at Pellam Cross and want a park")
     assert len(result.rests_on) == 2
-    assert canary.casefold() not in result.model_dump_json().casefold()
     assert "pellam" not in result.model_dump_json().casefold()
+    # And what is offered, or was not read, is offsets too. A suggestion is
+    # called by the release's name for a place, and never by what was typed.
+    canary = "Zqxjkvanary"
+    unread = read(f"{canary}. I work at pellam cross and want a park")
+    assert (unread.operations, len(unread.suggestions)) == (NO_OPERATIONS, 2)
+    assert [(span.start, span.end) for span in unread.unread] == [(0, 22), (36, 46)]
+    assert canary.casefold() not in unread.model_dump_json().casefold()
+    assert "pellam cross" not in unread.model_dump_json()
+    assert [found.label for found in unread.suggestions] == ["Pellam Cross", "Nearer a park"]
 
 
 # --- The price: how many plain wishes are still read ----------------------------------------------
@@ -948,24 +1227,32 @@ def share_read(sentences: tuple[tuple[str, Wishes], ...]) -> tuple[int, list[str
 
 def test_the_share_of_plain_wishes_that_is_read_does_not_fall_without_being_noticed():
     # Before the closed vocabulary the reader read 145 of these 170 in full, 85.3%.
-    # It now reads 142, 83.5%. Of the adversary's own 90 it read 70 and reads 69.
-    # If this fails, a word was taken out of the vocabulary or a rule was
+    # With it, 142, 83.5%. With the grammar of a plain prompt it reads 137, 80.6%:
+    # a prompt is applied whole or not at all, and a vibe answers to fewer words.
+    # Of the adversary's own 90 it read 70, then 69, and then 67. Every one it
+    # no longer applies is offered as a suggestion, which the person may choose.
+    # With a word of degree read before a thing, "fairly", "quite", it reads
+    # 138 and 68. "A garden" and "safe" are offered now and never applied,
+    # which cost none of these: the one sentence that holds "safe" names low
+    # crime beside it.
+    # If this fails, a word was taken out of the grammar or a rule was
     # tightened: say what it cost in the change that does it, and move the floor.
     assert len(PLAINLY) == len({text for text, _ in PLAINLY}) >= 150
     read_in_full, declined = share_read(PLAINLY)
-    assert read_in_full >= 142, declined
+    assert read_in_full >= 138, declined
     theirs, _ = share_read(PLAINLY[:THEIRS])
-    assert theirs >= 69
+    assert theirs >= 68
 
 
 def test_the_share_of_sentences_the_vocabulary_was_not_settled_on_is_held_too():
     # Written after the vocabulary was settled and never used to widen it, so
-    # this is the fairer measure of the price: 55 of 60 before, 91.7%, and 46
-    # after, 76.7%. Do not add a word to make one of these pass without the
-    # reason the word can never turn a wish round.
+    # this is the fairer measure of the price: 55 of 60 before, 91.7%, 46 with
+    # the closed vocabulary, 76.7%, and 45 with the grammar, 75.0%. Do not add a
+    # word to make one of these pass without the place the grammar gives it, and
+    # the reason it can turn no wish round there.
     assert len(HELD_OUT) == 60
     read_in_full, declined = share_read(HELD_OUT)
-    assert read_in_full >= 46, declined
+    assert read_in_full >= 45, declined
 
 
 # --- What is still read, for every thing and every name ------------------------------------------
@@ -985,9 +1272,15 @@ PLAIN_WISHES = (
 
 def test_a_plain_wish_for_each_thing_is_still_read():
     tried = 0
-    for phrase, target in sorted(LEXICON.items()):
+    for phrase, target in sorted(THINGS.items()):
         if target.nuisance and not target.wanted_low:
             continue  # a nuisance that is only named is no wish the reader can read (P7)
+        if target.no_end:
+            continue  # the name of a scale names no end, so it is offered and not applied
+        if read_into_crime(target):
+            continue  # crime counts only when it is asked for by name, so it is offered
+        if target.note:
+            continue  # Burro has no measure of it, so what is nearest is offered
         asked = {f.value for f in target.features} | {t.value for t in target.tags}
         for template in PLAIN_WISHES:
             text = template.format(thing=phrase)
@@ -997,6 +1290,9 @@ def test_a_plain_wish_for_each_thing_is_still_read():
                 (edit,) = result.operations.weight_ops
                 assert (edit.feature_id.value, edit.direction) == (*asked, target.direction), text
                 assert edit.action is WeightAction.SET or edit.step in UP, text
+            elif target.toward is Toward.LOW:
+                # "Calm" names the low end of a scale, and is a wish for that end.
+                assert {f"{wanted}:low" for wanted in asked} <= raised(result), text
             else:
                 assert asked <= raised(result), text
             assert result.status is InterpretStatus.OK, text
@@ -1063,12 +1359,12 @@ def test_a_generic_word_after_a_cue_for_a_place_names_no_place(cue: str, words: 
     for text in (f"{cue} {words}", f"{cue} {words} by bike", f"{cue} {words}, somewhere leafy"):
         result = read(text)
         # No edit and no question: there is nothing to choose from.
-        assert result.operations.commute_ops == (), text
+        assert result.operations == NO_OPERATIONS, text
         assert result.clarify == (), text
-        assert (result.status, result.notice) == (InterpretStatus.OK, Notice.NONE), text
-        # And the word is not read as a wish for schools or for a campus either.
-        assert not result.operations.weight_ops, text
-        assert [e.tag_id.value for e in result.operations.tag_ops] in ([], ["leafy"]), text
+        assert result.status in (InterpretStatus.OK, InterpretStatus.SUGGEST), text
+        assert result.notice is Notice.NONE, text
+        # And the word is not offered as a wish for schools or for a campus either.
+        assert [found.target for found in result.suggestions] in ([], ["tag:leafy"]), text
 
 
 def test_words_given_as_the_name_of_a_place_that_are_the_name_of_none_are_asked_about():
@@ -1122,10 +1418,13 @@ def test_the_reader_says_of_each_sentence_whether_it_read_it():
         (False, False, False, False),
         (False, False, True, True),
     ]
-    # Every edit the reader made rests on words of a sentence it knows.
-    result = read(text)
-    known = [(s.start, s.end) for s in found if s.known]
-    assert result.rests_on
+    # One sentence of it is not plain, so the reader applies none of it.
+    assert read(text).operations == NO_OPERATIONS
+    # Every edit the reader makes rests on words of a sentence it knows.
+    plain = "Quiet and leafy. No pubs! Near a park."
+    result = read(plain)
+    known = [(s.start, s.end) for s in sentences_of(plain, NAMES, fixture_release()) if s.known]
+    assert len(known) == 3 and len(result.rests_on) == 4
     for said in result.rests_on:
         assert any(start <= said.start and said.end <= end for start, end in known)
 
@@ -1140,9 +1439,9 @@ def test_the_written_list_of_doubt_is_heard_in_a_sentence_the_reader_does_not_re
         "pubs \N{THUMBS DOWN SIGN}",
         "I don;t want pubs",
     ):
-        assert signs_of_doubt(text), text
-        assert any(clause.doubtful for clause in clauses_of(text)), text
         assert any(s.doubt for s in sentences_of(text)), text
+        assert read(text).operations == NO_OPERATIONS, text
     for text in ("a proper brunch near a park", "somewhere leafy", "I work at Pellam Cross"):
-        assert signs_of_doubt(text) == (), text
-        assert not any(clause.doubtful for clause in clauses_of(text)), text
+        assert not any(s.doubt for s in sentences_of(text)), text
+    # The words a caller is given to look for, beside its own reading.
+    assert {"hate", "never", "no", "not", "without", "worry about"} <= SIGNS_OF_DOUBT

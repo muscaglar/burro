@@ -2,9 +2,12 @@
 
 `REVERSED` and `UNASKED` are the sentences an adversary wrote after the second round of
 fixes: each made the reader do the opposite of what was asked, or something nobody
-asked for. `PLAIN` and `HELD_OUT` are plain wishes as a person might type them, each
-with what it asks for. `UNKNOWN_WORDS` are ordinary words that are not in the reader's
-vocabulary, and must never be added to it without a rule."""
+asked for. `TURNED_LISTS` are the ones two reviewers found after the fourth. `PLAIN`
+and `HELD_OUT` are plain wishes as a person might type them, each with what it asks
+for. `UNKNOWN_WORDS` are ordinary words that are not in the reader's vocabulary, and
+must never be added to it without a rule. "Rough", "soulless" and "bland" were among
+them until each was given one: it is offered, with what Burro can count in its place,
+and it is never applied."""
 
 # A wish is met if any of its ids is raised: a feature or a tag by its id, a journey
 # as "journey:<place id>", an area rule as "area:<area id>:<rule>", a budget as
@@ -142,6 +145,31 @@ UNASKED: tuple[str, ...] = (
     "I work at Cindermoor Works (well, I did)",
 )
 
+# What two reviewers and a walk in a browser found read wrongly in the first slice of
+# vibes. Each is a list under a word that turns, with something said of its last
+# thing, and each was applied with the last thing raised. With what may not rise.
+TURNED_LISTS: tuple[tuple[str, set[str]], ...] = (
+    ("I don't want pubs or restaurants nearby", {"venue_evening", "venue_food_drink_per_homes"}),
+    ("I don't want nightlife or pubs on my doorstep", {"pace", "venue_evening"}),
+    ("somewhere without parks or pubs nearby", {"park_proximity", "venue_evening"}),
+    ("no pubs or nightlife nearby", {"venue_evening", "pace"}),
+    ("avoid pubs and restaurants nearby", {"venue_evening", "venue_food_drink_per_homes"}),
+    ("without a park or a station within walking distance", {"park_proximity", "station_walk"}),
+    ("no pubs and a park nearby", {"venue_evening", "park_proximity"}),
+    ("no pubs or restaurants close by", {"venue_evening", "venue_food_drink_per_homes"}),
+    (
+        "no pubs, restaurants or bars round the corner",
+        {"venue_evening", "venue_food_drink_per_homes"},
+    ),
+    ("no pubs or good restaurants", {"venue_evening", "venue_food_drink_per_homes"}),
+    ("no pubs or restaurants would be good", {"venue_evening", "venue_food_drink_per_homes"}),
+    ("no parks or pubs are important", {"park_proximity", "venue_evening"}),
+    ("no pubs or lots of restaurants nearby", {"venue_evening", "venue_food_drink_per_homes"}),
+    ("not near a station or near a pub", {"station_walk", "venue_evening"}),
+    ("I worry about noise or pubs", {"venue_evening"}),
+    ("I don't want a station or a high street within a ten minute walk", {"station_walk"}),
+)
+
 # The first ninety are the adversary's own, written without sight of the vocabulary.
 PLAIN: tuple[tuple[str, Wishes], ...] = (
     ("I want to live near a park", [{"park_proximity"}]),
@@ -156,30 +184,33 @@ PLAIN: tuple[tuple[str, Wishes], ...] = (
     ("Close to a station please", [{"station_lines", "station_walk"}]),
     ("I work at Cindermoor Works", [{"journey:syn-p0021"}]),
     ("Within 30 minutes of Pellam Cross", [{"journey:syn-p0012"}]),
-    ("Lots of restaurants and cafes", [{"foodie", "venue_food_drink", "venue_independent"}]),
+    (
+        "Lots of restaurants and cafes",
+        [{"foodie", "venue_food_drink_per_homes", "venue_independent"}],
+    ),
     (
         "A lively area with good nightlife",
-        [{"buzzy", "evening_venues"}, {"buzzy", "evening_venues", "venue_evening"}],
+        [{"pace"}, {"pace", "venue_evening"}],
     ),
-    ("I'd love to be by the river", [{"water_access", "waterside"}]),
+    ("I'd love to be by the river", [{"water_access"}]),
     ("We need a playground nearby for the kids", [{"family_amenities", "play_space_proximity"}]),
     ("My budget is £1,800 a month", [{"budget"}]),
     ("Looking to rent a 2 bed flat for under £2,000", [{"budget"}]),
     ("I cycle to work at Foxholt Market", [{"journey:syn-p0019"}]),
     ("Somewhere with a village feel", [{"village_feel"}]),
-    ("I love period houses", [{"conservation_cover", "historic_character", "homes_pre1919"}]),
+    ("I love period houses", [{"conservation_cover", "built_age", "homes_pre1919"}]),
     (
         "An area with a bit of character",
-        [{"conservation_cover", "historic_character", "homes_pre1919"}],
+        [{"conservation_cover", "built_age", "homes_pre1919"}],
     ),
     (
         "Independent shops and cafes",
-        [{"venue_independent"}, {"foodie", "venue_food_drink", "venue_independent"}],
+        [{"venue_independent"}, {"foodie", "venue_food_drink_per_homes", "venue_independent"}],
     ),
     ("Good transport links are a must", [{"station_lines", "station_walk"}]),
     ("Low crime", [{"crime_burglary_theft", "crime_violence_robbery"}]),
     ("Clean air matters to me", [{"air_no2"}]),
-    ("A proper high street", [{"highstreet_access", "strong_high_street", "venue_independent"}]),
+    ("A proper high street", [{"highstreet_access", "venue_independent"}]),
     ("I study at Wexmoor University", [{"journey:syn-p0026"}]),
     ("Only Cindermoor", [{"area:syn-n0003:only"}]),
     ("Walking distance to a park", [{"park_proximity"}]),
@@ -197,10 +228,10 @@ PLAIN: tuple[tuple[str, Wishes], ...] = (
             {"school_primary_attainment", "school_primary_nearby", "school_secondary_attainment"},
         ],
     ),
-    ("Plenty of pubs and bars", [{"evening_venues", "venue_evening"}]),
-    ("Theatres and galleries nearby", [{"creative", "culture_venues"}]),
+    ("Plenty of pubs and bars", [{"pace", "venue_evening"}]),
+    ("Theatres and galleries nearby", [{"culture_venues_per_homes"}]),
     ("Peaceful and residential", [{"noise_exposure", "quiet_residential"}]),
-    ("Arty and creative", [{"creative", "culture_venues"}]),
+    ("Arty and creative", [{"culture_venues_per_homes"}]),
     (
         "I want to buy a house near a good secondary school",
         [
@@ -212,7 +243,7 @@ PLAIN: tuple[tuple[str, Wishes], ...] = (
         "We're a family of four and want parks and playgrounds",
         [{"park_proximity"}, {"family_amenities", "play_space_proximity"}],
     ),
-    ("Somewhere buzzy with loads going on", [{"buzzy", "evening_venues"}]),
+    ("Somewhere buzzy with loads going on", [{"pace"}]),
     ("I need to be within 45 minutes of Pellam Exchange by train", [{"journey:syn-p0017"}]),
     ("My office is at Tallowgate Guild Quarter", [{"journey:syn-p0018"}]),
     (
@@ -221,44 +252,45 @@ PLAIN: tuple[tuple[str, Wishes], ...] = (
     ),
     (
         "Historic buildings and a conservation area",
-        [{"conservation_cover", "historic_character", "homes_pre1919"}],
+        [{"conservation_cover", "built_age", "homes_pre1919"}],
     ),
-    ("Great food scene", [{"foodie", "venue_food_drink", "venue_independent"}]),
-    ("Canal walks on the doorstep", [{"water_access", "waterside"}]),
+    ("Great food scene", [{"foodie", "venue_food_drink_per_homes", "venue_independent"}]),
+    ("Canal walks on the doorstep", [{"water_access"}]),
     (
         "I like being able to walk to the shops",
-        [{"highstreet_access", "strong_high_street", "venue_independent"}],
+        [{"highstreet_access", "venue_independent"}],
     ),
     ("A park within five minutes' walk", [{"park_proximity"}]),
     ("Somewhere green with trees", [{"green_cover", "leafy"}]),
-    ("Cinemas and live music", [{"creative", "culture_venues"}]),
+    ("Cinemas and live music", [{"culture_venues_per_homes"}]),
     (
         "I'd like a station close by and a park too",
         [{"station_lines", "station_walk"}, {"park_proximity"}],
     ),
-    ("Near a university", [{"near_universities", "university_proximity"}]),
-    ("Victorian terraces", [{"conservation_cover", "historic_character", "homes_pre1919"}]),
+    ("Near a university", [{"university_proximity"}]),
+    ("Victorian terraces", [{"conservation_cover", "built_age", "homes_pre1919"}]),
     (
         "I'm after somewhere with a great high street",
-        [{"highstreet_access", "strong_high_street", "venue_independent"}],
+        [{"highstreet_access", "venue_independent"}],
     ),
     (
         "Must have: a park. Nice to have: pubs.",
-        [{"park_proximity"}, {"evening_venues", "venue_evening"}],
+        [{"park_proximity"}, {"pace", "venue_evening"}],
     ),
     ("The most important thing is being near a station", [{"station_lines", "station_walk"}]),
     ("Quieter than where I live now", [{"noise_exposure", "quiet_residential"}]),
     ("More green space than I have at the moment", [{"green_cover", "leafy"}]),
     (
         "I really want to be close to the river and a good pub",
-        [{"water_access", "waterside"}, {"evening_venues", "venue_evening"}],
+        [{"water_access"}, {"pace", "venue_evening"}],
     ),
     ("A short walk to the station is essential", [{"station_lines", "station_walk"}]),
     (
         "We want excellent schools and a big park",
         [
             {"school_primary_attainment", "school_primary_nearby", "school_secondary_attainment"},
-            {"park_proximity"},
+            # A big park is a vibe of its own now, made of the walk to a large park.
+            {"park_proximity", "parks_close_by"},
         ],
     ),
     ("Somewhere safe with low crime rates", [{"crime_burglary_theft", "crime_violence_robbery"}]),
@@ -272,7 +304,7 @@ PLAIN: tuple[tuple[str, Wishes], ...] = (
         "Leafy streets, good coffee shops and a station nearby",
         [
             {"green_cover", "leafy"},
-            {"foodie", "venue_food_drink", "venue_independent"},
+            {"foodie", "venue_food_drink_per_homes", "venue_independent"},
             {"station_lines", "station_walk"},
         ],
     ),
@@ -281,18 +313,21 @@ PLAIN: tuple[tuple[str, Wishes], ...] = (
         "Open to anywhere but I need a park and low noise",
         [{"park_proximity"}, {"noise_exposure", "quiet_residential"}],
     ),
-    ("Waterside living", [{"water_access", "waterside"}]),
-    ("Somewhere I can walk to restaurants", [{"foodie", "venue_food_drink", "venue_independent"}]),
-    ("An area known for its pubs", [{"evening_venues", "venue_evening"}]),
+    ("Waterside living", [{"water_access"}]),
+    (
+        "Somewhere I can walk to restaurants",
+        [{"foodie", "venue_food_drink_per_homes", "venue_independent"}],
+    ),
+    ("An area known for its pubs", [{"pace", "venue_evening"}]),
     (
         "I want a neighbourhood with a real sense of history",
-        [{"conservation_cover", "historic_character", "homes_pre1919"}],
+        [{"conservation_cover", "built_age", "homes_pre1919"}],
     ),
     ("Parks, parks and more parks", [{"park_proximity"}]),
     ("Being close enough to a station to walk", [{"station_lines", "station_walk"}]),
     (
         "Easy access to a high street and a park",
-        [{"highstreet_access", "strong_high_street", "venue_independent"}, {"park_proximity"}],
+        [{"highstreet_access", "venue_independent"}, {"park_proximity"}],
     ),
     ("I can't live without a park", [{"park_proximity"}]),
     ("A park would be lovely", [{"park_proximity"}]),
@@ -310,13 +345,13 @@ PLAIN: tuple[tuple[str, Wishes], ...] = (
     ),
     (
         "Pubs, restaurants and a bit of life",
-        [{"evening_venues", "venue_evening"}, {"foodie", "venue_food_drink", "venue_independent"}],
+        [{"pace", "venue_evening"}, {"foodie", "venue_food_drink_per_homes", "venue_independent"}],
     ),
     (
         "I want it all: parks, pubs and a station",
         [
             {"park_proximity"},
-            {"evening_venues", "venue_evening"},
+            {"pace", "venue_evening"},
             {"station_lines", "station_walk"},
         ],
     ),
@@ -330,18 +365,21 @@ PLAIN: tuple[tuple[str, Wishes], ...] = (
             {"school_primary_attainment", "school_primary_nearby", "school_secondary_attainment"},
         ],
     ),
-    ("A good local pub within stumbling distance", [{"evening_venues", "venue_evening"}]),
-    ("Decent restaurants, nothing fancy", [{"foodie", "venue_food_drink", "venue_independent"}]),
+    ("A good local pub within stumbling distance", [{"pace", "venue_evening"}]),
+    (
+        "Decent restaurants, nothing fancy",
+        [{"foodie", "venue_food_drink_per_homes", "venue_independent"}],
+    ),
     ("Somewhere that's well connected", [{"station_lines", "station_walk"}]),
-    ("Give me trees and a river", [{"green_cover", "leafy"}, {"water_access", "waterside"}]),
+    ("Give me trees and a river", [{"green_cover", "leafy"}, {"water_access"}]),
     ("Must be in Tallowgate", [{"area:syn-n0021:only"}]),
     ("Not far from Pellam Cross", [{"journey:syn-p0012"}]),
     ("I want to be able to walk to a park in under ten minutes", [{"park_proximity"}]),
     (
         "High street shops I can get to on foot",
-        [{"highstreet_access", "strong_high_street", "venue_independent"}],
+        [{"highstreet_access", "venue_independent"}],
     ),
-    ("Could you find me somewhere with good pubs?", [{"evening_venues", "venue_evening"}]),
+    ("Could you find me somewhere with good pubs?", [{"pace", "venue_evening"}]),
     ("Near a park", [{"park_proximity"}]),
     ("quiet and leafy", [{"quiet_residential", "noise_exposure"}, {"leafy", "green_cover"}]),
     (
@@ -350,7 +388,7 @@ PLAIN: tuple[tuple[str, Wishes], ...] = (
     ),
     (
         "somewhere with lots of pubs and restaurants",
-        [{"venue_evening", "evening_venues"}, {"venue_food_drink", "foodie", "venue_independent"}],
+        [{"venue_evening", "pace"}, {"venue_food_drink_per_homes", "foodie", "venue_independent"}],
     ),
     ("close to a tube station", [{"station_walk", "station_lines"}]),
     ("I need a park nearby", [{"park_proximity"}]),
@@ -362,10 +400,10 @@ PLAIN: tuple[tuple[str, Wishes], ...] = (
         ],
     ),
     ("a village feel", [{"village_feel"}]),
-    ("I'd like to be near the river", [{"waterside", "water_access"}]),
+    ("I'd like to be near the river", [{"water_access"}]),
     (
         "lively with good nightlife",
-        [{"buzzy", "evening_venues"}, {"venue_evening", "evening_venues"}],
+        [{"pace"}, {"venue_evening", "pace"}],
     ),
     (
         "Looking for a flat to rent near a station",
@@ -385,24 +423,24 @@ PLAIN: tuple[tuple[str, Wishes], ...] = (
     ("not Wexmoor please", [{"area:syn-n0023:exclude"}]),
     (
         "independent shops and a good high street",
-        [{"venue_independent"}, {"highstreet_access", "strong_high_street", "venue_independent"}],
+        [{"venue_independent"}, {"highstreet_access", "venue_independent"}],
     ),
     ("green space is really important to me", [{"green_cover", "leafy"}]),
     ("low crime is essential", [{"crime_violence_robbery", "crime_burglary_theft"}]),
     ("clean air", [{"air_no2"}]),
     ("less traffic noise", [{"noise_exposure"}]),
     ("I'm looking for somewhere family friendly", [{"family_amenities"}]),
-    ("theatres and museums", [{"culture_venues", "creative"}]),
+    ("theatres and museums", [{"culture_venues_per_homes"}]),
     ("a playground within walking distance", [{"play_space_proximity", "family_amenities"}]),
     ("more parks please", [{"park_proximity"}]),
-    ("I would love a good pub nearby", [{"venue_evening", "evening_venues"}]),
+    ("I would love a good pub nearby", [{"venue_evening", "pace"}]),
     (
         "somewhere historic with character",
-        [{"historic_character", "homes_pre1919", "conservation_cover"}],
+        [{"built_age", "homes_pre1919", "conservation_cover"}],
     ),
     ("well connected", [{"station_walk", "station_lines"}]),
     ("I want to live somewhere leafy", [{"leafy", "green_cover"}]),
-    ("good food and coffee shops", [{"venue_food_drink", "foodie", "venue_independent"}]),
+    ("good food and coffee shops", [{"venue_food_drink_per_homes", "foodie", "venue_independent"}]),
     (
         "We're looking for a family home near a good school",
         [{"school_primary_nearby", "school_primary_attainment", "school_secondary_attainment"}],
@@ -418,7 +456,7 @@ PLAIN: tuple[tuple[str, Wishes], ...] = (
     ),
     (
         "a nice neighbourhood with cafes and restaurants",
-        [{"venue_food_drink", "foodie", "venue_independent"}],
+        [{"venue_food_drink_per_homes", "foodie", "venue_independent"}],
     ),
     (
         "Hi, I'm looking for somewhere quiet with a park",
@@ -429,13 +467,13 @@ PLAIN: tuple[tuple[str, Wishes], ...] = (
         "we have two kids so schools matter a lot",
         [{"school_primary_nearby", "school_primary_attainment", "school_secondary_attainment"}],
     ),
-    ("arty area with galleries and live music", [{"culture_venues", "creative"}]),
-    ("I love being by the water", [{"waterside", "water_access"}]),
+    ("arty area with galleries and live music", [{"culture_venues_per_homes"}]),
+    ("I love being by the water", [{"water_access"}]),
     ("A garden would be nice, and a park nearby", [{"park_proximity"}]),
     (
         "walking distance to shops and a station",
         [
-            {"highstreet_access", "strong_high_street", "venue_independent"},
+            {"highstreet_access", "venue_independent"},
             {"station_walk", "station_lines"},
         ],
     ),
@@ -445,14 +483,14 @@ PLAIN: tuple[tuple[str, Wishes], ...] = (
     ("no more than 45 minutes to Tallowgate Guild Quarter", [{"journey:syn-p0018"}]),
     ("my office is in Pellam Exchange", [{"journey:syn-p0017"}]),
     ("I study at Kindlewharf School of Art", [{"journey:syn-p0027"}]),
-    ("somewhere with a bit of a buzz", [{"buzzy", "evening_venues"}]),
+    ("somewhere with a bit of a buzz", [{"pace"}]),
     ("peace and quiet", [{"quiet_residential", "noise_exposure"}]),
-    ("period properties", [{"historic_character", "homes_pre1919", "conservation_cover"}]),
-    ("I want a conservation area", [{"historic_character", "homes_pre1919", "conservation_cover"}]),
+    ("period properties", [{"built_age", "homes_pre1919", "conservation_cover"}]),
+    ("I want a conservation area", [{"built_age", "homes_pre1919", "conservation_cover"}]),
     ("plenty of green space and fresh air", [{"green_cover", "leafy"}, {"air_no2"}]),
     (
         "a really good high street is a must",
-        [{"highstreet_access", "strong_high_street", "venue_independent"}],
+        [{"highstreet_access", "venue_independent"}],
     ),
     (
         "schools are the top priority",
@@ -467,11 +505,11 @@ PLAIN: tuple[tuple[str, Wishes], ...] = (
     ),
     (
         "I want to be able to walk to the shops",
-        [{"highstreet_access", "strong_high_street", "venue_independent"}],
+        [{"highstreet_access", "venue_independent"}],
     ),
     (
         "restaurants and bars on my doorstep",
-        [{"venue_food_drink", "foodie", "venue_independent"}, {"venue_evening", "evening_venues"}],
+        [{"venue_food_drink_per_homes", "foodie", "venue_independent"}, {"venue_evening", "pace"}],
     ),
     ("We both work in Pellam Cross", [{"journey:syn-p0012"}]),
     ("renting, one bedroom, around £1,400 a month", [{"budget"}]),
@@ -495,14 +533,14 @@ PLAIN: tuple[tuple[str, Wishes], ...] = (
     ),
     (
         "cafes, bars and restaurants nearby",
-        [{"venue_food_drink", "foodie", "venue_independent"}, {"venue_evening", "evening_venues"}],
+        [{"venue_food_drink_per_homes", "foodie", "venue_independent"}, {"venue_evening", "pace"}],
     ),
     (
         "a buzzy area with great pubs",
-        [{"buzzy", "evening_venues"}, {"venue_evening", "evening_venues"}],
+        [{"pace"}, {"venue_evening", "pace"}],
     ),
     ("I like villages", [{"village_feel"}]),
-    ("lots of culture", [{"culture_venues", "creative"}]),
+    ("lots of culture", [{"culture_venues_per_homes"}]),
 )
 THEIRS = 90
 
@@ -514,10 +552,10 @@ HELD_OUT: tuple[tuple[str, Wishes], ...] = (
         "Great schools nearby",
         [{"school_primary_nearby", "school_primary_attainment", "school_secondary_attainment"}],
     ),
-    ("I'd love a proper local pub", [{"venue_evening", "evening_venues"}]),
+    ("I'd love a proper local pub", [{"venue_evening", "pace"}]),
     (
         "A lively high street with plenty going on",
-        [{"highstreet_access", "strong_high_street", "venue_independent"}],
+        [{"highstreet_access", "venue_independent"}],
     ),
     ("Easy commute to Pellam Cross", [{"journey:syn-p0012"}]),
     ("I need to get to Cindermoor Works in under 40 minutes", [{"journey:syn-p0021"}]),
@@ -536,28 +574,31 @@ HELD_OUT: tuple[tuple[str, Wishes], ...] = (
             {"school_primary_nearby", "school_primary_attainment", "school_secondary_attainment"},
         ],
     ),
-    ("Anywhere near the canal", [{"waterside", "water_access"}]),
+    ("Anywhere near the canal", [{"water_access"}]),
     ("Looking to buy a terraced house, budget £600k", [{"tenure:buy"}, {"budget"}]),
     ("Rent up to £1,600 pcm", [{"budget"}]),
     ("A one bed flat close to the tube", [{"station_walk", "station_lines"}]),
-    ("Nice cafes and a decent bakery", [{"venue_food_drink", "foodie", "venue_independent"}]),
+    (
+        "Nice cafes and a decent bakery",
+        [{"venue_food_drink_per_homes", "foodie", "venue_independent"}],
+    ),
     ("I want parks and good transport", [{"park_proximity"}, {"station_walk", "station_lines"}]),
     ("Family friendly area with playgrounds", [{"play_space_proximity", "family_amenities"}]),
     ("Close to Wexmoor University please", [{"journey:syn-p0026"}]),
     ("Must be in Foxholt", [{"area:syn-n0007:only"}]),
     ("Leafy streets", [{"leafy", "green_cover"}]),
-    ("I like a bit of nightlife", [{"venue_evening", "evening_venues"}]),
+    ("I like a bit of nightlife", [{"venue_evening", "pace"}]),
     ("Not far from a park", [{"park_proximity"}]),
-    ("Somewhere arty", [{"culture_venues", "creative"}]),
+    ("Somewhere arty", [{"culture_venues_per_homes"}]),
     (
         "A strong high street and independent cafes",
-        [{"highstreet_access", "strong_high_street", "venue_independent"}, {"venue_independent"}],
+        [{"highstreet_access", "venue_independent"}, {"venue_independent"}],
     ),
     (
         "I work from home so I want somewhere quiet with good coffee shops",
         [
             {"quiet_residential", "noise_exposure"},
-            {"venue_food_drink", "foodie", "venue_independent"},
+            {"venue_food_drink_per_homes", "foodie", "venue_independent"},
         ],
     ),
     (
@@ -571,20 +612,20 @@ HELD_OUT: tuple[tuple[str, Wishes], ...] = (
     ("I cycle, so within 25 minutes of Pellam Infirmary by bike", [{"journey:syn-p0028"}]),
     (
         "Historic, with lots of character",
-        [{"historic_character", "homes_pre1919", "conservation_cover"}],
+        [{"built_age", "homes_pre1919", "conservation_cover"}],
     ),
-    ("Lots to do in the evenings", [{"venue_evening", "evening_venues"}]),
+    ("Lots to do in the evenings", [{"venue_evening", "pace"}]),
     ("Good air quality", [{"air_no2"}]),
     ("A park on my doorstep", [{"park_proximity"}]),
     (
         "Restaurants, bars and a cinema",
         [
-            {"venue_food_drink", "foodie", "venue_independent"},
-            {"venue_evening", "evening_venues"},
-            {"culture_venues", "creative"},
+            {"venue_food_drink_per_homes", "foodie", "venue_independent"},
+            {"venue_evening", "pace"},
+            {"culture_venues_per_homes"},
         ],
     ),
-    ("I want to be by the river", [{"waterside", "water_access"}]),
+    ("I want to be by the river", [{"water_access"}]),
     (
         "Primary schools with good results",
         [{"school_primary_nearby", "school_primary_attainment", "school_secondary_attainment"}],
@@ -592,25 +633,25 @@ HELD_OUT: tuple[tuple[str, Wishes], ...] = (
     ("Somewhere peaceful", [{"quiet_residential", "noise_exposure"}]),
     ("We need two bedrooms and a park nearby", [{"park_proximity"}]),
     ("Station within a ten minute walk", [{"station_walk", "station_lines"}]),
-    ("Vibrant area with live music", [{"buzzy", "evening_venues"}, {"culture_venues", "creative"}]),
+    ("Vibrant area with live music", [{"pace"}, {"culture_venues_per_homes"}]),
     ("I'm a renter looking for a studio under £1,100", [{"budget"}]),
-    ("Close to shops", [{"highstreet_access", "strong_high_street", "venue_independent"}]),
+    ("Close to shops", [{"highstreet_access", "venue_independent"}]),
     ("Trees and parks", [{"leafy", "green_cover"}, {"park_proximity"}]),
     (
         "Pubs and restaurants within walking distance",
-        [{"venue_evening", "evening_venues"}, {"venue_food_drink", "foodie", "venue_independent"}],
+        [{"venue_evening", "pace"}, {"venue_food_drink_per_homes", "foodie", "venue_independent"}],
     ),
     (
         "I would like somewhere with a good secondary school",
         [{"school_primary_nearby", "school_primary_attainment", "school_secondary_attainment"}],
     ),
-    ("Waterside", [{"waterside", "water_access"}]),
+    ("Waterside", [{"water_access"}]),
     ("A calm, residential street", [{"quiet_residential", "noise_exposure"}]),
     ("I want to live near my work at Foxholt Market", [{"journey:syn-p0019"}]),
     ("35 minutes to Tallowgate Guild Quarter by train", [{"journey:syn-p0018"}]),
     (
         "Somewhere with character and period homes",
-        [{"historic_character", "homes_pre1919", "conservation_cover"}],
+        [{"built_age", "homes_pre1919", "conservation_cover"}],
     ),
     ("Good for kids", [{"play_space_proximity", "family_amenities"}]),
     ("Lots of independent shops", [{"venue_independent"}]),
@@ -623,15 +664,15 @@ HELD_OUT: tuple[tuple[str, Wishes], ...] = (
     ("Parks are really important to us", [{"park_proximity"}]),
     (
         "A high street I can walk to",
-        [{"highstreet_access", "strong_high_street", "venue_independent"}],
+        [{"highstreet_access", "venue_independent"}],
     ),
     (
         "Green and leafy with a playground",
         [{"green_cover", "leafy"}, {"play_space_proximity", "family_amenities"}],
     ),
     ("I want to rent a two bedroom flat for £2,000 a month", [{"tenure:rent"}, {"budget"}]),
-    ("Museums and galleries", [{"culture_venues", "creative"}]),
-    ("A place with a real buzz", [{"buzzy", "evening_venues"}]),
+    ("Museums and galleries", [{"culture_venues_per_homes"}]),
+    ("A place with a real buzz", [{"pace"}]),
     ("Fresh air and open space", [{"air_no2"}]),
 )
 
@@ -654,10 +695,10 @@ _ADJECTIVES = (
     "bad awful terrible horrible dreadful grim dire ghastly vile abysmal lousy naff tacky rubbish "
     "overrated pointless useless boring dull tedious annoying irritating exhausting draining "
     "depressing unbearable insufferable intolerable unimportant unnecessary unwanted irrelevant "
-    "optional pricey cheap dear costly distant remote away miles beyond absent missing finished "
+    "optional pricey dear costly distant remote away miles beyond absent missing finished "
     "done wrong mistaken false fake ironic sarcastic former previous ancient dead empty least "
     "little minimal scarce rare few tiny small smaller smallest worse worst dirty grubby scruffy "
-    "rough dodgy sketchy shabby ugly bleak soulless sterile bland another alternative opposite "
+    "dodgy sketchy shabby ugly bleak sterile another alternative opposite "
     "contrary reverse unlikely doubtful unsure uncertain impossible improbable hypothetical "
     "imaginary theoretical alleged "
 )
@@ -690,7 +731,7 @@ _MISSPELT = (
 _JOINING = (
     "although though however whereas while unless until if whether because since rather instead "
     "besides despite regardless otherwise else either nor yet still barely hardly scarcely rarely "
-    "seldom almost nearly merely just even quite fairly pretty maybe perhaps possibly probably "
+    "seldom almost nearly merely just even maybe perhaps possibly probably "
     "supposedly apparently allegedly ideally hopefully enough zero nil zilch nada who what why "
     "when where which how whose should could might may shall ought down above behind against "
     "versus minus sans "
@@ -699,7 +740,7 @@ _JOINING = (
 _ANYTHING = (
     "apple table window mountain ocean carpet engine pencil guitar violin helmet jacket candle "
     "mirror basket blanket bottle button camera castle cheese chicken cotton dragon feather "
-    "finger flower forest garden hammer island jungle kitten ladder lemon marble napkin needle "
+    "finger flower forest hammer island jungle kitten ladder lemon marble napkin needle "
     "orange paper pepper pillow planet pocket rabbit ribbon rocket saddle salmon sandal shadow "
     "silver spider sponge spring square stable statue summer sunset ticket tiger timber tomato "
     "tunnel turtle valley velvet wallet whisper winter wizard yellow zebra anchor arrow badge "

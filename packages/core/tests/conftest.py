@@ -1,7 +1,7 @@
 """The generated tests draw a fixed sample in `make ci`, and run in full with `-m full`.
 
-The whole suite has to stay under 30 seconds, and a generated test that tries
-every word beside every thing does not fit in that. So each has two forms:
+The whole suite has to stay within the limit `AGENTS.md` states, and a
+generated test that tries every word beside every thing does not fit in that. So each has two forms:
 the sample, which always runs, and the whole, which is marked `full` and is
 skipped unless it is asked for: `make test ARGS="-m full"`.
 """

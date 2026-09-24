@@ -8,17 +8,29 @@ committed synthetic release, for the tests that must hold of what is served.
 """
 
 import copy
+import dataclasses
 import random
+from collections.abc import Mapping, Sequence
 from functools import cache
 from pathlib import Path
 from typing import Any
 
-from burro_core.catalogue import FEATURES, TAGS, default_direction, percentile_of, tag_raw
+from burro_core.catalogue import (
+    FEATURES,
+    RANKED_AS,
+    TAGS,
+    band_of,
+    default_direction,
+    percentile_of,
+    tag_raw,
+    tags_of,
+)
 from burro_core.ids import (
     Combine,
     Confidence,
     Direction,
     FeatureId,
+    GrittyVariant,
     Mode,
     PlaceKind,
     Provenance,
@@ -27,6 +39,8 @@ from burro_core.ids import (
     Strictness,
     TagId,
     Tenure,
+    Toward,
+    segments_for,
 )
 from burro_core.release import (
     SYNTHETIC_ATTRIBUTION,
@@ -98,13 +112,32 @@ def destination_id(number: int) -> str:
     return f"syn-d{number:04d}"
 
 
-def manifest(areas: int, rankable: int, destinations: int, places: int) -> Manifest:
+# The vibes the releases of the tests carry: the ten, and Gritty.
+VARIANT = GrittyVariant.B
+VIBES = tags_of(VARIANT)
+# The features no release carries yet, so that three recipes run short.
+NOT_CARRIED = frozenset(
+    {
+        FeatureId.PRIVATE_OUTDOOR_SPACE,
+        FeatureId.CUISINE_VARIETY,
+        FeatureId.GP_WALK,
+        FeatureId.PHARMACY_WALK,
+    }
+)
+CARRIED = tuple(feature_id for feature_id in FeatureId if feature_id not in NOT_CARRIED)
+
+
+def manifest(
+    areas: int, rankable: int, destinations: int, places: int, variant: GrittyVariant = VARIANT
+) -> Manifest:
     return Manifest(
         release_id=RELEASE_ID,
-        schema_version=1,
+        schema_version=2,
         built_at=BUILT_AT,
-        catalogue_version=1,
+        catalogue_version=12,
+        gritty_variant=variant,
         synthetic=True,
+        preview=False,
         city="syn",  # pyright: ignore[reportArgumentType]
         seed=20260923,
         sources=(
@@ -129,14 +162,23 @@ def manifest(areas: int, rankable: int, destinations: int, places: int) -> Manif
     )
 
 
-def metric(feature_id: FeatureId, rankable: bool = True) -> Metric:
+def metric(feature_id: FeatureId, rankable: bool | None = None) -> Metric:
+    """The row of a feature. What core shows and never ranks on is not ranked on."""
     feature = FEATURES[feature_id]
+    if rankable is None:
+        rankable = feature_id not in RANKED_AS
     return Metric(
         feature_id=feature_id,
         label=feature.label,
+        short_label=feature.short_label,
         dimension=feature.dimension,
         unit=feature.unit,
         polarity=feature.polarity,
+        kind=feature.kind,
+        describes=feature.describes,
+        family=feature.family,
+        method=feature.method,
+        in_likeness=feature.in_likeness,
         native_resolution=feature.native_resolution,
         source_ids=SYNTHETIC,
         vintage="2025",
@@ -174,12 +216,14 @@ def place(number: int) -> Place:
     )
 
 
-def cost(area: str, upper: int, tenure: Tenure = Tenure.RENT) -> CostEstimate:
+def cost(
+    area: str, upper: int, tenure: Tenure = Tenure.RENT, segment: Segment | None = None
+) -> CostEstimate:
     rent = tenure is Tenure.RENT
     return CostEstimate(
         area_id=area,
         tenure=tenure,
-        segment=Segment.BED_1 if rent else Segment.FLAT,
+        segment=segment or (Segment.BED_1 if rent else Segment.FLAT),
         lower_quartile=upper - (300 if rent else 100_000),
         median=upper - (150 if rent else 50_000),
         upper_quartile=upper,
@@ -233,6 +277,22 @@ def feature_value(area: str, feature_id: FeatureId, percentile: float | None) ->
     )
 
 
+def tag_value(area: str, tag_id: TagId, score: float | None, band: int | None = None) -> TagValue:
+    """A row of `tags.json`, with the score given as the contract gives it."""
+    placed = score is not None
+    found = (band or min(5, 1 + int(score // 20))) if placed else None
+    return TagValue(
+        area_id=area,
+        tag_id=tag_id,
+        raw=round(score / 100, 6) if placed else None,
+        score=score,
+        coverage=1.0 if placed else 0.0,
+        band=found,
+        spread_low=found,
+        spread_high=found,
+    )
+
+
 def build_worked_release() -> InMemoryRelease:
     """The worked example, built by hand. Its percentiles are given, not computed."""
     areas = range(1, len(WORKED) + 1)
@@ -242,25 +302,25 @@ def build_worked_release() -> InMemoryRelease:
         neighbourhoods_origin=Origin(source_ids=SYNTHETIC, as_of="2026-09-23"),
         stations_origin=Origin(source_ids=SYNTHETIC, as_of="2026-09"),
         travel_table=travel_table(4, 2, tuple((row[0], row[1]) for row in WORKED)),
-        metrics=(metric(FeatureId.PARK_PROXIMITY), metric(FeatureId.NOISE_EXPOSURE)),
-        features=tuple(
-            feature_value(area_id(n), feature_id, WORKED[n - 1][column])
-            for n in areas
-            for feature_id, column in (
-                (FeatureId.PARK_PROXIMITY, 3),
-                (FeatureId.NOISE_EXPOSURE, 4),
-            )
+        metrics=(
+            metric(FeatureId.PARK_PROXIMITY),
+            metric(FeatureId.NOISE_EXPOSURE),
+            # A part of Leafy, so that the score the example gives has a source to cite.
+            metric(FeatureId.GREEN_COVER),
         ),
-        tags=tuple(
-            TagValue(
-                area_id=area_id(n),
-                tag_id=TagId.LEAFY,
-                raw=round(WORKED[n - 1][5] / 100, 6),
-                score=WORKED[n - 1][5],
-                coverage=1.0,
-            )
-            for n in areas
+        features=(
+            *(
+                feature_value(area_id(n), feature_id, WORKED[n - 1][column])
+                for n in areas
+                for feature_id, column in (
+                    (FeatureId.PARK_PROXIMITY, 3),
+                    (FeatureId.NOISE_EXPOSURE, 4),
+                )
+            ),
+            *(feature_value(area_id(n), FeatureId.GREEN_COVER, WORKED[n - 1][5]) for n in areas),
         ),
+        tags=tuple(tag_value(area_id(n), TagId.LEAFY, WORKED[n - 1][5]) for n in areas),
+        vibes=(TAGS[TagId.LEAFY],),
         costs=tuple(cost(area_id(n), WORKED[n - 1][2]) for n in areas),
         destinations=tuple(
             Destination(destination_id=destination_id(n), centroid=(0.01 * n, 0.0)) for n in (1, 2)
@@ -314,7 +374,7 @@ def build_worked_spec() -> PreferenceSpec:
                 provenance=stated,
             ),
         ),
-        tags=(TagWeight(tag_id=TagId.LEAFY, weight=0.40, provenance=stated),),
+        tags=(TagWeight(tag_id=TagId.LEAFY, weight=0.40, toward=Toward.HIGH, provenance=stated),),
         areas=(),
         tenure_from=stated,
         commute_combine_from=Provenance.DEFAULT,
@@ -333,7 +393,7 @@ def _square(lon: float, lat: float) -> list[list[list[float]]]:
 def _feature_rows(areas: list[dict[str, Any]]) -> list[dict[str, Any]]:
     rankable = [a["rankable"] for a in areas]
     rows: list[dict[str, Any]] = []
-    for column, feature_id in enumerate(FeatureId):
+    for column, feature_id in enumerate(CARRIED):
         # Spread without a random source, with a gap on purpose in every third feature.
         values = [
             None
@@ -355,32 +415,39 @@ def _feature_rows(areas: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return rows
 
 
-def _tag_rows(areas: list[dict[str, Any]], features: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _tag_rows(
+    areas: list[dict[str, Any]], features: list[dict[str, Any]], variant: GrittyVariant
+) -> list[dict[str, Any]]:
     percentiles = {(r["area_id"], FeatureId(r["feature_id"])): r["percentile"] for r in features}
     rows: list[dict[str, Any]] = []
-    for tag_id in TagId:
+    rankable = [a["rankable"] for a in areas]
+    for vibe in tags_of(variant):
         raws = [
             tag_raw(
-                tag_id,
-                {t.feature_id: percentiles[a["area_id"], t.feature_id] for t in TAGS[tag_id].terms},
+                vibe.tag_id,
+                {t.feature_id: percentiles.get((a["area_id"], t.feature_id)) for t in vibe.terms},
             )
             for a in areas
         ]
-        scores = percentile_of([r.raw for r in raws], [a["rankable"] for a in areas])
+        scores = percentile_of([r.raw for r in raws], rankable)
+        bands = band_of([r.raw for r in raws], rankable)
         rows += [
             {
                 "area_id": area["area_id"],
-                "tag_id": tag_id.value,
+                "tag_id": vibe.tag_id.value,
                 "raw": raw.raw,
                 "score": score,
                 "coverage": raw.coverage,
+                "band": band,
+                "spread_low": band,
+                "spread_high": band,
             }
-            for area, raw, score in zip(areas, raws, scores, strict=True)
+            for area, raw, score, band in zip(areas, raws, scores, bands, strict=True)
         ]
     return rows
 
 
-def build_documents() -> dict[str, Any]:
+def build_documents(variant: GrittyVariant = VARIANT) -> dict[str, Any]:
     """A small release that keeps every rule of section 2.8, as the content of its files."""
     count = len(AREA_NAMES)
     ids = [area_id(n) for n in range(1, count + 1)]
@@ -408,9 +475,9 @@ def build_documents() -> dict[str, Any]:
         ),
     )
     return {
-        "manifest.json": manifest(count, count - 1, len(destinations), len(PLACES)).model_dump(
-            mode="json"
-        ),
+        "manifest.json": manifest(
+            count, count - 1, len(destinations), len(PLACES), variant
+        ).model_dump(mode="json"),
         "neighbourhoods.json": {
             "source_ids": ["synthetic"],
             "as_of": "2026-09-23",
@@ -429,19 +496,23 @@ def build_documents() -> dict[str, Any]:
             ],
         },
         "catalogue.json": {
-            "catalogue_version": 1,
-            "metrics": [metric(feature_id).model_dump(mode="json") for feature_id in FeatureId],
+            "catalogue_version": 12,
+            "metrics": [metric(feature_id).model_dump(mode="json") for feature_id in CARRIED],
+            "vibes": [vibe.model_dump(mode="json") for vibe in tags_of(variant)],
         },
         "features.json": {"rows": features},
-        "tags.json": {"rows": _tag_rows(areas, features)},
+        "tags.json": {"rows": _tag_rows(areas, features, variant)},
         "cost.json": {
             "rows": [
-                cost(ids[n], 1400 + n * 100, tenure).model_dump(mode="json")
-                if tenure is Tenure.RENT
-                else cost(ids[n], 400_000 + n * 25_000, tenure).model_dump(mode="json")
+                cost(
+                    ids[n], (1400 if tenure is Tenure.RENT else 400_000) + n * step, tenure, kind
+                ).model_dump(mode="json")
                 # The last rankable area has no estimate, on purpose.
                 for n in range(count - 2)
-                for tenure in Tenure
+                for tenure, step in ((Tenure.RENT, 100), (Tenure.BUY, 25_000))
+                # Every kind of home has a cost somewhere, so that a budget for
+                # any of them can be tested.
+                for kind in segments_for(tenure)
             ]
         },
         "destinations.json": {
@@ -475,18 +546,117 @@ def build_documents() -> dict[str, Any]:
     }
 
 
-_DOCUMENTS = build_documents()
+_DOCUMENTS = {variant: build_documents(variant) for variant in GrittyVariant}
 
 
-def documents() -> dict[str, Any]:
+def documents(variant: GrittyVariant = VARIANT) -> dict[str, Any]:
     """The content of a valid release's files. A copy, so a test may break it."""
-    return copy.deepcopy(_DOCUMENTS)
+    return copy.deepcopy(_DOCUMENTS[variant])
 
 
 @cache
-def small_release() -> InMemoryRelease:
+def small_release(variant: GrittyVariant = VARIANT) -> InMemoryRelease:
     """A small release that has been through `parse_release`. Shared: a release never changes."""
-    return parse_release(documents())
+    return parse_release(documents(variant))
+
+
+def with_figures(
+    release: InMemoryRelease, figures: Mapping[FeatureId, Sequence[float | None]]
+) -> InMemoryRelease:
+    """A release with some features given these figures, area by area in id order.
+
+    An area that is given none has no figure. Every percentile, and every
+    score and band that rests on one, is worked out again, as a builder
+    would work it out.
+    """
+    areas = release.neighbourhoods
+    rankable = [area.rankable for area in areas]
+    rows = {(row.area_id, row.feature_id): row for row in release.features}
+    for feature_id, given in figures.items():
+        values = [*given, *[None] * (len(areas) - len(given))]
+        percentiles = percentile_of(values, rankable)
+        for area, value, percentile in zip(areas, values, percentiles, strict=True):
+            rows[area.area_id, feature_id] = FeatureValue(
+                area_id=area.area_id,
+                feature_id=feature_id,
+                value=value,
+                percentile=percentile,
+                coverage=1.0 if value is not None else 0.0,
+            )
+    tags: list[TagValue] = []
+    for vibe in release.vibes:
+        raws = [
+            tag_raw(
+                vibe.tag_id,
+                {
+                    term.feature_id: row.percentile
+                    for term in vibe.terms
+                    if (row := rows.get((area.area_id, term.feature_id))) is not None
+                },
+            )
+            for area in areas
+        ]
+        scores = percentile_of([raw.raw for raw in raws], rankable)
+        bands = band_of([raw.raw for raw in raws], rankable)
+        tags += [
+            TagValue(
+                area_id=area.area_id,
+                tag_id=vibe.tag_id,
+                raw=raw.raw,
+                score=score,
+                coverage=raw.coverage,
+                band=band,
+                spread_low=band,
+                spread_high=band,
+            )
+            for area, raw, score, band in zip(areas, raws, scores, bands, strict=True)
+        ]
+    return dataclasses.replace(release, features=tuple(rows.values()), tags=tuple(tags))
+
+
+def unplaced(release: InMemoryRelease, *tag_ids: TagId) -> InMemoryRelease:
+    """A release that carries some vibes and places no area on them.
+
+    It is what a first real build holds of most vibes: the recipe, and too
+    few of its parts for any area to have a band.
+    """
+    rows = tuple(
+        row.replace(
+            raw=None, score=None, coverage=0.3, band=None, spread_low=None, spread_high=None
+        )
+        if row.tag_id in tag_ids
+        else row
+        for row in release.tags
+    )
+    return dataclasses.replace(release, tags=rows)
+
+
+MATRICES = ("pt_typical", "pt_just_missed", "cycle", "walk")
+
+
+def preview_documents() -> dict[str, Any]:
+    """The small release as a preview: areas, outlines and measures, and none of the rest.
+
+    It holds no journey, no place to reach, no station and no cost, and says
+    so: the journeys and the stations state no source, because there is none.
+    """
+    found = documents()
+    found["manifest.json"].update(preview=True)
+    found["destinations.json"]["destinations"] = []
+    found["places.json"]["places"] = []
+    found["cost.json"]["rows"] = []
+    travel = found["travel.json"]
+    travel.update(source_ids=[], as_of=None, destination_ids=[])
+    for matrix in MATRICES:
+        travel[matrix] = [[] for _ in travel["area_ids"]]
+    found["stations.json"].update(source_ids=[], as_of=None, rows=[])
+    return found
+
+
+@cache
+def preview_release() -> InMemoryRelease:
+    """The small preview, once it has been through `parse_release`."""
+    return parse_release(preview_documents())
 
 
 FIXTURES = Path(__file__).parents[3] / "data" / "fixtures" / "synthetic"
@@ -512,8 +682,11 @@ def draws(seed: int) -> random.Random:
 
 def random_spec(draw: random.Random, release: Release) -> PreferenceSpec:
     spec = default_spec(draw.choice(list(Tenure)))
-    features = draw.sample(list(FeatureId), draw.randrange(0, 6))
-    tags = draw.sample(list(TagId), draw.randrange(0, 4))
+    # What the release shows and ranks no area on cannot be weighed.
+    carried = [metric.feature_id for metric in release.metrics if metric.rankable]
+    features = draw.sample(carried, min(draw.randrange(0, 6), len(carried)))
+    vibes = list(release.vibes)
+    tags = draw.sample(vibes, min(draw.randrange(0, 4), len(vibes)))
     places = draw.sample([p.place_id for p in release.places], draw.randrange(0, 4))
     return spec.replace(
         budget=spec.budget.replace(
@@ -546,7 +719,13 @@ def random_spec(draw: random.Random, release: Release) -> PreferenceSpec:
             for f in features
         ),
         tags=tuple(
-            TagWeight(tag_id=t, weight=draw.randrange(0, 21) / 20, provenance=Provenance.STATED)
-            for t in tags
+            TagWeight(
+                tag_id=vibe.tag_id,
+                weight=draw.randrange(0, 21) / 20,
+                # Only a scale has a low end to ask for.
+                toward=draw.choice(list(Toward)) if vibe.low_end else Toward.HIGH,
+                provenance=Provenance.STATED,
+            )
+            for vibe in tags
         ),
     )

@@ -58,21 +58,56 @@ class FeatureId(StrEnum):
     CONSERVATION_COVER = "conservation_cover"
     STATION_WALK = "station_walk"
     STATION_LINES = "station_lines"
+    # The parts the vibes of catalogue version 2 are made of.
+    INDEPENDENTS_NEARBY = "independents_nearby"
+    CENTRE_SMALL = "centre_small"
+    CENTRE_COMPACT = "centre_compact"
+    LISTED_BUILDINGS = "listed_buildings"
+    HOMES_POST2000 = "homes_post2000"
+    ROAD_MAJOR_EXPOSURE = "road_major_exposure"
+    EVENING_CLUSTER_EXPOSURE = "evening_cluster_exposure"
+    LAND_INDUSTRY = "land_industry"
+    LAND_STORAGE = "land_storage"
+    LAND_TRANSPORT_OTHER = "land_transport_other"
+    LAND_GARDENS = "land_gardens"
+    LAND_WOODLAND = "land_woodland"
+    PARK_LARGE_PROXIMITY = "park_large_proximity"
+    PARK_FACILITIES = "park_facilities"
+    GROCERY_WALK = "grocery_walk"
+    INCIDENT_CRIMINAL_DAMAGE = "incident_criminal_damage"
+    INCIDENT_ANTISOCIAL = "incident_antisocial"
+    PRIVATE_OUTDOOR_SPACE = "private_outdoor_space"
+    CUISINE_VARIETY = "cuisine_variety"
+    GP_WALK = "gp_walk"
+    PHARMACY_WALK = "pharmacy_walk"
+    # What a wish for places to eat and drink is ranked on. The count is shown.
+    VENUE_FOOD_DRINK_PER_HOMES = "venue_food_drink_per_homes"
+    # What homes sold for: the second reading of a word for a smart area. It is a figure
+    # of the homes of a place, and never of who lives there or of what they earn.
+    PRICE_MEDIAN = "price_median"
+    # What a wish for culture is ranked on. The count is shown.
+    CULTURE_VENUES_PER_HOMES = "culture_venues_per_homes"
 
 
 class TagId(StrEnum):
-    VILLAGE_FEEL = "village_feel"
-    BUZZY = "buzzy"
+    """On screen a tag is a vibe. Seven ids of catalogue version 1 are retired and never reused:
+    buzzy, evening_venues, historic_character, creative, strong_high_street,
+    near_universities and waterside."""
+
     LEAFY = "leafy"
-    CREATIVE = "creative"
-    FAMILY_AMENITIES = "family_amenities"
-    NEAR_UNIVERSITIES = "near_universities"
-    WATERSIDE = "waterside"
-    STRONG_HIGH_STREET = "strong_high_street"
-    EVENING_VENUES = "evening_venues"
+    VILLAGE_FEEL = "village_feel"
+    PACE = "pace"
     QUIET_RESIDENTIAL = "quiet_residential"
+    BUILT_AGE = "built_age"
+    EVERYDAY_ON_FOOT = "everyday_on_foot"
+    PARKS_CLOSE_BY = "parks_close_by"
+    HOMES = "homes"
     FOODIE = "foodie"
-    HISTORIC_CHARACTER = "historic_character"
+    FAMILY_AMENITIES = "family_amenities"
+    # Works and warehouses, and Gritty: the scale that counts recorded crime, under the
+    # id it had when it was called Street character. An id is never renamed.
+    WORKS_WAREHOUSES = "works_warehouses"
+    STREET_CHARACTER = "street_character"
 
 
 class Dimension(StrEnum):
@@ -83,6 +118,58 @@ class Dimension(StrEnum):
     VENUES_CULTURE = "venues_culture"
     HOMES = "homes"
     STATION_ACCESS = "station_access"
+    SERVICES = "services"
+
+
+class FeatureKind(StrEnum):
+    """What a person may want of a feature, which decides where it may stand."""
+
+    TASTE = "taste"  # more or less of it
+    AMENITY = "amenity"  # more of it, or nearer
+    NUISANCE = "nuisance"  # less of it only
+    ON_REQUEST = "on_request"  # one direction, by a fairness rule. In no vibe
+
+
+class Describes(StrEnum):
+    """What a feature is a fact about. There is no value for who lives somewhere."""
+
+    PLACE = "place"
+    BUILDINGS = "buildings"
+    EVENTS = "events"
+
+
+class Family(StrEnum):
+    """The groups of the settings, in the order they are shown."""
+
+    STREETS_HOMES = "streets_homes"
+    PACE_FOOD = "pace_food"
+    GREEN = "green"
+    DAILY_LIFE = "daily_life"
+
+
+class Method(StrEnum):
+    MEASURED = "measured"
+    MODELLED = "modelled"
+    AVERAGED = "averaged"
+
+
+class TagShape(StrEnum):
+    SCALE = "scale"  # two named ends, and a person may ask for either
+    ONE_WAY = "one_way"  # one direction, and a person may ask for more of it
+
+
+class Toward(StrEnum):
+    """Which end of a vibe is asked for. A one-way vibe has the high end alone."""
+
+    HIGH = "high"
+    LOW = "low"
+
+
+class GrittyVariant(StrEnum):
+    """Whether a release carries Gritty, the one vibe that counts recorded crime."""
+
+    A = "a"  # It does not, and holds no recorded crime. "Gritty" is read as land use
+    B = "b"  # It does: a scale from Polished to Gritty, which Works and warehouses is part of
 
 
 class Polarity(StrEnum):
@@ -94,6 +181,7 @@ class Polarity(StrEnum):
 class NativeResolution(StrEnum):
     OA = "oa"
     LSOA = "lsoa"
+    MSOA = "msoa"
     GRID_1KM = "grid_1km"
     POINT = "point"
     POLYGON = "polygon"
@@ -129,9 +217,14 @@ class Segment(StrEnum):
 
 
 class Confidence(StrEnum):
+    """What a cost rests on. The first three are of a range Burro worked out."""
+
     HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
+    # A publisher's own figure, given with no count of what stands behind it. It is said
+    # of a row that holds a median and no range, and of no other.
+    UNSTATED = "unstated"
 
 
 class Mode(StrEnum):
@@ -305,6 +398,12 @@ class DirectionChoice(StrEnum):
     DEFAULT = "default"
 
 
+class TowardChoice(StrEnum):
+    HIGH = "high"
+    LOW = "low"
+    DEFAULT = "default"
+
+
 class OpsGroup(StrEnum):
     """The six arrays of `Operations`, in the order the reducer applies them."""
 
@@ -350,7 +449,11 @@ class FilterReason(StrEnum):
 
 class UnrankedReason(StrEnum):
     NOT_RANKABLE = "not_rankable"
+    # Under half of all that counts in the search has a figure.
     INSUFFICIENT_DATA = "insufficient_data"
+    # Under half of the features and vibes that count has a figure, whatever
+    # is known of the journeys and the cost.
+    CHARACTER_UNKNOWN = "character_unknown"
 
 
 class FactKind(StrEnum):
@@ -362,23 +465,34 @@ class FactKind(StrEnum):
     TRAVEL = "travel"
     STATION = "station"
     MISSING = "missing"
+    LIKENESS = "likeness"
 
 
 class TemplateId(StrEnum):
     AREA = "area"
     FEATURE = "feature"
     FEATURE_CRIME = "feature_crime"
-    TAG = "tag"
+    VIBE = "vibe"
+    VIBE_RANGE = "vibe_range"
+    VIBE_UNKNOWN = "vibe_unknown"
     COST_RENT = "cost_rent"
     COST_BUY = "cost_buy"
+    COST_BUY_MEDIAN = "cost_buy_median"
     BUDGET_UNDER = "budget_under"
     BUDGET_OVER = "budget_over"
+    BUDGET_UNDER_MEDIAN = "budget_under_median"
+    BUDGET_OVER_MEDIAN = "budget_over_median"
     TRAVEL_PT = "travel_pt"
+    TRAVEL_PT_OVER = "travel_pt_over"
     TRAVEL_OTHER = "travel_other"
+    TRAVEL_OTHER_OVER = "travel_other_over"
     TRAVEL_BEYOND = "travel_beyond"
     STATION = "station"
     STATION_NEARBY = "station_nearby"
     MISSING = "missing"
+    MISSING_JOURNEY = "missing_journey"
+    LIKENESS = "likeness"
+    LIKENESS_SAME = "likeness_same"
 
 
 class SentenceOrigin(StrEnum):
@@ -410,7 +524,17 @@ class InterpretStatus(StrEnum):
     OFF_TOPIC = "off_topic"
     POLICY_REDIRECT = "policy_redirect"
     CLARIFY = "clarify"
+    # Nothing was applied, and what was noticed is offered for the person to choose.
+    SUGGEST = "suggest"
     OK = "ok"
+
+
+class SuggestionDirection(StrEnum):
+    """What a person may choose of a thing the reader noticed. It never guesses one."""
+
+    MORE = "more"
+    LESS = "less"
+    IGNORE = "ignore"
 
 
 class Notice(StrEnum):
@@ -421,7 +545,7 @@ class Notice(StrEnum):
 
 class InterpreterName(StrEnum):
     RULE = "rule"
-    CLAUDE = "claude"
+    MODEL = "model"
 
 
 class UnmetCategory(StrEnum):
@@ -433,6 +557,13 @@ class UnmetCategory(StrEnum):
     AFFORDABILITY_VERDICT = "affordability_verdict"
     COMMUNITY_AMENITIES = "community_amenities"
     OUTSIDE_THE_CITY = "outside_the_city"
+    # What no open data measures at the scale of a neighbourhood.
+    STREET_CLEANLINESS = "street_cleanliness"
+    UPKEEP = "upkeep"
+    RATINGS = "ratings"
+    PRICES_AND_HOURS = "prices_and_hours"
+    MOBILE_COVERAGE = "mobile_coverage"
+    CHANGE_OVER_TIME = "change_over_time"
     OTHER = "other"
 
 
@@ -444,6 +575,8 @@ class AssumptionCode(StrEnum):
     MAX_MINUTES = "max_minutes"
     DIRECTION = "direction"
     WEIGHT = "weight"
+    # A word with two meanings was read as its place part alone. The word is quoted.
+    WORD = "word"
 
 
 class OptionKind(StrEnum):

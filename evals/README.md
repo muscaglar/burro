@@ -2,7 +2,7 @@
 
 How well does Burro read what a person types? This folder answers that, for any reader, in under a second, with no model and no network.
 
-Burro turns a sentence into typed edits to a search. Two readers sit behind one interface: the rules in `packages/core`, and a model in `services/api`. `evals/reader` holds made-up sentences, what a correct reading of each one is, and a scorer that runs a reader over all of them.
+Burro turns a sentence into typed edits to a search. Two readers sit behind one interface: the rules in `packages/core`, and a model in `services/api`, which one of four providers runs. `evals/reader` holds made-up sentences, what a correct reading of each one is, and a scorer that runs a reader over all of them.
 
 | Path | What it is |
 |---|---|
@@ -10,8 +10,10 @@ Burro turns a sentence into typed edits to a search. Two readers sit behind one 
 | `reader/score.py` | The scorer. Standard library and `burro_core` only |
 | `reader/floor.json` | The least a reader may score before a run fails |
 | `reader/controls.py` | Two readers whose faults are known, to measure a real one against |
-| `reader/model_reader.py` | Makes the model-backed reader as the service makes it. The only file here that imports the API |
-| `reader/test_score.py` | Tests of the scorer itself |
+| `reader/stand_in.py` | Measures the guard on a model with two stand-ins, and no provider. It imports the API |
+| `reader/answers/` | What one model answered to 112 made-up sentences, word for word, and the 30 cases written for that measurement |
+| `reader/replay.py` | Reads those answers again through the reader the service uses, with a stand-in that hands each one back. It calls no provider, and imports the API |
+| `reader/test_score.py`, `test_stand_in.py`, `test_replay.py` | Tests of the scorer itself, of the stand-ins, and of the answers on disk against the floor |
 | `reader/baseline/` | The outcome of every case at the last measurement, one file for each reader |
 | `reader/BASELINE.md` | The last measurement, in words, with its date |
 
@@ -32,7 +34,8 @@ A run fails if:
 
 1. **any case is reversed**, whatever the rest looks like, or
 2. the share read correctly is below `correct_share` in `floor.json`, or
-3. more cases than `unasked_ceiling` hold an edit nobody asked for.
+3. more cases than `unasked_ceiling` hold an edit nobody asked for, or
+4. the share of the cases marked `plain` that are read correctly is below `plain_correct_share`, which is 1: a plain prompt must be applied.
 
 A run of part of the set, with `--group` or `--case`, is held to the first rule only.
 
@@ -44,14 +47,32 @@ Every case ends as one of these. The worst thing found decides.
 |---|---|
 | **REVERSED** | The reader did the opposite of what was said. It raised what was turned down, added a journey to a place the person wants distance from, or made the other rule for an area. The sentences are always listed |
 | unasked | The reader made an edit nobody asked for: a wish of someone else's, a number the words do not give, a workplace that is over. The sentences are always listed |
-| declined | The reader read nothing of what was asked. The form is still on the screen, so this costs little |
+| declined | The reader read nothing of what was asked, and did not offer all of it. The form is still on the screen, so this costs little |
 | in part | The reader read some of what was asked, or gave a notice or asked a question that was not called for |
+| suggested | The reader moved nothing, and offered every thing that was asked for, with the direction asked for among the choices. It is neither correct nor reversed. A suggestion that offers only the other direction is declined |
 | correct | Everything asked for happened, and nothing else did |
 | failed | The reader raised an error. Only a model-backed reader can |
 
-Under the table are two more lines. Some cases ask for something, and some are right to leave alone: a question, a wish of someone else's, a sentence about the weather. A reader that does nothing is right about every case of the second kind, so one share for the whole set flatters it. The two lines give each kind its own share.
+A suggestion cannot be reversed or unasked, because nothing moved. It is judged by what a person could choose: the scorer tries each way of choosing among what was offered, one choice of each suggestion or none, and the case is `suggested` if one of them leaves the search as the case says it should be.
+
+Under the table are more lines. Some cases ask for something, and some are right to leave alone: a question, a wish of someone else's, a sentence about the weather. A reader that does nothing is right about every case of the second kind, so one share for the whole set flatters it. The lines give each kind its own share, and for the first kind how many were read or offered. A case that is right to leave alone stays correct when nothing moved, and the suggestions made there are counted on a line of their own: "offered where nothing was asked". The last line says how many prompts were applied, how many became suggestions and how many were declined.
 
 The scorer prints counts, case ids and sentences from the cases. It never prints what a reader answered, and of an error it keeps only the name of its class.
+
+### What was offered
+
+Nothing a model reads is applied: it is offered, and the way Burro reads a thing is marked as its guess (contract, section 8.2). So a reader that marks a guess is judged a second time, by what a person would get who pressed every guess. The rules mark none, and their score is as it was.
+
+| Outcome | What happened |
+|---|---|
+| **APPLIED WITH NO PRESS** | The reader applied an edit the rules did not make. No path may |
+| **NEVER TO BE OFFERED** | An offer holds what is never offered from a model: a vibe that counts recorded crime, recorded crime the words do not name, a firm limit that the words against its own number do not give, a number for a weight, a rule for an area as the guess, a journey to a place the person did not type, a number of minutes or an amount they did not type, a way of travelling no word names, and an offer of a model's that rests on a wish about who lives somewhere. It is judged from the offer and the sentence, and asks nothing of the reader. It does not know a word about wealth: core lists none yet |
+| **BACKWARDS GUESS** | To press every guess does the opposite of what was said |
+| backwards, unmarked | A way a model added, which is no guess, would do the opposite if it were pressed. The rules' own ways are not counted: they are there whoever reads |
+| unasked guess | To press every guess makes an edit nobody asked for |
+| not read, in part, right | As above, of the search a person would have who pressed every guess |
+
+A run of such a reader fails if anything is applied with no press, if anything is offered that is never to be offered, if a right reading of the rules is lost, if more than 1 case in 100 is a backwards guess, or if more than 1 in 25 of the cases that are right to leave alone holds a backwards way that a model added.
 
 ### The two controls
 
@@ -85,11 +106,12 @@ One case is one line of JSON.
 | `tenure` | `rent` or `buy`: where the toggle stands when they type |
 | `expect` | What a correct reading is. Every key below is optional |
 | `why` | One line on what the case is for |
-| `held` | Optional. What the search already holds, for a follow-up: `journeys`, `areas`, `weights`, `tags`, `budget` |
+| `held` | Optional. What the search already holds, for a follow-up: `journeys`, `areas`, `weights`, `tags`, `budget`. A vibe that is held towards the low end of a scale is given a weight below nothing |
+| `plain` | Optional, `true` or `false`. `true` says the prompt is plain by the grammar of the contract's section 8.2, and must be applied. `false` says it is not, and that any edit that is applied is unasked |
 
 Anything `expect` does not name must stay as it was. A reader that moves it has made an edit nobody asked for.
 
-**Features and tags.** Each is written `feature:<id>` or `tag:<id>`, with the ids of the contract's section 3.
+**Features and vibes.** Each is written `feature:<id>` or `tag:<id>`, with the ids of the contract's section 3. A scale rises towards its high end and falls towards its low end: "calm" is a fall of `tag:pace`, and "a house with a garden" a fall of `tag:homes`.
 
 | Key | Meaning | If the reader does otherwise |
 |---|---|---|
@@ -142,6 +164,10 @@ Anything `expect` does not name must stay as it was. A reader that moves it has 
 | `other_languages` | Twelve languages, and sentences that mix two |
 | `very_long` | 300 characters and more, as a person writes when they tell the whole story |
 | `very_short` | One to three words |
+| `plain_prompts` | Prompts that are plain by the grammar, and must be applied whole: a list of things, a budget, a journey. Each is marked `plain` |
+| `suggestions` | Prompts that are not plain, of which nothing may be applied. What they ask for must be offered |
+| `vibes` | Three sentences for each vibe of the committed release. The words of the way gritty is not built in it are held by core's own tests |
+| `whole_searches` | The whole of a search as a newcomer types it, and each part of one alone: hedged wishes, a word for a smart area or for character, a journey given as a range or to a place the release does not hold, and a home to rent or to buy. `whole-035` is the founder's own test sentence, word for word and by their consent. It is the one sentence of the set that is not made up, and it names a place the release does not hold |
 
 ## Add a case
 
@@ -165,49 +191,98 @@ When the reader improves, raise the floor. When a case turns out to be wrong, ch
 
 This repository is public. Anything added here is published.
 
+## Measure the guard with a stand-in
+
+```
+uv run python evals/reader/stand_in.py            # about a minute
+uv run python evals/reader/stand_in.py --show     # and list each case the settings move
+```
+
+Nothing a model reads is applied: it is offered, under the checks of the contract, section 8.2. This measures those checks with no model and no provider. Two stand-ins answer in a model's place, through the reader the service uses.
+
+| Stand-in | What it answers | What it shows |
+|---|---|---|
+| `right` | What the case says a careful person would do | The most a model could add that reads every sentence well |
+| `backwards` | Every thing the sentence names, raised, whatever is said of it | What the checks let a careless model do |
+
+Each is run twice: sent the words alone, and sent the search settings with them, as `BURRO_MODEL_SENDS_SETTINGS` decides in the service. A stand-in uses only what it is sent. Each case is scored with the words a model could best rest its edits on: the whole text, or one sentence of it. It exits 1 if any case ends otherwise when the settings are sent.
+
+Measured on 2026-09-24, on the 781 cases the set then held. 39 cases were added after it, 35 of `whole_searches` and 4 of `who_lives_there`. By what became of the search, which is what the rules made of it:
+
+| Reader | Correct | Suggested | In part | Declined | Unasked | REVERSED |
+|---|---:|---:|---:|---:|---:|---:|
+| The rules alone | 408 | 232 | 5 | 136 | 0 | 0 |
+| `right`, sent the words alone or the settings as well | 431 | 279 | 5 | 66 | 0 | 0 |
+| `backwards`, sent the words alone or the settings as well | 408 | 233 | 5 | 135 | 0 | 0 |
+
+By what a person would get who pressed every guess:
+
+| Reader | Right | In part | Not read | Unasked guess | BACKWARDS GUESS | Never to be offered | Applied with no press | Readings of the rules lost |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `right` | 398 | 44 | 114 | 1 | 0 | 0 | 0 | 0 |
+| `backwards` | 218 | 40 | 172 | 45 | 88 | 0 | 0 | 0 |
+
+What it says:
+
+- **Nothing is applied, whatever a model answers.** No case is reversed and none holds an edit nobody asked for, for either stand-in. The two cases that came through the guard that went, `crime-040` and `sugg-004`, no longer do.
+- **No reading of the rules is lost.** The stand-in that quotes the name of a place alone once lost the minutes the rules had read, on `list-034` and `ask-015`. A test holds both.
+- **The checks do not hold the floor against a model that raises whatever is named.** 88 of 781 cases are a backwards guess for the careless stand-in: a turn that stands in a heading, "Dealbreakers: pubs", after the list, "Pubs, bars, clubs. None of it.", or in words core does not list. They were 92 before the checks were held to where the number or the thing stands, and not to the words a model quoted. Holding the guess to every sign of doubt in the whole sentence, in place of the words that turn in what leads up to the thing, brought the 92 to 67, and cost the careful stand-in 10 right readings and the measured model 7 of 85. So the floor rests on the model reading a turn rightly, and on the person who presses. The one model that was measured read one sentence of 113 backwards behind these checks.
+- **What holding the checks to where a thing stands costs.** Three right readings of the careful stand-in are offered with no guess: "violence scares me", where core lists "scared" and not "scares", and "somewhere with history" twice, where no phrase of core's names an end of the scale. One budget is, "I can't pay more than £1,450", where core does not list the words among those that cap a number.
+- **Neither stand-in quotes to deceive.** Each rests an edit on the words that name the thing, or on a whole sentence. What a model can do that chooses its words to get past a check is held in `services/api/tests/test_adversary.py`.
+- **What is offered does not depend on what was sent.** No case of the 781 ends otherwise, for either stand-in.
+- **A stand-in cannot say whether a real model reads less well with the words alone.**
+
+## Read the answers on disk again
+
+```
+uv run python evals/reader/replay.py                # every answer, counted
+uv run python evals/reader/replay.py --look 1 --show
+```
+
+One model, `gemini-3.5-flash-lite`, read 112 made-up sentences once each, as the service would ask it, and nine of them twice or four times more. What it answered is in `reader/answers/`, word for word, with the tokens each call used. 82 of the sentences are cases of this set, and 30 were written for the measurement and are in `reader/answers/cases/`. `replay.py` hands each answer back to the reader in a model's place, so that a change to the checks is measured on what a model has in fact answered, and nothing is paid for.
+
+On the first look of each sentence, on 2026-09-24: 77 calls would be made, and 35 sentences are read by the rules with no call. 84 are right, 11 in part and 13 not read. Three hold a guess at a fair reading the case does not name. One backwards reading is marked as the guess: "my mum is after a park". Nothing is applied, nothing is offered that is never to be offered, and no reading of the rules is lost. The rules alone read 61 of them rightly.
+
+That is a fit and not a measurement: the checks were chosen after reading these answers. `test_replay.py` holds the counts, so that a change that moves one is seen.
+
 ## Run it against the model-backed reader
 
-This has never been done. What follows is how it is meant to work.
+One model has been measured once, on 112 sentences: see "Read the answers on disk again" above. The whole set has never been run against a provider. What follows is how it is meant to work, for Gemini, which comes first. `docs/design/models.md` has the other three, what the first call must settle, and how a key is handed over.
 
 ```
-export ANTHROPIC_API_KEY=...    # in your shell, and never in a file
-uv run python evals/reader/score.py --reader claude --workers 8 \
-    --save evals/reader/baseline/claude.json
+read -rs GEMINI_API_KEY && export GEMINI_API_KEY
+export BURRO_MODEL_PROVIDER=gemini BURRO_MODEL_TIMEOUT_S=30
+uv run python evals/reader/score.py --reader model --workers 4 --save evals/reader/baseline/gemini.json
 ```
+
+The first line reads the key without showing or recording it. Close the shell afterwards.
 
 - Each case is one call to the provider, and each call is paid for. See the next section.
 - The sentence of each case is sent to the provider. The sentences are made up, so nothing private leaves.
-- The reader is made as the service makes it, from the same settings: `BURRO_MODEL_ID`, `BURRO_MODEL_TIMEOUT_S`, `BURRO_MODEL_MAX_TOKENS`. The plan asks that every evaluation is also run on its second model: set `BURRO_MODEL_ID` and run again.
-- A call that times out, is capped, or answers out of shape is counted as `failed`, and the rules do not answer in its place. The service waits 6 seconds. To measure reading apart from speed, set `BURRO_MODEL_TIMEOUT_S=30`.
+- The reader is made as the service makes it, from the same settings: `BURRO_MODEL_PROVIDER`, the provider's key, `BURRO_MODEL_ID`, `BURRO_MODEL_TIMEOUT_S`, `BURRO_MODEL_MAX_TOKENS` and `BURRO_MODEL_SENDS_SETTINGS`. It asks nothing of the terms, because no person typed the sentences. It takes only a model the provider's adapter was fitted to.
+- The words go alone, as in the service. To measure a provider sent the search settings as well, set `BURRO_MODEL_SENDS_SETTINGS=yes`, run again, and compare the two case by case with `--against`. The eight cases that start from a search that holds something are where a difference would show.
+- A call that times out, is capped, or answers out of shape is counted as `failed`, and the rules do not answer in its place. The service waits 6 seconds. `BURRO_MODEL_TIMEOUT_S=30` measures reading apart from speed.
 - If many cases fail as `ModelCapped`, lower `--workers`.
 - A model does not answer the same way twice. Run it three times before you believe a difference of a few cases.
-- `floor.json` holds no floor for `claude` yet, so the first run fails only if a case is reversed. Read the reversed and unasked sentences first. Then set the floor a little under what you measured.
-- Compare the two readers case by case with `--against evals/reader/baseline/rule.json`.
+- A model is held to the floor of its provider. `floor.json` holds one for each of the four, and none has a limit yet, so the first run fails only if a case is reversed. Read the reversed and unasked sentences first. Then set the provider's floor a little under what you measured.
+- Compare a provider with the rules case by case with `--against evals/reader/baseline/rule.json`.
+- A reader that marks a guess is judged by what was offered as well, and held to the floor under "What was offered" above.
 
 ## What a run costs
 
-The rule-based reader costs nothing.
+The rule-based reader costs nothing, and nor does the stand-in.
 
-For the model, the published price of the default model, `claude-haiku-4-5`, was 1 US dollar for a million tokens in and 5 dollars for a million out, read from the provider's [pricing page](https://platform.claude.com/docs/en/about-claude/pricing) on 2026-09-23.
+For a model, `docs/design/models.md`, section 3, has what each provider charged on the day its page was read, for 1,000 searches of 3,000 tokens in and 300 out. For Gemini that was 1.65 US dollars, so one run of this set, 820 cases, is about 1.35 dollars and three runs about 4.
 
 | Part of one call | Size | Tokens, about |
 |---|---|---|
-| The instructions | 8,053 characters | 2,000 |
+| The instructions | 10,900 characters | 2,700 |
 | The shape the answer must take | 5,530 characters | 1,500 |
-| The sentence and the search as it stands | 600 characters | 170 |
+| The sentence | 600 characters at most | 150 |
+| The search as it stands, where it is sent | 600 characters | 150 |
 | The answer | six lists, mostly empty | 200 |
 
-| For 1,000 cases | Tokens | US dollars |
-|---|---|---|
-| In | 3.7 million | 3.70 |
-| Out | 0.2 million | 1.00 |
-| **All** | | **about 4.70** |
-
-One run of this set, 655 cases, is about 3 dollars, and three runs about 9. A dearer model costs in proportion to its price.
-
 These are estimates. The tokens are worked out from characters, at four to a token. None was counted. The scorer prints the tokens a run used, so the first run replaces this table.
-
-Two things could make it cheaper, and neither is relied on here. The instructions are marked to be cached, and a cached token is a tenth of the price, but the provider caches nothing under a least length that depends on the model. If the scorer reports 0 tokens read from the cache, the instructions are under it. And the provider's batch service is half the price, but the reader calls the service a person would reach, one call at a time, and nothing here uses the batch service.
 
 ## What this does not measure
 

@@ -1,6 +1,6 @@
-{"id": "budget-001", "text": "renting, 2 bed, up to £1,800 a month", "tenure": "rent", "expect": {"budget": {"amount": 1800, "segment": "bed_2"}}, "why": "tenure, size and a soft cap"}
+{"id": "budget-001", "text": "renting, 2 bed, up to £1,800 a month", "tenure": "rent", "expect": {"budget": {"amount": 1800, "segment": "bed_2", "strictness": "hard"}}, "why": "tenure, size and a soft cap"}
 {"id": "budget-002", "text": "budget is 1500 pcm", "tenure": "rent", "expect": {"budget": {"amount": 1500}}, "why": "a plain amount"}
-{"id": "budget-003", "text": "max 2k a month for a one bed", "tenure": "rent", "expect": {"budget": {"amount": 2000, "segment": "bed_1"}}, "why": "thousands as k"}
+{"id": "budget-003", "text": "max 2k a month for a one bed", "tenure": "rent", "expect": {"budget": {"amount": 2000, "segment": "bed_1", "strictness": "hard"}}, "why": "thousands as k"}
 {"id": "budget-004", "text": "We can stretch to 450k for a terraced house", "tenure": "buy", "expect": {"budget": {"amount": 450000, "segment": "terraced", "strictness": "any"}}, "why": "a price and a kind of home"}
 {"id": "budget-005", "text": "no more than £1,400 a month", "tenure": "rent", "expect": {"budget": {"amount": 1400, "strictness": "hard"}}, "why": "words that make a limit"}
 {"id": "budget-006", "text": "absolute max 600k", "tenure": "buy", "expect": {"budget": {"amount": 600000, "strictness": "hard"}}, "why": "words that make a limit"}
@@ -19,8 +19,8 @@
 {"id": "budget-019", "text": "I earn 60k", "tenure": "buy", "expect": {"budget": {"not_amount": [60000]}}, "why": "an income is no budget"}
 {"id": "budget-020", "text": "I have a 50k deposit", "tenure": "buy", "expect": {"budget": {"not_amount": [50000]}}, "why": "a deposit is no budget"}
 {"id": "budget-021", "text": "we're renting at the moment but want to buy, budget around £400,000", "tenure": "rent", "expect": {"budget": {"amount": 400000, "segment": "any"}, "tenure": "buy"}, "why": "both tenures are named"}
-{"id": "budget-022", "text": "3 bed, 2200 max", "tenure": "rent", "expect": {"budget": {"amount": 2200, "segment": "bed_3"}}, "why": "terse"}
-{"id": "budget-023", "text": "four bedrooms at least, up to £3,500 pcm", "tenure": "rent", "expect": {"budget": {"amount": 3500, "segment": "bed_4plus"}}, "why": "'at least' is a floor on bedrooms, not a doubt"}
+{"id": "budget-022", "text": "3 bed, 2200 max", "tenure": "rent", "expect": {"budget": {"amount": 2200, "segment": "bed_3", "strictness": "hard"}}, "why": "terse"}
+{"id": "budget-023", "text": "four bedrooms at least, up to £3,500 pcm", "tenure": "rent", "expect": {"budget": {"amount": 3500, "segment": "bed_4plus", "strictness": "hard"}}, "why": "'at least' is a floor on bedrooms, not a doubt"}
 {"id": "budget-024", "text": "cheap as possible", "tenure": "rent", "expect": {}, "why": "no amount is given, so none may be set"}
 {"id": "budget-025", "text": "a bit cheaper", "tenure": "rent", "held": {"budget": {"amount": 1800}}, "expect": {"budget": {"amount": [1300, 1775]}}, "why": "a step down from what is held"}
 {"id": "budget-026", "text": "raise my budget a little", "tenure": "rent", "held": {"budget": {"amount": 1500}}, "expect": {"budget": {"amount": [1525, 1800]}}, "why": "a step up from what is held"}

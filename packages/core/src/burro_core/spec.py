@@ -16,7 +16,7 @@ from typing import Annotated, Literal
 from pydantic import AfterValidator, Field, field_validator
 
 from burro_core._record import Record
-from burro_core.catalogue import default_direction, direction_allowed
+from burro_core.catalogue import TAGS, default_direction, direction_allowed
 from burro_core.ids import (
     AreaId,
     AreaRuleKind,
@@ -31,7 +31,9 @@ from burro_core.ids import (
     SpecProblemKind,
     Strictness,
     TagId,
+    TagShape,
     Tenure,
+    Toward,
     segments_for,
 )
 from burro_core.release import Release
@@ -72,8 +74,14 @@ DEFAULT_SEGMENT = {Tenure.RENT: Segment.BED_1, Tenure.BUY: Segment.FLAT}
 DEFAULT_COMMUTE_MODE = Mode.PT
 DEFAULT_COMMUTE_MINUTES = 45
 DEFAULT_STRICTNESS = Strictness.SOFT
-DEFAULT_BUDGET_WEIGHT = 0.80
-DEFAULT_COMMUTE_WEIGHT = 1.00
+# What a journey and a budget weigh until a person moves them. It was decided on
+# 2026-09-24 that what is said of the place leads: each thing said of it is worth
+# `MENTION_WEIGHT`, which is more than a journey and more than a budget, and two things
+# said outweigh the two together. They were 1.00 and 0.80, so that one journey and one
+# budget outweighed three things said of the place. A limit that is firm is a filter and
+# no weight: it leaves out what is over it whatever these are.
+DEFAULT_BUDGET_WEIGHT = 0.30
+DEFAULT_COMMUTE_WEIGHT = 0.40
 DEFAULT_COMBINE = Combine.SLOWEST
 DEFAULT_PT_BASIS = PtBasis.TYPICAL
 # What a thing that is simply named is worth: a step up never leaves a weight
@@ -137,6 +145,9 @@ class FeatureWeight(Record):
 class TagWeight(Record):
     tag_id: TagId
     weight: Weight
+    # Which end of the vibe is asked for. A one-way vibe has the high end alone.
+    # In a body it may be left out, and is then `high`. It is always returned.
+    toward: Toward = Toward.HIGH
     provenance: Provenance
 
 
@@ -309,6 +320,9 @@ def check_spec(spec: PreferenceSpec, release: Release) -> tuple[SpecProblem, ...
             problem("budget.segment", SpecProblemKind.SEGMENT_NOT_FOR_TENURE)
         if not limits.minimum <= spec.budget.amount <= limits.maximum:
             problem("budget.amount", SpecProblemKind.OUT_OF_RANGE)
+        # A budget that is in order, and that the release holds no cost to test.
+        if not problems and not release.costed(spec.tenure, spec.budget.segment):
+            problem("budget.amount", SpecProblemKind.NOT_IN_RELEASE)
 
     for index, commute in enumerate(spec.commutes):
         if release.place(commute.place_id) is None:
@@ -327,11 +341,38 @@ def check_spec(spec: PreferenceSpec, release: Release) -> tuple[SpecProblem, ...
         if not direction_allowed(weight.feature_id, weight.direction):
             problem(f"weights[{index}].direction", SpecProblemKind.DIRECTION_NOT_ALLOWED)
 
+    carried = {vibe.tag_id for vibe in release.vibes}
+    for index, tag in enumerate(spec.tags):
+        if tag.weight == 0:
+            continue
+        # A vibe the release carries and places no area on is no more in it.
+        if tag.tag_id not in carried or not release.placed(tag.tag_id):
+            problem(f"tags[{index}].tag_id", SpecProblemKind.NOT_IN_RELEASE)
+        if not toward_allowed(tag.tag_id, tag.toward):
+            problem(f"tags[{index}].toward", SpecProblemKind.DIRECTION_NOT_ALLOWED)
+
     for index, rule in enumerate(spec.areas):
         if release.neighbourhood(rule.area_id) is None:
             problem(f"areas[{index}].area_id", SpecProblemKind.UNKNOWN_AREA)
 
     return tuple(problems)
+
+
+def toward_allowed(tag_id: TagId, toward: Toward) -> bool:
+    """Whether a vibe may be asked for towards this end. Only a scale has a low end to ask for."""
+    return toward is Toward.HIGH or TAGS[tag_id].shape is TagShape.SCALE
+
+
+def _canonical_tag(tag: TagWeight) -> dict[str, object]:
+    """A vibe as it is hashed. `toward` is written only when it is `low`.
+
+    A vibe towards its high end is what a tag was before a vibe had ends, so
+    every hash published before then still stands.
+    """
+    written: dict[str, object] = {"tag_id": tag.tag_id, "weight": steps(tag.weight)}
+    if tag.toward is Toward.LOW:
+        written["toward"] = tag.toward
+    return written
 
 
 def canonical(spec: PreferenceSpec) -> str:
@@ -364,7 +405,7 @@ def canonical(spec: PreferenceSpec) -> str:
             {"feature_id": w.feature_id, "weight": steps(w.weight), "direction": w.direction}
             for w in spec.active_weights
         ],
-        "tags": [{"tag_id": t.tag_id, "weight": steps(t.weight)} for t in spec.active_tags],
+        "tags": [_canonical_tag(tag) for tag in spec.active_tags],
         "areas": [{"area_id": a.area_id, "rule": a.rule} for a in spec.areas],
     }
     # With no commute these three settings change nothing, so they are left out.

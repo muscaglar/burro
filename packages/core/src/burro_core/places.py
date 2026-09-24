@@ -66,8 +66,21 @@ class _Named(NamedTuple):
     spellings: tuple[tuple[str, frozenset[str]], ...]
 
 
+# The names of a release, normalised. A release never changes and its names
+# are few, so each is normalised once. It holds names of a release only, and
+# never what a person typed: that is normalised each time, and kept nowhere.
+_NAMES: dict[str, str] = {}
+
+
+def _name(name: str) -> str:
+    found = _NAMES.get(name)
+    if found is None:
+        found = _NAMES[name] = normalise(name)
+    return found
+
+
 def _named(id: str, name: str, kind: OptionKind, order: int, names: Iterable[str]) -> _Named:
-    normal = [normalise(n) for n in names]
+    normal = [_name(n) for n in names]
     return _Named(id, name, kind, order, tuple((n, frozenset(n.split())) for n in normal if n))
 
 

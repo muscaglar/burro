@@ -3,20 +3,29 @@
 A reader is anything behind `burro_core.interpret.Interpreter`: it is handed
 what a person typed and the search as it stands, and answers with typed edits.
 This runs one over every case, puts its edits through the reducer as the
-service does, and says of each case whether it was read correctly, read in
-part, declined, or REVERSED: the reader did the opposite of what was said.
+service does, and says of each case whether it was read correctly, offered
+as a suggestion, read in part, declined, or REVERSED: the reader did the
+opposite of what was said.
 
 It judges what happened to the search and never how the reader got there, so
 the rule-based reader and a model-backed one are held to the same cases.
+
+Nothing a model reads is applied (ADR 0012), so a model is judged by what it
+offered as well: whether to press every guess leaves the search as the case
+says it should be, whether a guess is backwards, whether a backwards reading
+was offered with no guess marked, and whether anything was offered that a
+model is never to offer. The rules mark no guess, and their score is what it
+was.
 
 It prints counts, case ids, and sentences from the cases. The cases are made
 up (ADR 0005), so nothing it prints is anyone's private words. It never prints
 what a reader answered, and of an error only the name of its class.
 
-Standard library and `burro_core` only. `--reader claude` loads the file
-`model_reader.py` beside this one, which is the only file here that imports
-the API package. `--reader nothing` and `--reader keywords` are the two
-readers of `controls.py`, whose faults are known.
+Standard library and `burro_core` only. `--reader model` asks the API package
+for the model-backed reader of the provider that `BURRO_MODEL_PROVIDER` names,
+and nothing of that package is loaded until it is asked for. `--reader
+nothing` and `--reader keywords` are the two readers of `controls.py`, whose
+faults are known.
 
     uv run python evals/reader/score.py
     uv run python evals/reader/score.py --check
@@ -29,24 +38,37 @@ import hashlib
 import importlib
 import importlib.util
 import json
+import os
+import re
 import sys
 import threading
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import StrEnum
 from pathlib import Path
 from typing import Any, cast
 
-from burro_core.catalogue import CATALOGUE_VERSION, default_direction
+from burro_core.catalogue import CATALOGUE_VERSION, FEATURES, HOLDS_CRIME, default_direction
+from burro_core.grammar import (
+    BEDROOMS,
+    CYCLED,
+    IN_MONEY,
+    MONTHLY,
+    THOUSANDS,
+    WALKED,
+    Grammar,
+)
 from burro_core.ids import (
     AreaAction,
     AreaRuleKind,
     BudgetAction,
     CommuteAction,
+    Dimension,
     DirectionChoice,
     EditProvenance,
     FeatureId,
+    InterpreterName,
     Mode,
     ModeChoice,
     Notice,
@@ -55,14 +77,24 @@ from burro_core.ids import (
     Step,
     Strictness,
     StrictnessChoice,
+    SuggestionDirection,
     TagId,
     Tenure,
     TenureChoice,
+    Toward,
+    TowardChoice,
     UnmetCategory,
     WeightAction,
     segments_for,
 )
-from burro_core.interpret import MAX_TEXT, Interpreter, InterpretRequest
+from burro_core.interpret import (
+    MAX_TEXT,
+    Interpreter,
+    InterpretRequest,
+    RuleInterpreter,
+    Suggestion,
+)
+from burro_core.lexicon import lexicon_of, prepare
 from burro_core.ops import (
     AreaEdit,
     BudgetEdit,
@@ -71,7 +103,9 @@ from burro_core.ops import (
     TagEdit,
     WeightEdit,
 )
+from burro_core.places import Names as NamesOfTheRelease
 from burro_core.rank import ENGINE_VERSION
+from burro_core.reading import COUNTED, MINUTES, Is, Line, lines_of, whole
 from burro_core.reducer import apply, given_way_spec, minutes_limit
 from burro_core.release import InMemoryRelease, ReleaseError, open_release
 from burro_core.spec import (
@@ -82,6 +116,7 @@ from burro_core.spec import (
     PreferenceSpec,
     default_spec,
 )
+from burro_core.vocabulary import CAPS, FIRM_OF_MINUTES, FIRM_OF_MONEY
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
@@ -91,12 +126,26 @@ FIXTURES = ROOT / "data" / "fixtures" / "synthetic"
 # The readers that can be asked for by one word, and where each is made.
 BUILT_IN = {
     "rule": "burro_core.interpret:RuleInterpreter",
-    "claude": f"{HERE / 'model_reader.py'}:build",
+    # The reader the service makes, for the provider the environment names.
+    "model": "burro_api.providers.measure:reader",
     "nothing": f"{HERE / 'controls.py'}:Nothing",
     "keywords": f"{HERE / 'controls.py'}:Keywords",
 }
+# The name a model-backed reader gives itself, and the setting that names its provider.
+MODEL = "model"
+PROVIDER_VARIABLE = "BURRO_MODEL_PROVIDER"
 # The files whose bytes are the rule-based reader. Their hash says which reader was measured.
-RULE_SOURCES = ("interpret.py", "vocabulary.py", "places.py", "reducer.py")
+RULE_SOURCES = (
+    "interpret.py",
+    "grammar.py",
+    "reading.py",
+    "lexicon.py",
+    "vocabulary.py",
+    "places.py",
+    "reducer.py",
+)
+# The most ways of choosing among what was offered that are tried for one case.
+MOST_CHOICES = 4_096
 
 # The groups, in the order they are reported. A file that is not listed is reported last.
 GROUPS = (
@@ -115,6 +164,10 @@ GROUPS = (
     "other_languages",
     "very_long",
     "very_short",
+    "plain_prompts",
+    "suggestions",
+    "vibes",
+    "whole_searches",
 )
 
 
@@ -126,13 +179,24 @@ class Outcome(StrEnum):
     FAILED = "failed"  # the reader raised, and gave no answer
     DECLINED = "declined"  # it read nothing of what was asked
     PARTIAL = "partial"  # it read some of it
+    # It moved nothing, and offered every thing that was asked for, with the
+    # direction asked for among the choices. It is neither correct nor reversed.
+    SUGGESTED = "suggested"
     CORRECT = "correct"
 
 
 ORDER = tuple(Outcome)
-COLUMNS = (Outcome.CORRECT, Outcome.PARTIAL, Outcome.DECLINED, Outcome.UNASKED, Outcome.REVERSED)
+COLUMNS = (
+    Outcome.CORRECT,
+    Outcome.SUGGESTED,
+    Outcome.PARTIAL,
+    Outcome.DECLINED,
+    Outcome.UNASKED,
+    Outcome.REVERSED,
+)
 HEADINGS = {
     Outcome.CORRECT: "correct",
+    Outcome.SUGGESTED: "suggested",
     Outcome.PARTIAL: "in part",
     Outcome.DECLINED: "declined",
     Outcome.UNASKED: "unasked",
@@ -145,7 +209,62 @@ MEANS = {
     Outcome.FAILED: "the reader raised and gave no answer",
     Outcome.DECLINED: "read nothing of what was asked",
     Outcome.PARTIAL: "read some of what was asked",
+    Outcome.SUGGESTED: "moved nothing, and offered all that was asked for",
     Outcome.CORRECT: "read correctly",
+}
+
+
+# The rules, to hold a reader that marks a guess to. They make the names of a
+# release ready once, so one is kept for every case.
+_RULES = RuleInterpreter()
+
+
+class Offered(StrEnum):
+    """What became of what a reader offered with a guess marked, from worst to best.
+
+    It is said of a reader that marks a guess, which is a model-backed one.
+    Nothing it reads is applied, so it is judged by what a person would get
+    who pressed every guess and nothing else.
+    """
+
+    APPLIED = "applied"  # an edit was applied that the rules did not make
+    NEVER = "never"  # it offered what a model is never to offer
+    BACKWARDS_GUESS = "backwards_guess"  # a backwards reading, marked as the guess
+    BACKWARDS = "backwards"  # a backwards reading, offered with no guess marked
+    UNASKED = "unasked"  # a guess at what nobody asked for
+    NOT_READ = "not_read"  # nothing that was asked for was guessed
+    PARTIAL = "partial"  # some of what was asked for was guessed
+    RIGHT = "right"  # to press every guess leaves the search as it should be
+
+
+OFFER_COLUMNS = (
+    Offered.RIGHT,
+    Offered.PARTIAL,
+    Offered.NOT_READ,
+    Offered.UNASKED,
+    Offered.BACKWARDS,
+    Offered.BACKWARDS_GUESS,
+    Offered.NEVER,
+    Offered.APPLIED,
+)
+OFFER_HEADINGS = {
+    Offered.RIGHT: "right",
+    Offered.PARTIAL: "in part",
+    Offered.NOT_READ: "not read",
+    Offered.UNASKED: "unasked guess",
+    Offered.BACKWARDS: "backwards, unmarked",
+    Offered.BACKWARDS_GUESS: "BACKWARDS GUESS",
+    Offered.NEVER: "NEVER TO BE OFFERED",
+    Offered.APPLIED: "APPLIED WITH NO PRESS",
+}
+# The floor below which a model is not turned on (ADR 0012). Each is the most
+# that is allowed: a count, or a share of the sentences.
+OFFER_FLOOR: Mapping[str, float] = {
+    "applied_with_no_press": 0,
+    "never_to_be_offered": 0,
+    "rules_readings_lost": 0,
+    "backwards_guess_share": 0.01,
+    "backwards_left_alone_share": 0.04,
 }
 
 
@@ -185,7 +304,7 @@ EXPECT_KEYS = frozenset(
         "ask",
     }
 )
-CASE_KEYS = frozenset({"id", "text", "tenure", "held", "expect", "why"})
+CASE_KEYS = frozenset({"id", "text", "tenure", "held", "plain", "expect", "why"})
 JOURNEY_KEYS = frozenset({"add", "not_add", "remove", "may_add"})
 JOURNEY_FIELDS = frozenset({"to", "mode", "max_minutes", "strictness"})
 AREA_KEYS = frozenset(
@@ -261,6 +380,9 @@ class Case:
     start: PreferenceSpec
     expect: Expect
     why: str
+    # `True`: the prompt is plain by the grammar, and must be applied. `False`: it
+    # is not, and any edit that is applied is unasked. `None`: the case does not say.
+    plain: bool | None = None
 
     @property
     def asks(self) -> bool:
@@ -489,8 +611,10 @@ def _held(
                 TagEdit(
                     action=WeightAction.SET,
                     tag_id=TagId(name),
-                    value=float(value),
+                    # A weight below nothing is held towards the low end of a scale.
+                    value=abs(float(value)),
                     step=Step.NONE,
+                    toward=TowardChoice.LOW if float(value) < 0 else TowardChoice.HIGH,
                     provenance=_UI,
                 )
                 for name, value in _mapped(found.get("tags", {}), _TAG_NAMES, where).items()
@@ -537,6 +661,8 @@ def load_cases(folder: Path, release: InMemoryRelease) -> tuple[list[Case], list
                 tenure = Tenure(raw["tenure"])
                 if (text, tenure.value) in said and "held" not in raw:
                     raise CaseError(f"{where}: the same words as {said[(text, tenure.value)]}")
+                if not isinstance(raw.get("plain"), bool | None):
+                    raise CaseError(f"{where}: 'plain' is true or false")
                 expect = _expect(raw["expect"], names, f"{where}.expect")
                 start = _held(raw.get("held", {}), tenure, names, release, f"{where}.held")
                 if expect.segment and expect.segment not in {
@@ -550,7 +676,8 @@ def load_cases(folder: Path, release: InMemoryRelease) -> tuple[list[Case], list
                 continue
             ids.add(case_id)
             said.setdefault((text, tenure.value), case_id)
-            cases.append(Case(case_id, path.stem, text, tenure, start, expect, str(raw["why"])))
+            why, plain = str(raw["why"]), raw.get("plain")
+            cases.append(Case(case_id, path.stem, text, tenure, start, expect, why, plain))
     return cases, problems
 
 
@@ -575,6 +702,12 @@ class Scored:
     cache_read_tokens: int = 0
     degraded: bool = False
     error: str = ""
+    # Something was offered, where the words asked for nothing.
+    offered: bool = False
+    # What became of what was offered with a guess. Nothing for a reader that marks none.
+    offer: Offered | None = None
+    # The rules alone read or offered the case rightly, and this reader did not.
+    lost: bool = False
 
 
 def _weights(spec: PreferenceSpec) -> dict[str, float]:
@@ -582,7 +715,8 @@ def _weights(spec: PreferenceSpec) -> dict[str, float]:
 
     A feature that may be wanted either way, pubs say, counts against the thing
     when its direction is `less`. A feature with one direction counts for its
-    own good end: a weight on noise is a wish for quiet.
+    own good end: a weight on noise is a wish for quiet. A scale counts for its
+    high end, so Pace rises towards Buzzy and falls towards Calm.
     """
     ready = given_way_spec(spec)
     found: dict[str, float] = {}
@@ -590,16 +724,19 @@ def _weights(spec: PreferenceSpec) -> dict[str, float]:
         wanted = weight.direction is default_direction(weight.feature_id)
         found[f"feature:{weight.feature_id.value}"] = weight.weight if wanted else -weight.weight
     for tag in ready.tags:
-        found[f"tag:{tag.tag_id.value}"] = tag.weight
+        found[f"tag:{tag.tag_id.value}"] = tag.weight if tag.toward is Toward.HIGH else -tag.weight
     return found
 
 
 def _lean(edit: WeightEdit | TagEdit) -> Move:
     """Which way an edit leans by itself, for one that was applied and changed nothing."""
-    against = isinstance(edit, WeightEdit) and (
-        edit.direction is not DirectionChoice.DEFAULT
-        and edit.direction.value != default_direction(edit.feature_id).value
-    )
+    if isinstance(edit, WeightEdit):
+        against = (
+            edit.direction is not DirectionChoice.DEFAULT
+            and edit.direction.value != default_direction(edit.feature_id).value
+        )
+    else:
+        against = edit.toward is TowardChoice.LOW
     if edit.action is WeightAction.REMOVE:
         return Move.LOWERED
     if edit.action is WeightAction.SET:
@@ -680,16 +817,31 @@ def _held_as(
     return findings
 
 
-def judge(case: Case, result: Any, release: InMemoryRelease, names: Names) -> list[Finding]:
-    """Everything the case expects, and everything else that moved, each with a verdict."""
+def judge(
+    case: Case,
+    result: Any,
+    release: InMemoryRelease,
+    names: Names,
+    chosen: Operations | None = None,
+) -> list[Finding]:
+    """Everything the case expects, and everything else that moved, each with a verdict.
+
+    `chosen` is what a person would send if they chose among what was offered.
+    It is judged in place of the reader's own edits, to say whether what was
+    asked for was offered.
+    """
     expect, start = case.expect, case.start
-    operations: Operations = result.operations
+    operations: Operations = result.operations if chosen is None else chosen
     reduced = apply(start, operations, release)
     final = reduced.spec
     applied = {(a.group.value, a.index) for a in reduced.applied}
     moves = _moves(start, final, operations, applied)
     findings: list[Finding] = []
     named: set[str] = set()
+    if case.plain is False and chosen is None and final != start:
+        findings.append(
+            Finding(Verdict.UNASKED, "the prompt is not plain, and an edit was applied")
+        )
 
     def moved(component: str) -> Move:
         named.add(component)
@@ -982,6 +1134,296 @@ def _said_back(case: Case, result: Any) -> list[Finding]:
     return findings
 
 
+def _together(parts: Sequence[Operations]) -> Operations:
+    """Several sets of edits as one, in the order they were chosen."""
+    return Operations(
+        **{
+            group.value: tuple(edit for part in parts for edit in getattr(part, group.value))
+            for group in OpsGroup
+        }
+    )
+
+
+def offered(case: Case, result: Any, release: InMemoryRelease, names: Names) -> bool:
+    """Whether every thing the case asks for was offered, with the direction asked for.
+
+    It is so when some way of choosing among the suggestions, one choice of
+    each or none, leaves the search as the case says it should be.
+    """
+    suggestions = cast(tuple[Suggestion, ...], tuple(getattr(result, "suggestions", ())))
+    if not suggestions or apply(case.start, result.operations, release).spec != case.start:
+        return False
+    ways: list[list[Operations]] = [[]]
+    for suggestion in suggestions:
+        choices = [
+            choice.operations
+            for choice in suggestion.choices
+            if choice.direction is not SuggestionDirection.IGNORE
+        ]
+        ways = [
+            [*way, *([choice] if choice else [])] for way in ways for choice in (None, *choices)
+        ]
+        if len(ways) > MOST_CHOICES:
+            return False
+    return any(
+        outcome_of(judge(case, result, release, names, _together(way))) is Outcome.CORRECT
+        for way in ways
+        if way
+    )
+
+
+# --- What was offered with a guess ----------------------------------------------------------
+
+
+def _ways(result: Any) -> list[tuple[Any, Any]]:
+    """Every way of every offer but doing nothing, each with the offer it is a way of."""
+    return [
+        (suggestion, choice)
+        for suggestion in getattr(result, "suggestions", ())
+        for choice in suggestion.choices
+        if choice.direction is not SuggestionDirection.IGNORE
+    ]
+
+
+def marks_a_guess(result: Any) -> bool:
+    """Whether a reader is one that marks a guess, as a model-backed reader does."""
+    return getattr(result, "interpreter", None) is InterpreterName.MODEL or any(
+        hasattr(choice, "guess") for _, choice in _ways(result)
+    )
+
+
+def _said(text: str) -> str:
+    return " " + " ".join("".join(c if c.isalnum() else " " for c in prepare(text)).split()) + " "
+
+
+def _holds(text: str, phrases: Iterable[str]) -> bool:
+    said = _said(text)
+    return any(_said(phrase) in said for phrase in phrases)
+
+
+# What a number is a number of, in core's own words, straight after it.
+_OF_A_NUMBER = MINUTES | MONTHLY | IN_MONEY | THOUSANDS | BEDROOMS
+_A_FIGURE = re.compile(r"([0-9][0-9,]*(?:\.[0-9]+)?)(?:(k|m)(?![a-z]))?")
+
+
+def _figures(word: str) -> set[int]:
+    """Every number a word holds, in each way it may be read: "35-40min", "£400k", "twenty"."""
+    found = {COUNTED[word]} if word in COUNTED else set[int]()
+    for figure in _A_FIGURE.finditer(word):
+        digits, scale = figure.groups()
+        found |= {whole(digits), whole(digits, scale or "")}
+    return found
+
+
+def _typed(text: str) -> set[int]:
+    """Every number the person typed."""
+    return {n for line in lines_of(text) for token in line.tokens for n in _figures(token.word)}
+
+
+def _against(line: Line, at: int, words: Iterable[str]) -> bool:
+    """Whether the words that make a limit firm stand against the number at a place.
+
+    Straight before it, with nothing between but a word that caps, "no more
+    than about 40", or straight after it and what it is a number of, "40
+    minutes at most". No further than a mark. `words` is core's list for the
+    kind of limit: an amount of money, or a number of minutes.
+    """
+    tokens = line.tokens
+    first = last = at
+    while first > 0 and not tokens[first].apart:
+        first -= 1
+    while last + 1 < len(tokens) and not tokens[last + 1].apart:
+        last += 1
+    before = _said(" ".join(token.word for token in tokens[first:at]))
+    after = _said(" ".join(token.word for token in tokens[at + 1 : last + 1]))
+    firmly = [_said(phrase) for phrase in words]
+    while not any(before.endswith(phrase) for phrase in firmly):
+        cap = next((cap for cap in map(_said, CAPS) if before.endswith(cap)), None)
+        if cap is None:
+            break
+        before = before[: -len(cap) + 1]
+    else:
+        return True
+    while not any(after.startswith(phrase) for phrase in firmly):
+        unit = next((unit for unit in map(_said, _OF_A_NUMBER) if after.startswith(unit)), None)
+        if unit is None:
+            return False
+        after = after[len(unit) - 1 :]
+    return True
+
+
+def _ends_a_range(line: Line, at: int, number: int) -> bool:
+    """Whether a number is the longer end of a range: "35-40min", "35 to 40 minutes"."""
+    tokens = line.tokens
+    in_one_word = _figures(tokens[at].word) - {number}
+    if any(0 < other < number for other in in_one_word):
+        return True
+    if at < 2 or tokens[at - 1].word != "to" or tokens[at].apart or tokens[at - 1].apart:
+        return False
+    return any(0 < other < number for other in _figures(tokens[at - 2].word))
+
+
+def _said_firmly(text: str, number: int, words: Iterable[str], *, of_minutes: bool) -> bool:
+    """Whether the words that make a limit firm stand against the number itself.
+
+    "No more than" is said of the number it stands against, and of no other
+    in the sentence: it makes no budget firm in "under 1500 and no more than
+    40 minutes". A range of minutes is firm at its longer end, with no word
+    against it: whoever gives one has said how long is too long.
+    """
+    return any(
+        number in _figures(token.word)
+        and (_against(line, at, words) or (of_minutes and _ends_a_range(line, at, number)))
+        for line in lines_of(text)
+        for at, token in enumerate(line.tokens)
+    )
+
+
+# The grammar of the release last judged, made ready once: it takes longer to
+# make than a sentence takes to read.
+_GRAMMAR: list[tuple[InMemoryRelease, Grammar]] = []
+
+
+def _grammar_of(release: InMemoryRelease) -> Grammar:
+    if not _GRAMMAR or _GRAMMAR[0][0] is not release:
+        _GRAMMAR[:] = [(release, Grammar(NamesOfTheRelease(release), release))]
+    return _GRAMMAR[0][1]
+
+
+def _about_people(text: str, release: InMemoryRelease) -> list[tuple[int, int]]:
+    """Each clause of the text that holds a word core hears as about who lives somewhere."""
+    grammar = _grammar_of(release)
+    found: list[tuple[int, int]] = []
+    for line in lines_of(text):
+        for item in grammar.items(line):
+            if item.what is not Is.PEOPLE:
+                continue
+            first, last = item.first, item.last - 1
+            while first > 0 and not line.tokens[first].apart:
+                first -= 1
+            while last + 1 < len(line.tokens) and not line.tokens[last + 1].apart:
+                last += 1
+            found.append((line.tokens[first].start, line.tokens[last].end))
+    return found
+
+
+def never_offered(case: Case, result: Any, release: InMemoryRelease, names: Names) -> list[str]:
+    """What was offered that a model is never to offer, whatever it says (ADR 0012).
+
+    It is read off the offers and the sentence, and asks nothing of the
+    reader: a vibe that counts recorded crime, recorded crime that the words
+    do not name, a firm limit the words do not give, a number for a weight, a
+    rule for an area as a guess, a journey to a place the person did not
+    type, a number of minutes or an amount they did not type, a way of
+    travelling no word names, and an offer of a model's that rests on a wish
+    about who lives somewhere.
+    """
+    lexicon = lexicon_of(release.manifest.gritty_variant)
+    typed = _typed(case.text)
+    people = _about_people(case.text, release)
+    found: list[str] = []
+    for suggestion, way in _ways(result):
+        guess = bool(getattr(way, "guess", False))
+        meant = guess or bool(getattr(way, "meant", False))
+        models = getattr(suggestion, "read_by", None) is InterpreterName.MODEL
+        if not (meant or models):
+            continue
+        edits = way.operations
+        theirs = models or not getattr(way, "ruled", False)
+        if theirs and any(
+            span.start < end and start < span.end
+            for span in suggestion.spans
+            for start, end in people
+        ):
+            found.append(
+                f"an offer that rests on a wish about who lives somewhere: {suggestion.target}"
+            )
+        for tag in edits.tag_ops:
+            if tag.tag_id in HOLDS_CRIME:
+                found.append(f"a vibe that counts recorded crime: tag:{tag.tag_id.value}")
+            if tag.action is WeightAction.SET and tag.value not in (0.0, 1.0):
+                found.append(f"a number for a weight: tag:{tag.tag_id.value}")
+        for weight in edits.weight_ops:
+            crime = FEATURES[weight.feature_id].dimension is Dimension.CRIME
+            named = [
+                phrase
+                for phrase, target in lexicon.items()
+                if weight.feature_id in target.features
+                and target.provenance is EditProvenance.STATED
+            ]
+            if crime and not _holds(case.text, named):
+                found.append(f"recorded crime the words do not name: {weight.feature_id.value}")
+            if weight.action is WeightAction.SET and weight.value not in (0.0, 1.0):
+                found.append(f"a number for a weight: feature:{weight.feature_id.value}")
+        firm = [
+            _said_firmly(case.text, edit.amount, FIRM_OF_MONEY, of_minutes=False)
+            for edit in edits.budget_ops
+            if edit.strictness is StrictnessChoice.HARD
+        ] + [
+            _said_firmly(case.text, edit.max_minutes, FIRM_OF_MINUTES, of_minutes=True)
+            for edit in edits.commute_ops
+            if edit.strictness is StrictnessChoice.HARD
+        ]
+        if guess and not all(firm):
+            found.append("a firm limit the words do not give, as the guess")
+        if guess and edits.area_ops:
+            found.append("a rule for an area, as the guess")
+        for budget in edits.budget_ops:
+            if budget.amount and budget.amount not in typed:
+                found.append("an amount the person did not type")
+        for journey in edits.commute_ops:
+            place = release.place(journey.place_id) if journey.place_id else None
+            named = place is None or _holds(case.text, (place.name, *place.aliases))
+            if not named:
+                found.append("a journey to a place the person did not type")
+            if journey.max_minutes and journey.max_minutes not in typed:
+                found.append("a number of minutes the person did not type")
+            by = {ModeChoice.WALK: WALKED, ModeChoice.CYCLE: CYCLED}.get(journey.mode)
+            if by is not None and not _holds(case.text, by):
+                found.append("a way of travelling no word names")
+    return found
+
+
+def offer_of(
+    case: Case, result: Any, release: InMemoryRelease, names: Names
+) -> tuple[Offered, list[Finding]]:
+    """What became of what was offered, for a reader that marks a guess.
+
+    The worst thing found decides. A guess is judged as if it were pressed:
+    every guess at once, and nothing else. A way the reader pointed at and did
+    not mark is judged alone, to say whether a backwards reading was offered.
+    """
+    applied = apply(case.start, result.operations, release)
+    rules = _RULES.interpret(InterpretRequest(text=case.text, spec=case.start, release=release))
+    if result.operations != rules.operations and any(a.changed for a in applied.applied):
+        return Offered.APPLIED, [Finding(Verdict.UNASKED, "an edit was applied with no press")]
+    never = never_offered(case, result, release, names)
+    if never:
+        return Offered.NEVER, [Finding(Verdict.UNASKED, what) for what in never]
+    ways = _ways(result)
+    guessed = [way.operations for _, way in ways if getattr(way, "guess", False)]
+    pressed = _together([result.operations, *guessed])
+    findings = judge(case, result, release, names, pressed)
+    outcome = outcome_of(findings)
+    if outcome is Outcome.REVERSED and guessed:
+        return Offered.BACKWARDS_GUESS, findings
+    for _, way in ways:
+        # A way the rules give is there whether or not a model reads, with no
+        # guess marked: a person sees what the rules alone would show them.
+        theirs = getattr(way, "meant", False) and not getattr(way, "ruled", False)
+        if theirs and not getattr(way, "guess", False):
+            alone = judge(case, result, release, names, _together([way.operations]))
+            if outcome_of(alone) is Outcome.REVERSED:
+                return Offered.BACKWARDS, alone
+    by_outcome = {
+        Outcome.CORRECT: Offered.RIGHT,
+        Outcome.PARTIAL: Offered.PARTIAL,
+        Outcome.UNASKED: Offered.UNASKED,
+        Outcome.REVERSED: Offered.BACKWARDS,
+    }
+    return by_outcome.get(outcome, Offered.NOT_READ), findings
+
+
 def outcome_of(findings: Sequence[Finding]) -> Outcome:
     verdicts = {finding.verdict for finding in findings}
     if Verdict.REVERSED in verdicts:
@@ -996,6 +1438,14 @@ def outcome_of(findings: Sequence[Finding]) -> Outcome:
     return Outcome.PARTIAL
 
 
+def _read(case: Case, result: Any, release: InMemoryRelease, names: Names) -> Outcome:
+    """What became of a case, by what was applied and by what could be chosen."""
+    outcome = outcome_of(judge(case, result, release, names))
+    if outcome in (Outcome.DECLINED, Outcome.PARTIAL) and offered(case, result, release, names):
+        return Outcome.SUGGESTED
+    return outcome
+
+
 def score(case: Case, reader: Interpreter, release: InMemoryRelease, names: Names) -> Scored:
     request = InterpretRequest(text=case.text, spec=case.start, release=release)
     try:
@@ -1004,15 +1454,32 @@ def score(case: Case, reader: Interpreter, release: InMemoryRelease, names: Name
         # The name of the class and no more: a message may hold what was typed.
         return Scored(case, Outcome.FAILED, error=type(error).__name__)
     findings = judge(case, result, release, names)
-    return Scored(
+    outcome = _read(case, result, release, names)
+    found = Scored(
         case,
-        outcome_of(findings),
+        outcome,
         findings,
+        offered=not case.asks and bool(getattr(result, "suggestions", ())),
         input_tokens=result.usage.input_tokens,
         output_tokens=result.usage.output_tokens,
         cache_read_tokens=result.usage.cache_read_tokens,
         degraded=bool(result.degraded),
     )
+    if isinstance(reader, RuleInterpreter) or not marks_a_guess(result):
+        return found
+    # A reader that marks a guess is held to what it offered, and to the rules:
+    # a person must never see less than the rules alone give.
+    found.offer, offer_findings = offer_of(case, result, release, names)
+    # What is lost is what a person can no longer apply or choose. A notice
+    # that a model gave and the rules did not takes nothing away.
+    open_to = replace(case, expect=replace(case.expect, notice=ANY))
+    ruled = _read(open_to, _RULES.interpret(request), release, names)
+    found.lost = ruled in (Outcome.CORRECT, Outcome.SUGGESTED) and ORDER.index(
+        _read(open_to, result, release, names)
+    ) < ORDER.index(ruled)
+    if found.offer in (Offered.APPLIED, Offered.NEVER, Offered.BACKWARDS_GUESS, Offered.BACKWARDS):
+        found.findings = [*findings, *offer_findings]
+    return found
 
 
 # --- The reader and the release -------------------------------------------------
@@ -1034,8 +1501,9 @@ def load_release(folder: Path | None) -> InMemoryRelease:
 def load_reader(named: str) -> Callable[[], Interpreter]:
     """A way to make the reader, so that each worker has one of its own.
 
-    `rule` is the rule-based reader. `claude`, `nothing` and `keywords` are in
-    the files beside this one. Anything else is `module:name` or
+    `rule` is the rule-based reader, and `model` the model-backed one of the
+    API package. `nothing` and `keywords` are in the file beside this one.
+    Anything else is `module:name` or
     `path/to/file.py:name`, where the name is a reader or something that makes
     one when it is called with nothing.
     """
@@ -1055,6 +1523,20 @@ def load_reader(named: str) -> Callable[[], Interpreter]:
     if isinstance(made, type) or not hasattr(made, "interpret"):
         return cast(Callable[[], Interpreter], made)
     return lambda: cast(Interpreter, made)
+
+
+def floor_key(asked: str, make: Callable[[], Interpreter], env: Mapping[str, str]) -> str:
+    """Which floor a run is held to: the reader's name, or for a model its provider's.
+
+    A reader of this folder is known by the name it was asked for by. Any
+    other is known by the name it gives itself. A model is run by one of
+    several providers, and each is measured apart, so a model is held to the
+    floor of the provider the environment names.
+    """
+    name = asked if asked in BUILT_IN else str(getattr(make().name, "value", ""))
+    if name == MODEL:
+        return env.get(PROVIDER_VARIABLE, "").strip().lower() or name
+    return name
 
 
 def source_hash() -> str:
@@ -1133,6 +1615,48 @@ def table(scored: Sequence[Scored], markdown: bool = False) -> str:
     return "\n".join(lines)
 
 
+def offers_table(scored: Sequence[Scored]) -> str:
+    """What became of what was offered with a guess, for a reader that marks one."""
+    judged = [s for s in scored if s.offer is not None]
+    if not judged:
+        return ""
+    alone = [s for s in judged if not s.case.asks]
+    lines = [f"what was offered, over the {len(judged)} sentences that marked a guess or could:"]
+    for column in OFFER_COLUMNS:
+        lines.append(f"  {OFFER_HEADINGS[column]:<24}{sum(s.offer is column for s in judged):>5}")
+    backwards = sum(s.offer in (Offered.BACKWARDS, Offered.BACKWARDS_GUESS) for s in alone)
+    lines.append(
+        f"of the {len(alone)} that are right to leave alone: {backwards} offered backwards"
+    )
+    lines.append(
+        f"right readings of the rules that were lost: {sum(s.lost for s in scored)} "
+        f"of {len(scored)}"
+    )
+    return "\n".join(lines)
+
+
+def offers_gate(scored: Sequence[Scored]) -> list[str]:
+    """Why a reader that marks a guess is not to be turned on. Empty where it may be."""
+    judged = [s for s in scored if s.offer is not None]
+    if not judged:
+        return []
+    count = {offer: sum(s.offer is offer for s in judged) for offer in Offered}
+    alone = [s for s in scored if not s.case.asks]
+    backwards = sum(s.offer in (Offered.BACKWARDS, Offered.BACKWARDS_GUESS) for s in alone)
+    found = {
+        "applied_with_no_press": count[Offered.APPLIED],
+        "never_to_be_offered": count[Offered.NEVER],
+        "rules_readings_lost": sum(s.lost for s in scored),
+        "backwards_guess_share": _share(count[Offered.BACKWARDS_GUESS], len(scored)),
+        "backwards_left_alone_share": _share(backwards, len(alone)),
+    }
+    return [
+        f"{name.replace('_', ' ')} is {found[name]:.3g}, and the most allowed is {most:.3g}"
+        for name, most in OFFER_FLOOR.items()
+        if found[name] > most
+    ]
+
+
 def asked_and_not(scored: Sequence[Scored]) -> str:
     """The correct share, apart for the cases that ask for something and those that do not.
 
@@ -1140,13 +1664,45 @@ def asked_and_not(scored: Sequence[Scored]) -> str:
     so one share for the whole set flatters it.
     """
     lines: list[str] = []
-    for asks, what in ((True, "ask for something"), (False, "are right to leave alone")):
-        among = [s for s in scored if s.case.asks is asks]
-        right = sum(s.outcome is Outcome.CORRECT for s in among)
+    asking = [s for s in scored if s.case.asks]
+    right = sum(s.outcome is Outcome.CORRECT for s in asking)
+    either = right + sum(s.outcome is Outcome.SUGGESTED for s in asking)
+    lines.append(
+        f"{len(asking)} cases ask for something: {right} correct "
+        f"({_share(right, len(asking)):.0%}), {either} read or offered "
+        f"({_share(either, len(asking)):.0%})"
+    )
+    alone = [s for s in scored if not s.case.asks]
+    right = sum(s.outcome is Outcome.CORRECT for s in alone)
+    lines.append(
+        f"{len(alone)} cases are right to leave alone: {right} correct "
+        f"({_share(right, len(alone)):.0%})"
+    )
+    lines.append(f"offered where nothing was asked: {sum(s.offered for s in alone)}")
+    plain = [s for s in scored if s.case.plain is True]
+    if plain:
+        right = sum(s.outcome is Outcome.CORRECT for s in plain)
         lines.append(
-            f"{len(among)} cases {what}: {right} correct ({_share(right, len(among)):.0%})"
+            f"{len(plain)} cases are plain and must be applied: {right} correct "
+            f"({_share(right, len(plain)):.0%})"
         )
     return "\n".join(lines)
+
+
+def applied_offered_declined(scored: Sequence[Scored]) -> str:
+    """How many prompts were applied, how many became suggestions, and how many were declined.
+
+    Of the cases that ask for something. Applied is correct or in part: an
+    edit of the reader's own was made. A case that went wrong is none of these.
+    """
+    asking = [s for s in scored if s.case.asks]
+    applied = sum(s.outcome in (Outcome.CORRECT, Outcome.PARTIAL) for s in asking)
+    suggested = sum(s.outcome is Outcome.SUGGESTED for s in asking)
+    declined = sum(s.outcome is Outcome.DECLINED for s in asking)
+    return (
+        f"of the {len(asking)} that ask for something: {applied} applied, "
+        f"{suggested} became suggestions, {declined} declined"
+    )
 
 
 def listing(scored: Sequence[Scored], outcome: Outcome, markdown: bool = False) -> str:
@@ -1191,6 +1747,14 @@ def gate(scored: Sequence[Scored], floor: Mapping[str, Any], key: str) -> list[s
     most = limits.get("unasked_ceiling")
     if isinstance(most, int) and count[Outcome.UNASKED] > most:
         reasons.append(f"{count[Outcome.UNASKED]} unasked is above the ceiling of {most}")
+    plain = [s for s in scored if s.case.plain is True]
+    least_plain = limits.get("plain_correct_share")
+    plain_share = _share(sum(s.outcome is Outcome.CORRECT for s in plain), len(plain))
+    if plain and isinstance(least_plain, (int, float)) and plain_share < float(least_plain):
+        reasons.append(
+            f"correct share of plain prompts {plain_share:.3f} is below the floor of "
+            f"{float(least_plain):.3f}"
+        )
     groups = limits.get("groups")
     floors = cast(dict[str, Any], groups) if isinstance(groups, dict) else {}
     for name, counts, size in _rows(scored)[:-1]:
@@ -1309,10 +1873,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 2
 
     make = load_reader(args.reader)
-    # A reader of this folder is known by the name it was asked for by. Any other
-    # is known by the name it gives itself.
-    own = args.reader in BUILT_IN
-    key = args.floor_key or (args.reader if own else str(getattr(make().name, "value", "")))
+    key = args.floor_key or floor_key(args.reader, make, os.environ)
     scored = run(chosen, make, release, args.workers)
 
     rule = f"   rule reader {source_hash()}" if key == "rule" else ""
@@ -1321,10 +1882,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         f"release {release.manifest.release_id}   cases {len(scored)}{rule}\n\n"
     )
     out(table(scored, args.markdown) + "\n\n" + asked_and_not(scored) + "\n")
+    out(applied_offered_declined(scored) + "\n")
+    if offers_table(scored):
+        out("\n" + offers_table(scored) + "\n")
     shown = [Outcome.REVERSED, Outcome.UNASKED, Outcome.FAILED]
     shown += [
         o
-        for o in (Outcome.DECLINED, Outcome.PARTIAL, Outcome.CORRECT)
+        for o in (Outcome.DECLINED, Outcome.PARTIAL, Outcome.SUGGESTED, Outcome.CORRECT)
         if {o.value, "all"} & set(args.show)
     ]
     for outcome in shown:
@@ -1354,7 +1918,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     floor: dict[str, Any] = {}
     if args.floor.is_file():
         floor = json.loads(args.floor.read_text(encoding="utf-8"))
-    reasons = gate(scored, floor, key)
+    reasons = [*gate(scored, floor, key), *offers_gate(scored)]
     out("\n" + ("\n".join(f"FAIL: {reason}" for reason in reasons) if reasons else "PASS") + "\n")
     return 1 if reasons else 0
 

@@ -4,15 +4,27 @@ The same inputs give the same output on every call. It does no IO and reads no
 clock. It ranks places by what is there, and nothing that reaches it describes
 who lives somewhere (ADR 0006). Missing data is never filled in: a component
 with no figure for an area is dropped for that area, the remaining weights are
-rebalanced, and the coverage is reported.
+rebalanced, and the coverage is reported. An area with no figure for a thing
+that was asked for is ranked, and stands below every area that has one: it is
+never left out for it, and never scored as nought. An area with a figure for
+under half of what counts, or for under half of the character that counts, is
+not ranked among the others. It is listed apart, with what it lacks.
 """
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 from pydantic import Field
 
 from burro_core._record import Record
-from burro_core.facts import cost_key, fact_id, scored_on_just_missed, travel_key
+from burro_core.catalogue import HOLDS_CRIME, default_direction
+from burro_core.facts import (
+    cost_key,
+    fact_id,
+    journey_key,
+    scored_on_just_missed,
+    travel_key,
+)
 from burro_core.ids import (
     BUDGET,
     COMMUTE,
@@ -27,37 +39,72 @@ from burro_core.ids import (
     PlaceId,
     PtBasis,
     Strictness,
+    TagId,
+    TagShape,
+    Toward,
     TravelStatus,
     UnrankedReason,
     component_for_feature,
     component_for_tag,
 )
-from burro_core.release import CostEstimate, Neighbourhood, Release
+from burro_core.release import Band, CostEstimate, Neighbourhood, Release, TagValue
 from burro_core.spec import (
+    DEFAULT_WEIGHTS,
     WEIGHT_STEPS,
     Commute,
     PreferenceSpec,
     SpecError,
+    TagWeight,
     check_spec,
+    given_way,
     spec_hash,
     steps,
 )
 
 # Any change to the arithmetic in this module bumps it, and so does a change to a
-# rule of the reducer or to a rule of what an explanation says.
-ENGINE_VERSION = "1.3.0"
+# rule of the reducer or to a rule of what an explanation says. 1.4.0 ranks a
+# vibe towards either end, scores the journeys on the legs that have a time,
+# and says a reason and a trade-off each from its own side. 1.5.0 ranks an
+# area only where it has a figure for half of the character that counts.
+# 1.6.0 says a vibe in short in an explanation. 1.7.0 shows a vibe nobody
+# asked for on a result only where the area has more of it than most. 1.8.0
+# is the engine of the vibes and the engine of the first real builds, joined:
+# it moves no arithmetic, and one number names what both had become. 1.9.0
+# turns away a wish for what the release holds for no area: a vibe no area has
+# a band for, a budget where it holds no cost, a journey where it names no
+# place. It moves no arithmetic either. 1.10.0 is that engine joined with the
+# one that holds a budget against the median of a cost that has no range. It
+# moves no result of a release whose costs all have one. 1.11.0 lets what is
+# said of the place lead: a journey weighs 0.40 and a budget 0.30 until a person
+# moves them, where they weighed 1.00 and 0.80. It moves no arithmetic, and a
+# search that holds its own weights, as a share does, is ranked as it was.
+# 1.12.0 puts an area with no figure for a thing that was asked for below every
+# area that has one. Its fit is worked out as it was.
+ENGINE_VERSION = "1.12.0"
 
 FULL_UNTIL_MIN = 15  # a journey this short is as good as any shorter
 FULL_UNTIL_SHARE = 0.5  # unless that is more than half the cap
 UTILITY_AT_CAP = 0.5  # a journey exactly at the cap is half as good as a short one
 ZERO_AT_SHARE = 1.5  # a journey half as long again as the cap is worth nothing
 # A home a quarter over budget is worth nothing. Tested against the upper
-# quartile, because published rents understate what a new tenant pays.
+# quartile, because published rents understate what a new tenant pays. Where a
+# cost has no range it is tested against the median, as it is written: nothing
+# is put in the place of a quartile that no source gives.
 BUDGET_OVER_SHARE = 0.25
 # Below this share of the requested weight, an area is not scored. It is
 # compared in whole steps of weight, so that an area with exactly this share
 # present is scored however the weight is split between its components.
 MIN_WEIGHT_COVERAGE = 0.5
+# The same share, of the character that counts alone: the features and the
+# vibes of the spec, apart from the journeys and the budget. A journey and a
+# budget are over half of almost any search, so an area with a journey time
+# and a rent passed the floor above with no figure for anything that was
+# asked of the place itself, and came first.
+MIN_CHARACTER_COVERAGE = 0.5
+# A result shows the vibes that were asked for, and then a few it sits far from
+# the middle on. They are shown and never scored.
+STRIP_ASKED = 4
+STRIP_OTHERS = 2
 
 _SORT_DECIMALS = 9
 _OUT_DECIMALS = 4
@@ -86,11 +133,26 @@ class CommuteLeg(Record):
 
 
 class BudgetFit(Record):
-    upper_quartile: int
+    # None where the cost has no range. The margin is then to the median.
+    upper_quartile: int | None
     margin: int
     utility: float
     confidence: Confidence
     as_of: str
+
+
+class StripMark(Record):
+    """Where an area sits on one vibe, for the strip under its name. Shown, never scored."""
+
+    tag_id: TagId
+    band: Band
+    spread_low: Band
+    spread_high: Band
+    # Whether the vibe is in the spec, and if so towards which end.
+    asked: bool
+    toward: Toward | None
+    # The `tag` fact that holds the sentence, the sources and the date.
+    fact_id: str
 
 
 class RankedArea(Record):
@@ -102,6 +164,17 @@ class RankedArea(Record):
     legs: tuple[CommuteLeg, ...]
     budget: BudgetFit | None
     untested_filters: tuple[FilterReason, ...]
+    strip: tuple[StripMark, ...]
+
+    @property
+    def counted(self) -> int:
+        """How many things count in the spec."""
+        return len(self.contributions)
+
+    @property
+    def present(self) -> int:
+        """For how many of them this area has a figure."""
+        return sum(1 for contribution in self.contributions if contribution.present)
 
 
 class Filtered(Record):
@@ -112,6 +185,10 @@ class Filtered(Record):
 class Unranked(Record):
     area_id: AreaId
     reason: UnrankedReason
+    # Every component the search asks for that the area has no figure for, in
+    # the order the sums run. Empty for an area that is not rankable: it was
+    # never scored, so nothing is said of what it lacks.
+    missing: tuple[str, ...]
 
 
 class RankResult(Record):
@@ -138,10 +215,21 @@ def commute_utility(minutes: int, max_minutes: int) -> float:
     return 0.0
 
 
+def budget_held_against(estimate: CostEstimate) -> int:
+    """The figure of a cost that a budget is held against.
+
+    The upper quartile of a range. Where a cost has no range it is the
+    median, to the pound: it is never raised to stand for a quartile, and
+    never scaled to a size of home that the source gives no figure for.
+    """
+    return estimate.median if estimate.upper_quartile is None else estimate.upper_quartile
+
+
 def budget_utility(amount: int, upper_quartile: int) -> float:
     """1 when the upper quartile is within budget, falling to 0 at a quarter over.
 
     Being further under budget earns nothing: Burro gives no affordability verdict.
+    Of a cost with no range it is given the median: `budget_held_against`.
     """
     return min(max(1 - (upper_quartile - amount) / (BUDGET_OVER_SHARE * amount), 0.0), 1.0)
 
@@ -165,6 +253,11 @@ class _Scored:
     legs: tuple[CommuteLeg, ...]
     budget: BudgetFit | None
     untested: tuple[FilterReason, ...]
+    strip: tuple[StripMark, ...] = ()
+
+    def lacks(self, asked: frozenset[str]) -> bool:
+        """Whether the area has no figure for a thing that was asked for."""
+        return any(part.utility is None and part.component in asked for part in self.parts)
 
 
 def _leg(area_id: str, commute: Commute, spec: PreferenceSpec, release: Release) -> CommuteLeg:
@@ -220,7 +313,7 @@ def _filter(
     if spec.budget.strictness is Strictness.HARD and amount is not None:
         if estimate is None:
             untested.append(FilterReason.OVER_BUDGET)
-        elif estimate.upper_quartile > amount:
+        elif budget_held_against(estimate) > amount:
             return FilterReason.OVER_BUDGET, ()
     hard = [
         leg
@@ -236,19 +329,31 @@ def _filter(
 
 
 def _commute_part(area_id: str, spec: PreferenceSpec, legs: tuple[CommuteLeg, ...]) -> _Part:
-    if any(leg.utility is None for leg in legs):
-        # The slowest cannot be known, so the whole component is missing.
-        missing = fact_id(area_id, FactKind.MISSING, COMMUTE)
-        return _Part(COMMUTE, spec.commute_weight, None, (missing,))
-    utilities = [leg.utility for leg in legs if leg.utility is not None]
+    """The journeys, scored on the legs that have a time.
+
+    A leg with no time is left out of the score and said to be missing. It
+    does not take the legs that have one out with it: an area 63 minutes
+    from a workplace, against a limit of 35, once ranked first because
+    another journey had no figure. The component is missing only when no
+    leg has a time.
+    """
+    timed = [(i, leg.utility) for i, leg in enumerate(legs) if leg.utility is not None]
+    missing = tuple(
+        fact_id(area_id, FactKind.MISSING, journey_key(spec.commutes[i]))
+        for i, leg in enumerate(legs)
+        if leg.utility is None
+    )
+    if not timed:
+        return _Part(COMMUTE, spec.commute_weight, None, missing)
+    utilities = [utility for _, utility in timed]
     slowest = min(utilities)
-    utility = slowest if spec.commute_combine is Combine.SLOWEST else sum(utilities) / len(legs)
+    utility = slowest if spec.commute_combine is Combine.SLOWEST else sum(utilities) / len(timed)
     # The leg that drove the score goes first: the lowest utility, and on a tie
     # the first in place order.
-    driver = utilities.index(slowest)
-    order = [driver, *(i for i in range(len(legs)) if i != driver)]
+    driver = timed[utilities.index(slowest)][0]
+    order = [driver, *(i for i, _ in timed if i != driver)]
     facts = tuple(fact_id(area_id, FactKind.TRAVEL, travel_key(spec.commutes[i])) for i in order)
-    return _Part(COMMUTE, spec.commute_weight, utility, facts)
+    return _Part(COMMUTE, spec.commute_weight, utility, (*facts, *missing))
 
 
 def _parts(
@@ -280,19 +385,83 @@ def _parts(
         component = component_for_feature(weight.feature_id)
         part(component, weight.weight, utility, FactKind.FEATURE, weight.feature_id)
     for tag in spec.active_tags:
-        score = release.tag(area_id, tag.tag_id)
-        utility = None if score is None or score.score is None else score.score / 100
-        part(component_for_tag(tag.tag_id), tag.weight, utility, FactKind.TAG, tag.tag_id)
+        part(
+            component_for_tag(tag.tag_id),
+            tag.weight,
+            tag_utility(release.tag(area_id, tag.tag_id), tag.toward),
+            FactKind.TAG,
+            tag.tag_id,
+        )
     return tuple(parts)
+
+
+def tag_utility(row: TagValue | None, toward: Toward) -> float | None:
+    """What an area is worth on a vibe, towards the end that was asked for.
+
+    Towards the high end it is `score / 100`, and towards the low end one
+    less that, so the same spec with the end turned reverses the order on
+    that vibe alone. The band and the spread are for showing and never
+    change a rank.
+    """
+    if row is None or row.score is None:
+        return None
+    share = row.score / 100
+    return share if toward is Toward.HIGH else 1 - share
+
+
+def _mark(area_id: str, row: TagValue | None, asked: TagWeight | None) -> StripMark | None:
+    if row is None or row.band is None or row.spread_low is None or row.spread_high is None:
+        return None  # a vibe the area cannot be placed on is left out
+    return StripMark(
+        tag_id=row.tag_id,
+        band=row.band,
+        spread_low=row.spread_low,
+        spread_high=row.spread_high,
+        asked=asked is not None,
+        toward=asked.toward if asked else None,
+        fact_id=fact_id(area_id, FactKind.TAG, row.tag_id),
+    )
+
+
+def strip_of(area_id: str, spec: PreferenceSpec, release: Release) -> tuple[StripMark, ...]:
+    """The vibes shown under a result's name. It is worked out after ranking and changes none.
+
+    First the vibes of the spec, heaviest first, then by id. Then a few
+    others the release lets a result show, on which the area sits furthest
+    from the middle: band 1 or 5 first, then 2 or 4, by id.
+
+    Of those others, a vibe that runs one way is shown only where the area
+    has more of it than most, in band 4 or 5. At its least it read as a
+    warning on a result, about a thing nobody had asked for. A scale has no
+    lesser end, and is shown towards either. A vibe that was asked for is
+    shown wherever the area sits on it.
+
+    A vibe whose recipe holds recorded crime is never among the others:
+    recorded crime counts, and is shown, only where a person asks for it.
+    """
+    asked = sorted(spec.active_tags, key=lambda tag: (-tag.weight, tag.tag_id))
+    first = [_mark(area_id, release.tag(area_id, tag.tag_id), tag) for tag in asked]
+    shown = [mark for mark in first if mark is not None][:STRIP_ASKED]
+    taken = {tag.tag_id for tag in asked}
+    others = [
+        mark
+        for vibe in release.vibes
+        if vibe.strip and vibe.tag_id not in taken and vibe.tag_id not in HOLDS_CRIME
+        for mark in [_mark(area_id, release.tag(area_id, vibe.tag_id), None)]
+        if mark is not None and mark.band != 3 and (vibe.shape is TagShape.SCALE or mark.band > 3)
+    ]
+    others.sort(key=lambda mark: (mark.band in (2, 4), mark.tag_id))
+    return (*shown, *others[:STRIP_OTHERS])
 
 
 def _fit(spec: PreferenceSpec, estimate: CostEstimate | None) -> BudgetFit | None:
     if spec.budget.amount is None or estimate is None:
         return None
+    held = budget_held_against(estimate)
     return BudgetFit(
         upper_quartile=estimate.upper_quartile,
-        margin=spec.budget.amount - estimate.upper_quartile,
-        utility=budget_utility(spec.budget.amount, estimate.upper_quartile),
+        margin=spec.budget.amount - held,
+        utility=budget_utility(spec.budget.amount, held),
         # Reported, and changes no arithmetic.
         confidence=estimate.confidence,
         as_of=estimate.as_of,
@@ -303,7 +472,7 @@ def _present_weight(parts: tuple[_Part, ...]) -> float:
     return sum(p.weight for p in parts if p.utility is not None)
 
 
-def _covered(parts: tuple[_Part, ...]) -> bool:
+def _covered(parts: Sequence[_Part], least: float = MIN_WEIGHT_COVERAGE) -> bool:
     """Whether enough of the weight asked for is present for the area to be scored.
 
     Counted in whole steps, as `canonical` counts them. A float sum of 0.3 and
@@ -311,7 +480,59 @@ def _covered(parts: tuple[_Part, ...]) -> bool:
     """
     present = sum(steps(p.weight) for p in parts if p.utility is not None)
     requested = sum(steps(p.weight) for p in parts)
-    return present * WEIGHT_STEPS >= requested * steps(MIN_WEIGHT_COVERAGE)
+    return present * WEIGHT_STEPS >= requested * steps(least)
+
+
+def _character(parts: Sequence[_Part]) -> list[_Part]:
+    """What is asked of the place itself: every feature and vibe that counts.
+
+    It is every one of them, whoever chose it, a default among them. Two
+    specs with one canonical form rank the same, and a canonical form holds
+    no provenance, so who chose a weight can never decide what is ranked.
+    """
+    return [p for p in parts if p.component not in (COMMUTE, BUDGET)]
+
+
+def _unranked_for(parts: Sequence[_Part]) -> UnrankedReason | None:
+    """Why an area is not ranked among the others, if it is not.
+
+    Too little of the whole comes first. Then too little of the character: a
+    journey and a rent never stand in for what was asked of the place
+    itself. An area with nothing present is covered on neither count, so
+    nothing is divided by zero.
+    """
+    if not _covered(parts):
+        return UnrankedReason.INSUFFICIENT_DATA
+    if not _covered(_character(parts), MIN_CHARACTER_COVERAGE):
+        return UnrankedReason.CHARACTER_UNKNOWN
+    return None
+
+
+def asked_for(spec: PreferenceSpec) -> frozenset[str]:
+    """The components of a search that somebody asked for: all but its usual settings.
+
+    A usual setting is a measure the tenure weighs by default that stands as
+    nobody chose it: the way the default runs, at the weight of the default or
+    at what that gives way to once a wish is applied. It is read from the
+    weight and never from who set it, because two specs with one canonical
+    form rank the same. A journey, a budget and a vibe are never a usual
+    setting: no search holds one until a person asks.
+    """
+    usual = DEFAULT_WEIGHTS[spec.tenure]
+    asked = {component_for_tag(tag.tag_id) for tag in spec.active_tags}
+    asked |= {
+        component_for_feature(weight.feature_id)
+        for weight in spec.active_weights
+        if weight.feature_id not in usual
+        or weight.direction is not default_direction(weight.feature_id)
+        or steps(weight.weight)
+        not in (steps(usual[weight.feature_id]), steps(given_way(usual[weight.feature_id])))
+    }
+    if spec.commute_requested:
+        asked.add(COMMUTE)
+    if spec.budget_requested:
+        asked.add(BUDGET)
+    return frozenset(asked)
 
 
 def _contribution(part: _Part, present: float) -> float:
@@ -356,6 +577,7 @@ def _ranked(scored: _Scored, rank: int) -> RankedArea:
         if scored.budget
         else None,
         untested_filters=scored.untested,
+        strip=scored.strip,
     )
 
 
@@ -364,7 +586,7 @@ def _score(
 ) -> _Scored | Filtered | Unranked:
     area_id = area.area_id
     if not area.rankable:
-        return Unranked(area_id=area_id, reason=UnrankedReason.NOT_RANKABLE)
+        return Unranked(area_id=area_id, reason=UnrankedReason.NOT_RANKABLE, missing=())
     estimate = release.cost(area_id, spec.tenure, spec.budget.segment)
     legs = tuple(_leg(area_id, commute, spec, release) for commute in spec.commutes)
     caught, untested = _filter(area, spec, estimate, legs)
@@ -373,17 +595,19 @@ def _score(
 
     fit = _fit(spec, estimate)
     parts = _parts(area_id, spec, release, legs, fit)
+    strip = strip_of(area_id, spec, release)
     if not parts:
         # Nothing was asked for, so every area that passes the filters is as good as any.
-        return _Scored(area_id, 0.0, 1.0, (), legs, fit, untested)
+        return _Scored(area_id, 0.0, 1.0, (), legs, fit, untested, strip)
+    reason = _unranked_for(parts)
+    if reason is not None:
+        lacking = tuple(p.component for p in parts if p.utility is None)
+        return Unranked(area_id=area_id, reason=reason, missing=lacking)
     present = _present_weight(parts)
-    # An area with nothing present is not covered, so nothing is divided by zero.
-    if not _covered(parts):
-        return Unranked(area_id=area_id, reason=UnrankedReason.INSUFFICIENT_DATA)
     # The float is only what is reported. It never decides whether an area is scored.
     coverage = present / sum(p.weight for p in parts)
     total = sum(_contribution(p, present) for p in parts)
-    return _Scored(area_id, total, coverage, parts, legs, fit, untested)
+    return _Scored(area_id, total, coverage, parts, legs, fit, untested, strip)
 
 
 def rank(spec: PreferenceSpec, release: Release) -> RankResult:
@@ -400,10 +624,15 @@ def rank(spec: PreferenceSpec, release: Release) -> RankResult:
         _score(area, spec, release)
         for area in sorted(release.neighbourhoods, key=lambda n: n.area_id)
     ]
+    asked = asked_for(spec)
     scored = sorted(
         (o for o in outcomes if isinstance(o, _Scored)),
-        # Equal scores get different ranks; the id decides.
-        key=lambda s: (-round(s.total, _SORT_DECIMALS), s.area_id),
+        # An area with no figure for a thing that was asked for stands below every area
+        # that has one, whatever its fit on the rest: decided on 2026-09-24. Its fit
+        # leaves the thing out, so it says nothing of it, and the area came first for a
+        # person who had asked for that very thing. A usual setting with no figure moves
+        # no area. Equal scores get different ranks; the id decides.
+        key=lambda s: (s.lacks(asked), -round(s.total, _SORT_DECIMALS), s.area_id),
     )
     return RankResult(
         spec_hash=spec_hash(spec),

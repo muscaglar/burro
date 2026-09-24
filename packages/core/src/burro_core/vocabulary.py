@@ -1,17 +1,22 @@
-"""The closed vocabulary of the rule-based reader, written down in one place.
+"""The words of the grammar of a plain prompt, written down in one place.
 
-The reader reads a sentence only when it knows every token in it. What it
-knows is: a phrase of the lexicon, a name of the release, a number, and the
-words of this file. Every other token makes the sentence unknown, and an
-unknown sentence makes no edit.
+The rule-based reader applies a prompt only when the whole of it is a plain
+list of things wanted or not wanted, with an optional opening, a budget and
+a journey. `grammar.py` holds the grammar, and this file the words it is
+made of. For any other prompt the reader applies nothing, and offers what it
+noticed for the person to choose (ADR 0012).
 
-So this file is the whole of what the reader may read through, and adding a
-word to it is the only way to widen what it reads. It is reviewed as a whole.
-A word belongs in `PLAIN` only if it can never turn a wish round, weaken it,
-compare it, question it or give it to someone else, in any sentence that is
-otherwise made of words from this file. If a word can do any of those it is
-either left out, or it is one of the words below `PLAIN` that the reader has
-an explicit rule for.
+A word here is known only where the grammar places it. "Want" is a wish
+straight after the speaker and nothing anywhere else, so "some want pubs"
+is not plain. That is why a word may be here that can turn a wish round in
+another place: what makes a prompt plain is its shape, and not that each of
+its words is on a list.
+
+The grammar is wide for what is structured: a budget, a tenure, the size of
+a home and a journey are made of numbers, names of the release and closed
+lists of words, so a wrong reading is a wrong number and not a wish turned
+round. It is narrow for a wish about character, which is read only from a
+phrase of the lexicon. A new word for one is a case in `evals/` first.
 
 What is left out on purpose, so that nobody adds it without a rule:
 
@@ -19,7 +24,9 @@ What is left out on purpose, so that nobody adds it without a rule:
 - every third person ("wants", "needs", "works", "he", "she", "they", "people", "everyone",
   "you"): the wish may be someone else's;
 - every word that asks ("who", "what", "why", "how", "should", "could", "do", "does");
-- every word that weakens ("maybe", "perhaps", "quite", "fairly", "ideally", "if", "unless");
+- every word that weakens the whole of a wish ("maybe", "perhaps", "ideally", "probably", "if",
+  "unless"): it says whether a thing is wanted. A word of degree before a thing, "fairly",
+  "quite", says how much, and is a small step;
 - every word that compares ("than" outside a limit, "rather", "instead", "prefer", "enough");
 - every word of distance or absence ("far", "away", "miles", "off", "out", "none", "never").
 """
@@ -28,7 +35,7 @@ from typing import NamedTuple
 
 
 class Words(NamedTuple):
-    """Some words of the vocabulary, and why each of them is safe to read through."""
+    """Some words of the grammar, where it places them, and why that is safe."""
 
     why: str
     words: frozenset[str]
@@ -41,103 +48,108 @@ def _words(why: str, *words: str) -> Words:
 # A word typed with its apostrophe keeps it, written as "'", so that "we're" is never the
 # past tense "were", nor "we'll" the adverb "well". The common way of leaving it out is
 # listed only where the word it leaves is no other word.
+SPEAKER = _words(
+    "The speaker, and nobody else, at the head of a wish. A wish is read only as the "
+    "speaker's own.",
+    *("i", "we", "i'm", "im", "i'd", "we're", "we'd"),
+)
+WISH = _words(
+    "To wish, in the present tense, straight after the speaker. Each says a thing is wanted "
+    "and none says how much or whether. 'Looking for' is a wish with no speaker too, as a "
+    "search is typed.",
+    *("want", "need", "like", "love", "after", "looking for", "looking to", "care about"),
+    *("would like", "would love", "would want", "am after", "am looking for"),
+    *("am looking to", "are after", "are looking for", "are looking to"),
+)
+WISH_ALONE = frozenset({"looking for", "looking to"})
+ASKS_BURRO = _words(
+    "What Burro is asked to do, at the head of a wish. It asks for a thing and says nothing of it.",
+    *("find me", "find us", "show me", "show us", "give me", "give us"),
+)
+TO_DO = _words(
+    "What the speaker wishes to do, after the wish: to live somewhere, or to have a thing.",
+    *("to live", "to be", "to find", "to have", "to live in", "to be in", "being"),
+)
+SOMEWHERE = _words(
+    "What a place to live is called, at the head of a wish. It names nothing that can be weighed.",
+    *("somewhere", "something", "a place", "an area", "a neighbourhood", "a neighborhood"),
+    "a location",
+)
+SOMEWHERE_THAT = _words(
+    "What joins a place to what is wanted of it. 'With' does too, and is a word that joins.",
+    *("that is", "that has", "that's"),
+)
+PLACE_NOUN = _words(
+    "What a place, or what stands in it, is called, straight after a thing: 'a leafy area' "
+    "is 'leafy', and 'Victorian terraces' is 'Victorian'.",
+    *("area", "areas", "place", "places", "neighbourhood", "neighborhood", "location"),
+    *("street", "streets", "part of town", "buildings", "terraces", "houses", "homes"),
+    *("living", "walks", "vibe", "feel"),
+)
+ARTICLE = _words(
+    "Articles and words of plenty, straight before a thing. None says few, none or too many.",
+    *("a", "an", "the", "some", "any", "lots", "lot", "of", "plenty", "loads", "many"),
+)
+GOOD = _words(
+    "Words of good opinion, before a thing or after 'would be'. Each can only say that a "
+    "thing is wanted.",
+    *("good", "great", "nice", "lovely", "decent", "excellent", "best", "proper"),
+    *("big", "large", "local", "handy", "quick"),
+)
+STRENGTHENS = _words(
+    "Words that strengthen, before a wish or before what is said of a thing. 'Quite', "
+    "'fairly' and 'pretty' say a little, and are words of degree.",
+    *("really", "very", "so", "definitely", "absolutely"),
+)
+IMPORTANT = _words(
+    "What is said of how much a thing counts, after the thing, where it counts for more.",
+    *("important", "a priority", "matters", "matter"),
+)
+WHOSE = _words(
+    "To whom a thing counts, after what is said of it. The speaker alone.",
+    *("to me", "to us", "for me", "for us"),
+)
+NEARBY = _words(
+    "Where a thing is wanted, straight after it: near. 'Far', 'away' and 'off' are not here. "
+    "'Around' stands here after a thing alone, where it is no word for about a number.",
+    *("nearby", "close by", "on my doorstep", "on the doorstep", "round the corner"),
+    *("around the corner", "within walking distance", "in walking distance"),
+    *("i can walk to", "we can walk to", "i can get to on foot", "we can get to on foot"),
+    *("around", "around it"),
+)
+FOR_WHOM = _words(
+    "Whom a thing is for, after the thing: the speaker's own household, and nobody who "
+    "lives somewhere.",
+    *("for the kids", "for my kids", "for our kids", "for the dog", "for my dog"),
+)
+JOINS = _words(
+    "What joins two wishes. 'But' begins a new wish and turns nothing by itself.",
+    *("and", "or", "but", "plus", "also", "with"),
+)
+COURTESY = _words(
+    "Courtesy, alone in a sentence or at its end. It says nothing of the wish.",
+    *("please", "thanks", "thank you", "hi", "hello", "hey"),
+)
+# Every group of plain words, to be reviewed as a whole.
 PLAIN: tuple[Words, ...] = (
-    _words(
-        "The speaker, and nobody else. A wish is read only as the speaker's own.",
-        *("i", "we", "i'm", "im", "i'd", "we're", "we'd", "me", "us", "my", "our"),
-    ),
-    _words(
-        "To wish, in the present tense and the first person. Each says a thing is wanted "
-        "and none says how much or whether. 'Like' also compares and 'love' is also a thing "
-        "one has, so the reader reads those two only straight after the speaker.",
-        *("want", "need", "like", "love", "would", "looking", "am", "must", "able", "after"),
-    ),
-    _words(
-        "What Burro is asked to do. Each asks for a thing and says nothing of it.",
-        *("find", "show", "give"),
-    ),
-    _words(
-        "To be and to have, in the present tense. They join a thing to what is said of it.",
-        *("is", "are", "be", "being", "has", "have", "it", "it's", "that", "that's", "there"),
-        "there's",
-    ),
-    _words(
-        "Articles and words of plenty. None says few, none or too many.",
-        *("a", "an", "the", "some", "any", "lots", "lot", "of", "plenty", "loads", "many"),
-    ),
-    _words(
-        "What a place to live is called. They name nothing that can be weighed.",
-        *("somewhere", "place", "places", "area", "areas", "neighbourhood", "neighborhood"),
-        *("location", "street", "streets", "home", "homes", "house", "houses", "buildings"),
-        *("flats", "apartments", "part", "thing", "things", "something"),
-    ),
-    _words(
-        "Words of good opinion. Each can only say that a thing is wanted.",
-        *("good", "great", "nice", "lovely", "decent", "excellent", "best", "proper"),
-        *("big", "large", "local", "handy", "quick"),
-    ),
-    _words(
-        "Words that strengthen. 'Quite', 'fairly' and 'pretty' weaken, and are not here.",
-        *("really", "very", "so", "definitely", "absolutely"),
-    ),
-    _words(
-        "Where a thing is, and what joins one word to the next. 'Far', 'away', 'off', "
-        "'out', 'over' and 'than' are not here, and nor is 'close' by itself, which is "
-        "also what a pub does at night.",
-        *("to", "in", "at", "by", "on", "for", "from", "with", "near", "nearby"),
-        *("around", "within", "closer", "nearer"),
-    ),
-    _words(
-        "What joins two wishes. 'But' begins a new wish and turns nothing by itself: "
-        "'anything but' needs 'anything', which is not here.",
-        *("and", "or", "but", "plus", "also"),
-    ),
-    _words(
-        "How a place is reached, and how long it takes.",
-        *("walk", "walks", "walking", "doorstep", "corner", "access", "live", "living"),
-        *("minutes", "minute", "mins", "min"),
-    ),
-    _words(
-        "Courtesy. It says nothing of the wish.",
-        *("please", "thanks", "hi", "hello", "hey"),
-    ),
-    _words(
-        "What is said of how much a thing counts, where it counts for more.",
-        *("important", "matters", "matter", "priority", "weight", "emphasis"),
-    ),
+    SPEAKER,
+    WISH,
+    ASKS_BURRO,
+    TO_DO,
+    SOMEWHERE,
+    SOMEWHERE_THAT,
+    PLACE_NOUN,
+    ARTICLE,
+    GOOD,
+    STRENGTHENS,
+    IMPORTANT,
+    WHOSE,
+    NEARBY,
+    FOR_WHOM,
+    JOINS,
+    COURTESY,
 )
 PLAIN_WORDS: frozenset[str] = frozenset(word for group in PLAIN for word in group.words)
-
-_HOUSEHOLD = ("kids", "children", "family", "dog")
-# Several words that are known together and not apart. "Foot" alone is no word of
-# the reader's, and neither is "distance", "short", "easy", "well" or "thank".
-PLAIN_PHRASES: frozenset[str] = frozenset(
-    {
-        "on foot",
-        "walking distance",
-        "short walk",
-        "easy access",
-        "as well",
-        "thank you",
-        "next to",
-        "next door",
-        "to me",
-        "to us",
-        "care about",
-        "a bit of",
-        "get to",
-        "close by",
-        "family home",
-        "family house",
-        # "Can" is known after the speaker and nowhere else: "can the pubs" scraps them.
-        "i can",
-        "we can",
-        # Who a thing is for. It is known after "for" and "with" and nowhere else, so
-        # that nobody but the speaker is ever the one who wishes: "kids love pubs".
-        *(f"for {whose} {who}" for whose in ("the", "my", "our") for who in _HOUSEHOLD),
-        *(f"with {who}" for who in ("kids", "children", "a dog", "a family")),
-    }
-)
 
 # --- The words the reader has an explicit rule for ----------------------------
 #
@@ -255,10 +267,25 @@ CAPS_FIRMLY: frozenset[str] = frozenset(
         "cannot go over",
         "can't go over",
         "cant go over",
+        "no further than",
     }
 )
+# What makes an amount of money a firm limit, and what makes a number of minutes one.
+# Decided on 2026-09-24: "max" and "up to" say the most that can be paid, and "max" and
+# "within" the longest a journey may be. Read as a guide, "max £400k" put first an area
+# where a home sold for far more. With none of these words a number stays a guide, which
+# lowers an area's fit and leaves none out. "Up to" makes no journey firm and "within" no
+# budget: each is held to the list it was decided for.
+FIRM_OF_MONEY: frozenset[str] = CAPS_FIRMLY | {"max", "up to"}
+FIRM_OF_MINUTES: frozenset[str] = CAPS_FIRMLY | {"max", "within"}
+# A thing is wanted, and not very much. Each stands before a thing, or inside
+# the speaker's own wish, "I would quite like", where it says how much and
+# never whether: none can turn a wish round. Under a word that turns, "not
+# quite", the prompt is not plain, as with any word of degree. They made a
+# prompt a question while "a bit" and "slightly" were read.
+SOFTLY: frozenset[str] = frozenset({"fairly", "quite", "pretty", "reasonably", "relatively"})
 # A little more of a thing, and a lot.
-SMALL_STEP: frozenset[str] = frozenset(
+SMALL_STEP: frozenset[str] = SOFTLY | frozenset(
     {"more", "a bit", "bit", "a bit more", "slightly", "somewhat", "slightly more"}
 )
 LARGE_STEP: frozenset[str] = frozenset(
@@ -271,6 +298,8 @@ ESSENTIAL: frozenset[str] = frozenset(
         "must have",
         "must haves",
         "a must",
+        "a must have",
+        "must be",
         "most important",
         "crucial",
         "vital",
@@ -283,14 +312,34 @@ ONLY_IN: frozenset[str] = frozenset(
 )
 NOT_IN: frozenset[str] = frozenset({"not", "not in", "avoid", "avoiding", "anywhere but"})
 NEAR_TO: frozenset[str] = frozenset(
-    {"near", "near to", "close to", "next to", "not far from", "not too far from"}
+    {
+        "near",
+        "near to",
+        "close to",
+        "next to",
+        "not far from",
+        "not too far from",
+        "walking distance to",
+        "walking distance of",
+        "within walking distance of",
+        "a short walk to",
+        "a short walk from",
+        "easy access to",
+        # To have access to a thing is to be near it. Under a word that turns,
+        # "no access to", it is no word of the grammar, as no word for near is.
+        "access to",
+        "closer to",
+        "nearer to",
+        "by",
+        "able to walk to",
+        "can walk to",
+        "i can walk to",
+        "we can walk to",
+    }
 )
-# Known words that mean the opposite together. Each is held here so that it is one
-# phrase the reader has no rule for, and the sentence it stands in is left unread.
-NEVER_READ: frozenset[str] = frozenset({"a bit much", "so so", "bit much"})
-# "A park too" is "a park as well". It is known there and nowhere else: "too many"
-# and "too noisy" are no words of the reader's.
-ALSO_AT_THE_END = "too"
+# What may close a sentence after the last wish: courtesy, and "too", which is "as
+# well" there and nowhere else. "Too many" and "too noisy" are no words of the grammar.
+AT_THE_END: frozenset[str] = COURTESY.words | {"too", "as well"}
 
 # --- The written list of doubt --------------------------------------------------
 #
@@ -307,7 +356,10 @@ _TAKES_NT = (
 CONTRACTIONS: frozenset[str] = frozenset(
     spelling for stem in _TAKES_NT.split() for spelling in (f"{stem}n't", f"{stem}nt")
 )
-_DOUBT = (
+# What turns a wish away: the thing that follows is not wanted, or is wanted
+# less, or is wanted at a distance. In a prompt that is not plain, a choice
+# that has one direction is never offered for a thing that stands after one.
+_AWAY = (
     # What turns a wish round.
     "non none nope nah naw nae never neva nvr neither nor nothing nowt nowhere nobody "
     "wout sans zero nil cannot dnt un de anti nein nicht kein keine "
@@ -321,6 +373,8 @@ _DOUBT = (
     "cease quit ban banned "
     # What is kept at a distance.
     "far further farther furthest farthest away miles distance distant outside beyond "
+)
+_DOUBT = (
     # What qualifies a wish.
     "too enough against minus lack lacks lacking absence absent devoid free opposite wrong "
     # What a person is not sure of.
@@ -390,4 +444,5 @@ PHRASES_OF_DOUBT: frozenset[str] = frozenset(
         "w out",
     }
 )
-WORDS_OF_DOUBT: frozenset[str] = frozenset(_DOUBT.split()) | CONTRACTIONS
+WORDS_THAT_TURN_AWAY: frozenset[str] = frozenset(_AWAY.split()) | CONTRACTIONS
+WORDS_OF_DOUBT: frozenset[str] = frozenset(_DOUBT.split()) | WORDS_THAT_TURN_AWAY

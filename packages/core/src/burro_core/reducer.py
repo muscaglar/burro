@@ -15,10 +15,10 @@ for leaves an entry of nothing behind when it is taken off, so that a change
 of tenure does not bring the default back.
 """
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 
 from burro_core._record import Record
-from burro_core.catalogue import FEATURES, default_direction, direction_allowed
+from burro_core.catalogue import FEATURES, HOLDS_CRIME, default_direction, direction_allowed
 from burro_core.ids import (
     AreaAction,
     AreaRuleKind,
@@ -30,6 +30,7 @@ from burro_core.ids import (
     Direction,
     DirectionChoice,
     EditProvenance,
+    FeatureId,
     Mode,
     ModeChoice,
     OpsGroup,
@@ -44,6 +45,8 @@ from burro_core.ids import (
     StrictnessChoice,
     Tenure,
     TenureChoice,
+    Toward,
+    TowardChoice,
     WeightAction,
     segments_for,
 )
@@ -80,6 +83,7 @@ from burro_core.spec import (
     given_way,
     snap,
     steps,
+    toward_allowed,
 )
 
 
@@ -179,6 +183,13 @@ def _moved_weight(before: FeatureWeight | TagWeight | None, step: Step) -> float
     return max(moved, MENTION_WEIGHT) if step in _UP and _nobody_chose(before) else moved
 
 
+# What each default gives way to, for each tenure. It is worked out once.
+_GIVEN_WAY: Mapping[Tenure, Mapping[FeatureId, float]] = {
+    tenure: {feature_id: given_way(weight) for feature_id, weight in held.items()}
+    for tenure, held in DEFAULT_WEIGHTS.items()
+}
+
+
 def given_way_spec(spec: PreferenceSpec) -> PreferenceSpec:
     """The spec with every weight that is still a default at a quarter of its default value.
 
@@ -188,13 +199,16 @@ def given_way_spec(spec: PreferenceSpec) -> PreferenceSpec:
     give way to and is left as it is. The budget and the commute settings are
     not weights of this kind and are not touched.
     """
-    defaults = DEFAULT_WEIGHTS[spec.tenure]
-    weights = tuple(
-        w.replace(weight=given_way(defaults[w.feature_id]))
-        if w.provenance is Provenance.DEFAULT and w.feature_id in defaults
-        else w
-        for w in spec.weights
-    )
+    gives_way_to = _GIVEN_WAY[spec.tenure]
+
+    def given(weight: FeatureWeight) -> FeatureWeight:
+        if weight.provenance is not Provenance.DEFAULT:
+            return weight
+        to = gives_way_to.get(weight.feature_id)
+        # A weight that has given way already is left as it is, and no record is made.
+        return weight if to is None or weight.weight == to else weight.replace(weight=to)
+
+    weights = tuple(given(weight) for weight in spec.weights)
     return spec if weights == spec.weights else spec.replace(weights=weights)
 
 
@@ -310,13 +324,20 @@ def _budget(spec: PreferenceSpec, edit: BudgetEdit, release: Release) -> Outcome
     limits = LIMITS.money(tenure)
     if given[1] and not limits.minimum <= edit.amount <= limits.maximum:
         return RejectReason.OUT_OF_RANGE
+    # An amount is tested against what a home of that kind costs. Where the
+    # release holds no such cost for any area, there is nothing to test it
+    # against: every area would lack it, and none would be left to rank.
+    if amount is not None and not release.costed(tenure, segment):
+        return RejectReason.NOT_IN_RELEASE
     if moved:
         spec = _new_tenure(spec, tenure, release)
         if not given[3]:
             strictness = spec.budget.strictness
     after = spec.budget.replace(amount=amount, segment=segment, strictness=strictness)
     return spec.replace(
-        tenure_from=provenance if moved else spec.tenure_from,
+        # A tenure that was said is the person's, whether or not it is the one
+        # the spec already held: "renting", typed by a renter, is no assumption.
+        tenure_from=provenance if given[0] else spec.tenure_from,
         budget=_stamped(budget, after, provenance),
     )
 
@@ -329,6 +350,10 @@ def _commute(spec: PreferenceSpec, edit: CommuteEdit, release: Release) -> Outco
     strictness_given = edit.strictness is not StrictnessChoice.UNCHANGED
 
     if current is None:
+        if not release.places:
+            # A release that names no place holds no journey to any. No other
+            # spelling would be known, so it is not the place that is unknown.
+            return RejectReason.NOT_IN_RELEASE
         if release.place(edit.place_id) is None:
             return RejectReason.UNKNOWN_PLACE
         if edit.action is not CommuteAction.ADD:
@@ -424,18 +449,43 @@ def _tag(spec: PreferenceSpec, edit: TagEdit, release: Release) -> Outcome:
     others = tuple(t for t in spec.tags if t is not current)
     if edit.action is WeightAction.REMOVE:
         return spec.replace(tags=others)
+
+    if not any(vibe.tag_id is edit.tag_id for vibe in release.vibes):
+        return RejectReason.NOT_IN_RELEASE
+    # A release may carry a vibe and hold too little of its recipe to place
+    # any area on it. It is then no more in the release than one it lacks.
+    if not release.placed(edit.tag_id):
+        return RejectReason.NOT_IN_RELEASE
     if edit.action is WeightAction.NUDGE and edit.step is Step.NONE:
         return RejectReason.NOTHING_TO_CHANGE
     if edit.action is WeightAction.SET and not 0 <= edit.value <= 1:
         return RejectReason.OUT_OF_RANGE
+    if edit.toward is TowardChoice.DEFAULT:
+        # "As it is": the end in the spec, or the high end.
+        toward = current.toward if current else Toward.HIGH
+    else:
+        toward = Toward(edit.toward.value)
+        if not toward_allowed(edit.tag_id, toward):
+            return RejectReason.DIRECTION_NOT_ALLOWED
 
     outright = edit.action is WeightAction.SET
-    weight = snap(edit.value) if outright else _moved_weight(current, edit.step)
+    # A step towards the other end starts from nothing: what counted towards
+    # Buzzy is no part of a wish for Calm. And there is nothing of it to lower.
+    turned = current is not None and current.toward is not toward
+    if turned and not outright and edit.step not in _UP:
+        return RejectReason.NOTHING_TO_CHANGE
+    weight = snap(edit.value) if outright else _moved_weight(None if turned else current, edit.step)
+    # Crime counts only when a person asks for it, and a vibe whose recipe
+    # holds recorded crime is held to that as a crime feature is. A word that
+    # is only read into such a vibe, "smart", "edgy", never asks for it.
+    if edit.tag_id in HOLDS_CRIME and weight > 0 and edit.provenance is EditProvenance.INFERRED:
+        return RejectReason.CRIME_NEEDS_EXPLICIT_REQUEST
     if weight == 0:
         return spec.replace(tags=others)
     after = TagWeight(
         tag_id=edit.tag_id,
         weight=weight,
+        toward=toward,
         provenance=current.provenance if current else provenance,
     )
     return spec.replace(tags=(*others, _weighed(current, after, provenance, outright)))
@@ -527,7 +577,11 @@ def apply(spec: PreferenceSpec, ops: Operations, release: Release) -> ReducerRes
                 continue
             changed = outcome != ready
             applied.append(Applied(group=group, index=index, changed=changed))
-            if changed:
+            if changed and outcome == ready.replace(tenure_from=outcome.tenure_from):
+                # All that moved is who chose the tenure. That is no wish for
+                # the defaults to give way to, and the hash stays as it was.
+                spec = spec.replace(tenure_from=outcome.tenure_from)
+            elif changed:
                 # Again, because a change of tenure brings new defaults with it.
                 spec = given_way_spec(outcome)
 

@@ -2,11 +2,13 @@ import dataclasses
 from typing import Any
 
 import pytest
-from burro_core.catalogue import FEATURES, TAGS
+from burro_core.catalogue import FEATURES, GRITTY, NUISANCES, RANKED_AS, Tag, tags_of
 from burro_core.ids import (
     AssumptionCode,
     EditProvenance,
     FeatureId,
+    FeatureKind,
+    GrittyVariant,
     InterpreterName,
     InterpretStatus,
     Notice,
@@ -15,27 +17,31 @@ from burro_core.ids import (
     Polarity,
     RejectReason,
     TagId,
+    TagShape,
     Tenure,
     UnmetCategory,
 )
 from burro_core.interpret import (
     LEXICON,
     NOTICES,
-    NUISANCES,
     POLICY_LEXICON,
     Interpreter,
     InterpretRequest,
     InterpretResult,
     RuleInterpreter,
     assumptions_for,
+    not_in_release_of,
     prepare,
+    sentences_of,
 )
+from burro_core.lexicon import HOME_WORDS, lexicon_of
 from burro_core.ops import NO_OPERATIONS, Operations
 from burro_core.reducer import ReducerResult, apply
 from burro_core.release import InMemoryRelease
 from burro_core.spec import PreferenceSpec, canonical, default_spec
+from burro_core.vocabulary import CAPS, CAPS_FIRMLY, FIRM_OF_MINUTES, FIRM_OF_MONEY
 
-from .support import area_id, place, place_id, small_release
+from .support import area_id, place, place_id, preview_release, small_release, unplaced
 
 RENTER = default_spec(Tenure.RENT)
 BUYER = default_spec(Tenure.BUY)
@@ -43,7 +49,7 @@ BUYER = default_spec(Tenure.BUY)
 CANARY = "zqxjkvanary"
 
 
-# One reader for every test: it keeps the names of the release and nothing else.
+# One reader for them all: it makes the names of a release ready once.
 READER = RuleInterpreter()
 
 
@@ -84,12 +90,20 @@ def test_a_plain_request_becomes_edits_to_the_things_it_names():
                 "action": "nudge",
                 "tag_id": "quiet_residential",
                 "step": "up_large",
+                "toward": "high",
                 "provenance": "stated",
             },
-            {"action": "nudge", "tag_id": "leafy", "step": "up_large", "provenance": "stated"},
+            {
+                "action": "nudge",
+                "tag_id": "leafy",
+                "step": "up_large",
+                "toward": "high",
+                "provenance": "stated",
+            },
         ],
     }
     assert (result.unmet, result.clarify, result.notice) == ((), (), Notice.NONE)
+    assert (result.suggestions, result.unread) == ((), ())
     assert (result.interpreter, result.degraded) == (InterpreterName.RULE, False)
     assert result.usage.model_dump() == {
         "input_tokens": 0,
@@ -124,6 +138,7 @@ def test_a_request_with_two_workplaces_and_a_budget():
                 "tenure": "rent",
                 "amount": 1800,
                 "segment": "bed_2",
+                "strictness": "hard",
                 "provenance": "stated",
             }
         ],
@@ -132,9 +147,9 @@ def test_a_request_with_two_workplaces_and_a_budget():
             {"action": "add", "place_id": place_id(3), "provenance": "stated"},
         ],
     }
-    # What the text did not say is stated as an assumption, pointing at its edit.
+    # What the text did not say is stated as an assumption, pointing at its edit. How
+    # firm the budget is was said: "up to" is the most that can be spent.
     assert [(a.code, a.group, a.index) for a in result.assumptions] == [
-        (AssumptionCode.STRICTNESS, OpsGroup.BUDGET, 0),
         (AssumptionCode.MODE, OpsGroup.COMMUTE, 0),
         (AssumptionCode.MAX_MINUTES, OpsGroup.COMMUTE, 0),
         (AssumptionCode.STRICTNESS, OpsGroup.COMMUTE, 0),
@@ -150,8 +165,9 @@ def test_a_request_with_two_workplaces_and_a_budget():
         (place_id(3), "pt", 45, "soft"),
     ]
     assert (after.spec.budget.amount, after.spec.budget.segment) == (1800, "bed_2")
-    # Budget is soft unless the person says otherwise, and the slowest journey drives the score.
-    assert after.spec.budget.strictness == "soft"
+    # A budget is soft unless the person says otherwise, and "up to" says it. The slowest
+    # journey drives the score.
+    assert after.spec.budget.strictness == "hard"
     assert after.spec.commute_combine == "slowest"
 
 
@@ -173,6 +189,7 @@ def test_request_to_avoid_a_group_gets_the_neutral_notice_and_the_rest_is_served
                 "action": "nudge",
                 "tag_id": "quiet_residential",
                 "step": "up_large",
+                "toward": "high",
                 "provenance": "stated",
             }
         ],
@@ -241,6 +258,12 @@ WHO_LIVES_THERE = [
     "I don't want to be near Wexmoor University",
     "Wexmoor University is not for me",
     "I wouldn't want to work at Wexmoor University",
+    # A word for how well off the people of a place are, with no word for people beside it.
+    # "Affluent" and "posh" are not among them: each is offered, as of the place.
+    "a wealthy area",
+    "somewhere wealthy",
+    "well off",
+    "well to do",
 ]
 
 
@@ -286,7 +309,7 @@ def test_a_request_to_find_a_group_is_not_turned_into_the_tag_that_sounds_like_i
 def test_a_word_that_also_names_a_cuisine_is_not_a_word_for_people_on_its_own():
     result = read("Turkish cafes and Indian restaurants")
     assert (result.status, result.notice) == (InterpretStatus.OK, Notice.NONE)
-    assert [e.feature_id for e in result.operations.weight_ops] == ["venue_food_drink"]
+    assert [e.feature_id for e in result.operations.weight_ops] == ["venue_food_drink_per_homes"]
     pubs = read("Irish pubs")
     assert (pubs.status, pubs.unmet) == (InterpretStatus.OK, ())
     assert [e.feature_id for e in pubs.operations.weight_ops] == ["venue_evening"]
@@ -295,17 +318,31 @@ def test_a_word_that_also_names_a_cuisine_is_not_a_word_for_people_on_its_own():
 @pytest.mark.parametrize("text", ["white stucco houses", "black railings", "an English garden"])
 def test_a_word_that_is_also_a_colour_or_a_country_asks_nothing_about_people(text: str):
     result = read(text)
-    assert (result.status, result.notice) == (InterpretStatus.OK, Notice.NONE)
+    assert (result.notice, result.operations) == (Notice.NONE, NO_OPERATIONS)
+    # A garden is offered for itself, and the country it is called after asks nothing.
+    offered = [found.target for found in result.suggestions]
+    assert offered == (["feature:land_gardens"] if "garden" in text else [])
+    assert result.status is (InterpretStatus.SUGGEST if offered else InterpretStatus.OK)
 
 
-def test_the_rest_of_a_request_is_served_when_part_of_it_is_to_be_far_from_a_campus():
-    # The rest is every other sentence. In one sentence with it, nothing is read:
-    # a comma does not end a sentence, and "far" is no word of the reader's.
-    together = read("Somewhere quiet, far from a university, 30 minutes to Pellam Cross")
-    assert together.operations == NO_OPERATIONS
-    assert together.notice is Notice.NEUTRAL_PLACES
+def test_the_rest_of_a_request_is_served_when_part_of_it_is_to_be_kept_from_a_campus():
+    # "Far" is no word of the grammar, so a prompt that holds it is not plain, in
+    # one sentence or in three. Nothing of it is applied, and the rest is offered.
+    for text in (
+        "Somewhere quiet, far from a university, 30 minutes to Pellam Cross",
+        "Somewhere quiet. Far from a university. 30 minutes to Pellam Cross.",
+    ):
+        unread = read(text)
+        assert unread.operations == NO_OPERATIONS
+        assert (unread.status, unread.notice) == (
+            InterpretStatus.POLICY_REDIRECT,
+            Notice.NEUTRAL_PLACES,
+        )
+        # The campus is never offered: nothing that was typed can weigh it.
+        assert [s.target for s in unread.suggestions] == ["tag:quiet_residential", "commute"]
 
-    result = read("Somewhere quiet. Far from a university. 30 minutes to Pellam Cross.")
+    # Said in the words the grammar has, the campus makes no edit and the rest is applied.
+    result = read("Somewhere quiet, not near a university, 30 minutes to Pellam Cross")
     assert (result.status, result.notice) == (
         InterpretStatus.POLICY_REDIRECT,
         Notice.NEUTRAL_PLACES,
@@ -319,6 +356,7 @@ def test_the_rest_of_a_request_is_served_when_part_of_it_is_to_be_far_from_a_cam
                 "action": "nudge",
                 "tag_id": "quiet_residential",
                 "step": "up_large",
+                "toward": "high",
                 "provenance": "stated",
             }
         ],
@@ -331,18 +369,26 @@ def test_the_rest_of_a_request_is_served_when_part_of_it_is_to_be_far_from_a_cam
 def test_to_be_near_a_campus_is_a_wish_about_a_place(text: str):
     result = read(text)
     assert (result.status, result.notice) == (InterpretStatus.OK, Notice.NONE)
-    (edit,) = result.operations.tag_ops
-    assert (edit.tag_id, edit.action, edit.step) == ("near_universities", "nudge", "up_large")
+    # A campus is one measure, so it is a feature, and no vibe is made of it.
+    (edit,) = result.operations.weight_ops
+    assert (edit.feature_id, edit.action, edit.step) == (
+        "university_proximity",
+        "nudge",
+        "up_large",
+    )
+    assert result.operations.tag_ops == ()
 
 
 def test_not_caring_about_a_campus_is_an_ordinary_edit():
     near = apply(RENTER, read("near a university").operations, small_release()).spec
+    assert FeatureId.UNIVERSITY_PROXIMITY in {w.feature_id for w in near.active_weights}
     result = read("I don't care about universities", near)
     assert (result.status, result.notice) == (InterpretStatus.OK, Notice.NONE)
-    assert [(e.tag_id, e.action) for e in result.operations.tag_ops] == [
-        ("near_universities", "remove")
+    assert [(e.feature_id, e.action) for e in result.operations.weight_ops] == [
+        ("university_proximity", "remove")
     ]
-    assert apply(near, result.operations, small_release()).spec.tags == ()
+    after = apply(near, result.operations, small_release()).spec
+    assert FeatureId.UNIVERSITY_PROXIMITY not in {w.feature_id for w in after.active_weights}
 
 
 def test_amenities_asked_for_by_name_are_ordinary_edits():
@@ -386,25 +432,158 @@ def test_the_policy_lexicon_holds_words_for_people_and_never_for_buildings():
     assert {prepare(phrase) for phrase in POLICY_LEXICON} == set(POLICY_LEXICON)
 
 
-def test_every_feature_and_tag_is_recognised_by_its_label():
+def test_every_feature_and_vibe_is_recognised_by_its_label_and_its_short_label():
     for feature_id, feature in FEATURES.items():
-        result = read(f"I care about {feature.label}")
-        found = {e.feature_id for e in result.operations.weight_ops}
-        assert feature_id in found, feature.label
-    for tag_id, tag in TAGS.items():
-        result = read(f"somewhere with {tag.label.lower()} please")
-        assert [e.tag_id for e in result.operations.tag_ops] == [tag_id], tag.label
+        for name in (feature.label, feature.short_label):
+            if prepare(name) in HOME_WORDS:
+                continue  # "Flats" is what is being looked for, and no wish for more of them
+            result = read(f"I care about {name}")
+            found = {e.feature_id for e in result.operations.weight_ops}
+            # What is shown and never ranked on is a wish for what is ranked in its place.
+            assert RANKED_AS.get(feature_id, feature_id) in found, name
+            assert not found & set(RANKED_AS), name
+    for vibe in small_release().vibes:
+        if vibe.shape is TagShape.SCALE:
+            continue  # the name of a scale names no end
+        for name in {vibe.label, vibe.short_label}:
+            result = read(f"somewhere with {name.lower()} please")
+            assert [e.tag_id for e in result.operations.tag_ops] == [vibe.tag_id], name
+
+
+NOISE_NAME = FEATURES[FeatureId.NOISE_EXPOSURE].label
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        f"I care about {NOISE_NAME}",
+        f"I care about {NOISE_NAME.lower()}",
+        f"Near a park. I care about {NOISE_NAME}",
+    ],
+)
+def test_the_whole_name_of_transport_noise_is_read_as_the_measure_and_asks_about_nobody(
+    text: str,
+):
+    # The one name of the catalogue that says residents (ADR 0006). Typed whole, it names
+    # the measure, as the name of every other measure does.
+    result = read(text)
+    assert result.notice is Notice.NONE
+    assert FeatureId.NOISE_EXPOSURE in {edit.feature_id for edit in result.operations.weight_ops}
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "residents exposed to transport noise",
+        "share of residents exposed to transport noise",
+        "share of residents exposed to 65 dB or more of transport noise",
+        "share of older residents exposed to 55 dB or more of transport noise",
+        "share of residents",
+        "quiet residents",
+        "fewer residents",
+        f"{NOISE_NAME} and young residents",
+        f"no residents, {NOISE_NAME}",
+    ],
+)
+def test_a_word_for_who_lives_somewhere_is_still_heard_outside_the_whole_name_of_the_measure(
+    text: str,
+):
+    result = read(text)
+    assert result.notice is Notice.NEUTRAL_PLACES
+
+
+# "Homes" is the name of a scale and a word for a home, which is a thing by no name.
+# Gritty is named for its high end, so its name is a wish for that end.
+SCALES = [
+    vibe
+    for vibe in tags_of(GrittyVariant.B)
+    if vibe.shape is TagShape.SCALE
+    and prepare(vibe.label) not in HOME_WORDS
+    and vibe.label != vibe.high_end
+]
+SAID_OF_A_SCALE = [
+    "{}",
+    "somewhere with {}",
+    "I want {}",
+    "{} please",
+    "not {}",
+    "more {}",
+    "no {}",
+]
+
+
+@pytest.mark.parametrize("said", SAID_OF_A_SCALE)
+@pytest.mark.parametrize("vibe", SCALES, ids=[vibe.tag_id.value for vibe in SCALES])
+def test_the_name_of_a_scale_names_no_end_so_it_is_offered_and_never_applied(vibe: Tag, said: str):
+    # "Street character" was read as a wish for Gritty, and "pace" for Buzzy.
+    result = read(said.format(vibe.label.lower()))
+    assert result.operations == NO_OPERATIONS
+    assert (result.status, result.assumptions) == (InterpretStatus.SUGGEST, ())
+    (found,) = result.suggestions
+    assert (found.target, found.label) == (f"tag:{vibe.tag_id}", vibe.short_label)
+    # Both ends are offered, and the person chooses.
+    assert [choice.direction for choice in found.choices] == ["more", "less", "ignore"]
+    towards = [edit.toward for choice in found.choices for edit in choice.operations.tag_ops]
+    assert towards == ["high", "low"]
+    assert str(vibe.high_end) in found.choices[0].label
+    assert str(vibe.low_end) in found.choices[1].label
+
+
+@pytest.mark.parametrize("text", ["I don't care about pace", "pace is not important"])
+def test_to_take_a_scale_off_names_no_end_and_needs_none(text: str):
+    held = apply(RENTER, read("buzzy").operations, small_release()).spec
+    result = read(text, held)
+    assert edits(result) == {
+        "tag_ops": [{"action": "remove", "tag_id": "pace", "provenance": "stated"}]
+    }
+    assert reduced(result, held).spec.tags == ()
+
+
+def test_a_scale_is_recognised_by_the_name_of_each_end():
+    for vibe in small_release().vibes:
+        if vibe.shape is not TagShape.SCALE or vibe.tag_id is TagId.HOMES:
+            continue
+        for end, toward in ((vibe.low_end, "low"), (vibe.high_end, "high")):
+            assert end is not None
+            (edit,) = read(f"somewhere {end.lower()}").operations.tag_ops
+            assert (edit.tag_id, edit.toward, edit.step) == (vibe.tag_id, toward, "up_large"), end
+
+
+@pytest.mark.parametrize("text", ["homes", "flats", "houses", "a flat", "I want a house"])
+def test_a_word_for_a_home_is_no_wish_for_a_kind_of_street(text: str):
+    # "Flats" is the name of an end of a scale, and it is also what is being
+    # looked for. The reader cannot say which, so it is a thing by no name.
+    assert read(text).operations.tag_ops == ()
+    assert read("suburban").operations.tag_ops[0].toward == "low"
+    assert read("city living").operations.tag_ops[0].toward == "high"
+
+
+def test_a_vibe_the_release_does_not_carry_answers_to_no_word():
+    # A release that holds no recorded crime carries no Gritty, and the name the scale
+    # had names nothing there.
+    without = small_release(GrittyVariant.A)
+    assert GRITTY[GrittyVariant.B] not in {vibe.tag_id for vibe in without.vibes}
+    assert "street character" not in lexicon_of(GrittyVariant.A)
+    for text in ("street character", "gritty", "polished", "rough", "affluent"):
+        result = READER.interpret(InterpretRequest(text=text, spec=RENTER, release=without))
+        named = {edit.tag_id for edit in result.operations.tag_ops}
+        named |= {found.target.removeprefix("tag:") for found in result.suggestions}
+        assert GRITTY[GrittyVariant.B] not in named, text
 
 
 def test_the_lexicon_names_only_what_is_in_the_catalogue():
-    for phrase, target in LEXICON.items():
-        assert phrase == prepare(phrase), phrase
-        assert target.features or target.tags
-        assert set(target.features) <= set(FEATURES)
-        assert set(target.tags) <= set(TAGS)
-    # Every feature and every tag can be reached by some phrase.
-    assert {f for t in LEXICON.values() for f in t.features} == set(FEATURES)
-    assert {g for t in LEXICON.values() for g in t.tags} == set(TAGS)
+    for variant in GrittyVariant:
+        for phrase, target in lexicon_of(variant).items():
+            assert phrase == prepare(phrase), phrase
+            assert target.features or target.tags
+            assert set(target.features) <= set(FEATURES)
+            assert set(target.tags) <= {vibe.tag_id for vibe in tags_of(variant)}, phrase
+        # Every feature and every vibe of the release can be reached by some phrase, but
+        # for what is shown and never ranked on: no word asks to be ranked on that.
+        reached = lexicon_of(variant).values()
+        assert {f for t in reached for f in t.features} == set(FEATURES) - set(RANKED_AS)
+        assert {g for t in reached for g in t.tags} == {v.tag_id for v in tags_of(variant)}
+    assert set(LEXICON) <= set(lexicon_of(GrittyVariant.A)) | set(lexicon_of(GrittyVariant.B))
 
 
 @pytest.mark.parametrize(
@@ -413,8 +592,8 @@ def test_the_lexicon_names_only_what_is_in_the_catalogue():
         ("£1,500 pcm", "rent", 1500, "unchanged"),
         ("1500 a month", "rent", 1500, "unchanged"),
         ("budget 1.5k", "unchanged", 1500, "unchanged"),
-        ("up to 1800", "unchanged", 1800, "unchanged"),
-        ("max £2,000", "unchanged", 2000, "unchanged"),
+        ("under 1800", "unchanged", 1800, "unchanged"),
+        ("maximum £2,000", "unchanged", 2000, "unchanged"),
         ("under £950 for a studio to rent", "rent", 950, "studio"),
         ("renting a room for £700", "rent", 700, "room"),
         ("3 bedroom house to rent", "rent", 0, "bed_3"),
@@ -445,10 +624,55 @@ def test_a_number_too_long_to_be_money_is_turned_away_by_the_reducer():
     assert [r.reason for r in reduced(late).rejected] == [RejectReason.OUT_OF_RANGE]
 
 
-def test_a_budget_is_soft_unless_the_words_make_it_a_limit():
-    assert read("max £1,800 pcm").operations.budget_ops[0].strictness == "unchanged"
-    assert read("no more than £1,800 pcm").operations.budget_ops[0].strictness == "hard"
-    assert read("I cannot go over £1,800 a month").operations.budget_ops[0].strictness == "hard"
+FIRM_BUDGETS = [
+    "max £1,800 pcm",
+    "£1,800 pcm max",
+    "up to £1,800 pcm",
+    "at most £1,800 pcm",
+    "no more than £1,800 pcm",
+    "I cannot go over £1,800 a month",
+    "max £400k for a flat",
+    "up to 1800",
+]
+GUIDES = [
+    "£1,800 pcm",
+    "under £1,800 pcm",
+    "below £1,800 pcm",
+    "less than £1,800 pcm",
+    "around £1,800 pcm",
+    "maximum £1,800 pcm",
+    "£1,800 pcm tops",
+]
+
+
+@pytest.mark.parametrize("text", FIRM_BUDGETS)
+def test_a_budget_is_a_firm_limit_where_the_words_say_the_most_that_can_be_paid(text: str):
+    """Decided on 2026-09-24: "max", "up to", "at most" and "no more than".
+
+    Read as a guide, "max £400k" put first an area where a home sold for far more.
+    """
+    result = read(text)
+    (edit,) = result.operations.budget_ops
+    assert edit.strictness == "hard"
+    assert AssumptionCode.STRICTNESS not in {found.code for found in result.assumptions}
+    assert reduced(result).spec.budget.strictness == "hard"
+
+
+@pytest.mark.parametrize("text", GUIDES)
+def test_a_budget_with_none_of_the_words_that_make_it_firm_stays_a_guide(text: str):
+    result = read(text)
+    (edit,) = result.operations.budget_ops
+    assert edit.strictness == "unchanged"
+    assert reduced(result).spec.budget.strictness == "soft"
+
+
+def test_each_kind_of_limit_is_held_to_the_words_that_were_decided_for_it():
+    """ "Up to" makes no journey firm, and "within" is no word of money."""
+    assert {"max", "up to"} == FIRM_OF_MONEY - CAPS_FIRMLY
+    assert {"max", "within"} == FIRM_OF_MINUTES - CAPS_FIRMLY
+    assert {"max", "up to", "within"} <= CAPS
+    (journey,) = read("up to 30 minutes to Pellam Cross").operations.commute_ops
+    assert (journey.max_minutes, journey.strictness) == (30, "unchanged")
 
 
 def test_a_number_of_minutes_or_bedrooms_is_not_mistaken_for_money():
@@ -462,7 +686,7 @@ def test_a_number_of_minutes_or_bedrooms_is_not_mistaken_for_money():
     ("text", "place", "mode", "minutes", "strictness"),
     [
         ("30 minutes to Pellam Cross", 1, "unchanged", 30, "unchanged"),
-        ("within 25 mins of Foxholt Works", 2, "unchanged", 25, "unchanged"),
+        ("within 25 mins of Foxholt Works", 2, "unchanged", 25, "hard"),
         ("I work at Wexmoor University", 3, "unchanged", 0, "unchanged"),
         ("I work at the Pellam Infirmary", 4, "unchanged", 0, "unchanged"),
         ("near Foxholt Works", 2, "unchanged", 0, "unchanged"),
@@ -482,6 +706,70 @@ def test_a_destination_is_read_with_its_mode_and_its_cap(
     assert (edit.mode, edit.max_minutes, edit.strictness) == (mode, minutes, strictness)
     assert result.status is InterpretStatus.OK
     assert reduced(result).rejected == ()
+
+
+@pytest.mark.parametrize(
+    ("text", "mode", "minutes", "strictness"),
+    [
+        # The minutes stand apart from the place, and how they are travelled
+        # and whether they are a limit stand with the minutes.
+        ("I work at Foxholt Works. A 40 minute commute on foot.", "walk", 40, "unchanged"),
+        ("I commute to Foxholt Works, 35 minutes max by bike", "cycle", 35, "hard"),
+        ("I work at Foxholt Works, a 35 minute commute by bike", "cycle", 35, "unchanged"),
+        ("I work at Foxholt Works, no more than 35 minutes", "unchanged", 35, "hard"),
+        ("I work at Foxholt Works. At most a 30 minute commute by tube.", "pt", 30, "hard"),
+        ("I cycle to Foxholt Works, 25 minutes tops", "cycle", 25, "unchanged"),
+        ("I walk to Foxholt Works, a 20 minute walk", "walk", 20, "unchanged"),
+        ("within 35 minutes of Foxholt Works, no more than 35 minutes", "unchanged", 35, "hard"),
+    ],
+)
+def test_minutes_said_apart_from_a_place_keep_their_way_of_travelling_and_their_limit(
+    text: str, mode: str, minutes: int, strictness: str
+):
+    result = read(text)
+    (edit,) = result.operations.commute_ops
+    assert (edit.place_id, edit.mode, edit.max_minutes) == (place_id(2), mode, minutes)
+    assert edit.strictness == strictness
+    assert (result.status, result.unread) == (InterpretStatus.OK, ())
+    # What was said is not said to be assumed.
+    assumed = {found.code for found in result.assumptions}
+    assert (AssumptionCode.MODE in assumed) is (mode == "unchanged")
+    assert (AssumptionCode.STRICTNESS in assumed) is (strictness == "unchanged")
+    assert AssumptionCode.MAX_MINUTES not in assumed
+    # And the journey rests on the words that gave it its minutes too.
+    rested = " ".join(text[found.start : found.end] for found in result.rests_on)
+    assert "Foxholt Works" in rested and str(minutes) in rested
+
+
+def test_minutes_said_apart_are_the_limit_of_each_journey_that_was_given_none():
+    text = "I work at Foxholt Works and study at Wexmoor University, a 40 minute commute by bike"
+    result = read(text)
+    assert [(e.place_id, e.mode, e.max_minutes) for e in result.operations.commute_ops] == [
+        (place_id(2), "cycle", 40),
+        (place_id(3), "cycle", 40),
+    ]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # Said of no journey: there is nothing for the minutes to be the limit of.
+        "a 40 minute commute",
+        "a 40 minute commute by bike",
+        "leafy, a 30 minute commute",
+        # Said against the journey they stand beside.
+        "I cycle to Foxholt Works, 25 minutes on foot",
+        "30 minutes to Pellam Cross. A 40 minute commute by bike.",
+        "I walk to Foxholt Works, a 20 minute commute by tube",
+        # Two that disagree.
+        "I work at Foxholt Works. A 40 minute commute. A 30 minute commute.",
+        "I work at Foxholt Works, a 30 minute commute by bike. A 30 minute commute on foot.",
+    ],
+)
+def test_minutes_said_of_no_journey_or_against_one_are_not_said_to_have_been_read(text: str):
+    result = read(text)
+    assert result.operations == NO_OPERATIONS
+    assert UnmetCategory.OTHER in result.unmet and result.unread
 
 
 def test_a_name_written_with_its_article_is_found_with_it_and_without():
@@ -721,11 +1009,24 @@ NEGATED: list[tuple[str, FeatureId]] = [
     ("nowhere near a station", FeatureId.STATION_WALK),
     ("I don't want to be near a park", FeatureId.PARK_PROXIMITY),
     ("without a playground", FeatureId.PLAY_SPACE_PROXIMITY),
-    ("no theatres", FeatureId.CULTURE_VENUES),
+    ("no theatres", FeatureId.CULTURE_VENUES_PER_HOMES),
     ("not many independent shops", FeatureId.VENUE_INDEPENDENT),
     ("fewer primary schools", FeatureId.SCHOOL_PRIMARY_NEARBY),
     ("no pubs or parks", FeatureId.PARK_PROXIMITY),
 ]
+
+
+# Of those, the ones the grammar makes: a turn, and the thing straight after it.
+PLAINLY_TURNED = {
+    "not near a station",
+    "no parks nearby",
+    "less green space",
+    "without a playground",
+    "no theatres",
+    "not many independent shops",
+    "fewer primary schools",
+    "no pubs or parks",
+}
 
 
 @pytest.mark.parametrize(("text", "feature_id"), NEGATED, ids=[text for text, _ in NEGATED])
@@ -740,22 +1041,44 @@ def test_a_negated_wish_never_raises_a_weight(
     after = reduced(result, spec)
     assert after.rejected == ()
     assert weight_of(after.spec, feature_id) <= weight_of(spec, feature_id)
-    # The wish itself, to be away from the thing, is one no edit can express, and it is said.
-    assert UnmetCategory.OTHER in result.unmet
-    assert result.status is InterpretStatus.OK
+    if text in PLAINLY_TURNED:
+        # The turn is one the grammar has, so the weight is taken off or turned down.
+        assert (result.status, result.unmet, result.unread) == (InterpretStatus.OK, (), ())
+        assert feature_id in {edit.feature_id for edit in result.operations.weight_ops}
+    else:
+        # Nothing is applied. The thing is offered, and the person says which way.
+        assert result.operations == NO_OPERATIONS
+        assert result.status is InterpretStatus.SUGGEST
+        assert UnmetCategory.OTHER in result.unmet and result.unread
+        assert f"feature:{feature_id}" in {found.target for found in result.suggestions}
+
+
+def test_no_suggestion_would_raise_a_weight_by_a_direction_the_reader_chose():
+    # Pubs are a taste, so both directions are offered and neither is chosen.
+    # A thing with one direction is offered as it is, or to be taken off, and
+    # only where the spec holds a weight to take off.
+    (pubs,) = read("hardly any pubs").suggestions
+    assert (pubs.target, pubs.label) == ("feature:venue_evening", "Pubs and bars")
+    assert [(c.direction, c.label) for c in pubs.choices] == [
+        ("more", "More pubs and bars"),
+        ("less", "Fewer pubs and bars"),
+        ("ignore", "Leave it out"),
+    ]
+    (park,) = read("I hate parks").suggestions
+    assert [(c.direction, c.label) for c in park.choices] == [
+        ("more", "Nearer a park"),
+        ("less", "Take it off"),
+        ("ignore", "Leave it out"),
+    ]
+    # A renter's default weighs no play space, so there is nothing to take off.
+    (play,) = read("I hate playgrounds").suggestions
+    assert [c.direction for c in play.choices] == ["more", "ignore"]
 
 
 @pytest.mark.parametrize(
-    ("text", "tag_id"),
-    [
-        ("not leafy", TagId.LEAFY),
-        ("not too buzzy", TagId.BUZZY),
-        ("no nightlife", TagId.EVENING_VENUES),
-        ("not by the water", TagId.WATERSIDE),
-        ("I don't want a village", TagId.VILLAGE_FEEL),
-    ],
+    ("text", "tag_id"), [("not leafy", TagId.LEAFY), ("I don't want a village", TagId.VILLAGE_FEEL)]
 )
-def test_a_negated_wish_never_raises_a_tag(text: str, tag_id: TagId):
+def test_a_negated_wish_never_raises_a_vibe_that_has_one_direction(text: str, tag_id: TagId):
     wanted = apply(
         RENTER,
         Operations.model_validate(
@@ -767,6 +1090,7 @@ def test_a_negated_wish_never_raises_a_tag(text: str, tag_id: TagId):
                         "tag_id": tag_id,
                         "value": 0.5,
                         "step": "none",
+                        "toward": "high",
                         "provenance": "stated",
                     }
                 ]
@@ -776,9 +1100,34 @@ def test_a_negated_wish_never_raises_a_tag(text: str, tag_id: TagId):
     ).spec
     for spec in (RENTER, wanted):
         result = read(text, spec)
-        assert [e.tag_id for e in result.operations.tag_ops] == [tag_id]
-        assert tag_weight_of(reduced(result, spec).spec, tag_id) <= tag_weight_of(spec, tag_id)
-        assert UnmetCategory.OTHER in result.unmet
+        assert [(e.tag_id, e.action) for e in result.operations.tag_ops] == [(tag_id, "remove")]
+        assert tag_weight_of(reduced(result, spec).spec, tag_id) == 0.0
+        assert (result.status, result.unmet) == (InterpretStatus.OK, ())
+
+
+@pytest.mark.parametrize(
+    ("text", "tag_id", "toward", "step"),
+    [
+        ("not buzzy", TagId.PACE, "low", "up_large"),
+        ("not too buzzy", TagId.PACE, "low", "up_small"),
+        ("no nightlife", TagId.PACE, "low", "up_large"),
+        ("not calm", TagId.PACE, "high", "up_large"),
+        ("not historic", TagId.BUILT_AGE, "low", "up_large"),
+        ("not gritty", TagId.STREET_CHARACTER, "low", "up_large"),
+        ("not polished", TagId.STREET_CHARACTER, "high", "up_large"),
+    ],
+)
+def test_an_end_of_a_scale_that_is_turned_away_is_a_wish_for_the_other_end(
+    text: str, tag_id: TagId, toward: str, step: str
+):
+    (edit,) = read(text).operations.tag_ops
+    assert (edit.tag_id, edit.action, edit.toward, edit.step) == (tag_id, "nudge", toward, step)
+    (held,) = reduced(read(text)).spec.tags
+    assert (held.tag_id, held.toward) == (tag_id, toward)
+    # And never both ends at once.
+    end = text.removeprefix("not too ").removeprefix("not ").removeprefix("no ")
+    both = read(f"{end} and {text}")
+    assert (both.operations, both.status) == (NO_OPERATIONS, InterpretStatus.SUGGEST)
 
 
 @pytest.mark.parametrize(
@@ -812,15 +1161,45 @@ def test_only_what_it_is_a_nuisance_to_have_is_marked_as_one():
         FeatureId.CRIME_BURGLARY_THEFT,
         FeatureId.AIR_NO2,
         FeatureId.NOISE_EXPOSURE,
+        FeatureId.ROAD_MAJOR_EXPOSURE,
+        FeatureId.EVENING_CLUSTER_EXPOSURE,
+        FeatureId.INCIDENT_CRIMINAL_DAMAGE,
+        FeatureId.INCIDENT_ANTISOCIAL,
     } == NUISANCES
+    assert {f for f, feature in FEATURES.items() if feature.kind is FeatureKind.NUISANCE} == (
+        NUISANCES
+    )
     # Each is a feature that lower is better for, and that can be no other way.
     assert {FEATURES[f].polarity for f in NUISANCES} == {Polarity.LESS}
     for phrase, target in LEXICON.items():
         if target.nuisance:
             assert set(target.features) <= NUISANCES, phrase
             assert not target.tags, phrase
-    assert not LEXICON["clean air"].nuisance
+        if target.wanted_low:
+            assert target.nuisance, phrase
+    # A phrase that says low is the wish itself. One that only names is not.
+    assert LEXICON["clean air"].wanted_low and LEXICON["low crime"].wanted_low
+    assert not LEXICON["noise"].wanted_low
     assert not LEXICON["safe"].nuisance
+
+
+@pytest.mark.parametrize("text", ["noise", "I like noise", "I love crime", "pollution, pubs"])
+def test_a_nuisance_that_is_only_named_or_is_liked_makes_no_edit(text: str):
+    result = read(text)
+    assert result.operations == NO_OPERATIONS
+    assert result.status is InterpretStatus.SUGGEST
+    for found in result.suggestions:
+        if found.target.removeprefix("feature:") in {f.value for f in NUISANCES}:
+            # Less of it is the one thing that can be chosen.
+            assert [c.direction for c in found.choices] == ["less", "ignore"]
+
+
+@pytest.mark.parametrize("text", ["I care about noise", "noise matters to me", "low crime"])
+def test_a_nuisance_that_is_said_to_count_is_cared_about(text: str):
+    result = read(text)
+    assert result.status is InterpretStatus.OK
+    assert {e.action for e in result.operations.weight_ops} == {"nudge"}
+    assert {e.feature_id for e in result.operations.weight_ops} <= NUISANCES
 
 
 @pytest.mark.parametrize(
@@ -892,13 +1271,16 @@ TWO_SIGNS = [
 def test_in_doubt_the_reader_makes_no_edit_and_says_so(text: str, spec: PreferenceSpec):
     result = read(text, spec)
     assert result.operations == NO_OPERATIONS
-    assert (result.status, result.notice) == (InterpretStatus.OK, Notice.NONE)
+    # The thing is offered, and the words that were not read are pointed to.
+    assert (result.status, result.notice) == (InterpretStatus.SUGGEST, Notice.NONE)
     assert result.unmet == (UnmetCategory.OTHER,)
+    assert result.suggestions and result.unread
     assert result.clarify == ()
     assert reduced(result, spec).spec == spec
 
 
-NOT_TO_A_PLACE = [
+# A place that is turned away by what stands before it.
+AWAY_FROM_A_PLACE = [
     "not near Pellam Cross",
     "nowhere near Pellam Cross",
     "I don't want to be near Foxholt Works",
@@ -907,20 +1289,33 @@ NOT_TO_A_PLACE = [
     "anywhere but near Foxholt Works",
     "far from Pellam Cross",
     "a long way from Pellam Cross Station",
+    "at least 45 minutes from Foxholt Works",
+]
+# And one that is put in doubt by what stands after it.
+NOT_TO_A_PLACE = [
     "I work at Foxholt Works, not really",
     "near Foxholt Works? No.",
     "30 minutes to Pellam Cross is too far",
+    "maybe near Foxholt Works",
 ]
 
 
-@pytest.mark.parametrize("text", NOT_TO_A_PLACE)
+@pytest.mark.parametrize("text", [*AWAY_FROM_A_PLACE, *NOT_TO_A_PLACE])
 def test_a_place_named_in_a_doubtful_clause_adds_no_journey(text: str):
     # "Nowhere near Pellam Cross" added a journey to it, and put its area first.
     result = read(text)
-    assert result.operations == NO_OPERATIONS
-    assert (result.status, result.clarify) == (InterpretStatus.OK, ())
+    assert (result.operations, result.clarify) == (NO_OPERATIONS, ())
     assert result.unmet == (UnmetCategory.OTHER,)
     assert reduced(result).spec.commutes == ()
+    journeys = [found for found in result.suggestions if found.target == "commute"]
+    if text in AWAY_FROM_A_PLACE:
+        # To add the journey would be the opposite of what was said, so it is not offered.
+        assert (result.status, journeys) == (InterpretStatus.OK, [])
+    else:
+        # The journey is offered, and is added only if the person chooses it.
+        (journey,) = journeys
+        assert [c.direction for c in journey.choices] == ["more", "ignore"]
+        assert result.status is InterpretStatus.SUGGEST
 
 
 @pytest.mark.parametrize(
@@ -967,27 +1362,228 @@ def test_a_tenure_or_a_kind_of_home_in_a_doubtful_clause_is_left_alone(text: str
     assert read("renting, not buying").operations.budget_ops[0].tenure == "rent"
 
 
-def test_the_rest_of_a_request_is_read_when_one_sentence_is_in_doubt():
-    # A comma does not end a sentence, so with the doubt in it nothing of it is read.
-    one = read("Quiet, 30 minutes to Pellam Cross, £1,500 pcm, and I can't live without a park")
-    assert (one.operations, one.unmet) == (NO_OPERATIONS, (UnmetCategory.OTHER,))
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Quiet, 30 minutes to Pellam Cross, £1,500 pcm, and I can't live without a park",
+        "Quiet, 30 minutes to Pellam Cross, £1,500 pcm. I can't live without a park.",
+    ],
+)
+def test_nothing_of_a_request_is_applied_when_one_sentence_of_it_is_in_doubt(text: str):
+    # It is all or nothing, in one sentence or in two: no single word is ever the
+    # fault, so not even the budget is applied. Everything that was noticed is offered.
+    result = read(text)
+    assert (result.operations, result.unmet) == (NO_OPERATIONS, (UnmetCategory.OTHER,))
+    assert result.status is InterpretStatus.SUGGEST
+    assert [(found.target, found.label) for found in result.suggestions] == [
+        ("tag:quiet_residential", "Quiet streets"),
+        ("commute", "Pellam Cross"),
+        ("budget", "A budget of £1,500 a month"),
+        ("feature:park_proximity", "Nearer a park"),
+    ]
+    assert [text[span.start : span.end] for span in result.unread] == [
+        "and I can't live without a" if "and" in text else "I can't live without a",
+    ]
+    # Every choice is the person's own edit, and none is turned away.
+    for found in result.suggestions:
+        *choices, ignore = found.choices
+        assert (ignore.direction, ignore.operations) == ("ignore", NO_OPERATIONS)
+        for choice in choices:
+            chosen = apply(RENTER, choice.operations, small_release())
+            assert chosen.rejected == () and chosen.spec != RENTER
+            for group in OpsGroup:
+                for edit in getattr(choice.operations, group.value):
+                    assert edit.provenance == "ui_edit"
+    # A choice says all that it holds: the place, and the minutes said of it.
+    (journey,) = (found for found in result.suggestions if found.target == "commute")
+    assert journey.choices[0].label == "Add a journey to Pellam Cross within 30 minutes"
+    assert journey.choices[0].operations.commute_ops[0].max_minutes == 30
+    assert [text[span.start : span.end] for span in journey.spans] == ["30 minutes to Pellam Cross"]
 
-    result = read("Quiet, 30 minutes to Pellam Cross, £1,500 pcm. I can't live without a park.")
-    assert edits(result) == {
-        "budget_ops": [{"action": "set", "tenure": "rent", "amount": 1500, "provenance": "stated"}],
-        "commute_ops": [
-            {"action": "add", "place_id": place_id(1), "max_minutes": 30, "provenance": "stated"}
-        ],
-        "tag_ops": [
-            {
-                "action": "nudge",
-                "tag_id": "quiet_residential",
-                "step": "up_large",
-                "provenance": "stated",
-            }
-        ],
-    }
+
+# Prompts that are not plain, in which something stands beside a place, an
+# amount or a home that the choice once carried and its label did not say.
+NOT_PLAIN = [
+    "I used to pay £1,800 a month for a 3 bed flat",
+    "Happy anywhere as long as it is under £450k",
+    "at least 45 minutes from Foxholt Works",
+    "30 minutes to Pellam Cross by bike is too long",
+    "not within 40 minutes of Foxholt Works",
+    "My budget is about £2,000 a month for a two bed flat, I think",
+    "maybe a studio to rent for £900 pcm",
+    "I was renting a room for £700, now buying a terraced house for about £650k",
+    "we might buy a semi detached house near Pellam Infirmary, no more than 30 minutes by tube",
+    "Quiet, 30 minutes to Pellam Cross, £1,500 pcm, and I can't live without a park",
+    "I love Cindermoor but my partner prefers Alderwick",
+    "pubs are so noisy",
+    "is it gritty or polished",
+]
+SAID_OF_A_HOME = {
+    "bed_1": "1-bedroom home",
+    "bed_2": "2-bedroom home",
+    "bed_3": "3-bedroom home",
+    "studio": "studio",
+    "room": "room in a shared home",
+    "flat": "flat",
+    "terraced": "terraced house",
+    "semi_detached": "semi-detached house",
+    "detached": "detached house",
+}
+
+
+def named_in(label: str, edit: dict[str, Any], release: InMemoryRelease) -> list[str]:
+    """What an edit holds that the label of its choice does not say."""
+    unsaid: list[str] = []
+
+    def must(field: str, *words: str) -> None:
+        if field in edit and not any(word in label for word in words):
+            unsaid.append(f"{field}: {edit[field]}")
+
+    if "amount" in edit:
+        must("amount", f"£{edit['amount']:,}")
+    if "tenure" in edit:
+        must("tenure", {"rent": "rent", "buy": "buy"}[edit["tenure"]])
+    if "segment" in edit:
+        must("segment", SAID_OF_A_HOME[edit["segment"]])
+    if "place_id" in edit:
+        place = release.place(edit["place_id"])
+        must("place_id", place.name if place else "?")
+    if "area_id" in edit:
+        area = release.neighbourhood(edit["area_id"])
+        must("area_id", area.name if area else "?")
+    if "max_minutes" in edit:
+        must("max_minutes", f"{edit['max_minutes']} minutes")
+    for field, said in (("mode", "by"), ("strictness", "no more than")):
+        must(field, said)
+    return unsaid
+
+
+@pytest.mark.parametrize("spec", [RENTER, BUYER], ids=["renter", "buyer"])
+@pytest.mark.parametrize("text", NOT_PLAIN)
+def test_a_choice_holds_nothing_that_its_label_does_not_say(text: str, spec: PreferenceSpec):
+    result = read(text, spec)
+    assert result.operations == NO_OPERATIONS
+    quiet = ("unchanged", "none", "default", 0, 0.0)
+    for found in result.suggestions:
+        for choice in found.choices:
+            held = choice.operations.model_dump(mode="json")
+            for group in ("budget_ops", "commute_ops", "area_ops"):
+                for edit in held[group]:
+                    said = {k: v for k, v in edit.items() if v not in quiet}
+                    assert named_in(choice.label, said, small_release()) == [], choice.label
+    # And the words a choice does not rest on are said to be unread.
+    rested = [(span.start, span.end) for found in result.suggestions for span in found.spans]
+    for span in result.unread:
+        assert not any(start < span.end and span.start < end for start, end in rested)
+
+
+def test_a_budget_is_offered_as_its_amount_and_the_size_of_home_as_a_choice_of_its_own():
+    result = read("My budget is about £2,000 a month for a two bed flat, I think")
+    assert [(found.target, found.label) for found in result.suggestions] == [
+        ("budget", "A budget of £2,000 a month"),
+        ("budget", "A 2-bedroom home"),
+    ]
+    amount, size = (found.choices[0] for found in result.suggestions)
+    assert (amount.label, size.label) == ("Set a budget of £2,000 a month", "Set a 2-bedroom home")
+    assert edits_of(amount) == [{"action": "set", "amount": 2000, "provenance": "ui_edit"}]
+    assert edits_of(size) == [{"action": "set", "segment": "bed_2", "provenance": "ui_edit"}]
+    text = "My budget is about £2,000 a month for a two bed flat, I think"
+    rested = [[text[s.start : s.end] for s in found.spans] for found in result.suggestions]
+    assert rested == [["£2,000 a month"], ["a two bed flat"]]
+    unread = [text[span.start : span.end] for span in result.unread]
+    assert unread == ["My budget is about", "for", "I think"]
+
+
+def test_words_that_say_what_the_search_already_holds_are_not_called_unread():
+    # Seen in a browser: words that named what the search held were marked as not read.
+    # There is nothing to offer for them, and they were heard all the same.
+    holds = reduced(read("I work at Pellam Cross")).spec
+    assert [journey.place_id for journey in holds.commutes] == [place_id(1)]
+    text = "I have never lived there. I work at Pellam Cross, near a station."
+    result = read(text, holds)
+    assert [(found.target, found.label) for found in result.suggestions] == [
+        ("feature:station_walk", "Nearer a station")
+    ]
+    unread = [text[span.start : span.end] for span in result.unread]
+    assert unread == ["I have never lived there. I work at"]
+
+
+def test_a_home_is_offered_whether_or_not_the_search_already_holds_it():
+    # "On a one bed flat", typed by a renter whose search is for one bedroom, was
+    # offered nowhere, because to choose it would change nothing. A person who
+    # names a home is now told that it was heard.
+    text = "I have never lived there. I can spend about £1,600 a month on a one bed flat."
+    assert RENTER.budget.segment == "bed_1"
+    result = read(text)
+    assert [(found.target, found.label) for found in result.suggestions] == [
+        ("budget", "A budget of £1,600 a month"),
+        ("budget", "A 1-bedroom home"),
+    ]
+    unread = [text[span.start : span.end] for span in result.unread]
+    assert unread == ["I have never lived there. I can spend about", "on"]
+    other = read(text.replace("one bed", "two bed"))
+    assert [found.label for found in other.suggestions][1:] == ["A 2-bedroom home"]
+    # A terraced house is no kind of home to rent. Nobody has chosen to rent
+    # here, so it is offered as what it can be held as, and the choice says so.
+    text = "I have never lived there. A terraced house."
+    (found,) = read(text).suggestions
+    assert [choice.label for choice in found.choices] == [
+        "Set a terraced house, to buy",
+        "Leave it out",
+    ]
+    assert found.note == "Burro holds rents by the number of bedrooms, and not by kind of home."
+    assert [text[s.start : s.end] for s in read(text).unread] == ["I have never lived there"]
+
+
+def edits_of(choice: Any) -> list[dict[str, Any]]:
+    quiet = ("unchanged", "none", "default", 0, 0.0)
+    held = choice.operations.model_dump(mode="json")
+    return [
+        {k: v for k, v in edit.items() if v not in quiet}
+        for group in held.values()
+        for edit in group
+    ]
+
+
+def test_an_amount_that_cannot_be_of_the_tenure_of_the_search_says_which_it_is_of():
+    # No rent is this high, so the choice moves the search to buying, and says so.
+    (found,) = read("Happy anywhere as long as it is under £450k", RENTER).suggestions
+    assert found.choices[0].label == "Set a budget of £450,000, to buy"
+    assert edits_of(found.choices[0]) == [
+        {"action": "set", "tenure": "buy", "amount": 450000, "provenance": "ui_edit"}
+    ]
+    (found,) = read("Happy anywhere as long as it is under £450k", BUYER).suggestions
+    assert found.choices[0].label == "Set a budget of £450,000"
+    (found,) = read("maybe £1,500 a month", BUYER).suggestions
+    assert found.choices[0].label == "Set a budget of £1,500 a month, to rent"
+    # An amount that is no rent and no price is offered to nobody.
+    assert read("maybe £40,000").suggestions == ()
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["I don't rent", "I want to stop renting", "not buying", "I can't buy", "never a studio"],
+)
+def test_what_stands_straight_after_a_word_that_turns_it_away_is_not_offered_to_be_set(text: str):
+    # The one choice there was would have been the opposite of what was said.
+    result = read(text)
+    assert (result.operations, result.suggestions) == (NO_OPERATIONS, ())
     assert result.unmet == (UnmetCategory.OTHER,)
+
+
+def test_an_area_that_is_only_named_may_be_the_only_one_or_be_left_out():
+    (found,) = read("I love Cindermoor").suggestions
+    assert [(choice.direction, choice.label) for choice in found.choices] == [
+        ("more", "Look only in Cindermoor"),
+        ("less", "Leave out Cindermoor"),
+        ("ignore", "Leave it out"),
+    ]
+    only, out, _ = found.choices
+    assert [edit.action for edit in only.operations.area_ops] == ["only"]
+    assert [edit.action for edit in out.operations.area_ops] == ["exclude"]
+    # After a word that turns it away, to look only there is not offered.
+    (found,) = read("please avoid Cindermoor if you can").suggestions
+    assert [choice.direction for choice in found.choices] == ["less", "ignore"]
 
 
 def test_wanting_fewer_of_something_is_a_direction_where_the_feature_allows_one():
@@ -1018,41 +1614,160 @@ def test_crime_is_weighted_only_when_it_is_asked_for_in_so_many_words():
         FeatureId.CRIME_VIOLENCE_ROBBERY,
     }
 
-    # "Safe" is read into crime, not said. The reducer turns it away.
-    implied = read("somewhere safe")
-    assert {e.provenance for e in implied.operations.weight_ops} == {EditProvenance.INFERRED}
-    assert {a.code for a in implied.assumptions} == {AssumptionCode.WEIGHT}
-    after = reduced(implied)
-    assert {r.reason for r in after.rejected} == {RejectReason.CRIME_NEEDS_EXPLICIT_REQUEST}
-    assert after.spec == RENTER
-
+    # "Safe" names no crime, so it sets none counting. Recorded crime is
+    # offered by its name, and counts if the person chooses it.
+    for text in ("somewhere safe", "somewhere safe, near a park"):
+        implied = read(text)
+        assert (implied.operations, implied.assumptions) == (NO_OPERATIONS, ())
+        assert reduced(implied).spec == RENTER
+        assert [found.target for found in implied.suggestions][:2] == [
+            "feature:crime_violence_robbery",
+            "feature:crime_burglary_theft",
+        ]
+    # Beside a wish that names it, the person has asked by name.
     both = read("somewhere safe, with low crime")
     assert {e.provenance for e in both.operations.weight_ops} == {EditProvenance.STATED}
+    assert (both.status, both.suggestions, both.unread) == (InterpretStatus.OK, (), ())
+    assert reduced(both).rejected == ()
+    # A model that reads it into crime is still turned away by the reducer.
+    inferred = asked.operations.replace(
+        weight_ops=tuple(e.replace(provenance="inferred") for e in asked.operations.weight_ops)
+    )
+    turned_away = apply(RENTER, inferred, small_release())
+    assert {r.reason for r in turned_away.rejected} == {RejectReason.CRIME_NEEDS_EXPLICIT_REQUEST}
+
+
+CANNOT_SAY_SAFE = (
+    "Burro cannot say how safe a place is. It can count recorded crime. "
+    "Recorded crime depends on what is reported, and locations are approximate."
+)
+NO_GYMS = (
+    "Burro has no data on gyms, pools or leisure centres yet. "
+    "The nearest it can count is what there is to do in parks within a walk."
+)
+NO_NEIGHBOURS = (
+    "Burro cannot measure whether neighbours know each other. The nearest it can count is "
+    "a small centre of its own, with old streets and independent places."
+)
+NOT_ONE_HOME = (
+    "Burro cannot see whether one home has a garden. "
+    "It can count how much of an area is residential garden."
+)
+# The first words a newcomer reaches for, what is offered for each, and what is said.
+NEWCOMER = [
+    ("safe", "feature:crime_violence_robbery", "less", CANNOT_SAY_SAFE),
+    ("somewhere safe", "feature:crime_burglary_theft", "less", CANNOT_SAY_SAFE),
+    ("I want to feel safe", "feature:crime_violence_robbery", "less", CANNOT_SAY_SAFE),
+    ("a gym", "feature:park_facilities", "more", NO_GYMS),
+    ("near a gym", "feature:park_facilities", "more", NO_GYMS),
+    ("a swimming pool nearby", "feature:park_facilities", "more", NO_GYMS),
+    ("a sense of community", "tag:village_feel", "more", NO_NEIGHBOURS),
+    ("community feel", "tag:village_feel", "more", NO_NEIGHBOURS),
+    ("somewhere neighbourly", "tag:village_feel", "more", NO_NEIGHBOURS),
+    ("a big garden", "feature:land_gardens", "more", NOT_ONE_HOME),
+    ("I want a big garden", "feature:land_gardens", "more", NOT_ONE_HOME),
+    ("a flat with a garden", "feature:land_gardens", "more", NOT_ONE_HOME),
+    ("leafy, quiet and safe", "feature:crime_violence_robbery", "less", CANNOT_SAY_SAFE),
+]
+
+
+@pytest.mark.parametrize(("text", "target", "direction", "note"), NEWCOMER)
+def test_a_word_burro_has_no_measure_for_is_offered_what_is_nearest_and_told_what_it_lacks(
+    text: str, target: str, direction: str, note: str
+):
+    # Each of these led nowhere: no edit, no suggestion, and a line about settings.
+    result = read(text)
+    assert result.operations == NO_OPERATIONS
+    assert (result.status, result.assumptions) == (InterpretStatus.SUGGEST, ())
+    found = next(found for found in result.suggestions if found.target == target)
+    assert found.note == note
+    # What is nearest can be chosen, and to choose it changes the search.
+    first = found.choices[0]
+    assert (first.direction, found.choices[-1].direction) == (direction, "ignore")
+    pressed = apply(RENTER, first.operations, small_release())
+    assert pressed.rejected == () and pressed.spec != RENTER
+    # The words it rests on are not reported as words nothing was made of.
+    rested = [(span.start, span.end) for span in found.spans]
+    assert rested and not [
+        span for span in result.unread if any(s < span.end and span.start < e for s, e in rested)
+    ]
+
+
+def test_recorded_crime_that_is_chosen_from_an_offer_counts_as_asked_for_by_name():
+    # The offer names recorded crime on its face, so to press it is to ask by name.
+    result = read("somewhere safe")
+    labels = [[choice.label for choice in found.choices] for found in result.suggestions]
+    assert labels == [
+        ["Less recorded violence and robbery", "Leave it out"],
+        ["Less recorded burglary and theft", "Leave it out"],
+    ]
+    spec = RENTER
+    for found in result.suggestions:
+        spec = apply(spec, found.choices[0].operations, small_release()).spec
+    weighed = {w.feature_id: w.provenance for w in spec.active_weights}
+    assert weighed[FeatureId.CRIME_VIOLENCE_ROBBERY] == "ui_edit"
+    assert weighed[FeatureId.CRIME_BURGLARY_THEFT] == "ui_edit"
+
+
+@pytest.mark.parametrize("text", ["cheap", "somewhere cheap", "cheap rent", "low rent"])
+def test_cheap_is_no_verdict_burro_gives_and_is_heard_as_that(text: str):
+    # It was a word the reader did not know, so nothing at all was said of it.
+    result = read(text)
+    assert (result.operations, result.status) == (NO_OPERATIONS, InterpretStatus.OK)
+    assert result.unmet == (UnmetCategory.AFFORDABILITY_VERDICT,)
+    assert (result.suggestions, result.unread) == ((), ())
+    # Beside a wish that is plain, the wish is applied and cheap is heard.
+    beside = read(f"leafy, {text}")
+    assert [edit.tag_id for edit in beside.operations.tag_ops] == ["leafy"]
+    assert beside.unmet == (UnmetCategory.AFFORDABILITY_VERDICT,)
 
 
 @pytest.mark.parametrize(
     ("text", "unmet"),
     [
-        ("fast broadband", [UnmetCategory.BROADBAND]),
-        ("not at risk of flooding", [UnmetCategory.FLOOD_RISK]),
+        # "Fast" and "risk" are no words of the grammar, and that is said too.
+        ("fast broadband", [UnmetCategory.BROADBAND, UnmetCategory.OTHER]),
+        ("not at risk of flooding", [UnmetCategory.FLOOD_RISK, UnmetCategory.OTHER]),
+        ("broadband", [UnmetCategory.BROADBAND]),
+        ("no flooding", [UnmetCategory.FLOOD_RISK]),
         ("a good GP nearby", [UnmetCategory.HEALTH_SERVICES]),
         ("easy parking, I drive to work", [UnmetCategory.DRIVING]),
         ("show me listings", [UnmetCategory.LISTINGS]),
-        ("what is on the market", [UnmetCategory.LISTINGS]),
+        ("what is on the market", [UnmetCategory.LISTINGS, UnmetCategory.OTHER]),
         ("can I afford it?", [UnmetCategory.AFFORDABILITY_VERDICT]),
         ("is it good value", [UnmetCategory.AFFORDABILITY_VERDICT]),
         ("somewhere in the commuter belt", [UnmetCategory.OUTSIDE_THE_CITY]),
         ("what is the capital of France", [UnmetCategory.OTHER]),
         ("asdf ghjk", [UnmetCategory.OTHER]),
-        # "Fast" is no word of the reader's, so the park is not read, and that is said.
-        ("fast broadband near a park", [UnmetCategory.BROADBAND, UnmetCategory.OTHER]),
         ("broadband, and a park nearby", [UnmetCategory.BROADBAND]),
+        # What no open data measures at the scale of a neighbourhood.
+        ("clean streets", [UnmetCategory.STREET_CLEANLINESS]),
+        ("well maintained", [UnmetCategory.UPKEEP]),
+        ("highly rated", [UnmetCategory.RATINGS]),
+        ("opening hours", [UnmetCategory.PRICES_AND_HOURS]),
+        ("good mobile signal", [UnmetCategory.MOBILE_COVERAGE]),
+        ("gentrifying", [UnmetCategory.CHANGE_OVER_TIME]),
     ],
 )
 def test_what_burro_cannot_answer_is_reported_by_category(text: str, unmet: list[UnmetCategory]):
     result = read(text)
     assert list(result.unmet) == unmet
     assert result.status is InterpretStatus.OK
+    # `other` is there exactly when some stretch of the text was made nothing of.
+    assert (UnmetCategory.OTHER in result.unmet) == bool(result.unread)
+
+
+def test_what_is_heard_rests_on_the_words_said_of_it_and_the_rest_is_offered():
+    # "Fast" is no word of the grammar, so the park is not applied. It is offered.
+    result = read("fast broadband near a park")
+    assert (result.status, result.operations) == (InterpretStatus.SUGGEST, NO_OPERATIONS)
+    assert result.unmet == (UnmetCategory.BROADBAND, UnmetCategory.OTHER)
+    assert [(span.start, span.end) for span in result.unread] == [(0, 4)]
+    assert [found.target for found in result.suggestions] == ["feature:park_proximity"]
+    # Said plainly, the park is applied.
+    plain = read("broadband near a park")
+    assert [e.feature_id for e in plain.operations.weight_ops] == ["park_proximity"]
+    assert plain.unmet == (UnmetCategory.BROADBAND,)
 
 
 def test_the_rule_interpreter_never_answers_off_topic_and_never_fails():
@@ -1067,7 +1782,11 @@ def test_the_rule_interpreter_never_answers_off_topic_and_never_fails():
     texts += ["not " * 150, "work at " * 75, "near " * 120, "1,1,1," * 100, "£1.2.3.4m", "0 bed"]
     for text in texts:
         result = read(text)
-        assert result.status in (InterpretStatus.OK, InterpretStatus.CLARIFY)
+        assert result.status in (
+            InterpretStatus.OK,
+            InterpretStatus.CLARIFY,
+            InterpretStatus.SUGGEST,
+        )
         assert result.notice is Notice.NONE
         reduced(result)
 
@@ -1137,8 +1856,12 @@ def test_both_interpreters_would_state_the_same_assumptions_for_the_same_edits()
     chosen = apply(RENTER, result.operations, small_release()).spec
     # Nobody has yet said rent or buy, so that is still assumed.
     assert [a.code for a in assumptions_for(result.operations, chosen)] == [AssumptionCode.TENURE]
+    # To name the tenure that a default had chosen is to choose it. Nothing
+    # else of the spec moves, and its hash does not.
     stated = apply(chosen, read("to rent").operations, small_release()).spec
-    assert stated.tenure_from == "default"  # naming the tenure already chosen changes nothing
+    assert stated.tenure_from == "stated"
+    assert stated == chosen.replace(tenure_from="stated")
+    assert assumptions_for(result.operations, stated) == ()
     assert assumptions_for(NO_OPERATIONS, RENTER) == ()
 
 
@@ -1147,3 +1870,405 @@ def test_an_edit_that_names_everything_leaves_nothing_assumed():
     assert said.assumptions == ()
     ops = Operations.model_validate(said.operations.model_dump())
     assert assumptions_for(ops, RENTER) == ()
+
+
+def test_the_reader_says_what_it_makes_of_each_sentence_for_a_caller_that_holds_a_models_edits():
+    request = InterpretRequest(
+        text="Quiet, 30 minutes to Pellam Cross. I can't live without a park. No pubs.",
+        spec=RENTER,
+        release=small_release(),
+    )
+    reader = RuleInterpreter()
+    # The reader itself applies none of it: one sentence of the three is not plain.
+    assert reader.interpret(request).operations == NO_OPERATIONS
+    alone = reader.by_sentence(request)
+    assert edits(alone) == {
+        "commute_ops": [
+            {"action": "add", "place_id": place_id(1), "max_minutes": 30, "provenance": "stated"}
+        ],
+        "weight_ops": [
+            {
+                "action": "nudge",
+                "feature_id": "venue_evening",
+                "step": "up_large",
+                "direction": "less",
+                "provenance": "stated",
+            }
+        ],
+        "tag_ops": [
+            {
+                "action": "nudge",
+                "tag_id": "quiet_residential",
+                "step": "up_large",
+                "toward": "high",
+                "provenance": "stated",
+            }
+        ],
+    }
+    # Each edit rests on words of a sentence the reader knows, and the park on none.
+    known = [
+        (s.start, s.end) for s in sentences_of(request.text, release=small_release()) if s.known
+    ]
+    assert len(known) == 2
+    for said in alone.rests_on:
+        assert any(start <= said.start and said.end <= end for start, end in known)
+    assert (alone.suggestions, alone.unmet) == ((), (UnmetCategory.OTHER,))
+    assert alone.unread
+
+
+def test_by_sentence_a_plain_prompt_is_read_as_the_reader_reads_it():
+    for text in ("leafy and quiet, near a park", "no pubs", "I work at Pellam and want a park"):
+        request = InterpretRequest(text=text, spec=RENTER, release=small_release())
+        assert RuleInterpreter().by_sentence(request) == RuleInterpreter().interpret(request)
+
+
+def test_by_sentence_a_wish_that_a_sentence_beside_it_takes_back_makes_no_edit():
+    for text in ("I want a station. Not really.", "No thanks.\nPubs\nBars"):
+        request = InterpretRequest(text=text, spec=RENTER, release=small_release())
+        assert RuleInterpreter().by_sentence(request).operations == NO_OPERATIONS
+    people = InterpretRequest(
+        text="Near a park. Far from a university.", spec=RENTER, release=small_release()
+    )
+    found = RuleInterpreter().by_sentence(people)
+    assert (found.status, found.notice) == (InterpretStatus.POLICY_REDIRECT, Notice.NEUTRAL_PLACES)
+    assert [e.feature_id for e in found.operations.weight_ops] == ["park_proximity"]
+
+
+# --- The words for gritty, in the two ways it is built -------------------------------
+
+
+def read_in(variant: GrittyVariant, text: str) -> InterpretResult:
+    request = InterpretRequest(text=text, spec=RENTER, release=small_release(variant))
+    return RuleInterpreter().interpret(request)
+
+
+@pytest.mark.parametrize("word", ["gritty", "edgy", "raw"])
+def test_built_from_land_use_a_word_with_two_meanings_is_read_as_its_place_part_and_quoted(
+    word: str,
+):
+    result = read_in(GrittyVariant.A, f"somewhere a bit {word}, near a park")
+    assert result.status is InterpretStatus.OK
+    (edit,) = result.operations.tag_ops
+    assert (edit.tag_id, edit.toward, edit.step, edit.provenance) == (
+        "works_warehouses",
+        "high",
+        "up_small",
+        "inferred",
+    )
+    # The chip quotes the word, as the lexicon spells it, and says it was assumed.
+    assert [(a.code, a.group, a.index, a.word) for a in result.assumptions] == [
+        (AssumptionCode.WEIGHT, OpsGroup.TAG, 0, ""),
+        (AssumptionCode.WORD, OpsGroup.TAG, 0, word),
+    ]
+    # And the person is told that Burro has no measure of how clean a street is.
+    assert result.unmet == (UnmetCategory.STREET_CLEANLINESS,)
+    assert [e.feature_id for e in result.operations.weight_ops] == ["park_proximity"]
+    after = apply(RENTER, result.operations, small_release(GrittyVariant.A))
+    assert after.rejected == ()
+    assert [(t.tag_id, t.weight) for t in after.spec.tags] == [("works_warehouses", 0.5)]
+
+
+@pytest.mark.parametrize("text", ["polished", "somewhere smart", "well kept", "not gritty"])
+def test_built_from_land_use_a_word_for_upkeep_makes_no_edit_and_says_so(text: str):
+    result = read_in(GrittyVariant.A, text)
+    assert (result.status, result.operations) == (InterpretStatus.OK, NO_OPERATIONS)
+    assert (result.unmet, result.unread) == ((UnmetCategory.UPKEEP,), ())
+
+
+@pytest.mark.parametrize("text", ["industrial", "warehouses", "railway arches"])
+def test_built_from_land_use_the_works_are_named_outright(text: str):
+    (edit,) = read_in(GrittyVariant.A, text).operations.tag_ops
+    assert (edit.tag_id, edit.provenance) == ("works_warehouses", "stated")
+    assert read_in(GrittyVariant.A, text).assumptions == ()
+
+
+@pytest.mark.parametrize(("text", "toward"), [("gritty", "high"), ("polished", "low")])
+def test_built_as_a_scale_the_names_of_its_ends_are_wishes_for_them(text: str, toward: str):
+    result = read_in(GrittyVariant.B, text)
+    (edit,) = result.operations.tag_ops
+    assert (edit.tag_id, edit.toward, edit.provenance) == ("street_character", toward, "stated")
+    assert (result.unmet, result.assumptions) == ((), ())
+
+
+COUNTS_CRIME = (
+    "Gritty counts recorded criminal damage and arson, and recorded anti-social behaviour. "
+    "Recorded crime depends on what is reported, and locations are approximate."
+)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        *("edgy", "raw", "well kept", "somewhere well kept", "I want somewhere a bit edgy"),
+        # The name the scale had, and an end of it in a prompt that is not plain.
+        *("street character", "gritty, I suppose", "is it polished"),
+    ],
+)
+def test_built_as_a_scale_a_word_that_is_read_into_it_is_offered_and_says_it_counts_crime(
+    text: str,
+):
+    # The scale holds recorded incidents, and crime counts only when it is
+    # asked for by name. A word that is only read into the scale never asks.
+    result = read_in(GrittyVariant.B, text)
+    assert result.operations == NO_OPERATIONS
+    assert (result.status, result.assumptions) == (InterpretStatus.SUGGEST, ())
+    (found,) = result.suggestions
+    assert (found.target, found.label, found.note) == (
+        "tag:street_character",
+        "Gritty",
+        COUNTS_CRIME,
+    )
+    assert [(choice.direction, choice.label) for choice in found.choices] == [
+        ("more", "Towards Gritty, counting recorded crime"),
+        ("less", "Towards Polished, counting recorded crime"),
+        ("ignore", "Leave it out"),
+    ]
+    # A choice that is pressed is the person's own, and is applied.
+    for choice in found.choices[:2]:
+        pressed = apply(RENTER, choice.operations, small_release(GrittyVariant.B))
+        assert pressed.rejected == ()
+        assert [tag.tag_id for tag in pressed.spec.tags] == ["street_character"]
+
+
+def test_a_suggestion_says_more_only_where_there_is_more_to_say():
+    for text in ("pubs are so noisy", "maybe leafy", "is it buzzy"):
+        assert [found.note for found in read(text).suggestions if found.note] == []
+
+
+def test_a_word_read_into_a_vibe_that_holds_no_crime_is_still_applied_as_assumed():
+    for text, tag_id in (("lively", "pace"), ("peaceful", "quiet_residential")):
+        (edit,) = read_in(GrittyVariant.B, text).operations.tag_ops
+        assert (edit.tag_id, edit.provenance) == (tag_id, "inferred")
+    # Where gritty is built from land use alone it holds no crime, and is read.
+    (edit,) = read_in(GrittyVariant.A, "edgy").operations.tag_ops
+    assert (edit.tag_id, edit.provenance) == ("works_warehouses", "inferred")
+
+
+@pytest.mark.parametrize(
+    "text", ["industrial", "warehouses", "railway arches", "works and warehouses"]
+)
+def test_a_word_for_works_and_warehouses_is_read_into_gritty_and_offered(text: str):
+    """Works and warehouses is a part of Gritty, and is not served beside it.
+
+    So a word for it is read into the scale, as "edgy" is. Nothing is applied: the
+    scale is offered, and the offer says that it counts recorded crime.
+    """
+    result = read_in(GrittyVariant.B, text)
+    assert result.operations == NO_OPERATIONS
+    (found,) = result.suggestions
+    assert (found.target, found.note) == ("tag:street_character", COUNTS_CRIME)
+    # Where no recorded crime is held the land is the vibe, and the word is applied.
+    (edit,) = read_in(GrittyVariant.A, text).operations.tag_ops
+    assert (edit.tag_id, edit.toward, edit.provenance) == ("works_warehouses", "high", "stated")
+
+
+def test_no_word_weighs_a_part_of_recorded_crime_but_by_name():
+    # The rates of recorded incidents are nuisances, so each is read only under
+    # a turn or where it is said to count, and is never read into looser words.
+    for text in ("vandalism", "anti social behaviour", "I like vandalism"):
+        assert read_in(GrittyVariant.B, text).operations == NO_OPERATIONS
+    (edit,) = read_in(GrittyVariant.B, "less vandalism").operations.weight_ops
+    assert (edit.feature_id, edit.provenance) == ("incident_criminal_damage", "stated")
+
+
+# --- What a person asks for that the release holds for no area ---------------------
+
+
+def on(release: InMemoryRelease, text: str, spec: PreferenceSpec = RENTER) -> InterpretResult:
+    return RuleInterpreter().interpret(InterpretRequest(text=text, spec=spec, release=release))
+
+
+def missing(
+    release: InMemoryRelease, text: str, spec: PreferenceSpec = RENTER
+) -> list[tuple[str, str, list[str]]]:
+    """What a reading asked for and the release lacks: its target, its label and its words."""
+    result = on(release, text, spec)
+    turned_away = apply(spec, result.operations, release).rejected
+    return [
+        (thing.target, thing.label, [text[span.start : span.end] for span in thing.spans])
+        for thing in not_in_release_of(result, turned_away)
+    ]
+
+
+def test_a_plain_wish_the_release_holds_for_no_area_is_named_and_the_rest_is_applied():
+    # "Leafy and quiet" was ranked as quiet alone, under both words, and nothing
+    # said that half the wish had been dropped.
+    release = unplaced(small_release(), TagId.LEAFY)
+    text = "leafy and quiet"
+    result = on(release, text)
+    assert result.status is InterpretStatus.OK
+    after = apply(RENTER, result.operations, release)
+    assert [(r.group, r.reason) for r in after.rejected] == [("tag_ops", "not_in_release")]
+    assert [tag.tag_id for tag in after.spec.tags] == ["quiet_residential"]
+    assert missing(release, text) == [("tag:leafy", "Leafy", ["leafy"])]
+    # A release that places areas on it has nothing to say.
+    assert missing(small_release(), text) == []
+
+
+def test_a_budget_and_a_journey_are_named_where_a_preview_holds_no_cost_and_no_place():
+    preview = preview_release()
+    # "A month" says that it is a rent, which is kept. The amount is what is missing.
+    assert missing(preview, "up to £1,500 a month") == [("budget", "A budget", ["up to £1,500"])]
+    # No spelling can match, so nothing is asked: the journey is said to be missing.
+    text = "I work at Pellam Cross"
+    result = on(preview, text)
+    assert (result.status, result.clarify) == (InterpretStatus.OK, ())
+    assert missing(preview, text) == [("commute", "A journey", ["work at Pellam Cross"])]
+    # Where the release names places, a name it does not know is still asked about.
+    asked = on(small_release(), "I work at Nowhere Works")
+    assert asked.status is InterpretStatus.CLARIFY and len(asked.clarify) == 1
+    assert missing(small_release(), "I work at Nowhere Works") == []
+
+
+def test_what_is_said_of_the_home_is_kept_where_the_amount_cannot_be_tested():
+    # "Buying a terraced house under £450k" left the search a renter's, because the
+    # one edit that held the amount held the tenure too, and was turned away whole.
+    preview = preview_release()
+    text = "Buying a terraced house under £450k"
+    result = on(preview, text)
+    assert edits(result) == {
+        "budget_ops": [
+            {"action": "set", "tenure": "buy", "segment": "terraced", "provenance": "stated"},
+            {"action": "set", "amount": 450000, "provenance": "stated"},
+        ]
+    }
+    after = apply(RENTER, result.operations, preview)
+    assert [(a.group, a.index) for a in after.applied] == [("budget_ops", 0)]
+    assert [(r.index, r.reason) for r in after.rejected] == [(1, "not_in_release")]
+    assert (after.spec.tenure, after.spec.tenure_from) == ("buy", "stated")
+    assert (after.spec.budget.segment, after.spec.budget.amount) == ("terraced", None)
+    # Each edit rests on its own words, and what is missing is the amount alone.
+    assert missing(preview, text) == [("budget", "A budget", ["under £450k"])]
+    # What the first edit said is not said to be assumed of the second.
+    assert [(a.code, a.index) for a in result.assumptions] == [(AssumptionCode.STRICTNESS, 1)]
+    rests = {(r.index, text[r.start : r.end]) for r in result.rests_on}
+    assert rests == {(0, "Buying"), (0, "terraced"), (1, "under £450k")}
+    # A limit that was said firmly goes with the amount it was said of.
+    firm = on(preview, "renting, no more than £1,800 pcm").operations.budget_ops
+    assert [(e.tenure, e.amount, e.strictness) for e in firm] == [
+        ("rent", 0, "unchanged"),
+        ("unchanged", 1800, "hard"),
+    ]
+    # Where the release holds the cost, it is one edit, as it always was.
+    (whole,) = on(small_release(), text).operations.budget_ops
+    assert (whole.tenure, whole.amount, whole.segment) == ("buy", 450_000, "terraced")
+    # An amount alone has nothing to keep, and is one edit.
+    (alone,) = on(preview, "up to £1,500").operations.budget_ops
+    assert (alone.tenure, alone.amount) == ("unchanged", 1500)
+
+
+def test_what_was_noticed_and_is_in_no_area_is_said_to_be_missing_and_never_offered():
+    # The sentence is not plain, so nothing is applied. What can be chosen is
+    # offered. What the release holds for no area is said, and not offered:
+    # pressed, it left no area ranked.
+    release = unplaced(preview_release(), TagId.LEAFY)
+    text = "My partner wants somewhere leafy and quiet, for £1,500 a month, with a short commute."
+    result = on(release, text)
+    assert result.operations == NO_OPERATIONS
+    assert [found.target for found in result.suggestions] == ["tag:quiet_residential"]
+    assert [
+        (thing.target, thing.label, [text[s.start : s.end] for s in thing.spans])
+        for thing in result.not_in_release
+    ] == [
+        ("tag:leafy", "Leafy", ["leafy"]),
+        ("budget", "A budget of £1,500 a month", ["£1,500 a month"]),
+        ("commute", "A journey", ["commute"]),
+    ]
+    assert missing(release, text) == [
+        ("tag:leafy", "Leafy", ["leafy"]),
+        ("budget", "A budget of £1,500 a month", ["£1,500 a month"]),
+        ("commute", "A journey", ["commute"]),
+    ]
+    # What was said to be missing was heard, and is not among what was not read.
+    unread = [text[span.start : span.end] for span in result.unread]
+    assert not any(word in words for words in unread for word in ("leafy", "£1,500", "commute"))
+    # A release that holds all three offers all three, and says nothing is missing.
+    whole = on(small_release(), text)
+    assert whole.not_in_release == ()
+    assert [found.target for found in whole.suggestions] == [
+        "tag:leafy",
+        "tag:quiet_residential",
+        "budget",
+    ]
+
+
+def test_a_measure_the_release_does_not_carry_is_named_by_its_short_label():
+    whole = small_release()
+    release = dataclasses.replace(
+        whole,
+        metrics=tuple(
+            m for m in whole.metrics if m.feature_id is not FeatureId.CULTURE_VENUES_PER_HOMES
+        ),
+    )
+    label = FEATURES[FeatureId.CULTURE_VENUES_PER_HOMES].short_label
+    named = "feature:culture_venues_per_homes"
+    assert missing(release, "theatres") == [(named, label, ["theatres"])]
+    unsure = "maybe theatres, I suppose"
+    assert on(release, unsure).suggestions == ()
+    assert missing(release, unsure) == [(named, label, ["theatres"])]
+
+
+def test_a_journey_is_listened_for_by_its_words_only_where_the_release_names_no_place():
+    text = "My partner has a long commute, sadly."
+    assert [thing.target for thing in on(preview_release(), text).not_in_release] == ["commute"]
+    # Where the release names places, a journey is noticed by the name of its place.
+    assert on(small_release(), text).not_in_release == ()
+    # A journey that is turned away asks for none.
+    assert on(preview_release(), "My partner does not commute, luckily.").not_in_release == ()
+
+
+def test_a_journey_the_grammar_makes_is_said_to_be_missing_once_and_by_all_its_words():
+    # Its words were named twice where the release names no place: once as the grammar
+    # read them, and once more for the phrase that says a journey, which stands inside them.
+    text = "Maybe somewhere quiet. At most 25-30min commute from Quillhaven Lane."
+    assert missing(preview_release(), text) == [
+        ("commute", "A journey", ["At most 25-30min commute from Quillhaven Lane"])
+    ]
+    unread = [text[s.start : s.end] for s in on(preview_release(), text).unread]
+    assert not any("commute" in words for words in unread)
+
+
+def test_a_thing_turned_away_for_any_other_reason_is_not_said_to_be_missing():
+    # A flat is a kind of home to buy, and the search is a renter's.
+    assert missing(small_release(), "maybe a flat") == []
+    assert missing(preview_release(), "maybe a flat") == []
+
+
+@pytest.mark.parametrize("word", ["wealthy", "well off", "well to do"])
+def test_a_word_for_how_well_off_people_are_is_heard_in_a_sentence_that_is_not_plain(word: str):
+    # In a long sentence the word sat inside what was not read, and drew no notice.
+    text = f"Maybe somewhere quiet, a {word} part of town, but with some life to it."
+    result = read(text)
+    assert (result.status, result.notice) == (
+        InterpretStatus.POLICY_REDIRECT,
+        Notice.NEUTRAL_PLACES,
+    )
+    assert result.operations == NO_OPERATIONS
+    assert "tag:quiet_residential" in [found.target for found in result.suggestions]
+    assert not any(found.target.startswith("tag:street") for found in result.suggestions)
+    unread = [text[span.start : span.end] for span in result.unread]
+    assert not any(word in words for words in unread)
+
+
+@pytest.mark.parametrize("word", ["affluent", "posh"])
+def test_a_smart_area_is_offered_as_of_the_place_in_a_sentence_that_is_not_plain(word: str):
+    # A smart area is a kind of place. The word is offered towards the polished end of
+    # the scale, with the note that Burro measures places, and draws no notice about people.
+    text = f"Maybe somewhere quiet, fairly {word}, but with some life to it."
+    result = read(text)
+    assert (result.status, result.notice) == (InterpretStatus.SUGGEST, Notice.NONE)
+    assert result.operations == NO_OPERATIONS
+    offered = {found.target: found for found in result.suggestions}
+    assert {"tag:quiet_residential", "tag:street_character"} <= set(offered)
+    smart = offered["tag:street_character"]
+    assert [text[span.start : span.end] for span in smart.spans] == [word]
+    # The grammar does not make this sentence, so nobody can say which way the word is
+    # meant: both ends are offered, and each says that it counts recorded crime.
+    assert [choice.label for choice in smart.choices] == [
+        "Towards Gritty, counting recorded crime",
+        "Towards Polished, counting recorded crime",
+        "Leave it out",
+    ]
+    assert smart.note.startswith("Burro measures places, not the people in them.")
+    unread = [text[span.start : span.end] for span in result.unread]
+    assert not any(word in words for words in unread)

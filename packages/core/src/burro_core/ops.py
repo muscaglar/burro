@@ -30,6 +30,7 @@ from burro_core.ids import (
     StrictnessChoice,
     TagId,
     TenureChoice,
+    TowardChoice,
     WeightAction,
 )
 from burro_core.ids import Setting as SettingName
@@ -81,6 +82,9 @@ class TagEdit(Record):
     tag_id: Annotated[TagId, _Lower]
     value: _Number  # read by set
     step: Annotated[Step, _Lower]  # read by nudge
+    # Which end of a scale. `default` leaves it as it is, and is `high` for a
+    # vibe that is not yet in the spec.
+    toward: Annotated[TowardChoice, _Lower]
     provenance: Annotated[EditProvenance, _Lower]
 
 

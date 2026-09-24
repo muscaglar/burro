@@ -25,16 +25,12 @@ from burro_core.ids import (
     Step,
     StrictnessChoice,
     TagId,
+    TowardChoice,
     UnmetCategory,
     WeightAction,
 )
-from burro_core.interpret import (
-    LEXICON,
-    NO_USAGE,
-    InterpretRequest,
-    InterpretResult,
-    prepare,
-)
+from burro_core.interpret import NO_USAGE, InterpretRequest, InterpretResult, prepare
+from burro_core.lexicon import lexicon_of
 from burro_core.ops import NO_OPERATIONS, CommuteEdit, Operations, TagEdit, WeightEdit
 
 
@@ -67,7 +63,7 @@ class Keywords:
         words = f" {prepare(request.text)} "
         features: set[FeatureId] = set()
         tags: set[TagId] = set()
-        for phrase, target in LEXICON.items():
+        for phrase, target in lexicon_of(request.release.manifest.gritty_variant).items():
             if f" {phrase} " in words:
                 features.update(target.features)
                 tags.update(target.tags)
@@ -107,6 +103,8 @@ class Keywords:
                         tag_id=tag_id,
                         value=0.0,
                         step=Step.UP_LARGE,
+                        # Whichever end was named, it is raised towards the high one.
+                        toward=TowardChoice.HIGH,
                         provenance=EditProvenance.STATED,
                     )
                     for tag_id in sorted(tags)

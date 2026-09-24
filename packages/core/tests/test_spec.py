@@ -6,6 +6,7 @@ from burro_core.ids import (
     AreaRuleKind,
     Direction,
     FeatureId,
+    GrittyVariant,
     Mode,
     Provenance,
     Segment,
@@ -13,6 +14,7 @@ from burro_core.ids import (
     Strictness,
     TagId,
     Tenure,
+    Toward,
 )
 from burro_core.rank import rank
 from burro_core.spec import (
@@ -227,9 +229,13 @@ def test_the_default_spec_is_what_the_contract_lists(tenure: Tenure):
     assert spec.budget.amount is None
     assert spec.budget.segment is (Segment.BED_1 if rent else Segment.FLAT)
     assert spec.budget.strictness is Strictness.SOFT
-    assert spec.budget.weight == 0.80
+    assert spec.budget.weight == 0.30
     assert (spec.commutes, spec.tags, spec.areas) == ((), (), ())
-    assert (spec.commute_combine, spec.pt_basis, spec.commute_weight) == ("slowest", "typical", 1)
+    assert (spec.commute_combine, spec.pt_basis, spec.commute_weight) == (
+        "slowest",
+        "typical",
+        0.40,
+    )
     expected = (
         {
             "station_walk": 0.5,
@@ -289,6 +295,65 @@ def test_check_spec_names_the_path_and_the_problem():
         ("weights[0].direction", SpecProblemKind.DIRECTION_NOT_ALLOWED),
         ("areas[0].area_id", SpecProblemKind.UNKNOWN_AREA),
     ]
+
+
+def vibe(tag_id: TagId, toward: Toward = Toward.HIGH, weight: float = 0.5) -> TagWeight:
+    return TagWeight(tag_id=tag_id, weight=weight, toward=toward, provenance=Provenance.STATED)
+
+
+def test_the_end_of_a_vibe_is_written_into_the_hash_only_when_it_is_the_low_end():
+    # A vibe towards its high end is what a tag was before a vibe had ends, so
+    # every hash that was published before then still stands.
+    renter = default_spec(Tenure.RENT)
+    buzzy = renter.replace(tags=(vibe(TagId.PACE),))
+    calm = renter.replace(tags=(vibe(TagId.PACE, Toward.LOW),))
+    assert '"tags":[{"tag_id":"pace","weight":10}]' in canonical(buzzy)
+    assert '"tags":[{"tag_id":"pace","toward":"low","weight":10}]' in canonical(calm)
+    assert spec_hash(buzzy) != spec_hash(calm)
+    assert "toward" not in canonical(build_worked_spec())
+    assert spec_hash(build_worked_spec()) == WORKED_HASH
+
+
+def test_the_end_of_a_vibe_may_be_left_out_of_a_body_and_is_then_the_high_end():
+    sent = {"tag_id": "pace", "weight": 0.5, "provenance": "stated"}
+    assert TagWeight.model_validate(sent).toward is Toward.HIGH
+    assert TagWeight.model_validate(sent).model_dump(mode="json")["toward"] == "high"
+    assert TagWeight.model_validate(sent | {"toward": "low"}).toward is Toward.LOW
+    with pytest.raises(ValidationError):
+        TagWeight.model_validate(sent | {"toward": "default"})
+
+
+@pytest.mark.parametrize(
+    "retired",
+    ["buzzy", "evening_venues", "historic_character", "creative", "waterside"],
+)
+def test_a_spec_that_names_a_retired_tag_is_refused(retired: str):
+    body = default_spec(Tenure.RENT).model_dump(mode="json")
+    body["tags"] = [{"tag_id": retired, "weight": 0.5, "provenance": "stated"}]
+    with pytest.raises(ValidationError):
+        PreferenceSpec.model_validate(body)
+
+
+def test_check_spec_refuses_the_low_end_of_a_one_way_vibe_and_a_vibe_the_release_lacks():
+    spec = default_spec(Tenure.RENT).replace(
+        tags=(
+            vibe(TagId.LEAFY, Toward.LOW),
+            vibe(TagId.PACE, Toward.LOW),
+            # A release that holds no recorded crime carries no Gritty.
+            vibe(TagId.STREET_CHARACTER),
+            # What counts for nothing is passed over, as `canonical` passes over it.
+            vibe(TagId.QUIET_RESIDENTIAL, Toward.LOW, weight=0.0),
+        ),
+    )
+    without = small_release(GrittyVariant.A)
+    assert [(p.path, p.problem) for p in check_spec(spec, without)] == [
+        ("tags[0].toward", SpecProblemKind.DIRECTION_NOT_ALLOWED),
+        ("tags[3].tag_id", SpecProblemKind.NOT_IN_RELEASE),
+    ]
+    with pytest.raises(SpecError):
+        rank(spec, without)
+    # The release of the tests carries it.
+    assert problems(spec) == [("tags[0].toward", SpecProblemKind.DIRECTION_NOT_ALLOWED)]
 
 
 def test_a_problem_points_into_the_spec_as_it_is_kept_whatever_order_it_was_sent_in():

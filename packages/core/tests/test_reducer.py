@@ -4,10 +4,12 @@ import random
 from typing import Any
 
 import pytest
+from burro_core.catalogue import HOLDS_CRIME
 from burro_core.ids import (
     AreaRuleKind,
     Direction,
     FeatureId,
+    GrittyVariant,
     Mode,
     OpsGroup,
     Provenance,
@@ -31,12 +33,15 @@ from burro_core.ops import (
 from burro_core.rank import rank
 from burro_core.reducer import ReducerResult, apply, nudged_amount, nudged_weight
 from burro_core.spec import (
+    DEFAULT_BUDGET_WEIGHT,
+    DEFAULT_COMMUTE_WEIGHT,
     DEFAULT_WEIGHTS,
     GIVE_WAY_TO_ONE_IN,
     LIMITS,
     MENTION_WEIGHT,
     FeatureWeight,
     PreferenceSpec,
+    SpecError,
     TagWeight,
     canonical,
     check_spec,
@@ -46,7 +51,7 @@ from burro_core.spec import (
 )
 from pydantic import ValidationError
 
-from .support import area_id, draws, place_id, small_release
+from .support import area_id, draws, place_id, preview_release, small_release, unplaced
 
 RENTER = default_spec(Tenure.RENT)
 BUYER = default_spec(Tenure.BUY)
@@ -82,7 +87,7 @@ def weight(action: str, feature_id: str, **given: Any) -> WeightEdit:
 
 
 def tag(action: str, tag_id: str, **given: Any) -> TagEdit:
-    blank = {"value": 0.0, "step": "none", "provenance": "stated"}
+    blank = {"value": 0.0, "step": "none", "toward": "default", "provenance": "stated"}
     return TagEdit.model_validate({"action": action, "tag_id": tag_id} | blank | given)
 
 
@@ -216,6 +221,43 @@ def test_an_inferred_edit_may_turn_crime_down_to_nothing_but_not_leave_it_on():
     assert reasons(lower) == [RejectReason.CRIME_NEEDS_EXPLICIT_REQUEST]
     off = run(on, weight("remove", "crime_burglary_theft", provenance="inferred"))
     assert "crime_burglary_theft" not in weights(off.spec)
+
+
+@pytest.mark.parametrize("toward", ["high", "low", "default"])
+@pytest.mark.parametrize(
+    "edit",
+    [{"action": "set", "value": 0.5}, {"action": "nudge", "step": "up_large"}],
+    ids=["set", "nudge"],
+)
+def test_an_inferred_edit_never_weighs_a_vibe_whose_recipe_holds_recorded_crime(
+    toward: str, edit: dict[str, Any]
+):
+    # Street character holds recorded criminal damage and anti-social
+    # behaviour. "Smart" and "edgy" once ranked areas by them.
+    assert TagId.STREET_CHARACTER in HOLDS_CRIME
+    given = {"tag_id": "street_character", "toward": toward} | edit
+    inferred = run(RENTER, tag(provenance="inferred", **given))
+    assert reasons(inferred) == [RejectReason.CRIME_NEEDS_EXPLICIT_REQUEST]
+    assert inferred.spec == RENTER
+
+    # Asked for by the name of an end, or moved with its control, it is weighed.
+    for provenance in ("stated", "ui_edit"):
+        asked = run(RENTER, tag(provenance=provenance, **given))
+        assert asked.rejected == ()
+        assert [t.tag_id for t in asked.spec.tags] == [TagId.STREET_CHARACTER]
+
+
+def test_an_inferred_edit_may_take_such_a_vibe_off_and_may_weigh_any_other():
+    on = run(RENTER, tag("nudge", "street_character", step="up_large", toward="high")).spec
+    lower = run(on, tag("nudge", "street_character", step="down_small", provenance="inferred"))
+    assert reasons(lower) == [RejectReason.CRIME_NEEDS_EXPLICIT_REQUEST]
+    off = run(on, tag("remove", "street_character", provenance="inferred"))
+    assert (off.rejected, off.spec.tags) == ((), ())
+    for vibe in small_release().vibes:
+        if vibe.tag_id in HOLDS_CRIME:
+            continue
+        other = run(RENTER, tag("nudge", vibe.tag_id, step="up_large", provenance="inferred"))
+        assert other.rejected == (), vibe.tag_id
 
 
 def test_crime_is_off_until_it_is_asked_for():
@@ -383,23 +425,83 @@ def test_the_defaults_give_way_the_first_time_a_wish_is_applied(tenure: Tenure):
     assert spec_hash(wished.spec) != spec_hash(only_the_tag)
     assert rank(wished.spec, small_release()) != rank(only_the_tag, small_release())
     # The budget and the commute settings are not weights of that kind. They stay.
-    assert (wished.spec.budget, wished.spec.commute_weight) == (start.budget, 1.0)
+    assert (wished.spec.budget, wished.spec.commute_weight) == (
+        start.budget,
+        DEFAULT_COMMUTE_WEIGHT,
+    )
     assert check_spec(wished.spec, small_release()) == ()
 
 
 def every_single_wish() -> list[Edit]:
     """Each feature and each tag, simply named: one mention and nothing else."""
     named: list[Edit] = [
-        weight("nudge", feature_id.value, step=step)
-        for feature_id in FeatureId
+        weight("nudge", metric.feature_id.value, step=step)
+        for metric in small_release().metrics
+        # What the release shows and ranks no area on cannot be weighed.
+        if metric.rankable
         for step in ("up_small", "up_large")
     ]
     named += [
-        tag("nudge", tag_id.value, step=step)
-        for tag_id in TagId
+        tag("nudge", vibe.tag_id.value, step=step, toward=toward)
+        for vibe in small_release().vibes
         for step in ("up_small", "up_large")
+        # Either end of a scale is a wish like any other.
+        for toward in (("high", "low") if vibe.low_end else ("high",))
     ]
     return named
+
+
+@pytest.mark.parametrize("tenure", list(Tenure))
+def test_what_is_said_of_the_place_leads_over_a_journey_and_a_budget(tenure: Tenure):
+    """Decided on 2026-09-24. A journey weighed 1.00 and a budget 0.80, against 0.50 for
+    each thing said of the place, so one journey and one budget outweighed three things said.
+    """
+    assert (DEFAULT_COMMUTE_WEIGHT, DEFAULT_BUDGET_WEIGHT) == (0.40, 0.30)
+    # Each thing said of the place weighs more than a journey, and more than a budget.
+    assert MENTION_WEIGHT > DEFAULT_COMMUTE_WEIGHT > DEFAULT_BUDGET_WEIGHT > 0
+    # Two things said of the place outweigh a journey and a budget together.
+    assert 2 * MENTION_WEIGHT > DEFAULT_COMMUTE_WEIGHT + DEFAULT_BUDGET_WEIGHT
+    # A journey and a budget together still outweigh all that was left unsaid.
+    assert sum(GIVEN_WAY[tenure].values()) < DEFAULT_COMMUTE_WEIGHT + DEFAULT_BUDGET_WEIGHT
+    # It is what a search holds that nobody has moved, whatever is said of the place.
+    start = default_spec(tenure)
+    said = run(
+        start,
+        tag("nudge", "leafy", step="up_large"),
+        tag("nudge", "quiet_residential", step="up_large"),
+        commute("add", place_id(1), max_minutes=35),
+        budget(amount=1700 if tenure is Tenure.RENT else 400_000),
+    ).spec
+    assert (said.commute_weight, said.budget.weight) == (0.40, 0.30)
+    of_the_place = sum(t.weight for t in said.tags)
+    assert of_the_place == 1.0 > said.commute_weight + said.budget.weight
+    # A person may still weigh a journey above all else, and it stays where they put it.
+    moved = run(said, setting("set", "commute_weight", value=1.0, provenance="ui_edit")).spec
+    again = run(moved, tag("nudge", "village_feel", step="up_large")).spec
+    assert (again.commute_weight, again.commute_weight_from) == (1.0, Provenance.UI_EDIT)
+
+
+@pytest.mark.parametrize("strictness", ["hard", "soft"])
+def test_a_firm_limit_is_a_filter_whatever_a_journey_weighs(strictness: str):
+    """A limit that is firm leaves out what is over it. What a journey weighs orders the rest."""
+    release = small_release()
+    asked = run(
+        RENTER,
+        tag("nudge", "leafy", step="up_large"),
+        commute("add", place_id(1), max_minutes=35, strictness=strictness),
+    ).spec
+    for weighs in (0.05, DEFAULT_COMMUTE_WEIGHT, 1.0):
+        result = rank(asked.replace(commute_weight=weighs), release)
+        over = [
+            area.area_id
+            for area in result.ranked
+            if any(leg.minutes is not None and leg.minutes > 35 for leg in area.legs)
+        ]
+        left_out = [found for found in result.filtered if found.reason == "commute_cap"]
+        if strictness == "hard":
+            assert over == [] and left_out
+        else:
+            assert over and not left_out
 
 
 @pytest.mark.parametrize("tenure", list(Tenure))
@@ -432,7 +534,7 @@ def test_a_default_gives_way_to_a_quarter_in_whole_steps(default: float, gives_w
 
 def test_the_defaults_give_way_once():
     once = run(RENTER, tag("nudge", "leafy", step="up_large")).spec
-    again = run(once, tag("nudge", "buzzy", step="up_large"), budget(amount=1500)).spec
+    again = run(once, tag("nudge", "pace", step="up_large"), budget(amount=1500)).spec
     assert defaults_of(again) == defaults_of(once) == GIVEN_WAY[Tenure.RENT]
     more = run(again, weight("set", "green_cover", value=0.3, provenance="ui_edit")).spec
     assert defaults_of(more) == GIVEN_WAY[Tenure.RENT]
@@ -443,9 +545,9 @@ WISHES: list[Edit] = [
     budget(segment="studio", provenance="ui_edit"),
     commute("add", 1),
     weight("set", "green_cover", value=0.4, provenance="ui_edit"),
-    weight("nudge", "culture_venues", step="up_small", provenance="inferred"),
+    weight("nudge", "culture_venues_per_homes", step="up_small", provenance="inferred"),
     weight("remove", "station_walk", provenance="ui_edit"),
-    tag("set", "buzzy", value=1.0, provenance="ui_edit"),
+    tag("set", "pace", value=1.0, provenance="ui_edit"),
     area("exclude", 2),
     setting("set", "pt_basis", choice="just_missed", provenance="ui_edit"),
     setting("set", "budget_weight", value=0.5, provenance="ui_edit"),
@@ -473,7 +575,8 @@ def test_a_wish_of_any_kind_from_words_or_from_a_control_makes_the_defaults_give
         tag("remove", "leafy"),
         area("clear", 1),
         budget("clear"),
-        budget(tenure="rent"),
+        # A tenure that is said moves who chose it, and is held by a test of its own.
+        budget(segment="bed_1"),
         setting("set", "commute_combine", choice="slowest"),
     ],
     ids=lambda e: f"{type(e).__name__}-{e.action}",
@@ -595,10 +698,10 @@ def test_switching_tenure_keeps_everything_the_person_set():
 def test_switching_tenure_resets_a_setting_that_is_still_at_its_default():
     # Only a spec from the wire can hold a setting that differs from its
     # default and is still marked as nobody's choice.
-    odd = RENTER.replace(commute_combine="mean", commute_weight=0.4, pt_basis="just_missed")
+    odd = RENTER.replace(commute_combine="mean", commute_weight=0.7, pt_basis="just_missed")
     odd = odd.replace(pt_basis_from=Provenance.STATED)
     buyer = run(odd, budget(tenure="buy")).spec
-    assert (buyer.commute_combine, buyer.commute_weight) == ("slowest", 1.0)
+    assert (buyer.commute_combine, buyer.commute_weight) == ("slowest", DEFAULT_COMMUTE_WEIGHT)
     assert (buyer.pt_basis, buyer.pt_basis_from) == ("just_missed", Provenance.STATED)
 
 
@@ -665,7 +768,7 @@ def test_undo_is_keeping_the_spec_from_before_and_a_step_back_returns_to_it():
 
 
 def test_the_same_edits_give_the_same_spec_every_time():
-    edits = ops(budget(amount=1500), commute("add", 3), tag("set", "buzzy", value=0.6))
+    edits = ops(budget(amount=1500), commute("add", 3), tag("set", "pace", value=0.6))
     first = apply(RENTER, edits, small_release())
     assert all(apply(RENTER, edits, small_release()) == first for _ in range(50))
 
@@ -726,8 +829,184 @@ def test_changing_tenure_keeps_what_the_same_edit_supplies():
 def test_naming_the_tenure_already_chosen_clears_nothing():
     renter = run(RENTER, budget(amount=1800)).spec
     again = run(renter, budget(tenure="rent"))
-    assert again.spec == renter
-    assert [a.changed for a in again.applied] == [False]
+    # All that moves is who chose the tenure: it was nobody, and now it was said.
+    assert again.spec == renter.replace(tenure_from=Provenance.STATED)
+    assert [a.changed for a in again.applied] == [True]
+    once_more = run(again.spec, budget(tenure="rent"))
+    assert once_more.spec == again.spec
+    assert [a.changed for a in once_more.applied] == [False]
+
+
+@pytest.mark.parametrize("provenance", ["stated", "inferred", "ui_edit"])
+def test_a_tenure_that_is_said_is_the_persons_whether_or_not_it_moves(provenance: str):
+    # A search starts from renting. A person who types "renting" was shown
+    # "renting, assumed", though they had said it.
+    said = run(RENTER, budget(tenure="rent", provenance=provenance))
+    assert said.spec.tenure_from == provenance
+    assert [a.changed for a in said.applied] == [True]
+    # A provenance is no part of the hash, and nothing else moved: the
+    # defaults have not given way, because no wish was made.
+    assert spec_hash(said.spec) == spec_hash(RENTER)
+    assert said.spec == RENTER.replace(tenure_from=Provenance(provenance))
+    assert defaults_of(said.spec) == defaults_of(RENTER)
+    # With a number beside it, it is a wish, and the defaults give way.
+    with_a_budget = run(RENTER, budget(tenure="rent", amount=1500)).spec
+    assert with_a_budget.tenure_from is Provenance.STATED
+    assert defaults_of(with_a_budget) == GIVEN_WAY[Tenure.RENT]
+
+
+def test_a_scale_may_be_asked_for_towards_either_end_and_a_one_way_vibe_towards_one():
+    calm = run(RENTER, tag("nudge", "pace", step="up_large", toward="low")).spec
+    assert [(t.tag_id, t.weight, t.toward) for t in calm.tags] == [("pace", 0.5, "low")]
+    buzzy = run(RENTER, tag("nudge", "pace", step="up_large", toward="high")).spec
+    assert [(t.tag_id, t.weight, t.toward) for t in buzzy.tags] == [("pace", 0.5, "high")]
+    assert spec_hash(calm) != spec_hash(buzzy)
+    assert check_spec(calm, small_release()) == ()
+    # Leafy has one direction. There is no less leafy end to ask for.
+    refused = run(RENTER, tag("nudge", "leafy", step="up_large", toward="low"))
+    assert reasons(refused) == [RejectReason.DIRECTION_NOT_ALLOWED]
+    assert refused.spec == RENTER
+
+
+def test_default_toward_leaves_the_end_in_the_spec_alone_and_is_high_for_a_new_vibe():
+    new = run(RENTER, tag("nudge", "pace", step="up_large")).spec
+    assert new.tags[0].toward == "high"
+    calm = run(RENTER, tag("set", "pace", value=0.4, toward="low")).spec
+    more = run(calm, tag("nudge", "pace", step="up_small")).spec
+    assert [(t.weight, t.toward) for t in more.tags] == [(0.5, "low")]
+
+
+def test_turning_a_scale_is_a_change_though_its_weight_stays_as_it_was():
+    calm = run(RENTER, tag("set", "pace", value=0.4, toward="low", provenance="ui_edit")).spec
+    turned = run(calm, tag("set", "pace", value=0.4, toward="high", provenance="ui_edit"))
+    assert [a.changed for a in turned.applied] == [True]
+    assert [(t.weight, t.toward) for t in turned.spec.tags] == [(0.4, "high")]
+    assert spec_hash(turned.spec) != spec_hash(calm)
+    # A vibe counts once, with one weight and one end.
+    assert len(turned.spec.tags) == 1
+
+
+def test_a_step_towards_the_other_end_starts_from_nothing():
+    buzzy = run(RENTER, tag("set", "pace", value=0.9, toward="high")).spec
+    calm = run(buzzy, tag("nudge", "pace", step="up_small", toward="low")).spec
+    # What counted towards Buzzy is no part of a wish for Calm: it is worth a mention.
+    assert [(t.weight, t.toward) for t in calm.tags] == [(0.5, "low")]
+    # And there is nothing of Calm to turn down while the spec holds Buzzy.
+    nothing = run(buzzy, tag("nudge", "pace", step="down_small", toward="low"))
+    assert reasons(nothing) == [RejectReason.NOTHING_TO_CHANGE]
+    assert nothing.spec == buzzy
+
+
+def test_a_vibe_the_release_does_not_carry_cannot_be_weighted_and_can_be_taken_off():
+    # A release that holds no recorded crime carries every vibe but Gritty.
+    release = small_release(GrittyVariant.A)
+    assert "street_character" not in {vibe.tag_id for vibe in release.vibes}
+    gritty = tag("nudge", "street_character", step="up_large")
+    refused = apply(RENTER, ops(gritty), release)
+    assert reasons(refused) == [RejectReason.NOT_IN_RELEASE]
+    stale = RENTER.replace(
+        tags=(TagWeight(tag_id=TagId.STREET_CHARACTER, weight=0.5, provenance=Provenance.STATED),)
+    )
+    assert [p.problem for p in check_spec(stale, release)] == ["not_in_release"]
+    put_right = apply(stale, ops(tag("remove", "street_character")), release)
+    assert put_right.spec.tags == () and put_right.rejected == ()
+    # The release of the tests carries it, and not Works and warehouses, which is a part
+    # of it and is not served beside it.
+    assert run(RENTER, gritty).rejected == ()
+    works = tag("nudge", "works_warehouses", step="up_large")
+    assert reasons(run(RENTER, works)) == [RejectReason.NOT_IN_RELEASE]
+    assert apply(RENTER, ops(works), release).rejected == ()
+
+
+def test_a_vibe_that_places_no_area_cannot_be_weighted_and_can_be_taken_off():
+    # A release may carry a vibe and hold too little of its recipe to give any
+    # area a band. Weighed all the same, it left every area with no figure for
+    # what counts, and no area was ranked.
+    release = unplaced(small_release(), TagId.LEAFY)
+    assert "leafy" in {vibe.tag_id for vibe in release.vibes}
+    refused = apply(RENTER, ops(tag("nudge", "leafy", step="up_large")), release)
+    assert reasons(refused) == [RejectReason.NOT_IN_RELEASE]
+    assert refused.spec == RENTER
+    by_number = apply(RENTER, ops(tag("set", "leafy", value=0.5)), release)
+    assert reasons(by_number) == [RejectReason.NOT_IN_RELEASE]
+    stale = RENTER.replace(
+        tags=(TagWeight(tag_id=TagId.LEAFY, weight=0.5, provenance=Provenance.STATED),)
+    )
+    assert [(p.path, p.problem) for p in check_spec(stale, release)] == [
+        ("tags[0].tag_id", "not_in_release")
+    ]
+    with pytest.raises(SpecError):
+        rank(stale, release)
+    put_right = apply(stale, ops(tag("remove", "leafy")), release)
+    assert put_right.spec.tags == () and put_right.rejected == ()
+    # A vibe the same release does place is weighed as ever.
+    placed = apply(RENTER, ops(tag("nudge", "pace", step="up_large")), release)
+    assert placed.rejected == () and [t.tag_id for t in placed.spec.tags] == ["pace"]
+    assert rank(placed.spec, release).ranked
+
+
+def test_a_budget_is_turned_away_where_the_release_holds_no_cost_of_that_kind_of_home():
+    # A first real build holds no cost at all. A budget it could not test left
+    # every area with no figure for the heaviest thing in the search.
+    preview = preview_release()
+    for edit in (budget(amount=1500), budget(tenure="buy", amount=400_000, segment="flat")):
+        refused = apply(RENTER, ops(edit), preview)
+        assert reasons(refused) == [RejectReason.NOT_IN_RELEASE]
+        assert refused.spec == RENTER
+    # A release that holds what one bedroom rents for, and no studio.
+    whole = small_release()
+    release = dataclasses.replace(
+        whole, costs=tuple(cost for cost in whole.costs if cost.segment is not Segment.STUDIO)
+    )
+    studio = apply(RENTER, ops(budget(amount=1500, segment="studio")), release)
+    assert reasons(studio) == [RejectReason.NOT_IN_RELEASE]
+    held = apply(RENTER, ops(budget(amount=1500)), release).spec
+    assert held.budget.amount == 1500 and check_spec(held, release) == ()
+    # A kind of home that has no cost is turned away once there is an amount to test.
+    assert reasons(apply(held, ops(budget(segment="studio")), release)) == [
+        RejectReason.NOT_IN_RELEASE
+    ]
+    assert apply(held, ops(budget(segment="studio")), whole).rejected == ()
+    # A number outside the limits is said to be so, whatever the release holds.
+    assert reasons(apply(RENTER, ops(budget(amount=5)), preview)) == [RejectReason.OUT_OF_RANGE]
+
+
+def test_what_is_said_of_the_home_with_no_amount_is_applied_whatever_the_release_costs():
+    preview = preview_release()
+    buying = apply(RENTER, ops(budget(tenure="buy", segment="terraced")), preview)
+    assert buying.rejected == ()
+    assert (buying.spec.tenure, buying.spec.budget.segment) == (Tenure.BUY, Segment.TERRACED)
+    assert buying.spec.budget.amount is None
+    assert check_spec(buying.spec, preview) == ()
+
+
+def test_a_spec_that_holds_a_budget_the_release_cannot_test_is_refused_and_can_be_put_right():
+    preview = preview_release()
+    stale = RENTER.replace(budget=RENTER.budget.replace(amount=1500, provenance=Provenance.STATED))
+    assert [(p.path, p.problem) for p in check_spec(stale, preview)] == [
+        ("budget.amount", "not_in_release")
+    ]
+    with pytest.raises(SpecError):
+        rank(stale, preview)
+    put_right = apply(stale, ops(budget("clear")), preview)
+    assert put_right.rejected == () and check_spec(put_right.spec, preview) == ()
+    # A budget that counts for nothing is still one the release cannot test:
+    # two specs with one canonical form are treated the same.
+    silent = stale.replace(budget=stale.budget.replace(weight=0.0))
+    assert [p.problem for p in check_spec(silent, preview)] == ["not_in_release"]
+
+
+def test_a_journey_is_turned_away_as_not_in_the_release_where_it_holds_no_place():
+    # No spelling can match in a release that names no place, so the person
+    # is not asked which place they meant.
+    preview = preview_release()
+    assert preview.places == ()
+    for place in ("", place_id(1)):
+        refused = apply(RENTER, ops(commute("add", place, max_minutes=30)), preview)
+        assert reasons(refused) == [RejectReason.NOT_IN_RELEASE]
+        assert refused.spec == RENTER
+    # Where the release names places, a place it does not name is unknown, as before.
+    assert reasons(run(RENTER, commute("add", "syn-p0099"))) == [RejectReason.UNKNOWN_PLACE]
 
 
 def test_clearing_a_budget_touches_nothing_else():
@@ -801,12 +1080,13 @@ def test_a_weight_that_reaches_nothing_counts_for_nothing_by_any_action():
         assert '"station_walk"' not in canonical(spec)
     # A feature no tenure has a default for leaves nothing behind, and nor does a tag.
     for edit in (
-        weight("set", "culture_venues", value=0.0),
-        weight("nudge", "culture_venues", step="down_large"),
-        weight("remove", "culture_venues"),
+        weight("set", "culture_venues_per_homes", value=0.0),
+        weight("nudge", "culture_venues_per_homes", step="down_large"),
+        weight("remove", "culture_venues_per_homes"),
     ):
-        wanted = run(RENTER, weight("set", "culture_venues", value=0.2)).spec
-        assert "culture_venues" not in weights(run(wanted, edit).spec)
+        wanted = run(RENTER, weight("set", "culture_venues_per_homes", value=0.2)).spec
+        assert "culture_venues_per_homes" in weights(wanted)
+        assert "culture_venues_per_homes" not in weights(run(wanted, edit).spec)
     leafy = run(RENTER, tag("set", "leafy", value=0.2)).spec
     assert run(leafy, tag("remove", "leafy")).spec.tags == ()
 
@@ -945,9 +1225,9 @@ def test_the_setting_an_edit_touches_takes_its_provenance():
         weight("nudge", "station_walk", step="up_small", provenance="ui_edit"),
         setting("set", "commute_combine", choice="slowest", provenance="ui_edit"),
         setting("set", "pt_basis", choice="typical", provenance="ui_edit"),
-        setting("set", "commute_weight", value=1.0, provenance="ui_edit"),
+        setting("set", "commute_weight", value=DEFAULT_COMMUTE_WEIGHT, provenance="ui_edit"),
         setting("nudge", "commute_weight", step="up_large", provenance="ui_edit"),
-        setting("set", "budget_weight", value=0.8, provenance="ui_edit"),
+        setting("set", "budget_weight", value=DEFAULT_BUDGET_WEIGHT, provenance="ui_edit"),
         budget("clear", provenance="ui_edit"),
         budget(segment="bed_1", strictness="soft", provenance="ui_edit"),
         weight("remove", "green_cover", provenance="ui_edit"),
@@ -961,6 +1241,9 @@ def test_an_edit_that_changes_nothing_is_applied_and_leaves_provenance_alone(edi
     spec = run(RENTER, weight("set", "station_walk", value=0.5, provenance="stated")).spec
     if isinstance(edit, WeightEdit) and edit.action == "nudge":
         spec = run(spec, weight("set", "station_walk", value=1.0)).spec
+    if isinstance(edit, SettingEdit) and edit.action == "nudge":
+        # A step up from the most a thing can weigh changes nothing.
+        spec = run(spec, setting("set", "commute_weight", value=1.0)).spec
     result = run(spec, edit)
     assert result.rejected == ()
     assert [a.changed for a in result.applied] == [False]
@@ -1003,6 +1286,13 @@ REJECTIONS: list[tuple[Edit, RejectReason]] = [
     ),
     (tag("set", "leafy", value=7), RejectReason.OUT_OF_RANGE),
     (tag("nudge", "leafy"), RejectReason.NOTHING_TO_CHANGE),
+    (tag("set", "leafy", value=0.5, toward="low"), RejectReason.DIRECTION_NOT_ALLOWED),
+    (
+        tag("nudge", "quiet_residential", step="up_small", toward="low"),
+        RejectReason.DIRECTION_NOT_ALLOWED,
+    ),
+    # A measure that no release carries yet.
+    (weight("set", "gp_walk", value=0.5), RejectReason.NOT_IN_RELEASE),
     (setting("set", "commute_combine", choice="typical"), RejectReason.MISMATCHED_CHOICE),
     (setting("set", "commute_combine", choice="none"), RejectReason.MISMATCHED_CHOICE),
     (setting("set", "pt_basis", choice="mean"), RejectReason.MISMATCHED_CHOICE),
@@ -1029,7 +1319,7 @@ def test_each_bad_edit_is_rejected_for_its_reason_and_changes_nothing(
 
 def test_every_reason_for_rejecting_an_edit_can_be_reached():
     reached = {reason for _, reason in REJECTIONS}
-    reached |= {RejectReason.TOO_MANY_COMMUTES, RejectReason.NOT_IN_RELEASE}
+    reached |= {RejectReason.TOO_MANY_COMMUTES}
     assert reached == set(RejectReason)
 
 
@@ -1179,6 +1469,7 @@ def random_edit(draw: random.Random) -> Edit:
             draw.choice(list(TagId)).value,
             value=number,
             step=draw.choice(steps),
+            toward=draw.choice(["high", "low", "default"]),
             provenance=provenance,
         )
     if kind == 4:
@@ -1215,8 +1506,15 @@ def test_the_reducer_never_raises_and_never_makes_a_spec_that_cannot_be_ranked()
                 assert any(entry.feature_id in held for held in DEFAULT_WEIGHTS.values())
                 assert entry.provenance is not Provenance.DEFAULT
             assert round(entry.weight * 20) == pytest.approx(entry.weight * 20)
+        # Two edits may undo each other, so what is held is each edit alone:
+        # it says it changed the spec exactly when it did.
         changed = [a for a in result.applied if a.changed]
-        assert bool(changed) == (result.spec != spec)
+        assert changed or result.spec == spec
+        one = ops(random_edit(draw))
+        alone = apply(result.spec, one, release)
+        assert [a.changed for a in alone.applied] == [alone.spec != result.spec][
+            : len(alone.applied)
+        ]
         seen |= {r.reason for r in result.rejected}
-        spec = result.spec
+        spec = alone.spec
     assert len(seen) >= 9
