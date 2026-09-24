@@ -9,13 +9,22 @@ One short file per decision that would be expensive to reverse or easy to forget
 | [0003](0003-three-grids.md) | Three grids, one cell table | Accepted |
 | [0004](0004-openstreetmap.md) | OpenStreetMap for basemap and routing only | Accepted |
 | [0005](0005-raw-prompts-are-never-stored.md) | Raw prompts are never stored | Accepted |
-| [0006](0006-rank-places-not-residents.md) | Rank places, never residents | Accepted |
-| [0007](0007-no-solicitor.md) | Close legal questions by design | Accepted |
+| [0006](0006-rank-places-not-residents.md) | Rank places, never residents | Accepted. Amended 2026-09-24: age and household make-up may be ranked on |
+| [0007](0007-no-solicitor.md) | Close legal questions by design | Accepted, amended 2026-09-24 |
 | [0008](0008-package-sources.md) | Where packages come from | Accepted |
 | [0009](0009-registry-in-toml.md) | The registry is TOML, one file per topic | Accepted |
 | [0010](0010-one-contract-one-synthetic-release.md) | One contract, and a synthetic release to build on | Accepted, two points to confirm |
 | [0011](0011-nothing-is-kept-for-a-search.md) | Nothing is kept for a search | Accepted, one point to confirm |
-| [0012](0012-a-closed-vocabulary-and-a-guard-on-the-model.md) | The reader reads by what it knows, and a model is held to the reader | Accepted, three points to confirm |
-| [0014](0014-evidence-first-and-census-figures-shown.md) | Evidence first, and census figures are shown | Accepted, one wording to approve |
+| [0012](0012-a-closed-vocabulary-and-a-guard-on-the-model.md) | The reader applies a plain prompt and asks about any other, and a model proposes | Accepted, amended twice on 2026-09-24, three points to confirm |
+| [0013](0013-vibes-are-the-centre.md) | Vibes are the centre, and gritty is built two ways | Accepted, amended 2026-09-24, three points to decide |
+| [0014](0014-evidence-first-and-census-figures-shown.md) | Evidence first, and census figures are shown | Accepted, amended 2026-09-24, one wording and four points of how the figures are shown to approve |
 | [0015](0015-where-builds-run-and-what-gates-a-launch.md) | Builds run in hosted CI from a private store, and a release is gated before launch | Accepted in part, two points to confirm |
 | [0016](0016-geography-behind-a-measure.md) | The geography behind a measure is registered for scoring | Proposed |
+| [0017](0017-a-preview-says-it-is-one.md) | A preview says it is one, and states no source for what it does not hold | Proposed |
+| [0018](0018-a-real-release-is-served-with-its-evidence.md) | A release that is not made up is served only with its evidence, and says if it is unfinished | Proposed |
+| [0019](0019-no-one-provider-and-a-key-alone-turns-nothing-on.md) | No one provider of a model, and a key alone turns nothing on | Accepted, amended by 0023, three points to confirm |
+| [0020](0020-the-tests-run-side-by-side.md) | The tests run side by side | Accepted, one point to confirm |
+| [0021](0021-a-price-is-shown-as-the-publisher-gives-it.md) | What a home sells for is shown as the publisher gives it: one number, with no range | Accepted in part, amended by 0024, four points to decide |
+| [0022](0022-one-official-publisher-is-enough-for-a-name.md) | One official publisher is enough for a name | Accepted, one reading to confirm |
+| [0023](0023-what-is-typed-goes-as-typed-and-people-are-told.md) | What is typed goes to the provider as typed, and people are told so | Accepted |
+| [0024](0024-an-area-with-no-figure-for-what-was-asked-stands-below.md) | An area with no figure for what was asked for stands below every area that has one | Accepted, one reading to confirm |

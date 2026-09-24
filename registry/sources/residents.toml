@@ -1,8 +1,56 @@
 # Licence registry: residents. Rules are in registry/README.md.
 # Census tables about the people who lived in an area. They are shown as the statistics
-# office's own table on an area's page, and used for nothing else. See ADR 0014.
+# office's own table on an area's page. See ADR 0014. Two of them, age and household
+# composition, may also feed a vibe and a ranking: the founder decided it on
+# 24 September 2026, for those two and no other. See ADR 0006 as amended that day.
 # Approved first, then gated, held and banned.
 schema_version = 1
+
+[[source]]
+id = "ons-census-2021-age-and-household-tables"
+name = "Census 2021 tables of age and of household composition: TS007A age by five-year age bands, TS003 household composition"
+publisher = "Office for National Statistics (via Nomis)"
+url = "https://www.nomisweb.co.uk/datasets/c2021ts007a"
+dimension = "residents"
+tables = ["TS003", "TS007A"]
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics"
+attribution_verified = false
+conditions = [
+    "These two tables say who lived in an area: how old its residents were, and what its households were made of. They may feed a vibe and a ranking, and be shown. The founder decided it on 24 September 2026, for age and for household composition and for nothing else about residents (ADR 0006 as amended that day).",
+    "A figure made from this entry says in its name who is counted, residents or households, and says beside it on the page that it is from Census 2021, taken on 21 March 2021.",
+    "A person may ask for more of what a figure counts, and never for fewer. No measure from this entry may be read low in a recipe, stand in a scale with two ends, or feed a filter that includes or excludes an area.",
+    "A measure reads the columns it names and no other. TS003 splits households by whether a couple is married, in a civil partnership or cohabiting, and names lone parents. Those columns are read only to be added up into households with dependent children, and no figure is made from one of them alone.",
+    "State beside every figure that the census was taken during a lockdown. The statistics office says the pandemic may have affected where some people were usually resident on Census Day, names students and some urban areas, and reports an analysis that found many young adults left London during lockdown.",
+    "Shares only. No count of a category is printed, stored or served. The statistics office moves some records to other areas and adds a small amount of noise to some counts, so a small count is not a fact.",
+    "Nomis terms: do not use the data to attempt to obtain or derive information about an identified person, household or business.",
+    "Link to the Open Government Licence beside the source line. Do not suggest ONS endorses Burro.",
+]
+status = "approved"
+before_launch = [
+    "A person opens each page under evidence_urls in a browser, saves a dated copy in registry/evidence, and confirms the licence, its version and the source line. Every page was read on 2026-09-24 through a reader that extracts, which is not the page.",
+    "Core refuses any name that holds a word for residents, and any release that holds the word. docs/design/residents-age-and-households.md says which of its rules and tests change, and how. Until they do, no release carries a measure from this entry.",
+]
+uses = ["scoring", "census_table"]
+cadence = "One-off. Census Day was 21 March 2021. Next census not before 2031."
+verified_how = "primary_source"
+verified_on = 2026-09-24
+evidence_urls = [
+    "https://www.nomisweb.co.uk/home/copyright.asp",
+    "https://www.nomisweb.co.uk/sources/census_2021_bulk",
+    "https://www.nomisweb.co.uk/datasets/c2021ts003",
+    "https://www.ons.gov.uk/datasets/TS003/editions/2021/versions/4",
+    "https://www.ons.gov.uk/census/aboutcensus/censusproducts/topicsummaries",
+    "https://www.ons.gov.uk/peoplepopulationandcommunity/populationandmigration/populationestimates/methodologies/qualityandmethodologyinformationqmiforcensus2021",
+]
+file_urls = [
+    "https://www.nomisweb.co.uk/output/census/2021/census2021-ts003.zip",
+    "https://www.nomisweb.co.uk/output/census/2021/census2021-ts007a.zip",
+]
+notes = "Why the uses changed: the founder's decision of 24 September 2026. Asked whether the age and household make-up of residents may feed vibes and ranking, the founder answered yes, from the census. Until then both tables stood in ons-census-2021-resident-tables, for the census table alone. They were moved here so that the gate allows scoring for these two tables and for no other table about residents. The limit on every other table is a fairness rule, not a licence limit. How the licence was verified: every page under evidence_urls was opened on 2026-09-24, through a reader that extracts the text of a page. Each was asked twice, in different words, and what is recorded is what both gave. The Nomis copyright page says ONS material may be re-used under the terms of the Open Government Licence, 'whether commercially or privately', and asks for the source line in the attribution field. It states no version. The statistics office's page for TS003, the page of its topic summaries and its quality page each carry: 'All content is available under the Open Government Licence v3.0, except where otherwise stated'. The Nomis pages of the two tables show only '© Crown Copyright'. No page for TS007A was found on the statistics office's own website: four addresses shaped like that of TS003 gave no page. TS007A counts usual residents, in a total and 18 bands of five years, from 'Aged 4 years and under' to 'Aged 85 years and over'. TS003 counts households, in a total and 21 categories. The bulk page lists one zip for TS007A and two for TS003, and says a zip holds the geographies of the first release: output areas, super output areas, local authorities, regions and countries. It shows no size. The zip of extra areas of TS003 is not taken. The statistics office's page for version 4 of TS003 says its figures can be filtered by statistical area, and gives MSOA and LSOA as examples. No file of either table has been fetched or opened. The quality page is 'Quality and methodology information (QMI) for Census 2021', last revised on 23 November 2023. Under 'Conducting a census during the coronavirus pandemic' it says: 'the coronavirus pandemic may have affected some people's choice of usual residence on Census Day, for example, students and in some urban areas', and 'The census counts students at their term-time address'. It reports an analysis by the Greater London Authority that found 'many young adults leaving London during lockdown' and 'many young adults returning to London during the spring and summer of 2021'. The census table on an area's page shows both tables too, so the entry keeps census_table. It lists display nowhere: a figure in a release is asked about as scoring."
 
 [[source]]
 id = "ons-census-2021-resident-tables"
@@ -10,7 +58,7 @@ name = "Census 2021 tables about residents, for the census table on an area's pa
 publisher = "Office for National Statistics (via Nomis)"
 url = "https://www.nomisweb.co.uk/sources/census_2021_bulk"
 dimension = "residents"
-tables = ["TS003", "TS004", "TS007A", "TS021", "TS030"]
+tables = ["TS004", "TS021", "TS030"]
 licence = "OGL-3.0"
 licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
 commercial_use = "yes"
@@ -38,4 +86,4 @@ evidence_urls = [
     "https://www.nomisweb.co.uk/sources/census_2021_bulk",
     "https://www.ons.gov.uk/datasets/TS021/editions/2021/versions/3",
 ]
-notes = "The limit on use is a fairness rule, not a licence limit (ADR 0006, ADR 0014). The five tables are household composition, country of birth, age by five-year bands, ethnic group and religion. All but TS003 also stand in ons-census-2021-protected-characteristics, for the audit: the two entries are read by different steps, and neither may be used for the other's purpose. The three evidence pages are ones the audit entry already holds. The attribution is the line that entry records from the Nomis copyright page. verified_how is secondary_source so that the entry cannot be approved by changing its status alone. That each table is published for output areas is as the design records it, and has not been checked in a file."
+notes = "The limit on use is a fairness rule, not a licence limit (ADR 0006, ADR 0014). The three tables are country of birth, ethnic group and religion. Until 24 September 2026 the entry held household composition and age by five-year bands too. On that day the founder decided that age and household composition may feed a vibe and a ranking, and the two tables moved to ons-census-2021-age-and-household-tables. The same decision changed nothing here: ethnic group and religion are shown on an area's page and never ranked on, and country of birth was not asked about and stands as it did. Nothing else of this entry was changed: its status, its use and its evidence are as they were. All three tables also stand in ons-census-2021-protected-characteristics, for the audit: the two entries are read by different steps, and neither may be used for the other's purpose. The three evidence pages are ones the audit entry already holds. The attribution is the line that entry records from the Nomis copyright page. verified_how is secondary_source so that the entry cannot be approved by changing its status alone. That each table is published for output areas is as the design records it, and has not been checked in a file."

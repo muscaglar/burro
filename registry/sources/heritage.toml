@@ -12,14 +12,16 @@ licence = "OGL-3.0"
 licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
 commercial_use = "yes_with_conditions"
 share_alike = false
-attribution = "© Historic England 2026. Contains Ordnance Survey data © Crown copyright and database right 2026."
+attribution = "© Historic England 2026. Contains Ordnance Survey data © Crown copyright and database right 2026. The Historic England GIS Data contained in this material was obtained on [date]. The most publicly available up to date Historic England GIS Data can be obtained from HistoricEngland.org.uk"
 attribution_verified = false
 conditions = [
     "Approval covers only the copy on planning.data.gov.uk, which states the licence and attribution.",
     "If data is pulled from Historic England's own site or Open Data Hub instead, read and save its terms first. Neither has been read.",
     "Update the year in the statement to match the data used.",
+    "Replace [date] in the statement with the day the file was retrieved, as its receipt gives it.",
     "The platform warns the data 'may be incomplete and not yet cover all of England'. Treat missing coverage as unknown, not zero.",
     "Aggregates only in v1, such as listed buildings per square kilometre.",
+    "Never read the name of an entry. It is often an address, and may be the name of a business.",
 ]
 status = "approved"
 uses = ["scoring"]
@@ -31,7 +33,12 @@ evidence_urls = [
     "https://www.data.gov.uk/dataset/8db67112-67b0-43f2-b863-2ac9c58d52bf/listed-buildings-gis-data",
     "https://www.planning.data.gov.uk/about/",
 ]
-notes = "How it was verified: OGL v3 and the attribution statement are shown on the planning.data.gov.uk dataset page, and Historic England's own data.gov.uk record also says OGL. Both fetched by the drafter and again by this review on 2026-09-23. 382,270 records. The attribution is the statement shown for this dataset on the platform, which is identical to the conservation area statement the verifier confirmed. Historic England's own terms may ask for extra wording about the date the data was obtained; they have not been read. Wording was read through a reader that summarises; re-check when saving evidence."
+# The address of the file, as a person read it on the dataset page in a browser on
+# 2026-09-24: the page's own link to the GeoJSON points to this host.
+file_urls = [
+    "https://files.planning.data.gov.uk/dataset/listed-building.geojson",
+]
+notes = "How it was verified: OGL v3 and the attribution statement are shown on the planning.data.gov.uk dataset page, and Historic England's own data.gov.uk record also says OGL. Both fetched by the drafter and again by this review on 2026-09-23. 382,270 records. The attribution was put right on 2026-09-24: the entry held the first two sentences of the statement, and the page holds four. The dataset page was read three times that day through a reader that extracts, asked in different words each time, and gave the same statement each time, letter for letter. The last sentence ends with no full stop on the page. It is the same statement the conservation area page shows. That is still an extraction, so attribution_verified stays false until a person has read the statement on the page in a browser. The statement asks for the date the data was obtained, which is the day the file was retrieved. Historic England's own terms have not been read. What the file held on 2026-09-24: 381,754 records, all from one provider, of which 379,159 are points and live and carry a grade, and 2,595 are outlines that have ended. docs/research/data/heritage.md says what was read and counted."
 
 [[source]]
 id = "mhclg-planning-data-conservation-areas"
@@ -43,7 +50,7 @@ licence = "OGL-3.0"
 licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
 commercial_use = "yes_with_conditions"
 share_alike = false
-attribution = "© Historic England 2026. Contains Ordnance Survey data © Crown copyright and database right 2026."
+attribution = "© Historic England 2026. Contains Ordnance Survey data © Crown copyright and database right 2026. The Historic England GIS Data contained in this material was obtained on [date]. The most publicly available up to date Historic England GIS Data can be obtained from HistoricEngland.org.uk"
 attribution_verified = false
 conditions = [
     "The publisher says the data 'may be incomplete and not yet cover all of England' and 'contains a number of duplicate conservation areas'. De-duplicate at ingest and treat missing coverage as unknown, not zero.",
@@ -51,6 +58,8 @@ conditions = [
     "Check coverage for all 33 London authorities before the historic character tag relies on it.",
     "Never let this source decide a tag alone; combine with listed building density and pre-1919 dwelling share.",
     "Update the year in the statement to match the data used.",
+    "Replace [date] in the statement with the day the file was retrieved, as its receipt gives it.",
+    "Never read the name of a record, or its notes.",
 ]
 status = "approved"
 uses = ["scoring"]
@@ -61,7 +70,12 @@ evidence_urls = [
     "https://www.planning.data.gov.uk/dataset/conservation-area",
     "https://www.planning.data.gov.uk/about/",
 ]
-notes = "How it was verified: OGL v3 and the attribution statement are shown on the dataset page. Confirmed by the verifier, by the drafter and again by this review on 2026-09-23. 10,953 records for England from 151 data providers. The platform's about page says it is built by the Ministry of Housing, Communities and Local Government."
+# The address of the file, as a person read it on the dataset page in a browser on
+# 2026-09-24: the page's own link to the GeoJSON points to this host.
+file_urls = [
+    "https://files.planning.data.gov.uk/dataset/conservation-area.geojson",
+]
+notes = "How it was verified: OGL v3 and the attribution statement are shown on the dataset page. Confirmed by the verifier, by the drafter and again by this review on 2026-09-23. 10,953 records for England from 151 data providers. The platform's about page says it is built by the Ministry of Housing, Communities and Local Government. The attribution was put right on 2026-09-24: the entry held the first two sentences of the statement, and the page holds four. The dataset page was read three times that day through a reader that extracts, asked in different words each time, and gave the same statement each time, letter for letter. The last sentence ends with no full stop on the page. That is still an extraction, so attribution_verified stays false until a person has read the statement on the page in a browser. The page gives Historic England's statement for the whole dataset, though many records are an authority's own. Coverage of the 33 London authorities was checked on 2026-09-24 in the file of that day: every one holds most of 4 conservation areas or more, and 14 rest wholly on records of quality some. Neither the file nor the page says what that quality means. No count was held against an authority's own list. The GeoJSON holds 9,659 records, which is 1,294 fewer than the page gives: what the others are is not known. docs/research/data/heritage.md has the count of each authority."
 
 [[source]]
 id = "london-boroughs-conservation-area-appraisals"

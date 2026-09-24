@@ -1,0 +1,63 @@
+The licence section of the user guide of the ONS Postcode Directory, August 2026
+================================================================================
+
+Saved on 2026-09-24, for the registry entry `ons-postcode-directory`, which asks that the
+licence section of the user guide inside the zip is saved on first download.
+
+Where it came from
+
+- The zip: ONSPD_AUG_2026.zip, of 253,928,895 bytes, saved by a person on 2026-09-24.
+  Its file id is f-ab51f1e82bd5, and its sha256 is
+  ab51f1e82bd5beeb1089c3732ea6e11d62eb5693d619e2c4f4dd8c4baaa69293.
+  Its receipt is data/receipts/ons-postcode-directory/f-ab51f1e82bd5.json.
+- The guide inside it: User Guide/ONSPD User Guide Aug 2026.odt, of 376,989 bytes, sha256
+  29750cffc5a60c6fc44ddbc90050f0feea3e2bf2ca4b80d2a3a33e5367f3f302.
+- The zip holds the guide as a PDF too, of 869,428 bytes, sha256
+  b88a6c0e703bdb8d2f4ab08501e46093d8562940ce8a700be4ce40a1dde95224. The PDF was not read.
+- The first page of the guide gives its edition as August 2026. The file says of itself
+  that it was written on 2026-09-01.
+
+How it was read
+
+By a program, from the text of the OpenDocument file, a paragraph to a line. The words are
+the guide's own, letter for letter. A tab is written here as a space, and a line is broken
+where the guide ends a paragraph. No person has compared this with the guide as a reader
+shows it. Both parts are given whole: nothing is left out between the first line of a part
+and its last.
+
+In section 3 the word "Licences" is a link, twice, to
+http://www.ons.gov.uk/methodology/geography/licences. The registry entry holds that page
+under its evidence.
+
+What it bears out of the registry entry
+
+- The three statements of the entry's attribution are the guide's, letter for letter.
+- Postcodes that start BT need a licence of their own for commercial use, and to use them
+  is to accept the terms for Northern Ireland. The entry asks that every such row is
+  dropped at ingest.
+
+--------------------------------------------------------------------------------
+Part 1. From the front of the guide, under its heading "Copyright and Reproduction"
+--------------------------------------------------------------------------------
+
+Copyright and Reproduction
+Please refer to the 'Postcode products' section on our Licences page for the terms applicable to these products.
+TRADEMARKS
+Gridlink is a registered trademark of the Gridlink Consortium and may not be used without the written consent of the Gridlink Programme Board.
+The Gridlink logo is a registered trademark.
+AddressBase is a registered trademark of Ordnance Survey (OS), the national mapping agency of Great Britain.
+Boundary-Line is a trademark of OS, the national mapping agency of Great Britain.
+Pointer is a registered trademark of Land and Property Services, an Executive Agency of the Department of Finance and Personnel (Northern Ireland).
+
+--------------------------------------------------------------------------------
+Part 2. Section 3 of the guide
+--------------------------------------------------------------------------------
+
+3. Licensing Requirements – Copyright and Reproduction
+Our postcode products (derived from Code-Point® Open) are subject to the Open Government Licence. If you also use the Northern Ireland data (postcodes starting with “BT”), you need a separate licence for commercial use direct from Land and Property Services. We only issue a Northern Ireland End User Licence (for internal business use only) with the data. To download a copy, go to the “Download” section of the Licences web page. Use of the Northern Ireland data contained within the ONS postcode products constitutes acceptance of the Northern Ireland licensing terms and conditions.
+You may re-use this information (not including logos or Northern Ireland data) free of charge in any format or medium, under the terms of the relevant data owners' licence. In addition, the following attribution statements must be acknowledged or displayed whenever the owner’s data is used:
+Contains OS data © Crown copyright and database right [year]
+Contains Royal Mail data © Royal Mail copyright and database right [year]
+Source: Office for National Statistics licensed under the Open Government Licence v.3.0
+Please see the Licences web page for further details.
+Note: We do not have the capability to deal with detailed postcode queries relating to Scotland and Northern Ireland but can pass them on to the appropriate government departments.

@@ -4,14 +4,14 @@ Burro reads a sentence into typed edits by rules, or by a model whose answer is 
 
 | | |
 |---|---|
-| Status, 23 September 2026 | Built and tested as new files. **Not wired into the service.** No adapter has met a live provider |
+| Status, 24 September 2026 | Built, tested and wired into the service. No adapter has met a live provider |
 | Providers | Google Gemini, OpenAI, DeepSeek, Anthropic Claude |
-| Which can be turned on today | None. Each is held until a person has checked what people are told of it. See section 6 |
+| Which can be turned on today | Gemini, OpenAI and Claude, each once it is named, holds a key and has its terms accepted by name. DeepSeek never, for what people type. See section 2 |
 | Code | `services/api/src/burro_api/providers/` |
 | Tests | `services/api/tests/providers/`. Run `uv run --no-sync pytest services/api/tests/providers -q` |
 | Evidence | `docs/research/models/`: one report a provider, and `definitions.md`, two later looks at the same pages |
 
-**Today `ANTHROPIC_API_KEY` alone turns the model on. Do not set it on a host that serves people until step 5 of section 8 is done.** The service as it stands does not ask `choose`. It reads one variable, and sends what people type to one provider as soon as that variable holds a key. No terms are accepted, no notice is served, and the website shows none. A key of any other provider does nothing today. Everything below describes `choose`, which decides nothing until it is wired in.
+A key alone turns nothing on. The service asks `choose` once, as it starts, and `choose` gives it a reader and what people are told of that reader together. Section 2 says what must hold before a model reads what is typed.
 
 Nothing here is legal advice. Prices, model names and terms are a dated snapshot. Whoever wrote this was made by one of the four providers. Every question is put to all four in the same words, and every answer rests on a page that can be checked.
 
@@ -37,14 +37,14 @@ class ModelClient(Protocol):
 | `ModelReply.input_tokens` | Tokens sent and not read from a cache. Tokens written to a cache are among them |
 | `ModelReply.output_tokens` | Tokens billed as output. Thinking is among them |
 | `ModelReply.cache_read_tokens` | Tokens read from a cache |
-| `ModelTimeout`, `ModelCapped`, `ModelError` | The three failures. None has a message, a cause or a context |
+| `ModelTimeout`, `ModelCapped`, `ModelRefused`, `ModelError` | The four failures. None has a message, a cause or a context. `ModelRefused` is a provider that would not read what was sent, for safety or for its own terms |
 
 | File | What it holds |
 |---|---|
-| `interface.py` | The protocol, the reply and the failures. The same as in `claude.py`, until step 1 of section 8 makes them one |
+| `interface.py` | The protocol, the reply and the four failures. The reader in `reader.py` imports them, and defines none of its own |
 | `base.py` | `over_https`, the one function that sends, and `Adapter`, what the four share |
 | `gemini.py`, `openai.py`, `deepseek.py`, `anthropic.py` | One adapter each: what to send, how to read the answer, and the models it was fitted to |
-| `terms.py` | What people are told, by provider: the questions, the forms of words, and the source of every answer |
+| `terms.py` | What people are told, and the address of each company's own terms. Also what a tool read of each provider's pages, which is research and is shown to nobody |
 | `choose.py` | `choose(env)`: the adapter to use or none, and what the meta route should say |
 | `measure.py` | The reader as the evaluation set asks for it. The service never uses it |
 
@@ -59,7 +59,7 @@ What every adapter does, the same way:
 | Size | 256 KiB of answer at most |
 | An error's body | Never read. One exception: Anthropic's 400, to tell a spend limit from a bad request |
 | The schema | Sent with every reference written out. Six keywords are left, which all four providers list. It is no longer than it was |
-| The answer | Must be finished, by the provider's own word for it, and must be a JSON object. `claude._parsed` then holds it to the schema |
+| The answer | Must be finished, by the provider's own word for it, and must be a JSON object. `reader._parsed` then holds it to the schema |
 | Thinking | Asked to be off, or least. It is billed as output, and it can repeat the person's words |
 | Never sent | An id for a person or a search, a tool, a cache mark, stored state, a temperature |
 | The model | One of the models the adapter was fitted to, and no other. See below |
@@ -90,13 +90,12 @@ Sources, all read on 23 September 2026: <https://ai.google.dev/gemini-api/docs/g
 | 400 from Anthropic, where the message begins "You have reached your specified" | capped | Documented. The message is compared and let go of |
 | 200 from OpenAI with `status: failed` and code `rate_limit_exceeded` | capped | Documented |
 | Anything else that is not 200, every 3xx included | error | |
-| 200 that is a refusal, is cut short, is not JSON, or lacks a count of tokens | error | A number that is not known is never nought |
+| 200 that is a refusal: Gemini's `promptFeedback.blockReason`, or its `finishReason` of `SAFETY`, `BLOCKLIST`, `PROHIBITED_CONTENT` or `SPII`. OpenAI's content of type `refusal`, or `incomplete` for `content_filter`. DeepSeek's `finish_reason` of `content_filter`. Claude's `stop_reason` of `refusal` | refused | Documented by each. Why it refused is never read |
+| 200 that is cut short, is not JSON, or lacks a count of tokens | error | A number that is not known is never nought |
 
 ## 2. Settings
 
-Read once, when the service starts. In `choose`, a key alone turns nothing on.
-
-**Today `ANTHROPIC_API_KEY` alone turns the model on. Do not set it on a host that serves people until step 5 of section 8 is done.** The service does not yet ask `choose`.
+Read once, when the service starts: the command line hands `choose` the environment. A key alone turns nothing on.
 
 | Variable | Meaning | Default |
 |---|---|---|
@@ -104,7 +103,8 @@ Read once, when the service starts. In `choose`, a key alone turns nothing on.
 | `GEMINI_API_KEY`, `OPENAI_API_KEY`, `DEEPSEEK_API_KEY`, `ANTHROPIC_API_KEY` | The key of the provider that is named | None |
 | `BURRO_MODEL_TERMS_ACCEPTED` | The same provider's name. It says that whoever runs the service has read its terms and taken them on | None |
 | `BURRO_MODEL_ID` | The model | The provider's entry in `terms.py` |
-| `BURRO_MODEL_TIMEOUT_S`, `BURRO_MODEL_MAX_TOKENS` | As today | 6 seconds, 2,048 tokens |
+| `BURRO_MODEL_TIMEOUT_S`, `BURRO_MODEL_MAX_TOKENS` | How long an answer is waited for, and the most it may hold | 6 seconds, 2,048 tokens |
+| `BURRO_MODEL_SENDS_SETTINGS` | `yes` sends the search settings to the provider with the words. Section 6 says what goes | Not set: the words go alone |
 
 A model reads what is typed only when all five hold. They are looked at in this order, and the first that fails is the reason.
 
@@ -113,18 +113,18 @@ A model reads what is typed only when all five hold. They are looked at in this 
 | 1 | The provider is one of the four | `no_provider`, `unknown_provider` |
 | 2 | Its key is present and fit for a header | `no_key`, `unfit_key` |
 | 3 | The terms are accepted for that provider | `terms_not_accepted` |
-| 4 | A person has checked every sentence of its entry in `terms.py` against its source | `terms_not_checked` |
-| 5 | The model is one the adapter was fitted to | `unfit_model` |
+| 4 | The model is one the adapter was fitted to | `unfit_model` |
+| 5 | The provider is one that may read what real people type. DeepSeek is not | `not_for_people` |
 
-Otherwise the rules read, and one line is logged that holds the provider's name and nothing else: `model_not_used_gemini`. With nothing set, nothing is logged. Nothing that was set is ever logged, because a value in the wrong variable could be a key.
+Otherwise the rules read, and one line is logged, at the level of a warning. It holds two fixed words and no more: `provider`, the provider that is not used, and `reason`, the first of the five that does not hold.
 
-The line does not say why. The reason is a fixed word, and this prints it and nothing else:
-
-```sh
-uv run python -c "import os; from burro_api.providers.choose import choose; print(choose(os.environ, warn=lambda *_: None).refusal)"
+```json
+{"at": "2026-09-24T09:00:00Z", "event": "model_not_used", "level": "warning", "provider": "gemini", "reason": "no_key"}
 ```
 
-These three are what whoever runs the service sets for Gemini. As `terms.py` stands they turn nothing on: the answer is `terms_not_checked`, for Gemini as for the other three.
+Where what was set names none of the four, the line holds no `provider`. With nothing set, nothing is logged. Nothing that was set is ever logged, because a value in the wrong variable could be a key.
+
+These three, with its key, are what whoever runs the service sets for Gemini. Nothing waits on a person's check of `terms.py`: the founder decided against one (ADR 0023).
 
 ```sh
 BURRO_MODEL_PROVIDER=gemini  BURRO_MODEL_TERMS_ACCEPTED=gemini  BURRO_MODEL_ID=gemini-3.5-flash-lite
@@ -132,7 +132,7 @@ BURRO_MODEL_PROVIDER=gemini  BURRO_MODEL_TERMS_ACCEPTED=gemini  BURRO_MODEL_ID=g
 
 ## 3. The four, side by side
 
-Costs are for 1,000 searches of 3,000 tokens in and 300 out, not cached, in US dollars. Token counts are estimates until measured. What people are told of each is in section 6, question by question.
+Costs are for 1,000 searches of 3,000 tokens in and 300 out, not cached, in US dollars. Token counts are estimates until measured. The rows on what a provider does with what it is sent are what a tool read of its pages. Nobody has checked them, and none is shown to people: section 6.
 
 | | Gemini | OpenAI | DeepSeek | Claude |
 |---|---|---|---|---|
@@ -204,8 +204,8 @@ What follows from it:
 
 Before Gemini is turned on:
 
-1. Step 5 of section 8 is done, so that `choose` decides.
-2. A person opens each address in Gemini's entry in `terms.py`, compares each of its eight sentences with the page, puts right what differs, and writes their name and the day in `checked_by` and `checked_on`. Until then `choose` holds it back. The same is asked of the other three.
+1. `choose` decides, which it now does.
+2. Its terms are accepted by name, in `BURRO_MODEL_TERMS_ACCEPTED`. Nobody has compared `terms.py` with Google's pages, and nothing waits for that (ADR 0023).
 3. Billing is on for the key's project. Google's terms allow no free tier for people in the UK.
 4. ADR 0005 is amended: "up to 30 days" is not true of Gemini.
 5. The first live call is made with a made-up sentence, and the questions of section 9 are answered.
@@ -213,7 +213,7 @@ Before Gemini is turned on:
 
 ## 5. Handing over a key
 
-**Today `ANTHROPIC_API_KEY` alone turns the model on. Do not put any key in the environment of a host that serves people until step 5 of section 8 is done.** Until then a key belongs on your own machine, for the measuring of section 7, and nowhere else.
+Until a provider's terms are accepted, a key belongs on your own machine, for the measuring of section 7, and nowhere else. On a host that serves people it turns nothing on, and it is one more secret to lose.
 
 The key is never typed into a chat, a file in the repository, or a command line that is recorded.
 
@@ -221,7 +221,7 @@ The key is never typed into a chat, a file in the repository, or a command line 
 |---|---|
 | Make it | In the provider's console, in a project or workspace made for Burro alone, with a monthly cap on spending |
 | For a run on your own machine | `read -rs GEMINI_API_KEY && export GEMINI_API_KEY`, then paste. The shell shows nothing and records nothing. Close the shell after |
-| For the service, once step 5 is done | Put it in the host's store of secrets, through the host's web page, or through a command that reads the value from standard input. Never as `NAME=value` on a command line |
+| For the service | Put it in the host's store of secrets, through the host's web page, or through a command that reads the value from standard input. Never as `NAME=value` on a command line |
 | Never | In `.env` in the repository, in `uv run ... KEY=...`, in a test, in a message to an assistant |
 | If it is ever seen | Revoke it in the console and make another. Do not try to clean it up |
 
@@ -236,19 +236,53 @@ What the host must have, or every call is an error and the rules answer:
 
 ## 6. What people are told
 
-`choose(env).told` holds it: whether a model reads what is typed, the provider, the company, the notice, and for each sentence the question it answers, whether the provider's documents answer it, where it was read and when, and the day a person checked it. The website and the app show what the API serves and write none of it themselves.
+`choose(env).told` holds it: whether a model reads what is typed, the provider, the company, the notice, the address of the company's own terms, and whether the search settings are sent. The website and the app show what the API serves and write none of it themselves.
+
+### The notice
+
+A few sentences, the same for every provider but for the company's name. They say that what is typed is sent to a language model run by the company, to be read, what goes with it, that nothing private should be typed, and that Burro itself keeps nothing of what is typed. The last points to the company's own terms, and the API serves their address beside the notice, as `terms_url`, for a client to make a link of.
+
+**The notice states nothing about the company as fact.** Not how long it keeps what it is sent, not whether it trains on it, not who may read it or where. Nobody has checked those, and the link serves in their place (ADR 0023).
+
+The notice for Gemini, as `terms.py` makes it where the words go alone:
+
+> What you type is sent to a language model run by Google, to be read. Your words go alone: none of your search settings is sent with them. Do not type anything private. Burro itself keeps nothing of what you type. What Google does with it is in Google's own terms.
+
+And where the settings are sent with them:
+
+> What you type is sent to a language model run by Google, to be read. With it go your search settings: your budget, whether you rent or buy, how long you will travel, what matters to you, and the areas you have ruled in or out. Do not type anything private. Burro itself keeps nothing of what you type. What Google does with it is in Google's own terms.
+
+With no model: "What you type is read by rules that are part of Burro. It is not sent to a language model."
+
+| Company | The link that is served |
+|---|---|
+| Google | <https://ai.google.dev/gemini-api/terms> |
+| OpenAI | <https://openai.com/policies/services-agreement/> |
+| DeepSeek | <https://cdn.deepseek.com/policies/en-US/deepseek-open-platform-terms-of-service.html> |
+| Anthropic | <https://www.anthropic.com/legal/commercial-terms> |
+
+What is typed is sent as typed. Nothing is taken out of it or put in its place before it goes: there is no sanitiser and no classifier. A person's own information is theirs to share (ADR 0023).
 
 ### What is sent
 
-The reader sends the words and the search as it stands. The search holds the budget in pounds, whether to rent or buy, each journey's time and mode, every weight and tag, and every area that is ruled in or out, by its id. The one thing taken out is where a journey leads. On real data an area's id names a real neighbourhood. So every notice says, in the same words:
+The words go alone unless the service is set to send the search with them. One setting decides it, `BURRO_MODEL_SENDS_SETTINGS`, and only the one word `yes` turns it on. It is off unless it is set. The reader and the notice are both made from it, and a `Choice` cannot be made that sends the settings and tells people the words go alone.
+
+| `BURRO_MODEL_SENDS_SETTINGS` | What leaves with the words | What every notice says |
+|---|---|---|
+| Not set, or anything but `yes` | Nothing of the search. The instructions, which hold the names of the features and the vibes, are Burro's own and the same for everyone | The sentence below that begins "Your words go alone" |
+| `yes` | The search as it stands: the budget in pounds, whether to rent or buy, each journey's time and mode, every weight and tag, and every area that is ruled in or out, by its id. The one thing taken out is where a journey leads. On real data an area's id names a real neighbourhood | The sentence below that begins "With it go" |
+
+> Your words go alone: none of your search settings is sent with them.
 
 > With it go your search settings: your budget, whether you rent or buy, how long you will travel, what matters to you, and the areas you have ruled in or out.
 
-`SENT_WITH` in `terms.py` names each field of a search and the words that tell of it. A test sends a whole search through the real reader and fails if a field leaves that the notice does not name.
+`SENT_WITH` in `terms.py` names each field of a search and the words that tell of it. A test sends a whole search through the real reader with the setting on, and fails if a field leaves that the notice does not name. Another sends the same search with the setting off, unset and set to a word that is not `yes`, and fails if anything of the search is in what leaves.
 
-### The questions, and the one form of words for each
+What is offered of a model's answer does not depend on what was sent. The guard holds each reading to the person's words and to the search the service holds, and never reads what the model was sent. Nothing a model reads is applied (contract, section 8.2). Section 7 says what was measured, and what a stand-in cannot measure.
 
-Eight questions are put to every provider, in this order. Each has one sentence for an answer and one for the lack of one. A provider's name and its answer are all that change.
+### The table of terms: research, checked by nobody and shown to nobody
+
+`terms.py` also holds what a tool read of each provider's pages on 23 September 2026: eight questions, put to every provider in the same order, each with one sentence for an answer and one for the lack of one. No person has compared a sentence with its page, so `checked_by` and `checked_on` are empty in every entry. Nothing of the table is served, put in a notice or waited for. It is kept for whoever next reads the providers' terms.
 
 | Question | If the documents answer | If they do not |
 |---|---|---|
@@ -274,15 +308,9 @@ Eight questions are put to every provider, in this order. Each has one sentence 
 | `handled` | Any country where Google or its agents have facilities | Does not say | China | The United States, Europe, Asia and Australia, and wherever it or its affiliates work |
 | `stored` | Any country where Google or its agents have facilities | Does not say | China | The United States |
 
-The notice for Gemini, as `terms.py` makes it:
+### What whoever reads the table should know
 
-> When you type a sentence, Burro sends it to Google (Google LLC, United States). With it go your search settings: your budget, whether you rent or buy, how long you will travel, what matters to you, and the areas you have ruled in or out. Google says it does not use them to train its models. It keeps them for 55 days. It may keep them for as long as the law requires. It does not say whether it keeps them for longer if it suspects misuse. They may be read by its staff, if it suspects misuse. They may be handled in any country where Google or its agents have facilities. They are stored in any country where Google or its agents have facilities. Leave out your health, your religion and anything else you would not want kept.
-
-With no model: "What you type is read by rules that are part of Burro. It is not sent to a language model."
-
-### What whoever checks a sentence should know
-
-Each answer in `terms.py` holds the provider's own words, the address, the day, how the page was reached, and a note where there is one. How a page was reached decides nothing: all four are held to a person's own look.
+Each answer in `terms.py` holds the provider's own words, the address, the day, how the page was reached, and a note where there is one.
 
 | Provider | Point |
 |---|---|
@@ -292,17 +320,30 @@ Each answer in `terms.py` holds the provider's own words, the address, the day, 
 | DeepSeek | Every page came back through an extraction. The privacy policy says it does not cover people who use a product built on the API, and the terms for the API say nothing of keeping, reading or place. The terms name a switch to refuse training. No page says whether it reaches the API |
 | Claude | The page on how long text is kept lists the law and the Usage Policy among its exceptions. Another page says text "is not retained by default", and points to this one. No page read says who may read what was sent |
 
+### When a provider would not read a sentence
+
+What is typed is sent as typed, so a provider may refuse it, for safety or for its own terms. The rules then read the sentence as they would with no model, and route 1 says `model_refused: true` beside `degraded: true`. A client shows one line: that the language model would not read this, and that Burro's rules have.
+
+| What | Where |
+|---|---|
+| The call | On record with the status `refused`, as the `interpret` line has it in `call_status`. No line is written for a refusal alone, and nothing counts them |
+| What was typed | Nowhere. Nor why the provider refused, where in the text, or who sent it |
+
+A client that abuses the service is blocked afterwards by its address, at the host's edge: `deploy/README.md`. Burro holds no account, follows nobody and keeps nothing of a search (ADR 0023).
+
 ## 7. Measuring a provider before it is turned on
 
-The set is `evals/reader`: made-up sentences, so nothing private is sent. `measure.py` makes the reader from the provider's name and its key, and asks nothing of the terms. It takes only a model the adapter was fitted to. It needs no change to any file.
+The set is `evals/reader`: made-up sentences, so nothing private is sent. `measure.py` makes the reader from the provider's name and its key, and asks nothing of the terms. It takes only a model the adapter was fitted to, and it sends what the service would send. It needs no change to any file.
 
 ```sh
 read -rs GEMINI_API_KEY && export GEMINI_API_KEY
-BURRO_MODEL_PROVIDER=gemini BURRO_MODEL_TIMEOUT_S=30 uv run python evals/reader/score.py \
-  --reader burro_api.providers.measure:reader --workers 4 --save evals/reader/baseline/gemini.json
+export BURRO_MODEL_PROVIDER=gemini BURRO_MODEL_TIMEOUT_S=30
+uv run python evals/reader/score.py --reader model --workers 4 --save evals/reader/baseline/gemini.json
 ```
 
-Run it three times. A model does not answer the same way twice. One run of 655 cases costs about $1.25 on Gemini.
+Run it three times. A model does not answer the same way twice. One run of 781 cases costs about $1.30 on Gemini. The run is held to Gemini's floor in `floor.json`, which has no limit yet, so it fails only where a case is reversed.
+
+Then run it once more with `BURRO_MODEL_SENDS_SETTINGS=yes`, save it to another file, and compare the two with `--against`. That is the measurement decision 3 of section 10 waits for.
 
 | Measure | Good enough | Why |
 |---|---|---|
@@ -315,35 +356,62 @@ Run it three times. A model does not answer the same way twice. One run of 655 c
 
 These are proposed. The founder sets the floor, in `floor.json`, after the first run.
 
+### What a stand-in shows, before any provider is called
+
+`evals/reader/stand_in.py` measures the guard with two stand-ins for a model, one that reads each case as it is meant and one that raises whatever a sentence names. It calls no provider. `evals/README.md` has the table. On the 781 cases, on 24 September 2026:
+
+| Question | Answer |
+|---|---|
+| Is anything a model reads applied? | No. No case is reversed and none holds an edit nobody asked for, for either stand-in |
+| Does what is offered depend on what was sent? | No. Not one case ends otherwise, for either stand-in |
+| What can a model add that reads every sentence well? | To press every guess reads 401 cases rightly, and 44 more in part. The rules alone apply 408 and offer 232 |
+| What do the checks let a careless model do? | 92 cases are a backwards guess, and 47 hold a guess nobody asked for. Nothing of either is applied until it is pressed |
+| Is any reading of the rules lost because a model is on? | None |
+| What can a stand-in not say? | Whether a real model reads a follow-up less well with the words alone, and how often a real model reads a turn backwards |
+
+The floor below which no model is turned on is in the contract, section 8.2, and ADR 0012. One model has been measured against it once, on 112 sentences, and its answers are kept in `evals/reader/answers/`. That is a fit and not a measurement: the checks were chosen after reading those answers. Before a provider is turned on, measure it on sentences the checks were not fitted to.
+
 ## 8. What the wiring step changes, in order
 
-Nothing below has been done. Each is a change to a file that exists.
+Each is a change to a file that exists. The last column says which are done. Step 5 is the one that matters most: since it was done, a key alone turns nothing on.
 
-**Do step 5 before any key reaches the environment of a host that serves people.** Until it is done, `ANTHROPIC_API_KEY` alone turns the model on, with no terms accepted and no notice served. Steps 1 to 4 make step 5 possible. A test in `tests/providers/test_design.py` fails on the day step 5 is done, to say that the warnings in this document can go.
+The table is what was done then. Two things in it were changed afterwards, by ADR 0023: no provider waits on a person's check, and `reader` serves the notice and the address of the company's own terms, with no `sources`.
 
-| # | File | Change |
-|---|---|---|
-| 1 | `services/api/src/burro_api/claude.py` | Delete its `ModelFailure`, `ModelTimeout`, `ModelCapped`, `ModelError`, `ModelReply` and `ModelClient`. Import them from `providers/interface.py`. Take the expected-failure mark off `tests/providers/test_interface.py`. Until this is done the route counts an adapter's timeout or cap as an error |
-| 2 | `services/api/src/burro_api/logs.py` | Add `provider` and `reason` to `LOGGABLE`, and a way to write a warning. Then `choose._warn` writes `model_not_used` with `provider` and with `reason`, which is the refusal's fixed word, and the four event names go. `reason` is for the founder to confirm: section 10 |
-| 3 | `services/api/src/burro_api/settings.py` | Drop `DEFAULT_MODEL_ID`, `KEY_VARIABLE` and `model_key_present`. The model and the key are `choose`'s. The alias `claude-haiku-4-5` is not a model any adapter takes |
-| 4 | `services/api/src/burro_api/deps.py` | `Deps` gains `told`, with **no default**. A default would be "not sent to a language model", said of a service that sends. Whoever makes a `Deps` takes `told` from the same `Choice` as the interpreter, and a `Choice` cannot be made with the two at odds |
-| 5 | `services/api/src/burro_api/app.py`, `cli.py`, `tests/test_app.py` | `_interpreter` calls `choose(os.environ)` and builds the interpreter from `choice.client` and `choice.model`. `deps_from` passes `choice.told`. The line `starting` names the provider. The test that a key alone selects the model is turned round. Take the expected-failure mark off `tests/providers/test_design.py`, and the three warnings out of this document |
-| 6 | `services/api/src/burro_api/wire.py`, `routes/meta.py` | `MetaData` gains `reader`: `model_reads`, `provider`, `company`, `notice`, `sources`. A source holds `question`, `says`, `answered`, `addresses`, `read_on` and `checked_on`. Then `make openapi` and `make web-types` |
-| 7 | `services/api/src/burro_api/calls.py`, `routes/interpret.py` | `CallRecord` and the `interpret` line gain `provider`, from the closed list. When `client.resting` turns true, one line is written with `provider` and nothing of the call |
-| 8 | `services/api/src/burro_api/claude_sdk.py`, `tests/test_claude_sdk.py` | Delete both. `tests/conftest.py` no longer names the SDK's logger |
-| 9 | `services/api/pyproject.toml` | Remove `anthropic>=1,<2`. One line in the pull request: a dependency is dropped, none is added |
-| 10 | `claude.py`, `tests/test_claude.py`, `tests/test_claude_kept.py` | Rename to `reader.py`, `test_reader.py`, `test_reader_kept.py`. `ClaudeInterpreter` becomes `ModelInterpreter`. What imports them follows: the routes, `tests/support.py`, `providers/measure.py` |
-| 11 | `packages/core` `ids.InterpreterName`, `calls.Caller` | `claude` becomes `model`. This is on the wire, so the contract, `contracts/openapi.json` and the website's types change with it |
-| 12 | `evals/reader/model_reader.py`, `score.py`, `floor.json`, `evals/README.md` | `model_reader.build` becomes `providers.measure.reader`. `--reader claude` becomes `--reader model`. One floor a provider |
-| 13 | `apps/web`, and `apps/ios` when it exists | Show `meta.reader.notice` by the text box, before anything is typed. No provider's name or terms in the client's own source. A test says so |
-| 14 | `docs/design/contract.md` | Sections 8.2, 9.4, 10.1, 10.2 and 11: the chooser, the meta route, the new log fields, `provider` on the call record |
-| 15 | `AGENTS.md`, `services/api/AGENTS.md`, `README.md`, `docs/PLAN.md` | Where they say Claude, a key that selects the model, or an SDK. The rule "only `claude_sdk.py` imports the SDK" becomes "nothing imports a provider's library", with its test |
-| 16 | `docs/adr/0005` | Amend: what a provider keeps is in `providers/terms.py`, by provider. It is not "up to 30 days" for all, and it is not only the words that leave |
-| 17 | `docs/adr/`, the next free number | A new record: no one provider; no SDK; a key alone turns nothing on; every provider held until a person has checked what people are told of it; what is served to people |
-| 18 | `docs/research/models/claude.md` | Rename to `anthropic.md`. Its name differs only by case from the name of an instructions file for coding agents, so a tool that ignores case may load it as instructions |
-| 19 | The privacy notice and the impact assessment, in `docs/legal/` | Name the provider, the countries and the periods, from `terms.py`, and what is sent with the words. Where they say a provider is held back because its terms were read through an extraction, say that all four are held until a person has checked them |
+| # | File | Change | Done |
+|---|---|---|---|
+| 1 | `services/api/src/burro_api/claude.py` | Delete its `ModelFailure`, `ModelTimeout`, `ModelCapped`, `ModelError`, `ModelReply` and `ModelClient`. Import them from `providers/interface.py`. Take the expected-failure mark off `tests/providers/test_interface.py`. Until this is done the route counts an adapter's timeout or cap as an error | Yes |
+| 2 | `services/api/src/burro_api/logs.py` | Add `provider` and `reason` to `LOGGABLE`, and a way to write a warning. Then `choose._warn` writes `model_not_used` with `provider` and with `reason`, which is the refusal's fixed word, and the four event names go. `reason` is for the founder to confirm: section 10 | Yes |
+| 3 | `services/api/src/burro_api/settings.py` | Drop `DEFAULT_MODEL_ID`, `KEY_VARIABLE`, `model_id` and `model_key_present`. The model and the key are `choose`'s. The alias `claude-haiku-4-5` is not a model any adapter takes. A model's name that is not fit no longer stops the service from starting: the rules read, and the line says `unfit_model` | Yes |
+| 4 | `services/api/src/burro_api/deps.py` | `Deps` gains `told`, with **no default**. A default would be "not sent to a language model", said of a service that sends. Whoever makes a `Deps` takes `told` from the same `Choice` as the interpreter, and a `Choice` cannot be made with the two at odds | Yes |
+| 5 | `services/api/src/burro_api/app.py`, `cli.py`, `tests/test_app.py` | The command line calls `choose(os.environ)`, and `deps_from` builds the interpreter from `choice.client` and `choice.model` and passes `choice.told`. A `Deps` cannot be made that tells people other than who reads. The line `starting` names the provider. The test that a key alone selects the model is turned round. The expected-failure mark is off `tests/providers/test_design.py`, and the three warnings are out of this document | Yes |
+| 6 | `services/api/src/burro_api/wire.py`, `routes/meta.py`, `routes/common.py` | `MetaData` gains `reader`: `model_reads`, `provider`, `company`, `notice`, `settings_sent`, `sources`. A source holds `question`, `says`, `answered`, `addresses`, `read_on` and `checked_on`. Who reads is no part of the release, so the `ETag` of route 11 now names the release and what is told: a browser that holds an answer which tells of another reader is answered in full. Then `make openapi`, `make web-types` and `make web-record` | Yes |
+| 7 | `services/api/src/burro_api/calls.py`, `routes/interpret.py` | `CallRecord` and the `interpret` line gain `provider`, from the closed list, empty where the rules read. Each time a provider begins to be left alone, one warning is written, `model_resting`, with `provider` and nothing of the call | Yes |
+| 8 | `services/api/src/burro_api/claude_sdk.py`, `tests/test_claude_sdk.py` | Delete both. `tests/conftest.py` no longer names the SDK's logger. A test holds the service to no provider's library | Yes |
+| 9 | `services/api/pyproject.toml` | Remove `anthropic>=1,<2`. One line in the pull request: a dependency is dropped, none is added. Three packages that it alone needed go with it | Yes |
+| 10 | `claude.py`, `tests/test_claude.py`, `tests/test_claude_kept.py` | Rename to `reader.py`, `test_reader.py`, `test_reader_kept.py`. `ClaudeInterpreter` becomes `ModelInterpreter`. What imports them follows: the routes, `tests/support.py`, `providers/measure.py` |Yes |
+| 11 | `packages/core` `ids.InterpreterName`, `calls.Caller` | `claude` becomes `model`. This is on the wire, so `contracts/openapi.json`, the website's types and its recorded answers are made again. The version of the contract stays 2: nothing is deployed, and every client is generated from the one file. The iPhone app's models are not made again here: section 8.1 says what they need | Yes |
+| 12 | `evals/reader/model_reader.py`, `score.py`, `floor.json`, `evals/README.md` | `model_reader.py` is deleted: `--reader model` asks for `providers.measure.reader`. `--reader claude` is gone. A model is held to the floor of the provider the environment names, and `floor.json` holds one for each of the four, with no limit yet | Yes |
+| 13 | `apps/web` | The search page shows `reader.notice` by the text box, before anything is typed, as it was served. It asks the service as the page opens and shows nothing of what it was built on in its place, and it sends no sentence until the service has said who reads. The methods page shows the notice with the pages each sentence was read on. No provider's name or terms is in the website's own source, and two tests say so. `apps/ios` is not done: section 8.1 | Yes, for the website |
+| 14 | `docs/design/contract.md` | Sections 1, 8.2, 9.2, 9.3, 9.5, 10.1, 10.2, 11 and 13: the chooser, what is sent, the meta route and its tag, the new log fields, `provider` on the call record | Yes |
+| 15 | `AGENTS.md`, `services/api/AGENTS.md`, `README.md`, `deploy/README.md`, `docs/PLAN.md` | Where they say Claude, a key that selects the model, or an SDK. The rule "only `claude_sdk.py` imports the SDK" becomes "nothing imports a provider's library", with its test | Yes, but for `docs/PLAN.md`, which still speaks of one provider in its account of the architecture |
+| 16 | `docs/adr/0005` | Amended: what a provider keeps is in `providers/terms.py`, by provider. It is not "up to 30 days" for all. The words go alone unless the service is set to send the search with them | Yes |
+| 17 | `docs/adr/0019` | A new record: no one provider; no SDK; a key alone turns nothing on; every provider held until a person has checked what people are told of it; what is served to people | Yes |
+| 18 | `docs/research/models/anthropic.md` | Renamed from a name that differed only by case from the name of an instructions file for coding agents, so that a tool that ignores case does not load a report as instructions | Yes |
+| 19 | The privacy notice and the impact assessment, in `docs/legal/` | The notice names the four providers, says what never changes, and points to the notice by the box for the countries and the periods, so that it is true whichever provider reads. It says that all four are held until a person has checked them | Yes, for the notice. The impact assessment is not written: it is task 17 of the launch checklist |
 
-After step 5, run the verify skill: drive route 1 with a made-up sentence and no key, then with a key and nothing else, then with a key and no accepted terms, and see the rules answer all three times.
+### 8.1 What the iPhone app needs
+
+Nothing under `apps/ios` was changed, and the app was not built. Its check fails until this is done on a Mac:
+
+| What | Why |
+|---|---|
+| `make -C apps/ios generate` | `APIModels.swift` is generated from `contracts/openapi.json`. `InterpreterName` holds `model` where it held `claude`, `MetaData` gains `reader`, and `Reader`, `ReaderSource`, `Provider` and `Question` are new. The recorded answers are copied from the website's, which hold the new name and two new answers, `meta-model-reads` and `meta-model-reads-with-settings` |
+| `SearchCopy.swift` | The word for who read a sentence is keyed by the old name: key it by `model`. Its line on how long a provider keeps words says "up to 30 days", which is true of two of the four: take it out, and show what is served |
+| `PermissionView` and `Consent` | The app asks before a sentence is sent. What it shows is to be `reader.notice`, as served, and no provider's name or terms of its own. Where `reader.model_reads` is false it says that no language model reads what is typed |
+| `Search/` | It follows the website's `state.ts` and `flow.ts` event for event. Both gained who reads: `reader` and `readerFailed` in the state, the events `reader_said` and `reader_unsaid`, `loadReader`, and the rule that `submitText` sends no sentence while `reader` is `null`. Port them, and their tests |
+| A test | That no provider's name or terms stands in the app's own source, as `apps/web/test/privacy/source.test.ts` and `apps/web/test/site-copy.test.ts` hold the website |
+
+After a change to any of these, run the verify skill: drive route 1 with a made-up sentence and no key, then with a key and nothing else, then with a key and no accepted terms, and see the rules answer all three times.
 
 ## 9. To confirm with the first real call
 
@@ -392,7 +460,7 @@ A failure says only which of the three it was. To see a status, make the same re
 | 12 | OpenAI | Does it take `prompt_cache_options` with `mode` as `explicit` and nothing marked? Is `cached_tokens` nought on the second call? | A 400, or the person's words are written to the cache |
 | 13 | OpenAI | What is the status when the project's monthly limit is reached: 429, as documented? Is 402 or 504 ever seen? | Nothing to change. It alters only what is counted |
 | 14 | DeepSeek | Does `usage` hold `prompt_tokens`? By which name does it give the tokens read from the cache? | Nothing to change. Either name is read |
-| 15 | DeepSeek | The schema is not enforced. Of 655 made-up sentences, how many answers fail it? | Above 2 in 100, build the strict route or choose another |
+| 15 | DeepSeek | The schema is not enforced. Of the 781 made-up sentences, how many answers fail it? | Above 2 in 100, build the strict route or choose another |
 | 16 | DeepSeek | Which model does the answer's own `model` field name when `deepseek-v4-pro` is asked for, and at what price? Two pages disagree | Take `deepseek-v4-pro` off the list |
 | 17 | DeepSeek | Under load, do the empty lines arrive before the status line or after it? | Nothing to change. Both are read, within the one deadline |
 | 18 | Claude | Does `claude-haiku-4-5-20251001` take `thinking` as `disabled` together with `output_config.format`? The table of what each model rejects says it does | A 400. Leave the field out for that model: its thinking is off unless asked for |
@@ -403,19 +471,19 @@ A failure says only which of the three it was. To see a status, make the same re
 
 | # | Decision | What is built until you say otherwise |
 |---|---|---|
-| 1 | **What lets a provider be turned on.** Before, two providers could be turned on and two could not, Gemini among the two that could not. The difference was in how each provider's pages had been read, not in what the pages say. A second reading found the sentences of all four, but for two of OpenAI's, whose pages were not read a second time | All four are held alike, until a person has compared each of a provider's eight sentences with its page and written their name and the day. For one provider that is under an hour |
-| 2 | Whether the reason a model is not used may be logged beside the provider's name. It is a fixed word such as `no_key`, and never a thing that was set. It was decided that the line holds the provider's name and nothing else | The line holds the name alone. The reason is returned, and section 2 shows how to print it |
-| 3 | Whether the search settings should go to the model at all, or only the part it needs. It needs the position and mode of each journey to read "make the second one shorter". It may not need the budget's amount or the ids of the areas. The change is to `_user` in `claude.py`, and what is left out comes out of `SENT_WITH` and of the notice in the same change | All of them go, but for where a journey leads. The notice says so |
+| 1 | **What lets a provider be turned on.** Before, two providers could be turned on and two could not, Gemini among the two that could not. The difference was in how each provider's pages had been read, not in what the pages say. A second reading found the sentences of all four, but for two of OpenAI's, whose pages were not read a second time | Decided on 24 September 2026: no check by a person. A provider is turned on when it is named, holds a key, has its terms accepted by name and is asked for a model its adapter was fitted to: ADR 0023 |
+| 2 | Whether the reason a model is not used may be logged beside the provider's name. It is a fixed word such as `no_key`, and never a thing that was set | Decided: the line says which provider is not used and why. Section 2 shows it |
+| 3 | Whether the search settings should go to the model with the words. A model may read a follow-up better if it is sent the search: "make the second one shorter". No real model has been measured either way. Section 7 says what a stand-in shows, and what the first measurement of a real model must compare | One setting, `BURRO_MODEL_SENDS_SETTINGS`, off unless it is `yes`. Off, the words go alone. The notice says which, from the same setting |
 | 4 | Whether `SSL_CERT_FILE` and `SSL_CERT_DIR` are honoured. They are how a host names its certificates. They also let whoever sets them choose whose certificates are trusted | Honoured. `SSLKEYLOGFILE` is not |
 | 5 | How long to leave a provider alone after it refuses, and after how many refusals. And whether a cap should count: while a monthly limit is reached, every sentence is still sent and refused | 300 seconds, after 3 in a row of 400, 401, 403 or 404. A cap of 402 or 429 is not counted, because it may lift within seconds |
-| 6 | Whether 55 days at Google is acceptable. It cannot be shortened on the Gemini API, and flagged text may be read by Google's staff. Google gives no period for what it flags | |
-| 7 | Whether real people's words may go to DeepSeek at all, and whether the code should refuse it on a release that is not synthetic | The adapter is built. Nothing in code refuses it |
-| 8 | Special category data. A sentence can hold health or religion. OpenAI's agreement says no sensitive data is intended. Anthropic's lists "None". Google's is silent. DeepSeek asks that none be sent. Ask each provider in writing, ask each person for explicit consent, or both (ADR 0007) | The notice advises people to leave it out |
+| 6 | Whether 55 days at Google is acceptable. It cannot be shortened on the Gemini API, and flagged text may be read by Google's staff. Google gives no period for what it flags | Decided on 24 September 2026: yes. The figure is what a tool read, and is shown to nobody |
+| 7 | Whether real people's words may go to DeepSeek at all, and whether the code should refuse it on a release that is not synthetic | Decided on 24 September 2026: they may not. `choose` refuses it on every release, with `not_for_people`. The adapter is for the evaluation set |
+| 8 | Special category data. A sentence can hold health or religion. OpenAI's agreement says no sensitive data is intended. Anthropic's lists "None". Google's is silent. DeepSeek asks that none be sent. Ask each provider in writing, ask each person for explicit consent, or both (ADR 0007) | Decided on 24 September 2026: neither. The notice says not to type anything private, and what a person shares of themselves is theirs to share (ADR 0023) |
 | 9 | Whether processing outside the UK is acceptable. None of the four offers a UK region that processes | |
 | 10 | Adults only. Google's terms forbid a product likely to be used by under-18s. Burro asks no age | |
 | 11 | Which model, and what result is good enough: section 7 | The defaults of section 3 |
 | 12 | Whether the service makes one call of its own as it starts, with a made-up sentence, so that the first person does not wait for a schema to compile. It is a call that is paid for, and a provider is then called when nobody has typed | It makes none |
 | 13 | Whether the privacy notice may name OpenAI or DeepSeek. Both providers' terms restrict use of their names. UK law asks that recipients be named | The notice names every provider |
 | 14 | A monthly spend cap on a project of Burro's own at each provider, and who is told when it is near | |
-| 15 | The interpreter's name on the wire. `claude` becoming `model` is a change to the contract and to the clients | |
-| 16 | Renaming `docs/research/models/claude.md` to `anthropic.md`, so that a coding agent does not load it as instructions | |
+| 15 | The interpreter's name on the wire. `claude` becoming `model` is a change to the contract and to the clients | It says `model`. The version of the contract stays 2, because nothing is deployed and every client is generated from the one file. The iPhone app's models are not yet made again: section 8.1 |
+| 16 | Renaming the report on Anthropic's documents, so that a coding agent does not load it as instructions | Done. It is `docs/research/models/anthropic.md` |

@@ -67,8 +67,57 @@ verified_on = 2026-09-23
 evidence_urls = [
     "https://www.gov.uk/government/publications/about-the-uk-house-price-index/about-the-uk-house-price-index",
     "https://www.gov.uk/government/statistical-data-sets/uk-house-price-index-data-downloads-july-2026",
+    "https://publicdata.landregistry.gov.uk/",
 ]
-notes = "How it was verified: OGL v3.0 and the exact attribution statement are confirmed in section 7 (Republishing data) of the publisher's 'About the UK House Price Index' page, re-fetched by the reviewer on 2026-09-23. Commercial use is allowed with attribution only. Nothing else is needed before ingest. Checked 2026-09-23. The year 2020 in the attribution is as printed on the publisher's page. Used to index older Price Paid sales to the current month by borough and property type. Not listed individually in verify-data-licences.md; confirmed by direct fetch of the publisher's page. The downloads page shows the OGL v3.0 footer and does not state the next release date. Wording was read through a reader that summarises: re-check in a browser when saving evidence."
+file_urls = [
+    "https://publicdata.landregistry.gov.uk/market-trend-data/house-price-index-data/UK-HPI-full-file-2026-07.csv",
+]
+notes = "How it was verified: OGL v3.0 and the exact attribution statement are confirmed in section 7 (Republishing data) of the publisher's 'About the UK House Price Index' page, re-fetched by the reviewer on 2026-09-23. Commercial use is allowed with attribution only. Nothing else is needed before ingest. Checked 2026-09-23. The year 2020 in the attribution is as printed on the publisher's page. Used to index older Price Paid sales to the current month by borough and property type. Not listed individually in verify-data-licences.md; confirmed by direct fetch of the publisher's page. The downloads page shows the OGL v3.0 footer and does not state the next release date. Wording was read through a reader that summarises: re-check in a browser when saving evidence. The last address under evidence_urls is the listing that the publisher's store of files gives of itself, on publicdata.landregistry.gov.uk, the host on which the downloads page under evidence_urls lists every file of the month. It is there to name the host the files are on. Fetch holds a file to the addresses under file_urls. It was read on 2026-09-23 through a reader that extracts, which was asked twice, in different words: it gave the name of the store as publicdata.landregistry.gov.uk and the first 1,000 names it holds, which begin with the folders market-trend-data/ and market-trend-data/house-price-index-data/, and nothing of a licence, so it is no evidence of the licence. The listing stops before the full file of any month. No file was fetched to read the address."
+
+[[source]]
+id = "ons-access-to-garden-space-2020"
+name = "Access to garden space, Great Britain, April 2020 (private outdoor space reference tables)"
+publisher = "Office for National Statistics, from an analysis by Ordnance Survey"
+url = "https://www.ons.gov.uk/economy/environmentalaccounts/datasets/accesstogardensandpublicgreenspaceingreatbritain"
+dimension = "housing"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0.\nSource: Ordnance Survey\n© Crown copyright and database rights 2020 OS 100019153"
+attribution_verified = false
+conditions = [
+    "This entry covers one workbook, the edition the page calls 'Access to garden space, Great Britain, April 2020'. The same page offers two more. 'Access to garden space, England, 2014 to 2019' is a survey of people, broken down by age and ethnic group: it describes residents, and is never fetched, read or registered for scoring. 'Access to public parks and playing fields, Great Britain, April 2020' is another table, and needs an entry of its own before it is read.",
+    "Read the rows of areas, and of each the count of addresses and the count of addresses with private outdoor space. A figure describes homes and the ground beside them, and never who lives in them.",
+    "Say 'addresses' and not 'homes' or 'households' wherever a figure is named: no page says what Ordnance Survey counted as an address, and the council tax lists count homes another way.",
+    "Show beside every figure that it is as at April 2020. It is one analysis and not a series: the page gives the next release as 'To be announced', and no later edition was on it on 2026-09-24.",
+    "Neither a page nor the workbook says which census the codes of the areas follow, and the codes are not those of 2021. Give no figure to an area the workbook holds no row for, and share nothing out to one. Before a figure is carried, hold each area to the statistics office's own lookup from the MSOAs of 2011 to those of 2021, ons-msoa11-msoa21-lad22-lookup. Never map one to the other by any other means.",
+    "The publisher says Ordnance Survey provided the data 'as part of its mapping for emergencies service'. Use the published table only. Never ask for or use the products of Ordnance Survey behind it.",
+    "The notes of the workbook were read at first ingest, and what they say of Ordnance Survey's rights is saved in registry/evidence/ons-access-to-garden-space-2020-2026-09-24.md. They state rights and a licence number, and no term of use. Read them again in any file that takes this one's place. If one states a term that limits reuse, stop and change this entry to gated.",
+    "Show the two lines of Ordnance Survey's credit as the workbook words them, beside the line of the licence.",
+    "A measure from this table has its row of the proxy audit written before it joins a release that is served (ADR 0006). The design of the vibes holds private outdoor space out of Homes and out of likeness until that row passes, and the publisher's own article reports, from a survey, that access to a garden differs by ethnic group, by age and by occupation.",
+    "Do not suggest the Office for National Statistics or Ordnance Survey endorses Burro.",
+]
+status = "approved"
+before_launch = [
+    "The founder decides whether the workbook's line of rights is something 'otherwise stated'. The page states the Open Government Licence 'except where otherwise stated'. The workbook states '© Crown copyright and database rights 2020 OS 100019153', which names a licence number of Ordnance Survey and no licence of the table. No person has read the workbook: a program did.",
+    "The statistics office's lookup from the MSOAs of 2011 to those of 2021, ons-msoa11-msoa21-lad22-lookup, fetched and read, and each area that has a figure held to its mark of no change, before a figure of this table is carried.",
+    "The row of the proxy audit for private outdoor space, as ADR 0006 and the design of the vibes ask.",
+]
+uses = ["scoring", "display"]
+cadence = "One-off. Released 14 May 2020, as at April 2020. Corrected 20 May 2022. Next release 'To be announced'. No later edition was on the page on 2026-09-24."
+verified_how = "primary_source"
+verified_on = 2026-09-24
+evidence_urls = [
+    "https://www.ons.gov.uk/economy/environmentalaccounts/datasets/accesstogardensandpublicgreenspaceingreatbritain",
+    "https://www.ons.gov.uk/help/termsandconditions",
+    "https://www.ons.gov.uk/economy/environmentalaccounts/articles/oneineightbritishhouseholdshasnogarden/2020-05-14",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+]
+file_urls = [
+    "https://www.ons.gov.uk/file?uri=/economy/environmentalaccounts/datasets/accesstogardensandpublicgreenspaceingreatbritain/accesstogardenspacegreatbritainapril2020/osprivateoutdoorspacereferencetables.xlsx",
+]
+notes = "How it was verified: on 2026-09-24 the dataset page, the publisher's terms and conditions, the article the dataset was published with and the licence were each read through a reader that extracts, and the first three were asked at least twice, in different words. Both readings of the dataset page gave the licence line of its footer, 'All content is available under the Open Government Licence v3.0', one of them with the words 'except where otherwise stated'. Both readings of the terms and conditions gave 'Most content on this website is subject to Crown copyright protection and is published under the Open Government Licence (OGL)', and gave as what is not covered 'some photographs, illustrations and videos'. The licence was read once: it allows a person to 'exploit the Information commercially and non-commercially', gives the attribution above for a provider that states none, and does not cover 'third party rights the Information Provider is not authorised to license'. No page read states an attribution for this dataset, so the wording is the licence's, and it is not verified until the workbook's notes are read. The dataset page gives the release date as 14 May 2020 and the next release as 'To be announced', and says the analysis is 'available by country, region, Local Authority and Middle Layer Super Output Area'. It lists the workbook as xlsx, 3.0 MB. Both readings gave the same path for it, letter for letter. One gave it as a path from the top of the site and the other on a host named cdn, so the address here is the path on the page's own host, as the other entries of this publisher write theirs, and the list names the address as not yet sure. The page's corrections, as one reading gave them: on 20 May 2022 the estimates for countries were corrected, where Scotland and Wales had been mislabelled, and on 18 May 2020 the layout of the tables was changed and no figure moved. Neither is said of the rows of an MSOA. The article says Ordnance Survey 'has provided us with data on access by geographic areas of Great Britain, as part of its mapping for emergencies service'. No page read says what counts as private outdoor space, how a garden that flats share is counted, what the sheets and columns of the workbook are called, or which census the codes follow: each is to be read in the file. The methodology page the article links to is of the survey of people alone, and says nothing of the table. Filed under housing, beside the other measures of homes. It is not the modelled score of outdoor space in the Indices of Deprivation, which the design of the vibes first named for this measure and which the entry of those indicators does not allow. No file of data was fetched or opened to write this entry. What was read since, in the workbook as it was stored, on 2026-09-24, by a program and by no person: its sheet of notes is headed 'Private outdoor space data' and 'Great Britain', and says 'Aggregated data based upon UPRN-level dataset providing private outdoor space estimates for 28,818,909 residential address records from epoch 74 of OS AddressBase Plus.' It names the four kinds of area the page names. It says 'Source: Ordnance Survey' and '© Crown copyright and database rights 2020 OS 100019153', and so does the foot of every sheet of figures. It states no licence, no term of use, no month and no census. The attribution above holds those two lines as written. It is not marked as verified, because the statistics office states no wording of its own for this dataset, and the first line is the licence's. The sheet of MSOAs counts houses, flats and both, and names a column for the average number of flats that share a garden, so a garden that flats share is counted. It gives no definition of private outdoor space. It holds 8,480 areas, and its codes are not those of 2021: of London's 1,002 areas of 2021 it holds 963. The lookup the statistics office gives between the two is 'MSOA (2011) to MSOA (2021) to Local Authority District (2022) Exact Fit Lookup for EW (V2)'. Its record on data.gov.uk was read twice on 2026-09-24, through a reader that extracts. Both readings gave the same marks: U for no change from 2011 to 2021, S for an area of 2011 split into two or more, M for areas of 2011 merged into one, and X where the two do not fit. The record gives its licence as 'Not set', so it is no evidence of a licence. The lookup has since been registered as ons-msoa11-msoa21-lad22-lookup, on its item's own record and the publisher's page of licences. No file of it has been fetched."
 
 [[source]]
 id = "ons-census-2021-housing-tables"
@@ -84,7 +133,7 @@ attribution = "Source: Office for National Statistics"
 attribution_verified = false
 conditions = [
     "This entry covers TS044 and TS050 only. TS054 tenure has its own entry with narrower uses: see ons-census-2021-tenure-ts054. Any other census table needs its own entry.",
-    "Census tables on ethnicity, religion, country of birth, language, sexual orientation, gender identity, disability, health and age are not covered here, and must never be loaded under this entry. They never feed a score, a tag or a vibe (PLAN section 9). The census tables that an area's page shows have their own entry, ons-census-2021-resident-tables (ADR 0014).",
+    "Census tables on ethnicity, religion, country of birth, language, sexual orientation, gender identity, disability, health and age are not covered here, and must never be loaded under this entry. None feeds a score, a tag or a vibe but the table of age, which may since the founder's decision of 24 September 2026, with the table of household composition, under their own entry, ons-census-2021-age-and-household-tables (ADR 0006 as amended that day). The other census tables that an area's page shows have their own entry, ons-census-2021-resident-tables (ADR 0014).",
     "Both tables count households, not dwellings. TS050 covers household spaces with at least one usual resident, so empty homes are missing. Present the figures as the mix of homes, never as a description of who lives there.",
     "State that the data is from Census Day, 21 March 2021, taken during lockdown.",
     "Link to the Open Government Licence beside the source line on the attributions page.",
@@ -145,22 +194,107 @@ licence = "OGL-3.0"
 licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
 commercial_use = "yes"
 share_alike = false
-attribution = "Source: Office for National Statistics licensed under the Open Government Licence v.3.0"
-attribution_verified = false
+attribution = "Source: Office for National Statistics. These statistics were adapted from data from the HM Land Registry licensed under the Open Government Licence v.3.0."
+attribution_verified = true
 conditions = [
-    "Validation only. Used as a regression test of Burro's own Price Paid aggregation. Figures from this file are not shown to users and do not feed ranking.",
-    "If a figure is ever shown, first open the workbook, confirm the attribution wording, and change uses. The data is derived from HM Land Registry Price Paid Data, so an HM Land Registry statement may also be required.",
+    "Show a figure as what it is: the median of what was paid for the homes of one kind that were sold in the area in the year, of all sizes. The workbook gives no price by bedrooms, so none is shown and none is worked out by scaling.",
+    "Show the year of sales beside every figure. The workbook holds a column for each year that ends with a quarter, and one is read: the year the receipt of the file gives.",
+    "Where the workbook holds [x] it gives no figure: its cover says there were no sales, or fewer than five, of that kind of home in the year. Show no figure there, and never nought. Do not try to recover a figure that was withheld.",
+    "The workbook gives no count of the sales behind a figure, and no quartile. Show no range, and say that the publisher gives no count. A figure may rest on as few as five sales.",
+    "Carry the figure as the workbook writes it. Do not round it, index it to another month, or blend it with another source under this entry.",
+    "A price says what homes sold for. It is no verdict on a place or on who lives there, and no tag or vibe rests on it unless a person asks for it (ADR 0006, ADR 0021).",
+    "Read the five sheets of all homes alone: 1a to 1e. The sheets of newly built and of existing homes are not covered by this entry.",
+    "Credit both the Office for National Statistics and HM Land Registry wherever a figure is shown, in the words under attribution, and link to the Open Government Licence.",
+    "Do not suggest the Office for National Statistics or HM Land Registry endorses Burro.",
 ]
 status = "approved"
-uses = ["validation_only"]
+uses = ["scoring", "display", "validation_only"]
 cadence = "About twice a year. Latest edition 17 September 2026 (year ending March 2026); next release March 2027."
 verified_how = "primary_source"
-verified_on = 2026-09-23
+verified_on = 2026-09-24
 evidence_urls = [
     "https://www.ons.gov.uk/peoplepopulationandcommunity/housing/datasets/medianhousepricesbymiddlelayersuperoutputarea",
-    "https://www.ons.gov.uk/methodology/geography/licences",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+    "https://www.ons.gov.uk/help/termsandconditions",
 ]
-notes = "How it was verified: OGL v3.0 is confirmed on the ONS dataset page, fetched by the drafter and again by the reviewer on 2026-09-23. Commercial use is allowed with attribution. The file is used for internal validation only, so nothing else is needed before ingest. Checked 2026-09-23. Excel file, 65.3 MB, not opened. The dataset page gives no attribution wording; the wording here is ONS's statement for geography products and is marked unverified. MSOAs do not match Burro neighbourhoods, which is why it is a cross-check and not a source. The LSOA equivalents were last released in September 2023 and are not covered by this entry. Not listed individually in verify-data-licences.md; confirmed by direct fetch."
+file_urls = [
+    "https://www.ons.gov.uk/file?uri=/peoplepopulationandcommunity/housing/datasets/medianhousepricesbymiddlelayersuperoutputarea/yearendingmarch2026/medianpricepaidformsoa.xlsx",
+]
+notes = "The founder decided on 24 September 2026 that what a home sells for may be shown, so the entry gained the uses scoring and display that day (ADR 0021). Until then it was held for validation only. How it was verified, on 2026-09-24: the dataset page states 'All content is available under the Open Government Licence v3.0, except where otherwise stated', and states nothing otherwise of this dataset. The licence page lets a user 'exploit the Information commercially and non-commercially for example, by combining it with other Information, or by including it in your own product or application', and asks that the source be acknowledged 'by including or linking to any attribution statement specified by the Information Provider(s)'. Both pages were read through a reader that summarises, which was asked for the words and gave these. The attribution was read from the workbook itself, as text, from the file whose receipt is f-545982134c5e: its cover says, under Reproduction, 'You may re-use this information (not including logos) free of charge in any format or medium, under the terms of the Open Government Licence', then 'These statistics were adapted from data from the HM Land Registry licensed under the Open Government Licence v.3.0. Users should include a source accreditation to ONS - Source: Office for National Statistics.', and under Notes 'Source: Office for National Statistics, HM Land Registry.' The attribution here is the accreditation the cover asks for, followed by its sentence on HM Land Registry, each as printed. registry/evidence/ons-median-house-prices-msoa-2026-09-24.md holds what was read and how. The dataset page gives no attribution wording of its own, and does not name HM Land Registry. The licence does not cover personal data or third party rights: the workbook holds a figure for an area of some thousands of homes, and no address, postcode or sale. MSOAs are the areas of a preview build. When areas are drawn by hand no sheet holds a row for one, and the figure must then be worked out from sales under hmlr-price-paid, which has its own conditions. The file stays registered for validation_only too: it was first fetched under that use, and it is still the test of medians that Burro works out for itself. The terms page of the publisher's website says that most content is Crown copyright and is published under the Open Government Licence, and that permission is needed to say a website is associated with or endorsed by the publisher. The page on licences for geography products, which the entry cited before, covers boundaries and lookups and gives no wording for statistics, so it is no longer cited. The LSOA equivalents were last released in September 2023 and are not covered by this entry."
+
+[[source]]
+id = "ons-residential-property-sales-msoa"
+name = "Residential property sales by Middle layer Super Output Area (formerly HPSSA dataset 1)"
+publisher = "Office for National Statistics"
+url = "https://www.ons.gov.uk/peoplepopulationandcommunity/housing/datasets/residentialpropertysalesbymiddlelayersuperoutputarea"
+dimension = "housing"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics. These statistics were adapted from data from the HM Land Registry licensed under the Open Government Licence v.3.0."
+attribution_verified = false
+conditions = [
+    "It is read for one thing: how many sales stand behind a median of ons-median-house-prices-msoa, for the same area, kind of home and year. A count is never a measure of a place, and no tag or vibe rests on one.",
+    "The workbook has not been opened. Before a figure is read, read its cover and its contents: what stands where no count is given, which year a column is of, and which census its codes follow. Save what the cover says of reuse in registry/evidence.",
+    "Hold a count to the median it stands behind: the same edition, the same year and the same sheet of a kind of home. A count of another year says nothing of a median.",
+    "Do not try to recover a median that was withheld from a count.",
+    "Do not suggest the Office for National Statistics or HM Land Registry endorses Burro.",
+]
+status = "approved"
+before_launch = [
+    "Open the workbook and hold the credit to the words of its cover. The wording here is that of the workbook of median prices, which is of the same release.",
+]
+uses = ["scoring", "display"]
+cadence = "About twice a year. Latest edition 17 September 2026 (year ending March 2026); next release March 2027."
+verified_how = "primary_source"
+verified_on = 2026-09-24
+evidence_urls = [
+    "https://www.ons.gov.uk/peoplepopulationandcommunity/housing/datasets/residentialpropertysalesbymiddlelayersuperoutputarea",
+    "https://www.ons.gov.uk/peoplepopulationandcommunity/housing/datalist?filter=datasets",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+]
+file_urls = [
+    "https://www.ons.gov.uk/file?uri=/peoplepopulationandcommunity/housing/datasets/residentialpropertysalesbymiddlelayersuperoutputarea/yearendingmarch2026/salesmsoa.xlsx",
+]
+notes = "Registered on 2026-09-24, with the decision that what a home sells for may be shown (ADR 0021), so that a median can say what it rests on. No file of it is fetched yet, and no step reads one. How it was verified: the dataset page states 'All content is available under the Open Government Licence v3.0, except where otherwise stated', and states nothing otherwise of this dataset. It describes the data as 'Number of residential property sales in England and Wales, by property type and Middle layer Super Output Area (MSOA)', and gives the edition for the year ending March 2026 as an xlsx of 56.1 MB, released on 17 September 2026. The page was found from the publisher's own list of housing datasets, the second address under evidence_urls, which the page of the median prices links to. Each page was read through a reader that summarises, which was asked twice in different words and gave the same address of the file both times. The page names no credit and does not name HM Land Registry. The attribution is the wording of the cover of the workbook of median prices, which is of the same release: it is not confirmed for this workbook, so it is marked unverified. It is listed for scoring from the first fetch: a file that is fetched for an internal use stands behind no figure afterwards, as the workbook of median prices showed. Whether a count is shown beside a price, and how a count makes a confidence, is the founder's to decide."
+
+[[source]]
+id = "ons-lower-quartile-price-paid-msoa"
+name = "Lower quartile price paid by Middle layer Super Output Area (formerly HPSSA dataset 4)"
+publisher = "Office for National Statistics"
+url = "https://www.ons.gov.uk/peoplepopulationandcommunity/housing/datasets/lowerquartilepricepaidbymiddlelayersuperoutputareamsoa"
+dimension = "housing"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics. These statistics were adapted from data from the HM Land Registry licensed under the Open Government Licence v.3.0."
+attribution_verified = false
+conditions = [
+    "It is the price that a quarter of the homes of a kind sold for no more than, in the area and the year. Show it as that and as nothing else. It is of homes of every size, as the median is: never call it the price of a small home, and never scale it to one.",
+    "It is one end of a range, and the publisher gives no upper quartile by MSOA. Do not make an upper end from it and the median.",
+    "The workbook has not been opened. Before a figure is read, read its cover and its contents: what stands where no figure is given, which year a column is of, and which census its codes follow. Save what the cover says of reuse in registry/evidence.",
+    "Hold it to the median of ons-median-house-prices-msoa for the same area, kind of home and year: a lower quartile that is over its median is a file that is not what was described.",
+    "A price says what homes sold for. It is no verdict on a place or on who lives there, and no tag or vibe rests on it unless a person asks for it (ADR 0006, ADR 0021).",
+    "Do not suggest the Office for National Statistics or HM Land Registry endorses Burro.",
+]
+status = "approved"
+before_launch = [
+    "Open the workbook and hold the credit to the words of its cover. The wording here is that of the workbook of median prices, which is of the same release.",
+]
+uses = ["scoring", "display"]
+cadence = "About twice a year. Latest edition 17 September 2026 (year ending March 2026); next release March 2027."
+verified_how = "primary_source"
+verified_on = 2026-09-24
+evidence_urls = [
+    "https://www.ons.gov.uk/peoplepopulationandcommunity/housing/datasets/lowerquartilepricepaidbymiddlelayersuperoutputareamsoa",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+]
+file_urls = [
+    "https://www.ons.gov.uk/file?uri=/peoplepopulationandcommunity/housing/datasets/lowerquartilepricepaidbymiddlelayersuperoutputareamsoa/yearendingmarch2026/lowerquartilepricepaidformsoa.xlsx",
+]
+notes = "Registered on 2026-09-24, with the decision that what a home sells for may be shown (ADR 0021). No file of it is fetched yet, no step reads one, and the contract has no place for one quartile without the other. It is registered because a firm budget that is held against a median may leave out an area where homes sold within the budget, and this is the one lower figure the publisher gives: whether a budget is held against it is the founder's to decide. How it was verified: the dataset page states 'All content is available under the Open Government Licence v3.0, except where otherwise stated', and states nothing otherwise of this dataset. It gives the edition for the year ending March 2026 as an xlsx of 67.6 MB, released on 17 September 2026. The page was found from the publisher's own list of housing datasets. It was read through a reader that summarises, which was asked twice in different words and gave the same address of the file both times. The page names no credit, does not name HM Land Registry, and says nothing of an upper quartile. The attribution is the wording of the cover of the workbook of median prices, which is of the same release: it is not confirmed for this workbook, so it is marked unverified. It is listed for scoring from the first fetch: a file that is fetched for an internal use stands behind no figure afterwards."
 
 [[source]]
 id = "ons-price-index-of-private-rents"
@@ -190,6 +324,9 @@ evidence_urls = [
     "https://www.ons.gov.uk/economy/inflationandpriceindices/datasets/priceindexofprivaterentsukmonthlypricestatistics",
     "https://www.ons.gov.uk/help/termsandconditions",
     "https://www.ons.gov.uk/methodology/geography/licences",
+]
+file_urls = [
+    "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/datasets/priceindexofprivaterentsukmonthlypricestatistics/16september2026/priceindexofprivaterentsukmonthlypricestatistics.xlsx",
 ]
 notes = "How it was verified: OGL v3.0 is confirmed on the ONS dataset page and in verify-data-licences.md, which also confirms the 16 September 2026 release by local authority and bedroom category. Commercial use is allowed with attribution. Ingest can start. The attribution wording is not confirmed for statistical releases and must be settled before launch. Checked 2026-09-23. The attribution is ONS's own wording, but it comes from the ONS geography licences page, which covers boundaries, lookups, postcode and UPRN products only. The ONS terms page, as fetched twice, gives no attribution wording for statistical releases, and the dataset page gives none. So the wording is a best fit, not a confirmed requirement. The Nomis copyright page gives a shorter form, 'Source: Office for National Statistics', for ONS material. To settle it: open the workbook cover sheet, or ask ONS. The housing report did not open the workbook, so the borough by bedroom layout is unconfirmed; that is a build risk. City of London is not published."
 
@@ -224,6 +361,9 @@ evidence_urls = [
     "https://www.ons.gov.uk/economy/inflationandpriceindices/adhocs/3389privaterentalmarketinlondonapril2025tomarch2026",
     "https://www.ons.gov.uk/help/termsandconditions",
     "https://www.ons.gov.uk/methodology/geography/licences",
+]
+file_urls = [
+    "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/adhocs/3389privaterentalmarketinlondonapril2025tomarch2026/londonrentalstatsaccessibleq12026.xlsx",
 ]
 notes = "How it was verified: OGL v3.0 is confirmed on the ONS release page (reference 3389, released 27 April 2026) and in verify-data-licences.md. Commercial use is allowed with attribution. The series appears to have stopped, which affects the rent model but not the licence. Ingest of edition 3389 can start. The attribution wording must be settled before launch. Checked 2026-09-23. File: londonrentalstatsaccessibleq12026.xlsx, 129.4 kB. The release page says 'These data were previously published by the Valuation Office Agency.' Archive all nine listed editions now in case they are withdrawn. 'display' covers modelled ranges derived from this file, not the raw figures. The attribution is ONS's wording for geography products; no wording for statistical releases was found on the ONS terms page or the release page, so it is marked unverified. The workbook was opened once for research, and no source line was recorded from it. Two questions for ONS, at hpi@ons.gov.uk: whether the series continues, and what source line ONS requires."
 

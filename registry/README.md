@@ -22,7 +22,7 @@ uv run burro-registry attributions
 
 Internal uses are `prototyping_only`, `validation_only` and `audit_only`. They exist so a spike can open a file and look at it before anyone relies on it. Nothing read this way may reach a data release.
 
-`check` holds a release to that. The gate is asked again, of every file a figure rests on, for the use the figure is put to: `scoring` for a feature, a tag or a cost, `routing` for a journey, `display` for a station, `gazetteer` for a name or a boundary (ADR 0016). A figure that rests on a file fetched for an internal use, or on a file of a source that is not allowed for that use, is named under `input_is_allowed`, and the release is not fit to serve. A file that was read to validate against may be in the lock of a build, with no figure resting on it.
+`check` holds a release to that. The gate is asked again, of every file a figure rests on, for the use the figure is put to: `scoring` for a feature, a tag or a cost, `routing` for a journey, `display` for a station, `gazetteer` for a name or a boundary (ADR 0016). A figure that rests on a file fetched for an internal use, or on a file of a source that is not allowed for that use, is named under `input_is_allowed`, and the release is not fit to serve. A source that a file of the release cites, and that no figure put to the same use rests on a file of, is asked about for the use of that file, and the file is named under the same rule: the source of a place to reach is one. The registry is asked as it stands on the day of the check. A file that was read to validate against may be in the lock of a build, with no figure resting on it.
 
 ## Fields
 
@@ -58,6 +58,7 @@ Internal uses are `prototyping_only`, `validation_only` and `audit_only`. They e
 | Share-alike data stays out of the gazetteer and scoring | So the duty to publish derived data cannot reach them |
 | Audit data has internal uses only | Nothing the audit reads may reach a user. The census table on an area's page is read under `residents`, never under `audit` |
 | A source under `residents` lists `census_table` and no other use, internal uses included. It names its tables, and each is one an area's page may show | Census figures about residents are shown as the statistics office's own table and used for nothing else: no score, no vibe, no text, no search (ADR 0014) |
+| A source under `residents` may list `scoring` as well, where every table it names is of age or of household composition: `TS007A` or `TS003`. Every table it names is asked about, wherever it names it: under `tables`, in its id, in its name and in every address it holds. It gains that use and no other | The founder decided on 24 September 2026 that the age and household make-up of residents may feed a vibe and a ranking. Nothing else about residents may ([ADR 0006](../docs/adr/0006-rank-places-not-residents.md), as amended that day). A source that names one table of any other kind is held as before |
 | Only a source under `residents` lists `census_table` | So the census table can hold nothing else |
 | A census table named under any other heading but `audit` is a housing table: `TS044`, `TS050` or `TS054` | So a table about residents cannot be registered where it could be scored. Every other census table is taken to be about residents, whether or not anyone has thought about it |
 | An id appears once | Otherwise one entry could shadow a ban |
@@ -88,7 +89,7 @@ A row names every source its figure was worked out from, the geography included:
 
 A release that is not synthetic is refused when no registry is passed. The synthetic release cites only the reserved id `synthetic`, which is no dataset and is not in the registry.
 
-No file of a release asks for `census_table`, and a source under `residents` can list none of the uses above. So a release that cites one is refused, whichever file names it. The census table is to be kept in a folder of its own, outside the release, by a step that asks the gate for `census_table`. That step is not built yet: see [the design](../docs/design/london-data-census.md).
+No file of a release asks for `census_table`, and a source under `residents` can list none of the uses above but `scoring`, which it can list only where every table it names is of age or of household composition. So a release that cites any other source about residents is refused, whichever file names it. The census table is to be kept in a folder of its own, outside the release, by a step that asks the gate for `census_table`. That step is not built yet: see [the design](../docs/design/london-data-census.md).
 
 ## What fetch asks of a source
 
@@ -112,9 +113,9 @@ So for a file of an entry to be fetched, the entry needs this and no more:
 
 Fetch refuses an address the entry does not name with `why=18`, and one on a host the entry names nowhere with `why=13`. A file saved by hand is held in the same way, by the address it was saved from. What arrived is held too. Where a publisher sends a request on, the address it ends at is held: on a host the entry names, it is an address the entry holds, and on any other host it is no address that another entry holds. If it is neither, the file is not kept. Nor is a file kept that arrived from an address that can be read more than one way, on any host: one with `..` or a doubled `/` in it, a login, or a sign encoded to hide one. An address is taken to be another entry's however a server may have read it, as it is written or decoded again.
 
-On a host that only the list names, under `may_redirect_to`, the rule holds this and no more: a file is refused if it came from an address that some entry names. An entry that names no address for its files keeps nothing off such a host, and on 2026-09-24 that is 109 of the 117 entries. The list names the hosts a request may be sent on to, and the registry entry does not. So read a change to `may_redirect_to` as closely as a change to an entry. List m1 names no such host.
+On a host that only the list names, under `may_redirect_to`, the rule holds this and no more: a file is refused if it came from an address that some entry names. An entry that names no address for its files keeps nothing off such a host, and on 2026-09-24 that is 86 of the 126 entries. The list names the hosts a request may be sent on to, and the registry entry does not. So read a change to `may_redirect_to` as closely as a change to an entry. Lists m1 and m2-places name four such hosts, as a fetch saw them, and the list m10-health names one more.
 
-How the entries behind list m1 stand on 2026-09-23:
+How the entries behind the lists stand on 2026-09-24:
 
 | Publisher | How it names a file | What the entry names |
 |---|---|---|
@@ -122,10 +123,24 @@ How the entries behind list m1 stand on 2026-09-23:
 | GOV.UK | `assets.publishing.service.gov.uk/media/ID/NAME`. Each file has an id of its own | Each file, whole |
 | Nomis | `www.nomisweb.co.uk/output/census/2021/NAME`. One folder holds every census table | Each file, whole |
 | Defra UK-AIR | `uk-air.defra.gov.uk/datastore/pcm/NAME`. One folder holds every pollutant and year | Each file, whole |
+| Office for National Statistics, its website | `www.ons.gov.uk/file?uri=PATH`. The parameter names the file | Each file, whole, with its parameter |
+| Ordnance Survey | `api.os.uk/downloads/v1/products/PRODUCT/downloads`, with parameters that name the area and the format | Each file, whole, with its parameters |
+| Food Standards Agency | `ratings.food.gov.uk/api/open-data-files/NAME`. One file for each authority | Each file, whole |
+| Greater London Authority | `data.london.gov.uk/download/DATASET/ID/NAME`. Each file has an id of its own | Each file, whole |
+| HM Land Registry, UK House Price Index | `publicdata.landregistry.gov.uk/market-trend-data/house-price-index-data/NAME`. The name holds the month | Each file, whole |
+| NHS England, Organisation Data Service | `www.odsdatasearchandexport.nhs.uk/api/getReport`, with a parameter that names the report | Each file, whole, with its parameter |
+| NHS Business Services Authority | `opendata.nhsbsa.net/dataset/ID/resource/ID/download/NAME`. Each file has an id of its own | Each file, whole |
+| Geofabrik | `download.geofabrik.de/europe/united-kingdom/england/NAME`. The folder is England's, and the name is the part of it | Each file, whole |
+| Overture Maps Foundation | A file of a release of Places, by the address its own catalogue gives. The list takes a part of the one file that holds London | The one file, whole |
+| Planning Data platform | `files.planning.data.gov.uk/dataset/NAME`. One folder holds every dataset of the platform, each in four formats | Each file, whole |
+
+Three files of the list `m2-living` hold no address: the three of Price Paid Data. Their entry names no address for its files. To fetch one, name its address in the entry and in the list, in one change that a person reads.
+
+Four more are saved by a person: three from a form, and the postcode directory from the publisher's portal. The entry of each names the address it was saved from before `by-hand` takes the file. The address is the one the browser recorded on the file when it was saved, with no parameter: a browser may be given an address with a key in it. It is written whole, and never as a prefix, so it names the file that was saved and no other. All four were saved on 2026-09-24. Three of the four came from a host that is not the host of the publisher's pages, and no page that was read names any of the three: `docs/research/data/by-hand-files.md` says what stands behind each.
 
 A file that is reissued may be given a new address. Change the address under `file_urls` with the list, in a change that a person reads.
 
-Before the field, an entry named the host of its files by an address under `evidence_urls`. The eight entries behind list m1 still hold such an address, and each says in `notes` that it is no evidence of the licence. A new entry needs none.
+Before the field, an entry named the host of its files by an address under `evidence_urls`. The eight entries behind list m1 still hold such an address, and so do ten behind the lists `m2-places` and `m2-living`. Each says in `notes` that it is no evidence of the licence. A new entry needs none.
 
 ## What the rules on census tables cannot see
 

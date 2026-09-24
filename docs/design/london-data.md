@@ -1,8 +1,30 @@
 # Real data for all of London: one plan
 
-Status: design, 2026-09-23. Milestone M0 of section 4 is built, and [the guide to data builds](../data-builds.md) says where it stands. Nothing after M0 is built. It applies [ADR 0014](../adr/0014-evidence-first-and-census-figures-shown.md) and joins six designs written the same day: [pipeline](london-data-pipeline.md), [areas](london-data-areas.md), [travel](london-data-travel.md), [census](london-data-census.md), [researcher](london-data-researcher.md) and [sources](london-data-sources.md). Where this document and one of the six disagree, this one is what is built, and section 2 says what was not taken. Each of the six still holds the detail of its part.
+Status: design, 2026-09-23. Milestone M0 of section 4 is built, and [the guide to data builds](../data-builds.md) says where it stands. Of M1 and M2 a preview has been made, and of M3 a draft. Neither is finished and neither is served: "What has been fetched since", below, says what each rests on. No later milestone has a build. It applies [ADR 0014](../adr/0014-evidence-first-and-census-figures-shown.md) and joins six designs written the same day: [pipeline](london-data-pipeline.md), [areas](london-data-areas.md), [travel](london-data-travel.md), [census](london-data-census.md), [researcher](london-data-researcher.md) and [sources](london-data-sources.md). Where this document and one of the six disagree, this one is what is built, and section 2 says what was not taken. Each of the six still holds the detail of its part.
 
-No dataset was downloaded. Nothing was run or measured. Every date, hour and pound below is an estimate unless it says "read". Every date assumes work starts on Thursday 24 September 2026. It is not legal advice.
+No dataset was downloaded to write this plan. Nothing was run or measured for it. Every date, hour and pound below is an estimate unless it says "read". Every date assumes work starts on Thursday 24 September 2026. It is not legal advice.
+
+**What has been fetched since.** On 2026-09-23 the step `fetch` was run outside a workflow, for the three lists `m1`, `m2-places` and `m2-living`. The store holds 62 files of 24 sources, 3.8 GB in all. Each source is approved in the licence registry, and the gate was asked about each file for the use its list gives. No hosted run has fetched a file.
+
+| Publisher | Registry ids | Files | With a receipt |
+|---|---|---|---|
+| Office for National Statistics | `ons-oa21-lsoa21-msoa21-lad22-lookup`, `ons-output-areas-2021`, `ons-lsoa-2021`, `ons-msoa-2021`, `ons-oa-pwc-2021`, `ons-lsoa-pwc-2021`, `ons-census-2021-housing-tables`, `ons-median-house-prices-msoa`, `ons-price-index-of-private-rents`, `ons-private-rental-market-london-postcode-district` | 11 | 11 |
+| Ordnance Survey | `os-open-names`, `os-boundary-line`, `os-open-roads`, `os-open-greenspace`, `os-open-rivers` | 6 | 6 |
+| Valuation Office Agency | `voa-council-tax-stock-of-properties` | 3 | 3 |
+| Department for Environment, Food and Rural Affairs | `defra-pcm-background-air` | 2 | 2 |
+| Ministry of Housing, Communities and Local Government | `mhclg-iod-2025-underlying-indicators` | 1 | 1 |
+| HM Land Registry | `hmlr-uk-house-price-index` | 1 | 1 |
+| Ofsted | `ofsted-state-funded-schools-mi` | 1 | 1 |
+| Food Standards Agency | `fsa-food-hygiene-ratings` | 33 | None |
+| Greater London Authority | `gla-town-centre-boundaries` | 1 | None |
+| NHS England | `nhs-ods` | 2 | None |
+| OpenStreetMap contributors, as Geofabrik publishes the extract | `osm-geofabrik-greater-london` | 1 | None |
+
+- **The files are kept outside the repository.** They are in a store that the environment names and no tracked file does. No file of a publisher is committed, and no row of one.
+- **What is committed is the receipt of a file, and counts.** `data/receipts/` holds 25 receipts: the address a file came from, its hash, its size and its dates. Six pages under `docs/research/data/`, named for the builds `m1`, `m2` and `m3`, hold counts made from the files, London's lowest, middle and highest figure for a measure, and how far two measures put the areas in the same order. Each carries the credit of each publisher. No figure is said of a named neighbourhood.
+- **37 files had no receipt**, because the page of each names no edition. 36 have one since 2026-09-24, when each was fetched again and read for the edition it states of itself. The street extract has none, and no step of a build reads it.
+- **Nothing of it is published, and nothing is served.** Two previews of London and a draft of its named areas were made from the files. Each is written where git does not look, each says that it is not finished, and no person has checked any of them. [The guide to data builds](../data-builds.md), sections 15 and 16, says how a preview is made and seen.
+- **The plan below is as it was written.** Where it says that a size, a layout or a census is not known, those six pages say what was found in the files that were fetched.
 
 Reviewed the same day against the six designs, the registry and the code as it stood. Corrected on review: the size of the first files, the schema number, the registry change M1 needs, the method behind the noise figure, and what M1 to M5 wait on. What the review could not settle is in section 14.
 
@@ -190,7 +212,7 @@ M1 is honest because the contract already carries, for each measure, its sources
 
 What would bring M1 forward by two or three working days (estimate). Fetch first and write code second: the first run prints each file's sheet names, column names, row counts and which census its codes follow. Work at LSOA and MSOA and leave output area boundaries to M3: the fetch falls from about 2 GB to under 100 MB, and a grid square is found by arithmetic on a centre's easting and northing, with no geometry library. Give M1 one bucket and one key, and leave the other buckets, keys and accounts to the day each is first needed. Let a run that reads no key and no row about a home or a person start without an approval.
 
-The files behind each milestone. Sizes were read on publishers' pages by the sources plan unless marked. No file was opened.
+The files behind each milestone. Sizes were read on publishers' pages by the sources plan unless marked. No file was opened for this table.
 
 | For | Registry id: file, format and size | Joins on |
 |---|---|---|

@@ -186,3 +186,16 @@ All on 2026-09-23.
 - That the lockdown in force on 21 March 2021 was a national one. The design's words say "a lockdown", as ADR 0014 does.
 - That "Source: Office for National Statistics" is the line the office asks for where its counts have been added up by someone else.
 - Every quotation above, until it has been read in a browser.
+
+## 11. Small counts, read again on 2026-09-24
+
+The two pages of section 4 and section 5 were each read twice on 2026-09-24, in different words, through the same reader that summarises. What both readings of each page gave is kept. Wording in quotation marks is as the reader returned it, and must be read in a browser before it is relied on.
+
+| Asked | Protecting personal data in Census 2021 results | Quality and methodology information for Census 2021 |
+|---|---|---|
+| Does the page name a figure under which a count is withheld, rounded, or not to be relied on | No. Both readings | No. Both readings |
+| What it says of small counts | "small counts (zero, one, and two) could be included in publicly released outputs if there was sufficient uncertainty". "A typical dataset would have around 14% of cell counts perturbed by a small amount." | "a small amount of noise is added to some cells in published datasets" |
+| What it advises | "It is recommended, where possible, to construct the cells that you require, rather than adding up cells from a different dataset." | One reading gave: "we recommend where possible using totals from tables with fewer cells, at higher geographies". The other did not return it |
+| What it says of the day | | Both readings gave: "The coronavirus pandemic may have affected some people's choice of usual residence on Census Day". One reading gave the rest of the sentence, "for example, students and in some urban areas", and the other did not |
+
+So the publisher gives no threshold. The two figures the part of an area's page uses, a share of 1 in 100 and a base of 1,000, are Burro's own.

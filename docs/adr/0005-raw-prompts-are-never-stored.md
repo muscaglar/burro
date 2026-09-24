@@ -20,7 +20,7 @@ Raw prompt text and destination strings are never written to any log, error repo
 - A test proves the parse handler's timeout and validation-failure paths do not log the request body.
 - An evaluation set of real prompts is a separate table, filled only with explicit consent.
 
-The only place raw text leaves Burro is the model API call. The provider retains inputs for up to 30 days, longer if flagged. The privacy notice says so.
+The only place raw text leaves Burro is the model API call, and only where a provider has been turned on. **Amended on 2026-09-24** by [0019](0019-no-one-provider-and-a-key-alone-turns-nothing-on.md): this record said that the provider keeps inputs for up to 30 days, which is what two of the four providers say. What a provider keeps, for how long and where is held by provider in `services/api/src/burro_api/providers/terms.py`, with the pages each answer was read on, and is served by the API. The words go alone unless the service is set to send the search settings with them. **Amended again the same day** by [0023](0023-what-is-typed-goes-as-typed-and-people-are-told.md): what a provider's pages say is kept as research, which nobody has checked, and is served to nobody. People are told whose language model reads what they type, and are given a link to the company's own terms. What is typed goes as it was typed.
 
 ## Consequences
 

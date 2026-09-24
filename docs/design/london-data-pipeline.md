@@ -4,6 +4,8 @@ Status: design, 2026-09-23. Nothing here is built. It changes no code, no regist
 
 [The plan for real data](london-data.md) and [ADR 0015](../adr/0015-where-builds-run-and-what-gates-a-launch.md) have since chosen hosted CI for fetch. Where this document recommends another place, they stand.
 
+Files have been fetched since, and the geography, the first measures and a preview were built from them. The plan says what was fetched, and that nothing of it is published. Section 5 names the methods that were added with the builds, each under its date.
+
 ## 0. What is assumed of the other parts
 
 | Part | Assumed here |
@@ -85,8 +87,9 @@ Four records. The first three stand behind every figure. The fourth stands behin
 | `retrieved_at` | `2026-10-04T09:12:31Z` | From the fetch, never from the build |
 | `how` | `fetched` or `by_hand` | A page that code cannot fetch is saved by a person |
 | `edition` | The publisher's own label | A version, a release month, a reference number |
+| `edition_from` | `{"where": "xml_header", "at": "Header/ExtractDate", "period_too": true}` | Added on 2026-09-24. Where the edition was read, when no page of the publisher states one: in the file as it arrived, or nowhere, and then the edition is the day it was retrieved. Left out where a page stated the edition. A day that is about the file and not about its data is never the period |
 | `data_period` | `{"as_at": "2025-03-31"}` or `{"start": "2023-08", "end": "2026-07"}` | The period the data describes, in the publisher's terms |
-| `geography` | `oa21`, `lsoa21`, `lsoa11`, `msoa21`, `lad`, `postcode`, `point`, `grid_1km`, `polygon`, `line` | Read from the file, never assumed |
+| `geography` | `oa21`, `lsoa21`, `lsoa11`, `msoa21`, `msoa11`, `lad`, `postcode`, `point`, `grid_1km`, `polygon`, `line` | Read from the file, never assumed |
 | `licence_evidence` | A path under `registry/evidence/` | Required where a registry condition asks for a saved copy |
 
 An answer from an API is saved as a file and receipted the same way. Bulk files are preferred, so that a build repeats.
@@ -151,9 +154,11 @@ Every area is a set of output areas. Every method below goes through output area
 | Output area, a count | `oa_sum` | Add the area's output areas | Output areas with a row | "The sum of {n} census output areas" |
 | LSOA or MSOA, a count | `lsoa_to_area_by_homes` | Split each unit between the areas it touches, by where its homes are. Then add | Share of the area's homes in units with a value | "From {n} small areas, shared out by where homes are" |
 | LSOA or MSOA, a rate or a share | `lsoa_ratio_by_homes` | Split the top and the bottom of the fraction as above, add each, then divide. A mean of rates is never taken | The same | The same, with the denominator's source named |
+| The area itself, two counts. Added on 2026-09-24, after the first build | `area_row_ratio` | One count of the publisher's own row for the area over another. Nothing is added up. It is for a file that holds a row for the area, as the council tax tables do while an area is an MSOA: the row is rounded once, where a sum of smaller areas takes in one rounding for each | The share of the area's homes that the bottom counts | "The publisher's own count for the area" |
 | Points | `points_near_homes` | From each output area's population-weighted centre, count the points within a walk on the walk graph. Average by homes | Homes whose centre is on the graph | "Places within a {d}-minute walk of homes" |
 | Points, nearest one | `walk_to_nearest` | The shortest walk from each centre. The median by homes | The same | "The walk from homes to the nearest {kind}" |
-| Polygons or lines | `homes_within` | The share of homes whose centre is within {d} m | Homes in output areas the source covers | "The share of homes within {d} m of {kind}" |
+| Points, nearest one, while no walk graph is built. Added on 2026-09-24, with the first park measures | `straight_line_to_nearest` | The distance in a straight line from each centre to the nearest point. The median by homes: where the homes divide exactly in half between two distances, the mean of the two. It is no walk, so a measure that uses it says so in its name, and is not given the name of a walk | Homes whose nearest point is known: where land that no file was read for is nearer than the nearest point found, it is not | "The distance in a straight line from homes to the nearest {kind}" |
+| Polygons or lines | `homes_within` | The share of homes whose centre is within {d} m, in a straight line. Built on 2026-09-24, with the measure of main roads: the distance is part of the id of the method, as `homes_within_100m@1`, because the evidence of a release holds one method under one id and two measures may use two distances | Homes in output areas the source covers: those with a centre, inside what the file says it covers. One with no verdict is never taken to be far | "The share of homes within {d} m of {kind}" |
 | A 1 km grid | `grid_at_homes` | The grid value at each centre. Average by homes. Marked `modelled` | Homes on a cell with a value | "A modelled value on a 1 km grid, read where homes are" |
 | Postcode rows | `postcode_to_area` | Postcode to output area by the postcode directory of the same quarter. Summarise by area. No row below an area is kept | Rows that matched | "From {n} sales in this area", never a postcode |
 | Postcode district | `district_to_area_by_homes` | A model input only. Marked `modelled` | Homes in districts with a value | The model's own sentence |
@@ -192,7 +197,7 @@ Every area and every measure has a state. There is no blank.
 | `source_gap` | The publisher holds nothing for these units | Yes |
 | `suppressed` | The publisher withheld it | Yes |
 | `not_published` | The publisher does not publish it for areas this small. Main language is published for boroughs only (repo) | No. It is said, once |
-| `not_carried` | This release has no cleared source for the measure | Yes, for the release |
+| `not_carried` | This build does not work the measure out. Its source may be cleared and fetched: the build's own record says why, where a reason is known | Yes, for the release |
 
 `coverage.json` in the release holds the state for every area and measure. The report is written from it, and is committed with the lock:
 
@@ -345,7 +350,7 @@ Rule 12 and ADR 0008 allow a compiled extension module, and refuse a package tha
 | `h3` 4.5 | Destination hexagons | Wheels, no compiler needed (read) | Passes. The registry note that calls it a conflict with ADR 0008 should be corrected by its owner |
 | `openpyxl` 3.1 | Workbooks | Pure Python (read) | Passes |
 | `defusedxml` | TransXChange and other XML | Believed pure Python | Passes, unverified |
-| `pyarrow` | Reading Overture from cloud storage, at fetch only | A wheel | Likely passes, unverified. Only if no plain download exists |
+| `pyarrow` | Reading the part of the file of places that fetch took, in the one step that counts cultural venues. Fetch reads a footer with the standard library and does not use it | A wheel of compiled extension modules, with no program of its own | Allowed by the founder on 2026-09-24, for building data only. It is never part of the served API |
 | `pyogrio` | A format that `sqlite3` cannot read | The wheels include GDAL (read). A wheel for Python 3.13 was not confirmed | Passes. Not needed at first |
 | `pandas`, `geopandas` | | | Not used. Nothing here needs them |
 | Routing engines, and `r5py` | Travel times | Need Java, and fetch a program at run time (repo) | Fail as packages. Run as an outside tool in a pinned container (section 6) |

@@ -1,6 +1,6 @@
 # Travel times for all of London
 
-Status: design, 2026-09-23. Nothing here is built. No dataset was downloaded or opened to write it. It applies ADR [0002](../adr/0002-deterministic-core.md), [0003](../adr/0003-three-grids.md), [0004](../adr/0004-openstreetmap.md), [0008](../adr/0008-package-sources.md) and [0014](../adr/0014-evidence-first-and-census-figures-shown.md). It changes no code and no registry file. Section 13 lists the changes it asks others to make.
+Status: design, 2026-09-23. No dataset was downloaded or opened to write it. Amended 2026-09-24: the step is built for a made-up town, with a router that is for tests, and no engine is installed. Sections 18 to 20 say what is built, how large the table is at the 1,002 areas of today, and what the first run of the engine must settle. Sections 1 to 17 are as they were written, but for the rule of a percentile in section 4. It applies ADR [0002](../adr/0002-deterministic-core.md), [0003](../adr/0003-three-grids.md), [0004](../adr/0004-openstreetmap.md), [0008](../adr/0008-package-sources.md) and [0014](../adr/0014-evidence-first-and-census-figures-shown.md). It changes no code and no registry file. Section 13 lists the changes it asks others to make.
 
 How to read the figures: **measured** was run for this document, on made-up numbers. **Read** was read on a publisher's page on 2026-09-23 (section 17). **Estimate** is worked out by hand, and the row says how. Anything else comes from the registry or from `docs/research/`, as they stood that day.
 
@@ -56,6 +56,8 @@ Three things found while reading the registry and the gate's code:
 
 Banned and held routes stay shut: Google Routes, Mapbox Matrix, TravelTime, the RDG feed, and the prebuilt rail GTFS that rests on it.
 
+The publishers' pages were read again on 2026-09-24. [What a journey time needs](london-data-timetables.md) holds what each said that day, the steps to sign up, the list of files, and what a card may say of a journey. It corrects two things above. The 24.31 MB is the size of an example that the page says is not updated: the size of the file that is kept up to date is not known, and its page names no address for it. And no timetable is given to a person who has signed nothing, so registration on TfL's portal comes before the first fetch as well as before launch.
+
 ## 3. Engines
 
 | | R5, through r5py | OpenTripPlanner 2 | RAPTOR in pure Python |
@@ -98,7 +100,9 @@ ADR 0008 already says that the routing engine runs in CI. Java is a prerequisite
 | `pt_just_missed` | 90th | Nine departure minutes in ten do at least this well. It is what a person meets who leaves as a train or bus pulls out | Served |
 | | 10th, 25th, 75th | Kept so that the choice of 90 can be changed without routing again | Build store only |
 
-Both figures come from the same run, so the second costs nothing. With one service every 10 minutes and a ride of 20, typical is 25 and just missed is 29: the worst case is 30, and the 90th percentile stops one odd minute from deciding it. `pt_just_missed >= pt_typical` always holds, as the contract asks, because one is a higher percentile of the same list. Where the typical time is inside the cutoff and the just-missed time is not, the second cell is `-1`.
+**The rule of a percentile.** Put the times of the window in order, shortest first, with a minute that has no journey counted as the longest. The figure at `p` is the time at place `ceil(p × n / 100)` of the `n`, counted from 1. It is always a time that some departure minute has: nothing is averaged. `percentile_of` in `travel/engine.py` is the rule, and whether R5 counts the same way is for its first run to show (section 18).
+
+Both figures come from the same run, so the second costs nothing. With one service every 10 minutes and a ride of 20, typical is 25 and just missed is 29: the worst case is 30, and the 90th percentile stops one odd minute from deciding it. The example holds where a person must be at the stop a minute before the train leaves: the waits are then 1 to 10 minutes, each 12 times over. A test holds the rule and the router to it. `pt_just_missed >= pt_typical` always holds, as the contract asks, because one is a higher percentile of the same list. Where the typical time is inside the cutoff and the just-missed time is not, the second cell is `-1`.
 
 **The same inputs must give the same table.** The converters write every trip with its own times and never a headway, so the engine has nothing to draw at random. Whether R5 is then the same on every run is to be proven: one shard is run twice in every build and the bytes compared.
 
@@ -378,3 +382,131 @@ Not known, and nothing here should be read as if it were:
 | That secrets are withheld from a fork's pull request | GitHub's page on it. The design does not rely on it |
 | The date of the December 2026 timetable change | Network Rail |
 | The rented machine's price | A quote. £3 to £6 assumes £1.50 to £3 an hour for 32 processors and 128 GB, for 2 hours |
+
+## 18. What is built, and what the first run of the engine must settle
+
+Added 2026-09-24. **Measured** here was run on made-up numbers with Python 3.13. **Read** was read on the publisher's own page on 2026-09-24, twice, in different words, and what both readings gave is kept.
+
+### 18.1 The shape of the step
+
+| In | As | Through |
+|---|---|---|
+| A timetable, for the one day that is modelled | A feed in the open format that transit feeds use (GTFS): a zip of tables | `travel/feed.py`, which checks it as it reads |
+| The streets, for the walk at each end | For London, the street extract, which the engine reads itself. For the made-up town, a list of points and links | The engine |
+| Where the homes of each area are | Home points, each with its area and a count of homes | `travel/roll_up.py` |
+| The places a person may name | The points journeys end at. `places.json` points each place at one | `travel/engine.py` |
+
+| Out | As |
+|---|---|
+| For each area and each point journeys end at: the time by public transport that half of the departure minutes from 07:00 to 08:59 do at least as well as, the time that nine in ten do, the time by bike and the time on foot. Door to door, in whole minutes | `travel.json`, as contract 2.6 lays it out |
+| The same from every home point, at five percentiles, one byte a journey | The fine matrices, for the build store |
+
+| Module of `packages/pipeline/src/burro_pipeline/travel/` | What it does | Fit for London |
+|---|---|---|
+| `feed.py` | Reads a feed and holds it to ten rules: every stop has a point, every trip has its times in order, the calendar covers the day, no trip is a headway. A refusal names the table, the line and the rule | Yes. It is slow on a large feed: section 18.4 |
+| `write_feed.py` | Writes a feed as a zip, the same bytes on any machine | Yes. The converters of section 6 will write through it |
+| `engine.py` | What an engine is asked and gives back. The settings of section 4. The rule of a percentile | Yes |
+| `route.py` | Origins in shards, the shards joined, one shard routed twice and compared. The fine matrices as bytes | Yes |
+| `roll_up.py` | The weighted lower median of section 7, the floor, and the table a release holds | Yes |
+| `plain.py` | A plain, slow router. Its first line says it is for tests | **No.** It measures as if the ground were flat and reads no street extract |
+| `made_up.py` | The city of the synthetic release as a timetable, streets and homes | It is made up |
+| `cli.py` | The step `python -m burro_pipeline travel --made-up` | It routes the made-up town alone. Without `--made-up` it stops, and names the rule `engine_is_installed` |
+
+What is not built: the two converters of section 6, the adapter that asks R5, the hexagons and their routing points, the rule that chooses the day, the comparison with TfL's planner, the weekly check, and `travel.bin`.
+
+### 18.2 The engine, and the rule on programs
+
+Section 3 chose R5, driven through r5py: it is made for tables of travel time from many origins, and it gives percentiles over a window in one search. Nothing built here changes that.
+
+ADR 0008 says the project installs no package that ships a program it needs to run, and that work which needs one, "such as the routing engine", runs in CI. So R5 may run on a hosted runner and nowhere else, and no package of this repository depends on it. The step asks an engine through `Engine` in `travel/engine.py`, and the adapter that asks R5 is one module still to be written.
+
+| Read on 2026-09-24 | Where | So |
+|---|---|---|
+| r5py needs a Java Development Kit of version 21 or later | r5py: installation | As section 3 has it |
+| The runner image holds Java 8, 11, 17, 21 and 25. 17 is what the plain `java` starts. The folder of 21 is named by `JAVA_HOME_21_X64` | Runner image readme, Ubuntu 24.04 | The adapter must point at 21 itself. A step behind `tools/public_log.py` is given the runner's environment, so it can read the name. No action need be added to set Java up |
+| With nothing set, r5py downloads R5 as it starts: `r5-v7.6-r5py-all.jar`, from the releases of `r5py/r5` on GitHub, held to a SHA-256 written in r5py's own source | r5py: `util/classpath.py` | Section 3 has 7.5.1. The version moves, so r5py is pinned to one version and the jar to one hash |
+| The setting `r5-classpath` names a jar that is already on the disk. Left unset, r5py "downloads the latest compatible version" | r5py: configuration | Routing must reach no network (ADR 0015). So the jar is fetched by the step `fetch`, as a file of a registry entry, kept in the store under its hash, and named with `r5-classpath` |
+| r5py names 15 packages that it needs. Among them are `requests`, which reaches a network, `jpype1`, which starts Java inside the Python process, `geopandas`, `rasterio` and `scikit-learn` | r5py: `pyproject.toml` | Each is a new dependency, with more beneath it. None is installed by this change. Section 18.3, rows 1 to 3 |
+| The default heap of the Java machine is 80 in 100 of the machine's memory | r5py: configuration | 12.8 GB on a runner of 16 GB, where section 5 asks 12 |
+
+### 18.3 What stands between the workflow and a run of the engine
+
+`.github/workflows/data-travel.yml` is written as the other data workflows are, and `tools/check_data_workflows.py` holds it to the same rules. Today it routes the made-up town on two machines and compares the two. Each row below is for a person to decide or to do. None is worked round here.
+
+| # | What | Why it is a person's | Until then |
+|---|---|---|---|
+| 1 | A second line that installs: the pipeline with a group `routing` | Rule 7 of the workflow check: one line installs, and it is the same in every job. A job that routes would install r5py and what it needs, and that job is given a key of the store | The workflow installs the pipeline alone |
+| 2 | r5py and what it needs, each with its one-line reason | Rule 12 of `AGENTS.md`. r5py brings a library that reaches a network and one that starts a program | No package is added |
+| 3 | A module of the pipeline that may start Java | `tests/fetch/test_only_fetch_reaches_a_network.py` lets no module of the pipeline name a library that reaches a network or runs a program, but for two modules of fetch. The adapter would be a third, added by a person with its reason | The step has no adapter. Without `--made-up` it stops |
+| 4 | A registry entry for the jar of R5, with the address of its file and its licence as read on its publisher's page | The jar is a file that is fetched. No entry names it | Nothing fetches it |
+| 5 | A timetable. TfL's is approved, and waits on registration at TfL's portal. It is TransXChange, so it waits on the converter of section 6 too. Rail is gated (section 2) | The registration is the founder's | The made-up timetable |
+| 6 | A receipt for the street extract | The extract was fetched before fetch read an edition, and has no receipt. A file with no receipt is not opened | The made-up streets |
+| 7 | A way for shards to hand their matrices to the job that joins them | No matrix is ever an artifact (ADR 0015). The store's code keeps raw files only, and a build key cannot write | The made-up town is routed whole in one job, in four shards |
+| 8 | The environment `data-travel`, with its reviewer, its branch rule and four made-up secrets | Only the founder can make it | The workflow is on no default branch and has never run |
+
+### 18.4 What the first run of the engine must settle
+
+Every row is unmeasured. The first nine decide whether a release made with R5 means what the step says it means.
+
+| # | To settle | How |
+|---|---|---|
+| 1 | Whether London fits in 16 GB, and the seconds an origin takes | The benchmark of 200 origins (section 1). It needs rows 1 to 6 of section 18.3 |
+| 2 | Whether R5's percentile is the rule of section 4 | One pair served every 10 minutes, as the example of section 4. R5 must give 25 and 29 |
+| 3 | Whether R5 counts a minute with no journey as longer than any other | A pair served once an hour, with a cutoff of 40 minutes |
+| 4 | Whether R5 gives the same twice | `same_twice` in `travel/route.py`, on the first shard of every build |
+| 5 | How R5 turns seconds into minutes. The router that is for tests rounds up | A pair whose time is known to the second |
+| 6 | The slack before boarding, the longest walk to a stop and the longest walk of a change. `Settings` gives 60 seconds, 2,400 metres and 800 metres, and the last two are first guesses | R5's own settings, read in its source, and then a decision |
+| 7 | That r5py starts with `r5-classpath` set and every socket refused | The step runs inside `sockets_refused()`, as the made-up town is routed |
+| 8 | That R5 takes the feed the converters write, and that `feed.py` refuses what R5 would | Both read the same feed |
+| 9 | That a time past 24:00:00 in a feed does not stop a morning run | Section 5 says R5 cannot read one |
+| 10 | How long `feed.py` takes on a day of London's timetable | It keeps every call of every trip in memory, as Python numbers |
+| 11 | How long the roll-up takes. It is 66.9 million medians at 1,002 areas, in plain Python | Time it on the fine matrices of the benchmark |
+| 12 | The number of hexagons. 16,700 is a calculation | Counting them |
+
+## 19. How many journeys
+
+Section 1 sized the table for 450 named areas. A build of today has 1,002 areas: each is an MSOA, until named areas are curated. London has 4,994 LSOAs, counted in the first build, which settles one row of section 17. So an area has about 5 home points, and not 11.
+
+| Journeys end at | How many | Cells, at 1,002 areas and 4 matrices | As `travel.json` | As bytes | What a time means |
+|---|---|---|---|---|---|
+| Every hexagon, as section 4 has it | About 16,700 (estimate, not counted) | 66.9 million | 208.3 MB (measured) | 66.9 MB (measured) | Door to door, to within a hexagon of the place |
+| Every place a person could name | About 50,000 (the pipeline design's estimate) | 200 million | About 620 MB (estimate, at 3.1 bytes a cell) | 200 MB | Door to door. Two places in one hexagon hold the same times twice |
+| Every station | Not known: no file of stations has been counted | 4,008 for each station | 12.5 KB for each station (estimate) | 4 KB for each station | To the station. The walk from the station to the place is not in it |
+
+| Measured, at 16,700 hexagons | 450 areas | 1,002 areas |
+|---|---|---|
+| `travel.json` on disk | 93.7 MB | 208.3 MB |
+| To parse it, and to make core's record of it, before core's own checks | 1.1 s and 0.9 s | 2.5 s and 1.8 s |
+| Peak memory of the process that did so | 673 MB | 1,491 MB |
+| The same table as bytes, one a cell | 30.1 MB | 66.9 MB |
+| One search in the bytes: 3 places, 2 matrices, every area | | 0.47 ms, in a loop of plain Python |
+
+What the numbers say:
+
+1. **Hexagons are the right columns.** Places outnumber hexagons, so a column for each place is a larger table that says nothing more. A column for each station is far smaller, and changes what a time means: the contract says a time is door to door (2.6), and a time to a station is not. It would also leave a place that is far from any station with no honest time at all.
+2. **The table has more than doubled since section 8 was measured.** As `travel.json` it needs about 1.5 GB to load, where section 8 found 0.7 GB. So `travel.bin` is no longer a saving to take later: a release with journeys for 1,002 areas should not be written as JSON. It is a change to the contract and to core, and is not made here.
+3. **The fine matrices have not grown.** They are keyed by LSOA, and are 83.4 MB each whatever the areas are. Only the roll-up runs again when the areas change (section 7).
+
+**When a person names a place that is not in the table.** With a column for every hexagon, every place of `places.json` has a column, so the cases are these. A test holds the first two on the release the step writes, and core's own tests hold the third.
+
+| What was named | What the API does |
+|---|---|
+| Words that are the name of no place | The search of places finds nothing. The reader makes no journey: its status is `clarify`, with no offers, and nothing is applied. No place is guessed at |
+| The id of a place the release does not hold | 422 `unknown_place`. The answer names the field and never the id |
+| A place the release holds, from an area whose cell is `null` | The area stays. The journey is left out of its score and is said to be missing, and a firm limit is listed as not tested (contract 6.1). A finished build writes no `null` but on purpose (section 11) |
+| A limit longer than the release routed | 422 `invalid_spec`: a journey beyond the cutoff could be inside the limit, and could not be tested |
+| A place in a hexagon with no street | It is moved to the nearest hexagon that has one (section 0). Not built |
+
+## 20. No record of the place that was asked for
+
+A place a person names is where they work. It is in the body of a request and nowhere else (rule 9 of `AGENTS.md`).
+
+| Part | Why it holds no record | Held by |
+|---|---|---|
+| The step | It is never told of a place. It works out every pair before anyone asks. It takes no argument that could name one, and reads no environment | `test_the_step_takes_no_word_that_could_name_a_place` |
+| What the step prints | One line of counts and hashes, each under a name on the list of `tools/public_log.py`. No id of a place, of a point or of an area, and no name | `test_the_step_is_never_told_of_a_place_and_prints_none` |
+| The release | It holds a time for every area and every point. Nothing in it says which was asked for, and a search changes no byte of it | `test_the_release_holds_every_pair_so_nothing_in_it_says_which_was_asked_for`, `test_a_search_changes_nothing_of_the_release` |
+| The service's log, and its record of each call | No line and no record holds a place's id, its name or the id of its point. The line of a search to one place is the line of a search to any other, but for its id, its time and how long it took | `test_the_place_that_was_asked_for_is_in_no_line_and_no_record`, `test_the_line_of_a_search_to_one_place_is_the_line_of_a_search_to_any_other` |
+| An address | No route that searches answers `GET`, so a place cannot stand in a path or a query | `test_a_place_is_named_in_the_body_of_a_request_and_never_in_its_address` |
+
+One thing is outside this. Section 10 would ask TfL for the detail of a route when a result is opened, and would send TfL the hexagon's routing point. That is a place that was asked for, sent to another party. It is not built, and it is the founder's to decide before it is.

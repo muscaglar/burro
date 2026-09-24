@@ -145,9 +145,9 @@ Every vibe carries one line first, word for word: "One street or one home. An ar
 | Homes | The size of a home inside. Balconies and front gardens. Whether one home has a garden | "a house with a garden" · "proper city living, flats are fine" · "more suburban, we want space" |
 | Built age | The state of a building. Its inside. An area the conservation data does not cover is unknown, not zero | "period houses" · "somewhere with history" · "a newer area with modern flats" |
 | Village feel | Whether neighbours know each other. Which shops there are. Empty units | "villagey" · "a little centre with its own shops" · "a small-town feel" |
-| Quiet streets | Noise from neighbours, venues or works. Road noise from aircraft noise. How busy a road is | "quiet" · "a quiet street near a lively high street" · "peaceful, residential" |
+| Quiet streets | Noise from neighbours, venues or works. Which noise is from roads and which from aircraft. How busy a road is | "quiet" · "a quiet street near a lively high street" · "peaceful, residential" |
 | Works and warehouses | Whether streets are clean or run down. Empty shops. Graffiti. What the land is used for today. Recorded crime. Who lives there | "old warehouses and railway arches" · "industrial" · "somewhere a bit gritty" |
-| Pace | Weekday from weekend. Who the venues serve. Opening hours. What is on | "lively, lots going on in the evening" · "somewhere calm" · "nothing much going on" |
+| Pace | How a weekday differs from a weekend. Who the venues serve. Opening hours. What is on | "lively, lots going on in the evening" · "somewhere calm" · "nothing much going on" |
 | Food and drink | Whether the food is good. Prices. Whether a place is still open. Hygiene ratings are never shown | "a great food scene" · "independent cafes" · "lots of different food" |
 | Leafy | Trees under 3 m. Planting or felling since the map was made. Street trees, until the canopy map is in | "leafy" · "tree-lined streets" · "green, with gardens" |
 | Parks close by | Upkeep. Whether a park is busy. Opening hours. No open rating of parks exists | "near a big park" · "a park I can run in" · "tennis courts and a playground" |
@@ -560,7 +560,7 @@ These choices still stand after the reviews. Where a review overturned one, sect
 | # | Open question | Recommended | Who can answer |
 |---|---|---|---|
 | 1 | Residents: option 1, 2 or 3 | Option 1 at launch. Option 2 when a reading allows | The founder |
-| 2 | What may go into "gritty": A to E | B | The founder |
+| 2 | What may go into "gritty": A to E | B. **Decided on 2026-09-24: C.** Gritty is one vibe that holds recorded criminal damage and recorded anti-social behaviour beside land use, main roads, noise and density ([ADR 0013](../adr/0013-vibes-are-the-centre.md), as amended) | The founder |
 | 3 | May "Gritty" be the name of a vibe or of an end on screen? | No. The word is quoted where the person typed it. If yes: only after residents of those areas accept the word for their own area, and with no lens, strip, table or likeness | The founder |
 | 4 | May a scale read a good thing low at one end: fewer venues at the Calm end? | Yes, inside a scale only | The founder |
 | 5 | Are "Calm", "Newer", "Houses" and "Works and warehouses" the right names? | Test them in the own-area test | The founder, with residents |

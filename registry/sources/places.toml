@@ -33,6 +33,41 @@ evidence_urls = [
     "https://ratings.food.gov.uk/open-data",
     "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
 ]
+file_urls = [
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS501en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS502en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS503en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS504en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS505en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS506en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS508en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS507en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS509en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS510en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS511en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS512en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS513en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS514en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS515en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS516en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS517en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS518en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS519en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS520en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS521en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS522en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS523en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS524en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS525en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS526en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS527en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS528en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS529en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS530en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS531en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS532en-GB.xml",
+    "https://ratings.food.gov.uk/api/open-data-files/FHRS533en-GB.xml",
+]
 notes = "How it was verified: The FSA terms page states that use 'is subject to the terms of the Open Government Licence (OGL)' and links to version 3. Confirmed by the verifier, by the drafter, and again by this review on 2026-09-23. The FSA terms page, open data page and API help page give no attribution statement of their own, so the OGL default line is used and the FSA is named as the source on the attributions page. Marked unverified because the API guidance PDF was not read and all pages were read through a reader that summarises. validation_only is registered because this is the cross-check for Overture food and drink counts in the phase 0b spike. The API was not queried in earlier research, so file contents are uninspected."
 
 [[source]]
@@ -70,7 +105,96 @@ evidence_urls = [
     "https://cdla.dev/permissive-2-0/",
     "https://opensource.foursquare.com/places-notice-txt/",
 ]
-notes = "How it was verified: Licences confirmed per source on Overture's own attribution page and Places guide by the verifier, by the drafter, and again by this review on 2026-09-23. All three licences are permissive with no share-alike and allow commercial use. The London quality spike is a product check that needs ingest to run, not a licence gate. The attribution wording is still to be re-copied for the pinned release before launch. The attribution string matches Overture's attribution page word for word on two separate fetches, but it is marked unverified for three reasons. First, the 'Changed' date is release-specific and no release is pinned yet. Second, Overture's page says 'Copyright 2024' while Foursquare's own NOTICE page says '© 2026'. Third, a link to NOTICE.txt may not satisfy Apache 2.0 section 4(d) if data is ever redistributed. Overture calls its own citation optional ('you may choose to add'); it is kept as good practice. The Places guide lists about 58.5 million Meta records, 4.6 million Foursquare and 1.6 million AllThePlaces in the August 2026 release. All wording was read through a reader that summarises."
+file_urls = [
+    "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/release/2026-09-23.0/theme=places/type=place/part-00007-61ac23fc-0af6-5d61-8c46-5776ba7e6bf0-c000.zstd.parquet",
+]
+notes = "The address under file_urls is of one file of release 2026-09-23.0, the one of its 16 files whose box holds London. It was read on 2026-09-24 in the publisher's own catalogue, https://stac.overturemaps.org/2026-09-23.0/places/place/00007/00007.json, which the Places guide links to, and was copied from it letter for letter. It is named whole, so that no other file of the release and no other release passes under this entry: a later release is a new address, named here in a change that a person reads. The list m2-culture takes part of the file and not the whole. How it was verified: Licences confirmed per source on Overture's own attribution page and Places guide by the verifier, by the drafter, and again by this review on 2026-09-23. All three licences are permissive with no share-alike and allow commercial use. The London quality spike is a product check that needs ingest to run, not a licence gate. The attribution wording is still to be re-copied for the pinned release before launch. The attribution string matches Overture's attribution page word for word on two separate fetches, but it is marked unverified for three reasons. First, the 'Changed' date is release-specific and no release is pinned yet. Second, Overture's page says 'Copyright 2024' while Foursquare's own NOTICE page says '© 2026'. Third, a link to NOTICE.txt may not satisfy Apache 2.0 section 4(d) if data is ever redistributed. Overture calls its own citation optional ('you may choose to add'); it is kept as good practice. The Places guide lists about 58.5 million Meta records, 4.6 million Foursquare and 1.6 million AllThePlaces in the August 2026 release. All wording was read through a reader that summarises."
+
+[[source]]
+id = "nhs-ods-gp-practices"
+name = "NHS Organisation Data Service: GP practices (the predefined report epraccur) via Data Search and Export"
+publisher = "NHS England"
+url = "https://digital.nhs.uk/services/organisation-data-service/data-search-and-export/csv-downloads/gp-and-gp-practice-related-data"
+dimension = "places"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Contains information from NHS England, licenced under the current version of the Open Government Licence"
+attribution_verified = false
+conditions = [
+    "Read four columns of the report and no other: the postcode, the close date, the status and the prescribing setting. The name, the address and the telephone number of a practice are never read: a practice is often named for a doctor, and OGL does not cover personal data.",
+    "List the report of practices alone, epraccur. The same page offers reports of practitioners, of nurse prescribers and of private prescribers of controlled drugs. Each is a record about named people, and none may ever be listed.",
+    "Branch surgeries, the report ebranchs, are not covered by this entry. The publisher's specification was read once, and says that the kind 'Branch Surgery' also marks vaccination sites run by primary care networks. The report has no column for a status.",
+    "Count a practice only where it is active, has no close date and has the prescribing setting of a GP practice, which the specification gives as RO76. The report holds every prescribing cost centre, of which GP practices are a part.",
+    "Never name a practice, and never show or export a row. Show a distance.",
+    "A practice is placed by its postcode through the ONS postcode directory, so the three credits of that entry apply too.",
+    "NHS England's website terms say 'you should refresh cached content every 24 hours'. Burro ships dated snapshots, so show an as-of date beside every figure and take the report again at every data release.",
+    "NHS England logos, visuals, trade marks and design styles are excluded from the OGL grant. Do not use NHS branding.",
+    "Near is not able to register. Say nothing of whether a practice takes new patients.",
+]
+status = "approved"
+before_launch = [
+    "A person sees the three NHS England pages under evidence_urls in a browser. Each was read through a reader that extracts, on 2026-09-24.",
+    "The first file is opened and held to the specification: 27 columns with no row of names, the postcode in column 10, the close date in column 12, the status in column 13 written in full, and the prescribing setting in column 26. No file had been fetched when this entry was written.",
+    "The founder says that the walk to a GP practice comes into the first version. The plan, in section 4, lists GP access as out, and the design of the London data recommends that it comes in.",
+]
+uses = ["scoring"]
+cadence = "The page says the predefined reports are dynamic and the source data updates nightly. The specification gives the update of the data behind this report as weekly, for England and Wales."
+verified_how = "primary_source"
+verified_on = 2026-09-24
+evidence_urls = [
+    "https://digital.nhs.uk/services/organisation-data-service",
+    "https://digital.nhs.uk/about-nhs-digital/terms-and-conditions",
+    "https://digital.nhs.uk/services/organisation-data-service/data-search-and-export/csv-downloads/gp-and-gp-practice-related-data",
+    "https://www.odsdatasearchandexport.nhs.uk/referenceDataCatalogue/565791179.html",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+]
+file_urls = [
+    "https://www.odsdatasearchandexport.nhs.uk/api/getReport?report=epraccur",
+]
+notes = "How it was verified: every page was opened on 2026-09-24 through a reader that extracts the text of a page, and no person has seen one. The page of the Organisation Data Service says 'ODS data is published under Open Government Licence and is therefore available for all to use', with a link to version 3: the reader was asked twice, in different words, and gave the sentence the same both times. NHS England's terms, which were read once, last edited on 24 October 2023, say in clause 8.1 that copyright and database rights in NHS England content are released under the current version of the Open Government Licence, in 8.2 that the content may be used 'for any purpose, including commercially', in 8.3 that logos, trade marks and third-party information are excluded, and in 8.4 give the attribution, which is the form for content that is combined or adapted. The spelling 'licenced' is NHS England's. The terms cover NHS England content in general and are applied to this report because the ODS page gives no wording of its own. The entry nhs-ods rests on the same two pages, for the reports of trusts and hospital sites, and is left as it was: it allows destination search alone. The url is the publisher's page for GP data, which lists 14 reports and says the data is 'supplied by the NHS Prescription Services'. The reader was asked twice, in different words, and gave the address of this report the same both times, written whole: it is the address under file_urls, and its parameter names the report. The fourth address under evidence_urls is the publisher's specification of the report, read three times in different words. It gives 27 columns and says of none that it is a row of names. It says of the status: 'Previously populated with single character: A (Active), C (Closed), D (Dormant) or P (Proposed). Now the status name/description is provided in full.' It says of column 26: 'Previously populated with a single character indicator, now populated with the corresponding non primary roleID', and gives 'RO76 GP PRACTICE'. It states no format for a date. It is evidence of what the file holds, and none of the licence. What the licence allows is wider than the one use listed: OGL allows display too. Only scoring is listed because only a distance is made. No file has been fetched. England and Wales: no report for London is offered."
+
+[[source]]
+id = "nhsbsa-consolidated-pharmaceutical-list"
+name = "Consolidated Pharmaceutical List (NHS pharmacies, appliance contractors and local pharmaceutical services contractors in England)"
+publisher = "NHS Business Services Authority"
+url = "https://opendata.nhsbsa.net/dataset/consolidated-pharmaceutical-list"
+dimension = "places"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "Read two columns of the list and no other: POST_CODE and CONTRACT_TYPE. ORGANISATION_NAME is the name of whoever is included in a pharmaceutical list, who may be one person trading alone, and is never read. Nor is the trading name or any line of an address: OGL does not cover personal data.",
+    "Count a contractor whose contract type is Community or LPS. Leave out DAC, which is a dispensing appliance contractor and no pharmacy.",
+    "The list has no column that says a pharmacy serves by post alone and takes no callers. Say beside every figure that such a pharmacy may be counted.",
+    "Never name a pharmacy, and never show or export a row. Show a distance.",
+    "A pharmacy is placed by its postcode through the ONS postcode directory, so the three credits of that entry apply too.",
+    "The pages give no wording of their own for a credit, so the OGL v3 default applies. Name the NHS Business Services Authority as the source beside it.",
+    "Show the quarter of the list beside every figure. Do not use NHS branding.",
+]
+status = "approved"
+before_launch = [
+    "A person sees the dataset's page and the page of the file in a browser. Each was read through a reader that extracts, on 2026-09-24.",
+    "The first file is opened and held to the list of fields on its page: 25 columns, with POST_CODE the ninth and CONTRACT_TYPE the last, and the three contract types written as the page writes them. No file had been fetched when this entry was written.",
+    "The founder says that the walk to a pharmacy comes into the first version. The plan, in section 4, lists GP access as out, and the design of the London data recommends that both walks come in.",
+]
+uses = ["scoring"]
+cadence = "Quarterly. The dataset's page says the list 'is produced and validated on a quarterly basis'. The latest file is for quarter 1 of 2026-27."
+verified_how = "primary_source"
+verified_on = 2026-09-24
+evidence_urls = [
+    "https://opendata.nhsbsa.net/dataset/consolidated-pharmaceutical-list",
+    "https://opendata.nhsbsa.net/dataset/consolidated-pharmaceutical-list/resource/ce6c7ad3-a3b5-442f-bb0a-a45d7c962944",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+]
+file_urls = [
+    "https://opendata.nhsbsa.net/dataset/240d142d-df82-4e97-b051-12371519e4e1/resource/ce6c7ad3-a3b5-442f-bb0a-a45d7c962944/download/consol_pharmacy_list_202606q1.csv",
+]
+notes = "How it was verified: both pages were opened on 2026-09-24 through a reader that extracts the text of a page, each twice, in different words. No person has seen either. The dataset's page shows 'Open Government Licence 3.0 (United Kingdom)' with a link to version 3, and so does the page of the file. One reading of the dataset's page was asked for any condition, exclusion or right of a third party that the page states beside the licence, and gave none. The dataset's page says: 'This dataset consolidates the pharmaceutical lists which NHS England has a regulatory duty to prepare, maintain and publish for each Health and Wellbeing Board area', and that it holds NHS pharmacies, NHS appliance contractors and local pharmaceutical services contractors. The second address under evidence_urls is the page of the file for quarter 1 of 2026-27. Its address was read on the dataset's page as a path, and is written here with the host of that page before it. It lists 25 fields, from PHARMACY_ODS_CODE_F_CODE to CONTRACT_TYPE, with POST_CODE the ninth, and gives three contract types: Community, DAC and LPS. What it says of ORGANISATION_NAME was read two ways on the same day. One reading gave 'Name of person or persons included in a pharmaceutical list'. Three later readings gave 'The name of the sole trader, partnership, or body corporate which is included in a pharmaceutical list'. Neither is written here as the page's own words until a person has seen the page. By either the field may hold the name of a person, so it is never read. It gives the day the file was made and last changed as 29 July 2026. One reading of the dataset's page gave the day it was last changed as 18 August 2026. The address under file_urls was given the same by all four readings, written whole. The name of the file ends 202606q1, where the four files before it end in the two years of their financial year, as 202526q4: it is written as it was read. Fifteen of the fields are the hours a pharmacy is open. None is read, so a figure says nothing of when a pharmacy is open. The theme page for dispensing contractors, on the same host, lists six more datasets, none of which is covered by this entry. What the licence allows is wider than the one use listed: OGL allows display too. Only scoring is listed because only a distance is made. No file has been fetched. England: no file for London is offered. The Organisation Data Service offers a report of dispensaries, edispensary, under the Open Government Licence too: it is updated weekly, holds England, Wales and the Isle of Man, has no row of names, and tells a pharmacy from an appliance contractor. It is not registered: one list of pharmacies is read, and this one names its columns."
 
 [[source]]
 id = "geolytix-retail-points"

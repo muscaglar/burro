@@ -200,7 +200,7 @@ The times are guesses from reading speed, to be replaced by the first 100 claims
 | OpenAI | `gpt-5.6-luna` | 0.20 | 1.20 | 3.00 | 3.90 | Today, through a tool. No report in the repository |
 | OpenAI | `gpt-6-sol` | 2.00 | 10.00 | 28.00 | 36.40 | The same |
 | DeepSeek | `deepseek-flash`, peak | 0.30 | 1.20 | 3.90 | 5.10 | `docs/research/models/deepseek.md` |
-| Claude | Haiku 4.5 | 1.00 | 5.00 | 14.00 | 18.20 | `docs/research/models/claude.md` |
+| Claude | Haiku 4.5 | 1.00 | 5.00 | 14.00 | 18.20 | `docs/research/models/anthropic.md` |
 | Claude | Sonnet 5 | 2.00 | 10.00 | 28.00 | 47.30, with its 30% more tokens | The same |
 
 | Point | Value |

@@ -49,7 +49,7 @@ What makes it honest:
 - Being registered for `scoring` does not make a column rankable. The list of features in core still decides what can be ranked.
 - A later measure worked out on another geography source needs `scoring` added to that entry, in a change that a person reads.
 - The preview of the first build is drawn on 1,002 MSOAs. If its outlines are read from `ons-msoa-2021`, that entry needs `gazetteer`, which it does not have. If they are made by joining output areas with the lookup, nothing more is needed. This record does not choose.
-- A release must name at least one source in `travel.json` and in `stations.json`, even when it holds no journey and no station. What the first build names there is for the contract's owner. The registry cannot settle it.
+- A release had to name at least one source in `travel.json` and in `stations.json`, even when it held no journey and no station. What the first build names there was left to the contract's owner. [0017](0017-a-preview-says-it-is-one.md) proposes that a preview names none.
 - If the VOA file uses LSOA codes of 2011, a lookup from 2011 to 2021 is needed. None is registered, and nobody has read its page. The first build then carries noise and nitrogen dioxide alone.
 
 ## What would change it

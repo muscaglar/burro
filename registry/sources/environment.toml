@@ -31,6 +31,7 @@ evidence_urls = [
 ]
 file_urls = [
     "https://uk-air.defra.gov.uk/datastore/pcm/mapno22024.csv",
+    "https://uk-air.defra.gov.uk/datastore/pcm/mappm252024g.csv",
 ]
 notes = "How it was verified: The PCM data page footer states OGL v3.0 and UK-AIR gives an exact attribution statement (drafter and reviewer both fetched these on 2026-09-23), matching the research. Defra modelled NO2 is a v1 source in PLAN section 7. The data page also says: 'Please acknowledge Defra as the source for this data if using the maps for your work.' The attribution statement is copied from UK-AIR's 'about these pages' text, including its spelling 'licenced'. UK-AIR asks for it in reports, web pages and derived data products."
 
@@ -96,8 +97,13 @@ evidence_urls = [
     "https://docs.os.uk/os-downloads/products/land-and-terrain-portfolio/os-open-greenspace",
     "https://www.ordnancesurvey.co.uk/customers/public-sector/public-sector-licensing/copyright-acknowledgments",
     "https://www.ordnancesurvey.co.uk/opendata/licence",
+    "https://api.os.uk/downloads/v1/products/OpenGreenspace",
 ]
-notes = "How it was verified: The OS open data page lists OS Open Greenspace among products 'available for unrestricted, free commercial and personal reuse under the Open Government Licence (OGL)' (drafter and reviewer both fetched it on 2026-09-23). The verification file confirms OS OpenData is OGL. It is a v1 source in PLAN section 7. This clears the item the liveability report listed as unverified. OS's acknowledgments page gives the statement as 'Contains OS data © Crown copyright [and database right] [year].' The year is filled in. OS's own licence link returns a permanent redirect to OGL version 3 at the National Archives (checked today). The product page itself names no licence. The licence statement is on the OS open data page. The boundaries workstream also uses this product to cut large parks out of display polygons, so keep one shared entry."
+file_urls = [
+    "https://api.os.uk/downloads/v1/products/OpenGreenspace/downloads?area=TQ&format=GML&subformat=3&redirect",
+    "https://api.os.uk/downloads/v1/products/OpenGreenspace/downloads?area=TL&format=GML&subformat=3&redirect",
+]
+notes = "How it was verified: The OS open data page lists OS Open Greenspace among products 'available for unrestricted, free commercial and personal reuse under the Open Government Licence (OGL)' (drafter and reviewer both fetched it on 2026-09-23). The verification file confirms OS OpenData is OGL. It is a v1 source in PLAN section 7. This clears the item the liveability report listed as unverified. OS's acknowledgments page gives the statement as 'Contains OS data © Crown copyright [and database right] [year].' The year is filled in. OS's own licence link returns a permanent redirect to OGL version 3 at the National Archives (checked today). The product page itself names no licence. The licence statement is on the OS open data page. The boundaries workstream also uses this product to cut large parks out of display polygons, so keep one shared entry. The last address under evidence_urls is the publisher's own record of this product in its download service, on api.os.uk. Ordnance Survey's documentation at docs.os.uk gives https://api.os.uk/downloads/v1/ as the address of that service. It is there to name the host the files are on. Fetch holds a file to the addresses under file_urls. It was read on 2026-09-23 through a reader that extracts, which was asked twice, in different words: it gave the product's name as 'OS Open Greenspace', its version as 2026-04 and the address of the listing of its downloads, and nothing of a licence, so it is no evidence of the licence. No file was fetched to read the address."
 
 [[source]]
 id = "os-open-rivers"
@@ -127,8 +133,58 @@ evidence_urls = [
     "https://docs.os.uk/os-downloads/products/water-portfolio/os-open-rivers",
     "https://www.ordnancesurvey.co.uk/customers/public-sector/public-sector-licensing/copyright-acknowledgments",
     "https://www.ordnancesurvey.co.uk/opendata/licence",
+    "https://api.os.uk/downloads/v1/products/OpenRivers",
 ]
-notes = "How it was verified: The OS open data page lists OS Open Rivers among products 'available for unrestricted, free commercial and personal reuse under the Open Government Licence (OGL)' (drafter and reviewer both fetched it on 2026-09-23). The verification file confirms OS OpenData is OGL. It is a v1 source in PLAN section 7. The liveability research file has no finding for this product. The licence evidence comes from the poi-vibe research, the verification file and today's fetches. The product page says it is 'updated every six months' and covers 'over 144,000 km of water bodies and watercourses', including rivers, tidal estuaries and canals. The page does not name the months, so April and October is not confirmed for this product. Attribution wording is from OS's acknowledgments page, with the year filled in."
+file_urls = [
+    "https://api.os.uk/downloads/v1/products/OpenRivers/downloads?area=GB&format=GeoPackage&redirect",
+]
+notes = "How it was verified: The OS open data page lists OS Open Rivers among products 'available for unrestricted, free commercial and personal reuse under the Open Government Licence (OGL)' (drafter and reviewer both fetched it on 2026-09-23). The verification file confirms OS OpenData is OGL. It is a v1 source in PLAN section 7. The liveability research file has no finding for this product. The licence evidence comes from the poi-vibe research, the verification file and today's fetches. The product page says it is 'updated every six months' and covers 'over 144,000 km of water bodies and watercourses', including rivers, tidal estuaries and canals. The page does not name the months, so April and October is not confirmed for this product. Attribution wording is from OS's acknowledgments page, with the year filled in. The last address under evidence_urls is the publisher's own record of this product in its download service, on api.os.uk. Ordnance Survey's documentation at docs.os.uk gives https://api.os.uk/downloads/v1/ as the address of that service. It is there to name the host the files are on. Fetch holds a file to the addresses under file_urls. It was read on 2026-09-23 through a reader that extracts, which was asked twice, in different words: it gave the product's name as 'OS Open Rivers', its version as 2026-04 and the address of the listing of its downloads, and nothing of a licence, so it is no evidence of the licence. No file was fetched to read the address."
+
+[[source]]
+id = "mhclg-land-use-statistics-2022"
+name = "Land use statistics: England 2022, live tables by LSOA and MSOA (table P405)"
+publisher = "Department for Levelling Up, Housing and Communities"
+url = "https://www.gov.uk/government/statistics/land-use-in-england-2022"
+dimension = "environment"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "Land use only. A figure describes land, and never who lives on it or near it.",
+    "Never build a measure from Communal accommodation (Q), Community buildings (C) or Defence buildings (D). The technical notes give the first as hostels, old people's homes, children's homes, monasteries and convents, and put religious buildings and prisons under the second and barracks under the third. Each says something of who lives on the land. They are read only to add up all the land of an LSOA.",
+    "Build a measure from a category, never from a group. The group 'Industry and commerce' holds Industry, Offices, Retail, and Storage and warehousing, so its total counts offices and shops. The group 'Transport and utilities' holds Highways and roads beside Transport (other).",
+    "Name a measure for what its category holds, as the technical notes define it. Transport (other) is railways, airports and dockland. Depots and yards are in Storage and warehousing.",
+    "Show beside every figure the period its receipt states, and no other. The workbook states the year 2022 and no month, in the title of each sheet. The release says 'As at April 2022', and the technical notes say the dates of the products behind the figures centre around April 2021: neither is in the workbook, so no month is shown. The technical notes say the figures are estimates, so say that too.",
+    "This entry covers the 2022 edition alone. Do not show change over time: the technical notes say the way the land use data is overlaid on other boundaries changed after the 2018 edition.",
+    "The publisher plans a new series for 2024 to 2026, under Ordnance Survey's own classes of land and not these 28, and says its figures should not be compared with those published up to 2022. It is another table. Register it as an entry of its own when it is published, and never read it with the step written for 2022.",
+    "The release says the figures are derived from Ordnance Survey's AddressBase, Open Greenspace and MasterMap Topography products. Use the published table only. Never ask for or use those products.",
+    "Whenever the workbook is fetched again as other bytes, read its words for any statement of Ordnance Survey's rights, or of any term beside the Open Government Licence, and save what it says to registry/evidence. If it states a term that limits reuse, stop and change this entry to gated. The workbook fetched on 2026-09-24 states none: registry/evidence holds what it says.",
+    "A dash stands in some cells of figures, and the workbook does not say what for. Read it as none of that land only where the figures of its row add up to the row's grand total, which the second note under each table says is the sum of all the categories. Never read a dash as nought anywhere else.",
+    "A measure from this table has its row of the proxy audit written before it joins a release that is served (ADR 0006).",
+]
+status = "approved"
+before_launch = [
+    "A person opens the workbook once and looks for any statement of Ordnance Survey's rights. The page states the Open Government Licence 'except where otherwise stated'. A program read every row of the workbook that holds words alone on 2026-09-24, and found no such statement and no term of use. No person has opened it.",
+]
+uses = ["scoring", "display"]
+cadence = "Irregular. Editions for 2017 to 2022. The 2022 edition was published on 27 October 2022, and the editions for 2019, 2020 and 2021 on 24 August 2023. No later edition was on the collection page, or in the publisher's own search, on 2026-09-24. A consultation the publisher opened on 16 September 2026 says land use in England was 'Last published for 2022', and that it plans 'to resume publication of the land use statistics this year (2026), with the first tranche of releases covering the years 2024 to 2026'. Its timetable gives land use stock for 2024, 2025 and 2026 'By end of 2026', and each later release 'Annual, in October each year'. The new series is to rest on Ordnance Survey's National Geographic Database and on Ordnance Survey's own classes of land, and is to be broken down by MSOA and LSOA. The consultation closes on 28 October 2026, so none of this is settled."
+verified_how = "primary_source"
+verified_on = 2026-09-24
+evidence_urls = [
+    "https://www.gov.uk/government/statistics/land-use-in-england-2022",
+    "https://www.gov.uk/government/statistics/land-use-in-england-2022/land-use-statistics-england-2022",
+    "https://www.gov.uk/government/collections/land-use-in-england",
+    "https://www.gov.uk/government/consultations/land-use-statistics-in-england-methodology-changes/land-use-statistics-in-england-methodology-changes",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+    "https://assets.publishing.service.gov.uk/media/63595b6ed3bf7f0bd5cea49d/Land_Use_and_Land_Use_Change_-_Technical_Notes.pdf",
+]
+file_urls = [
+    "https://assets.publishing.service.gov.uk/media/6356f96ce90e0777a7af42af/Live_Tables_-_Land_Use_Stock_2022_-_LSOA.ods",
+]
+notes = "How it was verified: on 2026-09-24 the release page, the statistical release and the collection page were each read through a reader that extracts, which was asked twice of each, in different words. Both readings of the release page gave the same licence line, 'All content is available under the Open Government Licence v3.0, except where otherwise stated', and the same address for each file, letter for letter. Both readings of the statistical release gave '© Crown copyright 2022. This publication is licensed under the terms of the Open Government Licence v3.0 except where otherwise stated', and 'As at April 2022'. The technical notes, a PDF of 18 pages that the release page lists, were read as text: they say the information may be re-used 'free of charge in any format or medium, under the terms of the Open Government Licence'. The licence was read the same day: it allows a person to 'exploit the Information commercially', and gives the attribution above for a provider that states none. No page read states an attribution of its own, so the wording is the licence's, and it is not verified: the workbook, read since, states none either. The release page lists the file as 'Land use statistics: England 2022 - live tables by LSOA and MSOA', ODS, 36.4 MB. The statistical release says the figures are at LSOA level in Live Table P405. No page says which census the LSOA codes follow, what unit the table is in, or how its sheets and columns are named: the step that reads it finds each in the file and stops where it cannot. The technical notes name 28 categories in 13 groups, and define each. Their second note says the dates of the products the figures rest on were 'chosen to centre around April 2021', where the release says April 2022: the list of files named the period as not yet sure for that reason, until the workbook was read for its own date, which is the year 2022. The release page also lists the national live tables, ODS, 2.32 MB, which hold no figure below a local authority or a constituency and are not taken. The consultation 'Land use statistics in England: methodology changes', which the publisher's own search gives when it is asked for the newest first, was read the same day, twice, in different words: both readings gave the same sentences on when publication resumes, on the classes of land and on the break in the series, as the cadence above quotes them. It is evidence of what the publisher plans, and of nothing in the table of 2022. Filed under environment, beside the other measures of land. The last address under evidence_urls is the technical notes, on the host GOV.UK hands out files from. It is evidence of the definitions and of the licence line it prints, and is no file of data. No file of data was fetched or opened to write this entry as it first stood. The workbook was fetched on 2026-09-24, f-b8db326abd8b, and read that day with the step describe, which gives each row of a sheet that holds words alone and no row that holds a number. It holds two sheets, one in per cent and one in hectares, and no cover and no sheet of notes. Its titles state the year 2022. Two notes stand under each table: that the data is mapped to the LSOA boundaries of 2021 at the mean high tide mark, and that the grand total is the sum of all the categories. It states no licence, no copyright, no attribution, no right of Ordnance Survey's and no term of use, so nothing in it is 'otherwise stated'. registry/evidence/mhclg-land-use-statistics-2022-2026-09-24.md holds what was read and how."
 
 [[source]]
 id = "gla-green-cover-2024"
