@@ -11,20 +11,22 @@
   "status": 200,
   "headers": {
     "access-control-allow-origin": "http://localhost:3000",
-    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
-    "cache-control": "public, max-age=3600",
-    "content-length": "28085",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-cache",
+    "content-length": "59436",
     "content-type": "application/json",
     "etag": "\"syn-2026-09-23-01\"",
     "vary": "Origin",
+    "x-burro-preview": "false",
     "x-burro-synthetic": "true",
     "x-request-id": "e9960b91-0fbf-44bf-955c-75e2af7173e7"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.3.0",
-      "synthetic": true
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
     },
     "data": {
       "area": {
@@ -48,15 +50,29 @@
         {
           "area_id": "syn-n0003",
           "feature_id": "air_no2",
-          "value": 23.3,
-          "percentile": 55.0,
+          "value": 23.0,
+          "percentile": 52.5,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "centre_compact",
+          "value": 43.9,
+          "percentile": 88.1,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "centre_small",
+          "value": 56.3,
+          "percentile": 50.0,
           "coverage": 1.0
         },
         {
           "area_id": "syn-n0003",
           "feature_id": "conservation_cover",
           "value": 6.2,
-          "percentile": 18.4,
+          "percentile": 28.9,
           "coverage": 1.0
         },
         {
@@ -76,64 +92,183 @@
         {
           "area_id": "syn-n0003",
           "feature_id": "culture_venues",
-          "value": 1.2,
-          "percentile": 16.7,
+          "value": 1.7,
+          "percentile": 42.9,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "culture_venues_per_homes",
+          "value": 1.8,
+          "percentile": 33.3,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "evening_cluster_exposure",
+          "value": 1.5,
+          "percentile": 31.0,
           "coverage": 1.0
         },
         {
           "area_id": "syn-n0003",
           "feature_id": "green_cover",
-          "value": 11.9,
-          "percentile": 11.4,
+          "value": 14.1,
+          "percentile": 29.5,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "grocery_walk",
+          "value": 8.0,
+          "percentile": 61.9,
           "coverage": 1.0
         },
         {
           "area_id": "syn-n0003",
           "feature_id": "highstreet_access",
-          "value": 47.4,
-          "percentile": 16.7,
+          "value": 1580.0,
+          "percentile": 83.3,
           "coverage": 1.0
         },
         {
           "area_id": "syn-n0003",
           "feature_id": "homes_density",
-          "value": 20.5,
-          "percentile": 15.9,
+          "value": 20.0,
+          "percentile": 11.4,
           "coverage": 0.76
         },
         {
           "area_id": "syn-n0003",
           "feature_id": "homes_flats",
           "value": 21.0,
-          "percentile": 15.9,
+          "percentile": 11.4,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "homes_post2000",
+          "value": 21.2,
+          "percentile": 69.0,
           "coverage": 1.0
         },
         {
           "area_id": "syn-n0003",
           "feature_id": "homes_pre1919",
           "value": 23.7,
-          "percentile": 31.0,
+          "percentile": 40.5,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "incident_antisocial",
+          "value": 13.4,
+          "percentile": 50.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "incident_criminal_damage",
+          "value": 7.8,
+          "percentile": 54.8,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "independents_nearby",
+          "value": 21.0,
+          "percentile": 78.6,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "land_gardens",
+          "value": 11.9,
+          "percentile": 45.2,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "land_industry",
+          "value": 20.9,
+          "percentile": 97.6,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "land_storage",
+          "value": 15.3,
+          "percentile": 97.6,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "land_transport_other",
+          "value": 8.6,
+          "percentile": 97.6,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "land_woodland",
+          "value": 1.0,
+          "percentile": 9.5,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "listed_buildings",
+          "value": 2.9,
+          "percentile": 35.7,
           "coverage": 1.0
         },
         {
           "area_id": "syn-n0003",
           "feature_id": "noise_exposure",
-          "value": 32.1,
-          "percentile": 57.5,
+          "value": 31.5,
+          "percentile": 62.5,
           "coverage": 0.91
         },
         {
           "area_id": "syn-n0003",
-          "feature_id": "park_proximity",
-          "value": 1080.0,
+          "feature_id": "park_facilities",
+          "value": 3.0,
+          "percentile": 14.3,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "park_large_proximity",
+          "value": 2970.0,
           "percentile": 88.1,
           "coverage": 1.0
         },
         {
           "area_id": "syn-n0003",
+          "feature_id": "park_proximity",
+          "value": 1030.0,
+          "percentile": 69.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
           "feature_id": "play_space_proximity",
-          "value": 700.0,
-          "percentile": 76.2,
+          "value": 690.0,
+          "percentile": 69.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "price_median",
+          "value": 184500.0,
+          "percentile": 2.4,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "road_major_exposure",
+          "value": 40.6,
+          "percentile": 54.8,
           "coverage": 1.0
         },
         {
@@ -147,13 +282,13 @@
           "area_id": "syn-n0003",
           "feature_id": "school_primary_nearby",
           "value": 2.0,
-          "percentile": 11.4,
+          "percentile": 18.2,
           "coverage": 1.0
         },
         {
           "area_id": "syn-n0003",
           "feature_id": "school_secondary_attainment",
-          "value": 45.0,
+          "value": 45.2,
           "percentile": 26.2,
           "coverage": 1.0
         },
@@ -167,7 +302,7 @@
         {
           "area_id": "syn-n0003",
           "feature_id": "station_walk",
-          "value": 2.0,
+          "value": 160.0,
           "percentile": 11.4,
           "coverage": 1.0
         },
@@ -189,14 +324,21 @@
           "area_id": "syn-n0003",
           "feature_id": "venue_food_drink",
           "value": 14.2,
-          "percentile": 26.2,
+          "percentile": 21.4,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0003",
+          "feature_id": "venue_food_drink_per_homes",
+          "value": 2.0,
+          "percentile": 2.4,
           "coverage": 1.0
         },
         {
           "area_id": "syn-n0003",
           "feature_id": "venue_independent",
-          "value": 42.6,
-          "percentile": 16.7,
+          "value": 67.4,
+          "percentile": 78.6,
           "coverage": 1.0
         },
         {
@@ -210,87 +352,113 @@
       "tags": [
         {
           "area_id": "syn-n0003",
-          "tag_id": "village_feel",
-          "raw": 0.1918,
-          "score": 11.9,
-          "coverage": 1.0
-        },
-        {
-          "area_id": "syn-n0003",
-          "tag_id": "buzzy",
-          "raw": 0.1955,
-          "score": 21.4,
-          "coverage": 1.0
-        },
-        {
-          "area_id": "syn-n0003",
           "tag_id": "leafy",
-          "raw": 0.29725,
-          "score": 29.5,
-          "coverage": 1.0
+          "raw": 0.2978,
+          "score": 31.0,
+          "coverage": 1.0,
+          "band": 2,
+          "spread_low": 2,
+          "spread_high": 2
         },
         {
           "area_id": "syn-n0003",
-          "tag_id": "creative",
-          "raw": 0.167,
-          "score": 16.7,
-          "coverage": 1.0
+          "tag_id": "village_feel",
+          "raw": 0.59705,
+          "score": 78.6,
+          "coverage": 1.0,
+          "band": 4,
+          "spread_low": 4,
+          "spread_high": 4
         },
         {
           "area_id": "syn-n0003",
-          "tag_id": "family_amenities",
-          "raw": 0.156667,
+          "tag_id": "pace",
+          "raw": 0.14415,
           "score": 11.9,
-          "coverage": 0.75
-        },
-        {
-          "area_id": "syn-n0003",
-          "tag_id": "near_universities",
-          "raw": 0.795,
-          "score": 79.5,
-          "coverage": 1.0
-        },
-        {
-          "area_id": "syn-n0003",
-          "tag_id": "waterside",
-          "raw": 0.295,
-          "score": 29.5,
-          "coverage": 1.0
-        },
-        {
-          "area_id": "syn-n0003",
-          "tag_id": "strong_high_street",
-          "raw": 0.19075,
-          "score": 16.7,
-          "coverage": 1.0
-        },
-        {
-          "area_id": "syn-n0003",
-          "tag_id": "evening_venues",
-          "raw": 0.167,
-          "score": 16.7,
-          "coverage": 1.0
+          "coverage": 1.0,
+          "band": 1,
+          "spread_low": 1,
+          "spread_high": 1
         },
         {
           "area_id": "syn-n0003",
           "tag_id": "quiet_residential",
-          "raw": 0.67715,
-          "score": 69.0,
-          "coverage": 1.0
+          "raw": 0.5003,
+          "score": 59.5,
+          "coverage": 1.0,
+          "band": 3,
+          "spread_low": 3,
+          "spread_high": 3
+        },
+        {
+          "area_id": "syn-n0003",
+          "tag_id": "built_age",
+          "raw": 0.3474,
+          "score": 35.7,
+          "coverage": 1.0,
+          "band": 2,
+          "spread_low": 2,
+          "spread_high": 2
+        },
+        {
+          "area_id": "syn-n0003",
+          "tag_id": "everyday_on_foot",
+          "raw": 0.448857,
+          "score": 26.2,
+          "coverage": 0.7,
+          "band": 2,
+          "spread_low": 2,
+          "spread_high": 2
+        },
+        {
+          "area_id": "syn-n0003",
+          "tag_id": "parks_close_by",
+          "raw": 0.2026,
+          "score": 16.7,
+          "coverage": 1.0,
+          "band": 1,
+          "spread_low": 1,
+          "spread_high": 1
+        },
+        {
+          "area_id": "syn-n0003",
+          "tag_id": "homes",
+          "raw": 0.114,
+          "score": 11.4,
+          "coverage": 0.75,
+          "band": 1,
+          "spread_low": 1,
+          "spread_high": 1
         },
         {
           "area_id": "syn-n0003",
           "tag_id": "foodie",
-          "raw": 0.224,
-          "score": 16.7,
-          "coverage": 1.0
+          "raw": 0.405,
+          "score": 31.0,
+          "coverage": 0.8,
+          "band": 2,
+          "spread_low": 2,
+          "spread_high": 2
         },
         {
           "area_id": "syn-n0003",
-          "tag_id": "historic_character",
-          "raw": 0.247,
-          "score": 18.4,
-          "coverage": 1.0
+          "tag_id": "family_amenities",
+          "raw": 0.2588,
+          "score": 16.7,
+          "coverage": 1.0,
+          "band": 1,
+          "spread_low": 1,
+          "spread_high": 1
+        },
+        {
+          "area_id": "syn-n0003",
+          "tag_id": "street_character",
+          "raw": 0.6769,
+          "score": 78.6,
+          "coverage": 1.0,
+          "band": 4,
+          "spread_low": 4,
+          "spread_high": 4
         }
       ],
       "cost": [
@@ -298,7 +466,7 @@
           "area_id": "syn-n0003",
           "tenure": "rent",
           "segment": "room",
-          "lower_quartile": 400,
+          "lower_quartile": 425,
           "median": 475,
           "upper_quartile": 550,
           "confidence": "medium",
@@ -363,7 +531,7 @@
           "area_id": "syn-n0003",
           "tenure": "rent",
           "segment": "bed_4plus",
-          "lower_quartile": 1725,
+          "lower_quartile": 1750,
           "median": 2000,
           "upper_quartile": 2300,
           "confidence": "medium",
@@ -390,7 +558,7 @@
           "tenure": "buy",
           "segment": "terraced",
           "lower_quartile": 215000,
-          "median": 245000,
+          "median": 250000,
           "upper_quartile": 285000,
           "confidence": "high",
           "as_of": "2026-08",
@@ -402,9 +570,9 @@
           "area_id": "syn-n0003",
           "tenure": "buy",
           "segment": "semi_detached",
-          "lower_quartile": 260000,
-          "median": 300000,
-          "upper_quartile": 345000,
+          "lower_quartile": 265000,
+          "median": 305000,
+          "upper_quartile": 350000,
           "confidence": "high",
           "as_of": "2026-08",
           "source_ids": [
@@ -473,6 +641,362 @@
           "rankable": true
         }
       ],
+      "portrait": {
+        "scales": [
+          {
+            "tag_id": "homes",
+            "fact_id": "syn-n0003/tag/homes",
+            "figure_fact_id": "syn-n0003/feature/homes_flats",
+            "parts": [
+              {
+                "feature_id": "homes_flats",
+                "hundredths": 40,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/homes_flats"
+              },
+              {
+                "feature_id": "homes_density",
+                "hundredths": 35,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/homes_density"
+              },
+              {
+                "feature_id": "private_outdoor_space",
+                "hundredths": 25,
+                "reading": "low",
+                "fact_id": null
+              }
+            ]
+          },
+          {
+            "tag_id": "pace",
+            "fact_id": "syn-n0003/tag/pace",
+            "figure_fact_id": "syn-n0003/feature/venue_food_drink_per_homes",
+            "parts": [
+              {
+                "feature_id": "venue_food_drink_per_homes",
+                "hundredths": 45,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/venue_food_drink_per_homes"
+              },
+              {
+                "feature_id": "highstreet_access",
+                "hundredths": 30,
+                "reading": "low",
+                "fact_id": "syn-n0003/feature/highstreet_access"
+              },
+              {
+                "feature_id": "culture_venues_per_homes",
+                "hundredths": 25,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/culture_venues_per_homes"
+              }
+            ]
+          },
+          {
+            "tag_id": "built_age",
+            "fact_id": "syn-n0003/tag/built_age",
+            "figure_fact_id": "syn-n0003/feature/homes_pre1919",
+            "parts": [
+              {
+                "feature_id": "homes_pre1919",
+                "hundredths": 35,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/homes_pre1919"
+              },
+              {
+                "feature_id": "conservation_cover",
+                "hundredths": 25,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/conservation_cover"
+              },
+              {
+                "feature_id": "listed_buildings",
+                "hundredths": 20,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/listed_buildings"
+              },
+              {
+                "feature_id": "homes_post2000",
+                "hundredths": 20,
+                "reading": "low",
+                "fact_id": "syn-n0003/feature/homes_post2000"
+              }
+            ]
+          },
+          {
+            "tag_id": "street_character",
+            "fact_id": "syn-n0003/tag/street_character",
+            "figure_fact_id": "syn-n0003/feature/incident_criminal_damage",
+            "parts": [
+              {
+                "feature_id": "incident_criminal_damage",
+                "hundredths": 30,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/incident_criminal_damage"
+              },
+              {
+                "feature_id": "land_industry",
+                "hundredths": 15,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/land_industry"
+              },
+              {
+                "feature_id": "land_storage",
+                "hundredths": 15,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/land_storage"
+              },
+              {
+                "feature_id": "incident_antisocial",
+                "hundredths": 15,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/incident_antisocial"
+              },
+              {
+                "feature_id": "road_major_exposure",
+                "hundredths": 15,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/road_major_exposure"
+              },
+              {
+                "feature_id": "noise_exposure",
+                "hundredths": 10,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/noise_exposure"
+              }
+            ]
+          }
+        ],
+        "more": [
+          {
+            "tag_id": "village_feel",
+            "fact_id": "syn-n0003/tag/village_feel",
+            "figure_fact_id": "syn-n0003/feature/independents_nearby",
+            "parts": [
+              {
+                "feature_id": "independents_nearby",
+                "hundredths": 25,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/independents_nearby"
+              },
+              {
+                "feature_id": "centre_small",
+                "hundredths": 20,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/centre_small"
+              },
+              {
+                "feature_id": "centre_compact",
+                "hundredths": 20,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/centre_compact"
+              },
+              {
+                "feature_id": "homes_pre1919",
+                "hundredths": 20,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/homes_pre1919"
+              },
+              {
+                "feature_id": "conservation_cover",
+                "hundredths": 15,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/conservation_cover"
+              }
+            ]
+          }
+        ],
+        "less": [
+          {
+            "tag_id": "family_amenities",
+            "fact_id": "syn-n0003/tag/family_amenities",
+            "figure_fact_id": "syn-n0003/feature/school_primary_nearby",
+            "parts": [
+              {
+                "feature_id": "school_primary_nearby",
+                "hundredths": 40,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/school_primary_nearby"
+              },
+              {
+                "feature_id": "play_space_proximity",
+                "hundredths": 35,
+                "reading": "low",
+                "fact_id": "syn-n0003/feature/play_space_proximity"
+              },
+              {
+                "feature_id": "park_proximity",
+                "hundredths": 25,
+                "reading": "low",
+                "fact_id": "syn-n0003/feature/park_proximity"
+              }
+            ]
+          },
+          {
+            "tag_id": "parks_close_by",
+            "fact_id": "syn-n0003/tag/parks_close_by",
+            "figure_fact_id": "syn-n0003/feature/park_proximity",
+            "parts": [
+              {
+                "feature_id": "park_proximity",
+                "hundredths": 40,
+                "reading": "low",
+                "fact_id": "syn-n0003/feature/park_proximity"
+              },
+              {
+                "feature_id": "park_large_proximity",
+                "hundredths": 30,
+                "reading": "low",
+                "fact_id": "syn-n0003/feature/park_large_proximity"
+              },
+              {
+                "feature_id": "park_facilities",
+                "hundredths": 30,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/park_facilities"
+              }
+            ]
+          },
+          {
+            "tag_id": "everyday_on_foot",
+            "fact_id": "syn-n0003/tag/everyday_on_foot",
+            "figure_fact_id": "syn-n0003/feature/grocery_walk",
+            "parts": [
+              {
+                "feature_id": "grocery_walk",
+                "hundredths": 25,
+                "reading": "low",
+                "fact_id": "syn-n0003/feature/grocery_walk"
+              },
+              {
+                "feature_id": "highstreet_access",
+                "hundredths": 25,
+                "reading": "low",
+                "fact_id": "syn-n0003/feature/highstreet_access"
+              },
+              {
+                "feature_id": "station_walk",
+                "hundredths": 20,
+                "reading": "low",
+                "fact_id": "syn-n0003/feature/station_walk"
+              },
+              {
+                "feature_id": "gp_walk",
+                "hundredths": 15,
+                "reading": "low",
+                "fact_id": null
+              },
+              {
+                "feature_id": "pharmacy_walk",
+                "hundredths": 15,
+                "reading": "low",
+                "fact_id": null
+              }
+            ]
+          }
+        ],
+        "others": [
+          {
+            "tag_id": "leafy",
+            "fact_id": "syn-n0003/tag/leafy",
+            "figure_fact_id": "syn-n0003/feature/land_gardens",
+            "parts": [
+              {
+                "feature_id": "land_gardens",
+                "hundredths": 40,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/land_gardens"
+              },
+              {
+                "feature_id": "land_woodland",
+                "hundredths": 30,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/land_woodland"
+              },
+              {
+                "feature_id": "green_cover",
+                "hundredths": 30,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/green_cover"
+              }
+            ]
+          },
+          {
+            "tag_id": "quiet_residential",
+            "fact_id": "syn-n0003/tag/quiet_residential",
+            "figure_fact_id": "syn-n0003/feature/road_major_exposure",
+            "parts": [
+              {
+                "feature_id": "road_major_exposure",
+                "hundredths": 40,
+                "reading": "low",
+                "fact_id": "syn-n0003/feature/road_major_exposure"
+              },
+              {
+                "feature_id": "evening_cluster_exposure",
+                "hundredths": 30,
+                "reading": "low",
+                "fact_id": "syn-n0003/feature/evening_cluster_exposure"
+              },
+              {
+                "feature_id": "noise_exposure",
+                "hundredths": 30,
+                "reading": "low",
+                "fact_id": "syn-n0003/feature/noise_exposure"
+              }
+            ]
+          },
+          {
+            "tag_id": "foodie",
+            "fact_id": "syn-n0003/tag/foodie",
+            "figure_fact_id": "syn-n0003/feature/venue_food_drink_per_homes",
+            "parts": [
+              {
+                "feature_id": "venue_food_drink_per_homes",
+                "hundredths": 40,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/venue_food_drink_per_homes"
+              },
+              {
+                "feature_id": "independents_nearby",
+                "hundredths": 40,
+                "reading": "high",
+                "fact_id": "syn-n0003/feature/independents_nearby"
+              },
+              {
+                "feature_id": "cuisine_variety",
+                "hundredths": 20,
+                "reading": "high",
+                "fact_id": null
+              }
+            ]
+          }
+        ],
+        "unplaced": []
+      },
+      "similar": [
+        {
+          "area_id": "syn-n0008",
+          "fact_id": "syn-n0003/likeness/syn-n0008"
+        },
+        {
+          "area_id": "syn-n0001",
+          "fact_id": "syn-n0003/likeness/syn-n0001"
+        },
+        {
+          "area_id": "syn-n0024",
+          "fact_id": "syn-n0003/likeness/syn-n0024"
+        },
+        {
+          "area_id": "syn-n0016",
+          "fact_id": "syn-n0003/likeness/syn-n0016"
+        },
+        {
+          "area_id": "syn-n0014",
+          "fact_id": "syn-n0003/likeness/syn-n0014"
+        }
+      ],
       "facts": [
         {
           "fact_id": "syn-n0003/area/name",
@@ -493,7 +1017,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-09-23",
@@ -526,7 +1051,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-08",
@@ -559,7 +1085,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-08",
@@ -574,16 +1101,16 @@
           "template": "cost_buy",
           "slots": {
             "segment": "semi-detached house",
-            "lower": "260,000",
-            "median": "300,000",
-            "upper": "345,000",
+            "lower": "265,000",
+            "median": "305,000",
+            "upper": "350,000",
             "as_of": "August 2026",
             "confidence": "high"
           },
           "numbers": [
-            "£260000",
-            "£300000",
-            "£345000",
+            "£265000",
+            "£305000",
+            "£350000",
             "2026",
             "08",
             "8"
@@ -592,7 +1119,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-08",
@@ -608,14 +1136,14 @@
           "slots": {
             "segment": "terraced house",
             "lower": "215,000",
-            "median": "245,000",
+            "median": "250,000",
             "upper": "285,000",
             "as_of": "August 2026",
             "confidence": "high"
           },
           "numbers": [
             "£215000",
-            "£245000",
+            "£250000",
             "£285000",
             "2026",
             "08",
@@ -625,7 +1153,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-08",
@@ -658,7 +1187,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-08",
@@ -691,7 +1221,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-08",
@@ -724,7 +1255,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-08",
@@ -739,14 +1271,14 @@
           "template": "cost_rent",
           "slots": {
             "segment": "home with 4 or more bedrooms",
-            "lower": "1,725",
+            "lower": "1,750",
             "median": "2,000",
             "upper": "2,300",
             "as_of": "August 2026",
             "confidence": "medium"
           },
           "numbers": [
-            "£1725",
+            "£1750",
             "£2000",
             "£2300",
             "2026",
@@ -757,7 +1289,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-08",
@@ -772,14 +1305,14 @@
           "template": "cost_rent",
           "slots": {
             "segment": "room in a shared home",
-            "lower": "400",
+            "lower": "425",
             "median": "475",
             "upper": "550",
             "as_of": "August 2026",
             "confidence": "medium"
           },
           "numbers": [
-            "£400",
+            "£425",
             "£475",
             "£550",
             "2026",
@@ -790,7 +1323,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-08",
@@ -823,7 +1357,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-08",
@@ -838,24 +1373,99 @@
           "template": "feature",
           "slots": {
             "label": "Modelled annual mean nitrogen dioxide",
-            "value": "23.3 µg/m³",
-            "comparative": "higher than",
-            "pct": "50",
-            "compared": "20",
-            "level": "1",
-            "standing": "higher than 50% of the 20 areas compared in this release, and the same as 1 other"
+            "value": "23 µg/m³",
+            "band": "3",
+            "comparative": "lower than",
+            "pct": "45",
+            "standing": "lower than 45% of the 20 areas compared in this release",
+            "comparative_worse": "higher than",
+            "pct_worse": "50",
+            "standing_worse": "higher than 50% of the 20 areas compared in this release",
+            "compared": "20"
           },
           "numbers": [
-            "23.3",
-            "50%",
+            "23",
+            "45%",
             "20",
-            "1"
+            "50%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/centre_compact",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "centre_compact",
+          "label": "Share of the nearest town centre within 200 m of its middle",
+          "template": "feature",
+          "slots": {
+            "label": "Share of the nearest town centre within 200 m of its middle",
+            "value": "44%",
+            "band": "5",
+            "comparative": "more than",
+            "pct": "85",
+            "standing": "more than 85% of the 21 areas compared in this release",
+            "comparative_worse": "less than",
+            "pct_worse": "9",
+            "standing_worse": "less than 9% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "44%",
+            "85%",
+            "21",
+            "9%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/centre_small",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "centre_small",
+          "label": "Share of homes whose nearest town centre is a small one",
+          "template": "feature",
+          "slots": {
+            "label": "Share of homes whose nearest town centre is a small one",
+            "value": "56%",
+            "band": "3",
+            "comparative": "more than",
+            "pct": "47",
+            "standing": "more than 47% of the 21 areas compared in this release",
+            "comparative_worse": "less than",
+            "pct_worse": "47",
+            "standing_worse": "less than 47% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "56%",
+            "47%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -871,21 +1481,27 @@
           "slots": {
             "label": "Share of the area in a conservation area",
             "value": "6%",
-            "comparative": "less than",
-            "pct": "78",
-            "compared": "19",
-            "standing": "less than 78% of the 19 areas compared in this release"
+            "band": "2",
+            "comparative": "more than",
+            "pct": "26",
+            "standing": "more than 26% of the 19 areas compared in this release",
+            "comparative_worse": "less than",
+            "pct_worse": "68",
+            "standing_worse": "less than 68% of the 19 areas compared in this release",
+            "compared": "19"
           },
           "numbers": [
             "6%",
-            "78%",
-            "19"
+            "26%",
+            "19",
+            "68%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -901,21 +1517,27 @@
           "slots": {
             "label": "Recorded burglary and theft",
             "value": "27.6 per 1,000 residents a year",
+            "band": "1",
             "comparative": "less than",
             "pct": "90",
-            "compared": "21",
-            "standing": "less than 90% of the 21 areas compared in this release"
+            "standing": "less than 90% of the 21 areas compared in this release",
+            "comparative_worse": "more than",
+            "pct_worse": "4",
+            "standing_worse": "more than 4% of the 21 areas compared in this release",
+            "compared": "21"
           },
           "numbers": [
             "27.6",
             "90%",
-            "21"
+            "21",
+            "4%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -931,10 +1553,14 @@
           "slots": {
             "label": "Recorded violence and robbery",
             "value": "15.9 per 1,000 residents a year",
-            "comparative": "more than",
+            "band": "3",
+            "comparative": "less than",
             "pct": "47",
-            "compared": "21",
-            "standing": "more than 47% of the 21 areas compared in this release"
+            "standing": "less than 47% of the 21 areas compared in this release",
+            "comparative_worse": "more than",
+            "pct_worse": "47",
+            "standing_worse": "more than 47% of the 21 areas compared in this release",
+            "compared": "21"
           },
           "numbers": [
             "15.9",
@@ -945,7 +1571,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -956,26 +1583,108 @@
           "area_id": "syn-n0003",
           "kind": "feature",
           "key": "culture_venues",
-          "label": "Theatres, cinemas, galleries, museums, libraries and music venues",
+          "label": "Museums, galleries, theatres, cinemas, music venues and libraries within 800 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Theatres, cinemas, galleries, museums, libraries and music venues",
-            "value": "1.2 per km²",
-            "comparative": "fewer than",
-            "pct": "80",
+            "label": "Museums, galleries, theatres, cinemas, music venues and libraries within 800 m of home, in a straight line",
+            "value": "1.7",
+            "band": "2",
+            "comparative": "more than",
+            "pct": "38",
+            "standing": "more than 38% of the 21 areas compared in this release, and the same as 1 other",
+            "comparative_worse": "fewer than",
+            "pct_worse": "52",
+            "standing_worse": "fewer than 52% of the 21 areas compared in this release, and the same as 1 other",
             "compared": "21",
-            "standing": "fewer than 80% of the 21 areas compared in this release"
+            "level": "1"
           },
           "numbers": [
-            "1.2",
-            "80%",
-            "21"
+            "1.7",
+            "38%",
+            "21",
+            "1",
+            "52%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/culture_venues_per_homes",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "culture_venues_per_homes",
+          "label": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line",
+            "value": "1.8 per 1,000 homes",
+            "band": "2",
+            "comparative": "more than",
+            "pct": "28",
+            "standing": "more than 28% of the 21 areas compared in this release, and the same as 1 other",
+            "comparative_worse": "fewer than",
+            "pct_worse": "61",
+            "standing_worse": "fewer than 61% of the 21 areas compared in this release, and the same as 1 other",
+            "compared": "21",
+            "level": "1"
+          },
+          "numbers": [
+            "1.8",
+            "28%",
+            "21",
+            "1",
+            "61%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/evening_cluster_exposure",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "evening_cluster_exposure",
+          "label": "Share of homes within 150 m of a cluster of evening venues",
+          "template": "feature",
+          "slots": {
+            "label": "Share of homes within 150 m of a cluster of evening venues",
+            "value": "2%",
+            "band": "2",
+            "comparative": "less than",
+            "pct": "66",
+            "standing": "less than 66% of the 21 areas compared in this release",
+            "comparative_worse": "more than",
+            "pct_worse": "28",
+            "standing_worse": "more than 28% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "2%",
+            "66%",
+            "21",
+            "28%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -986,26 +1695,70 @@
           "area_id": "syn-n0003",
           "kind": "feature",
           "key": "green_cover",
-          "label": "Public green space as a share of the area",
+          "label": "Public parks and gardens as a share of the area",
           "template": "feature",
           "slots": {
-            "label": "Public green space as a share of the area",
-            "value": "12%",
-            "comparative": "less green than",
-            "pct": "86",
-            "compared": "22",
-            "standing": "less green than 86% of the 22 areas compared in this release"
+            "label": "Public parks and gardens as a share of the area",
+            "value": "14%",
+            "band": "2",
+            "comparative": "more than",
+            "pct": "27",
+            "standing": "more than 27% of the 22 areas compared in this release",
+            "comparative_worse": "less than",
+            "pct_worse": "68",
+            "standing_worse": "less than 68% of the 22 areas compared in this release",
+            "compared": "22"
           },
           "numbers": [
-            "12%",
-            "86%",
-            "22"
+            "14%",
+            "27%",
+            "22",
+            "68%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/grocery_walk",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "grocery_walk",
+          "label": "Walk to the nearest food shop",
+          "template": "feature",
+          "slots": {
+            "label": "Walk to the nearest food shop",
+            "value": "8 min",
+            "band": "3",
+            "comparative": "closer than",
+            "pct": "28",
+            "standing": "closer than 28% of the 21 areas compared in this release, and the same as 3 others",
+            "comparative_worse": "further than",
+            "pct_worse": "52",
+            "standing_worse": "further than 52% of the 21 areas compared in this release, and the same as 3 others",
+            "compared": "21",
+            "level": "3"
+          },
+          "numbers": [
+            "8",
+            "28%",
+            "21",
+            "3",
+            "52%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1016,26 +1769,32 @@
           "area_id": "syn-n0003",
           "kind": "feature",
           "key": "highstreet_access",
-          "label": "Share of homes within a 10-minute walk of a high street or town centre",
+          "label": "Straight-line distance to the nearest town centre boundary",
           "template": "feature",
           "slots": {
-            "label": "Share of homes within a 10-minute walk of a high street or town centre",
-            "value": "47%",
-            "comparative": "less than",
-            "pct": "80",
-            "compared": "21",
-            "standing": "less than 80% of the 21 areas compared in this release"
+            "label": "Straight-line distance to the nearest town centre boundary",
+            "value": "1,580 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "14",
+            "standing": "closer than 14% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "80",
+            "standing_worse": "further than 80% of the 21 areas compared in this release",
+            "compared": "21"
           },
           "numbers": [
-            "47%",
-            "80%",
-            "21"
+            "1580",
+            "14%",
+            "21",
+            "80%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1050,22 +1809,28 @@
           "template": "feature",
           "slots": {
             "label": "Homes per hectare",
-            "value": "20.5 per ha",
-            "comparative": "less dense than",
-            "pct": "81",
-            "compared": "22",
-            "standing": "less dense than 81% of the 22 areas compared in this release"
+            "value": "20 per ha",
+            "band": "1",
+            "comparative": "denser than",
+            "pct": "9",
+            "standing": "denser than 9% of the 22 areas compared in this release",
+            "comparative_worse": "less dense than",
+            "pct_worse": "86",
+            "standing_worse": "less dense than 86% of the 22 areas compared in this release",
+            "compared": "22"
           },
           "numbers": [
-            "20.5",
-            "81%",
-            "22"
+            "20",
+            "9%",
+            "22",
+            "86%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1081,21 +1846,63 @@
           "slots": {
             "label": "Flats as a share of homes",
             "value": "21%",
-            "comparative": "fewer than",
-            "pct": "81",
-            "compared": "22",
-            "standing": "fewer than 81% of the 22 areas compared in this release"
+            "band": "1",
+            "comparative": "more than",
+            "pct": "9",
+            "standing": "more than 9% of the 22 areas compared in this release",
+            "comparative_worse": "fewer than",
+            "pct_worse": "86",
+            "standing_worse": "fewer than 86% of the 22 areas compared in this release",
+            "compared": "22"
           },
           "numbers": [
             "21%",
-            "81%",
-            "22"
+            "9%",
+            "22",
+            "86%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/homes_post2000",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "homes_post2000",
+          "label": "Homes built since 2000",
+          "template": "feature",
+          "slots": {
+            "label": "Homes built since 2000",
+            "value": "21%",
+            "band": "4",
+            "comparative": "more than",
+            "pct": "66",
+            "standing": "more than 66% of the 21 areas compared in this release",
+            "comparative_worse": "fewer than",
+            "pct_worse": "28",
+            "standing_worse": "fewer than 28% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "21%",
+            "66%",
+            "21",
+            "28%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1111,21 +1918,348 @@
           "slots": {
             "label": "Homes built before 1919",
             "value": "24%",
-            "comparative": "fewer than",
-            "pct": "66",
-            "compared": "21",
-            "standing": "fewer than 66% of the 21 areas compared in this release"
+            "band": "2",
+            "comparative": "more than",
+            "pct": "38",
+            "standing": "more than 38% of the 21 areas compared in this release",
+            "comparative_worse": "fewer than",
+            "pct_worse": "57",
+            "standing_worse": "fewer than 57% of the 21 areas compared in this release",
+            "compared": "21"
           },
           "numbers": [
             "24%",
-            "66%",
+            "38%",
+            "21",
+            "57%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/incident_antisocial",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "incident_antisocial",
+          "label": "Recorded anti-social behaviour",
+          "template": "feature_crime",
+          "slots": {
+            "label": "Recorded anti-social behaviour",
+            "value": "13.4 per 1,000 homes a year",
+            "band": "3",
+            "comparative": "less than",
+            "pct": "47",
+            "standing": "less than 47% of the 21 areas compared in this release",
+            "comparative_worse": "more than",
+            "pct_worse": "47",
+            "standing_worse": "more than 47% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "13.4",
+            "47%",
             "21"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/incident_criminal_damage",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "incident_criminal_damage",
+          "label": "Recorded criminal damage and arson",
+          "template": "feature_crime",
+          "slots": {
+            "label": "Recorded criminal damage and arson",
+            "value": "7.8 per 1,000 homes a year",
+            "band": "3",
+            "comparative": "less than",
+            "pct": "42",
+            "standing": "less than 42% of the 21 areas compared in this release",
+            "comparative_worse": "more than",
+            "pct_worse": "52",
+            "standing_worse": "more than 52% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "7.8",
+            "42%",
+            "21",
+            "52%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/independents_nearby",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "independents_nearby",
+          "label": "Independent places to eat and drink within a 10-minute walk",
+          "template": "feature",
+          "slots": {
+            "label": "Independent places to eat and drink within a 10-minute walk",
+            "value": "21",
+            "band": "4",
+            "comparative": "more than",
+            "pct": "76",
+            "standing": "more than 76% of the 21 areas compared in this release",
+            "comparative_worse": "fewer than",
+            "pct_worse": "19",
+            "standing_worse": "fewer than 19% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "21",
+            "76%",
+            "19%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/land_gardens",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "land_gardens",
+          "label": "Land that is residential garden",
+          "template": "feature",
+          "slots": {
+            "label": "Land that is residential garden",
+            "value": "12%",
+            "band": "3",
+            "comparative": "more than",
+            "pct": "42",
+            "standing": "more than 42% of the 21 areas compared in this release",
+            "comparative_worse": "less than",
+            "pct_worse": "52",
+            "standing_worse": "less than 52% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "12%",
+            "42%",
+            "21",
+            "52%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/land_industry",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "land_industry",
+          "label": "Land used for industry",
+          "template": "feature",
+          "slots": {
+            "label": "Land used for industry",
+            "value": "21%",
+            "band": "5",
+            "comparative": "more than",
+            "pct": "95",
+            "standing": "more than 95% of the 21 areas compared in this release",
+            "standing_worse": "less than none of the 20 other areas compared in this release",
+            "comparative_worse": "less than",
+            "compared": "21"
+          },
+          "numbers": [
+            "21%",
+            "95%",
+            "21",
+            "20"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/land_storage",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "land_storage",
+          "label": "Land used for storage and warehousing",
+          "template": "feature",
+          "slots": {
+            "label": "Land used for storage and warehousing",
+            "value": "15%",
+            "band": "5",
+            "comparative": "more than",
+            "pct": "95",
+            "standing": "more than 95% of the 21 areas compared in this release",
+            "standing_worse": "less than none of the 20 other areas compared in this release",
+            "comparative_worse": "less than",
+            "compared": "21"
+          },
+          "numbers": [
+            "15%",
+            "95%",
+            "21",
+            "20"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/land_transport_other",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "land_transport_other",
+          "label": "Land used for transport other than roads, such as railways, airports and docks",
+          "template": "feature",
+          "slots": {
+            "label": "Land used for transport other than roads, such as railways, airports and docks",
+            "value": "9%",
+            "band": "5",
+            "comparative": "more than",
+            "pct": "95",
+            "standing": "more than 95% of the 21 areas compared in this release",
+            "standing_worse": "fewer than none of the 20 other areas compared in this release",
+            "comparative_worse": "fewer than",
+            "compared": "21"
+          },
+          "numbers": [
+            "9%",
+            "95%",
+            "21",
+            "20"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/land_woodland",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "land_woodland",
+          "label": "Land that is woodland",
+          "template": "feature",
+          "slots": {
+            "label": "Land that is woodland",
+            "value": "1%",
+            "band": "1",
+            "comparative": "more than",
+            "pct": "4",
+            "standing": "more than 4% of the 21 areas compared in this release, and the same as 1 other",
+            "comparative_worse": "less than",
+            "pct_worse": "85",
+            "standing_worse": "less than 85% of the 21 areas compared in this release, and the same as 1 other",
+            "compared": "21",
+            "level": "1"
+          },
+          "numbers": [
+            "1%",
+            "4%",
+            "21",
+            "1",
+            "85%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/listed_buildings",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "listed_buildings",
+          "label": "Listed buildings",
+          "template": "feature",
+          "slots": {
+            "label": "Listed buildings",
+            "value": "2.9 per km²",
+            "band": "2",
+            "comparative": "more than",
+            "pct": "33",
+            "standing": "more than 33% of the 21 areas compared in this release",
+            "comparative_worse": "fewer than",
+            "pct_worse": "61",
+            "standing_worse": "fewer than 61% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "2.9",
+            "33%",
+            "21",
+            "61%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1136,26 +2270,105 @@
           "area_id": "syn-n0003",
           "kind": "feature",
           "key": "noise_exposure",
-          "label": "Share of homes at 55 dB or more of transport noise",
+          "label": "Share of residents exposed to 55 dB or more of transport noise",
           "template": "feature",
           "slots": {
-            "label": "Share of homes at 55 dB or more of transport noise",
+            "label": "Share of residents exposed to 55 dB or more of transport noise",
             "value": "32%",
-            "comparative": "noisier than",
-            "pct": "55",
-            "compared": "20",
-            "standing": "noisier than 55% of the 20 areas compared in this release"
+            "band": "4",
+            "comparative": "quieter than",
+            "pct": "35",
+            "standing": "quieter than 35% of the 20 areas compared in this release",
+            "comparative_worse": "noisier than",
+            "pct_worse": "60",
+            "standing_worse": "noisier than 60% of the 20 areas compared in this release",
+            "compared": "20"
           },
           "numbers": [
             "32%",
-            "55%",
-            "20"
+            "35%",
+            "20",
+            "60%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/park_facilities",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "park_facilities",
+          "label": "Kinds of thing to do in parks within a 15-minute walk",
+          "template": "feature",
+          "slots": {
+            "label": "Kinds of thing to do in parks within a 15-minute walk",
+            "value": "3",
+            "band": "1",
+            "comparative": "more than",
+            "pct": "4",
+            "standing": "more than 4% of the 21 areas compared in this release, and the same as 3 others",
+            "comparative_worse": "fewer than",
+            "pct_worse": "76",
+            "standing_worse": "fewer than 76% of the 21 areas compared in this release, and the same as 3 others",
+            "compared": "21",
+            "level": "3"
+          },
+          "numbers": [
+            "3",
+            "4%",
+            "21",
+            "76%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/park_large_proximity",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "park_large_proximity",
+          "label": "Straight-line distance to the nearest marked way into a park of 20 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest marked way into a park of 20 ha or more",
+            "value": "2,970 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "9",
+            "standing": "closer than 9% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "85",
+            "standing_worse": "further than 85% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "2970",
+            "9%",
+            "21",
+            "85%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1166,26 +2379,32 @@
           "area_id": "syn-n0003",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Walk to the nearest park of 2 ha or more",
+          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
           "template": "feature",
           "slots": {
-            "label": "Walk to the nearest park of 2 ha or more",
-            "value": "1080 m",
-            "comparative": "further than",
-            "pct": "85",
-            "compared": "21",
-            "standing": "further than 85% of the 21 areas compared in this release"
+            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "value": "1,030 m",
+            "band": "4",
+            "comparative": "closer than",
+            "pct": "28",
+            "standing": "closer than 28% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "66",
+            "standing_worse": "further than 66% of the 21 areas compared in this release",
+            "compared": "21"
           },
           "numbers": [
-            "1080",
-            "85%",
-            "21"
+            "1030",
+            "28%",
+            "21",
+            "66%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1196,28 +2415,103 @@
           "area_id": "syn-n0003",
           "kind": "feature",
           "key": "play_space_proximity",
-          "label": "Walk to the nearest play space",
+          "label": "Straight-line distance to the nearest marked way into a play space",
           "template": "feature",
           "slots": {
-            "label": "Walk to the nearest play space",
-            "value": "700 m",
-            "comparative": "further than",
-            "pct": "66",
-            "compared": "21",
-            "level": "3",
-            "standing": "further than 66% of the 21 areas compared in this release, and the same as 3 others"
+            "label": "Straight-line distance to the nearest marked way into a play space",
+            "value": "690 m",
+            "band": "4",
+            "comparative": "closer than",
+            "pct": "28",
+            "standing": "closer than 28% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "66",
+            "standing_worse": "further than 66% of the 21 areas compared in this release",
+            "compared": "21"
           },
           "numbers": [
-            "700",
-            "66%",
+            "690",
+            "28%",
             "21",
-            "3"
+            "66%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/price_median",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "price_median",
+          "label": "Median price paid for a home",
+          "template": "feature",
+          "slots": {
+            "label": "Median price paid for a home",
+            "value": "£184,500",
+            "band": "1",
+            "standing": "dearer than none of the 20 other areas compared in this release",
+            "comparative": "dearer than",
+            "comparative_worse": "cheaper than",
+            "pct_worse": "95",
+            "standing_worse": "cheaper than 95% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "£184500",
+            "20",
+            "95%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/road_major_exposure",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "road_major_exposure",
+          "label": "Share of homes within 100 m of a main road",
+          "template": "feature",
+          "slots": {
+            "label": "Share of homes within 100 m of a main road",
+            "value": "41%",
+            "band": "3",
+            "comparative": "less than",
+            "pct": "42",
+            "standing": "less than 42% of the 21 areas compared in this release",
+            "comparative_worse": "more than",
+            "pct_worse": "52",
+            "standing_worse": "more than 52% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "41%",
+            "42%",
+            "21",
+            "52%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1228,28 +2522,32 @@
           "area_id": "syn-n0003",
           "kind": "feature",
           "key": "school_primary_nearby",
-          "label": "State primary schools within a short walk",
+          "label": "State primary schools within 800 m in a straight line",
           "template": "feature",
           "slots": {
-            "label": "State primary schools within a short walk",
+            "label": "State primary schools within 800 m in a straight line",
             "value": "2",
-            "comparative": "fewer than",
-            "pct": "77",
+            "band": "1",
+            "standing": "the same as 7 of the 21 other areas compared in this release",
+            "comparative_worse": "fewer than",
+            "pct_worse": "63",
+            "standing_worse": "fewer than 63% of the 22 areas compared in this release, and the same as 7 others",
             "compared": "22",
-            "level": "4",
-            "standing": "fewer than 77% of the 22 areas compared in this release, and the same as 4 others"
+            "level": "7"
           },
           "numbers": [
             "2",
-            "77%",
-            "22",
-            "4"
+            "7",
+            "21",
+            "63%",
+            "22"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1264,22 +2562,28 @@
           "template": "feature",
           "slots": {
             "label": "Attainment 8 at nearby secondaries",
-            "value": "45 points",
-            "comparative": "lower than",
-            "pct": "71",
-            "compared": "21",
-            "standing": "lower than 71% of the 21 areas compared in this release"
+            "value": "45.2 points",
+            "band": "2",
+            "comparative": "higher than",
+            "pct": "23",
+            "standing": "higher than 23% of the 21 areas compared in this release",
+            "comparative_worse": "lower than",
+            "pct_worse": "71",
+            "standing_worse": "lower than 71% of the 21 areas compared in this release",
+            "compared": "21"
           },
           "numbers": [
-            "45",
-            "71%",
-            "21"
+            "45.2",
+            "23%",
+            "21",
+            "71%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1295,23 +2599,29 @@
           "slots": {
             "label": "Lines within a 10-minute walk",
             "value": "1",
+            "band": "2",
             "comparative": "more than",
             "pct": "31",
+            "standing": "more than 31% of the 22 areas compared in this release, and the same as 11 others",
+            "comparative_worse": "fewer than",
+            "pct_worse": "13",
+            "standing_worse": "fewer than 13% of the 22 areas compared in this release, and the same as 11 others",
             "compared": "22",
-            "level": "11",
-            "standing": "more than 31% of the 22 areas compared in this release, and the same as 11 others"
+            "level": "11"
           },
           "numbers": [
             "1",
             "31%",
             "22",
-            "11"
+            "11",
+            "13%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1322,28 +2632,32 @@
           "area_id": "syn-n0003",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Walk to the nearest station",
+          "label": "Straight-line distance to the nearest way in to a station",
           "template": "feature",
           "slots": {
-            "label": "Walk to the nearest station",
-            "value": "2 min",
+            "label": "Straight-line distance to the nearest way in to a station",
+            "value": "160 m",
+            "band": "1",
             "comparative": "closer than",
             "pct": "77",
+            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others",
+            "standing_worse": "the same as 4 of the 21 other areas compared in this release",
             "compared": "22",
-            "level": "4",
-            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others"
+            "level": "4"
           },
           "numbers": [
-            "2",
+            "160",
             "77%",
             "22",
-            "4"
+            "4",
+            "21"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1358,22 +2672,28 @@
           "template": "feature",
           "slots": {
             "label": "Distance to the nearest university site",
-            "value": "2830 m",
+            "value": "2,830 m",
+            "band": "1",
             "comparative": "closer than",
             "pct": "77",
-            "compared": "22",
-            "standing": "closer than 77% of the 22 areas compared in this release"
+            "standing": "closer than 77% of the 22 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "18",
+            "standing_worse": "further than 18% of the 22 areas compared in this release",
+            "compared": "22"
           },
           "numbers": [
             "2830",
             "77%",
-            "22"
+            "22",
+            "18%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1389,21 +2709,27 @@
           "slots": {
             "label": "Pubs, bars and evening venues",
             "value": "2.1 per km²",
-            "comparative": "fewer than",
-            "pct": "80",
-            "compared": "21",
-            "standing": "fewer than 80% of the 21 areas compared in this release"
+            "band": "1",
+            "comparative": "more than",
+            "pct": "14",
+            "standing": "more than 14% of the 21 areas compared in this release",
+            "comparative_worse": "fewer than",
+            "pct_worse": "80",
+            "standing_worse": "fewer than 80% of the 21 areas compared in this release",
+            "compared": "21"
           },
           "numbers": [
             "2.1",
-            "80%",
-            "21"
+            "14%",
+            "21",
+            "80%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1414,26 +2740,67 @@
           "area_id": "syn-n0003",
           "kind": "feature",
           "key": "venue_food_drink",
-          "label": "Places to eat and drink",
+          "label": "Places to eat and drink within 800 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Places to eat and drink",
-            "value": "14.2 per km²",
-            "comparative": "fewer than",
-            "pct": "71",
-            "compared": "21",
-            "standing": "fewer than 71% of the 21 areas compared in this release"
+            "label": "Places to eat and drink within 800 m of home, in a straight line",
+            "value": "14.2",
+            "band": "1",
+            "comparative": "more than",
+            "pct": "19",
+            "standing": "more than 19% of the 21 areas compared in this release",
+            "comparative_worse": "fewer than",
+            "pct_worse": "76",
+            "standing_worse": "fewer than 76% of the 21 areas compared in this release",
+            "compared": "21"
           },
           "numbers": [
             "14.2",
-            "71%",
+            "19%",
+            "21",
+            "76%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/venue_food_drink_per_homes",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "venue_food_drink_per_homes",
+          "label": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line",
+            "value": "2 per 1,000 homes",
+            "band": "1",
+            "standing": "more than none of the 20 other areas compared in this release",
+            "comparative": "more than",
+            "comparative_worse": "fewer than",
+            "pct_worse": "95",
+            "standing_worse": "fewer than 95% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "2",
+            "20",
+            "95%",
             "21"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1448,22 +2815,28 @@
           "template": "feature",
           "slots": {
             "label": "Places to eat and drink that are not part of a chain",
-            "value": "43%",
-            "comparative": "fewer than",
-            "pct": "80",
-            "compared": "21",
-            "standing": "fewer than 80% of the 21 areas compared in this release"
+            "value": "67%",
+            "band": "4",
+            "comparative": "more than",
+            "pct": "76",
+            "standing": "more than 76% of the 21 areas compared in this release",
+            "comparative_worse": "fewer than",
+            "pct_worse": "19",
+            "standing_worse": "fewer than 19% of the 21 areas compared in this release",
+            "compared": "21"
           },
           "numbers": [
-            "43%",
-            "80%",
-            "21"
+            "67%",
+            "76%",
+            "21",
+            "19%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1474,28 +2847,192 @@
           "area_id": "syn-n0003",
           "kind": "feature",
           "key": "water_access",
-          "label": "Share of the area within 300 m of a river or canal",
+          "label": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake",
           "template": "feature",
           "slots": {
-            "label": "Share of the area within 300 m of a river or canal",
+            "label": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake",
             "value": "0%",
-            "comparative": "less than",
-            "pct": "40",
+            "band": "1",
+            "standing": "the same as 12 of the 21 other areas compared in this release",
+            "comparative_worse": "less than",
+            "pct_worse": "40",
+            "standing_worse": "less than 40% of the 22 areas compared in this release, and the same as 12 others",
             "compared": "22",
-            "level": "12",
-            "standing": "less than 40% of the 22 areas compared in this release, and the same as 12 others"
+            "level": "12"
           },
           "numbers": [
             "0%",
+            "12",
+            "21",
             "40%",
-            "22",
-            "12"
+            "22"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/likeness/syn-n0001",
+          "area_id": "syn-n0003",
+          "kind": "likeness",
+          "key": "syn-n0001",
+          "label": "Likeness",
+          "template": "likeness",
+          "slots": {
+            "name": "Cindermoor",
+            "other": "Alderwick",
+            "same": "7",
+            "measures": "23",
+            "family": "Streets and homes"
+          },
+          "numbers": [
+            "7",
+            "23"
+          ],
+          "names": [
+            "Cindermoor",
+            "Alderwick"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/likeness/syn-n0008",
+          "area_id": "syn-n0003",
+          "kind": "likeness",
+          "key": "syn-n0008",
+          "label": "Likeness",
+          "template": "likeness",
+          "slots": {
+            "name": "Cindermoor",
+            "other": "Gorsebeck",
+            "same": "9",
+            "measures": "22",
+            "family": "Daily life"
+          },
+          "numbers": [
+            "9",
+            "22"
+          ],
+          "names": [
+            "Cindermoor",
+            "Gorsebeck"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/likeness/syn-n0014",
+          "area_id": "syn-n0003",
+          "kind": "likeness",
+          "key": "syn-n0014",
+          "label": "Likeness",
+          "template": "likeness",
+          "slots": {
+            "name": "Cindermoor",
+            "other": "Marrowfen",
+            "same": "6",
+            "measures": "22",
+            "family": "Daily life"
+          },
+          "numbers": [
+            "6",
+            "22"
+          ],
+          "names": [
+            "Cindermoor",
+            "Marrowfen"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/likeness/syn-n0016",
+          "area_id": "syn-n0003",
+          "kind": "likeness",
+          "key": "syn-n0016",
+          "label": "Likeness",
+          "template": "likeness",
+          "slots": {
+            "name": "Cindermoor",
+            "other": "Ostrel Vale",
+            "same": "6",
+            "measures": "23",
+            "family": "Daily life"
+          },
+          "numbers": [
+            "6",
+            "23"
+          ],
+          "names": [
+            "Cindermoor",
+            "Ostrel Vale"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/likeness/syn-n0024",
+          "area_id": "syn-n0003",
+          "kind": "likeness",
+          "key": "syn-n0024",
+          "label": "Likeness",
+          "template": "likeness",
+          "slots": {
+            "name": "Cindermoor",
+            "other": "Wickerford",
+            "same": "6",
+            "measures": "23",
+            "family": "Streets and homes"
+          },
+          "numbers": [
+            "6",
+            "23"
+          ],
+          "names": [
+            "Cindermoor",
+            "Wickerford"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -1523,94 +3060,96 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-09",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0003/tag/buzzy",
+          "fact_id": "syn-n0003/tag/built_age",
           "area_id": "syn-n0003",
           "kind": "tag",
-          "key": "buzzy",
-          "label": "Buzzy",
-          "template": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
           "slots": {
-            "label": "Buzzy",
-            "comparative": "below",
-            "pct": "76",
+            "label": "Age of buildings",
+            "band": "2",
+            "low_end": "Newer",
+            "high_end": "Historic",
             "compared": "21",
-            "standing": "below 76% of the 21 areas compared in this release"
+            "span": "2025",
+            "spread_low": "2",
+            "spread_high": "2",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "76%",
-            "21"
+            "2",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
-          "as_of": "2026-09-23",
+          "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0003/tag/creative",
+          "fact_id": "syn-n0003/tag/everyday_on_foot",
           "area_id": "syn-n0003",
           "kind": "tag",
-          "key": "creative",
-          "label": "Creative",
-          "template": "tag",
+          "key": "everyday_on_foot",
+          "label": "Everyday on foot",
+          "template": "vibe",
           "slots": {
-            "label": "Creative",
-            "comparative": "below",
-            "pct": "80",
+            "label": "Everyday on foot",
+            "band": "2",
+            "low_end": "least",
+            "high_end": "most",
             "compared": "21",
-            "standing": "below 80% of the 21 areas compared in this release"
+            "span": "2025",
+            "spread_low": "2",
+            "spread_high": "2",
+            "known": "3",
+            "parts": "5",
+            "share": "70",
+            "partly": "Worked out from 3 of its 5 parts, 70 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "80%",
-            "21"
+            "2",
+            "5",
+            "21",
+            "3",
+            "70",
+            "100",
+            "2025"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0003/tag/evening_venues",
-          "area_id": "syn-n0003",
-          "kind": "tag",
-          "key": "evening_venues",
-          "label": "Evening venues",
-          "template": "tag",
-          "slots": {
-            "label": "Evening venues",
-            "comparative": "below",
-            "pct": "80",
-            "compared": "21",
-            "standing": "below 80% of the 21 areas compared in this release"
-          },
-          "numbers": [
-            "80%",
-            "21"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
+          "as_of": "2025",
           "synthetic": true
         },
         {
@@ -1619,26 +3158,40 @@
           "kind": "tag",
           "key": "family_amenities",
           "label": "Family amenities",
-          "template": "tag",
+          "template": "vibe",
           "slots": {
             "label": "Family amenities",
-            "comparative": "below",
-            "pct": "85",
+            "band": "1",
+            "low_end": "least",
+            "high_end": "most",
             "compared": "21",
-            "standing": "below 85% of the 21 areas compared in this release"
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "85%",
-            "21"
+            "1",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
-          "as_of": "2026-09-23",
+          "as_of": "2025",
           "synthetic": true
         },
         {
@@ -1646,55 +3199,86 @@
           "area_id": "syn-n0003",
           "kind": "tag",
           "key": "foodie",
-          "label": "Foodie",
-          "template": "tag",
+          "label": "Food and drink",
+          "template": "vibe",
           "slots": {
-            "label": "Foodie",
-            "comparative": "below",
-            "pct": "80",
+            "label": "Food and drink",
+            "band": "2",
+            "low_end": "least",
+            "high_end": "most",
             "compared": "21",
-            "standing": "below 80% of the 21 areas compared in this release"
+            "span": "2025",
+            "spread_low": "2",
+            "spread_high": "2",
+            "known": "2",
+            "parts": "3",
+            "share": "80",
+            "partly": "Worked out from 2 of its 3 parts, 80 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "80%",
-            "21"
+            "2",
+            "5",
+            "21",
+            "3",
+            "80",
+            "100",
+            "2025"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
-          "as_of": "2026-09-23",
+          "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0003/tag/historic_character",
+          "fact_id": "syn-n0003/tag/homes",
           "area_id": "syn-n0003",
           "kind": "tag",
-          "key": "historic_character",
-          "label": "Historic character",
-          "template": "tag",
+          "key": "homes",
+          "label": "Houses or flats",
+          "template": "vibe",
           "slots": {
-            "label": "Historic character",
-            "comparative": "below",
-            "pct": "78",
-            "compared": "19",
-            "standing": "below 78% of the 19 areas compared in this release"
+            "label": "Houses or flats",
+            "band": "1",
+            "low_end": "Houses",
+            "high_end": "Flats",
+            "compared": "22",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "2",
+            "parts": "3",
+            "share": "75",
+            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "78%",
-            "19"
+            "1",
+            "5",
+            "22",
+            "2",
+            "3",
+            "75",
+            "100",
+            "2025"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
-          "as_of": "2026-09-23",
+          "as_of": "2025",
           "synthetic": true
         },
         {
@@ -1703,54 +3287,124 @@
           "kind": "tag",
           "key": "leafy",
           "label": "Leafy",
-          "template": "tag",
+          "template": "vibe",
           "slots": {
             "label": "Leafy",
-            "comparative": "below",
-            "pct": "68",
-            "compared": "22",
-            "standing": "below 68% of the 22 areas compared in this release"
+            "band": "2",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "2",
+            "spread_high": "2",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "68%",
-            "22"
+            "2",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
-          "as_of": "2026-09-23",
+          "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0003/tag/near_universities",
+          "fact_id": "syn-n0003/tag/pace",
           "area_id": "syn-n0003",
           "kind": "tag",
-          "key": "near_universities",
-          "label": "Near universities",
-          "template": "tag",
+          "key": "pace",
+          "label": "Going out",
+          "template": "vibe",
           "slots": {
-            "label": "Near universities",
-            "comparative": "above",
-            "pct": "77",
-            "compared": "22",
-            "standing": "above 77% of the 22 areas compared in this release"
+            "label": "Going out",
+            "band": "1",
+            "low_end": "Calm",
+            "high_end": "Buzzy",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "77%",
-            "22"
+            "1",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
-          "as_of": "2026-09-23",
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/tag/parks_close_by",
+          "area_id": "syn-n0003",
+          "kind": "tag",
+          "key": "parks_close_by",
+          "label": "Parks close by",
+          "template": "vibe",
+          "slots": {
+            "label": "Parks close by",
+            "band": "1",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
           "synthetic": true
         },
         {
@@ -1758,55 +3412,82 @@
           "area_id": "syn-n0003",
           "kind": "tag",
           "key": "quiet_residential",
-          "label": "Quiet residential",
-          "template": "tag",
+          "label": "Quiet streets",
+          "template": "vibe",
           "slots": {
-            "label": "Quiet residential",
-            "comparative": "above",
-            "pct": "66",
+            "label": "Quiet streets",
+            "band": "3",
+            "low_end": "least",
+            "high_end": "most",
             "compared": "21",
-            "standing": "above 66% of the 21 areas compared in this release"
+            "span": "2025",
+            "spread_low": "3",
+            "spread_high": "3",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "66%",
-            "21"
+            "3",
+            "5",
+            "21",
+            "100",
+            "2025"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
-          "as_of": "2026-09-23",
+          "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0003/tag/strong_high_street",
+          "fact_id": "syn-n0003/tag/street_character",
           "area_id": "syn-n0003",
           "kind": "tag",
-          "key": "strong_high_street",
-          "label": "Strong high street",
-          "template": "tag",
+          "key": "street_character",
+          "label": "Gritty",
+          "template": "vibe",
           "slots": {
-            "label": "Strong high street",
-            "comparative": "below",
-            "pct": "80",
+            "label": "Gritty",
+            "band": "4",
+            "low_end": "Polished",
+            "high_end": "Gritty",
             "compared": "21",
-            "standing": "below 80% of the 21 areas compared in this release"
+            "span": "2025",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "6",
+            "parts": "6",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "80%",
-            "21"
+            "4",
+            "5",
+            "21",
+            "6",
+            "100",
+            "2025"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
-          "as_of": "2026-09-23",
+          "as_of": "2025",
           "synthetic": true
         },
         {
@@ -1815,56 +3496,39 @@
           "kind": "tag",
           "key": "village_feel",
           "label": "Village feel",
-          "template": "tag",
+          "template": "vibe",
           "slots": {
             "label": "Village feel",
-            "comparative": "below",
-            "pct": "85",
+            "band": "4",
+            "low_end": "least",
+            "high_end": "most",
             "compared": "21",
-            "standing": "below 85% of the 21 areas compared in this release"
+            "span": "2025",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "5",
+            "parts": "5",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "85%",
-            "21"
+            "4",
+            "5",
+            "21",
+            "100",
+            "2025"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0003/tag/waterside",
-          "area_id": "syn-n0003",
-          "kind": "tag",
-          "key": "waterside",
-          "label": "Waterside",
-          "template": "tag",
-          "slots": {
-            "label": "Waterside",
-            "comparative": "below",
-            "pct": "40",
-            "compared": "22",
-            "level": "12",
-            "standing": "below 40% of the 22 areas compared in this release, and the same as 12 others"
-          },
-          "numbers": [
-            "40%",
-            "22",
-            "12"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
+          "as_of": "2025",
           "synthetic": true
         }
       ]

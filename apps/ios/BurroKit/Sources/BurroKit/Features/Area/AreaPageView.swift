@@ -18,6 +18,9 @@ struct AreaPageView: View {
             if let search = app.search, let inSearch = AreaInSearch(search.state, areaId: page.area.areaId) {
                 AreaInSearchSection(inSearch: inSearch)
             }
+            if !page.vibes.isEmpty {
+                AreaCharacterSection(page: page)
+            }
             AreaWhereSection(page: page)
             AreaSection(title: AreaCopy.Stations.title) {
                 AreaFactRows(rows: page.stationRows, none: AreaCopy.Stations.none)
@@ -41,11 +44,6 @@ struct AreaPageView: View {
                             }
                         }
                     }
-                }
-            }
-            if !page.tagRows.isEmpty {
-                AreaSection(title: AreaCopy.Tags.title, lead: AreaCopy.Tags.lead) {
-                    AreaFactRows(rows: page.tagRows, none: nil)
                 }
             }
             AreaSourcesSection(page: page)
@@ -204,6 +202,66 @@ struct AreaSaidView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
+    }
+}
+
+/// Where the area sits on each vibe, in the lists the API puts them in. What
+/// Burro cannot place the area on is said last, with why: for want of a
+/// figure for this area, or because the data holds too little for any area.
+struct AreaCharacterSection: View {
+    let page: AreaPage
+
+    var body: some View {
+        AreaSection(title: AreaCopy.Portrait.title) {
+            ForEach(AreaPage.VibeList.allCases.filter { $0 != .unplaced }, id: \.self) { list in
+                let vibes = page.vibes(in: list)
+                if !vibes.isEmpty {
+                    AreaPart(title: AreaCopy.Portrait.title(of: list)) {
+                        AreaVibeLines(vibes: vibes)
+                    }
+                }
+            }
+            let unplaced = page.vibes(in: .unplaced)
+            if !unplaced.isEmpty {
+                AreaPart(title: AreaCopy.Portrait.title(of: .unplaced)) {
+                    let here = unplaced.filter { !$0.shown.notInData }
+                    let everywhere = unplaced.filter { $0.shown.notInData }
+                    if !here.isEmpty {
+                        why(AreaCopy.Portrait.unplacedWhy)
+                        AreaVibeLines(vibes: here)
+                    }
+                    if !everywhere.isEmpty {
+                        why(AreaCopy.Portrait.notInData)
+                        AreaVibeLines(vibes: everywhere)
+                    }
+                }
+            }
+        }
+    }
+
+    private func why(_ words: String) -> some View {
+        Text(words)
+            .font(Tokens.Text.secondary)
+            .foregroundStyle(Tokens.Colour.muted)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+/// The vibes of one list, with a line between each and the next.
+struct AreaVibeLines: View {
+    let vibes: [AreaPage.Vibe]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(vibes) { vibe in
+                Rectangle()
+                    .fill(Tokens.Colour.border)
+                    .frame(height: 1)
+                    .accessibilityHidden(true)
+                VibeLine(vibe.shown, source: SourceLines.words(for: vibe.fact.map { [$0] } ?? []))
+                    .padding(.vertical, Tokens.Space.s3)
+            }
+        }
     }
 }
 
@@ -391,7 +449,7 @@ struct AreaFactRowView: View {
                     }
                 }
             }
-            if let caveat = row.caveat {
+            ForEach(row.caveats, id: \.self) { caveat in
                 Text(caveat)
                     .font(Tokens.Text.footnote)
                     .foregroundStyle(Tokens.Colour.text)

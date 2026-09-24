@@ -1,6 +1,6 @@
 // Generated from apps/web/src/styles/tokens.css by apps/ios/scripts/generate.py.
 // Never edited by hand: change the source and run `make generate`.
-// source-sha256: 35676471e9dccad0efe21a1c284fa4e533d7fa55b94c0a72629bb0b4b6ef5361
+// source-sha256: a1cd4235e4bf2873396eec3c40d9c241bbb2f5963d51249f43ef7ca9ba5b22d2
 
 /// Every colour, space and time of the website's tokens, as it names them.
 ///
@@ -16,11 +16,11 @@ public enum TokenValues {
         "good": (0x1b6638, 0x8fd3a5),
         "info-bg": (0xe8f1f8, 0x12324a),
         "info-text": (0x12324a, 0xd7e9f7),
-        "map-1": (0xdcebd3, 0x1f2e27),
-        "map-2": (0xbedcb4, 0x274036),
-        "map-3": (0x9ccb98, 0x2f5444),
-        "map-4": (0x77b681, 0x386a54),
-        "map-5": (0x559f6f, 0x438265),
+        "map-1": (0xd6eed1, 0x1c3328),
+        "map-2": (0x98d496, 0x284d3a),
+        "map-3": (0x58b765, 0x32654a),
+        "map-4": (0x3d965b, 0x3b7e58),
+        "map-5": (0x287850, 0x449866),
         "map-land": (0xeceae2, 0x25282a),
         "map-line": (0x1b1f23, 0xeef0f1),
         "map-water": (0xc9dfec, 0x0c2735),
@@ -67,11 +67,11 @@ public enum TokenValues {
     public static let good = TokenColor(light: 0x1b6638, dark: 0x8fd3a5)
     public static let infoBg = TokenColor(light: 0xe8f1f8, dark: 0x12324a)
     public static let infoText = TokenColor(light: 0x12324a, dark: 0xd7e9f7)
-    public static let map1 = TokenColor(light: 0xdcebd3, dark: 0x1f2e27)
-    public static let map2 = TokenColor(light: 0xbedcb4, dark: 0x274036)
-    public static let map3 = TokenColor(light: 0x9ccb98, dark: 0x2f5444)
-    public static let map4 = TokenColor(light: 0x77b681, dark: 0x386a54)
-    public static let map5 = TokenColor(light: 0x559f6f, dark: 0x438265)
+    public static let map1 = TokenColor(light: 0xd6eed1, dark: 0x1c3328)
+    public static let map2 = TokenColor(light: 0x98d496, dark: 0x284d3a)
+    public static let map3 = TokenColor(light: 0x58b765, dark: 0x32654a)
+    public static let map4 = TokenColor(light: 0x3d965b, dark: 0x3b7e58)
+    public static let map5 = TokenColor(light: 0x287850, dark: 0x449866)
     public static let mapLand = TokenColor(light: 0xeceae2, dark: 0x25282a)
     public static let mapLine = TokenColor(light: 0x1b1f23, dark: 0xeef0f1)
     public static let mapWater = TokenColor(light: 0xc9dfec, dark: 0x0c2735)

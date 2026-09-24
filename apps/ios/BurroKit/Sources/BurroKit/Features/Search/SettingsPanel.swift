@@ -24,7 +24,7 @@ struct SettingsPanel: View {
             if let crime = SettingsForm.crime(context.state.meta) {
                 // Recorded crime is its own group, closed and off at first, under its caveat.
                 OpensInPlace(crime.title, open: $crimeOpen) {
-                    Text(SettingsCopy.Crime.lead)
+                    Text(verbatim: SettingsForm.crimeLead(context.state.meta))
                     Text(SettingsCopy.Crime.caveat)
                     switches(crime.features)
                 }
@@ -32,7 +32,9 @@ struct SettingsPanel: View {
                 .foregroundStyle(Tokens.Colour.text)
                 .ruledAbove()
             }
-            hidden.ruledAbove()
+            if !context.spec.areas.isEmpty {
+                hidden.ruledAbove()
+            }
             if let rank {
                 Button(SettingsCopy.rank, action: rank)
                     .buttonStyle(.burroPrimary)
@@ -45,7 +47,12 @@ struct SettingsPanel: View {
         let spec = context.spec
         let names = SearchChips.names(of: spec, held: context.state.placeNames)
         return FormGroup(SettingsCopy.Journey.legend) {
-            if spec.commutes.isEmpty { HintLine(SettingsCopy.Journey.none) }
+            if !context.state.meta.holds.journeys {
+                // The data names no place to reach, so nothing is offered that it could only turn away.
+                HintLine(SettingsCopy.Journey.notInData)
+            } else if spec.commutes.isEmpty {
+                HintLine(SettingsCopy.Journey.none)
+            }
             ForEach(spec.commutes, id: \.placeId) { commute in
                 CommuteControl(commute: commute, name: names[commute.placeId] ?? "", context: context)
             }
@@ -75,7 +82,6 @@ struct SettingsPanel: View {
     private var hidden: some View {
         let rules = context.spec.areas
         return FormGroup(SettingsCopy.Hidden.legend) {
-            if rules.isEmpty { HintLine(SettingsCopy.Hidden.none) }
             ForEach(rules, id: \.areaId) { rule in
                 if let words = SettingsForm.show(rule, in: context.state) {
                     Button(words) {

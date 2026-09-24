@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// The methods: how the ranking works, what is measured, the formula of each
-/// tag, where a search starts, the limits, the release, and how a person's
+/// The methods: how the ranking works, what is measured, the recipe of each
+/// vibe, where a search starts, the limits, the release, and how a person's
 /// words are handled. Every figure and every definition is the API's.
 struct MethodsScreen: View {
     @Environment(SearchStore.self) private var search
@@ -65,7 +65,7 @@ struct MethodsScreen: View {
                 AboutRows(AboutPage.releaseInFull(meta))
             }
             AboutSection(AboutCopy.Words.title) {
-                AboutPoints(AboutCopy.Words.points)
+                AboutPoints(AboutCopy.Words.points(reader: meta.reader.notice))
             }
         }
     }

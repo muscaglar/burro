@@ -17,8 +17,8 @@ final class ResultsCardTests: XCTestCase {
     func test_the_heading_is_the_rank_the_names_the_api_gave_and_the_fit() async throws {
         let card = try await ResultsApp.searched().firstCard()
 
-        XCTAssertEqual(card.heading, Results.Heading(rank: 1, name: "Farrowmere", borough: "Quillhaven", fit: 80))
-        XCTAssertEqual(card.heading.words, "Rank 1, Farrowmere, Quillhaven, Fit 80 of 100")
+        XCTAssertEqual(card.heading, Results.Heading(rank: 1, name: "Farrowmere", borough: "Quillhaven", fit: 78))
+        XCTAssertEqual(card.heading.words, "Rank 1, Farrowmere, Quillhaven, Fit 78 of 100")
         XCTAssertEqual(card.area, AreaRef(areaId: "syn-n0006", slug: "farrowmere", name: "Farrowmere", borough: "Quillhaven"))
         XCTAssertTrue(card.full)
     }
@@ -62,7 +62,7 @@ final class ResultsCardTests: XCTestCase {
             XCTAssertEqual(reason.sources.map(\.synthetic), [true])
             XCTAssertFalse(reason.byModel)
         }
-        XCTAssertEqual(reasons.map { $0.sources[0].date }, ["September 2026", "August 2026", "23 September 2026"])
+        XCTAssertEqual(reasons.map { $0.sources[0].date }, ["September 2026", "August 2026", "2025"])
     }
 
     @MainActor
@@ -113,21 +113,23 @@ final class ResultsCardTests: XCTestCase {
 
     @MainActor
     func test_how_complete_says_how_many_of_the_things_that_count_have_data() async throws {
-        let app = try await ResultsApp.searched()
+        let api = StandIn.firstSearch()
+            .on(.rank, "rank-buyer-family").on(.explainTop, "explanations-buyer-family")
+        let app = try await ResultsApp.searched(api)
         let second = app.listed.cards[1]
-        let explained = Answers.explained("explanations-first").explanations[1]
+        let explained = Answers.explained("explanations-buyer-family").explanations[1]
 
         XCTAssertEqual(
             try app.firstCard().completeness,
             Results.Completeness(
                 words: "Based on everything that counts in your search", covered: 100, untested: []))
         XCTAssertEqual(try app.firstCard().missing, .hidden)
-        XCTAssertEqual(second.completeness?.words, "Based on 5 of the 10 things that count in your search")
+        XCTAssertEqual(second.completeness?.words, "Based on 9 of the 10 things that count in your search")
         // The bar draws what the words count, and nothing else.
-        XCTAssertEqual(second.completeness?.covered, 50)
+        XCTAssertEqual(second.completeness?.covered, 90)
         // One sentence of the API's for each thing that has no figure here.
         XCTAssertEqual(second.missing.value?.map(\.text), explained.missing.map(\.text))
-        XCTAssertEqual(second.missing.value?.count, 5)
+        XCTAssertEqual(second.missing.value?.count, 1)
         XCTAssertEqual(ResultsCopy.Completeness.missingTitle, "What there is no figure for")
         // A row says how complete it is in one line, and has no sentence.
         XCTAssertEqual(app.listed.cards[5].missing, .hidden)
@@ -136,8 +138,8 @@ final class ResultsCardTests: XCTestCase {
 
     @MainActor
     func test_room_is_held_for_the_sentences_of_what_has_no_figure_while_they_are_waited_for() async throws {
-        let api = StandIn.firstSearch()
-        let reasons = api.hold(.explainTop, "explanations-first")
+        let api = StandIn.firstSearch().on(.rank, "rank-buyer-family")
+        let reasons = api.hold(.explainTop, "explanations-buyer-family")
         let app = try await ResultsApp(api)
 
         async let sent: Void = app.flow.submitText("leafy")
@@ -145,7 +147,7 @@ final class ResultsCardTests: XCTestCase {
 
         // How many there will be is known from the ranking.
         XCTAssertEqual(app.listed.cards[1].missing, .waiting)
-        XCTAssertEqual(app.listed.cards[1].held, 5)
+        XCTAssertEqual(app.listed.cards[1].held, 1)
         XCTAssertEqual(app.listed.cards[0].missing, .hidden)
         XCTAssertEqual(app.listed.cards[0].held, 0)
         reasons.release()
@@ -242,7 +244,8 @@ final class ResultsCardTests: XCTestCase {
         let bare = try await ResultsApp.searched(StandIn.firstSearch().on(.explainTop, "error-internal"))
         XCTAssertEqual(bare.state.facts.values.filter { $0.kind == .travel }, [])
         XCTAssertEqual(try bare.firstCard().journeys.first?.sources, [])
-        XCTAssertEqual(try bare.firstCard().journeys.first?.place, "Place 1")
+        // The place is named by the answer that brought the ranking, so it has its name with no reasons.
+        XCTAssertEqual(try bare.firstCard().journeys.first?.place, "Cindermoor Works")
     }
 
     @MainActor
@@ -256,8 +259,9 @@ final class ResultsCardTests: XCTestCase {
         XCTAssertEqual(cost.segment, "1-bedroom home")
         XCTAssertEqual(cost.middle, "£1,125")
         XCTAssertEqual(cost.month, "August 2026")
-        XCTAssertEqual(cost.confidence, "Medium")
-        XCTAssertEqual(cost.pips, 2)
+        XCTAssertEqual(cost.confidence, "High")
+        XCTAssertEqual(cost.pips, 3)
+        XCTAssertFalse(cost.oneNumber)
         XCTAssertEqual(cost.budget, "£1,700")
         XCTAssertEqual(cost.falls, "Your budget is above this range.")
         XCTAssertEqual(cost.sources.map(\.words), ["Source: Synthetic test data. Data from August 2026. Made-up data"])
@@ -287,8 +291,8 @@ final class ResultsCardTests: XCTestCase {
         let profile = Answers.profile("farrowmere")
         let bare = AreaData(
             area: profile.area, features: profile.features, tags: profile.tags, cost: [],
-            stations: profile.stations, neighbours: profile.neighbours,
-            facts: profile.facts.filter { $0.kind != .cost })
+            stations: profile.stations, neighbours: profile.neighbours, portrait: profile.portrait,
+            similar: profile.similar, facts: profile.facts.filter { $0.kind != .cost })
         state = reduce(state, .detailAnswered(bare))
 
         let card = try XCTUnwrap(Results.card(for: Answers.ranked("rank-first").ranked[0], at: 0, in: state))
@@ -298,7 +302,108 @@ final class ResultsCardTests: XCTestCase {
         XCTAssertFalse(ResultsDrawn.figures(in: card.cost).contains { $0.contains("£") })
     }
 
-    func test_the_bar_places_the_range_the_middle_and_the_budget_and_keeps_them_in_order() {
+    func test_a_price_that_is_one_number_is_drawn_as_one_and_no_range_is_made_of_it() throws {
+        let profile: AreaData = try Recorded.data(.getArea, "one-number/area")
+        let ranked: RankData = try Recorded.data(.rank, "one-number/rank-buyer")
+        let found = try XCTUnwrap(Results.cost(in: profile, for: ranked.spec))
+
+        let cost = try XCTUnwrap(
+            Results.cost(of: found.fact, estimate: found.estimate, budget: ranked.spec.budget.amount))
+
+        XCTAssertNil(found.estimate.lowerQuartile)
+        XCTAssertNil(found.estimate.upperQuartile)
+        XCTAssertTrue(cost.oneNumber)
+        XCTAssertEqual(cost.range, "£260,000")
+        XCTAssertEqual(cost.what, "The middle price of homes of this kind, of all sizes")
+        XCTAssertEqual(cost.soldIn, "the year ending August 2026")
+        XCTAssertEqual(
+            cost.caveat, "The publisher gives no range, and does not say how many sales this figure rests on.")
+        XCTAssertEqual(cost.segment, "flat")
+        XCTAssertFalse(cost.aMonth)
+        // No word says how sure a figure is when its publisher does not.
+        XCTAssertNil(cost.confidence)
+        XCTAssertEqual(cost.pips, 0)
+        XCTAssertNil(cost.middle)
+        XCTAssertEqual(cost.budget, "£455,000")
+        XCTAssertEqual(cost.falls, "Your budget is above this middle price.")
+        // The bar has a middle and a budget, and no end is drawn for it.
+        XCTAssertNil(cost.bar.lower)
+        XCTAssertNil(cost.bar.upper)
+        XCTAssertNotNil(cost.bar.budget)
+        XCTAssertEqual(cost.sources.map(\.date), ["August 2026"])
+    }
+
+    // MARK: - The strip of vibes
+
+    @MainActor
+    func test_the_strip_is_the_vibes_the_api_chose_in_its_order_each_as_a_band_of_five() async throws {
+        let card = try await ResultsApp.searched().firstCard()
+        let ranked = Answers.ranked("rank-first").ranked[0]
+
+        XCTAssertEqual(card.strip.map(\.tagId), ranked.strip.map(\.tagId))
+        XCTAssertEqual(card.strip.map(\.name), ["Leafy", "Quiet streets", "Built age", "Homes"])
+        XCTAssertEqual(card.strip.map(\.band), ["band 3 of 5", "band 4 of 5", "band 1 of 5", "band 5 of 5"])
+        XCTAssertEqual(card.strip.compactMap(\.placed?.band), ranked.strip.map(\.band))
+        XCTAssertEqual(
+            card.strip.map(\.plainly),
+            ["around the middle here", "on the high side here", "at the Newer end", "at the Flats end"])
+        // A vibe that was asked for says so, and what was asked for stands first.
+        XCTAssertEqual(card.strip.map(\.asked), ["asked for", "asked for", nil, nil])
+        XCTAssertEqual(
+            card.strip.indices.map { Results.group(before: $0, in: card.strip) },
+            ["Asked for", nil, "Also", nil])
+        // A band that rests on part of its recipe says so, in the API's own clause.
+        XCTAssertEqual(
+            card.strip.map(\.restsOn),
+            [nil, nil, nil, "Worked out from 2 of its 3 parts, 75 of 100 by weight."])
+        // Every band ends in its source and its date.
+        for vibe in card.strip {
+            XCTAssertEqual(
+                Results.sourceWords(of: vibe), "Source: Synthetic test data. Data from 2025. Made-up data",
+                vibe.name)
+            XCTAssertFalse(vibe.reads.contains("%"), vibe.name)
+        }
+    }
+
+    @MainActor
+    func test_a_row_has_its_strip_from_the_ranking_alone_and_cites_nothing_it_does_not_hold() async throws {
+        let app = try await ResultsApp.searched()
+        let row = app.listed.cards[10]
+        let ranked = Answers.ranked("rank-first").ranked[10]
+
+        XCTAssertFalse(row.full)
+        XCTAssertEqual(row.strip.compactMap(\.placed?.band), ranked.strip.map(\.band))
+        XCTAssertEqual(row.strip.map(\.name), ["Leafy", "Quiet streets", "Pace", "Built age"])
+        // The fact behind a band of a row is not in hand, so nothing is said of what it rests on.
+        XCTAssertEqual(row.strip.map(\.sources), [[], [], [], []])
+        XCTAssertEqual(row.strip.map(\.restsOn), [nil, nil, nil, nil])
+        XCTAssertNil(row.strip.first.flatMap { Results.sourceWords(of: $0) })
+    }
+
+    func test_a_scale_that_was_asked_for_names_the_end_that_was_asked_for() {
+        let ranked = Answers.ranked("rank-scale")
+        let mixed = ranked.ranked[13]
+
+        let strip = Vibes.strip(ranked.ranked[0].strip, meta: Answers.meta, facts: [:])
+        let varies = Vibes.strip(mixed.strip, meta: Answers.meta, facts: [:])
+
+        XCTAssertEqual(strip.map(\.name), ["Pace", "Built age", "Homes"])
+        XCTAssertEqual(strip.map(\.asked), ["asked for: Calm", nil, nil])
+        XCTAssertEqual(strip.first?.plainly, "at the Calm end")
+        XCTAssertEqual([strip.first?.low, strip.first?.high], ["Calm", "Buzzy"])
+        // A mixed area is said to vary, and is never put at a point.
+        XCTAssertEqual(mixed.rank, 14)
+        XCTAssertEqual(varies.first?.placed, Placed(band: 4, spreadLow: 3, spreadHigh: 5))
+        XCTAssertEqual(varies.first?.plainly, "varies within this area")
+        XCTAssertEqual(varies.first?.band, "varies within this area, from band 3 to band 5 of 5")
+        // A vibe the release does not name is left out, and never shown as its code.
+        let unnamed = StripMark(
+            tagId: .unlisted("a_vibe_of_next_year"), band: 3, spreadLow: 3, spreadHigh: 3, asked: false,
+            toward: nil, factId: "syn-n0006/tag/a_vibe_of_next_year")
+        XCTAssertEqual(Vibes.strip([unnamed], meta: Answers.meta, facts: [:]), [])
+    }
+
+    func test_the_bar_places_the_range_the_middle_and_the_budget_and_keeps_them_in_order() throws {
         let estimate = CostEstimate(
             areaId: "syn-n0006", tenure: .rent, segment: .bed1, lowerQuartile: 975, median: 1125,
             upperQuartile: 1300, confidence: .medium, asOf: "2026-08", sourceIds: ["synthetic"])
@@ -307,10 +412,10 @@ final class ResultsCardTests: XCTestCase {
         let below = Results.bar(for: estimate, budget: 500)
         let none = Results.bar(for: estimate, budget: nil)
 
-        XCTAssertLessThan(above.lower, above.median)
-        XCTAssertLessThan(above.median, above.upper)
-        XCTAssertLessThan(above.upper, try XCTUnwrap(above.budget))
-        XCTAssertLessThan(try XCTUnwrap(below.budget), below.lower)
+        XCTAssertLessThan(try XCTUnwrap(above.lower), above.median)
+        XCTAssertLessThan(above.median, try XCTUnwrap(above.upper))
+        XCTAssertLessThan(try XCTUnwrap(above.upper), try XCTUnwrap(above.budget))
+        XCTAssertLessThan(try XCTUnwrap(below.budget), try XCTUnwrap(below.lower))
         XCTAssertNil(none.budget)
         for bar in [above, below, none] {
             for place in [bar.lower, bar.median, bar.upper, bar.budget].compactMap({ $0 }) {
@@ -327,13 +432,13 @@ final class ResultsCardTests: XCTestCase {
         XCTAssertEqual(
             card.breakdown.map(\.thing),
             [
-                "Journey", "Budget", "Quiet residential", "Leafy",
+                "Journey", "Budget", "Quiet streets", "Leafy",
                 "Modelled annual mean nitrogen dioxide",
-                "Walk to the nearest station",
-                "Share of homes at 55 dB or more of transport noise",
+                "Straight-line distance to the nearest way in to a station",
+                "Share exposed to 55 dB or more of transport noise",
                 "Lines within a 10-minute walk",
-                "Walk to the nearest park of 2 ha or more",
-                "Share of homes within a 10-minute walk of a high street or town centre",
+                "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+                "Straight-line distance to the nearest town centre boundary",
             ])
         XCTAssertEqual(
             card.breakdown.first,
@@ -345,6 +450,8 @@ final class ResultsCardTests: XCTestCase {
                         .init(name: "How", value: "By public transport"),
                         .init(name: "Typical minutes", value: "21"),
                         .init(name: "Minutes if you just miss one", value: "26"),
+                        .init(name: "Your limit, in minutes", value: "35"),
+                        .init(name: "Under your limit by, in minutes", value: "14"),
                     ],
                     sources: [
                         Results.SourceLine(
@@ -361,11 +468,13 @@ final class ResultsCardTests: XCTestCase {
     func test_what_the_data_says_is_the_slots_of_the_fact_or_that_there_is_a_figure_or_that_there_is_none()
         async throws
     {
-        let app = try await ResultsApp.searched()
+        let api = StandIn.firstSearch()
+            .on(.rank, "rank-buyer-family").on(.explainTop, "explanations-buyer-family")
+        let app = try await ResultsApp.searched(api)
         let second = app.listed.cards[1]
         let row = app.listed.cards[10]
 
-        XCTAssertEqual(second.breakdown.filter { $0.says == .nothing }.count, 5)
+        XCTAssertEqual(second.breakdown.filter { $0.says == .nothing }.count, 1)
         XCTAssertEqual(second.breakdown.count, 10)
         // A row's facts are not in hand, so it says that there is a figure and shows none.
         XCTAssertTrue(row.breakdown.contains { $0.says == .something })
@@ -504,7 +613,10 @@ final class ResultsCardTests: XCTestCase {
     func test_the_least_a_thing_must_be_worth_to_be_done_well_is_the_contracts() throws {
         let contract = try Repository.text(Repository.root.appendingPathComponent("docs/design/contract.md"))
 
-        XCTAssertTrue(contract.contains("at least `REASON_MIN_UTILITY`, \(Results.doesWellFrom),"))
+        let written = String(format: "%.2f", Results.doesWellFrom)
+        XCTAssertTrue(contract.contains("at least `REASON_MIN_UTILITY`, \(written),"))
+        // It is the one the API serves with the release.
+        XCTAssertEqual(Answers.meta.limits.reasonMinUtility, Results.doesWellFrom)
     }
 
     @MainActor
@@ -535,8 +647,9 @@ final class ResultsCardTests: XCTestCase {
         let uppers = app.listed.cards.prefix(5).compactMap { card in
             app.state.details[card.id].flatMap { Results.cost(in: $0, for: app.state.spec)?.estimate.upperQuartile }
         }
+        XCTAssertEqual(uppers.count, 5)
         for (one, other) in zip(zip(uppers, bars), zip(uppers, bars).dropFirst()) where one.0 < other.0 {
-            XCTAssertLessThan(one.1.upper, other.1.upper)
+            XCTAssertLessThan(try XCTUnwrap(one.1.upper), try XCTUnwrap(other.1.upper))
         }
         XCTAssertNil(Results.scale(of: [], budget: 1700))
     }
@@ -618,7 +731,7 @@ final class ResultsCardTests: XCTestCase {
             template: .unlisted("new"), slots: ["value": "12"], numbers: [], names: [], sources: [],
             asOf: "2026", synthetic: true)
 
-        XCTAssertEqual(Results.row(of: crime).caveat, ResultsCopy.crimeCaveat)
+        XCTAssertEqual(Results.row(of: crime).caveats, [ResultsCopy.crimeCaveat])
         XCTAssertEqual(
             Results.columns(of: rent).map(\.name),
             ["Kind of home", "Range", "Middle", "As of", "Confidence"])
@@ -626,6 +739,6 @@ final class ResultsCardTests: XCTestCase {
         XCTAssertEqual(Results.columns(of: empty), [])
         // A kind of fact this build does not know is not laid out by guesswork.
         XCTAssertEqual(Results.columns(of: unknown), [])
-        XCTAssertNil(Results.row(of: rent).caveat)
+        XCTAssertEqual(Results.row(of: rent).caveats, [])
     }
 }

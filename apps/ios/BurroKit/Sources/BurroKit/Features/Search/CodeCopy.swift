@@ -17,13 +17,14 @@ enum CodeCopy {
         case .venuesCulture: return "Venues and culture"
         case .homes: return "Homes"
         case .stationAccess: return "Stations"
+        case .services: return "Shops and services"
         case .unlisted: return nil
         }
     }
 
     /// The order the dimensions are shown in. Recorded crime is last: it is off unless asked for.
     static let dimensionOrder: [Dimension] = [
-        .stationAccess, .greenWater, .airNoise, .venuesCulture, .schools, .homes, .crime,
+        .stationAccess, .greenWater, .airNoise, .venuesCulture, .services, .schools, .homes, .crime,
     ]
 
     static func polarity(_ polarity: Polarity) -> String? {
@@ -45,8 +46,8 @@ enum CodeCopy {
 
     static func reading(_ reading: TermReading) -> String? {
         switch reading {
-        case .high: return "A higher figure counts towards the tag"
-        case .low: return "A lower figure counts towards the tag"
+        case .high: return "A higher figure counts towards the vibe"
+        case .low: return "A lower figure counts towards the vibe"
         case .unlisted: return nil
         }
     }

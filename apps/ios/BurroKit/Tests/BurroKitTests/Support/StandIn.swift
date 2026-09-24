@@ -95,6 +95,7 @@ final class StandIn: Transport, @unchecked Sendable {
     private var made: [Call] = []
     private var unanswered: [Call] = []
     private var toldSynthetic: [Bool] = []
+    private var toldPreview: [Bool] = []
     private var release: String?
 
     /// A first search, as it was recorded.
@@ -192,6 +193,8 @@ final class StandIn: Transport, @unchecked Sendable {
     var unexpected: [Call] { lock.withLock { unanswered } }
     /// What the client told the banner, answer by answer.
     var synthetic: [Bool] { lock.withLock { toldSynthetic } }
+    /// What the client told the banner of a preview, answer by answer.
+    var preview: [Bool] { lock.withLock { toldPreview } }
 
     func calls(to route: APIRoute) -> [Call] {
         calls.filter { $0.route == route }
@@ -214,6 +217,9 @@ final class StandIn: Transport, @unchecked Sendable {
             timeouts: timeouts,
             onSynthetic: { [weak self] said in
                 self?.lock.withLock { self?.toldSynthetic.append(said) }
+            },
+            onPreview: { [weak self] said in
+                self?.lock.withLock { self?.toldPreview.append(said) }
             }
         )
     }
@@ -302,10 +308,14 @@ struct OpenSearch {
     var state: SearchState { store.state }
 
     /// - Parameter agreed: Whether the person has agreed that their words may be read.
-    init(_ api: StandIn = StandIn.firstSearch(), agreed: Bool = true, timeouts: Timeouts = Timeouts()) {
+    /// - Parameter meta: The release the search is opened on. The recorded one, unless another is given.
+    init(
+        _ api: StandIn = StandIn.firstSearch(), agreed: Bool = true, timeouts: Timeouts = Timeouts(),
+        meta: MetaData = Answers.meta
+    ) {
         self.api = api
         store = SearchStore(
-            meta: Answers.meta, areas: Answers.areas, api: api.api(timeouts: timeouts),
+            meta: meta, areas: Answers.areas, api: api.api(timeouts: timeouts),
             mayReadWords: { agreed })
     }
 }

@@ -87,6 +87,9 @@ extension Results {
     struct ComparedRow: Hashable, Sendable, Identifiable {
         let component: String
         let label: String
+        /// Where the journey is to, for the row of a journey. The journeys
+        /// have a row each, and every cell of one is to the same place.
+        let to: String?
         let countsFor: String
         /// The caveat that goes with a figure of recorded crime.
         let caveat: String?
@@ -95,10 +98,31 @@ extension Results {
         var id: String { component }
     }
 
+    /// One vibe, and where each area sits on it. The vibes are of the release
+    /// and of no search, so they are compared whatever the search holds.
+    struct ComparedVibe: Hashable, Sendable, Identifiable {
+        struct Cell: Hashable, Sendable, Identifiable {
+            let areaId: String
+            let area: String
+            let vibe: VibeShown
+
+            var id: String { areaId }
+        }
+
+        let tagId: TagId
+        /// The API's name for the vibe.
+        let name: String
+        let cells: [Cell]
+
+        var id: String { tagId.rawValue }
+    }
+
     struct Compared: Hashable, Sendable {
         /// What the areas are compared on: the search that is open, or the usual settings.
         let basis: String?
         let places: [ComparedPlace]
+        /// Where each area sits on each vibe the API compares, in its order.
+        let character: [ComparedVibe]
         /// In the order the API gave them, which is the order of the weights from high to low.
         let rows: [ComparedRow]
 
@@ -140,12 +164,14 @@ extension Results {
             return ComparedRow(
                 component: row.component,
                 label: row.label,
+                to: row.place.map { ResultsCopy.CompareTable.journeyTo($0.name) },
                 countsFor: ResultsCopy.CompareTable.countsFor(outOfHundred(row.weight)),
                 caveat: cited.contains { $0.template == .featureCrime } ? ResultsCopy.crimeCaveat : nil,
                 cells: data.areas.map { area in
                     let cell = row.cells.first { $0.areaId == area.areaId }
                     let fact = cell?.factId.flatMap { facts[$0] }
-                    let columns = fact.map { $0.template == .missing ? [] : Self.columns(of: $0) } ?? []
+                    let none: Set<TemplateId> = [.missing, .missingJourney]
+                    let columns = fact.map { none.contains($0.template) ? [] : Self.columns(of: $0) } ?? []
                     guard let fact, !columns.isEmpty else {
                         let notScored = cell == nil || (cell?.factId == nil && area.status != .ranked)
                         return ComparedCell(
@@ -160,7 +186,30 @@ extension Results {
                         none: nil, sources: sourceLines(of: [fact]))
                 })
         }
-        return Compared(basis: basis(of: state), places: places, rows: rows)
+        return Compared(
+            basis: basis(of: state), places: places,
+            character: character(data, facts: facts, meta: state.meta), rows: rows)
+    }
+
+    /// The vibes of each area, side by side: one for each vibe the API
+    /// compares, in its order. A vibe the release does not name is left out.
+    /// An area a vibe cannot place is said to be so, and is never put in the middle.
+    static func character(_ data: CompareData, facts: [String: Fact], meta: MetaData) -> [ComparedVibe] {
+        data.character.compactMap { row in
+            guard let tag = meta.tags.first(where: { $0.tagId == row.tagId }) else { return nil }
+            let held = ReleaseHolds.recipe(of: row.tagId, in: meta)
+            let cells = data.areas.compactMap { area -> ComparedVibe.Cell? in
+                guard let mark = row.marks.first(where: { $0.areaId == area.areaId }) else { return nil }
+                var placed: Placed?
+                if let band = mark.band, let low = mark.spreadLow, let high = mark.spreadHigh {
+                    placed = Placed(band: band, spreadLow: low, spreadHigh: high)
+                }
+                return ComparedVibe.Cell(
+                    areaId: area.areaId, area: area.name,
+                    vibe: Vibes.shown(tag, placed: placed, fact: facts[mark.factId], held: held))
+            }
+            return cells.isEmpty ? nil : ComparedVibe(tagId: row.tagId, name: tag.label, cells: cells)
+        }
     }
 
     // MARK: - Asking for one

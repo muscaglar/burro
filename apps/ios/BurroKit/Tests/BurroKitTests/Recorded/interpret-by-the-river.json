@@ -1,6 +1,6 @@
 {
   "scenario": "interpret-by-the-river",
-  "shows": "Two tags and a journey by bike",
+  "shows": "A vibe towards one end, a feature, and a journey by bike",
   "captured": true,
   "request": {
     "operation_id": "interpret",
@@ -8,25 +8,27 @@
     "route": "/v1/interpret",
     "path": "/v1/interpret",
     "body": {
-      "text": "Historic and by the river, cycle 20 minutes to Tallowgate Guild Quarter"
+      "text": "Historic, near the river, 20 minutes to Tallowgate Guild Quarter by bike"
     }
   },
   "status": 200,
   "headers": {
     "access-control-allow-origin": "http://localhost:3000",
-    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "2331",
+    "content-length": "2650",
     "content-type": "application/json",
     "vary": "Origin",
+    "x-burro-preview": "false",
     "x-burro-synthetic": "true",
     "x-request-id": "360e71da-f448-441b-8116-8b18c1a405e8"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.3.0",
-      "synthetic": true
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
     },
     "data": {
       "status": "ok",
@@ -43,20 +45,23 @@
             "provenance": "stated"
           }
         ],
-        "weight_ops": [],
+        "weight_ops": [
+          {
+            "action": "nudge",
+            "feature_id": "water_access",
+            "value": 0.0,
+            "step": "up_large",
+            "direction": "default",
+            "provenance": "inferred"
+          }
+        ],
         "tag_ops": [
           {
             "action": "nudge",
-            "tag_id": "historic_character",
+            "tag_id": "built_age",
             "value": 0.0,
             "step": "up_large",
-            "provenance": "inferred"
-          },
-          {
-            "action": "nudge",
-            "tag_id": "waterside",
-            "value": 0.0,
-            "step": "up_large",
+            "toward": "high",
             "provenance": "inferred"
           }
         ],
@@ -70,7 +75,7 @@
           "amount": null,
           "segment": "bed_1",
           "strictness": "soft",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "default"
         },
         "commutes": [
@@ -84,7 +89,7 @@
         ],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [
           {
             "feature_id": "air_no2",
@@ -95,7 +100,7 @@
           {
             "feature_id": "highstreet_access",
             "weight": 0.05,
-            "direction": "more",
+            "direction": "less",
             "provenance": "default"
           },
           {
@@ -121,17 +126,19 @@
             "weight": 0.1,
             "direction": "less",
             "provenance": "default"
+          },
+          {
+            "feature_id": "water_access",
+            "weight": 0.5,
+            "direction": "more",
+            "provenance": "inferred"
           }
         ],
         "tags": [
           {
-            "tag_id": "historic_character",
+            "tag_id": "built_age",
             "weight": 0.5,
-            "provenance": "inferred"
-          },
-          {
-            "tag_id": "waterside",
-            "weight": 0.5,
+            "toward": "high",
             "provenance": "inferred"
           }
         ],
@@ -141,7 +148,7 @@
         "pt_basis_from": "default",
         "commute_weight_from": "default"
       },
-      "spec_hash": "92cdb58ccd0703f36bdab8a6f35b50b36ac71500dae14fc93c798eb023f3b750",
+      "spec_hash": "193e57df521ee2b0f7869645cd6ed3f63c7beb53c0da91617a936d11c88dd7c8",
       "applied": [
         {
           "group": "commute_ops",
@@ -149,13 +156,13 @@
           "changed": true
         },
         {
-          "group": "tag_ops",
+          "group": "weight_ops",
           "index": 0,
           "changed": true
         },
         {
           "group": "tag_ops",
-          "index": 1,
+          "index": 0,
           "changed": true
         }
       ],
@@ -164,17 +171,20 @@
         {
           "code": "strictness",
           "group": "commute_ops",
-          "index": 0
+          "index": 0,
+          "word": ""
+        },
+        {
+          "code": "weight",
+          "group": "weight_ops",
+          "index": 0,
+          "word": ""
         },
         {
           "code": "weight",
           "group": "tag_ops",
-          "index": 0
-        },
-        {
-          "code": "weight",
-          "group": "tag_ops",
-          "index": 1
+          "index": 0,
+          "word": ""
         }
       ],
       "unmet": [],
@@ -183,24 +193,37 @@
       "notice_text": "",
       "interpreter": "rule",
       "degraded": false,
+      "model_refused": false,
       "rests_on": [
         {
           "group": "commute_ops",
           "index": 0,
-          "start": 33,
-          "end": 71
+          "start": 26,
+          "end": 72
+        },
+        {
+          "group": "weight_ops",
+          "index": 0,
+          "start": 10,
+          "end": 24
         },
         {
           "group": "tag_ops",
           "index": 0,
           "start": 0,
           "end": 8
-        },
+        }
+      ],
+      "suggestions": [],
+      "unread": [],
+      "not_in_release": [],
+      "unmet_at": [],
+      "model_pending": false,
+      "places": [
         {
-          "group": "tag_ops",
-          "index": 1,
-          "start": 20,
-          "end": 25
+          "place_id": "syn-p0018",
+          "name": "Tallowgate Guild Quarter",
+          "kind": "district"
         }
       ]
     }

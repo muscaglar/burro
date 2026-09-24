@@ -72,12 +72,13 @@ extension Results {
         }
     }
 
-    /// The name of each place of the search, by its id: the one in hand, or
-    /// its place in the search where the app was never told its name.
+    /// The name of each place of the search, by its id: the release's own
+    /// name for it, from the answer that brought the spec. A place no answer
+    /// named is said to have no name, and is never shown by a stand-in.
     static func placeNames(of state: SearchState) -> [String: String] {
         var names: [String: String] = [:]
-        for (at, commute) in state.spec.commutes.enumerated() {
-            names[commute.placeId] = state.name(ofPlace: commute.placeId) ?? ResultsCopy.Journeys.unnamed(at + 1)
+        for commute in state.spec.commutes {
+            names[commute.placeId] = state.name(ofPlace: commute.placeId) ?? ResultsCopy.Journeys.noName
         }
         return names
     }
@@ -182,15 +183,24 @@ extension Results {
 
     /// Where things sit along the bar of a cost, each as a share of its width from 0 to 100.
     struct Bar: Hashable, Sendable {
-        let lower: Double
+        /// `nil` for an end the cost does not have. It is drawn nowhere.
+        let lower: Double?
         let median: Double
-        let upper: Double
+        let upper: Double?
         let budget: Double?
     }
 
     struct Cost: Hashable, Sendable {
-        /// The range, as the API wrote each end.
+        /// The range, as the API wrote each end. For a price that is one
+        /// number, that number: no range is made of it.
         let range: String
+        /// True for a price that is one number: a publisher's own middle price, with no range.
+        let oneNumber: Bool
+        /// What the one number is, and the period of sales it is of, as the API wrote it.
+        let what: String?
+        let soldIn: String?
+        /// What is not known of a price that is one number.
+        let caveat: String?
         /// True for a rent, which is said to be for a month.
         let aMonth: Bool
         /// What the figure is, in the API's word, and the kind of home it is for.
@@ -200,7 +210,8 @@ extension Results {
         /// The month the figure is as of, as the API wrote it.
         let month: String?
         let confidence: String?
-        /// One to three. The word says it, and the pips repeat it.
+        /// One to three, and none where how sure the figure is was not stated. The word
+        /// says it, and the pips repeat it.
         let pips: Int
         /// The person's own budget, where one is set.
         let budget: String?
@@ -256,6 +267,9 @@ extension Results {
         let journeys: [Journey]
         /// With two journeys or more, which of them the fit is worked out from.
         let journeysNote: String?
+        /// Where the area sits on the vibes that were asked for, and on the
+        /// others the API chose. It is shown and never scored.
+        let strip: [VibeShown]
         let cost: Loaded<Cost>
         let breakdown: [BreakdownRow]
         /// Why the last edit a control sent about this area was not applied.
@@ -412,12 +426,23 @@ extension Results {
         let to: Double
     }
 
-    /// One scale for several ranges and a budget: from a little under the
-    /// least figure among them to a little over the most. `nil` when there is
-    /// no range to draw.
+    /// The two ends of a cost that is a range. `nil` for a cost that lacks
+    /// either: it is one number, and no range is drawn for it.
+    static func ends(of estimate: CostEstimate) -> (lower: Int, upper: Int)? {
+        guard let lower = estimate.lowerQuartile, let upper = estimate.upperQuartile else { return nil }
+        return (lower, upper)
+    }
+
+    /// One scale for several costs and a budget: from a little under the
+    /// least figure among them to a little over the most. A cost that is one
+    /// number counts as that number, and nothing stands in for the ends it
+    /// lacks. `nil` when there is no cost to draw.
     static func scale(of estimates: [CostEstimate], budget amount: Int?) -> Scale? {
         guard !estimates.isEmpty else { return nil }
-        let figures = estimates.flatMap { [$0.lowerQuartile, $0.upperQuartile] } + (amount.map { [$0] } ?? [])
+        let figures =
+            estimates.flatMap { estimate in
+                ends(of: estimate).map { [$0.lower, $0.upper] } ?? [estimate.median]
+            } + (amount.map { [$0] } ?? [])
         let least = Double(figures.min() ?? 0)
         let most = Double(figures.max() ?? 0)
         // A little room either side, so that a mark at an end is not cut off.
@@ -443,14 +468,17 @@ extension Results {
             min(100, max(0, ((Double(figure) - along.from) / width * 1000).rounded() / 10))
         }
         return Bar(
-            lower: at(estimate.lowerQuartile), median: at(estimate.median),
-            upper: at(estimate.upperQuartile), budget: amount.map(at))
+            lower: estimate.lowerQuartile.map(at), median: at(estimate.median),
+            upper: estimate.upperQuartile.map(at), budget: amount.map(at))
     }
 
     static func cost(
         of fact: Fact, estimate: CostEstimate, budget amount: Int?, on scale: Scale? = nil
     ) -> Cost? {
         let pound = ResultsCopy.Cost.pound
+        guard let ends = ends(of: estimate) else {
+            return oneNumber(of: fact, estimate: estimate, budget: amount, on: scale)
+        }
         // A range with an end missing is no range, and nothing is filled in.
         guard let lower = fact.slots["lower"], let upper = fact.slots["upper"] else { return nil }
         // The fact's own word where it is one this build knows. Otherwise the estimate's.
@@ -461,17 +489,18 @@ extension Results {
         case .high: pips = 3
         case .medium: pips = 2
         case .low: pips = 1
-        case .unlisted: pips = 0
+        case .unstated, .unlisted: pips = 0
         }
         var falls: String?
         if let amount {
             falls =
-                amount < estimate.lowerQuartile
+                amount < ends.lower
                 ? ResultsCopy.Cost.below
-                : amount > estimate.upperQuartile ? ResultsCopy.Cost.above : ResultsCopy.Cost.inside
+                : amount > ends.upper ? ResultsCopy.Cost.above : ResultsCopy.Cost.inside
         }
         return Cost(
             range: "\(pound)\(lower) \(ResultsCopy.Cost.to) \(pound)\(upper)",
+            oneNumber: false, what: nil, soldIn: nil, caveat: nil,
             aMonth: fact.template == .costRent,
             label: fact.label,
             segment: fact.slots["segment"],
@@ -479,6 +508,37 @@ extension Results {
             month: fact.slots["as_of"],
             confidence: ResultsCopy.word(for: confidence),
             pips: pips,
+            budget: amount.map { "\(pound)\(grouped($0))" },
+            bar: bar(for: estimate, budget: amount, on: scale),
+            falls: falls,
+            sources: sourceLines(of: [fact]))
+    }
+
+    /// A price that is one number: a publisher's own middle price, with no
+    /// range. It is drawn as one number. No range is made of it, no word says
+    /// how sure it is, and the line under it says what is not known of it.
+    /// The figure and the period it is of are slots of the fact, as the API
+    /// formatted them.
+    static func oneNumber(
+        of fact: Fact, estimate: CostEstimate, budget amount: Int?, on scale: Scale? = nil
+    ) -> Cost? {
+        let pound = ResultsCopy.Cost.pound
+        guard let median = fact.slots["median"], !median.isEmpty else { return nil }
+        var falls: String?
+        if let amount {
+            falls =
+                amount < estimate.median
+                ? ResultsCopy.Cost.belowMiddle
+                : amount > estimate.median ? ResultsCopy.Cost.aboveMiddle : ResultsCopy.Cost.atMiddle
+        }
+        return Cost(
+            range: "\(pound)\(median)",
+            oneNumber: true, what: ResultsCopy.Cost.middleOfAll, soldIn: fact.slots["period"],
+            caveat: ResultsCopy.Cost.oneNumber,
+            aMonth: false,
+            label: fact.label,
+            segment: fact.slots["segment"],
+            middle: nil, month: nil, confidence: nil, pips: 0,
             budget: amount.map { "\(pound)\(grouped($0))" },
             bar: bar(for: estimate, budget: amount, on: scale),
             falls: falls,
@@ -527,6 +587,7 @@ extension Results {
                 orientation: .hidden, station: .hidden, reasons: .hidden, tradeOff: .hidden,
                 completeness: completeness(of: ranked), missing: .hidden, held: 0,
                 journeys: journeys(of: ranked, in: state), journeysNote: journeysNote(of: ranked, in: state),
+                strip: strip(of: ranked, in: state),
                 cost: .hidden, breakdown: breakdown(of: ranked, in: state), refusal: refusal,
                 selected: selected)
         }
@@ -570,6 +631,30 @@ extension Results {
             completeness: completeness(of: ranked), missing: missing,
             held: missing == .waiting ? without : 0,
             journeys: journeys(of: ranked, in: state), journeysNote: journeysNote(of: ranked, in: state),
+            strip: strip(of: ranked, in: state),
             cost: cost, breakdown: breakdown(of: ranked, in: state), refusal: refusal, selected: selected)
+    }
+
+    /// The strip of a result: its vibes, as the API chose and ordered them.
+    static func strip(of ranked: RankedArea, in state: SearchState) -> [VibeShown] {
+        Vibes.strip(ranked.strip, meta: state.meta, facts: state.facts)
+    }
+
+    /// What is said once before a run of vibes of a strip: that they were
+    /// asked for, or that they were not. The vibes stand in the order the API
+    /// gave them. `nil` where the vibe before says the same, and before the
+    /// first where nothing in the strip was asked for.
+    static func group(before at: Int, in strip: [VibeShown]) -> String? {
+        guard strip.indices.contains(at) else { return nil }
+        let asked = strip[at].asked != nil
+        if at > 0, (strip[at - 1].asked != nil) == asked { return nil }
+        if asked { return VibeCopy.groupAsked }
+        return at > 0 ? VibeCopy.groupAlso : nil
+    }
+
+    /// The source and the date of a vibe's band, as one line. `nil` where its fact is not in hand.
+    static func sourceWords(of vibe: VibeShown) -> String? {
+        guard !vibe.sources.isEmpty else { return nil }
+        return "\(ResultsCopy.Source.source): " + vibe.sources.map(\.words).joined(separator: " ")
     }
 }

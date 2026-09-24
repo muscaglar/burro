@@ -1,0 +1,1490 @@
+{
+  "scenario": "explanations-shelf",
+  "shows": "The reasons of a search for one vibe",
+  "captured": true,
+  "request": {
+    "operation_id": "explain_top",
+    "method": "POST",
+    "route": "/v1/explanations",
+    "path": "/v1/explanations",
+    "body": {
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.3,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [
+          {
+            "tag_id": "leafy",
+            "weight": 0.5,
+            "toward": "high",
+            "provenance": "ui_edit"
+          }
+        ],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "limit": 5
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "24411",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "false",
+    "x-burro-synthetic": "true",
+    "x-request-id": "631c145b-cab4-4a5d-85c4-7e632c6b7f5f"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
+    },
+    "data": {
+      "spec_hash": "67b08573e61cbb275f42749ad972b90bb8bf472a4bd774c609c07c6d4673e843",
+      "explanations": [
+        {
+          "area_id": "syn-n0002",
+          "orientation": {
+            "text": "Brackenhythe is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0002/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "Leafy: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0002/tag/leafy"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Straight-line distance to the nearest way in to a station: 160 m, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
+              "fact_ids": [
+                "syn-n0002/feature/station_walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 480 m, closer than 85% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0002/feature/park_proximity"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": null,
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0013",
+          "orientation": {
+            "text": "Larkspur Hill is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0013/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "Leafy: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0013/tag/leafy"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 380 m, closer than 90% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0013/feature/park_proximity"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Modelled annual mean nitrogen dioxide: 16.4 µg/m³, lower than 85% of the 20 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0013/feature/air_no2"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Straight-line distance to the nearest way in to a station: 2,240 m, further than 81% of the 22 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0013/feature/station_walk"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0001",
+          "orientation": {
+            "text": "Alderwick is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0001/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "Leafy: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0001/tag/leafy"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Share of residents exposed to 55 dB or more of transport noise: 9%, quieter than 90% of the 20 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0001/feature/noise_exposure"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Straight-line distance to the nearest way in to a station: 2,640 m, further than 86% of the 22 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0001/feature/station_walk"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": [
+            {
+              "text": "There is no Modelled annual mean nitrogen dioxide figure for Alderwick in this release, so it was left out of the score.",
+              "fact_ids": [
+                "syn-n0001/missing/feature:air_no2"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0004",
+          "orientation": {
+            "text": "Dulcimer Green is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0004/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "Leafy: band 4 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0004/tag/leafy"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Straight-line distance to the nearest way in to a station: 320 m, closer than 50% of the 22 areas compared in this release, and the same as 5 others.",
+              "fact_ids": [
+                "syn-n0004/feature/station_walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 600 m, closer than 66% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0004/feature/park_proximity"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": null,
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0005",
+          "orientation": {
+            "text": "Eskerfold is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0005/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "Leafy: band 4 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0005/tag/leafy"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Straight-line distance to the nearest way in to a station: 320 m, closer than 50% of the 22 areas compared in this release, and the same as 5 others.",
+              "fact_ids": [
+                "syn-n0005/feature/station_walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Modelled annual mean nitrogen dioxide: 18.1 µg/m³, lower than 75% of the 20 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0005/feature/air_no2"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": null,
+          "missing": []
+        }
+      ],
+      "facts": [
+        {
+          "fact_id": "syn-n0002/area/name",
+          "area_id": "syn-n0002",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Brackenhythe",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Brackenhythe",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0002/feature/park_proximity",
+          "area_id": "syn-n0002",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "value": "480 m",
+            "band": "1",
+            "comparative": "closer than",
+            "pct": "85",
+            "standing": "closer than 85% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "9",
+            "standing_worse": "further than 9% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "480",
+            "85%",
+            "21",
+            "9%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0002/feature/station_walk",
+          "area_id": "syn-n0002",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Straight-line distance to the nearest way in to a station",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest way in to a station",
+            "value": "160 m",
+            "band": "1",
+            "comparative": "closer than",
+            "pct": "77",
+            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others",
+            "standing_worse": "the same as 4 of the 21 other areas compared in this release",
+            "compared": "22",
+            "level": "4"
+          },
+          "numbers": [
+            "160",
+            "77%",
+            "22",
+            "4",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0002/tag/leafy",
+          "area_id": "syn-n0002",
+          "kind": "tag",
+          "key": "leafy",
+          "label": "Leafy",
+          "template": "vibe",
+          "slots": {
+            "label": "Leafy",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0002/tag/parks_close_by",
+          "area_id": "syn-n0002",
+          "kind": "tag",
+          "key": "parks_close_by",
+          "label": "Parks close by",
+          "template": "vibe",
+          "slots": {
+            "label": "Parks close by",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0002/tag/village_feel",
+          "area_id": "syn-n0002",
+          "kind": "tag",
+          "key": "village_feel",
+          "label": "Village feel",
+          "template": "vibe",
+          "slots": {
+            "label": "Village feel",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "5",
+            "parts": "5",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0013/area/name",
+          "area_id": "syn-n0013",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Larkspur Hill",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Larkspur Hill",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0013/feature/air_no2",
+          "area_id": "syn-n0013",
+          "kind": "feature",
+          "key": "air_no2",
+          "label": "Modelled annual mean nitrogen dioxide",
+          "template": "feature",
+          "slots": {
+            "label": "Modelled annual mean nitrogen dioxide",
+            "value": "16.4 µg/m³",
+            "band": "1",
+            "comparative": "lower than",
+            "pct": "85",
+            "standing": "lower than 85% of the 20 areas compared in this release",
+            "comparative_worse": "higher than",
+            "pct_worse": "10",
+            "standing_worse": "higher than 10% of the 20 areas compared in this release",
+            "compared": "20"
+          },
+          "numbers": [
+            "16.4",
+            "85%",
+            "20",
+            "10%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0013/feature/park_proximity",
+          "area_id": "syn-n0013",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "value": "380 m",
+            "band": "1",
+            "comparative": "closer than",
+            "pct": "90",
+            "standing": "closer than 90% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "4",
+            "standing_worse": "further than 4% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "380",
+            "90%",
+            "21",
+            "4%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0013/feature/station_walk",
+          "area_id": "syn-n0013",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Straight-line distance to the nearest way in to a station",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest way in to a station",
+            "value": "2,240 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "13",
+            "standing": "closer than 13% of the 22 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "81",
+            "standing_worse": "further than 81% of the 22 areas compared in this release",
+            "compared": "22"
+          },
+          "numbers": [
+            "2240",
+            "13%",
+            "22",
+            "81%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0013/tag/family_amenities",
+          "area_id": "syn-n0013",
+          "kind": "tag",
+          "key": "family_amenities",
+          "label": "Family amenities",
+          "template": "vibe",
+          "slots": {
+            "label": "Family amenities",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0013/tag/leafy",
+          "area_id": "syn-n0013",
+          "kind": "tag",
+          "key": "leafy",
+          "label": "Leafy",
+          "template": "vibe",
+          "slots": {
+            "label": "Leafy",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0013/tag/parks_close_by",
+          "area_id": "syn-n0013",
+          "kind": "tag",
+          "key": "parks_close_by",
+          "label": "Parks close by",
+          "template": "vibe",
+          "slots": {
+            "label": "Parks close by",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0001/area/name",
+          "area_id": "syn-n0001",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Alderwick",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Alderwick",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0001/feature/noise_exposure",
+          "area_id": "syn-n0001",
+          "kind": "feature",
+          "key": "noise_exposure",
+          "label": "Share of residents exposed to 55 dB or more of transport noise",
+          "template": "feature",
+          "slots": {
+            "label": "Share of residents exposed to 55 dB or more of transport noise",
+            "value": "9%",
+            "band": "1",
+            "comparative": "quieter than",
+            "pct": "90",
+            "standing": "quieter than 90% of the 20 areas compared in this release",
+            "comparative_worse": "noisier than",
+            "pct_worse": "5",
+            "standing_worse": "noisier than 5% of the 20 areas compared in this release",
+            "compared": "20"
+          },
+          "numbers": [
+            "9%",
+            "90%",
+            "20",
+            "5%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0001/feature/station_walk",
+          "area_id": "syn-n0001",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Straight-line distance to the nearest way in to a station",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest way in to a station",
+            "value": "2,640 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "9",
+            "standing": "closer than 9% of the 22 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "86",
+            "standing_worse": "further than 86% of the 22 areas compared in this release",
+            "compared": "22"
+          },
+          "numbers": [
+            "2640",
+            "9%",
+            "22",
+            "86%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0001/missing/feature:air_no2",
+          "area_id": "syn-n0001",
+          "kind": "missing",
+          "key": "feature:air_no2",
+          "label": "Modelled annual mean nitrogen dioxide",
+          "template": "missing",
+          "slots": {
+            "label": "Modelled annual mean nitrogen dioxide",
+            "name": "Alderwick"
+          },
+          "numbers": [],
+          "names": [
+            "Alderwick"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0001/tag/built_age",
+          "area_id": "syn-n0001",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
+          "slots": {
+            "label": "Age of buildings",
+            "band": "4",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "4",
+            "5",
+            "21",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0001/tag/leafy",
+          "area_id": "syn-n0001",
+          "kind": "tag",
+          "key": "leafy",
+          "label": "Leafy",
+          "template": "vibe",
+          "slots": {
+            "label": "Leafy",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0001/tag/quiet_residential",
+          "area_id": "syn-n0001",
+          "kind": "tag",
+          "key": "quiet_residential",
+          "label": "Quiet streets",
+          "template": "vibe",
+          "slots": {
+            "label": "Quiet streets",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/area/name",
+          "area_id": "syn-n0004",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Dulcimer Green",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Dulcimer Green",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/feature/park_proximity",
+          "area_id": "syn-n0004",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "value": "600 m",
+            "band": "2",
+            "comparative": "closer than",
+            "pct": "66",
+            "standing": "closer than 66% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "28",
+            "standing_worse": "further than 28% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "600",
+            "66%",
+            "21",
+            "28%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/feature/station_walk",
+          "area_id": "syn-n0004",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Straight-line distance to the nearest way in to a station",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest way in to a station",
+            "value": "320 m",
+            "band": "2",
+            "comparative": "closer than",
+            "pct": "50",
+            "standing": "closer than 50% of the 22 areas compared in this release, and the same as 5 others",
+            "comparative_worse": "further than",
+            "pct_worse": "22",
+            "standing_worse": "further than 22% of the 22 areas compared in this release, and the same as 5 others",
+            "compared": "22",
+            "level": "5"
+          },
+          "numbers": [
+            "320",
+            "50%",
+            "22",
+            "5",
+            "22%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/tag/built_age",
+          "area_id": "syn-n0004",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
+          "slots": {
+            "label": "Age of buildings",
+            "band": "1",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/tag/family_amenities",
+          "area_id": "syn-n0004",
+          "kind": "tag",
+          "key": "family_amenities",
+          "label": "Family amenities",
+          "template": "vibe",
+          "slots": {
+            "label": "Family amenities",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0004/tag/leafy",
+          "area_id": "syn-n0004",
+          "kind": "tag",
+          "key": "leafy",
+          "label": "Leafy",
+          "template": "vibe",
+          "slots": {
+            "label": "Leafy",
+            "band": "4",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "4",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/area/name",
+          "area_id": "syn-n0005",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Eskerfold",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Eskerfold",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/feature/air_no2",
+          "area_id": "syn-n0005",
+          "kind": "feature",
+          "key": "air_no2",
+          "label": "Modelled annual mean nitrogen dioxide",
+          "template": "feature",
+          "slots": {
+            "label": "Modelled annual mean nitrogen dioxide",
+            "value": "18.1 µg/m³",
+            "band": "2",
+            "comparative": "lower than",
+            "pct": "75",
+            "standing": "lower than 75% of the 20 areas compared in this release",
+            "comparative_worse": "higher than",
+            "pct_worse": "20",
+            "standing_worse": "higher than 20% of the 20 areas compared in this release",
+            "compared": "20"
+          },
+          "numbers": [
+            "18.1",
+            "75%",
+            "20",
+            "20%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/feature/station_walk",
+          "area_id": "syn-n0005",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Straight-line distance to the nearest way in to a station",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest way in to a station",
+            "value": "320 m",
+            "band": "2",
+            "comparative": "closer than",
+            "pct": "50",
+            "standing": "closer than 50% of the 22 areas compared in this release, and the same as 5 others",
+            "comparative_worse": "further than",
+            "pct_worse": "22",
+            "standing_worse": "further than 22% of the 22 areas compared in this release, and the same as 5 others",
+            "compared": "22",
+            "level": "5"
+          },
+          "numbers": [
+            "320",
+            "50%",
+            "22",
+            "5",
+            "22%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/tag/built_age",
+          "area_id": "syn-n0005",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
+          "slots": {
+            "label": "Age of buildings",
+            "band": "2",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "2",
+            "spread_high": "2",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "2",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/tag/family_amenities",
+          "area_id": "syn-n0005",
+          "kind": "tag",
+          "key": "family_amenities",
+          "label": "Family amenities",
+          "template": "vibe",
+          "slots": {
+            "label": "Family amenities",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/tag/leafy",
+          "area_id": "syn-n0005",
+          "kind": "tag",
+          "key": "leafy",
+          "label": "Leafy",
+          "template": "vibe",
+          "slots": {
+            "label": "Leafy",
+            "band": "4",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "4",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        }
+      ]
+    }
+  }
+}

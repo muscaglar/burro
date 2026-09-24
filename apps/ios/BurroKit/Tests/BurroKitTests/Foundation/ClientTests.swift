@@ -57,7 +57,7 @@ final class ClientTests: XCTestCase {
 
         _ = await api.rank(RankBody(spec: spec))
         _ = await api.getArea("farrowmere")
-        _ = await api.getShare("TbfsnjL3GyTlKt967hH2HQ")
+        _ = await api.getShare("rPnAeuBsXQci-xINLK_f2w")
         _ = await api.getGeometry()
 
         XCTAssertEqual(
@@ -65,7 +65,7 @@ final class ClientTests: XCTestCase {
             [
                 "https://api.example.test/v1/rank",
                 "https://api.example.test/v1/areas/farrowmere",
-                "https://api.example.test/v1/shares/TbfsnjL3GyTlKt967hH2HQ",
+                "https://api.example.test/v1/shares/rPnAeuBsXQci-xINLK_f2w",
                 "https://api.example.test/v1/areas/geometry",
             ])
         XCTAssertEqual(standIn.unexpected.count, 0)
@@ -106,7 +106,7 @@ final class ClientTests: XCTestCase {
         let compare = await api.compare(CompareBody(areaIds: ["syn-n0006", "syn-n0017"], spec: spec))
         let places = await api.searchPlaces(PlaceSearchBody(q: "pel"))
         let made = await api.createShare(ShareBody(spec: spec))
-        let share = await api.getShare("TbfsnjL3GyTlKt967hH2HQ")
+        let share = await api.getShare("rPnAeuBsXQci-xINLK_f2w")
         let areas = await api.listAreas()
         let geometry = await api.getGeometry()
         let area = await api.getArea("farrowmere")
@@ -118,7 +118,7 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(try explain.get().data, Answers.explained("explanations-first"))
         XCTAssertEqual(try compare.get().data.areas.count, 3)
         XCTAssertEqual(try places.get().data.places.first?.placeId, "syn-p0012")
-        XCTAssertEqual(try made.get().data.shareId, "TbfsnjL3GyTlKt967hH2HQ")
+        XCTAssertEqual(try made.get().data.shareId, "rPnAeuBsXQci-xINLK_f2w")
         XCTAssertEqual(try share.get().data, Answers.shared("share-opened"))
         XCTAssertEqual(try areas.get().data.areas, Answers.areas)
         XCTAssertEqual(try geometry.get().data, Answers.geometry)
@@ -138,6 +138,7 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(answer.status, 200)
         XCTAssertEqual(answer.meta.releaseId, "syn-2026-09-23-01")
         XCTAssertTrue(answer.synthetic)
+        XCTAssertFalse(answer.preview)
         XCTAssertEqual(answer.requestId, recorded.headers["x-request-id"])
         XCTAssertNotNil(answer.requestId)
     }
@@ -148,8 +149,38 @@ final class ClientTests: XCTestCase {
 
         _ = await api.rank(RankBody(spec: spec))
         XCTAssertEqual(standIn.synthetic, [true])
+        XCTAssertEqual(standIn.preview, [false])
         _ = await api.getShare("a9yIlz7uQ1b3F4vDySSZRg")
         XCTAssertEqual(standIn.synthetic, [true, true])
+        XCTAssertEqual(standIn.preview, [false, false])
+    }
+
+    func test_the_release_counts_as_a_preview_when_either_the_body_or_the_header_says_so() async throws {
+        let finished = try Recorded.read("rank-first")
+        func answered(body: Bool, header: String?) async throws -> (Bool, [Bool]) {
+            var headers = finished.headers
+            headers["x-burro-preview"] = header
+            let sent = try finished.with(meta: { $0["preview"] = .bool(body) }).with(headers: headers)
+            let standIn = StandIn().on(.rank, .made { _ in sent })
+            let answer = try await standIn.api().rank(RankBody(spec: spec)).get()
+            return (answer.preview, standIn.preview)
+        }
+
+        let byBody = try await answered(body: true, header: "false")
+        let byHeader = try await answered(body: false, header: "true")
+        let byNeither = try await answered(body: false, header: "false")
+        let bySilence = try await answered(body: false, header: nil)
+        let recorded = try await StandIn().on(.rank, "preview/rank-plain").api().rank(RankBody(spec: spec)).get()
+
+        // A preview is never shown as finished: either saying so is enough.
+        XCTAssertEqual(byBody.0, true)
+        XCTAssertEqual(byHeader.0, true)
+        XCTAssertEqual(byNeither.0, false)
+        XCTAssertEqual(bySilence.0, false)
+        // The banner is told what the answer counts as, before the answer is handed over.
+        XCTAssertEqual([byBody.1, byHeader.1, byNeither.1, bySilence.1], [[true], [true], [false], [false]])
+        XCTAssertTrue(recorded.preview)
+        XCTAssertTrue(recorded.meta.preview)
     }
 
     func test_the_data_counts_as_made_up_when_either_the_body_or_the_header_says_so() async throws {
@@ -212,6 +243,8 @@ final class ClientTests: XCTestCase {
             recorded.with(body: Data(#"{"data": {}}"#.utf8)),
             try recorded.with(data: { $0["ranked"] = nil }),
             try recorded.with(data: { $0["scores"] = .string("many") }),
+            // An answer that does not say whether its release is a preview is not the API's.
+            try recorded.with(meta: { $0["preview"] = nil }),
             recorded.with(status: 302),
             recorded.with(body: Data()),
         ]
@@ -231,8 +264,10 @@ final class ClientTests: XCTestCase {
         let answer = await standIn.api().rank(RankBody(spec: spec))
 
         XCTAssertEqual(answer.failure, .client(ClientFailure(
-            .unreadable, status: 200, synthetic: true, requestId: broken.headers["x-request-id"])))
+            .unreadable, status: 200, synthetic: true, preview: false,
+            requestId: broken.headers["x-request-id"])))
         XCTAssertEqual(standIn.synthetic, [true])
+        XCTAssertEqual(standIn.preview, [false])
     }
 
     // MARK: - What goes wrong on the way

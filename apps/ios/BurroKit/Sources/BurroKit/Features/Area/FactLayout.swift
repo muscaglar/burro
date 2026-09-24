@@ -22,8 +22,10 @@ public struct FactRow: Hashable, Sendable, Identifiable {
     public let id: String
     public let name: String
     public let columns: [FactColumn]
-    /// The caveat that goes with recorded crime, word for word.
-    public let caveat: String?
+    /// What is said under the columns: the caveat that goes with recorded
+    /// crime, that a vibe cannot place the area, that a price has no range,
+    /// and the API's own line that a recipe is a judgement.
+    public let caveats: [String]
     /// The source and the date of the figure. Empty when there is no figure.
     public let sources: [SourceLine]
     /// What is said in place of a figure, when the area has none.
@@ -38,7 +40,7 @@ public struct FactRow: Hashable, Sendable, Identifiable {
         self.name = name
         // A column that only repeats the row's name says nothing new.
         self.columns = columns.filter { $0.value != name }
-        caveat = fact.template == .featureCrime ? AreaCopy.crimeCaveat : nil
+        caveats = FactLayout.caveats(of: fact)
         sources = SourceLines.of([fact])
         noFigure = nil
     }
@@ -49,7 +51,7 @@ public struct FactRow: Hashable, Sendable, Identifiable {
         self.id = id
         self.name = name
         columns = []
-        caveat = nil
+        caveats = []
         sources = []
         noFigure = says
     }
@@ -70,8 +72,31 @@ public enum FactLayout {
         switch fact.template {
         case .feature, .featureCrime:
             found = [(AreaCopy.Column.value, slots["value"]), (AreaCopy.Column.standing, slots["standing"])]
-        case .tag:
-            found = [(AreaCopy.Column.standing, slots["standing"])]
+        case .vibe:
+            found =
+                [
+                    (AreaCopy.Column.band, slots["band"]),
+                    (AreaCopy.Column.ends, between(slots["low_end"], slots["high_end"])),
+                    (AreaCopy.Column.compared, slots["compared"]),
+                    (AreaCopy.Column.partsDated, slots["span"]),
+                ] + restsOnPart(slots)
+        case .vibeRange:
+            found =
+                [
+                    (AreaCopy.Column.bands, between(slots["spread_low"], slots["spread_high"])),
+                    (AreaCopy.Column.ends, between(slots["low_end"], slots["high_end"])),
+                    (AreaCopy.Column.partsDated, slots["span"]),
+                ] + restsOnPart(slots)
+        case .vibeUnknown:
+            found = [(AreaCopy.Column.partsKnown, slots["known"]), (AreaCopy.Column.parts, slots["parts"])]
+        case .costBuyMedian:
+            // One number, as a publisher gives it. No range stands beside it, and no word
+            // for how sure it is: the row says under its columns what is not known of it.
+            found = [
+                (AreaCopy.Column.segment, slots["segment"]),
+                (AreaCopy.Column.middleOfAll, pounds(slots["median"])),
+                (AreaCopy.Column.soldIn, slots["period"]),
+            ]
         case .costRent, .costBuy:
             found = [
                 (AreaCopy.Column.segment, slots["segment"]),
@@ -88,8 +113,10 @@ public enum FactLayout {
             ]
         case .area:
             found = [(AreaCopy.Column.name, slots["name"]), (AreaCopy.Column.borough, slots["borough"])]
-        case .budgetUnder, .budgetOver, .travelPt, .travelOther, .travelBeyond, .missing, .unlisted:
-            // These are of a search. An area's page is of the release alone.
+        case .budgetUnder, .budgetOver, .budgetUnderMedian, .budgetOverMedian, .travelPt, .travelPtOver,
+            .travelOther, .travelOtherOver, .travelBeyond, .missing, .missingJourney, .likeness,
+            .likenessSame, .unlisted:
+            // These are of a search, or of another area. This page lays neither out in columns.
             return nil
         }
         return found.compactMap { name, value in
@@ -108,13 +135,46 @@ public enum FactLayout {
         return fact.label.isEmpty ? kind : fact.label
     }
 
+    /// How many parts of its recipe a band rests on, where that is not all of
+    /// them. Both counts, and what those parts carry of the recipe, are the
+    /// API's: nothing is added up here.
+    static func restsOnPart(_ slots: [String: String]) -> [(String, String?)] {
+        guard let known = slots["known"], let parts = slots["parts"], known != parts else { return [] }
+        return [
+            (AreaCopy.Column.partsKnown, known),
+            (AreaCopy.Column.parts, parts),
+            (AreaCopy.Column.share, slots["share"]),
+        ]
+    }
+
+    /// What is said under the columns of a fact, each line in fixed words or the API's own.
+    static func caveats(of fact: Fact) -> [String] {
+        var said: [String] = []
+        switch fact.template {
+        case .featureCrime: said.append(AreaCopy.crimeCaveat)
+        case .vibeUnknown: said.append(VibeCopy.cannotPlace)
+        case .costBuyMedian: said.append(AreaCopy.oneNumber)
+        default: break
+        }
+        // What every sentence about a vibe ends in, as the API holds it.
+        if fact.kind == .tag, let judgement = fact.slots["judgement"], !judgement.isEmpty {
+            said.append(judgement)
+        }
+        return said
+    }
+
+    /// From one slot to another, where the fact holds both.
+    static func between(_ from: String?, _ to: String?) -> String? {
+        guard let from, !from.isEmpty, let to, !to.isEmpty else { return nil }
+        return "\(from) \(AreaCopy.Column.to) \(to)"
+    }
+
     static func pounds(_ value: String?) -> String? {
         guard let value, !value.isEmpty else { return nil }
         return "£\(value)"
     }
 
     static func range(_ lower: String?, _ upper: String?) -> String? {
-        guard let lower = pounds(lower), let upper = pounds(upper) else { return nil }
-        return "\(lower) \(AreaCopy.Column.to) \(upper)"
+        between(pounds(lower), pounds(upper))
     }
 }

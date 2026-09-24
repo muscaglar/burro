@@ -236,7 +236,7 @@ final class FlowTests: XCTestCase {
 
         async let sent: Void = search.flow.submitText("leafy")
         await until { reading.waiting == 1 }
-        await search.flow.applyEdits(Edits.tagOn(.waterside))
+        await search.flow.applyEdits(Edits.tagOn(.villageFeel))
         XCTAssertEqual(api.calls(to: .rank).count, 0)
         reading.release()
         await sent
@@ -244,7 +244,7 @@ final class FlowTests: XCTestCase {
         // Its edit goes with the spec the reading returns.
         XCTAssertEqual(
             try api.lastCall(to: .rank).body(as: RankBody.self),
-            RankBody(spec: first.read.spec, limit: 20, operations: Edits.tagOn(.waterside)))
+            RankBody(spec: first.read.spec, limit: 20, operations: Edits.tagOn(.villageFeel)))
         XCTAssertEqual(api.calls(to: .rank).count, 1)
     }
 
@@ -255,7 +255,7 @@ final class FlowTests: XCTestCase {
         await search.flow.submitText("leafy")
         let slow = api.hold(.rank, "rank-refined")
 
-        async let one: Void = search.flow.applyEdits(Edits.tagOn(.waterside))
+        async let one: Void = search.flow.applyEdits(Edits.tagOn(.villageFeel))
         await until { slow.waiting == 1 }
         api.on(.rank, "rank-second-sentence")
         await search.flow.applyEdits(Edits.budgetAmount(1800))
@@ -264,7 +264,7 @@ final class FlowTests: XCTestCase {
 
         XCTAssertEqual(
             try api.lastCall(to: .rank).body(as: RankBody.self).operations,
-            Edits.tagOn(.waterside).merged(with: Edits.budgetAmount(1800)))
+            Edits.tagOn(.villageFeel).merged(with: Edits.budgetAmount(1800)))
         // The answer to the older call is dropped.
         XCTAssertEqual(search.state.spec, Answers.ranked("rank-second-sentence").spec)
         XCTAssertEqual(search.state.pending, .none)
@@ -307,13 +307,13 @@ final class FlowTests: XCTestCase {
 
         async let sent: Void = search.flow.submitText("leafy")
         await until { reading.waiting == 1 }
-        await search.flow.applyEdits(Edits.tagOn(.waterside))
+        await search.flow.applyEdits(Edits.tagOn(.villageFeel))
         reading.release()
         await sent
 
         XCTAssertEqual(
             try api.lastCall(to: .rank).body(as: RankBody.self),
-            RankBody(spec: Answers.meta.defaults.rent, limit: 20, operations: Edits.tagOn(.waterside)))
+            RankBody(spec: Answers.meta.defaults.rent, limit: 20, operations: Edits.tagOn(.villageFeel)))
     }
 
     @MainActor
@@ -321,7 +321,7 @@ final class FlowTests: XCTestCase {
         let search = OpenSearch()
         await search.flow.submitText("leafy")
         search.api.on(.rank, "error-internal")
-        let edit = Edits.tagOn(.waterside)
+        let edit = Edits.tagOn(.villageFeel)
 
         await search.flow.applyEdits(edit)
         XCTAssertEqual(search.state.failure?.code, .internalError)
@@ -370,11 +370,11 @@ final class FlowTests: XCTestCase {
 
         async let sent: Void = search.flow.submitText("leafy")
         await until { api.calls(to: .interpret).count == 1 }
-        await search.flow.applyEdits(Edits.tagOn(.waterside))
+        await search.flow.applyEdits(Edits.tagOn(.villageFeel))
         await search.flow.stop()
         await sent
 
-        XCTAssertEqual(try api.lastCall(to: .rank).body(as: RankBody.self).operations, Edits.tagOn(.waterside))
+        XCTAssertEqual(try api.lastCall(to: .rank).body(as: RankBody.self).operations, Edits.tagOn(.villageFeel))
         XCTAssertEqual(search.state.phase, .results)
     }
 
@@ -385,7 +385,7 @@ final class FlowTests: XCTestCase {
         await search.flow.submitText("leafy")
         let slow = api.hold(.rank, "rank-refined")
 
-        async let edit: Void = search.flow.applyEdits(Edits.tagOn(.waterside))
+        async let edit: Void = search.flow.applyEdits(Edits.tagOn(.villageFeel))
         await until { slow.waiting == 1 }
         search.flow.startAgain()
         slow.release()
@@ -402,7 +402,7 @@ final class FlowTests: XCTestCase {
         let search = OpenSearch()
         await search.flow.submitText("leafy")
         search.api.unreachable(.rank, .notConnectedToInternet)
-        let edit = Edits.tagOn(.waterside)
+        let edit = Edits.tagOn(.villageFeel)
 
         await search.flow.applyEdits(edit)
         XCTAssertEqual(search.state.conditions, [.offline])
@@ -520,7 +520,7 @@ final class FlowTests: XCTestCase {
         XCTAssertEqual(
             try call.body(as: ShareBody.self), ShareBody(spec: first.rank.spec, exactDestinations: false))
         XCTAssertFalse(String(decoding: call.sent ?? Data(), as: UTF8.self).contains(canary))
-        XCTAssertEqual(try made.get().data.shareId, "TbfsnjL3GyTlKt967hH2HQ")
+        XCTAssertEqual(try made.get().data.shareId, "rPnAeuBsXQci-xINLK_f2w")
         XCTAssertEqual(try made.get().data.coarsened, true)
         // The search is as it was.
         XCTAssertEqual(search.state.spec, first.rank.spec)
@@ -531,17 +531,17 @@ final class FlowTests: XCTestCase {
         let api = StandIn.firstSearch().on(.getShare, "share-opened")
         let search = OpenSearch(api)
 
-        let failure = await search.flow.openShare("TbfsnjL3GyTlKt967hH2HQ")
+        let failure = await search.flow.openShare("rPnAeuBsXQci-xINLK_f2w")
 
         let shared = Answers.shared("share-opened")
         XCTAssertNil(failure)
         XCTAssertEqual(search.state.spec, shared.spec)
-        XCTAssertEqual(search.state.shared?.id, "TbfsnjL3GyTlKt967hH2HQ")
+        XCTAssertEqual(search.state.shared?.id, "rPnAeuBsXQci-xINLK_f2w")
         XCTAssertEqual(search.state.shared?.coarsened, true)
         XCTAssertEqual(search.state.ranking, Ranking(shared))
         XCTAssertEqual(try api.lastCall(to: .explainTop).body(as: ExplanationsBody.self).spec, shared.spec)
         XCTAssertEqual(api.calls(to: .getArea).count, 5)
-        XCTAssertEqual(try api.lastCall(to: .getShare).path, "/v1/shares/TbfsnjL3GyTlKt967hH2HQ")
+        XCTAssertEqual(try api.lastCall(to: .getShare).path, "/v1/shares/rPnAeuBsXQci-xINLK_f2w")
     }
 
     @MainActor

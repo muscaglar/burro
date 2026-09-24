@@ -1,6 +1,6 @@
 {
-  "scenario": "visit/20-slow",
-  "shows": "A sentence the model did not answer: read by the rules, and degraded",
+  "scenario": "interpret-gritty",
+  "shows": "A word with two meanings, where gritty is a scale",
   "captured": true,
   "request": {
     "operation_id": "interpret",
@@ -8,84 +8,27 @@
     "route": "/v1/interpret",
     "path": "/v1/interpret",
     "body": {
-      "text": "somewhere by the water",
-      "spec": {
-        "schema_version": 1,
-        "tenure": "rent",
-        "budget": {
-          "amount": null,
-          "segment": "bed_1",
-          "strictness": "soft",
-          "weight": 0.8,
-          "provenance": "default"
-        },
-        "commutes": [],
-        "commute_combine": "slowest",
-        "pt_basis": "typical",
-        "commute_weight": 1.0,
-        "weights": [
-          {
-            "feature_id": "air_no2",
-            "weight": 0.2,
-            "direction": "less",
-            "provenance": "default"
-          },
-          {
-            "feature_id": "highstreet_access",
-            "weight": 0.3,
-            "direction": "more",
-            "provenance": "default"
-          },
-          {
-            "feature_id": "noise_exposure",
-            "weight": 0.2,
-            "direction": "less",
-            "provenance": "default"
-          },
-          {
-            "feature_id": "park_proximity",
-            "weight": 0.3,
-            "direction": "less",
-            "provenance": "default"
-          },
-          {
-            "feature_id": "station_lines",
-            "weight": 0.3,
-            "direction": "more",
-            "provenance": "default"
-          },
-          {
-            "feature_id": "station_walk",
-            "weight": 0.5,
-            "direction": "less",
-            "provenance": "default"
-          }
-        ],
-        "tags": [],
-        "areas": [],
-        "tenure_from": "default",
-        "commute_combine_from": "default",
-        "pt_basis_from": "default",
-        "commute_weight_from": "default"
-      }
+      "text": "somewhere a bit gritty"
     }
   },
   "status": 200,
   "headers": {
     "access-control-allow-origin": "http://localhost:3000",
-    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "1632",
+    "content-length": "1766",
     "content-type": "application/json",
     "vary": "Origin",
+    "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "5ec56e42-4afe-4267-bf21-6f8f586d16bb"
+    "x-request-id": "c614cebf-97d0-44d7-a968-2c9d6b3a57df"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.3.0",
-      "synthetic": true
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
     },
     "data": {
       "status": "ok",
@@ -96,10 +39,11 @@
         "tag_ops": [
           {
             "action": "nudge",
-            "tag_id": "waterside",
+            "tag_id": "street_character",
             "value": 0.0,
-            "step": "up_large",
-            "provenance": "inferred"
+            "step": "up_small",
+            "toward": "high",
+            "provenance": "stated"
           }
         ],
         "area_ops": [],
@@ -112,13 +56,13 @@
           "amount": null,
           "segment": "bed_1",
           "strictness": "soft",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "default"
         },
         "commutes": [],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [
           {
             "feature_id": "air_no2",
@@ -129,7 +73,7 @@
           {
             "feature_id": "highstreet_access",
             "weight": 0.05,
-            "direction": "more",
+            "direction": "less",
             "provenance": "default"
           },
           {
@@ -159,9 +103,10 @@
         ],
         "tags": [
           {
-            "tag_id": "waterside",
+            "tag_id": "street_character",
             "weight": 0.5,
-            "provenance": "inferred"
+            "toward": "high",
+            "provenance": "stated"
           }
         ],
         "areas": [],
@@ -170,7 +115,7 @@
         "pt_basis_from": "default",
         "commute_weight_from": "default"
       },
-      "spec_hash": "08180862dd8aac94f2ffb6e3390406efbfd8fc8eef208031c0552adaa7ac11c1",
+      "spec_hash": "89816026374ffd300bef929f57f7eecbbaf7493ab68d81aad0656a8740302538",
       "applied": [
         {
           "group": "tag_ops",
@@ -179,19 +124,14 @@
         }
       ],
       "rejected": [],
-      "assumptions": [
-        {
-          "code": "weight",
-          "group": "tag_ops",
-          "index": 0
-        }
-      ],
+      "assumptions": [],
       "unmet": [],
       "clarify": [],
       "notice": "none",
       "notice_text": "",
       "interpreter": "rule",
-      "degraded": true,
+      "degraded": false,
+      "model_refused": false,
       "rests_on": [
         {
           "group": "tag_ops",
@@ -199,7 +139,13 @@
           "start": 10,
           "end": 22
         }
-      ]
+      ],
+      "suggestions": [],
+      "unread": [],
+      "not_in_release": [],
+      "unmet_at": [],
+      "model_pending": false,
+      "places": []
     }
   }
 }

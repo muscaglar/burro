@@ -35,6 +35,8 @@ public struct BurroRootView: View {
         VStack(spacing: 0) {
             SyntheticBanner()
                 .frame(maxHeight: bannerLimit)
+            PreviewBanner()
+                .frame(maxHeight: bannerLimit)
             TabView(selection: $app.tab) {
                 ForEach(AppTab.allCases) { tab in
                     TabStack(tab: tab)

@@ -20,7 +20,7 @@ public struct AboutRootView: View {
                     .foregroundStyle(Tokens.Colour.text)
                     .fixedSize(horizontal: false, vertical: true)
                 AboutSection(AboutCopy.Words.title) {
-                    AboutPoints(AboutCopy.Words.points)
+                    AboutPoints(AboutCopy.Words.points(reader: app.search?.state.meta.reader.notice))
                 }
                 AboutSection(AboutCopy.Choice.title) {
                     Text(AboutPage.choice(app.consent.choice))

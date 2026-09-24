@@ -27,6 +27,8 @@ public struct APIFailure: Hashable, Sendable {
     public let meta: Meta
     /// True if the body or the header says the data is made up.
     public let synthetic: Bool
+    /// True if the body or the header says the release is a preview.
+    public let preview: Bool
     /// `X-Request-Id`, to quote when reporting a fault.
     public let requestId: String?
 
@@ -37,6 +39,7 @@ public struct APIFailure: Hashable, Sendable {
         fields: [FieldProblem],
         meta: Meta,
         synthetic: Bool,
+        preview: Bool,
         requestId: String?
     ) {
         self.status = status
@@ -45,6 +48,7 @@ public struct APIFailure: Hashable, Sendable {
         self.fields = fields
         self.meta = meta
         self.synthetic = synthetic
+        self.preview = preview
         self.requestId = requestId
     }
 }
@@ -56,12 +60,18 @@ public struct ClientFailure: Hashable, Sendable {
     public let status: Int?
     /// What the answer said of the data, where it said anything.
     public let synthetic: Bool?
+    /// What the answer said of its release, where it said anything.
+    public let preview: Bool?
     public let requestId: String?
 
-    public init(_ kind: ClientFailureKind, status: Int? = nil, synthetic: Bool? = nil, requestId: String? = nil) {
+    public init(
+        _ kind: ClientFailureKind, status: Int? = nil, synthetic: Bool? = nil, preview: Bool? = nil,
+        requestId: String? = nil
+    ) {
         self.kind = kind
         self.status = status
         self.synthetic = synthetic
+        self.preview = preview
         self.requestId = requestId
     }
 }
@@ -117,13 +127,18 @@ public struct Answered<Payload: Sendable>: Sendable {
     public let data: Payload
     /// True if the body or the header says the data is made up.
     public let synthetic: Bool
+    /// True if the body or the header says the release is a preview.
+    public let preview: Bool
     public let requestId: String?
 
-    public init(status: Int, meta: Meta, data: Payload, synthetic: Bool, requestId: String?) {
+    public init(
+        status: Int, meta: Meta, data: Payload, synthetic: Bool, preview: Bool, requestId: String?
+    ) {
         self.status = status
         self.meta = meta
         self.data = data
         self.synthetic = synthetic
+        self.preview = preview
         self.requestId = requestId
     }
 }

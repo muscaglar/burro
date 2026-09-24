@@ -79,6 +79,23 @@ struct SearchChip: Hashable, Sendable, Identifiable {
 }
 
 enum SearchChips {
+    /// True of a vibe whose recipe holds a figure of recorded crime. Which one does is the API's to say.
+    static func holdsRecordedCrime(_ tag: Tag, _ features: [Metric]) -> Bool {
+        tag.terms.contains { term in
+            features.first { $0.featureId == term.featureId }?.dimension == .crime
+        }
+    }
+
+    /// What the recipe of a vibe counts that is recorded crime, as one line.
+    /// `nil` where it counts none. The name of each part is the API's.
+    static func countsCrime(_ tag: Tag, in meta: MetaData) -> String? {
+        let parts = tag.terms.compactMap { term in
+            meta.features.first { $0.featureId == term.featureId && $0.dimension == .crime }?.label
+        }
+        guard !parts.isEmpty else { return nil }
+        return "\(SearchCopy.crimeCounts): \(parts.joined(separator: "; "))."
+    }
+
     /// Whether a weight counts for anything. A spec keeps an entry of 0 for a
     /// thing a person took off, so that a change of tenure does not bring its
     /// default back (contract section 5.1). Such an entry counts for nothing,
@@ -87,11 +104,13 @@ enum SearchChips {
         (weight ?? 0) > 0
     }
 
-    /// The name of each place of the spec: the one in hand, or "Place 1" in the spec's order.
+    /// The name of each place of the spec: the release's own name for it, from the
+    /// answer that brought the spec. A place no answer named is said to have no name,
+    /// and is never shown by a number or by what was typed.
     static func names(of spec: PreferenceSpec, held: [String: String]) -> [String: String] {
         var names: [String: String] = [:]
-        for (at, commute) in spec.commutes.enumerated() {
-            names[commute.placeId] = held[commute.placeId] ?? SearchCopy.Place.unnamed(at + 1)
+        for commute in spec.commutes {
+            names[commute.placeId] = held[commute.placeId] ?? SearchCopy.Place.noName
         }
         return names
     }
@@ -231,11 +250,20 @@ enum SearchChips {
         for weight in spec.tags {
             let key = ChipKey.tag(weight.tagId)
             let on = counts(weight.weight)
+            let tag = tags.first { $0.tagId == weight.tagId }
+            // A scale says which of its ends is asked for. Both names are the API's.
+            var label = tag?.label ?? weight.tagId.rawValue
+            if on, let tag, tag.shape == .scale, let low = tag.lowEnd, let high = tag.highEnd {
+                label = SearchCopy.Chips.towards(tag.label, weight.toward == .low ? low : high)
+            }
+            // A vibe whose recipe holds recorded crime says so wherever it is in a search.
+            let crime =
+                tag.map { holdsRecordedCrime($0, features) } == true
+                ? ChipPart(text: SearchCopy.crimeChip, assumed: false) : nil
             chips.append(
                 chip(
-                    .tag(weight.tagId),
-                    tags.first { $0.tagId == weight.tagId }?.label ?? weight.tagId.rawValue,
-                    parts: on ? [] : [takenOff],
+                    .tag(weight.tagId), label,
+                    parts: on ? [crime] : [takenOff],
                     assumed: weight.provenance == .inferred || has(key, .weight),
                     removal: on ? Edits.tagOff(weight.tagId) : nil))
         }

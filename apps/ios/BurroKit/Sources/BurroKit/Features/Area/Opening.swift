@@ -25,7 +25,9 @@ extension AppModel {
         let by = state.detailsBy[areaId] ?? Served(form: state.meta)
         return (
             held,
-            Meta(releaseId: by.releaseId, engineVersion: by.engineVersion, synthetic: state.meta.synthetic)
+            Meta(
+                releaseId: by.releaseId, engineVersion: by.engineVersion,
+                synthetic: state.meta.synthetic, preview: state.meta.preview)
         )
     }
 
@@ -33,7 +35,8 @@ extension AppModel {
     func page(inHandOf areaId: String) -> AreaPage? {
         guard let state = search?.state, let held = profile(inHandOf: areaId) else { return nil }
         return AreaPage(
-            held.data, release: held.release, features: state.meta.features, tags: state.meta.tags)
+            held.data, release: held.release, features: state.meta.features, tags: state.meta.tags,
+            recipes: state.meta.recipes)
     }
 
     /// A twentieth of a second, and no more of them than the longest a call may take.

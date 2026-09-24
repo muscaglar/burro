@@ -16,6 +16,12 @@ public enum SearchCondition: String, Hashable, Sendable, CaseIterable {
     case nothingChanged
     /// The words could not be read, so the settings are the way in.
     case degraded
+    /// Burro noticed something and did not apply it. The person chooses.
+    case suggesting
+    /// Something was read, and a stretch of what was typed was not.
+    case readInPart
+    /// Something was asked for that the data holds for no area.
+    case notInData
     /// The API has one neutral sentence to show, word for word.
     case notice
     /// A call failed, and the failure is to be shown.
@@ -67,11 +73,39 @@ extension SearchState {
         read.map { $0.at == answers } ?? false
     }
 
+    /// What the reader noticed and did not apply, for the person to choose
+    /// from. None while a sentence is being read.
+    public var suggestions: [Suggestion] {
+        isReading ? [] : (read?.suggestions ?? [])
+    }
+
+    /// The stretches of the text that was sent that the reader made nothing
+    /// of, as offsets. None while a sentence is being read.
+    public var unread: [Span] {
+        isReading ? [] : (read?.unread ?? [])
+    }
+
+    /// True when something was read and a stretch of the text was not: the
+    /// ranking leaves that stretch out.
+    public var readInPart: Bool {
+        guard !isReading, let read else { return false }
+        return read.partUnread && read.changed
+    }
+
+    /// True when nothing was applied, nothing is asked and nothing is
+    /// offered: the words were read into nothing.
+    private var readNothing: Bool {
+        guard let read else { return false }
+        return questions.isEmpty && read.suggestions.isEmpty
+            && (read.status == .offTopic || read.edits == 0)
+    }
+
     /// The line to show when the last reading changed nothing. `nil` when it changed something.
     public var nothingRead: NothingRead? {
-        guard !isReading, readIsLatest, let read, questions.isEmpty, !read.changed else { return nil }
-        if read.status == .offTopic || read.edits == 0 { return .nothingRead }
-        return read.rejected.isEmpty ? .nothingChanged : nil
+        guard !isReading, readIsLatest, let read, questions.isEmpty, suggestions.isEmpty, !read.changed
+        else { return nil }
+        if readNothing { return .nothingRead }
+        return read.rejected.isEmpty && read.edits > 0 ? .nothingChanged : nil
     }
 
     /// True when the API sent a sentence of its own to show, word for word.
@@ -80,12 +114,10 @@ extension SearchState {
         return read.notice != .nothing && !read.noticeText.isEmpty
     }
 
-    /// What could not be answered. When nothing at all was read, the line that
-    /// says so is enough, and `other` is left out.
+    /// What could not be answered. `other` is left out: that a part was not
+    /// read is said beside the box, by the line for it.
     public var unmetShown: [UnmetCategory] {
-        guard let read else { return [] }
-        let readNothing = questions.isEmpty && (read.status == .offTopic || read.edits == 0)
-        return read.unmet.filter { !($0 == .other && readNothing) }
+        (read?.unmet ?? []).filter { $0 != .other }
     }
 
     /// True when the reasons in hand are the reasons of the ranking on screen:
@@ -162,6 +194,9 @@ extension SearchState {
         case nil: break
         }
         if degraded && !isReading { found.insert(.degraded) }
+        if !suggestions.isEmpty { found.insert(.suggesting) }
+        if readInPart { found.insert(.readInPart) }
+        if !isReading && !missing.isEmpty { found.insert(.notInData) }
         if noticed { found.insert(.notice) }
         switch failurePlace {
         case .none: break
@@ -172,8 +207,8 @@ extension SearchState {
         return found
     }
 
-    /// The name of each place of the search, by its id. A place the app was
-    /// never told the name of has none here, and a screen says "Place 1".
+    /// The name of each place of the search, by its id. A place no answer
+    /// named has none here, and a screen says that it has no name.
     public func name(ofPlace placeId: String) -> String? {
         placeNames[placeId]
     }
@@ -181,6 +216,53 @@ extension SearchState {
     /// The area of the release with this id.
     public func area(_ areaId: String) -> AreaSummary? {
         areas.first { $0.areaId == areaId }
+    }
+}
+
+/// What counts most in a search, where it is not what the person asked of the place.
+///
+/// A journey and a budget each count for more than a thing that was asked for
+/// in a word, until the person says otherwise. So a person who asks for leafy
+/// and quiet and names a workplace is first shown the areas nearest the
+/// workplace. Nothing is wrong with the order, and a screen must say why it is
+/// so: a person who is not told reads the first result as the leafiest.
+public struct Leads: Hashable, Sendable {
+    /// True where the journeys count for more than anything that was asked of the place.
+    public let journey: Bool
+    /// True where the budget does.
+    public let budget: Bool
+    /// How many places the search names, to say "journey" or "journeys".
+    public let journeys: Int
+}
+
+extension PreferenceSpec {
+    /// The most that anything asked of the place counts for: a vibe, or a
+    /// thing nearby that a person chose.
+    public var mostAskedOfThePlace: Double {
+        let asked =
+            tags.map(\.weight)
+            + weights.filter { $0.provenance != .default }.map(\.weight)
+        return max(0, asked.max() ?? 0)
+    }
+
+    /// What outweighs everything that was asked of the place. `nil` where
+    /// nothing does, or nothing was asked of the place.
+    public var leads: Leads? {
+        let most = mostAskedOfThePlace
+        guard most > 0 else { return nil }
+        let journey = !commutes.isEmpty && commuteWeight > most
+        let budget = budget.amount != nil && budget.weight > most
+        return journey || budget ? Leads(journey: journey, budget: budget, journeys: commutes.count) : nil
+    }
+}
+
+extension SearchState {
+    /// What counts for more than what was asked of the place, in the ranking
+    /// on screen. `nil` where nothing does, where nothing is set to rank by,
+    /// and while the spec on screen is not the one that was ranked.
+    public var leads: Leads? {
+        guard let ranking, !ranking.emptySpec, rankedHash == specHash else { return nil }
+        return spec.leads
     }
 }
 
@@ -228,6 +310,67 @@ extension SearchState {
             }
         }
         return byPart
+    }
+}
+
+/// A thing that was asked for and that the data does not hold, as a screen names it.
+public struct Missing: Hashable, Sendable, Identifiable {
+    /// `budget`, `commute`, `feature:<id>` or `tag:<id>`, as the API names the target of a suggestion.
+    public let target: String
+    /// The API's label for it.
+    public let label: String
+
+    public var id: String { target }
+}
+
+extension ChipKey {
+    /// The target an edit of a control was about, as the API names one.
+    /// `nil` for a part that is never said to be missing from the data.
+    var target: String? {
+        switch self {
+        case .budget: return "budget"
+        case .journeys, .place: return "commute"
+        case .tag(let id): return "tag:\(id.rawValue)"
+        case .feature(let id): return "feature:\(id.rawValue)"
+        case .tenure, .area: return nil
+        }
+    }
+}
+
+extension SearchState {
+    /// Everything that was asked for and that the data holds for no area,
+    /// each thing once: what the API named of the words that were read, and
+    /// what a control asked for since and was turned away as not in the release.
+    public var missing: [Missing] {
+        var found: [Missing] = []
+        for one in read?.notInRelease ?? [] where !found.contains(where: { $0.target == one.target }) {
+            found.append(Missing(target: one.target, label: one.label))
+        }
+        guard let refused else { return found }
+        for refusal in refused.rejected where refusal.reason == .notInRelease {
+            guard let key = refused.operations.said(refusal.group, refusal.index).first?.key,
+                let target = key.target, !found.contains(where: { $0.target == target })
+            else { continue }
+            found.append(Missing(target: target, label: label(of: key) ?? ""))
+        }
+        return found
+    }
+
+    /// True when a refusal is one a screen says under the box, as a thing the data does not hold.
+    public func isSaidAsMissing(_ refusal: Refusal) -> Bool {
+        guard refusal.reason == .notInRelease else { return false }
+        // An edit that names no part is a budget's or a journey's, which the API names by its target.
+        guard let target = refusal.key?.target else { return !missing.isEmpty }
+        return missing.contains { $0.target == target }
+    }
+
+    /// The API's name for a feature or a vibe a chip is for. `nil` for any other part.
+    private func label(of key: ChipKey) -> String? {
+        switch key {
+        case .feature(let id): return meta.features.first { $0.featureId == id }?.label
+        case .tag(let id): return meta.tags.first { $0.tagId == id }?.label
+        default: return nil
+        }
     }
 }
 

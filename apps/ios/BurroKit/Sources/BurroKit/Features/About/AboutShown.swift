@@ -79,6 +79,7 @@ enum AboutPage {
             AboutRow(name: AboutCopy.Release.engine, value: meta.engineVersion, isCode: true),
             AboutRow(name: AboutCopy.Methods.built, value: AboutDate.readable(meta.builtAt)),
             AboutRow(name: AboutCopy.Methods.synthetic, value: yesOrNo(meta.synthetic)),
+            AboutRow(name: AboutCopy.Methods.preview, value: yesOrNo(meta.preview)),
         ]
     }
 
@@ -91,6 +92,7 @@ enum AboutPage {
             AboutRow(name: copy.engine, value: meta.engineVersion, isCode: true),
             AboutRow(name: copy.catalogue, value: String(meta.catalogueVersion), isCode: true),
             AboutRow(name: copy.synthetic, value: yesOrNo(meta.synthetic)),
+            AboutRow(name: copy.preview, value: yesOrNo(meta.preview)),
             AboutRow(name: copy.areas, value: FormNumbers.grouped(meta.counts.neighbourhoods)),
             AboutRow(name: copy.rankable, value: FormNumbers.grouped(meta.counts.rankable)),
             AboutRow(name: copy.placesCount, value: FormNumbers.grouped(meta.counts.places)),
@@ -134,15 +136,23 @@ enum AboutPage {
         }
     }
 
+    /// The recipe of each vibe. A part the release does not carry is named as
+    /// the API names it, and said to be missing. It is never shown by its code.
     static func tags(_ meta: MetaData) -> [AboutTag] {
         let labels = featureLabels(meta)
         return meta.tags.map { tag in
-            AboutTag(
+            let waited = ReleaseHolds.recipe(of: tag.tagId, in: meta)?.waitsOn ?? []
+            return AboutTag(
                 tag: tag,
                 terms: tag.terms.map { term in
-                    AboutTag.Term(
-                        feature: labels[term.featureId] ?? term.featureId.rawValue,
-                        reading: CodeCopy.reading(term.reading) ?? "",
+                    let carried = labels[term.featureId]
+                    let named = waited.first { $0.featureId == term.featureId }?.label
+                    let reading = CodeCopy.reading(term.reading) ?? ""
+                    return AboutTag.Term(
+                        feature: carried ?? named ?? AboutCopy.Methods.notCarried,
+                        reading: carried == nil
+                            ? [VibeCopy.notYet, reading].filter { !$0.isEmpty }.joined(separator: ". ")
+                            : reading,
                         share: AboutCopy.Methods.share(term.hundredths))
                 })
         }
@@ -222,6 +232,7 @@ enum AboutPage {
         AboutCopy.Methods.high(atLeast: recordedForHigh),
         AboutCopy.Methods.medium(from: recordedForMedium, to: recordedForHigh - 1),
         AboutCopy.Methods.low,
+        AboutCopy.Methods.unstated,
     ]
 
     // MARK: - The sources

@@ -121,8 +121,9 @@ public struct LinkOpening: ViewModifier {
             .sheet(item: $opener.presented) { presented in
                 ZStack {
                     VStack(spacing: 0) {
-                        // What a share opens is data, so the banner stands over it.
+                        // What a share opens is data, so the banners stand over it.
                         SyntheticBanner()
+                        PreviewBanner()
                         switch presented {
                         case .share(let id):
                             SharedSearchView(

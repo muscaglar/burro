@@ -45,10 +45,29 @@ enum AreaCopy {
         static let noFigure = "No figure in this data"
     }
 
-    enum Tags {
-        static let title = "The feel of the place"
-        static let lead = "A tag is a fixed formula over the figures above. Methods says what is in each."
-        static let noFigure = "Not worked out in this data"
+    /// The portrait an area's screen opens with: where the area sits on each
+    /// vibe. Every vibe, band and name in it is the API's. These are the
+    /// headings the API's lists stand under.
+    enum Portrait {
+        static let title = "Character"
+        static let unplacedWhy =
+            "Too few parts of each recipe have a figure for this area, so Burro says nothing of it on these. "
+            + "An area is never put in the middle for want of data."
+        /// Why, of the vibes that no area of the data can be placed on.
+        static let notInData =
+            "This data does not hold enough of each recipe to place any area on these yet. "
+            + "It is so of every area, and not of this one alone."
+
+        /// The heading of each list of the portrait. Which vibe stands in which list is the API's to say.
+        static func title(of list: AreaPage.VibeList) -> String {
+            switch list {
+            case .scales: return "On a scale"
+            case .more: return "More than most here"
+            case .less: return "Less than most here"
+            case .others: return "Also placed"
+            case .unplaced: return "Burro cannot place"
+            }
+        }
     }
 
     enum Sources {
@@ -80,7 +99,22 @@ enum AreaCopy {
         static let borough = "Borough"
         /// Between the two ends of a range.
         static let to = "to"
+        // A price that is one number: the middle of what homes of one kind sold for.
+        static let middleOfAll = "Middle price, homes of all sizes"
+        static let soldIn = "Homes sold in"
+        static let band = "Band, of five"
+        static let bands = "Varies within this area, across bands"
+        static let ends = "Counted from"
+        static let compared = "Areas compared in this release"
+        static let partsDated = "Parts dated"
+        static let partsKnown = "Parts with a figure in this release"
+        static let parts = "Parts in the recipe"
+        static let share = "Share of the recipe they carry, in hundredths"
     }
+
+    /// Said of a price that is one number, where a range would stand its two ends.
+    static let oneNumber =
+        "The publisher gives no range, and does not say how many sales this figure rests on."
 
     /// The caveat that goes with recorded crime, word for word as the contract
     /// states it in section 7.3.
@@ -93,13 +127,16 @@ enum AreaCopy {
         case .area: return "Area"
         case .feature: return "Feature"
         case .featureCrime: return "Recorded crime"
-        case .tag: return "Tag"
+        case .vibe, .vibeRange, .vibeUnknown: return "Vibe"
         case .costRent: return "Rent"
-        case .costBuy: return "Price"
+        case .costBuy, .costBuyMedian: return "Price"
         case .station: return "Nearest station"
         case .stationNearby: return "Station within a short walk"
+        case .likeness, .likenessSame: return "Likeness"
         // These are of a search, and an area's page holds none of them.
-        case .budgetUnder, .budgetOver, .travelPt, .travelOther, .travelBeyond, .missing: return nil
+        case .budgetUnder, .budgetOver, .budgetUnderMedian, .budgetOverMedian, .travelPt, .travelPtOver,
+            .travelOther, .travelOtherOver, .travelBeyond, .missing, .missingJourney:
+            return nil
         case .unlisted: return nil
         }
     }
@@ -114,6 +151,7 @@ enum AreaCopy {
         case .venuesCulture: return "Venues and culture"
         case .homes: return "Homes"
         case .stationAccess: return "Stations"
+        case .services: return "Shops and services"
         case .unlisted: return nil
         }
     }

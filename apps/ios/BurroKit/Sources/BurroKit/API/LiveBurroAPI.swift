@@ -7,25 +7,31 @@ import Foundation
 /// place, the address included.
 public struct LiveBurroAPI: BurroAPI, RouteSending {
     public static let syntheticHeader = "X-Burro-Synthetic"
+    public static let previewHeader = "X-Burro-Preview"
     public static let requestIdHeader = "X-Request-Id"
 
     private let configuration: APIConfiguration
     private let transport: any Transport
     private let timeouts: Timeouts
     private let onSynthetic: @Sendable (Bool) async -> Void
+    private let onPreview: @Sendable (Bool) async -> Void
 
-    /// - Parameter onSynthetic: Told what each answer says of the data, before the
-    ///   answer is handed over, so the banner is never later than what it is about.
+    /// - Parameters:
+    ///   - onSynthetic: Told what each answer says of the data, before the answer is
+    ///     handed over, so the banner is never later than what it is about.
+    ///   - onPreview: Told what each answer says of its release, in the same way.
     public init(
         configuration: APIConfiguration,
         transport: any Transport = URLSessionTransport(),
         timeouts: Timeouts = Timeouts(),
-        onSynthetic: @escaping @Sendable (Bool) async -> Void = { _ in }
+        onSynthetic: @escaping @Sendable (Bool) async -> Void = { _ in },
+        onPreview: @escaping @Sendable (Bool) async -> Void = { _ in }
     ) {
         self.configuration = configuration
         self.transport = transport
         self.timeouts = timeouts
         self.onSynthetic = onSynthetic
+        self.onPreview = onPreview
     }
 
     public func send<Payload: Decodable & Sendable>(
@@ -39,14 +45,20 @@ public struct LiveBurroAPI: BurroAPI, RouteSending {
 
         let decoder = JSONDecoder()
         guard let meta = try? decoder.decode(MetaOnly.self, from: received.data).meta else {
-            // Whoever shows the banner hears of each answer once, whatever became of it.
+            // Whoever shows a banner hears of each answer once, whatever became of it.
             if let said = received.synthetic { await onSynthetic(said) }
-            return .failure(.client(received.failed(.unreadable, synthetic: received.synthetic)))
+            if let said = received.preview { await onPreview(said) }
+            return .failure(
+                .client(
+                    received.failed(.unreadable, synthetic: received.synthetic, preview: received.preview)))
         }
         // Made-up data is never shown as real. If the body and the header disagree,
         // or only one of them speaks, the answer counts as made up when either says so.
+        // A preview is never shown as finished, in the same way.
         let synthetic = meta.synthetic || received.synthetic == true
+        let preview = meta.preview || received.preview == true
         await onSynthetic(synthetic)
+        await onPreview(preview)
 
         if let refusal = try? decoder.decode(ErrorEnvelope.self, from: received.data) {
             return .failure(
@@ -58,6 +70,7 @@ public struct LiveBurroAPI: BurroAPI, RouteSending {
                         fields: refusal.error.fields,
                         meta: refusal.meta,
                         synthetic: synthetic,
+                        preview: preview,
                         requestId: received.requestId
                     )))
         }
@@ -65,7 +78,7 @@ public struct LiveBurroAPI: BurroAPI, RouteSending {
         guard (200..<300).contains(received.status),
             let envelope = try? decoder.decode(Envelope<Payload>.self, from: received.data)
         else {
-            return .failure(.client(received.failed(.unreadable, synthetic: synthetic)))
+            return .failure(.client(received.failed(.unreadable, synthetic: synthetic, preview: preview)))
         }
         return .success(
             Answered(
@@ -73,6 +86,7 @@ public struct LiveBurroAPI: BurroAPI, RouteSending {
                 meta: envelope.meta,
                 data: envelope.data,
                 synthetic: synthetic,
+                preview: preview,
                 requestId: received.requestId
             ))
     }
@@ -83,10 +97,14 @@ public struct LiveBurroAPI: BurroAPI, RouteSending {
             return .failure(failure)
         case .success(let received):
             if let said = received.synthetic { await onSynthetic(said) }
+            if let said = received.preview { await onPreview(said) }
             guard (200..<300).contains(received.status),
                 let payload = try? JSONDecoder().decode(Payload.self, from: received.data)
             else {
-                return .failure(.client(received.failed(.unreadable, synthetic: received.synthetic)))
+                return .failure(
+                    .client(
+                        received.failed(
+                            .unreadable, synthetic: received.synthetic, preview: received.preview)))
             }
             return .success(payload)
         }
@@ -102,10 +120,12 @@ public struct LiveBurroAPI: BurroAPI, RouteSending {
         let data: Data
         let status: Int
         let synthetic: Bool?
+        let preview: Bool?
         let requestId: String?
 
-        func failed(_ kind: ClientFailureKind, synthetic: Bool?) -> ClientFailure {
-            ClientFailure(kind, status: status, synthetic: synthetic, requestId: requestId)
+        func failed(_ kind: ClientFailureKind, synthetic: Bool?, preview: Bool?) -> ClientFailure {
+            ClientFailure(
+                kind, status: status, synthetic: synthetic, preview: preview, requestId: requestId)
         }
     }
 
@@ -137,6 +157,7 @@ public struct LiveBurroAPI: BurroAPI, RouteSending {
                     data: data,
                     status: response.statusCode,
                     synthetic: Self.flag(response.value(forHTTPHeaderField: Self.syntheticHeader)),
+                    preview: Self.flag(response.value(forHTTPHeaderField: Self.previewHeader)),
                     requestId: response.value(forHTTPHeaderField: Self.requestIdHeader)
                 ))
         } catch {

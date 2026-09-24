@@ -58,7 +58,7 @@ public final class AreaLoader {
                     answer.data,
                     Meta(
                         releaseId: answer.meta.releaseId, engineVersion: answer.meta.engineVersion,
-                        synthetic: answer.synthetic)
+                        synthetic: answer.synthetic, preview: answer.preview)
                 )
             case .failure(let failure):
                 show(failure)
@@ -68,7 +68,8 @@ public final class AreaLoader {
         guard let answered else { return }
         let meta = app.search?.state.meta
         let page = AreaPage(
-            answered.data, release: answered.release, features: meta?.features ?? [], tags: meta?.tags ?? [])
+            answered.data, release: answered.release, features: meta?.features ?? [],
+            tags: meta?.tags ?? [], recipes: meta?.recipes ?? [])
         shown = .page(page, .api)
         // A saved area with no copy of its facts is given one. A copy that is
         // there is left as it was saved, until the person asks for the newer one.

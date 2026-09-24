@@ -10,7 +10,7 @@ import XCTest
 final class ResultsShareTests: XCTestCase {
     // A string found nowhere else, planted in what a person types.
     private let canary = "zqxresults5290"
-    private let shareId = "TbfsnjL3GyTlKt967hH2HQ"
+    private let shareId = "rPnAeuBsXQci-xINLK_f2w"
 
     // MARK: - Sharing the search
 

@@ -11,8 +11,9 @@ import Foundation
 /// A word for a code is `nil` for a code this build does not know: a line it
 /// has no words for is left out, and never shown as a blank or as the code.
 enum ResultsCopy {
-    /// The most a fit, a weight or a share can be.
+    /// The most a fit, a weight or a share can be, and the least.
     static let most = 100
+    static let least = 0
 
     static let title = "Results"
 
@@ -41,9 +42,11 @@ enum ResultsCopy {
     enum Status {
         static let reading = "Reading your search"
         static let updating = "Working out the ranking again"
+        /// The whole of what is said of a first ranking: how many areas, and which is first.
         static func ranked(_ count: Int, first: String) -> String {
-            count == 1 ? "\(count) area ranked: \(first)." : "\(count) areas ranked. First: \(first)."
+            "\(rankedUnnamed(count)) \(Status.first(first))"
         }
+        static func first(_ name: String) -> String { "First: \(name)." }
         static func rankedUnnamed(_ count: Int) -> String {
             count == 1 ? "\(count) area ranked." : "\(count) areas ranked."
         }
@@ -56,8 +59,21 @@ enum ResultsCopy {
             if count == 0 { return "No area changed place." }
             return count == 1 ? "\(count) area changed place." : "\(count) areas changed place."
         }
-        static let gaveWay = "Settings you did not choose now count for less."
+        /// Said when the settings nobody chose came to count for less.
+        static let gaveWay = "What you asked for counts most."
+        /// Said in its place where a journey or a budget counts for more than
+        /// anything that was asked of the place.
+        static func leads(journeys: Int, budget: Bool) -> String {
+            guard journeys > 0 else { return "Budget counts most." }
+            let who = journeys == 1 ? "Journey" : "Journeys"
+            let counts = budget ? " and budget count" : journeys == 1 ? " counts" : " count"
+            return "\(who)\(counts) most."
+        }
         static let nothingMatches = "No area passes every limit you set."
+        /// Said in its place where no limit left any area out: every area has
+        /// too little data for what counts.
+        static let nothingRanked =
+            "No area could be ranked. This data holds too little of what counts in your search."
         static let question = "Burro has a question about a place."
         static let toSearch = "Go to the search"
     }
@@ -66,11 +82,23 @@ enum ResultsCopy {
         static let label = "About your search"
         static let degraded = "Your words could not be read just now. The settings below do the same job."
         static let degradedHere = "Your words could not be read just now. The settings do the same job."
-        static let nothingRead =
-            "Nothing in that could be read as a setting. Say it another way, or use the settings below."
-        static let nothingReadHere =
-            "Nothing in that could be read as a setting. Say it another way, or use the settings."
+        /// A sentence that Burro reads whole, to show what it can read. It names no place.
+        static let readable = "leafy and quiet, near a park"
+        static var nothingRead: String {
+            "Nothing in that could be read. Burro reads plain English, such as \(quoted(readable))"
+                + ". Say it another way, or use the settings below."
+        }
+        static var nothingReadHere: String {
+            "Nothing in that could be read. Burro reads plain English, such as \(quoted(readable))"
+                + ". Say it another way, or use the settings."
+        }
+        /// Words between the quote marks the website writes them between.
+        static func quoted(_ words: String) -> String { "“\(words)”" }
         static let nothingChanged = "That changed nothing. Your search already says it."
+        /// Said when only a part of what was typed was read.
+        static let partUnread =
+            "Burro read only part of what you typed, and the ranking leaves the rest out. "
+            + "Say the rest again in shorter sentences, one thing in each, or use the settings."
         static let offline = "You are offline. Your search is still here."
         static let offlineWaiting = "Your last change will be sent when you are back online."
         static let notUpdated = "These results were not updated."
@@ -91,6 +119,21 @@ enum ResultsCopy {
             "The data has changed since this link was made, so the ranking may differ from what the sender saw."
     }
 
+    /// What the reader noticed in a prompt it did not apply. It is chosen on the search.
+    enum Suggest {
+        static let title = "Burro was not sure. Choose what to add."
+    }
+
+    /// What was asked for that the data does not hold yet.
+    enum NotInData {
+        static let title = "Not in this data yet"
+        static func lead(_ count: Int) -> String {
+            count == 1
+                ? "You asked for one thing this data cannot answer yet. It counts for nothing in the ranking."
+                : "You asked for \(count) things this data cannot answer yet. They count for nothing in the ranking."
+        }
+    }
+
     // MARK: - A result
 
     enum Card {
@@ -109,7 +152,8 @@ enum ResultsCopy {
         static let detailsFailed = "The cost and the station could not be loaded."
         static let loading = "Loading"
         static let byModel = "Written by AI, checked against the source"
-        static let more = "More about this result"
+        /// Opens the working of a result, in place.
+        static let more = "Show the working"
         static func openArea(_ area: String) -> String { "Open the page for \(area)" }
         static func hide(_ area: String) -> String { "Hide \(area)" }
         static func showOnMap(_ area: String) -> String { "Show \(area) on the map" }
@@ -170,7 +214,8 @@ enum ResultsCopy {
             + "You can make only the worst one count instead, in Settings."
         static let notGiven = "Not given"
         static let notApply = "Does not apply"
-        static func unnamed(_ position: Int) -> String { "Place \(position)" }
+        /// In place of the name of a place, where an answer named a place and gave no name for it.
+        static let noName = "A place with no name in this data"
     }
 
     enum Cost {
@@ -187,6 +232,16 @@ enum ResultsCopy {
         static let above = "Your budget is above this range."
         static let inside = "Your budget is inside this range."
         static let pound = "£"
+        // A price that is one number, as a publisher gives it. No range is drawn for it.
+        static let what = "What this is"
+        static let middleOfAll = "The middle price of homes of this kind, of all sizes"
+        static let soldIn = "Homes sold in"
+        static let pictureOfOne = "The middle price, with your budget marked beside it"
+        static let belowMiddle = "Your budget is below this middle price."
+        static let aboveMiddle = "Your budget is above this middle price."
+        static let atMiddle = "Your budget is this middle price."
+        static let oneNumber =
+            "The publisher gives no range, and does not say how many sales this figure rests on."
     }
 
     static func word(for confidence: Confidence) -> String? {
@@ -194,6 +249,8 @@ enum ResultsCopy {
         case .high: return "High"
         case .medium: return "Medium"
         case .low: return "Low"
+        // Of a price that is one number. A card says what is not known of it, and not this word.
+        case .unstated: return "unstated"
         case .unlisted: return nil
         }
     }
@@ -298,6 +355,7 @@ enum ResultsCopy {
         switch reason {
         case .notRankable: return "Not ranked in this data"
         case .insufficientData: return "Too little data for what counts in your search"
+        case .characterUnknown: return "Too little is known of the character that counts in your search"
         case .unlisted: return nil
         }
     }
@@ -328,7 +386,8 @@ enum ResultsCopy {
             return "That kind of home does not go with the choice of renting or buying."
         case .directionNotAllowed: return "That counts one way only."
         case .crimeNeedsExplicitRequest:
-            return "Recorded crime counts only when you ask for it by name, or switch it on in the settings."
+            return
+                "Recorded crime counts only when you ask for it by name, switch it on in the settings, or ask for a vibe whose recipe holds it."
         case .mismatchedChoice: return "That setting does not take that choice."
         case .nothingToChange: return "That changed nothing."
         case .unlisted: return nil
@@ -359,7 +418,8 @@ enum ResultsCopy {
 
     enum Compare {
         static let title = "Compare areas"
-        static let lead = "Two to four areas side by side. The rows are in the order of what counts most."
+        static let lead =
+            "Two to four areas side by side: where each sits on each vibe, and then how each does on what counts."
         static func add(_ area: String) -> String { "Add \(area) to compare" }
         static func remove(_ area: String) -> String { "Remove \(area) from compare" }
         static let comparing = "Comparing the areas"
@@ -392,9 +452,21 @@ enum ResultsCopy {
 
     enum CompareTable {
         static let areas = "The areas compared"
+        /// The vibes of each area, side by side. They come before the measured parts.
+        static let character = "Character"
+        static let characterCaption = "Where each area sits on each vibe, in one of five bands"
+        /// The heading over the things that count, each with how each area does on it.
+        static let counts = "What counts"
         static let caption = "Each thing that counts, and how each area does on it"
         static let what = "What counts"
-        static func countsFor(_ weight: Int) -> String { "Counts for \(weight) of \(most)" }
+        /// How much a thing counts, under its name. It is a weight and no share.
+        static func countsFor(_ weight: Int) -> String { "Weight \(weight)" }
+        /// Over the table, once: what a weight is.
+        static let weights =
+            "A weight says how much a thing counts beside the others, from \(least) to \(most), "
+            + "as its slider is set. The weights are not shares, and do not add up to \(most)."
+        /// Under the name of the row of a journey: where the journey is to. The name is the API's.
+        static func journeyTo(_ place: String) -> String { "To \(place)" }
         static func adds(_ points: Int) -> String { "Adds \(points) of \(most) to the fit" }
         static let noFigure = "No figure in this data"
         static let notScored = "Not worked out: this area was left out before it was scored"
@@ -414,6 +486,7 @@ enum ResultsCopy {
         case .commuteCap: return "Left out: a journey is longer than a firm limit"
         case .notRankable: return "Not ranked in this data"
         case .insufficientData: return "Not ranked: too little data for what counts"
+        case .characterUnknown: return "Not ranked: too little is known of the character that counts"
         case .unlisted: return nil
         }
     }
@@ -447,6 +520,19 @@ enum ResultsCopy {
         static let walk = "Minutes on foot"
         static let lines = "Lines"
         static let to = "to"
+        static let middleOfAll = "Middle price, homes of all sizes"
+        static let soldIn = "Homes sold in"
+        static let limit = "Your limit, in minutes"
+        static let underLimit = "Under your limit by, in minutes"
+        static let overLimit = "Over your limit by, in minutes"
+        static let band = "Band, of five"
+        static let bands = "Varies within this area, across bands"
+        static let ends = "Counted from"
+        static let compared = "Areas compared in this release"
+        static let partsDated = "Parts dated"
+        static let partsKnown = "Parts with a figure in this release"
+        static let parts = "Parts in the recipe"
+        static let share = "Share of the recipe they carry, in hundredths"
     }
 
     /// What each kind of row is called when nothing else names it.
@@ -455,14 +541,16 @@ enum ResultsCopy {
         case .area: return "Area"
         case .feature: return "Feature"
         case .featureCrime: return "Recorded crime"
-        case .tag: return "Tag"
+        case .vibe, .vibeRange, .vibeUnknown: return "Vibe"
         case .costRent: return "Rent"
-        case .costBuy: return "Price"
-        case .budgetUnder, .budgetOver: return "Budget"
-        case .travelPt, .travelOther, .travelBeyond: return "Journey"
+        case .costBuy, .costBuyMedian: return "Price"
+        case .budgetUnder, .budgetOver, .budgetUnderMedian, .budgetOverMedian: return "Budget"
+        case .travelPt, .travelPtOver, .travelOther, .travelOtherOver, .travelBeyond: return "Journey"
         case .station: return "Nearest station"
         case .stationNearby: return "Station within a short walk"
         case .missing: return "No figure"
+        case .missingJourney: return "No journey time"
+        case .likeness, .likenessSame: return "Likeness"
         case .unlisted: return nil
         }
     }

@@ -19,13 +19,13 @@ final class AreaInSearchTests: XCTestCase {
     @MainActor
     func test_the_rank_and_the_fit_are_the_rankings_and_the_fit_is_rounded_down() async throws {
         let search = await searched()
-        XCTAssertEqual(search.state.ranking?.ranked.first?.score, 80.99)
+        XCTAssertEqual(search.state.ranking?.ranked.first?.score, 78.52)
 
         let first = try XCTUnwrap(AreaInSearch(search.state, areaId: "syn-n0006"))
 
         XCTAssertEqual(first.rank, 1)
-        XCTAssertEqual(first.fit, 80)
-        XCTAssertEqual(first.standing, "Rank 1, fit 80 of 100")
+        XCTAssertEqual(first.fit, 78)
+        XCTAssertEqual(first.standing, "Rank 1, fit 78 of 100")
         XCTAssertEqual(AreaInSearch.roundedDown(78.78), 78)
         // Never more than it is, however near: and the same on the area's screen as on a result.
         XCTAssertEqual(AreaInSearch.roundedDown(79.9999999999), 79)
@@ -88,7 +88,7 @@ final class AreaInSearchTests: XCTestCase {
         XCTAssertFalse(search.state.explained)
         XCTAssertFalse(said.explained)
         XCTAssertNil(said.orientation)
-        XCTAssertEqual(said.standing, "Rank 1, fit 80 of 100")
+        XCTAssertEqual(said.standing, "Rank 1, fit 78 of 100")
     }
 
     @MainActor

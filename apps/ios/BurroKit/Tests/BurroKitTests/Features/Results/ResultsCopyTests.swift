@@ -8,6 +8,10 @@ import XCTest
 final class ResultsCopyTests: XCTestCase {
     /// Words the website does not have, and why the app does.
     private let ours: [String: String] = [
+        "Show the results as":
+            "The name of the control that chooses the list, the map or the table. The website has tabs with no name.",
+        "No area chosen yet. Choose two to four.":
+            "The website shows no tray until an area is chosen. The app's can be opened with none.",
         "Height of the list": "The panel over the map is the app's own.",
         "Half": "A height of the panel.",
         "Full": "A height of the panel.",
@@ -15,8 +19,6 @@ final class ResultsCopyTests: XCTestCase {
         "Make the list taller": "A way to set the height without a drag.",
         "Make the list shorter": "A way to set the height without a drag.",
         "Your words could not be read just now. The settings do the same job.":
-            "The website's line says the settings are below. Here they are on another screen.",
-        "Nothing in that could be read as a setting. Say it another way, or use the settings.":
             "The website's line says the settings are below. Here they are on another screen.",
         "The boundaries of the areas could not be loaded. The table says everything the map would.":
             "The website's line says the table is below. Here it is one press away.",
@@ -30,7 +32,6 @@ final class ResultsCopyTests: XCTestCase {
         "Hide this area": "A short name for a button. The area's name is said after it.",
         "Show on the map": "A short name for a button. The area's name is said after it.",
         "Add to compare": "A short name for a button. The area's name is said after it.",
-        "Remove from compare": "A short name for a button. The area's name is said after it.",
         "Add to shortlist": "The design kit's words for what the app adds.",
         "Remove from shortlist": "The design kit's words for what the app adds.",
         "to shortlist": "The design kit's words, with the area's name in them.",
@@ -138,7 +139,7 @@ final class ResultsCopyTests: XCTestCase {
         state.ranking = Ranking(
             scores: Array(first.scores.dropFirst(2)), ranked: [],
             filtered: [Filtered(areaId: first.scores[0].areaId, reason: .unlisted("new_reason"))],
-            unranked: [Unranked(areaId: first.scores[1].areaId, reason: .unlisted("other_reason"))],
+            unranked: [Unranked(areaId: first.scores[1].areaId, reason: .unlisted("other_reason"), missing: [])],
             emptySpec: false)
         state.selectedId = first.scores[0].areaId
 
@@ -155,8 +156,13 @@ final class ResultsCopyTests: XCTestCase {
     }
 
     func test_one_is_said_as_one_and_many_as_many() {
-        XCTAssertEqual(ResultsCopy.Status.ranked(1, first: "A"), "1 area ranked: A.")
+        XCTAssertEqual(ResultsCopy.Status.ranked(1, first: "A"), "1 area ranked. First: A.")
         XCTAssertEqual(ResultsCopy.Status.ranked(22, first: "A"), "22 areas ranked. First: A.")
+        XCTAssertEqual(ResultsCopy.Status.leads(journeys: 1, budget: true), "Journey and budget count most.")
+        XCTAssertEqual(ResultsCopy.Status.leads(journeys: 2, budget: true), "Journeys and budget count most.")
+        XCTAssertEqual(ResultsCopy.Status.leads(journeys: 1, budget: false), "Journey counts most.")
+        XCTAssertEqual(ResultsCopy.Status.leads(journeys: 2, budget: false), "Journeys count most.")
+        XCTAssertEqual(ResultsCopy.Status.leads(journeys: 0, budget: true), "Budget counts most.")
         XCTAssertEqual(ResultsCopy.Status.rankedUnnamed(1), "1 area ranked.")
         XCTAssertEqual(ResultsCopy.Status.rankedUnnamed(3), "3 areas ranked.")
         XCTAssertEqual(ResultsCopy.Status.rankedNoOrder(1), "1 area passes. Nothing is set to rank it by.")
@@ -172,11 +178,11 @@ final class ResultsCopyTests: XCTestCase {
     func test_the_list_names_the_first_result_it_has_a_name_for_and_gives_the_count_alone_with_none() {
         var state = SearchState(meta: Answers.meta, areas: Answers.areas)
         state = reduce(state, .rankAnswered(Answers.ranked("rank-first"), sent: .none))
-        XCTAssertEqual(Results.headline(of: state), "22 areas ranked. First: Farrowmere.")
+        XCTAssertEqual(Results.headline(of: state), "21 areas ranked. First: Farrowmere.")
 
         state.areas = []
 
-        XCTAssertEqual(Results.headline(of: state), "22 areas ranked.")
+        XCTAssertEqual(Results.headline(of: state), "21 areas ranked.")
         // An area the app has no name for is not drawn as its id.
         XCTAssertEqual(Results.listed(state).cards, [])
     }

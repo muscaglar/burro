@@ -19,6 +19,11 @@ final class ResultsFiguresTests: XCTestCase {
         ("interpret-two-journeys", "rank-two-journeys", "explanations-two-journeys"),
         ("interpret-second-sentence", "rank-second-sentence", "explanations-second-sentence"),
         ("interpret-first", "rank-on-foot", "explanations-on-foot"),
+        ("interpret-scale", "rank-scale", "explanations-scale"),
+        ("interpret-scale", "rank-scale-turned", "explanations-scale-turned"),
+        ("interpret-gritty", "rank-gritty", "explanations-gritty"),
+        ("interpret-no-time", "rank-no-time", "explanations-no-time"),
+        ("interpret-suggest", "rank-suggestion-chosen", "explanations-suggestion-chosen"),
     ]
 
     @MainActor
@@ -72,13 +77,14 @@ final class ResultsFiguresTests: XCTestCase {
                 said.insert("More than \(cutoff) minutes")
             }
         }
-        for (at, commute) in state.spec.commutes.enumerated() {
+        for commute in state.spec.commutes {
             said.insert("\(commute.maxMinutes) minutes")
             said.insert("Within your limit of \(commute.maxMinutes) minutes")
             said.insert("Over your limit of \(commute.maxMinutes) minutes")
-            said.insert("Place \(at + 1)")
-            // A place the app was never told the name of is named by its number, in a line that names it.
-            said.insert(ResultsCopy.Journeys.usesOne("Place \(at + 1)"))
+        }
+        // What a vibe waits on: the API's name for the part, and what the API says it carries of the recipe.
+        for recipe in state.meta.recipes {
+            for part in recipe.waitsOn { said.insert("\(part.label), \(part.hundredths) of 100") }
         }
         let asked = ranked.contributions.count
         let present = ranked.contributions.filter(\.present).count
@@ -136,6 +142,10 @@ final class ResultsFiguresTests: XCTestCase {
                         XCTAssertEqual(number.value, present * 100 / ranked.contributions.count)
                     case "held": XCTAssertEqual(number.value, 0)
                     case "pips": XCTAssertTrue((1...3).contains(number.value))
+                    // Where an area sits on a vibe is the band the ranking gave, and no other.
+                    case "band": XCTAssertTrue(ranked.strip.map(\.band).contains(number.value))
+                    case "spreadLow": XCTAssertTrue(ranked.strip.map(\.spreadLow).contains(number.value))
+                    case "spreadHigh": XCTAssertTrue(ranked.strip.map(\.spreadHigh).contains(number.value))
                     default: XCTFail("A card holds a number nothing accounts for: \(number.label)")
                     }
                 }
@@ -149,9 +159,9 @@ final class ResultsFiguresTests: XCTestCase {
         let first = try XCTUnwrap(app.state.ranking?.ranked.first)
 
         // The recorded fit has a fraction to lose, and would round up to the next whole number.
-        XCTAssertEqual(first.score, 80.99)
-        XCTAssertEqual(try app.firstCard().heading.fit, 80)
-        XCTAssertEqual(try app.firstCard().heading.fitWords, "80 of 100")
+        XCTAssertEqual(first.score, 78.52)
+        XCTAssertEqual(try app.firstCard().heading.fit, 78)
+        XCTAssertEqual(try app.firstCard().heading.fitWords, "78 of 100")
         XCTAssertEqual(Results.fit(of: 99.999), 99)
         XCTAssertEqual(Results.fit(of: 100), 100)
         XCTAssertEqual(Results.fit(of: 0.4), 0)
@@ -178,7 +188,7 @@ final class ResultsFiguresTests: XCTestCase {
         // A fit rounded up, a time made up, a percentile, and a number from another area's card.
         let other = try XCTUnwrap(app.listed.cards.last?.heading.fitWords)
         let wrong = [
-            Results.Heading(rank: 1, name: "Farrowmere", borough: "Quillhaven", fit: 81).fitWords ?? "",
+            Results.Heading(rank: 1, name: "Farrowmere", borough: "Quillhaven", fit: 79).fitWords ?? "",
             ResultsCopy.Journeys.minutes(22), "56.8", other,
         ]
 
@@ -243,8 +253,11 @@ final class ResultsFiguresTests: XCTestCase {
             let data: CompareData = try Recorded.data(.compare, scenario)
             let compared = Results.compared(data, in: app.state)
             var allowed = ResultsSaid.by(data.facts)
+            for recipe in app.state.meta.recipes {
+                for part in recipe.waitsOn { allowed.insert("\(part.label), \(part.hundredths) of 100") }
+            }
             for row in data.rows {
-                allowed.insert("Counts for \(Int((row.weight * 100).rounded())) of 100")
+                allowed.insert("Weight \(Int((row.weight * 100).rounded()))")
                 for cell in row.cells {
                     if let adds = cell.contribution { allowed.insert("Adds \(floorOfHundred(adds)) of 100 to the fit") }
                 }

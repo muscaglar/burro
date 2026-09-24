@@ -23,6 +23,14 @@ enum PromptText {
     }
 }
 
+/// A stretch of what the box holds, for the box to select. It holds where the
+/// stretch stands, and never the words.
+struct BoxSelect: Hashable, Sendable {
+    let range: Range<String.Index>
+    /// Changes with every press, so that the same stretch can be shown again.
+    let press: Int
+}
+
 /// The one box to type in.
 ///
 /// What is typed is held by the screen the box is on, while that screen is
@@ -36,11 +44,22 @@ struct PromptBox: View {
     let busy: Bool
     /// The API's own words for why the text was refused, when it was.
     let refusal: String?
+    /// What the box asks for: only what the data can answer.
+    var hint: String = SearchCopy.Prompt.hint
+    /// The stretch of what the box holds to select, where one is asked for.
+    var select: BoxSelect?
     let onSubmit: (String) -> Void
     let onStop: () -> Void
 
     @State private var empty = false
     @FocusState private var focused: Bool
+
+    /// True where the box can select a stretch of what it holds. The system
+    /// gives a way to from iOS 18. Before that no button offers to.
+    static var selects: Bool {
+        if #available(iOS 18.0, macOS 15.0, *) { return true }
+        return false
+    }
 
     var body: some View {
         let problem = refusal ?? (empty ? SearchCopy.Prompt.empty : nil)
@@ -49,11 +68,10 @@ struct PromptBox: View {
                 .font(Tokens.Text.headline)
                 .foregroundStyle(Tokens.Colour.text)
                 .accessibilityAddTraits(.isHeader)
-            HintLine(SearchCopy.Prompt.hint)
+            HintLine(hint)
                 .accessibilityHidden(true)
-            TextField(SearchCopy.Prompt.label, text: $text, axis: .vertical)
+            field
                 .lineLimit(3...12)
-                .focused($focused)
                 .submitLabel(.search)
                 .font(Tokens.Text.body)
                 .foregroundStyle(Tokens.Colour.text)
@@ -62,7 +80,7 @@ struct PromptBox: View {
                 // names where a person works, so the keyboard is asked to leave it alone.
                 .autocorrectionDisabled()
                 .onSubmit(send)
-                .accessibilityHint(Text(SearchCopy.Prompt.hint))
+                .accessibilityHint(Text(hint))
             if let left = PromptText.left(text, of: maxText) {
                 Text(SearchCopy.Prompt.left(left))
                     .font(Tokens.Text.footnote)
@@ -84,6 +102,21 @@ struct PromptBox: View {
             if kept != typed { text = kept }
             if empty && !PromptText.isEmpty(typed) { empty = false }
         }
+        .onChange(of: select) { _, wanted in
+            // A box selects only while it is the one being typed in.
+            if wanted != nil { focused = true }
+        }
+    }
+
+    @ViewBuilder
+    private var field: some View {
+        if #available(iOS 18.0, macOS 15.0, *) {
+            SelectingField(label: SearchCopy.Prompt.label, text: $text, select: select, focused: $focused)
+        } else {
+            TextField(SearchCopy.Prompt.label, text: $text, axis: .vertical)
+                .focused($focused)
+                .autocorrectionDisabled()
+        }
     }
 
     private func send() {
@@ -99,16 +132,42 @@ struct PromptBox: View {
     }
 }
 
-/// The three sentences to start from. Pressing one fills the box and sends nothing.
+/// The box, where the system lets a stretch of what it holds be selected. The
+/// words stay in the box: it is given where they stand, and never what they are.
+@available(iOS 18.0, macOS 15.0, *)
+private struct SelectingField: View {
+    let label: String
+    @Binding var text: String
+    let select: BoxSelect?
+    let focused: FocusState<Bool>.Binding
+
+    @State private var selection: TextSelection?
+
+    var body: some View {
+        TextField(label, text: $text, selection: $selection, axis: .vertical)
+            .focused(focused)
+            // What is typed here names where a person works, so the keyboard is asked to leave it alone.
+            .autocorrectionDisabled()
+            .onChange(of: select) { _, wanted in
+                // Where the words stand is known for the text that was sent, and for no other.
+                guard let wanted, wanted.range.upperBound <= text.endIndex else { return }
+                selection = TextSelection(range: wanted.range)
+            }
+    }
+}
+
+/// The sentences to start from. Pressing one fills the box and sends nothing.
 struct ExampleList: View {
     @Binding var open: Bool
+    /// The sentences the data can answer the whole of.
+    let sentences: [String]
     let use: (String) -> Void
 
     var body: some View {
         OpensInPlace(SearchCopy.Prompt.examplesTitle, open: $open) {
             VStack(alignment: .leading, spacing: Tokens.Space.s2) {
                 HintLine(SearchCopy.Prompt.examplesHint)
-                ForEach(Examples.sentences, id: \.self) { sentence in
+                ForEach(sentences, id: \.self) { sentence in
                     Button {
                         use(sentence)
                     } label: {
@@ -145,6 +204,8 @@ struct PlaceField: View {
     let hint: String
     /// Said in place of the field when no more places can be named.
     let full: String?
+    /// True where the data names no place: no field is offered, because nothing typed could match.
+    let noPlaces: Bool
     let onPick: (FoundPlace) -> Void
 
     @State private var query = ""
@@ -154,18 +215,28 @@ struct PlaceField: View {
         label: String = SearchCopy.Place.label,
         hint: String = SearchCopy.Place.hint,
         full: String? = nil,
+        noPlaces: Bool = false,
         search: @escaping @MainActor (String) async -> Answer<PlacesData>,
         onPick: @escaping (FoundPlace) -> Void
     ) {
         self.label = label
         self.hint = hint
         self.full = full
+        self.noPlaces = noPlaces
         self.onPick = onPick
         _places = State(initialValue: PlaceSearch(search: search))
     }
 
     var body: some View {
-        if let full {
+        if noPlaces {
+            // The label stays, and a line says that nothing typed there could match.
+            VStack(alignment: .leading, spacing: Tokens.Space.s1) {
+                Text(label)
+                    .font(Tokens.Text.secondary.weight(.semibold))
+                    .foregroundStyle(Tokens.Colour.text)
+                StateLine(SearchCopy.Place.notInData)
+            }
+        } else if let full {
             StateLine(full)
         } else {
             VStack(alignment: .leading, spacing: Tokens.Space.s1) {

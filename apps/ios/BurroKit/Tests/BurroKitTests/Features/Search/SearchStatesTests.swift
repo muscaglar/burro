@@ -104,23 +104,22 @@ final class SearchStatesTests: XCTestCase {
     func test_results_chips_for_what_was_read_with_every_assumed_part_marked() async {
         let search = OpenSearch()
 
-        await search.flow.submitText("Renting a 1 bed up to £1,700 a month, leafy and quiet")
+        await search.flow.submitText("Renting a 1 bed for about £1,700 a month, leafy and quiet")
         let shown = search.shown()
 
         XCTAssertEqual(
             shown.chips.map(\.reads),
             [
-                "Renting assumed",
+                "Renting",
                 "£1,700 a month, One bedroom, flexible assumed",
                 "Cindermoor Works, Public transport assumed, within 35 minutes, flexible assumed",
                 "Leafy",
-                "Quiet residential",
+                "Quiet streets",
                 "Usual settings: 6 assumed",
             ])
-        XCTAssertEqual(shown.readBy, "Read without AI, by fixed rules.")
-        XCTAssertEqual(
-            shown.status,
-            "22 areas ranked. First: Farrowmere. Settings you did not choose now count for less.")
+        XCTAssertEqual(shown.readBy, "Read without AI.")
+        // The journey and the budget count for more than anything asked of the place, and the line says so.
+        XCTAssertEqual(shown.status, "21 areas ranked. First: Farrowmere. Journey and budget count most.")
         XCTAssertEqual(shown.parts, [.box, .examples, .basics, .status, .chips, .results, .settings])
         XCTAssertFalse(shown.canRank)
     }
@@ -177,26 +176,37 @@ final class SearchStatesTests: XCTestCase {
         let search = OpenSearch(
             StandIn.firstSearch().on(.interpret, "interpret-two-journeys").on(.rank, "rank-two-journeys")
                 .on(.explainTop, .fails(.cannotConnectToHost)))
+        let explained = [
+            "A part marked \"assumed\" is one you did not say. Burro filled it in, and you can change it.",
+            "Usual settings are ones nobody chose. They count for less once you ask for something. "
+                + "Press it to open the settings.",
+        ]
 
-        XCTAssertEqual(
-            search.shown().chipsHints,
-            [
-                "A part marked \"assumed\" is one you did not say. Burro filled it in, and you can change it.",
-                "Usual settings are ones nobody chose. They count for less once you ask for something. "
-                    + "Press it to open the settings.",
-            ])
+        XCTAssertEqual(search.shown().chipsHints, explained)
         await search.flow.submitText("two journeys")
 
-        XCTAssertEqual(
-            search.shown().chipsHints.suffix(2),
-            [
-                "Burro cannot show the names of 2 places you named yet, so they are shown by number. "
-                    + "The numbers are the order the data lists your places in, not the order you named them in.",
-                "Read without AI, by fixed rules.",
-            ])
-        XCTAssertEqual(
-            SearchCopy.Place.unnamedHint(1, of: 1),
-            "Burro cannot show the name of one place you named yet, so it is shown by number.")
+        XCTAssertEqual(search.shown().chipsHints, explained + ["Read without AI."])
+    }
+
+    @MainActor
+    func test_a_place_is_named_by_the_answer_that_brought_it_and_never_by_a_number() async {
+        // No reasons come, so no fact of a journey is in hand to name a place from.
+        let search = OpenSearch(
+            StandIn.firstSearch().on(.interpret, "interpret-two-journeys").on(.rank, "rank-two-journeys")
+                .on(.explainTop, .fails(.cannotConnectToHost)))
+
+        await search.flow.submitText("two journeys")
+        let places = search.shown().chips.filter { chip in
+            if case .place = chip.kind { return true }
+            return false
+        }
+
+        XCTAssertEqual(search.state.facts.values.filter { $0.kind == .travel }, [])
+        XCTAssertEqual(places.map(\.label), ["Foxholt Market", "Wexmoor University"])
+        XCTAssertFalse(search.shown().chipsHints.contains { $0.contains("by number") })
+        // A place no answer named is said to have no name. Nothing stands in for it.
+        let unnamed = SearchChips.names(of: search.state.spec, held: [:])
+        XCTAssertEqual(Set(unnamed.values), ["A place with no name in this data"])
     }
 
     @MainActor
@@ -206,7 +216,7 @@ final class SearchStatesTests: XCTestCase {
         await search.flow.submitText("leafy and quiet")
 
         XCTAssertFalse(search.shown().chipsHints.contains { $0.contains("shown by number") })
-        XCTAssertEqual(search.shown().chipsHints.last, "Read without AI, by fixed rules.")
+        XCTAssertEqual(search.shown().chipsHints.last, "Read without AI.")
     }
 
     @MainActor
@@ -301,8 +311,9 @@ final class SearchStatesTests: XCTestCase {
             "Cindermoor Works, Public transport assumed, within 30 minutes, firm limit")
         let moved = try XCTUnwrap(search.state.moved)
         XCTAssertGreaterThan(moved, 0)
-        XCTAssertEqual(shown.status, SearchCopy.Status.moved(moved))
-        XCTAssertTrue(shown.status.hasSuffix("changed place."))
+        // What explains the order on screen is said of every ranking it is true of.
+        XCTAssertEqual(shown.status, "\(SearchCopy.Status.moved(moved)) Journey and budget count most.")
+        XCTAssertTrue(shown.status.contains("changed place."))
         XCTAssertGreaterThan(search.state.answers, before)
     }
 
@@ -459,12 +470,18 @@ final class SearchStatesTests: XCTestCase {
 
         XCTAssertEqual(
             shown.nothingRead,
-            "Nothing in that could be read as a setting. Say it another way, or use the settings below.")
+            "Nothing in that could be read. Burro reads plain English, such as “leafy and quiet, near a park”. "
+                + "Say it another way, or use the settings below.")
         // The line has said it. It is not said a second time in other words.
         XCTAssertEqual(shown.unmet, [])
         XCTAssertNil(shown.notice)
+        XCTAssertFalse(shown.readInPart)
+        XCTAssertNil(shown.offers)
         XCTAssertTrue(shown.settingsOpen)
-        XCTAssertEqual(shown.parts, [.box, .examples, .basics, .status, .nothingRead, .chips, .settings])
+        // Where the words that were not read stand is known, so the box can show them.
+        XCTAssertEqual(shown.unread, [Span(start: 0, end: 39)])
+        XCTAssertEqual(
+            shown.parts, [.box, .examples, .basics, .status, .nothingRead, .chips, .unread, .settings])
         XCTAssertEqual(search.api.routes, [.interpret])
     }
 
@@ -477,7 +494,7 @@ final class SearchStatesTests: XCTestCase {
 
         XCTAssertEqual(shown.notice, Answers.read("interpret-off-topic").noticeText)
         XCTAssertNil(shown.nothingRead)
-        XCTAssertEqual(shown.parts, [.box, .examples, .basics, .status, .notice, .chips, .settings])
+        XCTAssertEqual(shown.parts, [.box, .examples, .basics, .status, .notice, .chips, .unread, .settings])
     }
 
     @MainActor
@@ -580,7 +597,7 @@ final class SearchStatesTests: XCTestCase {
         XCTAssertNil(shown.nothingRead)
         XCTAssertEqual(
             shown.chips.map(\.label),
-            ["Renting", "Cindermoor Works", "Leafy", "Quiet residential", "Usual settings: 6"])
+            ["Renting", "Cindermoor Works", "Leafy", "Quiet streets", "Usual settings: 6"])
         XCTAssertEqual(
             shown.parts, [.box, .examples, .basics, .status, .notice, .chips, .results, .settings])
         // The person reads it before they are shown anything else.
@@ -615,18 +632,50 @@ final class SearchStatesTests: XCTestCase {
             StandIn.firstSearch().on(.interpret, "interpret-rejected")
                 .on(.rank, StandIn.withTheSpecSent("rank-first")))
 
-        await search.flow.submitText("Somewhere safe, near a park")
+        await search.flow.submitText("Somewhere a bit cheaper, near a park")
         let shown = search.shown()
 
-        let reason = "Recorded crime counts only when you ask for it by name, or switch it on in the settings."
-        XCTAssertEqual(
-            shown.notApplied,
-            [
-                NotAppliedShown(about: "Recorded violence and robbery", reason: reason),
-                NotAppliedShown(about: "Recorded burglary and theft", reason: reason),
-            ])
-        XCTAssertFalse(shown.chips.contains { $0.label.contains("Recorded") })
+        // There was no budget to lower. A budget has no name of its own, so the reason stands alone.
+        XCTAssertEqual(shown.notApplied, [NotAppliedShown(about: nil, reason: "That changed nothing.")])
         XCTAssertFalse(SearchScreen.leadsToResults(search.state))
+    }
+
+    @MainActor
+    func test_an_edit_of_recorded_crime_that_was_not_applied_says_the_rule_and_names_what_it_was_about() async {
+        let search = OpenSearch(
+            StandIn.firstSearch().on(
+                .interpret,
+                .made { _ in
+                    try Recorded.read("interpret-rejected").with(data: { data in
+                        data["rejected"] = data["rejected"]?.each {
+                            $0["group"] = .string("weight_ops")
+                            $0["reason"] = .string("crime_needs_explicit_request")
+                        }
+                        data["applied"] = .array([])
+                        // The edits are read before they are put back: the answer is changed
+                        // in one place at a time.
+                        let ofCrime = data["operations"]?["weight_ops"]?.each {
+                            $0["feature_id"] = .string("crime_burglary_theft")
+                        }
+                        data["operations"]?["weight_ops"] = ofCrime
+                    })
+                }
+            ).on(.rank, StandIn.withTheSpecSent("rank-first")))
+
+        await search.flow.submitText("Somewhere safe")
+        let shown = search.shown()
+
+        let rule =
+            "Recorded crime counts only when you ask for it by name, switch it on in the settings, "
+            + "or ask for a vibe whose recipe holds it."
+        XCTAssertEqual(shown.notApplied, [NotAppliedShown(about: "Recorded burglary and theft", reason: rule)])
+        XCTAssertFalse(shown.chips.contains { $0.label.contains("Recorded") })
+        // Where no vibe of the release holds recorded crime, the line says so, and offers nothing that is not there.
+        XCTAssertEqual(SearchScreen.rejected(.crimeNeedsExplicitRequest, in: Answers.meta), rule)
+        let other: MetaData? = try? Recorded.data(.getMeta, "variant-a/meta")
+        XCTAssertEqual(
+            other.flatMap { SearchScreen.rejected(.crimeNeedsExplicitRequest, in: $0) },
+            "\(rule) In this data no vibe holds it.")
     }
 
     // MARK: - Error from the API
@@ -652,7 +701,7 @@ final class SearchStatesTests: XCTestCase {
         await search.flow.submitText("leafy and quiet")
         search.api.on(.rank, "error-internal")
 
-        await search.flow.applyEdits(Edits.tagOn(.buzzy))
+        await search.flow.applyEdits(Edits.tagOn(.pace))
         let shown = search.shown()
         let failure = try XCTUnwrap(shown.failure)
 
@@ -669,13 +718,13 @@ final class SearchStatesTests: XCTestCase {
         let search = OpenSearch()
         await search.flow.submitText("leafy and quiet")
         search.api.on(.rank, "error-internal")
-        await search.flow.applyEdits(Edits.tagOn(.buzzy))
+        await search.flow.applyEdits(Edits.tagOn(.pace))
         search.api.on(.rank, "rank-refined")
 
         await search.flow.retry(text: "leafy and quiet")
 
         XCTAssertEqual(
-            try search.api.lastCall(to: .rank).body(as: RankBody.self).operations, Edits.tagOn(.buzzy))
+            try search.api.lastCall(to: .rank).body(as: RankBody.self).operations, Edits.tagOn(.pace))
         XCTAssertNil(search.shown().failure)
         // The sentence is not read again: it was the ranking that failed.
         XCTAssertEqual(search.api.calls(to: .interpret).count, 1)
@@ -691,7 +740,8 @@ final class SearchStatesTests: XCTestCase {
         let failure = try XCTUnwrap(SearchScreen.shown(state, consent: .allowed).failure)
 
         XCTAssertEqual(failure.message, "Your search names something this data no longer has.")
-        XCTAssertEqual(failure.repairs.map(\.label), ["Take Place 2 out"])
+        // No answer named the place, so it is said as what it is, and never by a number.
+        XCTAssertEqual(failure.repairs.map(\.label), ["Take the place out"])
         XCTAssertEqual(failure.repairs.map(\.operations), [Edits.placeRemove("syn-p9999")])
         XCTAssertFalse(failure.notUpdated)
     }
@@ -713,7 +763,7 @@ final class SearchStatesTests: XCTestCase {
         let search = OpenSearch()
         await search.flow.submitText("leafy and quiet")
         search.api.on(.rank, "error-internal")
-        await search.flow.applyEdits(Edits.tagOn(.buzzy))
+        await search.flow.applyEdits(Edits.tagOn(.pace))
 
         search.flow.startAgain()
 
@@ -729,7 +779,7 @@ final class SearchStatesTests: XCTestCase {
         await search.flow.submitText("leafy and quiet")
         search.api.unreachable(.rank, .notConnectedToInternet)
 
-        await search.flow.applyEdits(Edits.tagOn(.buzzy))
+        await search.flow.applyEdits(Edits.tagOn(.pace))
         let shown = search.shown()
 
         XCTAssertEqual(shown.offlineWaiting, true)
@@ -745,7 +795,7 @@ final class SearchStatesTests: XCTestCase {
         let search = OpenSearch()
         await search.flow.submitText("leafy and quiet")
         search.api.unreachable(.rank, .notConnectedToInternet)
-        await search.flow.applyEdits(Edits.tagOn(.buzzy))
+        await search.flow.applyEdits(Edits.tagOn(.pace))
         search.api.on(.rank, "rank-refined")
         let calls = search.api.calls(to: .rank).count
 
@@ -753,7 +803,7 @@ final class SearchStatesTests: XCTestCase {
 
         XCTAssertEqual(search.api.calls(to: .rank).count, calls + 1)
         XCTAssertEqual(
-            try search.api.lastCall(to: .rank).body(as: RankBody.self).operations, Edits.tagOn(.buzzy))
+            try search.api.lastCall(to: .rank).body(as: RankBody.self).operations, Edits.tagOn(.pace))
         XCTAssertNil(search.shown().offlineWaiting)
         XCTAssertFalse(search.shown().parts.contains(.offline))
     }
@@ -814,6 +864,8 @@ final class SearchStatesTests: XCTestCase {
             ("interpret-notice", "rank-first"), ("interpret-unmet", "rank-first"),
             ("interpret-rejected", "rank-first"), ("interpret-degraded", "rank-first"),
             ("interpret-nothing-read", "rank-first"), ("interpret-first", "rank-nothing-matches"),
+            ("interpret-suggest", "rank-first"), ("interpret-suggest-notice", "rank-first"),
+            ("preview/interpret-plain", "preview/rank-plain"),
             ("interpret-first", "error-internal"), ("interpret-invalid-text", "rank-first"),
         ] {
             let search = OpenSearch(StandIn.firstSearch().on(.interpret, reading).on(.rank, ranking))

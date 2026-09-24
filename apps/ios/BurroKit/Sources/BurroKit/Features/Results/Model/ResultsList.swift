@@ -106,7 +106,10 @@ extension Results {
     static func headline(of state: SearchState) -> String? {
         guard let ranking = state.ranking else { return nil }
         let count = ranking.scores.count
-        if ranking.ranked.isEmpty { return ResultsCopy.Status.nothingMatches }
+        // Where no limit left an area out, the line does not say that one did.
+        if ranking.ranked.isEmpty {
+            return ranking.filtered.isEmpty ? ResultsCopy.Status.nothingRanked : ResultsCopy.Status.nothingMatches
+        }
         if ranking.emptySpec { return ResultsCopy.Status.rankedNoOrder(count) }
         // The first result the app has a name for. With a name for none, the count alone.
         if let first = ranking.ranked.first, let name = state.area(first.areaId)?.name {
@@ -119,7 +122,13 @@ extension Results {
         guard state.ranking != nil, !state.isBusy else { return [] }
         var said: [String] = []
         if let moved = state.moved { said.append(ResultsCopy.Status.moved(moved)) }
-        if state.gaveWay { said.append(ResultsCopy.Status.gaveWay) }
+        // What explains the order on screen is said of every ranking it is true of.
+        if let leads = state.leads {
+            said.append(
+                ResultsCopy.Status.leads(journeys: leads.journey ? leads.journeys : 0, budget: leads.budget))
+        } else if state.gaveWay {
+            said.append(ResultsCopy.Status.gaveWay)
+        }
         return said
     }
 
@@ -225,6 +234,21 @@ extension Results {
         }
         if conditions.contains(.clarifying) {
             lines.append(Line(.info, [ResultsCopy.Status.question], presses: [toSearch]))
+        }
+        // What was asked for and is in the data for no area is said by name, with why.
+        if conditions.contains(.notInData) {
+            lines.append(
+                Line(
+                    .info,
+                    [ResultsCopy.NotInData.title, ResultsCopy.NotInData.lead(state.missing.count)]
+                        + NotInData.lines(of: state)))
+        }
+        if conditions.contains(.readInPart) {
+            lines.append(Line(.info, [ResultsCopy.Notice.partUnread], presses: [toSearch]))
+        }
+        // Nothing is ranked from what was noticed until the person chooses, and they choose on the search.
+        if conditions.contains(.suggesting) {
+            lines.append(Line(.info, [ResultsCopy.Suggest.title], presses: [toSearch]))
         }
         return lines
     }

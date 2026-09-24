@@ -16,7 +16,7 @@ final class ServedTests: XCTestCase {
     private let reasons = Answers.explained("explanations-first")
     private let later = Answers.explained("explanations-refined")
     private let profile = Answers.profile("farrowmere")
-    private let shareId = "TbfsnjL3GyTlKt967hH2HQ"
+    private let shareId = "rPnAeuBsXQci-xINLK_f2w"
     private let timeout = Failure.because(.timeout)
     private let fault = Answers.failure("error-internal")
 
@@ -35,10 +35,12 @@ final class ServedTests: XCTestCase {
 
     private func moved(to release: String) -> MetaData {
         MetaData(
-            releaseId: release, builtAt: meta.builtAt, synthetic: true,
+            releaseId: release, builtAt: meta.builtAt, synthetic: true, preview: false,
             engineVersion: meta.engineVersion, catalogueVersion: meta.catalogueVersion,
-            counts: meta.counts, attributions: meta.attributions, features: meta.features,
-            tags: meta.tags, defaults: meta.defaults, limits: meta.limits)
+            counts: meta.counts, holds: meta.holds, attributions: meta.attributions,
+            features: meta.features, tags: meta.tags, recipes: meta.recipes, families: meta.families,
+            grittyVariant: meta.grittyVariant, defaults: meta.defaults, limits: meta.limits,
+            reader: meta.reader, census: meta.census)
     }
 
     // MARK: - A release that changes
@@ -427,8 +429,13 @@ final class ServedTests: XCTestCase {
         let fields = Mirror(reflecting: readAgain(searched()).kept as Any).children.first
             .map { Mirror(reflecting: $0.value).children.compactMap(\.label) }
 
+        // The names of the places are the release's own, from the answer that brought the spec.
         XCTAssertEqual(
-            fields, ["spec", "specHash", "untouched", "read", "refused", "assumed", "gaveWay", "degraded"])
+            fields,
+            [
+                "spec", "specHash", "untouched", "read", "refused", "assumed", "placeNames", "gaveWay",
+                "degraded",
+            ])
     }
 
     // MARK: - What a control is drawn from while an edit waits

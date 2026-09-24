@@ -108,9 +108,10 @@ final class SavedAreasTests: XCTestCase {
         XCTAssertEqual(kept["order"], .array([.string("syn-n0003")]))
         XCTAssertEqual(
             Set(area.keys),
-            ["area_id", "slug", "name", "borough", "saved_on", "release_id", "synthetic", "rankable", "neighbours",
-             "rows"])
+            ["area_id", "slug", "name", "borough", "saved_on", "release_id", "synthetic", "preview", "rankable",
+             "neighbours", "rows", "vibes"])
         XCTAssertEqual(area["release_id"], .string("syn-2026-09-23-01"))
+        XCTAssertEqual(area["preview"], .bool(false))
         XCTAssertEqual(Set(object(array(area["neighbours"]).first).keys), ["area_id", "slug", "name", "borough"])
         XCTAssertFalse(rows.isEmpty)
         for row in rows {
@@ -121,10 +122,46 @@ final class SavedAreasTests: XCTestCase {
         }
         // A feature with no figure is kept as having none: nothing is filled in.
         XCTAssertTrue(rows.contains { $0["fact"] == nil && $0["part"] == .string("measured") })
+        // A vibe is kept by its name, its ends and its band. It has no key for what a search asked for.
+        let vibes = array(area["vibes"]).map(object)
+        XCTAssertEqual(vibes.count, Answers.meta.tags.count)
+        for vibe in vibes {
+            XCTAssertTrue(
+                Set(vibe.keys).isSubset(of: [
+                    "list", "tag_id", "name", "low", "high", "band", "spread_low", "spread_high", "plainly",
+                    "rests_on", "waits_on", "not_in_data", "held", "fact",
+                ]))
+            XCTAssertNotNil(vibe["band"])
+        }
         XCTAssertEqual(
             Mirror(reflecting: try XCTUnwrap(saved.kept["syn-n0003"])).children.compactMap(\.label),
-            ["areaId", "slug", "name", "borough", "savedOn", "releaseId", "synthetic", "rankable", "neighbours",
-             "rows"])
+            ["areaId", "slug", "name", "borough", "savedOn", "releaseId", "synthetic", "preview", "rankable",
+             "neighbours", "rows", "vibes"])
+    }
+
+    @MainActor
+    func test_an_area_saved_from_a_preview_says_so_with_no_connection() throws {
+        let preview: MetaData = try Recorded.data(.getMeta, "preview/meta")
+        let data: AreaData = try Recorded.data(.getArea, "preview/area-alderwick")
+        let release = Meta(
+            releaseId: preview.releaseId, engineVersion: preview.engineVersion, synthetic: preview.synthetic,
+            preview: preview.preview)
+        let page = AreaPage(
+            data, release: release, features: preview.features, tags: preview.tags, recipes: preview.recipes)
+        let names = MemoryPhoneStorage()
+        let facts = FileSavedAreasStorage(MemoryPhoneStorage())
+        let first = opened(names: names, facts: facts)
+        XCTAssertFalse(first.app.preview.seen)
+        first.saved.add(page.area, page: page)
+
+        // The app is opened again, and nothing is reached.
+        let again = opened(names: names, facts: facts, api: StandIn().unreachable(.getMeta))
+
+        XCTAssertTrue(again.app.preview.seen)
+        XCTAssertEqual(again.saved.kept[page.area.areaId]?.preview, true)
+        XCTAssertEqual(again.saved.kept[page.area.areaId]?.page.preview, true)
+        // What the vibes wait on is kept with them, so that it is said with no connection.
+        XCTAssertEqual(again.saved.kept[page.area.areaId]?.page.vibes.map(\.shown), page.vibes.map(\.shown))
     }
 
     @MainActor
@@ -223,8 +260,9 @@ final class SavedAreasTests: XCTestCase {
                 sources: journey.sources, asOf: "2026", synthetic: true)
         }
         // A page that was handed a journey in every part of it, as a fault upstream might.
+        let leafy = try XCTUnwrap(real.vibes.first { $0.shown.tagId == .leafy })
         let faulty = AreaPage(
-            area: real.area, rankable: true, releaseId: real.releaseId, synthetic: true,
+            area: real.area, rankable: true, releaseId: real.releaseId, synthetic: true, preview: false,
             named: journey, neighbours: real.neighbours,
             stations: real.stations + [journey], rent: real.rent + [journey], buy: [journey],
             measured: [
@@ -232,7 +270,7 @@ final class SavedAreasTests: XCTestCase {
                     dimension: .homes,
                     rows: [AreaPage.Row(label: "Homes", fact: journey, kind: .feature, key: "homes_flats")])
             ],
-            tags: [AreaPage.Row(label: "Leafy", fact: of(.budgetFit, .budgetOver), kind: .tag, key: "leafy")])
+            vibes: [AreaPage.Vibe(list: leafy.list, shown: leafy.shown, fact: of(.budgetFit, .budgetOver))])
 
         let kept = KeptArea(faulty, savedOn: day)
 
@@ -243,6 +281,9 @@ final class SavedAreasTests: XCTestCase {
         XCTAssertNil(KeptFact(of(.feature, .travelPt)))
         XCTAssertNil(KeptFact(of(.feature, .unlisted("opinion"))))
         XCTAssertEqual(kept.rows.count, real.stations.count + real.rent.count)
+        // A vibe is kept by its name and its band, and the fact that was handed with it is not.
+        XCTAssertEqual(kept.vibes.map(\.name), ["Leafy"])
+        XCTAssertEqual(kept.vibes.map(\.fact), [nil])
         XCTAssertFalse(String(decoding: try JSONEncoder().encode(kept), as: UTF8.self).contains(canary))
         XCTAssertEqual(KeptFact.kinds, [.area, .feature, .tag, .cost, .station])
     }
@@ -306,7 +347,8 @@ final class SavedAreasTests: XCTestCase {
 
     @MainActor
     func test_saving_an_area_twice_keeps_it_once_and_leaves_its_facts_as_they_were() {
-        let older = Meta(releaseId: "syn-2026-08-01-01", engineVersion: "1.3.0", synthetic: true)
+        let older = Meta(
+            releaseId: "syn-2026-08-01-01", engineVersion: "1.3.0", synthetic: true, preview: false)
         let saved = opened(names: MemoryPhoneStorage(), facts: MemorySavedAreasStorage()).saved
 
         saved.add(AreaFixtures.farrowmere, page: AreaFixtures.page("farrowmere", release: older))
@@ -373,7 +415,8 @@ final class SavedAreasTests: XCTestCase {
 
     @MainActor
     func test_a_saved_area_from_an_older_release_says_so() throws {
-        let older = Meta(releaseId: "syn-2026-08-01-01", engineVersion: "1.3.0", synthetic: true)
+        let older = Meta(
+            releaseId: "syn-2026-08-01-01", engineVersion: "1.3.0", synthetic: true, preview: false)
         let saved = opened(names: MemoryPhoneStorage(), facts: MemorySavedAreasStorage()).saved
         saved.add(AreaFixtures.farrowmere, page: AreaFixtures.page("farrowmere", release: older))
         saved.add(AreaFixtures.alderwick, page: AreaFixtures.page("alderwick"))

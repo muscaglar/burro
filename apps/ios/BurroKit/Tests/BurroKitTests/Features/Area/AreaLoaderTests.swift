@@ -135,7 +135,8 @@ final class AreaLoaderTests: XCTestCase {
     @MainActor
     func test_a_copy_from_an_older_release_is_left_as_it_was_saved_until_the_person_asks_for_the_newer() async {
         let day = Date(timeIntervalSince1970: 1_790_000_000)
-        let older = Meta(releaseId: "syn-2026-08-01-01", engineVersion: "1.3.0", synthetic: true)
+        let older = Meta(
+            releaseId: "syn-2026-08-01-01", engineVersion: "1.3.0", synthetic: true, preview: false)
         let names = MemoryPhoneStorage()
         Shortlist(storage: names, now: { day }).add(AreaFixtures.farrowmere, synthetic: true)
         let kept = KeptArea(AreaFixtures.page("farrowmere", release: older), savedOn: day)

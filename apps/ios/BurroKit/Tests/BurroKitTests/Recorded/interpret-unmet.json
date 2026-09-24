@@ -8,25 +8,27 @@
     "route": "/v1/interpret",
     "path": "/v1/interpret",
     "body": {
-      "text": "Leafy. Near a mosque, with fast broadband and low flood risk"
+      "text": "leafy, broadband, flood risk, near a mosque"
     }
   },
   "status": 200,
   "headers": {
     "access-control-allow-origin": "http://localhost:3000",
-    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "1620",
+    "content-length": "1788",
     "content-type": "application/json",
     "vary": "Origin",
+    "x-burro-preview": "false",
     "x-burro-synthetic": "true",
     "x-request-id": "58b3f89b-d403-4d07-a71a-554f3a17c023"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.3.0",
-      "synthetic": true
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
     },
     "data": {
       "status": "ok",
@@ -40,6 +42,7 @@
             "tag_id": "leafy",
             "value": 0.0,
             "step": "up_large",
+            "toward": "high",
             "provenance": "stated"
           }
         ],
@@ -53,13 +56,13 @@
           "amount": null,
           "segment": "bed_1",
           "strictness": "soft",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "default"
         },
         "commutes": [],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [
           {
             "feature_id": "air_no2",
@@ -70,7 +73,7 @@
           {
             "feature_id": "highstreet_access",
             "weight": 0.05,
-            "direction": "more",
+            "direction": "less",
             "provenance": "default"
           },
           {
@@ -102,6 +105,7 @@
           {
             "tag_id": "leafy",
             "weight": 0.5,
+            "toward": "high",
             "provenance": "stated"
           }
         ],
@@ -111,7 +115,7 @@
         "pt_basis_from": "default",
         "commute_weight_from": "default"
       },
-      "spec_hash": "b8286d642153f65d2e34ebd8b03cdbe9a8c6a3bad86f9e96bec763d72dbc6eae",
+      "spec_hash": "67b08573e61cbb275f42749ad972b90bb8bf472a4bd774c609c07c6d4673e843",
       "applied": [
         {
           "group": "tag_ops",
@@ -131,6 +135,7 @@
       "notice_text": "",
       "interpreter": "rule",
       "degraded": false,
+      "model_refused": false,
       "rests_on": [
         {
           "group": "tag_ops",
@@ -138,7 +143,13 @@
           "start": 0,
           "end": 5
         }
-      ]
+      ],
+      "suggestions": [],
+      "unread": [],
+      "not_in_release": [],
+      "unmet_at": [],
+      "model_pending": false,
+      "places": []
     }
   }
 }

@@ -11,7 +11,6 @@ final class SearchCopyTests: XCTestCase {
     private let ownWords: Set<String> = [
         // The screen before the first search, from the concept of the app.
         "Before your first search", "What is sent", "Who reads it", "What is kept",
-        "The language model is run by another company, not by Burro.",
         "Burro keeps nothing you type. This app keeps your shortlist and the choice you make here on this phone, and nothing of a search.",
         "The settings do the same job with no language model.",
         "Allow and continue", "Use the settings instead", "You can change this in About.",
@@ -27,6 +26,8 @@ final class SearchCopyTests: XCTestCase {
         "£\\(amount)", "£\\(amount) a month", "\\(value) of \\(most)",
         // The website writes the figures into this line. The app passes them in.
         "From \\(least), which is not at all, to \\(most), which is as much as anything can.",
+        // The two quote marks, which the website's source writes as escapes.
+        "“", "”",
     ]
 
     private let files = ["SearchCopy.swift", "SettingsCopy.swift", "CodeCopy.swift"]
@@ -66,8 +67,50 @@ final class SearchCopyTests: XCTestCase {
         let site = Website.joined(
             try Repository.text(Repository.root.appendingPathComponent("apps/web/src/content/site.ts")))
 
-        XCTAssertTrue(site.contains(SearchCopy.Permission.handled))
-        XCTAssertTrue(SearchCopy.Permission.handled.contains("up to 30 days"))
+        XCTAssertTrue(site.contains("\"\(SearchCopy.Permission.handled)\""))
+        // It is true whoever else reads the words, so it names nobody else and no period of keeping.
+        XCTAssertFalse(SearchCopy.Permission.handled.contains(where: \.isNumber))
+        XCTAssertFalse(SearchCopy.Permission.handled.lowercased().contains("model"))
+    }
+
+    func test_who_reads_is_said_in_the_apis_words_and_the_app_names_no_provider() throws {
+        let rules = Answers.meta.reader
+        let model: MetaData = try Recorded.data(.getMeta, "meta-model-reads")
+        let company = try XCTUnwrap(model.reader.company)
+
+        // The rules read, or a language model run by a company the API names.
+        XCTAssertFalse(rules.modelReads)
+        XCTAssertEqual(SearchScreen.whoReads(rules, opening: .open), WhoReads(words: rules.notice, said: true))
+        XCTAssertTrue(model.reader.modelReads)
+        XCTAssertEqual(SearchScreen.whoReads(model.reader, opening: .open).words, model.reader.notice)
+        XCTAssertTrue(model.reader.notice.contains(company))
+
+        // Until the service has said, the screen says that it is being asked, or that it has
+        // not said, and a person cannot agree to what they have not been told.
+        XCTAssertEqual(
+            SearchScreen.whoReads(nil, opening: .opening),
+            WhoReads(words: SearchCopy.Reader.checking, said: false))
+        XCTAssertEqual(
+            SearchScreen.whoReads(nil, opening: .failed(.because(.network))),
+            WhoReads(words: SearchCopy.Reader.unsaid, said: false))
+
+        // No file of the app's words names a provider, a period of keeping or terms.
+        for file in try Written.files() {
+            for name in Provider.allCases.map(\.rawValue) + [company] {
+                XCTAssertFalse(file.text.lowercased().contains(name.lowercased()), "\(file.name): \(name)")
+            }
+        }
+    }
+
+    @MainActor
+    func test_the_search_screen_shows_who_reads_as_the_api_served_it() throws {
+        let model = try Recorded.read("meta-model-reads")
+        let search = OpenSearch(StandIn.firstSearch())
+        let served = try JSONDecoder().decode(Envelope<MetaData>.self, from: model.body).data
+        search.store.dispatch(.releaseChanged(meta: served, areas: Answers.areas))
+
+        XCTAssertEqual(search.shown().reader, served.reader.notice)
+        XCTAssertEqual(OpenSearch().shown().reader, Answers.meta.reader.notice)
     }
 
     // MARK: - The screen before the first search
@@ -75,8 +118,8 @@ final class SearchCopyTests: XCTestCase {
     func test_the_screen_says_what_is_sent_who_reads_it_and_what_is_kept() throws {
         let screen = try Repository.text(Written.search.appendingPathComponent("PermissionView.swift"))
         let said = [
-            "Permission.sentTitle", "Permission.handled", "Permission.whoTitle", "Permission.model",
-            "Permission.otherCompany", "Permission.keptTitle", "Permission.kept", "Permission.allow",
+            "Permission.sentTitle", "Permission.handled", "Permission.whoTitle", "who.words",
+            "Permission.model", "Permission.keptTitle", "Permission.kept", "Permission.allow",
             "Permission.settingsInstead", "Permission.changeLater",
         ]
 
@@ -87,7 +130,9 @@ final class SearchCopyTests: XCTestCase {
             XCTAssertGreaterThanOrEqual(found.lowerBound, last, words)
             last = found.lowerBound
         }
-        XCTAssertTrue(SearchCopy.Permission.otherCompany.contains("another company"))
+        // Who reads is what the API serves, and nobody can agree before it has said.
+        XCTAssertTrue(screen.contains("SearchScreen.whoReads(app.search?.state.meta.reader"))
+        XCTAssertTrue(screen.contains(".disabled(!who.said)"))
         XCTAssertTrue(SearchCopy.Permission.kept.contains("nothing you type"))
     }
 
@@ -112,6 +157,29 @@ final class SearchCopyTests: XCTestCase {
         for sentence in Examples.sentences {
             XCTAssertTrue(search.contains("\"\(sentence)\""), sentence)
         }
+        // The rest of the sentences that are tried, and what each asks for, are the website's too.
+        XCTAssertEqual(Examples.pool.count, 6)
+        for example in Examples.pool {
+            XCTAssertTrue(search.contains("\"\(example.text)\""), example.text)
+            for asked in example.asks { XCTAssertTrue(search.contains("\"\(asked)\""), asked) }
+        }
+        XCTAssertEqual(Examples.offered(for: Answers.meta), Examples.sentences)
+    }
+
+    func test_an_example_is_offered_only_where_the_data_can_answer_all_of_it() throws {
+        let preview: MetaData = try Recorded.data(.getMeta, "preview/meta")
+
+        let offered = Examples.offered(for: preview)
+
+        // The preview holds no cost, no journey and too little of most recipes.
+        XCTAssertFalse(preview.holds.costs)
+        XCTAssertEqual(offered, Examples.pool.suffix(3).map(\.text))
+        for sentence in offered {
+            let example = try XCTUnwrap(Examples.pool.first { $0.text == sentence })
+            XCTAssertTrue(example.asks.allSatisfy { ReleaseHolds.canAnswer($0, in: preview) }, sentence)
+            XCTAssertFalse(example.asks.contains("budget"), sentence)
+        }
+        XCTAssertFalse(offered.contains(Examples.sentences[0]))
     }
 
     func test_no_example_names_a_place() throws {
@@ -178,10 +246,8 @@ final class SearchCopyTests: XCTestCase {
     // MARK: - No figure about a place, and nothing about who lives there
 
     func test_the_words_hold_no_figure() throws {
-        for said in try written() where said.contains(where: \.isNumber) {
-            // The one figure is how long a model's provider may keep what it reads.
-            XCTAssertTrue(said.contains("up to 30 days"), said)
-        }
+        // How long a provider keeps what it reads is the API's to say, and is written nowhere here.
+        XCTAssertEqual(try written().filter { $0.contains(where: \.isNumber) }, [])
     }
 
     func test_no_word_is_about_who_lives_somewhere() throws {

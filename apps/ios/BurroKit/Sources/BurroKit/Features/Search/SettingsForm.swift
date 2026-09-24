@@ -64,6 +64,45 @@ enum SettingsForm {
         on ? Edits.tagOn(tagId) : Edits.tagOff(tagId)
     }
 
+    /// Which end of a scale is asked for, or that it does not count.
+    enum End: Hashable, Sendable {
+        case off
+        case low
+        case high
+
+        var toward: Toward? {
+            switch self {
+            case .off: return nil
+            case .low: return .low
+            case .high: return .high
+            }
+        }
+    }
+
+    /// The end of a scale the spec asks for. `off` where the vibe counts for nothing.
+    static func end(of weight: TagWeight?) -> End {
+        guard let weight, SearchChips.counts(weight.weight) else { return .off }
+        return weight.toward == .low ? .low : .high
+    }
+
+    /// What choosing an end of a scale sends. A vibe that did not count is
+    /// added, towards the end that was chosen. One that did keeps how much it
+    /// counts, and is turned.
+    static func turn(_ tagId: TagId, to end: End, from weight: TagWeight?) -> Operations {
+        guard let toward = end.toward else { return Edits.tagOff(tagId) }
+        guard let weight, SearchChips.counts(weight.weight) else {
+            return Edits.tagOn(tagId, toward: toward)
+        }
+        return Edits.tagWeight(tagId, weight.weight, toward: TowardChoice(rawValue: toward.rawValue))
+    }
+
+    /// When recorded crime counts, as the settings say it of one release, and
+    /// then what the figures are.
+    static func crimeLead(_ meta: MetaData) -> String {
+        let rule = SearchScreen.rejected(.crimeNeedsExplicitRequest, in: meta) ?? SearchCopy.crimeRule
+        return "\(rule) \(SettingsCopy.Crime.lead)"
+    }
+
     /// Which way counts as better, with the weight as it stands.
     static func direction(_ featureId: FeatureId, _ direction: Direction, weight: Double) -> Operations {
         Edits.featureDirection(featureId, weight, direction)

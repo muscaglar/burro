@@ -15,7 +15,7 @@
           "amount": 1700,
           "segment": "bed_1",
           "strictness": "soft",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "stated"
         },
         "commutes": [
@@ -29,7 +29,7 @@
         ],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [
           {
             "feature_id": "air_no2",
@@ -40,7 +40,7 @@
           {
             "feature_id": "highstreet_access",
             "weight": 0.05,
-            "direction": "more",
+            "direction": "less",
             "provenance": "default"
           },
           {
@@ -72,16 +72,18 @@
           {
             "tag_id": "leafy",
             "weight": 0.5,
+            "toward": "high",
             "provenance": "stated"
           },
           {
             "tag_id": "quiet_residential",
             "weight": 0.5,
+            "toward": "high",
             "provenance": "stated"
           }
         ],
         "areas": [],
-        "tenure_from": "default",
+        "tenure_from": "stated",
         "commute_combine_from": "default",
         "pt_basis_from": "default",
         "commute_weight_from": "default"
@@ -92,21 +94,24 @@
   "status": 200,
   "headers": {
     "access-control-allow-origin": "http://localhost:3000",
-    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "18117",
+    "content-length": "25060",
     "content-type": "application/json",
     "vary": "Origin",
+    "x-burro-preview": "false",
     "x-burro-synthetic": "true",
     "x-request-id": "dbb181ef-84cd-44b8-8866-2710a4ac3d48"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.3.0",
-      "synthetic": true
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
     },
     "data": {
+      "spec_hash": "cb2179023e1ac65e1334a742e61061d45aa859cf776c151a94f2de52e5d935eb",
       "explanations": [
         {
           "area_id": "syn-n0006",
@@ -119,6 +124,14 @@
             "replaced": false
           },
           "reasons": [
+            {
+              "text": "Quiet streets: band 4 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0006/tag/quiet_residential"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
             {
               "text": "By public transport to Cindermoor Works: about 21 minutes on a typical weekday morning, 26 if you just miss a service.",
               "fact_ids": [
@@ -134,20 +147,12 @@
               ],
               "origin": "template",
               "replaced": false
-            },
-            {
-              "text": "Quiet residential: ranks above 80% of the 21 areas compared in this release.",
-              "fact_ids": [
-                "syn-n0006/tag/quiet_residential"
-              ],
-              "origin": "template",
-              "replaced": false
             }
           ],
           "trade_off": {
-            "text": "Walk to the nearest station: 5 min, further than 50% of the 22 areas compared in this release, and the same as 1 other.",
+            "text": "Straight-line distance to the nearest town centre boundary: 1,460 m, further than 66% of the 21 areas compared in this release.",
             "fact_ids": [
-              "syn-n0006/feature/station_walk"
+              "syn-n0006/feature/highstreet_access"
             ],
             "origin": "template",
             "replaced": false
@@ -155,91 +160,96 @@
           "missing": []
         },
         {
-          "area_id": "syn-n0017",
+          "area_id": "syn-n0005",
           "orientation": {
-            "text": "Otterby Fields is in Quillhaven.",
+            "text": "Eskerfold is in Quillhaven.",
             "fact_ids": [
-              "syn-n0017/area/name"
+              "syn-n0005/area/name"
             ],
             "origin": "template",
             "replaced": false
           },
           "reasons": [
             {
-              "text": "By public transport to Cindermoor Works: about 21 minutes on a typical weekday morning, 26 if you just miss a service.",
+              "text": "Quiet streets: band 4 of 5, counted from least to most, among the 21 areas compared in this release.",
               "fact_ids": [
-                "syn-n0017/travel/syn-p0021.pt"
+                "syn-n0005/tag/quiet_residential"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "The upper end is £350 under your budget of £1,700.",
+              "text": "Leafy: band 4 of 5, counted from least to most, among the 21 areas compared in this release.",
               "fact_ids": [
-                "syn-n0017/budget_fit/rent.bed_1"
+                "syn-n0005/tag/leafy"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "Leafy: ranks above 50% of the 22 areas compared in this release.",
+              "text": "By public transport to Cindermoor Works: about 35 minutes on a typical weekday morning, 38 if you just miss a service.",
               "fact_ids": [
-                "syn-n0017/tag/leafy"
+                "syn-n0005/travel/syn-p0021.pt"
               ],
               "origin": "template",
               "replaced": false
             }
           ],
           "trade_off": {
-            "text": "Walk to the nearest station: 27 min, further than 77% of the 22 areas compared in this release.",
+            "text": "The upper end is £50 over your budget of £1,700.",
             "fact_ids": [
-              "syn-n0017/feature/station_walk"
+              "syn-n0005/budget_fit/rent.bed_1"
             ],
             "origin": "template",
             "replaced": false
           },
-          "missing": [
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0008",
+          "orientation": {
+            "text": "Gorsebeck is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0008/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
             {
-              "text": "There is no Modelled annual mean nitrogen dioxide figure for Otterby Fields in this release, so it was left out of the score.",
+              "text": "Quiet streets: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
               "fact_ids": [
-                "syn-n0017/missing/feature:air_no2"
+                "syn-n0008/tag/quiet_residential"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "There is no Share of homes within a 10-minute walk of a high street or town centre figure for Otterby Fields in this release, so it was left out of the score.",
+              "text": "Leafy: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
               "fact_ids": [
-                "syn-n0017/missing/feature:highstreet_access"
+                "syn-n0008/tag/leafy"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "There is no Share of homes at 55 dB or more of transport noise figure for Otterby Fields in this release, so it was left out of the score.",
+              "text": "The upper end is £150 under your budget of £1,700.",
               "fact_ids": [
-                "syn-n0017/missing/feature:noise_exposure"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
-              "text": "There is no Walk to the nearest park of 2 ha or more figure for Otterby Fields in this release, so it was left out of the score.",
-              "fact_ids": [
-                "syn-n0017/missing/feature:park_proximity"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
-              "text": "There is no Quiet residential figure for Otterby Fields in this release, so it was left out of the score.",
-              "fact_ids": [
-                "syn-n0017/missing/tag:quiet_residential"
+                "syn-n0008/budget_fit/rent.bed_1"
               ],
               "origin": "template",
               "replaced": false
             }
-          ]
+          ],
+          "trade_off": {
+            "text": "By public transport to Cindermoor Works: about 63 minutes on a typical weekday morning, 68 if you just miss a service, 28 minutes over the 35 you set.",
+            "fact_ids": [
+              "syn-n0008/travel/syn-p0021.pt"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
         },
         {
           "area_id": "syn-n0003",
@@ -269,7 +279,7 @@
               "replaced": false
             },
             {
-              "text": "Quiet residential: ranks above 66% of the 21 areas compared in this release.",
+              "text": "Quiet streets: band 3 of 5, counted from least to most, among the 21 areas compared in this release.",
               "fact_ids": [
                 "syn-n0003/tag/quiet_residential"
               ],
@@ -278,7 +288,7 @@
             }
           ],
           "trade_off": {
-            "text": "Leafy: ranks below 68% of the 22 areas compared in this release.",
+            "text": "Leafy: band 2 of 5, counted from least to most, among the 21 areas compared in this release.",
             "fact_ids": [
               "syn-n0003/tag/leafy"
             ],
@@ -288,91 +298,45 @@
           "missing": []
         },
         {
-          "area_id": "syn-n0004",
+          "area_id": "syn-n0002",
           "orientation": {
-            "text": "Dulcimer Green is in Quillhaven.",
+            "text": "Brackenhythe is in Quillhaven.",
             "fact_ids": [
-              "syn-n0004/area/name"
+              "syn-n0002/area/name"
             ],
             "origin": "template",
             "replaced": false
           },
           "reasons": [
             {
-              "text": "By public transport to Cindermoor Works: about 27 minutes on a typical weekday morning, 32 if you just miss a service.",
+              "text": "Leafy: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
               "fact_ids": [
-                "syn-n0004/travel/syn-p0021.pt"
+                "syn-n0002/tag/leafy"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "Leafy: ranks above 68% of the 22 areas compared in this release.",
+              "text": "By public transport to Cindermoor Works: about 27 minutes on a typical weekday morning, 29 if you just miss a service.",
               "fact_ids": [
-                "syn-n0004/tag/leafy"
+                "syn-n0002/travel/syn-p0021.pt"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "Quiet residential: ranks above 47% of the 21 areas compared in this release.",
+              "text": "Straight-line distance to the nearest way in to a station: 160 m, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
               "fact_ids": [
-                "syn-n0004/tag/quiet_residential"
+                "syn-n0002/feature/station_walk"
               ],
               "origin": "template",
               "replaced": false
             }
           ],
           "trade_off": {
-            "text": "The upper end is £75 over your budget of £1,700.",
+            "text": "The upper end is £325 over your budget of £1,700.",
             "fact_ids": [
-              "syn-n0004/budget_fit/rent.bed_1"
-            ],
-            "origin": "template",
-            "replaced": false
-          },
-          "missing": []
-        },
-        {
-          "area_id": "syn-n0023",
-          "orientation": {
-            "text": "Wexmoor is in Quillhaven.",
-            "fact_ids": [
-              "syn-n0023/area/name"
-            ],
-            "origin": "template",
-            "replaced": false
-          },
-          "reasons": [
-            {
-              "text": "By public transport to Cindermoor Works: about 16 minutes on a typical weekday morning, 18 if you just miss a service.",
-              "fact_ids": [
-                "syn-n0023/travel/syn-p0021.pt"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
-              "text": "Share of homes within a 10-minute walk of a high street or town centre: 66%, more than 61% of the 21 areas compared in this release.",
-              "fact_ids": [
-                "syn-n0023/feature/highstreet_access"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
-              "text": "Lines within a 10-minute walk: 1, more than 31% of the 22 areas compared in this release, and the same as 11 others.",
-              "fact_ids": [
-                "syn-n0023/feature/station_lines"
-              ],
-              "origin": "template",
-              "replaced": false
-            }
-          ],
-          "trade_off": {
-            "text": "Quiet residential: ranks below 61% of the 21 areas compared in this release.",
-            "fact_ids": [
-              "syn-n0023/tag/quiet_residential"
+              "syn-n0002/budget_fit/rent.bed_1"
             ],
             "origin": "template",
             "replaced": false
@@ -400,7 +364,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-09-23",
@@ -427,39 +392,170 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-08",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0006/feature/station_walk",
+          "fact_id": "syn-n0006/feature/highstreet_access",
           "area_id": "syn-n0006",
           "kind": "feature",
-          "key": "station_walk",
-          "label": "Walk to the nearest station",
+          "key": "highstreet_access",
+          "label": "Straight-line distance to the nearest town centre boundary",
           "template": "feature",
           "slots": {
-            "label": "Walk to the nearest station",
-            "value": "5 min",
-            "comparative": "further than",
-            "pct": "50",
-            "compared": "22",
-            "level": "1",
-            "standing": "further than 50% of the 22 areas compared in this release, and the same as 1 other"
+            "label": "Straight-line distance to the nearest town centre boundary",
+            "value": "1,460 m",
+            "band": "4",
+            "comparative": "closer than",
+            "pct": "28",
+            "standing": "closer than 28% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "66",
+            "standing_worse": "further than 66% of the 21 areas compared in this release",
+            "compared": "21"
           },
           "numbers": [
-            "5",
-            "50%",
-            "22",
-            "1"
+            "1460",
+            "28%",
+            "21",
+            "66%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/tag/built_age",
+          "area_id": "syn-n0006",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
+          "slots": {
+            "label": "Age of buildings",
+            "band": "1",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/tag/homes",
+          "area_id": "syn-n0006",
+          "kind": "tag",
+          "key": "homes",
+          "label": "Houses or flats",
+          "template": "vibe",
+          "slots": {
+            "label": "Houses or flats",
+            "band": "5",
+            "low_end": "Houses",
+            "high_end": "Flats",
+            "compared": "22",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "2",
+            "parts": "3",
+            "share": "75",
+            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "22",
+            "2",
+            "3",
+            "75",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/tag/leafy",
+          "area_id": "syn-n0006",
+          "kind": "tag",
+          "key": "leafy",
+          "label": "Leafy",
+          "template": "vibe",
+          "slots": {
+            "label": "Leafy",
+            "band": "3",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "3",
+            "spread_high": "3",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "3",
+            "5",
+            "21",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
@@ -470,27 +566,41 @@
           "area_id": "syn-n0006",
           "kind": "tag",
           "key": "quiet_residential",
-          "label": "Quiet residential",
-          "template": "tag",
+          "label": "Quiet streets",
+          "template": "vibe",
           "slots": {
-            "label": "Quiet residential",
-            "comparative": "above",
-            "pct": "80",
+            "label": "Quiet streets",
+            "band": "4",
+            "low_end": "least",
+            "high_end": "most",
             "compared": "21",
-            "standing": "above 80% of the 21 areas compared in this release"
+            "span": "2025",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "80%",
-            "21"
+            "4",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
-          "as_of": "2026-09-23",
+          "as_of": "2025",
           "synthetic": true
         },
         {
@@ -503,12 +613,17 @@
           "slots": {
             "mode": "By public transport",
             "place": "Cindermoor Works",
+            "limit": "35",
+            "margin": "14",
+            "margin_unit": "minutes",
             "typical": "21",
             "missed": "26"
           },
           "numbers": [
             "21",
-            "26"
+            "26",
+            "35",
+            "14"
           ],
           "names": [
             "Cindermoor Works"
@@ -516,245 +631,237 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-09",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0017/area/name",
-          "area_id": "syn-n0017",
+          "fact_id": "syn-n0005/area/name",
+          "area_id": "syn-n0005",
           "kind": "area",
           "key": "name",
           "label": "Area",
           "template": "area",
           "slots": {
-            "name": "Otterby Fields",
+            "name": "Eskerfold",
             "borough": "Quillhaven"
           },
           "numbers": [],
           "names": [
-            "Otterby Fields",
+            "Eskerfold",
             "Quillhaven"
           ],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-09-23",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0017/budget_fit/rent.bed_1",
-          "area_id": "syn-n0017",
+          "fact_id": "syn-n0005/budget_fit/rent.bed_1",
+          "area_id": "syn-n0005",
           "kind": "budget_fit",
           "key": "rent.bed_1",
           "label": "Budget",
-          "template": "budget_under",
+          "template": "budget_over",
           "slots": {
-            "margin": "350",
+            "margin": "50",
             "amount": "1,700",
-            "upper": "1,350"
+            "upper": "1,750"
           },
           "numbers": [
             "£1700",
-            "£1350",
-            "£350"
+            "£1750",
+            "£50"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-08",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0017/feature/station_walk",
-          "area_id": "syn-n0017",
-          "kind": "feature",
-          "key": "station_walk",
-          "label": "Walk to the nearest station",
-          "template": "feature",
+          "fact_id": "syn-n0005/tag/built_age",
+          "area_id": "syn-n0005",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
           "slots": {
-            "label": "Walk to the nearest station",
-            "value": "27 min",
-            "comparative": "further than",
-            "pct": "77",
-            "compared": "22",
-            "standing": "further than 77% of the 22 areas compared in this release"
+            "label": "Age of buildings",
+            "band": "2",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "2",
+            "spread_high": "2",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "27",
-            "77%",
-            "22"
+            "2",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0017/missing/feature:air_no2",
-          "area_id": "syn-n0017",
-          "kind": "missing",
-          "key": "feature:air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
-          "template": "missing",
-          "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
-            "name": "Otterby Fields"
-          },
-          "numbers": [],
-          "names": [
-            "Otterby Fields"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0017/missing/feature:highstreet_access",
-          "area_id": "syn-n0017",
-          "kind": "missing",
-          "key": "feature:highstreet_access",
-          "label": "Share of homes within a 10-minute walk of a high street or town centre",
-          "template": "missing",
-          "slots": {
-            "label": "Share of homes within a 10-minute walk of a high street or town centre",
-            "name": "Otterby Fields"
-          },
-          "numbers": [],
-          "names": [
-            "Otterby Fields"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0017/missing/feature:noise_exposure",
-          "area_id": "syn-n0017",
-          "kind": "missing",
-          "key": "feature:noise_exposure",
-          "label": "Share of homes at 55 dB or more of transport noise",
-          "template": "missing",
-          "slots": {
-            "label": "Share of homes at 55 dB or more of transport noise",
-            "name": "Otterby Fields"
-          },
-          "numbers": [],
-          "names": [
-            "Otterby Fields"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0017/missing/feature:park_proximity",
-          "area_id": "syn-n0017",
-          "kind": "missing",
-          "key": "feature:park_proximity",
-          "label": "Walk to the nearest park of 2 ha or more",
-          "template": "missing",
-          "slots": {
-            "label": "Walk to the nearest park of 2 ha or more",
-            "name": "Otterby Fields"
-          },
-          "numbers": [],
-          "names": [
-            "Otterby Fields"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0017/missing/tag:quiet_residential",
-          "area_id": "syn-n0017",
-          "kind": "missing",
-          "key": "tag:quiet_residential",
-          "label": "Quiet residential",
-          "template": "missing",
-          "slots": {
-            "label": "Quiet residential",
-            "name": "Otterby Fields"
-          },
-          "numbers": [],
-          "names": [
-            "Otterby Fields"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0017/tag/leafy",
-          "area_id": "syn-n0017",
+          "fact_id": "syn-n0005/tag/family_amenities",
+          "area_id": "syn-n0005",
           "kind": "tag",
-          "key": "leafy",
-          "label": "Leafy",
-          "template": "tag",
+          "key": "family_amenities",
+          "label": "Family amenities",
+          "template": "vibe",
           "slots": {
-            "label": "Leafy",
-            "comparative": "above",
-            "pct": "50",
-            "compared": "22",
-            "standing": "above 50% of the 22 areas compared in this release"
+            "label": "Family amenities",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "50%",
-            "22"
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
-          "as_of": "2026-09-23",
+          "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0017/travel/syn-p0021.pt",
-          "area_id": "syn-n0017",
+          "fact_id": "syn-n0005/tag/leafy",
+          "area_id": "syn-n0005",
+          "kind": "tag",
+          "key": "leafy",
+          "label": "Leafy",
+          "template": "vibe",
+          "slots": {
+            "label": "Leafy",
+            "band": "4",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "4",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/tag/quiet_residential",
+          "area_id": "syn-n0005",
+          "kind": "tag",
+          "key": "quiet_residential",
+          "label": "Quiet streets",
+          "template": "vibe",
+          "slots": {
+            "label": "Quiet streets",
+            "band": "4",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "4",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/travel/syn-p0021.pt",
+          "area_id": "syn-n0005",
           "kind": "travel",
           "key": "syn-p0021.pt",
           "label": "Journey",
@@ -762,12 +869,16 @@
           "slots": {
             "mode": "By public transport",
             "place": "Cindermoor Works",
-            "typical": "21",
-            "missed": "26"
+            "limit": "35",
+            "margin": "0",
+            "margin_unit": "minutes",
+            "typical": "35",
+            "missed": "38"
           },
           "numbers": [
-            "21",
-            "26"
+            "35",
+            "38",
+            "0"
           ],
           "names": [
             "Cindermoor Works"
@@ -775,7 +886,265 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/area/name",
+          "area_id": "syn-n0008",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Gorsebeck",
+            "borough": "Quillhaven"
+          },
+          "numbers": [],
+          "names": [
+            "Gorsebeck",
+            "Quillhaven"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/budget_fit/rent.bed_1",
+          "area_id": "syn-n0008",
+          "kind": "budget_fit",
+          "key": "rent.bed_1",
+          "label": "Budget",
+          "template": "budget_under",
+          "slots": {
+            "margin": "150",
+            "amount": "1,700",
+            "upper": "1,550"
+          },
+          "numbers": [
+            "£1700",
+            "£1550",
+            "£150"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/tag/homes",
+          "area_id": "syn-n0008",
+          "kind": "tag",
+          "key": "homes",
+          "label": "Houses or flats",
+          "template": "vibe",
+          "slots": {
+            "label": "Houses or flats",
+            "band": "1",
+            "low_end": "Houses",
+            "high_end": "Flats",
+            "compared": "22",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "2",
+            "parts": "3",
+            "share": "75",
+            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "22",
+            "2",
+            "3",
+            "75",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/tag/leafy",
+          "area_id": "syn-n0008",
+          "kind": "tag",
+          "key": "leafy",
+          "label": "Leafy",
+          "template": "vibe",
+          "slots": {
+            "label": "Leafy",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/tag/pace",
+          "area_id": "syn-n0008",
+          "kind": "tag",
+          "key": "pace",
+          "label": "Going out",
+          "template": "vibe",
+          "slots": {
+            "label": "Going out",
+            "band": "1",
+            "low_end": "Calm",
+            "high_end": "Buzzy",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/tag/quiet_residential",
+          "area_id": "syn-n0008",
+          "kind": "tag",
+          "key": "quiet_residential",
+          "label": "Quiet streets",
+          "template": "vibe",
+          "slots": {
+            "label": "Quiet streets",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/travel/syn-p0021.pt",
+          "area_id": "syn-n0008",
+          "kind": "travel",
+          "key": "syn-p0021.pt",
+          "label": "Journey",
+          "template": "travel_pt_over",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Cindermoor Works",
+            "limit": "35",
+            "margin": "28",
+            "margin_unit": "minutes",
+            "typical": "63",
+            "missed": "68"
+          },
+          "numbers": [
+            "63",
+            "68",
+            "35",
+            "28"
+          ],
+          "names": [
+            "Cindermoor Works"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-09",
@@ -800,7 +1169,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-09-23",
@@ -827,10 +1197,55 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/tag/homes",
+          "area_id": "syn-n0003",
+          "kind": "tag",
+          "key": "homes",
+          "label": "Houses or flats",
+          "template": "vibe",
+          "slots": {
+            "label": "Houses or flats",
+            "band": "1",
+            "low_end": "Houses",
+            "high_end": "Flats",
+            "compared": "22",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "2",
+            "parts": "3",
+            "share": "75",
+            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "22",
+            "2",
+            "3",
+            "75",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
           "synthetic": true
         },
         {
@@ -839,26 +1254,82 @@
           "kind": "tag",
           "key": "leafy",
           "label": "Leafy",
-          "template": "tag",
+          "template": "vibe",
           "slots": {
             "label": "Leafy",
-            "comparative": "below",
-            "pct": "68",
-            "compared": "22",
-            "standing": "below 68% of the 22 areas compared in this release"
+            "band": "2",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "2",
+            "spread_high": "2",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "68%",
-            "22"
+            "2",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
-          "as_of": "2026-09-23",
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/tag/pace",
+          "area_id": "syn-n0003",
+          "kind": "tag",
+          "key": "pace",
+          "label": "Going out",
+          "template": "vibe",
+          "slots": {
+            "label": "Going out",
+            "band": "1",
+            "low_end": "Calm",
+            "high_end": "Buzzy",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
           "synthetic": true
         },
         {
@@ -866,27 +1337,40 @@
           "area_id": "syn-n0003",
           "kind": "tag",
           "key": "quiet_residential",
-          "label": "Quiet residential",
-          "template": "tag",
+          "label": "Quiet streets",
+          "template": "vibe",
           "slots": {
-            "label": "Quiet residential",
-            "comparative": "above",
-            "pct": "66",
+            "label": "Quiet streets",
+            "band": "3",
+            "low_end": "least",
+            "high_end": "most",
             "compared": "21",
-            "standing": "above 66% of the 21 areas compared in this release"
+            "span": "2025",
+            "spread_low": "3",
+            "spread_high": "3",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "66%",
-            "21"
+            "3",
+            "5",
+            "21",
+            "100",
+            "2025"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
-          "as_of": "2026-09-23",
+          "as_of": "2025",
           "synthetic": true
         },
         {
@@ -899,11 +1383,16 @@
           "slots": {
             "mode": "By public transport",
             "place": "Cindermoor Works",
+            "limit": "35",
+            "margin": "33",
+            "margin_unit": "minutes",
             "typical": "2",
             "missed": "2"
           },
           "numbers": [
-            "2"
+            "2",
+            "35",
+            "33"
           ],
           "names": [
             "Cindermoor Works"
@@ -911,123 +1400,270 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-09",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/area/name",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0002/area/name",
+          "area_id": "syn-n0002",
           "kind": "area",
           "key": "name",
           "label": "Area",
           "template": "area",
           "slots": {
-            "name": "Dulcimer Green",
+            "name": "Brackenhythe",
             "borough": "Quillhaven"
           },
           "numbers": [],
           "names": [
-            "Dulcimer Green",
+            "Brackenhythe",
             "Quillhaven"
           ],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-09-23",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/budget_fit/rent.bed_1",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0002/budget_fit/rent.bed_1",
+          "area_id": "syn-n0002",
           "kind": "budget_fit",
           "key": "rent.bed_1",
           "label": "Budget",
           "template": "budget_over",
           "slots": {
-            "margin": "75",
+            "margin": "325",
             "amount": "1,700",
-            "upper": "1,775"
+            "upper": "2,025"
           },
           "numbers": [
             "£1700",
-            "£1775",
-            "£75"
+            "£2025",
+            "£325"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-08",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/tag/leafy",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0002/feature/station_walk",
+          "area_id": "syn-n0002",
+          "kind": "feature",
+          "key": "station_walk",
+          "label": "Straight-line distance to the nearest way in to a station",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest way in to a station",
+            "value": "160 m",
+            "band": "1",
+            "comparative": "closer than",
+            "pct": "77",
+            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others",
+            "standing_worse": "the same as 4 of the 21 other areas compared in this release",
+            "compared": "22",
+            "level": "4"
+          },
+          "numbers": [
+            "160",
+            "77%",
+            "22",
+            "4",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0002/tag/leafy",
+          "area_id": "syn-n0002",
           "kind": "tag",
           "key": "leafy",
           "label": "Leafy",
-          "template": "tag",
+          "template": "vibe",
           "slots": {
             "label": "Leafy",
-            "comparative": "above",
-            "pct": "68",
-            "compared": "22",
-            "standing": "above 68% of the 22 areas compared in this release"
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "68%",
-            "22"
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
-          "as_of": "2026-09-23",
+          "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/tag/quiet_residential",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0002/tag/parks_close_by",
+          "area_id": "syn-n0002",
+          "kind": "tag",
+          "key": "parks_close_by",
+          "label": "Parks close by",
+          "template": "vibe",
+          "slots": {
+            "label": "Parks close by",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0002/tag/quiet_residential",
+          "area_id": "syn-n0002",
           "kind": "tag",
           "key": "quiet_residential",
-          "label": "Quiet residential",
-          "template": "tag",
+          "label": "Quiet streets",
+          "template": "vibe",
           "slots": {
-            "label": "Quiet residential",
-            "comparative": "above",
-            "pct": "47",
+            "label": "Quiet streets",
+            "band": "2",
+            "low_end": "least",
+            "high_end": "most",
             "compared": "21",
-            "standing": "above 47% of the 21 areas compared in this release"
+            "span": "2025",
+            "spread_low": "2",
+            "spread_high": "2",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "47%",
-            "21"
+            "2",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
-          "as_of": "2026-09-23",
+          "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/travel/syn-p0021.pt",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0002/tag/village_feel",
+          "area_id": "syn-n0002",
+          "kind": "tag",
+          "key": "village_feel",
+          "label": "Village feel",
+          "template": "vibe",
+          "slots": {
+            "label": "Village feel",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "5",
+            "parts": "5",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro"
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0002/travel/syn-p0021.pt",
+          "area_id": "syn-n0002",
           "kind": "travel",
           "key": "syn-p0021.pt",
           "label": "Journey",
@@ -1035,12 +1671,17 @@
           "slots": {
             "mode": "By public transport",
             "place": "Cindermoor Works",
+            "limit": "35",
+            "margin": "8",
+            "margin_unit": "minutes",
             "typical": "27",
-            "missed": "32"
+            "missed": "29"
           },
           "numbers": [
             "27",
-            "32"
+            "29",
+            "35",
+            "8"
           ],
           "names": [
             "Cindermoor Works"
@@ -1048,151 +1689,8 @@
           "sources": [
             {
               "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0023/area/name",
-          "area_id": "syn-n0023",
-          "kind": "area",
-          "key": "name",
-          "label": "Area",
-          "template": "area",
-          "slots": {
-            "name": "Wexmoor",
-            "borough": "Quillhaven"
-          },
-          "numbers": [],
-          "names": [
-            "Wexmoor",
-            "Quillhaven"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0023/feature/highstreet_access",
-          "area_id": "syn-n0023",
-          "kind": "feature",
-          "key": "highstreet_access",
-          "label": "Share of homes within a 10-minute walk of a high street or town centre",
-          "template": "feature",
-          "slots": {
-            "label": "Share of homes within a 10-minute walk of a high street or town centre",
-            "value": "66%",
-            "comparative": "more than",
-            "pct": "61",
-            "compared": "21",
-            "standing": "more than 61% of the 21 areas compared in this release"
-          },
-          "numbers": [
-            "66%",
-            "61%",
-            "21"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0023/feature/station_lines",
-          "area_id": "syn-n0023",
-          "kind": "feature",
-          "key": "station_lines",
-          "label": "Lines within a 10-minute walk",
-          "template": "feature",
-          "slots": {
-            "label": "Lines within a 10-minute walk",
-            "value": "1",
-            "comparative": "more than",
-            "pct": "31",
-            "compared": "22",
-            "level": "11",
-            "standing": "more than 31% of the 22 areas compared in this release, and the same as 11 others"
-          },
-          "numbers": [
-            "1",
-            "31%",
-            "22",
-            "11"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0023/tag/quiet_residential",
-          "area_id": "syn-n0023",
-          "kind": "tag",
-          "key": "quiet_residential",
-          "label": "Quiet residential",
-          "template": "tag",
-          "slots": {
-            "label": "Quiet residential",
-            "comparative": "below",
-            "pct": "61",
-            "compared": "21",
-            "standing": "below 61% of the 21 areas compared in this release"
-          },
-          "numbers": [
-            "61%",
-            "21"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0023/travel/syn-p0021.pt",
-          "area_id": "syn-n0023",
-          "kind": "travel",
-          "key": "syn-p0021.pt",
-          "label": "Journey",
-          "template": "travel_pt",
-          "slots": {
-            "mode": "By public transport",
-            "place": "Cindermoor Works",
-            "typical": "16",
-            "missed": "18"
-          },
-          "numbers": [
-            "16",
-            "18"
-          ],
-          "names": [
-            "Cindermoor Works"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data"
+              "name": "Synthetic test data",
+              "publisher": "Burro"
             }
           ],
           "as_of": "2026-09",

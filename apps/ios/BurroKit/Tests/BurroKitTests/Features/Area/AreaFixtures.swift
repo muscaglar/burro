@@ -17,7 +17,7 @@ enum AreaFixtures {
     /// The release the recordings were made on.
     static let release = Meta(
         releaseId: Answers.meta.releaseId, engineVersion: Answers.meta.engineVersion,
-        synthetic: Answers.meta.synthetic)
+        synthetic: Answers.meta.synthetic, preview: Answers.meta.preview)
 
     /// An app on the stand-in, as the shell makes one.
     static func app(
@@ -25,16 +25,20 @@ enum AreaFixtures {
         site: String? = AreaFixtures.site
     ) -> AppModel {
         let notice = SyntheticNotice()
+        let preview = PreviewNotice()
         let client = LiveBurroAPI(
             configuration: APIConfiguration(StandIn.base), transport: api,
-            onSynthetic: { said in await notice.note(said) })
-        return AppModel(api: client, site: SiteAddress(site), synthetic: notice, storage: storage)
+            onSynthetic: { said in await notice.note(said) },
+            onPreview: { said in await preview.note(said) })
+        return AppModel(
+            api: client, site: SiteAddress(site), synthetic: notice, preview: preview, storage: storage)
     }
 
     /// The page of a recorded area, laid out under the release's headings.
     static func page(_ slug: String, release: Meta = AreaFixtures.release) -> AreaPage {
         AreaPage(
-            Answers.profile(slug), release: release, features: Answers.meta.features, tags: Answers.meta.tags)
+            Answers.profile(slug), release: release, features: Answers.meta.features,
+            tags: Answers.meta.tags, recipes: Answers.meta.recipes)
     }
 
     /// Every recorded area, by its slug.
@@ -49,7 +53,7 @@ enum AreaFixtures {
             label: "Journey", template: .travelPt,
             slots: ["place": place, "mode": "By public transport", "typical": "21", "missed": "26"],
             numbers: ["21", "26"], names: [place],
-            sources: [FactSource(sourceId: "synthetic", name: "Synthetic test data")],
+            sources: [FactSource(sourceId: "synthetic", name: "Synthetic test data", publisher: "Burro")],
             asOf: "2026-09", synthetic: true)
     }
 }

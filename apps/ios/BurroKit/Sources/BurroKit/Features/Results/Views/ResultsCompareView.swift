@@ -124,17 +124,43 @@ extension Results {
                         PlaceView(place: place, alone: compared.places.count <= leastCompared, hands: hands)
                     }
                 }
+                // The vibes of each area come first. They are of the release, and are
+                // compared whatever the search holds.
+                if !compared.character.isEmpty {
+                    VStack(alignment: .leading, spacing: Tokens.Space.s4) {
+                        Text(ResultsCopy.CompareTable.character)
+                            .font(Tokens.Text.title)
+                            .foregroundStyle(Tokens.Colour.text)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityAddTraits(.isHeader)
+                        Text(ResultsCopy.CompareTable.characterCaption)
+                            .font(Tokens.Text.secondary)
+                            .foregroundStyle(Tokens.Colour.muted)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        ForEach(compared.character) { vibe in
+                            VibeRowView(vibe: vibe)
+                        }
+                    }
+                }
                 if compared.nothingCounts {
                     Text(ResultsCopy.Compare.nothingCounts)
                         .font(Tokens.Text.body)
                         .foregroundStyle(Tokens.Colour.text)
                 } else {
                     VStack(alignment: .leading, spacing: Tokens.Space.s4) {
-                        Text(ResultsCopy.CompareTable.caption)
+                        Text(ResultsCopy.CompareTable.counts)
                             .font(Tokens.Text.title)
                             .foregroundStyle(Tokens.Colour.text)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityAddTraits(.isHeader)
+                        Text(ResultsCopy.CompareTable.caption)
+                            .font(Tokens.Text.secondary)
+                            .foregroundStyle(Tokens.Colour.muted)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                        Text(ResultsCopy.CompareTable.weights)
+                            .font(Tokens.Text.secondary)
+                            .foregroundStyle(Tokens.Colour.muted)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         ForEach(compared.rows) { row in
                             RowView(row: row, openSources: hands.openSources)
                         }
@@ -188,6 +214,37 @@ extension Results {
         }
     }
 
+    /// One vibe, and under it each area by name with where it sits on it.
+    struct VibeRowView: View {
+        let vibe: ComparedVibe
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: Tokens.Space.s3) {
+                Text(verbatim: vibe.name)
+                    .font(Tokens.Text.headline)
+                    .foregroundStyle(Tokens.Colour.text)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityAddTraits(.isHeader)
+                ForEach(vibe.cells) { cell in
+                    VibeLine(cell.vibe, of: cell.area, source: Results.sourceWords(of: cell.vibe))
+                        .padding(.leading, Tokens.Space.s3)
+                        .overlay(alignment: .leading) {
+                            Rectangle()
+                                .fill(Tokens.Colour.border)
+                                .frame(width: 2)
+                                .accessibilityHidden(true)
+                        }
+                }
+            }
+            .padding(Tokens.Space.s3)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .overlay(
+                RoundedRectangle(cornerRadius: Tokens.Radius.card)
+                    .strokeBorder(Tokens.Colour.border, lineWidth: 1)
+            )
+        }
+    }
+
     /// One thing that counts, and under it each area by name with what it has for it.
     struct RowView: View {
         let row: ComparedRow
@@ -199,6 +256,11 @@ extension Results {
                     Text(row.label)
                         .font(Tokens.Text.headline)
                         .foregroundStyle(Tokens.Colour.text)
+                    if let to = row.to {
+                        Text(verbatim: to)
+                            .font(Tokens.Text.body)
+                            .foregroundStyle(Tokens.Colour.text)
+                    }
                     Text(row.countsFor)
                         .font(Tokens.Text.figure)
                         .foregroundStyle(Tokens.Colour.muted)

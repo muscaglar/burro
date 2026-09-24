@@ -23,6 +23,8 @@ public final class AppModel {
     /// Where the website is, for the addresses the share sheet is handed.
     public let site: SiteAddress
     public let synthetic: SyntheticNotice
+    /// Whether anything the app has been given is of a release that is a preview.
+    public let preview: PreviewNotice
     public let shortlist: Shortlist
     public let consent: Consent
     /// The saved areas with their facts as they were when saved, and the
@@ -49,11 +51,13 @@ public final class AppModel {
         api: any BurroAPI,
         site: SiteAddress = .none,
         synthetic: SyntheticNotice,
+        preview: PreviewNotice = PreviewNotice(),
         storage: any PhoneStorage
     ) {
         self.api = api
         self.site = site
         self.synthetic = synthetic
+        self.preview = preview
         self.storage = storage
         shortlist = Shortlist(storage: storage)
         consent = Consent(storage: storage)
@@ -65,13 +69,16 @@ public final class AppModel {
     /// the build settings give, and the app's own folder to keep things in.
     public static func live(infoDictionary: [String: Any]?) -> AppModel {
         let notice = SyntheticNotice()
+        let preview = PreviewNotice()
         let api = LiveBurroAPI(
             configuration: APIConfiguration(infoDictionary: infoDictionary),
-            onSynthetic: { said in await notice.note(said) }
+            onSynthetic: { said in await notice.note(said) },
+            onPreview: { said in await preview.note(said) }
         )
         let storage: any PhoneStorage = FilePhoneStorage.inApplicationSupport() ?? MemoryPhoneStorage()
         return AppModel(
-            api: api, site: SiteAddress(infoDictionary: infoDictionary), synthetic: notice, storage: storage)
+            api: api, site: SiteAddress(infoDictionary: infoDictionary), synthetic: notice,
+            preview: preview, storage: storage)
     }
 
     /// Reads what a search is built on: the form, from route 11, and every
@@ -84,6 +91,9 @@ public final class AppModel {
         let (meta, areas) = await (served, listed)
         switch (meta, areas) {
         case (.success(let meta), .success(let areas)):
+            // What the form says of its release is said on every screen from here on.
+            synthetic.note(meta.synthetic || meta.data.synthetic)
+            preview.note(meta.preview || meta.data.preview)
             let consent = self.consent
             search = SearchStore(
                 meta: meta.data,

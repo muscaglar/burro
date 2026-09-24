@@ -17,7 +17,9 @@ enum LinkCopy {
         static let coarsened =
             "A place in this search is the station or district that stands in for the place the sender named. "
             + "The ranking may differ a little from theirs."
-        static let exact = "The places in this search are the ones the sender named."
+        static let exact =
+            "The places in this search are the ones the sender named: "
+            + "they chose to share them, or each is a station or a district already."
         static let stale =
             "The data has changed since this link was made, so the ranking may differ from what the sender saw."
         static let madeOn = "It was made on data release"
@@ -57,9 +59,12 @@ enum LinkCopy {
 
     /// What is said of the ranking a share opened. The count and the name are the API's.
     enum Ranked {
+        /// The whole of what is said of a first ranking: how many areas, and which is first.
         static func named(_ count: Int, first: String) -> String {
-            count == 1 ? "\(count) area ranked: \(first)." : "\(count) areas ranked. First: \(first)."
+            [unnamed(count), Ranked.first(first)].joined(separator: " ")
         }
+
+        static func first(_ name: String) -> String { "First: \(name)." }
 
         static func unnamed(_ count: Int) -> String {
             count == 1 ? "\(count) area ranked." : "\(count) areas ranked."

@@ -102,6 +102,40 @@ public final class SearchFlow {
         store.dispatch(.questionLeft(question))
     }
 
+    /// Takes one of the choices of a thing the reader noticed and did not apply. The
+    /// suggestion goes, whatever was chosen. A choice that holds edits sends them, as a
+    /// control does. "Leave it out" holds none, and sends nothing.
+    public func choose(at: Int, direction: SuggestionDirection) async {
+        guard let choice = state.read?.suggestions[safe: at]?.choices.first(where: { $0.direction == direction })
+        else { return }
+        store.dispatch(.suggestionChosen(at: at, changes: !choice.operations.isEmpty))
+        await applyEdits(choice.operations)
+    }
+
+    /// Takes the one way of each of these suggestions, by their places in the list, in
+    /// one request. A thing that could be meant two ways is left as it is, and so is a
+    /// thing that carries a note: nothing is guessed, and recorded crime is never added
+    /// by a button that does not name it.
+    public func chooseAll(_ ats: [Int]) async {
+        let offered = state.read?.suggestions ?? []
+        let taken = Set(ats).sorted().compactMap { at -> (at: Int, operations: Operations)? in
+            guard let only = offered[safe: at]?.addedWithOthers else { return nil }
+            return (at, only.operations)
+        }
+        guard !taken.isEmpty else { return }
+        // The last goes first, so that the place of each in the list is still its own.
+        for one in taken.reversed() {
+            store.dispatch(.suggestionChosen(at: one.at, changes: true))
+        }
+        // The edits of each choice, as the API gave them, in the order the things were noticed.
+        await applyEdits(taken.reduce(Operations.none) { $0.merged(with: $1.operations) })
+    }
+
+    /// Told that the box changed, and never what to. What rested on the text that was sent goes.
+    public func boxChanged() {
+        store.dispatch(.boxChanged)
+    }
+
     /// Adds a place picked from the place search as a journey.
     public func addPlace(_ place: FoundPlace) async {
         store.dispatch(.placeNamed(placeId: place.placeId, name: place.name))

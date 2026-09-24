@@ -54,30 +54,33 @@ make generate   after contracts/openapi.json, the website's tokens or the record
 make test ONLY=BurroKitTests.VisitTests
 ```
 
-`make test` is `swift test`, with a warning treated as an error. `make build` is `xcodebuild` for any iPhone, in Debug and in Release, with code signing off. Hosted CI runs `make check` on a Mac, in its job `ios`.
+`make test` is `swift test`, with a warning treated as an error. `make build` is `xcodebuild` for any iPhone, in Debug and in Release, with code signing off. Hosted CI runs the three parts of `make check` on a Mac, in its job `ios`. It runs each part though one before it failed, and says what a failed part printed where it can be read without signing in.
 
 ## What has and has not been checked
 
 - **Written against the contract and the recorded answers.** The models and the routes are generated from `contracts/openapi.json`. The tests answer from the website's recorded answers, copied from `apps/web/test/recorded`. `make generate-check` fails if a generated file is out of step, and needs python3 alone.
+- **It reads version 2 of the contract.** The models in `API/Generated` are generated from it, and the code that reads them was brought to it: vibes as bands of five, what Burro noticed and did not apply, what the release does not hold, whether the release is a preview, and who reads what is typed. Each test that names a figure was brought to the answers as they were recorded on 2026-09-23. What those tests expect was worked out from the recordings, and the job `ios` is what confirms it.
+- **An offer is read whole, and not yet drawn whole.** Since 2026-09-24 the API serves an offer in four parts, with Burro's guess marked and with the way one press may add, and serves the census of an area on a route of its own. The models read all of it. The app still draws the name of a thing, its note and its choices, works out for itself what may be added with others, and asks for no census. The tests that name a figure have not been brought to the answers as they are now recorded: the job `ios` says which.
 - **The tests and the build are yours to run.** They must be run on a Mac with Xcode, with `make check`, and by the hosted check. This page gives no count of tests and does not say that a build passes. Go by the last run of the job `ios`.
 - **Nothing has been seen.** Not on a screen, not in a simulator and not on a phone. The two sections below say what to look at first, and what is unknown until somebody does.
 
 ## What to look at first
 
-Nobody has done this yet. The right-hand column is what the tests expect the app to show, with the API serving the synthetic release on ranking engine 1.3.0, as it was on 2026-09-23.
+Nobody has done this yet. The right-hand column is what the tests expect the app to show, with the API serving the synthetic release on ranking engine 1.10.0, as it was on 2026-09-23.
 
 | Do this | You should see |
 |---|---|
-| Open the app for the first time | "Before your first search", under three headings: what is sent, who reads it, what is kept. Two buttons: "Allow and continue" and "Use the settings instead". No banner, because no data is shown |
+| Open the app for the first time | "Before your first search", under three headings: what is sent, who reads it, what is kept. Who reads it is said in the API's own words: with no model key, that rules that are part of Burro read what you type, and that it is not sent to a language model. Two buttons: "Allow and continue", which is switched off until the API has said who reads, and "Use the settings instead". No banner, because no data is shown |
 | Press "Allow and continue" | Three tabs: Search, Shortlist, About. A yellow banner above them that says the data is made up. It cannot be closed. On Search: "Describe the life you want", examples, renting or buying, "A place you need to reach", and the settings |
-| Type `Renting a 1 bed up to £1,700 a month, leafy and quiet, 35 minutes to Cindermoor Works` and press Search | "Reading", then the results screen: a map of 24 areas in five shades of green with pins numbered 1 to 10, and a panel over it with 20 results. The first is **Farrowmere**, "Fit 80 of 100", with up to three reasons, a trade-off, and the source and date written under every line |
+| Type `Renting a 1 bed for about £1,700 a month, leafy and quiet, 35 minutes to Cindermoor Works` and press Search | "Reading", then the results screen: a map of 24 areas in five shades of green with pins numbered 1 to 10, and a panel over it with 20 results. The first is **Farrowmere**, "Fit 78 of 100", with a strip of vibes, each a band of five with "asked for" on the two that were, then up to three reasons, a trade-off, and the source and date written under every line. Above the list: "21 areas ranked. First: Farrowmere. Journey and budget count most." |
 | Drag the panel, or press its handle | It stands at three heights. "Map", "List" and "Table" above it change what is shown. The table holds every area, with its status in words |
-| Go back to Search | Chips under "What Burro understood": renting, the budget, Cindermoor Works, and what was asked for. Each part nobody chose is marked "assumed". Under them: "Read without AI, by fixed rules." |
+| Go back to Search | Chips under "What Burro understood": renting, the budget, Cindermoor Works, and what was asked for. Each part nobody chose is marked "assumed". Under them: "Read without AI." |
 | Type `a bit more green space, and ignore the high street`, press Search | The results again, in a new order. On Search, a chip for the high street that says "does not count" and has no "Remove" |
-| On Search, open the chip for Cindermoor Works and switch on "The journey is a firm limit" | You stay on Search. "Show results" leads to 15 results. In the table, seven areas say a journey is longer than a firm limit, and the map draws them with lines across |
+| On Search, open the chip for Cindermoor Works and switch on "The journey is a firm limit" | You stay on Search. "Show results" leads to 14 results. In the table, seven areas say a journey is longer than a firm limit, and the map draws them with lines across |
 | Type `and 30 minutes to Pellam`, press Search | You stay on Search. "Which place did you mean?", with Pellam Cross, Pellam Exchange and Pellam Infirmary. Pick one and it becomes a chip |
 | Type `not too many students, and near a park`, press Search | You stay on Search. One sentence in a plain block: "Burro ranks places by what is there, such as schools, parks, venues and transport, and never by who lives there. The rest of your search has been applied." Nothing says what was left out |
-| On a result, press "Open the page" | The area: where it is, with a small picture drawn from the API's outlines, stations, what homes cost, everything measured there, its tags, and "In your search" with its rank and fit |
+| Start again, type `Pubs are so noisy`, press Search | You stay on Search, and nothing is ranked. "Burro was not sure. Choose what to add.", with "Pubs and bars" and its three choices, and "Less transport noise". On iOS 18 and later, "Show the words" selects in the box the word each rests on. "Fewer pubs and bars" ranks, and leaves the other still to choose |
+| On a result, press "Open the page" | The area: where it is, with a small picture drawn from the API's outlines, stations, what homes cost, "Character" with each vibe as a band of five under the list the API put it in, everything measured there, and "In your search" with its rank and fit |
 | Press "Add to shortlist", then open the Shortlist tab | The area, with the day it was saved, under "Kept on this phone. Burro does not hold it." |
 | Stop `make api`, close the app and open it again, then open the Shortlist tab and the saved area | The banner is still there. The area opens with its figures as they were when it was saved, under a line that begins "This is the data as it was when you saved this area". The Search tab says "Burro could not be opened", with "Try again" |
 | Start `make api` again. Search, then on two results press "Add to compare", then "Compare 2 areas" | A screen of its own: each thing that counts, and under it each area by name. Back leads to the results |
@@ -101,17 +104,17 @@ Everything on a screen. In particular:
 
 ## Known issues
 
-A review of the source found these eleven. None is fixed. The most serious is first. The first three must be settled before anything is submitted to the App Store.
+A review of the source found these eleven. The third is settled in part, and no other is fixed. The most serious is first. The first three must be settled before anything is submitted to the App Store.
 
 1. **Coming back to the app sends what is in the box, with no press.** *Settle before the App Store.*
    After a sentence fails to leave because the phone is offline, each return to the app sends the text then in the box to be read. The person may have changed it, and has not pressed Search. The screen promises "Nothing is sent until you press Search", and the website sends no words on coming online.
    Fix: on return, call `flow.wentOnline()` only, and leave the sentence to "Try again". Change the visit test to expect one reading until the button is pressed.
 2. **The privacy manifest says nothing is collected.** *Settle before the App Store.*
-   `App/PrivacyInfo.xcprivacy` declares no collected data, and `PrivacyRulesTests` holds it to that. A share stores the search on the server until it is deleted, and the model's provider may keep what is typed for up to 30 days. Apple counts both as collected, so a label of "Data Not Collected" would be untrue, which is a ground for rejection or removal.
+   `App/PrivacyInfo.xcprivacy` declares no collected data, and `PrivacyRulesTests` holds it to that. A share stores the search on the server until it is deleted, and a model's provider may keep what is typed for as long as the API's notice says. Apple counts both as collected, so a label of "Data Not Collected" would be untrue, which is a ground for rejection or removal.
    Fix: decide the label, make the manifest and the test match it, and record the decision in an ADR.
-3. **The permission screen names no third party, and there is no privacy policy to open.** *Settle before the App Store.*
-   The screen says "another company" and names nobody. About says there is no code from anyone else, and does not say that the results map is Apple's. No privacy policy can be reached in the app. After "Use the settings instead" the screen says nothing typed is sent, while a place typed is still sent to Burro. App Review guidelines 5.1.1(i) and 5.1.2(i) ask for a policy in the app, and for a third party to be named before data is shared with it.
-   Fix: name the provider and what it receives, on the permission screen and in About. Add a line about the map. Link the privacy notice once the website has an address, and hold submission until it exists. Reword the line shown after declining.
+3. **There is no privacy policy to open, and nothing says the map is Apple's.** *Settle before the App Store.*
+   The permission screen and About now say who reads what is typed in the API's own words, which name the company where a model reads. What is left: About says there is no code from anyone else, and does not say that the results map is Apple's. No privacy policy can be reached in the app. After "Use the settings instead" the screen says nothing typed is sent, while a place typed is still sent to Burro. A person who agreed while rules read is not asked again if a model reads later: the line under the box says who reads now. App Review guidelines 5.1.1(i) and 5.1.2(i) ask for a policy in the app, and for a third party to be named before data is shared with it.
+   Fix: add a line about the map. Link the privacy notice once the website has an address, and hold submission until it exists. Reword the line shown after declining. Decide whether a change of reader asks again.
 4. **The map is rebuilt whole on every change of state.**
    `Results.mapped` runs inside the view's body, about ten times for one sentence, and makes a new shape for every area each time. Each line and dot of a pattern is an overlay of its own: the review counted 109 to 297 overlays for the 24 made-up areas. With the 450 areas expected for London that is thousands, made again at every press. It is the likeliest thing to make the app unusable on a phone.
    Fix: work the map out only when the ranking, the chosen area or the boundaries change. Make the polygons once for a release. Draw a pattern as one overlay. Then measure on a phone with 450 areas.
@@ -145,7 +148,10 @@ A review of the source found these eleven. None is fixed. The most serious is fi
 | A way to know the phone is online again | The app learns it is offline from a call that fails. It tries again when you press "Try again" and when you come back to the app. A monitor needs the Network framework, which the app does not use |
 | "Add to compare" on an area's page | Areas are chosen to compare on the results |
 | The settings a link holds, listed under the link | The share panel says what a link holds in words, as the website does, and does not list the stored settings as chips |
-| Showing which words an edit rests on | The API now says so (`rests_on`). The website does not use it yet, and nor does the app |
+| Showing which words an applied edit rests on | The API says so (`rests_on`). The app shows the words a suggestion rests on and the words that were not read, and not those of an edit that was applied |
+| "Show the words" on iOS 17 | Selecting a stretch of the box needs iOS 18. On iOS 17 the buttons are not offered, and the line that says words were not read still is |
+| The shelf of vibes, "In short", and "More like this" | The website offers each vibe as a word to press above the results, a summary of a result, and areas like the one on a page. In the app a vibe is added in the settings, and the other two are not drawn |
+| Settings grouped by family, and what changed since the ranking before | The settings are grouped by dimension, as they were. The status says how many areas changed place, and not how many fewer were ranked, nor that a change of tenure took the budget off |
 | A map with no basemap | MapKit draws Apple's map under the areas, so Apple's servers learn which part of the city is on screen. The small picture on an area's page draws no basemap. This is a decision to take before real data |
 | An icon, a launch screen, other languages | Not started |
 | App Attest, which the plan names for this phase | Not started |

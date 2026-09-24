@@ -40,7 +40,10 @@ public func reduce(_ state: SearchState, _ event: SearchEvent) -> SearchState {
     case .readAnswered(let data, let by):
         let applied = Set(data.applied.map { Position(group: $0.group, index: $0.index) })
         let changed = data.applied.contains { $0.changed }
-        let nothingRead = data.status == .offTopic || (!changed && data.clarify.isEmpty)
+        // Where something was noticed, there is something to choose from, and the settings stay shut.
+        let nothingRead =
+            data.status == .offTopic
+            || (!changed && data.clarify.isEmpty && data.suggestions.isEmpty)
         // An edit made while the words were read has not been answered by the reading.
         let answers = state.pending.isEmpty ? state.answers + 1 : state.answers
         next.spec = data.spec
@@ -59,8 +62,12 @@ public func reduce(_ state: SearchState, _ event: SearchEvent) -> SearchState {
             noticeText: data.noticeText,
             interpreter: data.interpreter,
             degraded: data.degraded,
+            suggestions: data.suggestions,
+            unread: data.unread,
+            notInRelease: data.notInRelease,
             edits: data.operations.count,
             changed: changed,
+            partUnread: !data.unread.isEmpty,
             at: answers,
             by: by ?? Served(form: state.meta)
         )
@@ -68,6 +75,7 @@ public func reduce(_ state: SearchState, _ event: SearchEvent) -> SearchState {
         next.degraded = data.degraded
         next.settingsOpen = state.settingsOpen || data.degraded || nothingRead
         next.assumed = withAssumptions(afterEdits(state.assumed, data.operations, only: applied), data)
+        next.placeNames = named(data.places, held: state.placeNames)
         next.failure = nil
         next.failedStep = nil
 
@@ -96,6 +104,7 @@ public func reduce(_ state: SearchState, _ event: SearchEvent) -> SearchState {
         next.ranking = ranking
         next.rankedHash = data.specHash
         next.rankedBy = by
+        next.placeNames = named(data.places, held: state.placeNames)
         next.moved = state.ranking.map { movedBetween($0, ranking) }
         next.gaveWay =
             (changed && gaveWayBetween(state.spec, data.spec))
@@ -119,6 +128,7 @@ public func reduce(_ state: SearchState, _ event: SearchEvent) -> SearchState {
         next.ranking = Ranking(data)
         next.rankedHash = data.specHash
         next.rankedBy = by ?? Served(form: state.meta)
+        next.placeNames = named(data.places, held: [:])
         next.shared = Shared(
             id: id, coarsened: data.coarsened, stale: data.stale,
             originalReleaseId: data.originalReleaseId)
@@ -193,6 +203,7 @@ public func reduce(_ state: SearchState, _ event: SearchEvent) -> SearchState {
         next.untouched = kept.untouched
         next.read = kept.read
         next.refused = kept.refused
+        next.placeNames = kept.placeNames
         next.gaveWay = kept.gaveWay
         next.degraded = kept.degraded
         next.assumed = waits ? afterEdits(kept.assumed, state.pending) : kept.assumed
@@ -228,6 +239,26 @@ public func reduce(_ state: SearchState, _ event: SearchEvent) -> SearchState {
 
     case .questionLeft(let question):
         next.read = withoutQuestion(state.read, question)
+
+    case .suggestionChosen(let at, let changes):
+        guard var read = state.read, read.suggestions.indices.contains(at) else { return state }
+        read.suggestions.remove(at: at)
+        if changes {
+            // The notice was written of the words as they were read, and may end "Nothing
+            // you typed has changed your search". A choice that holds edits changes it. The
+            // notice is the API's, and is never cut or reworded, so it goes whole.
+            read.notice = .nothing
+            read.noticeText = ""
+        }
+        next.read = read
+
+    case .boxChanged:
+        guard var read = state.read, !(read.suggestions.isEmpty && read.unread.isEmpty) else {
+            return state
+        }
+        read.suggestions = []
+        read.unread = []
+        next.read = read
 
     case .placeNamed(let placeId, let name):
         guard state.placeNames[placeId] != name else { return state }
@@ -298,7 +329,17 @@ private func settledPhase(_ state: SearchState) -> Phase {
 private func keep(_ state: SearchState) -> Kept {
     Kept(
         spec: state.spec, specHash: state.specHash, untouched: state.untouched, read: state.read,
-        refused: state.refused, assumed: state.assumed, gaveWay: state.gaveWay, degraded: state.degraded)
+        refused: state.refused, assumed: state.assumed, placeNames: state.placeNames,
+        gaveWay: state.gaveWay, degraded: state.degraded)
+}
+
+/// The name of each place an answer names, by its id. The names are the release's own.
+/// A name in hand for a place the answer does not name is kept: a place that was picked
+/// is named before the answer that holds it has come.
+private func named(_ places: [NamedPlace], held: [String: String]) -> [String: String] {
+    var names = held
+    for place in places where !place.name.isEmpty { names[place.placeId] = place.name }
+    return names
 }
 
 /// What a ranking finds in hand when it comes. When the release or the engine

@@ -14,19 +14,21 @@
   "status": 200,
   "headers": {
     "access-control-allow-origin": "http://localhost:3000",
-    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "2790",
+    "content-length": "3093",
     "content-type": "application/json",
     "vary": "Origin",
+    "x-burro-preview": "false",
     "x-burro-synthetic": "true",
     "x-request-id": "e381ccfc-8488-4dbb-8ab7-4384cb5387f2"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.3.0",
-      "synthetic": true
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
     },
     "data": {
       "status": "ok",
@@ -54,7 +56,7 @@
           },
           {
             "action": "nudge",
-            "feature_id": "venue_food_drink",
+            "feature_id": "venue_food_drink_per_homes",
             "value": 0.0,
             "step": "up_large",
             "direction": "default",
@@ -64,9 +66,10 @@
         "tag_ops": [
           {
             "action": "nudge",
-            "tag_id": "buzzy",
+            "tag_id": "pace",
             "value": 0.0,
             "step": "up_large",
+            "toward": "high",
             "provenance": "stated"
           }
         ],
@@ -80,7 +83,7 @@
           "amount": null,
           "segment": "bed_1",
           "strictness": "soft",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "default"
         },
         "commutes": [
@@ -94,7 +97,7 @@
         ],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [
           {
             "feature_id": "air_no2",
@@ -105,7 +108,7 @@
           {
             "feature_id": "highstreet_access",
             "weight": 0.05,
-            "direction": "more",
+            "direction": "less",
             "provenance": "default"
           },
           {
@@ -139,7 +142,7 @@
             "provenance": "stated"
           },
           {
-            "feature_id": "venue_food_drink",
+            "feature_id": "venue_food_drink_per_homes",
             "weight": 0.5,
             "direction": "more",
             "provenance": "stated"
@@ -147,8 +150,9 @@
         ],
         "tags": [
           {
-            "tag_id": "buzzy",
+            "tag_id": "pace",
             "weight": 0.5,
+            "toward": "high",
             "provenance": "stated"
           }
         ],
@@ -158,7 +162,7 @@
         "pt_basis_from": "default",
         "commute_weight_from": "default"
       },
-      "spec_hash": "2ecc6b8a6f7897c6f00b4aff8b02b217cb5b851f24a51db2963e3f22b6fcc9cf",
+      "spec_hash": "af2f4370515a9095711492c360383e915372fc642f789fa0e021a58b1c1cc22e",
       "applied": [
         {
           "group": "commute_ops",
@@ -186,27 +190,32 @@
         {
           "code": "mode",
           "group": "commute_ops",
-          "index": 0
+          "index": 0,
+          "word": ""
         },
         {
           "code": "max_minutes",
           "group": "commute_ops",
-          "index": 0
+          "index": 0,
+          "word": ""
         },
         {
           "code": "strictness",
           "group": "commute_ops",
-          "index": 0
+          "index": 0,
+          "word": ""
         },
         {
           "code": "direction",
           "group": "weight_ops",
-          "index": 0
+          "index": 0,
+          "word": ""
         },
         {
           "code": "direction",
           "group": "weight_ops",
-          "index": 1
+          "index": 1,
+          "word": ""
         }
       ],
       "unmet": [],
@@ -215,6 +224,7 @@
       "notice_text": "",
       "interpreter": "rule",
       "degraded": false,
+      "model_refused": false,
       "rests_on": [
         {
           "group": "commute_ops",
@@ -239,6 +249,18 @@
           "index": 0,
           "start": 10,
           "end": 15
+        }
+      ],
+      "suggestions": [],
+      "unread": [],
+      "not_in_release": [],
+      "unmet_at": [],
+      "model_pending": false,
+      "places": [
+        {
+          "place_id": "syn-p0017",
+          "name": "Pellam Exchange",
+          "kind": "district"
         }
       ]
     }

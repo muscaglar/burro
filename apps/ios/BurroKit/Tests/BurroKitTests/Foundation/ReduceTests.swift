@@ -12,7 +12,7 @@ final class ReduceTests: XCTestCase {
     private let shared = Answers.shared("share-opened")
     private let reasons = Answers.explained("explanations-first")
     private let later = Answers.explained("explanations-refined")
-    private let shareId = "TbfsnjL3GyTlKt967hH2HQ"
+    private let shareId = "rPnAeuBsXQci-xINLK_f2w"
     private let timeout = Failure.because(.timeout)
     private let offline = Failure.because(.offline)
 
@@ -87,6 +87,8 @@ final class ReduceTests: XCTestCase {
             ("stopped", .stopped),
             ("questionAnswered", .questionAnswered(Clarify(group: .commuteOps, index: 0, options: []), id: "syn-p0012")),
             ("questionLeft", .questionLeft(Clarify(group: .commuteOps, index: 0, options: []))),
+            ("suggestionChosen", .suggestionChosen(at: 0, changes: true)),
+            ("boxChanged", .boxChanged),
             ("placeNamed", .placeNamed(placeId: "syn-p0021", name: "Cindermoor Works")),
             ("onlineChanged", .onlineChanged(false)),
             ("settingsOpened", .settingsOpened(true)),
@@ -117,7 +119,7 @@ final class ReduceTests: XCTestCase {
             opened(),
             after(.tenureSwapped(.buy)),
             after(.readAnswered(read)),
-            after(.readAnswered(read), .queued(Edits.tagOn(.waterside))),
+            after(.readAnswered(read), .queued(Edits.tagOn(.villageFeel))),
             after(.readAnswered(read), .rankAnswered(ranked, sent: .none)),
             after(.rankAnswered(ranked, sent: .none), .rankAnswered(refined, sent: Edits.placeMinutes("syn-p0021", 30))),
             after(.shareAnswered(id: shareId, shared)),
@@ -152,9 +154,9 @@ final class ReduceTests: XCTestCase {
     }
 
     func test_an_edit_that_is_made_waits_until_it_is_answered() {
-        let state = after(.queued(Edits.tagOn(.waterside)), .queued(Edits.budgetAmount(1700)))
+        let state = after(.queued(Edits.tagOn(.villageFeel)), .queued(Edits.budgetAmount(1700)))
 
-        XCTAssertEqual(state.pending, Edits.tagOn(.waterside).merged(with: Edits.budgetAmount(1700)))
+        XCTAssertEqual(state.pending, Edits.tagOn(.villageFeel).merged(with: Edits.budgetAmount(1700)))
         XCTAssertEqual(state.spec, meta.defaults.rent)
         XCTAssertEqual(reduce(state, .rankAnswered(ranked, sent: state.pending)).pending, .none)
     }
@@ -237,7 +239,7 @@ final class ReduceTests: XCTestCase {
         XCTAssertEqual(state.phase, .results)
         XCTAssertEqual(state.before, .results)
         XCTAssertEqual(state.ranking?.ranked, ranked.ranked)
-        XCTAssertEqual(state.ranking?.scores.count, 22)
+        XCTAssertEqual(state.ranking?.scores.count, 21)
         XCTAssertEqual(state.rankedHash, ranked.specHash)
         XCTAssertEqual(state.pending, .none)
         XCTAssertNil(state.moved)
@@ -270,7 +272,7 @@ final class ReduceTests: XCTestCase {
             .readAnswered(read),
             .rankAnswered(ranked, sent: .none),
             .placeNamed(placeId: "syn-p0021", name: "Cindermoor Works"),
-            .queued(Edits.tagOn(.waterside)),
+            .queued(Edits.tagOn(.villageFeel)),
             .selected(areaId: "syn-n0006"))
 
         let state = reduce(before, .shareAnswered(id: shareId, shared))
@@ -282,9 +284,10 @@ final class ReduceTests: XCTestCase {
         XCTAssertEqual(
             state.shared,
             Shared(id: shareId, coarsened: true, stale: false, originalReleaseId: "syn-2026-09-23-01"))
-        // Nothing of the search before is carried into it.
+        // Nothing of the search before is carried into it. The places are named by the share's own answer.
         XCTAssertNil(state.read)
-        XCTAssertEqual(state.placeNames, [:])
+        XCTAssertEqual(state.placeNames, ["syn-p0005": "Eskerfold"])
+        XCTAssertNil(state.placeNames["syn-p0021"])
         XCTAssertEqual(state.pending, .none)
         XCTAssertNil(state.selectedId)
         XCTAssertEqual(state.explanations, [])
@@ -324,13 +327,13 @@ final class ReduceTests: XCTestCase {
     func test_a_failure_returns_to_the_phase_before_and_keeps_what_was_on_screen() {
         let state = after(
             .rankAnswered(ranked, sent: .none),
-            .queued(Edits.tagOn(.waterside)),
+            .queued(Edits.tagOn(.villageFeel)),
             .rankStarted(seq: 2),
             .failed(step: .rank, timeout))
 
         XCTAssertEqual(state.phase, .results)
         XCTAssertEqual(state.ranking?.ranked, ranked.ranked)
-        XCTAssertEqual(state.pending, Edits.tagOn(.waterside))
+        XCTAssertEqual(state.pending, Edits.tagOn(.villageFeel))
         XCTAssertEqual(state.failure, timeout)
         XCTAssertEqual(state.failedStep, .rank)
         XCTAssertFalse(state.degraded)
@@ -416,6 +419,92 @@ final class ReduceTests: XCTestCase {
         XCTAssertEqual(
             after(.explainAnswered(reasons, hash: ranked.specHash)).placeNames,
             ["syn-p0021": "Cindermoor Works"])
+    }
+
+    func test_a_place_is_named_by_the_answer_that_brought_the_spec() {
+        XCTAssertEqual(after(.readAnswered(read)).placeNames, ["syn-p0021": "Cindermoor Works"])
+        XCTAssertEqual(after(.rankAnswered(ranked, sent: .none)).placeNames, ["syn-p0021": "Cindermoor Works"])
+        XCTAssertEqual(opened().placeNames, [:])
+    }
+
+    // MARK: - What Burro noticed, and what it did not read
+
+    func test_a_reading_keeps_what_was_noticed_and_applies_none_of_it() {
+        let noticed = Answers.read("interpret-suggest")
+
+        let state = after(.readStarted(seq: 1), .readAnswered(noticed), .settled)
+
+        XCTAssertEqual(state.read?.suggestions, noticed.suggestions)
+        XCTAssertEqual(state.suggestions.map(\.label), ["Pubs and bars", "Less transport noise"])
+        XCTAssertEqual(state.unread, [Span(start: 5, end: 11)])
+        // Nothing is applied until the person chooses: the search is as it was, and nothing waits.
+        XCTAssertEqual(noticed.applied, [])
+        XCTAssertEqual(state.spec, meta.defaults.rent)
+        XCTAssertTrue(state.untouched)
+        XCTAssertEqual(state.pending, .none)
+        XCTAssertNil(state.ranking)
+        // Where something was noticed there is something to choose from, and the settings stay shut.
+        XCTAssertFalse(state.settingsOpen)
+        XCTAssertNil(state.nothingRead)
+    }
+
+    func test_nothing_is_offered_while_a_sentence_is_being_read() {
+        let reading = after(.readAnswered(Answers.read("interpret-suggest")), .readStarted(seq: 2))
+
+        XCTAssertEqual(reading.suggestions, [])
+        XCTAssertEqual(reading.unread, [])
+    }
+
+    func test_a_suggestion_goes_when_it_is_chosen_whatever_was_chosen() {
+        let before = after(.readAnswered(Answers.read("interpret-suggest")))
+
+        let left = reduce(before, .suggestionChosen(at: 0, changes: false))
+
+        XCTAssertEqual(left.suggestions.map(\.label), ["Less transport noise"])
+        XCTAssertEqual(left.spec, before.spec)
+        XCTAssertEqual(left.pending, .none)
+        XCTAssertEqual(reduce(left, .suggestionChosen(at: 0, changes: true)).suggestions, [])
+        // A place in the list that holds nothing changes nothing.
+        XCTAssertEqual(reduce(before, .suggestionChosen(at: 7, changes: true)), before)
+        XCTAssertEqual(reduce(opened(), .suggestionChosen(at: 0, changes: true)), opened())
+    }
+
+    func test_a_choice_that_changes_the_search_takes_the_notice_with_it() {
+        let before = after(.readAnswered(Answers.read("interpret-suggest-notice")))
+
+        // The notice may end by saying that nothing typed changed the search. A choice that
+        // holds edits changes it, and the notice is the API's, so it goes whole.
+        XCTAssertTrue(before.noticed)
+        XCTAssertTrue(reduce(before, .suggestionChosen(at: 0, changes: false)).noticed)
+        XCTAssertFalse(reduce(before, .suggestionChosen(at: 0, changes: true)).noticed)
+    }
+
+    func test_what_rested_on_what_was_sent_goes_when_the_box_changes() {
+        let before = after(.readAnswered(Answers.read("interpret-suggest")))
+
+        let state = reduce(before, .boxChanged)
+
+        XCTAssertEqual(state.suggestions, [])
+        XCTAssertEqual(state.unread, [])
+        // That a part was not read stays true of the reading.
+        XCTAssertEqual(state.read?.partUnread, true)
+        XCTAssertEqual(state.spec, before.spec)
+        XCTAssertEqual(reduce(state, .boxChanged), state)
+        XCTAssertEqual(reduce(opened(), .boxChanged), opened())
+    }
+
+    func test_what_was_asked_for_and_is_not_in_the_data_is_kept_by_the_apis_name_for_it() throws {
+        let plain: InterpretData = try Recorded.data(.interpret, "preview/interpret-plain")
+        let preview: MetaData = try Recorded.data(.getMeta, "preview/meta")
+
+        let state = reduce(SearchState(meta: preview, areas: areas), .readAnswered(plain))
+
+        XCTAssertEqual(state.read?.notInRelease.map(\.target), ["tag:leafy"])
+        XCTAssertEqual(state.missing, [Missing(target: "tag:leafy", label: "Leafy")])
+        // It is said once: under the box, and not again among what was not applied.
+        XCTAssertEqual(state.refusals.map(\.reason), [.notInRelease])
+        XCTAssertEqual(state.refusals.filter { !state.isSaidAsMissing($0) }, [])
+        XCTAssertTrue(state.conditions.contains(.notInData))
     }
 
     func test_coming_back_online_clears_the_failure_that_said_offline_and_no_other() {
@@ -523,7 +612,8 @@ final class ReduceTests: XCTestCase {
     func test_an_area_that_changed_place_came_in_or_went_out_has_moved() {
         func scores(_ ids: String...) -> Ranking {
             Ranking(
-                scores: ids.map { Score(areaId: $0, score: 1) }, ranked: [], filtered: [], unranked: [],
+                scores: ids.map { Score(areaId: $0, score: 1, counted: 1, present: 1) }, ranked: [], filtered: [],
+                unranked: [],
                 emptySpec: false)
         }
 

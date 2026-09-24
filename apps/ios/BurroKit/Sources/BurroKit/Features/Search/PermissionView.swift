@@ -4,6 +4,12 @@ import SwiftUI
 /// what is kept, and asks. Nothing is sent until the person agrees, and
 /// saying no loses nothing: the settings do the same job with no language model.
 ///
+/// Who reads what is typed is the API's to say: the rules that are part of
+/// Burro, or a language model run by a company it names. The screen shows what
+/// the API serves, word for word, and writes no provider's name and no terms
+/// of its own. Until the service has said, a person cannot agree: they have
+/// not been told what they would agree to.
+///
 /// It shows no data, so it has no banner, and it stands before the tabs. About
 /// shows it again, over itself. The choice is remembered. Nothing typed is.
 public struct PermissionView: View {
@@ -16,6 +22,7 @@ public struct PermissionView: View {
     }
 
     public var body: some View {
+        let who = SearchScreen.whoReads(app.search?.state.meta.reader, opening: app.opening)
         ScrollView {
             VStack(alignment: .leading, spacing: Tokens.Space.s4) {
                 Text(SearchCopy.Permission.title)
@@ -24,15 +31,14 @@ public struct PermissionView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                 section(SearchCopy.Permission.sentTitle, [SearchCopy.Permission.handled])
-                section(
-                    SearchCopy.Permission.whoTitle,
-                    [SearchCopy.Permission.model, SearchCopy.Permission.otherCompany])
+                section(SearchCopy.Permission.whoTitle, [who.words, SearchCopy.Permission.model])
                 section(SearchCopy.Permission.keptTitle, [SearchCopy.Permission.kept])
                 VStack(spacing: Tokens.Space.s3) {
                     Button(SearchCopy.Permission.allow) {
                         choose(.allowed)
                     }
                     .buttonStyle(.burroPrimary)
+                    .disabled(!who.said)
                     Button(SearchCopy.Permission.settingsInstead) {
                         choose(.settingsOnly)
                     }
@@ -61,7 +67,7 @@ public struct PermissionView: View {
                 .font(Tokens.Text.title)
                 .accessibilityAddTraits(.isHeader)
             ForEach(paragraphs, id: \.self) { paragraph in
-                Text(paragraph)
+                Text(verbatim: paragraph)
             }
         }
         .fixedSize(horizontal: false, vertical: true)

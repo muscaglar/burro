@@ -27,6 +27,20 @@ struct SearchHands {
         arrive(since: before)
     }
 
+    /// Takes one choice of a thing Burro noticed. Nothing is ranked from it until now.
+    func choose(_ at: Int, _ direction: SuggestionDirection) async {
+        let before = search.state.answers
+        await search.flow.choose(at: at, direction: direction)
+        arrive(since: before)
+    }
+
+    /// Takes the one way of each of these things, all at once.
+    func chooseAll(_ ats: [Int]) async {
+        let before = search.state.answers
+        await search.flow.chooseAll(ats)
+        arrive(since: before)
+    }
+
     /// Ranks the settings as they stand, with no words.
     func rankNow() async {
         let before = search.state.answers

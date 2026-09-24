@@ -17,7 +17,8 @@ final class EditsTests: XCTestCase {
         Edits.journeyCombine(.mean), Edits.journeyBasis(.justMissed), Edits.journeyWeight(0.4),
         Edits.featureOn(.greenCover), Edits.featureWeight(.greenCover, 0.6),
         Edits.featureDirection(.homesFlats, 0.3, .less), Edits.featureOff(.stationWalk),
-        Edits.tagOn(.waterside), Edits.tagWeight(.leafy, 0.2), Edits.tagOff(.leafy),
+        Edits.tagOn(.villageFeel), Edits.tagWeight(.leafy, 0.2), Edits.tagOff(.leafy),
+        Edits.tagOn(.pace, toward: .low), Edits.tagWeight(.pace, 0.5, toward: .low),
         Edits.areaHide("syn-n0006"), Edits.areaClear("syn-n0006"),
     ]
 
@@ -44,6 +45,24 @@ final class EditsTests: XCTestCase {
                 Operations(budgetOps: [], commuteOps: [both], weightOps: [], tagOps: [], areaOps: [], settingOps: [])),
             try sent(in: "rank-refined"))
         XCTAssertNotEqual(try JSON.written(Edits.budgetAmount(2)), try sent(in: "rank-rejected-edit"))
+        XCTAssertEqual(try JSON.written(Edits.placeMode("syn-p0021", .walk)), try sent(in: "rank-on-foot"))
+        XCTAssertEqual(
+            try JSON.written(Edits.featureOn(.crimeBurglaryTheft)), try sent(in: "rank-crime-switched-on"))
+    }
+
+    func test_an_edit_of_a_vibe_says_which_end_is_asked_for_as_the_website_writes_it() throws {
+        // A vibe that is added is asked for towards its high end, unless the other is named.
+        XCTAssertEqual(try JSON.written(Edits.tagOn(.leafy)), try sent(in: "rank-shelf"))
+        XCTAssertEqual(try JSON.written(Edits.tagOn(.pace)), try sent(in: "visit/23-shelf-rank"))
+        // A scale is turned by setting how much it counts, towards the end that was chosen.
+        XCTAssertEqual(
+            try JSON.written(Edits.tagWeight(.pace, 0.5, toward: .high)), try sent(in: "rank-scale-turned"))
+        XCTAssertEqual(
+            try JSON.written(Edits.tagWeight(.pace, 0.5, toward: .low)), try sent(in: "visit/25-turned-rank"))
+        // How much a vibe counts leaves the end that is asked for as it is.
+        XCTAssertEqual(Edits.tagWeight(.leafy, 0.2).tagOps[0].toward, .default)
+        XCTAssertEqual(Edits.tagOff(.leafy).tagOps[0].toward, .default)
+        XCTAssertEqual(Edits.tagOn(.pace, toward: .low).tagOps[0].toward, .low)
     }
 
     func test_a_field_an_edit_has_nothing_to_say_in_carries_its_sentinel() {
@@ -67,10 +86,10 @@ final class EditsTests: XCTestCase {
     func test_edits_are_merged_group_by_group_in_the_order_they_were_made() {
         let merged = Edits.tagOn(.leafy)
             .merged(with: Edits.budgetAmount(1700))
-            .merged(with: Edits.tagOff(.waterside))
+            .merged(with: Edits.tagOff(.villageFeel))
 
         XCTAssertEqual(merged.count, 3)
-        XCTAssertEqual(merged.tagOps.map(\.tagId), [.leafy, .waterside])
+        XCTAssertEqual(merged.tagOps.map(\.tagId), [.leafy, .villageFeel])
         XCTAssertEqual(merged.budgetOps.map(\.amount), [1700])
         XCTAssertTrue(Operations.none.isEmpty)
         XCTAssertEqual(Operations.none.merged(with: .none), .none)
@@ -114,7 +133,9 @@ final class EditsTests: XCTestCase {
         XCTAssertEqual(
             Edits.featureDirection(.homesFlats, 0.3, .less).said(.weightOps, 0),
             [Said(key: .feature(.homesFlats), states: [.weight, .direction])])
-        XCTAssertEqual(Edits.tagOn(.leafy).said(.tagOps, 0), [Said(key: .tag(.leafy), states: [.weight])])
+        // A vibe a person set is theirs: it is no longer what a word with two meanings was read as.
+        XCTAssertEqual(
+            Edits.tagOn(.leafy).said(.tagOps, 0), [Said(key: .tag(.leafy), states: [.weight, .word])])
         XCTAssertEqual(Edits.areaHide("syn-n0006").said(.areaOps, 0), [Said(key: .area("syn-n0006"), states: [])])
         XCTAssertEqual(Edits.budgetWeight(0.5).said(.settingOps, 0), [Said(key: .budget, states: [])])
         XCTAssertEqual(Edits.journeyBasis(.typical).said(.settingOps, 0), [Said(key: .journeys, states: [])])

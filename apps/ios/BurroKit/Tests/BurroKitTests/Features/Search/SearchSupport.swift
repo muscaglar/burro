@@ -24,6 +24,10 @@ enum Website {
             of: #"\\\(([A-Za-z]+)\)"#, with: "\\${$1}", options: .regularExpression)
         let tries = [
             asWritten,
+            // A sentence the website writes between quote marks, as its source writes them.
+            asWritten.replacingOccurrences(of: "${open}", with: "\\u201c")
+                .replacingOccurrences(of: "${close}", with: "\\u201d")
+                .replacingOccurrences(of: "${readable}", with: SearchCopy.Notice.readable),
             asWritten.replacingOccurrences(of: "${count}", with: "1"),
             asWritten.replacingOccurrences(of: "${most}", with: "1"),
             // A word the website writes between quote marks, as its source writes them.

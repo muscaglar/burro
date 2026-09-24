@@ -111,8 +111,28 @@ extension Results {
         switch fact.template {
         case .feature, .featureCrime:
             pairs = [(names.value, slots["value"]), (names.standing, slots["standing"])]
-        case .tag:
-            pairs = [(names.standing, slots["standing"])]
+        case .vibe:
+            pairs =
+                [
+                    (names.band, slots["band"]),
+                    (names.ends, between(slots["low_end"], slots["high_end"])),
+                    (names.compared, slots["compared"]),
+                    (names.partsDated, slots["span"]),
+                ] + restsOnPart(slots)
+        case .vibeRange:
+            pairs =
+                [
+                    (names.bands, between(slots["spread_low"], slots["spread_high"])),
+                    (names.ends, between(slots["low_end"], slots["high_end"])),
+                    (names.partsDated, slots["span"]),
+                ] + restsOnPart(slots)
+        case .vibeUnknown:
+            pairs = [(names.partsKnown, slots["known"]), (names.parts, slots["parts"])]
+        case .costBuyMedian:
+            pairs = [
+                (names.segment, slots["segment"]), (names.middleOfAll, pounds(slots["median"])),
+                (names.soldIn, slots["period"]),
+            ]
         case .costRent, .costBuy:
             var range: String?
             if let lower = pounds(slots["lower"]), let upper = pounds(slots["upper"]) {
@@ -128,15 +148,24 @@ extension Results {
                 (names.upper, pounds(slots["upper"])), (names.amount, pounds(slots["amount"])),
                 (fact.template == .budgetUnder ? names.under : names.over, pounds(slots["margin"])),
             ]
-        case .travelPt:
+        case .budgetUnderMedian, .budgetOverMedian:
+            // The budget is held against the one number there is, and the row names it.
             pairs = [
-                (names.place, slots["place"]), (names.mode, slots["mode"]),
-                (names.typical, slots["typical"]), (names.missed, slots["missed"]),
+                (names.middleOfAll, pounds(slots["median"])), (names.amount, pounds(slots["amount"])),
+                (fact.template == .budgetUnderMedian ? names.under : names.over, pounds(slots["margin"])),
             ]
-        case .travelOther:
-            pairs = [
-                (names.place, slots["place"]), (names.mode, slots["mode"]), (names.minutes, slots["minutes"]),
-            ]
+        case .travelPt, .travelPtOver:
+            pairs =
+                [
+                    (names.place, slots["place"]), (names.mode, slots["mode"]),
+                    (names.typical, slots["typical"]), (names.missed, slots["missed"]),
+                ] + againstTheLimit(fact)
+        case .travelOther, .travelOtherOver:
+            pairs =
+                [
+                    (names.place, slots["place"]), (names.mode, slots["mode"]),
+                    (names.minutes, slots["minutes"]),
+                ] + againstTheLimit(fact)
         case .travelBeyond:
             pairs = [
                 (names.place, slots["place"]), (names.mode, slots["mode"]), (names.moreThan, slots["cutoff"]),
@@ -145,6 +174,11 @@ extension Results {
             pairs = [(names.station, slots["name"]), (names.walk, slots["walk"]), (names.lines, slots["lines"])]
         case .area, .missing:
             pairs = [(names.name, slots["name"]), (names.borough, slots["borough"])]
+        case .missingJourney:
+            pairs = [(names.name, slots["name"]), (names.place, slots["place"])]
+        case .likeness, .likenessSame:
+            // A likeness is of two areas, and is said on an area's own page.
+            pairs = []
         case .unlisted:
             // A kind of fact this build does not know is not laid out by guesswork.
             pairs = []
@@ -155,12 +189,39 @@ extension Results {
         }
     }
 
+    /// From one slot to another, where the fact holds both.
+    private static func between(_ from: String?, _ to: String?) -> String? {
+        guard let from, !from.isEmpty, let to, !to.isEmpty else { return nil }
+        return "\(from) \(ResultsCopy.Columns.to) \(to)"
+    }
+
+    /// How many parts of its recipe a band rests on, where that is not all of
+    /// them. Both counts, and what those parts carry of the recipe, are the
+    /// API's: nothing is added up here.
+    private static func restsOnPart(_ slots: [String: String]) -> [(String, String?)] {
+        guard let known = slots["known"], let parts = slots["parts"], known != parts else { return [] }
+        let names = ResultsCopy.Columns.self
+        return [(names.partsKnown, known), (names.parts, parts), (names.share, slots["share"])]
+    }
+
+    /// Where a journey stands against the limit the person set, where the fact holds one.
+    private static func againstTheLimit(_ fact: Fact) -> [(String, String?)] {
+        let names = ResultsCopy.Columns.self
+        let over = fact.template == .travelPtOver || fact.template == .travelOtherOver
+        return [
+            (names.limit, fact.slots["limit"]),
+            (over ? names.overLimit : names.underLimit, fact.slots["margin"]),
+        ]
+    }
+
     /// One fact with no sentence of its own, laid out: its name, its columns, and its source.
     struct FactShown: Hashable, Sendable {
         let name: String
         let columns: [Column]
-        /// The caveat that goes under a figure of recorded crime.
-        let caveat: String?
+        /// What is said under the columns: the caveat that goes with recorded
+        /// crime, that a vibe cannot place the area, that a price has no
+        /// range, and the API's own line that a recipe is a judgement.
+        let caveats: [String]
         let sources: [SourceLine]
     }
 
@@ -174,7 +235,7 @@ extension Results {
             name: name,
             // A column that only repeats the row's name says nothing new.
             columns: columns(of: fact).filter { $0.value != name },
-            caveat: fact.template == .featureCrime ? ResultsCopy.crimeCaveat : nil,
+            caveats: FactLayout.caveats(of: fact),
             sources: sourceLines(of: [fact]))
     }
 }

@@ -14,19 +14,24 @@ final class AboutTests: XCTestCase {
     func test_the_first_screen_names_the_release_and_the_engine_as_the_api_served_them() {
         let rows = AboutPage.release(meta)
 
-        XCTAssertEqual(rows.map(\.name), ["Data release", "Ranking engine", "Built", "Made-up data"])
+        XCTAssertEqual(
+            rows.map(\.name),
+            ["Data release", "Ranking engine", "Built", "Made-up data", "A preview that is not finished"])
         XCTAssertEqual(rows[0].value, meta.releaseId)
         XCTAssertEqual(rows[1].value, meta.engineVersion)
         XCTAssertEqual(rows[2].value, "23 September 2026")
         XCTAssertEqual(rows[3].value, "Yes")
-        XCTAssertEqual(rows.map(\.isCode), [true, true, false, false])
+        XCTAssertEqual(rows[4].value, "No")
+        XCTAssertEqual(rows.map(\.isCode), [true, true, false, false, false])
     }
 
     func test_the_methods_say_everything_the_release_says_of_itself() {
         let rows = AboutPage.releaseInFull(meta)
         let values = Dictionary(uniqueKeysWithValues: rows.map { ($0.name, $0.value) })
 
-        XCTAssertEqual(rows.count, 10)
+        XCTAssertEqual(rows.count, 11)
+        XCTAssertEqual(values["Made-up data"], "Yes")
+        XCTAssertEqual(values["A preview that is not finished"], "No")
         XCTAssertEqual(values["Release"], meta.releaseId)
         XCTAssertEqual(values["Version of the ranking engine"], meta.engineVersion)
         XCTAssertEqual(values["Version of the feature catalogue"], String(meta.catalogueVersion))
@@ -42,7 +47,18 @@ final class AboutTests: XCTestCase {
         let real = try Recorded.read("meta").with(data: { $0["synthetic"] = .bool(false) })
         let served = try JSONDecoder().decode(Envelope<MetaData>.self, from: real.body).data
 
-        XCTAssertEqual(AboutPage.release(served).last?.value, "No")
+        XCTAssertEqual(AboutPage.release(served).first { $0.name == "Made-up data" }?.value, "No")
+    }
+
+    func test_a_release_that_is_a_preview_is_said_to_be() throws {
+        let preview: MetaData = try Recorded.data(.getMeta, "preview/meta")
+
+        XCTAssertTrue(preview.preview)
+        XCTAssertEqual(
+            AboutPage.release(preview).first { $0.name == "A preview that is not finished" }?.value, "Yes")
+        XCTAssertEqual(
+            AboutPage.releaseInFull(preview).first { $0.name == "A preview that is not finished" }?.value,
+            "Yes")
     }
 
     // MARK: - The methods
@@ -54,8 +70,8 @@ final class AboutTests: XCTestCase {
         XCTAssertEqual(
             groups.map(\.title),
             [
-                "Stations", "Green space and water", "Air and noise", "Venues and culture", "Schools",
-                "Homes", "Recorded crime",
+                "Stations", "Green space and water", "Air and noise", "Venues and culture",
+                "Shops and services", "Schools", "Homes", "Recorded crime",
             ])
         XCTAssertEqual(described.count, meta.features.count)
         XCTAssertEqual(Set(described.map(\.id)), Set(meta.features.map(\.featureId.rawValue)))
@@ -78,7 +94,7 @@ final class AboutTests: XCTestCase {
             ])
     }
 
-    func test_each_tag_is_shown_as_the_formula_it_is_and_its_shares_add_up() {
+    func test_each_vibe_is_shown_as_the_recipe_it_is_and_its_shares_add_up() {
         let tags = AboutPage.tags(meta)
 
         XCTAssertEqual(tags.map(\.tag.label), meta.tags.map(\.label))
@@ -90,7 +106,39 @@ final class AboutTests: XCTestCase {
             // A term is named by the label of its feature, never by its id.
             XCTAssertFalse(tag.terms.contains { $0.feature.contains("_") })
         }
-        XCTAssertTrue(AboutCopy.Methods.tagsLead.hasSuffix("The shares of a tag add up to 100."))
+        // A vibe is said to be a band, one of five, and never a score.
+        XCTAssertTrue(AboutCopy.Methods.tagsLead.contains("one of five bands"))
+        XCTAssertTrue(AboutCopy.Methods.tagsLead.contains("never given a score"))
+        XCTAssertEqual(AboutCopy.Methods.tagsTitle, "Vibes")
+    }
+
+    func test_a_part_of_a_recipe_the_release_does_not_carry_is_named_as_the_api_names_it() throws {
+        let onFoot = try XCTUnwrap(AboutPage.tags(meta).first { $0.tag.tagId == .everydayOnFoot })
+        let held = try XCTUnwrap(meta.recipes.first { $0.tagId == .everydayOnFoot })
+        let carried = Set(meta.features.map(\.featureId))
+
+        // The release carries no figure for the last two parts of this recipe.
+        XCTAssertEqual(onFoot.tag.terms.map { carried.contains($0.featureId) }, [true, true, true, false, false])
+        XCTAssertEqual(held.waitsOn.map(\.label), ["Straight-line distance to the nearest GP practice, placed by its postcode", "Straight-line distance to the nearest pharmacy, placed by its postcode"])
+        // Each is named by the API's name for it, and said to be missing. It is never shown by its code.
+        XCTAssertEqual(onFoot.terms.suffix(2).map(\.feature), held.waitsOn.map(\.label))
+        for term in onFoot.terms.suffix(2) {
+            XCTAssertTrue(term.reading.hasPrefix("Not in this data yet. "), term.feature)
+        }
+        for term in onFoot.terms.prefix(3) {
+            XCTAssertFalse(term.reading.contains("Not in this data yet"), term.feature)
+        }
+        // A part the API names nowhere is said to be one the data does not carry.
+        let unnamed = MetaData(
+            releaseId: meta.releaseId, builtAt: meta.builtAt, synthetic: meta.synthetic, preview: meta.preview,
+            engineVersion: meta.engineVersion, catalogueVersion: meta.catalogueVersion, counts: meta.counts,
+            holds: meta.holds, attributions: meta.attributions, features: meta.features, tags: meta.tags,
+            recipes: [], families: meta.families, grittyVariant: meta.grittyVariant, defaults: meta.defaults,
+            limits: meta.limits, reader: meta.reader, census: meta.census)
+        let bare = try XCTUnwrap(AboutPage.tags(unnamed).first { $0.tag.tagId == .everydayOnFoot })
+        XCTAssertEqual(
+            bare.terms.suffix(2).map(\.feature),
+            ["A part this data does not carry", "A part this data does not carry"])
     }
 
     func test_where_a_search_starts_is_shown_for_a_renter_and_for_a_buyer() {
@@ -108,7 +156,7 @@ final class AboutTests: XCTestCase {
         XCTAssertEqual(starts.first?.rows.count, 2 + meta.defaults.rent.weights.count)
         XCTAssertEqual(
             starts.first?.rows.last,
-            AboutRow(name: "Walk to the nearest station", value: "50 of 100. Lower is better"))
+            AboutRow(name: "Straight-line distance to the nearest way in to a station", value: "50 of 100. Lower is better"))
     }
 
     func test_the_limits_are_the_ones_the_form_keeps_to() {
@@ -237,14 +285,34 @@ final class AboutTests: XCTestCase {
     // MARK: - The privacy notice, and the choice
 
     func test_the_notice_says_what_is_sent_to_whom_and_what_is_kept() {
-        let notice = AboutCopy.Words.points
+        let served = meta.reader.notice
+        let notice = AboutCopy.Words.points(reader: served)
 
         XCTAssertEqual(notice.first, SearchCopy.Permission.handled)
-        XCTAssertTrue(notice.contains(SearchCopy.Permission.otherCompany))
+        // Who else reads what is typed is said second, in the API's words, as they were served.
+        XCTAssertEqual(notice[1], served)
+        XCTAssertFalse(served.isEmpty)
         XCTAssertTrue(notice.contains { $0.contains("never put in a web address") })
         XCTAssertTrue(notice.contains { $0.contains("shortlist is kept on this phone and nowhere else") })
         XCTAssertTrue(notice.contains { $0.contains("no analytics") })
         XCTAssertEqual(Set(notice).count, notice.count)
+    }
+
+    func test_the_notice_names_the_company_that_runs_a_model_only_as_the_api_serves_it() throws {
+        let reads: MetaData = try Recorded.data(.getMeta, "meta-model-reads")
+        let company = try XCTUnwrap(reads.reader.company)
+
+        let notice = AboutCopy.Words.points(reader: reads.reader.notice)
+        let unsaid = AboutCopy.Words.points(reader: nil)
+
+        XCTAssertTrue(reads.reader.modelReads)
+        XCTAssertTrue(notice[1].contains(company))
+        // The app writes no provider's name of its own: with nothing served, none is said.
+        XCTAssertFalse(unsaid.contains { $0.contains(company) })
+        XCTAssertEqual(unsaid.count, notice.count - 1)
+        let copy = try Repository.text(Written.about.appendingPathComponent("AboutCopy.swift"))
+            + Repository.text(Written.search.appendingPathComponent("SearchCopy.swift"))
+        XCTAssertFalse(copy.contains(company))
     }
 
     func test_what_the_notice_says_is_kept_is_what_is_kept() {
@@ -267,7 +335,8 @@ final class AboutTests: XCTestCase {
         XCTAssertTrue(app.contains("extensionPointIdentifier != .keyboard"))
         // And every field a person types in asks it to leave what is typed alone.
         let fields = box.components(separatedBy: "TextField(").dropFirst()
-        XCTAssertEqual(fields.count, 2)
+        // The box, as it is where the system lets it select and where it does not, and the place field.
+        XCTAssertEqual(fields.count, 3)
         for field in fields {
             let modifiers = String(field.prefix(700))
             XCTAssertTrue(
@@ -368,7 +437,6 @@ final class AboutTests: XCTestCase {
         "There is no analytics in this app, no advertising, and no code from anyone else.",
         "Only your phone's own keyboard can be used in this app, and it is asked not to correct or to keep what you type in the search box.",
         // The website builds these lines from parts. The app passes the figures in.
-        "A tag is a fixed formula over the features above. It is named for the place, not for who lives there. The shares of a tag add up to \\(WeightScale.most).",
         "\\(hundredths) of \\(WeightScale.most)", "£\\(least) to £\\(most), in steps of £\\(unit)",
         "\\(least) to \\(most) minutes", "\\(count) minutes", "\\(count) characters",
         "High: the range is worked out from at least \\(least) rents or prices recorded for that kind of home.",

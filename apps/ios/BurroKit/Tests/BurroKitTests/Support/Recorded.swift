@@ -150,7 +150,7 @@ enum Answers {
                 APIFailure(
                     status: recorded.status, code: envelope.error.code, message: envelope.error.message,
                     fields: envelope.error.fields, meta: envelope.meta, synthetic: envelope.meta.synthetic,
-                    requestId: recorded.headers["x-request-id"]))
+                    preview: envelope.meta.preview, requestId: recorded.headers["x-request-id"]))
         }
     }
 

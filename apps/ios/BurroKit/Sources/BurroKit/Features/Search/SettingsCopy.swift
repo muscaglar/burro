@@ -28,6 +28,8 @@ enum SettingsCopy {
             "Between £\(least) and £\(most)."
         }
         static let notWhole = "Give the amount as a whole number of pounds."
+        /// In place of the amount, where the data holds no cost to test one against.
+        static let notInData = "This data holds no rents and no prices yet, so a budget cannot be set."
         /// What the slider says while no amount is set.
         static let noneSet = "No budget set"
         /// The slider beside the field. It sets the same amount.
@@ -37,8 +39,11 @@ enum SettingsCopy {
     }
 
     enum Journey {
-        static let legend = "Places you need to reach"
+        static let legend = "Journeys"
         static let none = "No place named yet."
+        /// In place of the field and of every control, where the data names no place to reach.
+        static let notInData =
+            "This data names no places and holds no journey times yet, so a journey cannot be added."
         static func place(_ name: String) -> String { "Journey to \(name)" }
         static let how = "How you travel there"
         static let longest = "Longest journey, in minutes"
@@ -62,9 +67,16 @@ enum SettingsCopy {
     }
 
     enum Features {
-        static let legend = "What you want nearby"
-        static let tagsLegend = "The feel of the place"
-        static let tagsHint = "A tag is a fixed formula over the features above. Methods says what is in each."
+        /// The heading over the measures, which can each be made to count by itself.
+        static let legend = "Other things that count"
+        static let tagsLegend = "Vibes"
+        static let tagsHint =
+            "A vibe is a published recipe over measured parts. It is named for the place, "
+            + "never for who lives there, and it says what it cannot see."
+        /// Said of a vibe that no area of the data can be placed on, in place of its switch.
+        static let notInData = "Not in this data yet"
+        /// Which end of a scale is asked for. The name of the vibe and of the end are the API's.
+        static func toward(_ label: String, _ end: String) -> String { "\(label): towards \(end)" }
         static func weight(_ label: String) -> String { "How much it counts: \(label)" }
         static func direction(_ label: String) -> String { "Which way counts as better: \(label)" }
     }
@@ -81,14 +93,13 @@ enum SettingsCopy {
 
     enum Hidden {
         static let legend = "Hidden areas"
-        static let none = "No area is hidden."
         static func show(_ area: String) -> String { "Show \(area) again" }
         static func only(_ area: String) -> String { "Stop showing only \(area)" }
     }
 
     enum Crime {
-        static let lead =
-            "Recorded crime is off unless you switch it on. It is a count of what was reported, by kind."
+        /// After the one account of when recorded crime counts.
+        static let lead = "It is a count of what was reported, by kind."
         /// The caveat that goes with recorded crime, word for word as the
         /// contract states it in section 7.3. A test holds it to the contract.
         static let caveat = "Recorded crime depends on what is reported, and locations are approximate."

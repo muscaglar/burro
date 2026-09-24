@@ -86,6 +86,8 @@ public struct Timeouts: Hashable, Sendable {
         case .interpret: return reading
         case .searchPlaces: return places
         case .rank, .explainTop, .compare, .createShare, .getShare: return search
+        // The census of an area is asked for when a person opens it, as the website asks.
+        case .getCensus: return search
         case .listAreas, .getGeometry, .getArea, .getMeta, .healthz: return release
         }
     }

@@ -199,10 +199,8 @@ final class PrivacyRulesTests: XCTestCase {
         for file in copy {
             let strings = file.text.components(separatedBy: "\"").enumerated()
                 .filter { $0.offset % 2 == 1 }.map(\.element)
-            for string in strings where string.contains(where: \.isNumber) {
-                // The one figure is how long a model's provider may keep what it reads.
-                XCTAssertTrue(string.contains("up to 30 days"), "\(file.name): \(string)")
-            }
+            // How long a provider keeps what it reads is the API's to say, and is written nowhere here.
+            XCTAssertEqual(strings.filter { $0.contains(where: \.isNumber) }, [], file.name)
             for place in Answers.areas.map(\.name) + Answers.areas.map(\.borough) {
                 XCTAssertFalse(file.text.contains(place), "\(file.name) names \(place)")
             }

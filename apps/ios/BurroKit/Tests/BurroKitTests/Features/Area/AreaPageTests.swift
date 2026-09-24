@@ -56,12 +56,16 @@ final class AreaPageTests: XCTestCase {
                 }
             }
             let rows = page.stationRows + page.rentRows + page.buyRows
-                + page.measured.flatMap { page.rows(of: $0) } + page.tagRows
+                + page.measured.flatMap { page.rows(of: $0) }
 
             let figures = rows.flatMap(\.columns).map(\.value)
 
             XCTAssertEqual(figures.filter { !slots.contains($0) }, [], slug)
             XCTAssertTrue(figures.contains { $0.contains(where: \.isNumber) }, slug)
+            // The band of a vibe is the one its fact holds, and no other.
+            for vibe in page.vibes {
+                XCTAssertEqual(vibe.shown.placed?.band, vibe.fact?.slots["band"].flatMap { Int($0) }, slug)
+            }
         }
     }
 
@@ -69,9 +73,13 @@ final class AreaPageTests: XCTestCase {
     func test_every_figure_ends_in_its_source_and_its_date() {
         let page = AreaFixtures.page("farrowmere")
         let rows = page.stationRows + page.rentRows + page.buyRows
-            + page.measured.flatMap { page.rows(of: $0) } + page.tagRows
+            + page.measured.flatMap { page.rows(of: $0) }
 
-        XCTAssertEqual(rows.count, 1 + 6 + 4 + 23 + 12)
+        XCTAssertEqual(rows.count, 1 + 6 + 4 + 40)
+        XCTAssertEqual(page.vibes.count, 11)
+        for vibe in page.vibes {
+            XCTAssertEqual(vibe.shown.sources.map(\.name), ["Synthetic test data"], vibe.shown.name)
+        }
         for row in rows where row.noFigure == nil {
             XCTAssertFalse(row.sources.isEmpty, row.name)
             XCTAssertTrue(row.sourceWords?.hasPrefix("Source: Synthetic test data. Data from ") ?? false, row.name)
@@ -90,16 +98,78 @@ final class AreaPageTests: XCTestCase {
 
         XCTAssertEqual(
             page.measured.map(\.dimension),
-            [.stationAccess, .greenWater, .airNoise, .venuesCulture, .schools, .homes, .crime])
+            [.stationAccess, .greenWater, .airNoise, .venuesCulture, .services, .schools, .homes, .crime])
         XCTAssertEqual(
             page.measured.compactMap { $0.dimension.flatMap(AreaCopy.dimension) },
-            ["Stations", "Green space and water", "Air and noise", "Venues and culture", "Schools", "Homes",
-             "Recorded crime"])
+            ["Stations", "Green space and water", "Air and noise", "Venues and culture",
+             "Shops and services", "Schools", "Homes", "Recorded crime"])
         for group in page.measured {
             let features = Answers.meta.features.filter { $0.dimension == group.dimension }
             XCTAssertEqual(group.rows.map(\.label), features.map(\.label))
         }
-        XCTAssertEqual(page.tags.map(\.label), Answers.meta.tags.map(\.label))
+    }
+
+    @MainActor
+    func test_the_vibes_stand_in_the_lists_the_api_puts_them_in_and_in_its_order() {
+        let data = Answers.profile("farrowmere")
+        let page = AreaFixtures.page("farrowmere")
+
+        XCTAssertEqual(page.vibes(in: .scales).map(\.shown.tagId), data.portrait.scales.map(\.tagId))
+        XCTAssertEqual(page.vibes(in: .more).map(\.shown.tagId), data.portrait.more.map(\.tagId))
+        XCTAssertEqual(page.vibes(in: .less).map(\.shown.tagId), data.portrait.less.map(\.tagId))
+        XCTAssertEqual(page.vibes(in: .others).map(\.shown.tagId), data.portrait.others.map(\.tagId))
+        XCTAssertEqual(page.vibes(in: .unplaced), [])
+        XCTAssertEqual(
+            page.vibes.map(\.shown.tagId),
+            [
+                .homes, .pace, .builtAge, .streetCharacter, .familyAmenities, .quietResidential, .foodie,
+                .parksCloseBy, .everydayOnFoot, .leafy, .villageFeel,
+            ])
+        XCTAssertEqual(
+            AreaPage.VibeList.allCases.map(AreaCopy.Portrait.title),
+            ["On a scale", "More than most here", "Less than most here", "Also placed", "Burro cannot place"])
+    }
+
+    @MainActor
+    func test_a_vibe_is_its_name_its_band_of_five_and_what_the_band_rests_on() throws {
+        let page = AreaFixtures.page("farrowmere")
+        let homes = try XCTUnwrap(page.vibes.first { $0.shown.tagId == .homes })
+        let leafy = try XCTUnwrap(page.vibes.first { $0.shown.tagId == .leafy })
+        let fact = try XCTUnwrap(homes.fact)
+
+        // A scale is named by the API, and so are its two ends.
+        XCTAssertEqual(homes.shown.name, "Homes")
+        XCTAssertEqual([homes.shown.low, homes.shown.high], ["Houses", "Flats"])
+        XCTAssertEqual(homes.shown.placed, Placed(fact))
+        XCTAssertEqual(homes.shown.band, "band \(fact.slots["band"] ?? "") of 5")
+        // A band that rests on part of a recipe says so, in the API's own clause.
+        XCTAssertEqual(fact.slots["known"], "2")
+        XCTAssertEqual(fact.slots["parts"], "3")
+        XCTAssertEqual(homes.shown.restsOn, fact.slots["partly"])
+        XCTAssertEqual(homes.shown.restsOn, "Worked out from 2 of its 3 parts, 75 of 100 by weight.")
+        // One that rests on the whole of its recipe says nothing of it.
+        XCTAssertEqual(leafy.fact?.slots["known"], leafy.fact?.slots["parts"])
+        XCTAssertNil(leafy.shown.restsOn)
+        // A vibe that runs one way is counted from least to most.
+        XCTAssertEqual([leafy.shown.low, leafy.shown.high], ["least", "most"])
+        // It is a band in words, and never a score or a percentage.
+        for vibe in page.vibes {
+            XCTAssertFalse(vibe.shown.reads.contains("%"), vibe.shown.name)
+            XCTAssertTrue(vibe.shown.reads.contains(" of 5"), vibe.shown.name)
+            XCTAssertNotNil(vibe.shown.plainly, vibe.shown.name)
+        }
+    }
+
+    @MainActor
+    func test_a_mixed_area_is_said_to_vary_and_is_never_put_at_a_point() throws {
+        let page = AreaFixtures.page("sable-reach")
+        let homes = try XCTUnwrap(page.vibes.first { $0.shown.tagId == .homes })
+
+        XCTAssertEqual(homes.fact?.template, .vibeRange)
+        XCTAssertEqual(homes.shown.placed, Placed(band: 4, spreadLow: 3, spreadHigh: 5))
+        XCTAssertEqual(homes.shown.plainly, "varies within this area")
+        XCTAssertEqual(homes.shown.band, "varies within this area, from band 3 to band 5 of 5")
+        XCTAssertEqual((1...5).filter { homes.shown.placed?.fills($0) == true }, [3, 4, 5])
     }
 
     @MainActor
@@ -118,7 +188,7 @@ final class AreaPageTests: XCTestCase {
                 FactColumn(name: "Range", value: "£775 to £1,025"),
                 FactColumn(name: "Middle", value: "£875"),
                 FactColumn(name: "As of", value: "August 2026"),
-                FactColumn(name: "Confidence", value: "medium"),
+                FactColumn(name: "Confidence", value: "high"),
             ])
     }
 
@@ -157,14 +227,52 @@ final class AreaPageTests: XCTestCase {
     }
 
     @MainActor
-    func test_a_tag_that_was_not_worked_out_says_so() throws {
-        let page = AreaFixtures.page("gorsebeck")
+    func test_a_vibe_that_cannot_place_an_area_says_so_and_is_never_put_in_the_middle() throws {
+        let page = AreaFixtures.page("otterby-fields")
 
-        let missing = try XCTUnwrap(page.tagRows.first { $0.noFigure != nil })
+        let unplaced = page.vibes(in: .unplaced)
 
-        XCTAssertEqual(page.tagRows.count, Answers.meta.tags.count)
-        XCTAssertEqual(missing.noFigure, "Not worked out in this data")
-        XCTAssertEqual(missing.name, Answers.meta.tags.first { $0.tagId == .historicCharacter }?.label)
+        XCTAssertEqual(page.vibes.count, Answers.meta.tags.count)
+        XCTAssertEqual(unplaced.count, 10)
+        XCTAssertEqual(page.vibes(in: .scales).map(\.shown.tagId), [.homes])
+        for vibe in unplaced {
+            XCTAssertNil(vibe.shown.placed, vibe.shown.name)
+            XCTAssertNil(vibe.shown.plainly, vibe.shown.name)
+            XCTAssertEqual(vibe.shown.band, "Burro cannot place this area on it", vibe.shown.name)
+            XCTAssertEqual(vibe.fact?.template, .vibeUnknown, vibe.shown.name)
+            // The release holds enough of each recipe: it is this area that has too few figures.
+            XCTAssertFalse(vibe.shown.notInData, vibe.shown.name)
+            XCTAssertNil(vibe.shown.held, vibe.shown.name)
+            XCTAssertFalse(vibe.shown.reads.contains("band "), vibe.shown.name)
+        }
+    }
+
+    @MainActor
+    func test_a_vibe_the_data_holds_too_little_of_says_what_it_waits_on() throws {
+        let preview: MetaData = try Recorded.data(.getMeta, "preview/meta")
+        let data: AreaData = try Recorded.data(.getArea, "preview/area-alderwick")
+        let release = Meta(
+            releaseId: preview.releaseId, engineVersion: preview.engineVersion, synthetic: preview.synthetic,
+            preview: preview.preview)
+
+        let page = AreaPage(
+            data, release: release, features: preview.features, tags: preview.tags, recipes: preview.recipes)
+        let leafy = try XCTUnwrap(page.vibes.first { $0.shown.tagId == .leafy })
+        let held = try XCTUnwrap(preview.recipes.first { $0.tagId == .leafy })
+
+        XCTAssertTrue(page.preview)
+        XCTAssertFalse(held.placed)
+        XCTAssertEqual(leafy.list, .unplaced)
+        XCTAssertTrue(leafy.shown.notInData)
+        XCTAssertNil(leafy.shown.placed)
+        // Each part the data does not carry is named as the API names it, with its share of the recipe.
+        XCTAssertEqual(leafy.shown.waitsOn, held.waitsOn.map { "\($0.label), \($0.hundredths) of 100" })
+        XCTAssertEqual(
+            leafy.shown.waitsOn,
+            ["Land that is residential garden, 40 of 100", "Land that is woodland, 30 of 100"])
+        XCTAssertEqual(
+            leafy.shown.held, "This data holds 30 of 100 of its recipe. An area needs 60 of 100 to be placed.")
+        XCTAssertTrue(leafy.shown.reads.contains("It waits on: Land that is residential garden, 40 of 100;"))
     }
 
     @MainActor
@@ -189,6 +297,7 @@ final class AreaPageTests: XCTestCase {
         XCTAssertEqual(page.sources.map(\.name), ["Synthetic test data"])
         XCTAssertEqual(page.releaseId, "syn-2026-09-23-01")
         XCTAssertTrue(page.synthetic)
+        XCTAssertFalse(page.preview)
     }
 
     @MainActor
@@ -199,8 +308,8 @@ final class AreaPageTests: XCTestCase {
 
         XCTAssertEqual(
             fields,
-            ["area", "rankable", "releaseId", "synthetic", "named", "neighbours", "stations", "rent", "buy",
-             "measured", "tags"])
+            ["area", "rankable", "releaseId", "synthetic", "preview", "named", "neighbours", "stations",
+             "rent", "buy", "measured", "vibes"])
         XCTAssertEqual(
             Mirror(reflecting: AreaFixtures.page("farrowmere").measured[0].rows[0]).children.compactMap(\.label),
             ["label", "fact", "kind", "key"])
@@ -214,13 +323,14 @@ final class AreaPageTests: XCTestCase {
 
         let rows = page.rows(of: crime)
 
-        XCTAssertEqual(rows.count, 2)
+        XCTAssertEqual(rows.count, 4)
         for row in rows {
-            XCTAssertEqual(row.caveat, "Recorded crime depends on what is reported, and locations are approximate.")
+            XCTAssertEqual(
+                row.caveats, ["Recorded crime depends on what is reported, and locations are approximate."])
         }
         XCTAssertTrue(contract.contains(AreaCopy.crimeCaveat))
         XCTAssertEqual(page.measured.last?.dimension, .crime)
-        XCTAssertNil(page.stationRows.first?.caveat)
+        XCTAssertEqual(page.stationRows.first?.caveats, [])
         for word in ["safe", "unsafe", "danger"] {
             XCTAssertFalse(page.said.contains { $0.lowercased().contains(word) }, word)
         }
@@ -256,7 +366,8 @@ final class AreaPageTests: XCTestCase {
         XCTAssertEqual(page.measured.count, 1)
         XCTAssertNil(page.measured.first?.dimension)
         XCTAssertEqual(page.measured.first?.rows.count, data.facts.filter { $0.kind == .feature }.count)
-        XCTAssertEqual(page.tags.count, data.facts.filter { $0.kind == .tag }.count)
+        // A vibe the release does not name is left out: nothing can be said of it.
+        XCTAssertEqual(page.vibes, [])
     }
 
     func test_a_date_is_written_out_and_anything_else_is_shown_as_it_came() {
@@ -297,16 +408,23 @@ final class AreaPageTests: XCTestCase {
             AreaCopy.Where.noNeighbours, AreaCopy.Stations.title, AreaCopy.Stations.none, AreaCopy.Cost.title,
             AreaCopy.Cost.lead, AreaCopy.Cost.rent, AreaCopy.Cost.buy, AreaCopy.Cost.noRent,
             AreaCopy.Cost.noPrice, AreaCopy.Measured.title, AreaCopy.Measured.lead, AreaCopy.Measured.noFigure,
-            AreaCopy.Tags.title, AreaCopy.Tags.lead, AreaCopy.Tags.noFigure, AreaCopy.Sources.title,
+            AreaCopy.Portrait.title, AreaCopy.Sources.title,
             AreaCopy.Sources.lead, AreaCopy.Sources.methods, AreaCopy.Source.source,
-        ] {
+        ] + AreaPage.VibeList.allCases.map(AreaCopy.Portrait.title) {
             XCTAssertTrue(area.contains("\"\(words)\""), words)
+        }
+        // Why a vibe cannot place an area, of this area alone and of every area.
+        for words in [AreaCopy.Portrait.unplacedWhy, AreaCopy.Portrait.notInData] {
+            XCTAssertTrue(Website.joined(area).contains("\"\(words)\""), words)
         }
         for words in [
             AreaCopy.Column.value, AreaCopy.Column.standing, AreaCopy.Column.segment, AreaCopy.Column.range,
             AreaCopy.Column.median, AreaCopy.Column.asOf, AreaCopy.Column.confidence, AreaCopy.Column.station,
             AreaCopy.Column.walk, AreaCopy.Column.lines, AreaCopy.Column.name, AreaCopy.Column.borough,
-            AreaCopy.Column.to,
+            AreaCopy.Column.to, AreaCopy.Column.middleOfAll, AreaCopy.Column.soldIn, AreaCopy.Column.band,
+            AreaCopy.Column.bands, AreaCopy.Column.ends, AreaCopy.Column.compared, AreaCopy.Column.partsDated,
+            AreaCopy.Column.partsKnown, AreaCopy.Column.parts, AreaCopy.Column.share, AreaCopy.oneNumber,
+            VibeCopy.cannotPlace,
         ] + TemplateId.allCases.compactMap(AreaCopy.kind) {
             XCTAssertTrue(facts.contains("\"\(words)\""), words)
         }

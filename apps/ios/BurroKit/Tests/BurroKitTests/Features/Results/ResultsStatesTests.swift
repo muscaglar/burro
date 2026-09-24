@@ -64,12 +64,12 @@ final class ResultsStatesTests: XCTestCase {
         let listed = app.listed
         XCTAssertFalse(listed.empty)
         XCTAssertFalse(listed.busy)
-        XCTAssertEqual(listed.headline, "22 areas ranked. First: Farrowmere.")
-        // After the first thing is asked for, the settings nobody chose count for a quarter.
-        XCTAssertEqual(listed.changes, ["Settings you did not choose now count for less."])
+        XCTAssertEqual(listed.headline, "21 areas ranked. First: Farrowmere.")
+        // The journey and the budget count for more than anything asked of the place. A person
+        // who asked for leafy and quiet must not read the first result as the leafiest.
+        XCTAssertEqual(listed.changes, ["Journey and budget count most."])
         XCTAssertEqual(
-            listed.announcement,
-            "22 areas ranked. First: Farrowmere. Settings you did not choose now count for less.")
+            listed.announcement, "21 areas ranked. First: Farrowmere. Journey and budget count most.")
         XCTAssertEqual(listed.cards.map(\.heading.rank), Array(1...20))
         XCTAssertEqual(listed.cards.map(\.id), first.ranked.map(\.areaId))
         XCTAssertEqual(listed.cards.map(\.full), Array(repeating: true, count: 5) + Array(repeating: false, count: 15))
@@ -181,7 +181,7 @@ final class ResultsStatesTests: XCTestCase {
         XCTAssertTrue(app.listed.busy)
         XCTAssertEqual(app.listed.waitingFor, "Working out the ranking again")
         XCTAssertEqual(app.listed.cards, before)
-        XCTAssertEqual(app.listed.headline, "22 areas ranked. First: Farrowmere.")
+        XCTAssertEqual(app.listed.headline, "21 areas ranked. First: Farrowmere.")
         slow.release()
         await sent
     }
@@ -196,11 +196,12 @@ final class ResultsStatesTests: XCTestCase {
         let refined = Answers.ranked("rank-refined")
         let moved = try XCTUnwrap(app.state.moved)
         XCTAssertEqual(app.listed.cards.map(\.id), refined.ranked.map(\.areaId))
-        XCTAssertEqual(app.listed.headline, "11 areas ranked. First: Farrowmere.")
-        XCTAssertEqual(app.listed.changes, [ResultsCopy.Status.moved(moved)])
+        XCTAssertEqual(app.listed.headline, "10 areas ranked. First: Cindermoor.")
+        XCTAssertEqual(app.listed.changes, [ResultsCopy.Status.moved(moved), "Journey and budget count most."])
         XCTAssertGreaterThan(moved, 0)
         XCTAssertEqual(
-            app.listed.announcement, "11 areas ranked. First: Farrowmere. \(ResultsCopy.Status.moved(moved))")
+            app.listed.announcement,
+            "10 areas ranked. First: Cindermoor. \(ResultsCopy.Status.moved(moved)) Journey and budget count most.")
         // The areas a firm limit left out are on the map with lines, and in the table with the reason.
         XCTAssertEqual(app.mapped.regions.filter { $0.fill.pattern == .filtered }.count, 11)
         XCTAssertTrue(app.tabled.rows.contains { $0.status == "A journey is longer than a firm limit" })
@@ -208,6 +209,20 @@ final class ResultsStatesTests: XCTestCase {
 
     @MainActor
     func test_refined_the_list_says_when_the_settings_nobody_chose_gave_way() async throws {
+        // Nothing but a vibe is asked for, so nothing counts for more than it.
+        let app = try await ResultsApp(
+            StandIn.firstSearch().on(.interpret, "interpret-scale").on(.rank, "rank-scale")
+                .on(.explainTop, "explanations-scale"))
+
+        await app.flow.submitText("not buzzy")
+
+        XCTAssertTrue(app.state.gaveWay)
+        XCTAssertNil(app.state.leads)
+        XCTAssertEqual(app.listed.changes, ["What you asked for counts most."])
+    }
+
+    @MainActor
+    func test_refined_what_counts_for_more_than_what_was_asked_is_said_in_place_of_it() async throws {
         let app = try await ResultsApp(StandIn.firstSearch().on(.rank, "rank-default-rent"))
         await app.flow.rankNow()
         app.api.on(.rank, "rank-refined").on(.explainTop, "explanations-refined")
@@ -215,7 +230,8 @@ final class ResultsStatesTests: XCTestCase {
         await app.flow.applyEdits(Edits.placeAdd("syn-p0021"))
 
         XCTAssertTrue(app.state.gaveWay)
-        XCTAssertTrue(app.listed.changes.contains("Settings you did not choose now count for less."))
+        XCTAssertTrue(app.listed.changes.contains("Journey and budget count most."))
+        XCTAssertFalse(app.listed.changes.contains("What you asked for counts most."))
     }
 
     // MARK: - Clarifying a place
@@ -306,7 +322,10 @@ final class ResultsStatesTests: XCTestCase {
             [
                 Results.Line(
                     .info,
-                    ["Nothing in that could be read as a setting. Say it another way, or use the settings."],
+                    [
+                        "Nothing in that could be read. Burro reads plain English, such as "
+                            + "“leafy and quiet, near a park”. Say it another way, or use the settings."
+                    ],
                     presses: [Results.Press(words: "Go to the search", act: .toSearch)])
             ])
         // No new ranking is asked for.
@@ -352,6 +371,87 @@ final class ResultsStatesTests: XCTestCase {
         XCTAssertEqual(
             app.listed.lines, [Results.Line(.info, ["That changed nothing. Your search already says it."])])
         XCTAssertEqual(app.listed.cards.count, 20)
+    }
+
+    // MARK: - What was noticed, what was not read, and what the data does not hold
+
+    @MainActor
+    func test_suggestions_nothing_is_ranked_from_what_was_noticed_and_the_line_leads_to_the_search() async throws {
+        let app = try await ResultsApp.searched()
+        let before = app.listed.cards
+        app.api.on(.interpret, StandIn.withTheSpecSent("interpret-suggest"))
+
+        await app.flow.submitText("pubs are so noisy")
+
+        XCTAssertEqual(app.state.conditions, [.suggesting])
+        XCTAssertEqual(
+            app.listed.lines,
+            [
+                Results.Line(
+                    .info, ["Burro was not sure. Choose what to add."],
+                    presses: [Results.Press(words: "Go to the search", act: .toSearch)])
+            ])
+        // Nothing of what was noticed is applied: the results are as they were, and nothing new is asked for.
+        XCTAssertEqual(app.listed.cards, before)
+        XCTAssertEqual(app.api.calls(to: .rank).count, 1)
+        XCTAssertEqual(app.state.spec, Answers.ranked("rank-first").spec)
+    }
+
+    @MainActor
+    func test_read_in_part_the_ranking_is_shown_and_the_list_says_it_leaves_the_rest_out() async throws {
+        let api = StandIn.firstSearch().on(
+            .interpret,
+            .made { _ in
+                try Recorded.read("interpret-first").with(data: { data in
+                    data["unread"] = .array([.object(["start": .number(0), "end": .number(7)])])
+                })
+            })
+        let app = try await ResultsApp(api)
+
+        await app.flow.submitText("leafy and quiet")
+
+        XCTAssertEqual(app.state.conditions, [.readInPart])
+        XCTAssertEqual(app.listed.cards.count, 20)
+        XCTAssertEqual(
+            app.listed.lines,
+            [
+                Results.Line(
+                    .info,
+                    [
+                        "Burro read only part of what you typed, and the ranking leaves the rest out. "
+                            + "Say the rest again in shorter sentences, one thing in each, or use the settings."
+                    ],
+                    presses: [Results.Press(words: "Go to the search", act: .toSearch)])
+            ])
+        // Where the words stand is never drawn, and neither are the words.
+        XCTAssertFalse(ResultsDrawn.all(in: app.listed).texts.contains { $0.contains("leafy and") })
+    }
+
+    @MainActor
+    func test_not_in_the_data_what_was_asked_for_is_said_by_name_with_what_it_waits_on() async throws {
+        let app = try await ResultsApp(
+            StandIn.firstSearch()
+                .on(.getMeta, "preview/meta").on(.listAreas, "preview/areas")
+                .on(.interpret, "preview/interpret-plain").on(.rank, "preview/rank-plain")
+                .on(.explainTop, "preview/explanations-plain"))
+
+        await app.flow.submitText("leafy and quiet")
+
+        XCTAssertEqual(app.state.conditions, [.notInData])
+        XCTAssertEqual(
+            app.listed.lines,
+            [
+                Results.Line(
+                    .info,
+                    [
+                        "Not in this data yet",
+                        "You asked for one thing this data cannot answer yet. It counts for nothing in the ranking.",
+                        "Leafy. No area can be placed on it yet. It waits on: "
+                            + "Land that is residential garden, 40 of 100; Land that is woodland, 30 of 100.",
+                    ])
+            ])
+        XCTAssertEqual(app.listed.cards.count, 20)
+        XCTAssertTrue(app.app.preview.seen)
     }
 
     // MARK: - Degraded to a form
@@ -411,7 +511,7 @@ final class ResultsStatesTests: XCTestCase {
         let before = app.listed.cards
         app.api.on(.rank, "error-internal")
 
-        await app.flow.applyEdits(Edits.tagOn(.waterside))
+        await app.flow.applyEdits(Edits.tagOn(.villageFeel))
 
         let line = try XCTUnwrap(app.listed.lines.first)
         XCTAssertEqual(app.listed.lines.count, 1)
@@ -428,14 +528,14 @@ final class ResultsStatesTests: XCTestCase {
     func test_error_trying_again_sends_the_edit_that_waited() async throws {
         let app = try await ResultsApp.searched()
         app.api.on(.rank, "error-internal")
-        await app.flow.applyEdits(Edits.tagOn(.waterside))
+        await app.flow.applyEdits(Edits.tagOn(.villageFeel))
         app.api.on(.rank, "rank-refined").on(.explainTop, "explanations-refined")
 
         await app.hands.act(.retry)
 
-        XCTAssertEqual(try app.api.lastCall(to: .rank).body(as: RankBody.self).operations, Edits.tagOn(.waterside))
+        XCTAssertEqual(try app.api.lastCall(to: .rank).body(as: RankBody.self).operations, Edits.tagOn(.villageFeel))
         XCTAssertEqual(app.listed.lines, [])
-        XCTAssertEqual(app.listed.cards.count, 11)
+        XCTAssertEqual(app.listed.cards.count, 10)
     }
 
     @MainActor
@@ -492,7 +592,7 @@ final class ResultsStatesTests: XCTestCase {
         let app = try await ResultsApp.searched()
         app.api.unreachable(.rank)
 
-        await app.flow.applyEdits(Edits.tagOn(.waterside))
+        await app.flow.applyEdits(Edits.tagOn(.villageFeel))
 
         XCTAssertEqual(
             app.listed.lines.first?.words, ["Burro could not be reached.", "These results were not updated."])
@@ -503,7 +603,7 @@ final class ResultsStatesTests: XCTestCase {
     func test_error_starting_again_forgets_the_search_and_the_list_waits() async throws {
         let app = try await ResultsApp.searched()
         app.api.on(.rank, "error-internal")
-        await app.flow.applyEdits(Edits.tagOn(.waterside))
+        await app.flow.applyEdits(Edits.tagOn(.villageFeel))
 
         await app.hands.act(.startAgain)
 
@@ -520,7 +620,7 @@ final class ResultsStatesTests: XCTestCase {
         let before = app.listed.cards
         app.api.unreachable(.rank, .notConnectedToInternet)
 
-        await app.flow.applyEdits(Edits.tagOn(.waterside))
+        await app.flow.applyEdits(Edits.tagOn(.villageFeel))
 
         XCTAssertEqual(app.state.conditions, [.offline])
         XCTAssertEqual(
@@ -540,13 +640,13 @@ final class ResultsStatesTests: XCTestCase {
     func test_offline_the_edit_is_sent_once_when_the_phone_is_back() async throws {
         let app = try await ResultsApp.searched()
         app.api.unreachable(.rank, .notConnectedToInternet)
-        await app.flow.applyEdits(Edits.tagOn(.waterside))
+        await app.flow.applyEdits(Edits.tagOn(.villageFeel))
         app.api.on(.rank, "rank-refined").on(.explainTop, "explanations-refined")
 
         await app.flow.wentOnline()
 
         XCTAssertEqual(app.listed.lines, [])
-        XCTAssertEqual(app.listed.cards.count, 11)
+        XCTAssertEqual(app.listed.cards.count, 10)
     }
 
     // MARK: - A shared search, and nothing to rank by
@@ -556,7 +656,7 @@ final class ResultsStatesTests: XCTestCase {
         let api = StandIn.firstSearch().on(.getShare, "share-opened")
         let app = try await ResultsApp(api)
 
-        let failure = await app.flow.openShare("TbfsnjL3GyTlKt967hH2HQ")
+        let failure = await app.flow.openShare("rPnAeuBsXQci-xINLK_f2w")
 
         XCTAssertNil(failure)
         let line = try XCTUnwrap(app.listed.lines.first)
@@ -570,14 +670,14 @@ final class ResultsStatesTests: XCTestCase {
             ])
         XCTAssertFalse(app.listed.cards.isEmpty)
         // The id of the share is never drawn.
-        XCTAssertFalse(ResultsDrawn.all(in: app.listed).texts.contains { $0.contains("TbfsnjL3GyTlKt967hH2HQ") })
+        XCTAssertFalse(ResultsDrawn.all(in: app.listed).texts.contains { $0.contains("rPnAeuBsXQci-xINLK_f2w") })
     }
 
     @MainActor
     func test_a_shared_search_on_newer_data_says_the_ranking_may_differ() async throws {
         let app = try await ResultsApp(StandIn.firstSearch().on(.getShare, "share-opened-stale"))
 
-        _ = await app.flow.openShare("TbfsnjL3GyTlKt967hH2HQ")
+        _ = await app.flow.openShare("rPnAeuBsXQci-xINLK_f2w")
 
         XCTAssertEqual(app.listed.lines.first?.words.last, ResultsCopy.Notice.sharedStale)
     }
@@ -609,12 +709,12 @@ final class ResultsStatesTests: XCTestCase {
         let states = [
             "test_empty_", "test_interpreting_", "test_results_", "test_refining_", "test_clarifying_",
             "test_nothing_matches_", "test_nothing_read_", "test_degraded_", "test_notice_", "test_error_",
-            "test_offline_",
+            "test_offline_", "test_suggestions_", "test_read_in_part_", "test_not_in_the_data_",
         ]
 
         for state in states { XCTAssertTrue(tests.contains("func \(state)"), state) }
         // One for each phase and each condition the search can be in.
         XCTAssertEqual(Phase.allCases.count, 4)
-        XCTAssertEqual(SearchCondition.allCases.count, 8)
+        XCTAssertEqual(SearchCondition.allCases.count, 11)
     }
 }

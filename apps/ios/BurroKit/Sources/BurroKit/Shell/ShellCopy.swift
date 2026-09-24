@@ -15,6 +15,16 @@ public enum ShellCopy {
         "This is made-up test data. The city, its places and every figure are invented. "
         + "Nothing here describes a real place."
 
+    /// The banner that says the release is not finished. It is on every screen
+    /// once anything the app was given is of a preview, and cannot be closed.
+    /// It says nothing of whether the figures are made up: the banner above does.
+    public static let previewLabel = "About this release"
+    public static let previewBanner =
+        "This is a preview for the people who build Burro. It is not finished: "
+        + "what it has not measured is missing, and nothing in it has been approved for the public."
+    /// Said after it on a preview of data that is not made up.
+    public static let previewReal = "Its figures are of real places, from published data."
+
     public static func title(of tab: AppTab) -> String {
         switch tab {
         case .search: return "Search"

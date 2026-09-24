@@ -129,10 +129,15 @@ public enum Edits {
             budgetOps: [], commuteOps: [], weightOps: [edit], tagOps: [], areaOps: [], settingOps: [])
     }
 
+    /// Which end is asked for is left as it is unless the edit says: the high
+    /// end for a vibe not yet asked for.
     private static func tag(
-        _ tagId: TagId, action: WeightAction = .set, value: Double = 0, step: Step = .nothing
+        _ tagId: TagId, action: WeightAction = .set, value: Double = 0, step: Step = .nothing,
+        toward: TowardChoice = .default
     ) -> Operations {
-        let edit = TagEdit(action: action, tagId: tagId, value: value, step: step, provenance: byAControl)
+        let edit = TagEdit(
+            action: action, tagId: tagId, value: value, step: step, toward: toward,
+            provenance: byAControl)
         return Operations(
             budgetOps: [], commuteOps: [], weightOps: [], tagOps: [edit], areaOps: [], settingOps: [])
     }
@@ -215,8 +220,16 @@ public enum Edits {
         weight(featureId, action: .remove)
     }
 
-    public static func tagOn(_ tagId: TagId) -> Operations { tag(tagId, action: .nudge, step: .upLarge) }
-    public static func tagWeight(_ tagId: TagId, _ value: Double) -> Operations { tag(tagId, value: value) }
+    /// A vibe added is worth what a word is: a large step, towards the end asked for.
+    public static func tagOn(_ tagId: TagId, toward: Toward = .high) -> Operations {
+        tag(tagId, action: .nudge, step: .upLarge, toward: TowardChoice(rawValue: toward.rawValue))
+    }
+    /// How much a vibe counts. Which end is asked for is left as it is, unless one is given.
+    public static func tagWeight(
+        _ tagId: TagId, _ value: Double, toward: TowardChoice = .default
+    ) -> Operations {
+        tag(tagId, value: value, toward: toward)
+    }
     public static func tagOff(_ tagId: TagId) -> Operations { tag(tagId, action: .remove) }
 
     public static func areaHide(_ areaId: String) -> Operations { area(areaId, .exclude) }
@@ -304,7 +317,8 @@ extension Operations {
             return [Said(key: .feature(edit.featureId), states: states)]
         case .tagOps:
             guard let edit = tagOps[safe: index] else { return [] }
-            return [Said(key: .tag(edit.tagId), states: edit.provenance == .inferred ? [] : [.weight])]
+            // A vibe a person set is theirs: it is no longer what a word with two meanings was read as.
+            return [Said(key: .tag(edit.tagId), states: edit.provenance == .inferred ? [] : [.weight, .word])]
         case .areaOps:
             guard let edit = areaOps[safe: index] else { return [] }
             return [Said(key: .area(edit.areaId), states: [])]

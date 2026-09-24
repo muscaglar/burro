@@ -14,16 +14,16 @@ enum SearchCopy {
     enum Permission {
         static let title = "Before your first search"
         static let sentTitle = "What is sent"
-        /// The website's line under its box, word for word.
-        static let handled =
-            "What you type is sent to Burro to be read, and Burro does not keep it. "
-            + "If a language model reads it, the model's provider may keep it for up to 30 days, "
-            + "or longer if it is flagged."
+        /// How Burro itself handles a person's words: the website's line under
+        /// its box, word for word. It is true whoever else reads them, and it
+        /// names nobody else. Who else reads what is typed, what is sent with
+        /// it, how long it is kept and where, are the API's to say, and are
+        /// shown as they are served.
+        static let handled = "What you type is sent to Burro to be read, and Burro does not keep it."
         static let whoTitle = "Who reads it"
         static let model =
             "A language model may read your words into settings. It never ranks or scores a place, "
             + "and never describes one from its own knowledge."
-        static let otherCompany = "The language model is run by another company, not by Burro."
         static let keptTitle = "What is kept"
         static let kept =
             "Burro keeps nothing you type. This app keeps your shortlist and the choice you make here "
@@ -36,6 +36,16 @@ enum SearchCopy {
             "Your choice could not be saved on this phone. It holds until you close the app."
     }
 
+    /// What stands where the API's notice will stand, until the service has
+    /// said who reads what is typed. No sentence is sent before it has.
+    enum Reader {
+        static let label = "Who reads what you type"
+        static let checking =
+            "Burro is asking the service who else reads what you type. Nothing is sent until it has said."
+        static let unsaid =
+            "The service has not said who else reads what you type, so nothing you type is sent."
+    }
+
     /// What stands where the box would, for a person who chose the settings.
     enum Declined {
         static let line = "You chose to use the settings. Nothing you type is sent to be read."
@@ -46,6 +56,19 @@ enum SearchCopy {
         static let formLabel = "Your search"
         static let label = "Describe the life you want"
         static let hint = "Say what you can pay, where you need to get to, and what you want nearby."
+        /// The hint where the data cannot answer all of it. It asks only for
+        /// what can be answered, and says what cannot.
+        static func hint(costs: Bool, journeys: Bool) -> String {
+            if costs && journeys { return hint }
+            if costs {
+                return "Say what you can pay and what you want nearby. This data holds no journey times yet."
+            }
+            if journeys {
+                return
+                    "Say where you need to get to and what you want nearby. This data holds no rents and no prices yet."
+            }
+            return "Say what you want nearby. This data holds no rents, no prices and no journey times yet."
+        }
         static let submit = "Search"
         static let reading = "Reading"
         static let stop = "Stop"
@@ -82,31 +105,24 @@ enum SearchCopy {
         }
         static let options = "Places that match"
         static let within = "in"
-        /// The name of a place the app was never told the name of.
-        static func unnamed(_ position: Int) -> String { "Place \(position)" }
-        /// Said under the chips while a place is shown by number. `unnamed` is how
-        /// many are, and `named` how many places the search holds in all. The
-        /// number is where the data lists the place, so with more than one place
-        /// it is said not to be the order they were named in.
-        static func unnamedHint(_ unnamed: Int, of named: Int) -> String {
-            let shown =
-                unnamed == 1
-                ? "Burro cannot show the name of one place you named yet, so it is shown by number."
-                : "Burro cannot show the names of \(unnamed) places you named yet, so they are shown by number."
-            guard named > 1 else { return shown }
-            let order =
-                "The numbers are the order the data lists your places in, not the order you named them in."
-            return [shown, order].joined(separator: " ")
-        }
+        /// In place of the name of a place, where an answer named a place and gave no name for it.
+        static let noName = "A place with no name in this data"
+        /// In place of the field, where the data names no place: no spelling could match.
+        static let notInData =
+            "This data names no places yet, so Burro cannot work out a journey. "
+            + "Nothing you type here could match."
         /// What a press on an option does, for a person who cannot see that it is a button in a list.
         static func add(_ place: String) -> String { "Add \(place)" }
     }
 
     enum Status {
         static let reading = "Reading your search"
+        /// The whole of what is said of a first ranking: how many areas, and which is first.
         static func ranked(_ count: Int, first: String) -> String {
-            count == 1 ? "\(count) area ranked: \(first)." : "\(count) areas ranked. First: \(first)."
+            [rankedUnnamed(count), Status.first(first)].joined(separator: " ")
         }
+        /// The first result, by name.
+        static func first(_ name: String) -> String { "First: \(name)." }
         static func rankedUnnamed(_ count: Int) -> String {
             count == 1 ? "\(count) area ranked." : "\(count) areas ranked."
         }
@@ -122,8 +138,22 @@ enum SearchCopy {
             default: return "\(count) areas changed place."
             }
         }
-        static let gaveWay = "Settings you did not choose now count for less."
+        /// Said when the settings nobody chose came to count for less.
+        static let gaveWay = "What you asked for counts most."
+        /// Said in its place where a journey or a budget counts for more than
+        /// anything that was asked of the place. A person who asked for leafy
+        /// and quiet must not read the first result as the leafiest.
+        static func leads(journeys: Int, budget: Bool) -> String {
+            guard journeys > 0 else { return "Budget counts most." }
+            let who = journeys == 1 ? "Journey" : "Journeys"
+            let counts = budget ? " and budget count" : journeys == 1 ? " counts" : " count"
+            return who + counts + " most."
+        }
         static let nothingMatches = "No area passes every limit you set."
+        /// Said in its place where no limit left any area out: every area has
+        /// too little data for what counts.
+        static let nothingRanked =
+            "No area could be ranked. This data holds too little of what counts in your search."
         static let question = "Burro has a question about a place."
         /// The list is on another screen, so the way to it is a button here.
         static let showResults = "Show results"
@@ -148,6 +178,8 @@ enum SearchCopy {
         static func within(_ minutes: Int) -> String { "within \(minutes) minutes" }
         static let more = "more"
         static let fewer = "fewer"
+        /// A scale, and the end of it that is asked for. Both names are the API's.
+        static func towards(_ vibe: String, _ end: String) -> String { "\(vibe): towards \(end)" }
         static let hidden = "hidden"
         static let only = "only"
         static let off = "does not count"
@@ -164,9 +196,27 @@ enum SearchCopy {
     enum Notice {
         static let label = "About your search"
         static let degraded = "Your words could not be read just now. The settings below do the same job."
-        static let nothingRead =
-            "Nothing in that could be read as a setting. Say it another way, or use the settings below."
+        /// A sentence that Burro reads whole, to show what it can read. It names no place.
+        static let readable = "leafy and quiet, near a park"
+        /// The website writes the sentence between quote marks. So does this.
+        static var nothingRead: String {
+            "Nothing in that could be read. Burro reads plain English, such as \(open)\(readable)\(close). "
+                + "Say it another way, or use the settings below."
+        }
+        private static let open = "“"
+        private static let close = "”"
         static let nothingChanged = "That changed nothing. Your search already says it."
+        /// Beside the box, when only a part of what was typed was read.
+        static let partLabel = "What was not read"
+        static let partUnread =
+            "Burro read only part of what you typed, and the ranking leaves the rest out. "
+            + "Say the rest again in shorter sentences, one thing in each, or use the settings."
+        static func partShown(_ at: Int, of: Int) -> String {
+            of == 1
+                ? "The part that was not read is selected in the box."
+                : "Part \(at) of the \(of) that were not read is selected in the box."
+        }
+        static let partNotFound = "Burro cannot show which part it was."
         static let offline = "You are offline. Your search is still here."
         static let offlineWaiting = "Your last change will be sent when you are back online."
         static let notUpdated = "These results were not updated."
@@ -178,6 +228,40 @@ enum SearchCopy {
         static let theSetting = "the setting"
         static let unmetLabel = "What could not be answered"
         static let rejectedLabel = "What was not applied"
+    }
+
+    /// What the reader noticed in a prompt it did not apply. The name of each
+    /// thing and the words of each choice are the API's.
+    enum Suggest {
+        static let title = "Burro was not sure. Choose what to add."
+        /// Under the heading, in one line: why Burro asks, where it could have added what it noticed.
+        static let why = "It never guesses what you meant, so it asks."
+        /// The one button that adds every thing in sight that there is one way to want.
+        static func addAll(_ count: Int) -> String { "Add all \(count)" }
+        /// The same, where a thing that could be meant two ways is in sight as well, and is left as a question.
+        static func addThese(_ count: Int) -> String { "Add the \(count) that need no choice" }
+        /// A choice that is said of every suggestion, named by the thing it is a choice of.
+        static func named(_ choice: String, _ thing: String) -> String { "\(choice): \(thing)" }
+        static let showWords = "Show the words"
+        static func showWordsOf(_ thing: String) -> String { "Show the words in the box: \(thing)" }
+        static func showAll(_ count: Int) -> String { "Show all \(count)" }
+        /// Selects, in the box, a part of what was typed that the reader made nothing of.
+        static let showUnread = "Show in the box"
+        static let showNextUnread = "Show the next in the box"
+        /// Beside the button, where a part of what was typed was not read.
+        static let unread = "Some of your words were not read."
+        static let wordsShown = "The words are selected in the box."
+    }
+
+    /// What was asked for that the data does not hold yet. The name of each
+    /// thing and the name of each part it waits on are the API's.
+    enum NotInData {
+        static let title = "Not in this data yet"
+        static func lead(_ count: Int) -> String {
+            count == 1
+                ? "You asked for one thing this data cannot answer yet. It counts for nothing in the ranking."
+                : "You asked for \(count) things this data cannot answer yet. They count for nothing in the ranking."
+        }
     }
 
     enum Question {
@@ -192,8 +276,8 @@ enum SearchCopy {
     /// Who read the words. `nil` for a reader this build has no word for.
     static func readBy(_ interpreter: InterpreterName) -> String? {
         switch interpreter {
-        case .claude: return "Read by AI. Check what it understood."
-        case .rule: return "Read without AI, by fixed rules."
+        case .model: return "Read by AI. Check what it understood."
+        case .rule: return "Read without AI."
         case .unlisted: return nil
         }
     }
@@ -234,6 +318,15 @@ enum SearchCopy {
             return
                 "Burro has no data on places of worship, or on shops and venues for one community, so that part was left out."
         case .outsideTheCity: return "Burro covers one city. A place outside it was left out."
+        case .streetCleanliness:
+            return "Burro has no measure of how clean a street is, so that part was left out."
+        case .upkeep: return "Burro has no measure of how well kept a place is, so that part was left out."
+        case .ratings: return "Burro has no ratings or reviews of any place, so that part was left out."
+        case .pricesAndHours:
+            return "Burro has no data on what a place charges or when it opens, so that part was left out."
+        case .mobileCoverage: return "Burro has no data on mobile signal, so that part was left out."
+        case .changeOverTime:
+            return "Burro has no measure of how an area is changing, so that part was left out."
         case .other: return "Part of what you typed could not be read. Say it another way, or use the settings."
         case .unlisted: return nil
         }
@@ -251,13 +344,23 @@ enum SearchCopy {
         case .segmentNotForTenure:
             return "That kind of home does not go with the choice of renting or buying."
         case .directionNotAllowed: return "That counts one way only."
-        case .crimeNeedsExplicitRequest:
-            return "Recorded crime counts only when you ask for it by name, or switch it on in the settings."
+        case .crimeNeedsExplicitRequest: return crimeRule
         case .mismatchedChoice: return "That setting does not take that choice."
         case .nothingToChange: return "That changed nothing."
         case .unlisted: return nil
         }
     }
+
+    /// When recorded crime counts, said one way wherever it is said.
+    static let crimeRule =
+        "Recorded crime counts only when you ask for it by name, switch it on in the settings, "
+        + "or ask for a vibe whose recipe holds it."
+    /// Said after it where no vibe of the release holds recorded crime.
+    static let crimeNoVibe = "In this data no vibe holds it."
+    /// On the chip of a vibe whose recipe holds recorded crime, after its name.
+    static let crimeChip = "counts recorded crime"
+    /// Beside such a vibe in the settings, before the parts of its recipe that are of crime.
+    static let crimeCounts = "This vibe counts recorded crime"
 
     /// Words for a call that gave no answer, when the reason is not the API's own.
     /// They are the shell's, which are the website's.

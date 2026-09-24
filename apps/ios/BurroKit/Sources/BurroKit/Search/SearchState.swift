@@ -52,14 +52,25 @@ public struct Read: Hashable, Sendable {
     public var clarify: [Clarify]
     public let unmet: [UnmetCategory]
     public var rejected: [Rejected]
-    public let notice: Notice
-    public let noticeText: String
+    public var notice: Notice
+    public var noticeText: String
     public let interpreter: InterpreterName
     public let degraded: Bool
+    /// What the reader noticed and did not apply, for the person to choose from. Each
+    /// holds where its words stand in the text, as offsets, and never the words.
+    public var suggestions: [Suggestion]
+    /// The stretches of the text the reader made nothing of: offsets, and never the
+    /// words. They mean nothing without the text, which only the box holds.
+    public var unread: [Span]
+    /// What was asked for that the release holds for no area, each by the API's name for it.
+    public let notInRelease: [NotInRelease]
     /// How many edits the words were read into.
     public let edits: Int
     /// True when any of them changed the spec.
     public let changed: Bool
+    /// True when a stretch of what was typed was not read. It stays true of the ranking
+    /// when the box changes, though where the stretch stood can no longer be shown.
+    public let partUnread: Bool
     /// The count of answers when this one came, so a screen can tell it is the latest.
     public let at: Int
     /// The release and the engine that read the words.
@@ -139,6 +150,7 @@ public struct Kept: Hashable, Sendable {
     public let read: Read?
     public let refused: Refused?
     public let assumed: Assumed
+    public let placeNames: [String: String]
     public let gaveWay: Bool
     public let degraded: Bool
 }
@@ -207,6 +219,8 @@ public struct SearchState: Hashable, Sendable {
     /// Why the profile of an area could not be loaded, by the id of the area.
     public var detailFailures: [String: Failure]
 
+    /// The release's own name for each place the spec names, by its id. From
+    /// the answer that brought the spec.
     public var placeNames: [String: String]
     public var assumed: Assumed
 
@@ -282,6 +296,13 @@ public enum SearchEvent: Sendable {
     case startedAgain
     case questionAnswered(Clarify, id: String)
     case questionLeft(Clarify)
+    /// A suggestion goes when the person has chosen of it, whatever they chose. `changes`
+    /// is true where the choice holds edits, which change the search. Leaving a thing
+    /// out holds none.
+    case suggestionChosen(at: Int, changes: Bool)
+    /// Every suggestion goes when the box changes: what each rests on is known for what
+    /// was sent, and for nothing else.
+    case boxChanged
     case placeNamed(placeId: String, name: String)
     case onlineChanged(Bool)
     case settingsOpened(Bool)

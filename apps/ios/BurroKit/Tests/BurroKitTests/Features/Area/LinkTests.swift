@@ -6,7 +6,7 @@ import XCTest
 /// that a link holds an id or a slug and nothing else.
 final class LinkTests: XCTestCase {
     private let site = SiteAddress("https://burro.example.test")
-    private let shareId = "TbfsnjL3GyTlKt967hH2HQ"
+    private let shareId = "rPnAeuBsXQci-xINLK_f2w"
     // A string found nowhere else, planted where a link could carry it.
     private let canary = "zqxcanary7431"
 
@@ -264,10 +264,12 @@ final class LinkTests: XCTestCase {
                 "A place in this search is the station or district that stands in for the place the sender named. "
                     + "The ranking may differ a little from theirs.",
             ])
-        XCTAssertEqual(opened.ranked, 22)
+        XCTAssertEqual(opened.ranked, 21)
         let first = try XCTUnwrap(Answers.shared("share-opened").scores.first)
         XCTAssertEqual(opened.first, Answers.areas.first { $0.areaId == first.areaId }?.name)
-        XCTAssertEqual(opened.status, "22 areas ranked. First: \(opened.first ?? "").")
+        XCTAssertEqual(opened.status, "21 areas ranked. First: Eskerfold.")
+        // The place is named by the share's own answer: the station that stands in for what the sender named.
+        XCTAssertEqual(app.search?.state.placeNames, ["syn-p0005": "Eskerfold"])
         XCTAssertFalse(shared.canTryAgain)
     }
 
@@ -332,7 +334,8 @@ final class LinkTests: XCTestCase {
         XCTAssertEqual(
             Array(opened.lines.suffix(2)),
             [
-                "The places in this search are the ones the sender named.",
+                "The places in this search are the ones the sender named: "
+                    + "they chose to share them, or each is a station or a district already.",
                 "The data has changed since this link was made, so the ranking may differ from what the sender saw. "
                     + "It was made on data release syn-2026-09-23-01. It is shown on \(opened.shownOn).",
             ])
@@ -411,7 +414,7 @@ final class LinkTests: XCTestCase {
         }
 
         XCTAssertEqual(opened(22, first: "Farrowmere").status, "22 areas ranked. First: Farrowmere.")
-        XCTAssertEqual(opened(1, first: "Farrowmere").status, "1 area ranked: Farrowmere.")
+        XCTAssertEqual(opened(1, first: "Farrowmere").status, "1 area ranked. First: Farrowmere.")
         XCTAssertEqual(opened(3, first: nil).status, "3 areas ranked.")
         XCTAssertEqual(opened(0, first: nil).status, "No area passes every limit you set.")
         XCTAssertEqual(
@@ -433,8 +436,11 @@ final class LinkTests: XCTestCase {
             XCTAssertTrue(share.contains("\"\(words)\""), words)
         }
         XCTAssertTrue(search.contains("\"\(LinkCopy.Ranked.none)\""))
-        XCTAssertTrue(search.contains("${count} areas ranked. First: ${first}."))
-        XCTAssertTrue(search.contains("1 area ranked: ${first}."))
+        // The line is made of two parts, as the website makes it: how many, and which is first.
+        XCTAssertTrue(search.contains("${count} areas ranked."))
+        XCTAssertTrue(search.contains("\"1 area ranked.\""))
+        XCTAssertTrue(search.contains("First: ${name}."))
+        XCTAssertEqual(LinkCopy.Ranked.named(3, first: "A"), "3 areas ranked. First: A.")
         XCTAssertTrue(search.contains("${count} areas pass. Nothing is set to rank them by, so they are in no order."))
     }
 }

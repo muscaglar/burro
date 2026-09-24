@@ -32,6 +32,7 @@ public final class SavedAreas {
 
     @ObservationIgnored private let shortlist: Shortlist
     @ObservationIgnored private let notice: SyntheticNotice
+    @ObservationIgnored private let preview: PreviewNotice
     /// The app is asked whether an area is made up. It holds nothing of this, so it is not held here.
     @ObservationIgnored private weak var app: AppModel?
     @ObservationIgnored private let storage: any SavedAreasStorage
@@ -40,6 +41,7 @@ public final class SavedAreas {
         self.app = app
         shortlist = app.shortlist
         notice = app.synthetic
+        preview = app.preview
         self.storage = storage
         let read = storage.read() ?? .empty
         kept = Dictionary(read.areas.map { ($0.areaId, $0) }, uniquingKeysWith: { first, _ in first })
@@ -49,6 +51,8 @@ public final class SavedAreas {
         watch()
         // A saved area that is made up is data on a screen, with or without a connection.
         notice.note(kept.values.contains { $0.synthetic })
+        // So is one that was saved from a preview.
+        preview.note(kept.values.contains { $0.preview })
     }
 
     // MARK: - Reading
@@ -97,6 +101,7 @@ public final class SavedAreas {
         guard let saved = shortlist.entries.first(where: { $0.areaId == area.areaId }) else { return }
         if let page, page.area.areaId == area.areaId, kept[area.areaId] == nil {
             kept[area.areaId] = KeptArea(page, savedOn: saved.savedOn)
+            preview.note(page.preview)
         }
         save()
     }
@@ -106,6 +111,7 @@ public final class SavedAreas {
         guard let saved = shortlist.entries.first(where: { $0.areaId == page.area.areaId }) else { return }
         kept[saved.areaId] = KeptArea(page, savedOn: saved.savedOn)
         notice.note(page.synthetic)
+        preview.note(page.preview)
         save()
     }
 

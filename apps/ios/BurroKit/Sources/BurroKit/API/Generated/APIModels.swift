@@ -1,16 +1,16 @@
 // Generated from contracts/openapi.json by apps/ios/scripts/generate.py.
 // Never edited by hand: change the source and run `make generate`.
-// source-sha256: 06d39ed9bd188b88a51e52be7d59dfe6b17588cfb2a3752794964144ab34772f
+// source-sha256: 445949d584bb32c90a058e271298840b12447f64a5c41f3584a78734832d0de1
 
 import Foundation
 
 /// What these files were generated from, for the test that says when they are stale.
 public enum GeneratedFrom {
     /// The SHA-256 of `contracts/openapi.json` when the models were written.
-    public static let contractSHA256 = "06d39ed9bd188b88a51e52be7d59dfe6b17588cfb2a3752794964144ab34772f"
+    public static let contractSHA256 = "445949d584bb32c90a058e271298840b12447f64a5c41f3584a78734832d0de1"
     /// The title and the version the contract gives itself.
     public static let contractTitle = "Burro API"
-    public static let contractVersion = "1"
+    public static let contractVersion = "2"
 }
 
 /// A position as GeoJSON writes it: longitude, then latitude, in WGS84.
@@ -114,6 +114,8 @@ public struct AreaData: Hashable, Sendable, Codable {
     public let cost: [CostEstimate]
     public let stations: [StationAccess]
     public let neighbours: [AreaSummary]
+    public let portrait: Portrait
+    public let similar: [Similar]
     public let facts: [Fact]
 
     public init(
@@ -123,6 +125,8 @@ public struct AreaData: Hashable, Sendable, Codable {
         cost: [CostEstimate],
         stations: [StationAccess],
         neighbours: [AreaSummary],
+        portrait: Portrait,
+        similar: [Similar],
         facts: [Fact]
     ) {
         self.area = area
@@ -131,6 +135,8 @@ public struct AreaData: Hashable, Sendable, Codable {
         self.cost = cost
         self.stations = stations
         self.neighbours = neighbours
+        self.portrait = portrait
+        self.similar = similar
         self.facts = facts
     }
 
@@ -141,6 +147,8 @@ public struct AreaData: Hashable, Sendable, Codable {
         case cost
         case stations
         case neighbours
+        case portrait
+        case similar
         case facts
     }
 
@@ -152,6 +160,8 @@ public struct AreaData: Hashable, Sendable, Codable {
         cost = try container.decode([CostEstimate].self, forKey: .cost)
         stations = try container.decode([StationAccess].self, forKey: .stations)
         neighbours = try container.decode([AreaSummary].self, forKey: .neighbours)
+        portrait = try container.decode(Portrait.self, forKey: .portrait)
+        similar = try container.decode([Similar].self, forKey: .similar)
         facts = try container.decode([Fact].self, forKey: .facts)
     }
 
@@ -163,6 +173,8 @@ public struct AreaData: Hashable, Sendable, Codable {
         try container.encode(cost, forKey: .cost)
         try container.encode(stations, forKey: .stations)
         try container.encode(neighbours, forKey: .neighbours)
+        try container.encode(portrait, forKey: .portrait)
+        try container.encode(similar, forKey: .similar)
         try container.encode(facts, forKey: .facts)
     }
 }
@@ -313,23 +325,28 @@ public struct AreaSummary: Hashable, Sendable, Codable {
 
 public struct AreasData: Hashable, Sendable, Codable {
     public let areas: [AreaSummary]
+    public let bands: [VibeBands]
 
-    public init(areas: [AreaSummary]) {
+    public init(areas: [AreaSummary], bands: [VibeBands]) {
         self.areas = areas
+        self.bands = bands
     }
 
     enum CodingKeys: String, CodingKey {
         case areas
+        case bands
     }
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         areas = try container.decode([AreaSummary].self, forKey: .areas)
+        bands = try container.decode([VibeBands].self, forKey: .bands)
     }
 
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(areas, forKey: .areas)
+        try container.encode(bands, forKey: .bands)
     }
 }
 
@@ -338,17 +355,25 @@ public struct Assumption: Hashable, Sendable, Codable {
     public let code: AssumptionCode
     public let group: OpsGroup
     public let index: Int
+    public let word: String
 
-    public init(code: AssumptionCode, group: OpsGroup, index: Int) {
+    public init(
+        code: AssumptionCode,
+        group: OpsGroup,
+        index: Int,
+        word: String = ""
+    ) {
         self.code = code
         self.group = group
         self.index = index
+        self.word = word
     }
 
     enum CodingKeys: String, CodingKey {
         case code
         case group
         case index
+        case word
     }
 
     public init(from decoder: any Decoder) throws {
@@ -356,6 +381,7 @@ public struct Assumption: Hashable, Sendable, Codable {
         code = try container.decode(AssumptionCode.self, forKey: .code)
         group = try container.decode(OpsGroup.self, forKey: .group)
         index = try container.decode(Int.self, forKey: .index)
+        word = try container.decodeIfPresent(String.self, forKey: .word) ?? ""
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -363,6 +389,7 @@ public struct Assumption: Hashable, Sendable, Codable {
         try container.encode(code, forKey: .code)
         try container.encode(group, forKey: .group)
         try container.encode(index, forKey: .index)
+        try container.encode(word, forKey: .word)
     }
 }
 
@@ -374,11 +401,12 @@ public enum AssumptionCode: Hashable, Sendable, Codable, CaseIterable, RawRepres
     case maxMinutes
     case direction
     case weight
+    case word
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [AssumptionCode] = [.tenure, .segment, .strictness, .mode, .maxMinutes, .direction, .weight]
+    public static let allCases: [AssumptionCode] = [.tenure, .segment, .strictness, .mode, .maxMinutes, .direction, .weight, .word]
 
     public init(rawValue: String) {
         switch rawValue {
@@ -389,6 +417,7 @@ public enum AssumptionCode: Hashable, Sendable, Codable, CaseIterable, RawRepres
         case "max_minutes": self = .maxMinutes
         case "direction": self = .direction
         case "weight": self = .weight
+        case "word": self = .word
         default: self = .unlisted(rawValue)
         }
     }
@@ -402,8 +431,55 @@ public enum AssumptionCode: Hashable, Sendable, Codable, CaseIterable, RawRepres
         case .maxMinutes: return "max_minutes"
         case .direction: return "direction"
         case .weight: return "weight"
+        case .word: return "word"
         case .unlisted(let value): return value
         }
+    }
+}
+
+/// Where one area sits on one vibe: a band, one of five, and the bands it spans.
+///
+/// All three are `null` for an area that cannot be placed. It is never drawn
+/// in the middle. The score a vibe is ranked on is not here, and is never shown.
+public struct BandMark: Hashable, Sendable, Codable {
+    public let areaId: String
+    public let band: Int?
+    public let spreadLow: Int?
+    public let spreadHigh: Int?
+
+    public init(
+        areaId: String,
+        band: Int?,
+        spreadLow: Int?,
+        spreadHigh: Int?
+    ) {
+        self.areaId = areaId
+        self.band = band
+        self.spreadLow = spreadLow
+        self.spreadHigh = spreadHigh
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case areaId = "area_id"
+        case band
+        case spreadLow = "spread_low"
+        case spreadHigh = "spread_high"
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        areaId = try container.decode(String.self, forKey: .areaId)
+        band = try container.decodeIfPresent(Int.self, forKey: .band)
+        spreadLow = try container.decodeIfPresent(Int.self, forKey: .spreadLow)
+        spreadHigh = try container.decodeIfPresent(Int.self, forKey: .spreadHigh)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(areaId, forKey: .areaId)
+        try container.encode(band, forKey: .band)
+        try container.encode(spreadLow, forKey: .spreadLow)
+        try container.encode(spreadHigh, forKey: .spreadHigh)
     }
 }
 
@@ -545,14 +621,14 @@ public struct BudgetEdit: Hashable, Sendable, Codable {
 }
 
 public struct BudgetFit: Hashable, Sendable, Codable {
-    public let upperQuartile: Int
+    public let upperQuartile: Int?
     public let margin: Int
     public let utility: Double
     public let confidence: Confidence
     public let asOf: String
 
     public init(
-        upperQuartile: Int,
+        upperQuartile: Int?,
         margin: Int,
         utility: Double,
         confidence: Confidence,
@@ -575,7 +651,7 @@ public struct BudgetFit: Hashable, Sendable, Codable {
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        upperQuartile = try container.decode(Int.self, forKey: .upperQuartile)
+        upperQuartile = try container.decodeIfPresent(Int.self, forKey: .upperQuartile)
         margin = try container.decode(Int.self, forKey: .margin)
         utility = try container.decode(Double.self, forKey: .utility)
         confidence = try container.decode(Confidence.self, forKey: .confidence)
@@ -589,6 +665,479 @@ public struct BudgetFit: Hashable, Sendable, Codable {
         try container.encode(utility, forKey: .utility)
         try container.encode(confidence, forKey: .confidence)
         try container.encode(asOf, forKey: .asOf)
+    }
+}
+
+/// The heading of each column, in the order they are printed.
+public struct CensusColumns: Hashable, Sendable, Codable {
+    public let label: String
+    public let share: String
+    public let count: String
+    public let city: String
+
+    public init(
+        label: String,
+        share: String,
+        count: String,
+        city: String
+    ) {
+        self.label = label
+        self.share = share
+        self.count = count
+        self.city = city
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case label
+        case share
+        case count
+        case city
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        label = try container.decode(String.self, forKey: .label)
+        share = try container.decode(String.self, forKey: .share)
+        count = try container.decode(String.self, forKey: .count)
+        city = try container.decode(String.self, forKey: .city)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(label, forKey: .label)
+        try container.encode(share, forKey: .share)
+        try container.encode(count, forKey: .count)
+        try container.encode(city, forKey: .city)
+    }
+}
+
+/// What a table counts. It is no `FeatureId` and no `TagId`: no spec or edit can name it.
+public enum CensusKind: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+    case age
+    case households
+    case countryOfBirth
+    case ethnicGroup
+    case religion
+    /// A value this build does not know. It is kept, and sent back, as it came.
+    case unlisted(String)
+
+    /// Every value the contract lists.
+    public static let allCases: [CensusKind] = [.age, .households, .countryOfBirth, .ethnicGroup, .religion]
+
+    public init(rawValue: String) {
+        switch rawValue {
+        case "age": self = .age
+        case "households": self = .households
+        case "country_of_birth": self = .countryOfBirth
+        case "ethnic_group": self = .ethnicGroup
+        case "religion": self = .religion
+        default: self = .unlisted(rawValue)
+        }
+    }
+
+    public var rawValue: String {
+        switch self {
+        case .age: return "age"
+        case .households: return "households"
+        case .countryOfBirth: return "country_of_birth"
+        case .ethnicGroup: return "ethnic_group"
+        case .religion: return "religion"
+        case .unlisted(let value): return value
+        }
+    }
+}
+
+/// Why an area has no figure for a table. Nothing is filled in for either.
+public enum CensusLeftOut: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+    case tooFew
+    case notHeld
+    /// A value this build does not know. It is kept, and sent back, as it came.
+    case unlisted(String)
+
+    /// Every value the contract lists.
+    public static let allCases: [CensusLeftOut] = [.tooFew, .notHeld]
+
+    public init(rawValue: String) {
+        switch rawValue {
+        case "too_few": self = .tooFew
+        case "not_held": self = .notHeld
+        default: self = .unlisted(rawValue)
+        }
+    }
+
+    public var rawValue: String {
+        switch self {
+        case .tooFew: return "too_few"
+        case .notHeld: return "not_held"
+        case .unlisted(let value): return value
+        }
+    }
+}
+
+/// What the closed block of an area's page says. It holds no figure and names no area.
+public struct CensusOffer: Hashable, Sendable, Codable {
+    public let available: Bool
+    public let heading: String
+    public let intro: String
+
+    public init(available: Bool, heading: String, intro: String) {
+        self.available = available
+        self.heading = heading
+        self.intro = intro
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case available
+        case heading
+        case intro
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        available = try container.decode(Bool.self, forKey: .available)
+        heading = try container.decode(String.self, forKey: .heading)
+        intro = try container.decode(String.self, forKey: .intro)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(available, forKey: .available)
+        try container.encode(heading, forKey: .heading)
+        try container.encode(intro, forKey: .intro)
+    }
+}
+
+/// The census of one area, as its page shows it. Every word but a button's is here.
+public struct CensusPanel: Hashable, Sendable, Codable {
+    public let areaId: String
+    public let heading: String
+    public let dateLine: String
+    public let notes: [String]
+    public let city: String
+    public let outputAreas: Int
+    public let tables: [CensusPanelTable]
+    public let sourceLine: String
+    public let derivationLine: String
+    public let licenceLine: String
+
+    public init(
+        areaId: String,
+        heading: String,
+        dateLine: String,
+        notes: [String],
+        city: String,
+        outputAreas: Int,
+        tables: [CensusPanelTable],
+        sourceLine: String,
+        derivationLine: String,
+        licenceLine: String
+    ) {
+        self.areaId = areaId
+        self.heading = heading
+        self.dateLine = dateLine
+        self.notes = notes
+        self.city = city
+        self.outputAreas = outputAreas
+        self.tables = tables
+        self.sourceLine = sourceLine
+        self.derivationLine = derivationLine
+        self.licenceLine = licenceLine
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case areaId = "area_id"
+        case heading
+        case dateLine = "date_line"
+        case notes
+        case city
+        case outputAreas = "output_areas"
+        case tables
+        case sourceLine = "source_line"
+        case derivationLine = "derivation_line"
+        case licenceLine = "licence_line"
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        areaId = try container.decode(String.self, forKey: .areaId)
+        heading = try container.decode(String.self, forKey: .heading)
+        dateLine = try container.decode(String.self, forKey: .dateLine)
+        notes = try container.decode([String].self, forKey: .notes)
+        city = try container.decode(String.self, forKey: .city)
+        outputAreas = try container.decode(Int.self, forKey: .outputAreas)
+        tables = try container.decode([CensusPanelTable].self, forKey: .tables)
+        sourceLine = try container.decode(String.self, forKey: .sourceLine)
+        derivationLine = try container.decode(String.self, forKey: .derivationLine)
+        licenceLine = try container.decode(String.self, forKey: .licenceLine)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(areaId, forKey: .areaId)
+        try container.encode(heading, forKey: .heading)
+        try container.encode(dateLine, forKey: .dateLine)
+        try container.encode(notes, forKey: .notes)
+        try container.encode(city, forKey: .city)
+        try container.encode(outputAreas, forKey: .outputAreas)
+        try container.encode(tables, forKey: .tables)
+        try container.encode(sourceLine, forKey: .sourceLine)
+        try container.encode(derivationLine, forKey: .derivationLine)
+        try container.encode(licenceLine, forKey: .licenceLine)
+    }
+}
+
+/// One row as it is printed: the area's figure, and the whole city's beside it.
+///
+/// `share` and `city_share` are words. `percent` and `city_percent` are the
+/// same shares as whole numbers, for the picture alone, and are `None`
+/// where the share is under 1 in 100. `count` is as it is printed, and is
+/// `None` where the share is under 1 in 100: a small count is never given.
+public struct CensusPanelRow: Hashable, Sendable, Codable {
+    public let code: String
+    public let heading: String
+    public let label: String
+    public let depth: Int
+    public let share: String
+    public let percent: Int?
+    public let count: String?
+    public let cityShare: String
+    public let cityPercent: Int?
+
+    public init(
+        code: String,
+        heading: String,
+        label: String,
+        depth: Int,
+        share: String,
+        percent: Int?,
+        count: String?,
+        cityShare: String,
+        cityPercent: Int?
+    ) {
+        self.code = code
+        self.heading = heading
+        self.label = label
+        self.depth = depth
+        self.share = share
+        self.percent = percent
+        self.count = count
+        self.cityShare = cityShare
+        self.cityPercent = cityPercent
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case code
+        case heading
+        case label
+        case depth
+        case share
+        case percent
+        case count
+        case cityShare = "city_share"
+        case cityPercent = "city_percent"
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        code = try container.decode(String.self, forKey: .code)
+        heading = try container.decode(String.self, forKey: .heading)
+        label = try container.decode(String.self, forKey: .label)
+        depth = try container.decode(Int.self, forKey: .depth)
+        share = try container.decode(String.self, forKey: .share)
+        percent = try container.decodeIfPresent(Int.self, forKey: .percent)
+        count = try container.decodeIfPresent(String.self, forKey: .count)
+        cityShare = try container.decode(String.self, forKey: .cityShare)
+        cityPercent = try container.decodeIfPresent(Int.self, forKey: .cityPercent)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(code, forKey: .code)
+        try container.encode(heading, forKey: .heading)
+        try container.encode(label, forKey: .label)
+        try container.encode(depth, forKey: .depth)
+        try container.encode(share, forKey: .share)
+        try container.encode(percent, forKey: .percent)
+        try container.encode(count, forKey: .count)
+        try container.encode(cityShare, forKey: .cityShare)
+        try container.encode(cityPercent, forKey: .cityPercent)
+    }
+}
+
+public struct CensusPanelTable: Hashable, Sendable, Codable {
+    public let tableCode: String
+    public let kind: CensusKind
+    public let title: String
+    public let caption: String
+    public let definition: String
+    public let shownOnly: String?
+    public let note: String?
+    public let columns: CensusColumns
+    public let reason: CensusLeftOut?
+    public let leftOut: String?
+    public let rows: [CensusPanelRow]
+    public let sourceId: String
+    public let sourceUrl: String
+    public let sourceLabel: String
+
+    public init(
+        tableCode: String,
+        kind: CensusKind,
+        title: String,
+        caption: String,
+        definition: String,
+        shownOnly: String?,
+        note: String?,
+        columns: CensusColumns,
+        reason: CensusLeftOut?,
+        leftOut: String?,
+        rows: [CensusPanelRow],
+        sourceId: String,
+        sourceUrl: String,
+        sourceLabel: String
+    ) {
+        self.tableCode = tableCode
+        self.kind = kind
+        self.title = title
+        self.caption = caption
+        self.definition = definition
+        self.shownOnly = shownOnly
+        self.note = note
+        self.columns = columns
+        self.reason = reason
+        self.leftOut = leftOut
+        self.rows = rows
+        self.sourceId = sourceId
+        self.sourceUrl = sourceUrl
+        self.sourceLabel = sourceLabel
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case tableCode = "table_code"
+        case kind
+        case title
+        case caption
+        case definition
+        case shownOnly = "shown_only"
+        case note
+        case columns
+        case reason
+        case leftOut = "left_out"
+        case rows
+        case sourceId = "source_id"
+        case sourceUrl = "source_url"
+        case sourceLabel = "source_label"
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        tableCode = try container.decode(String.self, forKey: .tableCode)
+        kind = try container.decode(CensusKind.self, forKey: .kind)
+        title = try container.decode(String.self, forKey: .title)
+        caption = try container.decode(String.self, forKey: .caption)
+        definition = try container.decode(String.self, forKey: .definition)
+        shownOnly = try container.decodeIfPresent(String.self, forKey: .shownOnly)
+        note = try container.decodeIfPresent(String.self, forKey: .note)
+        columns = try container.decode(CensusColumns.self, forKey: .columns)
+        reason = try container.decodeIfPresent(CensusLeftOut.self, forKey: .reason)
+        leftOut = try container.decodeIfPresent(String.self, forKey: .leftOut)
+        rows = try container.decode([CensusPanelRow].self, forKey: .rows)
+        sourceId = try container.decode(String.self, forKey: .sourceId)
+        sourceUrl = try container.decode(String.self, forKey: .sourceUrl)
+        sourceLabel = try container.decode(String.self, forKey: .sourceLabel)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(tableCode, forKey: .tableCode)
+        try container.encode(kind, forKey: .kind)
+        try container.encode(title, forKey: .title)
+        try container.encode(caption, forKey: .caption)
+        try container.encode(definition, forKey: .definition)
+        try container.encode(shownOnly, forKey: .shownOnly)
+        try container.encode(note, forKey: .note)
+        try container.encode(columns, forKey: .columns)
+        try container.encode(reason, forKey: .reason)
+        try container.encode(leftOut, forKey: .leftOut)
+        try container.encode(rows, forKey: .rows)
+        try container.encode(sourceId, forKey: .sourceId)
+        try container.encode(sourceUrl, forKey: .sourceUrl)
+        try container.encode(sourceLabel, forKey: .sourceLabel)
+    }
+}
+
+public struct CharacterMark: Hashable, Sendable, Codable {
+    public let areaId: String
+    public let band: Int?
+    public let spreadLow: Int?
+    public let spreadHigh: Int?
+    public let factId: String
+
+    public init(
+        areaId: String,
+        band: Int?,
+        spreadLow: Int?,
+        spreadHigh: Int?,
+        factId: String
+    ) {
+        self.areaId = areaId
+        self.band = band
+        self.spreadLow = spreadLow
+        self.spreadHigh = spreadHigh
+        self.factId = factId
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case areaId = "area_id"
+        case band
+        case spreadLow = "spread_low"
+        case spreadHigh = "spread_high"
+        case factId = "fact_id"
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        areaId = try container.decode(String.self, forKey: .areaId)
+        band = try container.decodeIfPresent(Int.self, forKey: .band)
+        spreadLow = try container.decodeIfPresent(Int.self, forKey: .spreadLow)
+        spreadHigh = try container.decodeIfPresent(Int.self, forKey: .spreadHigh)
+        factId = try container.decode(String.self, forKey: .factId)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(areaId, forKey: .areaId)
+        try container.encode(band, forKey: .band)
+        try container.encode(spreadLow, forKey: .spreadLow)
+        try container.encode(spreadHigh, forKey: .spreadHigh)
+        try container.encode(factId, forKey: .factId)
+    }
+}
+
+public struct CharacterRow: Hashable, Sendable, Codable {
+    public let tagId: TagId
+    public let marks: [CharacterMark]
+
+    public init(tagId: TagId, marks: [CharacterMark]) {
+        self.tagId = tagId
+        self.marks = marks
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case tagId = "tag_id"
+        case marks
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        tagId = try container.decode(TagId.self, forKey: .tagId)
+        marks = try container.decode([CharacterMark].self, forKey: .marks)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(tagId, forKey: .tagId)
+        try container.encode(marks, forKey: .marks)
     }
 }
 
@@ -998,17 +1547,25 @@ public struct CompareCell: Hashable, Sendable, Codable {
 
 public struct CompareData: Hashable, Sendable, Codable {
     public let areas: [ComparedArea]
+    public let character: [CharacterRow]
     public let rows: [CompareRow]
     public let facts: [Fact]
 
-    public init(areas: [ComparedArea], rows: [CompareRow], facts: [Fact]) {
+    public init(
+        areas: [ComparedArea],
+        character: [CharacterRow],
+        rows: [CompareRow],
+        facts: [Fact]
+    ) {
         self.areas = areas
+        self.character = character
         self.rows = rows
         self.facts = facts
     }
 
     enum CodingKeys: String, CodingKey {
         case areas
+        case character
         case rows
         case facts
     }
@@ -1016,6 +1573,7 @@ public struct CompareData: Hashable, Sendable, Codable {
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         areas = try container.decode([ComparedArea].self, forKey: .areas)
+        character = try container.decode([CharacterRow].self, forKey: .character)
         rows = try container.decode([CompareRow].self, forKey: .rows)
         facts = try container.decode([Fact].self, forKey: .facts)
     }
@@ -1023,26 +1581,35 @@ public struct CompareData: Hashable, Sendable, Codable {
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(areas, forKey: .areas)
+        try container.encode(character, forKey: .character)
         try container.encode(rows, forKey: .rows)
         try container.encode(facts, forKey: .facts)
     }
 }
 
+/// One thing that counts, across the areas. The journeys have a row each.
+///
+/// Every cell of a journey's row is to the same place. The row is named as
+/// core keys a journey, `commute.<place_id>.<mode>`, and carries the weight
+/// of the journeys, which count as one thing between them.
 public struct CompareRow: Hashable, Sendable, Codable {
     public let component: String
     public let label: String
     public let weight: Double
+    public let place: NamedPlace?
     public let cells: [CompareCell]
 
     public init(
         component: String,
         label: String,
         weight: Double,
+        place: NamedPlace?,
         cells: [CompareCell]
     ) {
         self.component = component
         self.label = label
         self.weight = weight
+        self.place = place
         self.cells = cells
     }
 
@@ -1050,6 +1617,7 @@ public struct CompareRow: Hashable, Sendable, Codable {
         case component
         case label
         case weight
+        case place
         case cells
     }
 
@@ -1058,6 +1626,7 @@ public struct CompareRow: Hashable, Sendable, Codable {
         component = try container.decode(String.self, forKey: .component)
         label = try container.decode(String.self, forKey: .label)
         weight = try container.decode(Double.self, forKey: .weight)
+        place = try container.decodeIfPresent(NamedPlace.self, forKey: .place)
         cells = try container.decode([CompareCell].self, forKey: .cells)
     }
 
@@ -1066,6 +1635,7 @@ public struct CompareRow: Hashable, Sendable, Codable {
         try container.encode(component, forKey: .component)
         try container.encode(label, forKey: .label)
         try container.encode(weight, forKey: .weight)
+        try container.encode(place, forKey: .place)
         try container.encode(cells, forKey: .cells)
     }
 }
@@ -1082,11 +1652,12 @@ public enum CompareStatus: Hashable, Sendable, Codable, CaseIterable, RawReprese
     case commuteCap
     case notRankable
     case insufficientData
+    case characterUnknown
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [CompareStatus] = [.ranked, .excluded, .notSelected, .overBudget, .commuteCap, .notRankable, .insufficientData]
+    public static let allCases: [CompareStatus] = [.ranked, .excluded, .notSelected, .overBudget, .commuteCap, .notRankable, .insufficientData, .characterUnknown]
 
     public init(rawValue: String) {
         switch rawValue {
@@ -1097,6 +1668,7 @@ public enum CompareStatus: Hashable, Sendable, Codable, CaseIterable, RawReprese
         case "commute_cap": self = .commuteCap
         case "not_rankable": self = .notRankable
         case "insufficient_data": self = .insufficientData
+        case "character_unknown": self = .characterUnknown
         default: self = .unlisted(rawValue)
         }
     }
@@ -1110,6 +1682,7 @@ public enum CompareStatus: Hashable, Sendable, Codable, CaseIterable, RawReprese
         case .commuteCap: return "commute_cap"
         case .notRankable: return "not_rankable"
         case .insufficientData: return "insufficient_data"
+        case .characterUnknown: return "character_unknown"
         case .unlisted(let value): return value
         }
     }
@@ -1119,17 +1692,29 @@ public struct ComparedArea: Hashable, Sendable, Codable {
     public let areaId: String
     public let name: String
     public let status: CompareStatus
+    public let counted: Int
+    public let present: Int
 
-    public init(areaId: String, name: String, status: CompareStatus) {
+    public init(
+        areaId: String,
+        name: String,
+        status: CompareStatus,
+        counted: Int,
+        present: Int
+    ) {
         self.areaId = areaId
         self.name = name
         self.status = status
+        self.counted = counted
+        self.present = present
     }
 
     enum CodingKeys: String, CodingKey {
         case areaId = "area_id"
         case name
         case status
+        case counted
+        case present
     }
 
     public init(from decoder: any Decoder) throws {
@@ -1137,6 +1722,8 @@ public struct ComparedArea: Hashable, Sendable, Codable {
         areaId = try container.decode(String.self, forKey: .areaId)
         name = try container.decode(String.self, forKey: .name)
         status = try container.decode(CompareStatus.self, forKey: .status)
+        counted = try container.decode(Int.self, forKey: .counted)
+        present = try container.decode(Int.self, forKey: .present)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -1144,24 +1731,29 @@ public struct ComparedArea: Hashable, Sendable, Codable {
         try container.encode(areaId, forKey: .areaId)
         try container.encode(name, forKey: .name)
         try container.encode(status, forKey: .status)
+        try container.encode(counted, forKey: .counted)
+        try container.encode(present, forKey: .present)
     }
 }
 
+/// What a cost rests on. The first three are of a range Burro worked out.
 public enum Confidence: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
     case high
     case medium
     case low
+    case unstated
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [Confidence] = [.high, .medium, .low]
+    public static let allCases: [Confidence] = [.high, .medium, .low, .unstated]
 
     public init(rawValue: String) {
         switch rawValue {
         case "high": self = .high
         case "medium": self = .medium
         case "low": self = .low
+        case "unstated": self = .unstated
         default: self = .unlisted(rawValue)
         }
     }
@@ -1171,6 +1763,7 @@ public enum Confidence: Hashable, Sendable, Codable, CaseIterable, RawRepresenta
         case .high: return "high"
         case .medium: return "medium"
         case .low: return "low"
+        case .unstated: return "unstated"
         case .unlisted(let value): return value
         }
     }
@@ -1242,13 +1835,19 @@ public struct Contribution: Hashable, Sendable, Codable {
     }
 }
 
+/// What a home of one kind costs in one area: a range, or one number where no range is known.
+///
+/// A row holds both quartiles or neither. A row with neither is a publisher's
+/// own median of what was paid for the homes sold in the twelve months that
+/// end with `as_of`. Nothing stands in for the range, and what the median
+/// rests on is `unstated`: the publisher gives no count of the sales.
 public struct CostEstimate: Hashable, Sendable, Codable {
     public let areaId: String
     public let tenure: Tenure
     public let segment: Segment
-    public let lowerQuartile: Int
+    public let lowerQuartile: Int?
     public let median: Int
-    public let upperQuartile: Int
+    public let upperQuartile: Int?
     public let confidence: Confidence
     public let asOf: String
     public let sourceIds: [String]
@@ -1257,9 +1856,9 @@ public struct CostEstimate: Hashable, Sendable, Codable {
         areaId: String,
         tenure: Tenure,
         segment: Segment,
-        lowerQuartile: Int,
+        lowerQuartile: Int?,
         median: Int,
-        upperQuartile: Int,
+        upperQuartile: Int?,
         confidence: Confidence,
         asOf: String,
         sourceIds: [String]
@@ -1292,9 +1891,9 @@ public struct CostEstimate: Hashable, Sendable, Codable {
         areaId = try container.decode(String.self, forKey: .areaId)
         tenure = try container.decode(Tenure.self, forKey: .tenure)
         segment = try container.decode(Segment.self, forKey: .segment)
-        lowerQuartile = try container.decode(Int.self, forKey: .lowerQuartile)
+        lowerQuartile = try container.decodeIfPresent(Int.self, forKey: .lowerQuartile)
         median = try container.decode(Int.self, forKey: .median)
-        upperQuartile = try container.decode(Int.self, forKey: .upperQuartile)
+        upperQuartile = try container.decodeIfPresent(Int.self, forKey: .upperQuartile)
         confidence = try container.decode(Confidence.self, forKey: .confidence)
         asOf = try container.decode(String.self, forKey: .asOf)
         sourceIds = try container.decode([String].self, forKey: .sourceIds)
@@ -1422,6 +2021,36 @@ public struct Defaults: Hashable, Sendable, Codable {
     }
 }
 
+/// What a feature is a fact about. There is no value for who lives somewhere.
+public enum Describes: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+    case place
+    case buildings
+    case events
+    /// A value this build does not know. It is kept, and sent back, as it came.
+    case unlisted(String)
+
+    /// Every value the contract lists.
+    public static let allCases: [Describes] = [.place, .buildings, .events]
+
+    public init(rawValue: String) {
+        switch rawValue {
+        case "place": self = .place
+        case "buildings": self = .buildings
+        case "events": self = .events
+        default: self = .unlisted(rawValue)
+        }
+    }
+
+    public var rawValue: String {
+        switch self {
+        case .place: return "place"
+        case .buildings: return "buildings"
+        case .events: return "events"
+        case .unlisted(let value): return value
+        }
+    }
+}
+
 public enum Dimension: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
     case crime
     case schools
@@ -1430,11 +2059,12 @@ public enum Dimension: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
     case venuesCulture
     case homes
     case stationAccess
+    case services
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [Dimension] = [.crime, .schools, .greenWater, .airNoise, .venuesCulture, .homes, .stationAccess]
+    public static let allCases: [Dimension] = [.crime, .schools, .greenWater, .airNoise, .venuesCulture, .homes, .stationAccess, .services]
 
     public init(rawValue: String) {
         switch rawValue {
@@ -1445,6 +2075,7 @@ public enum Dimension: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
         case "venues_culture": self = .venuesCulture
         case "homes": self = .homes
         case "station_access": self = .stationAccess
+        case "services": self = .services
         default: self = .unlisted(rawValue)
         }
     }
@@ -1458,6 +2089,7 @@ public enum Dimension: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
         case .venuesCulture: return "venues_culture"
         case .homes: return "homes"
         case .stationAccess: return "station_access"
+        case .services: return "services"
         case .unlisted(let value): return value
         }
     }
@@ -1597,11 +2229,12 @@ public enum ErrorCode: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
     case areaNotFound
     case shareNotFound
     case releaseChanged
+    case censusNotAvailable
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [ErrorCode] = [.malformedJson, .bodyTooLarge, .unsupportedMediaType, .internalError, .notFound, .methodNotAllowed, .invalidRequest, .invalidText, .invalidSpec, .invalidOperations, .invalidCompare, .invalidQuery, .unknownPlace, .unknownArea, .areaNotFound, .shareNotFound, .releaseChanged]
+    public static let allCases: [ErrorCode] = [.malformedJson, .bodyTooLarge, .unsupportedMediaType, .internalError, .notFound, .methodNotAllowed, .invalidRequest, .invalidText, .invalidSpec, .invalidOperations, .invalidCompare, .invalidQuery, .unknownPlace, .unknownArea, .areaNotFound, .shareNotFound, .releaseChanged, .censusNotAvailable]
 
     public init(rawValue: String) {
         switch rawValue {
@@ -1622,6 +2255,7 @@ public enum ErrorCode: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
         case "area_not_found": self = .areaNotFound
         case "share_not_found": self = .shareNotFound
         case "release_changed": self = .releaseChanged
+        case "census_not_available": self = .censusNotAvailable
         default: self = .unlisted(rawValue)
         }
     }
@@ -1645,6 +2279,7 @@ public enum ErrorCode: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
         case .areaNotFound: return "area_not_found"
         case .shareNotFound: return "share_not_found"
         case .releaseChanged: return "release_changed"
+        case .censusNotAvailable: return "census_not_available"
         case .unlisted(let value): return value
         }
     }
@@ -1795,27 +2430,32 @@ public struct ExplanationsBody: Hashable, Sendable, Codable {
 }
 
 public struct ExplanationsData: Hashable, Sendable, Codable {
+    public let specHash: String
     public let explanations: [Explanation]
     public let facts: [Fact]
 
-    public init(explanations: [Explanation], facts: [Fact]) {
+    public init(specHash: String, explanations: [Explanation], facts: [Fact]) {
+        self.specHash = specHash
         self.explanations = explanations
         self.facts = facts
     }
 
     enum CodingKeys: String, CodingKey {
+        case specHash = "spec_hash"
         case explanations
         case facts
     }
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        specHash = try container.decode(String.self, forKey: .specHash)
         explanations = try container.decode([Explanation].self, forKey: .explanations)
         facts = try container.decode([Fact].self, forKey: .facts)
     }
 
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(specHash, forKey: .specHash)
         try container.encode(explanations, forKey: .explanations)
         try container.encode(facts, forKey: .facts)
     }
@@ -1920,11 +2560,12 @@ public enum FactKind: Hashable, Sendable, Codable, CaseIterable, RawRepresentabl
     case travel
     case station
     case missing
+    case likeness
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [FactKind] = [.area, .feature, .tag, .cost, .budgetFit, .travel, .station, .missing]
+    public static let allCases: [FactKind] = [.area, .feature, .tag, .cost, .budgetFit, .travel, .station, .missing, .likeness]
 
     public init(rawValue: String) {
         switch rawValue {
@@ -1936,6 +2577,7 @@ public enum FactKind: Hashable, Sendable, Codable, CaseIterable, RawRepresentabl
         case "travel": self = .travel
         case "station": self = .station
         case "missing": self = .missing
+        case "likeness": self = .likeness
         default: self = .unlisted(rawValue)
         }
     }
@@ -1950,6 +2592,7 @@ public enum FactKind: Hashable, Sendable, Codable, CaseIterable, RawRepresentabl
         case .travel: return "travel"
         case .station: return "station"
         case .missing: return "missing"
+        case .likeness: return "likeness"
         case .unlisted(let value): return value
         }
     }
@@ -1958,27 +2601,92 @@ public enum FactKind: Hashable, Sendable, Codable, CaseIterable, RawRepresentabl
 public struct FactSource: Hashable, Sendable, Codable {
     public let sourceId: String
     public let name: String
+    public let publisher: String
 
-    public init(sourceId: String, name: String) {
+    public init(sourceId: String, name: String, publisher: String) {
         self.sourceId = sourceId
         self.name = name
+        self.publisher = publisher
     }
 
     enum CodingKeys: String, CodingKey {
         case sourceId = "source_id"
         case name
+        case publisher
     }
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         sourceId = try container.decode(String.self, forKey: .sourceId)
         name = try container.decode(String.self, forKey: .name)
+        publisher = try container.decode(String.self, forKey: .publisher)
     }
 
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(sourceId, forKey: .sourceId)
         try container.encode(name, forKey: .name)
+        try container.encode(publisher, forKey: .publisher)
+    }
+}
+
+/// The groups of the settings, in the order they are shown.
+public enum Family: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+    case streetsHomes
+    case paceFood
+    case green
+    case dailyLife
+    /// A value this build does not know. It is kept, and sent back, as it came.
+    case unlisted(String)
+
+    /// Every value the contract lists.
+    public static let allCases: [Family] = [.streetsHomes, .paceFood, .green, .dailyLife]
+
+    public init(rawValue: String) {
+        switch rawValue {
+        case "streets_homes": self = .streetsHomes
+        case "pace_food": self = .paceFood
+        case "green": self = .green
+        case "daily_life": self = .dailyLife
+        default: self = .unlisted(rawValue)
+        }
+    }
+
+    public var rawValue: String {
+        switch self {
+        case .streetsHomes: return "streets_homes"
+        case .paceFood: return "pace_food"
+        case .green: return "green"
+        case .dailyLife: return "daily_life"
+        case .unlisted(let value): return value
+        }
+    }
+}
+
+public struct FamilyLabel: Hashable, Sendable, Codable {
+    public let family: Family
+    public let label: String
+
+    public init(family: Family, label: String) {
+        self.family = family
+        self.label = label
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case family
+        case label
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        family = try container.decode(Family.self, forKey: .family)
+        label = try container.decode(String.self, forKey: .label)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(family, forKey: .family)
+        try container.encode(label, forKey: .label)
     }
 }
 
@@ -2006,11 +2714,35 @@ public enum FeatureId: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
     case conservationCover
     case stationWalk
     case stationLines
+    case independentsNearby
+    case centreSmall
+    case centreCompact
+    case listedBuildings
+    case homesPost2000
+    case roadMajorExposure
+    case eveningClusterExposure
+    case landIndustry
+    case landStorage
+    case landTransportOther
+    case landGardens
+    case landWoodland
+    case parkLargeProximity
+    case parkFacilities
+    case groceryWalk
+    case incidentCriminalDamage
+    case incidentAntisocial
+    case privateOutdoorSpace
+    case cuisineVariety
+    case gpWalk
+    case pharmacyWalk
+    case venueFoodDrinkPerHomes
+    case priceMedian
+    case cultureVenuesPerHomes
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [FeatureId] = [.crimeViolenceRobbery, .crimeBurglaryTheft, .schoolPrimaryNearby, .schoolPrimaryAttainment, .schoolSecondaryAttainment, .universityProximity, .greenCover, .parkProximity, .playSpaceProximity, .waterAccess, .airNo2, .noiseExposure, .venueFoodDrink, .venueEvening, .venueIndependent, .cultureVenues, .highstreetAccess, .homesFlats, .homesPre1919, .homesDensity, .conservationCover, .stationWalk, .stationLines]
+    public static let allCases: [FeatureId] = [.crimeViolenceRobbery, .crimeBurglaryTheft, .schoolPrimaryNearby, .schoolPrimaryAttainment, .schoolSecondaryAttainment, .universityProximity, .greenCover, .parkProximity, .playSpaceProximity, .waterAccess, .airNo2, .noiseExposure, .venueFoodDrink, .venueEvening, .venueIndependent, .cultureVenues, .highstreetAccess, .homesFlats, .homesPre1919, .homesDensity, .conservationCover, .stationWalk, .stationLines, .independentsNearby, .centreSmall, .centreCompact, .listedBuildings, .homesPost2000, .roadMajorExposure, .eveningClusterExposure, .landIndustry, .landStorage, .landTransportOther, .landGardens, .landWoodland, .parkLargeProximity, .parkFacilities, .groceryWalk, .incidentCriminalDamage, .incidentAntisocial, .privateOutdoorSpace, .cuisineVariety, .gpWalk, .pharmacyWalk, .venueFoodDrinkPerHomes, .priceMedian, .cultureVenuesPerHomes]
 
     public init(rawValue: String) {
         switch rawValue {
@@ -2037,6 +2769,30 @@ public enum FeatureId: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
         case "conservation_cover": self = .conservationCover
         case "station_walk": self = .stationWalk
         case "station_lines": self = .stationLines
+        case "independents_nearby": self = .independentsNearby
+        case "centre_small": self = .centreSmall
+        case "centre_compact": self = .centreCompact
+        case "listed_buildings": self = .listedBuildings
+        case "homes_post2000": self = .homesPost2000
+        case "road_major_exposure": self = .roadMajorExposure
+        case "evening_cluster_exposure": self = .eveningClusterExposure
+        case "land_industry": self = .landIndustry
+        case "land_storage": self = .landStorage
+        case "land_transport_other": self = .landTransportOther
+        case "land_gardens": self = .landGardens
+        case "land_woodland": self = .landWoodland
+        case "park_large_proximity": self = .parkLargeProximity
+        case "park_facilities": self = .parkFacilities
+        case "grocery_walk": self = .groceryWalk
+        case "incident_criminal_damage": self = .incidentCriminalDamage
+        case "incident_antisocial": self = .incidentAntisocial
+        case "private_outdoor_space": self = .privateOutdoorSpace
+        case "cuisine_variety": self = .cuisineVariety
+        case "gp_walk": self = .gpWalk
+        case "pharmacy_walk": self = .pharmacyWalk
+        case "venue_food_drink_per_homes": self = .venueFoodDrinkPerHomes
+        case "price_median": self = .priceMedian
+        case "culture_venues_per_homes": self = .cultureVenuesPerHomes
         default: self = .unlisted(rawValue)
         }
     }
@@ -2066,6 +2822,63 @@ public enum FeatureId: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
         case .conservationCover: return "conservation_cover"
         case .stationWalk: return "station_walk"
         case .stationLines: return "station_lines"
+        case .independentsNearby: return "independents_nearby"
+        case .centreSmall: return "centre_small"
+        case .centreCompact: return "centre_compact"
+        case .listedBuildings: return "listed_buildings"
+        case .homesPost2000: return "homes_post2000"
+        case .roadMajorExposure: return "road_major_exposure"
+        case .eveningClusterExposure: return "evening_cluster_exposure"
+        case .landIndustry: return "land_industry"
+        case .landStorage: return "land_storage"
+        case .landTransportOther: return "land_transport_other"
+        case .landGardens: return "land_gardens"
+        case .landWoodland: return "land_woodland"
+        case .parkLargeProximity: return "park_large_proximity"
+        case .parkFacilities: return "park_facilities"
+        case .groceryWalk: return "grocery_walk"
+        case .incidentCriminalDamage: return "incident_criminal_damage"
+        case .incidentAntisocial: return "incident_antisocial"
+        case .privateOutdoorSpace: return "private_outdoor_space"
+        case .cuisineVariety: return "cuisine_variety"
+        case .gpWalk: return "gp_walk"
+        case .pharmacyWalk: return "pharmacy_walk"
+        case .venueFoodDrinkPerHomes: return "venue_food_drink_per_homes"
+        case .priceMedian: return "price_median"
+        case .cultureVenuesPerHomes: return "culture_venues_per_homes"
+        case .unlisted(let value): return value
+        }
+    }
+}
+
+/// What a person may want of a feature, which decides where it may stand.
+public enum FeatureKind: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+    case taste
+    case amenity
+    case nuisance
+    case onRequest
+    /// A value this build does not know. It is kept, and sent back, as it came.
+    case unlisted(String)
+
+    /// Every value the contract lists.
+    public static let allCases: [FeatureKind] = [.taste, .amenity, .nuisance, .onRequest]
+
+    public init(rawValue: String) {
+        switch rawValue {
+        case "taste": self = .taste
+        case "amenity": self = .amenity
+        case "nuisance": self = .nuisance
+        case "on_request": self = .onRequest
+        default: self = .unlisted(rawValue)
+        }
+    }
+
+    public var rawValue: String {
+        switch self {
+        case .taste: return "taste"
+        case .amenity: return "amenity"
+        case .nuisance: return "nuisance"
+        case .onRequest: return "on_request"
         case .unlisted(let value): return value
         }
     }
@@ -2436,6 +3249,33 @@ public enum GeometryType: Hashable, Sendable, Codable, CaseIterable, RawRepresen
     }
 }
 
+/// Whether a release carries Gritty, the one vibe that counts recorded crime.
+public enum GrittyVariant: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+    case a
+    case b
+    /// A value this build does not know. It is kept, and sent back, as it came.
+    case unlisted(String)
+
+    /// Every value the contract lists.
+    public static let allCases: [GrittyVariant] = [.a, .b]
+
+    public init(rawValue: String) {
+        switch rawValue {
+        case "a": self = .a
+        case "b": self = .b
+        default: self = .unlisted(rawValue)
+        }
+    }
+
+    public var rawValue: String {
+        switch self {
+        case .a: return "a"
+        case .b: return "b"
+        case .unlisted(let value): return value
+        }
+    }
+}
+
 public struct Health: Hashable, Sendable, Codable {
     public let ok: Bool
 
@@ -2458,29 +3298,65 @@ public struct Health: Hashable, Sendable, Codable {
     }
 }
 
+/// What a release holds to answer a search with, apart from its measures and its vibes.
+///
+/// A first build holds neither. A client then says so where a person would
+/// look for it, and offers no control that could only be turned away.
+public struct Holds: Hashable, Sendable, Codable {
+    public let journeys: Bool
+    public let costs: Bool
+
+    public init(journeys: Bool, costs: Bool) {
+        self.journeys = journeys
+        self.costs = costs
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case journeys
+        case costs
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        journeys = try container.decode(Bool.self, forKey: .journeys)
+        costs = try container.decode(Bool.self, forKey: .costs)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(journeys, forKey: .journeys)
+        try container.encode(costs, forKey: .costs)
+    }
+}
+
 public struct InterpretBody: Hashable, Sendable, Codable {
     public let text: String
+    public let askModel: Bool
     public let spec: PreferenceSpec?
 
-    public init(text: String, spec: PreferenceSpec? = nil) {
+    public init(text: String, askModel: Bool = true, spec: PreferenceSpec? = nil) {
         self.text = text
+        self.askModel = askModel
         self.spec = spec
     }
 
     enum CodingKeys: String, CodingKey {
         case text
+        case askModel = "ask_model"
         case spec
     }
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         text = try container.decode(String.self, forKey: .text)
+        askModel = try container.decodeIfPresent(Bool.self, forKey: .askModel) ?? true
         spec = try container.decodeIfPresent(PreferenceSpec.self, forKey: .spec)
     }
 
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(text, forKey: .text)
+        try container.encode(askModel, forKey: .askModel)
         try container.encodeIfPresent(spec, forKey: .spec)
     }
 }
@@ -2499,7 +3375,14 @@ public struct InterpretData: Hashable, Sendable, Codable {
     public let noticeText: String
     public let interpreter: InterpreterName
     public let degraded: Bool
+    public let modelRefused: Bool
     public let restsOn: [RestsOn]
+    public let suggestions: [Suggestion]
+    public let unread: [Span]
+    public let notInRelease: [NotInRelease]
+    public let unmetAt: [UnmetAt]
+    public let modelPending: Bool
+    public let places: [NamedPlace]
 
     public init(
         status: InterpretStatus,
@@ -2515,7 +3398,14 @@ public struct InterpretData: Hashable, Sendable, Codable {
         noticeText: String,
         interpreter: InterpreterName,
         degraded: Bool,
-        restsOn: [RestsOn]
+        modelRefused: Bool,
+        restsOn: [RestsOn],
+        suggestions: [Suggestion],
+        unread: [Span],
+        notInRelease: [NotInRelease],
+        unmetAt: [UnmetAt],
+        modelPending: Bool,
+        places: [NamedPlace]
     ) {
         self.status = status
         self.operations = operations
@@ -2530,7 +3420,14 @@ public struct InterpretData: Hashable, Sendable, Codable {
         self.noticeText = noticeText
         self.interpreter = interpreter
         self.degraded = degraded
+        self.modelRefused = modelRefused
         self.restsOn = restsOn
+        self.suggestions = suggestions
+        self.unread = unread
+        self.notInRelease = notInRelease
+        self.unmetAt = unmetAt
+        self.modelPending = modelPending
+        self.places = places
     }
 
     enum CodingKeys: String, CodingKey {
@@ -2547,7 +3444,14 @@ public struct InterpretData: Hashable, Sendable, Codable {
         case noticeText = "notice_text"
         case interpreter
         case degraded
+        case modelRefused = "model_refused"
         case restsOn = "rests_on"
+        case suggestions
+        case unread
+        case notInRelease = "not_in_release"
+        case unmetAt = "unmet_at"
+        case modelPending = "model_pending"
+        case places
     }
 
     public init(from decoder: any Decoder) throws {
@@ -2565,7 +3469,14 @@ public struct InterpretData: Hashable, Sendable, Codable {
         noticeText = try container.decode(String.self, forKey: .noticeText)
         interpreter = try container.decode(InterpreterName.self, forKey: .interpreter)
         degraded = try container.decode(Bool.self, forKey: .degraded)
+        modelRefused = try container.decode(Bool.self, forKey: .modelRefused)
         restsOn = try container.decode([RestsOn].self, forKey: .restsOn)
+        suggestions = try container.decode([Suggestion].self, forKey: .suggestions)
+        unread = try container.decode([Span].self, forKey: .unread)
+        notInRelease = try container.decode([NotInRelease].self, forKey: .notInRelease)
+        unmetAt = try container.decode([UnmetAt].self, forKey: .unmetAt)
+        modelPending = try container.decode(Bool.self, forKey: .modelPending)
+        places = try container.decode([NamedPlace].self, forKey: .places)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -2583,7 +3494,14 @@ public struct InterpretData: Hashable, Sendable, Codable {
         try container.encode(noticeText, forKey: .noticeText)
         try container.encode(interpreter, forKey: .interpreter)
         try container.encode(degraded, forKey: .degraded)
+        try container.encode(modelRefused, forKey: .modelRefused)
         try container.encode(restsOn, forKey: .restsOn)
+        try container.encode(suggestions, forKey: .suggestions)
+        try container.encode(unread, forKey: .unread)
+        try container.encode(notInRelease, forKey: .notInRelease)
+        try container.encode(unmetAt, forKey: .unmetAt)
+        try container.encode(modelPending, forKey: .modelPending)
+        try container.encode(places, forKey: .places)
     }
 }
 
@@ -2592,18 +3510,20 @@ public enum InterpretStatus: Hashable, Sendable, Codable, CaseIterable, RawRepre
     case offTopic
     case policyRedirect
     case clarify
+    case suggest
     case ok
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [InterpretStatus] = [.offTopic, .policyRedirect, .clarify, .ok]
+    public static let allCases: [InterpretStatus] = [.offTopic, .policyRedirect, .clarify, .suggest, .ok]
 
     public init(rawValue: String) {
         switch rawValue {
         case "off_topic": self = .offTopic
         case "policy_redirect": self = .policyRedirect
         case "clarify": self = .clarify
+        case "suggest": self = .suggest
         case "ok": self = .ok
         default: self = .unlisted(rawValue)
         }
@@ -2614,6 +3534,7 @@ public enum InterpretStatus: Hashable, Sendable, Codable, CaseIterable, RawRepre
         case .offTopic: return "off_topic"
         case .policyRedirect: return "policy_redirect"
         case .clarify: return "clarify"
+        case .suggest: return "suggest"
         case .ok: return "ok"
         case .unlisted(let value): return value
         }
@@ -2622,17 +3543,17 @@ public enum InterpretStatus: Hashable, Sendable, Codable, CaseIterable, RawRepre
 
 public enum InterpreterName: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
     case rule
-    case claude
+    case model
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [InterpreterName] = [.rule, .claude]
+    public static let allCases: [InterpreterName] = [.rule, .model]
 
     public init(rawValue: String) {
         switch rawValue {
         case "rule": self = .rule
-        case "claude": self = .claude
+        case "model": self = .model
         default: self = .unlisted(rawValue)
         }
     }
@@ -2640,7 +3561,7 @@ public enum InterpreterName: Hashable, Sendable, Codable, CaseIterable, RawRepre
     public var rawValue: String {
         switch self {
         case .rule: return "rule"
-        case .claude: return "claude"
+        case .model: return "model"
         case .unlisted(let value): return value
         }
     }
@@ -2650,17 +3571,25 @@ public struct Meta: Hashable, Sendable, Codable {
     public let releaseId: String
     public let engineVersion: String
     public let synthetic: Bool
+    public let preview: Bool
 
-    public init(releaseId: String, engineVersion: String, synthetic: Bool) {
+    public init(
+        releaseId: String,
+        engineVersion: String,
+        synthetic: Bool,
+        preview: Bool
+    ) {
         self.releaseId = releaseId
         self.engineVersion = engineVersion
         self.synthetic = synthetic
+        self.preview = preview
     }
 
     enum CodingKeys: String, CodingKey {
         case releaseId = "release_id"
         case engineVersion = "engine_version"
         case synthetic
+        case preview
     }
 
     public init(from decoder: any Decoder) throws {
@@ -2668,6 +3597,7 @@ public struct Meta: Hashable, Sendable, Codable {
         releaseId = try container.decode(String.self, forKey: .releaseId)
         engineVersion = try container.decode(String.self, forKey: .engineVersion)
         synthetic = try container.decode(Bool.self, forKey: .synthetic)
+        preview = try container.decode(Bool.self, forKey: .preview)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -2675,6 +3605,7 @@ public struct Meta: Hashable, Sendable, Codable {
         try container.encode(releaseId, forKey: .releaseId)
         try container.encode(engineVersion, forKey: .engineVersion)
         try container.encode(synthetic, forKey: .synthetic)
+        try container.encode(preview, forKey: .preview)
     }
 }
 
@@ -2682,53 +3613,81 @@ public struct MetaData: Hashable, Sendable, Codable {
     public let releaseId: String
     public let builtAt: String
     public let synthetic: Bool
+    public let preview: Bool
     public let engineVersion: String
     public let catalogueVersion: Int
     public let counts: Counts
+    public let holds: Holds
     public let attributions: [Source]
     public let features: [Metric]
     public let tags: [Tag]
+    public let recipes: [RecipeHeld]
+    public let families: [FamilyLabel]
+    public let grittyVariant: GrittyVariant
     public let defaults: Defaults
     public let limits: ServedLimits
+    public let reader: Reader
+    public let census: CensusOffer
 
     public init(
         releaseId: String,
         builtAt: String,
         synthetic: Bool,
+        preview: Bool,
         engineVersion: String,
         catalogueVersion: Int,
         counts: Counts,
+        holds: Holds,
         attributions: [Source],
         features: [Metric],
         tags: [Tag],
+        recipes: [RecipeHeld],
+        families: [FamilyLabel],
+        grittyVariant: GrittyVariant,
         defaults: Defaults,
-        limits: ServedLimits
+        limits: ServedLimits,
+        reader: Reader,
+        census: CensusOffer
     ) {
         self.releaseId = releaseId
         self.builtAt = builtAt
         self.synthetic = synthetic
+        self.preview = preview
         self.engineVersion = engineVersion
         self.catalogueVersion = catalogueVersion
         self.counts = counts
+        self.holds = holds
         self.attributions = attributions
         self.features = features
         self.tags = tags
+        self.recipes = recipes
+        self.families = families
+        self.grittyVariant = grittyVariant
         self.defaults = defaults
         self.limits = limits
+        self.reader = reader
+        self.census = census
     }
 
     enum CodingKeys: String, CodingKey {
         case releaseId = "release_id"
         case builtAt = "built_at"
         case synthetic
+        case preview
         case engineVersion = "engine_version"
         case catalogueVersion = "catalogue_version"
         case counts
+        case holds
         case attributions
         case features
         case tags
+        case recipes
+        case families
+        case grittyVariant = "gritty_variant"
         case defaults
         case limits
+        case reader
+        case census
     }
 
     public init(from decoder: any Decoder) throws {
@@ -2736,14 +3695,21 @@ public struct MetaData: Hashable, Sendable, Codable {
         releaseId = try container.decode(String.self, forKey: .releaseId)
         builtAt = try container.decode(String.self, forKey: .builtAt)
         synthetic = try container.decode(Bool.self, forKey: .synthetic)
+        preview = try container.decode(Bool.self, forKey: .preview)
         engineVersion = try container.decode(String.self, forKey: .engineVersion)
         catalogueVersion = try container.decode(Int.self, forKey: .catalogueVersion)
         counts = try container.decode(Counts.self, forKey: .counts)
+        holds = try container.decode(Holds.self, forKey: .holds)
         attributions = try container.decode([Source].self, forKey: .attributions)
         features = try container.decode([Metric].self, forKey: .features)
         tags = try container.decode([Tag].self, forKey: .tags)
+        recipes = try container.decode([RecipeHeld].self, forKey: .recipes)
+        families = try container.decode([FamilyLabel].self, forKey: .families)
+        grittyVariant = try container.decode(GrittyVariant.self, forKey: .grittyVariant)
         defaults = try container.decode(Defaults.self, forKey: .defaults)
         limits = try container.decode(ServedLimits.self, forKey: .limits)
+        reader = try container.decode(Reader.self, forKey: .reader)
+        census = try container.decode(CensusOffer.self, forKey: .census)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -2751,14 +3717,50 @@ public struct MetaData: Hashable, Sendable, Codable {
         try container.encode(releaseId, forKey: .releaseId)
         try container.encode(builtAt, forKey: .builtAt)
         try container.encode(synthetic, forKey: .synthetic)
+        try container.encode(preview, forKey: .preview)
         try container.encode(engineVersion, forKey: .engineVersion)
         try container.encode(catalogueVersion, forKey: .catalogueVersion)
         try container.encode(counts, forKey: .counts)
+        try container.encode(holds, forKey: .holds)
         try container.encode(attributions, forKey: .attributions)
         try container.encode(features, forKey: .features)
         try container.encode(tags, forKey: .tags)
+        try container.encode(recipes, forKey: .recipes)
+        try container.encode(families, forKey: .families)
+        try container.encode(grittyVariant, forKey: .grittyVariant)
         try container.encode(defaults, forKey: .defaults)
         try container.encode(limits, forKey: .limits)
+        try container.encode(reader, forKey: .reader)
+        try container.encode(census, forKey: .census)
+    }
+}
+
+public enum Method: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+    case measured
+    case modelled
+    case averaged
+    /// A value this build does not know. It is kept, and sent back, as it came.
+    case unlisted(String)
+
+    /// Every value the contract lists.
+    public static let allCases: [Method] = [.measured, .modelled, .averaged]
+
+    public init(rawValue: String) {
+        switch rawValue {
+        case "measured": self = .measured
+        case "modelled": self = .modelled
+        case "averaged": self = .averaged
+        default: self = .unlisted(rawValue)
+        }
+    }
+
+    public var rawValue: String {
+        switch self {
+        case .measured: return "measured"
+        case .modelled: return "modelled"
+        case .averaged: return "averaged"
+        case .unlisted(let value): return value
+        }
     }
 }
 
@@ -2766,9 +3768,15 @@ public struct MetaData: Hashable, Sendable, Codable {
 public struct Metric: Hashable, Sendable, Codable {
     public let featureId: FeatureId
     public let label: String
+    public let shortLabel: String
     public let dimension: Dimension
     public let unit: String
     public let polarity: Polarity
+    public let kind: FeatureKind
+    public let describes: Describes
+    public let family: Family?
+    public let method: Method
+    public let inLikeness: Bool
     public let nativeResolution: NativeResolution
     public let sourceIds: [String]
     public let vintage: String
@@ -2778,9 +3786,15 @@ public struct Metric: Hashable, Sendable, Codable {
     public init(
         featureId: FeatureId,
         label: String,
+        shortLabel: String,
         dimension: Dimension,
         unit: String,
         polarity: Polarity,
+        kind: FeatureKind,
+        describes: Describes,
+        family: Family?,
+        method: Method,
+        inLikeness: Bool,
         nativeResolution: NativeResolution,
         sourceIds: [String],
         vintage: String,
@@ -2789,9 +3803,15 @@ public struct Metric: Hashable, Sendable, Codable {
     ) {
         self.featureId = featureId
         self.label = label
+        self.shortLabel = shortLabel
         self.dimension = dimension
         self.unit = unit
         self.polarity = polarity
+        self.kind = kind
+        self.describes = describes
+        self.family = family
+        self.method = method
+        self.inLikeness = inLikeness
         self.nativeResolution = nativeResolution
         self.sourceIds = sourceIds
         self.vintage = vintage
@@ -2802,9 +3822,15 @@ public struct Metric: Hashable, Sendable, Codable {
     enum CodingKeys: String, CodingKey {
         case featureId = "feature_id"
         case label
+        case shortLabel = "short_label"
         case dimension
         case unit
         case polarity
+        case kind
+        case describes
+        case family
+        case method
+        case inLikeness = "in_likeness"
         case nativeResolution = "native_resolution"
         case sourceIds = "source_ids"
         case vintage
@@ -2816,9 +3842,15 @@ public struct Metric: Hashable, Sendable, Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         featureId = try container.decode(FeatureId.self, forKey: .featureId)
         label = try container.decode(String.self, forKey: .label)
+        shortLabel = try container.decode(String.self, forKey: .shortLabel)
         dimension = try container.decode(Dimension.self, forKey: .dimension)
         unit = try container.decode(String.self, forKey: .unit)
         polarity = try container.decode(Polarity.self, forKey: .polarity)
+        kind = try container.decode(FeatureKind.self, forKey: .kind)
+        describes = try container.decode(Describes.self, forKey: .describes)
+        family = try container.decodeIfPresent(Family.self, forKey: .family)
+        method = try container.decode(Method.self, forKey: .method)
+        inLikeness = try container.decode(Bool.self, forKey: .inLikeness)
         nativeResolution = try container.decode(NativeResolution.self, forKey: .nativeResolution)
         sourceIds = try container.decode([String].self, forKey: .sourceIds)
         vintage = try container.decode(String.self, forKey: .vintage)
@@ -2830,9 +3862,15 @@ public struct Metric: Hashable, Sendable, Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(featureId, forKey: .featureId)
         try container.encode(label, forKey: .label)
+        try container.encode(shortLabel, forKey: .shortLabel)
         try container.encode(dimension, forKey: .dimension)
         try container.encode(unit, forKey: .unit)
         try container.encode(polarity, forKey: .polarity)
+        try container.encode(kind, forKey: .kind)
+        try container.encode(describes, forKey: .describes)
+        try container.encode(family, forKey: .family)
+        try container.encode(method, forKey: .method)
+        try container.encode(inLikeness, forKey: .inLikeness)
         try container.encode(nativeResolution, forKey: .nativeResolution)
         try container.encode(sourceIds, forKey: .sourceIds)
         try container.encode(vintage, forKey: .vintage)
@@ -2934,9 +3972,46 @@ public struct MoneyLimits: Hashable, Sendable, Codable {
     }
 }
 
+/// A place a spec names, by the release's own name for it. Never what was typed.
+///
+/// A spec holds a `place_id` and no name. A name says where someone works as
+/// an id does, so it is handled as one: served in a body, and in no log.
+public struct NamedPlace: Hashable, Sendable, Codable {
+    public let placeId: String
+    public let name: String
+    public let kind: PlaceKind
+
+    public init(placeId: String, name: String, kind: PlaceKind) {
+        self.placeId = placeId
+        self.name = name
+        self.kind = kind
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case placeId = "place_id"
+        case name
+        case kind
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        placeId = try container.decode(String.self, forKey: .placeId)
+        name = try container.decode(String.self, forKey: .name)
+        kind = try container.decode(PlaceKind.self, forKey: .kind)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(placeId, forKey: .placeId)
+        try container.encode(name, forKey: .name)
+        try container.encode(kind, forKey: .kind)
+    }
+}
+
 public enum NativeResolution: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
     case oa
     case lsoa
+    case msoa
     case grid1km
     case point
     case polygon
@@ -2945,12 +4020,13 @@ public enum NativeResolution: Hashable, Sendable, Codable, CaseIterable, RawRepr
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [NativeResolution] = [.oa, .lsoa, .grid1km, .point, .polygon, .network]
+    public static let allCases: [NativeResolution] = [.oa, .lsoa, .msoa, .grid1km, .point, .polygon, .network]
 
     public init(rawValue: String) {
         switch rawValue {
         case "oa": self = .oa
         case "lsoa": self = .lsoa
+        case "msoa": self = .msoa
         case "grid_1km": self = .grid1km
         case "point": self = .point
         case "polygon": self = .polygon
@@ -2963,6 +4039,7 @@ public enum NativeResolution: Hashable, Sendable, Codable, CaseIterable, RawRepr
         switch self {
         case .oa: return "oa"
         case .lsoa: return "lsoa"
+        case .msoa: return "msoa"
         case .grid1km: return "grid_1km"
         case .point: return "point"
         case .polygon: return "polygon"
@@ -3035,6 +4112,44 @@ public struct Neighbourhood: Hashable, Sendable, Codable {
         try container.encode(centroid, forKey: .centroid)
         try container.encode(rankable, forKey: .rankable)
         try container.encode(neighbours, forKey: .neighbours)
+    }
+}
+
+/// A thing a person asked for that the release holds for no area, so none is ranked on it.
+///
+/// A vibe that no area has a band for, a measure the release does not carry,
+/// a budget where it holds no cost of that kind of home, a journey where it
+/// names no place. It is said, so that a person is told what is not there
+/// yet. It is never offered, and nothing stands in for it.
+public struct NotInRelease: Hashable, Sendable, Codable {
+    public let target: String
+    public let label: String
+    public let spans: [Span]
+
+    public init(target: String, label: String, spans: [Span]) {
+        self.target = target
+        self.label = label
+        self.spans = spans
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case target
+        case label
+        case spans
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        target = try container.decode(String.self, forKey: .target)
+        label = try container.decode(String.self, forKey: .label)
+        spans = try container.decode([Span].self, forKey: .spans)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(target, forKey: .target)
+        try container.encode(label, forKey: .label)
+        try container.encode(spans, forKey: .spans)
     }
 }
 
@@ -3325,6 +4440,140 @@ public enum Polarity: Hashable, Sendable, Codable, CaseIterable, RawRepresentabl
     }
 }
 
+public struct Portrait: Hashable, Sendable, Codable {
+    public let scales: [PortraitMark]
+    public let more: [PortraitMark]
+    public let less: [PortraitMark]
+    public let others: [PortraitMark]
+    public let unplaced: [PortraitMark]
+
+    public init(
+        scales: [PortraitMark],
+        more: [PortraitMark],
+        less: [PortraitMark],
+        others: [PortraitMark],
+        unplaced: [PortraitMark]
+    ) {
+        self.scales = scales
+        self.more = more
+        self.less = less
+        self.others = others
+        self.unplaced = unplaced
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case scales
+        case more
+        case less
+        case others
+        case unplaced
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        scales = try container.decode([PortraitMark].self, forKey: .scales)
+        more = try container.decode([PortraitMark].self, forKey: .more)
+        less = try container.decode([PortraitMark].self, forKey: .less)
+        others = try container.decode([PortraitMark].self, forKey: .others)
+        unplaced = try container.decode([PortraitMark].self, forKey: .unplaced)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(scales, forKey: .scales)
+        try container.encode(more, forKey: .more)
+        try container.encode(less, forKey: .less)
+        try container.encode(others, forKey: .others)
+        try container.encode(unplaced, forKey: .unplaced)
+    }
+}
+
+/// One vibe on the portrait. The band and the sentence are in the fact it names.
+public struct PortraitMark: Hashable, Sendable, Codable {
+    public let tagId: TagId
+    public let factId: String
+    public let figureFactId: String?
+    public let parts: [PortraitPart]
+
+    public init(
+        tagId: TagId,
+        factId: String,
+        figureFactId: String?,
+        parts: [PortraitPart]
+    ) {
+        self.tagId = tagId
+        self.factId = factId
+        self.figureFactId = figureFactId
+        self.parts = parts
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case tagId = "tag_id"
+        case factId = "fact_id"
+        case figureFactId = "figure_fact_id"
+        case parts
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        tagId = try container.decode(TagId.self, forKey: .tagId)
+        factId = try container.decode(String.self, forKey: .factId)
+        figureFactId = try container.decodeIfPresent(String.self, forKey: .figureFactId)
+        parts = try container.decode([PortraitPart].self, forKey: .parts)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(tagId, forKey: .tagId)
+        try container.encode(factId, forKey: .factId)
+        try container.encode(figureFactId, forKey: .figureFactId)
+        try container.encode(parts, forKey: .parts)
+    }
+}
+
+/// One part of a recipe, and the fact that holds this area's figure for it.
+public struct PortraitPart: Hashable, Sendable, Codable {
+    public let featureId: FeatureId
+    public let hundredths: Int
+    public let reading: TermReading
+    public let factId: String?
+
+    public init(
+        featureId: FeatureId,
+        hundredths: Int,
+        reading: TermReading,
+        factId: String?
+    ) {
+        self.featureId = featureId
+        self.hundredths = hundredths
+        self.reading = reading
+        self.factId = factId
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case featureId = "feature_id"
+        case hundredths
+        case reading
+        case factId = "fact_id"
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        featureId = try container.decode(FeatureId.self, forKey: .featureId)
+        hundredths = try container.decode(Int.self, forKey: .hundredths)
+        reading = try container.decode(TermReading.self, forKey: .reading)
+        factId = try container.decodeIfPresent(String.self, forKey: .factId)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(featureId, forKey: .featureId)
+        try container.encode(hundredths, forKey: .hundredths)
+        try container.encode(reading, forKey: .reading)
+        try container.encode(factId, forKey: .factId)
+    }
+}
+
 public struct PreferenceSpec: Hashable, Sendable, Codable {
     public let schemaVersion: Int
     public let tenure: Tenure
@@ -3516,6 +4765,38 @@ public enum Provenance: Hashable, Sendable, Codable, CaseIterable, RawRepresenta
     }
 }
 
+public enum Provider: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+    case gemini
+    case openai
+    case deepseek
+    case anthropic
+    /// A value this build does not know. It is kept, and sent back, as it came.
+    case unlisted(String)
+
+    /// Every value the contract lists.
+    public static let allCases: [Provider] = [.gemini, .openai, .deepseek, .anthropic]
+
+    public init(rawValue: String) {
+        switch rawValue {
+        case "gemini": self = .gemini
+        case "openai": self = .openai
+        case "deepseek": self = .deepseek
+        case "anthropic": self = .anthropic
+        default: self = .unlisted(rawValue)
+        }
+    }
+
+    public var rawValue: String {
+        switch self {
+        case .gemini: return "gemini"
+        case .openai: return "openai"
+        case .deepseek: return "deepseek"
+        case .anthropic: return "anthropic"
+        case .unlisted(let value): return value
+        }
+    }
+}
+
 public enum PtBasis: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
     case typical
     case justMissed
@@ -3577,6 +4858,8 @@ public struct RankBody: Hashable, Sendable, Codable {
 public struct RankData: Hashable, Sendable, Codable {
     public let scores: [Score]
     public let ranked: [RankedArea]
+    public let areasRanked: Int
+    public let areasListed: Int
     public let filtered: [Filtered]
     public let unranked: [Unranked]
     public let emptySpec: Bool
@@ -3584,20 +4867,26 @@ public struct RankData: Hashable, Sendable, Codable {
     public let specHash: String
     public let applied: [Applied]
     public let rejected: [Rejected]
+    public let places: [NamedPlace]
 
     public init(
         scores: [Score],
         ranked: [RankedArea],
+        areasRanked: Int,
+        areasListed: Int,
         filtered: [Filtered],
         unranked: [Unranked],
         emptySpec: Bool,
         spec: PreferenceSpec,
         specHash: String,
         applied: [Applied],
-        rejected: [Rejected]
+        rejected: [Rejected],
+        places: [NamedPlace]
     ) {
         self.scores = scores
         self.ranked = ranked
+        self.areasRanked = areasRanked
+        self.areasListed = areasListed
         self.filtered = filtered
         self.unranked = unranked
         self.emptySpec = emptySpec
@@ -3605,11 +4894,14 @@ public struct RankData: Hashable, Sendable, Codable {
         self.specHash = specHash
         self.applied = applied
         self.rejected = rejected
+        self.places = places
     }
 
     enum CodingKeys: String, CodingKey {
         case scores
         case ranked
+        case areasRanked = "areas_ranked"
+        case areasListed = "areas_listed"
         case filtered
         case unranked
         case emptySpec = "empty_spec"
@@ -3617,12 +4909,15 @@ public struct RankData: Hashable, Sendable, Codable {
         case specHash = "spec_hash"
         case applied
         case rejected
+        case places
     }
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         scores = try container.decode([Score].self, forKey: .scores)
         ranked = try container.decode([RankedArea].self, forKey: .ranked)
+        areasRanked = try container.decode(Int.self, forKey: .areasRanked)
+        areasListed = try container.decode(Int.self, forKey: .areasListed)
         filtered = try container.decode([Filtered].self, forKey: .filtered)
         unranked = try container.decode([Unranked].self, forKey: .unranked)
         emptySpec = try container.decode(Bool.self, forKey: .emptySpec)
@@ -3630,12 +4925,15 @@ public struct RankData: Hashable, Sendable, Codable {
         specHash = try container.decode(String.self, forKey: .specHash)
         applied = try container.decode([Applied].self, forKey: .applied)
         rejected = try container.decode([Rejected].self, forKey: .rejected)
+        places = try container.decode([NamedPlace].self, forKey: .places)
     }
 
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(scores, forKey: .scores)
         try container.encode(ranked, forKey: .ranked)
+        try container.encode(areasRanked, forKey: .areasRanked)
+        try container.encode(areasListed, forKey: .areasListed)
         try container.encode(filtered, forKey: .filtered)
         try container.encode(unranked, forKey: .unranked)
         try container.encode(emptySpec, forKey: .emptySpec)
@@ -3643,6 +4941,7 @@ public struct RankData: Hashable, Sendable, Codable {
         try container.encode(specHash, forKey: .specHash)
         try container.encode(applied, forKey: .applied)
         try container.encode(rejected, forKey: .rejected)
+        try container.encode(places, forKey: .places)
     }
 }
 
@@ -3655,6 +4954,7 @@ public struct RankedArea: Hashable, Sendable, Codable {
     public let legs: [CommuteLeg]
     public let budget: BudgetFit?
     public let untestedFilters: [FilterReason]
+    public let strip: [StripMark]
 
     public init(
         areaId: String,
@@ -3664,7 +4964,8 @@ public struct RankedArea: Hashable, Sendable, Codable {
         contributions: [Contribution],
         legs: [CommuteLeg],
         budget: BudgetFit?,
-        untestedFilters: [FilterReason]
+        untestedFilters: [FilterReason],
+        strip: [StripMark]
     ) {
         self.areaId = areaId
         self.rank = rank
@@ -3674,6 +4975,7 @@ public struct RankedArea: Hashable, Sendable, Codable {
         self.legs = legs
         self.budget = budget
         self.untestedFilters = untestedFilters
+        self.strip = strip
     }
 
     enum CodingKeys: String, CodingKey {
@@ -3685,6 +4987,7 @@ public struct RankedArea: Hashable, Sendable, Codable {
         case legs
         case budget
         case untestedFilters = "untested_filters"
+        case strip
     }
 
     public init(from decoder: any Decoder) throws {
@@ -3697,6 +5000,7 @@ public struct RankedArea: Hashable, Sendable, Codable {
         legs = try container.decode([CommuteLeg].self, forKey: .legs)
         budget = try container.decodeIfPresent(BudgetFit.self, forKey: .budget)
         untestedFilters = try container.decode([FilterReason].self, forKey: .untestedFilters)
+        strip = try container.decode([StripMark].self, forKey: .strip)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -3709,6 +5013,118 @@ public struct RankedArea: Hashable, Sendable, Codable {
         try container.encode(legs, forKey: .legs)
         try container.encode(budget, forKey: .budget)
         try container.encode(untestedFilters, forKey: .untestedFilters)
+        try container.encode(strip, forKey: .strip)
+    }
+}
+
+/// Who reads what a person types, and what people are told of it.
+///
+/// It is how the service is set, and no part of the release. A client shows
+/// `notice` by the box before anything is typed, as it is served, and writes
+/// no provider's name or terms of its own.
+public struct Reader: Hashable, Sendable, Codable {
+    public let modelReads: Bool
+    public let provider: Provider?
+    public let company: String?
+    public let notice: String
+    public let termsUrl: String?
+    public let settingsSent: Bool
+
+    public init(
+        modelReads: Bool,
+        provider: Provider?,
+        company: String?,
+        notice: String,
+        termsUrl: String?,
+        settingsSent: Bool
+    ) {
+        self.modelReads = modelReads
+        self.provider = provider
+        self.company = company
+        self.notice = notice
+        self.termsUrl = termsUrl
+        self.settingsSent = settingsSent
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case modelReads = "model_reads"
+        case provider
+        case company
+        case notice
+        case termsUrl = "terms_url"
+        case settingsSent = "settings_sent"
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        modelReads = try container.decode(Bool.self, forKey: .modelReads)
+        provider = try container.decodeIfPresent(Provider.self, forKey: .provider)
+        company = try container.decodeIfPresent(String.self, forKey: .company)
+        notice = try container.decode(String.self, forKey: .notice)
+        termsUrl = try container.decodeIfPresent(String.self, forKey: .termsUrl)
+        settingsSent = try container.decode(Bool.self, forKey: .settingsSent)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(modelReads, forKey: .modelReads)
+        try container.encode(provider, forKey: .provider)
+        try container.encode(company, forKey: .company)
+        try container.encode(notice, forKey: .notice)
+        try container.encode(termsUrl, forKey: .termsUrl)
+        try container.encode(settingsSent, forKey: .settingsSent)
+    }
+}
+
+/// How much of one vibe's recipe a release carries, and what the vibe waits on.
+///
+/// It is of the release and of no area. An area may have a figure for fewer
+/// parts than the release carries, and its own fact says so.
+public struct RecipeHeld: Hashable, Sendable, Codable {
+    public let tagId: TagId
+    public let held: Int
+    public let needed: Int
+    public let placed: Bool
+    public let waitsOn: [WaitsOn]
+
+    public init(
+        tagId: TagId,
+        held: Int,
+        needed: Int,
+        placed: Bool,
+        waitsOn: [WaitsOn]
+    ) {
+        self.tagId = tagId
+        self.held = held
+        self.needed = needed
+        self.placed = placed
+        self.waitsOn = waitsOn
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case tagId = "tag_id"
+        case held
+        case needed
+        case placed
+        case waitsOn = "waits_on"
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        tagId = try container.decode(TagId.self, forKey: .tagId)
+        held = try container.decode(Int.self, forKey: .held)
+        needed = try container.decode(Int.self, forKey: .needed)
+        placed = try container.decode(Bool.self, forKey: .placed)
+        waitsOn = try container.decode([WaitsOn].self, forKey: .waitsOn)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(tagId, forKey: .tagId)
+        try container.encode(held, forKey: .held)
+        try container.encode(needed, forKey: .needed)
+        try container.encode(placed, forKey: .placed)
+        try container.encode(waitsOn, forKey: .waitsOn)
     }
 }
 
@@ -3849,27 +5265,42 @@ public struct RestsOn: Hashable, Sendable, Codable {
 public struct Score: Hashable, Sendable, Codable {
     public let areaId: String
     public let score: Double
+    public let counted: Int
+    public let present: Int
 
-    public init(areaId: String, score: Double) {
+    public init(
+        areaId: String,
+        score: Double,
+        counted: Int,
+        present: Int
+    ) {
         self.areaId = areaId
         self.score = score
+        self.counted = counted
+        self.present = present
     }
 
     enum CodingKeys: String, CodingKey {
         case areaId = "area_id"
         case score
+        case counted
+        case present
     }
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         areaId = try container.decode(String.self, forKey: .areaId)
         score = try container.decode(Double.self, forKey: .score)
+        counted = try container.decode(Int.self, forKey: .counted)
+        present = try container.decode(Int.self, forKey: .present)
     }
 
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(areaId, forKey: .areaId)
         try container.encode(score, forKey: .score)
+        try container.encode(counted, forKey: .counted)
+        try container.encode(present, forKey: .present)
     }
 }
 
@@ -4009,6 +5440,8 @@ public struct ServedLimits: Hashable, Sendable, Codable {
     public let cutoffMinutes: Cutoffs
     public let maxText: Int
     public let maxBodyBytes: Int
+    public let reasonMinUtility: Double
+    public let tradeOffMaxUtility: Double
     public let budgetStepLargePercent: Int
     public let budgetStepSmallPercent: Int
     public let buy: MoneyLimits
@@ -4026,6 +5459,8 @@ public struct ServedLimits: Hashable, Sendable, Codable {
         cutoffMinutes: Cutoffs,
         maxText: Int,
         maxBodyBytes: Int,
+        reasonMinUtility: Double,
+        tradeOffMaxUtility: Double,
         budgetStepLargePercent: Int = 15,
         budgetStepSmallPercent: Int = 5,
         buy: MoneyLimits = MoneyLimits(minimum: 50000, maximum: 20000000, unit: 5000),
@@ -4042,6 +5477,8 @@ public struct ServedLimits: Hashable, Sendable, Codable {
         self.cutoffMinutes = cutoffMinutes
         self.maxText = maxText
         self.maxBodyBytes = maxBodyBytes
+        self.reasonMinUtility = reasonMinUtility
+        self.tradeOffMaxUtility = tradeOffMaxUtility
         self.budgetStepLargePercent = budgetStepLargePercent
         self.budgetStepSmallPercent = budgetStepSmallPercent
         self.buy = buy
@@ -4060,6 +5497,8 @@ public struct ServedLimits: Hashable, Sendable, Codable {
         case cutoffMinutes = "cutoff_minutes"
         case maxText = "max_text"
         case maxBodyBytes = "max_body_bytes"
+        case reasonMinUtility = "reason_min_utility"
+        case tradeOffMaxUtility = "trade_off_max_utility"
         case budgetStepLargePercent = "budget_step_large_percent"
         case budgetStepSmallPercent = "budget_step_small_percent"
         case buy
@@ -4079,6 +5518,8 @@ public struct ServedLimits: Hashable, Sendable, Codable {
         cutoffMinutes = try container.decode(Cutoffs.self, forKey: .cutoffMinutes)
         maxText = try container.decode(Int.self, forKey: .maxText)
         maxBodyBytes = try container.decode(Int.self, forKey: .maxBodyBytes)
+        reasonMinUtility = try container.decode(Double.self, forKey: .reasonMinUtility)
+        tradeOffMaxUtility = try container.decode(Double.self, forKey: .tradeOffMaxUtility)
         budgetStepLargePercent = try container.decodeIfPresent(Int.self, forKey: .budgetStepLargePercent) ?? 15
         budgetStepSmallPercent = try container.decodeIfPresent(Int.self, forKey: .budgetStepSmallPercent) ?? 5
         buy = try container.decodeIfPresent(MoneyLimits.self, forKey: .buy) ?? MoneyLimits(minimum: 50000, maximum: 20000000, unit: 5000)
@@ -4098,6 +5539,8 @@ public struct ServedLimits: Hashable, Sendable, Codable {
         try container.encode(cutoffMinutes, forKey: .cutoffMinutes)
         try container.encode(maxText, forKey: .maxText)
         try container.encode(maxBodyBytes, forKey: .maxBodyBytes)
+        try container.encode(reasonMinUtility, forKey: .reasonMinUtility)
+        try container.encode(tradeOffMaxUtility, forKey: .tradeOffMaxUtility)
         try container.encode(budgetStepLargePercent, forKey: .budgetStepLargePercent)
         try container.encode(budgetStepSmallPercent, forKey: .budgetStepSmallPercent)
         try container.encode(buy, forKey: .buy)
@@ -4256,17 +5699,25 @@ public struct ShareCreated: Hashable, Sendable, Codable {
     public let shareId: String
     public let spec: PreferenceSpec
     public let coarsened: Bool
+    public let places: [NamedPlace]
 
-    public init(shareId: String, spec: PreferenceSpec, coarsened: Bool) {
+    public init(
+        shareId: String,
+        spec: PreferenceSpec,
+        coarsened: Bool,
+        places: [NamedPlace]
+    ) {
         self.shareId = shareId
         self.spec = spec
         self.coarsened = coarsened
+        self.places = places
     }
 
     enum CodingKeys: String, CodingKey {
         case shareId = "share_id"
         case spec
         case coarsened
+        case places
     }
 
     public init(from decoder: any Decoder) throws {
@@ -4274,6 +5725,7 @@ public struct ShareCreated: Hashable, Sendable, Codable {
         shareId = try container.decode(String.self, forKey: .shareId)
         spec = try container.decode(PreferenceSpec.self, forKey: .spec)
         coarsened = try container.decode(Bool.self, forKey: .coarsened)
+        places = try container.decode([NamedPlace].self, forKey: .places)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -4281,6 +5733,7 @@ public struct ShareCreated: Hashable, Sendable, Codable {
         try container.encode(shareId, forKey: .shareId)
         try container.encode(spec, forKey: .spec)
         try container.encode(coarsened, forKey: .coarsened)
+        try container.encode(places, forKey: .places)
     }
 }
 
@@ -4288,6 +5741,8 @@ public struct ShareCreated: Hashable, Sendable, Codable {
 public struct ShareData: Hashable, Sendable, Codable {
     public let scores: [Score]
     public let ranked: [RankedArea]
+    public let areasRanked: Int
+    public let areasListed: Int
     public let filtered: [Filtered]
     public let unranked: [Unranked]
     public let emptySpec: Bool
@@ -4296,10 +5751,13 @@ public struct ShareData: Hashable, Sendable, Codable {
     public let coarsened: Bool
     public let stale: Bool
     public let originalReleaseId: String
+    public let places: [NamedPlace]
 
     public init(
         scores: [Score],
         ranked: [RankedArea],
+        areasRanked: Int,
+        areasListed: Int,
         filtered: [Filtered],
         unranked: [Unranked],
         emptySpec: Bool,
@@ -4307,10 +5765,13 @@ public struct ShareData: Hashable, Sendable, Codable {
         specHash: String,
         coarsened: Bool,
         stale: Bool,
-        originalReleaseId: String
+        originalReleaseId: String,
+        places: [NamedPlace]
     ) {
         self.scores = scores
         self.ranked = ranked
+        self.areasRanked = areasRanked
+        self.areasListed = areasListed
         self.filtered = filtered
         self.unranked = unranked
         self.emptySpec = emptySpec
@@ -4319,11 +5780,14 @@ public struct ShareData: Hashable, Sendable, Codable {
         self.coarsened = coarsened
         self.stale = stale
         self.originalReleaseId = originalReleaseId
+        self.places = places
     }
 
     enum CodingKeys: String, CodingKey {
         case scores
         case ranked
+        case areasRanked = "areas_ranked"
+        case areasListed = "areas_listed"
         case filtered
         case unranked
         case emptySpec = "empty_spec"
@@ -4332,12 +5796,15 @@ public struct ShareData: Hashable, Sendable, Codable {
         case coarsened
         case stale
         case originalReleaseId = "original_release_id"
+        case places
     }
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         scores = try container.decode([Score].self, forKey: .scores)
         ranked = try container.decode([RankedArea].self, forKey: .ranked)
+        areasRanked = try container.decode(Int.self, forKey: .areasRanked)
+        areasListed = try container.decode(Int.self, forKey: .areasListed)
         filtered = try container.decode([Filtered].self, forKey: .filtered)
         unranked = try container.decode([Unranked].self, forKey: .unranked)
         emptySpec = try container.decode(Bool.self, forKey: .emptySpec)
@@ -4346,12 +5813,15 @@ public struct ShareData: Hashable, Sendable, Codable {
         coarsened = try container.decode(Bool.self, forKey: .coarsened)
         stale = try container.decode(Bool.self, forKey: .stale)
         originalReleaseId = try container.decode(String.self, forKey: .originalReleaseId)
+        places = try container.decode([NamedPlace].self, forKey: .places)
     }
 
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(scores, forKey: .scores)
         try container.encode(ranked, forKey: .ranked)
+        try container.encode(areasRanked, forKey: .areasRanked)
+        try container.encode(areasListed, forKey: .areasListed)
         try container.encode(filtered, forKey: .filtered)
         try container.encode(unranked, forKey: .unranked)
         try container.encode(emptySpec, forKey: .emptySpec)
@@ -4360,6 +5830,35 @@ public struct ShareData: Hashable, Sendable, Codable {
         try container.encode(coarsened, forKey: .coarsened)
         try container.encode(stale, forKey: .stale)
         try container.encode(originalReleaseId, forKey: .originalReleaseId)
+        try container.encode(places, forKey: .places)
+    }
+}
+
+/// One of the areas most like this one. The sentence is in the `likeness` fact it names.
+public struct Similar: Hashable, Sendable, Codable {
+    public let areaId: String
+    public let factId: String
+
+    public init(areaId: String, factId: String) {
+        self.areaId = areaId
+        self.factId = factId
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case areaId = "area_id"
+        case factId = "fact_id"
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        areaId = try container.decode(String.self, forKey: .areaId)
+        factId = try container.decode(String.self, forKey: .factId)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(areaId, forKey: .areaId)
+        try container.encode(factId, forKey: .factId)
     }
 }
 
@@ -4420,6 +5919,34 @@ public struct Source: Hashable, Sendable, Codable {
         try container.encode(attribution, forKey: .attribution)
         try container.encode(url, forKey: .url)
         try container.encode(retrievedOn, forKey: .retrievedOn)
+    }
+}
+
+/// A stretch of the text: where it starts and ends, counted as `RestsOn` counts.
+public struct Span: Hashable, Sendable, Codable {
+    public let start: Int
+    public let end: Int
+
+    public init(start: Int, end: Int) {
+        self.start = start
+        self.end = end
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case start
+        case end
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        start = try container.decode(Int.self, forKey: .start)
+        end = try container.decode(Int.self, forKey: .end)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(start, forKey: .start)
+        try container.encode(end, forKey: .end)
     }
 }
 
@@ -4573,20 +6100,333 @@ public enum StrictnessChoice: Hashable, Sendable, Codable, CaseIterable, RawRepr
     }
 }
 
+/// Where an area sits on one vibe, for the strip under its name. Shown, never scored.
+public struct StripMark: Hashable, Sendable, Codable {
+    public let tagId: TagId
+    public let band: Int
+    public let spreadLow: Int
+    public let spreadHigh: Int
+    public let asked: Bool
+    public let toward: Toward?
+    public let factId: String
+
+    public init(
+        tagId: TagId,
+        band: Int,
+        spreadLow: Int,
+        spreadHigh: Int,
+        asked: Bool,
+        toward: Toward?,
+        factId: String
+    ) {
+        self.tagId = tagId
+        self.band = band
+        self.spreadLow = spreadLow
+        self.spreadHigh = spreadHigh
+        self.asked = asked
+        self.toward = toward
+        self.factId = factId
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case tagId = "tag_id"
+        case band
+        case spreadLow = "spread_low"
+        case spreadHigh = "spread_high"
+        case asked
+        case toward
+        case factId = "fact_id"
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        tagId = try container.decode(TagId.self, forKey: .tagId)
+        band = try container.decode(Int.self, forKey: .band)
+        spreadLow = try container.decode(Int.self, forKey: .spreadLow)
+        spreadHigh = try container.decode(Int.self, forKey: .spreadHigh)
+        asked = try container.decode(Bool.self, forKey: .asked)
+        toward = try container.decodeIfPresent(Toward.self, forKey: .toward)
+        factId = try container.decode(String.self, forKey: .factId)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(tagId, forKey: .tagId)
+        try container.encode(band, forKey: .band)
+        try container.encode(spreadLow, forKey: .spreadLow)
+        try container.encode(spreadHigh, forKey: .spreadHigh)
+        try container.encode(asked, forKey: .asked)
+        try container.encode(toward, forKey: .toward)
+        try container.encode(factId, forKey: .factId)
+    }
+}
+
+/// An offer: a thing that was noticed, in four parts. The person chooses.
+///
+/// What it would do (`does`), the person's own words (`spans`, shown within
+/// `shown`), what follows for areas (`follows`), and the choices. Every word
+/// is Burro's own. The person's words are never here: a client cuts them
+/// from the text it holds, by where they stand.
+public struct Suggestion: Hashable, Sendable, Codable {
+    public let target: String
+    public let label: String
+    public let does: String
+    public let spans: [Span]
+    public let shown: Span
+    public let follows: String
+    public let said: [String]
+    public let choices: [SuggestionChoice]
+    public let note: String
+    public let readBy: InterpreterName
+    public let addAll: String
+    public let needs: String
+    public let asksPlace: Bool
+    public let namedAt: Span?
+    public let options: [ClarifyOption]
+
+    public init(
+        target: String,
+        label: String,
+        does: String,
+        spans: [Span],
+        shown: Span,
+        follows: String,
+        said: [String],
+        choices: [SuggestionChoice],
+        note: String,
+        readBy: InterpreterName,
+        addAll: String,
+        needs: String,
+        asksPlace: Bool,
+        namedAt: Span?,
+        options: [ClarifyOption]
+    ) {
+        self.target = target
+        self.label = label
+        self.does = does
+        self.spans = spans
+        self.shown = shown
+        self.follows = follows
+        self.said = said
+        self.choices = choices
+        self.note = note
+        self.readBy = readBy
+        self.addAll = addAll
+        self.needs = needs
+        self.asksPlace = asksPlace
+        self.namedAt = namedAt
+        self.options = options
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case target
+        case label
+        case does
+        case spans
+        case shown
+        case follows
+        case said
+        case choices
+        case note
+        case readBy = "read_by"
+        case addAll = "add_all"
+        case needs
+        case asksPlace = "asks_place"
+        case namedAt = "named_at"
+        case options
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        target = try container.decode(String.self, forKey: .target)
+        label = try container.decode(String.self, forKey: .label)
+        does = try container.decode(String.self, forKey: .does)
+        spans = try container.decode([Span].self, forKey: .spans)
+        shown = try container.decode(Span.self, forKey: .shown)
+        follows = try container.decode(String.self, forKey: .follows)
+        said = try container.decode([String].self, forKey: .said)
+        choices = try container.decode([SuggestionChoice].self, forKey: .choices)
+        note = try container.decode(String.self, forKey: .note)
+        readBy = try container.decode(InterpreterName.self, forKey: .readBy)
+        addAll = try container.decode(String.self, forKey: .addAll)
+        needs = try container.decode(String.self, forKey: .needs)
+        asksPlace = try container.decode(Bool.self, forKey: .asksPlace)
+        namedAt = try container.decodeIfPresent(Span.self, forKey: .namedAt)
+        options = try container.decode([ClarifyOption].self, forKey: .options)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(target, forKey: .target)
+        try container.encode(label, forKey: .label)
+        try container.encode(does, forKey: .does)
+        try container.encode(spans, forKey: .spans)
+        try container.encode(shown, forKey: .shown)
+        try container.encode(follows, forKey: .follows)
+        try container.encode(said, forKey: .said)
+        try container.encode(choices, forKey: .choices)
+        try container.encode(note, forKey: .note)
+        try container.encode(readBy, forKey: .readBy)
+        try container.encode(addAll, forKey: .addAll)
+        try container.encode(needs, forKey: .needs)
+        try container.encode(asksPlace, forKey: .asksPlace)
+        try container.encode(namedAt, forKey: .namedAt)
+        try container.encode(options, forKey: .options)
+    }
+}
+
+/// One way a person may take an offer, and the edits it would make.
+///
+/// It has a name of its own here because core has another `Choice`, what a
+/// setting is set to, and one document cannot hold two records of one name.
+public struct SuggestionChoice: Hashable, Sendable, Codable {
+    public let id: String
+    public let direction: SuggestionDirection
+    public let label: String
+    public let guess: Bool
+    public let operations: Operations
+
+    public init(
+        id: String,
+        direction: SuggestionDirection,
+        label: String,
+        guess: Bool,
+        operations: Operations
+    ) {
+        self.id = id
+        self.direction = direction
+        self.label = label
+        self.guess = guess
+        self.operations = operations
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case direction
+        case label
+        case guess
+        case operations
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        direction = try container.decode(SuggestionDirection.self, forKey: .direction)
+        label = try container.decode(String.self, forKey: .label)
+        guess = try container.decode(Bool.self, forKey: .guess)
+        operations = try container.decode(Operations.self, forKey: .operations)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(direction, forKey: .direction)
+        try container.encode(label, forKey: .label)
+        try container.encode(guess, forKey: .guess)
+        try container.encode(operations, forKey: .operations)
+    }
+}
+
+/// What a person may choose of a thing the reader noticed. It never guesses one.
+public enum SuggestionDirection: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+    case more
+    case less
+    case ignore
+    /// A value this build does not know. It is kept, and sent back, as it came.
+    case unlisted(String)
+
+    /// Every value the contract lists.
+    public static let allCases: [SuggestionDirection] = [.more, .less, .ignore]
+
+    public init(rawValue: String) {
+        switch rawValue {
+        case "more": self = .more
+        case "less": self = .less
+        case "ignore": self = .ignore
+        default: self = .unlisted(rawValue)
+        }
+    }
+
+    public var rawValue: String {
+        switch self {
+        case .more: return "more"
+        case .less: return "less"
+        case .ignore: return "ignore"
+        case .unlisted(let value): return value
+        }
+    }
+}
+
 public struct Tag: Hashable, Sendable, Codable {
     public let tagId: TagId
     public let label: String
+    public let shortLabel: String
+    public let family: Family
+    public let shape: TagShape
+    public let lowEnd: String?
+    public let highEnd: String?
+    public let meaning: String
+    public let cannotSee: [String]
+    public let lens: Bool
+    public let strip: Bool
+    public let table: Bool
+    public let shelfWord: String?
+    public let shelfToward: Toward?
+    public let shelfOrder: Int?
     public let terms: [TagTerm]
 
-    public init(tagId: TagId, label: String, terms: [TagTerm]) {
+    public init(
+        tagId: TagId,
+        label: String,
+        shortLabel: String,
+        family: Family,
+        shape: TagShape,
+        lowEnd: String?,
+        highEnd: String?,
+        meaning: String,
+        cannotSee: [String],
+        lens: Bool,
+        strip: Bool,
+        table: Bool,
+        shelfWord: String?,
+        shelfToward: Toward?,
+        shelfOrder: Int?,
+        terms: [TagTerm]
+    ) {
         self.tagId = tagId
         self.label = label
+        self.shortLabel = shortLabel
+        self.family = family
+        self.shape = shape
+        self.lowEnd = lowEnd
+        self.highEnd = highEnd
+        self.meaning = meaning
+        self.cannotSee = cannotSee
+        self.lens = lens
+        self.strip = strip
+        self.table = table
+        self.shelfWord = shelfWord
+        self.shelfToward = shelfToward
+        self.shelfOrder = shelfOrder
         self.terms = terms
     }
 
     enum CodingKeys: String, CodingKey {
         case tagId = "tag_id"
         case label
+        case shortLabel = "short_label"
+        case family
+        case shape
+        case lowEnd = "low_end"
+        case highEnd = "high_end"
+        case meaning
+        case cannotSee = "cannot_see"
+        case lens
+        case strip
+        case table
+        case shelfWord = "shelf_word"
+        case shelfToward = "shelf_toward"
+        case shelfOrder = "shelf_order"
         case terms
     }
 
@@ -4594,6 +6434,19 @@ public struct Tag: Hashable, Sendable, Codable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         tagId = try container.decode(TagId.self, forKey: .tagId)
         label = try container.decode(String.self, forKey: .label)
+        shortLabel = try container.decode(String.self, forKey: .shortLabel)
+        family = try container.decode(Family.self, forKey: .family)
+        shape = try container.decode(TagShape.self, forKey: .shape)
+        lowEnd = try container.decodeIfPresent(String.self, forKey: .lowEnd)
+        highEnd = try container.decodeIfPresent(String.self, forKey: .highEnd)
+        meaning = try container.decode(String.self, forKey: .meaning)
+        cannotSee = try container.decode([String].self, forKey: .cannotSee)
+        lens = try container.decode(Bool.self, forKey: .lens)
+        strip = try container.decode(Bool.self, forKey: .strip)
+        table = try container.decode(Bool.self, forKey: .table)
+        shelfWord = try container.decodeIfPresent(String.self, forKey: .shelfWord)
+        shelfToward = try container.decodeIfPresent(Toward.self, forKey: .shelfToward)
+        shelfOrder = try container.decodeIfPresent(Int.self, forKey: .shelfOrder)
         terms = try container.decode([TagTerm].self, forKey: .terms)
     }
 
@@ -4601,6 +6454,19 @@ public struct Tag: Hashable, Sendable, Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(tagId, forKey: .tagId)
         try container.encode(label, forKey: .label)
+        try container.encode(shortLabel, forKey: .shortLabel)
+        try container.encode(family, forKey: .family)
+        try container.encode(shape, forKey: .shape)
+        try container.encode(lowEnd, forKey: .lowEnd)
+        try container.encode(highEnd, forKey: .highEnd)
+        try container.encode(meaning, forKey: .meaning)
+        try container.encode(cannotSee, forKey: .cannotSee)
+        try container.encode(lens, forKey: .lens)
+        try container.encode(strip, forKey: .strip)
+        try container.encode(table, forKey: .table)
+        try container.encode(shelfWord, forKey: .shelfWord)
+        try container.encode(shelfToward, forKey: .shelfToward)
+        try container.encode(shelfOrder, forKey: .shelfOrder)
         try container.encode(terms, forKey: .terms)
     }
 }
@@ -4610,6 +6476,7 @@ public struct TagEdit: Hashable, Sendable, Codable {
     public let tagId: TagId
     public let value: Double
     public let step: Step
+    public let toward: TowardChoice
     public let provenance: EditProvenance
 
     public init(
@@ -4617,12 +6484,14 @@ public struct TagEdit: Hashable, Sendable, Codable {
         tagId: TagId,
         value: Double,
         step: Step,
+        toward: TowardChoice,
         provenance: EditProvenance
     ) {
         self.action = action
         self.tagId = tagId
         self.value = value
         self.step = step
+        self.toward = toward
         self.provenance = provenance
     }
 
@@ -4631,6 +6500,7 @@ public struct TagEdit: Hashable, Sendable, Codable {
         case tagId = "tag_id"
         case value
         case step
+        case toward
         case provenance
     }
 
@@ -4640,6 +6510,7 @@ public struct TagEdit: Hashable, Sendable, Codable {
         tagId = try container.decode(TagId.self, forKey: .tagId)
         value = try container.decode(Double.self, forKey: .value)
         step = try container.decode(Step.self, forKey: .step)
+        toward = try container.decode(TowardChoice.self, forKey: .toward)
         provenance = try container.decode(EditProvenance.self, forKey: .provenance)
     }
 
@@ -4649,61 +6520,91 @@ public struct TagEdit: Hashable, Sendable, Codable {
         try container.encode(tagId, forKey: .tagId)
         try container.encode(value, forKey: .value)
         try container.encode(step, forKey: .step)
+        try container.encode(toward, forKey: .toward)
         try container.encode(provenance, forKey: .provenance)
     }
 }
 
+/// On screen a tag is a vibe. Seven ids of catalogue version 1 are retired and never reused:
+/// buzzy, evening_venues, historic_character, creative, strong_high_street,
+/// near_universities and waterside.
 public enum TagId: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
-    case villageFeel
-    case buzzy
     case leafy
-    case creative
-    case familyAmenities
-    case nearUniversities
-    case waterside
-    case strongHighStreet
-    case eveningVenues
+    case villageFeel
+    case pace
     case quietResidential
+    case builtAge
+    case everydayOnFoot
+    case parksCloseBy
+    case homes
     case foodie
-    case historicCharacter
+    case familyAmenities
+    case worksWarehouses
+    case streetCharacter
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [TagId] = [.villageFeel, .buzzy, .leafy, .creative, .familyAmenities, .nearUniversities, .waterside, .strongHighStreet, .eveningVenues, .quietResidential, .foodie, .historicCharacter]
+    public static let allCases: [TagId] = [.leafy, .villageFeel, .pace, .quietResidential, .builtAge, .everydayOnFoot, .parksCloseBy, .homes, .foodie, .familyAmenities, .worksWarehouses, .streetCharacter]
 
     public init(rawValue: String) {
         switch rawValue {
-        case "village_feel": self = .villageFeel
-        case "buzzy": self = .buzzy
         case "leafy": self = .leafy
-        case "creative": self = .creative
-        case "family_amenities": self = .familyAmenities
-        case "near_universities": self = .nearUniversities
-        case "waterside": self = .waterside
-        case "strong_high_street": self = .strongHighStreet
-        case "evening_venues": self = .eveningVenues
+        case "village_feel": self = .villageFeel
+        case "pace": self = .pace
         case "quiet_residential": self = .quietResidential
+        case "built_age": self = .builtAge
+        case "everyday_on_foot": self = .everydayOnFoot
+        case "parks_close_by": self = .parksCloseBy
+        case "homes": self = .homes
         case "foodie": self = .foodie
-        case "historic_character": self = .historicCharacter
+        case "family_amenities": self = .familyAmenities
+        case "works_warehouses": self = .worksWarehouses
+        case "street_character": self = .streetCharacter
         default: self = .unlisted(rawValue)
         }
     }
 
     public var rawValue: String {
         switch self {
-        case .villageFeel: return "village_feel"
-        case .buzzy: return "buzzy"
         case .leafy: return "leafy"
-        case .creative: return "creative"
-        case .familyAmenities: return "family_amenities"
-        case .nearUniversities: return "near_universities"
-        case .waterside: return "waterside"
-        case .strongHighStreet: return "strong_high_street"
-        case .eveningVenues: return "evening_venues"
+        case .villageFeel: return "village_feel"
+        case .pace: return "pace"
         case .quietResidential: return "quiet_residential"
+        case .builtAge: return "built_age"
+        case .everydayOnFoot: return "everyday_on_foot"
+        case .parksCloseBy: return "parks_close_by"
+        case .homes: return "homes"
         case .foodie: return "foodie"
-        case .historicCharacter: return "historic_character"
+        case .familyAmenities: return "family_amenities"
+        case .worksWarehouses: return "works_warehouses"
+        case .streetCharacter: return "street_character"
+        case .unlisted(let value): return value
+        }
+    }
+}
+
+public enum TagShape: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+    case scale
+    case oneWay
+    /// A value this build does not know. It is kept, and sent back, as it came.
+    case unlisted(String)
+
+    /// Every value the contract lists.
+    public static let allCases: [TagShape] = [.scale, .oneWay]
+
+    public init(rawValue: String) {
+        switch rawValue {
+        case "scale": self = .scale
+        case "one_way": self = .oneWay
+        default: self = .unlisted(rawValue)
+        }
+    }
+
+    public var rawValue: String {
+        switch self {
+        case .scale: return "scale"
+        case .oneWay: return "one_way"
         case .unlisted(let value): return value
         }
     }
@@ -4741,25 +6642,39 @@ public struct TagTerm: Hashable, Sendable, Codable {
     }
 }
 
+/// Where one area sits on one vibe. `score` is for ranking and is never printed.
+///
+/// `band` is what is shown: one of five, counted from the low end. The
+/// spread is the bands the middle half of the area's homes span, so a mixed
+/// area is drawn as a range and never as a point in the middle.
 public struct TagValue: Hashable, Sendable, Codable {
     public let areaId: String
     public let tagId: TagId
     public let raw: Double?
     public let score: Double?
     public let coverage: Double
+    public let band: Int?
+    public let spreadLow: Int?
+    public let spreadHigh: Int?
 
     public init(
         areaId: String,
         tagId: TagId,
         raw: Double?,
         score: Double?,
-        coverage: Double
+        coverage: Double,
+        band: Int?,
+        spreadLow: Int?,
+        spreadHigh: Int?
     ) {
         self.areaId = areaId
         self.tagId = tagId
         self.raw = raw
         self.score = score
         self.coverage = coverage
+        self.band = band
+        self.spreadLow = spreadLow
+        self.spreadHigh = spreadHigh
     }
 
     enum CodingKeys: String, CodingKey {
@@ -4768,6 +6683,9 @@ public struct TagValue: Hashable, Sendable, Codable {
         case raw
         case score
         case coverage
+        case band
+        case spreadLow = "spread_low"
+        case spreadHigh = "spread_high"
     }
 
     public init(from decoder: any Decoder) throws {
@@ -4777,6 +6695,9 @@ public struct TagValue: Hashable, Sendable, Codable {
         raw = try container.decodeIfPresent(Double.self, forKey: .raw)
         score = try container.decodeIfPresent(Double.self, forKey: .score)
         coverage = try container.decode(Double.self, forKey: .coverage)
+        band = try container.decodeIfPresent(Int.self, forKey: .band)
+        spreadLow = try container.decodeIfPresent(Int.self, forKey: .spreadLow)
+        spreadHigh = try container.decodeIfPresent(Int.self, forKey: .spreadHigh)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -4786,6 +6707,9 @@ public struct TagValue: Hashable, Sendable, Codable {
         try container.encode(raw, forKey: .raw)
         try container.encode(score, forKey: .score)
         try container.encode(coverage, forKey: .coverage)
+        try container.encode(band, forKey: .band)
+        try container.encode(spreadLow, forKey: .spreadLow)
+        try container.encode(spreadHigh, forKey: .spreadHigh)
     }
 }
 
@@ -4793,17 +6717,25 @@ public struct TagWeight: Hashable, Sendable, Codable {
     public let tagId: TagId
     public let weight: Double
     public let provenance: Provenance
+    public let toward: Toward
 
-    public init(tagId: TagId, weight: Double, provenance: Provenance) {
+    public init(
+        tagId: TagId,
+        weight: Double,
+        provenance: Provenance,
+        toward: Toward = .high
+    ) {
         self.tagId = tagId
         self.weight = weight
         self.provenance = provenance
+        self.toward = toward
     }
 
     enum CodingKeys: String, CodingKey {
         case tagId = "tag_id"
         case weight
         case provenance
+        case toward
     }
 
     public init(from decoder: any Decoder) throws {
@@ -4811,6 +6743,7 @@ public struct TagWeight: Hashable, Sendable, Codable {
         tagId = try container.decode(TagId.self, forKey: .tagId)
         weight = try container.decode(Double.self, forKey: .weight)
         provenance = try container.decode(Provenance.self, forKey: .provenance)
+        toward = try container.decodeIfPresent(Toward.self, forKey: .toward) ?? .high
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -4818,6 +6751,7 @@ public struct TagWeight: Hashable, Sendable, Codable {
         try container.encode(tagId, forKey: .tagId)
         try container.encode(weight, forKey: .weight)
         try container.encode(provenance, forKey: .provenance)
+        try container.encode(toward, forKey: .toward)
     }
 }
 
@@ -4825,39 +6759,59 @@ public enum TemplateId: Hashable, Sendable, Codable, CaseIterable, RawRepresenta
     case area
     case feature
     case featureCrime
-    case tag
+    case vibe
+    case vibeRange
+    case vibeUnknown
     case costRent
     case costBuy
+    case costBuyMedian
     case budgetUnder
     case budgetOver
+    case budgetUnderMedian
+    case budgetOverMedian
     case travelPt
+    case travelPtOver
     case travelOther
+    case travelOtherOver
     case travelBeyond
     case station
     case stationNearby
     case missing
+    case missingJourney
+    case likeness
+    case likenessSame
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [TemplateId] = [.area, .feature, .featureCrime, .tag, .costRent, .costBuy, .budgetUnder, .budgetOver, .travelPt, .travelOther, .travelBeyond, .station, .stationNearby, .missing]
+    public static let allCases: [TemplateId] = [.area, .feature, .featureCrime, .vibe, .vibeRange, .vibeUnknown, .costRent, .costBuy, .costBuyMedian, .budgetUnder, .budgetOver, .budgetUnderMedian, .budgetOverMedian, .travelPt, .travelPtOver, .travelOther, .travelOtherOver, .travelBeyond, .station, .stationNearby, .missing, .missingJourney, .likeness, .likenessSame]
 
     public init(rawValue: String) {
         switch rawValue {
         case "area": self = .area
         case "feature": self = .feature
         case "feature_crime": self = .featureCrime
-        case "tag": self = .tag
+        case "vibe": self = .vibe
+        case "vibe_range": self = .vibeRange
+        case "vibe_unknown": self = .vibeUnknown
         case "cost_rent": self = .costRent
         case "cost_buy": self = .costBuy
+        case "cost_buy_median": self = .costBuyMedian
         case "budget_under": self = .budgetUnder
         case "budget_over": self = .budgetOver
+        case "budget_under_median": self = .budgetUnderMedian
+        case "budget_over_median": self = .budgetOverMedian
         case "travel_pt": self = .travelPt
+        case "travel_pt_over": self = .travelPtOver
         case "travel_other": self = .travelOther
+        case "travel_other_over": self = .travelOtherOver
         case "travel_beyond": self = .travelBeyond
         case "station": self = .station
         case "station_nearby": self = .stationNearby
         case "missing": self = .missing
+        case "missing_journey": self = .missingJourney
+        case "likeness": self = .likeness
+        case "likeness_same": self = .likenessSame
         default: self = .unlisted(rawValue)
         }
     }
@@ -4867,17 +6821,27 @@ public enum TemplateId: Hashable, Sendable, Codable, CaseIterable, RawRepresenta
         case .area: return "area"
         case .feature: return "feature"
         case .featureCrime: return "feature_crime"
-        case .tag: return "tag"
+        case .vibe: return "vibe"
+        case .vibeRange: return "vibe_range"
+        case .vibeUnknown: return "vibe_unknown"
         case .costRent: return "cost_rent"
         case .costBuy: return "cost_buy"
+        case .costBuyMedian: return "cost_buy_median"
         case .budgetUnder: return "budget_under"
         case .budgetOver: return "budget_over"
+        case .budgetUnderMedian: return "budget_under_median"
+        case .budgetOverMedian: return "budget_over_median"
         case .travelPt: return "travel_pt"
+        case .travelPtOver: return "travel_pt_over"
         case .travelOther: return "travel_other"
+        case .travelOtherOver: return "travel_other_over"
         case .travelBeyond: return "travel_beyond"
         case .station: return "station"
         case .stationNearby: return "station_nearby"
         case .missing: return "missing"
+        case .missingJourney: return "missing_journey"
+        case .likeness: return "likeness"
+        case .likenessSame: return "likeness_same"
         case .unlisted(let value): return value
         }
     }
@@ -4964,6 +6928,62 @@ public enum TermReading: Hashable, Sendable, Codable, CaseIterable, RawRepresent
     }
 }
 
+/// Which end of a vibe is asked for. A one-way vibe has the high end alone.
+public enum Toward: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+    case high
+    case low
+    /// A value this build does not know. It is kept, and sent back, as it came.
+    case unlisted(String)
+
+    /// Every value the contract lists.
+    public static let allCases: [Toward] = [.high, .low]
+
+    public init(rawValue: String) {
+        switch rawValue {
+        case "high": self = .high
+        case "low": self = .low
+        default: self = .unlisted(rawValue)
+        }
+    }
+
+    public var rawValue: String {
+        switch self {
+        case .high: return "high"
+        case .low: return "low"
+        case .unlisted(let value): return value
+        }
+    }
+}
+
+public enum TowardChoice: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+    case high
+    case low
+    case `default`
+    /// A value this build does not know. It is kept, and sent back, as it came.
+    case unlisted(String)
+
+    /// Every value the contract lists.
+    public static let allCases: [TowardChoice] = [.high, .low, .default]
+
+    public init(rawValue: String) {
+        switch rawValue {
+        case "high": self = .high
+        case "low": self = .low
+        case "default": self = .default
+        default: self = .unlisted(rawValue)
+        }
+    }
+
+    public var rawValue: String {
+        switch self {
+        case .high: return "high"
+        case .low: return "low"
+        case .default: return "default"
+        case .unlisted(let value): return value
+        }
+    }
+}
+
 public enum TravelStatus: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
     case ok
     case beyondCutoff
@@ -4993,6 +7013,34 @@ public enum TravelStatus: Hashable, Sendable, Codable, CaseIterable, RawRepresen
     }
 }
 
+/// Something that was asked for which nothing measures, and where it was said.
+public struct UnmetAt: Hashable, Sendable, Codable {
+    public let category: UnmetCategory
+    public let span: Span
+
+    public init(category: UnmetCategory, span: Span) {
+        self.category = category
+        self.span = span
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case category
+        case span
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        category = try container.decode(UnmetCategory.self, forKey: .category)
+        span = try container.decode(Span.self, forKey: .span)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(category, forKey: .category)
+        try container.encode(span, forKey: .span)
+    }
+}
+
 public enum UnmetCategory: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
     case broadband
     case floodRisk
@@ -5002,12 +7050,18 @@ public enum UnmetCategory: Hashable, Sendable, Codable, CaseIterable, RawReprese
     case affordabilityVerdict
     case communityAmenities
     case outsideTheCity
+    case streetCleanliness
+    case upkeep
+    case ratings
+    case pricesAndHours
+    case mobileCoverage
+    case changeOverTime
     case other
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [UnmetCategory] = [.broadband, .floodRisk, .healthServices, .driving, .listings, .affordabilityVerdict, .communityAmenities, .outsideTheCity, .other]
+    public static let allCases: [UnmetCategory] = [.broadband, .floodRisk, .healthServices, .driving, .listings, .affordabilityVerdict, .communityAmenities, .outsideTheCity, .streetCleanliness, .upkeep, .ratings, .pricesAndHours, .mobileCoverage, .changeOverTime, .other]
 
     public init(rawValue: String) {
         switch rawValue {
@@ -5019,6 +7073,12 @@ public enum UnmetCategory: Hashable, Sendable, Codable, CaseIterable, RawReprese
         case "affordability_verdict": self = .affordabilityVerdict
         case "community_amenities": self = .communityAmenities
         case "outside_the_city": self = .outsideTheCity
+        case "street_cleanliness": self = .streetCleanliness
+        case "upkeep": self = .upkeep
+        case "ratings": self = .ratings
+        case "prices_and_hours": self = .pricesAndHours
+        case "mobile_coverage": self = .mobileCoverage
+        case "change_over_time": self = .changeOverTime
         case "other": self = .other
         default: self = .unlisted(rawValue)
         }
@@ -5034,6 +7094,12 @@ public enum UnmetCategory: Hashable, Sendable, Codable, CaseIterable, RawReprese
         case .affordabilityVerdict: return "affordability_verdict"
         case .communityAmenities: return "community_amenities"
         case .outsideTheCity: return "outside_the_city"
+        case .streetCleanliness: return "street_cleanliness"
+        case .upkeep: return "upkeep"
+        case .ratings: return "ratings"
+        case .pricesAndHours: return "prices_and_hours"
+        case .mobileCoverage: return "mobile_coverage"
+        case .changeOverTime: return "change_over_time"
         case .other: return "other"
         case .unlisted(let value): return value
         }
@@ -5043,43 +7109,50 @@ public enum UnmetCategory: Hashable, Sendable, Codable, CaseIterable, RawReprese
 public struct Unranked: Hashable, Sendable, Codable {
     public let areaId: String
     public let reason: UnrankedReason
+    public let missing: [String]
 
-    public init(areaId: String, reason: UnrankedReason) {
+    public init(areaId: String, reason: UnrankedReason, missing: [String]) {
         self.areaId = areaId
         self.reason = reason
+        self.missing = missing
     }
 
     enum CodingKeys: String, CodingKey {
         case areaId = "area_id"
         case reason
+        case missing
     }
 
     public init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         areaId = try container.decode(String.self, forKey: .areaId)
         reason = try container.decode(UnrankedReason.self, forKey: .reason)
+        missing = try container.decode([String].self, forKey: .missing)
     }
 
     public func encode(to encoder: any Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(areaId, forKey: .areaId)
         try container.encode(reason, forKey: .reason)
+        try container.encode(missing, forKey: .missing)
     }
 }
 
 public enum UnrankedReason: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
     case notRankable
     case insufficientData
+    case characterUnknown
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [UnrankedReason] = [.notRankable, .insufficientData]
+    public static let allCases: [UnrankedReason] = [.notRankable, .insufficientData, .characterUnknown]
 
     public init(rawValue: String) {
         switch rawValue {
         case "not_rankable": self = .notRankable
         case "insufficient_data": self = .insufficientData
+        case "character_unknown": self = .characterUnknown
         default: self = .unlisted(rawValue)
         }
     }
@@ -5088,8 +7161,69 @@ public enum UnrankedReason: Hashable, Sendable, Codable, CaseIterable, RawRepres
         switch self {
         case .notRankable: return "not_rankable"
         case .insufficientData: return "insufficient_data"
+        case .characterUnknown: return "character_unknown"
         case .unlisted(let value): return value
         }
+    }
+}
+
+public struct VibeBands: Hashable, Sendable, Codable {
+    public let tagId: TagId
+    public let marks: [BandMark]
+
+    public init(tagId: TagId, marks: [BandMark]) {
+        self.tagId = tagId
+        self.marks = marks
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case tagId = "tag_id"
+        case marks
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        tagId = try container.decode(TagId.self, forKey: .tagId)
+        marks = try container.decode([BandMark].self, forKey: .marks)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(tagId, forKey: .tagId)
+        try container.encode(marks, forKey: .marks)
+    }
+}
+
+/// A part of a recipe that a release carries no measure for. It is named, never filled in.
+public struct WaitsOn: Hashable, Sendable, Codable {
+    public let featureId: FeatureId
+    public let label: String
+    public let hundredths: Int
+
+    public init(featureId: FeatureId, label: String, hundredths: Int) {
+        self.featureId = featureId
+        self.label = label
+        self.hundredths = hundredths
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case featureId = "feature_id"
+        case label
+        case hundredths
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        featureId = try container.decode(FeatureId.self, forKey: .featureId)
+        label = try container.decode(String.self, forKey: .label)
+        hundredths = try container.decode(Int.self, forKey: .hundredths)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(featureId, forKey: .featureId)
+        try container.encode(label, forKey: .label)
+        try container.encode(hundredths, forKey: .hundredths)
     }
 }
 

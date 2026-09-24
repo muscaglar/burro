@@ -15,7 +15,7 @@
           "amount": 1100,
           "segment": "studio",
           "strictness": "hard",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "stated"
         },
         "commutes": [
@@ -36,7 +36,7 @@
         ],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [
           {
             "feature_id": "air_no2",
@@ -47,7 +47,7 @@
           {
             "feature_id": "highstreet_access",
             "weight": 0.05,
-            "direction": "more",
+            "direction": "less",
             "provenance": "default"
           },
           {
@@ -77,7 +77,7 @@
         ],
         "tags": [],
         "areas": [],
-        "tenure_from": "default",
+        "tenure_from": "stated",
         "commute_combine_from": "default",
         "pt_basis_from": "default",
         "commute_weight_from": "default"
@@ -88,42 +88,46 @@
   "status": 200,
   "headers": {
     "access-control-allow-origin": "http://localhost:3000",
-    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "4288",
+    "content-length": "4821",
     "content-type": "application/json",
     "vary": "Origin",
+    "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "90ca5cba-d307-4055-acd0-6be007166a39"
+    "x-request-id": "14984ae2-6837-4b97-b3aa-f8be76bca0da"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.3.0",
-      "synthetic": true
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
     },
     "data": {
       "scores": [
         {
           "area_id": "syn-n0016",
-          "score": 32.99
+          "score": 32.17,
+          "counted": 8,
+          "present": 7
         }
       ],
       "ranked": [
         {
           "area_id": "syn-n0016",
           "rank": 1,
-          "score": 32.99,
-          "weight_coverage": 0.6279,
+          "score": 32.17,
+          "weight_coverage": 0.7143,
           "contributions": [
             {
               "component": "commute",
               "present": true,
-              "weight": 1.0,
-              "share": 0.7407,
+              "weight": 0.4,
+              "share": 0.5333,
               "utility": 0.3,
-              "contribution": 0.2222,
-              "loss": 0.5185,
+              "contribution": 0.16,
+              "loss": 0.3733,
               "fact_ids": [
                 "syn-n0016/travel/syn-p0026.pt",
                 "syn-n0016/travel/syn-p0019.pt"
@@ -133,58 +137,46 @@
               "component": "feature:noise_exposure",
               "present": true,
               "weight": 0.05,
-              "share": 0.037,
-              "utility": 0.675,
-              "contribution": 0.025,
-              "loss": 0.012,
+              "share": 0.0667,
+              "utility": 0.625,
+              "contribution": 0.0417,
+              "loss": 0.025,
               "fact_ids": [
                 "syn-n0016/feature/noise_exposure"
-              ]
-            },
-            {
-              "component": "feature:air_no2",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.037,
-              "utility": 0.625,
-              "contribution": 0.0231,
-              "loss": 0.0139,
-              "fact_ids": [
-                "syn-n0016/feature/air_no2"
               ]
             },
             {
               "component": "feature:station_walk",
               "present": true,
               "weight": 0.1,
-              "share": 0.0741,
+              "share": 0.1333,
               "utility": 0.295,
-              "contribution": 0.0219,
-              "loss": 0.0522,
+              "contribution": 0.0393,
+              "loss": 0.094,
               "fact_ids": [
                 "syn-n0016/feature/station_walk"
               ]
             },
             {
-              "component": "feature:park_proximity",
+              "component": "feature:air_no2",
               "present": true,
               "weight": 0.05,
-              "share": 0.037,
-              "utility": 0.548,
-              "contribution": 0.0203,
-              "loss": 0.0167,
+              "share": 0.0667,
+              "utility": 0.575,
+              "contribution": 0.0383,
+              "loss": 0.0283,
               "fact_ids": [
-                "syn-n0016/feature/park_proximity"
+                "syn-n0016/feature/air_no2"
               ]
             },
             {
               "component": "feature:highstreet_access",
               "present": true,
               "weight": 0.05,
-              "share": 0.037,
-              "utility": 0.31,
-              "contribution": 0.0115,
-              "loss": 0.0256,
+              "share": 0.0667,
+              "utility": 0.357,
+              "contribution": 0.0238,
+              "loss": 0.0429,
               "fact_ids": [
                 "syn-n0016/feature/highstreet_access"
               ]
@@ -193,18 +185,30 @@
               "component": "feature:station_lines",
               "present": true,
               "weight": 0.05,
-              "share": 0.037,
+              "share": 0.0667,
               "utility": 0.159,
-              "contribution": 0.0059,
-              "loss": 0.0311,
+              "contribution": 0.0106,
+              "loss": 0.0561,
               "fact_ids": [
                 "syn-n0016/feature/station_lines"
               ]
             },
             {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0667,
+              "utility": 0.119,
+              "contribution": 0.0079,
+              "loss": 0.0587,
+              "fact_ids": [
+                "syn-n0016/feature/park_proximity"
+              ]
+            },
+            {
               "component": "budget",
               "present": false,
-              "weight": 0.8,
+              "weight": 0.3,
               "share": 0.0,
               "utility": null,
               "contribution": 0.0,
@@ -237,9 +241,31 @@
           "budget": null,
           "untested_filters": [
             "over_budget"
+          ],
+          "strip": [
+            {
+              "tag_id": "built_age",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0016/tag/built_age"
+            },
+            {
+              "tag_id": "family_amenities",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0016/tag/family_amenities"
+            }
           ]
         }
       ],
+      "areas_ranked": 1,
+      "areas_listed": 1,
       "filtered": [
         {
           "area_id": "syn-n0001",
@@ -329,11 +355,13 @@
       "unranked": [
         {
           "area_id": "syn-n0009",
-          "reason": "not_rankable"
+          "reason": "not_rankable",
+          "missing": []
         },
         {
           "area_id": "syn-n0020",
-          "reason": "not_rankable"
+          "reason": "not_rankable",
+          "missing": []
         }
       ],
       "empty_spec": false,
@@ -344,7 +372,7 @@
           "amount": 1100,
           "segment": "studio",
           "strictness": "hard",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "stated"
         },
         "commutes": [
@@ -365,7 +393,7 @@
         ],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [
           {
             "feature_id": "air_no2",
@@ -376,7 +404,7 @@
           {
             "feature_id": "highstreet_access",
             "weight": 0.05,
-            "direction": "more",
+            "direction": "less",
             "provenance": "default"
           },
           {
@@ -406,14 +434,26 @@
         ],
         "tags": [],
         "areas": [],
-        "tenure_from": "default",
+        "tenure_from": "stated",
         "commute_combine_from": "default",
         "pt_basis_from": "default",
         "commute_weight_from": "default"
       },
-      "spec_hash": "722bfeb27ee8a456e4683d2268d6f29c9f90ea6621ecc868f76ec6e9c23ac577",
+      "spec_hash": "b283b48d90a90366436513da15d0b55e071febe1960557cb073b862598278a1b",
       "applied": [],
-      "rejected": []
+      "rejected": [],
+      "places": [
+        {
+          "place_id": "syn-p0019",
+          "name": "Foxholt Market",
+          "kind": "district"
+        },
+        {
+          "place_id": "syn-p0026",
+          "name": "Wexmoor University",
+          "kind": "university"
+        }
+      ]
     }
   }
 }

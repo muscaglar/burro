@@ -1,6 +1,6 @@
 {
   "scenario": "interpret-rejected",
-  "shows": "A loose wish for safety: the edit to recorded crime is rejected, the park is applied",
+  "shows": "A cheaper home where no budget is set: the edit is rejected, the park is applied",
   "captured": true,
   "request": {
     "operation_id": "interpret",
@@ -8,30 +8,42 @@
     "route": "/v1/interpret",
     "path": "/v1/interpret",
     "body": {
-      "text": "Somewhere safe, near a park"
+      "text": "Somewhere a bit cheaper, near a park"
     }
   },
   "status": 200,
   "headers": {
     "access-control-allow-origin": "http://localhost:3000",
-    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "2174",
+    "content-length": "1951",
     "content-type": "application/json",
     "vary": "Origin",
+    "x-burro-preview": "false",
     "x-burro-synthetic": "true",
     "x-request-id": "59276561-958f-4d46-9642-08d39d85a0c7"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.3.0",
-      "synthetic": true
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
     },
     "data": {
       "status": "ok",
       "operations": {
-        "budget_ops": [],
+        "budget_ops": [
+          {
+            "action": "nudge",
+            "tenure": "unchanged",
+            "amount": 0,
+            "segment": "unchanged",
+            "strictness": "unchanged",
+            "step": "down_small",
+            "provenance": "stated"
+          }
+        ],
         "commute_ops": [],
         "weight_ops": [
           {
@@ -41,22 +53,6 @@
             "step": "up_large",
             "direction": "default",
             "provenance": "stated"
-          },
-          {
-            "action": "nudge",
-            "feature_id": "crime_violence_robbery",
-            "value": 0.0,
-            "step": "up_large",
-            "direction": "default",
-            "provenance": "inferred"
-          },
-          {
-            "action": "nudge",
-            "feature_id": "crime_burglary_theft",
-            "value": 0.0,
-            "step": "up_large",
-            "direction": "default",
-            "provenance": "inferred"
           }
         ],
         "tag_ops": [],
@@ -70,13 +66,13 @@
           "amount": null,
           "segment": "bed_1",
           "strictness": "soft",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "default"
         },
         "commutes": [],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [
           {
             "feature_id": "air_no2",
@@ -87,7 +83,7 @@
           {
             "feature_id": "highstreet_access",
             "weight": 0.05,
-            "direction": "more",
+            "direction": "less",
             "provenance": "default"
           },
           {
@@ -122,7 +118,7 @@
         "pt_basis_from": "default",
         "commute_weight_from": "default"
       },
-      "spec_hash": "d11abd56ac03c7d24f71fc148cd822ac3780e434f8ef9f6f8a600364685d2a66",
+      "spec_hash": "bb353c938e7234c74257a74805a166c5fb87f1fe1b56024d907fc38892137549",
       "applied": [
         {
           "group": "weight_ops",
@@ -132,54 +128,39 @@
       ],
       "rejected": [
         {
-          "group": "weight_ops",
-          "index": 1,
-          "reason": "crime_needs_explicit_request"
-        },
-        {
-          "group": "weight_ops",
-          "index": 2,
-          "reason": "crime_needs_explicit_request"
+          "group": "budget_ops",
+          "index": 0,
+          "reason": "nothing_to_change"
         }
       ],
-      "assumptions": [
-        {
-          "code": "weight",
-          "group": "weight_ops",
-          "index": 1
-        },
-        {
-          "code": "weight",
-          "group": "weight_ops",
-          "index": 2
-        }
-      ],
+      "assumptions": [],
       "unmet": [],
       "clarify": [],
       "notice": "none",
       "notice_text": "",
       "interpreter": "rule",
       "degraded": false,
+      "model_refused": false,
       "rests_on": [
+        {
+          "group": "budget_ops",
+          "index": 0,
+          "start": 10,
+          "end": 23
+        },
         {
           "group": "weight_ops",
           "index": 0,
-          "start": 16,
-          "end": 27
-        },
-        {
-          "group": "weight_ops",
-          "index": 1,
-          "start": 10,
-          "end": 14
-        },
-        {
-          "group": "weight_ops",
-          "index": 2,
-          "start": 10,
-          "end": 14
+          "start": 25,
+          "end": 36
         }
-      ]
+      ],
+      "suggestions": [],
+      "unread": [],
+      "not_in_release": [],
+      "unmet_at": [],
+      "model_pending": false,
+      "places": []
     }
   }
 }

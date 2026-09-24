@@ -9,7 +9,7 @@ make test       the package's tests, on macOS. One class: make test ONLY=BurroKi
 make build      compile the app for iOS, in Debug and in Release, with code signing off
 ```
 
-Needs a Mac with Xcode that can run `swift test`. `check` runs `generate-check`, `test` and `build`, in that order, and stops at the first failure. Hosted CI runs it in the job `ios`. `test` is `swift test`, and `build` is `xcodebuild`: the [Makefile](Makefile) holds both commands whole.
+Needs a Mac with Xcode that can run `swift test`. `check` runs `generate-check`, `test` and `build`, in that order, and stops at the first failure. Hosted CI runs its three parts in the job `ios`, each though one before it failed. `test` is `swift test`, and `build` is `xcodebuild`: the [Makefile](Makefile) holds both commands whole.
 
 `test` treats a warning in the package as an error, and the app target does the same for `App/`. What the package holds for iOS alone, inside `#if os(iOS)`, is compiled by `build` only, where a warning in it does not fail.
 
@@ -17,13 +17,14 @@ Needs a Mac with Xcode that can run `swift test`. `check` runs `generate-check`,
 
 ## The rules
 
-The website's three rules hold here, and two more.
+The website's three rules hold here, and three more.
 
 1. **Words about a place are the API's.** The app lays them out. It never writes, joins or rewords a sentence about a place, and formats no number that a fact's `slots` hold already formatted. Copy names controls, states and codes only.
 2. **The spec on screen is the last spec the API returned.** The app builds edits, never specs.
 3. **What a person types stays in the box it was typed in, and in one `POST` body.** Not in the search's state, a file, a log, the pasteboard, Spotlight, Siri or Handoff. A place id, a spec, a fact id and a share id are treated the same way.
 4. **No sentence is sent until the person has agreed.** `SearchFlow.submitText` sends nothing until `Consent` says `allowed`. The settings need no agreement.
-5. **Every screen that shows data says when it is made up.** The shell draws `SyntheticBanner` above every tab. A screen does not draw its own.
+5. **Every screen that shows data says when it is made up, and when its release is a preview.** The shell draws `SyntheticBanner` and `PreviewBanner` above every tab. A screen does not draw its own. A sheet covers the shell, so the one sheet there is draws both.
+6. **Nothing Burro noticed is applied until the person chooses.** A suggestion is sent only by `SearchFlow.choose` and `chooseAll`. "Add all" adds only what `Suggestion.addedWithOthers` allows: never a thing that could be meant two ways, and never one that carries a note.
 
 Do not weaken a rule to make a change pass. Raise it instead.
 
@@ -42,12 +43,12 @@ A package alone cannot be built as an app, and a project alone cannot be tested 
 
 | Folder | Holds | Owner |
 |---|---|---|
-| `API/` | `Generated/` (the models, the routes and the protocol `BurroAPI`), `LiveBurroAPI`, `Transport`, `Failure`, `APIConfiguration`, `SyntheticNotice` | Foundation |
-| `Search/` | `SearchState` and `reduce`, `SearchStore`, `SearchFlow`, `Edits`, `Shown`. They follow `apps/web/src/lib/search/` event for event: when `state.ts` or `flow.ts` changes, change these and port its test | Foundation |
-| `Design/` | `Tokens`, `TokenColor`, the two button styles, `Generated/TokenValues` | Foundation |
+| `API/` | `Generated/` (the models, the routes and the protocol `BurroAPI`), `LiveBurroAPI`, `Transport`, `Failure`, `APIConfiguration`, `SyntheticNotice`, `PreviewNotice` | Foundation |
+| `Search/` | `SearchState` and `reduce`, `SearchStore`, `SearchFlow`, `Edits`, `Shown`. They follow `apps/web/src/lib/search/` event for event: when `state.ts` or `flow.ts` changes, change these and port its test. `Vibes` and `VibeCopy` say a vibe as a band of five, `Offers` what may be done with a suggestion, `ReleaseHolds` and `NotInData` what the release does not hold | Foundation |
+| `Design/` | `Tokens`, `TokenColor`, the two button styles, `VibeLine`, `Generated/TokenValues` | Foundation |
 | `Kept/` | `PhoneStorage`, `Shortlist`, `Consent`, `FileSavedAreasStorage`: the only things written to the phone | Foundation |
-| `Shell/` | `AppModel`, `BurroRootView`, `Navigation`, `SiteAddress`, `SyntheticBanner`, `ShellCopy` | Foundation |
-| `Features/Search/` | `SearchRootView`, `PermissionView`, `SearchCopy`. `SearchScreen.shown` decides what is drawn and in what order, and `SearchHands` what a press does. `Examples.swift` holds the example sentences, which name a figure and so are in no Copy file | Search |
+| `Shell/` | `AppModel`, `BurroRootView`, `Navigation`, `SiteAddress`, `SyntheticBanner`, `PreviewBanner`, `ShellCopy` | Foundation |
+| `Features/Search/` | `SearchRootView`, `PermissionView`, `SearchCopy`. `SearchScreen.shown` decides what is drawn and in what order, and `SearchHands` what a press does. `OffersBlock` draws what was noticed, what is not in the data and what was not read. `Examples.swift` holds the example sentences, which name a figure and so are in no Copy file | Search |
 | `Features/Results/` | `ResultsView`: the map with the list over it, the table of every area, and sharing. `ResultsCompareView`: the comparison. `Model/` works out what is drawn, `Views/` draws it, and every name is inside `Results` | Results |
 | `Features/Area/` | `AreaView`: one area, its sources, "Add to shortlist", "Share". `opensLinks()`, which the shell puts on its root, opens the website's own links | Area |
 | `Features/Shortlist/` | `ShortlistRootView`, and `SavedAreas`, which is `app.saved` | Shortlist |
@@ -59,10 +60,10 @@ An author owns every file in their feature's folder, and `Tests/BurroKitTests/Fe
 
 | Type | Use it to |
 |---|---|
-| `AppModel`, from `@Environment(AppModel.self)` | Reach `search`, `saved`, `consent`, `synthetic`. Go somewhere with `show(_:)`, `show(_:in:)`, `showRoot(of:)`. Save an area with `toggleShortlist(_:)`, or with `saved.toggle(_:page:)` where its page is in hand: both keep its facts, and nothing of the search |
+| `AppModel`, from `@Environment(AppModel.self)` | Reach `search`, `saved`, `consent`, `synthetic`, `preview`. Go somewhere with `show(_:)`, `show(_:in:)`, `showRoot(of:)`. Save an area with `toggleShortlist(_:)`, or with `saved.toggle(_:page:)` where its page is in hand: both keep its facts, and nothing of the search |
 | `SearchStore`, from `@Environment(SearchStore.self)` inside `Opened { }` | Read `state`. Ask `flow` to do things. Never make a `SearchState` or send an event |
-| `SearchFlow` | `submitText`, `applyEdits`, `answerClarify`, `leaveOut`, `addPlace`, `setTenure`, `rankNow`, `retry`, `stop`, `startAgain`, `openShare`, `createShare`, `compare`, `searchPlaces`, `loadDetail`, `loadGeometry`, `select`, `openSettings`, `wentOffline`, `wentOnline` |
-| `SearchState` and `Shown.swift` | `phase`, `conditions`, `failurePlace`, `questions`, `nothingRead`, `unmetShown`, `refusals`, `repairs`: each state of web.md section 3, worked out once. `reasonsAreIn` says whether the reasons are the ranking's, `failureOfTheCards` why a card lacks something, `servedTheRanking` which release to name under a result |
+| `SearchFlow` | `submitText`, `applyEdits`, `choose`, `chooseAll`, `boxChanged`, `answerClarify`, `leaveOut`, `addPlace`, `setTenure`, `rankNow`, `retry`, `stop`, `startAgain`, `openShare`, `createShare`, `compare`, `searchPlaces`, `loadDetail`, `loadGeometry`, `select`, `openSettings`, `wentOffline`, `wentOnline` |
+| `SearchState` and `Shown.swift` | `phase`, `conditions`, `failurePlace`, `questions`, `suggestions`, `unread`, `readInPart`, `missing`, `nothingRead`, `unmetShown`, `refusals`, `repairs`: each state of web.md section 3, worked out once. `leads` says what counts for more than what was asked of the place, `reasonsAreIn` says whether the reasons are the ranking's, `failureOfTheCards` why a card lacks something, `servedTheRanking` which release to name under a result |
 | `Edits` | Build the one edit a control sends |
 | `Screen`, `AreaRef`, `AppTab` | Name where to go. A route holds ids and names of the release, never anything of a search |
 | `app.site` | The only place an address is built: `area(_:)` and `share(_:)`, for `ShareLink`. Each is `nil` until the website has an address, from the build setting `BURRO_SITE_URL`: offer no "Share" then |
@@ -74,13 +75,14 @@ The first screen of each feature keeps its name and its `init`, because the shel
 ## The API
 
 - The address comes from one build setting, `BURRO_API_BASE_URL`, written into `Info.plist` as `BurroAPIBaseURL` and read in `APIConfiguration`. A debug build names the API on `127.0.0.1`. A release build names none until one is given: `xcodebuild BURRO_API_BASE_URL=... build`. `http` is taken for `localhost` and `127.0.0.1` only.
-- `BurroAPI` has one method a route and none throws. An answer is `Answered`, with `meta`, `data` and `synthetic`, or a `Failure`: the API's own, with its code, message and paths, or one of `timeout`, `aborted`, `offline`, `network`, `notConfigured`, `unreadable`. Show `message` as it came.
+- `BurroAPI` has one method a route and none throws. An answer is `Answered`, with `meta`, `data`, `synthetic` and `preview`, or a `Failure`: the API's own, with its code, message and paths, or one of `timeout`, `aborted`, `offline`, `network`, `notConfigured`, `unreadable`. Show `message` as it came.
 - A view never sees `URLSession`. A test passes `StandIn`, which answers from the recorded answers through the real client.
 - Two types share a name with the system's: `Dimension` and `Combine`. Inside BurroKit the name means Burro's. Do not `import Combine`.
+- What the release holds is the API's to say. Who reads what is typed is `meta.reader.notice`, shown word for word: the app names no provider. A vibe is a band of five from a fact or a strip, with `meta.recipes` for what it waits on. A place is named by `places` of the answer that brought the spec, and is never shown by a number.
 
 ## Generated files
 
-`API/Generated/`, `Design/Generated/` and `Tests/BurroKitTests/Recorded/` are written by `make generate` from `contracts/openapi.json`, `apps/web/src/styles/tokens.css` and `apps/web/test/recorded/`. They are committed and never edited by hand. When a source changes, run `make generate` and carry on. The generator fails on a schema it has no rule for: give it a rule, never a guess.
+`API/Generated/`, `Design/Generated/` and `Tests/BurroKitTests/Recorded/` are written by `make generate` from `contracts/openapi.json`, `apps/web/src/styles/tokens.css` and `apps/web/test/recorded/`. They are committed and never edited by hand. When a source changes, run `make generate`, mend what no longer compiles, and bring each test that names a figure to the recordings as they now are. The generator fails on a schema it has no rule for: give it a rule, never a guess.
 
 ## Tests
 
@@ -97,14 +99,14 @@ The first screen of each feature keeps its name and its `init`, because the shel
 | File | Holds | Never holds |
 |---|---|---|
 | `shortlist.json` | For each saved area: its id, slug, name, borough, the date, and whether it is made up | A rank, a fit, a place, a spec, anything typed |
-| `saved-areas.json` | The order the person put the saved areas in, and for each its release and its facts as they were when it was saved: only facts of kind `area`, `feature`, `tag`, `cost` and `station`, so that a saved area reads with no connection | A journey, a budget fit, a fact's id, a rank, a fit, a place, a spec, anything typed |
+| `saved-areas.json` | The order the person put the saved areas in, and for each its release, whether that was a preview, its facts as they were when it was saved, and its vibes with what each waits on: only facts of kind `area`, `feature`, `tag`, `cost` and `station`, so that a saved area reads with no connection | A journey, a budget fit, a fact's id, a rank, a fit, a place, a spec, which vibe a search asked for, anything typed |
 | `consent.json` | `allowed` or `settingsOnly` | Anything else |
 
 All three are in the app's own folder, left out of backups. To keep a fourth thing, add it to `KeptFile` and to this table. The privacy manifest declares no tracking, no collected data and no API that needs a reason: a change that uses one must declare it.
 
 ## Accessibility
 
-Every control is a system control with a label. Text takes a style from `Tokens.Text`, so it grows with the person's setting: never fix a height on text. Anything pressed is 44 points at least: `.target()`. Animate only through `Tokens.Motion.animation`, which gives none when less motion is asked for. Colour is never the only signal: rank is a number, fit is "80 of 100", assumed is a word. Nothing is dimmed but a button while it is pressed: a control that is switched off is drawn in colours of its own. What the API said is drawn with `Text(verbatim:)`. Every map has the list that says all it shows.
+Every control is a system control with a label. Text takes a style from `Tokens.Text`, so it grows with the person's setting: never fix a height on text. Anything pressed is 44 points at least: `.target()`. Animate only through `Tokens.Motion.animation`, which gives none when less motion is asked for. Colour is never the only signal: rank is a number, fit is "80 of 100", a vibe is "band 4 of 5", assumed is a word. Nothing is dimmed but a button while it is pressed: a control that is switched off is drawn in colours of its own. What the API said is drawn with `Text(verbatim:)`. Every map has the list that says all it shows.
 
 ## What has been checked
 

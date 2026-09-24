@@ -16,6 +16,10 @@ enum SearchPart: Int, Hashable, Sendable, CaseIterable, Comparable {
     /// What has just happened, in a line.
     case status
     case offline
+    /// What was asked for that the data holds for no area, by name, with why.
+    case notInData
+    /// Something was read, and a stretch of what was typed was not.
+    case readInPart
     /// The words could not be read, so the settings are the way in.
     case couldNotRead
     /// A call failed: the API's words for it, and what can be done.
@@ -28,6 +32,10 @@ enum SearchPart: Int, Hashable, Sendable, CaseIterable, Comparable {
     case chips
     case unmet
     case notApplied
+    /// What Burro noticed and did not apply, for the person to choose from.
+    case offers
+    /// Where a stretch of what was typed was not read, the way to see it in the box.
+    case unread
     /// The way to the list and the map, once there is a ranking.
     case results
     case settings
@@ -69,6 +77,60 @@ struct NotAppliedShown: Hashable, Sendable {
     let reason: String
 }
 
+/// One thing the reader noticed and did not apply, with what a person may
+/// choose of it. The name of the thing and the words of each choice are the
+/// API's. It holds where the person's words stand, as offsets, and never the words.
+struct OfferShown: Hashable, Sendable, Identifiable {
+    struct Choice: Hashable, Sendable, Identifiable {
+        let direction: SuggestionDirection
+        /// The API's words for the choice: what it would do.
+        let label: String
+        /// What a screen reader is told. "Leave it out" is said of every
+        /// suggestion, so each says what it leaves out.
+        let spoken: String
+
+        var id: String { direction.rawValue }
+    }
+
+    /// Where the suggestion stands among them all: a choice names its thing by its place.
+    let at: Int
+    /// The API's name for the thing.
+    let name: String
+    /// True when the name is drawn before the choices: the thing could be
+    /// meant two ways. A thing there is one way to want is named by its button alone.
+    let named: Bool
+    /// What a person should know before they choose, in the API's words.
+    let note: String?
+    /// False where the suggestion before this one carries the same note,
+    /// word for word: the note is drawn once, with the first of them.
+    let noteDrawn: Bool
+    let choices: [Choice]
+    /// Where the words it rests on stand in the text that was sent.
+    let spans: [Span]
+
+    var id: Int { at }
+}
+
+/// Everything that is offered, as the screen draws it.
+struct OffersShown: Hashable, Sendable {
+    let offers: [OfferShown]
+    /// The one button that adds every thing in sight that may be added with
+    /// others, and the places in the list of those things. `nil` with fewer than two.
+    let addAll: String?
+    let addAllAts: [Int]
+    /// The button that shows the suggestions that wait out of sight. `nil` when none does.
+    let showAll: String?
+}
+
+/// Who reads what is typed, as the screen before the first search says it.
+struct WhoReads: Hashable, Sendable {
+    /// The API's words, as they were served, or what stands in their place
+    /// until the service has said.
+    let words: String
+    /// True once the service has said who reads.
+    let said: Bool
+}
+
 /// One question: which place, or which area, was meant.
 struct QuestionShown: Hashable, Sendable, Identifiable {
     struct Option: Hashable, Sendable, Identifiable {
@@ -91,6 +153,14 @@ struct QuestionShown: Hashable, Sendable, Identifiable {
 
 struct SearchShown: Hashable, Sendable {
     let box: BoxShown
+    /// What the box asks for. It asks only for what the data can answer, and says what it cannot.
+    let hint: String
+    /// Who reads what is typed, in the API's words, as they were served.
+    let reader: String
+    /// The sentences to start from: the first three the data can answer the whole of.
+    let examples: [String]
+    /// True where the data names no place to reach: no field is offered for one.
+    let noPlaces: Bool
     /// The API's words for why the text was refused, when it was.
     let boxProblem: String?
     /// True while a sentence is being read.
@@ -105,6 +175,15 @@ struct SearchShown: Hashable, Sendable {
     let failure: FailureShown?
     let notice: String?
     let nothingRead: String?
+    /// What was asked for that the data holds for no area: one line for each thing.
+    let notInData: [String]
+    /// The words that say so, where there is any.
+    let notInDataLead: String?
+    /// True when something was read and a stretch of what was typed was not.
+    let readInPart: Bool
+    let offers: OffersShown?
+    /// The stretches of the text that was sent that were not read, as offsets.
+    let unread: [Span]
     let questions: [QuestionShown]
     /// The heading of the chips: what they are depends on how the search was made.
     let chipsTitle: String
@@ -128,9 +207,11 @@ struct SearchShown: Hashable, Sendable {
     /// The parts that are on screen, in the order they are drawn.
     var parts: [SearchPart] {
         var parts: [SearchPart] = [.box]
-        if box == .offered { parts.append(.examples) }
+        if box == .offered && !examples.isEmpty { parts.append(.examples) }
         parts += [.basics, .status]
         if offlineWaiting != nil { parts.append(.offline) }
+        if !notInData.isEmpty { parts.append(.notInData) }
+        if readInPart { parts.append(.readInPart) }
         if couldNotReadRetry != nil { parts.append(.couldNotRead) }
         if failure != nil { parts.append(.failure) }
         if notice != nil { parts.append(.notice) }
@@ -139,6 +220,8 @@ struct SearchShown: Hashable, Sendable {
         parts.append(.chips)
         if !unmet.isEmpty { parts.append(.unmet) }
         if !notApplied.isEmpty { parts.append(.notApplied) }
+        if offers != nil { parts.append(.offers) }
+        if !unread.isEmpty { parts.append(.unread) }
         if hasRanking { parts.append(.results) }
         parts.append(.settings)
         return parts
@@ -146,8 +229,61 @@ struct SearchShown: Hashable, Sendable {
 }
 
 enum SearchScreen {
+    /// How many suggestions are shown before "Show all" is pressed. Every thing beyond
+    /// them that there is one way to want is shown as well.
+    static let offersAtFirst = 4
+
+    /// Where in the list the suggestions stand that are drawn before "Show all" is
+    /// pressed: the first four, and every other that may be added with others at one
+    /// press. So what waits out of sight is only what is a question, and the one
+    /// button adds every thing that needs none.
+    static func inSight(_ suggestions: [Suggestion]) -> [Int] {
+        suggestions.indices.filter { $0 < offersAtFirst || suggestions[$0].addedWithOthers != nil }
+    }
+
+    /// What is offered, as the screen draws it. `nil` where nothing is.
+    static func offers(_ suggestions: [Suggestion], all: Bool) -> OffersShown? {
+        guard !suggestions.isEmpty else { return nil }
+        let shown = all ? Array(suggestions.indices) : inSight(suggestions)
+        var offers: [OfferShown] = []
+        for at in shown {
+            let suggestion = suggestions[at]
+            let note = suggestion.noteShown
+            // A note that neighbours share word for word is drawn once, with the first of them.
+            let sameAsBefore = note != nil && offers.last?.note == note
+            offers.append(
+                OfferShown(
+                    at: at, name: suggestion.label, named: suggestion.ways.count != 1, note: note,
+                    noteDrawn: note != nil && !sameAsBefore,
+                    choices: suggestion.choices.map { choice in
+                        OfferShown.Choice(
+                            direction: choice.direction, label: choice.label,
+                            spoken: choice.direction == .ignore
+                                ? SearchCopy.Suggest.named(choice.label, suggestion.label) : choice.label)
+                    },
+                    spans: suggestion.spans))
+        }
+        // The things in sight that may be added together. What is out of sight is never
+        // added, nor what could be meant two ways, nor what carries a note.
+        let oneWay = shown.filter { suggestions[$0].addedWithOthers != nil }
+        let every = oneWay.count == shown.count
+        let more = suggestions.count - shown.count
+        return OffersShown(
+            offers: offers,
+            addAll: oneWay.count > 1
+                ? (every
+                    ? SearchCopy.Suggest.addAll(oneWay.count) : SearchCopy.Suggest.addThese(oneWay.count))
+                : nil,
+            addAllAts: oneWay.count > 1 ? oneWay : [],
+            showAll: more > 0 ? SearchCopy.Suggest.showAll(suggestions.count) : nil)
+    }
+
     /// What the screen shows of a search.
-    static func shown(_ state: SearchState, consent: ConsentChoice?) -> SearchShown {
+    ///
+    /// - Parameter allOffers: True once "Show all" was pressed, of what was noticed.
+    static func shown(
+        _ state: SearchState, consent: ConsentChoice?, allOffers: Bool = false
+    ) -> SearchShown {
         let reading = state.isReading
         let place = state.failurePlace
         let names = SearchChips.names(of: state.spec, held: state.placeNames)
@@ -184,9 +320,17 @@ enum SearchScreen {
         let readBy = state.read.flatMap { SearchCopy.readBy($0.interpreter) }
         let waiting = reading && state.read == nil && state.ranking == nil
         let chips = waiting ? [] : SearchChips.of(state)
+        let holds = state.meta.holds
+        // What was asked for that the data does not hold is said by name, directly under
+        // the status. It is not said a second time among what was not applied.
+        let missing = reading ? [] : NotInData.lines(of: state)
 
         return SearchShown(
             box: consent == .allowed ? .offered : .declined,
+            hint: SearchCopy.Prompt.hint(costs: holds.costs, journeys: holds.journeys),
+            reader: state.meta.reader.notice,
+            examples: Examples.offered(for: state.meta),
+            noPlaces: !holds.journeys,
             boxProblem: boxProblem,
             reading: reading,
             busy: state.isBusy,
@@ -196,6 +340,11 @@ enum SearchScreen {
             failure: failure,
             notice: notice,
             nothingRead: nothingRead,
+            notInData: missing,
+            notInDataLead: missing.isEmpty ? nil : SearchCopy.NotInData.lead(missing.count),
+            readInPart: state.readInPart,
+            offers: offers(state.suggestions, all: allOffers),
+            unread: state.unread,
             questions: questions.enumerated().map { at, question in
                 asked(question, at: at + 1, of: questions.count)
             },
@@ -207,8 +356,8 @@ enum SearchScreen {
             unmet: state.read != nil && !reading ? state.unmetShown.compactMap(SearchCopy.unmet) : [],
             notApplied: reading
                 ? []
-                : state.refusals.compactMap { refusal in
-                    SearchCopy.rejected(refusal.reason).map { reason in
+                : state.refusals.filter { !state.isSaidAsMissing($0) }.compactMap { refusal in
+                    rejected(refusal.reason, in: state.meta).map { reason in
                         NotAppliedShown(
                             about: refusal.key.flatMap { name(of: $0, in: state, names: names) },
                             reason: reason)
@@ -219,6 +368,15 @@ enum SearchScreen {
             hasRanking: state.ranking != nil,
             placesFull: state.placesFull ? SearchCopy.Place.full(state.meta.limits.maxCommutes) : nil
         )
+    }
+
+    /// Who reads what is typed: what the API served, word for word. Until the
+    /// service has said, the screen says that it is being asked, or that it
+    /// has not said, and nothing typed is sent.
+    static func whoReads(_ reader: Reader?, opening: AppModel.Opening) -> WhoReads {
+        if let reader { return WhoReads(words: reader.notice, said: true) }
+        if case .failed = opening { return WhoReads(words: SearchCopy.Reader.unsaid, said: false) }
+        return WhoReads(words: SearchCopy.Reader.checking, said: false)
     }
 
     /// True when the spec is one of the two a search starts from, as the API served them.
@@ -244,11 +402,6 @@ enum SearchScreen {
         if chips.contains(where: \.assumed) { hints.append(SearchCopy.Chips.assumedHint) }
         if chips.contains(where: { $0.kind == .usual }) {
             hints.append("\(SearchCopy.Chips.usualHint) \(SearchCopy.Chips.openSettings)")
-        }
-        // The API gives a place's id and not its name (docs/design/web.md, section 13, gap 1).
-        let unnamed = state.spec.commutes.filter { state.placeNames[$0.placeId] == nil }.count
-        if unnamed > 0 {
-            hints.append(SearchCopy.Place.unnamedHint(unnamed, of: state.spec.commutes.count))
         }
         if let readBy { hints.append(readBy) }
         return hints
@@ -284,6 +437,22 @@ enum SearchScreen {
         onTop && state.answers > answers && leadsToResults(state)
     }
 
+    /// Why an edit was not applied, as a screen says it of one release. The rule on
+    /// recorded crime is followed by what is true of the release, where no vibe of
+    /// it holds recorded crime. `nil` for a reason this build has no word for.
+    static func rejected(_ reason: RejectReason, in meta: MetaData) -> String? {
+        guard reason == .crimeNeedsExplicitRequest, !holdsACrimeVibe(meta) else {
+            return SearchCopy.rejected(reason)
+        }
+        return "\(SearchCopy.crimeRule) \(SearchCopy.crimeNoVibe)"
+    }
+
+    /// True when the recipe of some vibe of the release holds a figure of
+    /// recorded crime. Which one does is the API's to say.
+    static func holdsACrimeVibe(_ meta: MetaData) -> Bool {
+        meta.tags.contains { SearchChips.holdsRecordedCrime($0, meta.features) }
+    }
+
     /// What is said of a failure: the API's own words for it, or the app's
     /// where the failure is not the API's.
     static func words(for failure: Failure) -> String {
@@ -293,12 +462,13 @@ enum SearchScreen {
         }
     }
 
-    /// The name of a part of the search, where it has one: the API's label, or a place's name.
+    /// The name of a part of the search, where it has one: the API's label, or a place's
+    /// name. A place no answer named has none, and is said as "the place".
     static func name(of key: ChipKey, in state: SearchState, names: [String: String]) -> String? {
         switch key {
         case .feature(let id): return state.meta.features.first { $0.featureId == id }?.label
         case .tag(let id): return state.meta.tags.first { $0.tagId == id }?.label
-        case .place(let id): return names[id] ?? state.placeNames[id]
+        case .place(let id): return state.placeNames[id]
         case .area(let id): return state.area(id)?.name
         case .tenure, .budget, .journeys: return nil
         }
@@ -337,7 +507,11 @@ enum SearchStatus {
         guard let ranking = state.ranking else {
             return asking ? SearchCopy.Status.question : ""
         }
-        if ranking.ranked.isEmpty { return SearchCopy.Status.nothingMatches }
+        // Where no limit left an area out, the line does not say that one did.
+        if ranking.ranked.isEmpty {
+            return ranking.filtered.isEmpty
+                ? SearchCopy.Status.nothingRanked : SearchCopy.Status.nothingMatches
+        }
 
         var said: [String] = []
         if ranking.emptySpec {
@@ -354,8 +528,63 @@ enum SearchStatus {
                 first.map { SearchCopy.Status.ranked(ranking.scores.count, first: $0) }
                     ?? SearchCopy.Status.rankedUnnamed(ranking.scores.count))
         }
-        if state.gaveWay { said.append(SearchCopy.Status.gaveWay) }
+        // What explains the order on screen is said of every ranking it is true of.
+        if let leads = state.leads {
+            said.append(
+                SearchCopy.Status.leads(journeys: leads.journey ? leads.journeys : 0, budget: leads.budget))
+        } else if state.gaveWay {
+            said.append(SearchCopy.Status.gaveWay)
+        }
         if asking { said.append(SearchCopy.Status.question) }
         return said.joined(separator: " ")
+    }
+}
+
+/// Which stretch of what is in the box is selected, and what is said of it.
+///
+/// It holds where a stretch stands and never the words. Where words stand is
+/// known for the text that was sent, and for no other, so this goes when the
+/// box changes.
+struct Showing: Hashable, Sendable {
+    /// What the stretches are of: what was not read, or the suggestion at that place in the list.
+    enum Of: Hashable, Sendable {
+        case unread
+        case offer(Int)
+    }
+
+    /// `nil` until something is shown.
+    var of: Of?
+    /// Which of the stretches is selected, from 1, and how many there are.
+    var at = 0
+    var among = 0
+    /// How many times a stretch has been shown, so that the same one can be shown again.
+    var presses = 0
+    /// The stretch for the box to select. `nil` where there is none to select.
+    var select: BoxSelect?
+
+    /// What is said once a stretch is shown: that it is selected in the box,
+    /// or that Burro cannot show which part it was.
+    var said: String? {
+        guard let of else { return nil }
+        if among == 0 { return SearchCopy.Notice.partNotFound }
+        switch of {
+        case .unread: return SearchCopy.Notice.partShown(at, of: among)
+        case .offer: return SearchCopy.Suggest.wordsShown
+        }
+    }
+
+    /// The state after one more press: the next of these stretches is
+    /// selected, and the first again after the last.
+    func next(of wanted: Of, in found: [Range<String.Index>]) -> Showing {
+        let first = of != wanted || among != found.count
+        let index = first || found.isEmpty ? 0 : at % found.count
+        var next = Showing()
+        next.of = wanted
+        next.presses = presses + 1
+        next.among = found.count
+        guard found.indices.contains(index) else { return next }
+        next.at = index + 1
+        next.select = BoxSelect(range: found[index], press: next.presses)
+        return next
     }
 }

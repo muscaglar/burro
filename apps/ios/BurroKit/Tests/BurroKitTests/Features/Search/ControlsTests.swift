@@ -198,7 +198,10 @@ final class ControlsTests: XCTestCase {
 
         XCTAssertEqual(
             groups.map(\.title),
-            ["Stations", "Green space and water", "Air and noise", "Venues and culture", "Schools", "Homes"])
+            [
+                "Stations", "Green space and water", "Air and noise", "Venues and culture",
+                "Shops and services", "Schools", "Homes",
+            ])
         XCTAssertEqual(
             Set(offered.map(\.featureId)), Set(Answers.meta.features.filter(\.rankable).map(\.featureId)))
         XCTAssertEqual(offered.count, Set(offered.map(\.featureId)).count)
@@ -209,7 +212,8 @@ final class ControlsTests: XCTestCase {
 
         XCTAssertEqual(crime?.title, "Recorded crime")
         XCTAssertEqual(
-            crime.map { Set($0.features.map(\.featureId)) }, [.crimeBurglaryTheft, .crimeViolenceRobbery])
+            crime.map { Set($0.features.map(\.featureId)) },
+            [.crimeBurglaryTheft, .crimeViolenceRobbery, .incidentAntisocial, .incidentCriminalDamage])
         XCTAssertFalse(SettingsForm.groups(Answers.meta).contains { $0.dimension == .crime })
         XCTAssertFalse(
             SettingsForm.groups(Answers.meta).flatMap(\.features).contains { $0.dimension == .crime })
@@ -274,6 +278,45 @@ final class ControlsTests: XCTestCase {
         XCTAssertEqual(search.api.calls(to: .interpret).count, 0)
     }
 
+    func test_a_scale_is_turned_to_one_of_its_ends_and_keeps_how_much_it_counts() throws {
+        func sent(in scenario: String) throws -> JSON? {
+            try JSON.read(XCTUnwrap(Recorded.read(scenario).sent))["operations"]
+        }
+        let calm = Answers.ranked("rank-scale").spec.tags.first { $0.tagId == .pace }
+        let off = TagWeight(tagId: .pace, weight: 0, provenance: .uiEdit, toward: .high)
+
+        XCTAssertEqual(SettingsForm.end(of: nil), .off)
+        XCTAssertEqual(SettingsForm.end(of: off), .off)
+        XCTAssertEqual(SettingsForm.end(of: calm), .low)
+        // A scale that counts is turned by setting how much it counts, towards the end that was chosen.
+        XCTAssertEqual(
+            try JSON.written(SettingsForm.turn(.pace, to: .high, from: calm)), try sent(in: "rank-scale-turned"))
+        // One that did not count is added, towards the end that was chosen.
+        XCTAssertEqual(
+            try JSON.written(SettingsForm.turn(.pace, to: .high, from: nil)),
+            try sent(in: "visit/23-shelf-rank"))
+        XCTAssertEqual(SettingsForm.turn(.pace, to: .low, from: off), Edits.tagOn(.pace, toward: .low))
+        XCTAssertEqual(SettingsForm.turn(.pace, to: .off, from: calm), Edits.tagOff(.pace))
+        for change in [
+            SettingsForm.turn(.pace, to: .high, from: calm), SettingsForm.turn(.pace, to: .low, from: nil),
+        ] {
+            XCTAssertEqual(change.count, 1)
+            XCTAssertEqual(change.tagOps.first?.provenance, .uiEdit)
+        }
+    }
+
+    func test_the_settings_say_when_recorded_crime_counts_as_it_is_true_of_the_release() throws {
+        let other: MetaData = try Recorded.data(.getMeta, "variant-a/meta")
+
+        XCTAssertTrue(SearchScreen.holdsACrimeVibe(Answers.meta))
+        XCTAssertFalse(SearchScreen.holdsACrimeVibe(other))
+        XCTAssertEqual(
+            SettingsForm.crimeLead(Answers.meta), "\(SearchCopy.crimeRule) \(SettingsCopy.Crime.lead)")
+        XCTAssertEqual(
+            SettingsForm.crimeLead(other),
+            "\(SearchCopy.crimeRule) In this data no vibe holds it. \(SettingsCopy.Crime.lead)")
+    }
+
     func test_a_switch_turned_on_is_worth_what_a_word_is_and_off_takes_the_thing_out() {
         XCTAssertEqual(SettingsForm.feature(.greenCover, on: true), Edits.featureOn(.greenCover))
         XCTAssertEqual(SettingsForm.feature(.greenCover, on: true).weightOps.first?.step, .upLarge)
@@ -290,13 +333,13 @@ final class ControlsTests: XCTestCase {
 
         // The answer is what stands: the stand-in returns a spec of its own, and the
         // controls are drawn from that, whatever was asked for.
-        await search.flow.applyEdits(Edits.tagOn(.buzzy))
+        await search.flow.applyEdits(Edits.tagOn(.pace))
 
         XCTAssertEqual(search.state.spec, Answers.ranked("rank-switched-off").spec)
         let walk = search.state.spec.weights.first { $0.featureId == .stationWalk }
         XCTAssertEqual(walk?.weight, 0)
         XCTAssertFalse(SearchChips.counts(walk?.weight))
-        XCTAssertFalse(search.state.spec.tags.contains { $0.tagId == .buzzy })
+        XCTAssertFalse(search.state.spec.tags.contains { $0.tagId == .pace })
     }
 
     func test_a_hidden_area_has_a_button_that_shows_it_again() {

@@ -44,19 +44,21 @@ enum AboutCopy {
             "Only your phone's own keyboard can be used in this app, and it is asked not to correct or "
             + "to keep what you type in the search box."
 
-        /// Every point of the notice, in the order it is read.
-        static let points: [String] = [
-            SearchCopy.Permission.handled,
-            SearchCopy.Permission.model,
-            SearchCopy.Permission.otherCompany,
-            body,
-            memory,
-            shortlist,
-            choice,
-            link,
-            nobodyElse,
-            keyboard,
-        ]
+        /// Every point of the notice, in the order it is read. Who else reads
+        /// what is typed is the API's to say: its words are drawn after the
+        /// first point, as they were served, where the service has said.
+        static func points(reader: String?) -> [String] {
+            [SearchCopy.Permission.handled] + (reader.map { [$0] } ?? []) + [
+                SearchCopy.Permission.model,
+                body,
+                memory,
+                shortlist,
+                choice,
+                link,
+                nobodyElse,
+                keyboard,
+            ]
+        }
     }
 
     enum Choice {
@@ -84,15 +86,17 @@ enum AboutCopy {
             "Burro ranks areas by arithmetic over published data. The same search on the same data always gives the same ranking.",
             "Each thing you ask for is scored for each area, and the area's fit is the weighted average of those scores. Settings you did not choose count for less once you have asked for something.",
             "A firm limit removes an area that is known to break it. A flexible limit lowers the area's fit instead.",
-            "When an area has no figure for something you asked for, that thing is left out for that area and the rest count for more. Nothing is filled in, and the result says how complete it is.",
+            "When an area has no figure for something you asked for, that thing is left out for that area and the rest count for more. Nothing is filled in, and the result says how complete it is. Such an area stands below every area that has the figure, whatever its fit.",
+            "An area with a figure for under half of what you asked of the place itself, by how much each thing counts, is not ranked. Journeys and cost do not make up for it. The area says what it lacks.",
             "Burro ranks places by what is there. Nothing that describes who lives somewhere is used.",
-            "Recorded crime counts only when you ask for it or switch it on.",
+            SearchCopy.crimeRule,
+            "When your words are not a plain list of what you want, Burro applies none of them. It shows what it noticed, and you choose what to add.",
             "A language model may read your words into settings. It never ranks or scores a place, and never describes one from its own knowledge.",
         ]
 
         static let featuresTitle = "What is measured"
         static let featuresLead =
-            "Each feature describes a place or its buildings. The definition, the period and the source are as the data release states them."
+            "Each feature describes a place, its buildings or what was recorded there. None describes who lives there. The definition, the period and the source are as the data release states them."
         static let unit = "Unit"
         static let period = "Period"
         static let polarity = "What counts as better"
@@ -100,12 +104,12 @@ enum AboutCopy {
         static let notRanked = "Shown, but not used in ranking in this release."
         static let noFeatures = "This release carries no feature in this group."
 
-        static let tagsTitle = "Tags"
-        static var tagsLead: String {
-            "A tag is a fixed formula over the features above. It is named for the place, not for who lives there. "
-                + "The shares of a tag add up to \(WeightScale.most)."
-        }
+        static let tagsTitle = "Vibes"
+        static let tagsLead =
+            "A vibe is a fixed recipe over the features above. It is named for the place, not for who lives there. An area is placed in one of five bands among the areas compared, and never given a score."
         static func share(_ hundredths: Int) -> String { "\(hundredths) of \(WeightScale.most)" }
+        /// In place of the name of a part that this data does not carry, where the API names none.
+        static let notCarried = "A part this data does not carry"
 
         static let defaultsTitle = "Where a search starts"
         static let defaultsLead =
@@ -157,6 +161,8 @@ enum AboutCopy {
             "Medium: from \(least) to \(most) were recorded, so the range is blended."
         }
         static let low = "Low: the range is modelled."
+        static let unstated =
+            "Not stated: the figure is one number, the middle price of the homes of one kind that were sold in a year, as its publisher gives it. The publisher gives no range, and does not say how many sales the figure rests on."
 
         static let releaseTitle = "This data release"
         static let release = "Release"
@@ -164,6 +170,7 @@ enum AboutCopy {
         static let engine = "Version of the ranking engine"
         static let catalogue = "Version of the feature catalogue"
         static let synthetic = "Made-up data"
+        static let preview = "A preview that is not finished"
         static let areas = "Areas"
         static let rankable = "Areas that can be ranked"
         static let placesCount = "Places you can name"

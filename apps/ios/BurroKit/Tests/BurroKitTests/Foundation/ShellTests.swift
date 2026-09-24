@@ -133,6 +133,52 @@ final class ShellTests: XCTestCase {
         XCTAssertLessThan(banner.lowerBound, tabs.lowerBound)
         XCTAssertEqual(root.components(separatedBy: "SyntheticBanner()").count - 1, 1)
         XCTAssertFalse(permission.contains("SyntheticBanner"))
+        // That the release is a preview is said directly under it, above every tab as well.
+        let preview = try XCTUnwrap(root.range(of: "PreviewBanner()"))
+        XCTAssertLessThan(banner.lowerBound, preview.lowerBound)
+        XCTAssertLessThan(preview.lowerBound, tabs.lowerBound)
+        XCTAssertEqual(root.components(separatedBy: "PreviewBanner()").count - 1, 1)
+    }
+
+    @MainActor
+    func test_the_preview_banner_shows_as_soon_as_any_answer_says_the_release_is_a_preview() async {
+        let finished = AreaFixtures.app()
+        let preview = AreaFixtures.app(
+            StandIn.firstSearch().on(.getMeta, "preview/meta").on(.listAreas, "preview/areas"))
+        XCTAssertFalse(preview.preview.seen)
+
+        await finished.open()
+        await preview.open()
+
+        XCTAssertFalse(finished.preview.seen)
+        XCTAssertTrue(preview.preview.seen)
+        XCTAssertEqual(preview.search?.state.meta.preview, true)
+    }
+
+    @MainActor
+    func test_the_preview_banner_only_ever_turns_on() {
+        let notice = PreviewNotice()
+
+        notice.note(false)
+        XCTAssertFalse(notice.seen)
+        notice.note(true)
+        notice.note(false)
+
+        XCTAssertTrue(notice.seen)
+    }
+
+    @MainActor
+    func test_the_preview_banner_says_what_the_website_says_and_calls_no_made_up_figure_real() throws {
+        let site = try Website.words()
+
+        XCTAssertTrue(site.contains("\"\(ShellCopy.previewLabel)\""))
+        XCTAssertTrue(site.contains(ShellCopy.previewBanner))
+        XCTAssertTrue(site.contains(ShellCopy.previewReal))
+        // The figures are said to be of real places only where nothing has said they are made up.
+        XCTAssertEqual(PreviewBanner.words(madeUp: true), ShellCopy.previewBanner)
+        XCTAssertEqual(
+            PreviewBanner.words(madeUp: false), "\(ShellCopy.previewBanner) \(ShellCopy.previewReal)")
+        XCTAssertFalse(PreviewBanner.words(madeUp: true).contains(ShellCopy.previewReal))
     }
 
     // MARK: - Going somewhere
@@ -242,6 +288,7 @@ final class ShellTests: XCTestCase {
         // A sheet stands over the shell's cover and its banner, so it draws its own of each.
         let sheet = try XCTUnwrap(links.components(separatedBy: ".sheet(item:").last)
         XCTAssertTrue(sheet.contains("SyntheticBanner()"))
+        XCTAssertTrue(sheet.contains("PreviewBanner()"))
         XCTAssertTrue(sheet.contains("if scenePhase != .active {\n                        PrivacyCover()"))
     }
 

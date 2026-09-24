@@ -20,12 +20,18 @@ public struct SearchRootView: View {
     /// "Try again" can send it again. It goes nowhere else.
     @State private var words = ""
     @State private var examplesOpen = true
+    /// True once "Show all" was pressed, of what Burro noticed.
+    @State private var allOffers = false
+    /// The stretch of what is in the box that is selected, and what is said of it.
+    /// Where words stand is known for the text that was sent, and for no other, so
+    /// both go when the box changes.
+    @State private var showing = Showing()
 
     public init() {}
 
     public var body: some View {
         let state = search.state
-        let shown = SearchScreen.shown(state, consent: app.consent.choice)
+        let shown = SearchScreen.shown(state, consent: app.consent.choice, allOffers: allOffers)
         let context = ControlContext(state: state, send: { send($0) })
         ScrollView {
             VStack(alignment: .leading, spacing: Tokens.Space.s5) {
@@ -41,6 +47,15 @@ public struct SearchRootView: View {
         .scrollDismissesKeyboard(.interactively)
         .onChange(of: shown.status) { _, status in
             Spoken.say(status)
+        }
+        .onChange(of: words) { _, _ in
+            // What rested on the text that was sent goes when the box changes: where the
+            // words of a suggestion stand, and which stretch was not read.
+            showing = Showing()
+            search.flow.boxChanged()
+        }
+        .onChange(of: showing.said) { _, said in
+            Spoken.say(said ?? "")
         }
         .task(id: app.consent.choice) {
             if SearchScreen.opensTheForm(search.state, consent: app.consent.choice) {
@@ -60,10 +75,15 @@ public struct SearchRootView: View {
     private func draw(_ part: SearchPart, _ shown: SearchShown, _ context: ControlContext) -> some View {
         switch part {
         case .box: box(shown)
-        case .examples: examples
+        case .examples: examples(shown)
         case .basics: basics(shown, context)
         case .status: status(shown)
         case .offline: OfflineBlock(waiting: shown.offlineWaiting ?? false, tryAgain: comeBack)
+        case .notInData: NotInDataBlock(lead: shown.notInDataLead ?? "", lines: shown.notInData)
+        case .readInPart:
+            StateLine(SearchCopy.Notice.partUnread)
+                .accessibilityLabel(
+                    Text(verbatim: "\(SearchCopy.Notice.partLabel). \(SearchCopy.Notice.partUnread)"))
         case .couldNotRead: couldNotRead(shown)
         case .failure: failure(shown)
         case .notice: notice(shown)
@@ -72,6 +92,8 @@ public struct SearchRootView: View {
         case .chips: chips(shown, context)
         case .unmet: unmet(shown)
         case .notApplied: notApplied(shown)
+        case .offers: offers(shown)
+        case .unread: unread(shown)
         case .results: results
         case .settings: settings(shown, context)
         }
@@ -87,12 +109,23 @@ public struct SearchRootView: View {
                     maxText: search.state.meta.limits.maxText,
                     busy: shown.reading,
                     refusal: shown.boxProblem,
+                    hint: shown.hint,
+                    select: showing.select,
                     onSubmit: { text in
                         examplesOpen = false
+                        allOffers = false
+                        showing = Showing()
                         Task { await hands.submit(text) }
                     },
                     onStop: { Task { await search.flow.stop() } })
                 HintLine(SearchCopy.Permission.handled)
+                // Who else reads what is typed is the API's to say, and is shown as it was served.
+                Text(verbatim: shown.reader)
+                    .font(Tokens.Text.footnote)
+                    .foregroundStyle(Tokens.Colour.muted)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityLabel(Text(verbatim: "\(SearchCopy.Reader.label). \(shown.reader)"))
                 NavigationLink(value: Screen.methods) {
                     Text(SearchCopy.Prompt.wordsLink)
                         .font(Tokens.Text.secondary)
@@ -106,8 +139,8 @@ public struct SearchRootView: View {
         }
     }
 
-    private var examples: some View {
-        ExampleList(open: $examplesOpen) { sentence in
+    private func examples(_ shown: SearchShown) -> some View {
+        ExampleList(open: $examplesOpen, sentences: shown.examples) { sentence in
             words = sentence
         }
     }
@@ -117,7 +150,7 @@ public struct SearchRootView: View {
             TenureControl(
                 tenure: context.spec.tenure, version: context.version, problem: nil,
                 choose: chooseTenure)
-            PlaceField(full: shown.placesFull, search: searchPlaces) { place in
+            PlaceField(full: shown.placesFull, noPlaces: shown.noPlaces, search: searchPlaces) { place in
                 Task { await search.flow.addPlace(place) }
             }
         }
@@ -197,6 +230,46 @@ public struct SearchRootView: View {
         LineList(
             label: SearchCopy.Notice.rejectedLabel,
             lines: shown.notApplied.map { LineList.Line(about: $0.about, words: $0.reason) })
+    }
+
+    @ViewBuilder
+    private func offers(_ shown: SearchShown) -> some View {
+        if let offers = shown.offers {
+            OffersBlock(
+                offers: offers,
+                canShowWords: PromptBox.selects,
+                choose: { at, direction in
+                    showing = Showing()
+                    Task { await hands.choose(at, direction) }
+                },
+                chooseAll: { ats in
+                    showing = Showing()
+                    Task { await hands.chooseAll(ats) }
+                },
+                showAll: { allOffers = true },
+                showWords: { offer in show(.offer(offer.at), offer.spans) })
+            if let said = showing.said, showing.of != .unread {
+                HintLine(said)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func unread(_ shown: SearchShown) -> some View {
+        UnreadBlock(
+            saidAbove: shown.readInPart,
+            canShow: PromptBox.selects,
+            showsNext: showing.of == .unread && showing.among > 1,
+            show: { show(.unread, shown.unread) })
+        if let said = showing.said, showing.of == .unread {
+            HintLine(said)
+        }
+    }
+
+    /// Selects, in the box, the next of these stretches of what was typed. The words stay
+    /// in the box: the screen is given where they stand, and never what they are.
+    private func show(_ of: Showing.Of, _ spans: [Span]) {
+        showing = showing.next(of: of, in: BoxSpans.inTheBox(words, spans))
     }
 
     private var results: some View {

@@ -64,7 +64,9 @@ final class ChipsTests: XCTestCase {
             ])
         XCTAssertTrue(place.assumed)
         XCTAssertFalse(place.assumedAsAWhole)
-        XCTAssertEqual(place.reads, "Place 1, Public transport assumed, within 35 minutes, flexible assumed")
+        // The place is named by the answer that brought the spec.
+        XCTAssertEqual(
+            place.reads, "Cindermoor Works, Public transport assumed, within 35 minutes, flexible assumed")
     }
 
     func test_the_word_goes_when_the_person_sets_that_part() {
@@ -77,16 +79,51 @@ final class ChipsTests: XCTestCase {
         XCTAssertEqual(place.parts.map(\.assumed), [false, false, true])
     }
 
-    func test_a_place_is_called_by_the_name_in_hand_or_by_its_position() {
+    func test_a_place_is_called_by_the_name_in_hand_or_is_said_to_have_none() {
         let two = Answers.read("interpret-two-journeys").spec
 
         let unnamed = chips(two).filter { $0.kind.key.map { if case .place = $0 { true } else { false } } ?? false }
         let named = chips(two, names: ["syn-p0026": "A name the API gave"])
 
-        XCTAssertEqual(unnamed.map(\.label), ["Place 1", "Place 2"])
+        // A place is never shown by a number, by its id or by what was typed.
+        XCTAssertEqual(
+            unnamed.map(\.label), ["A place with no name in this data", "A place with no name in this data"])
         XCTAssertTrue(named.map(\.label).contains("A name the API gave"))
-        XCTAssertTrue(named.map(\.label).contains("Place 1"))
+        XCTAssertTrue(named.map(\.label).contains("A place with no name in this data"))
+        XCTAssertFalse(String(reflecting: unnamed.map(\.label)).contains("syn-p"))
         XCTAssertEqual(unnamed.first?.removal, Edits.placeRemove("syn-p0019"))
+    }
+
+    func test_a_scale_says_which_of_its_ends_is_asked_for_in_the_apis_names_for_them() {
+        let calm = chips(Answers.read("interpret-scale").spec).first { $0.kind == .tag(.pace) }
+        let buzzy = chips(Answers.read("interpret-nights-out").spec).first { $0.kind == .tag(.pace) }
+        let newer = chips(Answers.read("interpret-no-time").spec).first { $0.kind == .tag(.builtAge) }
+        let leafy = chips(Answers.read("interpret-first").spec).first { $0.kind == .tag(.leafy) }
+
+        XCTAssertEqual(calm?.reads, "Pace: towards Calm")
+        XCTAssertEqual(buzzy?.reads, "Pace: towards Buzzy")
+        XCTAssertEqual(newer?.reads, "Built age: towards Newer")
+        // A vibe that runs one way has no end to name.
+        XCTAssertEqual(leafy?.reads, "Leafy")
+        XCTAssertEqual(calm?.removal, Edits.tagOff(.pace))
+    }
+
+    func test_a_vibe_whose_recipe_holds_recorded_crime_says_so_on_its_chip() throws {
+        let gritty = chips(Answers.read("interpret-gritty").spec).first { $0.kind == .tag(.streetCharacter) }
+        let street = try XCTUnwrap(meta.tags.first { $0.tagId == .streetCharacter })
+        let leafy = try XCTUnwrap(meta.tags.first { $0.tagId == .leafy })
+
+        XCTAssertEqual(gritty?.reads, "Street character: towards Gritty, counts recorded crime")
+        XCTAssertTrue(SearchChips.holdsRecordedCrime(street, meta.features))
+        XCTAssertFalse(SearchChips.holdsRecordedCrime(leafy, meta.features))
+        // Which parts of the recipe are of recorded crime is said by the API's names for them.
+        XCTAssertEqual(
+            SearchChips.countsCrime(street, in: meta),
+            "This vibe counts recorded crime: "
+                + street.terms.compactMap { term in
+                    meta.features.first { $0.featureId == term.featureId && $0.dimension == .crime }?.label
+                }.joined(separator: "; ") + ".")
+        XCTAssertNil(SearchChips.countsCrime(leafy, in: meta))
     }
 
     func test_with_two_places_a_chip_says_which_journey_counts_and_is_assumed_until_it_is_chosen() {
@@ -137,7 +174,7 @@ final class ChipsTests: XCTestCase {
 
         XCTAssertEqual(
             off?.reads,
-            "Share of homes within a 10-minute walk of a high street or town centre, does not count")
+            "Straight-line distance to the nearest town centre boundary, does not count")
         XCTAssertNil(off?.removal)
         XCTAssertEqual(off?.assumed, false)
         XCTAssertFalse(SearchChips.counts(0))
@@ -182,7 +219,7 @@ final class ChipsTests: XCTestCase {
 
         let place = chips(odd)[1]
 
-        XCTAssertEqual(place.reads, "Place 1, within 30 minutes")
+        XCTAssertEqual(place.reads, "A place with no name in this data, within 30 minutes")
         XCTAssertFalse(String(reflecting: chips(odd)).contains("by_boat"))
     }
 
@@ -193,7 +230,8 @@ final class ChipsTests: XCTestCase {
 
         let drawn = chips(inferred)
 
-        XCTAssertEqual(drawn.map(\.reads), ["Renting assumed", "Public green space as a share of the area assumed"])
+        XCTAssertEqual(
+            drawn.map(\.reads), ["Renting assumed", "Public parks and gardens as a share of the area assumed"])
         XCTAssertEqual(drawn[1].removal, Edits.featureOff(.greenCover))
     }
 
@@ -217,10 +255,31 @@ final class ChipsTests: XCTestCase {
         var nameless = after(.rankAnswered(ranked, sent: .none))
         nameless.areas = []
 
+        // The journey and the budget count for more than what was asked of the place, and the line says so.
         XCTAssertEqual(
             SearchStatus.line(after(.rankAnswered(ranked, sent: .none))),
-            "22 areas ranked. First: Farrowmere.")
-        XCTAssertEqual(SearchStatus.line(nameless), "22 areas ranked.")
+            "21 areas ranked. First: Farrowmere. Journey and budget count most.")
+        XCTAssertEqual(SearchStatus.line(nameless), "21 areas ranked. Journey and budget count most.")
+    }
+
+    func test_the_line_says_what_counts_for_more_than_what_was_asked_of_the_place() {
+        let first = Answers.ranked("rank-first").spec
+        let scale = Answers.ranked("rank-scale").spec
+
+        XCTAssertEqual(first.mostAskedOfThePlace, 0.5)
+        XCTAssertEqual(first.leads, Leads(journey: true, budget: true, journeys: 1))
+        // Nothing but a vibe was asked for: nothing outweighs it.
+        XCTAssertNil(scale.leads)
+        // Nothing was asked of the place: there is nothing to outweigh.
+        XCTAssertNil(meta.defaults.rent.leads)
+        XCTAssertNil(Answers.ranked("rank-two-journeys").spec.leads)
+        XCTAssertEqual(
+            SearchStatus.line(after(.rankAnswered(Answers.ranked("rank-scale"), sent: .none))),
+            "21 areas ranked. First: Farrowmere.")
+        // While the spec on screen is not the one that was ranked, nothing is said of what leads.
+        var ahead = after(.rankAnswered(Answers.ranked("rank-first"), sent: .none))
+        ahead.specHash = "another"
+        XCTAssertNil(ahead.leads)
     }
 
     func test_the_line_says_when_there_is_nothing_to_rank_by() {
@@ -241,6 +300,19 @@ final class ChipsTests: XCTestCase {
         XCTAssertEqual(SearchCopy.Status.moved(0), "No area changed place.")
         XCTAssertEqual(SearchCopy.Status.moved(1), "1 area changed place.")
         XCTAssertEqual(SearchCopy.Status.moved(7), "7 areas changed place.")
-        XCTAssertEqual(SearchCopy.Status.ranked(1, first: "A"), "1 area ranked: A.")
+        XCTAssertEqual(SearchCopy.Status.ranked(1, first: "A"), "1 area ranked. First: A.")
+    }
+
+    func test_where_no_limit_left_an_area_out_the_line_does_not_say_that_one_did() {
+        let first = Answers.ranked("rank-first")
+        var state = after(.rankAnswered(first, sent: .none))
+        // Every area has too little data for what counts, and no limit was set.
+        state.ranking = Ranking(
+            scores: [], ranked: [], filtered: [], unranked: first.unranked, emptySpec: false)
+
+        XCTAssertEqual(
+            SearchStatus.line(state),
+            "No area could be ranked. This data holds too little of what counts in your search.")
+        XCTAssertEqual(Results.headline(of: state), SearchStatus.line(state))
     }
 }

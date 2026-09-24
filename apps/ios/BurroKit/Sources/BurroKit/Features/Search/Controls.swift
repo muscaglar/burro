@@ -59,30 +59,12 @@ struct BudgetControl: View {
         let version = context.version
         let kinds = SettingsForm.segments(for: tenure)
         FormGroup(SettingsCopy.Budget.legend) {
-            AmountControl(
-                words: AmountControl.Words(
-                    label: SettingsCopy.Budget.amount(tenure),
-                    hint: SettingsForm.budgetHint(tenure, context.limits),
-                    notANumber: SettingsCopy.Budget.notWhole,
-                    less: SettingsCopy.Budget.less,
-                    more: SettingsCopy.Budget.more,
-                    slider: SettingsCopy.Budget.slider,
-                    said: { amount in
-                        amount.map { SearchChips.budget($0, tenure) } ?? SettingsCopy.Budget.noneSet
-                    }),
-                value: budget.amount,
-                scale: AmountScale.budget(tenure, context.limits),
-                keptWithin: false,
-                problem: context.problem(.budget),
-                version: version,
-                onCommit: { context.send(Edits.budgetAmount($0)) },
-                onStep: { context.send(Edits.budgetStep($0)) }
-            )
-            Button(SettingsCopy.Budget.clear) {
-                context.send(Edits.budgetClear())
+            if context.state.meta.holds.costs {
+                amount(budget, tenure, version)
+            } else {
+                // The data holds no cost to test a budget against. The kind of home is kept.
+                HintLine(SettingsCopy.Budget.notInData)
             }
-            .buttonStyle(.burroLesser)
-            .disabled(budget.amount == nil)
 
             if !kinds.isEmpty {
                 VStack(alignment: .leading, spacing: Tokens.Space.s1) {
@@ -112,19 +94,49 @@ struct BudgetControl: View {
                 }
             }
 
-            CheckRow(
-                SettingsCopy.Budget.firm, hint: SettingsCopy.Budget.firmHint,
-                isOn: firm.shown(budget.strictness == .hard, at: version)
-            ) { checked in
-                firm.set(checked, at: version)
-                context.send(Edits.budgetStrictness(SettingsForm.firm(checked)))
-            }
+            if context.state.meta.holds.costs {
+                CheckRow(
+                    SettingsCopy.Budget.firm, hint: SettingsCopy.Budget.firmHint,
+                    isOn: firm.shown(budget.strictness == .hard, at: version)
+                ) { checked in
+                    firm.set(checked, at: version)
+                    context.send(Edits.budgetStrictness(SettingsForm.firm(checked)))
+                }
 
-            WeightSlider(
-                label: SettingsCopy.Budget.weight, value: budget.weight, limits: context.limits,
-                version: version
-            ) { context.send(Edits.budgetWeight($0)) }
+                WeightSlider(
+                    label: SettingsCopy.Budget.weight, value: budget.weight, limits: context.limits,
+                    version: version
+                ) { context.send(Edits.budgetWeight($0)) }
+            }
         }
+    }
+
+    @ViewBuilder
+    private func amount(_ budget: Budget, _ tenure: Tenure, _ version: Int) -> some View {
+        AmountControl(
+            words: AmountControl.Words(
+                label: SettingsCopy.Budget.amount(tenure),
+                hint: SettingsForm.budgetHint(tenure, context.limits),
+                notANumber: SettingsCopy.Budget.notWhole,
+                less: SettingsCopy.Budget.less,
+                more: SettingsCopy.Budget.more,
+                slider: SettingsCopy.Budget.slider,
+                said: { amount in
+                    amount.map { SearchChips.budget($0, tenure) } ?? SettingsCopy.Budget.noneSet
+                }),
+            value: budget.amount,
+            scale: AmountScale.budget(tenure, context.limits),
+            keptWithin: false,
+            problem: context.problem(.budget),
+            version: version,
+            onCommit: { context.send(Edits.budgetAmount($0)) },
+            onStep: { context.send(Edits.budgetStep($0)) }
+        )
+        Button(SettingsCopy.Budget.clear) {
+            context.send(Edits.budgetClear())
+        }
+        .buttonStyle(.burroLesser)
+        .disabled(budget.amount == nil)
     }
 }
 
@@ -276,12 +288,16 @@ struct FeatureControl: View {
     }
 }
 
-/// One tag: a switch, and how much it counts while it is on.
+/// One vibe. One that runs one way is a switch, and how much it counts while
+/// it is on. A scale has two ends, and the person chooses which is asked for:
+/// Burro guesses neither. A vibe that no area of the data can be placed on has
+/// no control: it says that it is not in the data yet, and what it waits on.
 struct TagControl: View {
     let tag: Tag
     let context: ControlContext
 
     @State private var on = Draft<Bool>()
+    @State private var end = Draft<SettingsForm.End>()
 
     var body: some View {
         let tagId = tag.tagId
@@ -289,10 +305,31 @@ struct TagControl: View {
         let weight = context.spec.tags.first { $0.tagId == tagId }
         let counts = SearchChips.counts(weight?.weight)
         let isOn = on.shown(counts, at: version)
+        let held = ReleaseHolds.recipe(of: tagId, in: context.state.meta)
         VStack(alignment: .leading, spacing: Tokens.Space.s2) {
-            CheckRow(tag.label, isOn: isOn) { checked in
-                on.set(checked, at: version)
-                context.send(SettingsForm.tag(tagId, on: checked))
+            if !ReleaseHolds.isPlaced(tagId, in: context.state.meta) {
+                VibeWaiting(name: tag.label, held: held)
+            } else if tag.shape == .scale, let low = tag.lowEnd, let high = tag.highEnd {
+                ChoiceList(
+                    tag.label,
+                    choices: [
+                        (SettingsForm.End.off, SearchCopy.Chips.off),
+                        (.low, SettingsCopy.Features.toward(tag.label, low)),
+                        (.high, SettingsCopy.Features.toward(tag.label, high)),
+                    ],
+                    chosen: end.shown(SettingsForm.end(of: weight), at: version)
+                ) { chosen in
+                    end.set(chosen, at: version)
+                    context.send(SettingsForm.turn(tagId, to: chosen, from: weight))
+                }
+            } else {
+                CheckRow(tag.label, isOn: isOn) { checked in
+                    on.set(checked, at: version)
+                    context.send(SettingsForm.tag(tagId, on: checked))
+                }
+            }
+            if let countsCrime = SearchChips.countsCrime(tag, in: context.state.meta) {
+                HintLine(countsCrime)
             }
             if let weight, counts, isOn {
                 WeightSlider(

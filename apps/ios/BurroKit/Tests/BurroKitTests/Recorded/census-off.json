@@ -1,0 +1,36 @@
+{
+  "scenario": "census-off",
+  "shows": "A service that serves no census: 404, and no figure",
+  "captured": true,
+  "request": {
+    "operation_id": "get_census",
+    "method": "GET",
+    "route": "/v1/areas/{id_or_slug}/census",
+    "path": "/v1/areas/foxholt/census"
+  },
+  "status": 404,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "213",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "false",
+    "x-burro-synthetic": "true",
+    "x-request-id": "5ec56e42-4afe-4267-bf21-6f8f586d16bb"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
+    },
+    "error": {
+      "code": "census_not_available",
+      "message": "No census figures are served for this release.",
+      "fields": []
+    }
+  }
+}

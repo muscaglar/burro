@@ -14,14 +14,14 @@ import Foundation
 /// It holds nothing of a search: no rank, no fit, no journey, no budget. So
 /// it is also what the shortlist keeps.
 public struct AreaPage: Hashable, Sendable {
-    /// A feature or a tag of the release, with the fact the area has for it, if it has one.
+    /// A feature of the release, with the fact the area has for it, if it has one.
     public struct Row: Hashable, Sendable, Identifiable {
-        /// The API's name for the feature or the tag. It names the row when there is no figure.
+        /// The API's name for the feature. It names the row when there is no figure.
         public let label: String
         public let fact: Fact?
-        /// `feature` or `tag`.
+        /// `feature`.
         public let kind: FactKind
-        /// The id of the feature or the tag, as the release lists it.
+        /// The id of the feature, as the release lists it.
         public let key: String
 
         public var id: String { "\(kind.rawValue)/\(key)" }
@@ -48,11 +48,39 @@ public struct AreaPage: Hashable, Sendable {
         }
     }
 
+    /// One list of the portrait. Which vibe stands in which list, and in
+    /// what order, is the API's to say.
+    public enum VibeList: String, Codable, Hashable, Sendable, CaseIterable {
+        case scales
+        case more
+        case less
+        case others
+        case unplaced
+    }
+
+    /// One vibe of the portrait: the list the API put it in, how a screen
+    /// draws it, and the fact that holds its band, where it is in hand.
+    public struct Vibe: Hashable, Sendable, Identifiable {
+        public let list: VibeList
+        public let shown: VibeShown
+        public let fact: Fact?
+
+        public var id: String { shown.id }
+
+        public init(list: VibeList, shown: VibeShown, fact: Fact?) {
+            self.list = list
+            self.shown = shown
+            self.fact = fact
+        }
+    }
+
     public let area: AreaRef
     public let rankable: Bool
     /// The release the facts are of.
     public let releaseId: String
     public let synthetic: Bool
+    /// True when the release the facts are of is a preview.
+    public let preview: Bool
     /// The fact that names the area and its borough. It carries their source.
     public let named: Fact?
     public let neighbours: [AreaRef]
@@ -61,28 +89,31 @@ public struct AreaPage: Hashable, Sendable {
     public let rent: [Fact]
     public let buy: [Fact]
     public let measured: [Group]
-    public let tags: [Row]
+    /// Where the area sits on each vibe, in the order the API lists them.
+    public let vibes: [Vibe]
 
     public init(
-        area: AreaRef, rankable: Bool, releaseId: String, synthetic: Bool, named: Fact?,
-        neighbours: [AreaRef], stations: [Fact], rent: [Fact], buy: [Fact], measured: [Group], tags: [Row]
+        area: AreaRef, rankable: Bool, releaseId: String, synthetic: Bool, preview: Bool, named: Fact?,
+        neighbours: [AreaRef], stations: [Fact], rent: [Fact], buy: [Fact], measured: [Group],
+        vibes: [Vibe]
     ) {
         self.area = area
         self.rankable = rankable
         self.releaseId = releaseId
         self.synthetic = synthetic
+        self.preview = preview
         self.named = named
         self.neighbours = neighbours
         self.stations = stations
         self.rent = rent
         self.buy = buy
         self.measured = measured
-        self.tags = tags
+        self.vibes = vibes
     }
 
     /// The order the groups are shown in. Recorded crime is last: it is off unless asked for.
     public static let dimensions: [Dimension] = [
-        .stationAccess, .greenWater, .airNoise, .venuesCulture, .schools, .homes, .crime,
+        .stationAccess, .greenWater, .airNoise, .venuesCulture, .services, .schools, .homes, .crime,
     ]
 
     /// The kinds of home that go with each tenure, in the order a form lists
@@ -97,8 +128,12 @@ public struct AreaPage: Hashable, Sendable {
     ///   - features: The features of the release, from route 11. Every one has
     ///     a row, so that one with no figure is seen to have none. With none
     ///     in hand, the figures the area has are listed as they came.
-    ///   - tags: The tags of the release, from route 11.
-    public init(_ data: AreaData, release: Meta, features: [Metric], tags: [Tag]) {
+    ///   - tags: The vibes of the release, from route 11. A vibe the release
+    ///     does not name is left out: nothing can be said of it.
+    ///   - recipes: What the release holds of each recipe, from route 11.
+    public init(
+        _ data: AreaData, release: Meta, features: [Metric], tags: [Tag], recipes: [RecipeHeld] = []
+    ) {
         func fact(_ kind: FactKind, _ key: String) -> Fact? {
             data.facts.first { $0.kind == kind && $0.key == key }
         }
@@ -110,6 +145,7 @@ public struct AreaPage: Hashable, Sendable {
         rankable = data.area.rankable
         releaseId = release.releaseId
         synthetic = release.synthetic || data.facts.contains { $0.synthetic }
+        preview = release.preview
         named = data.facts.first { $0.kind == .area }
         neighbours = data.neighbours.map(AreaRef.init)
 
@@ -139,14 +175,32 @@ public struct AreaPage: Hashable, Sendable {
                 return rows.isEmpty ? nil : Group(dimension: dimension, rows: rows)
             }
         }
-        if tags.isEmpty {
-            self.tags = data.facts.filter { $0.kind == .tag }
-                .map { Row(label: $0.label, fact: $0, kind: .tag, key: $0.key) }
-        } else {
-            self.tags = tags.map { tag in
-                Row(label: tag.label, fact: fact(.tag, tag.tagId.rawValue), kind: .tag, key: tag.tagId.rawValue)
+        vibes = Self.lists(of: data.portrait).flatMap { list, marks in
+            marks.compactMap { mark -> Vibe? in
+                guard let tag = tags.first(where: { $0.tagId == mark.tagId }),
+                    let fact = data.facts.first(where: { $0.factId == mark.factId })
+                else { return nil }
+                // A vibe the API lists as one it cannot place the area on has no band to give.
+                let placed = list == .unplaced ? nil : Placed(fact)
+                let held = recipes.first { $0.tagId == mark.tagId }
+                return Vibe(
+                    list: list, shown: Vibes.shown(tag, placed: placed, fact: fact, held: held),
+                    fact: fact)
             }
         }
+    }
+
+    /// The lists of a portrait, in the order the screen draws them.
+    static func lists(of portrait: Portrait) -> [(VibeList, [PortraitMark])] {
+        [
+            (.scales, portrait.scales), (.more, portrait.more), (.less, portrait.less),
+            (.others, portrait.others), (.unplaced, portrait.unplaced),
+        ]
+    }
+
+    /// The vibes of one list, in the order the API gave them.
+    public func vibes(in list: VibeList) -> [Vibe] {
+        vibes.filter { $0.list == list }
     }
 
     /// The name and the borough are the fact's, where there is one: it carries their source.
@@ -160,7 +214,7 @@ public struct AreaPage: Hashable, Sendable {
         facts += rent
         facts += buy
         for group in measured { facts += group.rows.compactMap(\.fact) }
-        facts += tags.compactMap(\.fact)
+        facts += vibes.compactMap(\.fact)
         return facts
     }
 
@@ -186,10 +240,6 @@ extension AreaPage {
         buy.compactMap { FactRow($0, named: $0.slots["segment"]) }
     }
 
-    public var tagRows: [FactRow] {
-        tags.compactMap { Self.row($0, noFigure: AreaCopy.Tags.noFigure) }
-    }
-
     public func rows(of group: Group) -> [FactRow] {
         group.rows.compactMap { Self.row($0, noFigure: AreaCopy.Measured.noFigure) }
     }
@@ -208,11 +258,18 @@ extension AreaPage {
         rows += rentRows
         rows += buyRows
         for group in measured { rows += self.rows(of: group) }
-        rows += tagRows
 
         var said: [String] = [name, borough]
         said += neighbours.map(\.name)
         if let named { said += SourceLines.of([named]).map(\.name) }
+        for vibe in vibes {
+            said.append(vibe.shown.name)
+            // The two ends are drawn beside the line of five, which an area that cannot be placed has none of.
+            if vibe.shown.placed != nil { said += [vibe.shown.low, vibe.shown.high] }
+            // What a band rests on is the API's own clause, where the fact holds one.
+            if let partly = vibe.fact?.slots["partly"], vibe.shown.restsOn == partly { said.append(partly) }
+            said += vibe.shown.sources.map(\.name)
+        }
         for row in rows {
             said.append(row.name)
             said += row.columns.map(\.value)

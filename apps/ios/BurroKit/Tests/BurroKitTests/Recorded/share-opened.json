@@ -6,179 +6,219 @@
     "operation_id": "get_share",
     "method": "GET",
     "route": "/v1/shares/{share_id}",
-    "path": "/v1/shares/TbfsnjL3GyTlKt967hH2HQ"
+    "path": "/v1/shares/amxR0B08ENHLM6sfo5G7Dw"
   },
   "status": 200,
   "headers": {
     "access-control-allow-origin": "http://localhost:3000",
-    "access-control-expose-headers": "X-Burro-Synthetic, X-Request-Id",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "44032",
+    "content-length": "55536",
     "content-type": "application/json",
     "vary": "Origin",
+    "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "48f094a2-44ea-4656-a815-006d8c32c888"
+    "x-request-id": "d0901815-b599-4e05-9d38-ac0deddba0eb"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.3.0",
-      "synthetic": true
+      "engine_version": "1.12.0",
+      "synthetic": true,
+      "preview": false
     },
     "data": {
       "scores": [
         {
           "area_id": "syn-n0005",
-          "score": 80.15
+          "score": 78.12,
+          "counted": 10,
+          "present": 10
         },
         {
           "area_id": "syn-n0001",
-          "score": 75.29
+          "score": 74.49,
+          "counted": 10,
+          "present": 9
         },
         {
           "area_id": "syn-n0008",
-          "score": 71.69
-        },
-        {
-          "area_id": "syn-n0014",
-          "score": 70.68
-        },
-        {
-          "area_id": "syn-n0016",
-          "score": 66.89
-        },
-        {
-          "area_id": "syn-n0004",
-          "score": 61.6
-        },
-        {
-          "area_id": "syn-n0003",
-          "score": 61.44
-        },
-        {
-          "area_id": "syn-n0006",
-          "score": 61.42
-        },
-        {
-          "area_id": "syn-n0002",
-          "score": 57.13
+          "score": 73.91,
+          "counted": 10,
+          "present": 10
         },
         {
           "area_id": "syn-n0013",
-          "score": 55.07
+          "score": 63.72,
+          "counted": 10,
+          "present": 10
         },
         {
-          "area_id": "syn-n0023",
-          "score": 52.52
+          "area_id": "syn-n0002",
+          "score": 60.08,
+          "counted": 10,
+          "present": 10
+        },
+        {
+          "area_id": "syn-n0006",
+          "score": 59.35,
+          "counted": 10,
+          "present": 10
+        },
+        {
+          "area_id": "syn-n0004",
+          "score": 56.59,
+          "counted": 10,
+          "present": 10
         },
         {
           "area_id": "syn-n0024",
-          "score": 51.47
+          "score": 56.33,
+          "counted": 10,
+          "present": 10
         },
         {
-          "area_id": "syn-n0007",
-          "score": 45.04
-        },
-        {
-          "area_id": "syn-n0017",
-          "score": 44.49
-        },
-        {
-          "area_id": "syn-n0022",
-          "score": 42.43
-        },
-        {
-          "area_id": "syn-n0012",
-          "score": 40.43
+          "area_id": "syn-n0003",
+          "score": 54.81,
+          "counted": 10,
+          "present": 10
         },
         {
           "area_id": "syn-n0019",
-          "score": 38.6
+          "score": 54.69,
+          "counted": 10,
+          "present": 10
         },
         {
-          "area_id": "syn-n0018",
-          "score": 38.52
+          "area_id": "syn-n0014",
+          "score": 52.99,
+          "counted": 10,
+          "present": 9
+        },
+        {
+          "area_id": "syn-n0023",
+          "score": 50.38,
+          "counted": 10,
+          "present": 10
         },
         {
           "area_id": "syn-n0015",
-          "score": 35.56
+          "score": 49.73,
+          "counted": 10,
+          "present": 10
         },
         {
-          "area_id": "syn-n0011",
-          "score": 34.74
+          "area_id": "syn-n0007",
+          "score": 48.85,
+          "counted": 10,
+          "present": 10
         },
         {
-          "area_id": "syn-n0010",
-          "score": 33.47
+          "area_id": "syn-n0022",
+          "score": 45.03,
+          "counted": 10,
+          "present": 10
         },
         {
           "area_id": "syn-n0021",
-          "score": 32.33
+          "score": 34.06,
+          "counted": 10,
+          "present": 10
+        },
+        {
+          "area_id": "syn-n0010",
+          "score": 33.15,
+          "counted": 10,
+          "present": 10
+        },
+        {
+          "area_id": "syn-n0011",
+          "score": 31.72,
+          "counted": 10,
+          "present": 10
+        },
+        {
+          "area_id": "syn-n0012",
+          "score": 30.51,
+          "counted": 10,
+          "present": 10
+        },
+        {
+          "area_id": "syn-n0018",
+          "score": 29.95,
+          "counted": 10,
+          "present": 10
+        },
+        {
+          "area_id": "syn-n0016",
+          "score": 49.88,
+          "counted": 10,
+          "present": 9
         }
       ],
       "ranked": [
         {
           "area_id": "syn-n0005",
           "rank": 1,
-          "score": 80.15,
+          "score": 78.12,
           "weight_coverage": 1.0,
           "contributions": [
             {
               "component": "commute",
               "present": true,
-              "weight": 1.0,
-              "share": 0.3175,
+              "weight": 0.4,
+              "share": 0.1951,
               "utility": 1.0,
-              "contribution": 0.3175,
+              "contribution": 0.1951,
               "loss": 0.0,
               "fact_ids": [
                 "syn-n0005/travel/syn-p0005.pt"
               ]
             },
             {
-              "component": "budget",
+              "component": "tag:quiet_residential",
               "present": true,
-              "weight": 0.8,
-              "share": 0.254,
-              "utility": 0.8824,
-              "contribution": 0.2241,
-              "loss": 0.0299,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.738,
+              "contribution": 0.18,
+              "loss": 0.0639,
               "fact_ids": [
-                "syn-n0005/budget_fit/rent.bed_1"
+                "syn-n0005/tag/quiet_residential"
               ]
             },
             {
               "component": "tag:leafy",
               "present": true,
               "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.659,
-              "contribution": 0.1046,
-              "loss": 0.0541,
+              "share": 0.2439,
+              "utility": 0.69,
+              "contribution": 0.1683,
+              "loss": 0.0756,
               "fact_ids": [
                 "syn-n0005/tag/leafy"
               ]
             },
             {
-              "component": "tag:quiet_residential",
+              "component": "budget",
               "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.548,
-              "contribution": 0.087,
-              "loss": 0.0717,
+              "weight": 0.3,
+              "share": 0.1463,
+              "utility": 0.8824,
+              "contribution": 0.1291,
+              "loss": 0.0172,
               "fact_ids": [
-                "syn-n0005/tag/quiet_residential"
+                "syn-n0005/budget_fit/rent.bed_1"
               ]
             },
             {
               "component": "feature:station_walk",
               "present": true,
               "weight": 0.1,
-              "share": 0.0317,
+              "share": 0.0488,
               "utility": 0.636,
-              "contribution": 0.0202,
-              "loss": 0.0116,
+              "contribution": 0.031,
+              "loss": 0.0178,
               "fact_ids": [
                 "syn-n0005/feature/station_walk"
               ]
@@ -187,46 +227,46 @@
               "component": "feature:air_no2",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.725,
-              "contribution": 0.0115,
-              "loss": 0.0044,
+              "share": 0.0244,
+              "utility": 0.775,
+              "contribution": 0.0189,
+              "loss": 0.0055,
               "fact_ids": [
                 "syn-n0005/feature/air_no2"
-              ]
-            },
-            {
-              "component": "feature:park_proximity",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.643,
-              "contribution": 0.0102,
-              "loss": 0.0057,
-              "fact_ids": [
-                "syn-n0005/feature/park_proximity"
               ]
             },
             {
               "component": "feature:noise_exposure",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.625,
-              "contribution": 0.0099,
-              "loss": 0.006,
+              "share": 0.0244,
+              "utility": 0.675,
+              "contribution": 0.0165,
+              "loss": 0.0079,
               "fact_ids": [
                 "syn-n0005/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.643,
+              "contribution": 0.0157,
+              "loss": 0.0087,
+              "fact_ids": [
+                "syn-n0005/feature/park_proximity"
               ]
             },
             {
               "component": "feature:station_lines",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.591,
-              "contribution": 0.0094,
-              "loss": 0.0065,
+              "contribution": 0.0144,
+              "loss": 0.01,
               "fact_ids": [
                 "syn-n0005/feature/station_lines"
               ]
@@ -235,10 +275,10 @@
               "component": "feature:highstreet_access",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.452,
-              "contribution": 0.0072,
-              "loss": 0.0087,
+              "share": 0.0244,
+              "utility": 0.5,
+              "contribution": 0.0122,
+              "loss": 0.0122,
               "fact_ids": [
                 "syn-n0005/feature/highstreet_access"
               ]
@@ -262,34 +302,60 @@
             "confidence": "medium",
             "as_of": "2026-08"
           },
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0005/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0005/tag/quiet_residential"
+            },
+            {
+              "tag_id": "family_amenities",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0005/tag/family_amenities"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0005/tag/built_age"
+            }
+          ]
         },
         {
           "area_id": "syn-n0001",
           "rank": 2,
-          "score": 75.29,
-          "weight_coverage": 0.9841,
+          "score": 74.49,
+          "weight_coverage": 0.9756,
           "contributions": [
-            {
-              "component": "commute",
-              "present": true,
-              "weight": 1.0,
-              "share": 0.3226,
-              "utility": 0.7667,
-              "contribution": 0.2473,
-              "loss": 0.0753,
-              "fact_ids": [
-                "syn-n0001/travel/syn-p0005.pt"
-              ]
-            },
             {
               "component": "tag:leafy",
               "present": true,
               "weight": 0.5,
-              "share": 0.1613,
-              "utility": 0.977,
-              "contribution": 0.1576,
-              "loss": 0.0037,
+              "share": 0.25,
+              "utility": 0.976,
+              "contribution": 0.244,
+              "loss": 0.006,
               "fact_ids": [
                 "syn-n0001/tag/leafy"
               ]
@@ -298,58 +364,70 @@
               "component": "tag:quiet_residential",
               "present": true,
               "weight": 0.5,
-              "share": 0.1613,
-              "utility": 0.976,
-              "contribution": 0.1574,
-              "loss": 0.0039,
+              "share": 0.25,
+              "utility": 0.929,
+              "contribution": 0.2323,
+              "loss": 0.0177,
               "fact_ids": [
                 "syn-n0001/tag/quiet_residential"
               ]
             },
             {
-              "component": "budget",
+              "component": "commute",
               "present": true,
-              "weight": 0.8,
-              "share": 0.2581,
-              "utility": 0.5882,
-              "contribution": 0.1518,
-              "loss": 0.1063,
+              "weight": 0.4,
+              "share": 0.2,
+              "utility": 0.7667,
+              "contribution": 0.1533,
+              "loss": 0.0467,
               "fact_ids": [
-                "syn-n0001/budget_fit/rent.bed_1"
+                "syn-n0001/travel/syn-p0005.pt"
               ]
             },
             {
-              "component": "feature:park_proximity",
+              "component": "budget",
               "present": true,
-              "weight": 0.05,
-              "share": 0.0161,
-              "utility": 0.976,
-              "contribution": 0.0157,
-              "loss": 0.0004,
+              "weight": 0.3,
+              "share": 0.15,
+              "utility": 0.4706,
+              "contribution": 0.0706,
+              "loss": 0.0794,
               "fact_ids": [
-                "syn-n0001/feature/park_proximity"
+                "syn-n0001/budget_fit/rent.bed_1"
               ]
             },
             {
               "component": "feature:noise_exposure",
               "present": true,
               "weight": 0.05,
-              "share": 0.0161,
+              "share": 0.025,
               "utility": 0.925,
-              "contribution": 0.0149,
-              "loss": 0.0012,
+              "contribution": 0.0231,
+              "loss": 0.0019,
               "fact_ids": [
                 "syn-n0001/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.025,
+              "utility": 0.357,
+              "contribution": 0.0089,
+              "loss": 0.0161,
+              "fact_ids": [
+                "syn-n0001/feature/park_proximity"
               ]
             },
             {
               "component": "feature:station_walk",
               "present": true,
               "weight": 0.1,
-              "share": 0.0323,
+              "share": 0.05,
               "utility": 0.114,
-              "contribution": 0.0037,
-              "loss": 0.0286,
+              "contribution": 0.0057,
+              "loss": 0.0443,
               "fact_ids": [
                 "syn-n0001/feature/station_walk"
               ]
@@ -358,10 +436,10 @@
               "component": "feature:station_lines",
               "present": true,
               "weight": 0.05,
-              "share": 0.0161,
+              "share": 0.025,
               "utility": 0.159,
-              "contribution": 0.0026,
-              "loss": 0.0136,
+              "contribution": 0.004,
+              "loss": 0.021,
               "fact_ids": [
                 "syn-n0001/feature/station_lines"
               ]
@@ -370,10 +448,10 @@
               "component": "feature:highstreet_access",
               "present": true,
               "weight": 0.05,
-              "share": 0.0161,
+              "share": 0.025,
               "utility": 0.119,
-              "contribution": 0.0019,
-              "loss": 0.0142,
+              "contribution": 0.003,
+              "loss": 0.022,
               "fact_ids": [
                 "syn-n0001/feature/highstreet_access"
               ]
@@ -403,40 +481,66 @@
             }
           ],
           "budget": {
-            "upper_quartile": 1875,
-            "margin": -175,
-            "utility": 0.5882,
+            "upper_quartile": 1925,
+            "margin": -225,
+            "utility": 0.4706,
             "confidence": "medium",
             "as_of": "2026-08"
           },
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0001/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0001/tag/quiet_residential"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0001/tag/built_age"
+            },
+            {
+              "tag_id": "homes",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0001/tag/homes"
+            }
+          ]
         },
         {
           "area_id": "syn-n0008",
           "rank": 3,
-          "score": 71.69,
+          "score": 73.91,
           "weight_coverage": 1.0,
           "contributions": [
-            {
-              "component": "budget",
-              "present": true,
-              "weight": 0.8,
-              "share": 0.254,
-              "utility": 1.0,
-              "contribution": 0.254,
-              "loss": 0.0,
-              "fact_ids": [
-                "syn-n0008/budget_fit/rent.bed_1"
-              ]
-            },
             {
               "component": "tag:quiet_residential",
               "present": true,
               "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.929,
-              "contribution": 0.1475,
-              "loss": 0.0113,
+              "share": 0.2439,
+              "utility": 0.976,
+              "contribution": 0.238,
+              "loss": 0.0059,
               "fact_ids": [
                 "syn-n0008/tag/quiet_residential"
               ]
@@ -445,22 +549,34 @@
               "component": "tag:leafy",
               "present": true,
               "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.886,
-              "contribution": 0.1406,
-              "loss": 0.0181,
+              "share": 0.2439,
+              "utility": 0.833,
+              "contribution": 0.2032,
+              "loss": 0.0407,
               "fact_ids": [
                 "syn-n0008/tag/leafy"
               ]
             },
             {
+              "component": "budget",
+              "present": true,
+              "weight": 0.3,
+              "share": 0.1463,
+              "utility": 1.0,
+              "contribution": 0.1463,
+              "loss": 0.0,
+              "fact_ids": [
+                "syn-n0008/budget_fit/rent.bed_1"
+              ]
+            },
+            {
               "component": "commute",
               "present": true,
-              "weight": 1.0,
-              "share": 0.3175,
+              "weight": 0.4,
+              "share": 0.1951,
               "utility": 0.4,
-              "contribution": 0.127,
-              "loss": 0.1905,
+              "contribution": 0.078,
+              "loss": 0.1171,
               "fact_ids": [
                 "syn-n0008/travel/syn-p0005.pt"
               ]
@@ -469,10 +585,10 @@
               "component": "feature:air_no2",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.975,
-              "contribution": 0.0155,
-              "loss": 0.0004,
+              "contribution": 0.0238,
+              "loss": 0.0006,
               "fact_ids": [
                 "syn-n0008/feature/air_no2"
               ]
@@ -481,10 +597,10 @@
               "component": "feature:noise_exposure",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.975,
-              "contribution": 0.0155,
-              "loss": 0.0004,
+              "contribution": 0.0238,
+              "loss": 0.0006,
               "fact_ids": [
                 "syn-n0008/feature/noise_exposure"
               ]
@@ -493,10 +609,10 @@
               "component": "feature:park_proximity",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.833,
-              "contribution": 0.0132,
-              "loss": 0.0027,
+              "contribution": 0.0203,
+              "loss": 0.0041,
               "fact_ids": [
                 "syn-n0008/feature/park_proximity"
               ]
@@ -505,10 +621,10 @@
               "component": "feature:station_lines",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.159,
-              "contribution": 0.0025,
-              "loss": 0.0133,
+              "contribution": 0.0039,
+              "loss": 0.0205,
               "fact_ids": [
                 "syn-n0008/feature/station_lines"
               ]
@@ -517,10 +633,10 @@
               "component": "feature:station_walk",
               "present": true,
               "weight": 0.1,
-              "share": 0.0317,
+              "share": 0.0488,
               "utility": 0.023,
-              "contribution": 0.0007,
-              "loss": 0.031,
+              "contribution": 0.0011,
+              "loss": 0.0477,
               "fact_ids": [
                 "syn-n0008/feature/station_walk"
               ]
@@ -529,10 +645,10 @@
               "component": "feature:highstreet_access",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.024,
-              "contribution": 0.0004,
-              "loss": 0.0155,
+              "contribution": 0.0006,
+              "loss": 0.0238,
               "fact_ids": [
                 "syn-n0008/feature/highstreet_access"
               ]
@@ -556,34 +672,1379 @@
             "confidence": "medium",
             "as_of": "2026-08"
           },
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0008/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0008/tag/quiet_residential"
+            },
+            {
+              "tag_id": "homes",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0008/tag/homes"
+            },
+            {
+              "tag_id": "pace",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0008/tag/pace"
+            }
+          ]
         },
         {
-          "area_id": "syn-n0014",
+          "area_id": "syn-n0013",
           "rank": 4,
-          "score": 70.68,
-          "weight_coverage": 0.9841,
+          "score": 63.72,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "tag:leafy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.929,
+              "contribution": 0.2266,
+              "loss": 0.0173,
+              "fact_ids": [
+                "syn-n0013/tag/leafy"
+              ]
+            },
+            {
+              "component": "tag:quiet_residential",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.833,
+              "contribution": 0.2032,
+              "loss": 0.0407,
+              "fact_ids": [
+                "syn-n0013/tag/quiet_residential"
+              ]
+            },
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 0.4,
+              "share": 0.1951,
+              "utility": 0.3333,
+              "contribution": 0.065,
+              "loss": 0.1301,
+              "fact_ids": [
+                "syn-n0013/travel/syn-p0005.pt"
+              ]
+            },
+            {
+              "component": "budget",
+              "present": true,
+              "weight": 0.3,
+              "share": 0.1463,
+              "utility": 0.4118,
+              "contribution": 0.0603,
+              "loss": 0.0861,
+              "fact_ids": [
+                "syn-n0013/budget_fit/rent.bed_1"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.929,
+              "contribution": 0.0227,
+              "loss": 0.0017,
+              "fact_ids": [
+                "syn-n0013/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.875,
+              "contribution": 0.0213,
+              "loss": 0.003,
+              "fact_ids": [
+                "syn-n0013/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.825,
+              "contribution": 0.0201,
+              "loss": 0.0043,
+              "fact_ids": [
+                "syn-n0013/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0488,
+              "utility": 0.159,
+              "contribution": 0.0078,
+              "loss": 0.041,
+              "fact_ids": [
+                "syn-n0013/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.262,
+              "contribution": 0.0064,
+              "loss": 0.018,
+              "fact_ids": [
+                "syn-n0013/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.159,
+              "contribution": 0.0039,
+              "loss": 0.0205,
+              "fact_ids": [
+                "syn-n0013/feature/station_lines"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0005",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 35,
+              "minutes_typical": 35,
+              "minutes_just_missed": 40,
+              "utility": 0.3333
+            }
+          ],
+          "budget": {
+            "upper_quartile": 1950,
+            "margin": -250,
+            "utility": 0.4118,
+            "confidence": "medium",
+            "as_of": "2026-08"
+          },
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0013/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0013/tag/quiet_residential"
+            },
+            {
+              "tag_id": "family_amenities",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0013/tag/family_amenities"
+            },
+            {
+              "tag_id": "parks_close_by",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0013/tag/parks_close_by"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0002",
+          "rank": 5,
+          "score": 60.08,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "tag:leafy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.881,
+              "contribution": 0.2149,
+              "loss": 0.029,
+              "fact_ids": [
+                "syn-n0002/tag/leafy"
+              ]
+            },
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 0.4,
+              "share": 0.1951,
+              "utility": 0.6333,
+              "contribution": 0.1236,
+              "loss": 0.0715,
+              "fact_ids": [
+                "syn-n0002/travel/syn-p0005.pt"
+              ]
+            },
+            {
+              "component": "tag:quiet_residential",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.405,
+              "contribution": 0.0988,
+              "loss": 0.1451,
+              "fact_ids": [
+                "syn-n0002/tag/quiet_residential"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0488,
+              "utility": 0.886,
+              "contribution": 0.0432,
+              "loss": 0.0056,
+              "fact_ids": [
+                "syn-n0002/feature/station_walk"
+              ]
+            },
+            {
+              "component": "budget",
+              "present": true,
+              "weight": 0.3,
+              "share": 0.1463,
+              "utility": 0.2353,
+              "contribution": 0.0344,
+              "loss": 0.1119,
+              "fact_ids": [
+                "syn-n0002/budget_fit/rent.bed_1"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.881,
+              "contribution": 0.0215,
+              "loss": 0.0029,
+              "fact_ids": [
+                "syn-n0002/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.825,
+              "contribution": 0.0201,
+              "loss": 0.0043,
+              "fact_ids": [
+                "syn-n0002/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.775,
+              "contribution": 0.0189,
+              "loss": 0.0055,
+              "fact_ids": [
+                "syn-n0002/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.591,
+              "contribution": 0.0144,
+              "loss": 0.01,
+              "fact_ids": [
+                "syn-n0002/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.452,
+              "contribution": 0.011,
+              "loss": 0.0134,
+              "fact_ids": [
+                "syn-n0002/feature/highstreet_access"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0005",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 26,
+              "minutes_typical": 26,
+              "minutes_just_missed": 28,
+              "utility": 0.6333
+            }
+          ],
+          "budget": {
+            "upper_quartile": 2025,
+            "margin": -325,
+            "utility": 0.2353,
+            "confidence": "medium",
+            "as_of": "2026-08"
+          },
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0002/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0002/tag/quiet_residential"
+            },
+            {
+              "tag_id": "parks_close_by",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0002/tag/parks_close_by"
+            },
+            {
+              "tag_id": "village_feel",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0002/tag/village_feel"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0006",
+          "rank": 6,
+          "score": 59.35,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "tag:quiet_residential",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.69,
+              "contribution": 0.1683,
+              "loss": 0.0756,
+              "fact_ids": [
+                "syn-n0006/tag/quiet_residential"
+              ]
+            },
+            {
+              "component": "budget",
+              "present": true,
+              "weight": 0.3,
+              "share": 0.1463,
+              "utility": 1.0,
+              "contribution": 0.1463,
+              "loss": 0.0,
+              "fact_ids": [
+                "syn-n0006/budget_fit/rent.bed_1"
+              ]
+            },
+            {
+              "component": "tag:leafy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.548,
+              "contribution": 0.1337,
+              "loss": 0.1102,
+              "fact_ids": [
+                "syn-n0006/tag/leafy"
+              ]
+            },
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 0.4,
+              "share": 0.1951,
+              "utility": 0.2333,
+              "contribution": 0.0455,
+              "loss": 0.1496,
+              "fact_ids": [
+                "syn-n0006/travel/syn-p0005.pt"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.925,
+              "contribution": 0.0226,
+              "loss": 0.0018,
+              "fact_ids": [
+                "syn-n0006/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0488,
+              "utility": 0.455,
+              "contribution": 0.0222,
+              "loss": 0.0266,
+              "fact_ids": [
+                "syn-n0006/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.875,
+              "contribution": 0.0213,
+              "loss": 0.003,
+              "fact_ids": [
+                "syn-n0006/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.591,
+              "contribution": 0.0144,
+              "loss": 0.01,
+              "fact_ids": [
+                "syn-n0006/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.476,
+              "contribution": 0.0116,
+              "loss": 0.0128,
+              "fact_ids": [
+                "syn-n0006/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.31,
+              "contribution": 0.0076,
+              "loss": 0.0168,
+              "fact_ids": [
+                "syn-n0006/feature/highstreet_access"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0005",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 38,
+              "minutes_typical": 38,
+              "minutes_just_missed": 42,
+              "utility": 0.2333
+            }
+          ],
+          "budget": {
+            "upper_quartile": 1300,
+            "margin": 400,
+            "utility": 1.0,
+            "confidence": "high",
+            "as_of": "2026-08"
+          },
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0006/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0006/tag/quiet_residential"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0006/tag/built_age"
+            },
+            {
+              "tag_id": "homes",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0006/tag/homes"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0004",
+          "rank": 7,
+          "score": 56.59,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "tag:leafy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.738,
+              "contribution": 0.18,
+              "loss": 0.0639,
+              "fact_ids": [
+                "syn-n0004/tag/leafy"
+              ]
+            },
+            {
+              "component": "budget",
+              "present": true,
+              "weight": 0.3,
+              "share": 0.1463,
+              "utility": 0.9412,
+              "contribution": 0.1377,
+              "loss": 0.0086,
+              "fact_ids": [
+                "syn-n0004/budget_fit/rent.bed_1"
+              ]
+            },
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 0.4,
+              "share": 0.1951,
+              "utility": 0.4667,
+              "contribution": 0.0911,
+              "loss": 0.1041,
+              "fact_ids": [
+                "syn-n0004/travel/syn-p0005.pt"
+              ]
+            },
+            {
+              "component": "tag:quiet_residential",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.214,
+              "contribution": 0.0522,
+              "loss": 0.1917,
+              "fact_ids": [
+                "syn-n0004/tag/quiet_residential"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0488,
+              "utility": 0.636,
+              "contribution": 0.031,
+              "loss": 0.0178,
+              "fact_ids": [
+                "syn-n0004/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.69,
+              "contribution": 0.0168,
+              "loss": 0.0076,
+              "fact_ids": [
+                "syn-n0004/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.625,
+              "contribution": 0.0152,
+              "loss": 0.0091,
+              "fact_ids": [
+                "syn-n0004/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.591,
+              "contribution": 0.0144,
+              "loss": 0.01,
+              "fact_ids": [
+                "syn-n0004/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.575,
+              "contribution": 0.014,
+              "loss": 0.0104,
+              "fact_ids": [
+                "syn-n0004/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.548,
+              "contribution": 0.0134,
+              "loss": 0.011,
+              "fact_ids": [
+                "syn-n0004/feature/highstreet_access"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0005",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 31,
+              "minutes_typical": 31,
+              "minutes_just_missed": 36,
+              "utility": 0.4667
+            }
+          ],
+          "budget": {
+            "upper_quartile": 1725,
+            "margin": -25,
+            "utility": 0.9412,
+            "confidence": "medium",
+            "as_of": "2026-08"
+          },
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0004/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0004/tag/quiet_residential"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0004/tag/built_age"
+            },
+            {
+              "tag_id": "family_amenities",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0004/tag/family_amenities"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0024",
+          "rank": 8,
+          "score": 56.33,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "tag:quiet_residential",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.786,
+              "contribution": 0.1917,
+              "loss": 0.0522,
+              "fact_ids": [
+                "syn-n0024/tag/quiet_residential"
+              ]
+            },
+            {
+              "component": "tag:leafy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.5,
+              "contribution": 0.122,
+              "loss": 0.122,
+              "fact_ids": [
+                "syn-n0024/tag/leafy"
+              ]
+            },
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 0.4,
+              "share": 0.1951,
+              "utility": 0.3667,
+              "contribution": 0.0715,
+              "loss": 0.1236,
+              "fact_ids": [
+                "syn-n0024/travel/syn-p0005.pt"
+              ]
+            },
+            {
+              "component": "budget",
+              "present": true,
+              "weight": 0.3,
+              "share": 0.1463,
+              "utility": 0.4706,
+              "contribution": 0.0689,
+              "loss": 0.0775,
+              "fact_ids": [
+                "syn-n0024/budget_fit/rent.bed_1"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0488,
+              "utility": 0.886,
+              "contribution": 0.0432,
+              "loss": 0.0056,
+              "fact_ids": [
+                "syn-n0024/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.725,
+              "contribution": 0.0177,
+              "loss": 0.0067,
+              "fact_ids": [
+                "syn-n0024/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.7,
+              "contribution": 0.0171,
+              "loss": 0.0073,
+              "fact_ids": [
+                "syn-n0024/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.591,
+              "contribution": 0.0144,
+              "loss": 0.01,
+              "fact_ids": [
+                "syn-n0024/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.476,
+              "contribution": 0.0116,
+              "loss": 0.0128,
+              "fact_ids": [
+                "syn-n0024/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.214,
+              "contribution": 0.0052,
+              "loss": 0.0192,
+              "fact_ids": [
+                "syn-n0024/feature/highstreet_access"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0005",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 34,
+              "minutes_typical": 34,
+              "minutes_just_missed": 39,
+              "utility": 0.3667
+            }
+          ],
+          "budget": {
+            "upper_quartile": 1925,
+            "margin": -225,
+            "utility": 0.4706,
+            "confidence": "medium",
+            "as_of": "2026-08"
+          },
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0024/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0024/tag/quiet_residential"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0024/tag/built_age"
+            },
+            {
+              "tag_id": "village_feel",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0024/tag/village_feel"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0003",
+          "rank": 9,
+          "score": 54.81,
+          "weight_coverage": 1.0,
           "contributions": [
             {
               "component": "budget",
               "present": true,
-              "weight": 0.8,
-              "share": 0.2581,
+              "weight": 0.3,
+              "share": 0.1463,
               "utility": 1.0,
-              "contribution": 0.2581,
+              "contribution": 0.1463,
+              "loss": 0.0,
+              "fact_ids": [
+                "syn-n0003/budget_fit/rent.bed_1"
+              ]
+            },
+            {
+              "component": "tag:quiet_residential",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.595,
+              "contribution": 0.1451,
+              "loss": 0.0988,
+              "fact_ids": [
+                "syn-n0003/tag/quiet_residential"
+              ]
+            },
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 0.4,
+              "share": 0.1951,
+              "utility": 0.4667,
+              "contribution": 0.0911,
+              "loss": 0.1041,
+              "fact_ids": [
+                "syn-n0003/travel/syn-p0005.pt"
+              ]
+            },
+            {
+              "component": "tag:leafy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.31,
+              "contribution": 0.0756,
+              "loss": 0.1683,
+              "fact_ids": [
+                "syn-n0003/tag/leafy"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0488,
+              "utility": 0.886,
+              "contribution": 0.0432,
+              "loss": 0.0056,
+              "fact_ids": [
+                "syn-n0003/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.591,
+              "contribution": 0.0144,
+              "loss": 0.01,
+              "fact_ids": [
+                "syn-n0003/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.475,
+              "contribution": 0.0116,
+              "loss": 0.0128,
+              "fact_ids": [
+                "syn-n0003/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.375,
+              "contribution": 0.0091,
+              "loss": 0.0152,
+              "fact_ids": [
+                "syn-n0003/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.31,
+              "contribution": 0.0076,
+              "loss": 0.0168,
+              "fact_ids": [
+                "syn-n0003/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.167,
+              "contribution": 0.0041,
+              "loss": 0.0203,
+              "fact_ids": [
+                "syn-n0003/feature/highstreet_access"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0005",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 31,
+              "minutes_typical": 31,
+              "minutes_just_missed": 33,
+              "utility": 0.4667
+            }
+          ],
+          "budget": {
+            "upper_quartile": 1050,
+            "margin": 650,
+            "utility": 1.0,
+            "confidence": "medium",
+            "as_of": "2026-08"
+          },
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0003/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0003/tag/quiet_residential"
+            },
+            {
+              "tag_id": "homes",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0003/tag/homes"
+            },
+            {
+              "tag_id": "pace",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0003/tag/pace"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0019",
+          "rank": 10,
+          "score": 54.69,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "tag:quiet_residential",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.881,
+              "contribution": 0.2149,
+              "loss": 0.029,
+              "fact_ids": [
+                "syn-n0019/tag/quiet_residential"
+              ]
+            },
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 0.4,
+              "share": 0.1951,
+              "utility": 0.5333,
+              "contribution": 0.1041,
+              "loss": 0.0911,
+              "fact_ids": [
+                "syn-n0019/travel/syn-p0005.pt"
+              ]
+            },
+            {
+              "component": "tag:leafy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.262,
+              "contribution": 0.0639,
+              "loss": 0.18,
+              "fact_ids": [
+                "syn-n0019/tag/leafy"
+              ]
+            },
+            {
+              "component": "budget",
+              "present": true,
+              "weight": 0.3,
+              "share": 0.1463,
+              "utility": 0.4118,
+              "contribution": 0.0603,
+              "loss": 0.0861,
+              "fact_ids": [
+                "syn-n0019/budget_fit/rent.bed_1"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0488,
+              "utility": 0.886,
+              "contribution": 0.0432,
+              "loss": 0.0056,
+              "fact_ids": [
+                "syn-n0019/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.786,
+              "contribution": 0.0192,
+              "loss": 0.0052,
+              "fact_ids": [
+                "syn-n0019/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.591,
+              "contribution": 0.0144,
+              "loss": 0.01,
+              "fact_ids": [
+                "syn-n0019/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.425,
+              "contribution": 0.0104,
+              "loss": 0.014,
+              "fact_ids": [
+                "syn-n0019/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.405,
+              "contribution": 0.0099,
+              "loss": 0.0145,
+              "fact_ids": [
+                "syn-n0019/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.275,
+              "contribution": 0.0067,
+              "loss": 0.0177,
+              "fact_ids": [
+                "syn-n0019/feature/air_no2"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0005",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 29,
+              "minutes_typical": 29,
+              "minutes_just_missed": 34,
+              "utility": 0.5333
+            }
+          ],
+          "budget": {
+            "upper_quartile": 1950,
+            "margin": -250,
+            "utility": 0.4118,
+            "confidence": "medium",
+            "as_of": "2026-08"
+          },
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0019/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0019/tag/quiet_residential"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0019/tag/built_age"
+            },
+            {
+              "tag_id": "pace",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0019/tag/pace"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0014",
+          "rank": 11,
+          "score": 52.99,
+          "weight_coverage": 0.9756,
+          "contributions": [
+            {
+              "component": "budget",
+              "present": true,
+              "weight": 0.3,
+              "share": 0.15,
+              "utility": 1.0,
+              "contribution": 0.15,
               "loss": 0.0,
               "fact_ids": [
                 "syn-n0014/budget_fit/rent.bed_1"
               ]
             },
             {
+              "component": "tag:leafy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.25,
+              "utility": 0.595,
+              "contribution": 0.1487,
+              "loss": 0.1013,
+              "fact_ids": [
+                "syn-n0014/tag/leafy"
+              ]
+            },
+            {
               "component": "commute",
               "present": true,
-              "weight": 1.0,
-              "share": 0.3226,
+              "weight": 0.4,
+              "share": 0.2,
               "utility": 0.5667,
-              "contribution": 0.1828,
-              "loss": 0.1398,
+              "contribution": 0.1133,
+              "loss": 0.0867,
               "fact_ids": [
                 "syn-n0014/travel/syn-p0005.pt"
               ]
@@ -592,34 +2053,22 @@
               "component": "tag:quiet_residential",
               "present": true,
               "weight": 0.5,
-              "share": 0.1613,
-              "utility": 0.881,
-              "contribution": 0.1421,
-              "loss": 0.0192,
+              "share": 0.25,
+              "utility": 0.31,
+              "contribution": 0.0775,
+              "loss": 0.1725,
               "fact_ids": [
                 "syn-n0014/tag/quiet_residential"
-              ]
-            },
-            {
-              "component": "tag:leafy",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1613,
-              "utility": 0.614,
-              "contribution": 0.099,
-              "loss": 0.0623,
-              "fact_ids": [
-                "syn-n0014/tag/leafy"
               ]
             },
             {
               "component": "feature:air_no2",
               "present": true,
               "weight": 0.05,
-              "share": 0.0161,
-              "utility": 0.675,
-              "contribution": 0.0109,
-              "loss": 0.0052,
+              "share": 0.025,
+              "utility": 0.7,
+              "contribution": 0.0175,
+              "loss": 0.0075,
               "fact_ids": [
                 "syn-n0014/feature/air_no2"
               ]
@@ -628,10 +2077,10 @@
               "component": "feature:park_proximity",
               "present": true,
               "weight": 0.05,
-              "share": 0.0161,
-              "utility": 0.5,
-              "contribution": 0.0081,
-              "loss": 0.0081,
+              "share": 0.025,
+              "utility": 0.548,
+              "contribution": 0.0137,
+              "loss": 0.0113,
               "fact_ids": [
                 "syn-n0014/feature/park_proximity"
               ]
@@ -640,10 +2089,10 @@
               "component": "feature:station_lines",
               "present": true,
               "weight": 0.05,
-              "share": 0.0161,
+              "share": 0.025,
               "utility": 0.159,
-              "contribution": 0.0026,
-              "loss": 0.0136,
+              "contribution": 0.004,
+              "loss": 0.021,
               "fact_ids": [
                 "syn-n0014/feature/station_lines"
               ]
@@ -652,10 +2101,10 @@
               "component": "feature:station_walk",
               "present": true,
               "weight": 0.1,
-              "share": 0.0323,
+              "share": 0.05,
               "utility": 0.068,
-              "contribution": 0.0022,
-              "loss": 0.0301,
+              "contribution": 0.0034,
+              "loss": 0.0466,
               "fact_ids": [
                 "syn-n0014/feature/station_walk"
               ]
@@ -664,10 +2113,10 @@
               "component": "feature:highstreet_access",
               "present": true,
               "weight": 0.05,
-              "share": 0.0161,
+              "share": 0.025,
               "utility": 0.071,
-              "contribution": 0.0011,
-              "loss": 0.015,
+              "contribution": 0.0018,
+              "loss": 0.0232,
               "fact_ids": [
                 "syn-n0014/feature/highstreet_access"
               ]
@@ -703,898 +2152,84 @@
             "confidence": "medium",
             "as_of": "2026-08"
           },
-          "untested_filters": []
-        },
-        {
-          "area_id": "syn-n0016",
-          "rank": 5,
-          "score": 66.89,
-          "weight_coverage": 0.746,
-          "contributions": [
+          "untested_filters": [],
+          "strip": [
             {
-              "component": "commute",
-              "present": true,
-              "weight": 1.0,
-              "share": 0.4255,
-              "utility": 0.8667,
-              "contribution": 0.3688,
-              "loss": 0.0567,
-              "fact_ids": [
-                "syn-n0016/travel/syn-p0005.pt"
-              ]
+              "tag_id": "leafy",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0014/tag/leafy"
             },
             {
-              "component": "tag:quiet_residential",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.2128,
-              "utility": 0.643,
-              "contribution": 0.1368,
-              "loss": 0.076,
-              "fact_ids": [
-                "syn-n0016/tag/quiet_residential"
-              ]
+              "tag_id": "quiet_residential",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0014/tag/quiet_residential"
             },
             {
-              "component": "tag:leafy",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.2128,
-              "utility": 0.477,
-              "contribution": 0.1015,
-              "loss": 0.1113,
-              "fact_ids": [
-                "syn-n0016/tag/leafy"
-              ]
+              "tag_id": "built_age",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0014/tag/built_age"
             },
             {
-              "component": "feature:noise_exposure",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0213,
-              "utility": 0.675,
-              "contribution": 0.0144,
-              "loss": 0.0069,
-              "fact_ids": [
-                "syn-n0016/feature/noise_exposure"
-              ]
-            },
-            {
-              "component": "feature:air_no2",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0213,
-              "utility": 0.625,
-              "contribution": 0.0133,
-              "loss": 0.008,
-              "fact_ids": [
-                "syn-n0016/feature/air_no2"
-              ]
-            },
-            {
-              "component": "feature:station_walk",
-              "present": true,
-              "weight": 0.1,
-              "share": 0.0426,
-              "utility": 0.295,
-              "contribution": 0.0126,
-              "loss": 0.03,
-              "fact_ids": [
-                "syn-n0016/feature/station_walk"
-              ]
-            },
-            {
-              "component": "feature:park_proximity",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0213,
-              "utility": 0.548,
-              "contribution": 0.0117,
-              "loss": 0.0096,
-              "fact_ids": [
-                "syn-n0016/feature/park_proximity"
-              ]
-            },
-            {
-              "component": "feature:highstreet_access",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0213,
-              "utility": 0.31,
-              "contribution": 0.0066,
-              "loss": 0.0147,
-              "fact_ids": [
-                "syn-n0016/feature/highstreet_access"
-              ]
-            },
-            {
-              "component": "feature:station_lines",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0213,
-              "utility": 0.159,
-              "contribution": 0.0034,
-              "loss": 0.0179,
-              "fact_ids": [
-                "syn-n0016/feature/station_lines"
-              ]
-            },
-            {
-              "component": "budget",
-              "present": false,
-              "weight": 0.8,
-              "share": 0.0,
-              "utility": null,
-              "contribution": 0.0,
-              "loss": 0.0,
-              "fact_ids": [
-                "syn-n0016/missing/budget"
-              ]
+              "tag_id": "homes",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0014/tag/homes"
             }
-          ],
-          "legs": [
-            {
-              "place_id": "syn-p0005",
-              "mode": "pt",
-              "status": "ok",
-              "minutes": 19,
-              "minutes_typical": 19,
-              "minutes_just_missed": 24,
-              "utility": 0.8667
-            }
-          ],
-          "budget": null,
-          "untested_filters": []
-        },
-        {
-          "area_id": "syn-n0004",
-          "rank": 6,
-          "score": 61.6,
-          "weight_coverage": 1.0,
-          "contributions": [
-            {
-              "component": "budget",
-              "present": true,
-              "weight": 0.8,
-              "share": 0.254,
-              "utility": 0.8235,
-              "contribution": 0.2092,
-              "loss": 0.0448,
-              "fact_ids": [
-                "syn-n0004/budget_fit/rent.bed_1"
-              ]
-            },
-            {
-              "component": "commute",
-              "present": true,
-              "weight": 1.0,
-              "share": 0.3175,
-              "utility": 0.4667,
-              "contribution": 0.1481,
-              "loss": 0.1693,
-              "fact_ids": [
-                "syn-n0004/travel/syn-p0005.pt"
-              ]
-            },
-            {
-              "component": "tag:leafy",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.705,
-              "contribution": 0.1119,
-              "loss": 0.0468,
-              "fact_ids": [
-                "syn-n0004/tag/leafy"
-              ]
-            },
-            {
-              "component": "tag:quiet_residential",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.5,
-              "contribution": 0.0794,
-              "loss": 0.0794,
-              "fact_ids": [
-                "syn-n0004/tag/quiet_residential"
-              ]
-            },
-            {
-              "component": "feature:station_walk",
-              "present": true,
-              "weight": 0.1,
-              "share": 0.0317,
-              "utility": 0.636,
-              "contribution": 0.0202,
-              "loss": 0.0116,
-              "fact_ids": [
-                "syn-n0004/feature/station_walk"
-              ]
-            },
-            {
-              "component": "feature:park_proximity",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.69,
-              "contribution": 0.011,
-              "loss": 0.0049,
-              "fact_ids": [
-                "syn-n0004/feature/park_proximity"
-              ]
-            },
-            {
-              "component": "feature:station_lines",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.591,
-              "contribution": 0.0094,
-              "loss": 0.0065,
-              "fact_ids": [
-                "syn-n0004/feature/station_lines"
-              ]
-            },
-            {
-              "component": "feature:air_no2",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.575,
-              "contribution": 0.0091,
-              "loss": 0.0067,
-              "fact_ids": [
-                "syn-n0004/feature/air_no2"
-              ]
-            },
-            {
-              "component": "feature:noise_exposure",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.575,
-              "contribution": 0.0091,
-              "loss": 0.0067,
-              "fact_ids": [
-                "syn-n0004/feature/noise_exposure"
-              ]
-            },
-            {
-              "component": "feature:highstreet_access",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.548,
-              "contribution": 0.0087,
-              "loss": 0.0072,
-              "fact_ids": [
-                "syn-n0004/feature/highstreet_access"
-              ]
-            }
-          ],
-          "legs": [
-            {
-              "place_id": "syn-p0005",
-              "mode": "pt",
-              "status": "ok",
-              "minutes": 31,
-              "minutes_typical": 31,
-              "minutes_just_missed": 36,
-              "utility": 0.4667
-            }
-          ],
-          "budget": {
-            "upper_quartile": 1775,
-            "margin": -75,
-            "utility": 0.8235,
-            "confidence": "medium",
-            "as_of": "2026-08"
-          },
-          "untested_filters": []
-        },
-        {
-          "area_id": "syn-n0003",
-          "rank": 7,
-          "score": 61.44,
-          "weight_coverage": 1.0,
-          "contributions": [
-            {
-              "component": "budget",
-              "present": true,
-              "weight": 0.8,
-              "share": 0.254,
-              "utility": 1.0,
-              "contribution": 0.254,
-              "loss": 0.0,
-              "fact_ids": [
-                "syn-n0003/budget_fit/rent.bed_1"
-              ]
-            },
-            {
-              "component": "commute",
-              "present": true,
-              "weight": 1.0,
-              "share": 0.3175,
-              "utility": 0.4667,
-              "contribution": 0.1481,
-              "loss": 0.1693,
-              "fact_ids": [
-                "syn-n0003/travel/syn-p0005.pt"
-              ]
-            },
-            {
-              "component": "tag:quiet_residential",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.69,
-              "contribution": 0.1095,
-              "loss": 0.0492,
-              "fact_ids": [
-                "syn-n0003/tag/quiet_residential"
-              ]
-            },
-            {
-              "component": "tag:leafy",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.295,
-              "contribution": 0.0468,
-              "loss": 0.1119,
-              "fact_ids": [
-                "syn-n0003/tag/leafy"
-              ]
-            },
-            {
-              "component": "feature:station_walk",
-              "present": true,
-              "weight": 0.1,
-              "share": 0.0317,
-              "utility": 0.886,
-              "contribution": 0.0281,
-              "loss": 0.0036,
-              "fact_ids": [
-                "syn-n0003/feature/station_walk"
-              ]
-            },
-            {
-              "component": "feature:station_lines",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.591,
-              "contribution": 0.0094,
-              "loss": 0.0065,
-              "fact_ids": [
-                "syn-n0003/feature/station_lines"
-              ]
-            },
-            {
-              "component": "feature:air_no2",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.45,
-              "contribution": 0.0071,
-              "loss": 0.0087,
-              "fact_ids": [
-                "syn-n0003/feature/air_no2"
-              ]
-            },
-            {
-              "component": "feature:noise_exposure",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.425,
-              "contribution": 0.0067,
-              "loss": 0.0091,
-              "fact_ids": [
-                "syn-n0003/feature/noise_exposure"
-              ]
-            },
-            {
-              "component": "feature:highstreet_access",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.167,
-              "contribution": 0.0027,
-              "loss": 0.0132,
-              "fact_ids": [
-                "syn-n0003/feature/highstreet_access"
-              ]
-            },
-            {
-              "component": "feature:park_proximity",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.119,
-              "contribution": 0.0019,
-              "loss": 0.014,
-              "fact_ids": [
-                "syn-n0003/feature/park_proximity"
-              ]
-            }
-          ],
-          "legs": [
-            {
-              "place_id": "syn-p0005",
-              "mode": "pt",
-              "status": "ok",
-              "minutes": 31,
-              "minutes_typical": 31,
-              "minutes_just_missed": 33,
-              "utility": 0.4667
-            }
-          ],
-          "budget": {
-            "upper_quartile": 1050,
-            "margin": 650,
-            "utility": 1.0,
-            "confidence": "medium",
-            "as_of": "2026-08"
-          },
-          "untested_filters": []
-        },
-        {
-          "area_id": "syn-n0006",
-          "rank": 8,
-          "score": 61.42,
-          "weight_coverage": 1.0,
-          "contributions": [
-            {
-              "component": "budget",
-              "present": true,
-              "weight": 0.8,
-              "share": 0.254,
-              "utility": 1.0,
-              "contribution": 0.254,
-              "loss": 0.0,
-              "fact_ids": [
-                "syn-n0006/budget_fit/rent.bed_1"
-              ]
-            },
-            {
-              "component": "tag:quiet_residential",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.833,
-              "contribution": 0.1322,
-              "loss": 0.0265,
-              "fact_ids": [
-                "syn-n0006/tag/quiet_residential"
-              ]
-            },
-            {
-              "component": "tag:leafy",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.568,
-              "contribution": 0.0902,
-              "loss": 0.0686,
-              "fact_ids": [
-                "syn-n0006/tag/leafy"
-              ]
-            },
-            {
-              "component": "commute",
-              "present": true,
-              "weight": 1.0,
-              "share": 0.3175,
-              "utility": 0.2333,
-              "contribution": 0.0741,
-              "loss": 0.2434,
-              "fact_ids": [
-                "syn-n0006/travel/syn-p0005.pt"
-              ]
-            },
-            {
-              "component": "feature:air_no2",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.925,
-              "contribution": 0.0147,
-              "loss": 0.0012,
-              "fact_ids": [
-                "syn-n0006/feature/air_no2"
-              ]
-            },
-            {
-              "component": "feature:station_walk",
-              "present": true,
-              "weight": 0.1,
-              "share": 0.0317,
-              "utility": 0.455,
-              "contribution": 0.0144,
-              "loss": 0.0173,
-              "fact_ids": [
-                "syn-n0006/feature/station_walk"
-              ]
-            },
-            {
-              "component": "feature:noise_exposure",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.875,
-              "contribution": 0.0139,
-              "loss": 0.002,
-              "fact_ids": [
-                "syn-n0006/feature/noise_exposure"
-              ]
-            },
-            {
-              "component": "feature:station_lines",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.591,
-              "contribution": 0.0094,
-              "loss": 0.0065,
-              "fact_ids": [
-                "syn-n0006/feature/station_lines"
-              ]
-            },
-            {
-              "component": "feature:park_proximity",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.452,
-              "contribution": 0.0072,
-              "loss": 0.0087,
-              "fact_ids": [
-                "syn-n0006/feature/park_proximity"
-              ]
-            },
-            {
-              "component": "feature:highstreet_access",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.262,
-              "contribution": 0.0042,
-              "loss": 0.0117,
-              "fact_ids": [
-                "syn-n0006/feature/highstreet_access"
-              ]
-            }
-          ],
-          "legs": [
-            {
-              "place_id": "syn-p0005",
-              "mode": "pt",
-              "status": "ok",
-              "minutes": 38,
-              "minutes_typical": 38,
-              "minutes_just_missed": 42,
-              "utility": 0.2333
-            }
-          ],
-          "budget": {
-            "upper_quartile": 1300,
-            "margin": 400,
-            "utility": 1.0,
-            "confidence": "medium",
-            "as_of": "2026-08"
-          },
-          "untested_filters": []
-        },
-        {
-          "area_id": "syn-n0002",
-          "rank": 9,
-          "score": 57.13,
-          "weight_coverage": 1.0,
-          "contributions": [
-            {
-              "component": "commute",
-              "present": true,
-              "weight": 1.0,
-              "share": 0.3175,
-              "utility": 0.6333,
-              "contribution": 0.2011,
-              "loss": 0.1164,
-              "fact_ids": [
-                "syn-n0002/travel/syn-p0005.pt"
-              ]
-            },
-            {
-              "component": "tag:leafy",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.841,
-              "contribution": 0.1335,
-              "loss": 0.0252,
-              "fact_ids": [
-                "syn-n0002/tag/leafy"
-              ]
-            },
-            {
-              "component": "tag:quiet_residential",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.595,
-              "contribution": 0.0944,
-              "loss": 0.0643,
-              "fact_ids": [
-                "syn-n0002/tag/quiet_residential"
-              ]
-            },
-            {
-              "component": "budget",
-              "present": true,
-              "weight": 0.8,
-              "share": 0.254,
-              "utility": 0.2353,
-              "contribution": 0.0598,
-              "loss": 0.1942,
-              "fact_ids": [
-                "syn-n0002/budget_fit/rent.bed_1"
-              ]
-            },
-            {
-              "component": "feature:station_walk",
-              "present": true,
-              "weight": 0.1,
-              "share": 0.0317,
-              "utility": 0.886,
-              "contribution": 0.0281,
-              "loss": 0.0036,
-              "fact_ids": [
-                "syn-n0002/feature/station_walk"
-              ]
-            },
-            {
-              "component": "feature:park_proximity",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.881,
-              "contribution": 0.014,
-              "loss": 0.0019,
-              "fact_ids": [
-                "syn-n0002/feature/park_proximity"
-              ]
-            },
-            {
-              "component": "feature:air_no2",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.825,
-              "contribution": 0.0131,
-              "loss": 0.0028,
-              "fact_ids": [
-                "syn-n0002/feature/air_no2"
-              ]
-            },
-            {
-              "component": "feature:noise_exposure",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.725,
-              "contribution": 0.0115,
-              "loss": 0.0044,
-              "fact_ids": [
-                "syn-n0002/feature/noise_exposure"
-              ]
-            },
-            {
-              "component": "feature:station_lines",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.591,
-              "contribution": 0.0094,
-              "loss": 0.0065,
-              "fact_ids": [
-                "syn-n0002/feature/station_lines"
-              ]
-            },
-            {
-              "component": "feature:highstreet_access",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.405,
-              "contribution": 0.0064,
-              "loss": 0.0094,
-              "fact_ids": [
-                "syn-n0002/feature/highstreet_access"
-              ]
-            }
-          ],
-          "legs": [
-            {
-              "place_id": "syn-p0005",
-              "mode": "pt",
-              "status": "ok",
-              "minutes": 26,
-              "minutes_typical": 26,
-              "minutes_just_missed": 28,
-              "utility": 0.6333
-            }
-          ],
-          "budget": {
-            "upper_quartile": 2025,
-            "margin": -325,
-            "utility": 0.2353,
-            "confidence": "medium",
-            "as_of": "2026-08"
-          },
-          "untested_filters": []
-        },
-        {
-          "area_id": "syn-n0013",
-          "rank": 10,
-          "score": 55.07,
-          "weight_coverage": 1.0,
-          "contributions": [
-            {
-              "component": "tag:leafy",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.932,
-              "contribution": 0.1479,
-              "loss": 0.0108,
-              "fact_ids": [
-                "syn-n0013/tag/leafy"
-              ]
-            },
-            {
-              "component": "tag:quiet_residential",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.786,
-              "contribution": 0.1248,
-              "loss": 0.034,
-              "fact_ids": [
-                "syn-n0013/tag/quiet_residential"
-              ]
-            },
-            {
-              "component": "budget",
-              "present": true,
-              "weight": 0.8,
-              "share": 0.254,
-              "utility": 0.4706,
-              "contribution": 0.1195,
-              "loss": 0.1345,
-              "fact_ids": [
-                "syn-n0013/budget_fit/rent.bed_1"
-              ]
-            },
-            {
-              "component": "commute",
-              "present": true,
-              "weight": 1.0,
-              "share": 0.3175,
-              "utility": 0.3333,
-              "contribution": 0.1058,
-              "loss": 0.2116,
-              "fact_ids": [
-                "syn-n0013/travel/syn-p0005.pt"
-              ]
-            },
-            {
-              "component": "feature:park_proximity",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.929,
-              "contribution": 0.0147,
-              "loss": 0.0011,
-              "fact_ids": [
-                "syn-n0013/feature/park_proximity"
-              ]
-            },
-            {
-              "component": "feature:air_no2",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.875,
-              "contribution": 0.0139,
-              "loss": 0.002,
-              "fact_ids": [
-                "syn-n0013/feature/air_no2"
-              ]
-            },
-            {
-              "component": "feature:noise_exposure",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.825,
-              "contribution": 0.0131,
-              "loss": 0.0028,
-              "fact_ids": [
-                "syn-n0013/feature/noise_exposure"
-              ]
-            },
-            {
-              "component": "feature:station_walk",
-              "present": true,
-              "weight": 0.1,
-              "share": 0.0317,
-              "utility": 0.159,
-              "contribution": 0.005,
-              "loss": 0.0267,
-              "fact_ids": [
-                "syn-n0013/feature/station_walk"
-              ]
-            },
-            {
-              "component": "feature:highstreet_access",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.214,
-              "contribution": 0.0034,
-              "loss": 0.0125,
-              "fact_ids": [
-                "syn-n0013/feature/highstreet_access"
-              ]
-            },
-            {
-              "component": "feature:station_lines",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.159,
-              "contribution": 0.0025,
-              "loss": 0.0133,
-              "fact_ids": [
-                "syn-n0013/feature/station_lines"
-              ]
-            }
-          ],
-          "legs": [
-            {
-              "place_id": "syn-p0005",
-              "mode": "pt",
-              "status": "ok",
-              "minutes": 35,
-              "minutes_typical": 35,
-              "minutes_just_missed": 40,
-              "utility": 0.3333
-            }
-          ],
-          "budget": {
-            "upper_quartile": 1925,
-            "margin": -225,
-            "utility": 0.4706,
-            "confidence": "medium",
-            "as_of": "2026-08"
-          },
-          "untested_filters": []
+          ]
         },
         {
           "area_id": "syn-n0023",
-          "rank": 11,
-          "score": 52.52,
+          "rank": 12,
+          "score": 50.38,
           "weight_coverage": 1.0,
           "contributions": [
             {
+              "component": "tag:quiet_residential",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.5,
+              "contribution": 0.122,
+              "loss": 0.122,
+              "fact_ids": [
+                "syn-n0023/tag/quiet_residential"
+              ]
+            },
+            {
+              "component": "tag:leafy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.452,
+              "contribution": 0.1102,
+              "loss": 0.1337,
+              "fact_ids": [
+                "syn-n0023/tag/leafy"
+              ]
+            },
+            {
               "component": "budget",
               "present": true,
-              "weight": 0.8,
-              "share": 0.254,
-              "utility": 0.8235,
-              "contribution": 0.2092,
-              "loss": 0.0448,
+              "weight": 0.3,
+              "share": 0.1463,
+              "utility": 0.7059,
+              "contribution": 0.1033,
+              "loss": 0.043,
               "fact_ids": [
                 "syn-n0023/budget_fit/rent.bed_1"
               ]
@@ -1602,71 +2237,47 @@
             {
               "component": "commute",
               "present": true,
-              "weight": 1.0,
-              "share": 0.3175,
+              "weight": 0.4,
+              "share": 0.1951,
               "utility": 0.4667,
-              "contribution": 0.1481,
-              "loss": 0.1693,
+              "contribution": 0.0911,
+              "loss": 0.1041,
               "fact_ids": [
                 "syn-n0023/travel/syn-p0005.pt"
-              ]
-            },
-            {
-              "component": "tag:leafy",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.386,
-              "contribution": 0.0613,
-              "loss": 0.0975,
-              "fact_ids": [
-                "syn-n0023/tag/leafy"
-              ]
-            },
-            {
-              "component": "tag:quiet_residential",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.357,
-              "contribution": 0.0567,
-              "loss": 0.1021,
-              "fact_ids": [
-                "syn-n0023/tag/quiet_residential"
-              ]
-            },
-            {
-              "component": "feature:station_walk",
-              "present": true,
-              "weight": 0.1,
-              "share": 0.0317,
-              "utility": 0.341,
-              "contribution": 0.0108,
-              "loss": 0.0209,
-              "fact_ids": [
-                "syn-n0023/feature/station_walk"
               ]
             },
             {
               "component": "feature:highstreet_access",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.643,
-              "contribution": 0.0102,
-              "loss": 0.0057,
+              "share": 0.0244,
+              "utility": 0.738,
+              "contribution": 0.018,
+              "loss": 0.0064,
               "fact_ids": [
                 "syn-n0023/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0488,
+              "utility": 0.341,
+              "contribution": 0.0166,
+              "loss": 0.0321,
+              "fact_ids": [
+                "syn-n0023/feature/station_walk"
               ]
             },
             {
               "component": "feature:station_lines",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.591,
-              "contribution": 0.0094,
-              "loss": 0.0065,
+              "contribution": 0.0144,
+              "loss": 0.01,
               "fact_ids": [
                 "syn-n0023/feature/station_lines"
               ]
@@ -1675,10 +2286,10 @@
               "component": "feature:air_no2",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.45,
-              "contribution": 0.0071,
-              "loss": 0.0087,
+              "share": 0.0244,
+              "utility": 0.425,
+              "contribution": 0.0104,
+              "loss": 0.014,
               "fact_ids": [
                 "syn-n0023/feature/air_no2"
               ]
@@ -1687,10 +2298,10 @@
               "component": "feature:park_proximity",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.405,
-              "contribution": 0.0064,
-              "loss": 0.0094,
+              "contribution": 0.0099,
+              "loss": 0.0145,
               "fact_ids": [
                 "syn-n0023/feature/park_proximity"
               ]
@@ -1699,10 +2310,10 @@
               "component": "feature:noise_exposure",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.375,
-              "contribution": 0.006,
-              "loss": 0.0099,
+              "share": 0.0244,
+              "utility": 0.325,
+              "contribution": 0.0079,
+              "loss": 0.0165,
               "fact_ids": [
                 "syn-n0023/feature/noise_exposure"
               ]
@@ -1720,138 +2331,176 @@
             }
           ],
           "budget": {
-            "upper_quartile": 1775,
-            "margin": -75,
-            "utility": 0.8235,
+            "upper_quartile": 1825,
+            "margin": -125,
+            "utility": 0.7059,
             "confidence": "medium",
             "as_of": "2026-08"
           },
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0023/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0023/tag/quiet_residential"
+            },
+            {
+              "tag_id": "pace",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0023/tag/pace"
+            },
+            {
+              "tag_id": "homes",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0023/tag/homes"
+            }
+          ]
         },
         {
-          "area_id": "syn-n0024",
-          "rank": 12,
-          "score": 51.47,
+          "area_id": "syn-n0015",
+          "rank": 13,
+          "score": 49.73,
           "weight_coverage": 1.0,
           "contributions": [
             {
               "component": "tag:leafy",
               "present": true,
               "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.795,
-              "contribution": 0.1262,
-              "loss": 0.0325,
+              "share": 0.2439,
+              "utility": 0.643,
+              "contribution": 0.1568,
+              "loss": 0.0871,
               "fact_ids": [
-                "syn-n0024/tag/leafy"
+                "syn-n0015/tag/leafy"
               ]
             },
             {
               "component": "tag:quiet_residential",
               "present": true,
               "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.738,
-              "contribution": 0.1171,
-              "loss": 0.0416,
+              "share": 0.2439,
+              "utility": 0.548,
+              "contribution": 0.1337,
+              "loss": 0.1102,
               "fact_ids": [
-                "syn-n0024/tag/quiet_residential"
+                "syn-n0015/tag/quiet_residential"
               ]
             },
             {
               "component": "commute",
               "present": true,
-              "weight": 1.0,
-              "share": 0.3175,
-              "utility": 0.3667,
-              "contribution": 0.1164,
-              "loss": 0.2011,
+              "weight": 0.4,
+              "share": 0.1951,
+              "utility": 0.4333,
+              "contribution": 0.0846,
+              "loss": 0.1106,
               "fact_ids": [
-                "syn-n0024/travel/syn-p0005.pt"
-              ]
-            },
-            {
-              "component": "budget",
-              "present": true,
-              "weight": 0.8,
-              "share": 0.254,
-              "utility": 0.2941,
-              "contribution": 0.0747,
-              "loss": 0.1793,
-              "fact_ids": [
-                "syn-n0024/budget_fit/rent.bed_1"
+                "syn-n0015/travel/syn-p0005.pt"
               ]
             },
             {
               "component": "feature:station_walk",
               "present": true,
               "weight": 0.1,
-              "share": 0.0317,
-              "utility": 0.886,
-              "contribution": 0.0281,
-              "loss": 0.0036,
+              "share": 0.0488,
+              "utility": 0.636,
+              "contribution": 0.031,
+              "loss": 0.0178,
               "fact_ids": [
-                "syn-n0024/feature/station_walk"
+                "syn-n0015/feature/station_walk"
               ]
             },
             {
-              "component": "feature:park_proximity",
+              "component": "budget",
               "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.786,
-              "contribution": 0.0125,
-              "loss": 0.0034,
+              "weight": 0.3,
+              "share": 0.1463,
+              "utility": 0.1765,
+              "contribution": 0.0258,
+              "loss": 0.1205,
               "fact_ids": [
-                "syn-n0024/feature/park_proximity"
-              ]
-            },
-            {
-              "component": "feature:air_no2",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.775,
-              "contribution": 0.0123,
-              "loss": 0.0036,
-              "fact_ids": [
-                "syn-n0024/feature/air_no2"
-              ]
-            },
-            {
-              "component": "feature:noise_exposure",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.775,
-              "contribution": 0.0123,
-              "loss": 0.0036,
-              "fact_ids": [
-                "syn-n0024/feature/noise_exposure"
-              ]
-            },
-            {
-              "component": "feature:station_lines",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.591,
-              "contribution": 0.0094,
-              "loss": 0.0065,
-              "fact_ids": [
-                "syn-n0024/feature/station_lines"
+                "syn-n0015/budget_fit/rent.bed_1"
               ]
             },
             {
               "component": "feature:highstreet_access",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.357,
-              "contribution": 0.0057,
-              "loss": 0.0102,
+              "share": 0.0244,
+              "utility": 0.595,
+              "contribution": 0.0145,
+              "loss": 0.0099,
               "fact_ids": [
-                "syn-n0024/feature/highstreet_access"
+                "syn-n0015/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.595,
+              "contribution": 0.0145,
+              "loss": 0.0099,
+              "fact_ids": [
+                "syn-n0015/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.591,
+              "contribution": 0.0144,
+              "loss": 0.01,
+              "fact_ids": [
+                "syn-n0015/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.525,
+              "contribution": 0.0128,
+              "loss": 0.0116,
+              "fact_ids": [
+                "syn-n0015/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.375,
+              "contribution": 0.0091,
+              "loss": 0.0152,
+              "fact_ids": [
+                "syn-n0015/feature/air_no2"
               ]
             }
           ],
@@ -1860,83 +2509,133 @@
               "place_id": "syn-p0005",
               "mode": "pt",
               "status": "ok",
-              "minutes": 34,
-              "minutes_typical": 34,
-              "minutes_just_missed": 39,
-              "utility": 0.3667
+              "minutes": 32,
+              "minutes_typical": 32,
+              "minutes_just_missed": 37,
+              "utility": 0.4333
             }
           ],
           "budget": {
-            "upper_quartile": 2000,
-            "margin": -300,
-            "utility": 0.2941,
-            "confidence": "medium",
+            "upper_quartile": 2050,
+            "margin": -350,
+            "utility": 0.1765,
+            "confidence": "high",
             "as_of": "2026-08"
           },
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0015/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0015/tag/quiet_residential"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0015/tag/built_age"
+            },
+            {
+              "tag_id": "family_amenities",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0015/tag/family_amenities"
+            }
+          ]
         },
         {
           "area_id": "syn-n0007",
-          "rank": 13,
-          "score": 45.04,
+          "rank": 14,
+          "score": 48.85,
           "weight_coverage": 1.0,
           "contributions": [
             {
               "component": "commute",
               "present": true,
-              "weight": 1.0,
-              "share": 0.3175,
+              "weight": 0.4,
+              "share": 0.1951,
               "utility": 0.6667,
-              "contribution": 0.2116,
-              "loss": 0.1058,
+              "contribution": 0.1301,
+              "loss": 0.065,
               "fact_ids": [
                 "syn-n0007/travel/syn-p0005.pt"
-              ]
-            },
-            {
-              "component": "budget",
-              "present": true,
-              "weight": 0.8,
-              "share": 0.254,
-              "utility": 0.3529,
-              "contribution": 0.0896,
-              "loss": 0.1643,
-              "fact_ids": [
-                "syn-n0007/budget_fit/rent.bed_1"
-              ]
-            },
-            {
-              "component": "tag:leafy",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.341,
-              "contribution": 0.0541,
-              "loss": 0.1046,
-              "fact_ids": [
-                "syn-n0007/tag/leafy"
               ]
             },
             {
               "component": "tag:quiet_residential",
               "present": true,
               "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.262,
-              "contribution": 0.0416,
-              "loss": 0.1171,
+              "share": 0.2439,
+              "utility": 0.452,
+              "contribution": 0.1102,
+              "loss": 0.1337,
               "fact_ids": [
                 "syn-n0007/tag/quiet_residential"
+              ]
+            },
+            {
+              "component": "tag:leafy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.405,
+              "contribution": 0.0988,
+              "loss": 0.1451,
+              "fact_ids": [
+                "syn-n0007/tag/leafy"
+              ]
+            },
+            {
+              "component": "budget",
+              "present": true,
+              "weight": 0.3,
+              "share": 0.1463,
+              "utility": 0.3529,
+              "contribution": 0.0516,
+              "loss": 0.0947,
+              "fact_ids": [
+                "syn-n0007/budget_fit/rent.bed_1"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.976,
+              "contribution": 0.0238,
+              "loss": 0.0006,
+              "fact_ids": [
+                "syn-n0007/feature/park_proximity"
               ]
             },
             {
               "component": "feature:highstreet_access",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.929,
-              "contribution": 0.0147,
-              "loss": 0.0011,
+              "contribution": 0.0227,
+              "loss": 0.0017,
               "fact_ids": [
                 "syn-n0007/feature/highstreet_access"
               ]
@@ -1945,10 +2644,10 @@
               "component": "feature:station_walk",
               "present": true,
               "weight": 0.1,
-              "share": 0.0317,
+              "share": 0.0488,
               "utility": 0.455,
-              "contribution": 0.0144,
-              "loss": 0.0173,
+              "contribution": 0.0222,
+              "loss": 0.0266,
               "fact_ids": [
                 "syn-n0007/feature/station_walk"
               ]
@@ -1957,34 +2656,22 @@
               "component": "feature:station_lines",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.591,
-              "contribution": 0.0094,
-              "loss": 0.0065,
+              "contribution": 0.0144,
+              "loss": 0.01,
               "fact_ids": [
                 "syn-n0007/feature/station_lines"
-              ]
-            },
-            {
-              "component": "feature:park_proximity",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.357,
-              "contribution": 0.0057,
-              "loss": 0.0102,
-              "fact_ids": [
-                "syn-n0007/feature/park_proximity"
               ]
             },
             {
               "component": "feature:air_no2",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.3,
-              "contribution": 0.0048,
-              "loss": 0.0111,
+              "share": 0.0244,
+              "utility": 0.325,
+              "contribution": 0.0079,
+              "loss": 0.0165,
               "fact_ids": [
                 "syn-n0007/feature/air_no2"
               ]
@@ -1993,10 +2680,10 @@
               "component": "feature:noise_exposure",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.275,
-              "contribution": 0.0044,
-              "loss": 0.0115,
+              "contribution": 0.0067,
+              "loss": 0.0177,
               "fact_ids": [
                 "syn-n0007/feature/noise_exposure"
               ]
@@ -2020,193 +2707,84 @@
             "confidence": "high",
             "as_of": "2026-08"
           },
-          "untested_filters": []
-        },
-        {
-          "area_id": "syn-n0017",
-          "rank": 14,
-          "score": 44.49,
-          "weight_coverage": 0.7778,
-          "contributions": [
+          "untested_filters": [],
+          "strip": [
             {
-              "component": "budget",
-              "present": true,
-              "weight": 0.8,
-              "share": 0.3265,
-              "utility": 1.0,
-              "contribution": 0.3265,
-              "loss": 0.0,
-              "fact_ids": [
-                "syn-n0017/budget_fit/rent.bed_1"
-              ]
+              "tag_id": "leafy",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0007/tag/leafy"
             },
             {
-              "component": "tag:leafy",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.2041,
-              "utility": 0.523,
-              "contribution": 0.1067,
-              "loss": 0.0973,
-              "fact_ids": [
-                "syn-n0017/tag/leafy"
-              ]
+              "tag_id": "quiet_residential",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0007/tag/quiet_residential"
             },
             {
-              "component": "feature:station_walk",
-              "present": true,
-              "weight": 0.1,
-              "share": 0.0408,
-              "utility": 0.205,
-              "contribution": 0.0084,
-              "loss": 0.0324,
-              "fact_ids": [
-                "syn-n0017/feature/station_walk"
-              ]
+              "tag_id": "everyday_on_foot",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0007/tag/everyday_on_foot"
             },
             {
-              "component": "feature:station_lines",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0204,
-              "utility": 0.159,
-              "contribution": 0.0032,
-              "loss": 0.0172,
-              "fact_ids": [
-                "syn-n0017/feature/station_lines"
-              ]
-            },
-            {
-              "component": "commute",
-              "present": true,
-              "weight": 1.0,
-              "share": 0.4082,
-              "utility": 0.0,
-              "contribution": 0.0,
-              "loss": 0.4082,
-              "fact_ids": [
-                "syn-n0017/travel/syn-p0005.pt"
-              ]
-            },
-            {
-              "component": "feature:air_no2",
-              "present": false,
-              "weight": 0.05,
-              "share": 0.0,
-              "utility": null,
-              "contribution": 0.0,
-              "loss": 0.0,
-              "fact_ids": [
-                "syn-n0017/missing/feature:air_no2"
-              ]
-            },
-            {
-              "component": "feature:highstreet_access",
-              "present": false,
-              "weight": 0.05,
-              "share": 0.0,
-              "utility": null,
-              "contribution": 0.0,
-              "loss": 0.0,
-              "fact_ids": [
-                "syn-n0017/missing/feature:highstreet_access"
-              ]
-            },
-            {
-              "component": "feature:noise_exposure",
-              "present": false,
-              "weight": 0.05,
-              "share": 0.0,
-              "utility": null,
-              "contribution": 0.0,
-              "loss": 0.0,
-              "fact_ids": [
-                "syn-n0017/missing/feature:noise_exposure"
-              ]
-            },
-            {
-              "component": "feature:park_proximity",
-              "present": false,
-              "weight": 0.05,
-              "share": 0.0,
-              "utility": null,
-              "contribution": 0.0,
-              "loss": 0.0,
-              "fact_ids": [
-                "syn-n0017/missing/feature:park_proximity"
-              ]
-            },
-            {
-              "component": "tag:quiet_residential",
-              "present": false,
-              "weight": 0.5,
-              "share": 0.0,
-              "utility": null,
-              "contribution": 0.0,
-              "loss": 0.0,
-              "fact_ids": [
-                "syn-n0017/missing/tag:quiet_residential"
-              ]
+              "tag_id": "family_amenities",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0007/tag/family_amenities"
             }
-          ],
-          "legs": [
-            {
-              "place_id": "syn-p0005",
-              "mode": "pt",
-              "status": "ok",
-              "minutes": 50,
-              "minutes_typical": 50,
-              "minutes_just_missed": 55,
-              "utility": 0.0
-            }
-          ],
-          "budget": {
-            "upper_quartile": 1350,
-            "margin": 350,
-            "utility": 1.0,
-            "confidence": "low",
-            "as_of": "2026-08"
-          },
-          "untested_filters": []
+          ]
         },
         {
           "area_id": "syn-n0022",
           "rank": 15,
-          "score": 42.43,
+          "score": 45.03,
           "weight_coverage": 1.0,
           "contributions": [
-            {
-              "component": "commute",
-              "present": true,
-              "weight": 1.0,
-              "share": 0.3175,
-              "utility": 0.6,
-              "contribution": 0.1905,
-              "loss": 0.127,
-              "fact_ids": [
-                "syn-n0022/travel/syn-p0005.pt"
-              ]
-            },
             {
               "component": "tag:leafy",
               "present": true,
               "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.75,
-              "contribution": 0.119,
-              "loss": 0.0397,
+              "share": 0.2439,
+              "utility": 0.786,
+              "contribution": 0.1917,
+              "loss": 0.0522,
               "fact_ids": [
                 "syn-n0022/tag/leafy"
               ]
             },
             {
+              "component": "commute",
+              "present": true,
+              "weight": 0.4,
+              "share": 0.1951,
+              "utility": 0.6,
+              "contribution": 0.1171,
+              "loss": 0.078,
+              "fact_ids": [
+                "syn-n0022/travel/syn-p0005.pt"
+              ]
+            },
+            {
               "component": "tag:quiet_residential",
               "present": true,
               "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.405,
-              "contribution": 0.0643,
-              "loss": 0.0944,
+              "share": 0.2439,
+              "utility": 0.262,
+              "contribution": 0.0639,
+              "loss": 0.18,
               "fact_ids": [
                 "syn-n0022/tag/quiet_residential"
               ]
@@ -2215,10 +2793,10 @@
               "component": "feature:highstreet_access",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.786,
-              "contribution": 0.0125,
-              "loss": 0.0034,
+              "contribution": 0.0192,
+              "loss": 0.0052,
               "fact_ids": [
                 "syn-n0022/feature/highstreet_access"
               ]
@@ -2227,10 +2805,10 @@
               "component": "feature:park_proximity",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.738,
-              "contribution": 0.0117,
-              "loss": 0.0042,
+              "contribution": 0.018,
+              "loss": 0.0064,
               "fact_ids": [
                 "syn-n0022/feature/park_proximity"
               ]
@@ -2239,10 +2817,10 @@
               "component": "feature:air_no2",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.525,
-              "contribution": 0.0083,
-              "loss": 0.0075,
+              "contribution": 0.0128,
+              "loss": 0.0116,
               "fact_ids": [
                 "syn-n0022/feature/air_no2"
               ]
@@ -2251,10 +2829,10 @@
               "component": "feature:station_walk",
               "present": true,
               "weight": 0.1,
-              "share": 0.0317,
+              "share": 0.0488,
               "utility": 0.25,
-              "contribution": 0.0079,
-              "loss": 0.0238,
+              "contribution": 0.0122,
+              "loss": 0.0366,
               "fact_ids": [
                 "syn-n0022/feature/station_walk"
               ]
@@ -2263,10 +2841,10 @@
               "component": "feature:noise_exposure",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.475,
-              "contribution": 0.0075,
-              "loss": 0.0083,
+              "contribution": 0.0116,
+              "loss": 0.0128,
               "fact_ids": [
                 "syn-n0022/feature/noise_exposure"
               ]
@@ -2275,10 +2853,10 @@
               "component": "feature:station_lines",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.159,
-              "contribution": 0.0025,
-              "loss": 0.0133,
+              "contribution": 0.0039,
+              "loss": 0.0205,
               "fact_ids": [
                 "syn-n0022/feature/station_lines"
               ]
@@ -2286,11 +2864,11 @@
             {
               "component": "budget",
               "present": true,
-              "weight": 0.8,
-              "share": 0.254,
+              "weight": 0.3,
+              "share": 0.1463,
               "utility": 0.0,
               "contribution": 0.0,
-              "loss": 0.254,
+              "loss": 0.1463,
               "fact_ids": [
                 "syn-n0022/budget_fit/rent.bed_1"
               ]
@@ -2311,24 +2889,617 @@
             "upper_quartile": 2175,
             "margin": -475,
             "utility": 0.0,
-            "confidence": "high",
+            "confidence": "medium",
             "as_of": "2026-08"
           },
-          "untested_filters": []
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0022/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0022/tag/quiet_residential"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0022/tag/built_age"
+            },
+            {
+              "tag_id": "everyday_on_foot",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0022/tag/everyday_on_foot"
+            }
+          ]
         },
         {
-          "area_id": "syn-n0012",
+          "area_id": "syn-n0021",
           "rank": 16,
-          "score": 40.43,
+          "score": 34.06,
           "weight_coverage": 1.0,
           "contributions": [
             {
               "component": "commute",
               "present": true,
-              "weight": 1.0,
-              "share": 0.3175,
+              "weight": 0.4,
+              "share": 0.1951,
+              "utility": 0.7,
+              "contribution": 0.1366,
+              "loss": 0.0585,
+              "fact_ids": [
+                "syn-n0021/travel/syn-p0005.pt"
+              ]
+            },
+            {
+              "component": "tag:quiet_residential",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.357,
+              "contribution": 0.0871,
+              "loss": 0.1568,
+              "fact_ids": [
+                "syn-n0021/tag/quiet_residential"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0488,
+              "utility": 0.636,
+              "contribution": 0.031,
+              "loss": 0.0178,
+              "fact_ids": [
+                "syn-n0021/feature/station_walk"
+              ]
+            },
+            {
+              "component": "tag:leafy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.119,
+              "contribution": 0.029,
+              "loss": 0.2149,
+              "fact_ids": [
+                "syn-n0021/tag/leafy"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.909,
+              "contribution": 0.0222,
+              "loss": 0.0022,
+              "fact_ids": [
+                "syn-n0021/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.833,
+              "contribution": 0.0203,
+              "loss": 0.0041,
+              "fact_ids": [
+                "syn-n0021/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.225,
+              "contribution": 0.0055,
+              "loss": 0.0189,
+              "fact_ids": [
+                "syn-n0021/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.2,
+              "contribution": 0.0049,
+              "loss": 0.0195,
+              "fact_ids": [
+                "syn-n0021/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.167,
+              "contribution": 0.0041,
+              "loss": 0.0203,
+              "fact_ids": [
+                "syn-n0021/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "budget",
+              "present": true,
+              "weight": 0.3,
+              "share": 0.1463,
+              "utility": 0.0,
+              "contribution": 0.0,
+              "loss": 0.1463,
+              "fact_ids": [
+                "syn-n0021/budget_fit/rent.bed_1"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0005",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 24,
+              "minutes_typical": 24,
+              "minutes_just_missed": 26,
+              "utility": 0.7
+            }
+          ],
+          "budget": {
+            "upper_quartile": 2375,
+            "margin": -675,
+            "utility": 0.0,
+            "confidence": "medium",
+            "as_of": "2026-08"
+          },
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0021/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0021/tag/quiet_residential"
+            },
+            {
+              "tag_id": "built_age",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0021/tag/built_age"
+            },
+            {
+              "tag_id": "everyday_on_foot",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0021/tag/everyday_on_foot"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0010",
+          "rank": 17,
+          "score": 33.15,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 0.4,
+              "share": 0.1951,
+              "utility": 0.6667,
+              "contribution": 0.1301,
+              "loss": 0.065,
+              "fact_ids": [
+                "syn-n0010/travel/syn-p0005.pt"
+              ]
+            },
+            {
+              "component": "tag:leafy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.357,
+              "contribution": 0.0871,
+              "loss": 0.1568,
+              "fact_ids": [
+                "syn-n0010/tag/leafy"
+              ]
+            },
+            {
+              "component": "tag:quiet_residential",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.167,
+              "contribution": 0.0407,
+              "loss": 0.2032,
+              "fact_ids": [
+                "syn-n0010/tag/quiet_residential"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0488,
+              "utility": 0.636,
+              "contribution": 0.031,
+              "loss": 0.0178,
+              "fact_ids": [
+                "syn-n0010/feature/station_walk"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.643,
+              "contribution": 0.0157,
+              "loss": 0.0087,
+              "fact_ids": [
+                "syn-n0010/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.591,
+              "contribution": 0.0144,
+              "loss": 0.01,
+              "fact_ids": [
+                "syn-n0010/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.262,
+              "contribution": 0.0064,
+              "loss": 0.018,
+              "fact_ids": [
+                "syn-n0010/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.175,
+              "contribution": 0.0043,
+              "loss": 0.0201,
+              "fact_ids": [
+                "syn-n0010/feature/noise_exposure"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.075,
+              "contribution": 0.0018,
+              "loss": 0.0226,
+              "fact_ids": [
+                "syn-n0010/feature/air_no2"
+              ]
+            },
+            {
+              "component": "budget",
+              "present": true,
+              "weight": 0.3,
+              "share": 0.1463,
+              "utility": 0.0,
+              "contribution": 0.0,
+              "loss": 0.1463,
+              "fact_ids": [
+                "syn-n0010/budget_fit/rent.bed_1"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0005",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 25,
+              "minutes_typical": 25,
+              "minutes_just_missed": 27,
+              "utility": 0.6667
+            }
+          ],
+          "budget": {
+            "upper_quartile": 2150,
+            "margin": -450,
+            "utility": 0.0,
+            "confidence": "high",
+            "as_of": "2026-08"
+          },
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0010/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0010/tag/quiet_residential"
+            },
+            {
+              "tag_id": "foodie",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0010/tag/foodie"
+            },
+            {
+              "tag_id": "homes",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0010/tag/homes"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0011",
+          "rank": 18,
+          "score": 31.72,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 0.4,
+              "share": 0.1951,
+              "utility": 0.7667,
+              "contribution": 0.1496,
+              "loss": 0.0455,
+              "fact_ids": [
+                "syn-n0011/travel/syn-p0005.pt"
+              ]
+            },
+            {
+              "component": "tag:leafy",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.214,
+              "contribution": 0.0522,
+              "loss": 0.1917,
+              "fact_ids": [
+                "syn-n0011/tag/leafy"
+              ]
+            },
+            {
+              "component": "tag:quiet_residential",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.119,
+              "contribution": 0.029,
+              "loss": 0.2149,
+              "fact_ids": [
+                "syn-n0011/tag/quiet_residential"
+              ]
+            },
+            {
+              "component": "feature:station_lines",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.909,
+              "contribution": 0.0222,
+              "loss": 0.0022,
+              "fact_ids": [
+                "syn-n0011/feature/station_lines"
+              ]
+            },
+            {
+              "component": "feature:station_walk",
+              "present": true,
+              "weight": 0.1,
+              "share": 0.0488,
+              "utility": 0.386,
+              "contribution": 0.0188,
+              "loss": 0.03,
+              "fact_ids": [
+                "syn-n0011/feature/station_walk"
+              ]
+            },
+            {
+              "component": "budget",
+              "present": true,
+              "weight": 0.3,
+              "share": 0.1463,
+              "utility": 0.1176,
+              "contribution": 0.0172,
+              "loss": 0.1291,
+              "fact_ids": [
+                "syn-n0011/budget_fit/rent.bed_1"
+              ]
+            },
+            {
+              "component": "feature:highstreet_access",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.69,
+              "contribution": 0.0168,
+              "loss": 0.0076,
+              "fact_ids": [
+                "syn-n0011/feature/highstreet_access"
+              ]
+            },
+            {
+              "component": "feature:park_proximity",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.214,
+              "contribution": 0.0052,
+              "loss": 0.0192,
+              "fact_ids": [
+                "syn-n0011/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "feature:air_no2",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.125,
+              "contribution": 0.003,
+              "loss": 0.0213,
+              "fact_ids": [
+                "syn-n0011/feature/air_no2"
+              ]
+            },
+            {
+              "component": "feature:noise_exposure",
+              "present": true,
+              "weight": 0.05,
+              "share": 0.0244,
+              "utility": 0.125,
+              "contribution": 0.003,
+              "loss": 0.0213,
+              "fact_ids": [
+                "syn-n0011/feature/noise_exposure"
+              ]
+            }
+          ],
+          "legs": [
+            {
+              "place_id": "syn-p0005",
+              "mode": "pt",
+              "status": "ok",
+              "minutes": 22,
+              "minutes_typical": 22,
+              "minutes_just_missed": 25,
+              "utility": 0.7667
+            }
+          ],
+          "budget": {
+            "upper_quartile": 2075,
+            "margin": -375,
+            "utility": 0.1176,
+            "confidence": "medium",
+            "as_of": "2026-08"
+          },
+          "untested_filters": [],
+          "strip": [
+            {
+              "tag_id": "leafy",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0011/tag/leafy"
+            },
+            {
+              "tag_id": "quiet_residential",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0011/tag/quiet_residential"
+            },
+            {
+              "tag_id": "foodie",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0011/tag/foodie"
+            },
+            {
+              "tag_id": "pace",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0011/tag/pace"
+            }
+          ]
+        },
+        {
+          "area_id": "syn-n0012",
+          "rank": 19,
+          "score": 30.51,
+          "weight_coverage": 1.0,
+          "contributions": [
+            {
+              "component": "commute",
+              "present": true,
+              "weight": 0.4,
+              "share": 0.1951,
               "utility": 1.0,
-              "contribution": 0.3175,
+              "contribution": 0.1951,
               "loss": 0.0,
               "fact_ids": [
                 "syn-n0012/travel/syn-p0005.pt"
@@ -2338,70 +3509,58 @@
               "component": "feature:station_walk",
               "present": true,
               "weight": 0.1,
-              "share": 0.0317,
+              "share": 0.0488,
               "utility": 0.636,
-              "contribution": 0.0202,
-              "loss": 0.0116,
+              "contribution": 0.031,
+              "loss": 0.0178,
               "fact_ids": [
                 "syn-n0012/feature/station_walk"
-              ]
-            },
-            {
-              "component": "budget",
-              "present": true,
-              "weight": 0.8,
-              "share": 0.254,
-              "utility": 0.0588,
-              "contribution": 0.0149,
-              "loss": 0.239,
-              "fact_ids": [
-                "syn-n0012/budget_fit/rent.bed_1"
               ]
             },
             {
               "component": "feature:highstreet_access",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.881,
-              "contribution": 0.014,
-              "loss": 0.0019,
+              "contribution": 0.0215,
+              "loss": 0.0029,
               "fact_ids": [
                 "syn-n0012/feature/highstreet_access"
-              ]
-            },
-            {
-              "component": "tag:quiet_residential",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.071,
-              "contribution": 0.0113,
-              "loss": 0.1475,
-              "fact_ids": [
-                "syn-n0012/tag/quiet_residential"
               ]
             },
             {
               "component": "tag:leafy",
               "present": true,
               "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.068,
-              "contribution": 0.0108,
-              "loss": 0.1479,
+              "share": 0.2439,
+              "utility": 0.071,
+              "contribution": 0.0173,
+              "loss": 0.2266,
               "fact_ids": [
                 "syn-n0012/tag/leafy"
+              ]
+            },
+            {
+              "component": "tag:quiet_residential",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.071,
+              "contribution": 0.0173,
+              "loss": 0.2266,
+              "fact_ids": [
+                "syn-n0012/tag/quiet_residential"
               ]
             },
             {
               "component": "feature:station_lines",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.591,
-              "contribution": 0.0094,
-              "loss": 0.0065,
+              "contribution": 0.0144,
+              "loss": 0.01,
               "fact_ids": [
                 "syn-n0012/feature/station_lines"
               ]
@@ -2410,10 +3569,10 @@
               "component": "feature:air_no2",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.2,
-              "contribution": 0.0032,
-              "loss": 0.0127,
+              "contribution": 0.0049,
+              "loss": 0.0195,
               "fact_ids": [
                 "syn-n0012/feature/air_no2"
               ]
@@ -2422,10 +3581,10 @@
               "component": "feature:noise_exposure",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.125,
-              "contribution": 0.002,
-              "loss": 0.0139,
+              "share": 0.0244,
+              "utility": 0.075,
+              "contribution": 0.0018,
+              "loss": 0.0226,
               "fact_ids": [
                 "syn-n0012/feature/noise_exposure"
               ]
@@ -2434,12 +3593,24 @@
               "component": "feature:park_proximity",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.071,
-              "contribution": 0.0011,
-              "loss": 0.0147,
+              "contribution": 0.0017,
+              "loss": 0.0227,
               "fact_ids": [
                 "syn-n0012/feature/park_proximity"
+              ]
+            },
+            {
+              "component": "budget",
+              "present": true,
+              "weight": 0.3,
+              "share": 0.1463,
+              "utility": 0.0,
+              "contribution": 0.0,
+              "loss": 0.1463,
+              "fact_ids": [
+                "syn-n0012/budget_fit/rent.bed_1"
               ]
             }
           ],
@@ -2455,174 +3626,65 @@
             }
           ],
           "budget": {
-            "upper_quartile": 2100,
-            "margin": -400,
-            "utility": 0.0588,
+            "upper_quartile": 2175,
+            "margin": -475,
+            "utility": 0.0,
             "confidence": "high",
             "as_of": "2026-08"
           },
-          "untested_filters": []
-        },
-        {
-          "area_id": "syn-n0019",
-          "rank": 17,
-          "score": 38.6,
-          "weight_coverage": 1.0,
-          "contributions": [
+          "untested_filters": [],
+          "strip": [
             {
-              "component": "commute",
-              "present": true,
-              "weight": 1.0,
-              "share": 0.3175,
-              "utility": 0.5333,
-              "contribution": 0.1693,
-              "loss": 0.1481,
-              "fact_ids": [
-                "syn-n0019/travel/syn-p0005.pt"
-              ]
+              "tag_id": "leafy",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0012/tag/leafy"
             },
             {
-              "component": "budget",
-              "present": true,
-              "weight": 0.8,
-              "share": 0.254,
-              "utility": 0.2941,
-              "contribution": 0.0747,
-              "loss": 0.1793,
-              "fact_ids": [
-                "syn-n0019/budget_fit/rent.bed_1"
-              ]
+              "tag_id": "quiet_residential",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0012/tag/quiet_residential"
             },
             {
-              "component": "tag:quiet_residential",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.31,
-              "contribution": 0.0492,
-              "loss": 0.1095,
-              "fact_ids": [
-                "syn-n0019/tag/quiet_residential"
-              ]
+              "tag_id": "built_age",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0012/tag/built_age"
             },
             {
-              "component": "tag:leafy",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.205,
-              "contribution": 0.0325,
-              "loss": 0.1262,
-              "fact_ids": [
-                "syn-n0019/tag/leafy"
-              ]
-            },
-            {
-              "component": "feature:station_walk",
-              "present": true,
-              "weight": 0.1,
-              "share": 0.0317,
-              "utility": 0.886,
-              "contribution": 0.0281,
-              "loss": 0.0036,
-              "fact_ids": [
-                "syn-n0019/feature/station_walk"
-              ]
-            },
-            {
-              "component": "feature:station_lines",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.591,
-              "contribution": 0.0094,
-              "loss": 0.0065,
-              "fact_ids": [
-                "syn-n0019/feature/station_lines"
-              ]
-            },
-            {
-              "component": "feature:highstreet_access",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.5,
-              "contribution": 0.0079,
-              "loss": 0.0079,
-              "fact_ids": [
-                "syn-n0019/feature/highstreet_access"
-              ]
-            },
-            {
-              "component": "feature:noise_exposure",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.325,
-              "contribution": 0.0052,
-              "loss": 0.0107,
-              "fact_ids": [
-                "syn-n0019/feature/noise_exposure"
-              ]
-            },
-            {
-              "component": "feature:park_proximity",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.31,
-              "contribution": 0.0049,
-              "loss": 0.011,
-              "fact_ids": [
-                "syn-n0019/feature/park_proximity"
-              ]
-            },
-            {
-              "component": "feature:air_no2",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.3,
-              "contribution": 0.0048,
-              "loss": 0.0111,
-              "fact_ids": [
-                "syn-n0019/feature/air_no2"
-              ]
+              "tag_id": "homes",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0012/tag/homes"
             }
-          ],
-          "legs": [
-            {
-              "place_id": "syn-p0005",
-              "mode": "pt",
-              "status": "ok",
-              "minutes": 29,
-              "minutes_typical": 29,
-              "minutes_just_missed": 34,
-              "utility": 0.5333
-            }
-          ],
-          "budget": {
-            "upper_quartile": 2000,
-            "margin": -300,
-            "utility": 0.2941,
-            "confidence": "medium",
-            "as_of": "2026-08"
-          },
-          "untested_filters": []
+          ]
         },
         {
           "area_id": "syn-n0018",
-          "rank": 18,
-          "score": 38.52,
+          "rank": 20,
+          "score": 29.95,
           "weight_coverage": 1.0,
           "contributions": [
             {
               "component": "commute",
               "present": true,
-              "weight": 1.0,
-              "share": 0.3175,
+              "weight": 0.4,
+              "share": 0.1951,
               "utility": 1.0,
-              "contribution": 0.3175,
+              "contribution": 0.1951,
               "loss": 0.0,
               "fact_ids": [
                 "syn-n0018/travel/syn-p0005.pt"
@@ -2632,10 +3694,10 @@
               "component": "feature:station_walk",
               "present": true,
               "weight": 0.1,
-              "share": 0.0317,
+              "share": 0.0488,
               "utility": 0.886,
-              "contribution": 0.0281,
-              "loss": 0.0036,
+              "contribution": 0.0432,
+              "loss": 0.0056,
               "fact_ids": [
                 "syn-n0018/feature/station_walk"
               ]
@@ -2644,10 +3706,10 @@
               "component": "feature:station_lines",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.977,
-              "contribution": 0.0155,
-              "loss": 0.0004,
+              "contribution": 0.0238,
+              "loss": 0.0006,
               "fact_ids": [
                 "syn-n0018/feature/station_lines"
               ]
@@ -2656,46 +3718,46 @@
               "component": "feature:highstreet_access",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.976,
-              "contribution": 0.0155,
-              "loss": 0.0004,
+              "contribution": 0.0238,
+              "loss": 0.0006,
               "fact_ids": [
                 "syn-n0018/feature/highstreet_access"
-              ]
-            },
-            {
-              "component": "tag:quiet_residential",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.024,
-              "contribution": 0.0038,
-              "loss": 0.1549,
-              "fact_ids": [
-                "syn-n0018/tag/quiet_residential"
               ]
             },
             {
               "component": "tag:leafy",
               "present": true,
               "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.023,
-              "contribution": 0.0037,
-              "loss": 0.1551,
+              "share": 0.2439,
+              "utility": 0.024,
+              "contribution": 0.0059,
+              "loss": 0.238,
               "fact_ids": [
                 "syn-n0018/tag/leafy"
+              ]
+            },
+            {
+              "component": "tag:quiet_residential",
+              "present": true,
+              "weight": 0.5,
+              "share": 0.2439,
+              "utility": 0.024,
+              "contribution": 0.0059,
+              "loss": 0.238,
+              "fact_ids": [
+                "syn-n0018/tag/quiet_residential"
               ]
             },
             {
               "component": "feature:air_no2",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.025,
-              "contribution": 0.0004,
-              "loss": 0.0155,
+              "contribution": 0.0006,
+              "loss": 0.0238,
               "fact_ids": [
                 "syn-n0018/feature/air_no2"
               ]
@@ -2704,10 +3766,10 @@
               "component": "feature:noise_exposure",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.025,
-              "contribution": 0.0004,
-              "loss": 0.0155,
+              "contribution": 0.0006,
+              "loss": 0.0238,
               "fact_ids": [
                 "syn-n0018/feature/noise_exposure"
               ]
@@ -2716,10 +3778,10 @@
               "component": "feature:park_proximity",
               "present": true,
               "weight": 0.05,
-              "share": 0.0159,
+              "share": 0.0244,
               "utility": 0.024,
-              "contribution": 0.0004,
-              "loss": 0.0155,
+              "contribution": 0.0006,
+              "loss": 0.0238,
               "fact_ids": [
                 "syn-n0018/feature/park_proximity"
               ]
@@ -2727,11 +3789,11 @@
             {
               "component": "budget",
               "present": true,
-              "weight": 0.8,
-              "share": 0.254,
+              "weight": 0.3,
+              "share": 0.1463,
               "utility": 0.0,
               "contribution": 0.0,
-              "loss": 0.254,
+              "loss": 0.1463,
               "fact_ids": [
                 "syn-n0018/budget_fit/rent.bed_1"
               ]
@@ -2755,312 +3817,72 @@
             "confidence": "high",
             "as_of": "2026-08"
           },
-          "untested_filters": []
-        },
-        {
-          "area_id": "syn-n0015",
-          "rank": 19,
-          "score": 35.56,
-          "weight_coverage": 1.0,
-          "contributions": [
+          "untested_filters": [],
+          "strip": [
             {
-              "component": "commute",
-              "present": true,
-              "weight": 1.0,
-              "share": 0.3175,
-              "utility": 0.4333,
-              "contribution": 0.1376,
-              "loss": 0.1799,
-              "fact_ids": [
-                "syn-n0015/travel/syn-p0005.pt"
-              ]
+              "tag_id": "leafy",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0018/tag/leafy"
             },
             {
-              "component": "tag:quiet_residential",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.452,
-              "contribution": 0.0717,
-              "loss": 0.087,
-              "fact_ids": [
-                "syn-n0015/tag/quiet_residential"
-              ]
+              "tag_id": "quiet_residential",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "asked": true,
+              "toward": "high",
+              "fact_id": "syn-n0018/tag/quiet_residential"
             },
             {
-              "component": "tag:leafy",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.432,
-              "contribution": 0.0686,
-              "loss": 0.0902,
-              "fact_ids": [
-                "syn-n0015/tag/leafy"
-              ]
+              "tag_id": "everyday_on_foot",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0018/tag/everyday_on_foot"
             },
             {
-              "component": "feature:station_walk",
-              "present": true,
-              "weight": 0.1,
-              "share": 0.0317,
-              "utility": 0.636,
-              "contribution": 0.0202,
-              "loss": 0.0116,
-              "fact_ids": [
-                "syn-n0015/feature/station_walk"
-              ]
-            },
-            {
-              "component": "budget",
-              "present": true,
-              "weight": 0.8,
-              "share": 0.254,
-              "utility": 0.0588,
-              "contribution": 0.0149,
-              "loss": 0.239,
-              "fact_ids": [
-                "syn-n0015/budget_fit/rent.bed_1"
-              ]
-            },
-            {
-              "component": "feature:highstreet_access",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.595,
-              "contribution": 0.0094,
-              "loss": 0.0064,
-              "fact_ids": [
-                "syn-n0015/feature/highstreet_access"
-              ]
-            },
-            {
-              "component": "feature:park_proximity",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.595,
-              "contribution": 0.0094,
-              "loss": 0.0064,
-              "fact_ids": [
-                "syn-n0015/feature/park_proximity"
-              ]
-            },
-            {
-              "component": "feature:station_lines",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.591,
-              "contribution": 0.0094,
-              "loss": 0.0065,
-              "fact_ids": [
-                "syn-n0015/feature/station_lines"
-              ]
-            },
-            {
-              "component": "feature:noise_exposure",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.525,
-              "contribution": 0.0083,
-              "loss": 0.0075,
-              "fact_ids": [
-                "syn-n0015/feature/noise_exposure"
-              ]
-            },
-            {
-              "component": "feature:air_no2",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.375,
-              "contribution": 0.006,
-              "loss": 0.0099,
-              "fact_ids": [
-                "syn-n0015/feature/air_no2"
-              ]
+              "tag_id": "homes",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "asked": false,
+              "toward": null,
+              "fact_id": "syn-n0018/tag/homes"
             }
-          ],
-          "legs": [
-            {
-              "place_id": "syn-p0005",
-              "mode": "pt",
-              "status": "ok",
-              "minutes": 32,
-              "minutes_typical": 32,
-              "minutes_just_missed": 37,
-              "utility": 0.4333
-            }
-          ],
-          "budget": {
-            "upper_quartile": 2100,
-            "margin": -400,
-            "utility": 0.0588,
-            "confidence": "high",
-            "as_of": "2026-08"
-          },
-          "untested_filters": []
-        },
-        {
-          "area_id": "syn-n0011",
-          "rank": 20,
-          "score": 34.74,
-          "weight_coverage": 1.0,
-          "contributions": [
-            {
-              "component": "commute",
-              "present": true,
-              "weight": 1.0,
-              "share": 0.3175,
-              "utility": 0.7667,
-              "contribution": 0.2434,
-              "loss": 0.0741,
-              "fact_ids": [
-                "syn-n0011/travel/syn-p0005.pt"
-              ]
-            },
-            {
-              "component": "tag:leafy",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.159,
-              "contribution": 0.0252,
-              "loss": 0.1335,
-              "fact_ids": [
-                "syn-n0011/tag/leafy"
-              ]
-            },
-            {
-              "component": "tag:quiet_residential",
-              "present": true,
-              "weight": 0.5,
-              "share": 0.1587,
-              "utility": 0.119,
-              "contribution": 0.0189,
-              "loss": 0.1398,
-              "fact_ids": [
-                "syn-n0011/tag/quiet_residential"
-              ]
-            },
-            {
-              "component": "budget",
-              "present": true,
-              "weight": 0.8,
-              "share": 0.254,
-              "utility": 0.0588,
-              "contribution": 0.0149,
-              "loss": 0.239,
-              "fact_ids": [
-                "syn-n0011/budget_fit/rent.bed_1"
-              ]
-            },
-            {
-              "component": "feature:station_lines",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.909,
-              "contribution": 0.0144,
-              "loss": 0.0014,
-              "fact_ids": [
-                "syn-n0011/feature/station_lines"
-              ]
-            },
-            {
-              "component": "feature:station_walk",
-              "present": true,
-              "weight": 0.1,
-              "share": 0.0317,
-              "utility": 0.386,
-              "contribution": 0.0123,
-              "loss": 0.0195,
-              "fact_ids": [
-                "syn-n0011/feature/station_walk"
-              ]
-            },
-            {
-              "component": "feature:highstreet_access",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.738,
-              "contribution": 0.0117,
-              "loss": 0.0042,
-              "fact_ids": [
-                "syn-n0011/feature/highstreet_access"
-              ]
-            },
-            {
-              "component": "feature:park_proximity",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.214,
-              "contribution": 0.0034,
-              "loss": 0.0125,
-              "fact_ids": [
-                "syn-n0011/feature/park_proximity"
-              ]
-            },
-            {
-              "component": "feature:air_no2",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.125,
-              "contribution": 0.002,
-              "loss": 0.0139,
-              "fact_ids": [
-                "syn-n0011/feature/air_no2"
-              ]
-            },
-            {
-              "component": "feature:noise_exposure",
-              "present": true,
-              "weight": 0.05,
-              "share": 0.0159,
-              "utility": 0.075,
-              "contribution": 0.0012,
-              "loss": 0.0147,
-              "fact_ids": [
-                "syn-n0011/feature/noise_exposure"
-              ]
-            }
-          ],
-          "legs": [
-            {
-              "place_id": "syn-p0005",
-              "mode": "pt",
-              "status": "ok",
-              "minutes": 22,
-              "minutes_typical": 22,
-              "minutes_just_missed": 25,
-              "utility": 0.7667
-            }
-          ],
-          "budget": {
-            "upper_quartile": 2100,
-            "margin": -400,
-            "utility": 0.0588,
-            "confidence": "medium",
-            "as_of": "2026-08"
-          },
-          "untested_filters": []
+          ]
         }
       ],
+      "areas_ranked": 21,
+      "areas_listed": 20,
       "filtered": [],
       "unranked": [
         {
           "area_id": "syn-n0009",
-          "reason": "not_rankable"
+          "reason": "not_rankable",
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0017",
+          "reason": "insufficient_data",
+          "missing": [
+            "feature:air_no2",
+            "feature:highstreet_access",
+            "feature:noise_exposure",
+            "feature:park_proximity",
+            "tag:leafy",
+            "tag:quiet_residential"
+          ]
         },
         {
           "area_id": "syn-n0020",
-          "reason": "not_rankable"
+          "reason": "not_rankable",
+          "missing": []
         }
       ],
       "empty_spec": false,
@@ -3071,7 +3893,7 @@
           "amount": 1700,
           "segment": "bed_1",
           "strictness": "soft",
-          "weight": 0.8,
+          "weight": 0.3,
           "provenance": "stated"
         },
         "commutes": [
@@ -3085,7 +3907,7 @@
         ],
         "commute_combine": "slowest",
         "pt_basis": "typical",
-        "commute_weight": 1.0,
+        "commute_weight": 0.4,
         "weights": [
           {
             "feature_id": "air_no2",
@@ -3096,7 +3918,7 @@
           {
             "feature_id": "highstreet_access",
             "weight": 0.05,
-            "direction": "more",
+            "direction": "less",
             "provenance": "default"
           },
           {
@@ -3128,24 +3950,33 @@
           {
             "tag_id": "leafy",
             "weight": 0.5,
+            "toward": "high",
             "provenance": "stated"
           },
           {
             "tag_id": "quiet_residential",
             "weight": 0.5,
+            "toward": "high",
             "provenance": "stated"
           }
         ],
         "areas": [],
-        "tenure_from": "default",
+        "tenure_from": "stated",
         "commute_combine_from": "default",
         "pt_basis_from": "default",
         "commute_weight_from": "default"
       },
-      "spec_hash": "df477a1d77be3f0da3120523b990105c7b953bcf030094b9ff91940b6a316c53",
+      "spec_hash": "1ccff80f9a77a3618f2dc12a4bfe885b268be39700aa8dc9f67afcf6b67262a9",
       "coarsened": true,
       "stale": false,
-      "original_release_id": "syn-2026-09-23-01"
+      "original_release_id": "syn-2026-09-23-01",
+      "places": [
+        {
+          "place_id": "syn-p0005",
+          "name": "Eskerfold",
+          "kind": "station"
+        }
+      ]
     }
   }
 }

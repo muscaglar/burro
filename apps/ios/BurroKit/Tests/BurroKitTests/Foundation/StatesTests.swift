@@ -26,6 +26,9 @@ final class StatesTests: XCTestCase {
                 .readAnswered(Answers.read("interpret-second-sentence").unchanged)),
             after(.readAnswered(Answers.read("interpret-degraded"))),
             after(.readAnswered(Answers.read("interpret-notice"))),
+            after(.readAnswered(Answers.read("interpret-suggest"))),
+            after(.readAnswered(read.leaving(unread: [Span(start: 0, end: 7)]))),
+            after(.readAnswered(Answers.read("preview/interpret-plain"))),
             after(.rankStarted(seq: 1), .failed(step: .rank, Answers.failure("rank-stale-spec"))),
             after(.rankStarted(seq: 1), .failed(step: .rank, .because(.offline))),
         ]
@@ -70,12 +73,50 @@ final class StatesTests: XCTestCase {
         let rejected = after(.readAnswered(Answers.read("interpret-rejected")))
 
         XCTAssertEqual(unmet.unmetShown, [.broadband, .floodRisk, .communityAmenities])
-        XCTAssertEqual(
-            rejected.refusals,
-            [
-                Refusal(key: .feature(.crimeViolenceRobbery), reason: .crimeNeedsExplicitRequest),
-                Refusal(key: .feature(.crimeBurglaryTheft), reason: .crimeNeedsExplicitRequest),
-            ])
+        // A budget that was asked to be lower where none is set: there is nothing to lower.
+        XCTAssertEqual(rejected.refusals, [Refusal(key: .budget, reason: .nothingToChange)])
+    }
+
+    func test_suggestions_what_was_noticed_is_offered_and_nothing_is_ranked_from_it() {
+        let state = after(.readStarted(seq: 1), .readAnswered(Answers.read("interpret-suggest")), .settled)
+
+        XCTAssertEqual(state.phase, .empty)
+        XCTAssertEqual(state.conditions, [.suggesting])
+        XCTAssertEqual(state.read?.status, .suggest)
+        XCTAssertEqual(state.suggestions.count, 2)
+        XCTAssertNil(state.ranking)
+        XCTAssertEqual(state.spec, Answers.meta.defaults.rent)
+        XCTAssertFalse(state.settingsOpen)
+        // The line that says nothing was read is not said: something was noticed.
+        XCTAssertNil(state.nothingRead)
+    }
+
+    func test_read_in_part_something_was_read_and_a_stretch_was_not() {
+        let part = after(.readAnswered(read.leaving(unread: [Span(start: 0, end: 7)])))
+        let nothing = after(.readAnswered(Answers.read("interpret-nothing-read")))
+
+        XCTAssertEqual(part.conditions, [.readInPart])
+        XCTAssertTrue(part.readInPart)
+        XCTAssertEqual(part.unread, [Span(start: 0, end: 7)])
+        // Where nothing at all was read, the line that says so is the one that is said.
+        XCTAssertFalse(nothing.readInPart)
+        XCTAssertEqual(nothing.conditions, [.nothingRead])
+        XCTAssertEqual(nothing.unread, [Span(start: 0, end: 39)])
+    }
+
+    func test_not_in_the_data_what_was_asked_for_and_is_held_for_no_area_is_said_by_name() {
+        let state = after(.readAnswered(Answers.read("preview/interpret-plain")))
+        let journey = after(.readAnswered(Answers.read("preview/interpret-journey")))
+        let home = after(.readAnswered(Answers.read("preview/interpret-home")))
+
+        XCTAssertEqual(state.conditions, [.notInData])
+        XCTAssertEqual(state.missing, [Missing(target: "tag:leafy", label: "Leafy")])
+        XCTAssertEqual(journey.missing.map(\.target), ["commute"])
+        XCTAssertEqual(home.missing.map(\.target), ["budget"])
+        for one in [state, journey, home] {
+            // It is said once, and not again among what was not applied.
+            XCTAssertEqual(one.refusals.filter { !one.isSaidAsMissing($0) }, [])
+        }
     }
 
     func test_refining_the_last_results_stay_while_a_change_is_answered() {
@@ -222,7 +263,7 @@ final class StatesTests: XCTestCase {
     func test_offline_the_search_is_still_here_and_the_latest_edit_waits() {
         let state = after(
             .rankAnswered(ranked, sent: .none),
-            .queued(Edits.tagOn(.waterside)),
+            .queued(Edits.tagOn(.villageFeel)),
             .rankStarted(seq: 2),
             .failed(step: .rank, .because(.offline)))
         let told = after(.rankAnswered(ranked, sent: .none), .onlineChanged(false))
@@ -230,7 +271,7 @@ final class StatesTests: XCTestCase {
         XCTAssertEqual(state.conditions, [.offline])
         XCTAssertFalse(state.online)
         XCTAssertEqual(state.ranking?.ranked, ranked.ranked)
-        XCTAssertEqual(state.pending, Edits.tagOn(.waterside))
+        XCTAssertEqual(state.pending, Edits.tagOn(.villageFeel))
         XCTAssertEqual(told.conditions, [.offline])
         XCTAssertEqual(reduce(state, .onlineChanged(true)).conditions, [])
     }
@@ -250,6 +291,17 @@ extension InterpretData {
             applied: applied.map { Applied(group: $0.group, index: $0.index, changed: false) },
             rejected: rejected, assumptions: assumptions, unmet: unmet, clarify: clarify,
             notice: notice, noticeText: noticeText, interpreter: interpreter, degraded: degraded,
-            restsOn: restsOn)
+            modelRefused: modelRefused, restsOn: restsOn, suggestions: suggestions, unread: unread,
+            notInRelease: notInRelease, unmetAt: unmetAt, modelPending: modelPending, places: places)
+    }
+
+    /// The same reading, as the API gives it when it made nothing of these stretches of the words.
+    func leaving(unread: [Span]) -> InterpretData {
+        InterpretData(
+            status: status, operations: operations, spec: spec, specHash: specHash, applied: applied,
+            rejected: rejected, assumptions: assumptions, unmet: unmet, clarify: clarify,
+            notice: notice, noticeText: noticeText, interpreter: interpreter, degraded: degraded,
+            modelRefused: modelRefused, restsOn: restsOn, suggestions: suggestions, unread: unread,
+            notInRelease: notInRelease, unmetAt: unmetAt, modelPending: modelPending, places: places)
     }
 }

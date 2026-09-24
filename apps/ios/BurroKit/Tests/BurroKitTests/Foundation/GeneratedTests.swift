@@ -99,11 +99,12 @@ final class GeneratedTests: XCTestCase {
     }
 
     func test_a_field_the_api_adds_later_does_not_stop_an_answer_being_read() throws {
-        let later = Data(#"{"area_id":"syn-n0001","score":12.5,"added_next_year":true}"#.utf8)
+        let later = Data(
+            #"{"area_id":"syn-n0001","score":12.5,"counted":3,"present":2,"added_next_year":true}"#.utf8)
 
         let score = try JSONDecoder().decode(Score.self, from: later)
 
-        XCTAssertEqual(score, Score(areaId: "syn-n0001", score: 12.5))
+        XCTAssertEqual(score, Score(areaId: "syn-n0001", score: 12.5, counted: 3, present: 2))
     }
 
     func test_an_answer_that_lacks_what_the_contract_requires_is_not_read() {

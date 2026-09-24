@@ -6,8 +6,9 @@ import XCTest
 /// One person's whole visit, as a person makes it on a phone: the screen that
 /// asks before the first search, a first sentence, a second, a control, a
 /// question answered, the notice, a sentence that holds nothing, an area, the
-/// shortlist with no connection, a comparison, a link made and opened, and a
-/// search the model did not answer.
+/// shortlist with no connection, a comparison, a link made and opened, a
+/// search the model did not answer, a vibe added and turned with nothing
+/// typed, and a sentence of which Burro applied nothing until one thing was chosen.
 ///
 /// Every other test answers the app from a recording whatever it sends. This
 /// one answers a request only if it is, to the letter, a request the service
@@ -284,6 +285,64 @@ final class VisitTests: XCTestCase {
         let slowRank: RankData = try Visit.answer("slow-rank")
         XCTAssertEqual(Results.listed(again.state).cards.first?.heading.name, name(slowRank.ranked.first))
 
+        // Another day again, begun at the settings: a vibe is added, with nothing typed.
+        let third = visit.app(on: FilePhoneStorage(folder: folder))
+        await third.open()
+        let settled = try XCTUnwrap(third.search)
+        let settings = SearchHands(app: third, search: settled)
+        let lively: RankData = try Visit.answer("shelf-rank")
+        await settings.send(SettingsForm.tag(.pace, on: true))
+        XCTAssertEqual(settled.state.spec, lively.spec)
+        // A control never moves the person.
+        XCTAssertEqual(third.searchPath, [])
+        shown = SearchScreen.shown(settled.state, consent: third.consent.choice)
+        XCTAssertTrue(shown.chips.map(\.reads).contains("Pace: towards Buzzy"))
+        XCTAssertEqual(Results.listed(settled.state).cards.first?.heading.name, name(lively.ranked.first))
+
+        // The scale is turned to its other end, with the weight it had.
+        let pace = try XCTUnwrap(settled.state.spec.tags.first { $0.tagId == .pace })
+        let calm: RankData = try Visit.answer("turned-rank")
+        await settings.send(SettingsForm.turn(.pace, to: .low, from: pace))
+        XCTAssertEqual(settled.state.spec, calm.spec)
+        shown = SearchScreen.shown(settled.state, consent: third.consent.choice)
+        XCTAssertTrue(shown.chips.map(\.reads).contains("Pace: towards Calm"))
+        listed = Results.listed(settled.state)
+        XCTAssertEqual(listed.cards.first?.heading.name, name(calm.ranked.first))
+        // The strip of each result says which end was asked for, and where the area sits on it.
+        XCTAssertEqual(listed.cards.first?.strip.first?.asked, "asked for: Calm")
+        XCTAssertEqual(listed.cards.first?.strip.first?.placed?.band, calm.ranked.first?.strip.first?.band)
+
+        // A sentence that is not plain. Nothing of it is applied, and nothing is ranked,
+        // until the person chooses.
+        let noticed: InterpretData = try Visit.answer("noticed")
+        let rankedSoFar = visit.sent(to: .rank)
+        await settings.submit(try Visit.sentence("noticed"))
+        XCTAssertEqual(noticed.applied, [])
+        XCTAssertEqual(visit.sent(to: .rank), rankedSoFar)
+        XCTAssertEqual(settled.state.spec, calm.spec)
+        XCTAssertEqual(third.searchPath, [])
+        shown = SearchScreen.shown(settled.state, consent: third.consent.choice)
+        XCTAssertEqual(shown.offers?.offers.map(\.name), noticed.suggestions.map(\.label))
+        XCTAssertEqual(shown.unread, noticed.unread)
+        XCTAssertTrue(shown.parts.contains(.offers))
+        XCTAssertEqual(Results.listed(settled.state).cards.first?.heading.name, name(calm.ranked.first))
+
+        // "Fewer pubs and bars": the edits the API gave with the choice, sent as a control sends them.
+        let chosen: RankData = try Visit.answer("chosen-rank")
+        await settings.choose(0, .less)
+        XCTAssertEqual(visit.sent(to: .rank), rankedSoFar + 1)
+        XCTAssertEqual(settled.state.spec, chosen.spec)
+        shown = SearchScreen.shown(settled.state, consent: third.consent.choice)
+        XCTAssertEqual(shown.offers?.offers.map(\.name), noticed.suggestions.dropFirst().map(\.label))
+        XCTAssertTrue(shown.chips.contains { $0.kind == .feature(.venueEvening) })
+        XCTAssertEqual(Results.listed(settled.state).cards.first?.heading.name, name(chosen.ranked.first))
+        XCTAssertTrue(settled.state.reasonsAreIn)
+        let typed = try Visit.sentence("noticed")
+        for file in KeptFile.allCases {
+            let written = String(decoding: phone.read(file) ?? Data(), as: UTF8.self)
+            XCTAssertFalse(written.contains(typed), file.fileName)
+        }
+
         // Nothing was sent that the service was not sent when the visit was recorded,
         // and nothing was recorded that the app does not send.
         XCTAssertEqual(visit.unanswered, [])
@@ -361,7 +420,7 @@ final class VisitTests: XCTestCase {
         // A control moved with no connection waits, the results stay, and it is sent once when the phone is back.
         app.showRoot(of: .search)
         api.unreachable(.rank, .notConnectedToInternet)
-        await hands.send(Edits.tagOn(.waterside))
+        await hands.send(Edits.tagOn(.villageFeel))
         shown = SearchScreen.shown(search.state, consent: app.consent.choice)
         XCTAssertEqual(shown.offlineWaiting, true)
         XCTAssertEqual(Results.listed(search.state).cards.count, 20)

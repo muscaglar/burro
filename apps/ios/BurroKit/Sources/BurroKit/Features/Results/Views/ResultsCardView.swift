@@ -55,7 +55,7 @@ extension Results {
                 ForEach(fact.columns) { column in
                     Named(name: column.name, value: column.value)
                 }
-                if let caveat = fact.caveat {
+                ForEach(fact.caveats, id: \.self) { caveat in
                     Text(caveat)
                         .font(Tokens.Text.footnote)
                         .foregroundStyle(Tokens.Colour.muted)
@@ -169,6 +169,12 @@ extension Results {
                 if let segment = cost.segment {
                     Named(name: cost.label, value: segment)
                 }
+                if let what = cost.what {
+                    Named(name: ResultsCopy.Cost.what, value: what)
+                }
+                if let soldIn = cost.soldIn {
+                    Named(name: ResultsCopy.Cost.soldIn, value: soldIn)
+                }
                 if let middle = cost.middle {
                     Named(name: ResultsCopy.Cost.middle, value: middle)
                 }
@@ -190,9 +196,17 @@ extension Results {
                 if let budget = cost.budget {
                     Named(name: ResultsCopy.Cost.budget, value: budget)
                 }
-                CostBar(bar: cost.bar)
+                // A price that is one number has a bar only where there is a budget to hold it against.
+                if !cost.oneNumber || cost.bar.budget != nil {
+                    CostBar(bar: cost.bar, oneNumber: cost.oneNumber)
+                }
                 if let falls = cost.falls {
                     Text(falls)
+                        .font(Tokens.Text.secondary)
+                        .foregroundStyle(Tokens.Colour.text)
+                }
+                if let caveat = cost.caveat {
+                    Text(caveat)
                         .font(Tokens.Text.secondary)
                         .foregroundStyle(Tokens.Colour.text)
                 }
@@ -221,6 +235,8 @@ extension Results {
     /// The range of cost as a bar, with the middle and the budget marked on it.
     struct CostBar: View {
         let bar: Bar
+        /// True for a price that is one number: the bar then holds its middle and no range.
+        var oneNumber = false
 
         var body: some View {
             GeometryReader { room in
@@ -232,11 +248,14 @@ extension Results {
                         .overlay(Capsule().strokeBorder(Tokens.Colour.border, lineWidth: 1))
                         .frame(height: high / 2)
                         .offset(y: high / 4)
-                    Rectangle()
-                        .fill(Tokens.Colour.mapBands[2])
-                        .overlay(Rectangle().strokeBorder(Tokens.Colour.mapLine, lineWidth: 1))
-                        .frame(width: max(width * (bar.upper - bar.lower) / 100, 1), height: high / 2)
-                        .offset(x: width * bar.lower / 100, y: high / 4)
+                    // An end the cost does not have is drawn nowhere.
+                    if let lower = bar.lower, let upper = bar.upper {
+                        Rectangle()
+                            .fill(Tokens.Colour.mapBands[2])
+                            .overlay(Rectangle().strokeBorder(Tokens.Colour.mapLine, lineWidth: 1))
+                            .frame(width: max(width * (upper - lower) / 100, 1), height: high / 2)
+                            .offset(x: width * lower / 100, y: high / 4)
+                    }
                     Rectangle()
                         .fill(Tokens.Colour.mapLine)
                         .frame(width: 2, height: high / 2)
@@ -256,7 +275,7 @@ extension Results {
             }
             .frame(height: Tokens.Space.s6)
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(ResultsCopy.Cost.picture)
+            .accessibilityLabel(oneNumber ? ResultsCopy.Cost.pictureOfOne : ResultsCopy.Cost.picture)
         }
     }
 
@@ -384,6 +403,34 @@ extension Results {
         }
     }
 
+    /// The strip under a result's name: where the area sits on the vibes that
+    /// were asked for, and on the others the API chose. It is shown and never
+    /// scored: only what is in the search counts. A vibe is a band between
+    /// two named ends, said in words beside the picture of it.
+    struct StripView: View {
+        let strip: [VibeShown]
+        /// The area, to name the strip for a screen reader.
+        let of: String
+
+        var body: some View {
+            VStack(alignment: .leading, spacing: Tokens.Space.s3) {
+                ForEach(Array(strip.enumerated()), id: \.element.id) { at, vibe in
+                    if let group = Results.group(before: at, in: strip) {
+                        // Said once, where it can be seen, before the vibes it is true of.
+                        Text(group)
+                            .font(Tokens.Text.footnote.weight(.semibold))
+                            .foregroundStyle(Tokens.Colour.muted)
+                            .accessibilityHidden(true)
+                    }
+                    VibeLine(vibe, source: Results.sourceWords(of: vibe))
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(VibeCopy.label(of))
+        }
+    }
+
     /// One result, in full or as a row.
     struct CardView: View {
         let card: Card
@@ -408,6 +455,9 @@ extension Results {
                 // Directly under the fit, on a card as on a row: it says how far the fit is to be trusted.
                 if let completeness = card.completeness {
                     CompletenessView(completeness: completeness)
+                }
+                if !card.strip.isEmpty {
+                    StripView(strip: card.strip, of: name)
                 }
                 if card.full {
                     full

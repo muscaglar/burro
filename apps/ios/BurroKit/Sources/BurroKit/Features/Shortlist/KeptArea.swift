@@ -14,10 +14,13 @@ import Foundation
 public struct KeptSource: Codable, Hashable, Sendable {
     public let sourceId: String
     public let name: String
+    /// Who published it, as the release names them.
+    public let publisher: String
 
     enum CodingKeys: String, CodingKey {
         case sourceId = "source_id"
         case name
+        case publisher
     }
 }
 
@@ -27,7 +30,8 @@ public struct KeptFact: Codable, Hashable, Sendable {
     public static let kinds: Set<FactKind> = [.area, .feature, .tag, .cost, .station]
     /// The templates that state them.
     public static let templates: Set<TemplateId> = [
-        .area, .feature, .featureCrime, .tag, .costRent, .costBuy, .station, .stationNearby,
+        .area, .feature, .featureCrime, .vibe, .vibeRange, .vibeUnknown, .costRent, .costBuy,
+        .costBuyMedian, .station, .stationNearby,
     ]
 
     public let kind: FactKind
@@ -60,7 +64,9 @@ public struct KeptFact: Codable, Hashable, Sendable {
         label = fact.label
         template = fact.template
         slots = fact.slots
-        sources = fact.sources.map { KeptSource(sourceId: $0.sourceId, name: $0.name) }
+        sources = fact.sources.map {
+            KeptSource(sourceId: $0.sourceId, name: $0.name, publisher: $0.publisher)
+        }
         asOf = fact.asOf
         synthetic = fact.synthetic
     }
@@ -88,7 +94,9 @@ public struct KeptFact: Codable, Hashable, Sendable {
         Fact(
             factId: "\(areaId)/\(kind.rawValue)/\(key)", areaId: areaId, kind: kind, key: key, label: label,
             template: template, slots: slots, numbers: [], names: [],
-            sources: sources.map { FactSource(sourceId: $0.sourceId, name: $0.name) },
+            sources: sources.map {
+                FactSource(sourceId: $0.sourceId, name: $0.name, publisher: $0.publisher)
+            },
             asOf: asOf, synthetic: synthetic)
     }
 }
@@ -128,15 +136,14 @@ public struct KeptRow: Codable, Hashable, Sendable {
         case rent
         case buy
         case measured
-        case tag
     }
 
     public let part: Part
     /// What a measured row is about. `nil` for every other part.
     public let dimension: Dimension?
-    /// The id of the feature, the tag, the kind of home or the station, as the release lists it.
+    /// The id of the feature, the kind of home or the station, as the release lists it.
     public let key: String
-    /// The API's name for the feature or the tag. It names a row that has no figure.
+    /// The API's name for the feature. It names a row that has no figure.
     public let label: String
     /// `nil` when the area had no figure.
     public let fact: KeptFact?
@@ -147,6 +154,80 @@ public struct KeptRow: Codable, Hashable, Sendable {
         case key
         case label
         case fact
+    }
+}
+
+/// One vibe of a saved area, as it was when the area was saved: the list the
+/// API put it in, its name and its ends, the band, and what the band rests on.
+///
+/// It has no key for what a search asked for. A vibe of an area's page is of
+/// the release alone.
+public struct KeptVibe: Codable, Hashable, Sendable {
+    public let list: AreaPage.VibeList
+    public let tagId: String
+    public let name: String
+    public let low: String
+    public let high: String
+    /// `nil` for a vibe that could not place the area. It is never put in the middle.
+    public let band: Int?
+    public let spreadLow: Int?
+    public let spreadHigh: Int?
+    public let plainly: String?
+    public let restsOn: String?
+    public let waitsOn: [String]
+    public let notInData: Bool
+    public let held: String?
+    /// `nil` when the fact may not be kept.
+    public let fact: KeptFact?
+
+    enum CodingKeys: String, CodingKey {
+        case list
+        case tagId = "tag_id"
+        case name
+        case low
+        case high
+        case band
+        case spreadLow = "spread_low"
+        case spreadHigh = "spread_high"
+        case plainly
+        case restsOn = "rests_on"
+        case waitsOn = "waits_on"
+        case notInData = "not_in_data"
+        case held
+        case fact
+    }
+
+    public init(_ vibe: AreaPage.Vibe) {
+        list = vibe.list
+        tagId = vibe.shown.tagId.rawValue
+        name = vibe.shown.name
+        low = vibe.shown.low
+        high = vibe.shown.high
+        band = vibe.shown.placed?.band
+        spreadLow = vibe.shown.placed?.spreadLow
+        spreadHigh = vibe.shown.placed?.spreadHigh
+        plainly = vibe.shown.plainly
+        restsOn = vibe.shown.restsOn
+        waitsOn = vibe.shown.waitsOn
+        notInData = vibe.shown.notInData
+        held = vibe.shown.held
+        fact = vibe.fact.flatMap(KeptFact.init)
+    }
+
+    /// The vibe, for the screen to draw as it draws any vibe.
+    public func vibe(of areaId: String) -> AreaPage.Vibe {
+        let kept = fact?.fact(of: areaId)
+        var placed: Placed?
+        if let band, let spreadLow, let spreadHigh {
+            placed = Placed(band: band, spreadLow: spreadLow, spreadHigh: spreadHigh)
+        }
+        return AreaPage.Vibe(
+            list: list,
+            shown: VibeShown(
+                tagId: TagId(rawValue: tagId), name: name, low: low, high: high, placed: placed,
+                plainly: plainly, restsOn: restsOn, waitsOn: waitsOn, notInData: notInData, held: held,
+                asked: nil, sources: SourceLines.of(kept.map { [$0] } ?? [])),
+            fact: kept)
     }
 }
 
@@ -161,10 +242,14 @@ public struct KeptArea: Codable, Hashable, Sendable, Identifiable {
     public let releaseId: String
     /// True when the release was made up, so that the screen can say so with no connection.
     public let synthetic: Bool
+    /// True when the release was a preview, so that the screen can say so with no connection.
+    public let preview: Bool
     public let rankable: Bool
     public let neighbours: [KeptNeighbour]
     /// The rows of the area's screen, in the order it shows them.
     public let rows: [KeptRow]
+    /// Where the area sat on each vibe, in the order the API listed them.
+    public let vibes: [KeptVibe]
 
     public var id: String { areaId }
 
@@ -176,9 +261,11 @@ public struct KeptArea: Codable, Hashable, Sendable, Identifiable {
         case savedOn = "saved_on"
         case releaseId = "release_id"
         case synthetic
+        case preview
         case rankable
         case neighbours
         case rows
+        case vibes
     }
 
     /// What is kept of an area's screen. Anything of a search is left behind.
@@ -207,6 +294,7 @@ public struct KeptArea: Codable, Hashable, Sendable, Identifiable {
         self.savedOn = savedOn
         releaseId = page.releaseId
         synthetic = page.synthetic
+        preview = page.preview
         rankable = page.rankable
         neighbours = page.neighbours.map(KeptNeighbour.init)
         var kept: [KeptRow] = rows(.named, page.named.map { [$0] } ?? [])
@@ -216,8 +304,8 @@ public struct KeptArea: Codable, Hashable, Sendable, Identifiable {
         for group in page.measured {
             kept += group.rows.compactMap { row(.measured, group.dimension, $0) }
         }
-        kept += page.tags.compactMap { row(.tag, nil, $0) }
         self.rows = kept
+        vibes = page.vibes.map(KeptVibe.init)
     }
 
     public init(from decoder: any Decoder) throws {
@@ -234,9 +322,11 @@ public struct KeptArea: Codable, Hashable, Sendable, Identifiable {
         savedOn = date
         releaseId = try container.decode(String.self, forKey: .releaseId)
         synthetic = try container.decode(Bool.self, forKey: .synthetic)
+        preview = try container.decode(Bool.self, forKey: .preview)
         rankable = try container.decode(Bool.self, forKey: .rankable)
         neighbours = try container.decode([KeptNeighbour].self, forKey: .neighbours)
         rows = try container.decode([KeptRow].self, forKey: .rows)
+        vibes = try container.decode([KeptVibe].self, forKey: .vibes)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -249,9 +339,11 @@ public struct KeptArea: Codable, Hashable, Sendable, Identifiable {
         try container.encode(Self.written(savedOn), forKey: .savedOn)
         try container.encode(releaseId, forKey: .releaseId)
         try container.encode(synthetic, forKey: .synthetic)
+        try container.encode(preview, forKey: .preview)
         try container.encode(rankable, forKey: .rankable)
         try container.encode(neighbours, forKey: .neighbours)
         try container.encode(rows, forKey: .rows)
+        try container.encode(vibes, forKey: .vibes)
     }
 
     public var area: AreaRef {
@@ -277,9 +369,9 @@ public struct KeptArea: Codable, Hashable, Sendable, Identifiable {
         }
         return AreaPage(
             area: area, rankable: rankable, releaseId: releaseId, synthetic: synthetic,
-            named: facts(.named).first, neighbours: neighbours.map(\.area),
+            preview: preview, named: facts(.named).first, neighbours: neighbours.map(\.area),
             stations: facts(.station), rent: facts(.rent), buy: facts(.buy), measured: groups,
-            tags: rows.filter { $0.part == .tag }.map { row($0, .tag) })
+            vibes: vibes.map { $0.vibe(of: areaId) })
     }
 
     // MARK: - The date
