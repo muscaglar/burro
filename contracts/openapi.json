@@ -1,0 +1,4344 @@
+{
+  "components": {
+    "schemas": {
+      "Applied": {
+        "additionalProperties": false,
+        "properties": {
+          "changed": {
+            "title": "Changed",
+            "type": "boolean"
+          },
+          "group": {
+            "$ref": "#/components/schemas/OpsGroup"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "group",
+          "index",
+          "changed"
+        ],
+        "title": "Applied",
+        "type": "object"
+      },
+      "AreaAction": {
+        "enum": [
+          "exclude",
+          "only",
+          "clear"
+        ],
+        "title": "AreaAction",
+        "type": "string"
+      },
+      "AreaData": {
+        "additionalProperties": false,
+        "properties": {
+          "area": {
+            "$ref": "#/components/schemas/Neighbourhood"
+          },
+          "cost": {
+            "items": {
+              "$ref": "#/components/schemas/CostEstimate"
+            },
+            "title": "Cost",
+            "type": "array"
+          },
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/Fact"
+            },
+            "title": "Facts",
+            "type": "array"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/FeatureValue"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "neighbours": {
+            "items": {
+              "$ref": "#/components/schemas/AreaSummary"
+            },
+            "title": "Neighbours",
+            "type": "array"
+          },
+          "stations": {
+            "items": {
+              "$ref": "#/components/schemas/StationAccess"
+            },
+            "title": "Stations",
+            "type": "array"
+          },
+          "tags": {
+            "items": {
+              "$ref": "#/components/schemas/TagValue"
+            },
+            "title": "Tags",
+            "type": "array"
+          }
+        },
+        "required": [
+          "area",
+          "features",
+          "tags",
+          "cost",
+          "stations",
+          "neighbours",
+          "facts"
+        ],
+        "title": "AreaData",
+        "type": "object"
+      },
+      "AreaEdit": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/AreaAction"
+          },
+          "area_id": {
+            "title": "Area Id",
+            "type": "string"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/EditProvenance"
+          }
+        },
+        "required": [
+          "action",
+          "area_id",
+          "provenance"
+        ],
+        "title": "AreaEdit",
+        "type": "object"
+      },
+      "AreaRule": {
+        "additionalProperties": false,
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          },
+          "rule": {
+            "$ref": "#/components/schemas/AreaRuleKind"
+          }
+        },
+        "required": [
+          "area_id",
+          "rule",
+          "provenance"
+        ],
+        "title": "AreaRule",
+        "type": "object"
+      },
+      "AreaRuleKind": {
+        "enum": [
+          "exclude",
+          "only"
+        ],
+        "title": "AreaRuleKind",
+        "type": "string"
+      },
+      "AreaSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "borough": {
+            "title": "Borough",
+            "type": "string"
+          },
+          "centroid": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maximum": 180.0,
+                "minimum": -180.0,
+                "type": "number"
+              },
+              {
+                "maximum": 90.0,
+                "minimum": -90.0,
+                "type": "number"
+              }
+            ],
+            "title": "Centroid",
+            "type": "array"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "rankable": {
+            "title": "Rankable",
+            "type": "boolean"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "area_id",
+          "slug",
+          "name",
+          "borough",
+          "centroid",
+          "rankable"
+        ],
+        "title": "AreaSummary",
+        "type": "object"
+      },
+      "AreasData": {
+        "additionalProperties": false,
+        "properties": {
+          "areas": {
+            "items": {
+              "$ref": "#/components/schemas/AreaSummary"
+            },
+            "title": "Areas",
+            "type": "array"
+          }
+        },
+        "required": [
+          "areas"
+        ],
+        "title": "AreasData",
+        "type": "object"
+      },
+      "Assumption": {
+        "additionalProperties": false,
+        "description": "What was chosen for an edit because the text did not say.",
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/AssumptionCode"
+          },
+          "group": {
+            "$ref": "#/components/schemas/OpsGroup"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "code",
+          "group",
+          "index"
+        ],
+        "title": "Assumption",
+        "type": "object"
+      },
+      "AssumptionCode": {
+        "enum": [
+          "tenure",
+          "segment",
+          "strictness",
+          "mode",
+          "max_minutes",
+          "direction",
+          "weight"
+        ],
+        "title": "AssumptionCode",
+        "type": "string"
+      },
+      "Budget": {
+        "additionalProperties": false,
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          },
+          "segment": {
+            "$ref": "#/components/schemas/Segment"
+          },
+          "strictness": {
+            "$ref": "#/components/schemas/Strictness"
+          },
+          "weight": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "amount",
+          "segment",
+          "strictness",
+          "weight",
+          "provenance"
+        ],
+        "title": "Budget",
+        "type": "object"
+      },
+      "BudgetAction": {
+        "enum": [
+          "set",
+          "clear",
+          "nudge"
+        ],
+        "title": "BudgetAction",
+        "type": "string"
+      },
+      "BudgetEdit": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/BudgetAction"
+          },
+          "amount": {
+            "title": "Amount",
+            "type": "integer"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/EditProvenance"
+          },
+          "segment": {
+            "$ref": "#/components/schemas/SegmentChoice"
+          },
+          "step": {
+            "$ref": "#/components/schemas/Step"
+          },
+          "strictness": {
+            "$ref": "#/components/schemas/StrictnessChoice"
+          },
+          "tenure": {
+            "$ref": "#/components/schemas/TenureChoice"
+          }
+        },
+        "required": [
+          "action",
+          "tenure",
+          "amount",
+          "segment",
+          "strictness",
+          "step",
+          "provenance"
+        ],
+        "title": "BudgetEdit",
+        "type": "object"
+      },
+      "BudgetFit": {
+        "additionalProperties": false,
+        "properties": {
+          "as_of": {
+            "title": "As Of",
+            "type": "string"
+          },
+          "confidence": {
+            "$ref": "#/components/schemas/Confidence"
+          },
+          "margin": {
+            "title": "Margin",
+            "type": "integer"
+          },
+          "upper_quartile": {
+            "title": "Upper Quartile",
+            "type": "integer"
+          },
+          "utility": {
+            "title": "Utility",
+            "type": "number"
+          }
+        },
+        "required": [
+          "upper_quartile",
+          "margin",
+          "utility",
+          "confidence",
+          "as_of"
+        ],
+        "title": "BudgetFit",
+        "type": "object"
+      },
+      "Choice": {
+        "enum": [
+          "slowest",
+          "mean",
+          "typical",
+          "just_missed",
+          "none"
+        ],
+        "title": "Choice",
+        "type": "string"
+      },
+      "Clarify": {
+        "additionalProperties": false,
+        "description": "An edit whose place or area could not be settled, and what to offer instead.",
+        "properties": {
+          "group": {
+            "$ref": "#/components/schemas/OpsGroup"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/ClarifyOption"
+            },
+            "title": "Options",
+            "type": "array"
+          }
+        },
+        "required": [
+          "group",
+          "index",
+          "options"
+        ],
+        "title": "Clarify",
+        "type": "object"
+      },
+      "ClarifyOption": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/OptionKind"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "kind"
+        ],
+        "title": "ClarifyOption",
+        "type": "object"
+      },
+      "Combine": {
+        "enum": [
+          "slowest",
+          "mean"
+        ],
+        "title": "Combine",
+        "type": "string"
+      },
+      "Commute": {
+        "additionalProperties": false,
+        "properties": {
+          "max_minutes": {
+            "maximum": 120.0,
+            "minimum": 10.0,
+            "title": "Max Minutes",
+            "type": "integer"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "place_id": {
+            "pattern": "^(syn|lon)-p[0-9a-z]+$",
+            "title": "Place Id",
+            "type": "string"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          },
+          "strictness": {
+            "$ref": "#/components/schemas/Strictness"
+          }
+        },
+        "required": [
+          "place_id",
+          "mode",
+          "max_minutes",
+          "strictness",
+          "provenance"
+        ],
+        "title": "Commute",
+        "type": "object"
+      },
+      "CommuteAction": {
+        "enum": [
+          "add",
+          "update",
+          "remove"
+        ],
+        "title": "CommuteAction",
+        "type": "string"
+      },
+      "CommuteEdit": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/CommuteAction"
+          },
+          "max_minutes": {
+            "title": "Max Minutes",
+            "type": "integer"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/ModeChoice"
+          },
+          "place_id": {
+            "title": "Place Id",
+            "type": "string"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/EditProvenance"
+          },
+          "step": {
+            "$ref": "#/components/schemas/Step"
+          },
+          "strictness": {
+            "$ref": "#/components/schemas/StrictnessChoice"
+          }
+        },
+        "required": [
+          "action",
+          "place_id",
+          "mode",
+          "max_minutes",
+          "strictness",
+          "step",
+          "provenance"
+        ],
+        "title": "CommuteEdit",
+        "type": "object"
+      },
+      "CommuteLeg": {
+        "additionalProperties": false,
+        "properties": {
+          "minutes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minutes"
+          },
+          "minutes_just_missed": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minutes Just Missed"
+          },
+          "minutes_typical": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minutes Typical"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "place_id": {
+            "pattern": "^(syn|lon)-p[0-9a-z]+$",
+            "title": "Place Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TravelStatus"
+          },
+          "utility": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Utility"
+          }
+        },
+        "required": [
+          "place_id",
+          "mode",
+          "status",
+          "minutes",
+          "minutes_typical",
+          "minutes_just_missed",
+          "utility"
+        ],
+        "title": "CommuteLeg",
+        "type": "object"
+      },
+      "CompareBody": {
+        "additionalProperties": false,
+        "properties": {
+          "area_ids": {
+            "items": {
+              "pattern": "^(syn|lon)-n[0-9a-z]+$",
+              "type": "string"
+            },
+            "maxItems": 4,
+            "minItems": 2,
+            "title": "Area Ids",
+            "type": "array"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/PreferenceSpec"
+          }
+        },
+        "required": [
+          "area_ids",
+          "spec"
+        ],
+        "title": "CompareBody",
+        "type": "object"
+      },
+      "CompareCell": {
+        "additionalProperties": false,
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "contribution": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Contribution"
+          },
+          "fact_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fact Id"
+          },
+          "percentile": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percentile"
+          },
+          "utility": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Utility"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "area_id",
+          "value",
+          "percentile",
+          "utility",
+          "contribution",
+          "fact_id"
+        ],
+        "title": "CompareCell",
+        "type": "object"
+      },
+      "CompareData": {
+        "additionalProperties": false,
+        "properties": {
+          "areas": {
+            "items": {
+              "$ref": "#/components/schemas/ComparedArea"
+            },
+            "title": "Areas",
+            "type": "array"
+          },
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/Fact"
+            },
+            "title": "Facts",
+            "type": "array"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/CompareRow"
+            },
+            "title": "Rows",
+            "type": "array"
+          }
+        },
+        "required": [
+          "areas",
+          "rows",
+          "facts"
+        ],
+        "title": "CompareData",
+        "type": "object"
+      },
+      "CompareRow": {
+        "additionalProperties": false,
+        "properties": {
+          "cells": {
+            "items": {
+              "$ref": "#/components/schemas/CompareCell"
+            },
+            "title": "Cells",
+            "type": "array"
+          },
+          "component": {
+            "title": "Component",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "weight": {
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "component",
+          "label",
+          "weight",
+          "cells"
+        ],
+        "title": "CompareRow",
+        "type": "object"
+      },
+      "CompareStatus": {
+        "description": "`ranked`, or the reason the area was filtered or left unranked.\n\nOne enum and not a union of three, so that a generated client gets one\ntype. A test holds it to `FilterReason` and `UnrankedReason`.",
+        "enum": [
+          "ranked",
+          "excluded",
+          "not_selected",
+          "over_budget",
+          "commute_cap",
+          "not_rankable",
+          "insufficient_data"
+        ],
+        "title": "CompareStatus",
+        "type": "string"
+      },
+      "ComparedArea": {
+        "additionalProperties": false,
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CompareStatus"
+          }
+        },
+        "required": [
+          "area_id",
+          "name",
+          "status"
+        ],
+        "title": "ComparedArea",
+        "type": "object"
+      },
+      "Confidence": {
+        "enum": [
+          "high",
+          "medium",
+          "low"
+        ],
+        "title": "Confidence",
+        "type": "string"
+      },
+      "Contribution": {
+        "additionalProperties": false,
+        "properties": {
+          "component": {
+            "title": "Component",
+            "type": "string"
+          },
+          "contribution": {
+            "title": "Contribution",
+            "type": "number"
+          },
+          "fact_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Fact Ids",
+            "type": "array"
+          },
+          "loss": {
+            "title": "Loss",
+            "type": "number"
+          },
+          "present": {
+            "title": "Present",
+            "type": "boolean"
+          },
+          "share": {
+            "title": "Share",
+            "type": "number"
+          },
+          "utility": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Utility"
+          },
+          "weight": {
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "component",
+          "present",
+          "weight",
+          "share",
+          "utility",
+          "contribution",
+          "loss",
+          "fact_ids"
+        ],
+        "title": "Contribution",
+        "type": "object"
+      },
+      "CostEstimate": {
+        "additionalProperties": false,
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "as_of": {
+            "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+            "title": "As Of",
+            "type": "string"
+          },
+          "confidence": {
+            "$ref": "#/components/schemas/Confidence"
+          },
+          "lower_quartile": {
+            "minimum": 0.0,
+            "title": "Lower Quartile",
+            "type": "integer"
+          },
+          "median": {
+            "minimum": 0.0,
+            "title": "Median",
+            "type": "integer"
+          },
+          "segment": {
+            "$ref": "#/components/schemas/Segment"
+          },
+          "source_ids": {
+            "items": {
+              "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Source Ids",
+            "type": "array"
+          },
+          "tenure": {
+            "$ref": "#/components/schemas/Tenure"
+          },
+          "upper_quartile": {
+            "minimum": 0.0,
+            "title": "Upper Quartile",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "area_id",
+          "tenure",
+          "segment",
+          "lower_quartile",
+          "median",
+          "upper_quartile",
+          "confidence",
+          "as_of",
+          "source_ids"
+        ],
+        "title": "CostEstimate",
+        "type": "object"
+      },
+      "Counts": {
+        "additionalProperties": false,
+        "properties": {
+          "destinations": {
+            "minimum": 0.0,
+            "title": "Destinations",
+            "type": "integer"
+          },
+          "neighbourhoods": {
+            "minimum": 0.0,
+            "title": "Neighbourhoods",
+            "type": "integer"
+          },
+          "places": {
+            "minimum": 0.0,
+            "title": "Places",
+            "type": "integer"
+          },
+          "rankable": {
+            "minimum": 0.0,
+            "title": "Rankable",
+            "type": "integer"
+          },
+          "stations": {
+            "minimum": 0.0,
+            "title": "Stations",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "neighbourhoods",
+          "rankable",
+          "destinations",
+          "places",
+          "stations"
+        ],
+        "title": "Counts",
+        "type": "object"
+      },
+      "Cutoffs": {
+        "additionalProperties": false,
+        "description": "The longest journey the release routed, by mode. Anything longer is `beyond_cutoff`.",
+        "properties": {
+          "cycle": {
+            "maximum": 1440.0,
+            "minimum": 10.0,
+            "title": "Cycle",
+            "type": "integer"
+          },
+          "pt": {
+            "maximum": 1440.0,
+            "minimum": 10.0,
+            "title": "Pt",
+            "type": "integer"
+          },
+          "walk": {
+            "maximum": 1440.0,
+            "minimum": 10.0,
+            "title": "Walk",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "pt",
+          "cycle",
+          "walk"
+        ],
+        "title": "Cutoffs",
+        "type": "object"
+      },
+      "Defaults": {
+        "additionalProperties": false,
+        "properties": {
+          "buy": {
+            "$ref": "#/components/schemas/PreferenceSpec"
+          },
+          "rent": {
+            "$ref": "#/components/schemas/PreferenceSpec"
+          }
+        },
+        "required": [
+          "rent",
+          "buy"
+        ],
+        "title": "Defaults",
+        "type": "object"
+      },
+      "Dimension": {
+        "enum": [
+          "crime",
+          "schools",
+          "green_water",
+          "air_noise",
+          "venues_culture",
+          "homes",
+          "station_access"
+        ],
+        "title": "Dimension",
+        "type": "string"
+      },
+      "Direction": {
+        "enum": [
+          "more",
+          "less"
+        ],
+        "title": "Direction",
+        "type": "string"
+      },
+      "DirectionChoice": {
+        "enum": [
+          "more",
+          "less",
+          "default"
+        ],
+        "title": "DirectionChoice",
+        "type": "string"
+      },
+      "EditProvenance": {
+        "enum": [
+          "stated",
+          "inferred",
+          "ui_edit"
+        ],
+        "title": "EditProvenance",
+        "type": "string"
+      },
+      "Envelope_AreaData_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AreaData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[AreaData]",
+        "type": "object"
+      },
+      "Envelope_AreasData_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AreasData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[AreasData]",
+        "type": "object"
+      },
+      "Envelope_CompareData_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CompareData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[CompareData]",
+        "type": "object"
+      },
+      "Envelope_ExplanationsData_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ExplanationsData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[ExplanationsData]",
+        "type": "object"
+      },
+      "Envelope_GeometryData_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GeometryData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[GeometryData]",
+        "type": "object"
+      },
+      "Envelope_InterpretData_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/InterpretData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[InterpretData]",
+        "type": "object"
+      },
+      "Envelope_MetaData_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/MetaData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[MetaData]",
+        "type": "object"
+      },
+      "Envelope_PlacesData_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PlacesData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[PlacesData]",
+        "type": "object"
+      },
+      "Envelope_RankData_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RankData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[RankData]",
+        "type": "object"
+      },
+      "Envelope_ShareCreated_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ShareCreated"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[ShareCreated]",
+        "type": "object"
+      },
+      "Envelope_ShareData_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ShareData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[ShareData]",
+        "type": "object"
+      },
+      "ErrorBody": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/ErrorCode"
+          },
+          "fields": {
+            "items": {
+              "$ref": "#/components/schemas/FieldProblem"
+            },
+            "title": "Fields",
+            "type": "array"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "fields"
+        ],
+        "title": "ErrorBody",
+        "type": "object"
+      },
+      "ErrorCode": {
+        "enum": [
+          "malformed_json",
+          "body_too_large",
+          "unsupported_media_type",
+          "internal_error",
+          "not_found",
+          "method_not_allowed",
+          "invalid_request",
+          "invalid_text",
+          "invalid_spec",
+          "invalid_operations",
+          "invalid_compare",
+          "invalid_query",
+          "unknown_place",
+          "unknown_area",
+          "area_not_found",
+          "share_not_found",
+          "release_changed"
+        ],
+        "title": "ErrorCode",
+        "type": "string"
+      },
+      "ErrorEnvelope": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorBody"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "error"
+        ],
+        "title": "ErrorEnvelope",
+        "type": "object"
+      },
+      "ExplainedSentence": {
+        "additionalProperties": false,
+        "properties": {
+          "fact_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Fact Ids",
+            "type": "array"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/SentenceOrigin"
+          },
+          "replaced": {
+            "title": "Replaced",
+            "type": "boolean"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "fact_ids",
+          "origin",
+          "replaced"
+        ],
+        "title": "ExplainedSentence",
+        "type": "object"
+      },
+      "Explanation": {
+        "additionalProperties": false,
+        "properties": {
+          "area_id": {
+            "title": "Area Id",
+            "type": "string"
+          },
+          "missing": {
+            "items": {
+              "$ref": "#/components/schemas/ExplainedSentence"
+            },
+            "title": "Missing",
+            "type": "array"
+          },
+          "orientation": {
+            "$ref": "#/components/schemas/ExplainedSentence"
+          },
+          "reasons": {
+            "items": {
+              "$ref": "#/components/schemas/ExplainedSentence"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "trade_off": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ExplainedSentence"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "area_id",
+          "orientation",
+          "reasons",
+          "trade_off",
+          "missing"
+        ],
+        "title": "Explanation",
+        "type": "object"
+      },
+      "ExplanationsBody": {
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "default": 3,
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/PreferenceSpec"
+          }
+        },
+        "required": [
+          "spec"
+        ],
+        "title": "ExplanationsBody",
+        "type": "object"
+      },
+      "ExplanationsData": {
+        "additionalProperties": false,
+        "properties": {
+          "explanations": {
+            "items": {
+              "$ref": "#/components/schemas/Explanation"
+            },
+            "title": "Explanations",
+            "type": "array"
+          },
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/Fact"
+            },
+            "title": "Facts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "explanations",
+          "facts"
+        ],
+        "title": "ExplanationsData",
+        "type": "object"
+      },
+      "Fact": {
+        "additionalProperties": false,
+        "properties": {
+          "area_id": {
+            "title": "Area Id",
+            "type": "string"
+          },
+          "as_of": {
+            "minLength": 1,
+            "title": "As Of",
+            "type": "string"
+          },
+          "fact_id": {
+            "title": "Fact Id",
+            "type": "string"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/FactKind"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "names": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Names",
+            "type": "array"
+          },
+          "numbers": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Numbers",
+            "type": "array"
+          },
+          "slots": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Slots",
+            "type": "object"
+          },
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/FactSource"
+            },
+            "minItems": 1,
+            "title": "Sources",
+            "type": "array"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "boolean"
+          },
+          "template": {
+            "$ref": "#/components/schemas/TemplateId"
+          }
+        },
+        "required": [
+          "fact_id",
+          "area_id",
+          "kind",
+          "key",
+          "label",
+          "template",
+          "slots",
+          "numbers",
+          "names",
+          "sources",
+          "as_of",
+          "synthetic"
+        ],
+        "title": "Fact",
+        "type": "object"
+      },
+      "FactKind": {
+        "enum": [
+          "area",
+          "feature",
+          "tag",
+          "cost",
+          "budget_fit",
+          "travel",
+          "station",
+          "missing"
+        ],
+        "title": "FactKind",
+        "type": "string"
+      },
+      "FactSource": {
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "source_id": {
+            "title": "Source Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "name"
+        ],
+        "title": "FactSource",
+        "type": "object"
+      },
+      "FeatureId": {
+        "enum": [
+          "crime_violence_robbery",
+          "crime_burglary_theft",
+          "school_primary_nearby",
+          "school_primary_attainment",
+          "school_secondary_attainment",
+          "university_proximity",
+          "green_cover",
+          "park_proximity",
+          "play_space_proximity",
+          "water_access",
+          "air_no2",
+          "noise_exposure",
+          "venue_food_drink",
+          "venue_evening",
+          "venue_independent",
+          "culture_venues",
+          "highstreet_access",
+          "homes_flats",
+          "homes_pre1919",
+          "homes_density",
+          "conservation_cover",
+          "station_walk",
+          "station_lines"
+        ],
+        "title": "FeatureId",
+        "type": "string"
+      },
+      "FeatureValue": {
+        "additionalProperties": false,
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "coverage": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Coverage",
+            "type": "number"
+          },
+          "feature_id": {
+            "$ref": "#/components/schemas/FeatureId"
+          },
+          "percentile": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Percentile"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "required": [
+          "area_id",
+          "feature_id",
+          "value",
+          "percentile",
+          "coverage"
+        ],
+        "title": "FeatureValue",
+        "type": "object"
+      },
+      "FeatureWeight": {
+        "additionalProperties": false,
+        "properties": {
+          "direction": {
+            "$ref": "#/components/schemas/Direction"
+          },
+          "feature_id": {
+            "$ref": "#/components/schemas/FeatureId"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          },
+          "weight": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "feature_id",
+          "weight",
+          "direction",
+          "provenance"
+        ],
+        "title": "FeatureWeight",
+        "type": "object"
+      },
+      "FieldProblem": {
+        "additionalProperties": false,
+        "properties": {
+          "path": {
+            "title": "Path",
+            "type": "string"
+          },
+          "problem": {
+            "$ref": "#/components/schemas/Problem"
+          }
+        },
+        "required": [
+          "path",
+          "problem"
+        ],
+        "title": "FieldProblem",
+        "type": "object"
+      },
+      "FilterReason": {
+        "description": "In the order the filters are applied. An area stops at the first that catches it.",
+        "enum": [
+          "excluded",
+          "not_selected",
+          "over_budget",
+          "commute_cap"
+        ],
+        "title": "FilterReason",
+        "type": "string"
+      },
+      "Filtered": {
+        "additionalProperties": false,
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/FilterReason"
+          }
+        },
+        "required": [
+          "area_id",
+          "reason"
+        ],
+        "title": "Filtered",
+        "type": "object"
+      },
+      "FoundPlace": {
+        "additionalProperties": false,
+        "properties": {
+          "coarse_name": {
+            "title": "Coarse Name",
+            "type": "string"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/PlaceKind"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "place_id": {
+            "pattern": "^(syn|lon)-p[0-9a-z]+$",
+            "title": "Place Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "place_id",
+          "name",
+          "kind",
+          "coarse_name"
+        ],
+        "title": "FoundPlace",
+        "type": "object"
+      },
+      "GeoFeature": {
+        "additionalProperties": false,
+        "properties": {
+          "geometry": {
+            "$ref": "#/components/schemas/Geometry"
+          },
+          "id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Id",
+            "type": "string"
+          },
+          "properties": {
+            "$ref": "#/components/schemas/GeoProperties"
+          },
+          "type": {
+            "const": "Feature",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "id",
+          "properties",
+          "geometry"
+        ],
+        "title": "GeoFeature",
+        "type": "object"
+      },
+      "GeoProperties": {
+        "additionalProperties": false,
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "area_id"
+        ],
+        "title": "GeoProperties",
+        "type": "object"
+      },
+      "Geometry": {
+        "additionalProperties": false,
+        "description": "A GeoJSON geometry object: a polygon or a multipolygon, in WGS84.",
+        "properties": {
+          "coordinates": {
+            "anyOf": [
+              {
+                "items": {
+                  "items": {
+                    "maxItems": 2,
+                    "minItems": 2,
+                    "prefixItems": [
+                      {
+                        "maximum": 180.0,
+                        "minimum": -180.0,
+                        "type": "number"
+                      },
+                      {
+                        "maximum": 90.0,
+                        "minimum": -90.0,
+                        "type": "number"
+                      }
+                    ],
+                    "type": "array"
+                  },
+                  "minItems": 4,
+                  "type": "array"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "items": {
+                  "items": {
+                    "items": {
+                      "maxItems": 2,
+                      "minItems": 2,
+                      "prefixItems": [
+                        {
+                          "maximum": 180.0,
+                          "minimum": -180.0,
+                          "type": "number"
+                        },
+                        {
+                          "maximum": 90.0,
+                          "minimum": -90.0,
+                          "type": "number"
+                        }
+                      ],
+                      "type": "array"
+                    },
+                    "minItems": 4,
+                    "type": "array"
+                  },
+                  "minItems": 1,
+                  "type": "array"
+                },
+                "minItems": 1,
+                "type": "array"
+              }
+            ],
+            "title": "Coordinates"
+          },
+          "type": {
+            "$ref": "#/components/schemas/GeometryType"
+          }
+        },
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "title": "Geometry",
+        "type": "object"
+      },
+      "GeometryData": {
+        "additionalProperties": false,
+        "description": "A GeoJSON `FeatureCollection`, as `geometry.json` holds it.",
+        "properties": {
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/GeoFeature"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "type": {
+            "const": "FeatureCollection",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "features"
+        ],
+        "title": "GeometryData",
+        "type": "object"
+      },
+      "GeometryType": {
+        "enum": [
+          "Polygon",
+          "MultiPolygon"
+        ],
+        "title": "GeometryType",
+        "type": "string"
+      },
+      "Health": {
+        "additionalProperties": false,
+        "properties": {
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok"
+        ],
+        "title": "Health",
+        "type": "object"
+      },
+      "InterpretBody": {
+        "additionalProperties": false,
+        "properties": {
+          "spec": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PreferenceSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "text": {
+            "maxLength": 600,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "InterpretBody",
+        "type": "object"
+      },
+      "InterpretData": {
+        "additionalProperties": false,
+        "properties": {
+          "applied": {
+            "items": {
+              "$ref": "#/components/schemas/Applied"
+            },
+            "title": "Applied",
+            "type": "array"
+          },
+          "assumptions": {
+            "items": {
+              "$ref": "#/components/schemas/Assumption"
+            },
+            "title": "Assumptions",
+            "type": "array"
+          },
+          "clarify": {
+            "items": {
+              "$ref": "#/components/schemas/Clarify"
+            },
+            "title": "Clarify",
+            "type": "array"
+          },
+          "degraded": {
+            "title": "Degraded",
+            "type": "boolean"
+          },
+          "interpreter": {
+            "$ref": "#/components/schemas/InterpreterName"
+          },
+          "notice": {
+            "$ref": "#/components/schemas/Notice"
+          },
+          "notice_text": {
+            "title": "Notice Text",
+            "type": "string"
+          },
+          "operations": {
+            "$ref": "#/components/schemas/Operations"
+          },
+          "rejected": {
+            "items": {
+              "$ref": "#/components/schemas/Rejected"
+            },
+            "title": "Rejected",
+            "type": "array"
+          },
+          "rests_on": {
+            "items": {
+              "$ref": "#/components/schemas/RestsOn"
+            },
+            "title": "Rests On",
+            "type": "array"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/PreferenceSpec"
+          },
+          "spec_hash": {
+            "title": "Spec Hash",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/InterpretStatus"
+          },
+          "unmet": {
+            "items": {
+              "$ref": "#/components/schemas/UnmetCategory"
+            },
+            "title": "Unmet",
+            "type": "array"
+          }
+        },
+        "required": [
+          "status",
+          "operations",
+          "spec",
+          "spec_hash",
+          "applied",
+          "rejected",
+          "assumptions",
+          "unmet",
+          "clarify",
+          "notice",
+          "notice_text",
+          "interpreter",
+          "degraded",
+          "rests_on"
+        ],
+        "title": "InterpretData",
+        "type": "object"
+      },
+      "InterpretStatus": {
+        "description": "In the order that decides the status: the first that applies wins.",
+        "enum": [
+          "off_topic",
+          "policy_redirect",
+          "clarify",
+          "ok"
+        ],
+        "title": "InterpretStatus",
+        "type": "string"
+      },
+      "InterpreterName": {
+        "enum": [
+          "rule",
+          "claude"
+        ],
+        "title": "InterpreterName",
+        "type": "string"
+      },
+      "Meta": {
+        "additionalProperties": false,
+        "properties": {
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "release_id": {
+            "pattern": "^(syn|lon)-\\d{4}-\\d{2}-\\d{2}-\\d{2}$",
+            "title": "Release Id",
+            "type": "string"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "release_id",
+          "engine_version",
+          "synthetic"
+        ],
+        "title": "Meta",
+        "type": "object"
+      },
+      "MetaData": {
+        "additionalProperties": false,
+        "properties": {
+          "attributions": {
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            },
+            "title": "Attributions",
+            "type": "array"
+          },
+          "built_at": {
+            "title": "Built At",
+            "type": "string"
+          },
+          "catalogue_version": {
+            "title": "Catalogue Version",
+            "type": "integer"
+          },
+          "counts": {
+            "$ref": "#/components/schemas/Counts"
+          },
+          "defaults": {
+            "$ref": "#/components/schemas/Defaults"
+          },
+          "engine_version": {
+            "title": "Engine Version",
+            "type": "string"
+          },
+          "features": {
+            "items": {
+              "$ref": "#/components/schemas/Metric"
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "limits": {
+            "$ref": "#/components/schemas/ServedLimits"
+          },
+          "release_id": {
+            "pattern": "^(syn|lon)-\\d{4}-\\d{2}-\\d{2}-\\d{2}$",
+            "title": "Release Id",
+            "type": "string"
+          },
+          "synthetic": {
+            "title": "Synthetic",
+            "type": "boolean"
+          },
+          "tags": {
+            "items": {
+              "$ref": "#/components/schemas/Tag"
+            },
+            "title": "Tags",
+            "type": "array"
+          }
+        },
+        "required": [
+          "release_id",
+          "built_at",
+          "synthetic",
+          "engine_version",
+          "catalogue_version",
+          "counts",
+          "attributions",
+          "features",
+          "tags",
+          "defaults",
+          "limits"
+        ],
+        "title": "MetaData",
+        "type": "object"
+      },
+      "Metric": {
+        "additionalProperties": false,
+        "description": "A feature this release carries. Core decides what it is; the release says where from.",
+        "properties": {
+          "definition": {
+            "minLength": 1,
+            "title": "Definition",
+            "type": "string"
+          },
+          "dimension": {
+            "$ref": "#/components/schemas/Dimension"
+          },
+          "feature_id": {
+            "$ref": "#/components/schemas/FeatureId"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "native_resolution": {
+            "$ref": "#/components/schemas/NativeResolution"
+          },
+          "polarity": {
+            "$ref": "#/components/schemas/Polarity"
+          },
+          "rankable": {
+            "title": "Rankable",
+            "type": "boolean"
+          },
+          "source_ids": {
+            "items": {
+              "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Source Ids",
+            "type": "array"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "string"
+          },
+          "vintage": {
+            "minLength": 1,
+            "title": "Vintage",
+            "type": "string"
+          }
+        },
+        "required": [
+          "feature_id",
+          "label",
+          "dimension",
+          "unit",
+          "polarity",
+          "native_resolution",
+          "source_ids",
+          "vintage",
+          "rankable",
+          "definition"
+        ],
+        "title": "Metric",
+        "type": "object"
+      },
+      "Mode": {
+        "enum": [
+          "pt",
+          "cycle",
+          "walk"
+        ],
+        "title": "Mode",
+        "type": "string"
+      },
+      "ModeChoice": {
+        "enum": [
+          "pt",
+          "cycle",
+          "walk",
+          "unchanged"
+        ],
+        "title": "ModeChoice",
+        "type": "string"
+      },
+      "MoneyLimits": {
+        "additionalProperties": false,
+        "properties": {
+          "maximum": {
+            "title": "Maximum",
+            "type": "integer"
+          },
+          "minimum": {
+            "title": "Minimum",
+            "type": "integer"
+          },
+          "unit": {
+            "title": "Unit",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "minimum",
+          "maximum",
+          "unit"
+        ],
+        "title": "MoneyLimits",
+        "type": "object"
+      },
+      "NativeResolution": {
+        "enum": [
+          "oa",
+          "lsoa",
+          "grid_1km",
+          "point",
+          "polygon",
+          "network"
+        ],
+        "title": "NativeResolution",
+        "type": "string"
+      },
+      "Neighbourhood": {
+        "additionalProperties": false,
+        "properties": {
+          "aliases": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "title": "Aliases",
+            "type": "array"
+          },
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "borough": {
+            "minLength": 1,
+            "title": "Borough",
+            "type": "string"
+          },
+          "centroid": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maximum": 180.0,
+                "minimum": -180.0,
+                "type": "number"
+              },
+              {
+                "maximum": 90.0,
+                "minimum": -90.0,
+                "type": "number"
+              }
+            ],
+            "title": "Centroid",
+            "type": "array"
+          },
+          "name": {
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "neighbours": {
+            "items": {
+              "pattern": "^(syn|lon)-n[0-9a-z]+$",
+              "type": "string"
+            },
+            "title": "Neighbours",
+            "type": "array"
+          },
+          "rankable": {
+            "title": "Rankable",
+            "type": "boolean"
+          },
+          "slug": {
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "area_id",
+          "slug",
+          "name",
+          "borough",
+          "aliases",
+          "centroid",
+          "rankable",
+          "neighbours"
+        ],
+        "title": "Neighbourhood",
+        "type": "object"
+      },
+      "Notice": {
+        "enum": [
+          "none",
+          "neutral_places",
+          "off_topic"
+        ],
+        "title": "Notice",
+        "type": "string"
+      },
+      "Operations": {
+        "additionalProperties": false,
+        "properties": {
+          "area_ops": {
+            "items": {
+              "$ref": "#/components/schemas/AreaEdit"
+            },
+            "title": "Area Ops",
+            "type": "array"
+          },
+          "budget_ops": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetEdit"
+            },
+            "title": "Budget Ops",
+            "type": "array"
+          },
+          "commute_ops": {
+            "items": {
+              "$ref": "#/components/schemas/CommuteEdit"
+            },
+            "title": "Commute Ops",
+            "type": "array"
+          },
+          "setting_ops": {
+            "items": {
+              "$ref": "#/components/schemas/SettingEdit"
+            },
+            "title": "Setting Ops",
+            "type": "array"
+          },
+          "tag_ops": {
+            "items": {
+              "$ref": "#/components/schemas/TagEdit"
+            },
+            "title": "Tag Ops",
+            "type": "array"
+          },
+          "weight_ops": {
+            "items": {
+              "$ref": "#/components/schemas/WeightEdit"
+            },
+            "title": "Weight Ops",
+            "type": "array"
+          }
+        },
+        "required": [
+          "budget_ops",
+          "commute_ops",
+          "weight_ops",
+          "tag_ops",
+          "area_ops",
+          "setting_ops"
+        ],
+        "title": "Operations",
+        "type": "object"
+      },
+      "OpsGroup": {
+        "description": "The six arrays of `Operations`, in the order the reducer applies them.",
+        "enum": [
+          "budget_ops",
+          "commute_ops",
+          "weight_ops",
+          "tag_ops",
+          "area_ops",
+          "setting_ops"
+        ],
+        "title": "OpsGroup",
+        "type": "string"
+      },
+      "OptionKind": {
+        "description": "What a clarification offers: a place of one of the kinds of 2.7, or an area.",
+        "enum": [
+          "station",
+          "district",
+          "postcode_district",
+          "university",
+          "hospital",
+          "school",
+          "landmark",
+          "area"
+        ],
+        "title": "OptionKind",
+        "type": "string"
+      },
+      "PlaceKind": {
+        "description": "In the order that breaks a tie between two matches of the same score.",
+        "enum": [
+          "station",
+          "district",
+          "postcode_district",
+          "university",
+          "hospital",
+          "school",
+          "landmark"
+        ],
+        "title": "PlaceKind",
+        "type": "string"
+      },
+      "PlaceSearchBody": {
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "default": 8,
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "q": {
+            "maxLength": 80,
+            "minLength": 2,
+            "title": "Q",
+            "type": "string"
+          }
+        },
+        "required": [
+          "q"
+        ],
+        "title": "PlaceSearchBody",
+        "type": "object"
+      },
+      "PlacesData": {
+        "additionalProperties": false,
+        "properties": {
+          "places": {
+            "items": {
+              "$ref": "#/components/schemas/FoundPlace"
+            },
+            "title": "Places",
+            "type": "array"
+          }
+        },
+        "required": [
+          "places"
+        ],
+        "title": "PlacesData",
+        "type": "object"
+      },
+      "Polarity": {
+        "enum": [
+          "less",
+          "more",
+          "either"
+        ],
+        "title": "Polarity",
+        "type": "string"
+      },
+      "PreferenceSpec": {
+        "additionalProperties": false,
+        "properties": {
+          "areas": {
+            "items": {
+              "$ref": "#/components/schemas/AreaRule"
+            },
+            "title": "Areas",
+            "type": "array"
+          },
+          "budget": {
+            "$ref": "#/components/schemas/Budget"
+          },
+          "commute_combine": {
+            "$ref": "#/components/schemas/Combine"
+          },
+          "commute_combine_from": {
+            "$ref": "#/components/schemas/Provenance"
+          },
+          "commute_weight": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Commute Weight",
+            "type": "number"
+          },
+          "commute_weight_from": {
+            "$ref": "#/components/schemas/Provenance"
+          },
+          "commutes": {
+            "items": {
+              "$ref": "#/components/schemas/Commute"
+            },
+            "maxItems": 3,
+            "title": "Commutes",
+            "type": "array"
+          },
+          "pt_basis": {
+            "$ref": "#/components/schemas/PtBasis"
+          },
+          "pt_basis_from": {
+            "$ref": "#/components/schemas/Provenance"
+          },
+          "schema_version": {
+            "const": 1,
+            "title": "Schema Version",
+            "type": "integer"
+          },
+          "tags": {
+            "items": {
+              "$ref": "#/components/schemas/TagWeight"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "tenure": {
+            "$ref": "#/components/schemas/Tenure"
+          },
+          "tenure_from": {
+            "$ref": "#/components/schemas/Provenance"
+          },
+          "weights": {
+            "items": {
+              "$ref": "#/components/schemas/FeatureWeight"
+            },
+            "title": "Weights",
+            "type": "array"
+          }
+        },
+        "required": [
+          "schema_version",
+          "tenure",
+          "budget",
+          "commutes",
+          "commute_combine",
+          "pt_basis",
+          "commute_weight",
+          "weights",
+          "tags",
+          "areas",
+          "tenure_from",
+          "commute_combine_from",
+          "pt_basis_from",
+          "commute_weight_from"
+        ],
+        "title": "PreferenceSpec",
+        "type": "object"
+      },
+      "Problem": {
+        "description": "What is wrong with one field. A code, never the value that was sent.",
+        "enum": [
+          "missing",
+          "unknown_field",
+          "wrong_type",
+          "not_allowed",
+          "bad_format",
+          "out_of_range",
+          "invalid",
+          "unknown_place",
+          "unknown_area",
+          "segment_not_for_tenure",
+          "direction_not_allowed",
+          "not_in_release"
+        ],
+        "title": "Problem",
+        "type": "string"
+      },
+      "Provenance": {
+        "enum": [
+          "stated",
+          "inferred",
+          "default",
+          "ui_edit"
+        ],
+        "title": "Provenance",
+        "type": "string"
+      },
+      "PtBasis": {
+        "enum": [
+          "typical",
+          "just_missed"
+        ],
+        "title": "PtBasis",
+        "type": "string"
+      },
+      "RankBody": {
+        "additionalProperties": false,
+        "properties": {
+          "limit": {
+            "default": 20,
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "operations": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Operations"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "spec": {
+            "$ref": "#/components/schemas/PreferenceSpec"
+          }
+        },
+        "required": [
+          "spec"
+        ],
+        "title": "RankBody",
+        "type": "object"
+      },
+      "RankData": {
+        "additionalProperties": false,
+        "properties": {
+          "applied": {
+            "items": {
+              "$ref": "#/components/schemas/Applied"
+            },
+            "title": "Applied",
+            "type": "array"
+          },
+          "empty_spec": {
+            "title": "Empty Spec",
+            "type": "boolean"
+          },
+          "filtered": {
+            "items": {
+              "$ref": "#/components/schemas/Filtered"
+            },
+            "title": "Filtered",
+            "type": "array"
+          },
+          "ranked": {
+            "items": {
+              "$ref": "#/components/schemas/RankedArea"
+            },
+            "title": "Ranked",
+            "type": "array"
+          },
+          "rejected": {
+            "items": {
+              "$ref": "#/components/schemas/Rejected"
+            },
+            "title": "Rejected",
+            "type": "array"
+          },
+          "scores": {
+            "items": {
+              "$ref": "#/components/schemas/Score"
+            },
+            "title": "Scores",
+            "type": "array"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/PreferenceSpec"
+          },
+          "spec_hash": {
+            "title": "Spec Hash",
+            "type": "string"
+          },
+          "unranked": {
+            "items": {
+              "$ref": "#/components/schemas/Unranked"
+            },
+            "title": "Unranked",
+            "type": "array"
+          }
+        },
+        "required": [
+          "scores",
+          "ranked",
+          "filtered",
+          "unranked",
+          "empty_spec",
+          "spec",
+          "spec_hash",
+          "applied",
+          "rejected"
+        ],
+        "title": "RankData",
+        "type": "object"
+      },
+      "RankedArea": {
+        "additionalProperties": false,
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "budget": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BudgetFit"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "contributions": {
+            "items": {
+              "$ref": "#/components/schemas/Contribution"
+            },
+            "title": "Contributions",
+            "type": "array"
+          },
+          "legs": {
+            "items": {
+              "$ref": "#/components/schemas/CommuteLeg"
+            },
+            "title": "Legs",
+            "type": "array"
+          },
+          "rank": {
+            "minimum": 1.0,
+            "title": "Rank",
+            "type": "integer"
+          },
+          "score": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "type": "number"
+          },
+          "untested_filters": {
+            "items": {
+              "$ref": "#/components/schemas/FilterReason"
+            },
+            "title": "Untested Filters",
+            "type": "array"
+          },
+          "weight_coverage": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Weight Coverage",
+            "type": "number"
+          }
+        },
+        "required": [
+          "area_id",
+          "rank",
+          "score",
+          "weight_coverage",
+          "contributions",
+          "legs",
+          "budget",
+          "untested_filters"
+        ],
+        "title": "RankedArea",
+        "type": "object"
+      },
+      "RejectReason": {
+        "enum": [
+          "unknown_place",
+          "unknown_area",
+          "not_in_release",
+          "too_many_commutes",
+          "no_such_commute",
+          "out_of_range",
+          "segment_not_for_tenure",
+          "direction_not_allowed",
+          "crime_needs_explicit_request",
+          "mismatched_choice",
+          "nothing_to_change"
+        ],
+        "title": "RejectReason",
+        "type": "string"
+      },
+      "Rejected": {
+        "additionalProperties": false,
+        "properties": {
+          "group": {
+            "$ref": "#/components/schemas/OpsGroup"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/RejectReason"
+          }
+        },
+        "required": [
+          "group",
+          "index",
+          "reason"
+        ],
+        "title": "Rejected",
+        "type": "object"
+      },
+      "RestsOn": {
+        "additionalProperties": false,
+        "description": "Which words of the text an edit rests on: where they start and end, never the words.\n\n`start` and `end` count the characters of the text as it was typed, as\nPython counts them, so `text[start:end]` is the words. An edit made of\nseveral parts, as a budget is of \"renting\", \"2 bed\" and \"£1,500\", has one\nof these for each part. They are for showing a person which of their\nwords made each edit. Nothing stores or logs them.",
+        "properties": {
+          "end": {
+            "title": "End",
+            "type": "integer"
+          },
+          "group": {
+            "$ref": "#/components/schemas/OpsGroup"
+          },
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "start": {
+            "title": "Start",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "group",
+          "index",
+          "start",
+          "end"
+        ],
+        "title": "RestsOn",
+        "type": "object"
+      },
+      "Score": {
+        "additionalProperties": false,
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          }
+        },
+        "required": [
+          "area_id",
+          "score"
+        ],
+        "title": "Score",
+        "type": "object"
+      },
+      "Segment": {
+        "enum": [
+          "room",
+          "studio",
+          "bed_1",
+          "bed_2",
+          "bed_3",
+          "bed_4plus",
+          "flat",
+          "terraced",
+          "semi_detached",
+          "detached"
+        ],
+        "title": "Segment",
+        "type": "string"
+      },
+      "SegmentChoice": {
+        "enum": [
+          "room",
+          "studio",
+          "bed_1",
+          "bed_2",
+          "bed_3",
+          "bed_4plus",
+          "flat",
+          "terraced",
+          "semi_detached",
+          "detached",
+          "unchanged"
+        ],
+        "title": "SegmentChoice",
+        "type": "string"
+      },
+      "SentenceOrigin": {
+        "enum": [
+          "template",
+          "model"
+        ],
+        "title": "SentenceOrigin",
+        "type": "string"
+      },
+      "ServedLimits": {
+        "additionalProperties": false,
+        "description": "The limits of section 5.2, with the cutoffs of the release that is loaded.\n\nA form that keeps to these never offers a value the reducer would refuse.",
+        "properties": {
+          "budget_step_large_percent": {
+            "default": 15,
+            "title": "Budget Step Large Percent",
+            "type": "integer"
+          },
+          "budget_step_small_percent": {
+            "default": 5,
+            "title": "Budget Step Small Percent",
+            "type": "integer"
+          },
+          "buy": {
+            "$ref": "#/components/schemas/MoneyLimits",
+            "default": {
+              "maximum": 20000000,
+              "minimum": 50000,
+              "unit": 5000
+            }
+          },
+          "cutoff_minutes": {
+            "$ref": "#/components/schemas/Cutoffs"
+          },
+          "max_body_bytes": {
+            "title": "Max Body Bytes",
+            "type": "integer"
+          },
+          "max_commutes": {
+            "default": 3,
+            "title": "Max Commutes",
+            "type": "integer"
+          },
+          "max_text": {
+            "title": "Max Text",
+            "type": "integer"
+          },
+          "minutes_max": {
+            "default": 120,
+            "title": "Minutes Max",
+            "type": "integer"
+          },
+          "minutes_min": {
+            "default": 10,
+            "title": "Minutes Min",
+            "type": "integer"
+          },
+          "minutes_step_large": {
+            "default": 15,
+            "title": "Minutes Step Large",
+            "type": "integer"
+          },
+          "minutes_step_small": {
+            "default": 5,
+            "title": "Minutes Step Small",
+            "type": "integer"
+          },
+          "rent": {
+            "$ref": "#/components/schemas/MoneyLimits",
+            "default": {
+              "maximum": 20000,
+              "minimum": 300,
+              "unit": 25
+            }
+          },
+          "weight_step_large": {
+            "default": 0.25,
+            "title": "Weight Step Large",
+            "type": "number"
+          },
+          "weight_step_small": {
+            "default": 0.1,
+            "title": "Weight Step Small",
+            "type": "number"
+          },
+          "weight_unit": {
+            "default": 0.05,
+            "title": "Weight Unit",
+            "type": "number"
+          }
+        },
+        "required": [
+          "cutoff_minutes",
+          "max_text",
+          "max_body_bytes"
+        ],
+        "title": "ServedLimits",
+        "type": "object"
+      },
+      "Setting": {
+        "enum": [
+          "commute_combine",
+          "pt_basis",
+          "commute_weight",
+          "budget_weight"
+        ],
+        "title": "Setting",
+        "type": "string"
+      },
+      "SettingAction": {
+        "enum": [
+          "set",
+          "nudge"
+        ],
+        "title": "SettingAction",
+        "type": "string"
+      },
+      "SettingEdit": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/SettingAction"
+          },
+          "choice": {
+            "$ref": "#/components/schemas/Choice"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/EditProvenance"
+          },
+          "setting": {
+            "$ref": "#/components/schemas/Setting"
+          },
+          "step": {
+            "$ref": "#/components/schemas/Step"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "action",
+          "setting",
+          "choice",
+          "value",
+          "step",
+          "provenance"
+        ],
+        "title": "SettingEdit",
+        "type": "object"
+      },
+      "ShareBody": {
+        "additionalProperties": false,
+        "properties": {
+          "exact_destinations": {
+            "default": false,
+            "title": "Exact Destinations",
+            "type": "boolean"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/PreferenceSpec"
+          }
+        },
+        "required": [
+          "spec"
+        ],
+        "title": "ShareBody",
+        "type": "object"
+      },
+      "ShareCreated": {
+        "additionalProperties": false,
+        "properties": {
+          "coarsened": {
+            "title": "Coarsened",
+            "type": "boolean"
+          },
+          "share_id": {
+            "pattern": "^[A-Za-z0-9_-]{22}$",
+            "title": "Share Id",
+            "type": "string"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/PreferenceSpec"
+          }
+        },
+        "required": [
+          "share_id",
+          "spec",
+          "coarsened"
+        ],
+        "title": "ShareCreated",
+        "type": "object"
+      },
+      "ShareData": {
+        "additionalProperties": false,
+        "description": "A shared search, ranked now on the release that is loaded.",
+        "properties": {
+          "coarsened": {
+            "title": "Coarsened",
+            "type": "boolean"
+          },
+          "empty_spec": {
+            "title": "Empty Spec",
+            "type": "boolean"
+          },
+          "filtered": {
+            "items": {
+              "$ref": "#/components/schemas/Filtered"
+            },
+            "title": "Filtered",
+            "type": "array"
+          },
+          "original_release_id": {
+            "pattern": "^(syn|lon)-\\d{4}-\\d{2}-\\d{2}-\\d{2}$",
+            "title": "Original Release Id",
+            "type": "string"
+          },
+          "ranked": {
+            "items": {
+              "$ref": "#/components/schemas/RankedArea"
+            },
+            "title": "Ranked",
+            "type": "array"
+          },
+          "scores": {
+            "items": {
+              "$ref": "#/components/schemas/Score"
+            },
+            "title": "Scores",
+            "type": "array"
+          },
+          "spec": {
+            "$ref": "#/components/schemas/PreferenceSpec"
+          },
+          "spec_hash": {
+            "title": "Spec Hash",
+            "type": "string"
+          },
+          "stale": {
+            "title": "Stale",
+            "type": "boolean"
+          },
+          "unranked": {
+            "items": {
+              "$ref": "#/components/schemas/Unranked"
+            },
+            "title": "Unranked",
+            "type": "array"
+          }
+        },
+        "required": [
+          "scores",
+          "ranked",
+          "filtered",
+          "unranked",
+          "empty_spec",
+          "spec",
+          "spec_hash",
+          "coarsened",
+          "stale",
+          "original_release_id"
+        ],
+        "title": "ShareData",
+        "type": "object"
+      },
+      "Source": {
+        "additionalProperties": false,
+        "properties": {
+          "attribution": {
+            "minLength": 1,
+            "title": "Attribution",
+            "type": "string"
+          },
+          "licence": {
+            "minLength": 1,
+            "title": "Licence",
+            "type": "string"
+          },
+          "name": {
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "publisher": {
+            "minLength": 1,
+            "title": "Publisher",
+            "type": "string"
+          },
+          "retrieved_on": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "title": "Retrieved On",
+            "type": "string"
+          },
+          "source_id": {
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+            "title": "Source Id",
+            "type": "string"
+          },
+          "url": {
+            "title": "Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "source_id",
+          "name",
+          "publisher",
+          "licence",
+          "attribution",
+          "url",
+          "retrieved_on"
+        ],
+        "title": "Source",
+        "type": "object"
+      },
+      "StationAccess": {
+        "additionalProperties": false,
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "lines": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Lines",
+            "type": "array"
+          },
+          "name": {
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "nearest": {
+            "title": "Nearest",
+            "type": "boolean"
+          },
+          "station_id": {
+            "pattern": "^(syn|lon)-s[0-9a-z]+$",
+            "title": "Station Id",
+            "type": "string"
+          },
+          "step_free": {
+            "title": "Step Free",
+            "type": "boolean"
+          },
+          "walk_minutes": {
+            "minimum": 0.0,
+            "title": "Walk Minutes",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "area_id",
+          "station_id",
+          "name",
+          "walk_minutes",
+          "lines",
+          "step_free",
+          "nearest"
+        ],
+        "title": "StationAccess",
+        "type": "object"
+      },
+      "Step": {
+        "enum": [
+          "none",
+          "up_small",
+          "up_large",
+          "down_small",
+          "down_large"
+        ],
+        "title": "Step",
+        "type": "string"
+      },
+      "Strictness": {
+        "enum": [
+          "soft",
+          "hard"
+        ],
+        "title": "Strictness",
+        "type": "string"
+      },
+      "StrictnessChoice": {
+        "enum": [
+          "soft",
+          "hard",
+          "unchanged"
+        ],
+        "title": "StrictnessChoice",
+        "type": "string"
+      },
+      "Tag": {
+        "additionalProperties": false,
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "tag_id": {
+            "$ref": "#/components/schemas/TagId"
+          },
+          "terms": {
+            "items": {
+              "$ref": "#/components/schemas/TagTerm"
+            },
+            "title": "Terms",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tag_id",
+          "label",
+          "terms"
+        ],
+        "title": "Tag",
+        "type": "object"
+      },
+      "TagEdit": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/WeightAction"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/EditProvenance"
+          },
+          "step": {
+            "$ref": "#/components/schemas/Step"
+          },
+          "tag_id": {
+            "$ref": "#/components/schemas/TagId"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "action",
+          "tag_id",
+          "value",
+          "step",
+          "provenance"
+        ],
+        "title": "TagEdit",
+        "type": "object"
+      },
+      "TagId": {
+        "enum": [
+          "village_feel",
+          "buzzy",
+          "leafy",
+          "creative",
+          "family_amenities",
+          "near_universities",
+          "waterside",
+          "strong_high_street",
+          "evening_venues",
+          "quiet_residential",
+          "foodie",
+          "historic_character"
+        ],
+        "title": "TagId",
+        "type": "string"
+      },
+      "TagTerm": {
+        "additionalProperties": false,
+        "properties": {
+          "feature_id": {
+            "$ref": "#/components/schemas/FeatureId"
+          },
+          "hundredths": {
+            "maximum": 100.0,
+            "minimum": 1.0,
+            "title": "Hundredths",
+            "type": "integer"
+          },
+          "reading": {
+            "$ref": "#/components/schemas/TermReading"
+          }
+        },
+        "required": [
+          "feature_id",
+          "hundredths",
+          "reading"
+        ],
+        "title": "TagTerm",
+        "type": "object"
+      },
+      "TagValue": {
+        "additionalProperties": false,
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "coverage": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Coverage",
+            "type": "number"
+          },
+          "raw": {
+            "anyOf": [
+              {
+                "maximum": 1.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "maximum": 100.0,
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "tag_id": {
+            "$ref": "#/components/schemas/TagId"
+          }
+        },
+        "required": [
+          "area_id",
+          "tag_id",
+          "raw",
+          "score",
+          "coverage"
+        ],
+        "title": "TagValue",
+        "type": "object"
+      },
+      "TagWeight": {
+        "additionalProperties": false,
+        "properties": {
+          "provenance": {
+            "$ref": "#/components/schemas/Provenance"
+          },
+          "tag_id": {
+            "$ref": "#/components/schemas/TagId"
+          },
+          "weight": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "tag_id",
+          "weight",
+          "provenance"
+        ],
+        "title": "TagWeight",
+        "type": "object"
+      },
+      "TemplateId": {
+        "enum": [
+          "area",
+          "feature",
+          "feature_crime",
+          "tag",
+          "cost_rent",
+          "cost_buy",
+          "budget_under",
+          "budget_over",
+          "travel_pt",
+          "travel_other",
+          "travel_beyond",
+          "station",
+          "station_nearby",
+          "missing"
+        ],
+        "title": "TemplateId",
+        "type": "string"
+      },
+      "Tenure": {
+        "enum": [
+          "rent",
+          "buy"
+        ],
+        "title": "Tenure",
+        "type": "string"
+      },
+      "TenureChoice": {
+        "enum": [
+          "rent",
+          "buy",
+          "unchanged"
+        ],
+        "title": "TenureChoice",
+        "type": "string"
+      },
+      "TermReading": {
+        "enum": [
+          "high",
+          "low"
+        ],
+        "title": "TermReading",
+        "type": "string"
+      },
+      "TravelStatus": {
+        "enum": [
+          "ok",
+          "beyond_cutoff",
+          "missing"
+        ],
+        "title": "TravelStatus",
+        "type": "string"
+      },
+      "UnmetCategory": {
+        "enum": [
+          "broadband",
+          "flood_risk",
+          "health_services",
+          "driving",
+          "listings",
+          "affordability_verdict",
+          "community_amenities",
+          "outside_the_city",
+          "other"
+        ],
+        "title": "UnmetCategory",
+        "type": "string"
+      },
+      "Unranked": {
+        "additionalProperties": false,
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "reason": {
+            "$ref": "#/components/schemas/UnrankedReason"
+          }
+        },
+        "required": [
+          "area_id",
+          "reason"
+        ],
+        "title": "Unranked",
+        "type": "object"
+      },
+      "UnrankedReason": {
+        "enum": [
+          "not_rankable",
+          "insufficient_data"
+        ],
+        "title": "UnrankedReason",
+        "type": "string"
+      },
+      "WeightAction": {
+        "enum": [
+          "set",
+          "nudge",
+          "remove"
+        ],
+        "title": "WeightAction",
+        "type": "string"
+      },
+      "WeightEdit": {
+        "additionalProperties": false,
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/WeightAction"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/DirectionChoice"
+          },
+          "feature_id": {
+            "$ref": "#/components/schemas/FeatureId"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/EditProvenance"
+          },
+          "step": {
+            "$ref": "#/components/schemas/Step"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "action",
+          "feature_id",
+          "value",
+          "step",
+          "direction",
+          "provenance"
+        ],
+        "title": "WeightEdit",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Ranks named neighbourhoods for a preference spec and shows its working. Every response says whether the data behind it is synthetic.",
+    "title": "Burro API",
+    "version": "1"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/healthz": {
+      "get": {
+        "description": "Whether the service is up. It says nothing about the release, so it has no `meta`.",
+        "operationId": "healthz",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Healthz"
+      }
+    },
+    "/v1/areas": {
+      "get": {
+        "description": "Every area of the release, by id.",
+        "operationId": "list_areas",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_AreasData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "List Areas"
+      }
+    },
+    "/v1/areas/geometry": {
+      "get": {
+        "description": "The boundary of every area, as a GeoJSON feature collection.",
+        "operationId": "get_geometry",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_GeometryData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Geometry"
+      }
+    },
+    "/v1/areas/{id_or_slug}": {
+      "get": {
+        "description": "One area: what the release holds about it, and the facts a profile page shows.",
+        "operationId": "get_area",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id_or_slug",
+            "required": true,
+            "schema": {
+              "title": "Id Or Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_AreaData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Area"
+      }
+    },
+    "/v1/compare": {
+      "post": {
+        "description": "Two to four areas side by side, the rows in the order of the person's own weights.",
+        "operationId": "compare",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CompareBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_CompareData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Compare"
+      }
+    },
+    "/v1/explanations": {
+      "post": {
+        "description": "A few checked sentences about each of the top areas, and the facts they cite.",
+        "operationId": "explain_top",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExplanationsBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ExplanationsData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Explain Top"
+      }
+    },
+    "/v1/interpret": {
+      "post": {
+        "description": "Read a request in words into typed edits, and apply them to the spec.",
+        "operationId": "interpret",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InterpretBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_InterpretData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Interpret"
+      }
+    },
+    "/v1/meta": {
+      "get": {
+        "description": "The release that is loaded, the vocabulary, the defaults and the limits.",
+        "operationId": "get_meta",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_MetaData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Meta"
+      }
+    },
+    "/v1/places/search": {
+      "post": {
+        "description": "The places that match, best first.",
+        "operationId": "search_places",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PlaceSearchBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_PlacesData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Search Places"
+      }
+    },
+    "/v1/rank": {
+      "post": {
+        "description": "Apply any edits to the spec, then rank every area of the release for it.",
+        "operationId": "rank",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RankBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RankData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Rank"
+      }
+    },
+    "/v1/shares": {
+      "post": {
+        "description": "Store a search and give back the id of a link to it.",
+        "operationId": "create_share",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShareBody"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ShareCreated_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "413": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Content Too Large"
+          },
+          "415": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unsupported Media Type"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Create Share"
+      }
+    },
+    "/v1/shares/{share_id}": {
+      "get": {
+        "description": "A shared search, ranked now on the release that is loaded.",
+        "operationId": "get_share",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "share_id",
+            "required": true,
+            "schema": {
+              "title": "Share Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_ShareData_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "410": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Gone"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Share"
+      }
+    }
+  }
+}

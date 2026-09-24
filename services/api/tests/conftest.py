@@ -1,0 +1,62 @@
+"""Every test leaves logging as it found it, and a generated test is sampled in `make ci`.
+
+One event loop serves the requests of every test.
+
+The service sets logging up for the whole process when it starts. A test that
+starts it must not leave the next test writing JSON to a stream that is gone.
+
+The whole suite has to stay under 30 seconds, and a generated test that puts
+every sign of doubt beside every thing in every order does not fit in that.
+So each has two forms: the sample, which always runs and is the same
+sentences every time, and the whole, which is marked `full` and is skipped
+unless it is asked for: `make test ARGS="-m full"`.
+"""
+
+import logging
+from collections.abc import Iterator
+
+import pytest
+from anyio.from_thread import start_blocking_portal
+
+from .support import LOOP
+
+FULL = "full"
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    config.addinivalue_line("markers", f"{FULL}: a generated test in full, which make ci samples")
+
+
+def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
+    if FULL in str(config.getoption("-m", default="")):
+        return
+    skip = pytest.mark.skip(reason='the whole of a generated test: run it with ARGS="-m full"')
+    for item in items:
+        if FULL in item.keywords:
+            item.add_marker(skip)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def one_loop() -> Iterator[None]:
+    """One event loop for every request of every test, started once and stopped at the end.
+
+    A test client that is not entered starts a loop for each request it makes, and the
+    tests make some two thousand. A client that a test enters still starts its own.
+    """
+    with start_blocking_portal() as portal:
+        LOOP.append(portal)
+        try:
+            yield
+        finally:
+            LOOP.clear()
+
+
+@pytest.fixture(autouse=True)
+def logging_as_it_was() -> Iterator[None]:
+    root = logging.getLogger()
+    library = logging.getLogger("anthropic")
+    handlers, levels = root.handlers[:], (root.level, library.level)
+    yield
+    root.handlers[:] = handlers
+    root.setLevel(levels[0])
+    library.setLevel(levels[1])
