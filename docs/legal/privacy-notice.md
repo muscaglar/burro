@@ -42,7 +42,7 @@ Every page was read through a reader that extracts of the page, not the page its
 
 ## What is true only while a setting holds
 
-The code was read against this notice on 23 September 2026, twice, and again on 24 September 2026. These sentences are not held by the code or by a test. Each is true only while someone keeps a setting as it is. None has been set, because nothing is deployed.
+The code was read against this notice on 23 September 2026, twice, and again on 24 September 2026. These sentences are not held by the code or by a test. Each is true only while someone keeps a setting as it is. Burro was first deployed on 25 September 2026, with the made-up city. This notice does not say which of the settings were set then.
 
 | Sentence | Section | The setting it rests on | Where the setting is written down |
 |---|---|---|---|
@@ -54,7 +54,7 @@ The code was read against this notice on 23 September 2026, twice, and again on 
 | Requests for pages are logged for 1 day | 9, 12 | The Pro plan, with no log drain and no Observability Plus | [deploy/README.md](../../deploy/README.md) |
 | Log lines are kept for 7 days, and only by Fly.io | 8, 9, 12 | No log shipper and no add-on that records paths | [deploy/README.md](../../deploy/README.md) |
 | The service runs in London | 9, 13 | One machine, one region | `deploy/api/fly.toml` |
-| Nobody but the host can read a request on its way | 9 | The domain's records point straight at the hosts, with no proxy in front | [deploy/README.md](../../deploy/README.md), step 1 |
+| Nobody but the host can read a request on its way | 9 | The domain's records point straight at the hosts, with no proxy in front | [deploy/README.md](../../deploy/README.md), "A domain, once there is one" |
 | What a provider keeps, and that it does not train on it | 4 | Settings in the provider's own account. The checklist, task 15, lists them for each provider | [data-protection-checklist.md](data-protection-checklist.md) |
 
 ## The guidance this follows
@@ -261,10 +261,10 @@ Burro runs on other companies' computers. Each receives what any host of a websi
 | Company | What it does | What reaches it | What it keeps | Where | Agreement on data processing |
 |---|---|---|---|---|---|
 | Fly.io | Runs the service that answers searches | Every request to the service: your internet address, and the request itself, which holds what you typed and your settings. The id of a shared link, when one is opened | Burro's log lines, for 7 days. **Read**, at <https://fly.io/docs/monitoring/logging-overview/>. What its own systems record of a request was not said on the pages read. **Not read** | The machine is in London. Your connection may be decrypted at the Fly.io computer nearest you, which may be outside the UK, and passed on encrypted. **Not read again: from [deploy/README.md](../../deploy/README.md)** | None found. The list of its legal documents names none. **Not read** |
-| Vercel | Serves the pages of the website | Requests for pages: your internet address, your browser's name and the page asked for. The address of an area's page names the area, and the address of a comparison names the areas compared. So Vercel can see which areas an internet address looked at. Never what you type, and never the id of a shared link: your browser sends the first straight to the service, and keeps the second in the part of the address that is sent to no server | Request logs for 1 day on the Pro plan. `[SETTING: the plan, and no add-on that keeps logs longer]` **Read**, at <https://vercel.com/docs/logs/runtime>. It can match a request to an internet address. **Read** | Pages that are rebuilt, in London. Other files from wherever is nearest you. **Not read again: from [deploy/README.md](../../deploy/README.md)** | Part of its terms, for the Pro and Enterprise plans. **Read**, at <https://vercel.com/legal/dpa>, dated 17 March 2026 |
+| Vercel | Serves the pages of the website | Requests for pages: your internet address, your browser's name and the page asked for. The address of an area's page names the area, and the address of a comparison names the areas compared. So Vercel can see which areas an internet address looked at. Never what you type, and never the id of a shared link: your browser sends the first straight to the service, and keeps the second in the part of the address that is sent to no server | Request logs for 1 hour on the Hobby plan, which is the free plan and the one in use. **Not read again: from [deploy/web/README.md](../../deploy/web/README.md)**. For 1 day on the Pro plan. `[SETTING: the plan, and no add-on that keeps logs longer]` **Read**, at <https://vercel.com/docs/logs/runtime>. It can match a request to an internet address. **Read** | Pages that are rebuilt, in London. Other files from wherever is nearest you. **Not read again: from [deploy/README.md](../../deploy/README.md)** | Part of its terms, for the Pro and Enterprise plans. **Read**, at <https://vercel.com/legal/dpa>, dated 17 March 2026 |
 | `[FOUNDER: the company that holds the domain's name records]` | Tells your browser where Burro is | The name your browser looks up | **Not read** | | |
 
-Burro is not deployed. This table is what the plan in [deploy/README.md](../../deploy/README.md) would make true. It changes if a host changes.
+Burro was first deployed on 25 September 2026, to Fly.io and to Vercel, with the made-up city. This table was written before that, from the plan in [deploy/README.md](../../deploy/README.md), and is what that plan makes true. It changes if a host changes, or the plan at a host.
 
 Later, and not yet: a company to serve map tiles, a database for accounts and links, and a service that collects error reports. Each will be added here before it is used.
 

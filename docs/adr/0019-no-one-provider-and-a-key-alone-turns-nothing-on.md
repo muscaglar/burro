@@ -81,7 +81,7 @@ The privacy notice says that DeepSeek is never used for what real people type, a
 | 1 | Whether a provider is held until a person has checked what people are told of it, or until its terms are accepted alone | Settled by [0023](0023-what-is-typed-goes-as-typed-and-people-are-told.md): until its terms are accepted alone |
 | 2 | Whether the search settings go to the model with the words | They do not. One run of the evaluation set each way settles what it costs |
 | 3 | What a model may apply in a prompt that is not plain. Two cases of the evaluation set come through the guard against what the case says | **Decided, 2026-09-24:** nothing by itself. See above |
-| 4 | Whether the version of the contract moves when a name on the wire changes | It stays 2. Nothing is deployed, and every client is generated from the one file |
+| 4 | Whether the version of the contract moves when a name on the wire changes | It stays 2. Nothing was deployed when the name changed, and every client is generated from the one file. Burro was first deployed on 2026-09-25 |
 | 5 | Whether real people's words may go to a provider that publishes no period of keeping and no agreement on processing | Settled: they may not. `choose` refuses DeepSeek, with `not_for_people` |
 
 ## What would change it

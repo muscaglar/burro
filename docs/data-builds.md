@@ -2,7 +2,7 @@
 
 For the founder. Written 2026-09-23. It applies [ADR 0015](adr/0015-where-builds-run-and-what-gates-a-launch.md) and section 3 of [the plan](design/london-data.md).
 
-No workflow here has run yet. Every time below is an estimate. What only a first run can show is listed in section 12. What was read, and where, is in section 14.
+The workflow that fetches first ran on 2026-09-24, and the ones that check what the store holds and that build London on 2026-09-25. Every time below is an estimate, but where it says that a run gave it. What only a first run can show is listed in section 12, with what the first runs showed. What was read, and where, is in section 14.
 
 The files of nine lists have since been taken to a store that is a folder, by the step `fetch` or from a person who saved them, and two previews of London were built from them. Sections 15 and 16 say how to build each and see it. [Refreshing London](refreshing-london.md) puts the steps of a refresh in one order, from what is due to what is served, and [Adding a city](adding-a-city.md) says what a second city would take. [The report of the first build](research/data/m1-first-build.md) and [the page on the second](research/data/m2-second-build.md) say what each holds.
 
@@ -14,21 +14,21 @@ As of 2026-09-23, on the branch data-m0. Read this first. What follows under thi
 
 | What | How it stands on 2026-09-24 |
 |---|---|
-| A fetch | The step `fetch` was run outside a workflow, into a store that is a folder. It fetched files of twelve lists, and four files were saved by a person. No hosted run has fetched a file, and no object store exists |
-| Receipts | 87 are in `data/receipts/`, each of a file of a list: the eleven of list m1, all 45 of m2-places, 15 of the 18 of m2-living, all three of m12-public-transport, two of m10-health, two of m11-age-and-households, both of m11-outdoor-space, two of m2-culture, which takes one file of places twice, the second time with the brand of each place, and one each of m10-land-use, m11-high-streets, m12-household-income, m2-stations and m5-journeys. 33 of them are of the food hygiene register, one for each authority, and four are of files a person saved. Three files of the lists have none: the street extract, and the workbooks of sales and of the lower quartile. The workbook of median prices was fetched again on 2026-09-24, and its receipt is for the use the list names |
+| A fetch | The step `fetch` was run outside a workflow, into a store that is a folder. It fetched files of twelve lists, and four files were saved by a person. A hosted run first fetched on 2026-09-24, into the bucket of publishers' files. On 2026-09-25 the bucket held each of the 87 files that then had a receipt, of thirteen lists |
+| Receipts | 88 are in `data/receipts/`, each of a file of a list: the eleven of list m1, all 45 of m2-places, 15 of the 18 of m2-living, all three of m12-public-transport, two of m10-health, two of m11-age-and-households, both of m11-outdoor-space, two of m2-culture, which takes one file of places twice, the second time with the brand of each place, and one each of m10-land-use, m11-high-streets, m12-household-income, m13-road-traffic, m2-stations and m5-journeys. 33 of them are of the food hygiene register, one for each authority, and four are of files a person saved. Three files of the lists have none: the street extract, and the workbooks of sales and of the lower quartile. The workbook of median prices was fetched again on 2026-09-24, and its receipt is for the use the list names |
 | List m1 | It states the edition and the period of every file, and `plan` reads `ready=11`. A program read each file, and no person has. Section 7 asks that a person read a file before its receipt is written. Decide whether what a program read is enough, or put both names back under `unsure` and take the item out of `READ_IN_THE_FILE` |
 | Two more lists | `m2-places` and `m2-living`. `plan` reads `ready=45` of 45 files and `ready=18` of 18: the three yearly files of prices paid have their addresses since 2026-09-24, and each was fetched that day and has its receipt |
-| Ten later lists | `m10-health`, `m10-land-use`, `m11-age-and-households`, `m11-high-streets`, `m11-outdoor-space`, `m12-household-income`, `m12-public-transport`, `m2-culture`, `m2-stations` and `m5-journeys` hold sixteen files between them. `plan` reads all sixteen ready. The pharmacy list states its period since 2026-09-24, as the quarter its publisher's title names. It was fetched again that day, and has its receipt. The lookup between the census areas of 2011 and of 2021 and the timetables were each fetched on 2026-09-24 and kept with no receipt, until the list of each stated its edition and its period, and what `describe` gave of the file. Each was fetched again that day, was the same file, and has its receipt. The lookup states neither, so both are its record's. The timetables state both: the day in the names of the zips the file holds, and the days its services say they run on. They are replaced each week under one address: read the next issue with `describe --inside`, and state both again, before a fetch that would take it |
+| Eleven later lists | `m10-health`, `m10-land-use`, `m11-age-and-households`, `m11-high-streets`, `m11-outdoor-space`, `m12-household-income`, `m12-public-transport`, `m13-road-traffic`, `m2-culture`, `m2-stations` and `m5-journeys` hold seventeen files between them. `plan` reads all seventeen ready. The last to join is `m13-road-traffic`, on 2026-09-25: one file, the Department for Transport's flow at each count point, which was fetched that day and has its receipt. It states no edition of its own, so it is dated by the day it was retrieved, and its list pins the years it covers. The pharmacy list states its period since 2026-09-24, as the quarter its publisher's title names. It was fetched again that day, and has its receipt. The lookup between the census areas of 2011 and of 2021 and the timetables were each fetched on 2026-09-24 and kept with no receipt, until the list of each stated its edition and its period, and what `describe` gave of the file. Each was fetched again that day, was the same file, and has its receipt. The lookup states neither, so both are its record's. The timetables state both: the day in the names of the zips the file holds, and the days its services say they run on. They are replaced each week under one address: read the next issue with `describe --inside`, and state both again, before a fetch that would take it |
 | Files that state their own edition | 37 files of those two lists have no edition on their publisher's page, and were kept with no receipt. The lists now say where each file states its own, and fetch reads it in what arrives: section 7, "A file that states its own edition". All 37 read ready. The town centre boundaries give the day the file was last changed, and fetch takes no period from it: the list states the period as that day, because a boundary is as the file holds it, and its notes say what was read. A program read it, and no person has. 36 of the 37 have a receipt since they were fetched again, on 2026-09-24: the 33 files of the food hygiene register, two reports and the town centres. The street extract has none. Two more files state no edition and joined the list with an address on 2026-09-24: conservation areas and listed buildings. Each is dated by the day it was retrieved, and has its receipt |
 | A build that reads a file which states its own edition | `seal` and `preview` take one edition of such a file, by a rule, and the lock says which: section 7, "Which edition a build takes". The second preview now seals the 33 files of the register. No measure reads them yet |
 | The hosts a download is sent on to | Lists m1 and m2-places name four under `may_redirect_to`, as a fetch saw them. The list m10-health names one more, the store the pharmacy list is handed out from, and the receipt of that file bears it out |
-| The addresses of files | 45 of the 128 entries name them under `file_urls`: every entry behind a file of a list whose address the list holds, and the four behind a file a person saved |
+| The addresses of files | 46 of the 128 entries name them under `file_urls`: every entry behind a file of a list whose address the list holds, and the four behind a file a person saved |
 | Steps that read a real file | `cells`, the measures under `derive`, and `preview`. Two previews of London were built: sections 15 and 16 |
 | The draft of the areas | `python -m burro_pipeline.areas.draft_run --out FOLDER` makes the names and the borders of London's areas from the store, in one command. It is a draft: a method made it and nobody has checked it. Nothing of it is committed |
-| A hosted build of London | Since 2026-09-25 a workflow builds London from the store in the bucket, on two runners, keeps the release in a bucket of its own where the two builds are the same, and shows its lock. A release is served only once you have committed its lock. The workflow has never run, and no bucket of releases exists: [London, from the bucket to the service](#london-from-the-bucket-to-the-service), after section 14 |
+| A hosted build of London | Since 2026-09-25 a workflow builds London from the store in the bucket, on two runners, keeps the release in a bucket of its own where the two builds are the same, and shows its lock. A release is served only once you have committed its lock. The workflow ran whole on 2026-09-25, at the first try, and the release it built is kept in the bucket of releases. No lock is committed, so no release of London is approved, taken or served: [London, from the bucket to the service](#london-from-the-bucket-to-the-service), after section 14 |
 | The review desk | `make desk` starts it. It is filled from a draft with `make desk-fill`. Names are decided before borders: `packages/pipeline/AGENTS.md` says why |
 | The check of a release | It asks the gate again about every file a row rests on, for the use the figure is put to, and holds a row to the method and the file of its measure. Both previews pass it |
-| The check of what the store holds | The workflow `data-held` says, list by list, whether the store holds every file that the repository holds a receipt for. It fetches nothing, and writes nothing to the store: section 7, "See that the store holds every file that has a receipt". It has never run. The step it runs was driven on 2026-09-25 against the store that is a folder, which holds each of the 87 files that have a receipt |
+| The check of what the store holds | The workflow `data-held` says, list by list, whether the store holds every file that the repository holds a receipt for. It fetches nothing, and writes nothing to the store: section 7, "See that the store holds every file that has a receipt". It ran once, on 2026-09-25, before the last 24 files were handed over to the bucket: it failed, as it is meant to, and named each file that was missing. It has not been run since. The step it runs was driven on 2026-09-25 against the store that is a folder, which holds each of the 88 files that have a receipt, and against the bucket, which held each of the 87 that had one before the list of traffic counts joined |
 
 ### How things stood before the first fetch
 
@@ -49,7 +49,7 @@ M0 is "ready to fetch": what must exist before the first real file is downloaded
 | The receipt | One record of a fetched file, written by fetch and read by every other part. A copy is kept in the store beside the file. It is written once a person has read the file, and not before: section 7 | On made-up files |
 | Evidence | The method, the evidence row and the claim. The lock of a build, sealed from the list of its files. The coverage report. The rule that no fact is served without evidence | On the synthetic release, and on made-up files that were fetched |
 | The command line | One command with a step for each part of the work: `uv run python -m burro_pipeline --help`. Each step answers `--help`. The Makefile has a target for the steps a person runs | Every step was driven by hand |
-| The hosted workflows | A workflow that fetches and one that builds, and the tools that keep a row, a key and the store's address out of a log. A run installs the pipeline and what it needs, and nothing else | Held to their rules by a check and by tests. Never run |
+| The hosted workflows | A workflow that fetches and one that builds, and the tools that keep a row, a key and the store's address out of a log. A run installs the pipeline and what it needs, and nothing else | Held to their rules by a check and by tests. None had run when M0 was built. The one that fetches first ran on 2026-09-24, and the ones that check what the store holds and that build London on 2026-09-25 |
 | The first list | The eleven files of the first real build, each with its registry entry, the page a person finds it on, and its address. Each address was read on its publisher's page through a reader that extracts the text. The list is sure of four, and names seven to be opened once in a browser. It is sure of no edition and of no period, because no file has been read | The registry allows every one. No fetch has tried an address |
 | The walk | A test that takes made-up files through every step: served, fetched through the gate, stored, given a receipt, described, sealed, a figure worked out by one method, its evidence written, the report run, and the figure traced back to the hash of its file. Then each link is broken in turn | It passes, and was walked by hand too |
 
@@ -70,7 +70,7 @@ Each was found by reading the code and by trying it on made-up files. None stops
 | Known | What it means | Until it is mended |
 |---|---|---|
 | The list names the hosts a request may be sent on to, under `may_redirect_to`. The registry entry does not | A change to a list alone can widen where a file may come from | Read a change to `may_redirect_to` as closely as a change to an entry. Lists m1 and m2-places name four such hosts, and m10-health one |
-| On a host that only the list names, fetch refuses a file only if it came from an address that some entry names. 83 of the 128 entries name no address for their files | A file of one of those entries that is kept on such a host would not be told apart | The same. And name the addresses of an entry's files before a list names a host it shares |
+| On a host that only the list names, fetch refuses a file only if it came from an address that some entry names. 82 of the 128 entries name no address for their files | A file of one of those entries that is kept on such a host would not be told apart | The same. And name the addresses of an entry's files before a list names a host it shares |
 | `seal` puts a file in the lock for any use the gate allows, an internal use included | A file read to validate against is an input of the build | `check` names every row that rests on such a file, under `input_is_allowed`. No figure may rest on it |
 | `write_release` asks the gate about the sources a release names, and reads no evidence | A source that is named only in the evidence is not asked about when a release is written | `check` asks about it. Run `check` on every release, with its lock and the registry. Evidence inside a release is for the contract's next schema |
 | `check` asks a source behind a journey for `routing`, and one behind a name for `gazetteer` | The weights and the lookup behind a journey must be registered for `routing`, as ADR 0016 has them registered for `scoring`. No entry has been changed for it | The first real build carries no journey. Decide before the first that does |
@@ -557,7 +557,7 @@ A build copies each file out of the store by the hash its receipt gives. So the 
 | `step=store status=ok files=89 bytes=5584175799` | How many files the store holds in all, with a receipt or with none |
 | `step=store list=m2-living status=ok files=18 receipts=15 missing=0 differs=0` | One line for each list. `files` is how many files the list names, and `receipts` how many receipts the repository holds of them. A file with no receipt is not asked about: no build reads one. `missing` and `differs` count the files that have a receipt and are not in the store as the receipt has them |
 | `step=store list=m2-living source=dfe-gias item=gias-establishments status=missing file_id=f-e2cf7e0c0508` | One line for each such file: its list, its source, its name in the list, and the id of the file, which its receipt is named for. `status=missing` says the store holds no file of that hash. `status=differs` says it holds one, under another name or at another size than its receipt gives |
-| `step=store status=ok lists=13 receipts=87 missing=0 differs=0 unlisted=0` | The totals. `status=ok` on this line says that the store holds every file that has a receipt. `unlisted` counts the receipts that are of no file of any list: each is held to the store all the same, and one that is missing has a line with no `list` and no `item` |
+| `step=store status=ok lists=14 receipts=88 missing=0 differs=0 unlisted=0` | The totals. `status=ok` on this line says that the store holds every file that has a receipt. `unlisted` counts the receipts that are of no file of any list: each is held to the store all the same, and one that is missing has a line with no `list` and no `item` |
 
 A green step means the store holds every file the repository holds a receipt for. A red step ends `exit=1`, and the lines above it name each file that is missing or that differs.
 
@@ -639,7 +639,7 @@ A step's own words are never shown. Each step runs behind `tools/public_log.py`,
 | `ok=9`, `failed=1`, `missing=1` | How many files ended each way | A whole number |
 | `source=...` | The source of a file | An id that is in the licence registry |
 | `list=m1`, `item=oa-lookup` | A list of files, and a file of one, by the name the list gives it | A name that a list of this repository gives |
-| `lists=13`, `unlisted=0` | How many lists the store was held to, and how many receipts are of no file of any list | A whole number |
+| `lists=14`, `unlisted=0` | How many lists the store was held to, and how many receipts are of no file of any list | A whole number |
 | `kind=object_store` | Which kind of store a step was given. In a run it never reads `kind=folder` | A word from a fixed list |
 | `kind=html` | What arrived in place of a file, where it was not kept | A word from a fixed list |
 | `host=...` | A host a request was sent on to: the first twelve digits of a hash of its name, and never the name | Twelve digits of a hash |
@@ -819,6 +819,8 @@ What would change it:
 
 Nothing below could be tried before the repository was on GitHub. The rehearsal of section 5 shows rows 1 to 14 with nothing real at stake. Rows 1 to 4 matter most. Note every row that is not so, and have them mended together: one push, and not one for each.
 
+Two rows are answered since, and were so. Row 15: a hosted run fetched into the bucket on 2026-09-24, so the store answers a runner and the fetch key can list and write. Row 19: the check of what the store holds ran on 2026-09-25 and named each file that was missing, so a key which may read and no more can list the store. The other rows stand as they were written.
+
 | # | Not known | How the first run shows it | If it is not so |
 |---|---|---|---|
 | 1 | That the step "Every secret is set" never shows a value it asks the runner to hide. It should read `::add-mask::***`, or show no such line | Read that step's log in the rehearsal | Stop. The step must then ask the runner to hide nothing, and rely on `tools/public_log.py` alone |
@@ -845,7 +847,7 @@ Nothing below could be tried before the repository was on GitHub. The rehearsal 
 
 | Not built | Why | Until then |
 |---|---|---|
-| A run of the build of London | The workflow that builds London, keeps the release and shows its lock is built, and has never run. No bucket of releases exists: [London, from the bucket to the service](#london-from-the-bucket-to-the-service) | London is built on a machine of your own: section 29. The workflow `data-build` builds the made-up city, compares and throws away, as a rehearsal |
+| An approved release of London | The workflow that builds London, keeps the release and shows its lock ran whole on 2026-09-25, at the first try, and the bucket of releases holds the one release it built. No lock is committed, so that release is not approved, and none is taken or served: [London, from the bucket to the service](#london-from-the-bucket-to-the-service) | The service and the website serve the made-up city. London is also built on a machine of your own: section 29. The workflow `data-build` builds the made-up city, compares and throws away, as a rehearsal |
 | The full log of a step, kept in the store | No code writes a log to a store | A failure is found on made-up data: section 9 |
 | Bringing a receipt from a run into the repository | A fetch writes the receipt to the runner's disk, and the runner is thrown away. So the fetch also keeps a copy in the store. To reach the repository from there, a person brings it back, or the run shows it, or the run pushes it. The second shows more than step names, counts and hashes. The third needs a permission to write that no data workflow has. The plan's decision 2, on committing receipts in public, is also open | A person brings the receipts back and commits them: section 7. It needs a key on a machine of your own. Whether that is acceptable is yours to decide |
 | Bringing the reports of a build from a run into the repository | No run may write to the repository, and a coverage report names areas, so no run may show it. The lock of a release holds no name and no figure, so a run shows it, and you commit it: [London, from the bucket to the service](#london-from-the-bucket-to-the-service) | The reports are kept beside the release, in the bucket of releases. Take the release to a machine of your own to read them: [London, from the bucket to the service](#london-from-the-bucket-to-the-service), under "Read the lock, and approve the release" |
@@ -911,7 +913,7 @@ Not read, and written from memory: that Cloudflare asks for a payment card, the 
 
 For the founder. Written 2026-09-25. It has no number: it is part of the guide to hosted builds, which ends here, and the numbered sections that follow are the record of each preview. It applies [ADR 0030](adr/0030-a-release-is-kept-approved-by-its-lock-and-carried-in-the-image.md).
 
-**Nothing here has run on a host.** The workflow has never run, and no bucket of releases exists. Every step of it was driven on a machine of a developer's own, with a folder standing in for each bucket: the part "What was tried" says what that showed. What only a first run can show is listed under "What only a first run can show". Every time below is an estimate.
+**The workflow ran whole on 2026-09-25, at the first try.** Its two builds, on two runners, took 27 and 26 minutes: each copied the store in about 7 minutes, built London in about 16 and checked the release in about 3. The two were the same, byte for byte, and the release was kept in the bucket of releases, which holds that one release. No private line was found in what the run made public. No lock is committed under `data/approved/`, so no release of London is approved, taken or served. Before it ran, every step of it was driven on a machine of a developer's own, with a folder standing in for each bucket: the part "What was tried" says what that showed. What the first run answered is said under "What only a first run can show". Every other time below is an estimate.
 
 Until now London was built on a machine of a developer's own. From here a hosted run builds it from the store in the bucket, and from nothing else. Once the store is in the bucket, the repository and the two buckets are all that a release needs.
 
@@ -1038,7 +1040,7 @@ Once names are decided at the review desk, a build is given what the desk decide
 
 ### 5. What a run prints
 
-Each line is one the list of section 8 allows. The counts below are those of a build on a machine of a developer's own, from the thirteen lists there are. `missing` counts the files of a list that have no receipt: a build goes on without them, and the measures that rest on them are left out.
+Each line is one the list of section 8 allows. The counts below are those of a build on a machine of a developer's own, from thirteen of the fourteen lists there are: it was made before the list of traffic counts joined, which adds one file and one measure to every count. `missing` counts the files of a list that have no receipt: a build goes on without them, and the measures that rest on them are left out.
 
 | Step | It prints | What a green step means |
 |---|---|---|
@@ -1116,6 +1118,8 @@ Where "Hash what was built", "Compare the two builds" or "Show the lock of the r
 A run that ends red has kept nothing, unless the step "Keep the release" is the one that failed. What such a run left in the bucket is served nowhere: no lock was shown, so none can be committed.
 
 ### What only a first run can show
+
+The first run, on 2026-09-25, answered rows 2 to 6 and row 9, and each was so. Both builds passed on a runner, so a runner has the disk and the memory a build needs. A build took 27 minutes and 26, of which about 7 copied the store, about 16 built London and about 3 checked the release. Each build copied the store out, so a key which may read and no more can list the store and copy a file out. The two builds were compared and were the same bytes, so two runners give the same bytes, and a job's output is handed on where it holds many hashes. It answered half of row 1 and of row 7: the first build's hashes reach the second, and the bucket of releases takes a release that is not there yet. The rest of those two rows, and row 8, stand as they were written.
 
 | # | Not known | How the first run shows it | If it is not so |
 |---|---|---|---|
@@ -1803,3 +1807,53 @@ A firm budget of £1,700 a month for one bedroom, held against the middle rent o
 The 65 are in seven boroughs: 23 of the 24 areas of Westminster, 20 of the 21 of Kensington and Chelsea, 8 of the 23 of Islington, 7 of the 38 of Wandsworth, 3 of the 30 of Hackney, 3 of the 35 of Lambeth, and the one area of the City of London. No area of the other 26 boroughs is left out.
 
 The tables of the first ten areas of each search name places, so they are kept outside the repository and are in no tracked file.
+
+## 33. A preview with the traffic near homes
+
+The catalogue is at version 15, and the engine is 1.15.0. Core holds the traffic near where homes stand as a measure, `road_traffic_nearby`, and Quiet streets holds it at 20 in 100, which it took from main roads. [Decision record 0031](adr/0031-the-traffic-near-homes-is-a-measure.md) says what was decided and what reverses it. The build names one list more, `m13-road-traffic`, the fourteenth, whose one file has its receipt since 2026-09-25. It is held against the build that is served, which is of catalogue version 14 and holds the high street in a conservation area: `moved` reads each by its own catalogue.
+
+Do everything as section 29 says, with these changes:
+
+| # of section 15 | Run this in its place |
+|---|---|
+| Before 4 | `uv run python -m burro_pipeline draft --out FOLDER --work FOLDER`, as in section 32 |
+| 4 | `make preview ARGS="--release-id lon-2026-09-25-95 --built-at 2026-09-25T20:00:00Z --out data/releases --names FOLDER --list m1 --list m10-health --list m10-land-use --list m11-age-and-households --list m11-high-streets --list m11-outdoor-space --list m12-household-income --list m12-public-transport --list m13-road-traffic --list m2-culture --list m2-living --list m2-places --list m2-stations --list m5-journeys"` |
+| 5 | `uv run burro-release check data/releases/lon-2026-09-25-95 --receipts data/receipts --income data/releases/lon-2026-09-25-95-income` |
+| 6 | The same, with `lon-2026-09-25-95` where section 15 has `lon-2026-09-24-01` |
+
+The time of the build is after the file of traffic counts was retrieved, which was at a quarter past six that morning. Step 4 took eight minutes, and step 5 under two.
+
+What to know before you look:
+
+- The first line reads `inputs=91 missing=3 own_edition=43`. The file of traffic counts is one of the 91, and is dated by the day it was retrieved.
+- Step 4 prints 101 lines of `step=derive status=ok` and five of `step=derive status=skipped`, which are the five of section 31. The line of the new measure reads `feature=road_traffic_nearby source=dft-road-traffic-counts areas=1002 values=943 files=4`.
+- Step 5 says `101 measures, 641 destinations, 641 places`. The check counts 112,707 facts, with evidence behind every one.
+- **943 of the 1,002 areas have a figure of traffic, and 59 have none.** A home has a figure only where a count point stands within 500 metres of it, and the publisher counts main roads and a sample of the rest. No figure is never a figure of nought: nothing is filled in.
+- Every area has a band on Quiet streets, as before. The 943 rest on the whole of its recipe, and the 59 on 80 in 100, and the fact of each says on how many parts.
+- The figure is said whole and with its separator, as "motor vehicles a day". Its fact is dated "2000 to 2025", which is the years of the figures that were read, and carries the publisher's credit and the note the publisher asks for.
+- It holds no journey time, as before.
+
+What moved against the build that is served, as `moved` prints it:
+
+```
+step=moved feature=road_traffic_nearby came=1
+step=moved vibe=quiet_residential areas=1002 changed=271 up=136 down=135 gained=0 lost=0
+step=moved vibe=quiet_residential parts_came=1 parts_went=0 shares_changed=1 names_changed=0 rough_came=0 rough_went=0
+step=moved source=dft-road-traffic-counts changed=0 came=1 went=0
+step=moved search=1 kept=9 came=1 went=1 reordered=4
+step=moved search=2 kept=8 came=2 went=2 reordered=4
+step=moved search=3 kept=10 came=0 went=0 reordered=0
+```
+
+One measure came, one vibe moved, one file came, and nothing else: `measures_moved=0`, `costs_moved=0`, `files_changed=0`, and no area came, went or was redrawn. Of the 271 areas that stand in another band of Quiet streets, all but three moved by one band. The two searches that ask for Quiet streets kept nine and eight of their first ten, and the third, which asks for no quiet, kept its ten in their order.
+
+What a person is answered who asks for little traffic, by the rules alone, through the API's test client and with no model:
+
+| The words | What Burro does with them |
+|---|---|
+| "no traffic" | Applies it, as less traffic nearby. It ranks the 943 areas that have a figure. The 59 that have none are not ranked, and the answer says of each what it lacks |
+| "away from main roads" | Applies less traffic nearby, and says that main roads by themselves are not in this data: a build of London shows them and ranks no area on them alone. The areas are those of "no traffic" |
+| "quiet road" | Applies Quiet streets, as "a quiet street" does. It ranks all 1,002 areas |
+| "not on a busy road" | Applies nothing: "on" is no word the rules place. It offers less traffic nearby, and one press takes it. The areas are then those of "no traffic" |
+
+On the build that is served the first of these applied nothing, the second said only that main roads are not in this data, the third offered Quiet streets for a press, and the fourth was not read at all. No line the service wrote holds a word that was typed, or the id of an area.

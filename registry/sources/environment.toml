@@ -281,14 +281,35 @@ commercial_use = "yes"
 share_alike = false
 attribution = "Contains public sector information licensed under the Open Government Licence v3.0."
 attribution_verified = false
+attribution_beside_figures = true
+said_with_attribution = "The Department for Transport says that its estimates of traffic for a road link are less robust than its figures for a region or for the country, because they are not always based on up-to-date counts made at the place."
 conditions = [
     "Major roads are counted well and minor roads are sampled. Use it as exposure to busy roads, not as a traffic model.",
+    "Minor roads are sampled and not counted everywhere. The publisher gives a count point to every link of the major road network, and to a minor road only where it is in its sample. So an area or a street with no count point has no figure, and none is ever filled in: not from a road nearby, not from the class of a road, and never as nought.",
+    "A count point that has left the sample of minor roads keeps the figures of its earlier years and gains none. So a figure is given with the year it is of, and an old figure is never said to be of today.",
+    "A figure of a year was counted or estimated, and the file says which in its column estimation_method. The publisher says that a figure marked Estimated should be used with caution. Whatever is made from the file says how many of its figures were counted and how many estimated.",
+    "The publisher asks that whoever uses its estimates for a road link makes a note of their limitations in any published material. It says they are less robust than its figures for a region or for the country, because they are not always based on up-to-date counts made at the place. Say so wherever a figure made from the file is shown. Met since 2026-09-25: the note is held here under said_with_attribution. A release carries it with the credit, and it is served and drawn wherever the credit is: on the page of sources, and beside every figure made from the file.",
+    "The flows of two count points are never added together: the publisher's metadata document says they should not be, for methodological reasons. A figure made from several count points is the flow of one of them.",
 ]
-status = "held"
-status_reason = "Not in the v1 source list in PLAN section 7, and no street or traffic feature is in the v1 feature set. The downloads page states OGL v3.0 (drafter and reviewer both fetched it on 2026-09-23). Promotion needs no further licence work."
+status = "approved"
+status_reason = "Promoted from held on 2026-09-25, because a measure now needs it: the traffic near where homes stand, which a person may rank on and which is a part of Quiet streets. It was held for one reason: no feature of version one needed it. The licence stands as it was read on 2026-09-23, on the downloads page, by the drafter and by the reviewer: the Open Government Licence v3.0. The promotion needed no licence work, and none was done."
+before_launch = [
+    "A person opens the downloads page in a browser, and reads on it the address of the file and the line of the licence. A program read both on 2026-09-25, through a reader that extracts and in the raw text of the page, and no person has.",
+    "The pages that were read give no wording of credit for this dataset, so the attribution is the wording the Open Government Licence gives where a publisher states none. Read the page again for a wording of its own.",
+]
+uses = ["scoring", "validation_only"]
+cadence = "Yearly. The publisher's page of questions says the estimates are updated alongside its annual publication of road traffic estimates. No page that was read states a day."
 verified_how = "primary_source"
 verified_on = 2026-09-23
-evidence_urls = ["https://roadtraffic.dft.gov.uk/downloads"]
+evidence_urls = [
+    "https://roadtraffic.dft.gov.uk/downloads",
+    "https://roadtraffic.dft.gov.uk/about",
+    "https://roadtraffic.dft.gov.uk/frequently-asked-questions",
+]
+file_urls = [
+    "https://storage.googleapis.com/dft-statistics/road-traffic/downloads/data-gov-uk/dft_traffic_counts_aadf.zip",
+]
+notes = "Read again on 2026-09-25, through a reader that extracts, which is not the page itself. No person has seen a page. The raw text of the downloads page was read the same day, and bears out what the reader gave of it: the address of the file, letter for letter and twice, the years, the records and the line of the licence. The downloads page was asked five times, in different words. It still says that all content is available under the Open Government Licence v3.0, except where otherwise stated, and gives no wording of credit. It offers four files at the level of a count point: the count points, the raw counts, the annual average daily flow, and the same flow by direction. The address of each is written whole on the page, on a host that is not the host of the page, and two readings gave the address of the file of annual average daily flow letter for letter. It is not built from a pattern. Of that file the page gives 600,551 records and no size. It says the data at the level of a count point is in zipped CSV and covers the years 2000 to 2025. It names no edition and no day of release. It says that a figure whose estimation method is Counted is likely to be more accurate than one marked Estimated, and that the second should be used with caution. It says nothing of minor roads. The about page and the page of questions do: the estimates are made for each link of the major road network and for a sample of places on the minor roads, the sample is counted each year and refreshed every 10 years, and a road whose latest figure is many years old was in the sample once and is not in the latest. A link of a major road is counted each year or every 2, 4 or 8 years, and the figure of a year with no count is made from the year before. The downloads page links the publisher's metadata document, on the host of the files. A program read its words and no person has. It lists the columns of the file of annual average daily flow: the id of the count point, the year, the region and the local authority, the name of the road, its category and whether it is major or minor, the two junctions of the link, the easting and the northing of the count point with its latitude and longitude, the length of the link, the method of estimation in short and in detail, and the flow of each kind of vehicle and of all motor vehicles, which is every vehicle but a pedal cycle. So the one file gives where each count point stands and its flow of each year, and the file of count points is not needed. The file was fetched on 2026-09-25, and holds the columns the document lists, under the names it gives them. Not covered by this entry: the raw counts, the flows by direction, the totals by region and by local authority, and the Major Roads Database, which the same page offers."
 
 [[source]]
 id = "ea-risk-of-flooding-rivers-sea"

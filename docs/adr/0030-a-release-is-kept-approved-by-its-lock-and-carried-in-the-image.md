@@ -1,6 +1,6 @@
 # 0030. A release is kept in a bucket of its own, approved by its lock, and carried in the image
 
-Status: accepted, 2026-09-25. It says where a release of London is kept and what makes it one that may be served, so it was the founder's to approve, and the founder accepted it the same day: the last section has their words. It applies [0015](0015-where-builds-run-and-what-gates-a-launch.md) and [0018](0018-a-real-release-is-served-with-its-evidence.md), and closes what 0018 left open. Nothing of it has run on a host.
+Status: accepted, 2026-09-25. It says where a release of London is kept and what makes it one that may be served, so it was the founder's to approve, and the founder accepted it the same day: the last section has their words. It applies [0015](0015-where-builds-run-and-what-gates-a-launch.md) and [0018](0018-a-real-release-is-served-with-its-evidence.md), and closes what 0018 left open. Of it, the keeping has run on a host: a hosted run built London and kept the release on 2026-09-25. No release is approved, taken or carried in an image yet.
 
 ## Context
 
@@ -75,4 +75,4 @@ This record and [0029](0029-a-change-reaches-a-release-through-a-file-of-changes
 
 > 2. Yes.
 
-Nothing of the design changed with it, and no code did. It is still so that nothing of it has run on a host.
+Nothing of the design changed with it, and no code did. Nothing of it had then run on a host. The same evening the workflow that builds London ran whole, at the first try: its two builds were the same, byte for byte, and the release was kept in the bucket of releases. No lock is committed, so no release of London is approved, taken or carried in an image.

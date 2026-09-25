@@ -13,8 +13,8 @@ Every count was made by a program that read the code, and by no person. Each pla
 | What does not care which city it serves | The arithmetic of core, the API's own code, and the maps of the website, the app and the desk |
 | What stands in the way first | Core admits two cities, `syn` and `lon`, in the pattern of every id. The contract carries the pattern, and four other parts write it again by hand |
 | Where the pipeline writes London into its code | 250 places, of ten kinds |
-| How far the 43 sources that hold a receipt reach | 7 London alone, 7 England, 13 England and Wales, 7 Great Britain, 4 the United Kingdom, 1 the world. Of 4 the repository does not say |
-| What a second city has on day one | 90 of London's 100 measures, and 9 of its 14 vibes |
+| How far the 44 sources that hold a receipt reach | 7 London alone, 7 England, 13 England and Wales, 8 Great Britain, 4 the United Kingdom, 1 the world. Of 4 the repository does not say |
+| What a second city has on day one | 91 of London's 101 measures, and 9 of its 14 vibes |
 
 ## 1. What already does not care which city it serves
 
@@ -22,7 +22,7 @@ Section 8 gives the path and the line of each place named here.
 
 | Part | What of it names London | What of it is blind to the city |
 |---|---|---|
-| Core | The pattern of every id, which admits `syn` and `lon` (`ids.py:17` to `:21`). The labels of two measures and the meaning of Well connected, which name the Underground and the Overground (`catalogue.py:1199`). A rate of the estimate of a journey (`estimate.py:37`). Two phrases the reader hears (`lexicon.py:951`) | Ranking, percentiles and bands. Every comparison says "in this release", and a test holds every sentence to naming no city |
+| Core | The pattern of every id, which admits `syn` and `lon` (`ids.py:17` to `:21`). The labels of two measures and the meaning of Well connected, which name the Underground and the Overground (`catalogue.py:1210`). A rate of the estimate of a journey (`estimate.py:37`). Two phrases the reader hears (`lexicon.py:968`) | Ranking, percentiles and bands. Every comparison says "in this release", and a test holds every sentence to naming no city |
 | The API | Nothing of its own. It serves core's words, so an offer and the prompt to a model name the Underground whatever release is loaded | It holds no city code. It loads one release, so it serves one city |
 | The website | The address of an area's page, which knows `lon` alone (`lib/city.ts:9`). Two sentences of the page of methods | Its copy says "Burro covers one city". Its map is framed on the release's outlines |
 | The app | The city of a shared address (`SiteAddress.swift:47`), and the name of the bundle | Its copy names no city |
@@ -41,7 +41,7 @@ All under `packages/pipeline/src/burro_pipeline/`. A place is one definition, wi
 | 3. Its extent | 8 | No box is written in code. Two lists hold the box and the file of the places, and the grid squares of the parks | A list of the city's own |
 | 4. Its centre | 0 | None is written. The middle is worked out from the homes | Nothing |
 | 5. The prefix of a release's id, and the code of the city | 19 | `lon-n` begins the id of every area (`cells/spine.py:122`). `city=City.LON` is in every manifest (`assemble/release.py:428`). Five patterns admit `lon-` alone | The city is an argument of five steps. Core gains the code, which is a change to the contract and to both clients |
-| 6. The names of its lists | 6 | The thirteen lists are named for milestones, as `m1`, and each mixes national files with London's | A list of the national files, and a list of each city's own. The workflows name the lists |
+| 6. The names of its lists | 6 | The fourteen lists are named for milestones, as `m1`, and each mixes national files with London's | A list of the national files, and a list of each city's own. The workflows name the lists |
 | 7. Sources that are London's alone, named in code | 11 | Four are read by a measure, and one by what a home lets for | A measure says which source it reads for which city, or is left out |
 | 8. Files and addresses that are London's | 59 | The two police forces, the authority `490` of the stops, the 33 files of the food register | Each is given with the city |
 | 9. Words a person is shown | 74 | "A release of London". "Near the edge of London", beside every figure of places | A sentence takes the name of the city from the build |
@@ -49,11 +49,11 @@ All under `packages/pipeline/src/burro_pipeline/`. A place is one definition, wi
 
 ## 3. The sources
 
-Section 9 has a row for each of the 43. What a second city acts on is here.
+Section 9 has a row for each of the 44. What a second city acts on is here.
 
 | The publisher reaches | Sources | What a second city does |
 |---|---|---|
-| England, England and Wales, Great Britain, the United Kingdom | 31 | Takes the same file: 29 are held whole. Four registry entries name London in a condition, and are changed |
+| England, England and Wales, Great Britain, the United Kingdom | 32 | Takes the same file: 30 are held whole. Four registry entries name London in a condition, and are changed |
 | The world | 1: the file of places | Takes the one file of 16 that holds the city, and the city's box. The file that is held runs from 1.59 degrees west |
 | Not said in the registry | 4: the food register, the police's files, the NHS reports and the school inspections | Finds out. Each list says "national", and names no nation |
 | London alone | 7 | Needs a substitute, below |
@@ -70,7 +70,7 @@ Four files that are held were cut for London, each in a list: the food register 
 | `tfl-ptal-2015` | No module | Not known: to be found |
 | `ons-private-rental-market-london-postcode-district` | What a home lets for | By local authority, `ons-price-index-of-private-rents`. By postcode district, not known: to be found |
 
-Eight of the 43 are read by no module, two of London's seven among them. So a second city loses less than the list suggests.
+Eight of the 44 are read by no module, two of London's seven among them. So a second city loses less than the list suggests.
 
 ## 4. The measures and the vibes of day one
 
@@ -78,7 +78,7 @@ Day one is the first build of the city, once the pipeline takes one. A measure i
 
 | | Measures | Which |
 |---|---|---|
-| On day one | 90 | The 57 of the file of places, and the 21 of council tax, land use, parks, the census and median prices. Air, noise, main roads, water, conservation cover, listed buildings, private outdoor space, primary schools, a GP practice, a pharmacy, the nearest station and the stops of buses |
+| On day one | 91 | The 57 of the file of places, and the 21 of council tax, land use, parks, the census and median prices. Air, noise, main roads, the traffic near homes, water, conservation cover, listed buildings, private outdoor space, primary schools, a GP practice, a pharmacy, the nearest station and the stops of buses |
 | On day one, if the publisher gives the city's own files | 4 | Places to eat and drink, twice, from the food register. Recorded criminal damage and anti-social behaviour, from the police's files |
 | Waits | 4 | `highstreet_access` waits on town centres, `highstreet_conserved` on high streets, and `bus_routes_nearby` on the routes of buses. `rail_proximity` waits on a change to its step alone: the national file holds every railway station |
 | Cannot be had as it is named | 2 | `underground_proximity` and `overground_proximity`. Each is named for London's own modes, and an id is never renamed. A measure of the city's own modes is a new measure |
@@ -114,7 +114,7 @@ A band needs 60 in 100 of its recipe. What a home lets for is held for London, f
 | 14 | Measure the memory of the service on the first build: London took 381 MB of a machine of 512 | `deploy/README.md`, "What has not been checked" |
 | 15 | Have somebody try to refute every claim the plan rests on: of London's 72, 19 were partly wrong and 1 was refuted | `docs/PLAN.md`, under its first tables |
 
-One thing the research said before London was built did not hold: that a city of England and Wales would reuse the pipeline as it is, because every source was national (`docs/research/reports/boundaries.md`). Seven of the 43 are not.
+One thing the research said before London was built did not hold: that a city of England and Wales would reuse the pipeline as it is, because every source was national (`docs/research/reports/boundaries.md`). Seven of the 44 are not.
 
 ## 6. An order of work for the first city after London
 
@@ -254,7 +254,7 @@ No place. No point is written as the middle of the city: where a sentence speaks
 | `assemble/cli.py:329` | `--list m1` | Examples, on five lines |
 | `evidence/cli.py:115` | `--list m1` | Examples, on three lines |
 | `fetch/cli.py:130` | `--list m1` | Examples, on four lines |
-| `fetch/lists/m1.toml:56` | `build = "m1"` | The name of each of the thirteen lists, in its own file |
+| `fetch/lists/m1.toml:56` | `build = "m1"` | The name of each of the fourteen lists, in its own file |
 
 ### Kind 7: sources that are London's alone, named in code
 
@@ -404,7 +404,7 @@ No place. No point is written as the middle of the city: where a sentence speaks
 | `derive/stops_file.py:113` | `"LU": "underground"` | The kind of a station, by the letters of its code |
 | `derive/station_places.py:81` | `tram_metro_underground` | How a station is served, and the endings of its name on line 84 |
 | `derive/bus_routes.py:106` | `STANDS_IN` | How London Buses names a bus that stands in for a train |
-| `derive/measures.py:250` | `bus_routes` | The one list of measures, which no city can leave one out of |
+| `derive/measures.py:251` | `bus_routes` | The one list of measures, which no city can leave one out of |
 | `areas/assign.py:50` | `NORTH, SOUTH, NOT_DRAWN` | One tidal river with two banks, which no area may cross |
 | `areas/assign.py:56` | `BOTH_BANKS` | An area on both banks breaks a rule |
 | `areas/assign_files.py:204` | `def banks_of` | The two largest pieces east of the water's west end |
@@ -441,13 +441,13 @@ What section 1 names, with the whole path of each.
 | Where | What is written | Part | What it does |
 |---|---|---|---|
 | `packages/core/src/burro_core/ids.py:21` | `RELEASE_ID_PATTERN = r"^(syn\|lon)-` | Core | The pattern of the id of a release. Lines 17 to 20 hold the same of an area, a destination, a place and a station |
-| `packages/core/src/burro_core/ids.py:316` | `LON = "lon"` | Core | The one city that is not made up |
+| `packages/core/src/burro_core/ids.py:319` | `LON = "lon"` | Core | The one city that is not made up |
 | `packages/core/src/burro_core/release.py:221` | `city: City` | Core | The city of a manifest |
 | `packages/core/src/burro_core/ids.py:159` | `UNDERGROUND_PROXIMITY = "underground_proximity"` | Core | With `OVERGROUND_PROXIMITY`, line 160: the ids of two measures |
-| `packages/core/src/burro_core/catalogue.py:1199` | `Underground or DLR` | Core | The label of a measure. So line 1214, of the Overground, and line 1832, the meaning of Well connected |
+| `packages/core/src/burro_core/catalogue.py:1210` | `Underground or DLR` | Core | The label of a measure. So line 1225, of the Overground, and line 1873, the meaning of Well connected |
 | `packages/core/src/burro_core/estimate.py:37` | `MINUTES_A_KM_NEAR_THE_UNDERGROUND = 2.5` | Core | With `NEAR_THE_UNDERGROUND_M`, line 39. Both are names of the contract |
-| `packages/core/src/burro_core/lexicon.py:951` | `outside london` | Core | What the reader hears. So "near a tube", line 650, and "by tube" in `grammar.py`, line 161 |
-| `packages/core/src/burro_core/rank.py:136` | `FIRM_BUDGET_MARGIN_PERCENT = 25` | Core | Reasoned on flats sold in London: the comment above it |
+| `packages/core/src/burro_core/lexicon.py:968` | `outside london` | Core | What the reader hears. So "near a tube", line 667, and "by tube" in `grammar.py`, line 161 |
+| `packages/core/src/burro_core/rank.py:139` | `FIRM_BUDGET_MARGIN_PERCENT = 25` | Core | Reasoned on flats sold in London: the comment above it |
 | `apps/web/src/lib/city.ts:9` | `lon: "london"` | Website | The first part of the address of an area's page. Line 21 gives any other city no page |
 | `apps/web/src/content/methods.ts:44` | `London's neighbourhoods` | Website | A sentence of the page of methods. So line 149, of the Underground |
 | `apps/web/scripts/check-pages.mjs:252` | `synthetic\|london` | Website | How the check of the built pages knows the page of an area |
@@ -460,9 +460,9 @@ What section 1 names, with the whole path of each.
 | `tools/desk/cli.py:327` | `gazetteer/london` | Desk | Where the decisions are published to, in a line of help |
 | `tools/desk/fill/draft.py:1265` | `"lon"` | Desk | The prefix of an item of real data |
 | `tools/desk/fill/draft.py:330` | `gla-town-centre-boundaries` | Desk | A source of the evidence of a name |
-| `tools/desk/panel/numbers.py:83` | `Underground` | Desk | Two numbers of the estimate of a journey, as the panel lists them |
+| `tools/desk/panel/numbers.py:84` | `Underground` | Desk | Two numbers of the estimate of a journey, as the panel lists them |
 | `.github/workflows/data-london.yml:1` | `name: data-london` | Workflows | The workflow, its environment and its group |
-| `.github/workflows/data-london.yml:123` | `--list m1 --list m10-health` | Workflows | The thirteen lists a build takes, on two lines |
+| `.github/workflows/data-london.yml:123` | `--list m1 --list m10-health` | Workflows | The fourteen lists a build takes, on two lines |
 | `tools/public_log.py:83` | `"data-london"` | Tools | The one environment that is given the key that writes a release |
 | `tools/release_lock.py:81` | `LONDON = re.compile(r"lon-` | Tools | The lock an image is held to. Line 80 admits `syn` and `lon` |
 | `Makefile:146` | `gazetteer/london` | Tools | Two lines of help |
@@ -478,6 +478,7 @@ What section 1 names, with the whole path of each.
 | `defra-pcm-background-air` | United Kingdom | Whole | The same file |
 | `dfe-gias` | England | Whole, saved by hand | The same file |
 | `dft-naptan` | Great Britain | Both: London's cut, saved by hand, and the whole | The whole, which is held |
+| `dft-road-traffic-counts` | Great Britain | Whole | The same file |
 | `fsa-food-hygiene-ratings` | Not said in the registry | A cut: a file for each of London's 33 authorities | The files of the city's own authorities, if the register holds them |
 | `gla-high-street-boundaries` | London alone | Whole | `os-functional-areas`, which is held and taken to be paid |
 | `gla-town-centre-boundaries` | London alone | Whole | `os-functional-areas`, as above |

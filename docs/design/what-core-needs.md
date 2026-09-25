@@ -52,6 +52,12 @@ A third is of high streets, and core holds a feature for it since catalogue vers
 |---|---|---|---|
 | `highstreet_conserved` | How much of the high street nearest a home lies inside a conservation area, as the mean over an area's homes | **Made.** Core names it since catalogue version 14, and a build carries it. No likeness is counted on it | Whether likeness may count it is the founder's to say |
 
+A fourth is of traffic, and core holds a feature for it since catalogue version 15: [decision record 0031](../adr/0031-the-traffic-near-homes-is-a-measure.md) says what was decided, what was found on London, and what reverses it.
+
+| Measure | What it is | Core holds | Waits on |
+|---|---|---|---|
+| `road_traffic_nearby` | The motor vehicles that pass the busiest count point within 500 m of home on an average day, as the mean over an area's homes | **Made.** Core names it since catalogue version 15, a build carries it, a person may rank on it, and Quiet streets holds it at 20 in 100. 943 of London's 1,002 areas have a figure, and an area with none is never taken to have little traffic | Whether 500 metres and the shares of Quiet streets are right is the founder's to say |
+
 One measure was on the table and held back, whatever core said of it. It is carried since 2026-09-25, and no measure is held back.
 
 | Feature | Where it stands | What brings it in |

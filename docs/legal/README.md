@@ -12,7 +12,7 @@
 | [residents-crime-and-equality.md](residents-crime-and-equality.md) | What Burro holds about the people who live in an area, what the ICO's pages and the Equality Act say of it, where the risk lies, and each point where a solicitor's reading would change what is safe to ship | Draft. New on 24 September 2026 |
 | The accessibility statement | It is part of the website, at `apps/web/src/content/accessibility.ts`. It was read for this work and not changed | It says it has nowhere to send a report yet |
 
-Nothing is deployed, so nothing here is in front of the public. None of them may be published as it stands.
+Burro was first deployed on 25 September 2026, with the made-up city. The website has no page for any of the four drafts, so none of them is in front of the public as Burro's own: the accessibility statement is part of the website, and is. None of the drafts may be published as it stands.
 
 | Mark | Meaning |
 |---|---|

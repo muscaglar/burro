@@ -204,7 +204,7 @@ Which kind a high street is of is the builder's reading, made from its name, its
 | What | Why | Where it stands |
 |---|---|---|
 | A person who knows the places reads C's fifty | Ten of the fifty were read as cannot say by all three readers. The count of villages turns on them | The list is in a scratch folder, with the three readings beside each area |
-| How much traffic runs along a high street | To tell a village street from a trunk road inside a conservation area. It is the largest kind of error that a figure could mend | Not registered, and not looked for. Nobody has read a page of any such data for Burro |
+| How much traffic runs along a high street | To tell a village street from a trunk road inside a conservation area. It is the largest kind of error that a figure could mend | Not looked for on this try. Since then the registry holds the Department for Transport's counts as approved, as `dft-road-traffic-counts`, and the list `m13-road-traffic` names the file |
 | Homes per hectare of the land that is no park | So that a park does not make the homes beside it read as standing apart | It can be made from files that are held. Core holds no feature for it |
 | An outline for a village centre the file does not draw | One of the seven places has no high street of its own in the file | Not known to be published. Ordnance Survey's retail areas are held in the registry as premium |
 | A name for each area that a person knows | A reader judged an area by its nearest high street. An area of a village whose nearest parade is on a main road was read as no village | A build can give each area a drafted name. The readings were not made with one |

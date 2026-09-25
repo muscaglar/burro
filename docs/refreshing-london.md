@@ -2,7 +2,7 @@
 
 For the founder. Written 2026-09-25. It puts in one order what [the guide to data builds](data-builds.md) and [the guide to deployment](../deploy/README.md) say at length, and adds the step at each end of it: `fresh`, which says what is due, and `moved`, which says what a build changed.
 
-**No hosted run has fetched a file or built London, and nothing has been deployed.** The two steps added here were driven on the receipts this repository holds, and on two builds of London made outside a hosted run, of two versions of the catalogue. Every hosted step below is as its own guide gives it.
+**A hosted run fetched on 2026-09-24, and one built London whole on 2026-09-25. The API and the website are deployed, each with the made-up city: no release of London is approved, taken or served.** The two steps added here were driven on the receipts this repository holds, and on two builds of London made outside a hosted run, of two versions of the catalogue. Every hosted step below is as its own guide gives it.
 
 ## 0. In short
 
@@ -15,7 +15,7 @@ For the founder. Written 2026-09-25. It puts in one order what [the guide to dat
 | 5 | Build | The hosted run `data-london` | 5 minutes, and two approvals |
 | 6 | See what moved | `take`, then `moved` or the panel | 15 minutes to read |
 | 7 | Approve | Commit the lock | 5 minutes |
-| 8 | Deploy | `take`, then `fly deploy` | 15 minutes |
+| 8 | Deploy | `take`, then `fly deploy` with `--depot=false` | 15 minutes |
 
 Each step is a section below, under its number. Steps 2, 4 and 7 each end in a commit that must be on `main` before the step after it: a hosted run reads `main`. So a refresh is **three pushes**, or two where no list pins a file that is refreshed.
 
@@ -28,7 +28,7 @@ uv run python -m burro_pipeline fresh --on 2026-09-25 --table
 Give the day that is today: the step reads no clock. It reads the registry, the lists and the receipts, and asks nothing of a publisher. It prints a row for each file that has a receipt, what is due first, and then one line:
 
 ```
-step=fresh status=ok on=2026-09-25 receipts=87 due=0 fresh=86 not_known=1 older=0 unlisted=0 not_said=1
+step=fresh status=ok on=2026-09-25 receipts=88 due=0 fresh=87 not_known=1 older=0 unlisted=0 not_said=1
 ```
 
 | The row says | It means |
@@ -39,19 +39,19 @@ step=fresh status=ok on=2026-09-25 receipts=87 due=0 fresh=86 not_known=1 older=
 | Bring forward: `nothing` | A fetch takes whatever the publisher gives today. Go to step 3 |
 | Bring forward: `edition and data_period`, or `data_period` | The list pins them. Do step 2 first, or the fetch brings the file you hold again |
 
-On 2026-09-25 every file was one or two days old, so none is due. One is not known: `tfl-step-free-station-topology`, whose publisher states no rhythm. The same receipts, read on later days:
+On 2026-09-25 every file was two days old or less, so none is due. One is not known: `tfl-step-free-station-topology`, whose publisher states no rhythm. The same receipts, read on later days:
 
 | Read on | Due | What has come due |
 |---|---|---|
 | 2026-10-02 | 44 | What changes weekly or daily: the food register, the stops, the schools, the health reports, the planning data, and Transport for London's files |
 | 2026-10-26 | 53 | And the monthly: prices, rents, the places, recorded crime, school inspections |
 | 2026-12-26 | 62 | And the quarterly: Ordnance Survey's files, the postcode directory, the pharmacies, median prices |
-| 2027-09-26 | 68 | And the yearly: the air, council tax, household income |
+| 2027-09-27 | 69 | And the yearly: the air, council tax, household income, and the traffic counts, which were fetched a day after the rest |
 | Never, by age | 18 | What changes rarely: the census and its boundaries, deprivation, land use, outdoor space, the centres |
 
 ## 2. Bring a list forward
 
-Of the 87 files, 40 state their own edition and need nothing. **45 have their edition and their period written in a list, and 2 their period alone.** A fetch writes what the list states on whatever arrives, so change the list first.
+Of the 88 files, 40 state their own edition and need nothing. **45 have their edition and their period written in a list, and 3 their period alone.** A fetch writes what the list states on whatever arrives, so change the list first.
 
 1. Open the publisher's page, which the item of the list gives as `page`. Find the newest file, its address, its edition and the period its data describes.
 2. In `packages/pipeline/src/burro_pipeline/fetch/lists/NAME.toml`, change `url`, `edition`, `data_period` and `what` of the item. Where the entry of the source names the address whole under `file_urls`, change it there too, in `registry/sources/`: a file is fetched from no address its entry does not name.
@@ -60,6 +60,8 @@ Of the 87 files, 40 state their own edition and need nothing. **45 have their ed
 5. Commit, and bring it into `main`.
 
 The receipt of the older file stays in `data/receipts/`. `fresh` then counts it as `unlisted`: no build takes it, and nothing is lost.
+
+The Department for Transport's file of the flow at each count point is replaced once a year under one address, when a year of estimates is added to it. Its list, `m13-road-traffic`, pins the years it covers and no edition: bring the last year forward, in the list and in the test that holds the file to its page, and fetch. It is one file, of Great Britain, and the one more file a refresh of London fetches since the traffic near homes became a measure.
 
 Transport for London's timetables are replaced each week under one address. Read the next issue with `describe --inside` before the list states its edition: [the guide to data builds](data-builds.md), section 7.
 
@@ -103,6 +105,8 @@ uv run python -m burro_pipeline take --release lon-2026-10-02-01 --approved FOLD
 uv run python -m burro_pipeline moved data/releases/before/lon-2026-09-25-01 data/releases/look/lon-2026-10-02-01 --out data/releases/moved
 ```
 
+**The first time, no release is served, so the new one is held against nothing:** take it alone, read its lock and its coverage report, and run `moved` from the second release on. Where a build of London is kept on a machine of your own, the first release may be held against that, by the folder it was built to.
+
 **The two builds need not be of one catalogue.** `moved` reads each by its own, so it says what moved after a measure or a vibe was added or a recipe was changed, which is when it is most needed. It refuses only a release it cannot read, and says the rule in words: one of a catalogue that is newer than the code the step is run from, one that does not hold together, and one that was changed since it was built. So run it from a working copy that is as new as the newer build.
 
 `moved` prints counts, and ends with one line for the whole:
@@ -145,7 +149,7 @@ and open the screen **What moved**. The release the panel shows is the newer bui
 | To | Do this | Where it is said in full |
 |---|---|---|
 | Approve | Save the lock the run showed as `data/approved/lon-2026-10-02-01.json`. Run `uv run --no-project python tools/release_lock.py read` on it, and hold its `sha256` to the run's. Run `make ci`. Commit the file and nothing else, and bring it into `main` | [Data builds](data-builds.md), "Read the lock, and approve the release" |
-| Deploy | `take` the release to `data/releases/served`, then `fly deploy` with `--build-arg RELEASE_ID=lon-2026-10-02-01`. Then build the website again | [Deployment](../deploy/README.md), "Serving a release of London" |
+| Deploy | `take` the release to `data/releases/served`, then `fly deploy` with `--depot=false` and `--build-arg RELEASE_ID=lon-2026-10-02-01`. Then build the website again | [Deployment](../deploy/README.md), "Serving a release of London" |
 | Go back at once | Deploy the image before, by its name: the release is inside the image | [Deployment](../deploy/README.md), "Going back to the release before" |
 | Go back to any release you approved | Take it and deploy it again. Its lock is still committed, and its files are still kept | The same |
 | Stop a release from being served again | `git rm` its lock, and deploy another over it | The same |
@@ -158,7 +162,7 @@ Nothing runs on a clock, and nothing starts by itself. **Every step above is sta
 |---|---|
 | Running `fresh` | No workflow runs it |
 | Looking at each publisher's page | No step asks a publisher whether a file changed. `fresh` counts days and knows nothing else |
-| Changing the list and the registry entry for 47 of the 87 files | The list pins the edition, the period and often the address |
+| Changing the list and the registry entry for 48 of the 88 files | The list pins the edition, the period and often the address |
 | Saving four files in a browser | Their publishers give them from a form |
 | Bringing the receipts back, and committing them | No workflow may write to the repository |
 | Starting and approving each run | A job that is given a key waits for you, by design |
@@ -175,6 +179,7 @@ Of the 99 measures of the build of 2026-09-25, 59 rest on a file that changes mo
 |---|---|---|
 | Each quarter, late in February, May, August and November | The whole of this guide, for every file that is due | The postcode directory comes out in those months, and Ordnance Survey's files in April and October, with its names each quarter. A quarter is also what the registry says Burro plans for the timetables. Bring the release of places forward each time: it is monthly, its list pins it, and most measures rest on it |
 | Each month, if prices matter to the searches you watch | Steps 2 to 8 for `m2-living` alone | Prices paid, the house price index and the rents index are monthly |
+| Once a year, in the autumn | Fetch the traffic counts again, by the list `m13-road-traffic` | The Department for Transport adds a year of estimates to the file once a year, alongside its yearly figures of road traffic. No page that was read states the day, so `fresh` calls the file due a year after it was fetched |
 | Once a year | Read the page of each of the 16 sources that change rarely | `fresh` never calls them due. The publisher of one, land use, plans to publish again by the end of 2026, which is not settled |
 | After a change to the network | A refresh of `m5-journeys` and `m12-public-transport` | Once a journey is routed, a timetable that is old is a journey that is wrong |
 | Never weekly | | 44 files change weekly or daily, and 39 of them need no change to a list. A refresh still costs a fetch, two pushes, two approvals and a deploy |

@@ -252,7 +252,7 @@ The Explanatory Notes give two examples for section 33: "A landlord refuses to l
 
 ## 9. Where a solicitor's reading would change what is safe to ship
 
-In the order of what each could cost. "Ships today" means what this draft's reading allows. Nothing is deployed.
+In the order of what each could cost. "Ships today" means what this draft's reading allows. Burro was first deployed on 25 September 2026, with the made-up city: no figure of a real place is served.
 
 | # | The point | This draft's reading | What ships on that reading | What another reading would change |
 |---|---|---|---|---|
