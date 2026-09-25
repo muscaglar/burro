@@ -15,10 +15,18 @@ row and two lines of the publisher's, in the first column.
 The four sheets that are never opened are not well formed, and hold a canary.
 The counts of houses and of flats are a number found nowhere else.
 
+The lookup between the areas of 2011 and of 2021 is made up too, and
+`areas_of_2011_support.py` says how it is laid out. It says that Quillhaven 001
+and 002 are the areas they were in 2011, and that Tallowgate 001 was made by
+joining two areas of 2011. The workbook holds a row for each of those two, as
+the real one holds the areas of 2011 that are no area of 2021.
+
     area             row         addresses   with private outdoor space
     Quillhaven 001   E02999001      500           400          80 in 100
     Quillhaven 002   E02999002      300           100          33.3 in 100
-    Tallowgate 001   no row: it was drawn again for the census of 2021
+    Tallowgate 001   no row: it was made by joining E02999803 and E02999804
+                     E02999803      200           150          of no area of the build
+                     E02999804      100            10          of no area of the build
 """
 
 from collections.abc import Mapping, Sequence
@@ -26,10 +34,12 @@ from pathlib import Path
 
 import pytest
 from burro_core.catalogue import FEATURES, TAGS
-from burro_core.ids import FeatureId, TagId
-from burro_pipeline.cells import spine
+from burro_core.ids import FeatureId, NativeResolution, Polarity, TagId
+from burro_pipeline.cells import land, spine
+from burro_pipeline.derive import areas_of_2011
 from burro_pipeline.derive import private_outdoor_space as outdoor
-from burro_pipeline.derive.measures import MEASURES, says_what_core_says
+from burro_pipeline.derive.areas_of_2011 import CARRIED, Mark
+from burro_pipeline.derive.measures import MEASURES, Ground, says_what_core_says
 from burro_pipeline.derive.methods import AREA_ROW_RATIO, Worked
 from burro_pipeline.derive.private_outdoor_space import Counted, OutdoorSpace
 from burro_pipeline.evidence.lock import LockError
@@ -43,9 +53,19 @@ from burro_pipeline.registry import Registry
 from burro_pipeline.registry.model import Status, Use
 
 from ..cells.support import CANARY, contents, held, inputs_of, receipt_of, registry
+from .areas_of_2011_support import (
+    AS_THEY_WERE,
+    SPLIT,
+    TALLOWGATE,
+    Row,
+    lookup_csv,
+    with_the_lookup,
+)
 from .noise_support import NOT_WELL_FORMED, Cell, Table, letters, workbook
 
 ONE, TWO, THREE = "lon-ne02999001", "lon-ne02999002", "lon-ne02999003"
+AS_THEY_WERE_CODES = frozenset(of_2021 for _, _, of_2021, _ in AS_THEY_WERE)
+SPLIT_CSV = lookup_csv(SPLIT)
 # The files of the list: the workbook, and the lookup between the areas of two censuses.
 LISTED = load_list("m11-outdoor-space").files
 NEVER_OPENED = ("Readme", "Country gardens", "Region gardens", "LAD gardens")
@@ -94,6 +114,9 @@ Counts = tuple[Cell, Cell]
 AREAS: Mapping[str, Counts] = {
     "E02999001": (500, 400),
     "E02999002": (300, 100),
+    # The two areas of 2011 that Tallowgate 001 was made of. Neither is an area of the build.
+    "E02999803": (200, 150),
+    "E02999804": (100, 10),
     # Outside London, in Wales and in Scotland. None is part of any area.
     "E02999901": (700, 700),
     "W02999001": (90, 45),
@@ -164,9 +187,10 @@ def inputs_with(
     content: bytes | None = None,
     *,
     period: Period | None = None,
+    lookup: bytes | None = None,
     **changes: Registry,
 ) -> Inputs:
-    """The made-up build of the tests of cells, and the workbook beside it."""
+    """The made-up build of the tests of cells, with the workbook and the lookup beside it."""
     given = inputs_of(folder, contents(), **changes)
     content = made_up() if content is None else content
     path = folder / "given" / outdoor.FILE_NAME
@@ -175,11 +199,15 @@ def inputs_with(
     receipt = receipt_of(
         outdoor.SOURCE, Use.SCORING, outdoor.FILE_NAME, content, outdoor.EDITION
     ).model_copy(update={"data_period": period or Period(as_at="2020-04")})
-    return Inputs(given.registry, [*given.receipts, receipt], given.store, given.work)
+    with_the_workbook = Inputs(given.registry, [*given.receipts, receipt], given.store, given.work)
+    return with_the_lookup(with_the_workbook, folder, lookup)
 
 
-def built(folder: Path, areas: Mapping[str, Counts] = AREAS) -> OutdoorSpace:
-    inputs = inputs_with(folder, made_up(areas))
+def built(
+    folder: Path, areas: Mapping[str, Counts] = AREAS, rows: Sequence[Row] | None = None
+) -> OutdoorSpace:
+    lookup = None if rows is None else lookup_csv(rows)
+    inputs = inputs_with(folder, made_up(areas), lookup=lookup)
     return outdoor.build(inputs, spine.build(inputs))
 
 
@@ -233,16 +261,73 @@ def test_the_counts_are_kept_as_the_workbook_holds_them(tmp_path: Path):
     }
 
 
-# An area with no row, and a row with no count
+# Which areas are the areas they were
 
 
-def test_an_area_that_was_drawn_again_has_no_row_and_no_figure(tmp_path: Path):
-    """The workbook is older than the areas of 2021. Nothing is shared out to one it lacks."""
+def test_an_area_has_a_figure_only_where_the_lookup_marks_it_as_unchanged(tmp_path: Path):
     found = built(tmp_path)
+    assert found.drawn_again == {THREE: Mark.MERGED}
+    assert {area for area, one in found.worked.items() if one.value is not None} == {ONE, TWO}
+    assert found.changes.taken_from("E02999001") == "E02999001"
+
+
+def test_an_area_that_was_made_by_joining_two_has_no_figure_and_nothing_is_added_up(
+    tmp_path: Path,
+):
+    """The workbook holds a row for each of the two. Neither is of the outline of the area."""
+    found = built(tmp_path)
+    assert {"E02999803", "E02999804"} <= set(found.table.of_area)
     assert found.without_a_row == {THREE}
     assert found.worked[THREE] == Worked(None, 0, 1, 0.0, State.SOURCE_GAP)
     row = next(row for row in found.rows if row.area_id == THREE)
     assert (row.state, row.has_a_value) == (State.SOURCE_GAP, False)
+
+
+def test_an_area_that_was_split_from_another_has_no_figure(tmp_path: Path):
+    """Quillhaven is said to have been one area in 2011, which the workbook holds a row for.
+    Neither part is given its figure, and nothing of it is shared out between them."""
+    found = built(tmp_path, {**AREAS, "E02999801": (800, 500)}, SPLIT)
+    assert found.drawn_again == {ONE: Mark.SPLIT, TWO: Mark.SPLIT, THREE: Mark.MERGED}
+    assert all(one == Worked(None, 0, 1, 0.0, State.SOURCE_GAP) for one in found.worked.values())
+
+
+def test_a_row_under_the_code_of_an_area_that_did_change_is_not_its_figure(tmp_path: Path):
+    """A code that the workbook holds is no proof that the outline is the same. Quillhaven
+    001 is said to be a part of a split, so the row under its own code is not read for it."""
+    found = built(tmp_path, {**AREAS, "E02999801": (800, 500)}, SPLIT)
+    assert set(found.table.of_area) >= AS_THEY_WERE_CODES
+    assert ONE not in found.without_a_row
+    assert found.worked[ONE].value is None
+
+
+def test_a_split_is_carried_only_where_it_is_asked_for_and_no_build_asks(tmp_path: Path):
+    """To carry a split is one line, `CARRIED`, and the founder's to decide. Asked for, each
+    part is given the figure of the area it was split from, and never a share of its counts."""
+    inputs = inputs_with(tmp_path, made_up({**AREAS, "E02999801": (800, 500)}), lookup=SPLIT_CSV)
+    found = spine.build(inputs)
+    made = outdoor.build(inputs, found)
+    assert frozenset({Mark.UNCHANGED}) == CARRIED
+    assert made.worked[ONE].value is None and made.worked[TWO].value is None
+    asked = outdoor.figures(made.table, found, made.changes, {Mark.UNCHANGED, Mark.SPLIT})
+    assert (asked[ONE].value, asked[TWO].value, asked[THREE].value) == (62.5, 62.5, None)
+
+
+def test_an_area_that_was_joined_has_no_figure_whatever_is_asked_for(tmp_path: Path):
+    inputs = inputs_with(tmp_path)
+    found = spine.build(inputs)
+    made = outdoor.build(inputs, found)
+    assert outdoor.figures(made.table, found, made.changes, set(Mark))[THREE].value is None
+
+
+def test_an_unchanged_area_the_workbook_holds_no_row_for_has_no_figure(tmp_path: Path):
+    unchanged = [*AS_THEY_WERE, ("E02999003", "U", "E02999003", TALLOWGATE)]
+    found = built(tmp_path, rows=unchanged)
+    assert found.drawn_again == {}
+    assert found.without_a_row == {THREE}
+    assert found.worked[THREE] == Worked(None, 0, 1, 0.0, State.SOURCE_GAP)
+
+
+# A row with no count
 
 
 def test_an_area_of_another_country_is_read_and_is_part_of_no_figure(tmp_path: Path):
@@ -428,39 +513,35 @@ def test_the_registry_keeps_the_survey_of_people_out_and_asks_for_the_audit():
     assert any("proxy audit" in line for line in source.before_launch)
 
 
-def test_the_lookup_between_the_censuses_is_registered_for_cells_and_nothing_else():
-    """It says which areas kept their outline. No figure is worked out from it."""
-    source = registry().get(outdoor.HELD_TO)
-    assert source.status is Status.APPROVED
-    assert source.uses == (Use.CELLS,)
-    assert source.dimension == "geography"
-    assert source.url in source.evidence_urls
-    said = " ".join(source.conditions)
-    for words in ("Never use it to share a figure out", "registered for cells alone"):
-        assert words in said, words
+def test_the_workbook_asks_that_every_figure_is_held_to_the_lookup():
+    """`test_areas_of_2011.py` holds the entry of the lookup and its item of the list."""
     workbook = registry().get(outdoor.SOURCE)
+    assert outdoor.HELD_TO == areas_of_2011.SOURCE
     assert outdoor.HELD_TO in " ".join(workbook.conditions)
-    assert any(outdoor.HELD_TO in line for line in workbook.before_launch)
+    assert {one.source_id for one in LISTED} == {outdoor.SOURCE, outdoor.HELD_TO}
 
 
-def test_the_list_names_the_lookup_and_is_sure_of_nothing_that_nobody_has_read():
-    """Its first fetch stores the file and writes no receipt."""
-    (listed,) = (one for one in LISTED if one.source_id == outdoor.HELD_TO)
-    source = registry().get(outdoor.HELD_TO)
-    assert listed.use is Use.CELLS
-    assert str(listed.page) == source.url
-    assert any(str(listed.url).startswith(prefix) for prefix in source.file_urls)
-    assert {"url", "edition", "data_period"} <= set(listed.unsure)
-    assert not listed.ready_for_a_receipt
-    for words in ("CHGIND", "963", "Nobody has read"):
-        assert words in listed.notes, words
+def test_the_gate_is_asked_about_the_lookup_before_a_figure_is_made(tmp_path: Path):
+    sources = [
+        source.model_copy(update={"uses": (Use.CELLS,)}) if source.id == outdoor.HELD_TO else source
+        for source in registry()
+    ]
+    inputs = inputs_with(tmp_path, registry=Registry(tuple(sources)))
+    found = spine.build(inputs)
+    with pytest.raises(LockError) as stopped:
+        outdoor.build(inputs, found)
+    assert stopped.value.rule == "gate_refuses"
+    assert all(one.receipt.source_id != outdoor.HELD_TO for one in inputs.opened)
 
 
-def test_the_measure_reads_no_lookup_between_the_censuses(tmp_path: Path):
-    """A figure is the row of the area's own code, or there is none."""
-    inputs = inputs_with(tmp_path)
-    outdoor.build(inputs, spine.build(inputs))
-    assert outdoor.HELD_TO not in {one.receipt.source_id for one in inputs.opened}
+def test_a_build_that_holds_no_receipt_of_the_lookup_makes_no_figure(tmp_path: Path):
+    """A figure is held to the lookup or is not made. The build leaves the measure out."""
+    given = inputs_with(tmp_path)
+    less = [receipt for receipt in given.receipts if receipt.source_id != outdoor.HELD_TO]
+    inputs = Inputs(given.registry, less, given.store, given.work)
+    with pytest.raises(LockError) as stopped:
+        outdoor.build(inputs, spine.build(inputs))
+    assert stopped.value.rule == "input_has_one_receipt"
 
 
 def test_the_list_names_the_one_workbook_and_states_what_was_read_of_it():
@@ -526,10 +607,12 @@ def test_every_area_has_a_row_of_evidence_whether_or_not_it_has_a_figure(tmp_pat
     assert [row.has_a_value for row in found.rows] == [True, True, False]
 
 
-def test_a_row_names_the_workbook_and_the_lookup(tmp_path: Path):
+def test_a_row_names_the_workbook_and_both_lookups(tmp_path: Path):
+    """The lookup that says which MSOA an area is, and the one that says it kept its outline."""
     found = built(tmp_path)
     sources = {receipt.source_id: receipt.file_id for receipt in found.files}
-    assert set(sources) == {outdoor.SOURCE, spine.LOOKUP}
+    assert set(sources) == {outdoor.SOURCE, spine.LOOKUP, outdoor.HELD_TO}
+    assert found.changes.file_id == sources[outdoor.HELD_TO]
     for row in found.rows:
         assert set(row.inputs) == set(sources.values())
         assert row.derivation_id == AREA_ROW_RATIO.derivation_id
@@ -550,34 +633,52 @@ def test_the_evidence_of_the_measure_has_no_loose_end(tmp_path: Path):
 # The name, and what the measure waits on
 
 
-def test_the_name_says_addresses_and_is_not_core_s_so_a_build_leaves_it_out(tmp_path: Path):
-    """Core names it for homes. The workbook counts addresses, as at April 2020."""
+def test_the_name_says_addresses_as_core_names_the_measure(tmp_path: Path):
+    """The workbook counts addresses, as at April 2020, and the licence registry asks that
+    no figure of it says homes. Core names the measure so since catalogue version 13."""
     metric = built(tmp_path).metric
     core = FEATURES[FeatureId.PRIVATE_OUTDOOR_SPACE]
-    assert core.label == "Homes with private outdoor space"
-    assert metric.label == "Addresses with private outdoor space"
-    assert (metric.unit, metric.polarity, metric.dimension) == (
-        core.unit,
-        core.polarity,
-        core.dimension,
-    )
-    assert not says_what_core_says(metric)
+    assert core.label == metric.label == outdoor.LABEL == "Addresses with private outdoor space"
+    assert core.short_label == "More addresses with outdoor space"
+    assert (core.unit, core.polarity) == ("%", Polarity.MORE)
+    assert metric.native_resolution is core.native_resolution is NativeResolution.MSOA
+    assert says_what_core_says(metric)
+    homes = metric.model_copy(update={"label": "Homes with private outdoor space"})
+    assert not says_what_core_says(homes)
+    said = " ".join(registry().get(outdoor.SOURCE).conditions)
+    assert "Say 'addresses' and not 'homes' or 'households'" in said
     assert metric.vintage == "2020-04"
-    assert metric.source_ids == (outdoor.SOURCE, spine.LOOKUP)
+    assert metric.source_ids == (outdoor.SOURCE, outdoor.HELD_TO, spine.LOOKUP)
 
 
-def test_the_measure_is_not_yet_on_the_list_of_a_build():
-    """It joins `derive/measures.py` when what it waits on is settled."""
-    assert FeatureId.PRIVATE_OUTDOOR_SPACE not in {measure.feature for measure in MEASURES}
-    assert outdoor.SOURCE not in {measure.source for measure in MEASURES}
+def test_the_measure_is_on_the_list_of_a_build_and_is_held_back(tmp_path: Path):
+    """A build works it out, so that whoever settles it has the figures, and leaves it out."""
+    (measure,) = [one for one in MEASURES if one.feature is FeatureId.PRIVATE_OUTDOOR_SPACE]
+    assert (measure.source, measure.held_back) == (outdoor.SOURCE, outdoor.HELD_BACK)
+    assert measure.held_back and measure.waits_on == ()
+    assert measure.reads(outdoor.FILE_NAME) and not measure.reads("another.xlsx")
+    assert not (measure.in_squares or measure.in_parts)
+    inputs = inputs_with(tmp_path)
+    found = spine.build(inputs)
+    made = measure.build(inputs, Ground(found, land.build(inputs, found)))
+    assert made.worked == built(tmp_path / "plain").worked
+    assert [feature for feature in (one.feature for one in MEASURES)] == sorted(
+        one.feature for one in MEASURES
+    )
 
 
-def test_it_says_what_it_waits_on_and_whose_each_is_to_settle():
-    said = " ".join(outdoor.WAITS_ON)
-    for words in ("names no census", "lookup", "addresses", "proxy audit", "founder"):
+def test_it_is_held_back_until_its_row_of_the_proxy_audit_has_passed():
+    """Core names it as it is built, so nothing but this keeps it out of a release. The
+    licence registry and the design of the vibes both ask for the row first."""
+    assert outdoor.WAITS_ON == ()
+    said = " ".join(outdoor.HELD_BACK)
+    for words in ("proxy audit", "no audit has been run", "0006", "under 0.3", "founder"):
         assert words in said, words
-    for line in outdoor.WAITS_ON:
+    for line in outdoor.HELD_BACK:
         assert line.endswith(".")
+    entry = registry().get(outdoor.SOURCE)
+    assert any("proxy audit" in line for line in entry.conditions)
+    assert any("proxy audit" in line for line in entry.before_launch)
 
 
 def test_it_is_a_quarter_of_the_recipe_of_homes_which_has_a_band_without_it():
@@ -602,6 +703,9 @@ def test_the_definition_is_one_sentence_that_states_what_it_is_made_with(tmp_pat
         "Ordnance Survey",
         "as at 2020-04",
         "not added up from smaller areas",
+        "as it was drawn for the census of 2011",
+        "marks it as unchanged",
+        "nothing is shared out to it",
         "never nought",
         "addresses and not homes",
         "nothing of who lives at one",

@@ -6,10 +6,11 @@ appliance contractors and local pharmaceutical services contractors. It gives
 a contractor by its postcode and by no point. `cells/postcodes.py` gives the
 postcode a point, and `nearest_by_postcode.py` measures to it.
 
-**This was written before any file of the list was fetched.** It rests on the
-list of fields on the publisher's page of the file for quarter 1 of 2026-27,
-which was read on 2026-09-24 through a reader that extracts, twice, in
-different words. The page names 25 fields. Two are read:
+**It was written before any file of the list was fetched, and the first file
+is as it expects.** It rests on the list of fields on the publisher's page of
+the file for quarter 1 of 2026-27, which was read on 2026-09-24 through a
+reader that extracts, twice, in different words, and on the file that was
+fetched that day. The page names 25 fields. Two are read:
 
 | Field | What the page says it is | Read |
 |---|---|---|
@@ -27,9 +28,17 @@ entry has both. By either it may be the name of a person.
 
 The page does not say how the file is encoded, or whether a contract type is
 written in capitals. So a type is read whatever its case, and one that is
-none of the three stops the step. The first file will show what is there:
-when it has been read, put what it holds in
-`docs/research/data/postcodes.md`, and its counts in a test on the real files.
+none of the three stops the step. The first file is a CSV in UTF-8 of 10,507
+rows, under one row of names, which are the 25 fields the page lists, in
+their order. It writes the three types the page names and no other, so the
+step read it to its end as it was written.
+`test_pharmacy_walk_on_the_real_files.py` holds the counts of the file, and
+`docs/research/data/postcodes.md` says what it was found to hold.
+
+**The list is of a quarter, and says no day.** No field is a day, and no page
+says what day the list is as at. The list `m10-health` states the period of
+the file as the quarter its publisher's title names, and says what that rests
+on. So the sentence of the measure says the period, and never "as at".
 
 **What counts as a pharmacy.** A contractor whose type is Community or LPS.
 As the reader gave the page, Community is a person who provides
@@ -43,8 +52,12 @@ so it is counted, and `CANNOT_SEE` says so.
 
 It is a straight line, and not a walk, and it is given to the nearest 100
 metres: `nearest_by_postcode.py` says why. The row of the catalogue says a
-straight line in metres, as core names the measure. It is on the list of no
-build yet: `WAITS_ON` says what would bring it in.
+straight line in metres, as core names the measure, so a build that names the
+list of health files and the list of the postcode directory carries it. It is
+on the table of a build because Everyday on foot rests on it for 15 in 100.
+A pharmacy outside London is placed nowhere, so the homes near the edge of
+London are left out of the figure: whether the rows of the districts that
+border London are kept is the founder's to say.
 """
 
 import re
@@ -128,28 +141,17 @@ LABEL = "Straight-line distance to the nearest pharmacy, placed by its postcode"
 DEFINITION = (
     "The distance in a straight line, in metres, from the point the statistics office gives as "
     "the centre of each census output area to the nearest contractor that the {list} of the "
-    "{publisher} lists as a pharmacy or as a local pharmaceutical services contractor, as at "
-    "{as_at}, each put at the point the {directory} gives for its postcode, as the median "
+    "{publisher} lists as a pharmacy or as a local pharmaceutical services contractor, "
+    "{when}, each put at the point the {directory} gives for its postcode, as the median "
     "over the area's homes at the census of {census} and given to the nearest {nearest} metres "
     "with a half taken upward: it is measured across whatever lies between and not along any "
     "street, so the walk is longer, a pharmacy is put at a door of its postcode that may not "
     "be its own, a pharmacy that serves by post alone is counted, and a pharmacy outside "
     "London is not counted."
 )
-# What keeps the measure out of a release, and whose it is to settle.
-OF_THE_FILE = (
-    "The first file of the list is in the store with no receipt, because its period is not "
-    "sure, so no step may read it. The step was written from the list of fields on the "
-    "publisher's page, and the first file shows whether a contract type is written as the step "
-    "expects, and what day the list is as at.",
-    "The plan lists GP access as out of the first version, and the design of the London data "
-    "recommends that the walk to a pharmacy comes in. Which stands is the founder's to say.",
-    "A pharmacy outside London is placed nowhere, because the licence registry keeps London's "
-    "rows of the postcode directory alone. So the homes near the edge of London are left out "
-    "of the figure. The rows of the districts that border London would close it, and whether "
-    "they are kept is the founder's to say.",
-)
-WAITS_ON = OF_THE_FILE
+# Nothing keeps the measure out of a release: its file has its receipt, its step reads the
+# file, and core names it as it is built.
+WAITS_ON: tuple[str, ...] = ()
 # What the product shows beside the figure.
 BY_POST = (
     "The list does not say which pharmacies serve by post alone and take no callers, so such a "
@@ -230,19 +232,24 @@ def read(opened: Opened) -> Listed:
     )
 
 
-def definition_of(as_at: str) -> str:
-    """The sentence a methods page prints for the measure."""
+def definition_of(first: str, last: str) -> str:
+    """The sentence a methods page prints for the measure, of a list of some period.
+
+    A list of a quarter says its period and no day: nothing says what day
+    within it the list is as at.
+    """
+    when = f"as at {first}" if first == last else f"for the period from {first} to {last}"
     return DEFINITION.format(
         list=LIST,
         publisher=PUBLISHER,
-        as_at=as_at,
+        when=when,
         directory="ONS Postcode Directory",
         census=nearest_by_postcode.CENSUS,
         nearest=nearest_by_postcode.NEAREST,
     )
 
 
-def metric_of(files: Sequence[Receipt], as_at: str) -> Metric:
+def metric_of(files: Sequence[Receipt], first: str, last: str) -> Metric:
     """The row of the catalogue: the name, the unit, the period and every source.
 
     Core decides which way is more, what kind of thing the measure is and
@@ -266,9 +273,9 @@ def metric_of(files: Sequence[Receipt], as_at: str) -> Metric:
         in_likeness=core.in_likeness,
         native_resolution=NativeResolution.POINT,
         source_ids=tuple(sorted({receipt.source_id for receipt in files})),
-        vintage=as_at,
+        vintage=first if first == last else f"{first} to {last}",
         rankable=True,
-        definition=definition_of(as_at),
+        definition=definition_of(first, last),
     )
 
 
@@ -288,13 +295,12 @@ def build(
         inputs, found, opened, listed.postcodes, FEATURE, directory=directory
     )
     first, last = opened.receipt.data_period.days()
-    as_at = first if first == last else f"{first} to {last}"
     return Walk(
         worked=made.worked,
         rows=made.rows,
         files=made.files,
         geography=made.geography,
-        metric=metric_of(made.files, as_at),
+        metric=metric_of(made.files, first, last),
         listed=listed,
         placing=made.placing,
         distances=made,

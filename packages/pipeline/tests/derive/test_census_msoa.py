@@ -18,7 +18,15 @@ from pathlib import Path
 from typing import Protocol
 
 import pytest
-from burro_core.ids import FeatureId, Polarity
+from burro_core.catalogue import COUNTS_RESIDENTS, FEATURES, TAGS
+from burro_core.ids import (
+    Describes,
+    FeatureId,
+    FeatureKind,
+    NativeResolution,
+    Polarity,
+    TermReading,
+)
 from burro_pipeline.derive import (
     census_msoa,
     households_dependent_children,
@@ -63,6 +71,8 @@ class Measure(Protocol):
     """What the module of each measure holds."""
 
     @property
+    def FEATURE(self) -> FeatureId: ...
+    @property
     def KEY(self) -> str: ...
     @property
     def SOURCE(self) -> str: ...
@@ -70,7 +80,6 @@ class Measure(Protocol):
     def METHODS(self) -> tuple[Method, ...]: ...
     @property
     def MEASURE(self) -> Of: ...
-    def core_holds_it(self) -> bool: ...
 
 
 MODULES: tuple[Measure, ...] = (
@@ -492,44 +501,82 @@ def test_a_row_rests_on_the_table_and_on_the_files_that_say_which_msoa_an_area_i
 
 
 @pytest.mark.parametrize("module", MODULES, ids=[module.KEY for module in MODULES])
-def test_core_holds_no_such_measure_so_no_build_carries_it(module: Measure):
-    """The list of features is core's to change. This fails on the day core gains the measure."""
-    assert not module.core_holds_it()
-    assert module.KEY not in {feature.value for feature in FeatureId}
-    assert module.KEY not in {measure.feature for measure in measures.MEASURES}
-    assert module.SOURCE not in {measure.source for measure in measures.MEASURES}
-    assert module.METHODS == (AREA_ROW_RATIO,)
+def test_core_holds_the_measure_and_it_is_on_the_list_of_a_build(module: Measure):
+    """Core holds the measure under the name it is built with, so a build carries it."""
+    assert module.FEATURE is FeatureId(module.KEY) and module.FEATURE in COUNTS_RESIDENTS
+    (listed,) = [one for one in measures.MEASURES if one.feature is module.FEATURE]
+    assert (listed.source, listed.methods) == (module.SOURCE, module.METHODS)
+    assert listed.methods == (AREA_ROW_RATIO,)
+    assert listed.cannot_see == module.MEASURE.cannot_see
+    # It waits on nothing, and nothing holds it back.
+    assert (listed.waits_on, listed.held_back) == ((), ())
+    assert not (listed.in_squares or listed.in_parts)
+    # It reads its own table of the source, and not the table of another measure.
+    assert listed.reads(module.MEASURE.table.file)
+    other = HOUSEHOLDS if module.MEASURE.table is AGE else AGE
+    assert not listed.reads(other.file)
+
+
+def test_the_four_measures_of_the_census_are_the_four_core_holds_and_no_other():
+    on_the_list = {one.feature for one in measures.MEASURES if one.source == census_msoa.SOURCE}
+    assert on_the_list == COUNTS_RESIDENTS == {module.FEATURE for module in MODULES}
+    # In the order of their ids, as the list of a build is.
+    listed = [one.feature for one in measures.MEASURES]
+    assert listed == sorted(listed)
+
+
+@pytest.mark.parametrize("of", MEASURES, ids=[of.key for of in MEASURES])
+def test_the_row_of_a_measure_is_cores_so_a_build_carries_it(tmp_path: Path, of: Of):
+    metric = built(tmp_path, of).metric
+    assert measures.says_what_core_says(metric)
+    core = FEATURES[FeatureId(of.key)]
+    # The name is the measure's own, and core's is the same, letter for letter.
+    assert (metric.label, metric.short_label) == (of.label, of.short_label)
+    assert (core.label, core.short_label) == (of.label, of.short_label)
+    assert (metric.kind, metric.describes) == (FeatureKind.RESIDENTS, Describes.RESIDENTS)
+    assert metric.rankable is True
+    assert metric.source_ids == tuple(sorted({census_msoa.SOURCE, *metric.source_ids}))
+    # It is read from the publisher's own row for the MSOA.
+    assert metric.native_resolution is NativeResolution.MSOA
 
 
 @pytest.mark.parametrize("of", MEASURES, ids=[of.key for of in MEASURES])
 def test_the_name_of_a_measure_says_who_is_counted_and_in_which_census(tmp_path: Path, of: Of):
-    proposed = built(tmp_path, of).proposed
+    made = built(tmp_path, of)
+    metric = made.metric
     who = "residents" if of.table is AGE else "households"
-    assert proposed.key.startswith(f"{who}_") and who in proposed.label.lower()
-    assert proposed.label.endswith(", Census 2021") and f"all {who}" in proposed.label
-    assert (proposed.counted, proposed.describes) == (of.table.counted, "residents")
-    assert (proposed.census, proposed.vintage) == ("Census 2021", "2021-03-21")
-    assert (proposed.unit, proposed.geography) == ("%", Geography.MSOA21)
-    assert len(proposed.short_label) <= 40 and proposed.short_label.startswith("More ")
+    assert metric.feature_id.startswith(f"{who}_") and who in metric.label.lower()
+    assert metric.label.endswith(", Census 2021") and f"all {who}" in metric.label
+    assert of.table.counted.endswith(who) and metric.describes == "residents"
+    assert metric.vintage == "2021-03-21"
+    assert (metric.unit, made.geography) == ("%", Geography.MSOA21)
+    assert len(metric.short_label) <= 40 and metric.short_label.startswith("More ")
 
 
 @pytest.mark.parametrize("of", MEASURES, ids=[of.key for of in MEASURES])
 def test_a_person_may_ask_for_more_of_what_is_counted_and_never_for_fewer(tmp_path: Path, of: Of):
-    proposed = built(tmp_path, of).proposed
-    assert proposed.polarity is Polarity.MORE
-    assert (proposed.higher, proposed.lower) == ("more", "fewer")
-    said = f"{proposed.label} {proposed.short_label}".lower()
+    metric = built(tmp_path, of).metric
+    core = FEATURES[metric.feature_id]
+    assert metric.polarity is Polarity.MORE
+    assert (core.higher, core.lower) == ("more", "fewer")
+    said = f"{metric.label} {metric.short_label}".lower()
     assert not re.search(r"\b(fewer|less|no|without|away|avoid)\b", said)
+    # No recipe reads it from its low end, and no scale holds it.
+    for vibe in TAGS.values():
+        for term in vibe.terms:
+            if term.feature_id is metric.feature_id:
+                assert term.reading is TermReading.HIGH
+                assert (vibe.low_end, vibe.high_end) == (None, None)
 
 
 @pytest.mark.parametrize("of", MEASURES, ids=[of.key for of in MEASURES])
 def test_no_two_areas_are_said_to_be_alike_for_who_lives_in_them(tmp_path: Path, of: Of):
-    assert built(tmp_path, of).proposed.in_likeness is False
+    assert built(tmp_path, of).metric.in_likeness is False
 
 
 @pytest.mark.parametrize("of", MEASURES, ids=[of.key for of in MEASURES])
 def test_the_sentence_of_a_measure_says_what_is_counted_when_and_by_whom(tmp_path: Path, of: Of):
-    definition = built(tmp_path, of).proposed.definition
+    definition = built(tmp_path, of).metric.definition
     for words in (
         of.said,
         f"all the {of.table.counted} of the area",
@@ -562,8 +609,8 @@ def test_what_a_figure_cannot_see_is_one_or_two_sentences_that_name_the_day_and_
 @pytest.mark.parametrize("of", MEASURES, ids=[of.key for of in MEASURES])
 def test_nothing_said_of_a_measure_names_what_was_not_decided_on(tmp_path: Path, of: Of):
     """Age and household make-up were decided on. Nothing else about residents was."""
-    proposed = built(tmp_path, of).proposed
-    said = " ".join((proposed.key, proposed.label, proposed.short_label, proposed.definition))
+    metric = built(tmp_path, of).metric
+    said = " ".join((metric.feature_id, metric.label, metric.short_label, metric.definition))
     assert NOT_DECIDED.search(said) is None
 
 

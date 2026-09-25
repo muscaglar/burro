@@ -5,6 +5,7 @@ loopback address, where the server under test listens on a port of its own.
 """
 
 import ast
+import errno
 import http.client
 import json
 import os
@@ -1277,7 +1278,7 @@ def test_when_a_line_cannot_be_written_the_answer_says_not_saved(
     sitting.decide("names", "n:syn-n0004", "area")
 
     def full(descriptor: int, data: bytes) -> None:
-        raise OSError(28, f"No space left on device: {CANARY}")
+        raise OSError(errno.ENOSPC, f"No space left on device: {CANARY}")
 
     monkeypatch.setattr(records, "_write_all", full)
     got = sitting.decide("names", "n:syn-n0007", "drop", note=CANARY)
@@ -1288,7 +1289,9 @@ def test_when_a_line_cannot_be_written_the_answer_says_not_saved(
     assert b"Zzyzx" not in got.raw
     assert "Zzyzx" not in "".join(sitting.log)
     assert sitting.log[-1] == "POST /api/decide 500"
-    assert sitting.log[-2] == "fault OSError 28", "the number of the fault, and no word of it"
+    assert sitting.log[-2] == f"fault OSError {errno.ENOSPC}", (
+        "the number of the fault, and no word of it"
+    )
     monkeypatch.undo()
     assert sitting.state_of("names", "n:syn-n0007") == "open"
     assert sitting.state_of("names", "n:syn-n0004") == "done"
@@ -1297,17 +1300,25 @@ def test_when_a_line_cannot_be_written_the_answer_says_not_saved(
 @pytest.mark.parametrize(
     ("number", "words"),
     [
-        (28, "Not saved. The disk is full. Make room on it. The desk need not be started again."),
-        (69, "Not saved. The disk is full. Make room on it. The desk need not be started again."),
-        (13, "Not saved. The desk may not write to its folder. Give it leave to."),
-        (1, "Not saved. The desk may not write to its folder. Give it leave to."),
-        (30, "Not saved. The desk may not write to its folder. Give it leave to."),
-        (5, "Not saved. Start the desk again with make desk."),
+        (
+            errno.ENOSPC,
+            "Not saved. The disk is full. Make room on it. The desk need not be started again.",
+        ),
+        (
+            errno.EDQUOT,
+            "Not saved. The disk is full. Make room on it. The desk need not be started again.",
+        ),
+        (errno.EACCES, "Not saved. The desk may not write to its folder. Give it leave to."),
+        (errno.EPERM, "Not saved. The desk may not write to its folder. Give it leave to."),
+        (errno.EROFS, "Not saved. The desk may not write to its folder. Give it leave to."),
+        (errno.EIO, "Not saved. Start the desk again with make desk."),
     ],
 )
 def test_the_words_of_a_fault_say_what_a_person_can_do_about_it(
     sitting: Sitting, monkeypatch: pytest.MonkeyPatch, number: int, words: str
 ):
+    # A fault goes by its name. Its number is the system's own: a quota that is used up
+    # is one number on one system and another on the next.
     # Starting the desk again does not make room on a disk.
     def fails(descriptor: int, data: bytes) -> None:
         raise OSError(number, f"A fault of the system: {CANARY}")
@@ -1832,7 +1843,7 @@ def test_when_the_kept_copy_cannot_be_written_the_answer_says_not_saved_and_is_k
     kept = records.keep_up
 
     def full(file: Path, copy: Path) -> int:
-        raise OSError(28, f"No space left on device: {CANARY}")
+        raise OSError(errno.ENOSPC, f"No space left on device: {CANARY}")
 
     monkeypatch.setattr(records, "keep_up", full)
     got = sitting.decide("names", "n:syn-n0007", "drop", note=CANARY)

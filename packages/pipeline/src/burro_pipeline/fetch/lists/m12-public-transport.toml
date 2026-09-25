@@ -1,0 +1,93 @@
+# Public transport close by: the grid of accessibility levels, and the bus stops
+# with the routes that call at each. The first is what a level of access to
+# public transport is read from. The second is what a count of the bus routes
+# near a home is worked out from. The timetables a journey time is worked out
+# from are in the list m5-journeys.
+#
+# Written before any fetch. Every `page` is the registry entry's own `url`. Every
+# address of a file was read on 2026-09-24, through a reader that extracts the
+# text of a page. An extraction is not the page. So no person has seen an address
+# here, and no fetch has tried one. No address was guessed, and none was built
+# from a pattern. Each file's notes say where its address was read.
+#
+# The founder approved both datasets on 2026-09-24. The licence registry holds
+# the first as tfl-ptal-2015 and the second as tfl-bus-stops-and-routes, each
+# approved that day, and each entry says what is to be settled before launch.
+#
+# Each file is old, and each says how old:
+#
+#   ptal-grid-2015. The levels are of 2015. No later edition was found on the
+#   London Datastore, and what Transport for London gives on its own pages is
+#   under terms that do not let Burro take it. The levels count no service that
+#   began after 2015.
+#
+#   bus-sequences and bus-stops. The files are of 3 October 2025. The publisher's
+#   page says the feed is weekly. Its forum says no file has been put out on a
+#   schedule since September 2024, and the store the files are in held no newer
+#   file on 2026-09-24. The day is in the name of each file.
+#
+# Not listed, and why:
+#   - The eight other files of the accessibility levels: a guide, and the mean of
+#     each area of the census of 2001 or of 2011, of each ward and of each
+#     borough. An area of one census is never taken for an area of another, and a
+#     point of the grid is placed by where it stands.
+#   - The accessibility levels that Transport for London gives on its own pages
+#     and in WebCAT: they are under the WebCAT terms of use, which grant no right
+#     to reuse. The registry entry forbids them.
+#   - The two example files the open data page links, bus-stops-example.csv and
+#     stop-sequences-example.csv: the page says they are not updated and are for
+#     demonstration only.
+#   - The files in the folder Archived of the store: each is of a day before
+#     3 October 2025, and no change over time is shown.
+#   - iBus1 Static Data, which the publisher announced on its forum on
+#     15 October 2025: no entry of the registry covers it, and its terms were not
+#     read.
+#   - The stops and stations of NaPTAN: they are in the list m2-living, as
+#     naptan-london and naptan-national.
+#
+# `uv run python -m burro_pipeline plan --list m12-public-transport --words` says
+# what each file still needs.
+schema_version = 1
+build = "m12-public-transport"
+
+[[file]]
+item = "ptal-grid-2015"
+source_id = "tfl-ptal-2015"
+use = "scoring"
+what = "Public Transport Accessibility Levels, 2015: the values of the grid, for squares of 100 metres across London, in a zip"
+format = "zip"
+page = "https://data.london.gov.uk/dataset/public-transport-accessibility-levels-24rz6"
+url = "https://data.london.gov.uk/download/24rz6/514d2847-94a8-4b9d-8a70-fdded01719a0/2015%20%20PTALs%20Grid%20Values.zip"
+max_bytes = 50_000_000
+edition = "2015"
+data_period = { as_at = "2015" }
+unsure = ["url"]
+notes = "Address read on 2026-09-24, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times, letter for letter and written whole. Between 2015 and PTALs the address holds two spaces, each written as %20: it is as the page has it, and is not tidied. Open it once in a browser. The page calls the file '2015 PTAL Grid Values.zip', and gives 8.59 MB. It shows the licence 'Open Government Licence v2', and gives Transport for London as the author. The edition and the period are the year in the name of the file: the page says 'The 2015 files are available to download below'. The page's own field for the period reads January 2008 to December 2014 for every file, the guide among them, so it is taken to be of the record and not of the figures. The page says the smallest geography is '100m Grid Squares', and that each place is 'graded between 0 and 6b'. Nobody has opened the zip: what it holds, how it names its columns, and whether a square is given by a point or by a reference is not known. Read that in the file before a figure is made. For London only. The levels count no service that began after 2015, of which the Elizabeth line is one, and the publisher says on its own site that data it gave before is superseded and should no longer be used: every figure says that it is of 2015, as the registry entry asks. It is listed for scoring, which is what a measure of a release asks the gate for, whether or not an area is ranked on it. Whether one is ranked on it is the founder's to say, and the registry entry names it under before_launch."
+
+[[file]]
+item = "bus-sequences"
+source_id = "tfl-bus-stops-and-routes"
+use = "scoring"
+what = "London Buses standard network data: the sequence of bus stops of every bus route, as at 3 October 2025"
+format = "csv"
+page = "https://tfl.gov.uk/info-for/open-data-users/our-open-data"
+url = "https://bus.data.tfl.gov.uk/stops-sequences/Data_3rdParties_bus-sequences-20251003.csv"
+max_bytes = 30_000_000
+edition = "20251003"
+data_period = { as_at = "2025-10-03" }
+unsure = ["url"]
+notes = "Address read on 2026-09-24, on the publisher's own forum, techforum.tfl.gov.uk, through a reader that extracts, and not on the page above. The page above lists the dataset as 'Bus stop locations and routes', links two example files that it says are not updated, and names no address for the file that is kept up to date: 'You need to register to gain access to the live feeds'. The founder registered on 2026-09-24, as it was passed to whoever wrote this. Where the address was read: in the topic https://techforum.tfl.gov.uk/t/bus-sequences-csv/6040 , in a post of 3 October 2025 that the forum marks as written by staff, under the words 'latest version of the file is now here'. The post was read as the forum's own record of it, which gives the address written whole and with https. The store the file is in lists itself: read the same day, it held this file at 5,188,509 bytes, last changed on 3 October 2025, and no newer one. The host is bus.data.tfl.gov.uk, which is no host of the publisher's pages, and the registry entry names this address under file_urls. No fetch has tried it, and whether it asks for a key is not known. The edition is the day in the name of the file, written as the name writes it, and the period is that day: the publisher's guide to the data says 'The date is presented in the file name'. The guide is of 2011, and names eleven columns for this file: the route, the run, which is the direction, the place of a stop in the sequence, three codes of the stop, its name, its easting and northing, its heading, and whether it is a virtual bus stop. Nobody has opened a file of 2025, so its columns are to be read in the file. A virtual bus stop is no stop: the guide says none stands there, and the registry entry says that none is counted or shown. The file says where a route stops and nothing of how often a bus runs. For London only. The publisher's page says the feed is weekly, and its forum says that no file has been put out on a schedule since September 2024: so the file is a year old, and every figure says the day it is of."
+
+[[file]]
+item = "bus-stops"
+source_id = "tfl-bus-stops-and-routes"
+use = "scoring"
+what = "London Buses standard network data: the location of every bus stop, as at 3 October 2025"
+format = "csv"
+page = "https://tfl.gov.uk/info-for/open-data-users/our-open-data"
+url = "https://bus.data.tfl.gov.uk/stops-sequences/Data_3rdParties_bus-stops-20251003.csv"
+max_bytes = 10_000_000
+edition = "20251003"
+data_period = { as_at = "2025-10-03" }
+unsure = ["url"]
+notes = "Address read on 2026-09-24, on the publisher's own forum, through a reader that extracts, where bus-sequences says: the same post gives both addresses, each written whole and with https. The store the file is in held it at 1,384,590 bytes, last changed on 3 October 2025, and no newer one. The registry entry names this address under file_urls. No fetch has tried it. The edition and the period are as bus-sequences states them. The guide of 2011 names nine columns for this file: three codes of the stop, its name, its easting and northing, its heading, the group of stops it stands in, and whether it is a virtual bus stop. Nobody has opened a file of 2025. It is listed beside the sequences because the two are one dataset and a stop that no route calls at is in this file alone. A count of routes reads the sequences. For London only."

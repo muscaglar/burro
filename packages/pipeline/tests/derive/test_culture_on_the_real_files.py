@@ -67,13 +67,18 @@ def made(real: Inputs, found: Spine) -> Culture:
 # The box of the list
 
 
+def the_box() -> tuple[float, float, float, float]:
+    """The box the list takes, which is one box for both of the parts it takes."""
+    boxes = {file.take.box for file in load_list("m2-culture").files if file.take is not None}
+    (box,) = boxes
+    return box
+
+
 def test_the_box_holds_every_home_of_london_with_more_than_twice_the_reach_to_spare(
     real: Inputs, found: Spine
 ):
     """So a venue within reach of any home of London is in the part that is taken."""
-    (file,) = load_list("m2-culture").files
-    assert file.take is not None
-    west, south, east, north = file.take.box
+    west, south, east, north = the_box()
     at = [longitude_and_latitude(*point) for point in centres.build(real, found).values()]
     assert len(at) == len(found.area_of) == 26_369
     across, up = metres_to_a_degree(north)
@@ -86,9 +91,7 @@ def test_the_box_holds_every_home_of_london_with_more_than_twice_the_reach_to_sp
 
 def test_the_box_is_no_wider_than_it_needs_to_be(real: Inputs, found: Spine):
     """It holds land outside London, and no more than 5,000 metres of it on any side."""
-    (file,) = load_list("m2-culture").files
-    assert file.take is not None
-    west, south, east, north = file.take.box
+    west, south, east, north = the_box()
     at = [longitude_and_latitude(*point) for point in centres.build(real, found).values()]
     across, up = metres_to_a_degree(south)
     assert (min(point[0] for point in at) - west) * across < 5_000
@@ -102,9 +105,10 @@ def test_the_box_is_no_wider_than_it_needs_to_be(real: Inputs, found: Spine):
 
 @NOT_FETCHED
 def test_the_part_in_the_store_is_the_part_the_list_asks_for(real: Inputs):
-    (file,) = load_list("m2-culture").files
-    assert file.take is not None
-    opened = real.open(culture_file.SOURCE, file.use, named=culture_file.is_the_file)
+    """The list takes the part twice, and culture reads the one that was taken with no brand."""
+    file = load_list("m2-culture").files[0]
+    assert file.take is not None and "brand" not in file.take.columns
+    opened = culture_file.opened_of(real)
     taken = opened.receipt.taken
     assert taken is not None and opened.receipt.edition == file.edition
     assert (taken.box, taken.box_in) == (file.take.box, file.take.box_in)

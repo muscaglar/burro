@@ -497,9 +497,15 @@ def test_a_workbook_that_is_not_what_was_described_stops_the_build(tmp_path: Pat
 # What a buyer is answered
 
 
-def test_a_buyer_with_a_firm_budget_loses_the_area_whose_flats_sold_for_more(build: Made):
+def test_a_buyer_with_a_firm_budget_loses_the_area_whose_flats_sold_for_far_more(build: Made):
+    """A median is left out only where it is more than a quarter over the budget.
+
+    The flats of the first area sold for 300,000 in the middle, which is more
+    than a quarter over 239,000, and those of the third for 250,000, which is
+    not.
+    """
     release = read_release(build.release)
-    result = rank(buyer(275_000, Strictness.HARD), release)
+    result = rank(buyer(239_000, Strictness.HARD), release)
     assert [(f.area_id, f.reason) for f in result.filtered] == [(ONE, FilterReason.OVER_BUDGET)]
     kept = {area.area_id: area for area in result.ranked}
     assert set(kept) == {TWO, THREE}
@@ -508,7 +514,18 @@ def test_a_buyer_with_a_firm_budget_loses_the_area_whose_flats_sold_for_more(bui
     assert kept[TWO].untested_filters == (FilterReason.OVER_BUDGET,)
     assert [c.present for c in kept[TWO].contributions if c.component == "budget"] == [False]
     fit = kept[THREE].budget
-    assert fit is not None and (fit.upper_quartile, fit.margin) == (None, 25_000)
+    assert fit is not None and (fit.upper_quartile, fit.margin) == (None, -11_000)
+
+
+def test_a_buyer_with_a_firm_budget_keeps_an_area_whose_flats_sold_for_a_little_more(build: Made):
+    release = read_release(build.release)
+    result = rank(buyer(275_000, Strictness.HARD), release)
+    assert result.filtered == ()
+    fits = {area.area_id: area.budget for area in result.ranked}
+    over, under = fits[ONE], fits[THREE]
+    assert over is not None and under is not None
+    assert (over.margin, under.margin) == (-25_000, 25_000)
+    assert over.utility < under.utility == 1.0
 
 
 def test_a_buyer_with_a_soft_budget_loses_no_area_and_the_dearer_one_is_worth_less(build: Made):

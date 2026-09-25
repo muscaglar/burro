@@ -290,10 +290,7 @@ def test_nothing_is_written_to_the_store(tmp_path: Path):
 
 
 def test_the_name_says_it_is_a_straight_line_and_core_says_the_same(town: Walk):
-    """Core's words are held here, so that this fails on the day core names a walk again.
-
-    The measure is on the list of no build yet: `WAITS_ON` says what would bring it in.
-    """
+    """Core's words are held here, so that this fails on the day core names a walk again."""
     metric, core = town.metric, FEATURES[FeatureId.PHARMACY_WALK]
     assert metric.label == "Straight-line distance to the nearest pharmacy, placed by its postcode"
     assert "walk" not in metric.label.lower()
@@ -310,25 +307,19 @@ def test_the_name_says_it_is_a_straight_line_and_core_says_the_same(town: Walk):
         assert getattr(metric, name) == getattr(core, name)
 
 
-def test_the_measure_says_what_it_waits_on_and_none_of_it_is_cores():
-    assert len(pharmacy_walk.WAITS_ON) == 3
-    assert not any("Core names" in said for said in pharmacy_walk.WAITS_ON)
+def test_the_measure_is_carried_and_waits_on_nothing():
+    assert pharmacy_walk.WAITS_ON == ()
 
 
-def test_the_measure_is_called_as_the_list_of_the_measures_of_a_build_calls_each(
+def test_the_measure_is_on_the_list_and_is_called_as_the_list_calls_each(
     tmp_path: Path, town: Walk
 ):
-    """It is not on the list yet. This is the line that puts it there."""
-    assert pharmacy_walk.FEATURE not in {measure.feature for measure in measures.MEASURES}
-    measure = measures.Measure(
-        pharmacy_walk.FEATURE,
-        pharmacy_walk.SOURCE,
-        pharmacy_walk.is_the_list,
-        pharmacy_walk.METHODS,
-        pharmacy_walk.CANNOT_SEE,
-        lambda inputs, ground: pharmacy_walk.build(inputs, ground.spine),
-        waits_on=pharmacy_walk.WAITS_ON,
-    )
+    (measure,) = [one for one in measures.MEASURES if one.feature is pharmacy_walk.FEATURE]
+    assert (measure.source, measure.methods) == (pharmacy_walk.SOURCE, pharmacy_walk.METHODS)
+    assert measure.cannot_see == pharmacy_walk.CANNOT_SEE
+    assert (measure.waits_on, measure.held_back) == ((), ())
+    assert measure.reads("consol_pharmacy_list_202606q1.csv")
+    assert not measure.reads("epraccur.csv")
     inputs = inputs_of(tmp_path)
     found = spine.build(inputs)
     made = measure.build(inputs, measures.Ground(found, land.build(inputs, found)))
@@ -340,12 +331,15 @@ def test_the_measure_is_called_as_the_list_of_the_measures_of_a_build_calls_each
 
 def test_the_definition_is_one_sentence_that_says_it_is_a_straight_line(town: Walk):
     definition = town.metric.definition
-    assert definition == pharmacy_walk.definition_of("2026-04-01 to 2026-06-30")
+    assert definition == pharmacy_walk.definition_of("2026-04-01", "2026-06-30")
     assert definition.endswith(".") and not re.search(r"[.!?]\s|\n", definition)
+    # The list is of a quarter, and nothing says what day it is as at.
+    assert "as at" not in definition
+    assert "as at 2026-06-30" in pharmacy_walk.definition_of("2026-06-30", "2026-06-30")
     for words in (
         "in a straight line",
         "Consolidated Pharmaceutical List of the NHS Business Services Authority",
-        "as at 2026-04-01 to 2026-06-30",
+        "for the period from 2026-04-01 to 2026-06-30",
         "ONS Postcode Directory",
         "median",
         "census of 2021",

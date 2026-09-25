@@ -123,6 +123,11 @@ class Places:
     saved: str
 
 
+def is_the_file(name: str) -> bool:
+    """Whether a publisher's name for a file is the name of the file the places are read from."""
+    return stops_file.is_the_file(name)
+
+
 def bare(name: str) -> str:
     """A name with its closing words of kind taken off, once. A name of only such words is kept.
 

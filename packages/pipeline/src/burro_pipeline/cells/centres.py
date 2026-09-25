@@ -8,10 +8,17 @@ measure in its own right.
 An output area the file gives no point for is left out, and nothing stands in
 for it: not the middle of its outline, and not the point of a neighbour. The
 method that reads a value at a point then counts it as not covered.
+
+Where the homes of an area stand is the middle of the centres of its output
+areas: `middles_of`. A journey is estimated from it where no journey time is
+held. Each centre counts once, because the table of homes is not given for the
+naming of places, and output areas are drawn to hold about as many homes each.
 """
 
 import math
+from collections.abc import Mapping
 
+from burro_pipeline.cells.shapes import longitude_and_latitude
 from burro_pipeline.cells.spine import OA, Spine
 from burro_pipeline.evidence.lock import LockError
 from burro_pipeline.inputs import Inputs, Opened
@@ -41,6 +48,25 @@ def centres_of(opened: Opened, spine: Spine) -> dict[str, Point]:
                 raise LockError("input_is_as_described", opened.file_id, "a point is no point")
             found[row[OA]] = point
     return found
+
+
+def middles_of(points: Mapping[str, Point], spine: Spine) -> dict[str, Point]:
+    """Where the homes of each area stand, as a longitude and a latitude.
+
+    It is the middle of the centres of the area's output areas, each counted
+    once. An area none of whose output areas has a centre has no middle, and
+    nothing stands in for it.
+    """
+    of_area: dict[str, list[Point]] = {}
+    for oa in sorted(points):
+        of_area.setdefault(spine.area_of[oa], []).append(points[oa])
+    return {
+        area: longitude_and_latitude(
+            math.fsum(point[0] for point in held) / len(held),
+            math.fsum(point[1] for point in held) / len(held),
+        )
+        for area, held in sorted(of_area.items())
+    }
 
 
 def build(inputs: Inputs, spine: Spine) -> dict[str, Point]:

@@ -16,7 +16,7 @@ import pytest
 from burro_core.catalogue import TAGS
 from burro_core.ids import Describes, FeatureId, FeatureKind, Polarity
 from burro_pipeline.cells import spine
-from burro_pipeline.derive import centres_nearby, measures
+from burro_pipeline.derive import brands_nearby, centres_nearby, measures, venues_nearby
 from burro_pipeline.derive.centres_nearby import (
     BESIDE_A_CENTRE,
     CANNOT_SEE,
@@ -273,9 +273,18 @@ def test_every_area_has_a_row_for_each_figure_that_holds_the_figure(town: Centre
 def test_core_holds_no_feature_for_a_centre_and_no_build_carries_one():
     assert not centres_nearby.core_holds_it()
     assert not set(KEYS) & {feature.value for feature in FeatureId}
-    # A build reads the file of places for the cultural venues, and for nothing else.
+    # A build reads the file of places for the cultural venues, for the cafes, the gyms and
+    # the pubs and bars, for the nearest food shop and for the chains of grocers, gyms and
+    # coffee, and for nothing else.
     of_the_file = {one.feature for one in measures.MEASURES if one.source == SOURCE}
-    assert of_the_file == {FeatureId.CULTURE_VENUES, FeatureId.CULTURE_VENUES_PER_HOMES}
+    assert of_the_file == {
+        FeatureId.CULTURE_VENUES,
+        FeatureId.CULTURE_VENUES_PER_HOMES,
+        FeatureId.EVENING_CLUSTER_EXPOSURE,
+        FeatureId.GROCERY_WALK,
+        *venues_nearby.MEASURES,
+        *brands_nearby.FEATURES,
+    }
 
 
 def test_the_sentence_of_a_methods_page_says_what_is_counted(town: Centres):

@@ -16,7 +16,7 @@ from collections.abc import Mapping
 from pathlib import Path
 
 import pytest
-from burro_core.catalogue import FEATURES, TAGS
+from burro_core.catalogue import CHAINS, FEATURES, TAGS
 from burro_core.ids import FeatureId, NativeResolution
 from burro_pipeline.cells import spine
 from burro_pipeline.derive import price, price_median
@@ -461,8 +461,13 @@ def test_the_price_of_each_kind_of_home_is_a_cost_and_of_a_home_of_any_kind_a_me
     kind of home is a cost, which a budget is held against, and is no measure.
     """
     of_the_workbook = [measure for measure in MEASURES if measure.source == price.SOURCE]
-    assert [measure.feature for measure in of_the_workbook] == [FeatureId.PRICE_MEDIAN]
-    (measure,) = of_the_workbook
+    # How far the median has risen is read from the same sheet, over five years and ten.
+    assert [measure.feature for measure in of_the_workbook] == [
+        FeatureId.PRICE_MEDIAN,
+        FeatureId.PRICE_RISE_10Y,
+        FeatureId.PRICE_RISE_5Y,
+    ]
+    measure = of_the_workbook[0]
     assert measure.methods == price.METHODS and not measure.held_back and not measure.waits_on
     assert not measure.in_parts and not measure.in_squares
     assert price_median.FEATURE.value == price.ALL.key and price.ALL.cost_key is None
@@ -471,7 +476,14 @@ def test_the_price_of_each_kind_of_home_is_a_cost_and_of_a_home_of_any_kind_a_me
 def test_core_holds_one_feature_for_a_price_and_no_vibe_rests_on_it():
     known = {feature.value for feature in FeatureId}
     assert known & {home.key for home in price.HOMES} == {"price_median"}
-    assert [f for f in known if "price" in f or "cost" in f] == ["price_median"]
+    # The name of one chain of coffee holds the letters of a cost, and is no cost. Beside the
+    # price core holds how far it has risen, which is no price and no cost.
+    of_a_chain = {feature.value for feature in CHAINS}
+    assert sorted(f for f in known - of_a_chain if "price" in f or "cost" in f) == [
+        "price_median",
+        "price_rise_10y",
+        "price_rise_5y",
+    ]
     in_a_recipe = {term.feature_id for tag in TAGS.values() for term in tag.terms}
     assert FeatureId.PRICE_MEDIAN not in in_a_recipe
     assert FEATURES[FeatureId.PRICE_MEDIAN].in_likeness is False

@@ -97,8 +97,8 @@ MEANING: Mapping[str, str] = {
     "measure is, so no release may carry it",
     "measure_has_a_figure": "has a figure for no area, so there is nothing of it to carry",
     "measure_is_not_held_back": "is held back: a check of its figures found that they do not "
-    "yet say what the measure is named for, so no release carries it, whatever the catalogue "
-    "in core says",
+    "yet say what the measure is named for, or a check that is asked for before it is served "
+    "has not been made, so no release carries it, whatever the catalogue in core says",
     "gate_refuses": "may not be used as its receipt says",
     "file_is_for_the_product": "is kept for the audit or for the census table, and no such "
     "file is an input of a product release",
@@ -264,6 +264,13 @@ class Dated(Protocol):
     def in_a_receipt(self) -> EditionFrom: ...
 
 
+class Part(Protocol):
+    """Which part of a file an item of a list takes, as `seal` reads it."""
+
+    @property
+    def columns(self) -> tuple[str, ...]: ...
+
+
 class Wanted(Protocol):
     """One file of the list of a build, as `seal` reads it. An item of fetch's list is one.
 
@@ -286,10 +293,26 @@ class Wanted(Protocol):
     def data_period(self) -> Period | None: ...
     @property
     def edition_from(self) -> Dated | None: ...
+    @property
+    def take(self) -> Part | None: ...
 
 
-# What a receipt and an item of the list both say of a file.
-Said = tuple[str, Use, str, Period | None]
+# What a receipt and an item of the list both say of a file. The last is the columns that
+# were taken of it, in name order, where part of it was taken. A list may take two parts of
+# one file, and the columns of each are what tells one from the other.
+Said = tuple[str, Use, str, Period | None, tuple[str, ...] | None]
+
+
+def said_of(file: Wanted) -> Said:
+    """What an item of a list says of its file."""
+    part = None if file.take is None else tuple(sorted(file.take.columns))
+    return (file.source_id, file.use, file.edition, file.data_period, part)
+
+
+def said_in(receipt: Receipt) -> Said:
+    """What a receipt says of its file."""
+    part = None if receipt.taken is None else receipt.taken.columns
+    return (receipt.source_id, receipt.use, receipt.edition, receipt.data_period, part)
 
 
 def stated_in(receipt: Receipt, file: Wanted) -> str | None:
@@ -394,7 +417,8 @@ def _of_the_list(
 
     Files of one source, use, edition and period cannot be told apart by what
     the list says of them. They are counted: as many receipts as the list names
-    files, each of a file with a name of its own.
+    files, each of a file with a name of its own. Two parts of one file are
+    told apart by the columns each took.
     """
     taken, without = take(receipts, listed, editions)
     if without:
@@ -406,12 +430,10 @@ def _of_the_list(
     for file in listed:
         if file.edition_from is not None:
             continue
-        said = (file.source_id, file.use, file.edition, file.data_period)
-        wanted.setdefault(said, []).append(file)
+        wanted.setdefault(said_of(file), []).append(file)
     found: dict[Said, list[Receipt]] = {}
     for receipt in receipts:
-        said = (receipt.source_id, receipt.use, receipt.edition, receipt.data_period)
-        found.setdefault(said, []).append(receipt)
+        found.setdefault(said_in(receipt), []).append(receipt)
     for said, files in wanted.items():
         there = len(found.get(said, ()))
         if there < len(files):

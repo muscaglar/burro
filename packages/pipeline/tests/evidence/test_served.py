@@ -81,17 +81,17 @@ def test_the_rule_sees_every_fact_the_api_would_serve():
     }
     assert facts <= keys
     kinds = Counter(fact_id.split("/")[1] for fact_id in facts)
-    # A vibe has a fact in every area, placed or not: 11 vibes in 24 areas. One area is
+    # A vibe has a fact in every area, placed or not: 14 vibes in 24 areas. One area is
     # known too little of to say what it is like, and each of the others has five alike.
     assert kinds == {
         "area": 24,
-        "feature": 962,
-        "tag": 264,
+        "feature": 2421,
+        "tag": 336,
         "likeness": 115,
         "cost": 207,
         "station": 25,
     }
-    assert len(facts) == 1597
+    assert len(facts) == 3128
     # And a row for the journeys of every area by every mode, 24 areas by 3 modes.
     assert {key.split("/")[1] for key in keys - facts} == {"travel"}
     assert len(keys - facts) == 72
@@ -219,8 +219,8 @@ def test_a_station_with_no_row_is_named():
 
 def test_every_fact_is_named_when_there_is_no_row_at_all():
     found = unevidenced(release(), with_rows(()))
-    assert len(found) == 1597 + 72
-    assert counted(found) == {"fact_has_a_row": 1669}
+    assert len(found) == 3128 + 72
+    assert counted(found) == {"fact_has_a_row": 3200}
 
 
 def suppress(row: dict[str, Any]) -> None:
@@ -296,9 +296,9 @@ def test_a_row_of_a_label_a_cost_a_journey_or_a_station_holds_no_value():
 
 def test_a_row_for_a_gap_is_not_a_fault():
     gaps = [row for row in evidence().rows if not row.has_a_value]
-    # 70 figures of a measure, 33 costs and 24 vibes that an area lacks, and the four
+    # 164 figures of a measure, 33 costs and 29 vibes that an area lacks, and the four
     # measures that no release carries yet, in each of 24 areas.
-    assert len(gaps) == 70 + 33 + 24 + 4 * 24
+    assert len(gaps) == 171 + 33 + 29 + 4 * 24
     # The release has these gaps on purpose, and the evidence says why each is one.
     assert {row.state for row in gaps} == {
         State.BELOW_THRESHOLD,
@@ -317,8 +317,8 @@ def test_a_fact_that_cites_a_source_with_no_file_behind_it_is_named():
     office = registered("made-up-office", *OF_A_RELEASE)
     elsewhere = Evidence.model_validate(moved)
     found = unevidenced(real_release(), elsewhere, lock_of(elsewhere), survey_registry(office))
-    assert len(found) == 1669
-    assert counted(found) == {"source_has_a_file": 1669}
+    assert len(found) == 3200
+    assert counted(found) == {"source_has_a_file": 3200}
     assert SURVEY in {s.source_id for s in real_release().manifest.sources}
 
 
@@ -401,9 +401,9 @@ def test_a_row_that_rests_on_a_file_kept_for_the_audit_or_the_census_table_is_na
     rows, _ = resting_on(evidence_with_it, homes_of(evidence_with_it))
     named = {finding.fact_id for finding in found if finding.rule == "input_is_for_the_product"}
     assert named == set(rows)
-    # Every measure, every vibe, every cost and every journey rests on the homes: 1,032,
-    # 264, 240 and 72. A name does not, and nor does a measure that the release does not carry.
-    assert len(rows) == 1608 and "lon-n0001/area/name" not in named
+    # Every measure, every vibe, every cost and every journey rests on the homes: 2,472,
+    # 336, 240 and 72. A name does not, and nor does a measure that the release does not carry.
+    assert len(rows) == 3240 and "lon-n0001/area/name" not in named
 
 
 def test_a_fact_whose_evidence_is_kept_for_the_audit_or_the_census_table_is_named(
@@ -413,10 +413,10 @@ def test_a_fact_whose_evidence_is_kept_for_the_audit_or_the_census_table_is_name
     _, facts = resting_on(evidence_with_it, homes_of(evidence_with_it))
     named = {finding.fact_id for finding in found if finding.rule == "evidence_is_for_the_product"}
     assert named == set(facts)
-    # A fact is served only where there is a figure: 962 of a measure, 207 costs and 72
+    # A fact is served only where there is a figure: 2,375 of a measure, 207 costs and 72
     # journeys. A vibe rests on the homes where it is placed, and where a part of it has a
-    # figure: 242 and 11. And 115 facts of likeness were counted from the figures of measures.
-    assert len(facts) == 962 + 207 + 72 + 242 + 11 + 115
+    # figure: 307 and 17. And 115 facts of likeness were counted from the figures of measures.
+    assert len(facts) == 2421 + 207 + 72 + 307 + 17 + 115
     assert str(next(f for f in found if f.rule == "evidence_is_for_the_product")) == (
         f"{sorted(facts)[0]} is served, and the evidence behind it rests on a file kept for "
         "the audit or for the census table [evidence_is_for_the_product]"
@@ -433,7 +433,7 @@ def test_a_made_up_file_for_the_audit_stands_behind_no_made_up_figure_either():
     planted = with_receipt(evidence(), homes_of(evidence()), use="audit_only")
     found = counted(unevidenced(release(), planted))
     # As a scale, gritty is placed in two areas fewer, and two more have a part of it.
-    assert found == {"evidence_is_for_the_product": 1609, "input_is_for_the_product": 1608}
+    assert found == {"evidence_is_for_the_product": 3139, "input_is_for_the_product": 3240}
 
 
 def test_a_file_fetched_to_look_at_may_be_in_the_lock_with_no_row_resting_on_it():
@@ -490,8 +490,8 @@ def test_a_row_that_rests_on_a_file_the_registry_does_not_allow_for_its_use_is_n
     found = unevidenced(real_release(), planted, lock_of(planted), survey_registry(entry))
     rows = [row.fact_id for row in planted.rows if measures_of(planted) in row.inputs]
     assert found == tuple(Finding(row, "input_is_allowed") for row in sorted(rows))
-    # 43 measures and 11 vibes, in each of 24 areas.
-    assert {row.split("/")[1] for row in rows} == {"feature", "tag"} and len(rows) == 54 * 24
+    # 103 measures and 14 vibes, in each of 24 areas.
+    assert {row.split("/")[1] for row in rows} == {"feature", "tag"} and len(rows) == 122 * 24
     assert str(found[0]) == (
         f"{sorted(rows)[0]} rests on a file that the licence registry does not allow for what "
         "this figure is used for, or that was fetched for an internal use, or is a file of the "
@@ -504,10 +504,10 @@ def test_a_row_that_rests_on_a_file_fetched_for_an_internal_use_is_named(use: st
     # Its source is approved for every use of a release. Its receipt says what it was read for.
     planted = with_receipt(real_evidence(), measures_of(real_evidence()), use=use)
     found = unevidenced(real_release(), planted, lock_of(planted), survey_registry())
-    assert counted(found) == {"input_is_allowed": 1296}
+    assert counted(found) == {"input_is_allowed": 2928}
     # A made-up file is held to its receipt too, with no registry to ask.
     made_up = with_receipt(evidence(), measures_of(evidence()), use=use)
-    assert counted(unevidenced(release(), made_up)) == {"input_is_allowed": 1296}
+    assert counted(unevidenced(release(), made_up)) == {"input_is_allowed": 2928}
 
 
 OFFICE = "made-up-office"
@@ -716,8 +716,8 @@ def test_a_release_whose_source_is_no_longer_allowed_for_scoring_is_found():
     assert {finding.rule for finding in findings} == {"input_is_allowed"}
     # One fault is found once: by the rows that rest on the source, and not by what cites it.
     assert {finding.fact_id for finding in findings} == rows_put_to(found, Use.SCORING)
-    # The rows of 1,296 measures and vibes, and of 240 costs. A journey is put to another use.
-    assert len(findings) == 1536
+    # The rows of 2,808 measures and vibes, and of 240 costs. A journey is put to another use.
+    assert len(findings) == 3168
 
 
 def test_a_source_that_may_score_may_still_not_name_an_area():

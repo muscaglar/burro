@@ -1,9 +1,10 @@
 """The nearest GP practice, from the publisher's report to a distance for each area.
 
 Every file here is made up: `by_postcode_support.py` lays out the report as
-the publisher's specification says, and says where each practice stands. No
-file of the real report has been fetched. No postcode here is one that has
-been given out, and no name is a name.
+the publisher's specification says and as the first real file was found to
+be, and says where each practice stands. The real report is read by
+`test_gp_walk_on_the_real_files.py`. No postcode here is one that has been
+given out, and no name is a name.
 """
 
 import dataclasses
@@ -71,11 +72,31 @@ def town(tmp_path_factory: pytest.TempPathFactory) -> Walk:
 def test_a_practice_counts_where_it_is_active_open_and_of_the_setting_of_a_gp_practice(
     town: Walk,
 ):
-    assert town.report.rows == len(PRACTICES) == 11
-    assert town.report.by_status == {"active": 8, "closed": 1, "dormant": 1, "proposed": 1}
-    assert town.report.of_a_gp_practice == 9
+    assert town.report.rows == len(PRACTICES) == 13
+    assert town.report.by_status == {
+        "active": 9,
+        "closed": 1,
+        "dormant": 1,
+        "inactive": 1,
+        "proposed": 1,
+    }
+    assert town.report.of_a_gp_practice == 10
     # Two that are placed, and three that count and cannot be placed.
     assert len(town.report.postcodes) == 5
+
+
+def test_a_practice_that_is_not_active_is_left_out_and_is_said_to_be(town: Walk):
+    """Each is a GP practice by its setting. The one that is active still holds a close date."""
+    assert town.report.left_out == {
+        "active": 1,
+        "closed": 1,
+        "dormant": 1,
+        "inactive": 1,
+        "proposed": 1,
+    }
+    assert sum(town.report.left_out.values()) + len(town.report.postcodes) == 10
+    assert "leaving out every practice it lists as inactive" in town.metric.definition
+    assert any("lists as inactive" in line for line in gp_walk.CANNOT_SEE)
 
 
 @pytest.mark.parametrize(
@@ -92,6 +113,14 @@ def test_a_practice_counts_where_it_is_active_open_and_of_the_setting_of_a_gp_pr
         MadeUpPractice(MILL_ROW.postcode, setting="RO7"),
         MadeUpPractice(MILL_ROW.postcode, setting="RO760"),
         MadeUpPractice(MILL_ROW.postcode, setting=""),
+        # As the real report writes a practice that has closed, with the day or without.
+        MadeUpPractice(MILL_ROW.postcode, status="INACTIVE", closed="20190331"),
+        MadeUpPractice(MILL_ROW.postcode, status="INACTIVE"),
+        # Two settings in one cell, and neither is that of a GP practice.
+        MadeUpPractice(MILL_ROW.postcode, setting="RO80|RO87"),
+        MadeUpPractice(MILL_ROW.postcode, setting="RO760|RO7"),
+        # A GP practice of two settings that is not active.
+        MadeUpPractice(MILL_ROW.postcode, status="DORMANT", setting="RO76|RO268"),
     ],
 )
 def test_a_practice_that_is_not_open_or_is_no_gp_practice_does_not_count(
@@ -100,6 +129,16 @@ def test_a_practice_that_is_not_open_or_is_no_gp_practice_does_not_count(
     found = of(MadeUpPractice(NORTH_GATE.postcode), practice, folder=tmp_path)
     assert found.report.postcodes == (NORTH_GATE.postcode,)
     assert found.placing.listed == 1
+
+
+@pytest.mark.parametrize("setting", ["RO76|RO268", "RO268|RO76", "RO80|RO76|RO87"])
+def test_a_practice_of_two_settings_counts_where_one_is_that_of_a_gp_practice(
+    tmp_path: Path, setting: str
+):
+    found = of(MadeUpPractice(MILL_ROW.postcode, setting=setting), folder=tmp_path)
+    assert found.report.postcodes == (MILL_ROW.postcode,)
+    assert (found.report.of_a_gp_practice, found.report.of_several_settings) == (1, 1)
+    assert found.placing.placed == 1
 
 
 @pytest.mark.parametrize("status", ["ACTIVE", "Active", "active", " ACTIVE "])
@@ -219,7 +258,7 @@ def test_what_is_printed_of_the_report_holds_no_postcode(town: Walk):
     said = repr(town.report) + repr(town.placing) + repr(town.rows) + repr(town.metric)
     for practice in PRACTICES:
         assert practice.postcode not in said
-    assert repr(town.report) == "Report(rows=11, counted=5)"
+    assert repr(town.report) == "Report(rows=13, counted=5)"
 
 
 # A file that is not as the step expects
@@ -233,22 +272,27 @@ def test_a_line_of_another_width_stops_the_step(tmp_path: Path, width: int):
 
 def test_a_report_with_a_row_of_names_stops_the_step(tmp_path: Path):
     names = ",".join(f'"Column {number}"' for number in range(1, 28)).encode() + b"\r\n"
-    assert "a status is not one the specification names" in refusal(tmp_path, names + report())
+    assert "a status is not one the step names" in refusal(tmp_path, names + report())
 
 
 @pytest.mark.parametrize(
     ("practice", "words"),
     [
-        (MadeUpPractice("QH1 1CK", status="A"), "a status is not one the specification names"),
-        (MadeUpPractice("QH1 1CK", status="INACTIVE"), "a status is not one the specification"),
-        (MadeUpPractice("QH1 1CK", status=""), "a status is not one the specification names"),
+        (MadeUpPractice("QH1 1CK", status="A"), "a status is not one the step names"),
+        (MadeUpPractice("QH1 1CK", status="NOT ACTIVE"), "a status is not one the step names"),
+        (MadeUpPractice("QH1 1CK", status=""), "a status is not one the step names"),
         (MadeUpPractice("QH1 1CK", closed="31/03/2019"), "a close date is no day"),
         (MadeUpPractice("QH1 1CK", closed="2019"), "a close date is no day"),
         (MadeUpPractice("QH1 1CK", setting="4"), "a prescribing setting is not written as"),
         (MadeUpPractice("QH1 1CK", setting="GP PRACTICE"), "a prescribing setting is not"),
+        (MadeUpPractice("QH1 1CK", setting="RO76|"), "a prescribing setting is not written as"),
+        (MadeUpPractice("QH1 1CK", setting="|RO76"), "a prescribing setting is not written as"),
+        (MadeUpPractice("QH1 1CK", setting="RO76||RO80"), "a prescribing setting is not"),
+        (MadeUpPractice("QH1 1CK", setting="RO76 RO80"), "a prescribing setting is not"),
+        (MadeUpPractice("QH1 1CK", setting="RO76|GP"), "a prescribing setting is not written"),
     ],
 )
-def test_a_row_that_is_not_written_as_the_specification_says_stops_the_step(
+def test_a_row_that_is_not_written_as_the_step_expects_stops_the_step(
     tmp_path: Path, practice: MadeUpPractice, words: str
 ):
     said = refusal(tmp_path, report([practice]))
@@ -364,10 +408,7 @@ def test_nothing_is_written_to_the_store(tmp_path: Path):
 
 
 def test_the_name_says_it_is_a_straight_line_and_core_says_the_same(town: Walk):
-    """Core's words are held here, so that this fails on the day core names a walk again.
-
-    The measure is on the list of no build yet: `WAITS_ON` says what would bring it in.
-    """
+    """Core's words are held here, so that this fails on the day core names a walk again."""
     metric, core = town.metric, FEATURES[FeatureId.GP_WALK]
     assert metric.label == (
         "Straight-line distance to the nearest GP practice, placed by its postcode"
@@ -386,25 +427,18 @@ def test_the_name_says_it_is_a_straight_line_and_core_says_the_same(town: Walk):
         assert getattr(metric, name) == getattr(core, name)
 
 
-def test_the_measure_says_what_it_waits_on_and_none_of_it_is_cores():
-    assert len(gp_walk.WAITS_ON) == 3
-    assert not any("Core names" in said for said in gp_walk.WAITS_ON)
+def test_the_measure_is_carried_and_waits_on_nothing():
+    assert gp_walk.WAITS_ON == ()
 
 
-def test_the_measure_is_called_as_the_list_of_the_measures_of_a_build_calls_each(
+def test_the_measure_is_on_the_list_and_is_called_as_the_list_calls_each(
     tmp_path: Path, town: Walk
 ):
-    """It is not on the list yet. This is the line that puts it there."""
-    assert gp_walk.FEATURE not in {measure.feature for measure in measures.MEASURES}
-    measure = measures.Measure(
-        gp_walk.FEATURE,
-        gp_walk.SOURCE,
-        gp_walk.is_the_report,
-        gp_walk.METHODS,
-        gp_walk.CANNOT_SEE,
-        lambda inputs, ground: gp_walk.build(inputs, ground.spine),
-        waits_on=gp_walk.WAITS_ON,
-    )
+    (measure,) = [one for one in measures.MEASURES if one.feature is gp_walk.FEATURE]
+    assert (measure.source, measure.methods) == (gp_walk.SOURCE, gp_walk.METHODS)
+    assert measure.cannot_see == gp_walk.CANNOT_SEE
+    assert (measure.waits_on, measure.held_back) == ((), ())
+    assert measure.reads("epraccur.csv") and not measure.reads("ebranchs.csv")
     inputs = inputs_of(tmp_path)
     found = spine.build(inputs)
     made = measure.build(inputs, measures.Ground(found, land.build(inputs, found)))
@@ -422,6 +456,7 @@ def test_the_definition_is_one_sentence_that_says_it_is_a_straight_line(town: Wa
         "in a straight line",
         "the report epraccur of NHS England",
         "lists as active, as at 2026-09-24",
+        "leaving out every practice it lists as inactive, dormant, closed or proposed",
         "ONS Postcode Directory",
         "median",
         "census of 2021",
@@ -446,10 +481,11 @@ def test_no_sentence_of_the_measure_describes_who_lives_somewhere(town: Walk):
 
 
 def test_what_it_cannot_see_is_said_in_whole_sentences():
-    assert len(gp_walk.CANNOT_SEE) == 6
+    assert len(gp_walk.CANNOT_SEE) == 7
     for sentence in gp_walk.CANNOT_SEE:
         assert sentence.endswith(".") and not re.search(r"[.!?]\s", sentence)
     assert "not a walk" in gp_walk.CANNOT_SEE[0]
     assert "a branch surgery that is nearer is not counted" in gp_walk.CANNOT_SEE[4]
-    assert "Near is not able to register" in gp_walk.CANNOT_SEE[5]
+    assert "lists as inactive or dormant is left out" in gp_walk.CANNOT_SEE[5]
+    assert "Near is not able to register" in gp_walk.CANNOT_SEE[6]
     assert QUAY.postcode not in "".join(gp_walk.CANNOT_SEE)

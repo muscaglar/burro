@@ -24,7 +24,7 @@ from burro_pipeline.evidence.made_up import made_up_evidence
 from burro_pipeline.evidence.receipt import Receipt
 from burro_pipeline.evidence.row import EvidenceRow
 from burro_pipeline.evidence.store import Evidence
-from burro_pipeline.fetch.sources import FetchList, Format, Listed
+from burro_pipeline.fetch.sources import FetchList, Format, Listed, Take
 from burro_pipeline.registry import (
     CommercialUse,
     Dimension,
@@ -207,17 +207,24 @@ def with_receipt(found: Evidence, file_id: str, **changes: object) -> Evidence:
 
 
 def listed(receipt: Receipt, item: str = "") -> Listed:
-    """The file of a receipt, as the list of its build names it. The list is fetch's own."""
+    """The file of a receipt, as the list of its build names it. The list is fetch's own.
+
+    Where part of the file was taken, the list says which part, as the receipt does.
+    """
+    taken = receipt.taken
     return Listed(
         item=item or f"item-{receipt.file_id[2:]}",
         source_id=receipt.source_id,
         use=receipt.use,
         what="A made-up file",
-        format=Format.OTHER,
+        format=Format.OTHER if taken is None else Format.PARQUET,
         page="https://example.org/data",
         max_bytes=receipt.bytes,
         edition=receipt.edition,
         data_period=receipt.data_period,
+        take=None
+        if taken is None
+        else Take(box=taken.box, box_in=taken.box_in, columns=taken.columns),
     )
 
 

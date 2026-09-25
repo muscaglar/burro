@@ -164,7 +164,7 @@ def test_the_command_checks_the_release_and_the_evidence_behind_it(build: Made, 
     status, out, err = checked(build, capsys)
     assert (status, err) == (0, "")
     assert out.splitlines() == [
-        f"{RELEASE}: 3 areas (3 rankable), 23 measures, 0 destinations, 0 places, 0 stations, "
+        f"{RELEASE}: 3 areas (3 rankable), 24 measures, 3 destinations, 3 places, 0 stations, "
         "real, a preview, with evidence behind every fact"
     ]
 
@@ -599,7 +599,6 @@ def test_only_a_measure_that_says_so_may_rest_on_a_file_for_each_part(with_the_c
     evidence = Evidence.model_validate_json((with_the_count.beside / EVIDENCE).read_bytes())
     lock, registry, held = read_lock(with_the_count.beside / LOCK), load(REGISTRY), behind()
     assert [name for name, one in held.items() if one.in_parts] == [
-        "venue_evening",
         "venue_food_drink",
         "venue_food_drink_per_homes",
     ]

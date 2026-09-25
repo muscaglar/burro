@@ -284,8 +284,8 @@ def test_two_shares_of_one_whole_are_no_more_than_all_of_it(made: dict[str, Shar
 @RECEIPTED
 def test_every_source_a_figure_rests_on_is_registered_for_scoring(made: dict[str, Share]):
     for one in made.values():
-        assert census_msoa.SOURCE in one.proposed.source_ids
-        for source_id in one.proposed.source_ids:
+        assert census_msoa.SOURCE in one.metric.source_ids
+        for source_id in one.metric.source_ids:
             assert Use.SCORING in registry().get(source_id).uses
         assert {row.derivation_id for row in one.rows} == {"area_row_ratio@1"}
         assert all(row.value == one.worked[row.area_id].value for row in one.rows)

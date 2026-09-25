@@ -117,7 +117,7 @@ def cases() -> list[Case]:
             asking(
                 tags={TagId.PACE: 1.0},
                 weights={
-                    FeatureId.VENUE_EVENING: 0.7,
+                    FeatureId.VENUE_EVENING_PER_HOMES: 0.7,
                     FeatureId.CULTURE_VENUES_PER_HOMES: 0.5,
                 },
             ),

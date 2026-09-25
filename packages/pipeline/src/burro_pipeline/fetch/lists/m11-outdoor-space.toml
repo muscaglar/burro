@@ -20,13 +20,17 @@
 #   - "Access to public parks and playing fields, Great Britain, April 2020", of
 #     the same page: it is another table, and no entry of the registry covers it.
 #
-# The lookup is listed and has not been fetched. Its address was read on the
-# page of its item on 2026-09-24, through a reader that extracts, asked twice in
-# different words. Nobody has read the file, so its edition and its period are
-# named as not yet sure, and its first fetch stores it and writes no receipt.
-# It says of each area of 2011 whether it is unchanged, split, merged or none
-# of these. It is read to say which areas kept their outline, and never to
-# share a figure out.
+# The lookup was fetched on 2026-09-24 and stored with no receipt. Its address
+# was read on the page of its item that day, through a reader that extracts,
+# asked twice in different words. Its layout was then read as it was stored,
+# with `describe`, by a program and by no person: the names of its columns and
+# how many rows stand under them, and no row. The file states no edition and no
+# period, so both are its record's, and the item's notes say where each was
+# read. It was fetched again that day and has its receipt, and the step that
+# holds a figure to it has read its rows since. Whether what a program read is
+# enough is the founder's to say. The lookup says of each area of 2011 whether
+# it is unchanged, split, merged or none of these. It is read to say which
+# areas kept their outline, and never to share a figure out.
 #
 # `uv run python -m burro_pipeline plan --list m11-outdoor-space --words` says
 # what the file still needs.
@@ -55,12 +59,13 @@ what = "MSOA of 2011 to MSOA of 2021 to local authority of 2022, exact-fit looku
 format = "csv"
 page = "https://www.data.gov.uk/dataset/3c944c27-4fe0-4371-8c4f-75af4534fae5/msoa-2011-to-msoa-2021-to-local-authority-district-2022-exact-fit-lookup-for-ew-v21"
 url = "https://open-geography-portalx-ons.hub.arcgis.com/api/download/v1/items/94b5259bdd5e4216b8b70c2a79932312/csv?layers=0"
-# The hosts the portal handed the downloads of list m1 on to, as a fetch saw on
-# 2026-09-23. No fetch has asked for this file yet. Take out what it does not use.
-may_redirect_to = ["services1.arcgis.com", "stg-arcgisazurecdataprod1.az.arcgis.com"]
+# The hosts the portal hands a download on to. The last two are those a fetch of
+# list m1 saw on 2026-09-23. The first was named on 2026-09-24, when a fetch of
+# this file ended why=28 without it, and the receipt says the file arrived from
+# it. Whether a request for this file passes the other two is in no receipt.
+may_redirect_to = ["hub.arcgis.com", "services1.arcgis.com", "stg-arcgisazurecdataprod1.az.arcgis.com"]
 url_parameters = ["layers"]
 max_bytes = 10_000_000
 edition = "V2"
 data_period = { as_at = "2022-12" }
-unsure = ["url", "format", "max_bytes", "edition", "data_period"]
-notes = "Where each was read. The address: on the page above, on 2026-09-24, through a reader that extracts, asked twice in different words. Both readings gave the same address, letter for letter, and the item it names is the one the registry entry holds. No fetch has taken the file from it, so it is named as not yet sure. The format: the page lists the file as CSV, beside the same table as KML, GeoJSON and a shapefile. The size: the page gives none. The item's record gives 1,613,824 bytes for the hosted table, which is not the download. The edition: 'V2' is in the title of the item, and its record says 'This version 2 has had some changes to the change indicator field where splits have gone to complexes in under 10 MSOAs'. The period: the record says the lookup is between areas 'as at December 2011' and 'as at December 2021' and local authorities 'as at December 2022', so the period stated is the last of the three, as the lookup of the first list states its own. Nobody has read either in the file. What the record says the file holds: eight columns, MSOA11CD, MSOA11NM, CHGIND, MSOA21CD, MSOA21NM, LAD22CD, LAD22NM and LAD22NMW, and in CHGIND one of four marks, U, S, M or X. When the file is stored, read it with `describe`, hold it to those columns and marks, and take the edition and the period out of `unsure`. What to count in it: of London's 1,002 areas of 2021, 963 have a row in the workbook of private outdoor space and 39 have none, and the workbook holds 20 areas of London that are no area of 2021. If the lookup is what it says, the 963 carry the mark U, and the 20 areas of 2011 are split into the 39. England and Wales: the page offers no file for London."
+notes = "Where each was read. The address: on the page above, on 2026-09-24, through a reader that extracts, asked twice in different words. Both readings gave the same address, letter for letter, and the item it names is the one the registry entry holds. A fetch took the file from it on 2026-09-24, once the list named hub.arcgis.com among the hosts a download is handed on to, and stored it with no receipt: 592,543 bytes, under the file id f-674387d9ace6. The format: the page lists the file as CSV, beside the same table as KML, GeoJSON and a shapefile, and what was stored is a CSV in UTF-8, with a comma between cells. The size: the page gives none, and the item's record gives 1,613,824 bytes for the hosted table, which is not the download. What the file holds was read on 2026-09-24 with `describe`, by a program and by no person. `describe` gives the names of the columns and a count of rows, and no row. It gave nine columns, named in the first row, and 7,286 rows under them. The columns are MSOA11CD, MSOA11NM, CHNGIND, MSOA21CD, MSOA21NM, LAD22CD, LAD22NM, LAD22NMW and ObjectId. The record names eight, and writes the third CHGIND: the file writes it CHNGIND, and holds ObjectId besides, as the lookup of the first list does. A step asks for a column by the name the file gives it. The edition: the file states none. 'V2' is in the title of the item, and its record says 'This version 2 has had some changes to the change indicator field where splits have gone to complexes in under 10 MSOAs'. The address names that item, so the edition is the record's. The period: the file states no day and no month. The names of its columns carry 11, 21 and 22, and that is as far as the file goes. The record says the lookup is between areas 'as at December 2011' and 'as at December 2021' and local authorities 'as at December 2022', so the period stated is the last of the three, as the lookup of the first list states its own. Days that are about the record and are not the period of its data: the item's record says it was made on 14 May 2026, and its data.gov.uk record says it was last updated on 20 May 2026. The hash in the receipt says which file was fetched. The receipt: a second fetch on 2026-09-24 was given the same file and wrote its receipt. The file arrived from hub.arcgis.com, and the publisher's own name for the download ends '(V2)', which bears the edition out. What the rows hold was read on 2026-09-24 by the step that holds a figure to the lookup, through the receipt, by a program and by no person. The record names four marks: U, S, M and X. The file holds all four, and the 1,003 rows of London's boroughs hold three: 963 rows are marked U, 38 S and two M, and none X. So of London's 1,002 areas of 2021, 963 are the areas they were in 2011, under the code they had. 38 are parts of 18 areas of 2011 that were split, 16 into two and two into three. One was made by joining two areas of 2011. Those 39 are the 39 that the workbook of private outdoor space holds no row for, and the 20 areas of 2011 they were made from are the 20 it holds that are no area of 2021. England and Wales: the page offers no file for London."

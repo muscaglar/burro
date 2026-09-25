@@ -50,6 +50,9 @@ FILES_ARE_ON = {
 NAMED_AND_FETCHED = {
     "mhclg-planning-data-conservation-areas": PLATFORM_FILES,
     "historic-england-listed-buildings": PLATFORM_FILES,
+    # The three yearly files of prices paid were held back until 2026-09-24, when the entry
+    # came to name each. They were fetched that day, and each has its receipt.
+    "hmlr-price-paid": "price-paid-data.publicdata.landregistry.gov.uk",
 }
 
 # The one source with a file a person saved and a file that is fetched. The stops of London
@@ -58,14 +61,15 @@ NAMED_AND_FETCHED = {
 # two addresses, each whole: the one a file was saved from, and the one a list holds.
 SAVED_AND_FETCHED = {"dft-naptan": "naptan.api.dft.gov.uk"}
 
+# The sources whose entry names the host of its files under `file_urls` alone, from what a
+# page of the publisher gave, and whose addresses no fetch has tried. A source moves to
+# `NAMED_AND_FETCHED` with its first receipt. None waits today.
+NAMED_AND_NOT_YET_FETCHED: dict[str, str] = {}
+
 # The files that have no address in a list and are not saved by a person, each with the host
 # its publisher hands it out from. The entry of each names no address on that host, under
-# `file_urls` or anywhere else.
-HELD_BACK = {
-    "price-paid-2025": "price-paid-data.publicdata.landregistry.gov.uk",
-    "price-paid-2024": "price-paid-data.publicdata.landregistry.gov.uk",
-    "price-paid-2023": "price-paid-data.publicdata.landregistry.gov.uk",
-}
+# `file_urls` or anywhere else. None is held back today.
+HELD_BACK: dict[str, str] = {}
 
 # The files a person saved, each with the host the browser recorded that it was saved from.
 # The entry of each names that one address, whole. Three of the four hosts are not the host
@@ -114,7 +118,7 @@ def fetched(source_id: str) -> list[str]:
 # The registry
 
 
-ELSEWHERE = FILES_ARE_ON | NAMED_AND_FETCHED | SAVED_AND_FETCHED
+ELSEWHERE = FILES_ARE_ON | NAMED_AND_FETCHED | NAMED_AND_NOT_YET_FETCHED | SAVED_AND_FETCHED
 
 
 @pytest.mark.parametrize(("source_id", "files_are_on"), ELSEWHERE.items())
@@ -148,6 +152,24 @@ def test_a_host_named_under_file_urls_alone_is_the_host_a_fetch_arrived_from(
     assert {host_of(held) for held in source.file_urls} == {files_are_on}
     if RECEIPTS.is_dir():
         assert arrived_from(source_id) == {files_are_on}
+
+
+@pytest.mark.parametrize(("source_id", "files_are_on"), NAMED_AND_NOT_YET_FETCHED.items())
+def test_a_host_that_no_fetch_has_tried_is_named_under_file_urls_alone_and_has_no_receipt(
+    source_id: str, files_are_on: str
+):
+    """The entry names the host nowhere but under `file_urls`, so no address on it passes
+    for evidence of the licence, and its notes say which host it is. No receipt bears an
+    address out yet. On the day one is kept this fails: move the source to
+    `NAMED_AND_FETCHED`, which holds the entry to what the fetch saw."""
+    source = of_the_repository().get(source_id)
+    assert files_are_on not in {host_of(held) for held in (source.url, *source.evidence_urls)}
+    assert {host_of(held) for held in source.file_urls} == {files_are_on}
+    assert files_are_on in source.notes
+    listed = [file for file in with_an_address() if file.source_id == source_id]
+    assert sorted(file.url for file in listed) == sorted(source.file_urls)
+    if RECEIPTS.is_dir():
+        assert arrived_from(source_id) == set()
 
 
 @pytest.mark.parametrize(("source_id", "files_are_on"), SAVED_AND_FETCHED.items())
@@ -382,5 +404,5 @@ def test_each_file_says_when_its_address_was_read_and_through_what():
 def test_what_nobody_has_tried_is_still_marked_as_not_sure():
     """No fetch has tried an address on a host that was named for this change."""
     for file in with_an_address():
-        if file.source_id in FILES_ARE_ON:
+        if file.source_id in FILES_ARE_ON | NAMED_AND_NOT_YET_FETCHED:
             assert "url" in file.unsure, file.item

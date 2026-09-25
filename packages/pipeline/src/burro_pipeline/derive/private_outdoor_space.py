@@ -24,6 +24,7 @@ this module claims, and where each claim is from:
 | What counts as private outdoor space | Neither the file nor any page that was read |
 | That a garden flats share is counted | The file names a column for how many flats share one |
 | Which census the codes follow | The file names none. They are not those of 2021 |
+| Which areas kept their outline | The statistics office's lookup, by its mark of no change |
 | How a count that is withheld is written | No cell of the two counts is empty or is text |
 
 The sheet names its columns in two rows. The first holds the names of the
@@ -37,26 +38,34 @@ page, and the notes state the year 2020 in their line of rights.
 
 How a figure is made:
 
-1. The row of an area is found by the code of the MSOA the area is.
-2. The figure is the count of addresses with private outdoor space over the
+1. The area is held to the statistics office's lookup between the areas of
+   2011 and of 2021. It has a figure only where the lookup marks it as
+   unchanged: `derive/areas_of_2011.py` reads the lookup and says which.
+2. The row of the area is found by the code of the MSOA the area was in 2011,
+   which for an area that did not change is the code it has.
+3. The figure is the count of addresses with private outdoor space over the
    count of addresses, as a percentage: `area_row_ratio`, the publisher's own
    row for the area, and never a sum of smaller areas.
-3. It is given to one decimal place, with a half taken upward.
+4. It is given to one decimal place, with a half taken upward.
 
 Which areas have a figure. The workbook names no census, and its codes are not
 those of 2021: it lacks some areas of the build, and holds areas the build does
 not. The test on the real file holds the count of each. It was made in May
 2020, and the statistics office says the areas of 2021 are "made up of
-unchanged 2011 MSOAs and new 2021 MSOAs". An area of 2021 whose code the
-workbook holds has the figure of that row. An area whose code it does not hold
-has no figure: no row of the workbook is of its outline, and nothing is shared
-out. That every code of the workbook is one of 2011, and that a code the two
-censuses share names one outline, is what the statistics office's lookup from
-the areas of 2011 to those of 2021 says of each area, under the mark it gives
-an area that did not change. The lookup is registered for `cells`, as
-`HELD_TO` names it, and no file of it has been fetched. A figure is held to it
-before it is carried, and `WAITS_ON` says so. It is read to say which areas
-kept their outline, and never to share a figure out.
+unchanged 2011 MSOAs and new 2021 MSOAs". An area that the lookup marks as
+unchanged, and whose code the workbook holds, has the figure of that row. An
+area that was split from a larger one, or made by joining two, has no figure:
+no row of the workbook is of its outline, and nothing is shared out to it. An
+area the lookup marks as unchanged and the workbook holds no row for has none
+either. The lookup is `HELD_TO`. It is read to say which areas kept their
+outline, and never to share a figure out. A row of evidence names it beside
+the workbook, so the licence registry holds it for `scoring` as well as for
+`cells`.
+
+On the real files, of London's 1,002 areas of 2021 the lookup marks 963 as
+unchanged, and the workbook holds a row for each. 38 are parts of the 18
+areas of 2011 that were split, and one was made by joining two. Those 39 have
+no figure, and they are the 39 the workbook holds no row for.
 
 Nothing is filled in. An empty cell is no count, and is never nought. A cell
 that holds text where a count belongs stops the step, because neither the file
@@ -70,18 +79,26 @@ ones. This is a share of addresses: it says how many homes have any outdoor
 space of their own, and nothing of how much. The vibe Homes asks for the
 second.
 
-Is it a measure of a place? It counts addresses and the ground beside them,
-and reads nothing of who lives at one. The design of the vibes still holds it
-out of Homes and out of likeness until its row of the proxy audit is written:
-the publisher's own article reports, from a survey of people, that access to a
-garden differs by ethnic group, by age and by occupation. So the measure gives
-a name of its own, a build leaves it out, and `WAITS_ON` says what it waits on.
-It is not on the list of the measures of a build. When it joins, the list calls
-`build` with the spine of the build, as it calls the other measures of homes.
+Core names the measure as it is built, since catalogue version 13: addresses
+with private outdoor space, by MSOA. The licence registry asks that a figure of
+the workbook says addresses and never homes or households, because no page
+says what Ordnance Survey counted as an address.
+
+**The measure is held back from every release and from every vibe.** It counts
+addresses and the ground beside them, and reads nothing of who lives at one.
+The publisher's own article still reports, from a survey of people, that access
+to a garden differs by ethnic group, by age and by occupation. So decision
+record 0006 asks for its row of the proxy audit before it is in a release, and
+the design of the vibes lets it into Houses or flats only once that row has
+passed. No audit has been run, and none can be yet. `HELD_BACK` says so, and
+whose it is to settle. The figure is worked out at every build whose lists
+name its files, so that whoever settles it has the figures, and a build leaves
+it out whatever core says of it. Take nothing out of `HELD_BACK` but in a
+change a person reads, once the row has passed.
 """
 
 import re
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass, replace
 
 from burro_core.facts import fact_id
@@ -90,6 +107,8 @@ from burro_core.release import Metric
 
 from burro_pipeline.cells import spine
 from burro_pipeline.cells.spine import Spine
+from burro_pipeline.derive import areas_of_2011
+from burro_pipeline.derive.areas_of_2011 import CARRIED, Changes, Mark
 from burro_pipeline.derive.catalogue_row import catalogue_row
 from burro_pipeline.derive.methods import AREA_ROW_RATIO, Worked, area_row_ratio, row_of, to_places
 from burro_pipeline.derive.noise_sheet import Under, Value, read_sheet
@@ -125,30 +144,31 @@ COLUMNS = (CODE, ADDRESSES, WITH_SPACE)
 # intermediate zone of Scotland. The workbook is of Great Britain.
 AN_AREA = re.compile(r"[EWS]02[0-9]{6}")
 # What the rows are keyed by. The workbook names no census, and its codes are not those of
-# 2021. That each is a code of 2011 is held to the lookup between the two before a figure
-# is carried: `WAITS_ON`.
+# 2021. A row is found by the code an area had in 2011, which the lookup gives.
 KEYED_BY = Geography.MSOA11
 # The statistics office's lookup from the areas of 2011 to those of 2021, by its id in the
-# licence registry. This step does not read it yet: no file of it has been fetched.
-HELD_TO = "ons-msoa11-msoa21-lad22-lookup"
+# licence registry. Every area that has a figure is held to it.
+HELD_TO = areas_of_2011.SOURCE
 # A share is given as a percentage, to this many decimal places.
 WHOLE = 100
 DECIMALS = 1
 
 # The arithmetic: what a methods page prints beside the measure.
 METHODS: tuple[Method, ...] = (AREA_ROW_RATIO,)
-# The name says what is counted. Core's says homes, and the workbook counts addresses.
+# The name says what is counted, as core names the measure: addresses, and never homes.
 LABEL = "Addresses with private outdoor space"
 # What the measure is, from whom, for what period, and what it is not.
 DEFINITION = (
     "Addresses that have private outdoor space, as a percentage of the addresses of the "
     "area, from the {publisher}'s analysis of {made_by} data as at {as_at}: both counts are "
     "the publisher's own for the area, found by the code of the area, and are not added up "
-    "from smaller areas; an area that was drawn again for the census of 2021 has no row and "
-    "no figure; an empty cell is no count and is never nought; the share is given to "
-    "{places} decimal place, with a half taken upward; so it counts addresses and not homes, "
-    "says whether an address has any outdoor space and not how much, and says nothing of "
-    "who lives at one."
+    "from smaller areas; the counts are of the area as it was drawn for the census of 2011, "
+    "so an area has a figure only where the {publisher}'s lookup between the areas of 2011 "
+    "and of 2021 marks it as unchanged, and an area that was split, merged or drawn again "
+    "has no figure, and nothing is shared out to it; an empty cell is no count and is never "
+    "nought; the share is given to {places} decimal place, with a half taken upward; so it "
+    "counts addresses and not homes, says whether an address has any outdoor space and not "
+    "how much, and says nothing of who lives at one."
 )
 # What the product shows beside the figure.
 CANNOT_SEE = (
@@ -157,17 +177,22 @@ CANNOT_SEE = (
     "It cannot see how large an outdoor space is, what kind it is, or whether several flats "
     "share it.",
 )
-# What keeps the measure out of a release, and whose each is to settle.
-WAITS_ON = (
-    "The workbook names no census, and its codes are not those of 2021. The figure is found "
-    "by the code of an area. That a code the censuses of 2011 and 2021 share names one "
-    "outline is to be held to the statistics office's lookup between the two, area by area, "
-    "and no file of the lookup has been fetched.",
-    "Core names the measure homes with private outdoor space, and the workbook counts "
-    "addresses, as at April 2020. Whether an address may be called a home is the founder's to "
-    "say.",
-    "The design of the vibes holds private outdoor space out of Homes until its row of the "
-    "proxy audit is written. The rule of the audit is the founder's to write.",
+# What the row of the catalogue waits on. Core names the measure as it is built, so nothing.
+WAITS_ON: tuple[str, ...] = ()
+# What keeps the measure out of every release, whatever core says of it, and whose it is to
+# settle. It is no finding of a check of the figures: it is the row of the proxy audit, which
+# is asked for before a measure that may follow who lives somewhere is in a release. While it
+# holds anything, no release carries the measure.
+HELD_BACK = (
+    "The row of the proxy audit for private outdoor space is not written, and no audit has "
+    "been run: the tables an audit is run on are gated or held in the licence registry, and "
+    "no store of the audit's own is built. Decision "
+    "record 0006 asks for the row before the measure is in a release, and the design of the "
+    "vibes lets it into Houses or flats only if it is under 0.3 on every table of the audit. "
+    "The publisher's own article reports, from a survey of people, that access to a garden "
+    "differs by ethnic group, by age and by occupation.",
+    "The rule of the audit, and the tables it is run on, are the founder's to settle. Until "
+    "the row has passed, no release and no vibe carries the figure.",
 )
 
 
@@ -208,6 +233,11 @@ class OutdoorSpace:
     geography: Geography
     # The areas of the build that the workbook holds no row for.
     without_a_row: frozenset[str]
+    # What the lookup says of every area of the build.
+    changes: Changes
+    # The areas of the build that the lookup does not mark as unchanged, each with its mark.
+    # None has a figure.
+    drawn_again: Mapping[str, Mark]
 
 
 def is_the_workbook(name: str) -> bool:
@@ -270,18 +300,30 @@ def without_a_row(table: Table, found: Spine) -> frozenset[str]:
     return missing
 
 
-def figures(table: Table, found: Spine) -> dict[str, Worked]:
+def drawn_again(changes: Changes, found: Spine) -> dict[str, Mark]:
+    """The areas of the build that the lookup does not mark as unchanged, each with its mark."""
+    return {
+        area.area_id: changes.marks[area.code]
+        for area in found.areas
+        if changes.marks[area.code] is not Mark.UNCHANGED
+    }
+
+
+def figures(
+    table: Table, found: Spine, changes: Changes, carried: Collection[Mark] = CARRIED
+) -> dict[str, Worked]:
     """The share of addresses with private outdoor space for every area, or why there is none.
 
-    Each count is the area's own, from the row of the MSOA the area is. An
-    area with no row has no figure, and nor has one whose row lacks a count or
-    holds no address.
+    Each count is the area's own, from the row of the MSOA the area was in
+    2011. An area has a figure only where the lookup gives it one area of
+    2011, under a mark that `carried` names. One it gives none has no figure,
+    and nor has one with no row, or whose row lacks a count or holds no address.
     """
-    counted = {
-        area.area_id: table.of_area[area.code]
+    rows = {
+        area.area_id: table.of_area.get(changes.taken_from(area.code, carried) or "")
         for area in found.areas
-        if area.code in table.of_area and table.of_area[area.code].whole
     }
+    counted = {area: row for area, row in rows.items() if row is not None and row.whole}
     share = area_row_ratio(
         {area: float(one.with_space or 0) for area, one in counted.items()},
         {area: float(one.addresses or 0) for area, one in counted.items()},
@@ -301,8 +343,8 @@ def _when(period: Period) -> str:
 def metric_of(files: Sequence[Receipt], as_at: str) -> Metric:
     """The row of the catalogue: the name, the unit, the period and every source.
 
-    The name is this module's and not core's, because the workbook counts
-    addresses. Core decides the unit and which way is more.
+    The name is `LABEL`, which is core's: the workbook counts addresses. Core
+    decides the unit and which way is more.
     """
     return catalogue_row(
         FEATURE,
@@ -319,19 +361,22 @@ def metric_of(files: Sequence[Receipt], as_at: str) -> Metric:
 def build(inputs: Inputs, found: Spine) -> OutdoorSpace:
     """The share of addresses with private outdoor space for every area, from the build's files.
 
-    The gate is asked about the workbook before it is read. `found` is the
-    spine of the same build. A row of evidence names the workbook and the
-    lookup, which says which MSOA an area is.
+    The gate is asked about the workbook and about the lookup between the
+    censuses before either is read. `found` is the spine of the same build. A
+    row of evidence names the workbook, the lookup that says which MSOA an
+    area is, and the lookup that says which areas kept their outline.
     """
     opened = inputs.open(SOURCE, Use.SCORING, edition=EDITION, named=is_the_workbook)
     table = read(opened)
     missing = without_a_row(table, found)
+    changes = areas_of_2011.build(inputs, found)
     handed = {one.file_id: one.receipt for one in inputs.opened}
     if not all(file_id in handed for file_id in found.inputs):
         raise ValueError("the spine is made from files of this build")
     lookup = [file_id for file_id in found.inputs if handed[file_id].source_id == spine.LOOKUP]
-    files = tuple(handed[file_id] for file_id in sorted({opened.file_id, *lookup}))
-    worked = figures(table, found)
+    behind = {opened.file_id, changes.file_id, *lookup}
+    files = tuple(handed[file_id] for file_id in sorted(behind))
+    worked = figures(table, found, changes)
     rows = tuple(
         row_of(fact_id(area, FactKind.FEATURE, FEATURE), worked[area], AREA_ROW_RATIO, files)
         for area in sorted(worked)
@@ -344,4 +389,6 @@ def build(inputs: Inputs, found: Spine) -> OutdoorSpace:
         table=table,
         geography=KEYED_BY,
         without_a_row=missing,
+        changes=changes,
+        drawn_again=drawn_again(changes, found),
     )

@@ -21,7 +21,8 @@ from pathlib import Path
 import pytest
 from burro_core.catalogue import TAG_MIN_COVERAGE_HUNDREDTHS, TAGS
 from burro_core.ids import FeatureId, TagId
-from burro_core.release import TagValue
+from burro_core.release import FeatureValue, TagValue
+from burro_pipeline.assemble import release as release_rows
 from burro_pipeline.derive import centre_compact, centre_small
 from burro_pipeline.release.read import read_release
 
@@ -73,6 +74,40 @@ def test_village_feel_is_placed_where_the_size_and_the_shape_of_a_centre_have_a_
     # Nothing is put in for the area with no figure: it is placed no more than it was.
     assert after[TALLOWGATE].coverage == before[TALLOWGATE].coverage
     assert (after[TALLOWGATE].score is None) == (before[TALLOWGATE].score is None)
+
+
+def test_no_build_places_an_area_on_village_feel_without_a_figure_of_its_town_centre():
+    """A build with the brands holds 60 in 100 of Village feel, and nothing of a town centre.
+
+    It found inner London's old streets and no villages, so it is held off every build
+    until a second try reads as villages. Food and drink rests on independent places too,
+    and is placed as it was.
+    """
+    areas = ("lon-n0001", "lon-n0002", "lon-n0003")
+    held = (
+        FeatureId.INDEPENDENTS_NEARBY,
+        FeatureId.HOMES_PRE1919,
+        FeatureId.CONSERVATION_COVER,
+        FeatureId.VENUE_FOOD_DRINK_PER_HOMES,
+    )
+    assert not set(held) & SIZE_AND_SHAPE
+    features = [
+        FeatureValue(
+            area_id=area, feature_id=feature, value=value, percentile=percentile, coverage=1.0
+        )
+        for feature in held
+        for area, value, percentile in zip(areas, (1.0, 2.0, 3.0), (16.7, 50.0, 83.3), strict=True)
+    ]
+    vibes = [TAGS[TagId.VILLAGE_FEEL], TAGS[TagId.FOODIE]]
+
+    rows = release_rows.tags_of(features, areas, vibes)
+
+    village = [row for row in rows if row.tag_id is TagId.VILLAGE_FEEL]
+    assert [row.coverage for row in village] == [0.6, 0.6, 0.6]
+    assert {(row.raw, row.score, row.band) for row in village} == {(None, None, None)}
+    food = [row for row in rows if row.tag_id is TagId.FOODIE]
+    assert [row.coverage for row in food] == [0.8, 0.8, 0.8]
+    assert [row.band for row in food] == [1, 2, 4]
 
 
 def _placed(found: Made) -> dict[str, TagValue]:

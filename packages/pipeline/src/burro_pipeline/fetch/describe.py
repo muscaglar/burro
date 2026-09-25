@@ -15,7 +15,8 @@ and no workflow runs it.
 | A workbook | The sheet names, and for each sheet the same as for a CSV |
 | An OpenDocument workbook | The same. With `sheet`, the words of that one sheet too |
 | A GeoPackage | The layers, their fields, their feature counts, and the day each last changed |
-| A zip | The names and sizes inside. With `inside`, the shape of each member |
+| A timetable in TransXChange | Its services: how many, the days they run on, their modes |
+| A zip | The names and sizes inside. With `inside`, the shape of each member, zips too |
 | Anything else | What it looks like, and nothing from it |
 
 The words of a sheet are what a workbook says of itself: its cover, its notes,
@@ -26,11 +27,13 @@ A name comes from the file, so it is written as a JSON string in plain ASCII:
 it cannot start a line, end one, or colour a terminal. An error is a fixed
 sentence with at most a row number. All of it runs with sockets refused.
 
-The day a layer was last changed is the one thing given that is no name and no
-count. It is what a list states as the period of a file of boundaries, where
-neither the file nor its page states a day the outlines are as at. It is given
-as a day and as nothing else: what the file writes there that is no day, or no
-time of a day, is not given.
+A day is the one thing given that is no name and no count. The day a layer was
+last changed is what a list states as the period of a file of boundaries,
+where neither the file nor its page states a day the outlines are as at. The
+days the services of a timetable run from and to are what a list states as the
+period of a file of timetables. Each is given as a day and as nothing else:
+what the file writes there that is no day, or no time of a day, is not given.
+`timetable.py` says what is read of a timetable, and how far.
 """
 
 import csv
@@ -46,11 +49,12 @@ from typing import cast
 
 from burro_pipeline.fetch.dated import A_CHANGE
 from burro_pipeline.fetch.headers import KEPT, Row, find_names, most_common_width
-from burro_pipeline.fetch.kinds import Kind, read_only, sniff
+from burro_pipeline.fetch.kinds import DEEPEST, Kind, read_only, sniff
 from burro_pipeline.fetch.markup import Limited
 from burro_pipeline.fetch.offline import sockets_refused
 from burro_pipeline.fetch.opendocument import OpenDocumentError
 from burro_pipeline.fetch.opendocument import sheets as sheets_of_an_opendocument
+from burro_pipeline.fetch.timetable import TimetableError, runs
 from burro_pipeline.fetch.workbook import WorkbookError, sheets
 
 # The largest cell that is read. A quote that never closes makes one cell of the
@@ -90,17 +94,22 @@ def describe(
     cell_limit: int = CELL_LIMIT,
     sheet: str | None = None,
 ) -> Shape:
-    """The shape of the file at `path`. With `sheet`, the words of that sheet of a workbook."""
+    """The shape of the file at `path`. With `sheet`, the words of that sheet of a workbook.
+
+    With `inside`, a zip is looked into, and so is a zip inside it: as many zips, one
+    inside another, as fetch looks into before it keeps a file.
+    """
     with sockets_refused():
         try:
-            return _describe(path, inside, member_limit, cell_limit, sheet)
+            return _describe(path, DEEPEST - 1 if inside else 0, member_limit, cell_limit, sheet)
         except OSError:
             raise DescribeError("the file could not be read from disk") from None
 
 
 def _describe(
-    path: Path, inside: bool, member_limit: int, cell_limit: int, sheet: str | None = None
+    path: Path, deeper: int, member_limit: int, cell_limit: int, sheet: str | None = None
 ) -> Shape:
+    """The shape of a file. `deeper` is how many zips inside it may still be looked into."""
     kind = sniff(path)
     found: Shape = {"kind": kind.value, "bytes": path.stat().st_size}
     if kind is Kind.ODS:
@@ -113,7 +122,7 @@ def _describe(
     if kind is Kind.CSV:
         return found | _csv(path, cell_limit)
     if kind is Kind.ZIP:
-        return found | _zip(path, inside, member_limit, cell_limit)
+        return found | _zip(path, deeper, member_limit, cell_limit)
     if kind is Kind.WORKBOOK:
         try:
             return found | {"sheets": sheets(path)}
@@ -124,6 +133,13 @@ def _describe(
             return found | {"layers": _layers(path)}
         except sqlite3.Error:
             raise DescribeError("the GeoPackage could not be read") from None
+    if kind is Kind.XML:
+        try:
+            of_a_timetable = runs(path)
+        except TimetableError as error:
+            raise DescribeError(str(error)) from None
+        if of_a_timetable is not None:
+            return found | of_a_timetable
     return {"kind": "not_read", "bytes": found["bytes"], "looks_like": kind.value}
 
 
@@ -187,7 +203,7 @@ def _csv_as(path: Path, encoding: str, cell_limit: int) -> Shape:
     return found
 
 
-def _zip(path: Path, inside: bool, member_limit: int, cell_limit: int) -> Shape:
+def _zip(path: Path, deeper: int, member_limit: int, cell_limit: int) -> Shape:
     try:
         with zipfile.ZipFile(path) as archive:
             listed = archive.infolist()
@@ -202,8 +218,8 @@ def _zip(path: Path, inside: bool, member_limit: int, cell_limit: int) -> Shape:
                     "bytes": member.file_size,
                     "packed_bytes": member.compress_size,
                 }
-                if inside:
-                    found["inside"] = _member(archive, member, member_limit, cell_limit)
+                if deeper:
+                    found["inside"] = _member(archive, member, deeper - 1, member_limit, cell_limit)
                 members.append(found)
     except (zipfile.BadZipFile, NotImplementedError, RuntimeError, EOFError):
         raise DescribeError("the zip could not be read") from None
@@ -211,7 +227,11 @@ def _zip(path: Path, inside: bool, member_limit: int, cell_limit: int) -> Shape:
 
 
 def _member(
-    archive: zipfile.ZipFile, member: zipfile.ZipInfo, member_limit: int, cell_limit: int
+    archive: zipfile.ZipFile,
+    member: zipfile.ZipInfo,
+    deeper: int,
+    member_limit: int,
+    cell_limit: int,
 ) -> Shape:
     """The shape of one member. It is unpacked under a name of our own and then removed."""
     if member.file_size > member_limit:
@@ -223,7 +243,7 @@ def _member(
                 # The size a zip states is not the size it unpacks to, so the copy is counted.
                 over = DescribeError("over the size limit")
                 shutil.copyfileobj(Limited(source, member_limit, over), target)
-            found = _describe(unpacked, False, member_limit, cell_limit)
+            found = _describe(unpacked, deeper, member_limit, cell_limit)
     except DescribeError as error:
         return {"kind": "not_read", "why": str(error)}
     found.pop("bytes", None)

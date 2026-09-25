@@ -16,7 +16,12 @@ pointed at a third:
 
 Each of the four measures has a module of its own, which says what is counted
 and what is said of it. This module holds what they share: the reading of a
-table, the arithmetic, and the row a catalogue would hold.
+table, the arithmetic, and the row of the catalogue.
+
+Core holds a feature for each, and decides its name: it says who is counted
+and in which census. A person may ask for more of what one counts and never
+for fewer, it stands in no scale, and no likeness is counted on it. Those are
+core's to hold, and the row a measure writes copies them.
 
 The module was written from the publisher's pages, before either table was
 fetched. Both were then fetched, and the step reads each as it stands. So each
@@ -103,9 +108,11 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, replace
 
 from burro_core.facts import fact_id
-from burro_core.ids import FactKind, FeatureId, Polarity
+from burro_core.ids import FactKind, FeatureId, NativeResolution
+from burro_core.release import Metric
 
 from burro_pipeline.cells.spine import Spine
+from burro_pipeline.derive.catalogue_row import catalogue_row
 from burro_pipeline.derive.methods import AREA_ROW_RATIO, Worked, area_row_ratio, row_of, to_places
 from burro_pipeline.evidence.lock import LockError
 from burro_pipeline.evidence.method import Method
@@ -137,6 +144,9 @@ DECIMALS = 1
 GIVE_OR_TAKE = 0.02
 # What the rows a figure is read from are keyed by, once the table is held to the spine.
 KEYED_BY = Geography.MSOA21
+# The smallest area the figure is worked out on. The publisher gives the table down to
+# output areas, and the figure is read from its own row for the MSOA.
+RESOLUTION = NativeResolution.MSOA
 # What the sum of the categories that are read only to be added up is kept under.
 TOGETHER = "added_up_together"
 
@@ -319,7 +329,7 @@ class Counts:
 class Of:
     """One measure: what is counted, of whom, and what is said of it."""
 
-    # What the rows of evidence call the measure. Core has no feature of this id.
+    # What the rows of evidence call the measure: the id of the feature of core's that it is.
     key: str
     table: Table
     # The categories that are added up, by key. The figure is their sum over the total.
@@ -362,47 +372,13 @@ class Of:
 
 
 @dataclass(frozen=True)
-class Proposed:
-    """What the row of the catalogue would say, once core holds the measure.
-
-    It is the row of no release. Core's list of features is closed, and it
-    has no value for a feature that describes who lives somewhere. What core
-    must change is in docs/design/residents-age-and-households.md.
-    """
-
-    key: str
-    label: str
-    short_label: str
-    unit: str
-    # A person may ask for more of what is counted. There is no value for fewer.
-    polarity: Polarity
-    # The words that fill "more than 80 in 100 of areas". None says fewer is better.
-    higher: str
-    lower: str
-    # What the figure is a fact about. Core's `Describes` has no such value yet.
-    describes: str
-    # Who is counted: usual residents, or households.
-    counted: str
-    # The census, and the day it was taken.
-    census: str
-    vintage: str
-    geography: Geography
-    source_ids: tuple[str, ...]
-    rankable: bool
-    # Whether likeness between two areas may be counted on it. It may not: two areas are
-    # never said to be alike for who lives in them.
-    in_likeness: bool
-    definition: str
-
-
-@dataclass(frozen=True)
 class Share:
     """One measure for every area of the spine, in percent, with what stands behind each."""
 
     # The figure of each area, by its id. An area with no figure is here too, with its state.
     worked: Mapping[str, Worked]
     rows: tuple[EvidenceRow, ...]
-    proposed: Proposed
+    metric: Metric
     # The receipt of every file a figure was worked out from.
     files: tuple[Receipt, ...]
     counts: Counts
@@ -568,29 +544,21 @@ def figures(of: Of, counts: Counts, found: Spine) -> dict[str, Worked]:
     }
 
 
-def core_holds(key: str) -> bool:
-    """Whether core has a feature under the id the rows are written under."""
-    return key in {feature.value for feature in FeatureId}
+def metric_of(of: Of, files: Sequence[Receipt]) -> Metric:
+    """The row of the catalogue: the name, the day of the census, the sources and the sentence.
 
-
-def proposed_of(of: Of, files: Sequence[Receipt]) -> Proposed:
-    """What the row of the catalogue would say: the name, who is counted, the day, the sources."""
-    return Proposed(
-        key=of.key,
-        label=of.label,
-        short_label=of.short_label,
-        unit="%",
-        polarity=Polarity.MORE,
-        higher="more",
-        lower="fewer",
-        describes="residents",
-        counted=of.table.counted,
-        census=CENSUS,
+    Core decides the name, the unit and which way is more: a person may ask for
+    more of what is counted, and never for fewer. The name is given here as
+    the measure has it, so that a build leaves the measure out where the two
+    are not the same, letter for letter.
+    """
+    return catalogue_row(
+        FeatureId(of.key),
+        method=AREA_ROW_RATIO,
+        source_ids={receipt.source_id for receipt in files},
         vintage=CENSUS_DAY,
-        geography=KEYED_BY,
-        source_ids=tuple(sorted({receipt.source_id for receipt in files})),
-        rankable=True,
-        in_likeness=False,
+        label=of.label,
+        native_resolution=RESOLUTION,
         definition=DEFINITION.format(
             said=of.said,
             counted=of.table.counted,
@@ -646,7 +614,7 @@ def build(of: Of, inputs: Inputs, found: Spine) -> Share:
     return Share(
         worked=worked,
         rows=rows,
-        proposed=proposed_of(of, files),
+        metric=metric_of(of, files),
         files=files,
         counts=counts,
         geography=geography,

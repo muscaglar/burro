@@ -14,6 +14,7 @@ from burro_core.explain import render
 from burro_core.ids import (
     FeatureId,
     Mode,
+    NameState,
     Provenance,
     PtBasis,
     Segment,
@@ -166,6 +167,29 @@ def test_the_city_is_the_size_the_tests_and_demos_count_on():
     ]
     assert len({(row.station_id, row.name) for row in release.station_rows}) == 16
     assert len({line for row in release.station_rows for line in row.lines}) == 4
+
+
+def test_the_city_keeps_its_names_and_says_the_label_of_each_area_beside_it():
+    release = fixture()
+    assert [n.name for n in release.neighbourhoods] == [plan.name for plan in names.AREAS]
+    said = {n.name: n.named for n in release.neighbourhoods}
+    # Two areas bear no name but their label, so that what is shown of one is tested.
+    assert sorted(name for name, named in said.items() if named is None) == sorted(names.NOT_NAMED)
+    labels = [named.label for named in said.values() if named is not None]
+    assert len(set(labels)) == len(labels) == 22
+    # A label is the borough and the number of the area, as a publisher labels a census area.
+    assert said["Alderwick"] is not None and said["Alderwick"].label == "Quillhaven 001"
+    assert all(re.fullmatch(r"Quillhaven \d{3}", label) for label in labels)
+    assert {named.source_ids for named in said.values() if named is not None} == {("synthetic",)}
+
+
+def test_a_name_of_the_city_is_a_draft_until_it_is_said_to_have_been_checked():
+    states = {n.name: n.named.state for n in fixture().neighbourhoods if n.named is not None}
+    assert {name for name, state in states.items() if state is NameState.CHECKED} == set(
+        names.CHECKED
+    )
+    assert set(states.values()) == {NameState.DRAFT, NameState.CHECKED}
+    assert len(names.CHECKED) == 3
 
 
 def test_synthetic_names_are_not_real_places():

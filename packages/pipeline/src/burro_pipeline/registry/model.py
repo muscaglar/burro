@@ -125,6 +125,10 @@ class Source(BaseModel):
     share_alike: StrictBool
     attribution: str = ""
     attribution_verified: StrictBool = False
+    # True where the publisher asks that its statement stands wherever a figure made from
+    # the data is shown, and not on the page of attributions alone. A release then says so
+    # of the source, and every fact that cites it carries the statement.
+    attribution_beside_figures: StrictBool = False
     conditions: tuple[str, ...] = ()
     status: Status
     status_reason: str = ""

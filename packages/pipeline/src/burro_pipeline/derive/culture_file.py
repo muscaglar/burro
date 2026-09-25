@@ -6,11 +6,18 @@ and its receipt says which part: `fetch/take.py`. This module reads that part,
 or a file that was kept whole, and nothing of it but what a count of venues
 needs.
 
+The list takes the part twice: once as culture reads it, and once with one
+more column, `brand`, which the publisher fills in for a place that belongs to
+a chain. `branded` reads the second for the measures of brands, and nothing
+else does. The name of a chain is no name of a place: it says which chain, and
+never which shop.
+
 What the licence registry asks of the source, and what is done about each:
 
 - **Aggregates only. No name of a place and no row of one is shown.** No name
-  is read. What is kept of a record is its kind, its point and the dataset it
-  came from, and a figure is a count.
+  of a place is read. What is kept of a record is its kind, its point, the
+  dataset it came from and, for the measures of brands alone, the chain it
+  belongs to. A figure is a count, a share or a mean over homes.
 - **Keep which source gave each record, so that records can be left out by
   licence.** The name of the dataset is read from `sources` and kept with
   every venue.
@@ -29,11 +36,13 @@ What is read of a record, and what is never read:
 | `operating_status` | Yes | Whether the file says the place has closed |
 | `sources` | `dataset` alone | Which of the publisher's sources gave it |
 | `confidence` | Yes | It is kept, and nothing is left out by it |
+| `brand` | `wikidata` and `names.primary` alone, by `branded` | Which chain |
 | `bbox`, `version`, `basic_category` | Never | Not needed |
 
-`id`, `names`, `addresses`, `phones`, `websites`, `socials`, `emails` and
-`brand` are never read. They say who a business is and how to reach it. The
-list takes none of them, so a part holds none.
+`id`, `names`, `addresses`, `phones`, `websites`, `socials` and `emails` are
+never read. They say who a business is and how to reach it. The list takes
+none of them, so a part holds none. `brand` is read by `branded` and by
+nothing else, and culture is read from the part that holds none.
 
 Of `sources` the one column that names the dataset is asked for, by its name
 in the file's own layout, and nothing beside it: not the id that a source
@@ -101,6 +110,10 @@ GEOMETRY, TAXONOMY, STATUS, SOURCES, CONFIDENCE = (
 READ = (GEOMETRY, TAXONOMY, STATUS, SOURCES, CONFIDENCE)
 # What stands inside two of them.
 PRIMARY, HIERARCHY, ALTERNATES, DATASET = "primary", "hierarchy", "alternates", "dataset"
+# The column that says which chain a place belongs to, and the two things read inside it:
+# the id an encyclopaedia gives the chain, and the name the publisher writes it by.
+BRAND, WIKIDATA, NAMES = "brand", "wikidata", "names"
+BRAND_READ = (f"{BRAND}.{WIKIDATA}", f"{BRAND}.{NAMES}.{PRIMARY}")
 # What the publisher writes of whether a place is open. Nothing at all is the most common.
 OPEN, SHUT_FOR_NOW, CLOSED = "open", "temporarily_closed", "permanently_closed"
 STATUSES = frozenset({None, OPEN, SHUT_FOR_NOW, CLOSED})
@@ -331,6 +344,21 @@ class Record:
     confidence: float | None
 
 
+def _record(row: tuple[Any, Any, Any, Any, Any]) -> Record:
+    geometry, taxonomy, status, sources, confidence = row
+    primary, path, alternates = _said(taxonomy, status)
+    sure = float(confidence) if isinstance(confidence, int | float) else None
+    return Record(
+        primary=primary if primary else None,
+        hierarchy=path,
+        alternates=alternates,
+        at=point_of(geometry),
+        closed=status == CLOSED,
+        datasets=_datasets(sources),
+        confidence=sure,
+    )
+
+
 def records(opened: Opened) -> Iterator[Record]:
     """Every row of a file of places, for a measure that has a table of kinds of its own.
 
@@ -341,18 +369,102 @@ def records(opened: Opened) -> Iterator[Record]:
     try:
         with _as_parquet(opened) as (file, groups):
             _laid_out(opened, file)
-            for geometry, taxonomy, status, sources, confidence in _rows(file, groups):
-                primary, path, alternates = _said(taxonomy, status)
-                sure = float(confidence) if isinstance(confidence, int | float) else None
-                yield Record(
-                    primary=primary if primary else None,
-                    hierarchy=path,
-                    alternates=alternates,
-                    at=point_of(geometry),
-                    closed=status == CLOSED,
-                    datasets=_datasets(sources),
-                    confidence=sure,
-                )
+            for row in _rows(file, groups):
+                yield _record(row)
+    except LockError:
+        raise
+    except (OSError, ValueError, KeyError, TypeError, AttributeError, pa.ArrowException):
+        raise _not_as_described(opened, "it could not be read as a file of places") from None
+
+
+@dataclass(frozen=True)
+class Brand:
+    """The chain a place belongs to, as the file gives it. It names no place.
+
+    The publisher fills it in for a place it has matched to a chain, and
+    leaves it empty for every other. Either part may be missing.
+    """
+
+    # The name the publisher writes the chain by.
+    name: str | None
+    # The id an encyclopaedia gives the chain, which is the surest key to it.
+    wikidata: str | None
+
+
+@dataclass(frozen=True)
+class Branded:
+    """One row of the part that holds the brand: what a `Record` holds, and its chain or none."""
+
+    record: Record
+    brand: Brand | None
+
+
+def takes_the_brand(receipt: Receipt) -> bool:
+    """Whether a receipt is of a part that was taken with the brand of each place."""
+    taken = receipt.taken
+    return taken is not None and any(name.split(".")[0] == BRAND for name in taken.columns)
+
+
+def _brand_is_laid_out(opened: Opened, file: Any) -> None:
+    """Stop unless the file holds the brand, laid out as it is read."""
+    layout = file.schema_arrow
+    if BRAND not in layout.names:
+        raise _not_as_described(opened, "a column that is read is missing")
+
+    def inside(of: Any) -> set[str]:
+        """The names of what stands inside a column, or none where nothing stands inside it."""
+        return {of.field(n).name for n in range(of.num_fields)} if pa.types.is_struct(of) else set()
+
+    brand = layout.field(BRAND).type
+    names = brand.field(NAMES).type if NAMES in inside(brand) else None
+    if not (WIKIDATA in inside(brand) and names is not None and PRIMARY in inside(names)):
+        raise _not_as_described(opened, "a column that is read is not laid out as expected")
+
+
+def _word(held: object) -> str | None:
+    """A word as the file holds one, or none where it holds none or an empty one."""
+    if held is None:
+        return None
+    if not isinstance(held, str):
+        raise ValueError("a word is a word")
+    return held.strip() or None
+
+
+def _brand(wikidata: Any, named: Any) -> Brand | None:
+    """The chain of one row, from what the two columns of its brand hold."""
+    known = _word((wikidata or {}).get(WIKIDATA))
+    name = _word(((named or {}).get(NAMES) or {}).get(PRIMARY))
+    return None if known is None and name is None else Brand(name=name, wikidata=known)
+
+
+def _brands(file: Any, groups: Sequence[int]) -> Iterator[Brand | None]:
+    """The chain of each row of the row groups given, in the order of the rows.
+
+    Of the brand the id and the name of the chain are asked for, each by
+    itself, and nothing beside them.
+    """
+    for group in groups:
+        wikidata, named = (
+            file.read_row_group(group, columns=[path]).column(BRAND).to_pylist()
+            for path in BRAND_READ
+        )
+        for one, other in zip(wikidata, named, strict=True):
+            yield _brand(one, other)
+
+
+def branded(opened: Opened) -> Iterator[Branded]:
+    """Every row of the part that holds the brand, with the chain it belongs to or none.
+
+    What is read of a row is what `records` reads, and the id and the name of
+    its chain. No name of a place is read: the part holds none. Stops at a
+    file that is not as expected.
+    """
+    try:
+        with _as_parquet(opened) as (file, groups):
+            _laid_out(opened, file)
+            _brand_is_laid_out(opened, file)
+            for row, brand in zip(_rows(file, groups), _brands(file, groups), strict=True):
+                yield Branded(_record(row), brand)
     except LockError:
         raise
     except (OSError, ValueError, KeyError, TypeError, AttributeError, pa.ArrowException):
@@ -414,9 +526,30 @@ def opened_of(inputs: Inputs, *, edition: str | None = None) -> Opened:
     """The file of places of the build, as it is handed over. The gate is asked first.
 
     `edition` is the release, as the receipt gives it. It tells apart the
-    files of two releases, once the store holds both.
+    files of two releases, once the store holds both. Of two parts of one
+    file it is the one that was taken with no brand.
     """
-    return inputs.open(SOURCE, Use.SCORING, edition=edition, named=is_the_file)
+    return inputs.open(
+        SOURCE,
+        Use.SCORING,
+        edition=edition,
+        named=is_the_file,
+        holding=lambda receipt: not takes_the_brand(receipt),
+    )
+
+
+def opened_with_the_brand(inputs: Inputs, *, edition: str | None = None) -> Opened:
+    """The part of the file of places that holds the brand, or the file kept whole.
+
+    The gate is asked first, as for every file of places.
+    """
+    return inputs.open(
+        SOURCE,
+        Use.SCORING,
+        edition=edition,
+        named=is_the_file,
+        holding=lambda receipt: receipt.taken is None or takes_the_brand(receipt),
+    )
 
 
 def build(inputs: Inputs, *, edition: str | None = None) -> Places:

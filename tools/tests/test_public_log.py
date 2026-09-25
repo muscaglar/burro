@@ -178,7 +178,7 @@ def test_a_measure_is_named_by_its_id_in_cores_catalogue_and_by_nothing_else():
     assert {feature.value for feature in FeatureId} == FEATURES
     assert is_public("step=derive status=ok feature=homes_flats areas=24 values=24 files=3")
     assert is_public("step=derive status=skipped feature=noise_exposure input_has_one_receipt=1")
-    assert is_public("step=derive status=skipped feature=venue_evening measure_is_not_held_back=1")
+    assert is_public("step=derive status=skipped feature=water_access measure_is_not_held_back=1")
     for line in ("feature=brackenhythe", "feature=3", "feature=homes_flats,0.5", "measure=x"):
         assert not is_public(line)
 

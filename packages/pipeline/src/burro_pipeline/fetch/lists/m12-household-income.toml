@@ -1,0 +1,46 @@
+# Household income: the one workbook of the statistics office's estimates of
+# what the households of a small area have as income. The founder decided on
+# 24 September 2026 that it is fetched, shown on an area's page, and used to
+# check another measure, and that no area is ranked on it.
+#
+# It describes residents, so decision record 0006 applies. The licence registry
+# holds its source for display and for validation and for nothing else, and the
+# gate refuses it for a score. So the file is listed for display, and it stands
+# in a list of its own: no file that is ranked on shares a list with it.
+#
+# Written before any fetch. The `page` is the registry entry's own `url`. The
+# address of the file was read on that page on 2026-09-24, through a reader that
+# extracts the text of a page. An extraction is not the page. So no person has
+# seen the address, and no fetch has tried it. It was not guessed, and it was
+# not built from a pattern. The reader was asked twice, in different words, and
+# gave the same path both times, letter for letter.
+#
+# Not listed, and why:
+#   - The five earlier editions of the same page, of which the newest is for
+#     the financial year ending 2020: the registry entry covers the newest
+#     edition alone, the publisher warns against reading a change over time,
+#     and it says that earlier releases used the areas of the census of 2011.
+#   - The income domain of the Indices of Deprivation: it is a sheet of File 8,
+#     which is in list m1, and that sheet is never read.
+#   - Any figure of income for an area smaller than an MSOA: the publisher gives
+#     none.
+#
+# `uv run python -m burro_pipeline plan --list m12-household-income --words` says
+# what the file still needs.
+schema_version = 1
+build = "m12-household-income"
+
+[[file]]
+item = "income-msoa-fye-2023"
+source_id = "ons-income-estimates-small-areas"
+use = "display"
+what = "Income estimates for small areas, England and Wales, financial year ending 2023: four kinds of annual household income for each Middle layer Super Output Area, with confidence intervals"
+format = "xlsx"
+page = "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/smallareaincomeestimatesformiddlelayersuperoutputareasenglandandwales"
+url = "https://www.ons.gov.uk/file?uri=/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/smallareaincomeestimatesformiddlelayersuperoutputareasenglandandwales/financialyearending2023/datasetfinal.xlsx"
+url_parameters = ["uri"]
+max_bytes = 20_000_000
+edition = "Financial year ending 2023"
+data_period = { start = "2022-04", end = "2023-03" }
+unsure = ["url"]
+notes = "Address read on 2026-09-24, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page writes it as a path from the top of the site, and the address here is that path on the page's own host. Open it once in a browser. The parameter uri names the file and is part of its address. The page gives 1.8 MB, and says it was released on 10 December 2025, with the next release 'To be announced'. It lists the edition as 'Financial year ending 2023 edition of this dataset', which is the edition here. The period: the publisher's bulletin and its page of quality each write 'financial year ending March 2023', and the second says the survey behind the estimates is of the 'financial year 2022 to 2023'. No page that was read writes the first month: April 2022 is worked out as the twelfth month before the last, as the list m2-living states a year ending in March. National: England and Wales, and the page offers no file for London. The page of quality says 'this release uses the 2021 MSOAs', which are the areas of a preview build. Nobody has opened the workbook, so its sheets and its columns are not known: read its cover and its notes before a figure is read, as the registry entry asks. It is listed for display, which is what the file is first put to. A step that checks another measure against it asks the gate for validation when it opens the file, and the entry allows that. No step may ask for scoring: the gate refuses it. A figure is a mean, of one MSOA, from a model, with a confidence interval, and is shown as that and as nothing else: the registry entry gives the publisher's words for each."

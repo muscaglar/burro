@@ -15,6 +15,15 @@ that a test can say which cell it came from.
 Every other year of a row holds a canary, and so does every name. The sheets of
 newly built and of existing homes are not well formed. So a reader that opens
 one fails, and a reader that takes another column is caught.
+
+The sheet of homes of any kind holds two earlier years too, which the rise in
+prices is worked out from: the year that ended five years before the last, and
+the one that ended ten years before.
+
+    MSOA        area             year ending March 2026   March 2021   March 2016
+    E02999001   Quillhaven 001    410000                  400000       205000
+    E02999002   Quillhaven 002    655000                  [x]          524000
+    E02999003   Tallowgate 001    287500                  250000       300000
 """
 
 from collections.abc import Mapping, Sequence
@@ -50,6 +59,7 @@ YEARS = (
 )
 COLUMNS = (*FIRST_COLUMNS, *YEARS)
 LAST, THE_YEAR_BEFORE = "Year ending Mar 2026", "Year ending Mar 2025"
+FIVE_BEFORE, TEN_BEFORE = "Year ending Mar 2021", "Year ending Mar 2016"
 
 # What the contents say each sheet holds, between "Median price paid" and "by MSOA".
 HOLDS: Mapping[str, str] = {
@@ -90,6 +100,15 @@ PRICES: Mapping[str, Mapping[str, Cell]] = {
 }
 
 
+# What homes of any kind sold for in the two earlier years the rise is worked out from.
+EARLIER: Mapping[str, Mapping[str, Cell]] = {
+    FIVE_BEFORE: {Q1: 400_000, Q2: "[x]", T1: 250_000, OUTSIDE: 100_000},
+    TEN_BEFORE: {Q1: 205_000, Q2: 524_000, T1: 300_000, OUTSIDE: 75_000},
+}
+# The sheet that holds them: the one of homes of any kind.
+OF_ANY_KIND = "1a"
+
+
 def described(sheet: str, last: str = "March 2026") -> str:
     """What the contents say of a sheet, and what the sheet says of itself in its first row."""
     return (
@@ -116,11 +135,17 @@ def sheet_of(
     columns: Sequence[str] = COLUMNS,
     year: str = LAST,
     districts: Mapping[str, Cell] = DISTRICTS,
+    earlier: Mapping[str, Mapping[str, Cell]] | None = None,
 ) -> list[list[Cell]]:
-    """A sheet of figures: its title, its source, its header, and a row for each MSOA."""
+    """A sheet of figures: its title, its source, its header, and a row for each MSOA.
+
+    `earlier` is what the sheet holds in other years than the one that is
+    read, by the name of the column. Every year it does not name holds a canary.
+    """
     found: list[list[Cell]] = [[described(sheet)], ["Source: made up for a test."], list(columns)]
     for code, price in prices.items():
         row: dict[str, Cell] = dict.fromkeys(COLUMNS, CANARY_PRICE)
+        row |= {column: held[code] for column, held in (earlier or {}).items() if code in held}
         row |= {
             "Local authority code": districts.get(code, "E09000901"),
             "Local authority name": CANARY,
@@ -142,16 +167,22 @@ def book(
     districts: Mapping[str, Cell] = DISTRICTS,
     sheets: Mapping[str, Table | bytes] | None = None,
     without: Sequence[str] = (),
+    earlier: Mapping[str, Mapping[str, Cell]] = EARLIER,
 ) -> bytes:
     """The made-up workbook: the cover, the contents, five sheets that are read and ten that
-    are never opened."""
+    are never opened. `earlier` is what the sheet of homes of any kind holds in other years."""
     every: dict[str, Table | bytes] = {
         COVER: [[said] for said in cover],
         CONTENTS: listed() if contents_of is None else contents_of,
     }
     for sheet in READ:
         every[sheet] = sheet_of(
-            sheet, prices.get(sheet, {}), columns=columns, year=year, districts=districts
+            sheet,
+            prices.get(sheet, {}),
+            columns=columns,
+            year=year,
+            districts=districts,
+            earlier=earlier if sheet == OF_ANY_KIND else None,
         )
     every |= dict.fromkeys(NEVER_OPENED, NOT_WELL_FORMED)
     every |= sheets or {}

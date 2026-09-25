@@ -43,6 +43,7 @@ from burro_core.facts import facts_for
 from burro_core.ids import FeatureId, GrittyVariant, Part, TagId
 from burro_core.release import InMemoryRelease
 from burro_pipeline.assemble import cli as assemble
+from burro_pipeline.derive import brands_nearby
 from burro_pipeline.evidence.lock import Lock
 from burro_pipeline.evidence.served import rows_behind, unevidenced
 from burro_pipeline.evidence.store import Evidence
@@ -72,6 +73,7 @@ FIGURES = {
     FeatureId.HIGHSTREET_ACCESS: (0.0, 530.0, 2_770.0),
     FeatureId.HOMES_DENSITY: (1.3, 32.2, 154.8),
     FeatureId.HOMES_FLATS: (1.7, 53.5, 99.0),
+    FeatureId.HOMES_HIGHER_BANDS: (0.0, 25.8, 97.3),
     FeatureId.HOMES_POST2000: (0.4, 10.6, 100.0),
     FeatureId.HOMES_PRE1919: (0.0, 23.4, 97.2),
     FeatureId.LISTED_BUILDINGS: (0.0, 3.9, 414.3),
@@ -91,9 +93,9 @@ TO_THE_NINTH = {
 }
 # Every measure a build carries, in the order of their ids.
 CARRIED = tuple(sorted((*FIGURES, *TO_THE_NINTH)))
-# How many areas have a figure. 23 areas have old homes that are all behind a dash, and 3
-# have new homes that are: they are not nought, and the publisher does not say how many
-# they are.
+# How many areas have a figure. 23 areas have old homes that are all behind a dash, 3 have
+# new homes that are, and 20 have homes in the higher council tax bands that are: they are
+# not nought, and the publisher does not say how many they are.
 WITH_A_FIGURE = {
     FeatureId.AIR_NO2: 1_002,
     FeatureId.CONSERVATION_COVER: 1_002,
@@ -102,6 +104,7 @@ WITH_A_FIGURE = {
     FeatureId.HIGHSTREET_ACCESS: 976,
     FeatureId.HOMES_DENSITY: 1_002,
     FeatureId.HOMES_FLATS: 1_002,
+    FeatureId.HOMES_HIGHER_BANDS: 982,
     FeatureId.HOMES_POST2000: 999,
     FeatureId.HOMES_PRE1919: 979,
     FeatureId.LISTED_BUILDINGS: 1_002,
@@ -118,19 +121,31 @@ WITH_A_FIGURE = {
 # What is left out, and the rule that keeps each out, in the order of the ids. A measure
 # whose file is on no list of this build is read from no file here: the table of land use
 # and the file of places are each in a list of their own, and the police's crime files, the
-# register of schools and the file of stops are on the list m2-living, as is the workbook of
-# what homes sell for. The tests of each such measure work it out from the real file. The
-# pubs are worked out, and a check of their figures holds them back. The others are worked
+# register of schools and the files of stops are on the list m2-living, as is the workbook of
+# what homes sell for. The station data and the routes of buses are each on a list of their
+# own, and so are the two census tables of who lived in an area and the workbook of private
+# outdoor space. The file of places is read
+# for the cultural venues and for the
+# brands, and for independent places, which are told from the chains by their brand. So
+# are the cafes, the gyms and the pubs and bars, which are counted from the file of places.
+# The tests of each such measure work it out from the real file. The others are worked
 # out, and keep a name of core's that their figure does not bear out: the size and the shape
 # of a town centre, whose figures are held in
 # `tests/derive/test_centres_on_the_real_files.py`, and what a park offers.
 NO_FILE, NOT_AS_CORE_SAYS = "input_has_one_receipt", "measure_is_as_core_says"
-HELD_BACK = "measure_is_not_held_back"
-LEFT_OUT = {
+_LEFT_OUT = {
+    **{feature.value: NO_FILE for feature in brands_nearby.FEATURES},
+    "bus_routes_nearby": NO_FILE,
+    "bus_stops_nearby": NO_FILE,
     "centre_compact": NOT_AS_CORE_SAYS,
     "centre_small": NOT_AS_CORE_SAYS,
     "culture_venues": NO_FILE,
     "culture_venues_per_homes": NO_FILE,
+    "evening_cluster_exposure": NO_FILE,
+    "gp_walk": NO_FILE,
+    "grocery_walk": NO_FILE,
+    "households_dependent_children": NO_FILE,
+    "households_one_person": NO_FILE,
     "incident_antisocial": NO_FILE,
     "incident_criminal_damage": NO_FILE,
     "land_gardens": NO_FILE,
@@ -138,22 +153,37 @@ LEFT_OUT = {
     "land_storage": NO_FILE,
     "land_transport_other": NO_FILE,
     "land_woodland": NO_FILE,
+    "overground_proximity": NO_FILE,
     "park_facilities": NOT_AS_CORE_SAYS,
+    "pharmacy_walk": NO_FILE,
     "price_median": NO_FILE,
+    "rail_proximity": NO_FILE,
+    "residents_aged_20_34": NO_FILE,
+    "residents_aged_65_over": NO_FILE,
+    "price_rise_10y": NO_FILE,
+    "price_rise_5y": NO_FILE,
+    "private_outdoor_space": NO_FILE,
     "school_primary_nearby": NO_FILE,
     "station_walk": NO_FILE,
-    "venue_evening": HELD_BACK,
+    "underground_proximity": NO_FILE,
+    "venue_cafe": NO_FILE,
+    "venue_cafe_per_homes": NO_FILE,
+    "venue_evening": NO_FILE,
+    "venue_evening_per_homes": NO_FILE,
+    "venue_gym": NO_FILE,
+    "venue_gym_per_homes": NO_FILE,
 }
+LEFT_OUT = dict(sorted(_LEFT_OUT.items()))
 # The vibes that have 60 in 100 of their recipe measured, the share each rests on where an
 # area has every part, and the areas each places. Built age rests on homes built before 1919,
-# homes built since 2000, conservation cover and listed buildings. Going out rests on the
-# places to eat and drink for each 1,000 homes and the nearest town centre, and Family
-# amenities on the nearest play space and the nearest park: this build reads no school.
+# homes built since 2000, conservation cover and listed buildings. Family amenities rests on
+# the nearest play space and the nearest park: this build reads no school. Going out is not
+# placed: the places to eat and drink and the nearest town centre are 50 in 100 of it, and
+# its pubs and its culture are counted from the file of places, which is on no list here.
 PLACED = {
     TagId.BUILT_AGE: 1.0,
     TagId.FAMILY_AMENITIES: 0.6,
     TagId.HOMES: 0.75,
-    TagId.PACE: 0.75,
     TagId.PARKS_CLOSE_BY: 0.7,
     TagId.QUIET_RESIDENTIAL: 0.7,
 }
@@ -161,17 +191,14 @@ AREAS_PLACED = {
     TagId.BUILT_AGE: 1_001,
     TagId.FAMILY_AMENITIES: 1_002,
     TagId.HOMES: 1_002,
-    TagId.PACE: 971,
     TagId.PARKS_CLOSE_BY: 1_002,
     TagId.QUIET_RESIDENTIAL: 1_002,
 }
 # How much of a vibe each area rests on, where areas differ. Of Built age, an area with no
 # figure for homes built since 2000 has 80 in 100, and one with none for homes built before
-# 1919 has 65: each is placed. The one area with neither has 45 in 100, and is not. Of Going
-# out, an area at the edge of London may lack the places to eat, the town centre or both.
+# 1919 has 65: each is placed. The one area with neither has 45 in 100, and is not.
 RESTS_ON = {
     TagId.BUILT_AGE: {1.0: 977, 0.8: 2, 0.65: 22, 0.45: 1},
-    TagId.PACE: {0.75: 971, 0.45: 21, 0.3: 5, 0.0: 5},
 }
 ENOUGH = 0.6
 
@@ -244,7 +271,8 @@ def test_what_is_left_out_is_left_out_by_the_name_of_a_rule_and_the_build_says_w
     built: tuple[Path, list[str]],
 ):
     """The size and the shape of a town centre count only the homes with a centre within
-    800 metres. The pubs are held back by what a check of their figures found.
+    800 metres. The pubs and bars are counted from the file of places, which is on no list
+    of this build, so no check holds a measure back.
     """
     record = beside(built, "build.json")
     assert record["list"] == "+".join(LISTS)
@@ -271,21 +299,22 @@ def test_the_vibes_that_have_a_score_are_these_and_no_other_has(release: InMemor
     its homes has 45 in 100, and is not placed. Conservation cover is 15 in
     100 of Village feel, which places no area: with old homes it has 35 in 100.
 
-    The places to eat and drink for each 1,000 homes and the nearest town
-    centre are 75 in 100 of Going out, and the nearest play space and the
-    nearest park are 60 in 100 of Family amenities. Each places the areas
-    that have both.
+    The nearest play space and the nearest park are 60 in 100 of Family
+    amenities, which places every area.
 
     No other vibe has 60 in 100 of its recipe measured, so no other has a
-    band. Food and drink holds the places for each 1,000 homes at 40. Main
+    band. The places to eat and drink for each 1,000 homes and the nearest
+    town centre are 50 in 100 of Going out, whose pubs and culture this build
+    does not read. Food and drink holds the places for each 1,000 homes at 40. Main
     roads and transport noise are 25 in 100 of Gritty, and no land use and no
     recorded incident is read. Public parks and gardens are 30 in 100 of
-    Leafy.
+    Leafy. No part of Well connected is read: its files are on no list of
+    this build.
     """
     assert release.manifest.gritty_variant is GrittyVariant.B
     assert release.vibes == vibes_of(GrittyVariant.B)
-    assert len(release.vibes) == 11
-    assert len(release.tags) == 11 * 1_002
+    assert len(release.vibes) == 14
+    assert len(release.tags) == 14 * 1_002
     placed = Counter(tag.tag_id for tag in release.tags if tag.score is not None)
     assert placed == AREAS_PLACED
     for vibe, share in PLACED.items():
@@ -300,7 +329,8 @@ def test_the_vibes_that_have_a_score_are_these_and_no_other_has(release: InMemor
     others = [tag for tag in release.tags if tag.tag_id not in PLACED]
     assert all((tag.raw, tag.score, tag.band) == (None, None, None) for tag in others)
     most = {tag.tag_id: max(t.coverage for t in others if t.tag_id is tag.tag_id) for tag in others}
-    assert max(most.values()) == most[TagId.FOODIE] == 0.4
+    assert max(most.values()) == most[TagId.PACE] == 0.5
+    assert most[TagId.FOODIE] == 0.4
     assert (most[TagId.STREET_CHARACTER], most[TagId.LEAFY]) == (0.25, 0.3)
     assert TagId.WORKS_WAREHOUSES not in {tag.tag_id for tag in release.tags}
     village = {tag.coverage for tag in release.tags if tag.tag_id is TagId.VILLAGE_FEEL}
@@ -365,7 +395,7 @@ def test_every_fact_traces_to_a_row_a_file_and_a_receipt(
     assert Counter(fact.kind for fact in facts) == {
         "area": 1_002,
         "feature": sum(WITH_A_FIGURE.values()),
-        "tag": 11 * 1_002,
+        "tag": 14 * 1_002,
         "likeness": 5 * 1_002,
     }
     for fact in facts:

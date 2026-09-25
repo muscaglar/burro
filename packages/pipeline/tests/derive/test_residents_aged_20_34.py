@@ -66,7 +66,7 @@ def test_a_figure_is_given_to_one_decimal_place_with_a_half_taken_upward(tmp_pat
 def test_the_name_says_residents_and_the_year_and_asks_for_more():
     assert residents_aged_20_34.KEY == "residents_aged_20_34"
     assert MEASURE.label == "Residents aged 20 to 34 as a share of all residents, Census 2021"
-    assert MEASURE.short_label == "More residents aged 20 to 34"
+    assert MEASURE.short_label == "More young adults"
     assert residents_aged_20_34.SOURCE == census_msoa.SOURCE
     assert residents_aged_20_34.is_the_table("census2021-ts007a.zip")
     assert not residents_aged_20_34.is_the_table("census2021-ts003.zip")

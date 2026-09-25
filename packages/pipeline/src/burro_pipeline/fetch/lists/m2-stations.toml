@@ -1,0 +1,47 @@
+# Stations: the one file that says which of Transport for London's modes call at
+# a station. The national file of stops, which is in the list m2-living, gives one
+# kind of railway station, whoever runs its trains. So it cannot tell the
+# Overground and the Elizabeth line from other rail. This file can: it names the
+# modes and the lines at each station that Transport for London serves.
+#
+# The `page` is the registry entry's own `url`. The address of the file is the
+# one the entry names under `file_urls`, and gives in its conditions, from the
+# publisher's own data guide, which was read on 2026-09-23. It was not guessed,
+# and it was not built from a pattern. A fetch has tried it: the file arrived on
+# 2026-09-24 and is kept as f-19c50772febd, a zip of 186,973 bytes.
+#
+# The licence registry holds its source as approved, for scoring and for
+# display. Its terms ask that a person registers with Transport for London
+# first, and apply from the day of registration: the founder registered on
+# 2026-09-24, before the file was fetched. The entry asks that the publisher's
+# attribution is shown wherever a fact about a station from this file is shown.
+#
+# Not listed, and why:
+#   - The same stations as GTFS, tfl-stationdata-gtfs.zip: the entry names it,
+#     and nothing reads it. It holds ways through a station, and no mode.
+#   - The timetables of Transport for London: they are in the list m5-journeys,
+#     which holds the files of a journey and no other.
+#   - The feed of lifts that are out of use: the entry does not cover it.
+#
+# The page states no edition and the address names none. The file is the
+# stations as they stand on the day it is asked for, so the list states no
+# edition: its edition and its period are the day it was retrieved, which fetch
+# writes from its own clock.
+#
+# `uv run python -m burro_pipeline plan --list m2-stations --words` says what the
+# file still needs.
+schema_version = 1
+build = "m2-stations"
+
+[[file]]
+item = "tfl-station-data"
+source_id = "tfl-step-free-station-topology"
+use = "scoring"
+what = "TfL station data, detailed: stations, the modes and lines at each, platforms, lifts and step-free ways, as CSVs in a zip"
+format = "zip"
+page = "https://tfl.gov.uk/info-for/open-data-users/our-open-data"
+url = "https://api.tfl.gov.uk/stationdata/tfl-stationdata-detailed.zip"
+max_bytes = 50_000_000
+edition_from = { where = "retrieved", at = "", words = "retrieved", period_too = true }
+unsure = ["max_bytes"]
+notes = "Address as the licence registry's entry gives it, from TfL's own data guide, read on 2026-09-23. The file bears no edition: it is the stations as they stand on the day it is asked for, so its edition and its period are the day it was retrieved."

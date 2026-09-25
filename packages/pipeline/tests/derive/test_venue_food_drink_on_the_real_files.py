@@ -39,8 +39,8 @@ from burro_pipeline.derive import (
     culture_reach,
     measures,
     venue_eat,
-    venue_evening,
     venue_food_drink,
+    venue_pub,
     venue_takeaway,
 )
 from burro_pipeline.derive.food_register import Group
@@ -82,7 +82,7 @@ def made(real: Inputs, found: Spine) -> Venues:
 def others(real: Inputs, found: Spine) -> dict[str, AtHomes]:
     """The three other measures of the register, each by the id its rows are written under."""
     return {
-        "venue_evening": venue_evening.build(real, found),
+        "venue_pub": venue_pub.build(real, found),
         "venue_eat": venue_eat.build(real, found),
         "venue_takeaway": venue_takeaway.build(real, found),
     }
@@ -191,7 +191,7 @@ def test_each_kind_alone_comes_to_what_it_came_to(others: dict[str, AtHomes]):
     """For each: London's lowest, middle and ninth in ten, of the count and then for 1,000 homes."""
     found = {key: (three_of(one.worked), three_of(one.rate)) for key, one in others.items()}
     assert found == {
-        "venue_evening": ((0.0, 4.5, 15.7), (0.0, 0.7, 1.7)),
+        "venue_pub": ((0.0, 4.5, 15.7), (0.0, 0.7, 1.7)),
         "venue_eat": ((0.6, 30.05, 113.2), (0.2, 4.9, 11.3)),
         "venue_takeaway": ((0.2, 13.65, 36.8), (0.1, 2.1, 4.3)),
     }
@@ -215,8 +215,8 @@ def test_a_few_areas_read_nought_for_pubs_and_none_for_the_other_kinds(
     nought = {
         key: sum(held.value == 0 for held in one.worked.values()) for key, one in others.items()
     }
-    assert nought == {"venue_evening": 5, "venue_eat": 0, "venue_takeaway": 0}
-    pubs = others["venue_evening"]
+    assert nought == {"venue_pub": 5, "venue_eat": 0, "venue_takeaway": 0}
+    pubs = others["venue_pub"]
     within = pubs.reach.of(pubs.counted.groups)
     none_at_all = sum(
         pubs.worked[area].value is not None and all(within[oa] == 0 for oa in oas if oa in within)

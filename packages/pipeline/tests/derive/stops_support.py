@@ -171,11 +171,13 @@ def inputs_of(
     ground: Mapping[str, bytes] | None = None,
     given: Registry | None = None,
     name: str = NAME,
+    more: Sequence[tuple[Receipt, bytes]] = (),
 ) -> Inputs:
     """The made-up files of a build in a store of their own, with a receipt for each.
 
     `ground` changes a file of the geography: the lookup, the outlines or the
-    centres, by the name the tests of cells give it.
+    centres, by the name the tests of cells give it. `more` is any other file
+    of the build, with its receipt.
     """
     files = contents() | {"centres": centres_in_the_middle()} | dict(ground or {})
     every = [
@@ -187,6 +189,7 @@ def inputs_of(
     ]
     held = stops_csv() if stops is None else stops
     every.append((stops_receipt(held, name), held))
+    every += list(more)
     store = FolderStore(folder / "store")
     for receipt, content in every:
         path = folder / "given" / receipt.file_id / receipt.publisher_file

@@ -11,16 +11,19 @@ files under the folder `--out` names and is never printed.
 """
 
 import argparse
+import csv
 import hashlib
+import io
 import os
 import re
 import sys
 import tempfile
-from collections.abc import Mapping, Sequence
+from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
 from burro_core.ids import RELEASE_ID_PATTERN, FactKind
+from burro_core.income import INCOME_FOLDER, IncomeError
 from burro_core.release import (
     BUILD_FOLDER,
     EVIDENCE,
@@ -34,11 +37,21 @@ from burro_core.release import (
 )
 from pydantic import ValidationError
 
-from burro_pipeline.assemble.release import Carried, Costed, Drawn, evidence_of, release_of
-from burro_pipeline.cells import land, outline, spine
+from burro_pipeline.assemble import names
+from burro_pipeline.assemble.names import Bears, NamesError, Naming
+from burro_pipeline.assemble.release import (
+    Carried,
+    Costed,
+    Drawn,
+    Named,
+    evidence_of,
+    release_of,
+)
+from burro_pipeline.cells import centres, land, outline, spine
 from burro_pipeline.cells.spine import Spine
 from burro_pipeline.command import NOT_IGNORED, PROG, Step, add_step, may_be_written
-from burro_pipeline.derive import price
+from burro_pipeline.derive import household_income, price, price_paid, station_places
+from burro_pipeline.derive.household_income import Estimated
 from burro_pipeline.derive.measures import (
     MEASURES,
     TAGGED,
@@ -67,6 +80,8 @@ from burro_pipeline.evidence.lock import (
     Said,
     Taken,
     read_receipts,
+    said_in,
+    said_of,
     seal,
     take,
 )
@@ -79,7 +94,9 @@ from burro_pipeline.fetch.sources import Listed, ListError, load_list
 from burro_pipeline.fetch.store import FOLDER_VARIABLE, Store, StoreError, store_from_environment
 from burro_pipeline.inputs import Inputs
 from burro_pipeline.registry import Registry, RegistryError, load
-from burro_pipeline.registry.model import INTERNAL_USES
+from burro_pipeline.registry.model import INTERNAL_USES, Use
+from burro_pipeline.release.income import in_words as income_in_words
+from burro_pipeline.release.income import write_income
 from burro_pipeline.release.read import UnreadableRelease
 from burro_pipeline.release.read import in_words as refusal_in_words
 from burro_pipeline.release.write import canonical_json, packed, write_release
@@ -93,6 +110,13 @@ TIMESTAMP = re.compile(TIMESTAMP_PATTERN)
 # release that is not made up is served only with them.
 BESIDE = BUILD_FOLDER
 COVERAGE, REPORT, HOMES, BUILD = "coverage.json", "coverage.md", "homes.json", "build.json"
+# Every area with the name it bears, for a person to read. It names places, as the release
+# does, and is written beside it where a build was given a draft of names.
+NAMES = "names.csv"
+NAMES_COLUMNS = (
+    *("area_id", "borough", "label", "name", "state", "publishers", "source_ids"),
+    *("neighbourhood", "output_areas_in_it", "output_areas"),
+)
 # Why a measure is left out of a release. Each is the name of a rule of the build.
 NO_RECEIPT = "input_has_one_receipt"
 HELD_BACK = "measure_is_not_held_back"
@@ -103,6 +127,12 @@ NO_FIGURE = "measure_has_a_figure"
 # was fetched for an internal use stands behind no figure. A measure is left out by it too.
 FETCHED_FOR_LESS = "input_is_allowed"
 LEFT_OUT = (NO_RECEIPT, FETCHED_FOR_LESS, HELD_BACK, NOT_AS_CORE_SAYS, NO_FIGURE)
+# The files a cost may be read from, and what each is called where a line says why it was
+# left out. The sales come first: a median of them says how many it rests on.
+PRICED_FROM: Mapping[str, str] = {
+    price_paid.SOURCE: "A file of prices paid, or the postcode directory a sale is placed by,",
+    price.SOURCE: "The workbook of median prices",
+}
 COST_LEFT_OUT: Mapping[str, tuple[str, str]] = {
     FETCHED_FOR_LESS: (
         "was fetched to validate against and for nothing wider, and a file that was fetched "
@@ -141,17 +171,39 @@ in one command, in this order:
   report    writes the coverage report: what is there, and what is missing
 
 The release is a preview. It holds areas, outlines and measures. It holds no
-journey, no place to reach, no station and no name of a neighbourhood, and
-nothing stands in for any of them. Every response the API makes from it says
-that it is a preview, and that it is not made up.
+journey time and no station near an area, and nothing stands in for either.
+Every response the API makes from it says that it is a preview, and that it is
+not made up.
 
-It holds what a home sells for where a list of the build names the workbook
-of median prices: the publisher's median for each kind of home, with no range.
-An area with no figure for a kind of home has none in the release. It holds no
-rent. The line of cost says how many rows it holds, or by which rule it holds
-none. A workbook that was fetched to validate against stands behind no figure,
-whatever the registry has come to allow: its receipt says what the gate was
-asked, and no run writes a second receipt of the same file.
+An area is under its publisher's label, which is a borough and a number. With
+--names it bears the name of a neighbourhood, from a draft of London's named
+areas: the folder a draft was written to, or the gazetteer the review desk
+compiled from it. An area bears the name of the drafted neighbourhood that
+holds most of its output areas, and keeps its label where none does. Two areas
+of one borough that bear one name each say which side they lie on. Every name
+is a draft, and the release says so of each, until a person has decided it at
+the review desk. The three files that are read of the draft are named in the
+lock by their hashes. A name rests on the publisher's file that writes it, which
+must be a file of the build: name the list that holds it. The line of names
+counts the areas that bear one, and prints no name.
+
+It names the stations of London as places to reach where a list of the build
+names the file of London's stops, and then says of each area where its homes
+stand. It holds no journey time all the same: a journey to a station is
+estimated for a search, from distance, and is said to be an estimate. The line
+of places says how many it names, or by which rule it names none.
+
+It holds what a home sells for where a list of the build names the files of
+prices paid, or the workbook of median prices: a median for each kind of
+home, with no range. Where the files of prices paid have their receipts, and
+the postcode directory has its own, the median is worked out from the sales,
+and says how many it rests on. Where they have none it is the publisher's own
+median, from the workbook. An area with no figure for a kind of home has none
+in the release. It holds no rent. The line of cost says which source was read
+and how many rows it holds, or by which rule it holds none. A workbook that
+was fetched to validate against stands behind no figure, whatever the
+registry has come to allow: its receipt says what the gate was asked, and no
+run writes a second receipt of the same file.
 
 A measure is left out, and never filled in, when its file has no receipt, when
 a check of its figures holds it back, or when what it measures is not what
@@ -188,7 +240,8 @@ so --out and --work are refused inside the repository, but for data/releases/
 and scratch/, which git ignores.
   ID         the release, as `burro-release check` and the API read it
   ID{BESIDE}   {LOCK}, {EVIDENCE}, {HASHES}, {COVERAGE}, {REPORT},
-             {HOMES} and {BUILD}, which says what was left out and why
+             {HOMES} and {BUILD}, which says what was left out and why.
+             With --names, {NAMES} too: every area with the name it bears
 
 {HASHES} holds the hash of the manifest, of the evidence and of the lock. The
 release is served only while all three are as they were written. To approve a
@@ -203,6 +256,8 @@ Prints one line for each part of the work.""",
             "--list m1 --list m2-places",
             "--release-id lon-2026-10-02-01 --built-at 2026-10-02T09:00:00Z --out data/releases "
             '--list m1 --list m2-places --edition fsa-camden="extract of 2026-09-16"',
+            "--release-id lon-2026-10-02-01 --built-at 2026-10-02T09:00:00Z --out data/releases "
+            "--list m1 --list m2-places --names scratch/draft",
         ),
         {
             0: "The release was written",
@@ -264,6 +319,8 @@ class CostLeftOut:
     # The use of a receipt of the file that is in the folder and is no part of the build,
     # where there is one. It says why a file that was fetched has no receipt in the build.
     fetched_for: str | None = None
+    # The source the cost would have been read from.
+    source: str = price.SOURCE
 
     @property
     def why(self) -> str:
@@ -289,7 +346,7 @@ class CostLeftOut:
 
 
 def _said(file: Listed | Receipt) -> Said:
-    return (file.source_id, file.use, file.edition, file.data_period)
+    return said_in(file) if isinstance(file, Receipt) else said_of(file)
 
 
 def _paired(
@@ -299,8 +356,9 @@ def _paired(
 
     The folder of receipts holds the receipts of every list. A receipt is of
     this list when it says of its file what the list says: the source, the
-    use, the edition and the period. Where two files are said alike, the
-    address tells them apart. Where a publisher hands a download on, the
+    use, the edition and the period, and the columns that were taken where
+    part of the file was. Where two files are said alike, the address tells
+    them apart. Where a publisher hands a download on, the
     address in the receipt is not the list's, and they are counted: more
     receipts than the list names files is refused, because nothing says which
     is meant.
@@ -381,8 +439,28 @@ def _listed(lists: Sequence[str]) -> list[Listed]:
     return listed
 
 
+def _drafted(args: argparse.Namespace) -> dict[str, bytes] | None:
+    """The files of the draft of names the build was given, or nothing where it was given none.
+
+    Each is read as a table before anything else is done, so that a draft that
+    cannot be read stops the build before a file of a publisher is opened.
+    """
+    if args.names is None:
+        return None
+    try:
+        found = names.files_of(args.names)
+        names.to_lock(found)
+        names.draft_of(found)
+    except NamesError as error:
+        raise Refused(f"the draft of names cannot be built on: {error}") from None
+    return found
+
+
 def _sealed(
-    args: argparse.Namespace, registry: Registry, store: Store
+    args: argparse.Namespace,
+    registry: Registry,
+    store: Store,
+    drafted: Mapping[str, bytes] | None = None,
 ) -> tuple[Lock, list[Receipt], list[Listed], tuple[Taken, ...]]:
     listed = _listed(_lists(args))
     editions = editions_of(args)
@@ -398,6 +476,9 @@ def _sealed(
         registry,
         args.root,
         packages,
+        # The files of a draft of names are no publisher's files. The lock names each by
+        # its hash, so that a release says which draft its names were chosen from.
+        others=names.to_lock(drafted) if drafted is not None else (),
         listed=[file for file, _ in paired],
         editions=editions,
     )
@@ -447,17 +528,72 @@ def _measured(inputs: Inputs, ground: Ground) -> tuple[list[Carried], list[LeftO
     return carried, left_out
 
 
+def _sold(inputs: Inputs, found: Spine) -> tuple[Costed | None, CostLeftOut | None]:
+    """What a home sells for, worked out from the sales, or the rule that keeps it out.
+
+    The files of sales are read with the postcode directory, which says where
+    a sale is. Where either has no receipt in the build nothing is read.
+    """
+    try:
+        sold = price_paid.build(inputs, found)
+    except LockError as error:
+        if error.rule != NO_RECEIPT:
+            raise
+        return None, CostLeftOut(NO_RECEIPT, source=price_paid.SOURCE)
+    rows = price_paid.costs(sold)
+    if not rows:
+        return None, CostLeftOut(NO_FIGURE, source=price_paid.SOURCE)
+    counts = sold.counts
+    counted: dict[str, object] = {
+        "since": sold.since,
+        "until": sold.until,
+        "fewest_sales": price_paid.FEWEST,
+        "rows": counts.rows,
+        "rows_by_year": {str(year): held for year, held in counts.by_year.items()},
+        "additional": counts.additional,
+        "of_no_kind_of_home": counts.of_no_kind_of_home,
+        "placed": counts.placed,
+        "not_placed": counts.not_placed,
+        "placed_by_home": {str(home): held for home, held in counts.by_home.items()},
+        "newly_built_by_home": {str(home): held for home, held in counts.newly_built.items()},
+        "at_an_ended_postcode": counts.at_an_ended_postcode,
+    }
+    made = Costed(
+        rows,
+        price_paid.evidence(sold),
+        sold.files,
+        price_paid.METHODS,
+        price_paid.SOURCE,
+        price_paid.CANNOT_SEE,
+        counted,
+    )
+    return made, None
+
+
 def _costed(
-    inputs: Inputs, found: Spine, in_the_folder: Sequence[Receipt]
+    inputs: Inputs, found: Spine, in_the_folder: Sequence[Receipt], listed: Collection[str]
 ) -> tuple[Costed | None, CostLeftOut | None]:
     """What a home sells for, as the build carries it, or the rule that keeps it out.
 
-    It is asked only of a build whose list names the workbook. A workbook that
-    was fetched for an internal use is not read: `check` would refuse every
-    figure that rested on it, and a build must not fail on a cost it can leave
-    out. `in_the_folder` is every receipt of the folder, which says whether the
-    file was fetched for another use than the list names.
+    It is asked only of a build whose list names the files of prices paid or
+    the workbook of median prices. `listed` is the sources the lists name.
+    The sales come first: a median of them says how many sales it rests on.
+    Where they have no receipt, or give no figure, the cost is the
+    publisher's own median, where a list names the workbook.
+
+    A workbook that was fetched for an internal use is not read: `check`
+    would refuse every figure that rested on it, and a build must not fail on
+    a cost it can leave out. `in_the_folder` is every receipt of the folder,
+    which says whether the file was fetched for another use than the list
+    names.
     """
+    gone: CostLeftOut | None = None
+    if price_paid.SOURCE in listed:
+        made, gone = _sold(inputs, found)
+        if made is not None:
+            return made, None
+    if price.SOURCE not in listed:
+        return None, gone
     is_it = price.is_the_workbook
     ours = [r for r in inputs.receipts if r.source_id == price.SOURCE and is_it(r.publisher_file)]
     if any(receipt.use in INTERNAL_USES for receipt in ours):
@@ -476,7 +612,52 @@ def _costed(
     rows = price.costs(prices)
     if not rows:
         return None, CostLeftOut(NO_FIGURE)
-    return Costed(rows, price.evidence(prices), prices.files, price.METHODS), None
+    made = Costed(
+        rows, price.evidence(prices), prices.files, price.METHODS, price.SOURCE, price.CANNOT_SEE
+    )
+    return made, None
+
+
+def _places(inputs: Inputs, found: Spine) -> tuple[Named | None, str | None]:
+    """The stations a person can name and where the homes of each area stand, or the rule
+    that keeps them out.
+
+    The gate is asked whether the file of stops may be put to destination
+    search, and whether the centres of output areas may be put to the naming
+    of places, before either is read. A build whose lists name no file of
+    London's stops names no place, and goes on.
+    """
+    of_the_stops = [
+        receipt
+        for receipt in inputs.receipts
+        if receipt.source_id == station_places.SOURCE
+        and station_places.is_the_file(receipt.publisher_file)
+    ]
+    if any(receipt.use in INTERNAL_USES for receipt in of_the_stops):
+        return None, FETCHED_FOR_LESS
+    try:
+        places = station_places.build(inputs)
+    except LockError as error:
+        if error.rule != NO_RECEIPT:
+            raise
+        return None, NO_RECEIPT
+    placed = inputs.open(centres.CENTRES, Use.GAZETTEER, edition=centres.CENTRES_EDITION)
+    homes_at = centres.middles_of(centres.centres_of(placed, found), found)
+    return Named(places.places, places.file, placed.receipt, homes_at), None
+
+
+def _places_record(named: Named | None, rule: str | None) -> dict[str, object]:
+    """What the record of a build says of the places to reach. It holds counts, and no name."""
+    return {
+        "source_id": station_places.SOURCE,
+        "places": len(named.places) if named is not None else 0,
+        "areas_with_homes_placed": len(named.homes_at) if named is not None else 0,
+        "left_out": None if rule is None else {"rule": rule, "why": f"It {MEANING[rule]}."},
+        "journeys": "No journey time is held. A journey by public transport to a place is "
+        "estimated for a search, from distance, and is said to be an estimate."
+        if named is not None
+        else "No place is named, so no journey can be asked for.",
+    }
 
 
 def _cost_record(asked: bool, costed: Costed | None, gone: CostLeftOut | None) -> dict[str, object]:
@@ -493,15 +674,32 @@ def _cost_record(asked: bool, costed: Costed | None, gone: CostLeftOut | None) -
     left_out = None
     if gone is not None:
         left_out = {"rule": gone.rule, "why": f"It {gone.why}.", "waits_on": list(gone.waits_on)}
+    source = costed.source if costed is not None else gone.source if gone else price.SOURCE
     return {
-        "source_id": price.SOURCE,
+        "source_id": source,
         "listed": asked,
         "as_of": costed.rows[0].as_of if costed is not None else None,
         "carried": carried,
         "left_out": left_out,
         "methods": [method.derivation_id for method in (costed.methods if costed else ())],
-        "cannot_see": list(price.CANNOT_SEE),
+        "cannot_see": list(costed.cannot_see if costed is not None else price.CANNOT_SEE),
         "rent": price.NO_RENT,
+        # What the step that read the sales counted. It holds no price and names no area.
+        "counted": dict(costed.counted) if costed is not None and costed.counted else None,
+    }
+
+
+def _income_record(estimated: Estimated | None) -> dict[str, object]:
+    """What the build record says of household income. It holds counts, and no figure."""
+    if estimated is None:
+        return {"asked": False}
+    return {
+        "asked": True,
+        "source_id": household_income.SOURCE,
+        "shown_and_never_ranked_on": True,
+        "areas": len(estimated.areas),
+        "areas_with_an_estimate": estimated.given,
+        "folder": INCOME_FOLDER,
     }
 
 
@@ -514,6 +712,67 @@ def _opened(release: InMemoryRelease) -> InMemoryRelease:
         raise Refused(f"the release breaks a rule of the contract: {words}") from None
 
 
+def _named(
+    drafted: Mapping[str, bytes],
+    found: Spine,
+    outlines: Mapping[str, outline.Outline],
+    inputs: Inputs,
+) -> Naming:
+    """The name each area bears, from the draft the build was given."""
+    try:
+        return names.build(
+            drafted,
+            found.areas,
+            found.weights.of_area,
+            {area: outlines[area].centre for area in sorted(outlines)},
+            inputs.receipts,
+            inputs.lock,
+            inputs.registry,
+        )
+    except NamesError as error:
+        raise Refused(f"the draft of names cannot be built on: {error}") from None
+
+
+def _names_record(naming: Naming | None) -> dict[str, object] | None:
+    """What the record of a build says of its names. It holds counts, and no name."""
+    if naming is None:
+        return None
+    return {
+        "method": names.NAMED.derivation_id,
+        "rests_on": [receipt.file_id for receipt in naming.files],
+        "source_ids": list(naming.source_ids),
+        **naming.counts(),
+    }
+
+
+def names_table(drawn: Drawn, registry: Registry) -> bytes:
+    """Every area with the name it bears, as a table for a person to read."""
+    bears: Mapping[str, Bears] = drawn.naming.bears if drawn.naming else {}
+    text = io.StringIO(newline="")
+    table = csv.DictWriter(text, NAMES_COLUMNS, lineterminator="\n")
+    table.writeheader()
+    for area in drawn.spine.areas:
+        borne = bears.get(area.area_id)
+        sources = borne.source_ids if borne else ()
+        table.writerow(
+            {
+                "area_id": area.area_id,
+                "borough": area.borough,
+                "label": area.name,
+                "name": borne.name if borne else "",
+                "state": borne.written.state.value if borne else "",
+                "publishers": "; ".join(
+                    dict.fromkeys(registry.get(source).publisher for source in sources)
+                ),
+                "source_ids": "; ".join(sources),
+                "neighbourhood": borne.written.place_id if borne else "",
+                "output_areas_in_it": borne.held if borne else "",
+                "output_areas": len(drawn.spine.weights.of_area[area.area_id]),
+            }
+        )
+    return text.getvalue().encode("utf-8")
+
+
 def _build_record(
     args: argparse.Namespace,
     lock: Lock,
@@ -522,6 +781,9 @@ def _build_record(
     left_out: Sequence[LeftOut],
     evidence: Evidence,
     cost: Mapping[str, object],
+    named: Mapping[str, object] | None,
+    places: Mapping[str, object],
+    income: Mapping[str, object],
 ) -> dict[str, object]:
     """What was built, from what, and what was left out and why. It holds no figure."""
     return {
@@ -559,6 +821,11 @@ def _build_record(
             for one in left_out
         ],
         "cost": dict(cost),
+        # A build that was given no draft of names says nothing of names, as before.
+        **({"names": dict(named)} if named is not None else {}),
+        "places": dict(places),
+        # What stands beside the release to be shown on an area's page, and is no part of it.
+        "income": dict(income),
     }
 
 
@@ -572,7 +839,7 @@ def _preview(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
         if folder is not None and not may_be_written(folder, args.root):
             raise Refused(f"{name} {NOT_IGNORED}")
     target, beside = out / args.release_id, out / f"{args.release_id}{BESIDE}"
-    for folder in (target, beside):
+    for folder in (target, beside, out / f"{args.release_id}{INCOME_FOLDER}"):
         if folder.exists():
             raise Refused(
                 f"the folder {folder.name} is there already. A release is never written over: "
@@ -586,9 +853,11 @@ def _preview(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
         raise Refused(str(error)) from None
     registry = load(args.registry)
 
-    lock, receipts, without, taken = _sealed(args, registry, store)
-    # The cost is asked for only where a list of the build names the workbook of prices.
-    asked = any(file.source_id == price.SOURCE for file in _listed(_lists(args)))
+    drafted = _drafted(args)
+    lock, receipts, without, taken = _sealed(args, registry, store, drafted)
+    # The cost is asked for only where a list of the build names a file of prices.
+    priced_from = {file.source_id for file in _listed(_lists(args))} & set(PRICED_FROM)
+    asked = bool(priced_from)
     print(
         public(
             "seal",
@@ -623,7 +892,10 @@ def _preview(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
             outlines = outline.build(inputs, found)
             measured_land = land.build(inputs, found)
             by_source = {opened.receipt.source_id: opened.receipt for opened in inputs.opened}
-            drawn = Drawn(found, outlines, by_source[spine.LOOKUP], by_source[outline.BOUNDARIES])
+            naming = _named(drafted, found, outlines, inputs) if drafted is not None else None
+            drawn = Drawn(
+                found, outlines, by_source[spine.LOOKUP], by_source[outline.BOUNDARIES], naming
+            )
             counts = found.counts()
             print(
                 public(
@@ -638,10 +910,31 @@ def _preview(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
                     files=len(inputs.opened),
                 )
             )
+            if naming is not None:
+                print(
+                    public(
+                        "names",
+                        "ok",
+                        release=args.release_id,
+                        areas=naming.areas,
+                        named=len(naming.bears),
+                        files=len(naming.files),
+                    )
+                )
             carried, left_out = _measured(inputs, Ground(found, measured_land))
             costed, cost_gone = (
-                _costed(inputs, found, read_receipts(args.receipts)) if asked else (None, None)
+                _costed(inputs, found, read_receipts(args.receipts), priced_from)
+                if asked
+                else (None, None)
             )
+            # Household income is read where a list of the build names its workbook and
+            # the workbook has a receipt. It is shown beside the release, and is no measure.
+            estimated = (
+                household_income.build(inputs, found)
+                if any(receipt.source_id == household_income.SOURCE for receipt in receipts)
+                else None
+            )
+            named, not_named = _places(inputs, found)
     for one in carried:
         figures = list(one.measured.worked.values())
         print(
@@ -674,26 +967,46 @@ def _preview(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
             public(
                 "cost",
                 "ok",
-                source=price.SOURCE,
+                source=costed.source,
                 areas=len({row.area_id for row in costed.rows}),
                 rows=len(costed.rows),
                 files=len(costed.files),
             )
         )
     if cost_gone is not None:
-        print(public("cost", "skipped", source=price.SOURCE, **{cost_gone.rule: 1}))
+        print(public("cost", "skipped", source=cost_gone.source, **{cost_gone.rule: 1}))
         print(
-            f"note: what a home sells for is left out of the release. The workbook of median "
-            f"prices {cost_gone.why}. {' '.join(cost_gone.waits_on)}",
+            f"note: what a home sells for is left out of the release. "
+            f"{PRICED_FROM[cost_gone.source]} {cost_gone.why}. {' '.join(cost_gone.waits_on)}",
+            file=sys.stderr,
+        )
+    if named is not None:
+        print(
+            public(
+                "places",
+                "ok",
+                source=station_places.SOURCE,
+                rows=len(named.places),
+                areas=len(named.homes_at),
+                files=len(named.files),
+            )
+        )
+    else:
+        print(public("places", "skipped", source=station_places.SOURCE, **{str(not_named): 1}))
+        print(
+            "note: no place to reach is named in the release, so no journey can be asked for. "
+            f"The file of London's stops {MEANING[str(not_named)]}.",
             file=sys.stderr,
         )
     if not carried:
         raise Refused("no measure could be worked out, so there is no release to write")
 
     try:
-        release = release_of(args.release_id, args.built_at, drawn, carried, registry, costed)
+        release = release_of(
+            args.release_id, args.built_at, drawn, carried, registry, costed, named
+        )
         written = _opened(release)
-        evidence = evidence_of(written, drawn, carried, costed)
+        evidence = evidence_of(written, drawn, carried, costed, named)
     except ValidationError as error:
         raise Refused(f"the release could not be put together: {in_words(error)}") from None
 
@@ -735,6 +1048,22 @@ def _preview(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
         return 1
 
     written = write_release(release, out, registry)
+    if estimated is not None:
+        try:
+            shown = household_income.income_of(args.release_id, estimated, registry)
+            write_income(shown, written, out, registry)
+        except IncomeError as error:
+            raise Refused(income_in_words(error, out)) from None
+        print(
+            public(
+                "income",
+                "ok",
+                source=household_income.SOURCE,
+                areas=len(estimated.areas),
+                values=estimated.given,
+                files=1,
+            )
+        )
     homes = drawn.homes()
     coverage = cover(written, evidence, homes)
     beside.mkdir(parents=True)
@@ -766,9 +1095,14 @@ def _preview(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
                 left_out,
                 evidence,
                 _cost_record(asked, costed, cost_gone),
+                _names_record(drawn.naming),
+                _places_record(named, not_named),
+                _income_record(estimated),
             )
         ),
     }
+    if drawn.naming is not None:
+        kept[NAMES] = names_table(drawn, registry)
     for name, content in kept.items():
         (beside / name).write_bytes(content)
     print(f"{public('report', 'ok')} {summary(coverage)}")
@@ -812,6 +1146,15 @@ def build(prog: str = PROG) -> tuple[argparse.ArgumentParser, dict[str, argparse
         f"shaped like one. Give it once for each list the build takes (default: {FIRST_LIST})",
     )
     add_edition(preview)
+    preview.add_argument(
+        "--names",
+        type=Path,
+        metavar="FOLDER",
+        help="a draft of London's named areas: the folder a draft was written to, or the "
+        "gazetteer the review desk compiled from it. Each area then bears the name of the "
+        "drafted neighbourhood that holds most of its output areas. Without it each area is "
+        "under its publisher's label",
+    )
     preview.add_argument(
         "--receipts",
         type=Path,

@@ -5,12 +5,13 @@ from burro_core.catalogue import FEATURES
 from burro_core.ids import FeatureId, NativeResolution
 from burro_core.ids import Method as MadeBy
 from burro_core.release import DECIDED_BY_CORE
+from burro_pipeline.derive import brands_nearby
 from burro_pipeline.derive.catalogue_row import catalogue_row
 from burro_pipeline.derive.measures import MEASURES, Measure, says_what_core_says
 from burro_pipeline.derive.methods import AREA_ROW_RATIO, GRID_AT_HOMES, LSOA_VALUE_BY_HOMES
 
 SOURCES = ("made-up-survey", "made-up-areas")
-CARRIED = [measure for measure in MEASURES if not measure.waits_on]
+CARRIED = [measure for measure in MEASURES if not (measure.waits_on or measure.held_back)]
 
 
 def row(feature_id: FeatureId, **said: object):
@@ -64,17 +65,27 @@ def test_a_measure_that_waits_on_nothing_is_made_as_core_says_it_is_made(measure
 
 
 def test_the_measures_a_build_carries_are_those_core_names_as_their_files_support():
-    assert [measure.feature for measure in CARRIED] == [
+    of_brands = set(brands_nearby.FEATURES)
+    assert {measure.feature for measure in CARRIED} >= of_brands
+    assert [measure.feature for measure in CARRIED if measure.feature not in of_brands] == [
         FeatureId.AIR_NO2,
+        FeatureId.BUS_ROUTES_NEARBY,
+        FeatureId.BUS_STOPS_NEARBY,
         FeatureId.CONSERVATION_COVER,
         FeatureId.CULTURE_VENUES,
         FeatureId.CULTURE_VENUES_PER_HOMES,
+        FeatureId.EVENING_CLUSTER_EXPOSURE,
+        FeatureId.GP_WALK,
         FeatureId.GREEN_COVER,
+        FeatureId.GROCERY_WALK,
         FeatureId.HIGHSTREET_ACCESS,
         FeatureId.HOMES_DENSITY,
         FeatureId.HOMES_FLATS,
+        FeatureId.HOMES_HIGHER_BANDS,
         FeatureId.HOMES_POST2000,
         FeatureId.HOMES_PRE1919,
+        FeatureId.HOUSEHOLDS_DEPENDENT_CHILDREN,
+        FeatureId.HOUSEHOLDS_ONE_PERSON,
         FeatureId.INCIDENT_ANTISOCIAL,
         FeatureId.INCIDENT_CRIMINAL_DAMAGE,
         FeatureId.LAND_GARDENS,
@@ -84,21 +95,38 @@ def test_the_measures_a_build_carries_are_those_core_names_as_their_files_suppor
         FeatureId.LAND_WOODLAND,
         FeatureId.LISTED_BUILDINGS,
         FeatureId.NOISE_EXPOSURE,
+        FeatureId.OVERGROUND_PROXIMITY,
         FeatureId.PARK_LARGE_PROXIMITY,
         FeatureId.PARK_PROXIMITY,
+        FeatureId.PHARMACY_WALK,
         FeatureId.PLAY_SPACE_PROXIMITY,
         FeatureId.PRICE_MEDIAN,
+        FeatureId.PRICE_RISE_10Y,
+        FeatureId.PRICE_RISE_5Y,
+        FeatureId.RAIL_PROXIMITY,
+        FeatureId.RESIDENTS_AGED_20_34,
+        FeatureId.RESIDENTS_AGED_65_OVER,
         FeatureId.ROAD_MAJOR_EXPOSURE,
         FeatureId.SCHOOL_PRIMARY_NEARBY,
         FeatureId.STATION_WALK,
+        FeatureId.UNDERGROUND_PROXIMITY,
+        FeatureId.VENUE_CAFE,
+        FeatureId.VENUE_CAFE_PER_HOMES,
+        FeatureId.VENUE_EVENING,
+        FeatureId.VENUE_EVENING_PER_HOMES,
         FeatureId.VENUE_FOOD_DRINK,
         FeatureId.VENUE_FOOD_DRINK_PER_HOMES,
+        FeatureId.VENUE_GYM,
+        FeatureId.VENUE_GYM_PER_HOMES,
         FeatureId.WATER_ACCESS,
     ]
-    # What is left out is named as core names it still, or held back by a check.
+    # What is left out is named as core names it still, or is held back: private outdoor
+    # space, until its audit has passed. No measure is held back by a check of its figures.
     assert [measure.feature for measure in MEASURES if measure.waits_on] == [
         FeatureId.CENTRE_COMPACT,
         FeatureId.CENTRE_SMALL,
         FeatureId.PARK_FACILITIES,
-        FeatureId.VENUE_EVENING,
+    ]
+    assert [measure.feature for measure in MEASURES if measure.held_back] == [
+        FeatureId.PRIVATE_OUTDOOR_SPACE,
     ]

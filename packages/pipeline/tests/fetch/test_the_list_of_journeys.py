@@ -17,8 +17,8 @@ from pathlib import Path
 from urllib.parse import parse_qsl, urlsplit
 
 import pytest
-from burro_pipeline.evidence.receipt import SECRET_NAME
-from burro_pipeline.fetch.gate import ask
+from burro_pipeline.evidence.receipt import SECRET_NAME, Period
+from burro_pipeline.fetch.gate import Reason, Refused, ask, host_of
 from burro_pipeline.fetch.sources import LISTS, Listed, load_list
 from burro_pipeline.registry import Registry, RegistryError, load
 from burro_pipeline.registry.addresses import is_a_file_of
@@ -28,6 +28,9 @@ REPOSITORY = Path(__file__).parents[4]
 DESIGN = REPOSITORY / "docs" / "design" / "london-data-timetables.md"
 LIST = "m5-journeys"
 TIMETABLES = "tfl-journey-planner-timetables"
+# The zip the publisher's page links. The page says it is not updated and is for
+# demonstration only, so no entry names it and no list takes it.
+EXAMPLE = "https://tfl.gov.uk/cdn/static/cms/documents/journey-planner-timetables.zip"
 
 # Where every other file of a journey is listed, by the id of its source.
 ELSEWHERE = {
@@ -106,16 +109,52 @@ def test_every_page_is_the_entrys_own_letter_for_letter():
 
 
 def test_a_file_has_an_address_only_where_its_entry_names_one():
-    """The page of the timetables names no address of the file that is kept up to date. So the
-    list holds none, until a person who has registered has seen where the file comes from
-    and the entry names it. The day the entry names one, this fails: move the address
-    from the notes to `url`."""
+    """The page of the timetables names no address of the file that is kept up to date. The
+    list held none until 2026-09-24, when the entry came to name the address the
+    publisher's staff wrote on its own forum. The two change together, or this fails."""
     registry = of_the_repository()
     for file in files():
         source = registry.get(file.source_id)
         assert file.has_an_address == bool(source.file_urls), file.item
         if file.has_an_address:
             assert is_a_file_of(source, file.url), file.item
+
+
+def test_the_address_is_on_the_publishers_own_host_and_its_notes_say_where_it_was_read():
+    """The address was read on the publisher's forum and on no page the entry holds. So the
+    notes say where, and that a fetch has since taken the file from it, with no key."""
+    registry = of_the_repository()
+    for file in files():
+        if file.has_an_address:
+            source = registry.get(file.source_id)
+            assert host_of(file.url) == host_of(source.url), file.item
+            assert "url" not in file.unsure, file.item
+            assert "techforum.tfl.gov.uk" in file.notes, file.item
+            assert "A fetch took the file from it on 2026-09-24" in file.notes, file.item
+            assert "the file asks for no key of an account" in file.notes, file.item
+
+
+def test_every_address_the_entry_names_is_of_the_one_zip():
+    """A request for the address in the list may be sent on. The entry names where it may
+    end, which is the same file by its name, on the same host."""
+    source = of_the_repository().get(TIMETABLES)
+    assert source.file_urls
+    for named in source.file_urls:
+        assert host_of(named) == host_of(source.url), named
+        assert named.endswith("/journey-planner-timetables.zip"), named
+    assert [file.url for file in files()] == [source.file_urls[0]]
+
+
+def test_the_example_the_page_links_is_never_taken():
+    """The page says of it that it is not updated. A time worked out from it would rest on
+    a timetable of no known date, so the gate refuses it as a file of the entry."""
+    registry = of_the_repository()
+    assert not is_a_file_of(registry.get(TIMETABLES), EXAMPLE)
+    for file in files():
+        with pytest.raises(Refused) as refused:
+            ask(file.model_copy(update={"url": EXAMPLE}), registry)
+        assert refused.value.reason is Reason.NOT_THE_ADDRESS
+        assert "not taken" in file.notes, file.item
 
 
 def test_a_file_with_no_address_says_in_its_notes_where_one_was_read():
@@ -168,10 +207,43 @@ def test_the_steps_that_save_a_copy_keep_a_name_and_a_key_out_of_the_repository(
     assert "stays with whoever signed it" in step(5)
 
 
-def test_no_receipt_can_be_written_until_a_person_has_read_the_file():
-    for file in files():
-        assert not file.ready_for_a_receipt, file.item
-        assert {"edition", "data_period"} <= set(file.unsure), file.item
+def test_the_list_states_the_edition_and_the_period_as_the_file_gives_them():
+    """The page states neither. The edition is the day in the names of the zips the file
+    holds, written as they write it. The period is the days its timetables say they run on,
+    and never the day the file was fetched. A program read both, and no person has."""
+    (file,) = files()
+    assert file.unsure == () and file.ready_for_a_receipt
+    assert file.edition_from is None
+    assert file.edition == "21092026"
+    assert file.data_period == Period(start="2026-09-19", end="2026-12-23")
+    for words in (
+        "with `describe --inside`, by a program and by no person",
+        "The edition: the name of each of the six zips ends in 21092026",
+        "The period: every service states the day it runs from and the day it runs to",
+        "never the day the file was fetched",
+    ):
+        assert words in file.notes, words
+
+
+def test_the_notes_say_that_the_next_issue_is_another_file():
+    """The file is replaced under one address, and what a list states is written on whatever
+    arrives. So the notes say to read the next issue before a fetch that would take it."""
+    (file,) = files()
+    for words in (
+        "The file is replaced under one address",
+        "state both again before that fetch",
+        "new=0",
+    ):
+        assert words in file.notes, words
+
+
+def test_the_notes_say_what_the_page_does_not_name_and_the_file_holds():
+    """The page names six kinds of service. The file holds a zip of buses that run in place of
+    a train, and whether a step reads it is to be decided before one does."""
+    (file,) = files()
+    assert "The sixth zip is not on the page" in file.notes
+    assert "Whether a step reads the sixth zip is to be decided before one does" in file.notes
+    assert "named for the London Overground or for the Elizabeth line" in file.notes
 
 
 def test_no_file_is_saved_by_hand():

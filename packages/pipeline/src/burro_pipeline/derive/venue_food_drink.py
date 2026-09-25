@@ -15,7 +15,7 @@ What counts. The register's own kind decides, and no rule is made from a name:
 |---|---|---|
 | Places to eat and drink | The three below, together | `venue_food_drink`, core's |
 | The same, for each 1,000 homes | The three together | `venue_food_drink_per_homes`, core's |
-| Pubs and bars | Pub/bar/nightclub | `venue_evening`, core's |
+| Pubs, bars and nightclubs | Pub/bar/nightclub | `venue_pub`. Core has none |
 | Places to eat | Restaurant/Cafe/Canteen | `venue_eat`. Core has none |
 | Takeaways | Takeaway/sandwich shop | `venue_takeaway`. Core has none |
 
@@ -106,7 +106,9 @@ places to eat and drink is ranked on the places for each 1,000 homes. So the
 count is carried and shown, and no area is ranked on it: `RANKABLE`, which is
 core's to say. Core holds a release to that. The second figure is a measure of its own, in
 `venue_food_drink_per_homes.py`. `FOLLOWS_DENSITY` still says beside the
-count what the check found. The pubs are still held back.
+count what the check found. The register's pubs alone are carried by no
+release: pubs and bars are counted from the file of places, by
+`venues_nearby.py`, and `venue_pub.py` says why.
 
 Two records stand behind a figure. The row of evidence names every file of
 the register that the build read, the centres, the lookup and the homes, and
@@ -155,7 +157,7 @@ NEAR = 250
 KEYED_BY = Geography.POINT
 CENSUS = 2021
 # What a count is a count of, and what the second figure is for each of. Core says the same
-# of the places to eat and drink. Of the pubs it still gives the unit as `per km²`.
+# of the places to eat and drink.
 UNIT, UNIT_OF_THE_RATE = "count", "per 1,000 homes"
 # Whether an area is ranked on the count of places to eat and drink by itself. It is shown,
 # and a wish for them is ranked on the places for each 1,000 homes: decided on 2026-09-24.

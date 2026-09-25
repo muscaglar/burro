@@ -2,7 +2,9 @@
 
 `build-synthetic` writes the made-up release, and with `--census-out` the
 made-up count beside it, in a folder of its own. `check` with `--census` holds
-the folder of a census to the release it was made for.
+the folder of a census to the release it was made for. `--income-out` and
+`--income` do the same for the estimate of household income, which is shown on
+an area's page as the census is and is no part of a release either.
 
 `check` says whether a folder is a release that may be served. A made-up
 release is held to every rule of the contract. A release that is not made up
@@ -21,6 +23,7 @@ from pathlib import Path
 
 from burro_core.census import Census, CensusError
 from burro_core.ids import GrittyVariant
+from burro_core.income import Income, IncomeError
 from burro_core.release import EVIDENCE, LOCK, InMemoryRelease, ReleaseError
 from pydantic import ValidationError
 
@@ -31,6 +34,8 @@ from burro_pipeline.evidence.record import in_words as record_in_words
 from burro_pipeline.evidence.served import Finding, counted, unevidenced
 from burro_pipeline.evidence.store import Evidence
 from burro_pipeline.registry import RegistryError, load
+from burro_pipeline.release.income import UnreadableIncome, read_income, write_income
+from burro_pipeline.release.income import in_words as income_in_words
 from burro_pipeline.release.read import UnreadableRelease, beside, in_words, read_served
 from burro_pipeline.release.residents import UnreadableCensus, read_census, write_census
 from burro_pipeline.release.residents import in_words as census_in_words
@@ -42,6 +47,7 @@ from burro_pipeline.release.synthetic import (
     build_synthetic,
 )
 from burro_pipeline.release.synthetic.count import made_up_census
+from burro_pipeline.release.synthetic.estimate import made_up_income
 from burro_pipeline.release.write import write_release
 
 EVIDENCED = ", with evidence behind every fact"
@@ -97,6 +103,15 @@ def _findings(
     )
 
 
+def _income_summary(income: Income) -> str:
+    """What the folder of income holds. It gives no figure of any area."""
+    given = sum(area.estimate is not None for area in income.areas)
+    return (
+        f"{income.release_id}-income: {len(income.areas)} areas, {given} with an estimate, "
+        f"{'made up' if income.synthetic else 'real'}"
+    )
+
+
 def _checked(folder: Path, registry: Path | None, receipts: Path | None) -> InMemoryRelease:
     """The release in a folder, if it may be served."""
     release = read_served(folder)
@@ -137,6 +152,14 @@ def parser() -> argparse.ArgumentParser:
         help="where the made-up count is kept; it gets a folder of its own, named for the "
         "release. It is never a folder of releases. Left out, no count is written",
     )
+    build.add_argument(
+        "--income-out",
+        type=Path,
+        metavar="FOLDER",
+        help="where the made-up estimate of household income is kept; it gets a folder of its "
+        "own, named for the release. It is never a folder of releases. Left out, none is "
+        "written",
+    )
     check = commands.add_parser(
         "check", help="fail if a folder is not a release that may be served"
     )
@@ -162,6 +185,13 @@ def parser() -> argparse.ArgumentParser:
         help="the folder of the census that was made for the release. With it the census is "
         "held to every rule of its own, and to the release",
     )
+    check.add_argument(
+        "--income",
+        type=Path,
+        metavar="FOLDER",
+        help="the folder of household income that was made for the release. With it the "
+        "figures are held to every rule of their own, and to the release",
+    )
     return whole
 
 
@@ -171,24 +201,38 @@ def main(argv: list[str] | None = None) -> int:
         args.release_id = RELEASE_IDS[GrittyVariant(args.gritty)]
 
     census: Census | None = None
+    income: Income | None = None
     try:
         if args.command == "check":
             release = _checked(args.folder, args.registry, args.receipts)
             if args.census is not None:
                 census = read_census(args.census, release)
+            if args.income is not None:
+                income = read_income(args.income, release)
         else:
             built = build_synthetic(args.seed, args.release_id, args.built_at, args.gritty)
             release = write_release(built, args.out)
             if args.census_out is not None:
                 census = write_census(made_up_census(release, args.seed), release, args.census_out)
+            if args.income_out is not None:
+                income = write_income(made_up_income(release, args.seed), release, args.income_out)
     except Unevidenced as error:
         print(f"error: {error}", file=sys.stderr)
         return 1
-    except (UnreadableRelease, UnreadableCensus, LockError, RegistryError) as error:
+    except (
+        UnreadableRelease,
+        UnreadableCensus,
+        UnreadableIncome,
+        LockError,
+        RegistryError,
+    ) as error:
         print(f"error: {error}", file=sys.stderr)
         return 2
     except CensusError as error:
         print(f"error: {census_in_words(error, args.census_out or args.out)}", file=sys.stderr)
+        return 2
+    except IncomeError as error:
+        print(f"error: {income_in_words(error, args.income_out or args.out)}", file=sys.stderr)
         return 2
     except ReleaseError as error:
         print(f"error: {in_words(error, args.out / args.release_id)}", file=sys.stderr)
@@ -205,6 +249,8 @@ def main(argv: list[str] | None = None) -> int:
     print(_summary(release))
     if census is not None:
         print(_census_summary(census))
+    if income is not None:
+        print(_income_summary(income))
     return 0
 
 

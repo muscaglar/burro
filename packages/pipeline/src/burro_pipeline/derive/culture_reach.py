@@ -23,6 +23,10 @@ How a figure is made:
 3. A second figure asks a sharper question: what is within reach for each
    1,000 homes within the same reach. It is one sum over another, each taken
    over the area's homes, and never a mean of rates.
+4. A share is made the same way: what is within reach of one kind over what
+   is within reach of every kind, each added up over the area's homes.
+5. How far the nearest place stands is measured the same way as what is
+   within reach, as far as a distance that is given and no further.
 
 **It is a straight line, and not a walk.** No network of streets is built. So
 the name of a measure says a straight line.
@@ -140,6 +144,36 @@ def for_each_at(metres: int, per: int = PER) -> Method:
     )
 
 
+def share_at(metres: int) -> Method:
+    """The record of a share: what is within reach of one kind, over what is of every kind."""
+    return Method(
+        derivation_id=f"share_of_places_within_{metres}m@1",
+        sentence=f"Of the places that count within {metres} metres, in a straight line, of the "
+        "point where the homes of each census output area are taken to stand, the share that "
+        "are of the kind asked for, each added up over the area's homes at the census before "
+        f"one is divided by the other, times 100, {at_the_edge(metres)}",
+        kind=Kind.MEASURED,
+        parameters={"metres": metres, "enough_in_100": 50, "times": 100},
+        code=CODE,
+    )
+
+
+def nearest_at(metres: int) -> Method:
+    """The record of the distance to the nearest place, looked for as far as so many metres."""
+    return Method(
+        derivation_id=f"nearest_place_within_{metres}m@1",
+        sentence="The distance in a straight line from the point where the homes of each census "
+        "output area are taken to stand to the nearest place that counts, where one stands "
+        f"within {metres} metres, as the median over the area's homes at the census, which is "
+        "the mean of the two middle distances where the homes divide exactly in half between "
+        "them, and not given where under 50 in 100 of the area's homes are in an output area "
+        "with such a place.",
+        kind=Kind.MEASURED,
+        parameters={"metres": metres, "enough_in_100": 50},
+        code=CODE,
+    )
+
+
 def metres_to_a_degree(latitude: float) -> Point:
     """How many metres a degree east and a degree north are, on the ground at a latitude."""
     sine = math.sin(math.radians(latitude))
@@ -209,6 +243,67 @@ def nearest(held: Mapping[Square, Sequence[Weighed]], at: Point, metres: int) ->
                 if squared <= float(metres) * float(metres) and (best is None or squared < best[0]):
                     best = (squared, slot)
     return None if best is None else best[1]
+
+
+def nearest_within(
+    held: Mapping[Square, Sequence[Weighed]], at: Point, metres: int, slots: int
+) -> list[float | None]:
+    """How far the nearest point of each slot stands from a point, in metres.
+
+    None for a slot with no point within so many metres. A point at exactly
+    the distance is within it. It is measured as what is within reach is.
+    """
+    east, north = metres_to_a_degree(at[1])
+    columns, rows = _squares(at, metres, east, north)
+    most = float(metres) * float(metres)
+    best: list[float | None] = [None] * slots
+    for column in columns:
+        for row in rows:
+            for longitude, latitude, slot, _ in held.get((column, row), ()):
+                across, up = (longitude - at[0]) * east, (latitude - at[1]) * north
+                squared = across * across + up * up
+                nearest = best[slot]
+                if squared <= most and (nearest is None or squared < nearest):
+                    best[slot] = squared
+    return [None if squared is None else math.sqrt(squared) for squared in best]
+
+
+def inside(box: tuple[float, float, float, float], at: Point, metres: int) -> bool:
+    """Whether everything within so many metres of a point lies in a box of degrees.
+
+    The box is west, south, east and north. A part of a file holds every place
+    of its box, so what is nearest to a point is known where this holds.
+    """
+    east, north = metres_to_a_degree(at[1])
+    across, up = metres / east, metres / north
+    west, south, furthest_east, furthest_north = box
+    return (
+        west <= at[0] - across
+        and at[0] + across <= furthest_east
+        and south <= at[1] - up
+        and at[1] + up <= furthest_north
+    )
+
+
+def nearest_of(
+    points: Iterable[Weighed],
+    slots: int,
+    centred: Sequence[tuple[str, Point, int]],
+    metres: int,
+    box: tuple[float, float, float, float] | None = None,
+) -> dict[str, tuple[float | None, ...]]:
+    """How far the nearest point of each slot stands from each output area that has a centre.
+
+    `box` is the box the places were taken in, where part of a file was
+    taken. An output area whose reach is not wholly in it has no verdict,
+    because a nearer place may stand outside the box.
+    """
+    of_places = kept(points)
+    return {
+        oa: tuple(nearest_within(of_places, point, metres, slots))
+        for oa, point, _ in centred
+        if box is None or inside(box, point, metres)
+    }
 
 
 def first_of_each(points: Sequence[Point], metres: float) -> list[int]:

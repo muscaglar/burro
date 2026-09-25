@@ -16,17 +16,21 @@ other ages. That table is not read. This measure reads bands of five years and
 adds five of them up, the last of which is 85 and over, so that bears on it
 little.
 
-Core holds no such measure. `FeatureId` is the list of what may be ranked or
-shown, and core lets no word for who lives somewhere stand in a name. So this
-module makes no row of the catalogue and is not among the measures of a build.
+Core holds the measure, under the name this module gives it, and a build
+carries it. Core holds the rules that come with it: it is asked for towards
+more and never towards fewer, it stands in no scale, and no likeness is
+counted on it.
 """
+
+from burro_core.ids import FeatureId
 
 from burro_pipeline.cells.spine import Spine
 from burro_pipeline.derive import census_msoa
 from burro_pipeline.derive.census_msoa import AGE, SINCE, Of, Share
 from burro_pipeline.inputs import Inputs
 
-KEY = "residents_aged_65_over"
+FEATURE = FeatureId.RESIDENTS_AGED_65_OVER
+KEY = FEATURE.value
 SOURCE = census_msoa.SOURCE
 METHODS = census_msoa.METHODS
 CANNOT_SEE = (
@@ -39,7 +43,7 @@ MEASURE = Of(
     table=AGE,
     counted=("aged_65_69", "aged_70_74", "aged_75_79", "aged_80_84", "aged_85_over"),
     label="Residents aged 65 and over as a share of all residents, Census 2021",
-    short_label="More residents aged 65 and over",
+    short_label="More older residents",
     said="Usual residents aged 65 and over",
     cannot_see=CANNOT_SEE,
 )
@@ -48,11 +52,6 @@ MEASURE = Of(
 def is_the_table(name: str) -> bool:
     """Whether a publisher's name for a file is the name of the table this measure reads."""
     return AGE.is_the_table(name)
-
-
-def core_holds_it() -> bool:
-    """Whether core has a feature under the id the rows are written under."""
-    return census_msoa.core_holds(KEY)
 
 
 def build(inputs: Inputs, found: Spine) -> Share:

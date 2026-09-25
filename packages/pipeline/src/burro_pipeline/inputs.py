@@ -149,11 +149,14 @@ class Inputs:
         *,
         edition: str | None = None,
         named: Callable[[str], bool] | None = None,
+        holding: Callable[[Receipt], bool] | None = None,
     ) -> Opened:
         """The one file of a source, checked, or a refusal.
 
         `edition` and `named` tell apart the files of one source: the edition as
         its receipt gives it, and a test of the publisher's name for the file.
+        `holding` tells apart two parts that were taken of one file, by what
+        the receipt says each holds.
         """
         try:
             self.registry.require(source_id, use)
@@ -165,6 +168,7 @@ class Inputs:
             if receipt.source_id == source_id
             and (edition is None or receipt.edition == edition)
             and (named is None or named(receipt.publisher_file))
+            and (holding is None or holding(receipt))
         ]
         if len(found) != 1:
             raise LockError("input_has_one_receipt", source_id)

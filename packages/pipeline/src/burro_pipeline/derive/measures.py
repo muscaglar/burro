@@ -28,6 +28,10 @@ yet say what the measure is named for. It is worked out at every build all
 the same, so that whoever settles it has the figures. What holds it back is
 written in its own module, as `HELD_BACK`, and is taken out in a change a
 person reads. Nothing core says of the measure brings it in before then.
+
+One measure is held back by what has not been checked, and not by what a check
+found: private outdoor space waits for its row of the proxy audit, which
+decision record 0006 asks for before it is in a release.
 """
 
 from collections.abc import Callable, Mapping
@@ -42,17 +46,27 @@ from burro_pipeline.cells.land import Land
 from burro_pipeline.cells.spine import Spine
 from burro_pipeline.derive import (
     air_no2,
+    brands_nearby,
+    bus_routes,
+    census_msoa,
     centre_compact,
     centre_small,
+    connected,
     conservation_cover,
     culture_venues,
     culture_venues_per_homes,
+    evening_cluster_exposure,
+    gp_walk,
     green_cover,
+    grocery_walk,
     highstreet_access,
     homes_density,
     homes_flats,
+    homes_higher_bands,
     homes_post2000,
     homes_pre1919,
+    households_dependent_children,
+    households_one_person,
     incident_antisocial,
     incident_criminal_damage,
     land_use,
@@ -60,16 +74,22 @@ from burro_pipeline.derive import (
     noise,
     park_facilities,
     park_proximity,
+    pharmacy_walk,
     play_space_proximity,
     price_median,
+    price_rise,
+    private_outdoor_space,
+    residents_aged_20_34,
+    residents_aged_65_over,
     road_major_exposure,
     school_primary_nearby,
     station_walk,
-    venue_evening,
     venue_food_drink,
     venue_food_drink_per_homes,
+    venues_nearby,
     water_access,
 )
+from burro_pipeline.derive.census_msoa import Of as OfTheCensus
 from burro_pipeline.derive.methods import Worked
 from burro_pipeline.evidence.method import Kind, Method
 from burro_pipeline.evidence.receipt import Geography, Receipt
@@ -153,6 +173,21 @@ def says_what_core_says(metric: Metric) -> bool:
     return all(getattr(metric, name) == getattr(core, name) for name in DECIDED_BY_CORE)
 
 
+def _of_stops(feature: FeatureId) -> Measure:
+    """One of the measures of how near stops are. Each is read from the national file of
+    stops, and the two of railway stations from the file of stations too."""
+    of = connected.MEASURES[feature]
+    built = connected.builder(feature)
+    return Measure(
+        feature,
+        connected.SOURCE,
+        connected.is_the_file,
+        connected.METHODS[feature],
+        of.cannot_see,
+        lambda inputs, ground: built(inputs, ground.spine),
+    )
+
+
 def _of_land(feature: FeatureId) -> Measure:
     """One of the five shares of land. All five are read from one table."""
     of = land_use.MEASURES[feature]
@@ -167,8 +202,44 @@ def _of_land(feature: FeatureId) -> Measure:
     )
 
 
-# In the order of their ids, which is the order a release lists them in.
-MEASURES: tuple[Measure, ...] = (
+def _of_venues(feature: FeatureId) -> Measure:
+    """One of the six figures of cafes, gyms and pubs. All six are read from one file."""
+    of = venues_nearby.MEASURES[feature]
+    return Measure(
+        feature,
+        venues_nearby.SOURCE,
+        venues_nearby.is_the_file,
+        (of.method,),
+        of.cannot_see,
+        venues_nearby.builder(feature),
+    )
+
+
+def _of_brands(feature: FeatureId) -> Measure:
+    """One of the measures of brands. All are read from one part of the file of places."""
+    return Measure(
+        feature,
+        brands_nearby.SOURCE,
+        brands_nearby.is_the_file,
+        (brands_nearby.method_of(feature),),
+        brands_nearby.cannot_see(feature),
+        lambda inputs, ground: brands_nearby.build(inputs, ground.spine).one(feature),
+    )
+
+
+def _of_the_census(of: OfTheCensus, reads: Callable[[str], bool]) -> Measure:
+    """One of the four shares of who lived in an area. Two tables of one source give them."""
+    return Measure(
+        FeatureId(of.key),
+        census_msoa.SOURCE,
+        reads,
+        census_msoa.METHODS,
+        of.cannot_see,
+        lambda inputs, ground: census_msoa.build(of, inputs, ground.spine),
+    )
+
+
+_EVERY_OTHER: tuple[Measure, ...] = (
     Measure(
         air_no2.FEATURE,
         air_no2.SOURCE,
@@ -177,6 +248,15 @@ MEASURES: tuple[Measure, ...] = (
         air_no2.CANNOT_SEE,
         lambda inputs, ground: air_no2.build(inputs, ground.spine),
     ),
+    Measure(
+        bus_routes.FEATURE,
+        bus_routes.SOURCE,
+        bus_routes.is_the_file,
+        bus_routes.METHODS,
+        bus_routes.CANNOT_SEE,
+        lambda inputs, ground: bus_routes.build(inputs, ground.spine),
+    ),
+    _of_stops(FeatureId.BUS_STOPS_NEARBY),
     Measure(
         centre_compact.FEATURE,
         centre_compact.SOURCE,
@@ -220,6 +300,22 @@ MEASURES: tuple[Measure, ...] = (
         lambda inputs, ground: culture_venues_per_homes.build(inputs, ground.spine),
     ),
     Measure(
+        evening_cluster_exposure.FEATURE,
+        evening_cluster_exposure.SOURCE,
+        evening_cluster_exposure.is_the_file,
+        evening_cluster_exposure.METHODS,
+        evening_cluster_exposure.CANNOT_SEE,
+        lambda inputs, ground: evening_cluster_exposure.build(inputs, ground.spine),
+    ),
+    Measure(
+        gp_walk.FEATURE,
+        gp_walk.SOURCE,
+        gp_walk.is_the_report,
+        gp_walk.METHODS,
+        gp_walk.CANNOT_SEE,
+        lambda inputs, ground: gp_walk.build(inputs, ground.spine),
+    ),
+    Measure(
         green_cover.FEATURE,
         green_cover.SOURCE,
         green_cover.is_a_tile,
@@ -227,6 +323,14 @@ MEASURES: tuple[Measure, ...] = (
         green_cover.CANNOT_SEE,
         lambda inputs, ground: green_cover.build(inputs, ground.spine, ground.land),
         in_squares=True,
+    ),
+    Measure(
+        grocery_walk.FEATURE,
+        grocery_walk.SOURCE,
+        grocery_walk.is_the_file,
+        grocery_walk.METHODS,
+        grocery_walk.CANNOT_SEE,
+        lambda inputs, ground: grocery_walk.build(inputs, ground.spine),
     ),
     Measure(
         highstreet_access.FEATURE,
@@ -253,6 +357,14 @@ MEASURES: tuple[Measure, ...] = (
         lambda inputs, ground: homes_flats.build(inputs, ground.spine),
     ),
     Measure(
+        homes_higher_bands.FEATURE,
+        homes_higher_bands.SOURCE,
+        homes_higher_bands.is_the_table,
+        homes_higher_bands.METHODS,
+        homes_higher_bands.CANNOT_SEE,
+        lambda inputs, ground: homes_higher_bands.build(inputs, ground.spine),
+    ),
+    Measure(
         homes_post2000.FEATURE,
         homes_post2000.SOURCE,
         homes_post2000.is_the_table,
@@ -268,6 +380,10 @@ MEASURES: tuple[Measure, ...] = (
         homes_pre1919.CANNOT_SEE,
         lambda inputs, ground: homes_pre1919.build(inputs, ground.spine),
     ),
+    _of_the_census(
+        households_dependent_children.MEASURE, households_dependent_children.is_the_table
+    ),
+    _of_the_census(households_one_person.MEASURE, households_one_person.is_the_table),
     Measure(
         incident_antisocial.FEATURE,
         incident_antisocial.SOURCE,
@@ -305,6 +421,7 @@ MEASURES: tuple[Measure, ...] = (
         noise.CANNOT_SEE,
         lambda inputs, ground: noise.build(inputs, ground.spine),
     ),
+    _of_stops(FeatureId.OVERGROUND_PROXIMITY),
     Measure(
         park_facilities.FEATURE,
         park_facilities.SOURCE,
@@ -334,6 +451,14 @@ MEASURES: tuple[Measure, ...] = (
         in_squares=True,
     ),
     Measure(
+        pharmacy_walk.FEATURE,
+        pharmacy_walk.SOURCE,
+        pharmacy_walk.is_the_list,
+        pharmacy_walk.METHODS,
+        pharmacy_walk.CANNOT_SEE,
+        lambda inputs, ground: pharmacy_walk.build(inputs, ground.spine),
+    ),
+    Measure(
         play_space_proximity.FEATURE,
         play_space_proximity.SOURCE,
         play_space_proximity.is_a_tile,
@@ -349,6 +474,35 @@ MEASURES: tuple[Measure, ...] = (
         price_median.METHODS,
         price_median.CANNOT_SEE,
         lambda inputs, ground: price_median.build(inputs, ground.spine),
+    ),
+    _of_stops(FeatureId.RAIL_PROXIMITY),
+    _of_the_census(residents_aged_20_34.MEASURE, residents_aged_20_34.is_the_table),
+    _of_the_census(residents_aged_65_over.MEASURE, residents_aged_65_over.is_the_table),
+    Measure(
+        price_rise.OVER[10],
+        price_rise.SOURCE,
+        price_rise.is_a_file,
+        (price_rise.risen_over(10),),
+        price_rise.CANNOT_SEE,
+        lambda inputs, ground: price_rise.build(inputs, ground.spine, 10),
+    ),
+    Measure(
+        price_rise.OVER[5],
+        price_rise.SOURCE,
+        price_rise.is_a_file,
+        (price_rise.risen_over(5),),
+        price_rise.CANNOT_SEE,
+        lambda inputs, ground: price_rise.build(inputs, ground.spine, 5),
+    ),
+    Measure(
+        private_outdoor_space.FEATURE,
+        private_outdoor_space.SOURCE,
+        private_outdoor_space.is_the_workbook,
+        private_outdoor_space.METHODS,
+        private_outdoor_space.CANNOT_SEE,
+        lambda inputs, ground: private_outdoor_space.build(inputs, ground.spine),
+        waits_on=private_outdoor_space.WAITS_ON,
+        held_back=private_outdoor_space.HELD_BACK,
     ),
     Measure(
         road_major_exposure.FEATURE,
@@ -374,17 +528,11 @@ MEASURES: tuple[Measure, ...] = (
         station_walk.CANNOT_SEE,
         lambda inputs, ground: station_walk.build(inputs, ground.spine),
     ),
-    Measure(
-        venue_evening.FEATURE,
-        venue_evening.SOURCE,
-        venue_evening.is_a_file,
-        venue_evening.METHODS,
-        venue_evening.CANNOT_SEE,
-        lambda inputs, ground: venue_evening.build(inputs, ground.spine),
-        in_parts=True,
-        waits_on=venue_evening.WAITS_ON,
-        held_back=venue_evening.HELD_BACK,
-    ),
+    _of_stops(FeatureId.UNDERGROUND_PROXIMITY),
+    _of_venues(FeatureId.VENUE_CAFE),
+    _of_venues(FeatureId.VENUE_CAFE_PER_HOMES),
+    _of_venues(FeatureId.VENUE_EVENING),
+    _of_venues(FeatureId.VENUE_EVENING_PER_HOMES),
     Measure(
         venue_food_drink.FEATURE,
         venue_food_drink.SOURCE,
@@ -405,6 +553,8 @@ MEASURES: tuple[Measure, ...] = (
         lambda inputs, ground: venue_food_drink_per_homes.build(inputs, ground.spine),
         in_parts=True,
     ),
+    _of_venues(FeatureId.VENUE_GYM),
+    _of_venues(FeatureId.VENUE_GYM_PER_HOMES),
     Measure(
         water_access.FEATURE,
         water_access.SOURCE,
@@ -413,6 +563,13 @@ MEASURES: tuple[Measure, ...] = (
         water_access.CANNOT_SEE,
         lambda inputs, ground: water_access.build(inputs, ground.spine),
     ),
+)
+# In the order of their ids, which is the order a release lists them in.
+MEASURES: tuple[Measure, ...] = tuple(
+    sorted(
+        (*_EVERY_OTHER, *(_of_brands(feature) for feature in brands_nearby.FEATURES)),
+        key=lambda measure: measure.feature.value,
+    )
 )
 
 

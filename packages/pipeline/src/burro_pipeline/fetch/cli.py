@@ -270,7 +270,11 @@ that others can read. No workflow runs it.
                  a table do. A row that holds a number is never given
   a GeoPackage   its layers, their fields, how many features each holds, and
                  the day each says it was last changed
-  a zip          the names and sizes inside. With --inside, the shape of each
+  a timetable    in TransXChange: how many services it holds, the earliest
+                 day any runs from, the latest day any runs to, and their
+                 modes. No stop, no name of a line and no time is read
+  a zip          the names and sizes inside. With --inside, the shape of each,
+                 and of each file of a zip inside it
 
 Name a stored file by its file id or its hash, or a file on disk with --path.
 
@@ -658,7 +662,9 @@ def build(prog: str = PROG) -> tuple[argparse.ArgumentParser, dict[str, argparse
         "--path", type=Path, metavar="FILE", help="a file on disk, in place of a stored one"
     )
     step["describe"].add_argument(
-        "--inside", action="store_true", help="for a zip, give the shape of each file inside it"
+        "--inside",
+        action="store_true",
+        help="for a zip, give the shape of each file inside it, and inside each zip it holds",
     )
     step["describe"].add_argument(
         "--sheet",

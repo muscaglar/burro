@@ -4,25 +4,37 @@ What goes into the release:
 
 | File of the release | What it holds in a first build |
 |---|---|
-| `neighbourhoods.json` | Every area: its label, its borough, a point inside it, its neighbours |
+| `neighbourhoods.json` | Every area: its label, its borough, a point inside it, its neighbours. |
+| | With a draft of names, the name the area bears, who wrote it, and that it is a draft |
 | `geometry.json` | Every area's outline |
 | `catalogue.json`, `features.json` | Each measure worked out, and its figure for every area |
 | `tags.json` | A row for every area and vibe, as core works one out. Too few parts make none |
 | `cost.json` | What each kind of home sold for, where the build read it. No rent |
-| `destinations.json`, `places.json` | Nothing |
+| `destinations.json`, `places.json` | The stations of London, where the build read the stops |
 | `travel.json`, `stations.json` | Nothing, and so no source and no date |
 
 Nothing is filled in. A measure that could not be worked out is left out of
 the release, and the evidence holds a row that says so for every area. A
-journey and a station are not in a first build at all, and the evidence says
-that too. So every pair of an area and a thing Burro measures has a row, and
-a state.
+journey time and a station near an area are not in a first build at all, and
+the evidence says that too. So every pair of an area and a thing Burro
+measures has a row, and a state.
 
-A cost is what a home of one kind sold for: the publisher's median, with no
-range. An area with no figure for a kind of home has no row of `cost.json`,
-and its row of evidence says why: the publisher withheld it, or holds no row
-for the area. A build that did not read the prices holds no cost, and the
-evidence says of every cost that it is not carried. No build holds a rent.
+A station is a place a person can name, and a journey's end. A build that read
+the file of London's stops names each, and says of each area where its homes
+stand, so that core can estimate a journey from distance where no time is held
+(decision record 0027). The release holds no time and no estimate: an
+estimate is worked out for a search, from the two points and from how near
+the Underground is. A build that did not read the stops names no place, and
+says of no area where its homes stand.
+
+A cost is what a home of one kind sold for: a median, with no range. Where a
+build reads the sales themselves it is the median of those sales, and says how
+many it rests on. Where it reads a publisher's medians alone it is the
+publisher's own. An area with no figure for a kind of home has no row of
+`cost.json`, and its row of evidence says why: too few sales, none at all, or
+a figure the publisher withheld. A build that did not read the prices holds no
+cost, and the evidence says of every cost that it is not carried. No build
+holds a rent.
 
 A percentile, a vibe and its band are worked out by core: `percentile_of`,
 `tag_raw` and `band_of`. The pipeline holds no second copy of that arithmetic.
@@ -34,6 +46,11 @@ A vibe rests on the parts of its recipe that the release holds. Where they are
 under 60 in 100 of the recipe it has no band, and that is core's rule too. So
 gritty has no band until more of its recipe is measured than roads, noise and
 density, and nothing stands in for what is not.
+
+An area bears a name only where the build was given a draft of names: `names.py`
+holds the rule. The name is a draft until a person has decided it at the review
+desk, and the release says which it is. With no draft an area is under its
+publisher's label, as before.
 
 Every area can be ranked. An area is left out of ranking where a rate for each
 resident would be unsteady, which needs a count of residents. A first build
@@ -71,21 +88,30 @@ from burro_core.release import (
     CostEstimate,
     Counts,
     Cutoffs,
+    Destination,
     FeatureValue,
     Geometry,
     InMemoryRelease,
     Manifest,
     Neighbourhood,
     Origin,
+    Place,
     Source,
     TagValue,
     TravelTable,
 )
 
+# What is known of the name an area bears. `Named`, below, is the places of a build.
+from burro_core.release import Named as NameBorne
+
+from burro_pipeline.assemble import names
+from burro_pipeline.assemble.names import Bears, Naming
 from burro_pipeline.cells import outline, spine
+from burro_pipeline.cells.centres import Point
 from burro_pipeline.cells.outline import Outline
 from burro_pipeline.cells.spine import Spine
 from burro_pipeline.derive.measures import TAGGED, Measure, Measured
+from burro_pipeline.derive.station_places import StationPlace
 from burro_pipeline.evidence.method import Method
 from burro_pipeline.evidence.receipt import Receipt
 from burro_pipeline.evidence.row import FULLY_COVERED, EvidenceRow, State, not_carried
@@ -127,6 +153,34 @@ class Costed:
     # The receipt of every file a cost was worked out from.
     files: tuple[Receipt, ...]
     methods: tuple[Method, ...]
+    # The source the prices were read from: the sales themselves, or a publisher's medians.
+    source: str
+    # What the product shows beside a price.
+    cannot_see: tuple[str, ...]
+    # What was read, as counts, where the step that read it counts. It holds no figure.
+    counted: Mapping[str, object] | None = None
+
+
+@dataclass(frozen=True)
+class Named:
+    """The places a person can name in a release, and where the homes of each area stand.
+
+    The two go together: a journey is estimated from one to the other, and a
+    build that names no place says of no area where its homes stand.
+    """
+
+    # The stations of the file of stops, in the order of their ids.
+    places: tuple[StationPlace, ...]
+    # The receipt of the file of stops, and of the file of the centres of output areas.
+    stops: Receipt
+    centres: Receipt
+    # Where the homes of each area stand, as a longitude and a latitude, by the id of the
+    # area. An area with no centre is not among them.
+    homes_at: Mapping[str, Point]
+
+    @property
+    def files(self) -> tuple[Receipt, Receipt]:
+        return (self.stops, self.centres)
 
 
 @dataclass(frozen=True)
@@ -138,10 +192,17 @@ class Drawn:
     # The receipts of the lookup and of the boundaries the outlines were joined from.
     lookup: Receipt
     boundaries: Receipt
+    # The name each area bears, where the build was given a draft of names.
+    naming: Naming | None = None
 
     @property
     def area_ids(self) -> tuple[str, ...]:
         return tuple(area.area_id for area in self.spine.areas)
+
+    @property
+    def named_from(self) -> tuple[Receipt, ...]:
+        """The files behind an area's name and its borough: every area cites them all."""
+        return (self.lookup, self.boundaries, *(self.naming.files if self.naming else ()))
 
     def homes(self) -> dict[str, int]:
         """The homes of each area: its households at the census. The weight of a share."""
@@ -151,20 +212,80 @@ class Drawn:
         return found
 
 
-def neighbourhoods_of(drawn: Drawn) -> tuple[Neighbourhood, ...]:
-    return tuple(
-        Neighbourhood(
-            area_id=area.area_id,
-            slug=area.slug,
-            name=area.name,
-            borough=area.borough,
-            # No file gives an area another name, and none is made up.
-            aliases=(),
-            centroid=drawn.outlines[area.area_id].centre,
-            rankable=True,
-            neighbours=drawn.outlines[area.area_id].neighbours,
+def neighbourhoods_of(drawn: Drawn, named: Named | None = None) -> tuple[Neighbourhood, ...]:
+    """Every area, under the name it bears, or under its publisher's label where it bears none.
+
+    The id and the slug of an area are made from its label whatever it bears,
+    so neither moves when a name is decided.
+    """
+    bears: Mapping[str, Bears] = drawn.naming.bears if drawn.naming else {}
+    homes_at: Mapping[str, Point] = named.homes_at if named is not None else {}
+    found: list[Neighbourhood] = []
+    for area in drawn.spine.areas:
+        borne = bears.get(area.area_id)
+        found.append(
+            Neighbourhood(
+                area_id=area.area_id,
+                slug=area.slug,
+                name=borne.name if borne else area.name,
+                borough=area.borough,
+                # No name is made up: another name is the name itself, where a side is said.
+                aliases=borne.aliases if borne else (),
+                centroid=drawn.outlines[area.area_id].centre,
+                rankable=True,
+                neighbours=drawn.outlines[area.area_id].neighbours,
+                named=NameBorne(
+                    label=area.name, source_ids=borne.source_ids, state=borne.written.state
+                )
+                if borne
+                else None,
+                # Where the build names places. The point inside the area never stands in.
+                homes_at=homes_at.get(area.area_id),
+            )
         )
-        for area in drawn.spine.areas
+    return tuple(found)
+
+
+def dated(drawn: Drawn) -> str:
+    """The month the names of the areas are as of.
+
+    A label and a borough are the lookup's, so an area under its label is
+    dated as the lookup is. A name is its publisher's, so a build that was
+    given names is dated as the newest of the lookup and the files that write
+    a name.
+    """
+    written = (drawn.lookup, *(drawn.naming.files if drawn.naming else ()))
+    return max(receipt.data_period.days()[1] for receipt in written)[:7]
+
+
+def destination_id_of(place: StationPlace) -> str:
+    """The id of the end of the journeys to a station: its own id, as an end."""
+    city, _, rest = place.place_id.partition("-p")
+    return f"{city}-d{rest}"
+
+
+def places_of(named: Named | None) -> tuple[Place, ...]:
+    """Every station as a place a person can name. A station stands in for itself."""
+    return tuple(
+        Place(
+            place_id=place.place_id,
+            name=place.name,
+            aliases=place.aliases,
+            kind=place.kind,
+            destination_id=destination_id_of(place),
+            coarse_place_id=place.place_id,
+            centroid=place.centroid,
+            source_id=place.source_id,
+        )
+        for place in (named.places if named is not None else ())
+    )
+
+
+def destinations_of(named: Named | None) -> tuple[Destination, ...]:
+    """Where the journeys to each station end: at the station."""
+    return tuple(
+        Destination(destination_id=destination_id_of(place), centroid=place.centroid)
+        for place in (named.places if named is not None else ())
     )
 
 
@@ -242,6 +363,7 @@ def sources_of(registry: Registry, files: Sequence[Receipt]) -> tuple[Source, ..
                 attribution=entry.attribution,
                 url=entry.url,
                 retrieved_on=retrieved_on(by_source[source_id]),
+                credit_beside_figures=entry.attribution_beside_figures,
             )
         )
     return tuple(found)
@@ -254,23 +376,28 @@ def release_of(
     carried: Sequence[Carried],
     registry: Registry,
     costed: Costed | None = None,
+    named: Named | None = None,
 ) -> InMemoryRelease:
     """The release of a first build: areas, outlines, the measures carried and the costs.
 
     It is a preview. It is as core will read it back, but for the list of its
     files and its counts, which `write_release` works out from the bytes it
     writes. `costed` is what the build read of what a home sells for, or
-    nothing where it read none.
+    nothing where it read none. `named` is the places a person can name, and
+    where the homes of each area stand, or nothing where the build read no
+    file of stops.
     """
     areas = drawn.area_ids
     features = features_of(carried, areas)
     vibes = vibes_of(GRITTY)
-    named = (drawn.lookup, drawn.boundaries)
-    cited = {receipt.file_id: receipt for receipt in named}
+    drawn_from = (*drawn.named_from, *((named.centres,) if named else ()))
+    cited = {receipt.file_id: receipt for receipt in drawn_from}
     for one in carried:
         cited |= {receipt.file_id: receipt for receipt in one.measured.files}
     if costed is not None and costed.rows:
         cited |= {receipt.file_id: receipt for receipt in costed.files}
+    if named is not None:
+        cited |= {receipt.file_id: receipt for receipt in named.files}
     return InMemoryRelease(
         manifest=Manifest(
             release_id=release_id,
@@ -286,11 +413,10 @@ def release_of(
             files=(),
             counts=Counts(neighbourhoods=0, rankable=0, destinations=0, places=0, stations=0),
         ),
-        neighbourhoods=neighbourhoods_of(drawn),
+        neighbourhoods=neighbourhoods_of(drawn, named),
         neighbourhoods_origin=Origin(
-            source_ids=tuple(sorted({receipt.source_id for receipt in named})),
-            # A label and a borough are the lookup's, so an area's name is dated as it is.
-            as_of=drawn.lookup.data_period.days()[1][:7],
+            source_ids=tuple(sorted({receipt.source_id for receipt in drawn_from})),
+            as_of=dated(drawn),
         ),
         travel_table=TravelTable(
             source_ids=(),
@@ -309,6 +435,8 @@ def release_of(
         tags=tags_of(features, areas, vibes),
         vibes=vibes,
         costs=costed.rows if costed is not None else (),
+        destinations=destinations_of(named),
+        places=places_of(named),
         geometries=tuple(
             AreaGeometry(
                 area_id=area, geometry=Geometry.model_validate(drawn.outlines[area].geometry)
@@ -382,15 +510,36 @@ def _tag_rows(release: InMemoryRelease, carried: Sequence[Carried]) -> Iterator[
         yield _of_a_tag(row, behind)
 
 
-def _area_rows(drawn: Drawn, area_id: str) -> tuple[EvidenceRow, EvidenceRow]:
-    """The rows behind an area's label and behind its outline."""
+def _area_rows(
+    drawn: Drawn, area_id: str, named: Named | None = None
+) -> tuple[EvidenceRow, EvidenceRow]:
+    """The rows behind an area's name and behind its outline.
+
+    With a draft of names, the row of a name rests on every file that writes a
+    name of the build: which name an area bears was chosen among them all. It
+    says how many of the area's output areas lie in the neighbourhood whose
+    name it bears. An area that keeps its label has them all behind it.
+    """
     joined = drawn.outlines[area_id]
     of = joined.units_expected
     drawn_from = (drawn.lookup, drawn.boundaries)
+    borne = drawn.naming.bears.get(area_id) if drawn.naming else None
+    # Where the build says where the homes of an area stand, the file of the centres
+    # stands behind the area too.
+    placed = (*drawn.named_from, *((named.centres,) if named is not None else ()))
     return (
         # The fact of an area cites what `neighbourhoods.json` cites: the lookup for its label
-        # and its borough, and the boundaries for the point inside it and its neighbours.
-        _of_the_area(area_id, NAME, spine.LABELLED, drawn_from, of, of),
+        # and its borough, the boundaries for the point inside it and its neighbours, the
+        # files of names for the name it bears, and the centres of its output areas for
+        # where its homes stand.
+        _of_the_area(
+            area_id,
+            NAME,
+            names.NAMED if drawn.naming else spine.LABELLED,
+            placed,
+            borne.held if borne else of,
+            borne.of if borne else of,
+        ),
         _of_the_area(area_id, BOUNDARY, outline.JOINED, drawn_from, joined.units_used, of),
     )
 
@@ -408,7 +557,9 @@ def _absent(release: InMemoryRelease, said: frozenset[str]) -> Iterator[Evidence
         for feature_id in sorted(FEATURES):
             if feature_id not in carried:
                 yield _not_carried(area_id, FactKind.FEATURE, feature_id)
-        if not release.destinations:
+        # A release that names the ends of journeys and has routed none holds no journey
+        # time: what it says of a journey is estimated for a search, and is in no file.
+        if not release.travel_table.destination_ids:
             for mode in Mode:
                 yield _not_carried(area_id, FactKind.TRAVEL, mode)
         held = {cost_key(c.tenure, c.segment) for c in release.costs if c.area_id == area_id}
@@ -424,13 +575,17 @@ def evidence_of(
     drawn: Drawn,
     carried: Sequence[Carried],
     costed: Costed | None = None,
+    named: Named | None = None,
 ) -> Evidence:
     """The evidence of a release: a row for every figure, and for every figure it lacks."""
-    receipts = {receipt.file_id: receipt for receipt in (drawn.lookup, drawn.boundaries)}
-    methods = {method.derivation_id: method for method in (spine.LABELLED, outline.JOINED)}
+    receipts = {receipt.file_id: receipt for receipt in drawn.named_from}
+    if named is not None:
+        receipts |= {receipt.file_id: receipt for receipt in named.files}
+    labelled = names.NAMED if drawn.naming else spine.LABELLED
+    methods = {method.derivation_id: method for method in (labelled, outline.JOINED)}
     rows: list[EvidenceRow] = []
     for area_id in drawn.area_ids:
-        rows += _area_rows(drawn, area_id)
+        rows += _area_rows(drawn, area_id, named)
     for one in carried:
         receipts |= {receipt.file_id: receipt for receipt in one.measured.files}
         methods |= {method.derivation_id: method for method in one.measure.methods}

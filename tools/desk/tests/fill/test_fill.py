@@ -54,7 +54,7 @@ def test_every_queue_of_the_design_is_filled_in_the_order_of_the_design(made_up:
     assert tuple(queue.queue for queue in made_up.report.queues) == QUEUES == tuple(draft.QUEUES)
     assert sorted(path.stem for path in (made_up.data / "items").iterdir()) == sorted(QUEUES)
     assert all(queue.items > 0 and not queue.lacks for queue in made_up.report.queues)
-    assert made_up.report.items == 512 and made_up.report.synthetic is True
+    assert made_up.report.items == 591 and made_up.report.synthetic is True
 
 
 def test_the_same_release_gives_the_same_files_byte_for_byte(made_up: Filled, tmp_path: Path):
@@ -611,7 +611,7 @@ def test_the_run_says_of_each_queue_how_many_items_and_how_long(
     assert rows["borders"] == ["borders", "24", "8", "8", "min", "an", "item", "3.2", "h"]
     assert rows["sentences"][-6:] == ["12", "min", "an", "article", "36", "min"]
     assert rows["rules"] == ["rules", "5", "0", "2", "min", "an", "item", "10", "min"]
-    assert rows["all"] == ["all", "512", "6.5", "h"]
+    assert rows["all"] == ["all", "591", "6.8", "h"]
     assert lines[-1] == "The pace is the design's guess. Nobody has timed it."
 
 

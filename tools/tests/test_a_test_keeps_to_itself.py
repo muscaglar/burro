@@ -130,6 +130,13 @@ def test_writes_what_the_system_names(monkeypatch, tmp_path):
     Path("beside-itself.txt").write_text("kept to itself", encoding="utf-8")
 
 
+def test_is_the_first_to_import_a_module():
+    import imported_late.module
+
+    assert imported_late.module.SAID == "kept to itself"
+    assert Path(imported_late.module.__cached__).is_file()
+
+
 def test_reads_what_is_anywhere():
     assert Path(__file__).read_text(encoding="utf-8")
     with open(__file__, "rb") as file:
@@ -173,6 +180,12 @@ def run(folder: Path, *words: str) -> subprocess.CompletedProcess[str]:
 def ran(tmp_path_factory: pytest.TempPathFactory) -> Ran:
     folder = tmp_path_factory.mktemp("kept")
     (folder / "test_them.py").write_text(TESTS, encoding="utf-8")
+    # A package that nothing has imported: Python has made no folder for its bytecode.
+    (folder / "imported_late").mkdir()
+    (folder / "imported_late" / "__init__.py").write_text("", encoding="utf-8")
+    (folder / "imported_late" / "module.py").write_text(
+        'SAID = "kept to itself"\n', encoding="utf-8"
+    )
     done = run(folder)
     ended: dict[str, str] = {}
     for how, name in re.findall(r"^(PASSED|FAILED|ERROR) test_them\.py::(\w+)", done.stdout, re.M):
@@ -259,6 +272,13 @@ def test_a_test_that_writes_what_the_system_names_passes(ran: Ran):
 
 def test_a_test_may_read_anything(ran: Ran):
     assert ran.ended["test_reads_what_is_anywhere"] == "PASSED"
+
+
+def test_a_test_may_be_the_first_to_import_a_module(ran: Ran):
+    """Python keeps what it compiled beside the module, in a folder it makes when it first
+    imports one. In a working copy that is new, that is inside whichever test imports it."""
+    assert ran.ended["test_is_the_first_to_import_a_module"] == "PASSED"
+    assert (ran.folder / "imported_late" / "__pycache__").is_dir()
 
 
 def test_every_test_of_the_made_up_file_was_run(ran: Ran):

@@ -3,6 +3,7 @@
 Every name, id and note here is made up. No socket is opened.
 """
 
+import errno
 import json
 import random
 import stat
@@ -342,7 +343,7 @@ def test_a_fault_while_writing_loses_at_most_the_line_being_written(
 
     def fails_half_way(descriptor: int, data: bytes) -> None:
         real(descriptor, data[: len(data) // 2])
-        raise OSError(28, "No space left on device")
+        raise OSError(errno.ENOSPC, "No space left on device")
 
     monkeypatch.setattr(records, "_write_all", fails_half_way)
     with pytest.raises(OSError, match="No space"):

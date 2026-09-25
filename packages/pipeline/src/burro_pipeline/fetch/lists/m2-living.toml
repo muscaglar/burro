@@ -33,14 +33,14 @@
 #   the eleven names the address of its file under `file_urls`. Open each of the
 #   eleven once in a browser before the first fetch.
 #
-#   Read, and waiting on the registry, three: price-paid-2025, price-paid-2024
-#   and price-paid-2023. The publisher hands them out from
-#   price-paid-data.publicdata.landregistry.gov.uk. The registry entry of the
-#   source names no address there under `file_urls`, and fetch refuses an
-#   address that the entry does not name. It refuses the whole list with it. So
-#   `url` is left empty, and the address that was read is in the notes. When
-#   the entry names the address, in a change that a person reads, move it from
-#   the notes to `url`.
+#   Named by the registry since, and not yet fetched, three: price-paid-2025,
+#   price-paid-2024 and price-paid-2023. The publisher hands them out from
+#   price-paid-data.publicdata.landregistry.gov.uk. Until 2026-09-24 the
+#   registry entry of the source named no address there, so `url` was left
+#   empty. The entry now names each under `file_urls`, as its page of yearly
+#   files gave it to four readings on two days. No fetch has tried one. Each
+#   file is replaced on the 20th working day of a month: a fetch made after
+#   28 September 2026 states the edition again first.
 #
 #   Named by the registry since, and fetched, one: naptan-national, on
 #   naptan.api.dft.gov.uk. It waited on the registry as the three above do. The
@@ -185,7 +185,7 @@ max_bytes = 25_000_000
 edition = "as at 31 August 2026"
 data_period = { as_at = "2026-08-31" }
 unsure = ["url"]
-notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. It is written whole on the page. The reader was asked twice, in different words, and gave the same address both times. GOV.UK hands out files from assets.publishing.service.gov.uk, which has no pages of its own, and the registry entry of this source names that host by this file's address, as the entries of the first build do. Whether a download is sent on to another host is not known. The page gives 16.3 MB, and says it was last updated on 10 September 2026. National: no file for London is offered. The page lists two more files for the month, a workbook of 10.4 MB and the inspections of the year to date, 1.51 MB. Neither is taken: this one holds each school's most recent inspection. Three inspection regimes stand in it, and no grade is made from them. From memory it holds a column on the deprivation of a school's pupils: read named columns only, and never that one."
+notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. It is written whole on the page. The reader was asked twice, in different words, and gave the same address both times. GOV.UK hands out files from assets.publishing.service.gov.uk, which has no pages of its own, and the registry entry of this source names that host by this file's address, as the entries of the first build do. Whether a download is sent on to another host is not known. The page gives 16.3 MB, and says it was last updated on 10 September 2026. National: no file for London is offered. The page lists two more files for the month, a workbook of 10.4 MB and the inspections of the year to date, 1.51 MB. Neither is taken: this one holds each school's most recent inspection. Three inspection regimes stand in it, and no grade is made from them. From memory it holds a column on the deprivation of a school's pupils: read named columns only, and never that one. The page was read again on 2026-09-24, three times in different words: this is still the newest file of latest inspections, at the address above, and the page's newest change is of 10 September 2026. The file has its receipt, f-ae351bdfe4b5, of 2026-09-23. The religious character of a school is never read, and nor is its ethos or its denomination: the founder decided on 2026-09-24 that it is no amenity, and the registry entry says so. The publisher says it takes both from the register of schools, so take it that the file holds them. It is listed for display, which is what its receipt states. A measure of schools that a person can rank on asks the gate for scoring, which the entry allows, and a build pairs a file with its item by the use its receipt states: so the file of the next month is the one to list for scoring, as a new item, when the page holds it."
 
 # 2. Cost: rents, the index that moves a sale, and sale prices. Milestone M4.
 
@@ -239,14 +239,13 @@ source_id = "hmlr-price-paid"
 use = "scoring"
 what = "Price Paid Data, the yearly file for 2025, complete, England and Wales"
 format = "csv"
-page = "https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads"
-# Empty until the registry entry names the address of the file. The address is in the notes.
-url = ""
+page = "https://www.gov.uk/government/statistical-data-sets/price-paid-data-yearly-file"
+url = "https://price-paid-data.publicdata.landregistry.gov.uk/pp-2025.csv"
 max_bytes = 200_000_000
 edition = "2025 file, as published with the data for July 2026"
 data_period = { start = "2025-01-01", end = "2025-12-31" }
 unsure = ["url"]
-notes = "Address as read on 2026-09-23: https://price-paid-data.publicdata.landregistry.gov.uk/pp-2025.csv . It was not on the page above, which links to a page for the yearly files, https://www.gov.uk/government/statistical-data-sets/price-paid-data-yearly-file, which the registry entry does not hold. The reader was asked twice of that page, in different words, and gave the same address both times, written whole and starting https. The host is HM Land Registry's own, and the registry entry names only www.gov.uk, so fetch would refuse it: the entry needs the address of the file under file_urls first. Nobody has read a page or a record on that host that the entry could hold, so the entry was left as it was. That page gives 129MB for this file, and says it was last updated on 28 August 2026 and holds data to July 2026. The publisher offers no file for London or for a region: a yearly file is national. The file is replaced each month, on the twentieth working day, so after 28 September 2026 the edition is another. The page says a yearly file holds the transactions received at HM Land Registry from 1 January to 31 December of its year: the period here is that, and is not the day of each sale. No header row, from memory. Every row is one sale of one home: no row goes to a log, and every address column but the postcode is dropped at ingest, as the registry entry says."
+notes = "Address read on 2026-09-24, on the page above, through a reader that extracts. The page is the publisher's page of yearly files, which the registry entry holds since that day: the downloads page, which is the entry's own, holds no address of a file and links to it. The reader was asked twice, in different words, and gave the same address both times, written whole and starting https, as two readings of 2026-09-23 had. The host is price-paid-data.publicdata.landregistry.gov.uk, which is HM Land Registry's own and is no host of its pages, and the registry entry names this address under file_urls. No fetch has tried it, and whether a download is sent on to another host is not known. The page gives 129MB for this file, and says it was published on 28 August 2026. The downloads page says the newest month is July 2026, and 'We update the data on the 20th working day of each month'. The publisher offers no file for London or for a region: a yearly file is national. The file is replaced each month under this address, so after 28 September 2026 the edition is another: state it again before a fetch that is made after that day. The page says 'The files include standard and additional price paid data transactions received at HM Land Registry in the period from 1 January to 31 December for each year': the period here is that, and is not the day of each sale. No header row, from memory. The kind of home a sale is of is a column of the file: the publisher's page about the data gives it as D, S, T, F or O, where F is flats and maisonettes, which is how a flat is priced apart from a house. Every row is one sale of one home: no row goes to a log, and every address column but the postcode is dropped at ingest, as the registry entry says."
 
 [[file]]
 item = "price-paid-2024"
@@ -254,14 +253,13 @@ source_id = "hmlr-price-paid"
 use = "scoring"
 what = "Price Paid Data, the yearly file for 2024, complete, England and Wales"
 format = "csv"
-page = "https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads"
-# Empty until the registry entry names the address of the file. The address is in the notes.
-url = ""
+page = "https://www.gov.uk/government/statistical-data-sets/price-paid-data-yearly-file"
+url = "https://price-paid-data.publicdata.landregistry.gov.uk/pp-2024.csv"
 max_bytes = 220_000_000
 edition = "2024 file, as published with the data for July 2026"
 data_period = { start = "2024-01-01", end = "2024-12-31" }
 unsure = ["url"]
-notes = "Address as read on 2026-09-23: https://price-paid-data.publicdata.landregistry.gov.uk/pp-2024.csv . Read on the page for the yearly files, as price-paid-2025 says, and the reader gave the same address both times. The registry entry does not name the host. That page gives 157MB. National: no file for London is offered. Whether a past year's file still changes each month is not said on the page: the hash in the receipt says which was fetched."
+notes = "Address read on 2026-09-24, on the page above, through a reader that extracts, as price-paid-2025 says: the reader was asked twice, in different words, and gave the same address both times, as two readings of 2026-09-23 had. The host is price-paid-data.publicdata.landregistry.gov.uk, and the registry entry names this address under file_urls. No fetch has tried it. The page gives 157MB. National: no file for London is offered. Whether a past year's file still changes each month is not said on the page: the hash in the receipt says which was fetched."
 
 [[file]]
 item = "price-paid-2023"
@@ -269,14 +267,13 @@ source_id = "hmlr-price-paid"
 use = "scoring"
 what = "Price Paid Data, the yearly file for 2023, complete, England and Wales"
 format = "csv"
-page = "https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads"
-# Empty until the registry entry names the address of the file. The address is in the notes.
-url = ""
+page = "https://www.gov.uk/government/statistical-data-sets/price-paid-data-yearly-file"
+url = "https://price-paid-data.publicdata.landregistry.gov.uk/pp-2023.csv"
 max_bytes = 250_000_000
 edition = "2023 file, as published with the data for July 2026"
 data_period = { start = "2023-01-01", end = "2023-12-31" }
 unsure = ["url", "max_bytes"]
-notes = "Address as read on 2026-09-23: https://price-paid-data.publicdata.landregistry.gov.uk/pp-2023.csv . Read on the page for the yearly files, as price-paid-2025 says, and the reader gave the same address both times. The registry entry does not name the host. The size is not sure. The reader gave 73MB for the complete file both times, and 73MB and 91MB for its two halves, which the page also lists. A whole cannot be smaller than its halves together, so either the page or the reader is wrong, and the file is taken to be about 164 MB. A later reading gave the same sizes, and 141MB for the text file of the year. The page gives the text files of 2024 and of 2025 as 5 MB under their CSV, so the file may be about 146 MB. Look at the page in a browser. National: no file for London is offered."
+notes = "Address read on 2026-09-24, on the page above, through a reader that extracts, as price-paid-2025 says: the reader was asked twice, in different words, and gave the same address both times, as two readings of 2026-09-23 had. The host is price-paid-data.publicdata.landregistry.gov.uk, and the registry entry names this address under file_urls. No fetch has tried it. The size is not sure. On 2026-09-23 the reader gave 73MB for the complete file both times, and 73MB and 91MB for its two halves, which the page also lists. A whole cannot be smaller than its halves together, so either the page or the reader is wrong, and the file is taken to be about 164 MB. A later reading gave the same sizes, and 141MB for the text file of the year. So did both readings of 2026-09-24. The page gives the text files of 2024 and of 2025 as 5 MB under their CSV, so the file may be about 146 MB. Look at the page in a browser. National: no file for London is offered."
 
 # 3. Health sites, as places to reach. Milestone M4.
 

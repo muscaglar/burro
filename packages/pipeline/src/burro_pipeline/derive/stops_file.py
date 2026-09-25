@@ -50,6 +50,15 @@ What the parser holds the file to: every column that is read is there, a type
 is one the guide names, a status is one the guide names, a code stands once,
 a point that is read is on the National Grid and is two numbers that are not
 below nought, and a way in to a station has a name. A file that breaks one stops the build.
+
+**The national file** holds every stop of England, Scotland and Wales in the
+same 43 columns, under the publisher's name `Stops.csv`. It holds what the file
+of an authority lacks: the station itself, as `RLY` or `MET`, which the
+publisher issues centrally, and the ways in of every authority round London.
+It is read within a box, `read(..., within=...)`: a row that stands outside
+the box is dropped by its two numbers, before its grid is asked about, because
+some thousands of rows far from London name no grid. Both files are of one
+source, so a step tells them apart by the publisher's name for the file.
 """
 
 import math
@@ -77,6 +86,9 @@ UNNAMED = tuple(column for column in NAMED if column != NAME)
 RAIL, METRO = "RSE", "TMU"
 ON_STREET, BAY = "BCT", "BCS"
 STATION_TYPES, BUS_TYPES = (RAIL, METRO), (ON_STREET, BAY)
+# The station itself, of each kind. The national file holds it, and the file of an
+# authority does not.
+RAILWAY_STATION, METRO_STATION = "RLY", "MET"
 # Every type the publisher's guide names. One it does not name stops the build.
 TYPES = frozenset(
     {"AIR", "BCE", "BCP", "BCQ", "BCS", "BCT", "BST", "FBT", "FER", "FTD", "GAT", "LCB"}
@@ -99,6 +111,10 @@ APART = 1_000
 # of the file. The guide defines none of them.
 LETTERS = re.compile(r"^[0-9]{4}ZZ([A-Z]{2})[A-Z0-9]+$")
 SEEN_TO_BE = {"LU": "underground", "DL": "dlr", "CR": "tram", "AL": "cable_car"}
+
+
+# A box of the National Grid, in metres: its west, its south, its east and its north.
+Box = tuple[float, float, float, float]
 
 
 @dataclass(frozen=True, order=True)
@@ -148,28 +164,48 @@ def is_the_file(name: str) -> bool:
     return name == f"{AUTHORITY}{FILE_ENDS}"
 
 
+def is_the_national_file(name: str) -> bool:
+    """Whether a publisher's name for a file is the name of the national file of stops."""
+    return name == FILE_ENDS
+
+
 def letters_of(code: str) -> str | None:
     """The two letters a code holds after `ZZ`, or none. A hint, which the guide does not define."""
     found = LETTERS.match(code)
     return found.group(1) if found else None
 
 
-def _point(opened: Opened, row: dict[str, str]) -> Point:
+def _point(opened: Opened, row: dict[str, str], within: Box | None = None) -> Point | None:
+    """The point of a row, held to the grid, or none where it stands outside the box."""
     try:
         point = float(row[EASTING]), float(row[NORTHING])
     except ValueError:
         point = math.nan, math.nan
-    if row[GRID] != NATIONAL_GRID or not all(math.isfinite(part) and part >= 0 for part in point):
+    if not all(math.isfinite(part) and part >= 0 for part in point):
+        raise LockError("input_is_as_described", opened.file_id, "a point is no point")
+    if within is not None and not (
+        within[0] <= point[0] <= within[2] and within[1] <= point[1] <= within[3]
+    ):
+        return None
+    if row[GRID] != NATIONAL_GRID:
         raise LockError("input_is_as_described", opened.file_id, "a point is no point")
     return point
 
 
-def read(opened: Opened, types: Collection[str], *, names: bool = False) -> tuple[Stop, ...]:
+def read(
+    opened: Opened,
+    types: Collection[str],
+    *,
+    names: bool = False,
+    within: Box | None = None,
+) -> tuple[Stop, ...]:
     """The rows of the types asked for that are active, in the order of their codes.
 
     Every row is held to the types and the statuses the guide names, whether
     or not it is asked for. The point of a row that is not asked for is never
-    read, and a name is read only where `names` is given.
+    read, and a name is read only where `names` is given. With `within`, a
+    row that stands outside the box is dropped by its two numbers, and only a
+    row that is kept is held to the grid.
     """
     if not set(types) <= TYPES:
         raise ValueError("a type that is asked for is one the guide names")
@@ -188,10 +224,13 @@ def read(opened: Opened, types: Collection[str], *, names: bool = False) -> tupl
             seen.add(row[CODE])
             if row[TYPE] not in types or row[STATUS] != ACTIVE:
                 continue
+            point = _point(opened, row, within)
+            if point is None:
+                continue
             name = row[NAME].strip() if names else None
             if name == "":
                 raise LockError("input_is_as_described", opened.file_id, "a stop has no name")
-            found[row[CODE]] = Stop(row[CODE], row[TYPE], _point(opened, row), name)
+            found[row[CODE]] = Stop(row[CODE], row[TYPE], point, name)
     if not found:
         raise LockError("input_is_as_described", opened.file_id, "it holds no stop that is read")
     return tuple(found[code] for code in sorted(found))
@@ -230,3 +269,8 @@ def stations_of(stops: Iterable[Stop]) -> tuple[Station, ...]:
 def open_the_file(inputs: Inputs, use: Use, *, edition: str | None = None) -> Opened:
     """The file of London's stops, through the gate, for the use a step puts it to."""
     return inputs.open(SOURCE, use, edition=edition, named=is_the_file)
+
+
+def open_the_national_file(inputs: Inputs, use: Use, *, edition: str | None = None) -> Opened:
+    """The national file of stops, through the gate, for the use a step puts it to."""
+    return inputs.open(SOURCE, use, edition=edition, named=is_the_national_file)

@@ -73,6 +73,10 @@ class Place:
     primary: str | None = ""
     # What the file gives where the point would stand, in place of one.
     geometry: bytes | None = None
+    # The chain the file says the place belongs to: the name it writes the chain by, and
+    # the id an encyclopaedia gives it. Both hold the canary unless a test says otherwise.
+    # With `None` the file gives the place no brand, as it does for a place of no chain.
+    brand: tuple[str | None, str | None] | None = (f"Made-up Brand {CANARY}", CANARY)
 
     @property
     def most_particular(self) -> str | None:
@@ -196,6 +200,14 @@ def row_of(number: int, place: Place) -> dict[str, object]:
     west, east = _four_bytes(place.longitude)
     south, north = _four_bytes(place.latitude)
     said = {"primary": f"Made-up Place {number} {CANARY}", "common": None, "rules": None}
+    chain = (
+        None
+        if place.brand is None
+        else {
+            "wikidata": place.brand[1],
+            "names": {"primary": place.brand[0], "common": {CANARY: CANARY}, "rules": None},
+        }
+    )
     return {
         "id": f"made-up-{number:08d}-{CANARY}",
         "geometry": (
@@ -206,7 +218,7 @@ def row_of(number: int, place: Place) -> dict[str, object]:
         "emails": [f"{CANARY}@made-up.example"],
         "socials": [f"https://made-up.example/social/{CANARY}"],
         "phones": [CANARY],
-        "brand": {"wikidata": CANARY, "names": said},
+        "brand": chain,
         "addresses": [
             {
                 "freeform": f"{number} {CANARY} Row",

@@ -88,7 +88,7 @@ def test_check_passes_when_every_fact_has_evidence(tmp_path: Path, capsys: Print
     assert main(["check", str(FIXTURE), "--made-up"]) == 0
     assert main(["check", str(FIXTURE), "--evidence", written(tmp_path, evidence())]) == 0
     line = (
-        f"step=check status=ok release={RELEASE_ID} facts=1669 rows=1777 files=6 findings=0 "
+        f"step=check status=ok release={RELEASE_ID} facts=3200 rows=3409 files=6 findings=0 "
         f"evidence_sha256={evidence().digest()}"
     )
     assert said(capsys) == ([line, line], [])
@@ -101,7 +101,7 @@ def test_check_fails_and_prints_counts_when_a_fact_has_no_evidence(tmp_path: Pat
     assert main(args) == 1
     assert said(capsys) == (
         [
-            f"step=check status=failed release={RELEASE_ID} facts=1669 rows=1775 files=6 "
+            f"step=check status=failed release={RELEASE_ID} facts=3200 rows=3407 files=6 "
             f"findings=2 evidence_sha256={planted.digest()} fact_has_a_row=2"
         ],
         [],
@@ -164,7 +164,7 @@ def test_check_passes_a_real_release_held_to_its_lock_and_the_registry(
 ):
     assert main(checking(real, tmp_path, real_evidence())) == 0
     line = (
-        f"step=check status=ok release={REAL_ID} facts=1669 rows=1777 files=6 findings=0 "
+        f"step=check status=ok release={REAL_ID} facts=3200 rows=3409 files=6 findings=0 "
         f"evidence_sha256={real_evidence().digest()}"
     )
     assert said(capsys) == ([line], [])
@@ -180,12 +180,12 @@ def test_check_fails_when_a_figure_rests_on_a_file_kept_for_the_audit(
     public, words = said(capsys)
     assert words == []
     assert public == [
-        f"step=check status=failed release={REAL_ID} facts=1669 rows=1777 files=6 "
-        f"findings=3217 evidence_sha256={planted.digest()} "
-        "evidence_is_for_the_product=1609 input_is_for_the_product=1608"
+        f"step=check status=failed release={REAL_ID} facts=3200 rows=3409 files=6 "
+        f"findings=6379 evidence_sha256={planted.digest()} "
+        "evidence_is_for_the_product=3139 input_is_for_the_product=3240"
     ]
     listed = found.read_text(encoding="utf-8").splitlines()
-    assert len(listed) == 3217
+    assert len(listed) == 6379
     assert (
         "lon-n0001/feature/park_proximity rests on a file kept for the audit or for the "
         "census table [input_is_for_the_product]"
@@ -325,7 +325,7 @@ def test_coverage_writes_the_report_and_prints_one_line_of_counts(tmp_path: Path
     public, words = said(capsys)
     assert words == [] and len(public) == 1
     assert public[0].startswith(
-        f"step=report status=ok release={RELEASE_ID} areas=24 measures=74 values=1553 gaps=223 "
+        f"step=report status=ok release={RELEASE_ID} areas=24 measures=142 values=3079 gaps=329 "
     )
     assert public[0].endswith(f" coverage_sha256={hashlib.sha256(table.read_bytes()).hexdigest()}")
     committed = Path(__file__).parent / "fixtures" / f"coverage-{RELEASE_ID}.md"
@@ -361,8 +361,8 @@ def test_coverage_takes_what_the_build_left_out_and_says_why(tmp_path: Path, cap
 
 def test_coverage_with_no_evidence_says_that_nothing_has_a_record(tmp_path: Path, capsys: Printed):
     assert main(["coverage", str(FIXTURE), "--out", str(tmp_path / "coverage.md")]) == 0
-    # Every pair of an area and a measure: 71 measures in 24 areas.
-    assert " no_record=1776 " in said(capsys)[0][0]
+    # Every pair of an area and a measure: 79 measures in 24 areas.
+    assert " no_record=3408 " in said(capsys)[0][0]
 
 
 def test_coverage_counts_by_homes_when_it_is_given_them(tmp_path: Path, capsys: Printed):

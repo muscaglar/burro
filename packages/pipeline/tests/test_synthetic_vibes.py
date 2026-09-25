@@ -16,8 +16,17 @@ from pathlib import Path
 
 import pytest
 from burro_core import apply, default_spec, rank
-from burro_core.catalogue import FEATURES, GRITTY, TAGS, band_of, tags_of
+from burro_core.catalogue import (
+    COUNTS_RESIDENTS,
+    FEATURES,
+    GRITTY,
+    SHOWN_BESIDE_THE_MIX,
+    TAGS,
+    band_of,
+    tags_of,
+)
 from burro_core.ids import (
+    Dimension,
     FeatureId,
     GrittyVariant,
     Polarity,
@@ -66,7 +75,7 @@ def names(release: InMemoryRelease, area_ids: list[str]) -> list[str]:
 def test_the_committed_release_carries_gritty_and_is_what_the_generator_builds():
     committed = read_release(FIXTURE)
     assert committed.manifest.gritty_variant is GrittyVariant.B
-    assert (committed.manifest.schema_version, committed.manifest.catalogue_version) == (2, 12)
+    assert (committed.manifest.schema_version, committed.manifest.catalogue_version) == (2, 13)
     assert committed.vibes == tags_of(GrittyVariant.B)
     assert committed.features == built().features
     assert committed.tags == built().tags
@@ -80,16 +89,16 @@ def test_a_release_is_built_with_gritty_and_without_and_which_moves_no_figure(
     assert parse_release(release.documents()) == release
     assert release.manifest.gritty_variant is variant
     carried = {vibe.tag_id for vibe in release.vibes}
-    # A release carries the ten, and the one that gritty is read as there: Gritty, or
+    # A release carries the thirteen, and the one that gritty is read as there: Gritty, or
     # Works and warehouses where no recorded crime is held. It never carries both.
-    assert GRITTY[variant] in carried and len(carried) == 11
+    assert GRITTY[variant] in carried and len(carried) == 14
     assert (TagId.STREET_CHARACTER in carried) == (variant is GrittyVariant.B)
     assert (TagId.WORKS_WAREHOUSES in carried) == (variant is GrittyVariant.A)
     other = built(variant=GrittyVariant.A if variant is GrittyVariant.B else GrittyVariant.B)
     assert release.features == other.features
     assert release.costs == other.costs
     shared = carried & {vibe.tag_id for vibe in other.vibes}
-    assert len(shared) == 10
+    assert len(shared) == 13
     assert [row for row in release.tags if row.tag_id in shared] == [
         row for row in other.tags if row.tag_id in shared
     ]
@@ -118,11 +127,44 @@ def test_no_figure_of_an_older_feature_moves_when_a_newer_part_is_added():
     assert len(build.FIRST) == 23 and len(build.SECOND) == 17
     assert not set(build.FIRST) & set(build.SECOND)
     # What joined later draws from a stream of its own, and moved no figure of either.
-    assert build.LATER == (
+    assert build.LATER[:8] == (
         FeatureId.VENUE_FOOD_DRINK_PER_HOMES,
         FeatureId.PRICE_MEDIAN,
         FeatureId.CULTURE_VENUES_PER_HOMES,
+        FeatureId.VENUE_CAFE,
+        FeatureId.VENUE_CAFE_PER_HOMES,
+        FeatureId.VENUE_GYM,
+        FeatureId.VENUE_GYM_PER_HOMES,
+        FeatureId.VENUE_EVENING_PER_HOMES,
     )
+    # The chains of grocers, gyms and coffee came after those, and each has a stream too.
+    brands = {f for f in FeatureId if FEATURES[f].dimension is Dimension.BRANDS}
+    assert set(build.LATER[8:56]) == brands
+    # The measures of how near stops are came after the chains, and each has one too.
+    assert build.LATER[56:61] == (
+        FeatureId.UNDERGROUND_PROXIMITY,
+        FeatureId.RAIL_PROXIMITY,
+        FeatureId.BUS_STOPS_NEARBY,
+        FeatureId.OVERGROUND_PROXIMITY,
+        FeatureId.BUS_ROUTES_NEARBY,
+    )
+    # The four made-up census figures came after those, and moved no figure of what came
+    # before.
+    assert build.LATER[61:65] == (
+        FeatureId.RESIDENTS_AGED_20_34,
+        FeatureId.RESIDENTS_AGED_65_OVER,
+        FeatureId.HOUSEHOLDS_DEPENDENT_CHILDREN,
+        FeatureId.HOUSEHOLDS_ONE_PERSON,
+    )
+    assert set(build.LATER[61:65]) == COUNTS_RESIDENTS
+    # The homes in the higher bands, and how far what homes sold for has risen, came last.
+    assert build.LATER[65:] == (
+        FeatureId.HOMES_HIGHER_BANDS,
+        FeatureId.PRICE_RISE_5Y,
+        FeatureId.PRICE_RISE_10Y,
+    )
+    assert len(build.LATER) == 8 + 48 + 5 + 4 + 3
+    assert len(set(build.LATER)) == len(build.LATER)
     assert not set(build.LATER) & {*build.FIRST, *build.SECOND}
 
 
@@ -147,7 +189,16 @@ def test_the_release_carries_forty_one_features_and_four_wait_for_a_source():
     }
 
 
-MEANS = (FeatureId.VENUE_FOOD_DRINK, FeatureId.CULTURE_VENUES)
+MEANS = (
+    FeatureId.VENUE_FOOD_DRINK,
+    FeatureId.CULTURE_VENUES,
+    FeatureId.VENUE_EVENING,
+    FeatureId.VENUE_CAFE,
+    FeatureId.VENUE_GYM,
+    *(f for f in SHOWN_BESIDE_THE_MIX if FEATURES[f].unit == "count"),
+    FeatureId.BUS_STOPS_NEARBY,
+    FeatureId.BUS_ROUTES_NEARBY,
+)
 
 
 @pytest.mark.parametrize("seed", SEEDS)
@@ -159,8 +210,8 @@ def test_every_figure_is_one_its_unit_can_hold(seed: int):
         assert row.value >= 0
         if unit == "%":
             assert row.value <= 100
-        # The places and the venues within reach are a mean over an area's homes, and no
-        # whole number.
+        # The places, the venues and the stops within reach are a mean over an area's
+        # homes, and no whole number.
         if unit in ("count", "min", "m") and row.feature_id not in MEANS:
             assert row.value == int(row.value)
         if row.feature_id is FeatureId.GROCERY_WALK:
@@ -231,8 +282,12 @@ def test_the_new_town_can_be_placed_on_homes_and_on_nothing_else(seed: int):
     assert otterby is not None
     placed = [*otterby.scales, *otterby.more, *otterby.less, *otterby.others]
     assert [mark.tag_id for mark in placed] == [TagId.HOMES]
-    assert len(otterby.unplaced) == 10
-    for feature_id in build.SECOND:
+    assert len(otterby.unplaced) == 13
+    # No census reached it either: it has no figure of who lives there.
+    for feature_id in COUNTS_RESIDENTS:
+        row = release.feature(area_id(release, "Otterby Fields"), feature_id)
+        assert row is not None and row.value is None
+    for feature_id in (*build.SECOND, *build.LATER):
         row = release.feature(area_id(release, "Otterby Fields"), feature_id)
         assert row is not None and row.value is None
 
@@ -269,7 +324,17 @@ def test_an_area_with_too_few_homes_is_placed_only_where_enough_of_a_recipe_is_k
         # The places for each 1,000 homes are half of what a release holds of it.
         TagId.FOODIE,
         TagId.STREET_CHARACTER,
+        # Too few live there for a share of them to be steady, and the places and the
+        # venues for each 1,000 homes are most of the rest of it.
+        TagId.YOUNG_PROFESSIONALS,
     }
+    # Family area is placed on the schools, the play space and the park, which are 60 in
+    # 100 of it, and its fact says that it rests on three of its four parts.
+    family = release.tag(area_id(release, name), TagId.FAMILY_AREA)
+    assert family is not None and (family.coverage, family.band is None) == (0.6, False)
+    for feature_id in COUNTS_RESIDENTS:
+        row = release.feature(area_id(release, name), feature_id)
+        assert row is not None and row.value is None
     for mark in found.unplaced:
         row = release.tag(area_id(release, name), mark.tag_id)
         assert row is not None
@@ -303,10 +368,13 @@ def test_a_wish_for_calm_puts_the_nightlife_quarter_last_and_one_for_buzz_puts_i
     assert {"Gorsebeck", "Alderwick"} & set(calm[:3])
     assert pace("low").tags[0].toward is Toward.LOW
     if seed == SEED:
-        # Going out counts no pub while the pubs are held back. So the old town, with its
-        # high street and its culture, stands above the nightlife quarter, which is third.
+        # Asked for beside a renter's usual settings, the old town stands above the
+        # nightlife quarter, which is third. Asked for alone, the nightlife quarter is
+        # second: pubs and bars are 35 in 100 of Going out.
         assert buzzy[:3] == ["Pellam Cross", "Tallowgate", "Lantern Yard"]
         assert calm[-1] == "Lantern Yard"
+        alone = searched(built(seed, GrittyVariant.B), TagId.PACE)
+        assert alone[:3] == ["Pellam Cross", "Lantern Yard", "Tallowgate"]
 
 
 def two_journeys(release: InMemoryRelease) -> PreferenceSpec:
@@ -497,7 +565,27 @@ ENDS = (
         "schools and playgrounds",
         ("Larkspur Hill", "Alderwick", "Osierholm"),
     ),
+    End(
+        TagId.FAMILY_AREA,
+        _HIGH,
+        "Eskerfold",
+        "a suburb at the end of a line, where the households with children are",
+    ),
+    End(
+        TagId.YOUNG_PROFESSIONALS,
+        _HIGH,
+        "Hollinsworth Quay",
+        "old quays turned studios, one stop from the centre",
+        # The busiest high street outside the centre, on the seed that puts its station nearer.
+        ("Foxholt",),
+    ),
     End(TagId.WORKS_WAREHOUSES, _HIGH, "Cindermoor", "works and depots"),
+    End(
+        TagId.WELL_CONNECTED,
+        _HIGH,
+        "Farrowmere",
+        "far out, where a line ends at the bus station of the eastern suburbs",
+    ),
     End(TagId.STREET_CHARACTER, _HIGH, "Lantern Yard", "where the city goes out at night"),
     End(
         TagId.STREET_CHARACTER,
@@ -689,6 +777,16 @@ APART = {
     "a centre of its own, and not old": Apart("Cindermoor", TagId.VILLAGE_FEEL, TagId.BUILT_AGE),
     "schools and play space, and nothing old": Apart(
         "Osierholm", TagId.FAMILY_AMENITIES, TagId.BUILT_AGE
+    ),
+    # How near stops are is not how much goes on: the end of a line is calm.
+    "well connected, and calm": Apart("Farrowmere", TagId.WELL_CONNECTED, TagId.PACE),
+    # Family area counts the households that hold children, and Family amenities counts
+    # places alone. So each finds an area that the other does not.
+    "many households with children, and few schools": Apart(
+        "Marrowfen", TagId.FAMILY_AREA, TagId.FAMILY_AMENITIES, at_most=3
+    ),
+    "schools and play space, and fewer households with children": Apart(
+        "Osierholm", TagId.FAMILY_AMENITIES, TagId.FAMILY_AREA, at_most=3
     ),
 }
 

@@ -44,9 +44,12 @@ EARLIER = {
 }
 
 
-def real_inputs(work: Path) -> Inputs:
-    """The files of the two lists, with the register as the first fetch kept it."""
-    listed = [file for name in LISTS for file in load_list(name).files]
+def real_inputs(work: Path, *more: str) -> Inputs:
+    """The files of the two lists, with the register as the first fetch kept it.
+
+    `more` names the lists of what a test holds the register against.
+    """
+    listed = [file for name in (*LISTS, *more) for file in load_list(name).files]
     first_fetched = {
         file.item: f"extract of {EARLIER.get(file.item, NEWEST)}"
         for file in listed

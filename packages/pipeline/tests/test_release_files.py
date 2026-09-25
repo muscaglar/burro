@@ -13,6 +13,7 @@ import pytest
 from burro_core.release import (
     DATA_FILES,
     MANIFEST,
+    NEIGHBOURHOODS,
     RULES,
     InMemoryRelease,
     ReleaseError,
@@ -284,8 +285,8 @@ def percentile_moved(folder: Path) -> None:
 def more_of_a_recipe_claimed(folder: Path) -> None:
     def claim(document: dict[str, Any]) -> None:
         # Food and drink, of which no release holds every part yet.
-        assert document["rows"][3]["coverage"] < 1
-        document["rows"][3]["coverage"] = 1.0
+        assert document["rows"][4]["tag_id"] == "foodie" and document["rows"][4]["coverage"] < 1
+        document["rows"][4]["coverage"] = 1.0
 
     changed(folder, "tags.json", claim)
 
@@ -333,7 +334,7 @@ MALFORMED = [
         more_of_a_recipe_claimed,
         "tags.json",
         "raw_matches_recipe",
-        "tags.json, at rows[3], places an area on a vibe by figures that are not the ones the "
+        "tags.json, at rows[4], places an area on a vibe by figures that are not the ones the "
         "release holds for it, or says more of the recipe was there than was",
     ),
     (
@@ -489,6 +490,10 @@ def cited(cited_in: tuple[tuple[str, str], ...]) -> InMemoryRelease:
     for file, source_id in sources.items():
         for row in documents[file][rows[file]] if file in rows else [documents[file]]:
             cite(row, source_id)
+    # Who wrote the name of an area is a source of the file of areas.
+    for area in documents[NEIGHBOURHOODS]["neighbourhoods"]:
+        if area["named"] is not None:
+            cite(area["named"], sources[NEIGHBOURHOODS])
     return parse_release(documents)
 
 
@@ -614,7 +619,7 @@ def test_the_command_builds_the_release_and_checks_it(
     assert main(["check", str(tmp_path / RELEASE_ID)]) == 0
     built, checked = capsys.readouterr().out.splitlines()
     assert built == checked
-    assert built.startswith(f"{RELEASE_ID}: 24 areas (22 rankable), 43 measures, 40 destinations")
+    assert built.startswith(f"{RELEASE_ID}: 24 areas (22 rankable), 108 measures, 40 destinations")
     assert built.endswith(", synthetic")
 
 

@@ -51,7 +51,7 @@ def test_the_band_below_65_is_part_of_no_figure(tmp_path: Path):
 def test_the_name_says_residents_and_the_year_and_asks_for_more():
     assert residents_aged_65_over.KEY == "residents_aged_65_over"
     assert MEASURE.label == "Residents aged 65 and over as a share of all residents, Census 2021"
-    assert MEASURE.short_label == "More residents aged 65 and over"
+    assert MEASURE.short_label == "More older residents"
     assert residents_aged_65_over.SOURCE == census_msoa.SOURCE
     assert residents_aged_65_over.is_the_table("census2021-ts007a.zip")
 

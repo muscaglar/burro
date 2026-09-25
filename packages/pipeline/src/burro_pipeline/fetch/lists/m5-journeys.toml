@@ -2,24 +2,31 @@
 # need that no other list holds. docs/design/london-data-timetables.md says what
 # each publisher's pages said on 2026-09-24, and what a person must sign up for.
 #
-# Written before any fetch. Every `page` is the registry entry's own: its `url`,
-# or an address under its `evidence_urls`. Every page was read on 2026-09-24,
-# through a reader that extracts the text of a page. An extraction is not the
-# page. The reader was asked twice of each page, in different words, and a thing
-# is kept only where it gave the same both times. No address was guessed, and
-# none was built from a pattern.
+# Every `page` is the registry entry's own: its `url`, or an address under its
+# `evidence_urls`. Every page was read on 2026-09-24, through a reader that
+# extracts the text of a page. An extraction is not the page. The reader was
+# asked twice of each page, in different words, and a thing is kept only where
+# it gave the same both times. No address was guessed, and none was built from
+# a pattern.
 #
-# One file stands here, and it has no address yet.
+# One file stands here. It has an address since 2026-09-24. A fetch took the
+# file from it that day, and stored it with no receipt. What it holds was then
+# read as it was stored, with `describe`, by a program and by no person: the
+# names inside it, and of each timetable the days it says it runs on and its
+# mode. The item states its edition and its period as the file gives them, and
+# its notes say where each was read. It was fetched again that day, was the
+# same file, and has its receipt. Whether what a program read is enough is the
+# founder's to say.
 #
 #   tfl-timetables. No timetable of London is given to a person who has signed
 #   nothing. Transport for London's licence runs "from the date of
 #   registration", and its page says "You need to register to gain access to the
-#   live feeds". The page links one zip, and says of it that it "is not updated
-#   and is for demonstration purposes only". It names no address for the file
-#   that is kept up to date. So `url` is empty, and the notes say where an
-#   address was read. When a person has registered and has seen where the file
-#   comes from, the registry entry names the address under `file_urls` and this
-#   list names it under `url`, in one change that a person reads.
+#   live feeds". The founder registered on 2026-09-24. The page links one zip,
+#   and says of it that it "is not updated and is for demonstration purposes
+#   only". It names no address for the file that is kept up to date. The
+#   address under `url` is the one the publisher's staff wrote on its own forum
+#   on 3 September 2026, and the registry entry names it under `file_urls`. The
+#   notes say what it rests on, and what the file was found to hold.
 #
 # A file is listed once, and a build may take several lists. So what else a
 # journey needs is left where it stands:
@@ -58,8 +65,8 @@ use = "routing"
 what = "Journey Planner timetables, TransXChange XML in a zip: London Underground, bus, DLR, tram, cable car and river services"
 format = "zip"
 page = "https://tfl.gov.uk/info-for/open-data-users/our-open-data"
-# Empty until the registry entry names the address of the file. What was read is in the notes.
-url = ""
+url = "https://tfl.gov.uk/journey-planner-timetables.zip"
 max_bytes = 500_000_000
-unsure = ["url", "max_bytes", "edition", "data_period"]
-notes = "No address. The page above was read on 2026-09-24, through a reader that extracts, twice, in different words. It links one zip, of 24.31MB, at /cdn/static/cms/documents/journey-planner-timetables.zip on the page's own host, and says of it: 'The example feed below is not updated and is for demonstration purposes only. You need to register to gain access to the live feeds'. That zip is not taken: a time worked out from it would rest on a timetable of no known date. The page names no address for the file that is kept up to date, and sends the reader to the portal, https://api-portal.tfl.gov.uk/, where a person must register first. Two addresses were read on the publisher's own forum, techforum.tfl.gov.uk, which the registry entry does not hold. In two posts of 2025, by people who use the file: https://tfl.gov.uk/tfl/syndication/feeds/journey-planner-timetables.zip . In a post of 3 September 2026 by the publisher's staff, which says a further TransXChange dataset had been issued: tfl.gov.uk/journey-planner-timetables.zip , written without https. Neither is written under url: the registry entry names no address for its files, and fetch refuses an address that the entry does not name. Whether the file asks for the key of an account is not known. If it does, fetch cannot take it today, because an address in a list holds no key: a person saves the file and hands it over with by-hand. Whoever writes the address down writes it with no key in it: if a key stands after the question mark, the question mark and all that follows are left out. Register before the file is opened: the licence runs from the date of registration. The page says 'The timetables are updated every 7 days. They do not take account of planned engineering works', and that a fresh copy is published every 1440 minutes. The publisher's staff call the weekly issue a drop. So the file is replaced under one address, and the page states no edition. What dates the file is inside it and nobody has opened it: state the edition and the period when a person has read them there. The period is the days the timetables say they run on, and never the day the file was fetched. The size is not known: the limit is a guess, set far above the example. The modes are those the page names. It does not name the London Overground or the Elizabeth line: count the lines in the file before anything is said of either. For routing, and for the lines of a station: the registry entry allows routing, scoring and display."
+edition = "21092026"
+data_period = { start = "2026-09-19", end = "2026-12-23" }
+notes = "Address read on 2026-09-24, on the publisher's own forum, techforum.tfl.gov.uk, through a reader that extracts, and not on the page above. The page above was read that day too, five times in different words. It links one zip, of 24.31MB, at /cdn/static/cms/documents/journey-planner-timetables.zip on the page's own host, and says of it: 'The example feed below is not updated and is for demonstration purposes only. You need to register to gain access to the live feeds'. That zip is not taken: a time worked out from it would rest on a timetable of no known date. The registry entry does not name its address, so a file that arrives from it is refused. The page names no address for the file that is kept up to date, and sends the reader to the portal, https://api-portal.tfl.gov.uk/, where a person must register first. The founder registered on 2026-09-24, as it was passed to whoever wrote this. Where the address was read: in the topic https://techforum.tfl.gov.uk/t/transxchange-resolving-issues-with-routes-6-and-185/6341 , in a post of 3 September 2026 that the forum marks as written by staff. It says a further TransXChange dataset had been issued, and gives the address as tfl.gov.uk/journey-planner-timetables.zip , linked with http. The address here is that one with https before it, because fetch asks for nothing else. A fetch took the file from it on 2026-09-24, and stored it with no receipt: 143,161,603 bytes, under the file id f-5b3c2882ef3a. Fetch sends no key and reads none from the machine, so the file asks for no key of an account. The receipt: a second fetch on 2026-09-24 was given the same file and wrote its receipt. The file arrived from the address here, so the request was not sent on. The registry entry names one more address, https://tfl.gov.uk/tfl/syndication/feeds/journey-planner-timetables.zip , which people who use the file gave on the forum in 2021 and in 2025, so that a file that arrives from there is kept. A file that arrives from anywhere else is refused, and the line of the fetch says why. What the file holds was read on 2026-09-24 with `describe --inside`, by a program and by no person. `describe` gives the names and sizes inside a zip, and of a timetable how many services it holds, the days they say they run from and to, and their modes. It reads no stop, no name of a line and no time. The layout: the file is a zip of six zips, which it holds as they are and does not pack again: 'BUSES PART ONE 21092026.zip', PART TWO, PART THREE and PART FOUR, 'LULDLRTRAMRIVERCABLE FULL 21092026.zip' and 'REPLACEMENT BUSES 21092026.zip'. The six hold 826 files of XML between them, and nothing else: 234, 182, 194 and 122 in the four of buses, 48 in the fifth and 46 in the sixth. Every one is a timetable in TransXChange that holds one service. They unpack to 4,700,885,609 bytes, and the largest to 44,066,749. The edition: the name of each of the six zips ends in 21092026, and the edition is that, written as the names write it. It reads as 21 September 2026, which no file that was read says in words. The publisher's page states no edition, and its staff call the weekly issue a drop. The period: every service states the day it runs from and the day it runs to. The earliest day any runs from is 2026-09-19, which 676 of the 826 state, and the latest day any runs to is 2026-12-23, which 675 state. The period is that span. It is the days the timetables say they run on, and never the day the file was fetched. The timetables are not all of one span: 115 of the 826 begin after 21 September 2026, and on 24 September 2026 708 of them run. So a step that routes takes the timetables that run on the day it models, and never all 826. The modes, as the services give them: bus 778, underground 35, rail 6, ferry 4 and tram 3. The 48 files of the fifth zip are each named by a code. Eleven codes name the 35 files of the mode underground: BAK, CEN, CIR, DIS, HAM, JUB, MET, NTN, PIC, VIC and WAC. DLR names five files and CAB one, and those six are the files of the mode rail. B6C, RB1, RB4 and WFF name the four of the mode ferry, and TR the three of the mode tram. What a code stands for is said in no file that was read. No file of the fifth zip is named for the London Overground or for the Elizabeth line, which the page does not name either. The sixth zip is not on the page: it holds 46 timetables of the mode bus, named by the codes BAK, DIS, LOR, MET, NOR, PIC, T2, TFL and TRM, and none runs before 12 October 2026. The page says the timetables 'do not take account of planned engineering works'. Whether a step reads the sixth zip is to be decided before one does: a bus that runs in place of a train is no service of a typical weekday. What nobody has read: a stop, a time, or whether a stop carries its own position. The file is replaced under one address. The publisher's staff wrote on the forum in 2023 that it is held in a cache for 24 hours that all users share, and the page says 'The timetables are updated every 7 days' and that a fresh copy is published every 1440 minutes. So the edition and the period here are of the file that was fetched on 2026-09-24, and a fetch that is made after the next issue is given another file: read it with `describe --inside` and state both again before that fetch. The line of a fetch reads new=0 where the file is the one that was read. The size: the limit is set far above the file, which may grow. For routing, and for the lines of a station: the registry entry allows routing, scoring and display."

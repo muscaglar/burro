@@ -21,9 +21,17 @@ from dataclasses import dataclass
 from burro_core.catalogue import (
     BANDS,
     CATALOGUE_VERSION,
+    CHAINS,
+    DISTANCE,
     FEATURES,
+    KINDS_OF_CHAIN,
+    NEARBY,
+    NEAREST_WITHIN_M,
     RANKED_AS,
+    SHOWN_BESIDE_THE_MIX,
+    TIERS,
     band_of,
+    of_a_tier,
     percentile_of,
     tag_raw,
     tags_of,
@@ -37,6 +45,7 @@ from burro_core.ids import (
     FeatureId,
     GeometryType,
     GrittyVariant,
+    NameState,
     PlaceKind,
     Segment,
     TagId,
@@ -57,6 +66,7 @@ from burro_core.release import (
     InMemoryRelease,
     Manifest,
     Metric,
+    Named,
     Neighbourhood,
     Origin,
     Place,
@@ -91,13 +101,17 @@ from burro_pipeline.release.synthetic.names import (
     AREAS,
     BOROUGH,
     CENTRE,
+    CHECKED,
     LINES,
+    NOT_NAMED,
     OUT_OF_TOWN_KM,
     PLACES,
     SECOND_STATIONS,
     SOUTH_BANK,
     STEP_FREE_STATIONS,
+    WHO_LIVED_THERE,
     AreaPlan,
+    label_of,
 )
 
 # The committed fixture is built with these. A rebuild with them is byte-identical.
@@ -135,7 +149,13 @@ _CRIME = (_F.CRIME_VIOLENCE_ROBBERY, _F.CRIME_BURGLARY_THEFT)
 # A share of homes, or a middle distance over them, which too few homes leave unsteady.
 _OF_HOMES = (_F.HOMES_FLATS, _F.HOMES_PRE1919, _F.NOISE_EXPOSURE, _F.HIGHSTREET_ACCESS)
 # A rate for each 1,000 homes, which too few homes leave unsteady.
-_FOR_EACH_HOME = (_F.VENUE_FOOD_DRINK_PER_HOMES, _F.CULTURE_VENUES_PER_HOMES)
+_FOR_EACH_HOME = (
+    _F.VENUE_FOOD_DRINK_PER_HOMES,
+    _F.CULTURE_VENUES_PER_HOMES,
+    _F.VENUE_CAFE_PER_HOMES,
+    _F.VENUE_GYM_PER_HOMES,
+    _F.VENUE_EVENING_PER_HOMES,
+)
 # What a person walks in a minute, in metres. The made-up town has no streets, so a
 # straight line there is as long as the walk its station rows hold.
 METRES_A_MINUTE = 80
@@ -187,22 +207,84 @@ SECOND = (
     _F.INCIDENT_CRIMINAL_DAMAGE,
     _F.INCIDENT_ANTISOCIAL,
 )
+# The chains of grocers, gyms and coffee: the places of each tier within reach and how far
+# the nearest is, the mix of tiers, and how far the nearest place of each chain is.
+_OF_THE_TIERS = tuple(
+    of_a_tier(kind, tier, what)
+    for what in (NEARBY, DISTANCE)
+    for kind in KINDS_OF_CHAIN
+    for tier in TIERS
+)
+_BRANDS = (*_OF_THE_TIERS, _F.BRAND_MIX, *CHAINS)
 # What joined the catalogue after the vibes. Each draws from a stream of its own, after
 # everything else, so that one more of them moves no figure of another.
-LATER = (_F.VENUE_FOOD_DRINK_PER_HOMES, _F.PRICE_MEDIAN, _F.CULTURE_VENUES_PER_HOMES)
-# In core and in no release yet, so three recipes run short, as London would
-# today: outdoor space and kinds of food wait on an audit, a GP and a
-# pharmacy on a licence.
+# Who was counted as living there, as a made-up census would have it: a share of the
+# residents, or of the households, of an area.
+_OF_RESIDENTS = (
+    _F.RESIDENTS_AGED_20_34,
+    _F.RESIDENTS_AGED_65_OVER,
+    _F.HOUSEHOLDS_DEPENDENT_CHILDREN,
+    _F.HOUSEHOLDS_ONE_PERSON,
+)
+LATER = (
+    _F.VENUE_FOOD_DRINK_PER_HOMES,
+    _F.PRICE_MEDIAN,
+    _F.CULTURE_VENUES_PER_HOMES,
+    _F.VENUE_CAFE,
+    _F.VENUE_CAFE_PER_HOMES,
+    _F.VENUE_GYM,
+    _F.VENUE_GYM_PER_HOMES,
+    _F.VENUE_EVENING_PER_HOMES,
+    *_BRANDS,
+    _F.UNDERGROUND_PROXIMITY,
+    _F.RAIL_PROXIMITY,
+    _F.BUS_STOPS_NEARBY,
+    _F.OVERGROUND_PROXIMITY,
+    _F.BUS_ROUTES_NEARBY,
+    *_OF_RESIDENTS,
+    _F.HOMES_HIGHER_BANDS,
+    _F.PRICE_RISE_5Y,
+    _F.PRICE_RISE_10Y,
+)
+# How far what homes sold for has risen: pounds for each 100 of the price before, and no
+# price. It is given to one decimal place, where a price is given to the pound.
+_RISES = (_F.PRICE_RISE_5Y, _F.PRICE_RISE_10Y)
+# In core and not in the made-up release, so three recipes run short in it: outdoor
+# space and kinds of food wait on an audit, and a pharmacy on the receipt of its file. A
+# build of London carries the distance to a GP, and the made-up release does not yet.
 CARRIED = (*FIRST, *SECOND, *LATER)
 _OF_HOMES_TOO = (
     _F.CENTRE_SMALL,
     _F.HOMES_POST2000,
     _F.ROAD_MAJOR_EXPOSURE,
     _F.EVENING_CLUSTER_EXPOSURE,
+    _F.HOMES_HIGHER_BANDS,
 )
 _INCIDENTS = (_F.INCIDENT_CRIMINAL_DAMAGE, _F.INCIDENT_ANTISOCIAL)
+# The places of each tier within reach, which are a mean over an area's homes, and the mix.
+_OVER_HOMES = (
+    *(feature_id for feature_id in _OF_THE_TIERS if feature_id.value.endswith(NEARBY)),
+    _F.BRAND_MIX,
+)
 # A count that is a mean over an area's homes, and so is no whole number.
-_MEANS = (_F.VENUE_FOOD_DRINK, _F.CULTURE_VENUES)
+_MEANS = (
+    _F.VENUE_FOOD_DRINK,
+    _F.CULTURE_VENUES,
+    _F.VENUE_EVENING,
+    _F.VENUE_CAFE,
+    _F.VENUE_GYM,
+    *_OVER_HOMES[:-1],
+    _F.BUS_STOPS_NEARBY,
+    _F.BUS_ROUTES_NEARBY,
+)
+# The made-up city has no Underground, no Overground and no railway by name. The two lines
+# that run most often stand in for the first, the next for the second and the last for the
+# third.
+LINES_OF: Mapping[FeatureId, frozenset[str]] = {
+    _F.UNDERGROUND_PROXIMITY: frozenset({"Amber line", "Birch line"}),
+    _F.OVERGROUND_PROXIMITY: frozenset({"Cobalt line"}),
+    _F.RAIL_PROXIMITY: frozenset({"Dunlin line"}),
+}
 
 # Gaps left on purpose, so that the code that handles missing data has
 # something to handle. Nothing is filled in anywhere downstream.
@@ -228,7 +310,9 @@ NOT_MEASURED: Mapping[str, tuple[FeatureId, ...]] = {
         *SECOND,
         *LATER,
     ),
-    # Too few homes for a rate, or a share of homes, to be steady.
+    # Too few homes for a rate, or a share of homes or of those who live in them, to be
+    # steady. The places of a tier within reach are a mean over homes, and the mix is a
+    # share, and neither is steadier.
     "Grapnel Dock": (
         *_CRIME,
         *_OF_HOMES,
@@ -236,6 +320,8 @@ NOT_MEASURED: Mapping[str, tuple[FeatureId, ...]] = {
         *_OF_HOMES_TOO,
         *_INCIDENTS,
         *_FOR_EACH_HOME,
+        *_OVER_HOMES,
+        *_OF_RESIDENTS,
     ),
     "Sedgewater Marsh": (
         *_CRIME,
@@ -244,6 +330,8 @@ NOT_MEASURED: Mapping[str, tuple[FeatureId, ...]] = {
         *_OF_HOMES_TOO,
         *_INCIDENTS,
         *_FOR_EACH_HOME,
+        *_OVER_HOMES,
+        *_OF_RESIDENTS,
     ),
     # Where the conservation source has no cover the answer is unknown, not zero.
     "Gorsebeck": (_F.CONSERVATION_COVER,),
@@ -379,6 +467,15 @@ def _neighbours(area: _Area, areas: Sequence[_Area]) -> tuple[str, ...]:
     )
 
 
+def _named(number: int, plan: AreaPlan) -> Named | None:
+    """What is said of the name of an area: its label, who wrote the name, and how far it
+    was checked. Nothing, of an area that bears no name but its label."""
+    if plan.name in NOT_NAMED:
+        return None
+    state = NameState.CHECKED if plan.name in CHECKED else NameState.DRAFT
+    return Named(label=label_of(number), source_ids=(SYNTHETIC_SOURCE_ID,), state=state)
+
+
 def _neighbourhoods(areas: Sequence[_Area]) -> tuple[Neighbourhood, ...]:
     return tuple(
         Neighbourhood(
@@ -390,8 +487,9 @@ def _neighbourhoods(areas: Sequence[_Area]) -> tuple[Neighbourhood, ...]:
             centroid=lon_lat(area.spot.at),
             rankable=area.plan.rankable,
             neighbours=_neighbours(area, areas),
+            named=_named(number, area.plan),
         )
-        for area in areas
+        for number, area in enumerate(areas, start=1)
     )
 
 
@@ -604,7 +702,9 @@ def _newer_figures(area: _Area, draw: Draw) -> dict[FeatureId, float]:
     if p.roads is not None:
         roads = 12 + 70 * p.roads
     return {
-        _F.INDEPENDENTS_NEARBY: 1 + 28 * p.indie + 2 * busy + noise(1.5),
+        # A share of the places within reach. It is drawn as the count it once was, in
+        # whole threes, so that no area changed places.
+        _F.INDEPENDENTS_NEARBY: 3 * _whole(1 + 28 * p.indie + 2 * busy + noise(1.5)),
         # A small centre is a high street where not much goes on. The more that does, the
         # larger the centre and the more strung out.
         _F.CENTRE_SMALL: 20 + 110 * p.street * (1 - busy) * (1 - busy) + noise(3),
@@ -621,7 +721,9 @@ def _newer_figures(area: _Area, draw: Draw) -> dict[FeatureId, float]:
         _F.LAND_WOODLAND: 0.5 + 15 * p.green * p.green + noise(0.8),
         _F.PARK_LARGE_PROXIMITY: 3300 - 1200 * parks - 1800 * meadow + noise(140),
         _F.PARK_FACILITIES: 1 + 3 * parks + 3 * p.family + 3 * meadow + noise(0.6),
-        _F.GROCERY_WALK: 15 - 22 * grocers + noise(1),
+        # A distance to a food shop. It is drawn as the walk in minutes that it once was,
+        # at the pace of the station rows, so that no area changed places.
+        _F.GROCERY_WALK: float(METRES_A_MINUTE * whole_minutes(15 - 22 * grocers + noise(1))),
         # What is recorded follows where people go out late, the middle of town and a
         # high street, and the yards and works less than any. It followed the works most
         # of all until Gritty was given the recipe that was decided, in which works and
@@ -635,6 +737,32 @@ def _newer_figures(area: _Area, draw: Draw) -> dict[FeatureId, float]:
     }
 
 
+def _cells_with_a_station(of: FeatureId) -> frozenset[Cell]:
+    """The cells that hold a station of the lines that stand in for one kind of station."""
+    cell_of = {plan.name: (plan.row, plan.col) for plan in AREAS}
+    stops = {stop for line in LINES if line.name in LINES_OF[of] for stop in line.stops}
+    return frozenset(cell_of[SECOND_STATIONS.get(stop, (stop, None))[0]] for stop in stops)
+
+
+def _to_a_station(area: _Area, of: FeatureId, draw: Draw) -> float:
+    """How far the nearest station of one kind is from where an area's homes are, in metres.
+
+    It is made up from the plan, and from no point of the map: a station stands
+    on the high street of the area it is in, and an area with none is as far from
+    one as it is cells from an area that has one. So the seed moves it a little,
+    and never moves an area past another of another kind.
+    """
+    own = area.cell
+    cells = min(max(abs(own[0] - row), abs(own[1] - col)) for row, col in _cells_with_a_station(of))
+    # Drawn whatever the plan says, so that a trait that is set moves no other figure.
+    near, far = draw.around(40), draw.around(120)
+    if area.plan.links is not None:
+        return 200 + 2400 * (1 - area.plan.links) + near
+    if cells == 0:
+        return 220 + 460 * (1 - area.plan.street) + near
+    return 650 + 1150 * cells + far
+
+
 def _later_figure(feature_id: FeatureId, area: _Area, draw: Draw) -> float:
     """One area's figure for a part that joined after the vibes, before tidying.
 
@@ -642,6 +770,22 @@ def _later_figure(feature_id: FeatureId, area: _Area, draw: Draw) -> float:
     its noise whether or not it is kept.
     """
     p, central = area.plan, area.central
+    if feature_id in LINES_OF:
+        return _to_a_station(area, feature_id, draw)
+    if feature_id in (_F.BUS_STOPS_NEARBY, _F.BUS_ROUTES_NEARBY):
+        # Buses run on the main roads and stop along a high street. The plan says where a
+        # road runs through a green place, or round a busy one.
+        works = p.industry if p.works is None else p.works
+        roads = 0.12 + 0.34 * central + 0.22 * p.street + 0.24 * works - 0.10 * p.green
+        if p.roads is not None:
+            roads = 0.12 + 0.70 * p.roads
+        drawn = draw.around(0.8)
+        stops = 3 + 17 * p.links if p.links is not None else 2 + 14 * roads + 5 * p.street
+        if feature_id is _F.BUS_STOPS_NEARBY:
+            return stops + drawn
+        # The same buses call at stop after stop, so there is a route to every two stops
+        # or so.
+        return 0.5 + 0.55 * stops + drawn
     if feature_id is _F.VENUE_FOOD_DRINK_PER_HOMES:
         # The places within reach for the homes within reach. It follows how much goes
         # on, by day and late, and a high street, and falls where homes stand close
@@ -661,6 +805,8 @@ def _later_figure(feature_id: FeatureId, area: _Area, draw: Draw) -> float:
         busy = p.lively * (0.35 + 0.65 * central)
         drawn = 0.5 + 7 * busy + 5 * p.indie * p.old + 1.5 * p.offices
         return drawn + draw.around(0.3)
+    if feature_id in _OF_A_KIND:
+        return _of_a_kind(feature_id, area, draw)
     if feature_id is _F.PRICE_MEDIAN:
         # What a home of any kind sold for. It follows what makes the made-up costs dear:
         # central, green, old and by the water all cost more, and works cost less. It
@@ -669,7 +815,128 @@ def _later_figure(feature_id: FeatureId, area: _Area, draw: Draw) -> float:
         by_water = 0.10 * clamp(area.water / 30)
         level = clamp(0.10 + wanted + by_water - 0.30 * p.industry + draw.around(0.03))
         return PRICE_BASE + PRICE_RANGE * level
+    if feature_id is _F.HOMES_HIGHER_BANDS:
+        # The homes in the higher bands. It follows large and old homes on green streets
+        # more than the middle of town, where the homes are flats, and falls by the works.
+        built_up = central if p.flats is None else p.flats
+        large = 0.45 * p.green + 0.30 * p.old + 0.25 * p.family
+        return 6 + 62 * large - 14 * built_up - 10 * p.industry + draw.around(2)
+    if feature_id in _RISES:
+        # What homes sold for, for each 100 of what they sold for before. It has risen
+        # most where new flats stand on the old quays and where the works were, and least
+        # in the old, green streets that were dear already. Over ten years it rose further.
+        new_flats = (1 - p.old) * clamp(area.water / NEW_FLATS_FROM)
+        rising = clamp(0.45 * new_flats + 0.35 * p.industry + 0.30 * p.lively - 0.25 * p.green)
+        over_ten = feature_id is _F.PRICE_RISE_10Y
+        drawn = (112 + 58 * rising) if over_ten else (97 + 30 * rising)
+        return drawn + draw.around(2)
+    if feature_id in _BRANDS:
+        return _of_brands(feature_id, area, draw)
+    if feature_id in _OF_RESIDENTS:
+        return _of_residents(feature_id, area, draw)
     raise ValueError(f"no figure is made up for {feature_id}")
+
+
+def _of_residents(feature_id: FeatureId, area: _Area, draw: Draw) -> float:
+    """One area's made-up share of residents, or of households, as a census would count it.
+
+    The plan says how many are in their twenties and early thirties, and how many
+    households hold children. Neither is the flats, the schools or the centre under
+    another name: no two vibes find the same areas. Older residents are where the young
+    are not, and more where it is green. A household of one person follows the flats, and
+    is fewer where children are. Each is a claim about nothing.
+    """
+    p, central = area.plan, area.central
+    lived = WHO_LIVED_THERE[p.name]
+    built_up = central if p.flats is None else p.flats
+    if feature_id is _F.RESIDENTS_AGED_20_34:
+        return 10 + 42 * lived.young + draw.around(1.5)
+    if feature_id is _F.RESIDENTS_AGED_65_OVER:
+        return 3 + 16 * (1 - lived.young) + 7 * p.green - 4 * central + draw.around(1)
+    if feature_id is _F.HOUSEHOLDS_DEPENDENT_CHILDREN:
+        return 9 + 40 * lived.children + draw.around(1.5)
+    if feature_id is _F.HOUSEHOLDS_ONE_PERSON:
+        return 16 + 26 * built_up + 12 * lived.young - 14 * lived.children + draw.around(1.5)
+    raise ValueError(f"no figure is made up for {feature_id}")
+
+
+# Cafes, gyms and pubs: the count of each within reach, and the figure for each 1,000 homes.
+_OF_A_KIND = (
+    _F.VENUE_CAFE,
+    _F.VENUE_CAFE_PER_HOMES,
+    _F.VENUE_GYM,
+    _F.VENUE_GYM_PER_HOMES,
+    _F.VENUE_EVENING_PER_HOMES,
+)
+
+
+def _of_a_kind(feature_id: FeatureId, area: _Area, draw: Draw) -> float:
+    """One area's cafes, gyms or pubs, before tidying: within reach, or for each 1,000 homes.
+
+    A count follows how much goes on, as every count of venues does. A figure for each
+    1,000 homes reads high among offices, which have venues and few homes. Cafes follow a
+    high street and what is independent, and gyms follow flats and offices. Pubs follow
+    the night and a high street, and an old village and a green one have each kept theirs.
+    """
+    p, central = area.plan, area.central
+    busy = p.lively * (0.35 + 0.65 * central)
+    late = p.lively * (1 - 0.45 * p.offices)
+    night = late * late * (0.35 + 0.65 * central)
+    built_up = central if p.flats is None else p.flats
+    drawn = {
+        _F.VENUE_CAFE: 1 + 40 * busy + 14 * p.street * central + 8 * p.indie,
+        _F.VENUE_CAFE_PER_HOMES: (
+            1 + 2.5 * busy + 2.5 * p.street + 2 * p.indie + 3 * p.offices - 1.5 * built_up
+        ),
+        _F.VENUE_GYM: 0.5 + 12 * built_up + 8 * p.offices + 5 * busy,
+        _F.VENUE_GYM_PER_HOMES: (
+            0.8 + 1.2 * p.lively + 2.5 * p.offices + 0.8 * p.family - 0.6 * p.industry
+        ),
+        _F.VENUE_EVENING_PER_HOMES: (
+            0.4 + 7 * night + 2 * p.street + 4 * p.offices + 0.8 * p.green + 1.5 * p.old * p.indie
+        ),
+    }[feature_id]
+    spread = {_F.VENUE_CAFE: 1.5, _F.VENUE_GYM: 0.8}.get(feature_id, 0.3)
+    return drawn + draw.around(spread)
+
+
+def _tiers(area: _Area) -> dict[str, float]:
+    """How much of each tier the made-up chains of an area are, each from nought to one.
+
+    Premium follows old streets, green and independent places, and value a high street,
+    works and newer homes. Every area has some of the middle. It is made up from the plan
+    of the area, as every figure is, and says nothing of any real chain.
+    """
+    p, central = area.plan, area.central
+    return {
+        "premium": clamp(0.05 + 0.45 * p.old + 0.30 * p.green + 0.25 * p.indie - 0.4 * p.industry),
+        "mid": clamp(0.30 + 0.35 * p.street + 0.25 * central),
+        "value": clamp(0.10 + 0.45 * p.industry + 0.30 * p.street + 0.25 * (1 - p.old)),
+    }
+
+
+def _of_brands(feature_id: FeatureId, area: _Area, draw: Draw) -> float:
+    """One area's figure for a measure of brands, before tidying."""
+    p, central = area.plan, area.central
+    tiers = _tiers(area)
+    # How much stands within reach at all: more on a high street and in the middle of town.
+    about = 0.25 + 0.45 * p.street + 0.30 * central
+    if feature_id is _F.BRAND_MIX:
+        every = tiers["premium"] + tiers["mid"] + tiers["value"]
+        return 100 * (tiers["premium"] + 0.5 * tiers["mid"]) / every + draw.around(3)
+    if feature_id in CHAINS:
+        # A chain stands as near as its place in the list and the plan of the area make it.
+        place = list(CHAINS).index(feature_id)
+        tier = tuple(tiers.values())[place % len(tiers)]
+        near = clamp(0.2 + 0.6 * tier * about + 0.04 * (place % 5))
+        return NEAREST_WITHIN_M - 100 - 1_700 * near + draw.around(60)
+    kind, tier, what = feature_id.value.split("_")
+    # There are more grocers and more coffee than gyms.
+    many = {"grocer": 5.0, "gym": 1.5, "coffee": 6.0}[kind]
+    if what == NEARBY:
+        return many * tiers[tier] * about + draw.around(0.15)
+    near = clamp(0.15 + 0.85 * tiers[tier] * about * (many / 6.0))
+    return NEAREST_WITHIN_M - 100 - 1_750 * near + draw.around(60)
 
 
 def _tidy(feature_id: FeatureId, value: float) -> float:
@@ -679,9 +946,8 @@ def _tidy(feature_id: FeatureId, value: float) -> float:
         return round(clamp(value, 0, 100), 1)
     if unit == "m":
         return float(max(round(value / 10) * 10, 10))
-    if unit == "min":
-        # No walk in the release is under 2 minutes, as no journey is.
-        return float(whole_minutes(value)) if feature_id in SECOND else _whole(value)
+    if feature_id in _RISES:
+        return round(max(value, 0.0), 1)
     if unit == "£":
         # A median of what was paid is a whole number of pounds, or ends in a half.
         return float(max(round(value / 500) * 500, 500))
@@ -868,8 +1134,9 @@ def _metrics() -> tuple[Metric, ...]:
             native_resolution=feature.native_resolution,
             source_ids=SOURCES,
             vintage=VINTAGE,
-            # What core shows and never ranks on is shown here too, and not ranked on.
-            rankable=feature.feature_id not in RANKED_AS,
+            # What core shows and never ranks on is shown here too, and not ranked on. Nor
+            # are the measures of the tiers, which a release shows beside the mix.
+            rankable=feature.feature_id not in (*RANKED_AS, *SHOWN_BESIDE_THE_MIX),
             definition=DEFINITION,
         )
         for feature in (FEATURES[feature_id] for feature_id in CARRIED)

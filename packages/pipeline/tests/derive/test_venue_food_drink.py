@@ -28,7 +28,6 @@ from burro_pipeline.cells.shapes import longitude_and_latitude
 from burro_pipeline.derive import (
     food_register,
     measures,
-    venue_evening,
     venue_food_drink,
     venue_food_drink_per_homes,
 )
@@ -547,17 +546,20 @@ def test_the_places_for_each_thousand_homes_are_a_measure_of_their_own_and_are_r
     assert venue_food_drink_per_homes.CANNOT_SEE == venue_food_drink.CANNOT_SEE_OF_THE_RATE
 
 
-def test_nothing_holds_the_two_measures_back_and_the_pubs_are_still_held():
-    """The hold on the count was lifted when core came to say what was decided. No other was."""
+def test_nothing_holds_the_two_measures_back_and_the_registers_pubs_are_no_measure():
+    """The hold on the count was lifted when core came to say what was decided. The pubs are
+    counted from the file of places, and the register's pubs alone join no build. Private
+    outdoor space is held for another reason: its audit has not been run."""
     listed = {one.feature: one for one in measures.MEASURES}
     for feature in (FeatureId.VENUE_FOOD_DRINK, FeatureId.VENUE_FOOD_DRINK_PER_HOMES):
         assert (listed[feature].held_back, listed[feature].waits_on) == ((), ())
         assert listed[feature].in_parts and not listed[feature].in_squares
     assert venue_food_drink.HELD_BACK == () and venue_food_drink.WAITS_ON == ()
+    # One measure is held back, and by no check of these figures: the register's pubs alone
+    # are no measure of a build.
     held = [one.feature for one in measures.MEASURES if one.held_back]
-    assert held == [FeatureId.VENUE_EVENING]
-    assert listed[FeatureId.VENUE_EVENING].held_back == venue_evening.HELD_BACK
-    assert len(venue_evening.HELD_BACK) == 4
+    assert held == [FeatureId.PRIVATE_OUTDOOR_SPACE]
+    assert listed[FeatureId.VENUE_EVENING].source != venue_food_drink.SOURCE
 
 
 def test_core_scores_no_tag_from_the_count():
@@ -576,7 +578,7 @@ def test_core_scores_no_tag_from_the_count():
         for term in tag.terms
         if term.feature_id is FeatureId.VENUE_FOOD_DRINK_PER_HOMES
     }
-    assert of_the_rate == {"foodie": 40, "pace": 45}
+    assert of_the_rate == {"foodie": 40, "pace": 30, "young_professionals": 20}
     assert max(of_the_rate.values()) < TAG_MIN_COVERAGE_HUNDREDTHS == 60
 
 

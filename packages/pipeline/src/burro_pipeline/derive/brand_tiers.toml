@@ -1,0 +1,305 @@
+# The table of tiers: which chain of grocers, of gyms and of coffee is premium, which is
+# mid-range and which is value.
+#
+# It is the founder's opinion, decided on 2026-09-24 (docs/adr/0026), and it is the
+# founder's to adjust. So it is data, and no line of code says which chain is of which
+# tier: to move a chain, change its `tier` here and build again. A tier says what a chain
+# charges and how it presents itself. It says nothing of who shops there.
+#
+# | | Premium | Mid | Value |
+# |---|---|---|---|
+# | Grocers | Waitrose, M&S, Whole Foods | Sainsbury's, Tesco, Co-op | Asda, Aldi, Lidl, Iceland |
+# | Gyms | Equinox, Third Space, Barry's | Virgin Active, Nuffield, Gymbox | PureGym, The Gym Group |
+# | Coffee | Gail's, Ole & Steen | Pret, Nero, Starbucks | Greggs |
+#
+# Five chains were added beside their neighbours, and each says so with
+# `on_the_founders_table = false`: Morrisons, David Lloyd, Anytime Fitness, Costa and
+# Blank Street. Each is a first guess, and the founder's to move or to take out.
+#
+# What each row holds:
+#   key        The name of the chain in an id. Core names the distance to the nearest place
+#              of a chain `brand_<key>`, so a chain is asked for by name only where core
+#              holds that id. A chain that core does not name is still counted in its tier.
+#   name       The chain as Burro says it, which is as the founder's table writes it.
+#   kind       `grocer`, `gym` or `coffee`. A place counts only where the file also gives
+#              it a category of that kind: a bank, a pharmacy or a petrol station of a
+#              chain of grocers is no grocer. `derive/brand_table.py` holds the categories.
+#   tier       `premium`, `mid` or `value`.
+#   wikidata   The ids an encyclopaedia gives the chain, as the file gives them beside a
+#              spelling below. It is the surest key, and the file gives it for few places.
+#   spellings  Every way the file writes the chain, letter for letter. A place is of the
+#              chain where its brand has one of the ids, or gives no id of any row and is
+#              written one of these ways. The file takes some spellings from the name of a
+#              page a chain keeps elsewhere, so a spelling may name another town or country:
+#              it is kept as it is written, because it is how the file writes a London place.
+#
+# The ids and the spellings were read in London's part of release 2026-09-23.0 of Overture
+# Maps Places, on 2026-09-24, by a program. No person has read them against the file. They
+# are to be read again for every release that is pinned: a spelling that is missing leaves
+# places uncounted, and nothing warns of it.
+#
+# The part gives no place the brand of Third Space or of Gymbox, so neither has a spelling
+# and neither is counted. Each stays on the table, for the day the file holds it.
+schema_version = 1
+read_in = "overture-places 2026-09-23.0"
+
+[[chain]]
+key = "waitrose"
+name = "Waitrose"
+kind = "grocer"
+tier = "premium"
+on_the_founders_table = true
+wikidata = ["Q771734"]
+spellings = ["Waitrose & Partners", "Little Waitrose", "Waitrose"]
+
+[[chain]]
+key = "mands"
+name = "M&S"
+kind = "grocer"
+tier = "premium"
+on_the_founders_table = true
+wikidata = ["Q714491"]
+spellings = ["Marks and Spencer", "Marks & Spencer"]
+
+[[chain]]
+key = "whole_foods"
+name = "Whole Foods"
+kind = "grocer"
+tier = "premium"
+on_the_founders_table = true
+wikidata = []
+spellings = ["Whole Foods Market"]
+
+[[chain]]
+key = "sainsburys"
+name = "Sainsbury's"
+kind = "grocer"
+tier = "mid"
+on_the_founders_table = true
+wikidata = ["Q13218434", "Q152096"]
+spellings = ["Sainsbury's", "Sainsbury's Local", "Sainsbury’s Dumfries"]
+
+[[chain]]
+key = "tesco"
+name = "Tesco"
+kind = "grocer"
+tier = "mid"
+on_the_founders_table = true
+wikidata = ["Q487494", "Q98456772"]
+spellings = ["Tesco", "Tesco Express"]
+
+[[chain]]
+key = "coop"
+name = "Co-op"
+kind = "grocer"
+tier = "mid"
+on_the_founders_table = true
+wikidata = ["Q107589681", "Q107617274"]
+spellings = ["Co-op", "Central Co-op Food", "The Co-operative Food", "Southern Co-op", "Coop", "Co-op Daily"]
+
+[[chain]]
+key = "morrisons"
+name = "Morrisons"
+kind = "grocer"
+tier = "mid"
+on_the_founders_table = false
+wikidata = ["Q922344", "Q99752411"]
+spellings = ["Morrisons Daily", "Morrisons"]
+
+[[chain]]
+key = "asda"
+name = "Asda"
+kind = "grocer"
+tier = "value"
+on_the_founders_table = true
+wikidata = ["Q114826023", "Q297410"]
+spellings = ["Asda", "Asda Express"]
+
+[[chain]]
+key = "aldi"
+name = "Aldi"
+kind = "grocer"
+tier = "value"
+on_the_founders_table = true
+wikidata = ["Q41171672"]
+spellings = ["ALDI", "Aldi"]
+
+[[chain]]
+key = "lidl"
+name = "Lidl"
+kind = "grocer"
+tier = "value"
+on_the_founders_table = true
+wikidata = ["Q151954"]
+spellings = ["Lidl"]
+
+[[chain]]
+key = "iceland"
+name = "Iceland"
+kind = "grocer"
+tier = "value"
+on_the_founders_table = true
+wikidata = ["Q721810"]
+spellings = ["Iceland Foods", "Iceland"]
+
+[[chain]]
+key = "equinox"
+name = "Equinox"
+kind = "gym"
+tier = "premium"
+on_the_founders_table = true
+wikidata = []
+spellings = ["Equinox"]
+
+[[chain]]
+key = "third_space"
+name = "Third Space"
+kind = "gym"
+tier = "premium"
+on_the_founders_table = true
+wikidata = []
+spellings = []
+
+[[chain]]
+key = "barrys"
+name = "Barry's"
+kind = "gym"
+tier = "premium"
+on_the_founders_table = true
+wikidata = []
+spellings = ["Barry's"]
+
+[[chain]]
+key = "virgin_active"
+name = "Virgin Active"
+kind = "gym"
+tier = "mid"
+on_the_founders_table = true
+wikidata = []
+spellings = ["Virgin Active SA", "Virgin Active Napoli Med, Are You Ready?", "Virgin Active"]
+
+[[chain]]
+key = "nuffield"
+name = "Nuffield"
+kind = "gym"
+tier = "mid"
+on_the_founders_table = true
+wikidata = ["Q7068711"]
+spellings = ["Nuffield Health", "Nuffield Health Careers", "Nuffield Health Fitness & Wellbeing"]
+
+[[chain]]
+key = "gymbox"
+name = "Gymbox"
+kind = "gym"
+tier = "mid"
+on_the_founders_table = true
+wikidata = []
+spellings = []
+
+[[chain]]
+key = "david_lloyd"
+name = "David Lloyd"
+kind = "gym"
+tier = "mid"
+on_the_founders_table = false
+wikidata = ["Q5236716"]
+spellings = ["David Lloyd Clubs UK", "David Lloyd Clubs"]
+
+[[chain]]
+key = "anytime_fitness"
+name = "Anytime Fitness"
+kind = "gym"
+tier = "mid"
+on_the_founders_table = false
+wikidata = ["Q4778364"]
+spellings = ["Anytime Fitness", "Anytime Fitness Sec-7 Dwarka Delhi"]
+
+[[chain]]
+key = "puregym"
+name = "PureGym"
+kind = "gym"
+tier = "value"
+on_the_founders_table = true
+wikidata = ["Q18345898"]
+spellings = ["PureGym", "PureGym DK"]
+
+[[chain]]
+key = "the_gym_group"
+name = "The Gym Group"
+kind = "gym"
+tier = "value"
+on_the_founders_table = true
+wikidata = ["Q48815022"]
+spellings = ["The Gym Group Ayr", "The Gym Group"]
+
+[[chain]]
+key = "gails"
+name = "Gail's"
+kind = "coffee"
+tier = "premium"
+on_the_founders_table = true
+wikidata = []
+spellings = ["GAIL's"]
+
+[[chain]]
+key = "ole_and_steen"
+name = "Ole & Steen"
+kind = "coffee"
+tier = "premium"
+on_the_founders_table = true
+wikidata = []
+spellings = ["Ole & Steen UK"]
+
+[[chain]]
+key = "pret"
+name = "Pret"
+kind = "coffee"
+tier = "mid"
+on_the_founders_table = true
+wikidata = ["Q2109109"]
+spellings = ["Pret A Manger"]
+
+[[chain]]
+key = "nero"
+name = "Nero"
+kind = "coffee"
+tier = "mid"
+on_the_founders_table = true
+wikidata = ["Q675808"]
+spellings = ["Caffè Nero", "Cafè Nero"]
+
+[[chain]]
+key = "starbucks"
+name = "Starbucks"
+kind = "coffee"
+tier = "mid"
+on_the_founders_table = true
+wikidata = ["Q37158"]
+spellings = ["Starbucks"]
+
+[[chain]]
+key = "costa"
+name = "Costa"
+kind = "coffee"
+tier = "mid"
+on_the_founders_table = false
+wikidata = ["Q608845"]
+spellings = ["Costa Coffee", "Costa", "Costa Coffee Ireland"]
+
+[[chain]]
+key = "blank_street"
+name = "Blank Street"
+kind = "coffee"
+tier = "mid"
+on_the_founders_table = false
+wikidata = []
+spellings = ["Blank Street"]
+
+[[chain]]
+key = "greggs"
+name = "Greggs"
+kind = "coffee"
+tier = "value"
+on_the_founders_table = true
+wikidata = ["Q3403981"]
+spellings = ["Greggs"]

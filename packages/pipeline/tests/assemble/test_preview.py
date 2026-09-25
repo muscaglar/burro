@@ -34,8 +34,9 @@ from burro_core.spec import FeatureWeight, TagWeight, check_spec, default_spec
 from burro_pipeline import cli
 from burro_pipeline.assemble import cli as assemble
 from burro_pipeline.assemble.cli import of_the_list
-from burro_pipeline.derive import venue_evening, venue_food_drink, water_access
-from burro_pipeline.derive.measures import MEASURES, says_what_core_says
+from burro_pipeline.assemble.release import sources_of
+from burro_pipeline.derive import brands_nearby, water_access
+from burro_pipeline.derive.measures import MEASURES
 from burro_pipeline.evidence.lock import Lock, LockError
 from burro_pipeline.evidence.row import State
 from burro_pipeline.evidence.served import rows_behind, unevidenced
@@ -48,6 +49,8 @@ from public_log import is_public
 
 from ..cells.support import CANARY, held
 from ..derive import test_air_no2 as grid
+from ..derive.stops_support import stops_receipt
+from ..derive.tfl_support import stations_receipt
 from .support import (
     ONE,
     REGISTRY,
@@ -56,9 +59,9 @@ from .support import (
     File,
     Made,
     files,
+    held_back_for_a_while,
     list_of,
     made,
-    venues_named_as_core_names_them,
 )
 
 Printed = pytest.CaptureFixture[str]
@@ -69,6 +72,7 @@ MEASURED = (
     "highstreet_access",
     "homes_density",
     "homes_flats",
+    "homes_higher_bands",
     "homes_post2000",
     "homes_pre1919",
     "land_gardens",
@@ -99,17 +103,67 @@ NOT_AS_CORE_SAYS = ("centre_compact", "centre_small", "park_facilities")
 # town has a way in marked.
 NO_FIGURE = ("play_space_proximity",)
 # What the build works out and a check of its figures holds back, whatever core says of it.
-HELD_BACK = ("venue_evening",)
+# No measure is held back today. A test holds one back for a while, to see that the hold
+# alone keeps it out.
+HELD_BACK = ()
 NO_RECEIPT = "input_has_one_receipt"
 # What the build has no file of. The two measures of recorded incidents are counted from the
-# police's crime files, and the two of cultural venues from the file of places. The made-up
-# build holds neither, so each is left out. So is what homes sell for: its workbook is in no
-# list of the build.
+# police's crime files, the two of cultural venues, the measures of brands and the nearest
+# food shop from the file of places, the nearest GP practice from the report of practices,
+# and the nearest pharmacy
+# from the pharmaceutical list. So are the cafes, the gyms and the pubs and bars, and the
+# homes near a cluster of pubs and bars, from the file of places. The made-up build holds
+# none of them, so each is left out. So is what homes sell for, and how far it has risen:
+# their workbook is in no list of the build. And so are the measures of how near stops
+# are: four read the national file of stops, and the made-up build holds the file of London
+# alone, and one reads the
+# routes of buses, which it does not hold. So are the four shares of who lived in an area:
+# the two census tables they are read from are in a list of their own, which the made-up
+# build does not take. So is private outdoor space, which is held back besides: with its
+# files a build works it out and leaves it out, until its audit has passed.
 INCIDENTS = ("incident_antisocial", "incident_criminal_damage")
 CULTURE = ("culture_venues", "culture_venues_per_homes")
-NO_FILE = (*CULTURE, *INCIDENTS, "price_median")
+SURGERY, PHARMACY, FOOD_SHOP = ("gp_walk",), ("pharmacy_walk",), ("grocery_walk",)
+BRANDS = tuple(feature.value for feature in brands_nearby.FEATURES)
+VENUES = (
+    "evening_cluster_exposure",
+    "venue_cafe",
+    "venue_cafe_per_homes",
+    "venue_evening",
+    "venue_evening_per_homes",
+    "venue_gym",
+    "venue_gym_per_homes",
+)
+STOPS_NEARBY = (
+    "bus_routes_nearby",
+    "bus_stops_nearby",
+    "overground_proximity",
+    "rail_proximity",
+    "underground_proximity",
+)
+HOUSEHOLDS = ("households_dependent_children", "households_one_person")
+RESIDENTS = ("residents_aged_20_34", "residents_aged_65_over")
+OF_PRICES = ("price_median", "price_rise_10y", "price_rise_5y")
+HELD_AND_NO_FILE = ("private_outdoor_space",)
+NO_FILE = (
+    *BRANDS,
+    *CULTURE,
+    *VENUES,
+    *SURGERY,
+    *PHARMACY,
+    *FOOD_SHOP,
+    *INCIDENTS,
+    *OF_PRICES,
+    *STOPS_NEARBY,
+    *HOUSEHOLDS,
+    *RESIDENTS,
+    *HELD_AND_NO_FILE,
+)
 POLICE, PRICES = "police-uk-street-level-crime", "ons-median-house-prices-msoa"
-PLACES = "overture-places"
+OUTDOOR = "ons-access-to-garden-space-2020"
+CENSUS = "ons-census-2021-age-and-household-tables"
+PLACES, PRACTICES = "overture-places", "nhs-ods-gp-practices"
+PHARMACIES = "nhsbsa-consolidated-pharmaceutical-list"
 WORKBOOK = "mhclg-iod-2025-underlying-indicators"
 REGISTER = "fsa-food-hygiene-ratings"
 # The measures of the files that the second of two lists names, each with its source.
@@ -124,11 +178,10 @@ SOURCE_OF = {
     "park_large_proximity": "os-open-greenspace",
     "park_proximity": "os-open-greenspace",
     "play_space_proximity": "os-open-greenspace",
-    "price_median": PRICES,
+    **dict.fromkeys(OF_PRICES, PRICES),
     "road_major_exposure": "os-open-roads",
     "school_primary_nearby": "dfe-gias",
     "station_walk": "dft-naptan",
-    "venue_evening": REGISTER,
     "venue_food_drink": REGISTER,
     "venue_food_drink_per_homes": REGISTER,
     "water_access": "os-open-rivers",
@@ -151,8 +204,14 @@ RULE_OF = (
 )
 SAID_WITH = (
     dict.fromkeys(INCIDENTS, POLICE)
-    | dict.fromkeys(CULTURE, PLACES)
-    | {"price_median": PRICES}
+    | dict.fromkeys((*CULTURE, *BRANDS, *VENUES, *FOOD_SHOP), PLACES)
+    | dict.fromkeys(SURGERY, PRACTICES)
+    | dict.fromkeys(PHARMACY, PHARMACIES)
+    | dict.fromkeys(STOPS_NEARBY, "dft-naptan")
+    | {"bus_routes_nearby": "tfl-bus-stops-and-routes"}
+    | dict.fromkeys((*HOUSEHOLDS, *RESIDENTS), CENSUS)
+    | dict.fromkeys(OF_PRICES, PRICES)
+    | dict.fromkeys(HELD_AND_NO_FILE, OUTDOOR)
     | dict.fromkeys(HELD_BACK, REGISTER)
     | LEFT_OUT_FROM
 )
@@ -172,11 +231,13 @@ LATER = (*SQUARES, "roads", "schools", "stops", "town-centres", "water", *HERITA
 # and the nearest large park. Quiet streets rests on two of its three, 70 in 100: main
 # roads and transport noise. Built age rests on all four of its parts: homes built before
 # 1919, homes built since 2000, conservation cover and listed buildings. Leafy rests on all
-# three of its parts: gardens, woodland, and public parks and gardens. Going out rests on
-# two of its three, 75 in 100: the places to eat and drink for each 1,000 homes and the
-# nearest town centre. Family amenities rests on two of its three, 65 in 100: the primary
-# schools and the nearest park. Works and warehouses is a part of Gritty, and no vibe of a
-# build.
+# three of its parts: gardens, woodland, and public parks and gardens. Family amenities
+# rests on two of its three, 65 in 100: the primary schools and the nearest park. Going out
+# is not placed: it holds the places to eat and drink and the nearest town centre, which are
+# 50 in 100, and its pubs and its culture are counted from the file of places, which the
+# made-up build does not hold. Works and warehouses is a part of Gritty, and no vibe of a
+# build. The two vibes that count who lived in an area have no band: no census table is
+# read, and what is left of each is under 60 in 100 of its recipe.
 HOMES, BUILT_AGE, VILLAGE = "homes", "built_age", "village_feel"
 FAMILY, GOING_OUT = "family_amenities", "pace"
 PLACED = {
@@ -184,7 +245,6 @@ PLACED = {
     FAMILY: 0.65,
     HOMES: 0.75,
     LEAFY: 1.0,
-    GOING_OUT: 0.75,
     PARKS: 0.7,
     QUIET: 0.7,
 }
@@ -243,15 +303,18 @@ def test_the_step_builds_a_release_and_prints_one_line_for_each_part_of_the_work
         "step=cells status=ok",
         *(["step=derive status=ok"] * len(MEASURED)),
         *(["step=derive status=skipped"] * len(LEFT_OUT)),
+        "step=places status=ok",
         "step=assemble status=ok",
         "step=check status=ok",
         "step=report status=ok",
     ]
     assert said[0].startswith(f"step=seal status=ok release={RELEASE} inputs={FILES} missing=0 ")
     assert said[1].endswith("areas=3 output_areas=12 lsoas=6 msoas=3 boroughs=2 files=4")
-    assert [line.split()[2] for line in said[2:-3]] == [
+    assert [line.split()[2] for line in said[2:-4]] == [
         f"feature={feature}" for feature in (*MEASURED, *LEFT_OUT)
     ]
+    # The three stations of the made-up file, and where the homes of each area stand.
+    assert said[-4] == "step=places status=ok source=dft-naptan rows=3 areas=3 files=2"
     assert f" areas=3 measures={len(MEASURED)} files=11 manifest_sha256=" in said[-3]
     assert " findings=0 " in said[-2]
 
@@ -282,7 +345,8 @@ def test_the_release_is_one_that_core_opens(build: Made):
     assert all(release.geometry(area.area_id) for area in release.neighbourhoods)
     counts = release.manifest.counts
     assert (counts.neighbourhoods, counts.rankable) == (3, 3)
-    assert (counts.destinations, counts.places, counts.stations) == (0, 0, 0)
+    # The three stations of the file of stops, each a place and the end of journeys to it.
+    assert (counts.destinations, counts.places, counts.stations) == (3, 3, 0)
 
 
 def test_built_twice_from_the_same_files_it_writes_the_same_bytes(
@@ -356,29 +420,33 @@ def test_the_lock_says_it_is_a_development_build(build: Made):
 
 def test_what_a_first_build_has_not_measured_is_not_in_it_and_nothing_stands_in(build: Made):
     release = read_release(build.release)
-    assert (release.costs, release.destinations, release.places, release.station_rows) == (
-        (),
-        (),
-        (),
-        (),
-    )
+    assert (release.costs, release.station_rows) == ((), ())
     for part in (Part.TRAVEL, Part.STATIONS):
         assert not release.origin(part).stated
-    journey = release.travel(ONE, "lon-d0001", Mode.PT, PtBasis.TYPICAL)
-    assert (journey.status, journey.minutes) == (TravelStatus.MISSING, None)
+    # It names the stations as places to reach, and holds no journey time to any.
+    assert release.travel_table.destination_ids == ()
+    for end in release.destinations:
+        journey = release.travel(ONE, end.destination_id, Mode.PT, PtBasis.TYPICAL)
+        assert (journey.status, journey.minutes) == (TravelStatus.MISSING, None)
     # Core works each vibe out, from the parts of its recipe that are measured. A release
-    # that is not made up carries the ten and gritty as the one scale, which holds recorded
+    # that is not made up carries the twelve and gritty as the one scale, which holds recorded
     # incidents. No file of them is read, so they are parts with no figure.
     assert release.manifest.gritty_variant is GrittyVariant.B
     assert release.vibes == vibes_of(GrittyVariant.B)
     gritty = [tag for tag in release.tags if tag.tag_id is TagId.STREET_CHARACTER]
     assert len(gritty) == 3 and {(tag.score, tag.band) for tag in gritty} == {(None, None)}
-    assert len(release.tags) == 3 * 11
-    # Seven vibes have 60 in 100 of their recipe measured. Each is placed on the parts that
+    assert len(release.tags) == 3 * 14
+    # Nothing stands in for who lives somewhere: a vibe that counts them is not placed on
+    # the places alone where they are under 60 in 100 of it.
+    for vibe in (TagId.FAMILY_AREA, TagId.YOUNG_PROFESSIONALS):
+        unplaced = [tag for tag in release.tags if tag.tag_id is vibe]
+        assert {(tag.score, tag.band) for tag in unplaced} == {(None, None)}
+        assert all(tag.coverage < 0.6 for tag in unplaced)
+    # Six vibes have 60 in 100 of their recipe measured. Each is placed on the parts that
     # are, in each of the three areas, and says so. No other vibe has a band.
     placed = [tag for tag in release.tags if tag.score is not None]
     assert {tag.tag_id: tag.coverage for tag in placed} == PLACED
-    assert len(PLACED) == 7 and len(placed) == 3 * len(PLACED)
+    assert len(PLACED) == 6 and len(placed) == 3 * len(PLACED)
     assert all(
         tag.band is not None and tag.band == tag.spread_low == tag.spread_high for tag in placed
     )
@@ -534,7 +602,7 @@ def test_every_pair_of_an_area_and_a_measure_has_a_row_and_a_state(build: Made):
     assert report.count(f"| tag/{VILLAGE} | below_threshold | yes |") == 1
     # The name and the outline of an area, every measure that is carried, and every placed vibe.
     have = 2 + len(MEASURED) + len(PLACED)
-    assert f"Of the 74 things Burro measures, {have} have a figure in at least one area." in report
+    assert f"Of the 142 things Burro measures, {have} have a figure in at least one area." in report
     # What one area lacks and another has is still listed for the area that lacks it.
     assert f"| {THREE} | feature/air_no2 | below_threshold | yes |" in report
 
@@ -591,7 +659,8 @@ def test_a_measure_that_is_carried_waits_on_nothing_and_one_that_is_not_says_wha
         # A measure with no file, or with no figure, waits on nothing but that.
         kept_out = measure.feature in (*NOT_AS_CORE_SAYS, *HELD_BACK)
         assert bool(measure.waits_on) is kept_out, measure.feature
-        assert bool(measure.held_back) is (measure.feature in HELD_BACK), measure.feature
+        held = measure.feature in (*HELD_BACK, *HELD_AND_NO_FILE)
+        assert bool(measure.held_back) is held, measure.feature
         for said in (*measure.held_back, *measure.waits_on):
             assert said.endswith(".") and "!" not in said and "\n" not in said and "|" not in said
 
@@ -599,53 +668,51 @@ def test_a_measure_that_is_carried_waits_on_nothing_and_one_that_is_not_says_wha
 # A measure that a check of its figures holds back
 
 
-def test_what_holds_a_measure_back_is_said_before_what_else_it_waits_on(build: Made):
-    """A reader of the report finds what the check found first, and then what core lacks."""
-    record = read(build.beside / "build.json")
-    left_out = {one["feature_id"]: one for one in record["measures_left_out"]}
-    for measure in MEASURES:
-        if measure.feature in HELD_BACK:
-            said = left_out[measure.feature]
-            assert said["rule"] == "measure_is_not_held_back"
-            assert said["waits_on"] == [*measure.held_back, *measure.waits_on]
-            assert said["why"].startswith("It is held back: a check of its figures found ")
-    report = (build.beside / "coverage.md").read_text(encoding="utf-8")
-    gaps = report.split("## Gaps")[1].split("## Claims")[0]
-    for feature in HELD_BACK:
-        (line,) = [line for line in gaps.splitlines() if f"| feature/{feature} |" in line]
-        assert "[measure_is_not_held_back]" in line
+# What a test says holds a measure back, for as long as the test runs.
+FOUND_BY_A_CHECK = ("A check found that the figure follows something else.",)
+
+
+def test_one_measure_of_a_build_is_held_back_today():
+    """Private outdoor space is, until its audit has run. The pubs were, while the food
+    register was the one source of them."""
+    held = [measure.feature for measure in MEASURES if measure.held_back]
+    assert held == [*HELD_BACK, *HELD_AND_NO_FILE]
 
 
 def test_a_measure_that_is_held_back_is_left_out_whatever_core_says_of_it(
     tmp_path: Path, capsys: Printed
 ):
-    """The day core names and measures the pubs as the measure does, the pubs stay out.
+    """Core names the water as the measure does, and held back it stays out all the same.
 
-    Nothing but the hold keeps them out then, and no vibe moves: the vibes that are
-    placed are those the build places without them.
+    Nothing but the hold keeps it out then, and no vibe moves: the water is a part of none.
+    What holds it back is said before anything else it waits on.
     """
     found = made(tmp_path)
-    held_back = [FeatureId(feature) for feature in HELD_BACK]
-    behind = [files()["homes"].receipt()]
-    with venues_named_as_core_names_them(*held_back):
-        counted = venue_evening.PUBS_AND_BARS
-        assert counted.key in HELD_BACK
-        assert says_what_core_says(venue_food_drink.metric_of(behind, "2026-09-16", counted))
+    water = FeatureId.WATER_ACCESS
+    with held_back_for_a_while(water, FOUND_BY_A_CHECK):
         assert found.run() == 0
     said, _ = lines_of(capsys)
     skipped = {line.split()[2]: line.split()[-1] for line in said if " status=skipped " in line}
-    for feature in HELD_BACK:
-        assert skipped[f"feature={feature}"] == "measure_is_not_held_back=1"
+    assert skipped[f"feature={water}"] == "measure_is_not_held_back=1"
     release = read_release(found.release)
     assert {metric.feature_id for metric in release.metrics} == {
-        FeatureId(feature) for feature in MEASURED
+        FeatureId(feature) for feature in MEASURED if feature != water
     }
     assert {tag.tag_id: tag.coverage for tag in release.tags if tag.score is not None} == PLACED
     evidence = Evidence.model_validate_json((found.beside / "evidence.json").read_bytes())
-    for feature in HELD_BACK:
-        row = evidence.row(f"{ONE}/feature/{feature}")
-        assert row is not None
-        assert (row.state, row.inputs, row.value) == (State.NOT_CARRIED, (), None)
+    row = evidence.row(f"{ONE}/feature/{water}")
+    assert row is not None
+    assert (row.state, row.inputs, row.value) == (State.NOT_CARRIED, (), None)
+    left_out = {
+        one["feature_id"]: one for one in read(found.beside / "build.json")["measures_left_out"]
+    }
+    assert left_out[water]["rule"] == "measure_is_not_held_back"
+    assert left_out[water]["waits_on"] == list(FOUND_BY_A_CHECK)
+    assert left_out[water]["why"].startswith("It is held back: a check of its figures found ")
+    gaps = (found.beside / "coverage.md").read_text(encoding="utf-8")
+    gaps = gaps.split("## Gaps")[1].split("## Claims")[0]
+    (line,) = [line for line in gaps.splitlines() if f"| feature/{water} |" in line]
+    assert "[measure_is_not_held_back]" in line
 
 
 def test_a_measure_is_left_out_where_its_name_is_not_cores(tmp_path: Path, capsys: Printed):
@@ -675,7 +742,8 @@ def test_the_places_to_eat_and_drink_are_carried_both_ways_and_no_vibe_is_scored
     A build carries the count and the places for each 1,000 homes, and the check of the
     release finds nothing. The count is shown and no area is ranked on it. No vibe is
     scored from the count alone: no recipe of core's gives it 60 in 100. So the vibes
-    that are placed are those the build places without it. The pubs stay out.
+    that are placed are those the build places without it. The pubs and bars are counted
+    from the file of places, which the made-up build does not hold, so they stay out.
     """
     found = made(tmp_path)
     assert found.run() == 0
@@ -722,29 +790,30 @@ def test_a_measure_whose_file_has_no_receipt_is_left_out_and_never_filled_in(
     said, words = lines_of(capsys)
     assert f" inputs={FILES - 2} missing=2 " in said[0]
     skipped = [line.split()[2:] for line in said if " status=skipped " in line]
+    # Each with its source and the rule that keeps it out, in the order of the ids.
+    left_out = {
+        **{
+            feature: (SOURCE_OF[feature], "measure_is_as_core_says") for feature in NOT_AS_CORE_SAYS
+        },
+        **{feature: (PLACES, NO_RECEIPT) for feature in (*BRANDS, *CULTURE, *VENUES, *FOOD_SHOP)},
+        **{feature: (PRACTICES, NO_RECEIPT) for feature in SURGERY},
+        **{feature: (PHARMACIES, NO_RECEIPT) for feature in PHARMACY},
+        "homes_flats": ("voa-council-tax-stock-of-properties", NO_RECEIPT),
+        **{feature: (POLICE, NO_RECEIPT) for feature in INCIDENTS},
+        "noise_exposure": (WORKBOOK, NO_RECEIPT),
+        "play_space_proximity": ("os-open-greenspace", "measure_has_a_figure"),
+        **{feature: (PRICES, NO_RECEIPT) for feature in OF_PRICES},
+        # It is held back besides. With no file, that is the rule that keeps it out.
+        **{feature: (OUTDOOR, NO_RECEIPT) for feature in HELD_AND_NO_FILE},
+        # Four read the national file of stops, which the made-up build does not hold.
+        **{feature: ("dft-naptan", NO_RECEIPT) for feature in STOPS_NEARBY},
+        "bus_routes_nearby": ("tfl-bus-stops-and-routes", NO_RECEIPT),
+        # The four shares of who lived in an area: the made-up build takes no census table.
+        **{feature: (CENSUS, NO_RECEIPT) for feature in (*HOUSEHOLDS, *RESIDENTS)},
+    }
     assert skipped == [
-        *(
-            [f"feature={feature}", f"source={SOURCE_OF[feature]}", "measure_is_as_core_says=1"]
-            for feature in NOT_AS_CORE_SAYS[:2]
-        ),
-        *(
-            [f"feature={feature}", f"source={PLACES}", "input_has_one_receipt=1"]
-            for feature in CULTURE
-        ),
-        [
-            "feature=homes_flats",
-            "source=voa-council-tax-stock-of-properties",
-            "input_has_one_receipt=1",
-        ],
-        *(
-            [f"feature={feature}", f"source={POLICE}", "input_has_one_receipt=1"]
-            for feature in INCIDENTS
-        ),
-        ["feature=noise_exposure", f"source={WORKBOOK}", "input_has_one_receipt=1"],
-        ["feature=park_facilities", "source=os-open-greenspace", "measure_is_as_core_says=1"],
-        ["feature=play_space_proximity", "source=os-open-greenspace", "measure_has_a_figure=1"],
-        ["feature=price_median", f"source={PRICES}", "input_has_one_receipt=1"],
-        ["feature=venue_evening", f"source={REGISTER}", "measure_is_not_held_back=1"],
+        [f"feature={feature}", f"source={source}", f"{rule}=1"]
+        for feature, (source, rule) in sorted(left_out.items())
     ]
     assert "homes-by-kind of the list has no receipt" in words
     release = read_release(found.release)
@@ -845,7 +914,9 @@ def with_no_use_for_a_name(found: Made, tmp_path: Path) -> list[str]:
 
 def test_the_gate_is_asked_again_about_every_file_a_row_rests_on(tmp_path: Path, capsys: Printed):
     """A source that is read for scoring may still not name an area: the use differs."""
-    found = made(tmp_path)
+    # With no file of stops the build names no place, and asks nothing of the centres
+    # but for scoring. What names an area is then found by the check alone.
+    found = made(tmp_path, without_a_receipt=["stops"])
     arguments = with_no_use_for_a_name(found, tmp_path)
     assert assemble.main(arguments, {FOLDER_VARIABLE: str(found.store)}) == 1
     said, words = lines_of(capsys)
@@ -860,7 +931,7 @@ def test_the_gate_is_asked_again_about_every_source_the_release_cites(
     tmp_path: Path, capsys: Printed, monkeypatch: pytest.MonkeyPatch
 ):
     """The writer asks too, of the sources a release names, were the check to find nothing."""
-    found = made(tmp_path)
+    found = made(tmp_path, without_a_receipt=["stops"])
     arguments = with_no_use_for_a_name(found, tmp_path)
 
     def finds_nothing(*_: object, **__: object) -> tuple[()]:
@@ -872,6 +943,99 @@ def test_the_gate_is_asked_again_about_every_source_the_release_cites(
     assert said[-1] == "step=assemble status=unreadable"
     assert "neighbourhoods.json" in words and "gazetteer" in words
     assert not found.release.exists()
+
+
+def test_where_the_homes_of_an_area_stand_is_read_only_where_the_gate_allows_it(
+    tmp_path: Path, capsys: Printed
+):
+    """The centres of output areas are put to the naming of places, and the gate is asked."""
+    found = made(tmp_path)
+    arguments = with_no_use_for_a_name(found, tmp_path)
+    assert assemble.main(arguments, {FOLDER_VARIABLE: str(found.store)}) == 2
+    said, words = lines_of(capsys)
+    assert said[-1] == "step=assemble status=refused gate_refuses=1"
+    assert "gazetteer" in words and not found.release.exists()
+
+
+# The places to reach
+
+
+def test_a_build_that_reads_the_stops_names_each_station_and_says_where_homes_stand(
+    build: Made,
+):
+    release = read_release(build.release)
+    assert [(place.name, place.kind.value) for place in release.places] == [
+        ("Pellam Cross Station", "station"),
+        ("Sable Reach Tram Stop", "station"),
+        ("Tallowgate", "station"),
+    ]
+    for place in release.places:
+        # A station stands in for itself, and the journeys to it end at it.
+        assert place.coarse_place_id == place.place_id
+        assert place.destination_id == place.place_id.replace("-p", "-d", 1)
+        assert place.source_id == "dft-naptan"
+    assert {d.destination_id: d.centroid for d in release.destinations} == {
+        place.destination_id: place.centroid for place in release.places
+    }
+    # A person types the name alone, or the name and "station".
+    assert "Pellam Cross" in release.places[0].aliases
+    assert "Tallowgate station" in release.places[2].aliases
+    # Where the homes of an area stand is the middle of the centres of its output areas.
+    assert all(area.homes_at is not None for area in release.neighbourhoods)
+    assert "ons-oa-pwc-2021" in release.origin(Part.NEIGHBOURHOODS).source_ids
+    # And no journey time is held: a journey is estimated for a search, and is in no file.
+    assert release.manifest.preview and release.travel_table.pt_typical == ((), (), ())
+
+
+def test_the_name_of_an_area_rests_on_the_centres_where_its_homes_are_placed(build: Made):
+    evidence = Evidence.model_validate_json((build.beside / "evidence.json").read_bytes())
+    row = evidence.row(f"{ONE}/area/name")
+    assert row is not None
+    sources = {receipt.source_id for receipt in map(evidence.receipt, row.inputs) if receipt}
+    assert "ons-oa-pwc-2021" in sources
+    # No journey is carried: what is said of one is estimated for a search.
+    for mode in Mode:
+        journeys = evidence.row(f"{ONE}/travel/{mode.value}")
+        assert journeys is not None and journeys.state is State.NOT_CARRIED
+
+
+def test_a_build_with_no_file_of_stops_names_no_place_and_goes_on(tmp_path: Path, capsys: Printed):
+    found = made(tmp_path, without_a_receipt=["stops"])
+    assert found.run() == 0
+    said, words = lines_of(capsys)
+    assert "step=places status=skipped source=dft-naptan input_has_one_receipt=1" in said
+    assert "no place to reach is named in the release" in words
+    release = read_release(found.release)
+    assert (release.places, release.destinations) == ((), ())
+    # And it says of no area where its homes stand: nothing could be estimated from it.
+    assert all(area.homes_at is None for area in release.neighbourhoods)
+    assert "ons-oa-pwc-2021" not in release.origin(Part.NEIGHBOURHOODS).source_ids
+    record = read(found.beside / "build.json")
+    assert record["places"]["places"] == 0
+    assert record["places"]["left_out"]["rule"] == "input_has_one_receipt"
+
+
+def test_the_record_of_a_build_counts_the_places_and_names_none(build: Made):
+    record = read(build.beside / "build.json")
+    assert record["places"] == {
+        "source_id": "dft-naptan",
+        "places": 3,
+        "areas_with_homes_placed": 3,
+        "left_out": None,
+        "journeys": "No journey time is held. A journey by public transport to a place is "
+        "estimated for a search, from distance, and is said to be an estimate.",
+    }
+
+
+def test_a_source_says_whether_its_publisher_asks_for_its_statement_beside_every_figure():
+    """The registry says which publisher asks that. A release carries it of each source."""
+    registry = load(REGISTRY)
+    stations = stations_receipt(b"made up")
+    stops = stops_receipt(b"made up too")
+    credited = {source.source_id: source for source in sources_of(registry, [stations, stops])}
+    assert credited["tfl-step-free-station-topology"].credit_beside_figures is True
+    assert credited["tfl-step-free-station-topology"].attribution.startswith("Powered by TfL")
+    assert credited["dft-naptan"].credit_beside_figures is False
 
 
 # The receipts of the list

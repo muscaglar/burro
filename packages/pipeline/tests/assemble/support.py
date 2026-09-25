@@ -11,7 +11,7 @@ one command line.
 import hashlib
 from collections.abc import Generator, Mapping, Sequence
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import cache
 from pathlib import Path
 from types import ModuleType
@@ -19,7 +19,6 @@ from types import ModuleType
 import pytest
 from burro_core.catalogue import FEATURES
 from burro_core.ids import FeatureId
-from burro_core.release import Metric
 from burro_pipeline.assemble import cli as assemble
 from burro_pipeline.derive import (
     air_no2,
@@ -33,10 +32,8 @@ from burro_pipeline.derive import (
     schools_file,
     stops_file,
     town_centres,
-    venue_food_drink,
     water_access,
 )
-from burro_pipeline.derive.venue_food_drink import Counted
 from burro_pipeline.evidence.receipt import EditionFrom, How, Period, Receipt, Where
 from burro_pipeline.evidence.record import file_id_of
 from burro_pipeline.fetch.store import FOLDER_VARIABLE, FolderStore
@@ -365,26 +362,19 @@ def named_as_core_names_it(measure: ModuleType) -> Generator[None]:
 
 
 @contextmanager
-def venues_named_as_core_names_them(*features: FeatureId) -> Generator[None]:
-    """For a while, a measure of the food register says of itself what core says of it.
+def held_back_for_a_while(feature: FeatureId, found: tuple[str, ...]) -> Generator[None]:
+    """For a while, a check of the figures of one measure of a build holds it back.
 
-    A build leaves each out. This stands for the day core names a count within reach of
-    homes as the measure does, so that what then keeps a measure out is seen to be the
-    hold on it and nothing else. No real build is made so.
+    No measure is held back today. This stands for the day a check finds that the
+    figures of one do not say what it is named for, so that the hold is seen to keep a
+    measure out whatever core says of it. No real build is made so.
     """
-    as_it_is = venue_food_drink.metric_of
-
-    def as_core_says(
-        files: Sequence[Receipt], as_at: str, what: Counted = venue_food_drink.FOOD_AND_DRINK
-    ) -> Metric:
-        row = as_it_is(files, as_at, what)
-        if row.feature_id not in features:
-            return row
-        core = FEATURES[row.feature_id]
-        return row.model_copy(update={"label": core.label, "unit": core.unit})
-
+    held = tuple(
+        replace(measure, held_back=found) if measure.feature is feature else measure
+        for measure in assemble.MEASURES
+    )
     with pytest.MonkeyPatch.context() as patch:
-        patch.setattr(venue_food_drink, "metric_of", as_core_says)
+        patch.setattr(assemble, "MEASURES", held)
         yield
 
 

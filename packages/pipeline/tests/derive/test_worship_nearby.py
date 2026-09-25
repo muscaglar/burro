@@ -19,9 +19,11 @@ from burro_core.catalogue import FEATURES, TAGS
 from burro_core.ids import Describes, FeatureId, FeatureKind, NativeResolution, Polarity
 from burro_pipeline.cells import spine
 from burro_pipeline.derive import (
+    brands_nearby,
     culture_reach,
     measures,
     places_counted,
+    venues_nearby,
     worship_kinds,
     worship_nearby,
 )
@@ -497,9 +499,18 @@ def test_core_holds_no_feature_for_a_place_of_worship_and_no_build_carries_one()
     assert not worship_nearby.core_holds_it()
     assert not any("worship" in feature.value for feature in FeatureId)
     assert not any("worship" in one.label.lower() for one in FEATURES.values())
-    # A build reads the file of places for the cultural venues, and for nothing else.
+    # A build reads the file of places for the cultural venues, for the cafes, the gyms and
+    # the pubs and bars, for the nearest food shop and for the chains of grocers, gyms and
+    # coffee, and for nothing else.
     of_the_file = {one.feature for one in measures.MEASURES if one.source == SOURCE}
-    assert of_the_file == {FeatureId.CULTURE_VENUES, FeatureId.CULTURE_VENUES_PER_HOMES}
+    assert of_the_file == {
+        FeatureId.CULTURE_VENUES,
+        FeatureId.CULTURE_VENUES_PER_HOMES,
+        FeatureId.EVENING_CLUSTER_EXPOSURE,
+        FeatureId.GROCERY_WALK,
+        *venues_nearby.MEASURES,
+        *brands_nearby.FEATURES,
+    }
 
 
 def test_the_rows_the_catalogue_needs_say_what_is_measured(town: Worship):

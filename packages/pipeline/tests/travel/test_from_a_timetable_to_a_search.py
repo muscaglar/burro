@@ -297,7 +297,7 @@ def test_a_name_that_is_the_name_of_no_place_finds_nothing_and_is_asked_about(se
     found = served.client.post("/v1/places/search", json={"q": CANARY})
     read = served.client.post("/v1/interpret", json={"text": f"30 minutes to {CANARY}"})
 
-    assert found.json()["data"] == {"places": []}
+    assert found.json()["data"] == {"places": [], "areas": []}
     data = read.json()["data"]
     # No journey is made to a place that was guessed at. The person is asked, with no offers.
     assert (data["status"], data["spec"]["commutes"], data["places"]) == ("clarify", [], [])

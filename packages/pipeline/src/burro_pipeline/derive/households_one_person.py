@@ -13,17 +13,21 @@ inside it is a finer cut that nobody has decided on. So the figure cannot tell
 a young person who lives alone from an old one. `derive/census_msoa.py` holds
 the reading and the arithmetic, and says what no page states of the file.
 
-Core holds no such measure. `FeatureId` is the list of what may be ranked or
-shown, and core lets no word for who lives somewhere stand in a name. So this
-module makes no row of the catalogue and is not among the measures of a build.
+Core holds the measure, under the name this module gives it, and a build
+carries it. Core holds the rules that come with it: it is asked for towards
+more and never towards fewer, it stands in no scale, and no likeness is
+counted on it.
 """
+
+from burro_core.ids import FeatureId
 
 from burro_pipeline.cells.spine import Spine
 from burro_pipeline.derive import census_msoa
 from burro_pipeline.derive.census_msoa import HOUSEHOLDS, SINCE, Of, Share
 from burro_pipeline.inputs import Inputs
 
-KEY = "households_one_person"
+FEATURE = FeatureId.HOUSEHOLDS_ONE_PERSON
+KEY = FEATURE.value
 SOURCE = census_msoa.SOURCE
 METHODS = census_msoa.METHODS
 CANNOT_SEE = (
@@ -45,11 +49,6 @@ MEASURE = Of(
 def is_the_table(name: str) -> bool:
     """Whether a publisher's name for a file is the name of the table this measure reads."""
     return HOUSEHOLDS.is_the_table(name)
-
-
-def core_holds_it() -> bool:
-    """Whether core has a feature under the id the rows are written under."""
-    return census_msoa.core_holds(KEY)
 
 
 def build(inputs: Inputs, found: Spine) -> Share:

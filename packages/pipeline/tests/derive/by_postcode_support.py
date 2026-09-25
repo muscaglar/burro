@@ -20,8 +20,10 @@ one at QUAY, in the middle of c4.
     Quillhaven 002   homes 150, 160, 170, 180   at 200, 224, 224 and 200
     Tallowgate 001   homes 190, 200, 210, 220   at 141, 100, 100 and 0
 
-The report of practices is laid out as the publisher's specification says: 27
-columns, no row of names. The list of pharmacies has the 25 fields the
+The report of practices is laid out as the publisher's specification says,
+and as the first real file was found to be: 27 columns, no row of names, a
+status in capitals, and in a few lines two prescribing settings in one cell
+with a bar between them. The list of pharmacies has the 25 fields the
 publisher's page names, under a row of names. A column that is never read
 holds `CANARY`.
 """
@@ -94,6 +96,9 @@ PRACTICES = (
     MadeUpPractice(MILL_ROW.postcode, closed="20261231"),
     MadeUpPractice(MILL_ROW.postcode, setting="RO80"),
     MadeUpPractice(MILL_ROW.postcode, setting=""),
+    # As the first real file writes a practice that has closed, and one of two settings.
+    MadeUpPractice(MILL_ROW.postcode, status="INACTIVE", closed="20190331"),
+    MadeUpPractice(MILL_ROW.postcode, setting="RO80|RO87"),
     # These count, and are placed nowhere.
     MadeUpPractice(OUTSIDE.postcode),
     MadeUpPractice(A_BOX.postcode),

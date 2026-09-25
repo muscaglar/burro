@@ -226,8 +226,9 @@ def test_a_time_is_read_as_a_day_is():
 
 
 # The lists that hold no address yet, by name: a list cannot lose its addresses unseen, and
-# one that gains its first is taken off here.
-NO_ADDRESS_YET = frozenset({"m5-journeys"})
+# one that gains its first is taken off here. The list of journeys was the last: it gained
+# the address of the timetables on 2026-09-24.
+NO_ADDRESS_YET: frozenset[str] = frozenset()
 
 
 @pytest.mark.parametrize("name", sorted(path.stem for path in LISTS.glob("*.toml")))

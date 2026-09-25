@@ -58,6 +58,10 @@ class AreaPlan:
     flats: float | None = None  # flats, and homes close together
     parks: float | None = None  # public parks within a walk
     roads: float | None = None  # homes that stand on a main road
+    # How well served an area is by lines and by buses, where the lines on the map do not
+    # say. Only the three parts of Well connected read it, so that adding it moved no
+    # older figure.
+    links: float | None = None
 
 
 # In name order, which is the order of their ids. After the name and the cell come the
@@ -84,11 +88,27 @@ AREAS = (
         0.05,
         aliases=("Dulcimer",),
         roads=0.75,
+        links=0.95,
     ),
     # A northern suburb at the end of the Birch line.
     AreaPlan("Eskerfold", 3, 2, 0.60, 0.18, 0.35, 0.25, 0.80, 0.50, 0.00),
-    # Cheap and far out, but on the Cobalt line: estates of flats beside the trunk road.
-    AreaPlan("Farrowmere", 2, 5, 0.40, 0.15, 0.25, 0.10, 0.70, 0.45, 0.25, flats=0.95, roads=0.65),
+    # Cheap and far out, but on the Cobalt line: estates of flats beside the trunk road. The
+    # line ends at the bus station, where the routes of the eastern suburbs meet.
+    AreaPlan(
+        "Farrowmere",
+        2,
+        5,
+        0.40,
+        0.15,
+        0.25,
+        0.10,
+        0.70,
+        0.45,
+        0.25,
+        flats=0.95,
+        roads=0.65,
+        links=1.00,
+    ),
     # The busiest high street outside the centre, most of it chains. A large park lies
     # behind it, and the homes stand in quiet streets off it.
     AreaPlan("Foxholt", 2, 3, 0.30, 0.50, 0.25, 0.40, 0.50, 0.95, 0.10, parks=0.90, roads=0.15),
@@ -112,7 +132,8 @@ AREAS = (
         aliases=("Hollinsworth",),
     ),
     # The south bank opposite the centre: kitchens, bars and an art school, in low terraces.
-    AreaPlan("Kindlewharf", 0, 2, 0.25, 0.70, 0.85, 0.45, 0.35, 0.60, 0.20, flats=0.35),
+    # Two lines cross here, and the buses of the south bank turn round.
+    AreaPlan("Kindlewharf", 0, 2, 0.25, 0.70, 0.85, 0.45, 0.35, 0.60, 0.20, flats=0.35, links=0.97),
     # Where the city goes out at night, one stop north of the centre: bars and clubs, most
     # of them chains, in old yards that are still workshops by day.
     AreaPlan("Lantern Yard", 2, 2, 0.15, 0.95, 0.20, 0.75, 0.15, 0.85, 0.05, works=0.30),
@@ -159,6 +180,63 @@ AREAS = (
 )
 
 CENTRE = "Pellam Cross"
+
+# What is said of the name of an area. A real area is drawn as its publisher draws it, and
+# its publisher labels it with its borough and a number: here the borough and the place of
+# the area in the order of the ids. The label stands beside the name. A name is a draft
+# until a person has checked it, and most of the city's are drafts, as most of a real
+# city's are. These three are said to have been checked.
+CHECKED = frozenset({"Pellam Cross", "Tallowgate", "Thrushcombe"})
+# These two bear no name but their label, so nothing is said of who wrote one: the docks,
+# and the new town that no list of names has reached yet.
+NOT_NAMED = frozenset({"Grapnel Dock", "Otterby Fields"})
+
+
+def label_of(number: int) -> str:
+    """The label of an area as a publisher would give it: the borough and a number."""
+    return f"{BOROUGH} {number:03d}"
+
+
+@dataclass(frozen=True)
+class Lived:
+    """Who a made-up census counted in an area, each from 0 to 1. A claim about nothing."""
+
+    young: float  # residents aged 20 to 34
+    children: float  # households with dependent children
+
+
+# Who lived where. Only the four made-up census figures read it, so that adding them moved
+# no older figure. Neither trait follows the flats, the schools or the centre, so that no
+# two vibes find the same areas: the households that hold children are most where homes
+# are cheap and far out, and fewest where the schools and the play space are most. Those
+# in their twenties and early thirties are most in flats on a line, and few in the middle
+# of town, which is offices and nights out.
+WHO_LIVED_THERE = {
+    "Alderwick": Lived(0.05, 0.30),
+    "Brackenhythe": Lived(0.45, 0.70),
+    "Cindermoor": Lived(0.70, 0.90),
+    "Dulcimer Green": Lived(0.60, 0.05),
+    "Eskerfold": Lived(0.30, 0.95),
+    "Farrowmere": Lived(0.90, 0.85),
+    "Foxholt": Lived(0.70, 0.75),
+    "Gorsebeck": Lived(0.15, 0.85),
+    "Grapnel Dock": Lived(0.40, 0.30),
+    "Hollinsworth Quay": Lived(1.00, 0.40),
+    "Kindlewharf": Lived(0.50, 0.60),
+    "Lantern Yard": Lived(0.20, 0.45),
+    "Larkspur Hill": Lived(0.10, 0.15),
+    "Marrowfen": Lived(0.35, 1.00),
+    "Osierholm": Lived(0.30, 0.10),
+    "Ostrel Vale": Lived(0.40, 0.80),
+    "Otterby Fields": Lived(0.40, 0.80),
+    "Pellam Cross": Lived(0.10, 0.30),
+    "Sable Reach": Lived(1.00, 0.65),
+    "Sedgewater Marsh": Lived(0.10, 0.30),
+    "Tallowgate": Lived(0.15, 0.50),
+    "Thrushcombe": Lived(0.20, 0.10),
+    "Wexmoor": Lived(0.60, 0.50),
+    "Wickerford": Lived(0.10, 0.45),
+}
 
 # The grid, in kilometres. Cells are smaller near the centre, as a city's are.
 COLUMN_WIDTHS_KM = (3.0, 2.2, 1.6, 1.8, 2.4, 3.2)
