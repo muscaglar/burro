@@ -133,6 +133,11 @@ extension Results {
                 (names.segment, slots["segment"]), (names.middleOfAll, pounds(slots["median"])),
                 (names.soldIn, slots["period"]),
             ]
+        case .costBuySold:
+            pairs = [
+                (names.segment, slots["segment"]), (names.middleOfAll, pounds(slots["median"])),
+                (names.soldIn, slots["period"]), (names.sales, slots["sales"]),
+            ]
         case .costRent, .costBuy:
             var range: String?
             if let lower = pounds(slots["lower"]), let upper = pounds(slots["upper"]) {
@@ -166,6 +171,13 @@ extension Results {
                     (names.place, slots["place"]), (names.mode, slots["mode"]),
                     (names.minutes, slots["minutes"]),
                 ] + againstTheLimit(fact)
+        case .travelEstimated:
+            // No time is held. The fact says where an estimate stands against the limit, and
+            // that it is one, and gives no minutes of its own.
+            pairs = [
+                (names.place, slots["place"]), (names.mode, slots["mode"]), (names.limit, slots["limit"]),
+                (names.estimate, slots["verdict"]), (names.howKnown, slots["estimated"]),
+            ]
         case .travelBeyond:
             pairs = [
                 (names.place, slots["place"]), (names.mode, slots["mode"]), (names.moreThan, slots["cutoff"]),

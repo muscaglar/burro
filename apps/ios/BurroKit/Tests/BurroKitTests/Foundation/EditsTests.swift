@@ -53,12 +53,12 @@ final class EditsTests: XCTestCase {
     func test_an_edit_of_a_vibe_says_which_end_is_asked_for_as_the_website_writes_it() throws {
         // A vibe that is added is asked for towards its high end, unless the other is named.
         XCTAssertEqual(try JSON.written(Edits.tagOn(.leafy)), try sent(in: "rank-shelf"))
-        XCTAssertEqual(try JSON.written(Edits.tagOn(.pace)), try sent(in: "visit/23-shelf-rank"))
+        XCTAssertEqual(try JSON.written(Edits.tagOn(.pace)), try sent(in: "visit/24-shelf-rank"))
         // A scale is turned by setting how much it counts, towards the end that was chosen.
         XCTAssertEqual(
             try JSON.written(Edits.tagWeight(.pace, 0.5, toward: .high)), try sent(in: "rank-scale-turned"))
         XCTAssertEqual(
-            try JSON.written(Edits.tagWeight(.pace, 0.5, toward: .low)), try sent(in: "visit/25-turned-rank"))
+            try JSON.written(Edits.tagWeight(.pace, 0.5, toward: .low)), try sent(in: "visit/26-turned-rank"))
         // How much a vibe counts leaves the end that is asked for as it is.
         XCTAssertEqual(Edits.tagWeight(.leafy, 0.2).tagOps[0].toward, .default)
         XCTAssertEqual(Edits.tagOff(.leafy).tagOps[0].toward, .default)

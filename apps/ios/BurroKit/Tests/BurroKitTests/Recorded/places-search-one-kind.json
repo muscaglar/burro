@@ -17,17 +17,17 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "643",
+    "content-length": "654",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "59474d7f-c35b-4d28-9281-1ebd782c1f9c"
+    "x-request-id": "b39399d0-6108-4134-ab81-971380ca3215"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
@@ -63,7 +63,8 @@
           "kind": "school",
           "coarse_name": "Hollinsworth Quay"
         }
-      ]
+      ],
+      "areas": []
     }
   }
 }

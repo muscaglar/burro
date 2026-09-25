@@ -5,8 +5,9 @@ import Foundation
 ///
 /// Five rules are kept here.
 ///
-/// 1. The sentence a person typed is passed to one call and is never kept. It
-///    is not in the store and not in this object once the call is made.
+/// 1. The sentence a person typed is passed to the call that reads it, and to
+///    one more where a model reads, and is never kept. It is not in the store,
+///    and not in this object once they are answered.
 /// 2. No sentence is sent until the person has agreed that their words may be read.
 /// 3. The app never edits a spec. An edit is sent with the last spec the API
 ///    returned, and the spec that comes back replaces it. Edits made while a
@@ -30,6 +31,10 @@ public final class SearchFlow {
 
     private var current = Run(number: 0)
     private var readingRun: Int?
+    /// The model's reading of what the rules left unread, while it is under way.
+    private var reading: Task<Void, Never>?
+    /// Counts such readings, so that the answer to one that was let go is dropped.
+    private var readings = 0
     /// The release the form is being read again for, while it is, so that it is not asked for twice at once.
     private var catchingUp: (release: String, token: Int, done: Task<Void, Never>)?
     private var catchUps = 0
@@ -51,10 +56,13 @@ public final class SearchFlow {
     public func submitText(_ text: String) async {
         let said = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !said.isEmpty, mayReadWords() else { return }
+        stopReading()
         let mine = begin()
         readingRun = mine.number
         store.dispatch(.readStarted(seq: mine.number))
-        let body = InterpretBody(text: said, spec: state.spec)
+        // The rules are asked first, and answer at once. What they offer never waits on a model.
+        let sent = state.spec
+        let body = InterpretBody(text: said, askModel: false, spec: sent)
         let answer = await call(mine) { [api] in await api.interpret(body) }
         guard !isStale(mine) else { return }
         readingRun = nil
@@ -66,6 +74,8 @@ public final class SearchFlow {
         case .success(let read):
             heard(read.meta)
             store.dispatch(.readAnswered(read.data, by: Served(read.meta)))
+            // Then the model, where one reads and the rules left words unread.
+            let more = read.data.modelPending ? readMore(said, with: sent) : nil
             let changed = read.data.applied.contains { $0.changed }
             let pending = state.pending
             if changed || !pending.isEmpty {
@@ -73,7 +83,35 @@ public final class SearchFlow {
             } else {
                 store.dispatch(.settled)
             }
+            await more?.value
         }
+    }
+
+    /// Asks again, of the model this time, for the same words and the same search. It has
+    /// a stop of its own: a control that is moved meanwhile ranks, and does not stop the
+    /// reading. The words go to the call and nowhere else.
+    private func readMore(_ said: String, with sent: PreferenceSpec) -> Task<Void, Never> {
+        readings += 1
+        let mine = readings
+        let body = InterpretBody(text: said, askModel: true, spec: sent)
+        let asked = Task { @MainActor [self] in
+            let answer = await call(nil) { [api] in await api.interpret(body) }
+            // A reading that was let go has nothing to say.
+            guard reading != nil, readings == mine else { return }
+            reading = nil
+            switch answer {
+            case .success(let read): store.dispatch(.readMoreAnswered(read.data))
+            case .failure: store.dispatch(.readMoreFailed)
+            }
+        }
+        reading = asked
+        return asked
+    }
+
+    /// Stops the model's reading, where one is under way. What it would have added is let go.
+    private func stopReading() {
+        reading?.cancel()
+        reading = nil
     }
 
     /// Sends the edits of one control.
@@ -102,37 +140,55 @@ public final class SearchFlow {
         store.dispatch(.questionLeft(question))
     }
 
-    /// Takes one of the choices of a thing the reader noticed and did not apply. The
-    /// suggestion goes, whatever was chosen. A choice that holds edits sends them, as a
-    /// control does. "Leave it out" holds none, and sends nothing.
-    public func choose(at: Int, direction: SuggestionDirection) async {
-        guard let choice = state.read?.suggestions[safe: at]?.choices.first(where: { $0.direction == direction })
+    /// Takes one of the choices of an offer, by its id. The offer goes, whatever was
+    /// chosen. A choice that holds edits sends them as the API gave them, as a control
+    /// does. "Skip" holds none, and sends nothing. A journey to a place the release does
+    /// not hold is sent with the place the person chose for it, and is not sent without
+    /// one: the person has yet to say.
+    public func choose(at: Int, id: String, place: (id: String, name: String)? = nil) async {
+        guard let choice = state.read?.suggestions[safe: at]?.choices.first(where: { $0.id == id })
         else { return }
-        store.dispatch(.suggestionChosen(at: at, changes: !choice.operations.isEmpty))
-        await applyEdits(choice.operations)
+        let operations = place.map { choice.operations.withPlace($0.id) } ?? choice.operations
+        guard operations.namesItsPlaces else { return }
+        // A place that was picked is named before the answer that holds it has come.
+        if let place, operations != choice.operations {
+            store.dispatch(.placeNamed(placeId: place.id, name: place.name))
+        }
+        store.dispatch(.suggestionChosen(at: at, changes: !operations.isEmpty))
+        await applyEdits(operations)
     }
 
-    /// Takes the one way of each of these suggestions, by their places in the list, in
-    /// one request. A thing that could be meant two ways is left as it is, and so is a
-    /// thing that carries a note: nothing is guessed, and recorded crime is never added
-    /// by a button that does not name it.
+    /// Takes, of each of these offers, the way the API says one press may add, in one
+    /// request. What the API names no way for is left as it is: it is the person's to
+    /// choose.
     public func chooseAll(_ ats: [Int]) async {
         let offered = state.read?.suggestions ?? []
         let taken = Set(ats).sorted().compactMap { at -> (at: Int, operations: Operations)? in
-            guard let only = offered[safe: at]?.addedWithOthers else { return nil }
+            guard let only = offered[safe: at]?.addedWithOthers, only.operations.namesItsPlaces else {
+                return nil
+            }
             return (at, only.operations)
         }
         guard !taken.isEmpty else { return }
-        // The last goes first, so that the place of each in the list is still its own.
-        for one in taken.reversed() {
-            store.dispatch(.suggestionChosen(at: one.at, changes: true))
-        }
+        store.dispatch(.allAdded(ats: taken.map(\.at)))
         // The edits of each choice, as the API gave them, in the order the things were noticed.
         await applyEdits(taken.reduce(Operations.none) { $0.merged(with: $1.operations) })
     }
 
+    /// Takes back all that the last "Add all" added: the search and the offers are as
+    /// they were. The search as it stood before the press is ranked again, with no edit,
+    /// and nothing of what was added is kept.
+    public func takeBack() async {
+        guard let added = state.read?.added else { return }
+        store.dispatch(.allTakenBack)
+        let mine = begin()
+        readingRun = nil
+        await settle(mine, spec: added.spec, hash: nil, operations: .none)
+    }
+
     /// Told that the box changed, and never what to. What rested on the text that was sent goes.
     public func boxChanged() {
+        stopReading()
         store.dispatch(.boxChanged)
     }
 
@@ -176,6 +232,7 @@ public final class SearchFlow {
     public func stop() async {
         // "Stop" is offered until the ranking of the words is in, which is after they are read.
         let wasReading = state.phase == .interpreting
+        stopReading()
         _ = begin()
         readingRun = nil
         store.dispatch(.stopped)
@@ -184,6 +241,7 @@ public final class SearchFlow {
     }
 
     public func startAgain() {
+        stopReading()
         _ = begin()
         readingRun = nil
         store.dispatch(.startedAgain)

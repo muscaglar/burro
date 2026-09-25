@@ -128,16 +128,16 @@ final class ResultsCompareTests: XCTestCase {
     @MainActor
     func test_a_comparison_is_asked_for_with_the_areas_chosen_and_the_spec_the_api_last_returned() async throws {
         let app = try await ResultsApp.searched(StandIn.firstSearch().on(.compare, "compare-three"))
-        let chosen = try ["Cindermoor", "Farrowmere", "Alderwick"].map(area)
+        let chosen = try ["Farrowmere", "Cindermoor", "Alderwick"].map(area)
         let comparison = Results.Comparison()
 
         await comparison.ask(chosen, of: app.search)
 
         XCTAssertEqual(
             try app.api.lastCall(to: .compare).body(as: CompareBody.self),
-            CompareBody(areaIds: ["syn-n0003", "syn-n0006", "syn-n0001"], spec: app.state.spec))
+            CompareBody(areaIds: ["syn-n0006", "syn-n0003", "syn-n0001"], spec: app.state.spec))
         guard case .here(let compared) = comparison.answer else { return XCTFail("No comparison came.") }
-        XCTAssertEqual(compared.places.map(\.name), ["Cindermoor", "Farrowmere", "Alderwick"])
+        XCTAssertEqual(compared.places.map(\.name), ["Farrowmere", "Cindermoor", "Alderwick"])
         // The search is as it was.
         XCTAssertEqual(app.state.ranking?.ranked, Answers.ranked("rank-first").ranked)
     }
@@ -224,16 +224,16 @@ final class ResultsCompareTests: XCTestCase {
         let compared = Results.compared(data, in: app.state)
 
         XCTAssertEqual(compared.rows.map(\.label), data.rows.map(\.label))
-        XCTAssertEqual(compared.rows.prefix(4).map(\.label), ["Journey", "Budget", "Leafy", "Quiet streets"])
+        XCTAssertEqual(compared.rows.prefix(4).map(\.label), ["Leafy", "Quiet streets", "Journey", "Budget"])
         // How much a thing counts is said as a weight, and never as a share.
         XCTAssertEqual(
-            compared.rows.prefix(4).map(\.countsFor), ["Weight 100", "Weight 80", "Weight 50", "Weight 50"])
+            compared.rows.prefix(4).map(\.countsFor), ["Weight 50", "Weight 50", "Weight 40", "Weight 30"])
         // A journey has a row of its own, and says where it is to in the API's name for the place.
-        XCTAssertEqual(compared.rows.first?.to, "To Cindermoor Works")
+        XCTAssertEqual(compared.rows.prefix(4).map(\.to), [nil, nil, "To Cindermoor Works", nil])
         XCTAssertEqual(compared.rows.compactMap(\.to), ["To Cindermoor Works"])
         XCTAssertEqual(compared.rows.count, 10)
         for row in compared.rows {
-            XCTAssertEqual(row.cells.map(\.area), ["Cindermoor", "Farrowmere", "Alderwick"])
+            XCTAssertEqual(row.cells.map(\.area), ["Farrowmere", "Cindermoor", "Alderwick"])
         }
         XCTAssertFalse(compared.nothingCounts)
     }
@@ -249,12 +249,12 @@ final class ResultsCompareTests: XCTestCase {
         XCTAssertEqual(compared.character.map(\.name), Answers.meta.tags.map(\.label))
         let leafy = try XCTUnwrap(compared.character.first)
         XCTAssertEqual(leafy.name, "Leafy")
-        XCTAssertEqual(leafy.cells.map(\.area), ["Cindermoor", "Farrowmere", "Alderwick"])
+        XCTAssertEqual(leafy.cells.map(\.area), ["Farrowmere", "Cindermoor", "Alderwick"])
         // The vibes are of the release and of no search: an area the search left out has its band all the same.
-        XCTAssertEqual(leafy.cells.map(\.vibe.band), ["band 2 of 5", "band 3 of 5", "band 5 of 5"])
+        XCTAssertEqual(leafy.cells.map(\.vibe.band), ["band 3 of 5", "band 2 of 5", "band 5 of 5"])
         XCTAssertEqual(
             leafy.cells.map(\.vibe.plainly),
-            ["on the low side here", "around the middle here", "among the most here"])
+            ["around the middle here", "on the low side here", "among the most here"])
         for vibe in compared.character {
             for cell in vibe.cells {
                 XCTAssertFalse(cell.vibe.sources.isEmpty, "\(vibe.name), \(cell.area)")
@@ -271,9 +271,10 @@ final class ResultsCompareTests: XCTestCase {
 
         let compared = Results.compared(data, in: app.state)
 
-        let journey = compared.rows[0].cells
+        // The journey is the third row and the budget the fourth, and Farrowmere is the first of the areas.
+        let journey = compared.rows[2].cells
         XCTAssertEqual(
-            journey[1].columns,
+            journey[0].columns,
             [
                 .init(name: "To", value: "Cindermoor Works"),
                 .init(name: "How", value: "By public transport"),
@@ -282,15 +283,15 @@ final class ResultsCompareTests: XCTestCase {
                 .init(name: "Your limit, in minutes", value: "30"),
                 .init(name: "Under your limit by, in minutes", value: "9"),
             ])
-        XCTAssertEqual(journey[0].adds, "Adds 31 of 100 to the fit")
-        XCTAssertEqual(journey[1].adds, "Adds 25 of 100 to the fit")
+        XCTAssertEqual(journey[0].adds, "Adds 15 of 100 to the fit")
+        XCTAssertEqual(journey[1].adds, "Adds 19 of 100 to the fit")
         XCTAssertEqual(journey[0].sources.map(\.date), ["September 2026"])
         // A journey over its limit says by how much, and the area it left out adds nothing.
         XCTAssertEqual(journey[2].columns.last, .init(name: "Over your limit by, in minutes", value: "23"))
         XCTAssertNil(journey[2].adds)
-        let budget = compared.rows[1].cells
+        let budget = compared.rows[3].cells
         XCTAssertEqual(
-            budget[1].columns,
+            budget[0].columns,
             [
                 .init(name: "Upper end of the range", value: "£1,300"),
                 .init(name: "Your budget", value: "£1,700"),
@@ -302,7 +303,7 @@ final class ResultsCompareTests: XCTestCase {
         XCTAssertNil(budget[2].none)
         // A vibe that counts is its band, the ends it is counted between, and what it was compared among.
         XCTAssertEqual(
-            compared.rows[2].cells[0].columns,
+            compared.rows[0].cells[1].columns,
             [
                 .init(name: "Band, of five", value: "2"),
                 .init(name: "Counted from", value: "least to most"),
@@ -367,8 +368,8 @@ final class ResultsCompareTests: XCTestCase {
         XCTAssertEqual(
             compared.places.map(\.status),
             ["Ranked", "Ranked", "Left out: a journey is longer than a firm limit"])
-        XCTAssertEqual(compared.places.map(\.standing), ["Rank 1. Fit 77 of 100", "Rank 2. Fit 76 of 100", nil])
-        XCTAssertEqual(compared.places.map(\.area?.slug), ["cindermoor", "farrowmere", "alderwick"])
+        XCTAssertEqual(compared.places.map(\.standing), ["Rank 1. Fit 70 of 100", "Rank 2. Fit 65 of 100", nil])
+        XCTAssertEqual(compared.places.map(\.area?.slug), ["farrowmere", "cindermoor", "alderwick"])
     }
 
     @MainActor

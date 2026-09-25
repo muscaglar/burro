@@ -75,8 +75,8 @@ final class AreaPageTests: XCTestCase {
         let rows = page.stationRows + page.rentRows + page.buyRows
             + page.measured.flatMap { page.rows(of: $0) }
 
-        XCTAssertEqual(rows.count, 1 + 6 + 4 + 40)
-        XCTAssertEqual(page.vibes.count, 11)
+        XCTAssertEqual(rows.count, 1 + 6 + 4 + 108)
+        XCTAssertEqual(page.vibes.count, 14)
         for vibe in page.vibes {
             XCTAssertEqual(vibe.shown.sources.map(\.name), ["Synthetic test data"], vibe.shown.name)
         }
@@ -98,11 +98,15 @@ final class AreaPageTests: XCTestCase {
 
         XCTAssertEqual(
             page.measured.map(\.dimension),
-            [.stationAccess, .greenWater, .airNoise, .venuesCulture, .services, .schools, .homes, .crime])
+            [
+                .stationAccess, .greenWater, .airNoise, .venuesCulture, .services, .brands, .schools,
+                .homes, .residents, .crime,
+            ])
         XCTAssertEqual(
             page.measured.compactMap { $0.dimension.flatMap(AreaCopy.dimension) },
             ["Stations", "Green space and water", "Air and noise", "Venues and culture",
-             "Shops and services", "Schools", "Homes", "Recorded crime"])
+             "Shops and services", "Brands nearby", "Schools", "Homes",
+             "Who lived there at the census", "Recorded crime"])
         for group in page.measured {
             let features = Answers.meta.features.filter { $0.dimension == group.dimension }
             XCTAssertEqual(group.rows.map(\.label), features.map(\.label))
@@ -122,8 +126,11 @@ final class AreaPageTests: XCTestCase {
         XCTAssertEqual(
             page.vibes.map(\.shown.tagId),
             [
-                .homes, .pace, .builtAge, .streetCharacter, .familyAmenities, .quietResidential, .foodie,
-                .parksCloseBy, .everydayOnFoot, .leafy, .villageFeel,
+                .homes, .pace, .builtAge, .streetCharacter, .wellConnected, .familyAmenities,
+                .quietResidential, .foodie, .parksCloseBy, .everydayOnFoot, .leafy, .villageFeel,
+                // The two that count who lived there are placed, and are in neither list of
+                // what the area has most or least of.
+                .familyArea, .youngProfessionals,
             ])
         XCTAssertEqual(
             AreaPage.VibeList.allCases.map(AreaCopy.Portrait.title),
@@ -138,7 +145,7 @@ final class AreaPageTests: XCTestCase {
         let fact = try XCTUnwrap(homes.fact)
 
         // A scale is named by the API, and so are its two ends.
-        XCTAssertEqual(homes.shown.name, "Homes")
+        XCTAssertEqual(homes.shown.name, "Houses or flats")
         XCTAssertEqual([homes.shown.low, homes.shown.high], ["Houses", "Flats"])
         XCTAssertEqual(homes.shown.placed, Placed(fact))
         XCTAssertEqual(homes.shown.band, "band \(fact.slots["band"] ?? "") of 5")
@@ -198,7 +205,11 @@ final class AreaPageTests: XCTestCase {
 
         XCTAssertEqual(page.rentRows, [])
         XCTAssertEqual(page.buyRows, [])
-        XCTAssertFalse(page.said.contains { $0.hasPrefix("£") })
+        // What was paid for a home is a measure of the area, under Homes. So is what was paid for
+        // each £100 of the median ten years before, and five. They are the sums on the page.
+        XCTAssertEqual(page.said.filter { $0.hasPrefix("£") }, ["£353,500", "£114", "£98"])
+        let homes = page.measured.first { $0.dimension == .homes }
+        XCTAssertEqual(homes?.rows.first { $0.fact?.slots["value"] == "£353,500" }?.key, "price_median")
     }
 
     @MainActor
@@ -233,7 +244,7 @@ final class AreaPageTests: XCTestCase {
         let unplaced = page.vibes(in: .unplaced)
 
         XCTAssertEqual(page.vibes.count, Answers.meta.tags.count)
-        XCTAssertEqual(unplaced.count, 10)
+        XCTAssertEqual(unplaced.count, 13)
         XCTAssertEqual(page.vibes(in: .scales).map(\.shown.tagId), [.homes])
         for vibe in unplaced {
             XCTAssertNil(vibe.shown.placed, vibe.shown.name)

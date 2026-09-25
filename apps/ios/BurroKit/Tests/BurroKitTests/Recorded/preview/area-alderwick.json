@@ -13,7 +13,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-cache",
-    "content-length": "21766",
+    "content-length": "25797",
     "content-type": "application/json",
     "etag": "\"syn-2026-09-23-01\"",
     "vary": "Origin",
@@ -24,7 +24,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": true
     },
@@ -44,7 +44,15 @@
           "syn-n0005",
           "syn-n0008",
           "syn-n0022"
-        ]
+        ],
+        "named": {
+          "label": "Quillhaven 001",
+          "source_ids": [
+            "synthetic"
+          ],
+          "state": "draft"
+        },
+        "homes_at": null
       },
       "features": [
         {
@@ -214,10 +222,40 @@
         },
         {
           "area_id": "syn-n0001",
+          "tag_id": "well_connected",
+          "raw": null,
+          "score": null,
+          "coverage": 0.0,
+          "band": null,
+          "spread_low": null,
+          "spread_high": null
+        },
+        {
+          "area_id": "syn-n0001",
           "tag_id": "street_character",
           "raw": null,
           "score": null,
           "coverage": 0.25,
+          "band": null,
+          "spread_low": null,
+          "spread_high": null
+        },
+        {
+          "area_id": "syn-n0001",
+          "tag_id": "family_area",
+          "raw": null,
+          "score": null,
+          "coverage": 0.15,
+          "band": null,
+          "spread_low": null,
+          "spread_high": null
+        },
+        {
+          "area_id": "syn-n0001",
+          "tag_id": "young_professionals",
+          "raw": null,
+          "score": null,
+          "coverage": 0.0,
           "band": null,
           "spread_low": null,
           "spread_high": null
@@ -235,7 +273,14 @@
             0.000634,
             0.041017
           ],
-          "rankable": true
+          "rankable": true,
+          "named": {
+            "label": "Quillhaven 005",
+            "source_ids": [
+              "synthetic"
+            ],
+            "state": "draft"
+          }
         },
         {
           "area_id": "syn-n0008",
@@ -246,7 +291,14 @@
             -0.040244,
             0.040059
           ],
-          "rankable": true
+          "rankable": true,
+          "named": {
+            "label": "Quillhaven 008",
+            "source_ids": [
+              "synthetic"
+            ],
+            "state": "draft"
+          }
         },
         {
           "area_id": "syn-n0022",
@@ -257,7 +309,14 @@
             -0.016855,
             0.017169
           ],
-          "rankable": true
+          "rankable": true,
+          "named": {
+            "label": "Quillhaven 022",
+            "source_ids": [
+              "synthetic"
+            ],
+            "state": "checked"
+          }
         }
       ],
       "portrait": {
@@ -412,20 +471,26 @@
             "figure_fact_id": null,
             "parts": [
               {
+                "feature_id": "venue_evening_per_homes",
+                "hundredths": 35,
+                "reading": "high",
+                "fact_id": null
+              },
+              {
                 "feature_id": "venue_food_drink_per_homes",
-                "hundredths": 45,
+                "hundredths": 30,
                 "reading": "high",
                 "fact_id": null
               },
               {
                 "feature_id": "highstreet_access",
-                "hundredths": 30,
+                "hundredths": 20,
                 "reading": "low",
                 "fact_id": null
               },
               {
                 "feature_id": "culture_venues_per_homes",
-                "hundredths": 25,
+                "hundredths": 15,
                 "reading": "high",
                 "fact_id": null
               }
@@ -550,6 +615,37 @@
             ]
           },
           {
+            "tag_id": "well_connected",
+            "fact_id": "syn-n0001/tag/well_connected",
+            "figure_fact_id": null,
+            "parts": [
+              {
+                "feature_id": "underground_proximity",
+                "hundredths": 45,
+                "reading": "low",
+                "fact_id": null
+              },
+              {
+                "feature_id": "overground_proximity",
+                "hundredths": 20,
+                "reading": "low",
+                "fact_id": null
+              },
+              {
+                "feature_id": "rail_proximity",
+                "hundredths": 15,
+                "reading": "low",
+                "fact_id": null
+              },
+              {
+                "feature_id": "bus_routes_nearby",
+                "hundredths": 20,
+                "reading": "high",
+                "fact_id": null
+              }
+            ]
+          },
+          {
             "tag_id": "street_character",
             "fact_id": "syn-n0001/tag/street_character",
             "figure_fact_id": "syn-n0001/feature/road_major_exposure",
@@ -591,6 +687,68 @@
                 "fact_id": "syn-n0001/feature/noise_exposure"
               }
             ]
+          },
+          {
+            "tag_id": "family_area",
+            "fact_id": "syn-n0001/tag/family_area",
+            "figure_fact_id": "syn-n0001/feature/park_proximity",
+            "parts": [
+              {
+                "feature_id": "households_dependent_children",
+                "hundredths": 40,
+                "reading": "high",
+                "fact_id": null
+              },
+              {
+                "feature_id": "school_primary_nearby",
+                "hundredths": 25,
+                "reading": "high",
+                "fact_id": null
+              },
+              {
+                "feature_id": "play_space_proximity",
+                "hundredths": 20,
+                "reading": "low",
+                "fact_id": null
+              },
+              {
+                "feature_id": "park_proximity",
+                "hundredths": 15,
+                "reading": "low",
+                "fact_id": "syn-n0001/feature/park_proximity"
+              }
+            ]
+          },
+          {
+            "tag_id": "young_professionals",
+            "fact_id": "syn-n0001/tag/young_professionals",
+            "figure_fact_id": null,
+            "parts": [
+              {
+                "feature_id": "residents_aged_20_34",
+                "hundredths": 40,
+                "reading": "high",
+                "fact_id": null
+              },
+              {
+                "feature_id": "station_walk",
+                "hundredths": 25,
+                "reading": "low",
+                "fact_id": null
+              },
+              {
+                "feature_id": "venue_food_drink_per_homes",
+                "hundredths": 20,
+                "reading": "high",
+                "fact_id": null
+              },
+              {
+                "feature_id": "culture_venues_per_homes",
+                "hundredths": 15,
+                "reading": "high",
+                "fact_id": null
+              }
+            ]
           }
         ]
       },
@@ -626,18 +784,23 @@
           "template": "area",
           "slots": {
             "name": "Alderwick",
-            "borough": "Quillhaven"
+            "borough": "Quillhaven",
+            "label": "Quillhaven 001",
+            "written_by": "Burro",
+            "state": "draft"
           },
           "numbers": [],
           "names": [
             "Alderwick",
-            "Quillhaven"
+            "Quillhaven",
+            "Quillhaven 001"
           ],
           "sources": [
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -672,7 +835,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -708,7 +872,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -746,7 +911,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -782,7 +948,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -818,7 +985,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -854,7 +1022,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -890,7 +1059,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -926,7 +1096,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -958,7 +1129,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -990,7 +1162,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1022,7 +1195,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1054,7 +1228,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1086,7 +1261,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1116,7 +1292,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1146,7 +1323,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1176,7 +1354,39 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0001/tag/family_area",
+          "area_id": "syn-n0001",
+          "kind": "tag",
+          "key": "family_area",
+          "label": "Family area",
+          "template": "vibe_unknown",
+          "slots": {
+            "label": "Family area",
+            "name": "Alderwick",
+            "known": "1",
+            "parts": "4"
+          },
+          "numbers": [
+            "1",
+            "4"
+          ],
+          "names": [
+            "Alderwick"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1206,7 +1416,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1249,7 +1460,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1279,7 +1491,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1296,11 +1509,11 @@
             "label": "Going out",
             "name": "Alderwick",
             "known": "0",
-            "parts": "3"
+            "parts": "4"
           },
           "numbers": [
             "0",
-            "3"
+            "4"
           ],
           "names": [
             "Alderwick"
@@ -1309,7 +1522,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1353,7 +1567,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1396,7 +1611,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1426,7 +1642,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1456,10 +1673,73 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0001/tag/well_connected",
+          "area_id": "syn-n0001",
+          "kind": "tag",
+          "key": "well_connected",
+          "label": "Well connected",
+          "template": "vibe_unknown",
+          "slots": {
+            "label": "Well connected",
+            "name": "Alderwick",
+            "known": "0",
+            "parts": "4"
+          },
+          "numbers": [
+            "0",
+            "4"
+          ],
+          "names": [
+            "Alderwick"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0001/tag/young_professionals",
+          "area_id": "syn-n0001",
+          "kind": "tag",
+          "key": "young_professionals",
+          "label": "Young professionals",
+          "template": "vibe_unknown",
+          "slots": {
+            "label": "Young professionals",
+            "name": "Alderwick",
+            "known": "0",
+            "parts": "4"
+          },
+          "numbers": [
+            "0",
+            "4"
+          ],
+          "names": [
+            "Alderwick"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2026-09-23",
           "synthetic": true
         }
       ]

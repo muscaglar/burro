@@ -157,11 +157,15 @@ final class ResultsFiguresTests: XCTestCase {
     func test_a_fit_is_rounded_down_and_never_up() async throws {
         let app = try await ResultsApp.searched()
         let first = try XCTUnwrap(app.state.ranking?.ranked.first)
+        let eleventh = try XCTUnwrap(app.state.ranking?.ranked.dropFirst(10).first)
 
-        // The recorded fit has a fraction to lose, and would round up to the next whole number.
-        XCTAssertEqual(first.score, 78.52)
-        XCTAssertEqual(try app.firstCard().heading.fit, 78)
-        XCTAssertEqual(try app.firstCard().heading.fitWords, "78 of 100")
+        XCTAssertEqual(first.score, 71.38)
+        XCTAssertEqual(try app.firstCard().heading.fit, 71)
+        XCTAssertEqual(try app.firstCard().heading.fitWords, "71 of 100")
+        // The recorded fit of the eleventh has a fraction to lose, and would round up to the next whole number.
+        XCTAssertEqual(eleventh.score, 56.7)
+        XCTAssertEqual(app.listed.cards.dropFirst(10).first?.heading.fit, 56)
+        XCTAssertEqual(app.listed.cards.dropFirst(10).first?.heading.fitWords, "56 of 100")
         XCTAssertEqual(Results.fit(of: 99.999), 99)
         XCTAssertEqual(Results.fit(of: 100), 100)
         XCTAssertEqual(Results.fit(of: 0.4), 0)

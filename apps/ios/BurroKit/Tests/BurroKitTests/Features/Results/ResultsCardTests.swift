@@ -17,8 +17,8 @@ final class ResultsCardTests: XCTestCase {
     func test_the_heading_is_the_rank_the_names_the_api_gave_and_the_fit() async throws {
         let card = try await ResultsApp.searched().firstCard()
 
-        XCTAssertEqual(card.heading, Results.Heading(rank: 1, name: "Farrowmere", borough: "Quillhaven", fit: 78))
-        XCTAssertEqual(card.heading.words, "Rank 1, Farrowmere, Quillhaven, Fit 78 of 100")
+        XCTAssertEqual(card.heading, Results.Heading(rank: 1, name: "Farrowmere", borough: "Quillhaven", fit: 71))
+        XCTAssertEqual(card.heading.words, "Rank 1, Farrowmere, Quillhaven, Fit 71 of 100")
         XCTAssertEqual(card.area, AreaRef(areaId: "syn-n0006", slug: "farrowmere", name: "Farrowmere", borough: "Quillhaven"))
         XCTAssertTrue(card.full)
     }
@@ -54,6 +54,9 @@ final class ResultsCardTests: XCTestCase {
         XCTAssertEqual(reasons.count, 3)
         XCTAssertEqual(
             reasons[0].text,
+            "Quiet streets: band 4 of 5, counted from least to most, among the 21 areas compared in this release.")
+        XCTAssertEqual(
+            reasons[1].text,
             "By public transport to Cindermoor Works: about 21 minutes on a typical weekday morning, "
                 + "26 if you just miss a service.")
         // Every sentence ends in its source and its date.
@@ -62,7 +65,7 @@ final class ResultsCardTests: XCTestCase {
             XCTAssertEqual(reason.sources.map(\.synthetic), [true])
             XCTAssertFalse(reason.byModel)
         }
-        XCTAssertEqual(reasons.map { $0.sources[0].date }, ["September 2026", "August 2026", "2025"])
+        XCTAssertEqual(reasons.map { $0.sources[0].date }, ["2025", "September 2026", "August 2026"])
     }
 
     @MainActor
@@ -116,20 +119,22 @@ final class ResultsCardTests: XCTestCase {
         let api = StandIn.firstSearch()
             .on(.rank, "rank-buyer-family").on(.explainTop, "explanations-buyer-family")
         let app = try await ResultsApp.searched(api)
-        let second = app.listed.cards[1]
-        let explained = Answers.explained("explanations-buyer-family").explanations[1]
+        // The fourth is the first that has no figure for a thing that counts.
+        let fourth = app.listed.cards[3]
+        let explained = Answers.explained("explanations-buyer-family").explanations[3]
 
         XCTAssertEqual(
             try app.firstCard().completeness,
             Results.Completeness(
                 words: "Based on everything that counts in your search", covered: 100, untested: []))
         XCTAssertEqual(try app.firstCard().missing, .hidden)
-        XCTAssertEqual(second.completeness?.words, "Based on 9 of the 10 things that count in your search")
+        XCTAssertEqual(fourth.heading.name, "Marrowfen")
+        XCTAssertEqual(fourth.completeness?.words, "Based on 9 of the 10 things that count in your search")
         // The bar draws what the words count, and nothing else.
-        XCTAssertEqual(second.completeness?.covered, 90)
+        XCTAssertEqual(fourth.completeness?.covered, 90)
         // One sentence of the API's for each thing that has no figure here.
-        XCTAssertEqual(second.missing.value?.map(\.text), explained.missing.map(\.text))
-        XCTAssertEqual(second.missing.value?.count, 1)
+        XCTAssertEqual(fourth.missing.value?.map(\.text), explained.missing.map(\.text))
+        XCTAssertEqual(fourth.missing.value?.count, 1)
         XCTAssertEqual(ResultsCopy.Completeness.missingTitle, "What there is no figure for")
         // A row says how complete it is in one line, and has no sentence.
         XCTAssertEqual(app.listed.cards[5].missing, .hidden)
@@ -146,13 +151,13 @@ final class ResultsCardTests: XCTestCase {
         await until { app.state.ranking != nil }
 
         // How many there will be is known from the ranking.
-        XCTAssertEqual(app.listed.cards[1].missing, .waiting)
-        XCTAssertEqual(app.listed.cards[1].held, 1)
+        XCTAssertEqual(app.listed.cards[3].missing, .waiting)
+        XCTAssertEqual(app.listed.cards[3].held, 1)
         XCTAssertEqual(app.listed.cards[0].missing, .hidden)
         XCTAssertEqual(app.listed.cards[0].held, 0)
         reasons.release()
         await sent
-        XCTAssertEqual(app.listed.cards[1].held, 0)
+        XCTAssertEqual(app.listed.cards[3].held, 0)
     }
 
     @MainActor
@@ -341,7 +346,7 @@ final class ResultsCardTests: XCTestCase {
         let ranked = Answers.ranked("rank-first").ranked[0]
 
         XCTAssertEqual(card.strip.map(\.tagId), ranked.strip.map(\.tagId))
-        XCTAssertEqual(card.strip.map(\.name), ["Leafy", "Quiet streets", "Built age", "Homes"])
+        XCTAssertEqual(card.strip.map(\.name), ["Leafy", "Quiet streets", "Age of buildings", "Houses or flats"])
         XCTAssertEqual(card.strip.map(\.band), ["band 3 of 5", "band 4 of 5", "band 1 of 5", "band 5 of 5"])
         XCTAssertEqual(card.strip.compactMap(\.placed?.band), ranked.strip.map(\.band))
         XCTAssertEqual(
@@ -373,7 +378,7 @@ final class ResultsCardTests: XCTestCase {
 
         XCTAssertFalse(row.full)
         XCTAssertEqual(row.strip.compactMap(\.placed?.band), ranked.strip.map(\.band))
-        XCTAssertEqual(row.strip.map(\.name), ["Leafy", "Quiet streets", "Pace", "Built age"])
+        XCTAssertEqual(row.strip.map(\.name), ["Leafy", "Quiet streets", "Age of buildings", "Village feel"])
         // The fact behind a band of a row is not in hand, so nothing is said of what it rests on.
         XCTAssertEqual(row.strip.map(\.sources), [[], [], [], []])
         XCTAssertEqual(row.strip.map(\.restsOn), [nil, nil, nil, nil])
@@ -387,7 +392,7 @@ final class ResultsCardTests: XCTestCase {
         let strip = Vibes.strip(ranked.ranked[0].strip, meta: Answers.meta, facts: [:])
         let varies = Vibes.strip(mixed.strip, meta: Answers.meta, facts: [:])
 
-        XCTAssertEqual(strip.map(\.name), ["Pace", "Built age", "Homes"])
+        XCTAssertEqual(strip.map(\.name), ["Going out", "Age of buildings", "Houses or flats"])
         XCTAssertEqual(strip.map(\.asked), ["asked for: Calm", nil, nil])
         XCTAssertEqual(strip.first?.plainly, "at the Calm end")
         XCTAssertEqual([strip.first?.low, strip.first?.high], ["Calm", "Buzzy"])
@@ -432,10 +437,10 @@ final class ResultsCardTests: XCTestCase {
         XCTAssertEqual(
             card.breakdown.map(\.thing),
             [
-                "Journey", "Budget", "Quiet streets", "Leafy",
+                "Quiet streets", "Journey", "Budget", "Leafy",
                 "Modelled annual mean nitrogen dioxide",
                 "Straight-line distance to the nearest way in to a station",
-                "Share exposed to 55 dB or more of transport noise",
+                "Share of residents exposed to 55 dB or more of transport noise",
                 "Lines within a 10-minute walk",
                 "Straight-line distance to the nearest marked way into a park of 2 ha or more",
                 "Straight-line distance to the nearest town centre boundary",
@@ -443,7 +448,22 @@ final class ResultsCardTests: XCTestCase {
         XCTAssertEqual(
             card.breakdown.first,
             Results.BreakdownRow(
-                thing: "Journey", weight: "100 of 100", share: "31%", adds: "26 of 100",
+                thing: "Quiet streets", weight: "50 of 100", share: "24%", adds: "16 of 100",
+                says: .figures(
+                    [
+                        .init(name: "Band, of five", value: "4"),
+                        .init(name: "Counted from", value: "least to most"),
+                        .init(name: "Areas compared in this release", value: "21"),
+                        .init(name: "Parts dated", value: "2025"),
+                    ],
+                    sources: [
+                        Results.SourceLine(
+                            sourceId: "synthetic", name: synthetic, asOf: "2025", date: "2025", synthetic: true)
+                    ])))
+        XCTAssertEqual(
+            card.breakdown.first { $0.thing == "Journey" },
+            Results.BreakdownRow(
+                thing: "Journey", weight: "40 of 100", share: "19%", adds: "16 of 100",
                 says: .figures(
                     [
                         .init(name: "To", value: "Cindermoor Works"),
@@ -471,11 +491,11 @@ final class ResultsCardTests: XCTestCase {
         let api = StandIn.firstSearch()
             .on(.rank, "rank-buyer-family").on(.explainTop, "explanations-buyer-family")
         let app = try await ResultsApp.searched(api)
-        let second = app.listed.cards[1]
+        let fourth = app.listed.cards[3]
         let row = app.listed.cards[10]
 
-        XCTAssertEqual(second.breakdown.filter { $0.says == .nothing }.count, 1)
-        XCTAssertEqual(second.breakdown.count, 10)
+        XCTAssertEqual(fourth.breakdown.filter { $0.says == .nothing }.count, 1)
+        XCTAssertEqual(fourth.breakdown.count, 10)
         // A row's facts are not in hand, so it says that there is a figure and shows none.
         XCTAssertTrue(row.breakdown.contains { $0.says == .something })
         XCTAssertFalse(ResultsDrawn.figures(in: row.breakdown.map(\.says)).contains { $0.contains("%") })
@@ -572,7 +592,7 @@ final class ResultsCardTests: XCTestCase {
                         case .array(let reasons)? = all[0]["reasons"]
                     else { return }
                     // The journey is worth 0.85 to the area, and is within its limit.
-                    all[0]["trade_off"] = reasons[0]
+                    all[0]["trade_off"] = reasons[1]
                     data["explanations"] = .array(all)
                 })
             })

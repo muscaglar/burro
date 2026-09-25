@@ -65,11 +65,11 @@ final class ResultsStatesTests: XCTestCase {
         XCTAssertFalse(listed.empty)
         XCTAssertFalse(listed.busy)
         XCTAssertEqual(listed.headline, "21 areas ranked. First: Farrowmere.")
-        // The journey and the budget count for more than anything asked of the place. A person
-        // who asked for leafy and quiet must not read the first result as the leafiest.
-        XCTAssertEqual(listed.changes, ["Journey and budget count most."])
+        // What was asked of the place counts for more than the journey and the budget, and the
+        // settings nobody chose gave way to it.
+        XCTAssertEqual(listed.changes, ["What you asked for counts most."])
         XCTAssertEqual(
-            listed.announcement, "21 areas ranked. First: Farrowmere. Journey and budget count most.")
+            listed.announcement, "21 areas ranked. First: Farrowmere. What you asked for counts most.")
         XCTAssertEqual(listed.cards.map(\.heading.rank), Array(1...20))
         XCTAssertEqual(listed.cards.map(\.id), first.ranked.map(\.areaId))
         XCTAssertEqual(listed.cards.map(\.full), Array(repeating: true, count: 5) + Array(repeating: false, count: 15))
@@ -196,12 +196,10 @@ final class ResultsStatesTests: XCTestCase {
         let refined = Answers.ranked("rank-refined")
         let moved = try XCTUnwrap(app.state.moved)
         XCTAssertEqual(app.listed.cards.map(\.id), refined.ranked.map(\.areaId))
-        XCTAssertEqual(app.listed.headline, "10 areas ranked. First: Cindermoor.")
-        XCTAssertEqual(app.listed.changes, [ResultsCopy.Status.moved(moved), "Journey and budget count most."])
-        XCTAssertGreaterThan(moved, 0)
-        XCTAssertEqual(
-            app.listed.announcement,
-            "10 areas ranked. First: Cindermoor. \(ResultsCopy.Status.moved(moved)) Journey and budget count most.")
+        XCTAssertEqual(app.listed.headline, "10 areas ranked. First: Farrowmere.")
+        XCTAssertEqual(moved, 20)
+        XCTAssertEqual(app.listed.changes, ["20 areas changed place."])
+        XCTAssertEqual(app.listed.announcement, "10 areas ranked. First: Farrowmere. 20 areas changed place.")
         // The areas a firm limit left out are on the map with lines, and in the table with the reason.
         XCTAssertEqual(app.mapped.regions.filter { $0.fill.pattern == .filtered }.count, 11)
         XCTAssertTrue(app.tabled.rows.contains { $0.status == "A journey is longer than a firm limit" })
@@ -225,11 +223,19 @@ final class ResultsStatesTests: XCTestCase {
     func test_refined_what_counts_for_more_than_what_was_asked_is_said_in_place_of_it() async throws {
         let app = try await ResultsApp(StandIn.firstSearch().on(.rank, "rank-default-rent"))
         await app.flow.rankNow()
-        app.api.on(.rank, "rank-refined").on(.explainTop, "explanations-refined")
+        // The ranking of a person who has made the journey and the budget count for more than the place.
+        let led: StandIn.Responder = .made { _ in
+            try Recorded.read("rank-refined").with(data: { data in
+                data["spec"]?["commute_weight"] = .number(1)
+                data["spec"]?["budget"]?["weight"] = .number(0.8)
+            })
+        }
+        app.api.on(.rank, led).on(.explainTop, "explanations-refined")
 
         await app.flow.applyEdits(Edits.placeAdd("syn-p0021"))
 
         XCTAssertTrue(app.state.gaveWay)
+        XCTAssertEqual(app.state.leads, Leads(journey: true, budget: true, journeys: 1))
         XCTAssertTrue(app.listed.changes.contains("Journey and budget count most."))
         XCTAssertFalse(app.listed.changes.contains("What you asked for counts most."))
     }
@@ -388,7 +394,7 @@ final class ResultsStatesTests: XCTestCase {
             app.listed.lines,
             [
                 Results.Line(
-                    .info, ["Burro was not sure. Choose what to add."],
+                    .info, ["Choose what to add"],
                     presses: [Results.Press(words: "Go to the search", act: .toSearch)])
             ])
         // Nothing of what was noticed is applied: the results are as they were, and nothing new is asked for.
@@ -469,6 +475,23 @@ final class ResultsStatesTests: XCTestCase {
             [
                 Results.Line(
                     .info, ["Your words could not be read just now. The settings do the same job."],
+                    presses: [Results.Press(words: "Go to the search", act: .toSearch)])
+            ])
+    }
+
+    @MainActor
+    func test_degraded_the_list_says_when_the_language_model_would_not_read_the_words() async throws {
+        let app = try await ResultsApp(StandIn.firstSearch().on(.interpret, "interpret-refused"))
+
+        await app.flow.submitText("leafy")
+
+        XCTAssertTrue(app.state.modelRefused)
+        XCTAssertEqual(app.listed.cards.count, 20)
+        XCTAssertEqual(
+            app.listed.lines,
+            [
+                Results.Line(
+                    .info, ["The language model would not read this. Burro's rules have read it instead."],
                     presses: [Results.Press(words: "Go to the search", act: .toSearch)])
             ])
     }
@@ -656,7 +679,7 @@ final class ResultsStatesTests: XCTestCase {
         let api = StandIn.firstSearch().on(.getShare, "share-opened")
         let app = try await ResultsApp(api)
 
-        let failure = await app.flow.openShare("rPnAeuBsXQci-xINLK_f2w")
+        let failure = await app.flow.openShare("3TQkoOxY0dYBEVyMymzDjg")
 
         XCTAssertNil(failure)
         let line = try XCTUnwrap(app.listed.lines.first)
@@ -670,14 +693,14 @@ final class ResultsStatesTests: XCTestCase {
             ])
         XCTAssertFalse(app.listed.cards.isEmpty)
         // The id of the share is never drawn.
-        XCTAssertFalse(ResultsDrawn.all(in: app.listed).texts.contains { $0.contains("rPnAeuBsXQci-xINLK_f2w") })
+        XCTAssertFalse(ResultsDrawn.all(in: app.listed).texts.contains { $0.contains("3TQkoOxY0dYBEVyMymzDjg") })
     }
 
     @MainActor
     func test_a_shared_search_on_newer_data_says_the_ranking_may_differ() async throws {
         let app = try await ResultsApp(StandIn.firstSearch().on(.getShare, "share-opened-stale"))
 
-        _ = await app.flow.openShare("rPnAeuBsXQci-xINLK_f2w")
+        _ = await app.flow.openShare("3TQkoOxY0dYBEVyMymzDjg")
 
         XCTAssertEqual(app.listed.lines.first?.words.last, ResultsCopy.Notice.sharedStale)
     }

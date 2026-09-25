@@ -90,17 +90,17 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "4821",
+    "content-length": "4853",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "14984ae2-6837-4b97-b3aa-f8be76bca0da"
+    "x-request-id": "3dbf605d-3c78-46aa-8aec-aca46d801c8e"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
@@ -226,7 +226,8 @@
               "minutes": 25,
               "minutes_typical": 25,
               "minutes_just_missed": 30,
-              "utility": 0.5
+              "utility": 0.5,
+              "estimate": null
             },
             {
               "place_id": "syn-p0026",
@@ -235,7 +236,8 @@
               "minutes": 36,
               "minutes_typical": 36,
               "minutes_just_missed": 41,
-              "utility": 0.3
+              "utility": 0.3,
+              "estimate": null
             }
           ],
           "budget": null,

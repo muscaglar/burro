@@ -87,7 +87,8 @@ public struct Timeouts: Hashable, Sendable {
         case .searchPlaces: return places
         case .rank, .explainTop, .compare, .createShare, .getShare: return search
         // The census of an area is asked for when a person opens it, as the website asks.
-        case .getCensus: return search
+        // So is its household income, which no screen of the app shows yet.
+        case .getCensus, .getIncome: return search
         case .listAreas, .getGeometry, .getArea, .getMeta, .healthz: return release
         }
     }

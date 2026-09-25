@@ -118,8 +118,8 @@ final class SearchStatesTests: XCTestCase {
                 "Usual settings: 6 assumed",
             ])
         XCTAssertEqual(shown.readBy, "Read without AI.")
-        // The journey and the budget count for more than anything asked of the place, and the line says so.
-        XCTAssertEqual(shown.status, "21 areas ranked. First: Farrowmere. Journey and budget count most.")
+        // What was asked of the place counts for more than the journey and the budget, and the line says so.
+        XCTAssertEqual(shown.status, "21 areas ranked. First: Farrowmere. What you asked for counts most.")
         XCTAssertEqual(shown.parts, [.box, .examples, .basics, .status, .chips, .results, .settings])
         XCTAssertFalse(shown.canRank)
     }
@@ -311,8 +311,9 @@ final class SearchStatesTests: XCTestCase {
             "Cindermoor Works, Public transport assumed, within 30 minutes, firm limit")
         let moved = try XCTUnwrap(search.state.moved)
         XCTAssertGreaterThan(moved, 0)
-        // What explains the order on screen is said of every ranking it is true of.
-        XCTAssertEqual(shown.status, "\(SearchCopy.Status.moved(moved)) Journey and budget count most.")
+        // Nothing counts for more than what was asked of the place, and no usual setting gave way again.
+        XCTAssertEqual(moved, 20)
+        XCTAssertEqual(shown.status, "20 areas changed place.")
         XCTAssertTrue(shown.status.contains("changed place."))
         XCTAssertGreaterThan(search.state.answers, before)
     }
@@ -523,12 +524,63 @@ final class SearchStatesTests: XCTestCase {
 
         // The words were read, by rules: there is nothing to try again.
         XCTAssertEqual(shown.couldNotReadRetry, false)
+        XCTAssertEqual(
+            shown.couldNotRead, "Your words could not be read just now. The settings below do the same job.")
         XCTAssertTrue(shown.settingsOpen)
         XCTAssertEqual(shown.chips.count, 6)
         XCTAssertTrue(shown.hasRanking)
         XCTAssertNil(shown.failure)
         XCTAssertEqual(
             shown.parts, [.box, .examples, .basics, .status, .couldNotRead, .chips, .results, .settings])
+        // Words the rules read for any other reason are not said to have been refused.
+        XCTAssertFalse(Answers.read("interpret-degraded").modelRefused)
+        XCTAssertFalse(search.state.modelRefused)
+        XCTAssertNil(OpenSearch().shown().couldNotRead)
+    }
+
+    @MainActor
+    func test_degraded_when_the_language_model_would_not_read_the_words_one_line_says_so_and_that_the_rules_have()
+        async
+    {
+        let refused = Answers.read("interpret-refused")
+        let search = OpenSearch(StandIn.firstSearch().on(.interpret, "interpret-refused"))
+
+        await search.flow.submitText("leafy and quiet")
+        let shown = search.shown()
+
+        XCTAssertTrue(refused.modelRefused)
+        XCTAssertTrue(refused.degraded)
+        XCTAssertEqual(refused.interpreter, .rule)
+        XCTAssertEqual(
+            shown.couldNotRead, "The language model would not read this. Burro's rules have read it instead.")
+        // The rules read the words as they would with no model: there is nothing to try
+        // again, and their results show as usual.
+        XCTAssertEqual(shown.couldNotReadRetry, false)
+        XCTAssertTrue(shown.hasRanking)
+        XCTAssertNil(shown.failure)
+        XCTAssertEqual(
+            shown.parts, [.box, .examples, .basics, .status, .couldNotRead, .chips, .results, .settings])
+    }
+
+    @MainActor
+    func test_degraded_words_that_nothing_read_are_not_said_to_have_been_refused() async {
+        let api = StandIn.firstSearch().on(.interpret, "interpret-refused")
+        let search = OpenSearch(api)
+        await search.flow.submitText("leafy and quiet")
+        XCTAssertEqual(search.shown().couldNotRead, SearchCopy.Notice.refused)
+        api.on(.interpret, "error-internal")
+
+        search.flow.boxChanged()
+        await search.flow.submitText("leafy")
+        let shown = search.shown()
+
+        // The reading before is still held when a read fails. Nothing read this sentence,
+        // so nothing is said to have refused it.
+        XCTAssertEqual(search.state.read?.modelRefused, true)
+        XCTAssertEqual(search.state.failurePlace, .form)
+        XCTAssertEqual(
+            shown.couldNotRead, "Your words could not be read just now. The settings below do the same job.")
+        XCTAssertEqual(shown.couldNotReadRetry, true)
     }
 
     @MainActor
@@ -590,8 +642,9 @@ final class SearchStatesTests: XCTestCase {
 
         XCTAssertEqual(
             shown.notice,
-            "Burro ranks places by what is there, such as schools, parks, venues and transport, "
-                + "and never by who lives there. The rest of your search has been applied.")
+            "Burro ranks places by what is there. Of who lives in a place it counts only their "
+                + "age and their households, at the census of 2021, and you cannot ask for fewer "
+                + "of anyone. The rest of your search has been applied.")
         XCTAssertEqual(shown.unmet, [])
         XCTAssertEqual(shown.notApplied, [])
         XCTAssertNil(shown.nothingRead)

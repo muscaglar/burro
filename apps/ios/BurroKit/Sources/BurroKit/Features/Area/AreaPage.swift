@@ -111,9 +111,11 @@ public struct AreaPage: Hashable, Sendable {
         self.vibes = vibes
     }
 
-    /// The order the groups are shown in. Recorded crime is last: it is off unless asked for.
+    /// The order the groups are shown in. What is there comes first, and who lived there
+    /// after it. Recorded crime is last: it is off unless asked for.
     public static let dimensions: [Dimension] = [
-        .stationAccess, .greenWater, .airNoise, .venuesCulture, .services, .schools, .homes, .crime,
+        .stationAccess, .greenWater, .airNoise, .venuesCulture, .services, .brands, .schools, .homes,
+        .residents, .crime,
     ]
 
     /// The kinds of home that go with each tenure, in the order a form lists

@@ -62,6 +62,7 @@ public func reduce(_ state: SearchState, _ event: SearchEvent) -> SearchState {
             noticeText: data.noticeText,
             interpreter: data.interpreter,
             degraded: data.degraded,
+            modelRefused: data.modelRefused,
             suggestions: data.suggestions,
             unread: data.unread,
             notInRelease: data.notInRelease,
@@ -69,7 +70,10 @@ public func reduce(_ state: SearchState, _ event: SearchEvent) -> SearchState {
             changed: changed,
             partUnread: !data.unread.isEmpty,
             at: answers,
-            by: by ?? Served(form: state.meta)
+            by: by ?? Served(form: state.meta),
+            more: data.modelPending,
+            chosen: [],
+            added: nil
         )
         next.refused = nil
         next.degraded = data.degraded
@@ -242,7 +246,7 @@ public func reduce(_ state: SearchState, _ event: SearchEvent) -> SearchState {
 
     case .suggestionChosen(let at, let changes):
         guard var read = state.read, read.suggestions.indices.contains(at) else { return state }
-        read.suggestions.remove(at: at)
+        read.chosen.append(read.suggestions.remove(at: at).key)
         if changes {
             // The notice was written of the words as they were read, and may end "Nothing
             // you typed has changed your search". A choice that holds edits changes it. The
@@ -252,12 +256,62 @@ public func reduce(_ state: SearchState, _ event: SearchEvent) -> SearchState {
         }
         next.read = read
 
+    case .allAdded(let ats):
+        guard var read = state.read else { return state }
+        let taken = Set(ats)
+        let added = read.suggestions.enumerated().filter { taken.contains($0.offset) }.map(\.element)
+        guard !added.isEmpty else { return state }
+        let left = read.suggestions.enumerated().filter { !taken.contains($0.offset) }.map(\.element)
+        read.added = Added(
+            count: added.count,
+            // What is left for the person: of what was added, and of what was not.
+            needs: (added + left).map(\.needs).filter { !$0.isEmpty },
+            spec: state.spec,
+            suggestions: read.suggestions)
+        read.suggestions = left
+        read.chosen += added.map(\.key)
+        // What was added changes the search, so the notice goes whole, as it does for one choice.
+        read.notice = .nothing
+        read.noticeText = ""
+        next.read = read
+
+    case .allTakenBack:
+        guard var read = state.read, let added = read.added else { return state }
+        let back = Set(added.suggestions.map(\.key))
+        read.suggestions = added.suggestions
+        read.chosen = read.chosen.filter { !back.contains($0) }
+        read.added = nil
+        next.read = read
+
+    case .readMoreAnswered(let data):
+        guard var read = state.read, read.more else { return state }
+        // What the person chose of while the model read is not offered again.
+        let chosen = read.chosen
+        read.suggestions = data.suggestions.filter { !chosen.contains($0.key) }
+        read.unread = data.unread
+        read.unmet = data.unmet
+        read.partUnread = !data.unread.isEmpty
+        read.interpreter = data.interpreter
+        read.degraded = data.degraded
+        read.modelRefused = data.modelRefused
+        read.more = false
+        next.read = read
+        next.degraded = data.degraded
+
+    case .readMoreFailed:
+        guard var read = state.read, read.more else { return state }
+        read.more = false
+        next.read = read
+
     case .boxChanged:
-        guard var read = state.read, !(read.suggestions.isEmpty && read.unread.isEmpty) else {
-            return state
-        }
+        guard var read = state.read else { return state }
+        let nothing = read.suggestions.isEmpty && read.unread.isEmpty
+        if nothing && !read.more && read.added == nil { return state }
+        // Where the words stand is known for what was sent, and for nothing else.
         read.suggestions = []
         read.unread = []
+        read.more = false
+        read.added = nil
         next.read = read
 
     case .placeNamed(let placeId, let name):

@@ -71,7 +71,7 @@ final class AboutTests: XCTestCase {
             groups.map(\.title),
             [
                 "Stations", "Green space and water", "Air and noise", "Venues and culture",
-                "Shops and services", "Schools", "Homes", "Recorded crime",
+                "Shops and services", "Brands nearby", "Schools", "Homes", "Recorded crime",
             ])
         XCTAssertEqual(described.count, meta.features.count)
         XCTAssertEqual(Set(described.map(\.id)), Set(meta.features.map(\.featureId.rawValue)))
@@ -134,7 +134,7 @@ final class AboutTests: XCTestCase {
             engineVersion: meta.engineVersion, catalogueVersion: meta.catalogueVersion, counts: meta.counts,
             holds: meta.holds, attributions: meta.attributions, features: meta.features, tags: meta.tags,
             recipes: [], families: meta.families, grittyVariant: meta.grittyVariant, defaults: meta.defaults,
-            limits: meta.limits, reader: meta.reader, census: meta.census)
+            limits: meta.limits, reader: meta.reader, census: meta.census, income: meta.income)
         let bare = try XCTUnwrap(AboutPage.tags(unnamed).first { $0.tag.tagId == .everydayOnFoot })
         XCTAssertEqual(
             bare.terms.suffix(2).map(\.feature),
@@ -146,12 +146,12 @@ final class AboutTests: XCTestCase {
 
         XCTAssertEqual(starts.map(\.title), ["Renting", "Buying"])
         XCTAssertEqual(starts.first?.home, "One bedroom")
-        XCTAssertEqual(starts.first?.rows.first, AboutRow(name: "Budget", value: "80 of 100. Flexible"))
+        XCTAssertEqual(starts.first?.rows.first, AboutRow(name: "Budget", value: "30 of 100. Flexible"))
         XCTAssertEqual(
             starts.first?.rows[1],
             AboutRow(
                 name: "Journeys",
-                value: "100 of 100. Only the journey that does worst against its limit counts. "
+                value: "40 of 100. Only the journey that does worst against its limit counts. "
                     + "The typical time counts"))
         XCTAssertEqual(starts.first?.rows.count, 2 + meta.defaults.rent.weights.count)
         XCTAssertEqual(

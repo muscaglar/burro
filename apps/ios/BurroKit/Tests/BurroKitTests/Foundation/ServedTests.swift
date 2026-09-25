@@ -16,7 +16,7 @@ final class ServedTests: XCTestCase {
     private let reasons = Answers.explained("explanations-first")
     private let later = Answers.explained("explanations-refined")
     private let profile = Answers.profile("farrowmere")
-    private let shareId = "rPnAeuBsXQci-xINLK_f2w"
+    private let shareId = "3TQkoOxY0dYBEVyMymzDjg"
     private let timeout = Failure.because(.timeout)
     private let fault = Answers.failure("error-internal")
 
@@ -40,7 +40,7 @@ final class ServedTests: XCTestCase {
             counts: meta.counts, holds: meta.holds, attributions: meta.attributions,
             features: meta.features, tags: meta.tags, recipes: meta.recipes, families: meta.families,
             grittyVariant: meta.grittyVariant, defaults: meta.defaults, limits: meta.limits,
-            reader: meta.reader, census: meta.census)
+            reader: meta.reader, census: meta.census, income: meta.income)
     }
 
     // MARK: - A release that changes

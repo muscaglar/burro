@@ -218,7 +218,9 @@ extension Results {
         }
 
         if conditions.contains(.degraded) {
-            lines.append(Line(.info, [ResultsCopy.Notice.degradedHere], presses: [toSearch]))
+            // Where the language model would not read the words, the rules have, and the line says so.
+            let words = state.modelRefused ? ResultsCopy.Notice.refused : ResultsCopy.Notice.degradedHere
+            lines.append(Line(.info, [words], presses: [toSearch]))
         }
         if conditions.contains(.notice), let read = state.read {
             lines.append(Line(.notice, [read.noticeText]))

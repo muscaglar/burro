@@ -71,8 +71,9 @@ enum SettingsCopy {
         static let legend = "Other things that count"
         static let tagsLegend = "Vibes"
         static let tagsHint =
-            "A vibe is a published recipe over measured parts. It is named for the place, "
-            + "never for who lives there, and it says what it cannot see."
+            "A vibe is a published recipe over measured parts, and it says what it cannot see. "
+            + "A vibe that counts who lived in an area says so, and counts their age or their "
+            + "households and nothing else."
         /// Said of a vibe that no area of the data can be placed on, in place of its switch.
         static let notInData = "Not in this data yet"
         /// Which end of a scale is asked for. The name of the vibe and of the end are the API's.

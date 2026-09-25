@@ -13,7 +13,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-cache",
-    "content-length": "28861",
+    "content-length": "39776",
     "content-type": "application/json",
     "etag": "\"syn-2026-09-23-01\"",
     "vary": "Origin",
@@ -24,7 +24,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
@@ -45,7 +45,9 @@
         "neighbours": [
           "syn-n0003",
           "syn-n0009"
-        ]
+        ],
+        "named": null,
+        "homes_at": null
       },
       "features": [
         {
@@ -54,6 +56,230 @@
           "value": null,
           "percentile": null,
           "coverage": 0.25
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_aldi",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.18
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_anytime_fitness",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.11
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_asda",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.34
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_barrys",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.45
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_blank_street",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.08
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_coop",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.24
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_costa",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.09
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_david_lloyd",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.0
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_equinox",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.19
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_gails",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.3
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_greggs",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.11
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_gymbox",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.12
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_iceland",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.07
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_lidl",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.32
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_mands",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.41
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_mix",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.22
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_morrisons",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.3
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_nero",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.07
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_nuffield",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.17
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_ole_and_steen",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.04
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_pret",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.41
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_puregym",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.06
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_sainsburys",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.37
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_starbucks",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.23
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_tesco",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.15
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_the_gym_group",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.15
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_third_space",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.01
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_virgin_active",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.31
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_waitrose",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.41
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "brand_whole_foods",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.22
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "bus_routes_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.44
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "bus_stops_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.1
         },
         {
           "area_id": "syn-n0017",
@@ -68,6 +294,48 @@
           "value": null,
           "percentile": null,
           "coverage": 0.16
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "coffee_mid_distance",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.16
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "coffee_mid_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.02
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "coffee_premium_distance",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.26
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "coffee_premium_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.23
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "coffee_value_distance",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.17
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "coffee_value_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.38
         },
         {
           "area_id": "syn-n0017",
@@ -120,10 +388,94 @@
         },
         {
           "area_id": "syn-n0017",
+          "feature_id": "grocer_mid_distance",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.39
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "grocer_mid_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.13
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "grocer_premium_distance",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.15
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "grocer_premium_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.23
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "grocer_value_distance",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.2
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "grocer_value_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.17
+        },
+        {
+          "area_id": "syn-n0017",
           "feature_id": "grocery_walk",
           "value": null,
           "percentile": null,
           "coverage": 0.04
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "gym_mid_distance",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.22
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "gym_mid_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.25
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "gym_premium_distance",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.13
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "gym_premium_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.09
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "gym_value_distance",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.1
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "gym_value_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.05
         },
         {
           "area_id": "syn-n0017",
@@ -148,6 +500,13 @@
         },
         {
           "area_id": "syn-n0017",
+          "feature_id": "homes_higher_bands",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.42
+        },
+        {
+          "area_id": "syn-n0017",
           "feature_id": "homes_post2000",
           "value": null,
           "percentile": null,
@@ -159,6 +518,20 @@
           "value": null,
           "percentile": null,
           "coverage": 0.21
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "households_dependent_children",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.06
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "households_one_person",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.32
         },
         {
           "area_id": "syn-n0017",
@@ -232,6 +605,13 @@
         },
         {
           "area_id": "syn-n0017",
+          "feature_id": "overground_proximity",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.25
+        },
+        {
+          "area_id": "syn-n0017",
           "feature_id": "park_facilities",
           "value": null,
           "percentile": null,
@@ -264,6 +644,41 @@
           "value": null,
           "percentile": null,
           "coverage": 0.37
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "price_rise_10y",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.27
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "price_rise_5y",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.31
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "rail_proximity",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.06
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "residents_aged_20_34",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.38
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "residents_aged_65_over",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.4
         },
         {
           "area_id": "syn-n0017",
@@ -309,6 +724,13 @@
         },
         {
           "area_id": "syn-n0017",
+          "feature_id": "underground_proximity",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.17
+        },
+        {
+          "area_id": "syn-n0017",
           "feature_id": "university_proximity",
           "value": 3300.0,
           "percentile": 38.6,
@@ -316,10 +738,31 @@
         },
         {
           "area_id": "syn-n0017",
+          "feature_id": "venue_cafe",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.04
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "venue_cafe_per_homes",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.39
+        },
+        {
+          "area_id": "syn-n0017",
           "feature_id": "venue_evening",
           "value": null,
           "percentile": null,
           "coverage": 0.04
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "venue_evening_per_homes",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.4
         },
         {
           "area_id": "syn-n0017",
@@ -334,6 +777,20 @@
           "value": null,
           "percentile": null,
           "coverage": 0.27
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "venue_gym",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.17
+        },
+        {
+          "area_id": "syn-n0017",
+          "feature_id": "venue_gym_per_homes",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.25
         },
         {
           "area_id": "syn-n0017",
@@ -453,10 +910,40 @@
         },
         {
           "area_id": "syn-n0017",
+          "tag_id": "well_connected",
+          "raw": null,
+          "score": null,
+          "coverage": 0.0,
+          "band": null,
+          "spread_low": null,
+          "spread_high": null
+        },
+        {
+          "area_id": "syn-n0017",
           "tag_id": "street_character",
           "raw": null,
           "score": null,
           "coverage": 0.0,
+          "band": null,
+          "spread_low": null,
+          "spread_high": null
+        },
+        {
+          "area_id": "syn-n0017",
+          "tag_id": "family_area",
+          "raw": null,
+          "score": null,
+          "coverage": 0.25,
+          "band": null,
+          "spread_low": null,
+          "spread_high": null
+        },
+        {
+          "area_id": "syn-n0017",
+          "tag_id": "young_professionals",
+          "raw": null,
+          "score": null,
+          "coverage": 0.25,
           "band": null,
           "spread_low": null,
           "spread_high": null
@@ -472,6 +959,8 @@
           "upper_quartile": 700,
           "confidence": "low",
           "as_of": "2026-08",
+          "since": null,
+          "sales": null,
           "source_ids": [
             "synthetic"
           ]
@@ -485,6 +974,8 @@
           "upper_quartile": 1050,
           "confidence": "low",
           "as_of": "2026-08",
+          "since": null,
+          "sales": null,
           "source_ids": [
             "synthetic"
           ]
@@ -498,6 +989,8 @@
           "upper_quartile": 1350,
           "confidence": "low",
           "as_of": "2026-08",
+          "since": null,
+          "sales": null,
           "source_ids": [
             "synthetic"
           ]
@@ -511,6 +1004,8 @@
           "upper_quartile": 1750,
           "confidence": "low",
           "as_of": "2026-08",
+          "since": null,
+          "sales": null,
           "source_ids": [
             "synthetic"
           ]
@@ -524,6 +1019,8 @@
           "upper_quartile": 2200,
           "confidence": "low",
           "as_of": "2026-08",
+          "since": null,
+          "sales": null,
           "source_ids": [
             "synthetic"
           ]
@@ -537,6 +1034,8 @@
           "upper_quartile": 3025,
           "confidence": "low",
           "as_of": "2026-08",
+          "since": null,
+          "sales": null,
           "source_ids": [
             "synthetic"
           ]
@@ -550,6 +1049,8 @@
           "upper_quartile": 305000,
           "confidence": "low",
           "as_of": "2026-08",
+          "since": null,
+          "sales": null,
           "source_ids": [
             "synthetic"
           ]
@@ -563,6 +1064,8 @@
           "upper_quartile": 445000,
           "confidence": "low",
           "as_of": "2026-08",
+          "since": null,
+          "sales": null,
           "source_ids": [
             "synthetic"
           ]
@@ -576,6 +1079,8 @@
           "upper_quartile": 520000,
           "confidence": "low",
           "as_of": "2026-08",
+          "since": null,
+          "sales": null,
           "source_ids": [
             "synthetic"
           ]
@@ -589,6 +1094,8 @@
           "upper_quartile": 765000,
           "confidence": "low",
           "as_of": "2026-08",
+          "since": null,
+          "sales": null,
           "source_ids": [
             "synthetic"
           ]
@@ -617,7 +1124,14 @@
             0.059609,
             -0.000169
           ],
-          "rankable": true
+          "rankable": true,
+          "named": {
+            "label": "Quillhaven 003",
+            "source_ids": [
+              "synthetic"
+            ],
+            "state": "draft"
+          }
         },
         {
           "area_id": "syn-n0009",
@@ -628,7 +1142,8 @@
             0.034291,
             -0.016037
           ],
-          "rankable": false
+          "rankable": false,
+          "named": null
         }
       ],
       "portrait": {
@@ -731,20 +1246,26 @@
             "figure_fact_id": null,
             "parts": [
               {
+                "feature_id": "venue_evening_per_homes",
+                "hundredths": 35,
+                "reading": "high",
+                "fact_id": null
+              },
+              {
                 "feature_id": "venue_food_drink_per_homes",
-                "hundredths": 45,
+                "hundredths": 30,
                 "reading": "high",
                 "fact_id": null
               },
               {
                 "feature_id": "highstreet_access",
-                "hundredths": 30,
+                "hundredths": 20,
                 "reading": "low",
                 "fact_id": null
               },
               {
                 "feature_id": "culture_venues_per_homes",
-                "hundredths": 25,
+                "hundredths": 15,
                 "reading": "high",
                 "fact_id": null
               }
@@ -919,6 +1440,37 @@
             ]
           },
           {
+            "tag_id": "well_connected",
+            "fact_id": "syn-n0017/tag/well_connected",
+            "figure_fact_id": null,
+            "parts": [
+              {
+                "feature_id": "underground_proximity",
+                "hundredths": 45,
+                "reading": "low",
+                "fact_id": null
+              },
+              {
+                "feature_id": "overground_proximity",
+                "hundredths": 20,
+                "reading": "low",
+                "fact_id": null
+              },
+              {
+                "feature_id": "rail_proximity",
+                "hundredths": 15,
+                "reading": "low",
+                "fact_id": null
+              },
+              {
+                "feature_id": "bus_routes_nearby",
+                "hundredths": 20,
+                "reading": "high",
+                "fact_id": null
+              }
+            ]
+          },
+          {
             "tag_id": "street_character",
             "fact_id": "syn-n0017/tag/street_character",
             "figure_fact_id": null,
@@ -960,6 +1512,68 @@
                 "fact_id": null
               }
             ]
+          },
+          {
+            "tag_id": "family_area",
+            "fact_id": "syn-n0017/tag/family_area",
+            "figure_fact_id": "syn-n0017/feature/school_primary_nearby",
+            "parts": [
+              {
+                "feature_id": "households_dependent_children",
+                "hundredths": 40,
+                "reading": "high",
+                "fact_id": null
+              },
+              {
+                "feature_id": "school_primary_nearby",
+                "hundredths": 25,
+                "reading": "high",
+                "fact_id": "syn-n0017/feature/school_primary_nearby"
+              },
+              {
+                "feature_id": "play_space_proximity",
+                "hundredths": 20,
+                "reading": "low",
+                "fact_id": null
+              },
+              {
+                "feature_id": "park_proximity",
+                "hundredths": 15,
+                "reading": "low",
+                "fact_id": null
+              }
+            ]
+          },
+          {
+            "tag_id": "young_professionals",
+            "fact_id": "syn-n0017/tag/young_professionals",
+            "figure_fact_id": "syn-n0017/feature/station_walk",
+            "parts": [
+              {
+                "feature_id": "residents_aged_20_34",
+                "hundredths": 40,
+                "reading": "high",
+                "fact_id": null
+              },
+              {
+                "feature_id": "station_walk",
+                "hundredths": 25,
+                "reading": "low",
+                "fact_id": "syn-n0017/feature/station_walk"
+              },
+              {
+                "feature_id": "venue_food_drink_per_homes",
+                "hundredths": 20,
+                "reading": "high",
+                "fact_id": null
+              },
+              {
+                "feature_id": "culture_venues_per_homes",
+                "hundredths": 15,
+                "reading": "high",
+                "fact_id": null
+              }
+            ]
           }
         ]
       },
@@ -985,7 +1599,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1019,7 +1634,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -1053,7 +1669,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -1087,7 +1704,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -1121,7 +1739,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -1155,7 +1774,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -1189,7 +1809,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -1223,7 +1844,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -1257,7 +1879,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -1291,7 +1914,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -1325,7 +1949,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -1361,7 +1986,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1397,7 +2023,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1432,7 +2059,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1470,7 +2098,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1506,7 +2135,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1542,7 +2172,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1578,7 +2209,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1614,7 +2246,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1643,7 +2276,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09",
@@ -1673,7 +2307,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1703,7 +2338,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1733,7 +2369,39 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/tag/family_area",
+          "area_id": "syn-n0017",
+          "kind": "tag",
+          "key": "family_area",
+          "label": "Family area",
+          "template": "vibe_unknown",
+          "slots": {
+            "label": "Family area",
+            "name": "Otterby Fields",
+            "known": "1",
+            "parts": "4"
+          },
+          "numbers": [
+            "1",
+            "4"
+          ],
+          "names": [
+            "Otterby Fields"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1763,7 +2431,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1807,7 +2476,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1837,7 +2507,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1854,11 +2525,11 @@
             "label": "Going out",
             "name": "Otterby Fields",
             "known": "0",
-            "parts": "3"
+            "parts": "4"
           },
           "numbers": [
             "0",
-            "3"
+            "4"
           ],
           "names": [
             "Otterby Fields"
@@ -1867,7 +2538,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1897,7 +2569,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1927,7 +2600,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1957,7 +2631,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1987,10 +2662,73 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/tag/well_connected",
+          "area_id": "syn-n0017",
+          "kind": "tag",
+          "key": "well_connected",
+          "label": "Well connected",
+          "template": "vibe_unknown",
+          "slots": {
+            "label": "Well connected",
+            "name": "Otterby Fields",
+            "known": "0",
+            "parts": "4"
+          },
+          "numbers": [
+            "0",
+            "4"
+          ],
+          "names": [
+            "Otterby Fields"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/tag/young_professionals",
+          "area_id": "syn-n0017",
+          "kind": "tag",
+          "key": "young_professionals",
+          "label": "Young professionals",
+          "template": "vibe_unknown",
+          "slots": {
+            "label": "Young professionals",
+            "name": "Otterby Fields",
+            "known": "1",
+            "parts": "4"
+          },
+          "numbers": [
+            "1",
+            "4"
+          ],
+          "names": [
+            "Otterby Fields"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
           "synthetic": true
         }
       ]

@@ -100,17 +100,17 @@
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "acf9c07a-e06c-4d07-a2fb-120d2cafdfdb"
+    "x-request-id": "4a5f889c-2276-45a7-8b44-47eaf23212a1"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
     "data": {
-      "share_id": "amxR0B08ENHLM6sfo5G7Dw",
+      "share_id": "3TQkoOxY0dYBEVyMymzDjg",
       "spec": {
         "schema_version": 1,
         "tenure": "rent",

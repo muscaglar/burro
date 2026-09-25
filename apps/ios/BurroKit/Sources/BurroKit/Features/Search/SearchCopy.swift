@@ -196,6 +196,8 @@ enum SearchCopy {
     enum Notice {
         static let label = "About your search"
         static let degraded = "Your words could not be read just now. The settings below do the same job."
+        /// Said when the provider of the language model would not read what was typed. It names nobody.
+        static let refused = "The language model would not read this. Burro's rules have read it instead."
         /// A sentence that Burro reads whole, to show what it can read. It names no place.
         static let readable = "leafy and quiet, near a park"
         /// The website writes the sentence between quote marks. So does this.
@@ -230,18 +232,37 @@ enum SearchCopy {
         static let rejectedLabel = "What was not applied"
     }
 
-    /// What the reader noticed in a prompt it did not apply. The name of each
-    /// thing and the words of each choice are the API's.
+    /// What the reader noticed in a prompt it did not apply. What an offer would
+    /// do, what follows from it and the words of each choice are the API's.
     enum Suggest {
-        static let title = "Burro was not sure. Choose what to add."
-        /// Under the heading, in one line: why Burro asks, where it could have added what it noticed.
-        static let why = "It never guesses what you meant, so it asks."
-        /// The one button that adds every thing in sight that there is one way to want.
+        static let title = "Choose what to add"
+        /// Under the heading, in one line: that nothing is added until it is pressed.
+        static let why = "Nothing is added until you press it."
+        /// Beside the way Burro reads the words. It marks a choice, and applies nothing.
+        static let guess = "Burro's guess"
+        /// Before the person's own words, which are cut from the box by where they stand.
+        static let wrote = "You wrote"
+        /// While a model reads what the rules left unread. What the rules noticed is on the screen.
+        static let reading = "Burro is still reading the rest of your words."
+        /// The one button that adds every thing in sight that one press may add.
         static func addAll(_ count: Int) -> String { "Add all \(count)" }
-        /// The same, where a thing that could be meant two ways is in sight as well, and is left as a question.
+        /// The same, where a thing that is the person's to choose is in sight as well.
         static func addThese(_ count: Int) -> String { "Add the \(count) that need no choice" }
+        /// What one press added, and what is left for the person, which the API names.
+        static func added(_ count: Int, needs: [String]) -> String {
+            let added = "\(count) added."
+            guard !needs.isEmpty else { return added }
+            let verb = needs.count == 1 ? "needs" : "need"
+            let listed = needs.joined(separator: "; ") + "."
+            return [added, String(needs.count), verb, "you:", listed].joined(separator: " ")
+        }
+        static let takeBack = "Take it all back"
         /// A choice that is said of every suggestion, named by the thing it is a choice of.
         static func named(_ choice: String, _ thing: String) -> String { "\(choice): \(thing)" }
+        /// Over the field where a place is chosen for a journey whose place Burro does not know.
+        static let whichPlace = "Which place?"
+        /// Over the places the release holds that are like the one that was typed.
+        static let alike = "Places like it"
         static let showWords = "Show the words"
         static func showWordsOf(_ thing: String) -> String { "Show the words in the box: \(thing)" }
         static func showAll(_ count: Int) -> String { "Show all \(count)" }
@@ -308,7 +329,7 @@ enum SearchCopy {
         case .broadband: return "Burro has no data on broadband, so that part was left out."
         case .floodRisk: return "Burro has no data on flood risk, so that part was left out."
         case .healthServices:
-            return "Burro has no data on health services nearby, so that part was left out."
+            return "Burro has no data on health services other than GP surgeries and pharmacies, so that part was left out."
         case .driving:
             return "Burro does not work out journeys by car. It covers public transport, cycling and walking."
         case .listings: return "Burro does not show homes to rent or to buy. It ranks areas."

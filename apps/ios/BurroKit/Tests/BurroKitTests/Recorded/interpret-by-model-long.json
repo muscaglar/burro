@@ -1,6 +1,6 @@
 {
   "scenario": "interpret-by-model-long",
-  "shows": "A long sentence read by a model: ten offers, each in four parts, one with a choice of two things, a journey and a budget that may be made firm, words nothing was made of, and five readings of two words that the rules offer with no guess",
+  "shows": "A long sentence read by a model: twelve offers, each in four parts, one with a choice of two things, a journey and a budget that may be made firm, words nothing was made of, and seven readings of two words that the rules offer with no guess",
   "captured": true,
   "request": {
     "operation_id": "interpret",
@@ -16,7 +16,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "13216",
+    "content-length": "15336",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -26,7 +26,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
@@ -132,7 +132,7 @@
             "start": 0,
             "end": 30
           },
-          "follows": "What it counts: homes away from main roads and from clusters of late venues, with little transport noise. It cannot see: one street or one home. An area is many streets.",
+          "follows": "What it counts: homes away from main roads and from clusters of pubs and bars, with little transport noise. It cannot see: one street or one home. An area is many streets.",
           "said": [],
           "choices": [
             {
@@ -295,6 +295,69 @@
           "options": []
         },
         {
+          "target": "feature:brand_mix",
+          "label": "Mix of brands",
+          "does": "Rank areas higher for this: more premium.",
+          "spans": [
+            {
+              "start": 54,
+              "end": 71
+            }
+          ],
+          "shown": {
+            "start": 54,
+            "end": 103
+          },
+          "follows": "What Burro counts: share of the chain grocers, gyms and coffee places within 800 m of home that are premium, with a mid-range one counted as half, by Burro's table of tiers.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "More premium",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "nudge",
+                    "feature_id": "brand_mix",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "direction": "more",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "Burro reads this of the place, and not of the people who live there.",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "mix of brands",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
           "target": "tag:street_character",
           "label": "Gritty",
           "does": "Add Gritty, towards Polished, counting recorded crime.",
@@ -349,7 +412,7 @@
               }
             }
           ],
-          "note": "Burro measures places, not the people in them. Gritty counts recorded criminal damage and arson, and recorded anti-social behaviour. Recorded crime depends on what is reported, and locations are approximate.",
+          "note": "Burro reads this of the place, and not of the people who live there. Gritty counts recorded criminal damage and arson, and recorded anti-social behaviour. Recorded crime depends on what is reported, and locations are approximate.",
           "read_by": "rule",
           "add_all": "",
           "needs": "recorded crime, which is added under its own name",
@@ -412,10 +475,73 @@
               }
             }
           ],
-          "note": "Burro measures places, not the people in them.",
+          "note": "Burro reads this of the place, and not of the people who live there.",
           "read_by": "rule",
           "add_all": "",
           "needs": "what homes sell for",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "feature:homes_higher_bands",
+          "label": "Homes in the higher council tax bands",
+          "does": "Rank areas higher for this: more homes in the higher council tax bands.",
+          "spans": [
+            {
+              "start": 54,
+              "end": 71
+            }
+          ],
+          "shown": {
+            "start": 54,
+            "end": 103
+          },
+          "follows": "What Burro counts: homes in council tax bands E to H as a share of homes.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "More homes in the higher council tax bands",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "nudge",
+                    "feature_id": "homes_higher_bands",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "direction": "more",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "Burro reads this of the place, and not of the people who live there.",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "homes in the higher council tax bands",
           "asks_place": false,
           "named_at": null,
           "options": []

@@ -13,7 +13,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-cache",
-    "content-length": "40219",
+    "content-length": "89652",
     "content-type": "application/json",
     "etag": "\"syn-2026-09-23-01\"",
     "vary": "Origin",
@@ -24,7 +24,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
@@ -43,7 +43,9 @@
         "neighbours": [
           "syn-n0017",
           "syn-n0023"
-        ]
+        ],
+        "named": null,
+        "homes_at": null
       },
       "features": [
         {
@@ -51,6 +53,230 @@
           "feature_id": "air_no2",
           "value": 32.5,
           "percentile": 95.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_aldi",
+          "value": 1000.0,
+          "percentile": 33.3,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_anytime_fitness",
+          "value": 1390.0,
+          "percentile": 100.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_asda",
+          "value": 1240.0,
+          "percentile": 95.2,
+          "coverage": 0.8
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_barrys",
+          "value": 1190.0,
+          "percentile": 95.2,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_blank_street",
+          "value": 1420.0,
+          "percentile": 100.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_coop",
+          "value": 1230.0,
+          "percentile": 45.2,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_costa",
+          "value": 1140.0,
+          "percentile": 28.6,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_david_lloyd",
+          "value": 1100.0,
+          "percentile": 52.4,
+          "coverage": 0.61
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_equinox",
+          "value": 1160.0,
+          "percentile": 45.2,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_gails",
+          "value": 1470.0,
+          "percentile": 95.2,
+          "coverage": 0.74
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_greggs",
+          "value": 1140.0,
+          "percentile": 85.7,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_gymbox",
+          "value": 1290.0,
+          "percentile": 90.5,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_iceland",
+          "value": 1410.0,
+          "percentile": 95.2,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_lidl",
+          "value": 1250.0,
+          "percentile": 97.6,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_mands",
+          "value": 1290.0,
+          "percentile": 85.7,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_mix",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.11
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_morrisons",
+          "value": 1460.0,
+          "percentile": 95.2,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_nero",
+          "value": 1280.0,
+          "percentile": 100.0,
+          "coverage": 0.81
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_nuffield",
+          "value": 1580.0,
+          "percentile": 100.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_ole_and_steen",
+          "value": 1220.0,
+          "percentile": 92.9,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_pret",
+          "value": 1040.0,
+          "percentile": 50.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_puregym",
+          "value": 1130.0,
+          "percentile": 97.6,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_sainsburys",
+          "value": 1380.0,
+          "percentile": 100.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_starbucks",
+          "value": 1340.0,
+          "percentile": 90.5,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_tesco",
+          "value": 1060.0,
+          "percentile": 85.7,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_the_gym_group",
+          "value": 1260.0,
+          "percentile": 52.4,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_third_space",
+          "value": 1410.0,
+          "percentile": 95.2,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_virgin_active",
+          "value": 970.0,
+          "percentile": 40.5,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_waitrose",
+          "value": 1540.0,
+          "percentile": 100.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "brand_whole_foods",
+          "value": 1090.0,
+          "percentile": 40.5,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "bus_routes_nearby",
+          "value": 5.8,
+          "percentile": 50.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "bus_stops_nearby",
+          "value": 9.9,
+          "percentile": 47.6,
           "coverage": 1.0
         },
         {
@@ -66,6 +292,48 @@
           "value": null,
           "percentile": null,
           "coverage": 0.34
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "coffee_mid_distance",
+          "value": 1400.0,
+          "percentile": 95.2,
+          "coverage": 0.9
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "coffee_mid_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.15
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "coffee_premium_distance",
+          "value": 1650.0,
+          "percentile": 100.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "coffee_premium_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.19
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "coffee_value_distance",
+          "value": 1130.0,
+          "percentile": 35.7,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "coffee_value_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.02
         },
         {
           "area_id": "syn-n0009",
@@ -118,10 +386,94 @@
         },
         {
           "area_id": "syn-n0009",
-          "feature_id": "grocery_walk",
-          "value": 13.0,
+          "feature_id": "grocer_mid_distance",
+          "value": 1390.0,
+          "percentile": 92.9,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "grocer_mid_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.39
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "grocer_premium_distance",
+          "value": 1630.0,
           "percentile": 100.0,
           "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "grocer_premium_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.16
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "grocer_value_distance",
+          "value": 1240.0,
+          "percentile": 33.3,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "grocer_value_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.3
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "grocery_walk",
+          "value": 1040.0,
+          "percentile": 100.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "gym_mid_distance",
+          "value": 1580.0,
+          "percentile": 97.6,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "gym_mid_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.18
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "gym_premium_distance",
+          "value": 1680.0,
+          "percentile": 100.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "gym_premium_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.2
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "gym_value_distance",
+          "value": 1570.0,
+          "percentile": 81.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "gym_value_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.3
         },
         {
           "area_id": "syn-n0009",
@@ -146,6 +498,13 @@
         },
         {
           "area_id": "syn-n0009",
+          "feature_id": "homes_higher_bands",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.37
+        },
+        {
+          "area_id": "syn-n0009",
           "feature_id": "homes_post2000",
           "value": null,
           "percentile": null,
@@ -157,6 +516,20 @@
           "value": null,
           "percentile": null,
           "coverage": 0.34
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "households_dependent_children",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.3
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "households_one_person",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.2
         },
         {
           "area_id": "syn-n0009",
@@ -175,7 +548,7 @@
         {
           "area_id": "syn-n0009",
           "feature_id": "independents_nearby",
-          "value": 6.0,
+          "value": 18.0,
           "percentile": 4.8,
           "coverage": 1.0
         },
@@ -230,6 +603,13 @@
         },
         {
           "area_id": "syn-n0009",
+          "feature_id": "overground_proximity",
+          "value": 2920.0,
+          "percentile": 81.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
           "feature_id": "park_facilities",
           "value": 3.0,
           "percentile": 14.3,
@@ -262,6 +642,41 @@
           "value": 251500.0,
           "percentile": 4.8,
           "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "price_rise_10y",
+          "value": 142.9,
+          "percentile": 100.0,
+          "coverage": 0.58
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "price_rise_5y",
+          "value": 113.9,
+          "percentile": 100.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "rail_proximity",
+          "value": 1780.0,
+          "percentile": 52.4,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "residents_aged_20_34",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.4
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "residents_aged_65_over",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.03
         },
         {
           "area_id": "syn-n0009",
@@ -307,6 +722,13 @@
         },
         {
           "area_id": "syn-n0009",
+          "feature_id": "underground_proximity",
+          "value": 1810.0,
+          "percentile": 81.0,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
           "feature_id": "university_proximity",
           "value": 2160.0,
           "percentile": 13.6,
@@ -314,10 +736,31 @@
         },
         {
           "area_id": "syn-n0009",
+          "feature_id": "venue_cafe",
+          "value": 6.5,
+          "percentile": 14.3,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "venue_cafe_per_homes",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.09
+        },
+        {
+          "area_id": "syn-n0009",
           "feature_id": "venue_evening",
           "value": 0.8,
           "percentile": 0.0,
           "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "venue_evening_per_homes",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.13
         },
         {
           "area_id": "syn-n0009",
@@ -329,6 +772,20 @@
         {
           "area_id": "syn-n0009",
           "feature_id": "venue_food_drink_per_homes",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.24
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "venue_gym",
+          "value": 5.5,
+          "percentile": 35.7,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0009",
+          "feature_id": "venue_gym_per_homes",
           "value": null,
           "percentile": null,
           "coverage": 0.24
@@ -451,10 +908,40 @@
         },
         {
           "area_id": "syn-n0009",
+          "tag_id": "well_connected",
+          "raw": 0.2949,
+          "score": 23.8,
+          "coverage": 1.0,
+          "band": 2,
+          "spread_low": 2,
+          "spread_high": 2
+        },
+        {
+          "area_id": "syn-n0009",
           "tag_id": "street_character",
           "raw": null,
           "score": null,
           "coverage": 0.3,
+          "band": null,
+          "spread_low": null,
+          "spread_high": null
+        },
+        {
+          "area_id": "syn-n0009",
+          "tag_id": "family_area",
+          "raw": 0.087833,
+          "score": 0.0,
+          "coverage": 0.6,
+          "band": 1,
+          "spread_low": 1,
+          "spread_high": 1
+        },
+        {
+          "area_id": "syn-n0009",
+          "tag_id": "young_professionals",
+          "raw": null,
+          "score": null,
+          "coverage": 0.25,
           "band": null,
           "spread_low": null,
           "spread_high": null
@@ -484,7 +971,8 @@
             0.058084,
             -0.016212
           ],
-          "rankable": true
+          "rankable": true,
+          "named": null
         },
         {
           "area_id": "syn-n0023",
@@ -495,7 +983,14 @@
             0.033798,
             0.000242
           ],
-          "rankable": true
+          "rankable": true,
+          "named": {
+            "label": "Quillhaven 023",
+            "source_ids": [
+              "synthetic"
+            ],
+            "state": "draft"
+          }
         }
       ],
       "portrait": {
@@ -615,6 +1110,68 @@
                 "fact_id": "syn-n0009/feature/conservation_cover"
               }
             ]
+          },
+          {
+            "tag_id": "well_connected",
+            "fact_id": "syn-n0009/tag/well_connected",
+            "figure_fact_id": "syn-n0009/feature/underground_proximity",
+            "parts": [
+              {
+                "feature_id": "underground_proximity",
+                "hundredths": 45,
+                "reading": "low",
+                "fact_id": "syn-n0009/feature/underground_proximity"
+              },
+              {
+                "feature_id": "overground_proximity",
+                "hundredths": 20,
+                "reading": "low",
+                "fact_id": "syn-n0009/feature/overground_proximity"
+              },
+              {
+                "feature_id": "rail_proximity",
+                "hundredths": 15,
+                "reading": "low",
+                "fact_id": "syn-n0009/feature/rail_proximity"
+              },
+              {
+                "feature_id": "bus_routes_nearby",
+                "hundredths": 20,
+                "reading": "high",
+                "fact_id": "syn-n0009/feature/bus_routes_nearby"
+              }
+            ]
+          },
+          {
+            "tag_id": "family_area",
+            "fact_id": "syn-n0009/tag/family_area",
+            "figure_fact_id": "syn-n0009/feature/school_primary_nearby",
+            "parts": [
+              {
+                "feature_id": "households_dependent_children",
+                "hundredths": 40,
+                "reading": "high",
+                "fact_id": null
+              },
+              {
+                "feature_id": "school_primary_nearby",
+                "hundredths": 25,
+                "reading": "high",
+                "fact_id": "syn-n0009/feature/school_primary_nearby"
+              },
+              {
+                "feature_id": "play_space_proximity",
+                "hundredths": 20,
+                "reading": "low",
+                "fact_id": "syn-n0009/feature/play_space_proximity"
+              },
+              {
+                "feature_id": "park_proximity",
+                "hundredths": 15,
+                "reading": "low",
+                "fact_id": "syn-n0009/feature/park_proximity"
+              }
+            ]
           }
         ],
         "unplaced": [
@@ -624,20 +1181,26 @@
             "figure_fact_id": null,
             "parts": [
               {
+                "feature_id": "venue_evening_per_homes",
+                "hundredths": 35,
+                "reading": "high",
+                "fact_id": null
+              },
+              {
                 "feature_id": "venue_food_drink_per_homes",
-                "hundredths": 45,
+                "hundredths": 30,
                 "reading": "high",
                 "fact_id": null
               },
               {
                 "feature_id": "highstreet_access",
-                "hundredths": 30,
+                "hundredths": 20,
                 "reading": "low",
                 "fact_id": null
               },
               {
                 "feature_id": "culture_venues_per_homes",
-                "hundredths": 25,
+                "hundredths": 15,
                 "reading": "high",
                 "fact_id": null
               }
@@ -828,6 +1391,37 @@
                 "fact_id": null
               }
             ]
+          },
+          {
+            "tag_id": "young_professionals",
+            "fact_id": "syn-n0009/tag/young_professionals",
+            "figure_fact_id": "syn-n0009/feature/station_walk",
+            "parts": [
+              {
+                "feature_id": "residents_aged_20_34",
+                "hundredths": 40,
+                "reading": "high",
+                "fact_id": null
+              },
+              {
+                "feature_id": "station_walk",
+                "hundredths": 25,
+                "reading": "low",
+                "fact_id": "syn-n0009/feature/station_walk"
+              },
+              {
+                "feature_id": "venue_food_drink_per_homes",
+                "hundredths": 20,
+                "reading": "high",
+                "fact_id": null
+              },
+              {
+                "feature_id": "culture_venues_per_homes",
+                "hundredths": 15,
+                "reading": "high",
+                "fact_id": null
+              }
+            ]
           }
         ]
       },
@@ -874,7 +1468,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -910,7 +1505,1155 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_aldi",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_aldi",
+          "label": "Straight-line distance to the nearest Aldi within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Aldi within 2,000 m of home",
+            "value": "1,000 m",
+            "band": "2",
+            "comparative": "closer than",
+            "pct": "66",
+            "standing": "closer than 66% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "33",
+            "standing_worse": "further than 33% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1000",
+            "66%",
+            "21",
+            "33%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_anytime_fitness",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_anytime_fitness",
+          "label": "Straight-line distance to the nearest Anytime Fitness within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Anytime Fitness within 2,000 m of home",
+            "value": "1,390 m",
+            "band": "5",
+            "standing": "closer than none of the 21 other areas compared in this release",
+            "comparative": "closer than",
+            "comparative_worse": "further than",
+            "pct_worse": "100",
+            "standing_worse": "further than 100% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1390",
+            "21",
+            "100%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_asda",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_asda",
+          "label": "Straight-line distance to the nearest Asda within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Asda within 2,000 m of home",
+            "value": "1,240 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "4",
+            "standing": "closer than 4% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "95",
+            "standing_worse": "further than 95% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1240",
+            "4%",
+            "21",
+            "95%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_barrys",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_barrys",
+          "label": "Straight-line distance to the nearest Barry's within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Barry's within 2,000 m of home",
+            "value": "1,190 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "4",
+            "standing": "closer than 4% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "95",
+            "standing_worse": "further than 95% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1190",
+            "4%",
+            "21",
+            "95%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_blank_street",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_blank_street",
+          "label": "Straight-line distance to the nearest Blank Street within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Blank Street within 2,000 m of home",
+            "value": "1,420 m",
+            "band": "5",
+            "standing": "closer than none of the 21 other areas compared in this release",
+            "comparative": "closer than",
+            "comparative_worse": "further than",
+            "pct_worse": "100",
+            "standing_worse": "further than 100% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1420",
+            "21",
+            "100%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_coop",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_coop",
+          "label": "Straight-line distance to the nearest Co-op within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Co-op within 2,000 m of home",
+            "value": "1,230 m",
+            "band": "2",
+            "comparative": "closer than",
+            "pct": "47",
+            "standing": "closer than 47% of the 21 areas compared in this release, and the same as 3 others",
+            "comparative_worse": "further than",
+            "pct_worse": "38",
+            "standing_worse": "further than 38% of the 21 areas compared in this release, and the same as 3 others",
+            "compared": "21",
+            "level": "3"
+          },
+          "numbers": [
+            "1230",
+            "47%",
+            "21",
+            "3",
+            "38%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_costa",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_costa",
+          "label": "Straight-line distance to the nearest Costa within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Costa within 2,000 m of home",
+            "value": "1,140 m",
+            "band": "2",
+            "comparative": "closer than",
+            "pct": "71",
+            "standing": "closer than 71% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "28",
+            "standing_worse": "further than 28% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1140",
+            "71%",
+            "21",
+            "28%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_david_lloyd",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_david_lloyd",
+          "label": "Straight-line distance to the nearest David Lloyd within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest David Lloyd within 2,000 m of home",
+            "value": "1,100 m",
+            "band": "3",
+            "comparative": "closer than",
+            "pct": "47",
+            "standing": "closer than 47% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "52",
+            "standing_worse": "further than 52% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1100",
+            "47%",
+            "21",
+            "52%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_equinox",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_equinox",
+          "label": "Straight-line distance to the nearest Equinox within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Equinox within 2,000 m of home",
+            "value": "1,160 m",
+            "band": "3",
+            "comparative": "closer than",
+            "pct": "52",
+            "standing": "closer than 52% of the 21 areas compared in this release, and the same as 1 other",
+            "comparative_worse": "further than",
+            "pct_worse": "42",
+            "standing_worse": "further than 42% of the 21 areas compared in this release, and the same as 1 other",
+            "compared": "21",
+            "level": "1"
+          },
+          "numbers": [
+            "1160",
+            "52%",
+            "21",
+            "1",
+            "42%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_gails",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_gails",
+          "label": "Straight-line distance to the nearest Gail's within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Gail's within 2,000 m of home",
+            "value": "1,470 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "4",
+            "standing": "closer than 4% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "95",
+            "standing_worse": "further than 95% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1470",
+            "4%",
+            "21",
+            "95%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_greggs",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_greggs",
+          "label": "Straight-line distance to the nearest Greggs within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Greggs within 2,000 m of home",
+            "value": "1,140 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "9",
+            "standing": "closer than 9% of the 21 areas compared in this release, and the same as 2 others",
+            "comparative_worse": "further than",
+            "pct_worse": "80",
+            "standing_worse": "further than 80% of the 21 areas compared in this release, and the same as 2 others",
+            "compared": "21",
+            "level": "2"
+          },
+          "numbers": [
+            "1140",
+            "9%",
+            "21",
+            "2",
+            "80%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_gymbox",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_gymbox",
+          "label": "Straight-line distance to the nearest Gymbox within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Gymbox within 2,000 m of home",
+            "value": "1,290 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "9",
+            "standing": "closer than 9% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "90",
+            "standing_worse": "further than 90% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1290",
+            "9%",
+            "21",
+            "90%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_iceland",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_iceland",
+          "label": "Straight-line distance to the nearest Iceland within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Iceland within 2,000 m of home",
+            "value": "1,410 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "4",
+            "standing": "closer than 4% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "95",
+            "standing_worse": "further than 95% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1410",
+            "4%",
+            "21",
+            "95%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_lidl",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_lidl",
+          "label": "Straight-line distance to the nearest Lidl within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Lidl within 2,000 m of home",
+            "value": "1,250 m",
+            "band": "5",
+            "standing": "the same as 1 of the 21 other areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "95",
+            "standing_worse": "further than 95% of the 21 areas compared in this release, and the same as 1 other",
+            "compared": "21",
+            "level": "1"
+          },
+          "numbers": [
+            "1250",
+            "1",
+            "21",
+            "95%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_mands",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_mands",
+          "label": "Straight-line distance to the nearest M&S within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest M&S within 2,000 m of home",
+            "value": "1,290 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "14",
+            "standing": "closer than 14% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "85",
+            "standing_worse": "further than 85% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1290",
+            "14%",
+            "21",
+            "85%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_morrisons",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_morrisons",
+          "label": "Straight-line distance to the nearest Morrisons within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Morrisons within 2,000 m of home",
+            "value": "1,460 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "4",
+            "standing": "closer than 4% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "95",
+            "standing_worse": "further than 95% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1460",
+            "4%",
+            "21",
+            "95%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_nero",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_nero",
+          "label": "Straight-line distance to the nearest Nero within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Nero within 2,000 m of home",
+            "value": "1,280 m",
+            "band": "5",
+            "standing": "closer than none of the 21 other areas compared in this release",
+            "comparative": "closer than",
+            "comparative_worse": "further than",
+            "pct_worse": "100",
+            "standing_worse": "further than 100% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1280",
+            "21",
+            "100%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_nuffield",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_nuffield",
+          "label": "Straight-line distance to the nearest Nuffield within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Nuffield within 2,000 m of home",
+            "value": "1,580 m",
+            "band": "5",
+            "standing": "closer than none of the 21 other areas compared in this release",
+            "comparative": "closer than",
+            "comparative_worse": "further than",
+            "pct_worse": "100",
+            "standing_worse": "further than 100% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1580",
+            "21",
+            "100%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_ole_and_steen",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_ole_and_steen",
+          "label": "Straight-line distance to the nearest Ole & Steen within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Ole & Steen within 2,000 m of home",
+            "value": "1,220 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "4",
+            "standing": "closer than 4% of the 21 areas compared in this release, and the same as 1 other",
+            "comparative_worse": "further than",
+            "pct_worse": "90",
+            "standing_worse": "further than 90% of the 21 areas compared in this release, and the same as 1 other",
+            "compared": "21",
+            "level": "1"
+          },
+          "numbers": [
+            "1220",
+            "4%",
+            "21",
+            "1",
+            "90%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_pret",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_pret",
+          "label": "Straight-line distance to the nearest Pret within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Pret within 2,000 m of home",
+            "value": "1,040 m",
+            "band": "3",
+            "comparative": "closer than",
+            "pct": "47",
+            "standing": "closer than 47% of the 21 areas compared in this release, and the same as 1 other",
+            "comparative_worse": "further than",
+            "pct_worse": "47",
+            "standing_worse": "further than 47% of the 21 areas compared in this release, and the same as 1 other",
+            "compared": "21",
+            "level": "1"
+          },
+          "numbers": [
+            "1040",
+            "47%",
+            "21",
+            "1"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_puregym",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_puregym",
+          "label": "Straight-line distance to the nearest PureGym within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest PureGym within 2,000 m of home",
+            "value": "1,130 m",
+            "band": "5",
+            "standing": "the same as 1 of the 21 other areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "95",
+            "standing_worse": "further than 95% of the 21 areas compared in this release, and the same as 1 other",
+            "compared": "21",
+            "level": "1"
+          },
+          "numbers": [
+            "1130",
+            "1",
+            "21",
+            "95%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_sainsburys",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_sainsburys",
+          "label": "Straight-line distance to the nearest Sainsbury's within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Sainsbury's within 2,000 m of home",
+            "value": "1,380 m",
+            "band": "5",
+            "standing": "closer than none of the 21 other areas compared in this release",
+            "comparative": "closer than",
+            "comparative_worse": "further than",
+            "pct_worse": "100",
+            "standing_worse": "further than 100% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1380",
+            "21",
+            "100%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_starbucks",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_starbucks",
+          "label": "Straight-line distance to the nearest Starbucks within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Starbucks within 2,000 m of home",
+            "value": "1,340 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "9",
+            "standing": "closer than 9% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "90",
+            "standing_worse": "further than 90% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1340",
+            "9%",
+            "21",
+            "90%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_tesco",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_tesco",
+          "label": "Straight-line distance to the nearest Tesco within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Tesco within 2,000 m of home",
+            "value": "1,060 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "14",
+            "standing": "closer than 14% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "85",
+            "standing_worse": "further than 85% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1060",
+            "14%",
+            "21",
+            "85%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_the_gym_group",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_the_gym_group",
+          "label": "Straight-line distance to the nearest gym of The Gym Group within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest gym of The Gym Group within 2,000 m of home",
+            "value": "1,260 m",
+            "band": "3",
+            "comparative": "closer than",
+            "pct": "47",
+            "standing": "closer than 47% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "52",
+            "standing_worse": "further than 52% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1260",
+            "47%",
+            "21",
+            "52%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_third_space",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_third_space",
+          "label": "Straight-line distance to the nearest Third Space within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Third Space within 2,000 m of home",
+            "value": "1,410 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "4",
+            "standing": "closer than 4% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "95",
+            "standing_worse": "further than 95% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1410",
+            "4%",
+            "21",
+            "95%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_virgin_active",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_virgin_active",
+          "label": "Straight-line distance to the nearest Virgin Active within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Virgin Active within 2,000 m of home",
+            "value": "970 m",
+            "band": "2",
+            "comparative": "closer than",
+            "pct": "57",
+            "standing": "closer than 57% of the 21 areas compared in this release, and the same as 1 other",
+            "comparative_worse": "further than",
+            "pct_worse": "38",
+            "standing_worse": "further than 38% of the 21 areas compared in this release, and the same as 1 other",
+            "compared": "21",
+            "level": "1"
+          },
+          "numbers": [
+            "970",
+            "57%",
+            "21",
+            "1",
+            "38%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_waitrose",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_waitrose",
+          "label": "Straight-line distance to the nearest Waitrose within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Waitrose within 2,000 m of home",
+            "value": "1,540 m",
+            "band": "5",
+            "standing": "closer than none of the 21 other areas compared in this release",
+            "comparative": "closer than",
+            "comparative_worse": "further than",
+            "pct_worse": "100",
+            "standing_worse": "further than 100% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1540",
+            "21",
+            "100%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/brand_whole_foods",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "brand_whole_foods",
+          "label": "Straight-line distance to the nearest Whole Foods within 2,000 m of home",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Whole Foods within 2,000 m of home",
+            "value": "1,090 m",
+            "band": "2",
+            "comparative": "closer than",
+            "pct": "57",
+            "standing": "closer than 57% of the 21 areas compared in this release, and the same as 1 other",
+            "comparative_worse": "further than",
+            "pct_worse": "38",
+            "standing_worse": "further than 38% of the 21 areas compared in this release, and the same as 1 other",
+            "compared": "21",
+            "level": "1"
+          },
+          "numbers": [
+            "1090",
+            "57%",
+            "21",
+            "1",
+            "38%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/bus_routes_nearby",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "bus_routes_nearby",
+          "label": "Bus routes that stop within 400 m of home, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Bus routes that stop within 400 m of home, in a straight line",
+            "value": "5.8",
+            "band": "3",
+            "comparative": "more than",
+            "pct": "47",
+            "standing": "more than 47% of the 21 areas compared in this release, and the same as 1 other",
+            "comparative_worse": "fewer than",
+            "pct_worse": "47",
+            "standing_worse": "fewer than 47% of the 21 areas compared in this release, and the same as 1 other",
+            "compared": "21",
+            "level": "1"
+          },
+          "numbers": [
+            "5.8",
+            "47%",
+            "21",
+            "1"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/bus_stops_nearby",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "bus_stops_nearby",
+          "label": "Bus stops within 400 m of home, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Bus stops within 400 m of home, in a straight line",
+            "value": "9.9",
+            "band": "3",
+            "comparative": "more than",
+            "pct": "47",
+            "standing": "more than 47% of the 21 areas compared in this release",
+            "comparative_worse": "fewer than",
+            "pct_worse": "52",
+            "standing_worse": "fewer than 52% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "9.9",
+            "47%",
+            "21",
+            "52%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -946,7 +2689,119 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/coffee_mid_distance",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "coffee_mid_distance",
+          "label": "Straight-line distance to the nearest mid-range coffee place within 2,000 m of home, by Burro's table of tiers",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest mid-range coffee place within 2,000 m of home, by Burro's table of tiers",
+            "value": "1,400 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "4",
+            "standing": "closer than 4% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "95",
+            "standing_worse": "further than 95% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1400",
+            "4%",
+            "21",
+            "95%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/coffee_premium_distance",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "coffee_premium_distance",
+          "label": "Straight-line distance to the nearest premium coffee place within 2,000 m of home, by Burro's table of tiers",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest premium coffee place within 2,000 m of home, by Burro's table of tiers",
+            "value": "1,650 m",
+            "band": "5",
+            "standing": "closer than none of the 21 other areas compared in this release",
+            "comparative": "closer than",
+            "comparative_worse": "further than",
+            "pct_worse": "100",
+            "standing_worse": "further than 100% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1650",
+            "21",
+            "100%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/coffee_value_distance",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "coffee_value_distance",
+          "label": "Straight-line distance to the nearest value coffee place within 2,000 m of home, by Burro's table of tiers",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest value coffee place within 2,000 m of home, by Burro's table of tiers",
+            "value": "1,130 m",
+            "band": "2",
+            "comparative": "closer than",
+            "pct": "61",
+            "standing": "closer than 61% of the 21 areas compared in this release, and the same as 1 other",
+            "comparative_worse": "further than",
+            "pct_worse": "33",
+            "standing_worse": "further than 33% of the 21 areas compared in this release, and the same as 1 other",
+            "compared": "21",
+            "level": "1"
+          },
+          "numbers": [
+            "1130",
+            "61%",
+            "21",
+            "1",
+            "33%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -982,7 +2837,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1018,7 +2874,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1052,7 +2909,119 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/grocer_mid_distance",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "grocer_mid_distance",
+          "label": "Straight-line distance to the nearest mid-range grocer within 2,000 m of home, by Burro's table of tiers",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest mid-range grocer within 2,000 m of home, by Burro's table of tiers",
+            "value": "1,390 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "4",
+            "standing": "closer than 4% of the 21 areas compared in this release, and the same as 1 other",
+            "comparative_worse": "further than",
+            "pct_worse": "90",
+            "standing_worse": "further than 90% of the 21 areas compared in this release, and the same as 1 other",
+            "compared": "21",
+            "level": "1"
+          },
+          "numbers": [
+            "1390",
+            "4%",
+            "21",
+            "1",
+            "90%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/grocer_premium_distance",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "grocer_premium_distance",
+          "label": "Straight-line distance to the nearest premium grocer within 2,000 m of home, by Burro's table of tiers",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest premium grocer within 2,000 m of home, by Burro's table of tiers",
+            "value": "1,630 m",
+            "band": "5",
+            "standing": "closer than none of the 21 other areas compared in this release",
+            "comparative": "closer than",
+            "comparative_worse": "further than",
+            "pct_worse": "100",
+            "standing_worse": "further than 100% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1630",
+            "21",
+            "100%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/grocer_value_distance",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "grocer_value_distance",
+          "label": "Straight-line distance to the nearest value grocer within 2,000 m of home, by Burro's table of tiers",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest value grocer within 2,000 m of home, by Burro's table of tiers",
+            "value": "1,240 m",
+            "band": "2",
+            "comparative": "closer than",
+            "pct": "66",
+            "standing": "closer than 66% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "33",
+            "standing_worse": "further than 33% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1240",
+            "66%",
+            "21",
+            "33%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1063,11 +3032,11 @@
           "area_id": "syn-n0009",
           "kind": "feature",
           "key": "grocery_walk",
-          "label": "Walk to the nearest food shop",
+          "label": "Straight-line distance to the nearest food shop",
           "template": "feature",
           "slots": {
-            "label": "Walk to the nearest food shop",
-            "value": "13 min",
+            "label": "Straight-line distance to the nearest food shop",
+            "value": "1,040 m",
             "band": "5",
             "standing": "closer than none of the 21 other areas compared in this release",
             "comparative": "closer than",
@@ -1077,7 +3046,7 @@
             "compared": "21"
           },
           "numbers": [
-            "13",
+            "1040",
             "21",
             "100%"
           ],
@@ -1086,7 +3055,118 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/gym_mid_distance",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "gym_mid_distance",
+          "label": "Straight-line distance to the nearest mid-range gym within 2,000 m of home, by Burro's table of tiers",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest mid-range gym within 2,000 m of home, by Burro's table of tiers",
+            "value": "1,580 m",
+            "band": "5",
+            "standing": "the same as 1 of the 21 other areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "95",
+            "standing_worse": "further than 95% of the 21 areas compared in this release, and the same as 1 other",
+            "compared": "21",
+            "level": "1"
+          },
+          "numbers": [
+            "1580",
+            "1",
+            "21",
+            "95%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/gym_premium_distance",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "gym_premium_distance",
+          "label": "Straight-line distance to the nearest premium gym within 2,000 m of home, by Burro's table of tiers",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest premium gym within 2,000 m of home, by Burro's table of tiers",
+            "value": "1,680 m",
+            "band": "5",
+            "standing": "closer than none of the 21 other areas compared in this release",
+            "comparative": "closer than",
+            "comparative_worse": "further than",
+            "pct_worse": "100",
+            "standing_worse": "further than 100% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1680",
+            "21",
+            "100%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/gym_value_distance",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "gym_value_distance",
+          "label": "Straight-line distance to the nearest value gym within 2,000 m of home, by Burro's table of tiers",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest value gym within 2,000 m of home, by Burro's table of tiers",
+            "value": "1,570 m",
+            "band": "4",
+            "comparative": "closer than",
+            "pct": "14",
+            "standing": "closer than 14% of the 21 areas compared in this release, and the same as 2 others",
+            "comparative_worse": "further than",
+            "pct_worse": "76",
+            "standing_worse": "further than 76% of the 21 areas compared in this release, and the same as 2 others",
+            "compared": "21",
+            "level": "2"
+          },
+          "numbers": [
+            "1570",
+            "14%",
+            "21",
+            "2",
+            "76%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1122,7 +3202,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1133,11 +3214,11 @@
           "area_id": "syn-n0009",
           "kind": "feature",
           "key": "independents_nearby",
-          "label": "Independent places to eat and drink within a 10-minute walk",
+          "label": "Share of the places to eat and drink within 800 m of home, in a straight line, that belong to no chain",
           "template": "feature",
           "slots": {
-            "label": "Independent places to eat and drink within a 10-minute walk",
-            "value": "6",
+            "label": "Share of the places to eat and drink within 800 m of home, in a straight line, that belong to no chain",
+            "value": "18%",
             "band": "1",
             "comparative": "more than",
             "pct": "4",
@@ -1148,7 +3229,7 @@
             "compared": "21"
           },
           "numbers": [
-            "6",
+            "18%",
             "4%",
             "21",
             "95%"
@@ -1158,7 +3239,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1194,7 +3276,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1228,7 +3311,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1262,7 +3346,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1296,7 +3381,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1334,7 +3420,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1370,7 +3457,45 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/overground_proximity",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "overground_proximity",
+          "label": "Straight-line distance to the nearest Overground or Elizabeth line station",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Overground or Elizabeth line station",
+            "value": "2,920 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "19",
+            "standing": "closer than 19% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "80",
+            "standing_worse": "further than 80% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "2920",
+            "19%",
+            "21",
+            "80%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1408,7 +3533,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1444,7 +3570,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1480,7 +3607,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1514,7 +3642,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1550,7 +3679,115 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/price_rise_10y",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "price_rise_10y",
+          "label": "Median price paid for a home, for each £100 of the median ten years before",
+          "template": "feature",
+          "slots": {
+            "label": "Median price paid for a home, for each £100 of the median ten years before",
+            "value": "£143",
+            "band": "5",
+            "comparative": "a steeper rise than",
+            "pct": "100",
+            "standing": "a steeper rise than 100% of the 21 areas compared in this release",
+            "standing_worse": "a smaller rise than none of the 21 other areas compared in this release",
+            "comparative_worse": "a smaller rise than",
+            "compared": "21"
+          },
+          "numbers": [
+            "£143",
+            "100%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/price_rise_5y",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "price_rise_5y",
+          "label": "Median price paid for a home, for each £100 of the median five years before",
+          "template": "feature",
+          "slots": {
+            "label": "Median price paid for a home, for each £100 of the median five years before",
+            "value": "£114",
+            "band": "5",
+            "comparative": "a steeper rise than",
+            "pct": "100",
+            "standing": "a steeper rise than 100% of the 21 areas compared in this release",
+            "standing_worse": "a smaller rise than none of the 21 other areas compared in this release",
+            "comparative_worse": "a smaller rise than",
+            "compared": "21"
+          },
+          "numbers": [
+            "£114",
+            "100%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/rail_proximity",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "rail_proximity",
+          "label": "Straight-line distance to the nearest National Rail station or tram stop",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest National Rail station or tram stop",
+            "value": "1,780 m",
+            "band": "3",
+            "comparative": "closer than",
+            "pct": "47",
+            "standing": "closer than 47% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "52",
+            "standing_worse": "further than 52% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1780",
+            "47%",
+            "21",
+            "52%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1585,7 +3822,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1619,7 +3857,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1654,7 +3893,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1690,7 +3930,47 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/underground_proximity",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "underground_proximity",
+          "label": "Straight-line distance to the nearest Underground or DLR station",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest Underground or DLR station",
+            "value": "1,810 m",
+            "band": "4",
+            "comparative": "closer than",
+            "pct": "14",
+            "standing": "closer than 14% of the 21 areas compared in this release, and the same as 2 others",
+            "comparative_worse": "further than",
+            "pct_worse": "76",
+            "standing_worse": "further than 76% of the 21 areas compared in this release, and the same as 2 others",
+            "compared": "21",
+            "level": "2"
+          },
+          "numbers": [
+            "1810",
+            "14%",
+            "21",
+            "2",
+            "76%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1726,7 +4006,45 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/venue_cafe",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "venue_cafe",
+          "label": "Cafes and coffee shops within 800 m of home, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Cafes and coffee shops within 800 m of home, in a straight line",
+            "value": "6.5",
+            "band": "1",
+            "comparative": "more than",
+            "pct": "14",
+            "standing": "more than 14% of the 21 areas compared in this release",
+            "comparative_worse": "fewer than",
+            "pct_worse": "85",
+            "standing_worse": "fewer than 85% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "6.5",
+            "14%",
+            "21",
+            "85%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1737,11 +4055,11 @@
           "area_id": "syn-n0009",
           "kind": "feature",
           "key": "venue_evening",
-          "label": "Pubs, bars and evening venues",
+          "label": "Pubs and bars within 800 m of home, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Pubs, bars and evening venues",
-            "value": "0.8 per km²",
+            "label": "Pubs and bars within 800 m of home, in a straight line",
+            "value": "0.8",
             "band": "1",
             "standing": "more than none of the 21 other areas compared in this release",
             "comparative": "more than",
@@ -1760,7 +4078,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1796,7 +4115,47 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/feature/venue_gym",
+          "area_id": "syn-n0009",
+          "kind": "feature",
+          "key": "venue_gym",
+          "label": "Gyms and fitness studios within 800 m of home, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Gyms and fitness studios within 800 m of home, in a straight line",
+            "value": "5.5",
+            "band": "2",
+            "comparative": "more than",
+            "pct": "33",
+            "standing": "more than 33% of the 21 areas compared in this release, and the same as 1 other",
+            "comparative_worse": "fewer than",
+            "pct_worse": "61",
+            "standing_worse": "fewer than 61% of the 21 areas compared in this release, and the same as 1 other",
+            "compared": "21",
+            "level": "1"
+          },
+          "numbers": [
+            "5.5",
+            "33%",
+            "21",
+            "1",
+            "61%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1832,7 +4191,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1868,7 +4228,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1900,7 +4261,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1932,7 +4294,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1964,7 +4327,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1996,7 +4360,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2028,7 +4393,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2057,7 +4423,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09",
@@ -2087,7 +4454,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2117,7 +4485,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2159,7 +4528,53 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/tag/family_area",
+          "area_id": "syn-n0009",
+          "kind": "tag",
+          "key": "family_area",
+          "label": "Family area",
+          "template": "vibe",
+          "slots": {
+            "label": "Family area",
+            "band": "1",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "3",
+            "parts": "4",
+            "share": "60",
+            "partly": "Worked out from 3 of its 4 parts, 60 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "3",
+            "4",
+            "60",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2189,7 +4604,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2219,7 +4635,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2261,7 +4678,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2278,11 +4696,11 @@
             "label": "Going out",
             "name": "Grapnel Dock",
             "known": "0",
-            "parts": "3"
+            "parts": "4"
           },
           "numbers": [
             "0",
-            "3"
+            "4"
           ],
           "names": [
             "Grapnel Dock"
@@ -2291,7 +4709,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -2333,7 +4752,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2363,7 +4783,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -2393,7 +4814,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2436,7 +4858,82 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/tag/well_connected",
+          "area_id": "syn-n0009",
+          "kind": "tag",
+          "key": "well_connected",
+          "label": "Well connected",
+          "template": "vibe",
+          "slots": {
+            "label": "Well connected",
+            "band": "2",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "2",
+            "spread_high": "2",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "2",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0009/tag/young_professionals",
+          "area_id": "syn-n0009",
+          "kind": "tag",
+          "key": "young_professionals",
+          "label": "Young professionals",
+          "template": "vibe_unknown",
+          "slots": {
+            "label": "Young professionals",
+            "name": "Grapnel Dock",
+            "known": "1",
+            "parts": "4"
+          },
+          "numbers": [
+            "1",
+            "4"
+          ],
+          "names": [
+            "Grapnel Dock"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",

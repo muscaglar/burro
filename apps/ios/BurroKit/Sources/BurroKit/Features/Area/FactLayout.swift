@@ -97,6 +97,14 @@ public enum FactLayout {
                 (AreaCopy.Column.middleOfAll, pounds(slots["median"])),
                 (AreaCopy.Column.soldIn, slots["period"]),
             ]
+        case .costBuySold:
+            // One number, counted from the sales of three years. It says how many it rests on.
+            found = [
+                (AreaCopy.Column.segment, slots["segment"]),
+                (AreaCopy.Column.middleOfAll, pounds(slots["median"])),
+                (AreaCopy.Column.soldIn, slots["period"]),
+                (AreaCopy.Column.sales, slots["sales"]),
+            ]
         case .costRent, .costBuy:
             found = [
                 (AreaCopy.Column.segment, slots["segment"]),
@@ -114,8 +122,8 @@ public enum FactLayout {
         case .area:
             found = [(AreaCopy.Column.name, slots["name"]), (AreaCopy.Column.borough, slots["borough"])]
         case .budgetUnder, .budgetOver, .budgetUnderMedian, .budgetOverMedian, .travelPt, .travelPtOver,
-            .travelOther, .travelOtherOver, .travelBeyond, .missing, .missingJourney, .likeness,
-            .likenessSame, .unlisted:
+            .travelOther, .travelOtherOver, .travelBeyond, .travelEstimated, .missing, .missingJourney,
+            .likeness, .likenessSame, .unlisted:
             // These are of a search, or of another area. This page lays neither out in columns.
             return nil
         }
@@ -155,6 +163,10 @@ public enum FactLayout {
         case .vibeUnknown: said.append(VibeCopy.cannotPlace)
         case .costBuyMedian: said.append(AreaCopy.oneNumber)
         default: break
+        }
+        // What a middle price means, in the API's words: about half of what sold went for less.
+        if fact.kind == .cost, let half = fact.slots["half_sold"], !half.isEmpty {
+            said.append(half)
         }
         // What every sentence about a vibe ends in, as the API holds it.
         if fact.kind == .tag, let judgement = fact.slots["judgement"], !judgement.isEmpty {

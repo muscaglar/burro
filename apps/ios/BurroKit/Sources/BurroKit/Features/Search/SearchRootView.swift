@@ -57,6 +57,11 @@ public struct SearchRootView: View {
         .onChange(of: showing.said) { _, said in
             Spoken.say(said ?? "")
         }
+        .onChange(of: shown.offers?.says) { _, says in
+            // A screen reader is told when a model begins to read the rest, and what one
+            // press added.
+            Spoken.say(says ?? "")
+        }
         .task(id: app.consent.choice) {
             if SearchScreen.opensTheForm(search.state, consent: app.consent.choice) {
                 search.flow.openSettings(true)
@@ -176,7 +181,7 @@ public struct SearchRootView: View {
 
     private func couldNotRead(_ shown: SearchShown) -> some View {
         let again: (() -> Void)? = shown.couldNotReadRetry == true ? { tryAgain() } : nil
-        return CouldNotReadBlock(tryAgain: again)
+        return CouldNotReadBlock(words: shown.couldNotRead ?? SearchCopy.Notice.degraded, tryAgain: again)
     }
 
     @ViewBuilder
@@ -238,13 +243,21 @@ public struct SearchRootView: View {
             OffersBlock(
                 offers: offers,
                 canShowWords: PromptBox.selects,
-                choose: { at, direction in
+                // The words are cut from the box as it stands. What is offered goes when the
+                // box changes, so while an offer is drawn the box holds what was sent.
+                wrote: { BoxSpans.written(words, $0) },
+                search: searchPlaces,
+                choose: { at, id, place in
                     showing = Showing()
-                    Task { await hands.choose(at, direction) }
+                    Task { await hands.choose(at, id, place: place.map { (id: $0.id, name: $0.name) }) }
                 },
                 chooseAll: { ats in
                     showing = Showing()
                     Task { await hands.chooseAll(ats) }
+                },
+                takeItBack: {
+                    showing = Showing()
+                    Task { await hands.takeBack() }
                 },
                 showAll: { allOffers = true },
                 showWords: { offer in show(.offer(offer.at), offer.spans) })

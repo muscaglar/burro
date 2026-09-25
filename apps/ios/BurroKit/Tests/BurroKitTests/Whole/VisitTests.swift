@@ -7,8 +7,9 @@ import XCTest
 /// asks before the first search, a first sentence, a second, a control, a
 /// question answered, the notice, a sentence that holds nothing, an area, the
 /// shortlist with no connection, a comparison, a link made and opened, a
-/// search the model did not answer, a vibe added and turned with nothing
-/// typed, and a sentence of which Burro applied nothing until one thing was chosen.
+/// sentence the model did not answer and what the rules offered of it, a vibe
+/// added and turned with nothing typed, and a sentence of which Burro applied
+/// nothing until one thing was chosen.
 ///
 /// Every other test answers the app from a recording whatever it sends. This
 /// one answers a request only if it is, to the letter, a request the service
@@ -265,7 +266,8 @@ final class VisitTests: XCTestCase {
         XCTAssertFalse(String(describing: app.searchPath).contains(made.shareId))
 
         // Another day: the app is opened again. The choice is remembered, and no search is.
-        // The model does not answer, and the rules read the words in its place.
+        // A model reads, and does not answer. What the rules offer is on the screen at once,
+        // and stays when the model's answer does not come.
         let later = visit.app(on: FilePhoneStorage(folder: folder))
         await later.open()
         XCTAssertEqual(later.consent.choice, .allowed)
@@ -273,16 +275,34 @@ final class VisitTests: XCTestCase {
         let again = try XCTUnwrap(later.search)
         XCTAssertEqual(again.state.phase, .empty)
         XCTAssertEqual(again.state.spec, Answers.meta.defaults.rent)
+        let atOnce: InterpretData = try Visit.answer("slow-at-once")
         let slow: InterpretData = try Visit.answer("slow")
-        await SearchHands(app: later, search: again).submit(try Visit.sentence("slow"))
+        let slowly = SearchHands(app: later, search: again)
+        let readSoFar = visit.sent(to: .interpret)
+        let rankedBefore = visit.sent(to: .rank)
+        await slowly.submit(try Visit.sentence("slow"))
+        // The rules were asked first, and then the model, of the same words.
+        XCTAssertEqual(visit.sent(to: .interpret), readSoFar + 2)
+        XCTAssertTrue(atOnce.modelPending)
+        XCTAssertFalse(atOnce.degraded)
         XCTAssertTrue(slow.degraded)
         XCTAssertEqual(slow.interpreter, .rule)
+        XCTAssertEqual(slow.applied, [])
         shown = SearchScreen.shown(again.state, consent: later.consent.choice)
         XCTAssertEqual(shown.couldNotReadRetry, false)
         XCTAssertTrue(shown.parts.contains(.couldNotRead))
-        XCTAssertTrue(shown.settingsOpen)
         XCTAssertEqual(shown.readBy, SearchCopy.readBy(.rule))
+        // Nothing of it is applied, and nothing is ranked, until the person chooses. There is
+        // something to choose from, so the settings stay shut.
+        XCTAssertEqual(shown.offers?.offers.map(\.name), slow.suggestions.map(\.label))
+        XCTAssertFalse(shown.settingsOpen)
+        XCTAssertEqual(again.state.spec, Answers.meta.defaults.rent)
+        XCTAssertEqual(visit.sent(to: .rank), rankedBefore)
+        // "Add": the edits the API gave with the choice, sent as a control sends them.
         let slowRank: RankData = try Visit.answer("slow-rank")
+        await slowly.choose(0, "more")
+        XCTAssertEqual(visit.sent(to: .rank), rankedBefore + 1)
+        XCTAssertEqual(again.state.spec, slowRank.spec)
         XCTAssertEqual(Results.listed(again.state).cards.first?.heading.name, name(slowRank.ranked.first))
 
         // Another day again, begun at the settings: a vibe is added, with nothing typed.
@@ -296,7 +316,7 @@ final class VisitTests: XCTestCase {
         // A control never moves the person.
         XCTAssertEqual(third.searchPath, [])
         shown = SearchScreen.shown(settled.state, consent: third.consent.choice)
-        XCTAssertTrue(shown.chips.map(\.reads).contains("Pace: towards Buzzy"))
+        XCTAssertTrue(shown.chips.map(\.reads).contains("Going out: towards Buzzy"))
         XCTAssertEqual(Results.listed(settled.state).cards.first?.heading.name, name(lively.ranked.first))
 
         // The scale is turned to its other end, with the weight it had.
@@ -305,7 +325,7 @@ final class VisitTests: XCTestCase {
         await settings.send(SettingsForm.turn(.pace, to: .low, from: pace))
         XCTAssertEqual(settled.state.spec, calm.spec)
         shown = SearchScreen.shown(settled.state, consent: third.consent.choice)
-        XCTAssertTrue(shown.chips.map(\.reads).contains("Pace: towards Calm"))
+        XCTAssertTrue(shown.chips.map(\.reads).contains("Going out: towards Calm"))
         listed = Results.listed(settled.state)
         XCTAssertEqual(listed.cards.first?.heading.name, name(calm.ranked.first))
         // The strip of each result says which end was asked for, and where the area sits on it.
@@ -329,12 +349,12 @@ final class VisitTests: XCTestCase {
 
         // "Fewer pubs and bars": the edits the API gave with the choice, sent as a control sends them.
         let chosen: RankData = try Visit.answer("chosen-rank")
-        await settings.choose(0, .less)
+        await settings.choose(0, "less")
         XCTAssertEqual(visit.sent(to: .rank), rankedSoFar + 1)
         XCTAssertEqual(settled.state.spec, chosen.spec)
         shown = SearchScreen.shown(settled.state, consent: third.consent.choice)
         XCTAssertEqual(shown.offers?.offers.map(\.name), noticed.suggestions.dropFirst().map(\.label))
-        XCTAssertTrue(shown.chips.contains { $0.kind == .feature(.venueEvening) })
+        XCTAssertTrue(shown.chips.contains { $0.kind == .feature(.venueEveningPerHomes) })
         XCTAssertEqual(Results.listed(settled.state).cards.first?.heading.name, name(chosen.ranked.first))
         XCTAssertTrue(settled.state.reasonsAreIn)
         let typed = try Visit.sentence("noticed")

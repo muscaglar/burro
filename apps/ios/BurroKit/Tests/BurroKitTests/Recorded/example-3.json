@@ -16,17 +16,17 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "2727",
+    "content-length": "2747",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "e2c61ce2-0b75-40b1-8561-b19f7a0a075c"
+    "x-request-id": "dee2feea-7ee8-4947-89f6-e0fdfbd455d5"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
@@ -38,7 +38,7 @@
         "weight_ops": [
           {
             "action": "nudge",
-            "feature_id": "venue_evening",
+            "feature_id": "venue_evening_per_homes",
             "value": 0.0,
             "step": "up_large",
             "direction": "default",
@@ -126,7 +126,7 @@
             "provenance": "stated"
           },
           {
-            "feature_id": "venue_evening",
+            "feature_id": "venue_evening_per_homes",
             "weight": 0.5,
             "direction": "more",
             "provenance": "stated"
@@ -152,7 +152,7 @@
         "pt_basis_from": "default",
         "commute_weight_from": "default"
       },
-      "spec_hash": "8216c0d9a1569ae956671a50efe42c881d5ba836b4dcdfbb61504cbcd8ec38ae",
+      "spec_hash": "ade18b16d0f12ce720feb5985ca068732adc1bfd00da8fa414ebc8e52243efff",
       "applied": [
         {
           "group": "weight_ops",

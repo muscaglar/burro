@@ -57,7 +57,7 @@ final class ClientTests: XCTestCase {
 
         _ = await api.rank(RankBody(spec: spec))
         _ = await api.getArea("farrowmere")
-        _ = await api.getShare("rPnAeuBsXQci-xINLK_f2w")
+        _ = await api.getShare("3TQkoOxY0dYBEVyMymzDjg")
         _ = await api.getGeometry()
 
         XCTAssertEqual(
@@ -65,7 +65,7 @@ final class ClientTests: XCTestCase {
             [
                 "https://api.example.test/v1/rank",
                 "https://api.example.test/v1/areas/farrowmere",
-                "https://api.example.test/v1/shares/rPnAeuBsXQci-xINLK_f2w",
+                "https://api.example.test/v1/shares/3TQkoOxY0dYBEVyMymzDjg",
                 "https://api.example.test/v1/areas/geometry",
             ])
         XCTAssertEqual(standIn.unexpected.count, 0)
@@ -98,6 +98,7 @@ final class ClientTests: XCTestCase {
             .on(.searchPlaces, "places-search")
             .on(.createShare, "share-made")
             .on(.getShare, "share-opened")
+            .on(.getCensus, "census")
         let api = standIn.api()
 
         let interpret = await api.interpret(InterpretBody(text: "leafy", spec: spec))
@@ -106,10 +107,11 @@ final class ClientTests: XCTestCase {
         let compare = await api.compare(CompareBody(areaIds: ["syn-n0006", "syn-n0017"], spec: spec))
         let places = await api.searchPlaces(PlaceSearchBody(q: "pel"))
         let made = await api.createShare(ShareBody(spec: spec))
-        let share = await api.getShare("rPnAeuBsXQci-xINLK_f2w")
+        let share = await api.getShare("3TQkoOxY0dYBEVyMymzDjg")
         let areas = await api.listAreas()
         let geometry = await api.getGeometry()
         let area = await api.getArea("farrowmere")
+        let census = await api.getCensus("foxholt")
         let meta = await api.getMeta()
         let health = await api.healthz()
 
@@ -118,11 +120,12 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(try explain.get().data, Answers.explained("explanations-first"))
         XCTAssertEqual(try compare.get().data.areas.count, 3)
         XCTAssertEqual(try places.get().data.places.first?.placeId, "syn-p0012")
-        XCTAssertEqual(try made.get().data.shareId, "rPnAeuBsXQci-xINLK_f2w")
+        XCTAssertEqual(try made.get().data.shareId, "3TQkoOxY0dYBEVyMymzDjg")
         XCTAssertEqual(try share.get().data, Answers.shared("share-opened"))
         XCTAssertEqual(try areas.get().data.areas, Answers.areas)
         XCTAssertEqual(try geometry.get().data, Answers.geometry)
         XCTAssertEqual(try area.get().data, Answers.profile("farrowmere"))
+        XCTAssertEqual(try census.get().data, try Recorded.data(.getCensus, "census", as: CensusPanel.self))
         XCTAssertEqual(try meta.get().data, Answers.meta)
         XCTAssertEqual(try health.get(), Health(ok: true))
         XCTAssertEqual(Set(standIn.routes), Set(APIRoute.allCases))

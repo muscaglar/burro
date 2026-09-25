@@ -202,8 +202,8 @@ final class ResultsMapTests: XCTestCase {
         XCTAssertEqual(marks.compactMap(\.pin), Array(1...10))
         XCTAssertEqual(marks.prefix(10).map(\.area.areaId), ranking.scores.prefix(10).map(\.areaId))
         XCTAssertTrue(marks.allSatisfy { $0.fit != nil })
-        XCTAssertEqual(marks[0].fit, "Fit 78")
-        XCTAssertEqual(marks[0].words, "Rank 1, Farrowmere, fit 78 of 100")
+        XCTAssertEqual(marks[0].fit, "Fit 71")
+        XCTAssertEqual(marks[0].words, "Rank 1, Farrowmere, fit 71 of 100")
         XCTAssertEqual(marks[0].at, app.state.area("syn-n0006")?.centroid)
         XCTAssertEqual(marks[11].words, "Rank 12, \(marks[11].area.name), fit \(Results.fit(of: ranking.scores[11].score)) of 100")
         // A band is a colour. On every area that has one, the fit is there in figures as well.
@@ -274,7 +274,7 @@ final class ResultsMapTests: XCTestCase {
             let area = Answers.areas[at % Answers.areas.count]
             return AreaSummary(
                 areaId: "syn-x\(at)", slug: "x\(at)", name: area.name, borough: area.borough,
-                centroid: area.centroid, rankable: true)
+                centroid: area.centroid, rankable: true, named: area.named)
         }
         state.areas = many
         state.ranking = Ranking(
@@ -307,7 +307,7 @@ final class ResultsMapTests: XCTestCase {
         XCTAssertEqual(app.memory.bringIntoView, "syn-n0003")
         let chosen = try XCTUnwrap(app.mapped.chosen)
         XCTAssertEqual(chosen.area.name, "Cindermoor")
-        XCTAssertEqual(chosen.words, "Rank 2, fit 77 of 100")
+        XCTAssertEqual(chosen.words, "Rank 4, fit 65 of 100")
         XCTAssertTrue(chosen.inList)
         XCTAssertFalse(chosen.beyondList)
         XCTAssertEqual(app.mapped.regions.last?.outline.areaId, "syn-n0003")
@@ -380,8 +380,7 @@ final class ResultsMapTests: XCTestCase {
         XCTAssertEqual(app.mapped.chosen?.area.name, "Grapnel Dock")
         app.hands.choose(onMap: "syn-n0017")
         XCTAssertEqual(app.mapped.chosen?.area.name, "Otterby Fields")
-        XCTAssertEqual(
-            app.mapped.chosen?.words, "Too little is known of the character that counts in your search")
+        XCTAssertEqual(app.mapped.chosen?.words, "Too little data for what counts in your search")
         XCTAssertEqual(app.mapped.chosen?.inList, false)
     }
 
@@ -394,8 +393,8 @@ final class ResultsMapTests: XCTestCase {
 
         XCTAssertEqual(app.mapped.chosen?.beyondList, true)
         XCTAssertEqual(app.mapped.chosen?.inList, false)
-        XCTAssertEqual(app.mapped.chosen?.words, "Rank 21, fit 27 of 100")
-        XCTAssertEqual(Results.fit(of: last.score), 27)
+        XCTAssertEqual(app.mapped.chosen?.words, "Rank 21, fit 38 of 100")
+        XCTAssertEqual(Results.fit(of: last.score), 38)
         XCTAssertEqual(ResultsCopy.MapCard.notInList, "This area is not in the list.")
     }
 
@@ -448,9 +447,8 @@ final class ResultsMapTests: XCTestCase {
         XCTAssertEqual(rows.count, 24)
         XCTAssertEqual(rows.prefix(21).map(\.rank), (1...21).map(Optional.some))
         XCTAssertEqual(rows.suffix(3).map(\.area.name), ["Grapnel Dock", "Otterby Fields", "Sedgewater Marsh"])
-        XCTAssertEqual(
-            rows[22].status, "Too little is known of the character that counts in your search")
-        XCTAssertEqual(rows[0].words, "Farrowmere, Quillhaven, Rank 1, Fit 78 of 100, Ranked")
+        XCTAssertEqual(rows[22].status, "Too little data for what counts in your search")
+        XCTAssertEqual(rows[0].words, "Farrowmere, Quillhaven, Rank 1, Fit 71 of 100, Ranked")
         XCTAssertEqual(rows[23].words, "Sedgewater Marsh, \(rows[23].area.borough), Not ranked in this data")
         XCTAssertEqual(rows[23].rankWords, "None")
         XCTAssertEqual(rows[23].fitWords, "None")

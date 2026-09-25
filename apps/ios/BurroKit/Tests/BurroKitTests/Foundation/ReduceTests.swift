@@ -12,7 +12,7 @@ final class ReduceTests: XCTestCase {
     private let shared = Answers.shared("share-opened")
     private let reasons = Answers.explained("explanations-first")
     private let later = Answers.explained("explanations-refined")
-    private let shareId = "rPnAeuBsXQci-xINLK_f2w"
+    private let shareId = "3TQkoOxY0dYBEVyMymzDjg"
     private let timeout = Failure.because(.timeout)
     private let offline = Failure.because(.offline)
 
@@ -88,6 +88,10 @@ final class ReduceTests: XCTestCase {
             ("questionAnswered", .questionAnswered(Clarify(group: .commuteOps, index: 0, options: []), id: "syn-p0012")),
             ("questionLeft", .questionLeft(Clarify(group: .commuteOps, index: 0, options: []))),
             ("suggestionChosen", .suggestionChosen(at: 0, changes: true)),
+            ("allAdded", .allAdded(ats: [0])),
+            ("allTakenBack", .allTakenBack),
+            ("readMoreAnswered", .readMoreAnswered(Answers.read("interpret-by-model-long"))),
+            ("readMoreFailed", .readMoreFailed),
             ("boxChanged", .boxChanged),
             ("placeNamed", .placeNamed(placeId: "syn-p0021", name: "Cindermoor Works")),
             ("onlineChanged", .onlineChanged(false)),
@@ -491,6 +495,186 @@ final class ReduceTests: XCTestCase {
         XCTAssertEqual(state.spec, before.spec)
         XCTAssertEqual(reduce(state, .boxChanged), state)
         XCTAssertEqual(reduce(opened(), .boxChanged), opened())
+    }
+
+    func test_what_a_model_read_joins_what_is_offered_and_only_while_it_is_waited_for() {
+        let atOnce = Answers.read("interpret-rules-at-once")
+        let long = Answers.read("interpret-by-model-long")
+        let waiting = after(.readStarted(seq: 1), .readAnswered(atOnce), .settled)
+
+        let joined = reduce(waiting, .readMoreAnswered(long))
+
+        // The rules say whether a model has more to read, and what they noticed is there meanwhile.
+        XCTAssertEqual(waiting.read?.more, true)
+        XCTAssertEqual(waiting.suggestions, atOnce.suggestions)
+        XCTAssertEqual(joined.read?.more, false)
+        XCTAssertEqual(joined.suggestions, long.suggestions)
+        XCTAssertEqual(joined.unread, long.unread)
+        XCTAssertEqual(joined.read?.interpreter, .model)
+        // Nothing of it is applied: the search is as it was.
+        XCTAssertEqual(joined.spec, waiting.spec)
+        XCTAssertEqual(joined.answers, waiting.answers)
+        XCTAssertNil(joined.ranking)
+        // An answer that nobody waits for changes nothing.
+        XCTAssertEqual(reduce(joined, .readMoreAnswered(atOnce)), joined)
+        XCTAssertEqual(reduce(opened(), .readMoreAnswered(long)), opened())
+        let plain = after(.readAnswered(Answers.read("interpret-suggest")))
+        XCTAssertEqual(plain.read?.more, false)
+        XCTAssertEqual(reduce(plain, .readMoreAnswered(long)), plain)
+    }
+
+    func test_a_model_that_did_not_answer_leaves_what_the_rules_offered() throws {
+        let atOnce: InterpretData = try Visit.answer("slow-at-once")
+        let slow: InterpretData = try Visit.answer("slow")
+        let waiting = after(.readStarted(seq: 1), .readAnswered(atOnce), .settled)
+
+        let failed = reduce(waiting, .readMoreFailed)
+        let answered = reduce(waiting, .readMoreAnswered(slow))
+
+        XCTAssertEqual(failed.read?.more, false)
+        XCTAssertEqual(failed.suggestions, atOnce.suggestions)
+        XCTAssertFalse(failed.degraded)
+        XCTAssertEqual(reduce(failed, .readMoreFailed), failed)
+        // The service answered for a model that did not: the rules' offers, and that the model did not read.
+        XCTAssertEqual(answered.suggestions.map(\.label), ["Nearer a river or canal"])
+        XCTAssertTrue(answered.degraded)
+        XCTAssertEqual(answered.read?.degraded, true)
+        XCTAssertEqual(answered.read?.interpreter, .rule)
+        // There is something to choose from, so the settings stay shut.
+        XCTAssertFalse(answered.settingsOpen)
+    }
+
+    func test_what_was_chosen_of_while_a_model_read_is_not_offered_again() {
+        let atOnce = Answers.read("interpret-rules-at-once")
+        let long = Answers.read("interpret-by-model-long")
+        let waiting = after(.readAnswered(atOnce))
+
+        let chosen = reduce(waiting, .suggestionChosen(at: 0, changes: true))
+        let joined = reduce(chosen, .readMoreAnswered(long))
+
+        XCTAssertEqual(chosen.read?.chosen, [atOnce.suggestions[0].key])
+        XCTAssertEqual(atOnce.suggestions[0].key, long.suggestions[0].key)
+        XCTAssertEqual(joined.suggestions, Array(long.suggestions.dropFirst()))
+        // The model's reading is let go when the box changes, with what rested on what was sent.
+        let changed = reduce(waiting, .boxChanged)
+        XCTAssertEqual(changed.read?.more, false)
+        XCTAssertEqual(reduce(changed, .readMoreAnswered(long)), changed)
+    }
+
+    func test_a_reading_says_when_the_language_model_would_not_read_the_words() {
+        let refused = after(.readAnswered(Answers.read("interpret-refused")))
+        let degraded = after(.readAnswered(Answers.read("interpret-degraded")))
+
+        XCTAssertEqual(refused.read?.modelRefused, true)
+        XCTAssertTrue(refused.modelRefused)
+        XCTAssertEqual(degraded.read?.modelRefused, false)
+        XCTAssertFalse(degraded.modelRefused)
+        XCTAssertFalse(after(.readAnswered(read)).modelRefused)
+        XCTAssertFalse(opened().modelRefused)
+        // While the next is read nothing is said of the last. The reading before is still
+        // held when a read fails, and what nothing read was refused by nothing.
+        let reading = reduce(refused, .readStarted(seq: 2))
+        let failed = reduce(reading, .failed(step: .read, timeout))
+        XCTAssertFalse(reading.modelRefused)
+        XCTAssertEqual(failed.read?.modelRefused, true)
+        XCTAssertEqual(failed.failurePlace, .form)
+        XCTAssertFalse(failed.modelRefused)
+        // A model that is asked after the rules says so in its own answer.
+        let waiting = after(.readAnswered(Answers.read("interpret-rules-at-once")))
+        let joined = reduce(waiting, .readMoreAnswered(Answers.read("interpret-refused")))
+        XCTAssertEqual(waiting.read?.modelRefused, false)
+        XCTAssertEqual(joined.read?.modelRefused, true)
+        XCTAssertTrue(joined.modelRefused)
+    }
+
+    func test_one_press_adds_several_and_keeps_what_it_takes_to_take_them_back() {
+        let long = Answers.read("interpret-by-model-long")
+        let before = after(.readAnswered(long))
+
+        let added = reduce(before, .allAdded(ats: [0, 1, 6, 10, 11]))
+
+        XCTAssertEqual(
+            added.suggestions.map(\.label),
+            [
+                "Mix of brands", "Gritty", "What homes sell for", "Homes in the higher council tax bands",
+                "Village feel", "Age of buildings", "Nearer a town centre",
+            ])
+        XCTAssertEqual(added.read?.added?.count, 5)
+        // What is left for the person: of what was added, and then of what was not.
+        XCTAssertEqual(
+            added.read?.added?.needs,
+            [
+                "the journey can be made a firm limit", "the budget can be made a firm limit",
+                "mix of brands", "recorded crime, which is added under its own name",
+                "what homes sell for", "homes in the higher council tax bands", "Village feel",
+                "Age of buildings", "nearer a town centre",
+            ])
+        // The search as it stood before the press, and what was offered then.
+        XCTAssertEqual(added.read?.added?.spec, before.spec)
+        XCTAssertEqual(added.read?.added?.suggestions, long.suggestions)
+        XCTAssertEqual(added.read?.chosen, [0, 1, 6, 10, 11].map { long.suggestions[$0].key })
+        // The press sends nothing of itself: the search is as it was until the answer comes.
+        XCTAssertEqual(added.spec, before.spec)
+        XCTAssertEqual(added.pending, .none)
+        // A place in the list that holds nothing adds nothing.
+        XCTAssertEqual(reduce(before, .allAdded(ats: [17])), before)
+        XCTAssertEqual(reduce(before, .allAdded(ats: [])), before)
+        XCTAssertEqual(reduce(opened(), .allAdded(ats: [0])), opened())
+        XCTAssertEqual(reduce(before, .allAdded(ats: [0, 17])).read?.added?.count, 1)
+    }
+
+    func test_what_one_press_added_takes_the_notice_with_it() {
+        let before = after(.readAnswered(Answers.read("interpret-suggest-notice")))
+
+        XCTAssertTrue(before.noticed)
+        XCTAssertFalse(reduce(before, .allAdded(ats: [0])).noticed)
+    }
+
+    func test_taking_it_all_back_offers_again_what_was_offered_before_the_press() {
+        let long = Answers.read("interpret-by-model-long")
+        let before = after(.readAnswered(long))
+        let skipped = reduce(before, .suggestionChosen(at: 2, changes: false))
+        let added = reduce(skipped, .allAdded(ats: [0, 1]))
+
+        let back = reduce(added, .allTakenBack)
+
+        // What was offered when the button was pressed is offered again. What the person
+        // had chosen of before that is not.
+        XCTAssertEqual(back.suggestions, skipped.suggestions)
+        XCTAssertEqual(back.suggestions.count, 11)
+        XCTAssertEqual(back.read?.chosen, [long.suggestions[2].key])
+        XCTAssertNil(back.read?.added)
+        XCTAssertEqual(back.spec, before.spec)
+        // There is nothing more to take back.
+        XCTAssertEqual(reduce(back, .allTakenBack), back)
+        XCTAssertEqual(reduce(before, .allTakenBack), before)
+        XCTAssertEqual(reduce(opened(), .allTakenBack), opened())
+    }
+
+    func test_what_one_press_added_goes_when_the_box_changes_and_with_the_next_reading() {
+        let atOnce = Answers.read("interpret-rules-at-once")
+        let long = Answers.read("interpret-by-model-long")
+        let added = after(.readAnswered(atOnce), .allAdded(ats: [0, 6, 11, 13]))
+
+        XCTAssertEqual(added.added?.count, 4)
+        XCTAssertNil(reduce(added, .boxChanged).added)
+        XCTAssertEqual(reduce(added, .boxChanged).suggestions, [])
+        XCTAssertEqual(reduce(reduce(added, .boxChanged), .boxChanged), reduce(added, .boxChanged))
+        // While another is read nothing of the last is said, and its answer takes its place.
+        XCTAssertNil(reduce(added, .readStarted(seq: 2)).added)
+        XCTAssertNil(reduce(added, .readAnswered(Answers.read("interpret-suggest"))).added)
+        // A choice of one thing, and what a model reads meanwhile, take nothing of it away.
+        XCTAssertEqual(reduce(added, .suggestionChosen(at: 0, changes: true)).added, added.added)
+        let joined = reduce(added, .readMoreAnswered(long))
+        XCTAssertEqual(joined.added, added.added)
+        // What was added is not offered again when the model has read.
+        XCTAssertEqual(
+            joined.suggestions.map(\.label),
+            [
+                "Nearer a park", "Mix of brands", "Gritty", "What homes sell for",
+                "Homes in the higher council tax bands", "Village feel", "Age of buildings",
+                "Nearer a town centre", "Pellam Exchange", "A budget of £1,900",
+            ])
     }
 
     func test_what_was_asked_for_and_is_not_in_the_data_is_kept_by_the_apis_name_for_it() throws {

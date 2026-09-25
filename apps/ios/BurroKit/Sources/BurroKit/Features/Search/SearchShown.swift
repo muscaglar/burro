@@ -77,28 +77,48 @@ struct NotAppliedShown: Hashable, Sendable {
     let reason: String
 }
 
-/// One thing the reader noticed and did not apply, with what a person may
-/// choose of it. The name of the thing and the words of each choice are the
-/// API's. It holds where the person's words stand, as offsets, and never the words.
+/// One thing the reader noticed and did not apply, in its four parts: what it
+/// would do, where the person's own words stand, what follows, and the choices.
+/// Every word of it is the API's. It holds where the person's words stand, as
+/// offsets, and never the words: they are cut from the box when it is drawn.
 struct OfferShown: Hashable, Sendable, Identifiable {
     struct Choice: Hashable, Sendable, Identifiable {
-        let direction: SuggestionDirection
+        /// The API's id of the choice, which tells it from every other of its offer.
+        /// The way a choice runs does not: a firm limit and a guide both add.
+        let id: String
         /// The API's words for the choice: what it would do.
         let label: String
-        /// What a screen reader is told. "Leave it out" is said of every
-        /// suggestion, so each says what it leaves out.
+        /// True where this is the way Burro reads the words. It is a mark on the
+        /// choice, said in words, and applies nothing.
+        let guess: Bool
+        /// What a screen reader is told: the words of the choice, the mark of the
+        /// guess, and the thing it is a choice of where its words do not name it.
+        /// "Add" and "Skip" are said of many things.
         let spoken: String
+    }
 
-        var id: String { direction.rawValue }
+    /// One place the release holds that is like the one that was typed, by the API's name for it.
+    struct Option: Hashable, Sendable, Identifiable {
+        let id: String
+        let name: String
     }
 
     /// Where the suggestion stands among them all: a choice names its thing by its place.
     let at: Int
-    /// The API's name for the thing.
+    /// By what the offer is told from every other of one answer, so that a place is
+    /// chosen for the offer it was asked of, though the list changes meanwhile.
+    let key: String
+    /// The API's name for the thing. It is said to a screen reader and is not drawn:
+    /// what the offer would do names the thing.
     let name: String
-    /// True when the name is drawn before the choices: the thing could be
-    /// meant two ways. A thing there is one way to want is named by its button alone.
-    let named: Bool
+    /// What the offer would do, in the API's words. It begins with a verb, or is a question.
+    let does: String
+    /// Where the clause the offer rests on stands in the text that was sent. The
+    /// person's words are cut from the box by it, under "You wrote".
+    let shown: Span
+    /// What follows for areas, and what nobody said and Burro took: a line for each,
+    /// in the API's words and in the order it gave them.
+    let follows: [String]
     /// What a person should know before they choose, in the API's words.
     let note: String?
     /// False where the suggestion before this one carries the same note,
@@ -107,19 +127,43 @@ struct OfferShown: Hashable, Sendable, Identifiable {
     let choices: [Choice]
     /// Where the words it rests on stand in the text that was sent.
     let spans: [Span]
+    /// True where the journey is offered with no place: Burro does not know the place
+    /// that was named, and the person says which before anything is sent.
+    let asksPlace: Bool
+    /// The places the release holds that are like the one that was named, five at
+    /// most. None where nothing is like it.
+    let options: [Option]
 
     var id: Int { at }
+
+    /// True where a press on this choice asks which place, and sends nothing until one
+    /// is chosen. Doing nothing needs no place.
+    func asksWhichPlace(on choice: Choice) -> Bool {
+        asksPlace && choice.id != Suggestion.skip
+    }
 }
 
 /// Everything that is offered, as the screen draws it.
 struct OffersShown: Hashable, Sendable {
     let offers: [OfferShown]
-    /// The one button that adds every thing in sight that may be added with
-    /// others, and the places in the list of those things. `nil` with fewer than two.
+    /// Said while a model reads what the rules left unread. `nil` when none does. What
+    /// the rules noticed is drawn meanwhile, and may be chosen of.
+    let reading: String?
+    /// What the last press of "Add all" added, and what is left for the person, which
+    /// the API names. `nil` where nothing was added, and while a model reads: one line
+    /// says what goes on.
+    let added: String?
+    /// The button that takes back all that the press added. `nil` where nothing was.
+    let takeBack: String?
+    /// The one button that adds every thing in sight that the API says one press
+    /// may add, and the places in the list of those things. `nil` with fewer than two.
     let addAll: String?
     let addAllAts: [Int]
     /// The button that shows the suggestions that wait out of sight. `nil` when none does.
     let showAll: String?
+
+    /// The one line that says what goes on: that a model reads, or else what one press added.
+    var says: String? { reading ?? added }
 }
 
 /// Who reads what is typed, as the screen before the first search says it.
@@ -172,6 +216,9 @@ struct SearchShown: Hashable, Sendable {
     let offlineWaiting: Bool?
     /// `nil` when the words were read. Otherwise whether "Try again" is offered.
     let couldNotReadRetry: Bool?
+    /// What is said then: that the words could not be read just now, or that the
+    /// language model would not read them and the rules have. `nil` when the words were read.
+    let couldNotRead: String?
     let failure: FailureShown?
     let notice: String?
     let nothingRead: String?
@@ -230,20 +277,24 @@ struct SearchShown: Hashable, Sendable {
 
 enum SearchScreen {
     /// How many suggestions are shown before "Show all" is pressed. Every thing beyond
-    /// them that there is one way to want is shown as well.
+    /// them that one press may add is shown as well.
     static let offersAtFirst = 4
 
     /// Where in the list the suggestions stand that are drawn before "Show all" is
-    /// pressed: the first four, and every other that may be added with others at one
-    /// press. So what waits out of sight is only what is a question, and the one
-    /// button adds every thing that needs none.
+    /// pressed: the first four, and every other that one press may add. So what waits
+    /// out of sight is only what is the person's to choose, and the one button adds
+    /// nothing that is not in sight.
     static func inSight(_ suggestions: [Suggestion]) -> [Int] {
         suggestions.indices.filter { $0 < offersAtFirst || suggestions[$0].addedWithOthers != nil }
     }
 
-    /// What is offered, as the screen draws it. `nil` where nothing is.
-    static func offers(_ suggestions: [Suggestion], all: Bool) -> OffersShown? {
-        guard !suggestions.isEmpty else { return nil }
+    /// What is offered, as the screen draws it. `nil` where nothing is, no model reads
+    /// and nothing was added: while one reads the screen says so, though the rules
+    /// noticed nothing, and what one press added can be taken back though nothing is left.
+    static func offers(
+        _ suggestions: [Suggestion], all: Bool, reading: Bool = false, added: Added? = nil
+    ) -> OffersShown? {
+        guard !suggestions.isEmpty || reading || added != nil else { return nil }
         let shown = all ? Array(suggestions.indices) : inSight(suggestions)
         var offers: [OfferShown] = []
         for at in shown {
@@ -253,29 +304,53 @@ enum SearchScreen {
             let sameAsBefore = note != nil && offers.last?.note == note
             offers.append(
                 OfferShown(
-                    at: at, name: suggestion.label, named: suggestion.ways.count != 1, note: note,
-                    noteDrawn: note != nil && !sameAsBefore,
+                    at: at, key: suggestion.key, name: suggestion.label, does: suggestion.does,
+                    shown: suggestion.shown,
+                    follows: (suggestion.follows.isEmpty ? [] : [suggestion.follows]) + suggestion.said,
+                    note: note, noteDrawn: note != nil && !sameAsBefore,
                     choices: suggestion.choices.map { choice in
                         OfferShown.Choice(
-                            direction: choice.direction, label: choice.label,
-                            spoken: choice.direction == .ignore
-                                ? SearchCopy.Suggest.named(choice.label, suggestion.label) : choice.label)
+                            id: choice.id, label: choice.label, guess: choice.guess,
+                            spoken: spoken(choice, of: suggestion))
                     },
-                    spans: suggestion.spans))
+                    spans: suggestion.spans, asksPlace: suggestion.asksPlace,
+                    options: suggestion.options.map { OfferShown.Option(id: $0.id, name: $0.name) }))
         }
-        // The things in sight that may be added together. What is out of sight is never
-        // added, nor what could be meant two ways, nor what carries a note.
+        // The things in sight that one press may add, as the API marks them. What is
+        // out of sight is never added.
         let oneWay = shown.filter { suggestions[$0].addedWithOthers != nil }
         let every = oneWay.count == shown.count
         let more = suggestions.count - shown.count
         return OffersShown(
             offers: offers,
+            reading: reading ? SearchCopy.Suggest.reading : nil,
+            added: reading ? nil : added.map { SearchCopy.Suggest.added($0.count, needs: $0.needs) },
+            takeBack: added == nil ? nil : SearchCopy.Suggest.takeBack,
             addAll: oneWay.count > 1
                 ? (every
                     ? SearchCopy.Suggest.addAll(oneWay.count) : SearchCopy.Suggest.addThese(oneWay.count))
                 : nil,
             addAllAts: oneWay.count > 1 ? oneWay : [],
             showAll: more > 0 ? SearchCopy.Suggest.showAll(suggestions.count) : nil)
+    }
+
+    /// True where the words of a choice name the thing it is a choice of, as "More pubs
+    /// and bars" names pubs and bars, and "Add" names nothing.
+    static func names(_ choice: String, _ thing: String) -> Bool {
+        choice.localizedCaseInsensitiveContains(thing)
+    }
+
+    /// The words of a choice that is Burro's guess, with the mark after them.
+    static func marked(_ label: String) -> String {
+        "\(label) (\(SearchCopy.Suggest.guess))"
+    }
+
+    /// What a choice is called to whoever cannot see what it stands under: its own
+    /// words, the mark of the guess, and the thing it is of where its words do not name it.
+    static func spoken(_ choice: SuggestionChoice, of suggestion: Suggestion) -> String {
+        let words = choice.guess ? marked(choice.label) : choice.label
+        return names(choice.label, suggestion.label)
+            ? words : SearchCopy.Suggest.named(words, suggestion.label)
     }
 
     /// What the screen shows of a search.
@@ -337,13 +412,16 @@ enum SearchScreen {
             status: SearchStatus.line(state),
             offlineWaiting: place == .offline ? !state.pending.isEmpty : nil,
             couldNotReadRetry: state.degraded && !reading ? place == .form : nil,
+            couldNotRead: state.degraded && !reading
+                ? (state.modelRefused ? SearchCopy.Notice.refused : SearchCopy.Notice.degraded) : nil,
             failure: failure,
             notice: notice,
             nothingRead: nothingRead,
             notInData: missing,
             notInDataLead: missing.isEmpty ? nil : SearchCopy.NotInData.lead(missing.count),
             readInPart: state.readInPart,
-            offers: offers(state.suggestions, all: allOffers),
+            offers: offers(
+                state.suggestions, all: allOffers, reading: state.modelIsReading, added: state.added),
             unread: state.unread,
             questions: questions.enumerated().map { at, question in
                 asked(question, at: at + 1, of: questions.count)
@@ -422,11 +500,13 @@ enum SearchScreen {
 
     /// True when a sentence has just been ranked and nothing here needs reading
     /// first, so that the person is taken to the list and the map. A question, a
-    /// notice, a line about what was not read, a failure: each keeps them here.
+    /// notice, a line about what was not read, a failure: each keeps them here. So
+    /// does what one press added, where the line says that something is left for them.
     static func leadsToResults(_ state: SearchState) -> Bool {
         guard state.phase == .results, let ranking = state.ranking, !ranking.ranked.isEmpty else {
             return false
         }
+        guard state.added?.needs.isEmpty ?? true else { return false }
         return state.conditions.isEmpty && state.unmetShown.isEmpty && state.refusals.isEmpty
     }
 

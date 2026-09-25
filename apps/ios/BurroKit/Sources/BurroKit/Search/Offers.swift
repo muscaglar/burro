@@ -1,19 +1,29 @@
 import Foundation
 
-// What may be done with a thing Burro noticed and did not apply. It mirrors
-// apps/web/src/lib/search/suggestion.ts and spans.ts.
+// What may be done with an offer: a thing Burro read in the words and did not
+// apply. It mirrors apps/web/src/lib/search/suggestion.ts and spans.ts.
 //
-// Burro guesses nothing. A thing that could be wanted two ways is a question
-// until the person chooses. A thing that carries a note is chosen by its own
-// label, and never with others at once: the note is what a person should know
-// before they choose. For recorded crime that is a rule and no courtesy.
-// Recorded crime counts only when it is asked for by name, and a button that
-// adds several things at once names none of them. docs/design/contract.md, 8.2.
+// Nothing is applied until a person presses it. Which way one press may add
+// with others is the API's to say, in `add_all`, and the app works nothing out.
+// The API never names a way that leaves areas out, a thing with two ways and
+// no guess, a journey to a place that is yet to be chosen, or recorded crime.
+// docs/design/contract.md, 8.2.
 
 extension Suggestion {
-    /// The ways the thing may be wanted: every choice of it but leaving it out.
+    /// The id of the choice that does nothing. Its words are the API's: "Skip".
+    public static let skip = "ignore"
+
+    /// By what an offer is told from every other of one answer: its thing, its name, and
+    /// where the clause it stands in begins. The rules and a model give the same thing
+    /// the same three. It holds an offset, and nothing a person typed.
+    public var key: String {
+        "\(target) \(label) \(shown.start)"
+    }
+
+    /// The ways the thing may be taken: every choice of it but doing nothing. A way is
+    /// known by its id. Two may run the same way: a firm limit and a guide both add.
     public var ways: [SuggestionChoice] {
-        choices.filter { $0.direction != .ignore }
+        choices.filter { $0.id != Self.skip }
     }
 
     /// What a person should know before they choose, in the API's words. `nil`
@@ -22,12 +32,34 @@ extension Suggestion {
         note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : note
     }
 
-    /// The one way the thing may be added together with others. `nil` where it
-    /// may not be: it could be meant two ways, or it carries a note.
+    /// The way of the thing that one press may add with others: the one the API
+    /// names in `add_all`. `nil` where it names none, and the thing is the person's
+    /// to choose.
     public var addedWithOthers: SuggestionChoice? {
-        let ways = ways
-        guard ways.count == 1, noteShown == nil else { return nil }
-        return ways.first
+        guard !addAll.isEmpty, addAll != Self.skip else { return nil }
+        return ways.first { $0.id == addAll }
+    }
+}
+
+extension Operations {
+    /// True when every journey of these edits says where it leads. A journey to a place
+    /// the release does not hold is offered with no place, and cannot be sent as it is.
+    public var namesItsPlaces: Bool {
+        commuteOps.allSatisfy { !$0.placeId.isEmpty }
+    }
+
+    /// The edits of a way, with the place a person chose put into each journey that
+    /// holds none. A journey that names its place keeps it, and nothing else is changed.
+    public func withPlace(_ placeId: String) -> Operations {
+        Operations(
+            budgetOps: budgetOps,
+            commuteOps: commuteOps.map { edit in
+                guard edit.placeId.isEmpty else { return edit }
+                return CommuteEdit(
+                    action: edit.action, placeId: placeId, mode: edit.mode, maxMinutes: edit.maxMinutes,
+                    strictness: edit.strictness, step: edit.step, provenance: edit.provenance)
+            },
+            weightOps: weightOps, tagOps: tagOps, areaOps: areaOps, settingOps: settingOps)
     }
 }
 
@@ -38,8 +70,9 @@ extension Suggestion {
 /// whatever space stands before it. So an offset is carried over before the
 /// box selects by it.
 ///
-/// Nothing here keeps or returns a word. It takes the text from the box, where
-/// it already is, and gives back places in it, for the box to select.
+/// Nothing here keeps a word. It takes the text from the box, where it already
+/// is, and gives back places in it, for the box to select, or the words of one
+/// stretch, for the screen to draw beside an offer while the box holds them.
 public enum BoxSpans {
     /// The stretches as places in the box as it stands, in the order given.
     /// One that is empty, or that falls outside the text, is left out.
@@ -60,5 +93,15 @@ public enum BoxSpans {
             // A place inside a letter that is made of several code points is moved to its edge.
             return box.rangeOfComposedCharacterSequences(for: from..<to)
         }
+    }
+
+    /// The words of one stretch, cut from the box as it stands, or `nil` where the
+    /// stretch is not in it. They are cut and never retyped: what is shown is what the
+    /// person wrote. Whoever calls this must know that the box still holds what was
+    /// sent, and must keep the words nowhere.
+    public static func written(_ box: String, _ span: Span) -> String? {
+        guard let found = inTheBox(box, [span]).first else { return nil }
+        let words = box[found].trimmingCharacters(in: .whitespacesAndNewlines)
+        return words.isEmpty ? nil : words
     }
 }

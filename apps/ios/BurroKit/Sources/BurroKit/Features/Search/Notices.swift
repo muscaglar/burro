@@ -84,14 +84,17 @@ struct OfflineBlock: View {
     }
 }
 
-/// Said when the words could not be read. The settings do the same job.
+/// Said when the words could not be read, where the settings do the same job, and
+/// when the language model would not read them, where the rules have.
 struct CouldNotReadBlock: View {
+    /// Which of the two is said.
+    let words: String
     /// `nil` when there is nothing to try again.
     let tryAgain: (() -> Void)?
 
     var body: some View {
         VStack(alignment: .leading, spacing: Tokens.Space.s2) {
-            StateLine(SearchCopy.Notice.degraded)
+            StateLine(words)
             if let tryAgain {
                 Button(SearchCopy.Prompt.tryAgain, action: tryAgain)
                     .buttonStyle(.burroLesser)

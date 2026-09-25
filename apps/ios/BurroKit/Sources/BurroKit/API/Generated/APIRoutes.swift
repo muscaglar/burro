@@ -1,6 +1,6 @@
 // Generated from contracts/openapi.json by apps/ios/scripts/generate.py.
 // Never edited by hand: change the source and run `make generate`.
-// source-sha256: 445949d584bb32c90a058e271298840b12447f64a5c41f3584a78734832d0de1
+// source-sha256: 061a76b3ba9d7ddd361d0ab6b308e4809cf99742231f70fdc79c99ce0ad5d731
 
 import Foundation
 
@@ -17,6 +17,7 @@ public enum APIRoute: String, Hashable, Sendable, CaseIterable {
     case getArea = "get_area"
     case getCensus = "get_census"
     case getGeometry = "get_geometry"
+    case getIncome = "get_income"
     case getMeta = "get_meta"
     case getShare = "get_share"
     case healthz = "healthz"
@@ -33,6 +34,7 @@ public enum APIRoute: String, Hashable, Sendable, CaseIterable {
         case .getArea: return .get
         case .getCensus: return .get
         case .getGeometry: return .get
+        case .getIncome: return .get
         case .getMeta: return .get
         case .getShare: return .get
         case .healthz: return .get
@@ -52,6 +54,7 @@ public enum APIRoute: String, Hashable, Sendable, CaseIterable {
         case .getArea: return "/v1/areas/{id_or_slug}"
         case .getCensus: return "/v1/areas/{id_or_slug}/census"
         case .getGeometry: return "/v1/areas/geometry"
+        case .getIncome: return "/v1/areas/{id_or_slug}/income"
         case .getMeta: return "/v1/meta"
         case .getShare: return "/v1/shares/{share_id}"
         case .healthz: return "/healthz"
@@ -71,6 +74,7 @@ public enum APIRoute: String, Hashable, Sendable, CaseIterable {
         case .getArea: return "id_or_slug"
         case .getCensus: return "id_or_slug"
         case .getGeometry: return nil
+        case .getIncome: return "id_or_slug"
         case .getMeta: return nil
         case .getShare: return "share_id"
         case .healthz: return nil
@@ -90,6 +94,7 @@ public enum APIRoute: String, Hashable, Sendable, CaseIterable {
         case .getArea: return true
         case .getCensus: return true
         case .getGeometry: return true
+        case .getIncome: return true
         case .getMeta: return true
         case .getShare: return true
         case .healthz: return false
@@ -109,6 +114,7 @@ public enum APIRoute: String, Hashable, Sendable, CaseIterable {
         case .getArea: return [304, 404, 422, 500]
         case .getCensus: return [404, 422, 500]
         case .getGeometry: return [304, 500]
+        case .getIncome: return [404, 422, 500]
         case .getMeta: return [304, 500]
         case .getShare: return [404, 410, 422, 500]
         case .healthz: return [500]
@@ -136,6 +142,8 @@ public protocol BurroAPI: Sendable {
     func getCensus(_ idOrSlug: String) async -> Answer<CensusPanel>
     /// `GET /v1/areas/geometry`. The boundary of every area, as a GeoJSON feature collection.
     func getGeometry() async -> Answer<GeometryData>
+    /// `GET /v1/areas/{id_or_slug}/income`. The household income of one area, as its publisher estimates it, and nothing else.
+    func getIncome(_ idOrSlug: String) async -> Answer<IncomeShown>
     /// `GET /v1/meta`. The release that is loaded, the vocabulary, the defaults, the limits, and who reads.
     func getMeta() async -> Answer<MetaData>
     /// `GET /v1/shares/{share_id}`. A shared search, ranked now on the release that is loaded.
@@ -148,7 +156,7 @@ public protocol BurroAPI: Sendable {
     func listAreas() async -> Answer<AreasData>
     /// `POST /v1/rank`. Apply any edits to the spec, then rank every area of the release for it.
     func rank(_ body: RankBody) async -> Answer<RankData>
-    /// `POST /v1/places/search`. The places that match, best first.
+    /// `POST /v1/places/search`. The places and the areas that match, each best first.
     func searchPlaces(_ body: PlaceSearchBody) async -> Answer<PlacesData>
 }
 
@@ -185,6 +193,10 @@ extension BurroAPI where Self: RouteSending {
 
     public func getGeometry() async -> Answer<GeometryData> {
         await send(.getGeometry, parameter: nil, body: nil)
+    }
+
+    public func getIncome(_ idOrSlug: String) async -> Answer<IncomeShown> {
+        await send(.getIncome, parameter: idOrSlug, body: nil)
     }
 
     public func getMeta() async -> Answer<MetaData> {

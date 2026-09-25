@@ -82,6 +82,8 @@ enum ResultsCopy {
         static let label = "About your search"
         static let degraded = "Your words could not be read just now. The settings below do the same job."
         static let degradedHere = "Your words could not be read just now. The settings do the same job."
+        /// Said when the provider of the language model would not read what was typed. It names nobody.
+        static let refused = "The language model would not read this. Burro's rules have read it instead."
         /// A sentence that Burro reads whole, to show what it can read. It names no place.
         static let readable = "leafy and quiet, near a park"
         static var nothingRead: String {
@@ -121,7 +123,7 @@ enum ResultsCopy {
 
     /// What the reader noticed in a prompt it did not apply. It is chosen on the search.
     enum Suggest {
-        static let title = "Burro was not sure. Choose what to add."
+        static let title = "Choose what to add"
     }
 
     /// What was asked for that the data does not hold yet.
@@ -202,6 +204,19 @@ enum ResultsCopy {
         static func overLimit(_ minutes: Int) -> String { "Over your limit of \(minutes) minutes" }
         static func beyond(_ minutes: Int) -> String { "More than \(minutes) minutes" }
         static let missing = "No journey time in this data"
+        /// Where a journey that was estimated stands against the limit a person set: the
+        /// three bands of the API, each in the words its fact says it in where it stands
+        /// alone. An estimate is never given in minutes.
+        static func estimated(_ band: JourneyBand?) -> String? {
+            switch band {
+            case .likelyWithin: return "Likely within your limit"
+            case .borderline: return "Borderline for your limit"
+            case .likelyBeyond: return "Likely beyond your limit"
+            case .unlisted, nil: return nil
+            }
+        }
+        /// What stands wherever an estimate is shown: the API's line, word for word.
+        static let estimatedFrom = "Estimated from distance, not from a timetable."
         static let time = "How long"
         /// Under two journeys or more: which of them the fit is worked out from.
         static func usesOne(_ place: String) -> String {
@@ -347,6 +362,8 @@ enum ResultsCopy {
         case .notSelected: return "Not one of the areas you chose"
         case .overBudget: return "Over your budget, which is a firm limit"
         case .commuteCap: return "A journey is longer than a firm limit"
+        case .commuteLikelyBeyond:
+            return "A journey is likely beyond a firm limit. \(Journeys.estimatedFrom)"
         case .unlisted: return nil
         }
     }
@@ -367,7 +384,7 @@ enum ResultsCopy {
         case .notSelected: return "Whether this is one of the areas you chose could not be checked."
         case .overBudget:
             return "Your budget is a firm limit, and it could not be tested here: there is no cost figure."
-        case .commuteCap:
+        case .commuteCap, .commuteLikelyBeyond:
             return "A journey is a firm limit, and it could not be tested here: there is no journey time."
         case .unlisted: return nil
         }
@@ -484,6 +501,8 @@ enum ResultsCopy {
         case .notSelected: return "Left out: not one of the areas you chose"
         case .overBudget: return "Left out: over your budget, which is a firm limit"
         case .commuteCap: return "Left out: a journey is longer than a firm limit"
+        case .commuteLikelyBeyond:
+            return "Left out: a journey is likely beyond a firm limit. \(Journeys.estimatedFrom)"
         case .notRankable: return "Not ranked in this data"
         case .insufficientData: return "Not ranked: too little data for what counts"
         case .characterUnknown: return "Not ranked: too little is known of the character that counts"
@@ -522,7 +541,12 @@ enum ResultsCopy {
         static let to = "to"
         static let middleOfAll = "Middle price, homes of all sizes"
         static let soldIn = "Homes sold in"
+        static let sales = "Sales it rests on"
         static let limit = "Your limit, in minutes"
+        /// Over where a journey that was estimated stands against the limit, and over what
+        /// says that it is an estimate.
+        static let estimate = "Against your limit"
+        static let howKnown = "How this is known"
         static let underLimit = "Under your limit by, in minutes"
         static let overLimit = "Over your limit by, in minutes"
         static let band = "Band, of five"
@@ -543,9 +567,10 @@ enum ResultsCopy {
         case .featureCrime: return "Recorded crime"
         case .vibe, .vibeRange, .vibeUnknown: return "Vibe"
         case .costRent: return "Rent"
-        case .costBuy, .costBuyMedian: return "Price"
+        case .costBuy, .costBuyMedian, .costBuySold: return "Price"
         case .budgetUnder, .budgetOver, .budgetUnderMedian, .budgetOverMedian: return "Budget"
         case .travelPt, .travelPtOver, .travelOther, .travelOtherOver, .travelBeyond: return "Journey"
+        case .travelEstimated: return "Journey, estimated"
         case .station: return "Nearest station"
         case .stationNearby: return "Station within a short walk"
         case .missing: return "No figure"

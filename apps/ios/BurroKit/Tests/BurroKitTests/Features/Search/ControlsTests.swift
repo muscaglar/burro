@@ -200,7 +200,7 @@ final class ControlsTests: XCTestCase {
             groups.map(\.title),
             [
                 "Stations", "Green space and water", "Air and noise", "Venues and culture",
-                "Shops and services", "Schools", "Homes",
+                "Shops and services", "Brands nearby", "Schools", "Homes",
             ])
         XCTAssertEqual(
             Set(offered.map(\.featureId)), Set(Answers.meta.features.filter(\.rankable).map(\.featureId)))
@@ -294,7 +294,7 @@ final class ControlsTests: XCTestCase {
         // One that did not count is added, towards the end that was chosen.
         XCTAssertEqual(
             try JSON.written(SettingsForm.turn(.pace, to: .high, from: nil)),
-            try sent(in: "visit/23-shelf-rank"))
+            try sent(in: "visit/24-shelf-rank"))
         XCTAssertEqual(SettingsForm.turn(.pace, to: .low, from: off), Edits.tagOn(.pace, toward: .low))
         XCTAssertEqual(SettingsForm.turn(.pace, to: .off, from: calm), Edits.tagOff(.pace))
         for change in [

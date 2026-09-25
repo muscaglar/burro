@@ -50,9 +50,10 @@ final class FlowTests: XCTestCase {
 
         await search.flow.submitText("  leafy \n")
 
+        // The rules are asked first, and answer at once. "leafy" is plain, so no model is asked at all.
         XCTAssertEqual(
-            try search.api.lastCall(to: .interpret).body(as: InterpretBody.self),
-            InterpretBody(text: "leafy", spec: Answers.meta.defaults.rent))
+            try search.api.calls(to: .interpret).map { try $0.body(as: InterpretBody.self) },
+            [InterpretBody(text: "leafy", askModel: false, spec: Answers.meta.defaults.rent)])
     }
 
     @MainActor
@@ -520,7 +521,7 @@ final class FlowTests: XCTestCase {
         XCTAssertEqual(
             try call.body(as: ShareBody.self), ShareBody(spec: first.rank.spec, exactDestinations: false))
         XCTAssertFalse(String(decoding: call.sent ?? Data(), as: UTF8.self).contains(canary))
-        XCTAssertEqual(try made.get().data.shareId, "rPnAeuBsXQci-xINLK_f2w")
+        XCTAssertEqual(try made.get().data.shareId, "3TQkoOxY0dYBEVyMymzDjg")
         XCTAssertEqual(try made.get().data.coarsened, true)
         // The search is as it was.
         XCTAssertEqual(search.state.spec, first.rank.spec)
@@ -531,17 +532,17 @@ final class FlowTests: XCTestCase {
         let api = StandIn.firstSearch().on(.getShare, "share-opened")
         let search = OpenSearch(api)
 
-        let failure = await search.flow.openShare("rPnAeuBsXQci-xINLK_f2w")
+        let failure = await search.flow.openShare("3TQkoOxY0dYBEVyMymzDjg")
 
         let shared = Answers.shared("share-opened")
         XCTAssertNil(failure)
         XCTAssertEqual(search.state.spec, shared.spec)
-        XCTAssertEqual(search.state.shared?.id, "rPnAeuBsXQci-xINLK_f2w")
+        XCTAssertEqual(search.state.shared?.id, "3TQkoOxY0dYBEVyMymzDjg")
         XCTAssertEqual(search.state.shared?.coarsened, true)
         XCTAssertEqual(search.state.ranking, Ranking(shared))
         XCTAssertEqual(try api.lastCall(to: .explainTop).body(as: ExplanationsBody.self).spec, shared.spec)
         XCTAssertEqual(api.calls(to: .getArea).count, 5)
-        XCTAssertEqual(try api.lastCall(to: .getShare).path, "/v1/shares/rPnAeuBsXQci-xINLK_f2w")
+        XCTAssertEqual(try api.lastCall(to: .getShare).path, "/v1/shares/3TQkoOxY0dYBEVyMymzDjg")
     }
 
     @MainActor
@@ -634,5 +635,106 @@ final class FlowTests: XCTestCase {
         XCTAssertEqual(search.state.selectedId, "syn-n0006")
         XCTAssertTrue(search.state.settingsOpen)
         XCTAssertEqual(search.api.calls.count, 0)
+    }
+
+    // MARK: - A sentence that is not plain, where a model reads
+
+    /// A service with a model behind it: the rules answer at once, and then the model.
+    private func reading(then model: StandIn.Responder = .recorded("interpret-by-model-long")) -> StandIn {
+        StandIn.firstSearch()
+            .inTurn(.interpret, [.recorded("interpret-rules-at-once"), model])
+            .on(.rank, "rank-suggestion-chosen")
+            .on(.explainTop, "explanations-suggestion-chosen")
+    }
+
+    @MainActor
+    func test_the_rules_are_asked_first_and_then_the_model_with_the_same_words_and_the_same_search()
+        async throws
+    {
+        let long = Answers.read("interpret-by-model-long")
+        let search = OpenSearch(reading())
+
+        await search.flow.submitText("quiet \(canary)")
+
+        let sent = try search.api.calls(to: .interpret).map { try $0.body(as: InterpretBody.self) }
+        XCTAssertEqual(sent.map(\.askModel), [false, true])
+        XCTAssertEqual(sent.map(\.text), ["quiet \(canary)", "quiet \(canary)"])
+        XCTAssertEqual(sent.map(\.spec), [Answers.meta.defaults.rent, Answers.meta.defaults.rent])
+        // What the model read has joined what is offered, and nothing of it is applied.
+        XCTAssertEqual(search.state.read?.more, false)
+        XCTAssertEqual(search.state.read?.suggestions, long.suggestions)
+        XCTAssertEqual(search.state.spec, Answers.meta.defaults.rent)
+        XCTAssertEqual(search.api.calls(to: .rank).count, 0)
+        XCTAssertFalse(String(reflecting: search.state).contains(canary))
+    }
+
+    @MainActor
+    func test_what_the_rules_offer_is_on_the_screen_while_the_model_reads_and_goes_when_the_box_changes()
+        async
+    {
+        let atOnce = Answers.read("interpret-rules-at-once")
+        // A model that never answers.
+        let search = OpenSearch(reading(then: .silent))
+
+        async let sent: Void = search.flow.submitText("quiet")
+        await until { search.api.calls(to: .interpret).count == 2 }
+
+        XCTAssertEqual(search.state.read?.more, true)
+        XCTAssertEqual(search.state.suggestions, atOnce.suggestions)
+        XCTAssertEqual(search.state.phase, .empty)
+        // The model's reading is let go when the box changes, with what rested on what was sent.
+        search.flow.boxChanged()
+        await sent
+        XCTAssertEqual(search.state.read?.more, false)
+        XCTAssertEqual(search.state.suggestions, [])
+        XCTAssertEqual(search.state.unread, [])
+    }
+
+    @MainActor
+    func test_a_model_that_does_not_answer_leaves_what_the_rules_offered() async {
+        let atOnce = Answers.read("interpret-rules-at-once")
+        let search = OpenSearch(reading(then: .fails(.cannotConnectToHost)))
+
+        await search.flow.submitText("quiet")
+
+        XCTAssertEqual(search.api.calls(to: .interpret).count, 2)
+        XCTAssertEqual(search.state.read?.more, false)
+        XCTAssertEqual(search.state.suggestions, atOnce.suggestions)
+        XCTAssertNil(search.state.failure)
+    }
+
+    @MainActor
+    func test_an_offer_chosen_while_the_model_reads_is_not_offered_again() async {
+        let long = Answers.read("interpret-by-model-long")
+        let model = StandIn.Gate()
+        let search = OpenSearch(
+            reading(
+                then: .made { _ in
+                    try await model.hold()
+                    return try Recorded.read("interpret-by-model-long")
+                }))
+
+        async let sent: Void = search.flow.submitText("quiet")
+        await until { model.waiting == 1 }
+        // "Quiet streets" is added while the model reads. A control that is moved does not stop the reading.
+        await search.flow.choose(at: 0, id: "more")
+        XCTAssertEqual(search.state.read?.more, true)
+        XCTAssertEqual(search.api.calls(to: .rank).count, 1)
+        model.release()
+        await sent
+
+        XCTAssertEqual(search.state.read?.more, false)
+        XCTAssertEqual(search.state.suggestions.map(\.target), long.suggestions.dropFirst().map(\.target))
+    }
+
+    @MainActor
+    func test_a_sentence_with_nothing_left_for_a_model_is_sent_once() async {
+        let search = OpenSearch(StandIn.firstSearch().on(.interpret, "interpret-suggest"))
+
+        await search.flow.submitText("pubs are so noisy")
+
+        XCTAssertFalse(Answers.read("interpret-suggest").modelPending)
+        XCTAssertEqual(search.api.calls(to: .interpret).count, 1)
+        XCTAssertEqual(search.state.read?.more, false)
     }
 }

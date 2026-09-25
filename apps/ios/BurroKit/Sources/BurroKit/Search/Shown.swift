@@ -79,6 +79,19 @@ extension SearchState {
         isReading ? [] : (read?.suggestions ?? [])
     }
 
+    /// What one press added, until it is taken back or the box changes. None while a
+    /// sentence is being read.
+    public var added: Added? {
+        isReading ? nil : read?.added
+    }
+
+    /// True while a model reads what the rules left unread. The rules have answered by
+    /// then, and what they noticed is offered meanwhile: it never waits on a model.
+    public var modelIsReading: Bool {
+        guard !isReading, let read else { return false }
+        return read.more
+    }
+
     /// The stretches of the text that was sent that the reader made nothing
     /// of, as offsets. None while a sentence is being read.
     public var unread: [Span] {
@@ -112,6 +125,14 @@ extension SearchState {
     public var noticed: Bool {
         guard let read else { return false }
         return read.notice != .nothing && !read.noticeText.isEmpty
+    }
+
+    /// True when the rules read the words because the language model would not, and a
+    /// screen is to say so. A reading is held while the next is asked for, so where the
+    /// next was read by nothing, nothing is said to have refused it.
+    public var modelRefused: Bool {
+        guard degraded, !isReading, let read else { return false }
+        return read.modelRefused && failurePlace != .form
     }
 
     /// What could not be answered. `other` is left out: that a part was not
@@ -221,11 +242,13 @@ extension SearchState {
 
 /// What counts most in a search, where it is not what the person asked of the place.
 ///
-/// A journey and a budget each count for more than a thing that was asked for
-/// in a word, until the person says otherwise. So a person who asks for leafy
-/// and quiet and names a workplace is first shown the areas nearest the
-/// workplace. Nothing is wrong with the order, and a screen must say why it is
-/// so: a person who is not told reads the first result as the leafiest.
+/// What is said of the place leads: a thing that is asked for in a word counts
+/// for more than a journey and for more than a budget, until the person says
+/// otherwise. A person may make a journey or a budget count for more, in the
+/// settings. Where one then counts for more than anything that was asked of
+/// the place, the first results are the nearest or the cheapest. Nothing is
+/// wrong with the order, and a screen must say why it is so: a person who is
+/// not told reads the first result as the leafiest.
 public struct Leads: Hashable, Sendable {
     /// True where the journeys count for more than anything that was asked of the place.
     public let journey: Bool

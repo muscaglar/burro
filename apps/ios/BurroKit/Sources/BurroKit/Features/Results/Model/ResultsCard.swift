@@ -51,9 +51,10 @@ extension Results {
         return any.map { [$0] } ?? []
     }
 
-    /// Whether a journey is within the longest the person set. `nil` when there is no time to compare.
+    /// Whether a journey is within the longest the person set. `nil` when there is no time to
+    /// compare: one that was estimated has a band, and is never said to be within or over.
     static func within(_ leg: CommuteLeg, limit commute: Commute?) -> Bool? {
-        guard let commute, leg.status != .missing else { return nil }
+        guard let commute, leg.status != .missing, leg.status != .estimated else { return nil }
         guard leg.status != .beyondCutoff, let minutes = leg.minutes else { return false }
         return minutes <= commute.maxMinutes
     }
@@ -405,6 +406,10 @@ extension Results {
                     .map(ResultsCopy.Journeys.beyond)
             case .missing:
                 whole = ResultsCopy.Journeys.missing
+            case .estimated:
+                // No time is held. The band is said, and that it is an estimate, and no minutes.
+                whole = ResultsCopy.Journeys.estimated(leg.estimate)
+                    .map { "\($0). \(ResultsCopy.Journeys.estimatedFrom)" }
             case .unlisted:
                 break
             }
@@ -534,7 +539,9 @@ extension Results {
         return Cost(
             range: "\(pound)\(median)",
             oneNumber: true, what: ResultsCopy.Cost.middleOfAll, soldIn: fact.slots["period"],
-            caveat: ResultsCopy.Cost.oneNumber,
+            // A price that was counted says how many sales it rests on, and what a middle
+            // price means, in the API's words. A publisher's own says what is not known of it.
+            caveat: fact.slots["sales"] == nil ? ResultsCopy.Cost.oneNumber : fact.slots["half_sold"],
             aMonth: false,
             label: fact.label,
             segment: fact.slots["segment"],

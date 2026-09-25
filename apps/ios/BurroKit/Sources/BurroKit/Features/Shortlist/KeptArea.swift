@@ -31,7 +31,7 @@ public struct KeptFact: Codable, Hashable, Sendable {
     /// The templates that state them.
     public static let templates: Set<TemplateId> = [
         .area, .feature, .featureCrime, .vibe, .vibeRange, .vibeUnknown, .costRent, .costBuy,
-        .costBuyMedian, .station, .stationNearby,
+        .costBuyMedian, .costBuySold, .station, .stationNearby,
     ]
 
     public let kind: FactKind

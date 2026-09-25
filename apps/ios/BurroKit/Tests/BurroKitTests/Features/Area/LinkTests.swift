@@ -6,7 +6,7 @@ import XCTest
 /// that a link holds an id or a slug and nothing else.
 final class LinkTests: XCTestCase {
     private let site = SiteAddress("https://burro.example.test")
-    private let shareId = "rPnAeuBsXQci-xINLK_f2w"
+    private let shareId = "3TQkoOxY0dYBEVyMymzDjg"
     // A string found nowhere else, planted where a link could carry it.
     private let canary = "zqxcanary7431"
 
@@ -246,7 +246,9 @@ final class LinkTests: XCTestCase {
 
     @MainActor
     func test_a_shared_search_is_opened_and_says_what_it_holds() async throws {
+        // The reasons are the shared search's own. Those of another search name its place too.
         let api = StandIn.firstSearch().on(.getShare, "share-opened")
+            .on(.explainTop, "explanations-share-opened")
         let app = AreaFixtures.app(api)
         let shared = try XCTUnwrap(SharedSearch(shareId: shareId, app: app))
         XCTAssertEqual(shared.stage, .opening)

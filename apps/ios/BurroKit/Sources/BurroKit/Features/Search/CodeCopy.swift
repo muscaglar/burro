@@ -18,13 +18,17 @@ enum CodeCopy {
         case .homes: return "Homes"
         case .stationAccess: return "Stations"
         case .services: return "Shops and services"
+        case .brands: return "Brands nearby"
+        case .residents: return "Who lived there at the census"
         case .unlisted: return nil
         }
     }
 
-    /// The order the dimensions are shown in. Recorded crime is last: it is off unless asked for.
+    /// The order the dimensions are shown in. What is there comes first, and who lived there
+    /// after it. Recorded crime is last: it is off unless asked for.
     static let dimensionOrder: [Dimension] = [
-        .stationAccess, .greenWater, .airNoise, .venuesCulture, .services, .schools, .homes, .crime,
+        .stationAccess, .greenWater, .airNoise, .venuesCulture, .services, .brands, .schools, .homes,
+        .residents, .crime,
     ]
 
     static func polarity(_ polarity: Polarity) -> String? {

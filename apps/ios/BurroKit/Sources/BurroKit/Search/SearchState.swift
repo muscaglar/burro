@@ -4,8 +4,9 @@ import Foundation
 // move it on. It mirrors apps/web/src/lib/search/state.ts, field for field.
 //
 // It is held in memory and nowhere else. It never holds what a person typed:
-// the sentence stays in its box and in the body of one request. It holds ids
-// of the release, the spec the API last returned, and what the API answered.
+// the sentence stays in its box and in the body of the request that reads it.
+// It holds ids of the release, the spec the API last returned, and what the
+// API answered.
 
 /// Where a search stands.
 public enum Phase: String, Hashable, Sendable, CaseIterable {
@@ -50,12 +51,14 @@ public struct Read: Hashable, Sendable {
     public let operations: Operations
     public let assumptions: [Assumption]
     public var clarify: [Clarify]
-    public let unmet: [UnmetCategory]
+    public var unmet: [UnmetCategory]
     public var rejected: [Rejected]
     public var notice: Notice
     public var noticeText: String
-    public let interpreter: InterpreterName
-    public let degraded: Bool
+    public var interpreter: InterpreterName
+    public var degraded: Bool
+    /// True when the rules read the words because the language model would not.
+    public var modelRefused: Bool
     /// What the reader noticed and did not apply, for the person to choose from. Each
     /// holds where its words stand in the text, as offsets, and never the words.
     public var suggestions: [Suggestion]
@@ -70,11 +73,30 @@ public struct Read: Hashable, Sendable {
     public let changed: Bool
     /// True when a stretch of what was typed was not read. It stays true of the ranking
     /// when the box changes, though where the stretch stood can no longer be shown.
-    public let partUnread: Bool
+    public var partUnread: Bool
     /// The count of answers when this one came, so a screen can tell it is the latest.
     public let at: Int
     /// The release and the engine that read the words.
     public let by: Served
+    /// True while a model reads what the rules left unread. What the rules noticed is
+    /// on the screen meanwhile: it never waits on a model.
+    public var more: Bool
+    /// The offers the person has chosen of, each by its key, so that one is not offered
+    /// again when the model has read.
+    public var chosen: [String]
+    /// What one press added, until it is taken back or the box changes.
+    public var added: Added?
+}
+
+/// What "Add all" added at one press, and what it takes to take it all back.
+public struct Added: Hashable, Sendable {
+    /// How many things the press added.
+    public let count: Int
+    /// What is left for the person, each in the API's own name for it.
+    public let needs: [String]
+    /// The search as it stood before the press, and what was offered then.
+    public let spec: PreferenceSpec
+    public let suggestions: [Suggestion]
 }
 
 /// The part of a ranking a screen draws.
@@ -300,6 +322,15 @@ public enum SearchEvent: Sendable {
     /// is true where the choice holds edits, which change the search. Leaving a thing
     /// out holds none.
     case suggestionChosen(at: Int, changes: Bool)
+    /// One press added several things, by their places in the list. What it added is
+    /// kept until it is taken back.
+    case allAdded(ats: [Int])
+    /// All that the last such press added is taken back, and is offered again.
+    case allTakenBack
+    /// A model has read what the rules left unread. What it read joins what is offered.
+    case readMoreAnswered(InterpretData)
+    /// It could not be asked, or did not answer. What the rules offered stands.
+    case readMoreFailed
     /// Every suggestion goes when the box changes: what each rests on is known for what
     /// was sent, and for nothing else.
     case boxChanged

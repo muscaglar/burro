@@ -42,6 +42,7 @@ final class RecordedAnswersTests: XCTestCase {
         case .getGeometry: return try comesBackTheSame(GeometryData.self, recorded)
         case .getArea: return try comesBackTheSame(AreaData.self, recorded)
         case .getCensus: return try comesBackTheSame(CensusPanel.self, recorded)
+        case .getIncome: return try comesBackTheSame(IncomeShown.self, recorded)
         case .getMeta: return try comesBackTheSame(MetaData.self, recorded)
         case .healthz:
             let health = try JSONDecoder().decode(Health.self, from: recorded.body)

@@ -1,0 +1,57 @@
+{
+  "scenario": "preview/places-search",
+  "shows": "A search by name in a preview: it names no place to reach, and finds the area",
+  "captured": true,
+  "request": {
+    "operation_id": "search_places",
+    "method": "POST",
+    "route": "/v1/places/search",
+    "path": "/v1/places/search",
+    "body": {
+      "q": "alder"
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "343",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "true",
+    "x-burro-synthetic": "true",
+    "x-request-id": "14d51a98-285a-4d9b-a7d6-0ce2a4c4b451"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.13.0",
+      "synthetic": true,
+      "preview": true
+    },
+    "data": {
+      "places": [],
+      "areas": [
+        {
+          "area_id": "syn-n0001",
+          "slug": "alderwick",
+          "name": "Alderwick",
+          "borough": "Quillhaven",
+          "centroid": [
+            -0.016848,
+            0.040758
+          ],
+          "rankable": true,
+          "named": {
+            "label": "Quillhaven 001",
+            "source_ids": [
+              "synthetic"
+            ],
+            "state": "draft"
+          }
+        }
+      ]
+    }
+  }
+}

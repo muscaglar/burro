@@ -102,17 +102,17 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "57699",
+    "content-length": "68365",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "3d90e393-add0-4126-9cec-e3a9961c7ada"
+    "x-request-id": "81523be8-72c5-4cf3-99fd-62f26cf6a0e6"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
@@ -479,6 +479,39 @@
           ]
         },
         {
+          "tag_id": "well_connected",
+          "marks": [
+            {
+              "area_id": "syn-n0023",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3,
+              "fact_id": "syn-n0023/tag/well_connected"
+            },
+            {
+              "area_id": "syn-n0014",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "fact_id": "syn-n0014/tag/well_connected"
+            },
+            {
+              "area_id": "syn-n0008",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "fact_id": "syn-n0008/tag/well_connected"
+            },
+            {
+              "area_id": "syn-n0017",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null,
+              "fact_id": "syn-n0017/tag/well_connected"
+            }
+          ]
+        },
+        {
           "tag_id": "street_character",
           "marks": [
             {
@@ -510,6 +543,72 @@
               "fact_id": "syn-n0017/tag/street_character"
             }
           ]
+        },
+        {
+          "tag_id": "family_area",
+          "marks": [
+            {
+              "area_id": "syn-n0023",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "fact_id": "syn-n0023/tag/family_area"
+            },
+            {
+              "area_id": "syn-n0014",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "fact_id": "syn-n0014/tag/family_area"
+            },
+            {
+              "area_id": "syn-n0008",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "fact_id": "syn-n0008/tag/family_area"
+            },
+            {
+              "area_id": "syn-n0017",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null,
+              "fact_id": "syn-n0017/tag/family_area"
+            }
+          ]
+        },
+        {
+          "tag_id": "young_professionals",
+          "marks": [
+            {
+              "area_id": "syn-n0023",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "fact_id": "syn-n0023/tag/young_professionals"
+            },
+            {
+              "area_id": "syn-n0014",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "fact_id": "syn-n0014/tag/young_professionals"
+            },
+            {
+              "area_id": "syn-n0008",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "fact_id": "syn-n0008/tag/young_professionals"
+            },
+            {
+              "area_id": "syn-n0017",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null,
+              "fact_id": "syn-n0017/tag/young_professionals"
+            }
+          ]
         }
       ],
       "rows": [
@@ -529,7 +628,8 @@
               "percentile": null,
               "utility": 0.975,
               "contribution": 0.527,
-              "fact_id": "syn-n0023/travel/syn-p0021.pt"
+              "fact_id": "syn-n0023/travel/syn-p0021.pt",
+              "estimate": null
             },
             {
               "area_id": "syn-n0014",
@@ -537,7 +637,8 @@
               "percentile": null,
               "utility": 0.5,
               "contribution": 0.2778,
-              "fact_id": "syn-n0014/travel/syn-p0021.pt"
+              "fact_id": "syn-n0014/travel/syn-p0021.pt",
+              "estimate": null
             },
             {
               "area_id": "syn-n0008",
@@ -545,7 +646,8 @@
               "percentile": null,
               "utility": 0.0,
               "contribution": 0.0,
-              "fact_id": "syn-n0008/travel/syn-p0021.pt"
+              "fact_id": "syn-n0008/travel/syn-p0021.pt",
+              "estimate": null
             },
             {
               "area_id": "syn-n0017",
@@ -553,7 +655,8 @@
               "percentile": null,
               "utility": null,
               "contribution": null,
-              "fact_id": "syn-n0017/travel/syn-p0021.pt"
+              "fact_id": "syn-n0017/travel/syn-p0021.pt",
+              "estimate": null
             }
           ]
         },
@@ -573,7 +676,8 @@
               "percentile": null,
               "utility": 1.0,
               "contribution": null,
-              "fact_id": "syn-n0023/travel/syn-p0026.pt"
+              "fact_id": "syn-n0023/travel/syn-p0026.pt",
+              "estimate": null
             },
             {
               "area_id": "syn-n0014",
@@ -581,7 +685,8 @@
               "percentile": null,
               "utility": 0.64,
               "contribution": null,
-              "fact_id": "syn-n0014/travel/syn-p0026.pt"
+              "fact_id": "syn-n0014/travel/syn-p0026.pt",
+              "estimate": null
             },
             {
               "area_id": "syn-n0008",
@@ -589,7 +694,8 @@
               "percentile": null,
               "utility": null,
               "contribution": null,
-              "fact_id": "syn-n0008/missing/commute.syn-p0026.pt"
+              "fact_id": "syn-n0008/missing/commute.syn-p0026.pt",
+              "estimate": null
             },
             {
               "area_id": "syn-n0017",
@@ -597,7 +703,8 @@
               "percentile": null,
               "utility": null,
               "contribution": null,
-              "fact_id": "syn-n0017/travel/syn-p0026.pt"
+              "fact_id": "syn-n0017/travel/syn-p0026.pt",
+              "estimate": null
             }
           ]
         },
@@ -613,7 +720,8 @@
               "percentile": null,
               "utility": 0.548,
               "contribution": 0.1481,
-              "fact_id": "syn-n0023/tag/built_age"
+              "fact_id": "syn-n0023/tag/built_age",
+              "estimate": null
             },
             {
               "area_id": "syn-n0014",
@@ -621,7 +729,8 @@
               "percentile": null,
               "utility": 0.929,
               "contribution": 0.2581,
-              "fact_id": "syn-n0014/tag/built_age"
+              "fact_id": "syn-n0014/tag/built_age",
+              "estimate": null
             },
             {
               "area_id": "syn-n0008",
@@ -629,7 +738,8 @@
               "percentile": null,
               "utility": 0.69,
               "contribution": 0.1865,
-              "fact_id": "syn-n0008/tag/built_age"
+              "fact_id": "syn-n0008/tag/built_age",
+              "estimate": null
             },
             {
               "area_id": "syn-n0017",
@@ -637,7 +747,8 @@
               "percentile": null,
               "utility": null,
               "contribution": null,
-              "fact_id": "syn-n0017/tag/built_age"
+              "fact_id": "syn-n0017/tag/built_age",
+              "estimate": null
             }
           ]
         },
@@ -653,7 +764,8 @@
               "percentile": 65.9,
               "utility": 0.341,
               "contribution": 0.0184,
-              "fact_id": "syn-n0023/feature/station_walk"
+              "fact_id": "syn-n0023/feature/station_walk",
+              "estimate": null
             },
             {
               "area_id": "syn-n0014",
@@ -661,7 +773,8 @@
               "percentile": 93.2,
               "utility": 0.068,
               "contribution": 0.0038,
-              "fact_id": "syn-n0014/feature/station_walk"
+              "fact_id": "syn-n0014/feature/station_walk",
+              "estimate": null
             },
             {
               "area_id": "syn-n0008",
@@ -669,7 +782,8 @@
               "percentile": 97.7,
               "utility": 0.023,
               "contribution": 0.0012,
-              "fact_id": "syn-n0008/feature/station_walk"
+              "fact_id": "syn-n0008/feature/station_walk",
+              "estimate": null
             },
             {
               "area_id": "syn-n0017",
@@ -677,7 +791,8 @@
               "percentile": 79.5,
               "utility": null,
               "contribution": null,
-              "fact_id": "syn-n0017/feature/station_walk"
+              "fact_id": "syn-n0017/feature/station_walk",
+              "estimate": null
             }
           ]
         },
@@ -693,7 +808,8 @@
               "percentile": 57.5,
               "utility": 0.425,
               "contribution": 0.0115,
-              "fact_id": "syn-n0023/feature/air_no2"
+              "fact_id": "syn-n0023/feature/air_no2",
+              "estimate": null
             },
             {
               "area_id": "syn-n0014",
@@ -701,7 +817,8 @@
               "percentile": 30.0,
               "utility": 0.7,
               "contribution": 0.0194,
-              "fact_id": "syn-n0014/feature/air_no2"
+              "fact_id": "syn-n0014/feature/air_no2",
+              "estimate": null
             },
             {
               "area_id": "syn-n0008",
@@ -709,7 +826,8 @@
               "percentile": 2.5,
               "utility": 0.975,
               "contribution": 0.0264,
-              "fact_id": "syn-n0008/feature/air_no2"
+              "fact_id": "syn-n0008/feature/air_no2",
+              "estimate": null
             },
             {
               "area_id": "syn-n0017",
@@ -717,7 +835,8 @@
               "percentile": null,
               "utility": null,
               "contribution": null,
-              "fact_id": "syn-n0017/missing/feature:air_no2"
+              "fact_id": "syn-n0017/missing/feature:air_no2",
+              "estimate": null
             }
           ]
         },
@@ -733,7 +852,8 @@
               "percentile": 26.2,
               "utility": 0.738,
               "contribution": 0.0199,
-              "fact_id": "syn-n0023/feature/highstreet_access"
+              "fact_id": "syn-n0023/feature/highstreet_access",
+              "estimate": null
             },
             {
               "area_id": "syn-n0014",
@@ -741,7 +861,8 @@
               "percentile": 92.9,
               "utility": 0.071,
               "contribution": 0.002,
-              "fact_id": "syn-n0014/feature/highstreet_access"
+              "fact_id": "syn-n0014/feature/highstreet_access",
+              "estimate": null
             },
             {
               "area_id": "syn-n0008",
@@ -749,7 +870,8 @@
               "percentile": 97.6,
               "utility": 0.024,
               "contribution": 0.0006,
-              "fact_id": "syn-n0008/feature/highstreet_access"
+              "fact_id": "syn-n0008/feature/highstreet_access",
+              "estimate": null
             },
             {
               "area_id": "syn-n0017",
@@ -757,7 +879,8 @@
               "percentile": null,
               "utility": null,
               "contribution": null,
-              "fact_id": "syn-n0017/missing/feature:highstreet_access"
+              "fact_id": "syn-n0017/missing/feature:highstreet_access",
+              "estimate": null
             }
           ]
         },
@@ -773,7 +896,8 @@
               "percentile": 67.5,
               "utility": 0.325,
               "contribution": 0.0088,
-              "fact_id": "syn-n0023/feature/noise_exposure"
+              "fact_id": "syn-n0023/feature/noise_exposure",
+              "estimate": null
             },
             {
               "area_id": "syn-n0014",
@@ -781,7 +905,8 @@
               "percentile": null,
               "utility": null,
               "contribution": null,
-              "fact_id": "syn-n0014/missing/feature:noise_exposure"
+              "fact_id": "syn-n0014/missing/feature:noise_exposure",
+              "estimate": null
             },
             {
               "area_id": "syn-n0008",
@@ -789,7 +914,8 @@
               "percentile": 2.5,
               "utility": 0.975,
               "contribution": 0.0264,
-              "fact_id": "syn-n0008/feature/noise_exposure"
+              "fact_id": "syn-n0008/feature/noise_exposure",
+              "estimate": null
             },
             {
               "area_id": "syn-n0017",
@@ -797,7 +923,8 @@
               "percentile": null,
               "utility": null,
               "contribution": null,
-              "fact_id": "syn-n0017/missing/feature:noise_exposure"
+              "fact_id": "syn-n0017/missing/feature:noise_exposure",
+              "estimate": null
             }
           ]
         },
@@ -813,7 +940,8 @@
               "percentile": 59.5,
               "utility": 0.405,
               "contribution": 0.0109,
-              "fact_id": "syn-n0023/feature/park_proximity"
+              "fact_id": "syn-n0023/feature/park_proximity",
+              "estimate": null
             },
             {
               "area_id": "syn-n0014",
@@ -821,7 +949,8 @@
               "percentile": 45.2,
               "utility": 0.548,
               "contribution": 0.0152,
-              "fact_id": "syn-n0014/feature/park_proximity"
+              "fact_id": "syn-n0014/feature/park_proximity",
+              "estimate": null
             },
             {
               "area_id": "syn-n0008",
@@ -829,7 +958,8 @@
               "percentile": 16.7,
               "utility": 0.833,
               "contribution": 0.0225,
-              "fact_id": "syn-n0008/feature/park_proximity"
+              "fact_id": "syn-n0008/feature/park_proximity",
+              "estimate": null
             },
             {
               "area_id": "syn-n0017",
@@ -837,7 +967,8 @@
               "percentile": null,
               "utility": null,
               "contribution": null,
-              "fact_id": "syn-n0017/missing/feature:park_proximity"
+              "fact_id": "syn-n0017/missing/feature:park_proximity",
+              "estimate": null
             }
           ]
         },
@@ -853,7 +984,8 @@
               "percentile": 59.1,
               "utility": 0.591,
               "contribution": 0.016,
-              "fact_id": "syn-n0023/feature/station_lines"
+              "fact_id": "syn-n0023/feature/station_lines",
+              "estimate": null
             },
             {
               "area_id": "syn-n0014",
@@ -861,7 +993,8 @@
               "percentile": 15.9,
               "utility": 0.159,
               "contribution": 0.0044,
-              "fact_id": "syn-n0014/feature/station_lines"
+              "fact_id": "syn-n0014/feature/station_lines",
+              "estimate": null
             },
             {
               "area_id": "syn-n0008",
@@ -869,7 +1002,8 @@
               "percentile": 15.9,
               "utility": 0.159,
               "contribution": 0.0043,
-              "fact_id": "syn-n0008/feature/station_lines"
+              "fact_id": "syn-n0008/feature/station_lines",
+              "estimate": null
             },
             {
               "area_id": "syn-n0017",
@@ -877,7 +1011,8 @@
               "percentile": 15.9,
               "utility": null,
               "contribution": null,
-              "fact_id": "syn-n0017/feature/station_lines"
+              "fact_id": "syn-n0017/feature/station_lines",
+              "estimate": null
             }
           ]
         }
@@ -912,7 +1047,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -947,7 +1083,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -982,7 +1119,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1018,7 +1156,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1054,7 +1193,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1089,7 +1229,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1115,7 +1256,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09",
@@ -1159,7 +1301,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1202,7 +1345,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1243,7 +1387,50 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/tag/family_area",
+          "area_id": "syn-n0008",
+          "kind": "tag",
+          "key": "family_area",
+          "label": "Family area",
+          "template": "vibe",
+          "slots": {
+            "label": "Family area",
+            "band": "4",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "4",
+            "5",
+            "21",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1287,7 +1474,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1331,7 +1519,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1372,7 +1561,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1394,8 +1584,8 @@
             "span": "2025",
             "spread_low": "1",
             "spread_high": "1",
-            "known": "3",
-            "parts": "3",
+            "known": "4",
+            "parts": "4",
             "share": "100",
             "partly": "",
             "judgement": "The recipe is Burro's own. The weights are a judgement.",
@@ -1405,7 +1595,7 @@
             "1",
             "5",
             "21",
-            "3",
+            "4",
             "100",
             "2025"
           ],
@@ -1414,7 +1604,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1456,7 +1647,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1497,7 +1689,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1539,7 +1732,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1582,7 +1776,94 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/tag/well_connected",
+          "area_id": "syn-n0008",
+          "kind": "tag",
+          "key": "well_connected",
+          "label": "Well connected",
+          "template": "vibe",
+          "slots": {
+            "label": "Well connected",
+            "band": "1",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/tag/young_professionals",
+          "area_id": "syn-n0008",
+          "kind": "tag",
+          "key": "young_professionals",
+          "label": "Young professionals",
+          "template": "vibe",
+          "slots": {
+            "label": "Young professionals",
+            "band": "1",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1617,7 +1898,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09",
@@ -1655,7 +1937,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1691,7 +1974,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1727,7 +2011,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1763,7 +2048,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1799,7 +2085,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1824,7 +2111,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1868,7 +2156,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1911,7 +2200,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1952,7 +2242,50 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/tag/family_area",
+          "area_id": "syn-n0014",
+          "kind": "tag",
+          "key": "family_area",
+          "label": "Family area",
+          "template": "vibe",
+          "slots": {
+            "label": "Family area",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1996,7 +2329,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2040,7 +2374,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2081,7 +2416,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2103,8 +2439,8 @@
             "span": "2025",
             "spread_low": "1",
             "spread_high": "1",
-            "known": "3",
-            "parts": "3",
+            "known": "4",
+            "parts": "4",
             "share": "100",
             "partly": "",
             "judgement": "The recipe is Burro's own. The weights are a judgement.",
@@ -2114,7 +2450,7 @@
             "1",
             "5",
             "21",
-            "3",
+            "4",
             "100",
             "2025"
           ],
@@ -2123,7 +2459,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2164,7 +2501,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2207,7 +2545,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2250,7 +2589,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2293,7 +2633,94 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/tag/well_connected",
+          "area_id": "syn-n0014",
+          "kind": "tag",
+          "key": "well_connected",
+          "label": "Well connected",
+          "template": "vibe",
+          "slots": {
+            "label": "Well connected",
+            "band": "2",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "2",
+            "spread_high": "2",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "2",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0014/tag/young_professionals",
+          "area_id": "syn-n0014",
+          "kind": "tag",
+          "key": "young_professionals",
+          "label": "Young professionals",
+          "template": "vibe",
+          "slots": {
+            "label": "Young professionals",
+            "band": "1",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2327,7 +2754,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09",
@@ -2362,7 +2790,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09",
@@ -2398,7 +2827,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2434,7 +2864,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2459,7 +2890,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -2484,7 +2916,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -2509,7 +2942,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -2534,7 +2968,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -2564,7 +2999,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -2594,7 +3030,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2624,7 +3061,39 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/tag/family_area",
+          "area_id": "syn-n0017",
+          "kind": "tag",
+          "key": "family_area",
+          "label": "Family area",
+          "template": "vibe_unknown",
+          "slots": {
+            "label": "Family area",
+            "name": "Otterby Fields",
+            "known": "1",
+            "parts": "4"
+          },
+          "numbers": [
+            "1",
+            "4"
+          ],
+          "names": [
+            "Otterby Fields"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2654,7 +3123,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -2698,7 +3168,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2728,7 +3199,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -2745,11 +3217,11 @@
             "label": "Going out",
             "name": "Otterby Fields",
             "known": "0",
-            "parts": "3"
+            "parts": "4"
           },
           "numbers": [
             "0",
-            "3"
+            "4"
           ],
           "names": [
             "Otterby Fields"
@@ -2758,7 +3230,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -2788,7 +3261,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -2818,7 +3292,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -2848,7 +3323,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -2878,10 +3354,73 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/tag/well_connected",
+          "area_id": "syn-n0017",
+          "kind": "tag",
+          "key": "well_connected",
+          "label": "Well connected",
+          "template": "vibe_unknown",
+          "slots": {
+            "label": "Well connected",
+            "name": "Otterby Fields",
+            "known": "0",
+            "parts": "4"
+          },
+          "numbers": [
+            "0",
+            "4"
+          ],
+          "names": [
+            "Otterby Fields"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0017/tag/young_professionals",
+          "area_id": "syn-n0017",
+          "kind": "tag",
+          "key": "young_professionals",
+          "label": "Young professionals",
+          "template": "vibe_unknown",
+          "slots": {
+            "label": "Young professionals",
+            "name": "Otterby Fields",
+            "known": "1",
+            "parts": "4"
+          },
+          "numbers": [
+            "1",
+            "4"
+          ],
+          "names": [
+            "Otterby Fields"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
           "synthetic": true
         },
         {
@@ -2913,7 +3452,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09",
@@ -2948,7 +3488,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09",
@@ -2984,7 +3525,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -3020,7 +3562,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -3056,7 +3599,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -3092,7 +3636,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -3130,7 +3675,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -3166,7 +3712,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -3208,7 +3755,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -3251,7 +3799,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -3293,7 +3842,51 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/tag/family_area",
+          "area_id": "syn-n0023",
+          "kind": "tag",
+          "key": "family_area",
+          "label": "Family area",
+          "template": "vibe",
+          "slots": {
+            "label": "Family area",
+            "band": "1",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -3336,7 +3929,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -3380,7 +3974,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -3421,7 +4016,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -3443,8 +4039,8 @@
             "span": "2025",
             "spread_low": "5",
             "spread_high": "5",
-            "known": "3",
-            "parts": "3",
+            "known": "4",
+            "parts": "4",
             "share": "100",
             "partly": "",
             "judgement": "The recipe is Burro's own. The weights are a judgement.",
@@ -3453,7 +4049,7 @@
           "numbers": [
             "5",
             "21",
-            "3",
+            "4",
             "100",
             "2025"
           ],
@@ -3462,7 +4058,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -3504,7 +4101,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -3545,7 +4143,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -3587,7 +4186,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -3628,7 +4228,93 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/tag/well_connected",
+          "area_id": "syn-n0023",
+          "kind": "tag",
+          "key": "well_connected",
+          "label": "Well connected",
+          "template": "vibe",
+          "slots": {
+            "label": "Well connected",
+            "band": "3",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "3",
+            "spread_high": "3",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "3",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/tag/young_professionals",
+          "area_id": "syn-n0023",
+          "kind": "tag",
+          "key": "young_professionals",
+          "label": "Young professionals",
+          "template": "vibe",
+          "slots": {
+            "label": "Young professionals",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -3663,7 +4349,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09",
@@ -3697,7 +4384,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09",

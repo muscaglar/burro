@@ -88,7 +88,7 @@ enum AboutCopy {
             "A firm limit removes an area that is known to break it. A flexible limit lowers the area's fit instead.",
             "When an area has no figure for something you asked for, that thing is left out for that area and the rest count for more. Nothing is filled in, and the result says how complete it is. Such an area stands below every area that has the figure, whatever its fit.",
             "An area with a figure for under half of what you asked of the place itself, by how much each thing counts, is not ranked. Journeys and cost do not make up for it. The area says what it lacks.",
-            "Burro ranks places by what is there. Nothing that describes who lives somewhere is used.",
+            "Burro ranks places by what is there. Of the people who live in an area it counts two things, and only when you ask: how old they were and what their households were made of, when the census was taken. It counts nothing else about who lives anywhere, and you cannot ask for fewer of anyone.",
             SearchCopy.crimeRule,
             "When your words are not a plain list of what you want, Burro applies none of them. It shows what it noticed, and you choose what to add.",
             "A language model may read your words into settings. It never ranks or scores a place, and never describes one from its own knowledge.",
@@ -96,7 +96,7 @@ enum AboutCopy {
 
         static let featuresTitle = "What is measured"
         static let featuresLead =
-            "Each feature describes a place, its buildings or what was recorded there. None describes who lives there. The definition, the period and the source are as the data release states them."
+            "Each feature describes a place, its buildings, what was recorded there, or who lived there at the census. A feature about residents says so in its name, and is of their age or their households and nothing else. The definition, the period and the source are as the data release states them."
         static let unit = "Unit"
         static let period = "Period"
         static let polarity = "What counts as better"
@@ -106,7 +106,7 @@ enum AboutCopy {
 
         static let tagsTitle = "Vibes"
         static let tagsLead =
-            "A vibe is a fixed recipe over the features above. It is named for the place, not for who lives there. An area is placed in one of five bands among the areas compared, and never given a score."
+            "A vibe is a fixed recipe over the features above. A vibe that counts who lived in an area says so, and counts their age or their households and nothing else. An area is placed in one of five bands among the areas compared, and never given a score."
         static func share(_ hundredths: Int) -> String { "\(hundredths) of \(WeightScale.most)" }
         /// In place of the name of a part that this data does not carry, where the API names none.
         static let notCarried = "A part this data does not carry"

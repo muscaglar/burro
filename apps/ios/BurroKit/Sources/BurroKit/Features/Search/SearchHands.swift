@@ -27,10 +27,12 @@ struct SearchHands {
         arrive(since: before)
     }
 
-    /// Takes one choice of a thing Burro noticed. Nothing is ranked from it until now.
-    func choose(_ at: Int, _ direction: SuggestionDirection) async {
+    /// Takes one choice of a thing Burro noticed, by the id of the choice. Nothing is
+    /// ranked from it until now. A journey to a place Burro does not know comes with
+    /// the place the person chose for it.
+    func choose(_ at: Int, _ id: String, place: (id: String, name: String)? = nil) async {
         let before = search.state.answers
-        await search.flow.choose(at: at, direction: direction)
+        await search.flow.choose(at: at, id: id, place: place)
         arrive(since: before)
     }
 
@@ -39,6 +41,12 @@ struct SearchHands {
         let before = search.state.answers
         await search.flow.chooseAll(ats)
         arrive(since: before)
+    }
+
+    /// Takes back all that the last press of "Add all" added. The offers are as they
+    /// were, so the person stays here to choose of them.
+    func takeBack() async {
+        await search.flow.takeBack()
     }
 
     /// Ranks the settings as they stand, with no words.

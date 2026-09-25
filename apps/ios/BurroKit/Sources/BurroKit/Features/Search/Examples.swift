@@ -27,7 +27,10 @@ enum Examples {
             asks: ["feature:school_primary_attainment", "feature:park_proximity"]),
         Example(
             text: "Somewhere buzzy with bars and restaurants, close to a station",
-            asks: ["tag:pace", "feature:venue_evening", "feature:venue_food_drink", "feature:station_walk"]),
+            asks: [
+                "tag:pace", "feature:venue_evening_per_homes", "feature:venue_food_drink_per_homes",
+                "feature:station_walk",
+            ]),
         Example(
             text: "Somewhere quiet, near a big park", asks: ["tag:quiet_residential", "tag:parks_close_by"]),
         Example(text: "Clean air and a park nearby", asks: ["feature:air_no2", "feature:park_proximity"]),

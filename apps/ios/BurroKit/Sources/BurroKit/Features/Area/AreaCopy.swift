@@ -102,6 +102,8 @@ enum AreaCopy {
         // A price that is one number: the middle of what homes of one kind sold for.
         static let middleOfAll = "Middle price, homes of all sizes"
         static let soldIn = "Homes sold in"
+        // A price that was counted from sales says how many it rests on. The count is the API's.
+        static let sales = "Sales it rests on"
         static let band = "Band, of five"
         static let bands = "Varies within this area, across bands"
         static let ends = "Counted from"
@@ -129,13 +131,13 @@ enum AreaCopy {
         case .featureCrime: return "Recorded crime"
         case .vibe, .vibeRange, .vibeUnknown: return "Vibe"
         case .costRent: return "Rent"
-        case .costBuy, .costBuyMedian: return "Price"
+        case .costBuy, .costBuyMedian, .costBuySold: return "Price"
         case .station: return "Nearest station"
         case .stationNearby: return "Station within a short walk"
         case .likeness, .likenessSame: return "Likeness"
         // These are of a search, and an area's page holds none of them.
         case .budgetUnder, .budgetOver, .budgetUnderMedian, .budgetOverMedian, .travelPt, .travelPtOver,
-            .travelOther, .travelOtherOver, .travelBeyond, .missing, .missingJourney:
+            .travelOther, .travelOtherOver, .travelBeyond, .travelEstimated, .missing, .missingJourney:
             return nil
         case .unlisted: return nil
         }
@@ -152,6 +154,8 @@ enum AreaCopy {
         case .homes: return "Homes"
         case .stationAccess: return "Stations"
         case .services: return "Shops and services"
+        case .brands: return "Brands nearby"
+        case .residents: return "Who lived there at the census"
         case .unlisted: return nil
         }
     }

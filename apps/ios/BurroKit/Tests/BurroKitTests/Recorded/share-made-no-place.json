@@ -92,17 +92,17 @@
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "dd3424a0-ec58-41d6-8111-5c8cca6cc38e"
+    "x-request-id": "b27fc4a4-912f-40de-9250-55d7b9679c07"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
     "data": {
-      "share_id": "kat6E3B2_ZuZqLzT_v3P4A",
+      "share_id": "uYFAWUZsIalCfVYPK42cDg",
       "spec": {
         "schema_version": 1,
         "tenure": "rent",

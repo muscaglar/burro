@@ -19,12 +19,18 @@ final class ChipsTests: XCTestCase {
         like spec: PreferenceSpec,
         commutes: [Commute]? = nil,
         weights: [FeatureWeight]? = nil,
-        areas: [AreaRule]? = nil
+        areas: [AreaRule]? = nil,
+        journeysCount: Double? = nil,
+        budgetCounts: Double? = nil
     ) -> PreferenceSpec {
-        PreferenceSpec(
-            schemaVersion: spec.schemaVersion, tenure: spec.tenure, budget: spec.budget,
+        let budget = Budget(
+            amount: spec.budget.amount, segment: spec.budget.segment, strictness: spec.budget.strictness,
+            weight: budgetCounts ?? spec.budget.weight, provenance: spec.budget.provenance)
+        return PreferenceSpec(
+            schemaVersion: spec.schemaVersion, tenure: spec.tenure, budget: budget,
             commutes: commutes ?? spec.commutes, commuteCombine: spec.commuteCombine,
-            ptBasis: spec.ptBasis, commuteWeight: spec.commuteWeight, weights: weights ?? spec.weights,
+            ptBasis: spec.ptBasis, commuteWeight: journeysCount ?? spec.commuteWeight,
+            weights: weights ?? spec.weights,
             tags: spec.tags, areas: areas ?? spec.areas, tenureFrom: spec.tenureFrom,
             commuteCombineFrom: spec.commuteCombineFrom, ptBasisFrom: spec.ptBasisFrom,
             commuteWeightFrom: spec.commuteWeightFrom)
@@ -100,9 +106,9 @@ final class ChipsTests: XCTestCase {
         let newer = chips(Answers.read("interpret-no-time").spec).first { $0.kind == .tag(.builtAge) }
         let leafy = chips(Answers.read("interpret-first").spec).first { $0.kind == .tag(.leafy) }
 
-        XCTAssertEqual(calm?.reads, "Pace: towards Calm")
-        XCTAssertEqual(buzzy?.reads, "Pace: towards Buzzy")
-        XCTAssertEqual(newer?.reads, "Built age: towards Newer")
+        XCTAssertEqual(calm?.reads, "Going out: towards Calm")
+        XCTAssertEqual(buzzy?.reads, "Going out: towards Buzzy")
+        XCTAssertEqual(newer?.reads, "Age of buildings: towards Newer")
         // A vibe that runs one way has no end to name.
         XCTAssertEqual(leafy?.reads, "Leafy")
         XCTAssertEqual(calm?.removal, Edits.tagOff(.pace))
@@ -113,7 +119,7 @@ final class ChipsTests: XCTestCase {
         let street = try XCTUnwrap(meta.tags.first { $0.tagId == .streetCharacter })
         let leafy = try XCTUnwrap(meta.tags.first { $0.tagId == .leafy })
 
-        XCTAssertEqual(gritty?.reads, "Street character: towards Gritty, counts recorded crime")
+        XCTAssertEqual(gritty?.reads, "Gritty: towards Gritty, counts recorded crime")
         XCTAssertTrue(SearchChips.holdsRecordedCrime(street, meta.features))
         XCTAssertFalse(SearchChips.holdsRecordedCrime(leafy, meta.features))
         // Which parts of the recipe are of recorded crime is said by the API's names for them.
@@ -162,10 +168,10 @@ final class ChipsTests: XCTestCase {
 
     func test_a_feature_that_counts_either_way_says_which_way() {
         let drawn = chips(Answers.read("interpret-nights-out").spec)
-        let evening = drawn.first { $0.kind == .feature(.venueEvening) }
+        let evening = drawn.first { $0.kind == .feature(.venueEveningPerHomes) }
 
-        XCTAssertEqual(evening?.reads, "Pubs, bars and evening venues, more")
-        XCTAssertEqual(evening?.removal, Edits.featureOff(.venueEvening))
+        XCTAssertEqual(evening?.reads, "Pubs and bars for each 1,000 homes within 800 m, in a straight line, more")
+        XCTAssertEqual(evening?.removal, Edits.featureOff(.venueEveningPerHomes))
     }
 
     func test_a_thing_a_person_took_off_is_said_to_count_for_nothing_and_cannot_be_removed() {
@@ -255,19 +261,22 @@ final class ChipsTests: XCTestCase {
         var nameless = after(.rankAnswered(ranked, sent: .none))
         nameless.areas = []
 
-        // The journey and the budget count for more than what was asked of the place, and the line says so.
         XCTAssertEqual(
-            SearchStatus.line(after(.rankAnswered(ranked, sent: .none))),
-            "21 areas ranked. First: Farrowmere. Journey and budget count most.")
-        XCTAssertEqual(SearchStatus.line(nameless), "21 areas ranked. Journey and budget count most.")
+            SearchStatus.line(after(.rankAnswered(ranked, sent: .none))), "21 areas ranked. First: Farrowmere.")
+        XCTAssertEqual(SearchStatus.line(nameless), "21 areas ranked.")
     }
 
     func test_the_line_says_what_counts_for_more_than_what_was_asked_of_the_place() {
         let first = Answers.ranked("rank-first").spec
         let scale = Answers.ranked("rank-scale").spec
+        // The same search, once the person has made the journey and the budget count for more than the place.
+        let led = spec(like: first, journeysCount: 1, budgetCounts: 0.8)
 
         XCTAssertEqual(first.mostAskedOfThePlace, 0.5)
-        XCTAssertEqual(first.leads, Leads(journey: true, budget: true, journeys: 1))
+        // What was asked of the place in a word counts for more than the journey, and for more than the budget.
+        XCTAssertEqual([first.commuteWeight, first.budget.weight], [0.4, 0.3])
+        XCTAssertNil(first.leads)
+        XCTAssertEqual(led.leads, Leads(journey: true, budget: true, journeys: 1))
         // Nothing but a vibe was asked for: nothing outweighs it.
         XCTAssertNil(scale.leads)
         // Nothing was asked of the place: there is nothing to outweigh.
@@ -276,8 +285,14 @@ final class ChipsTests: XCTestCase {
         XCTAssertEqual(
             SearchStatus.line(after(.rankAnswered(Answers.ranked("rank-scale"), sent: .none))),
             "21 areas ranked. First: Farrowmere.")
+        // Where a person made the journey and the budget count for more, the line says so.
+        var leading = after(.rankAnswered(Answers.ranked("rank-first"), sent: .none))
+        leading.spec = led
+        XCTAssertEqual(leading.leads, led.leads)
+        XCTAssertEqual(
+            SearchStatus.line(leading), "21 areas ranked. First: Farrowmere. Journey and budget count most.")
         // While the spec on screen is not the one that was ranked, nothing is said of what leads.
-        var ahead = after(.rankAnswered(Answers.ranked("rank-first"), sent: .none))
+        var ahead = leading
         ahead.specHash = "another"
         XCTAssertNil(ahead.leads)
     }
