@@ -13,7 +13,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-cache",
-    "content-length": "92125",
+    "content-length": "92315",
     "content-type": "application/json",
     "etag": "\"syn-2026-09-23-01\"",
     "vary": "Origin",
@@ -24,7 +24,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.14.0",
+      "engine_version": "1.15.0",
       "synthetic": true,
       "preview": false
     },
@@ -700,6 +700,13 @@
         },
         {
           "area_id": "syn-n0020",
+          "feature_id": "road_traffic_nearby",
+          "value": null,
+          "percentile": null,
+          "coverage": 0.05
+        },
+        {
+          "area_id": "syn-n0020",
           "feature_id": "school_primary_attainment",
           "value": null,
           "percentile": null,
@@ -1227,7 +1234,13 @@
             "parts": [
               {
                 "feature_id": "road_major_exposure",
-                "hundredths": 40,
+                "hundredths": 20,
+                "reading": "low",
+                "fact_id": null
+              },
+              {
+                "feature_id": "road_traffic_nearby",
+                "hundredths": 20,
                 "reading": "low",
                 "fact_id": null
               },
@@ -4842,11 +4855,11 @@
             "label": "Quiet streets",
             "name": "Sedgewater Marsh",
             "known": "0",
-            "parts": "3"
+            "parts": "4"
           },
           "numbers": [
             "0",
-            "3"
+            "4"
           ],
           "names": [
             "Sedgewater Marsh"

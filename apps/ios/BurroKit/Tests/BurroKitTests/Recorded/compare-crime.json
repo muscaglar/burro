@@ -115,7 +115,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.14.0",
+      "engine_version": "1.15.0",
       "synthetic": true,
       "preview": false
     },
@@ -1411,8 +1411,8 @@
             "span": "2025",
             "spread_low": "3",
             "spread_high": "3",
-            "known": "3",
-            "parts": "3",
+            "known": "4",
+            "parts": "4",
             "share": "100",
             "partly": "",
             "judgement": "The recipe is Burro's own. The weights are a judgement.",
@@ -1422,6 +1422,7 @@
             "3",
             "5",
             "21",
+            "4",
             "100",
             "2025"
           ],
@@ -2364,8 +2365,8 @@
             "span": "2025",
             "spread_low": "4",
             "spread_high": "4",
-            "known": "3",
-            "parts": "3",
+            "known": "4",
+            "parts": "4",
             "share": "100",
             "partly": "",
             "judgement": "The recipe is Burro's own. The weights are a judgement.",
@@ -2375,7 +2376,6 @@
             "4",
             "5",
             "21",
-            "3",
             "100",
             "2025"
           ],

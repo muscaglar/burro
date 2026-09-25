@@ -13,7 +13,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-cache",
-    "content-length": "133946",
+    "content-length": "135008",
     "content-type": "application/json",
     "etag": "\"syn-2026-09-23-01\"",
     "vary": "Origin",
@@ -24,7 +24,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.14.0",
+      "engine_version": "1.15.0",
       "synthetic": true,
       "preview": false
     },
@@ -699,6 +699,13 @@
         },
         {
           "area_id": "syn-n0024",
+          "feature_id": "road_traffic_nearby",
+          "value": 13605.0,
+          "percentile": 26.2,
+          "coverage": 1.0
+        },
+        {
+          "area_id": "syn-n0024",
           "feature_id": "school_primary_attainment",
           "value": 62.7,
           "percentile": 37.5,
@@ -1319,13 +1326,19 @@
           {
             "tag_id": "quiet_residential",
             "fact_id": "syn-n0024/tag/quiet_residential",
-            "figure_fact_id": "syn-n0024/feature/road_major_exposure",
+            "figure_fact_id": "syn-n0024/feature/evening_cluster_exposure",
             "parts": [
               {
                 "feature_id": "road_major_exposure",
-                "hundredths": 40,
+                "hundredths": 20,
                 "reading": "low",
                 "fact_id": "syn-n0024/feature/road_major_exposure"
+              },
+              {
+                "feature_id": "road_traffic_nearby",
+                "hundredths": 20,
+                "reading": "low",
+                "fact_id": "syn-n0024/feature/road_traffic_nearby"
               },
               {
                 "feature_id": "evening_cluster_exposure",
@@ -5653,6 +5666,44 @@
           "synthetic": true
         },
         {
+          "fact_id": "syn-n0024/feature/road_traffic_nearby",
+          "area_id": "syn-n0024",
+          "kind": "feature",
+          "key": "road_traffic_nearby",
+          "label": "Traffic past the busiest count point within 500 m of home, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Traffic past the busiest count point within 500 m of home, in a straight line",
+            "value": "13,605 motor vehicles a day",
+            "band": "2",
+            "comparative": "less than",
+            "pct": "71",
+            "standing": "less than 71% of the 21 areas compared in this release",
+            "comparative_worse": "more than",
+            "pct_worse": "23",
+            "standing_worse": "more than 23% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "13605",
+            "71%",
+            "21",
+            "23%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
           "fact_id": "syn-n0024/feature/school_primary_attainment",
           "area_id": "syn-n0024",
           "kind": "feature",
@@ -6919,8 +6970,8 @@
             "span": "2025",
             "spread_low": "4",
             "spread_high": "4",
-            "known": "3",
-            "parts": "3",
+            "known": "4",
+            "parts": "4",
             "share": "100",
             "partly": "",
             "judgement": "The recipe is Burro's own. The weights are a judgement.",
@@ -6930,7 +6981,6 @@
             "4",
             "5",
             "21",
-            "3",
             "100",
             "2025"
           ],

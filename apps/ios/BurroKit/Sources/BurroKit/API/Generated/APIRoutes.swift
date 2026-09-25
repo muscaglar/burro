@@ -1,6 +1,6 @@
 // Generated from contracts/openapi.json by apps/ios/scripts/generate.py.
 // Never edited by hand: change the source and run `make generate`.
-// source-sha256: 7517d49e52c18b16277d656ade942ad20c34bb9cdb4a3a6c89a4860cb3eaa254
+// source-sha256: 6480664bda353c4d7df8cd689f2eb64e9e49851c3dc23286b747584a5801c811
 
 import Foundation
 

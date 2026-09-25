@@ -79,7 +79,7 @@ final class AreaPageTests: XCTestCase {
         let rows = page.stationRows + page.rentRows + page.buyRows
             + page.measured.flatMap { page.rows(of: $0) }
 
-        XCTAssertEqual(rows.count, 1 + 6 + 4 + 109)
+        XCTAssertEqual(rows.count, 1 + 6 + 4 + Answers.meta.features.count)
         XCTAssertEqual(page.vibes.count, 14)
         for vibe in page.vibes {
             XCTAssertEqual(vibe.shown.sources.map(\.name), ["Synthetic test data"], vibe.shown.name)

@@ -1,13 +1,13 @@
 // Generated from contracts/openapi.json by apps/ios/scripts/generate.py.
 // Never edited by hand: change the source and run `make generate`.
-// source-sha256: 7517d49e52c18b16277d656ade942ad20c34bb9cdb4a3a6c89a4860cb3eaa254
+// source-sha256: 6480664bda353c4d7df8cd689f2eb64e9e49851c3dc23286b747584a5801c811
 
 import Foundation
 
 /// What these files were generated from, for the test that says when they are stale.
 public enum GeneratedFrom {
     /// The SHA-256 of `contracts/openapi.json` when the models were written.
-    public static let contractSHA256 = "7517d49e52c18b16277d656ade942ad20c34bb9cdb4a3a6c89a4860cb3eaa254"
+    public static let contractSHA256 = "6480664bda353c4d7df8cd689f2eb64e9e49851c3dc23286b747584a5801c811"
     /// The title and the version the contract gives itself.
     public static let contractTitle = "Burro API"
     public static let contractVersion = "2"
@@ -2952,11 +2952,12 @@ public enum FeatureId: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
     case priceRise5y
     case priceRise10y
     case highstreetConserved
+    case roadTrafficNearby
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [FeatureId] = [.crimeViolenceRobbery, .crimeBurglaryTheft, .schoolPrimaryNearby, .schoolPrimaryAttainment, .schoolSecondaryAttainment, .universityProximity, .greenCover, .parkProximity, .playSpaceProximity, .waterAccess, .airNo2, .noiseExposure, .venueFoodDrink, .venueEvening, .venueIndependent, .cultureVenues, .highstreetAccess, .homesFlats, .homesPre1919, .homesDensity, .conservationCover, .stationWalk, .stationLines, .independentsNearby, .centreSmall, .centreCompact, .listedBuildings, .homesPost2000, .roadMajorExposure, .eveningClusterExposure, .landIndustry, .landStorage, .landTransportOther, .landGardens, .landWoodland, .parkLargeProximity, .parkFacilities, .groceryWalk, .incidentCriminalDamage, .incidentAntisocial, .privateOutdoorSpace, .cuisineVariety, .gpWalk, .pharmacyWalk, .venueFoodDrinkPerHomes, .priceMedian, .cultureVenuesPerHomes, .venueCafe, .venueCafePerHomes, .venueGym, .venueGymPerHomes, .venueEveningPerHomes, .grocerPremiumNearby, .grocerMidNearby, .grocerValueNearby, .gymPremiumNearby, .gymMidNearby, .gymValueNearby, .coffeePremiumNearby, .coffeeMidNearby, .coffeeValueNearby, .grocerPremiumDistance, .grocerMidDistance, .grocerValueDistance, .gymPremiumDistance, .gymMidDistance, .gymValueDistance, .coffeePremiumDistance, .coffeeMidDistance, .coffeeValueDistance, .brandMix, .brandWaitrose, .brandMands, .brandWholeFoods, .brandSainsburys, .brandTesco, .brandCoop, .brandMorrisons, .brandAsda, .brandAldi, .brandLidl, .brandIceland, .brandEquinox, .brandThirdSpace, .brandBarrys, .brandVirginActive, .brandNuffield, .brandGymbox, .brandDavidLloyd, .brandAnytimeFitness, .brandPuregym, .brandTheGymGroup, .brandGails, .brandOleAndSteen, .brandPret, .brandNero, .brandStarbucks, .brandCosta, .brandBlankStreet, .brandGreggs, .undergroundProximity, .overgroundProximity, .railProximity, .busStopsNearby, .busRoutesNearby, .residentsAged2034, .residentsAged65Over, .householdsDependentChildren, .householdsOnePerson, .homesHigherBands, .priceRise5y, .priceRise10y, .highstreetConserved]
+    public static let allCases: [FeatureId] = [.crimeViolenceRobbery, .crimeBurglaryTheft, .schoolPrimaryNearby, .schoolPrimaryAttainment, .schoolSecondaryAttainment, .universityProximity, .greenCover, .parkProximity, .playSpaceProximity, .waterAccess, .airNo2, .noiseExposure, .venueFoodDrink, .venueEvening, .venueIndependent, .cultureVenues, .highstreetAccess, .homesFlats, .homesPre1919, .homesDensity, .conservationCover, .stationWalk, .stationLines, .independentsNearby, .centreSmall, .centreCompact, .listedBuildings, .homesPost2000, .roadMajorExposure, .eveningClusterExposure, .landIndustry, .landStorage, .landTransportOther, .landGardens, .landWoodland, .parkLargeProximity, .parkFacilities, .groceryWalk, .incidentCriminalDamage, .incidentAntisocial, .privateOutdoorSpace, .cuisineVariety, .gpWalk, .pharmacyWalk, .venueFoodDrinkPerHomes, .priceMedian, .cultureVenuesPerHomes, .venueCafe, .venueCafePerHomes, .venueGym, .venueGymPerHomes, .venueEveningPerHomes, .grocerPremiumNearby, .grocerMidNearby, .grocerValueNearby, .gymPremiumNearby, .gymMidNearby, .gymValueNearby, .coffeePremiumNearby, .coffeeMidNearby, .coffeeValueNearby, .grocerPremiumDistance, .grocerMidDistance, .grocerValueDistance, .gymPremiumDistance, .gymMidDistance, .gymValueDistance, .coffeePremiumDistance, .coffeeMidDistance, .coffeeValueDistance, .brandMix, .brandWaitrose, .brandMands, .brandWholeFoods, .brandSainsburys, .brandTesco, .brandCoop, .brandMorrisons, .brandAsda, .brandAldi, .brandLidl, .brandIceland, .brandEquinox, .brandThirdSpace, .brandBarrys, .brandVirginActive, .brandNuffield, .brandGymbox, .brandDavidLloyd, .brandAnytimeFitness, .brandPuregym, .brandTheGymGroup, .brandGails, .brandOleAndSteen, .brandPret, .brandNero, .brandStarbucks, .brandCosta, .brandBlankStreet, .brandGreggs, .undergroundProximity, .overgroundProximity, .railProximity, .busStopsNearby, .busRoutesNearby, .residentsAged2034, .residentsAged65Over, .householdsDependentChildren, .householdsOnePerson, .homesHigherBands, .priceRise5y, .priceRise10y, .highstreetConserved, .roadTrafficNearby]
 
     public init(rawValue: String) {
         switch rawValue {
@@ -3073,6 +3074,7 @@ public enum FeatureId: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
         case "price_rise_5y": self = .priceRise5y
         case "price_rise_10y": self = .priceRise10y
         case "highstreet_conserved": self = .highstreetConserved
+        case "road_traffic_nearby": self = .roadTrafficNearby
         default: self = .unlisted(rawValue)
         }
     }
@@ -3192,6 +3194,7 @@ public enum FeatureId: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
         case .priceRise5y: return "price_rise_5y"
         case .priceRise10y: return "price_rise_10y"
         case .highstreetConserved: return "highstreet_conserved"
+        case .roadTrafficNearby: return "road_traffic_nearby"
         case .unlisted(let value): return value
         }
     }

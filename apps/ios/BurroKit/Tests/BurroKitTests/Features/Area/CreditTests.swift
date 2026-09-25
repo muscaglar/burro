@@ -210,7 +210,9 @@ final class CreditTests: XCTestCase {
         let rows = page.stationRows + page.rentRows + page.buyRows
             + page.measured.flatMap { page.rows(of: $0) }
 
-        XCTAssertEqual(rows.count, AreaFixtures.page("farrowmere").stationRows.count + 6 + 4 + 109)
+        XCTAssertEqual(
+            rows.count,
+            AreaFixtures.page("farrowmere").stationRows.count + 6 + 4 + Answers.meta.features.count)
         for row in rows where row.noFigure == nil {
             XCTAssertEqual(row.sources.map(\.credit), [nil, Credited.drawn], row.name)
             XCTAssertEqual(
