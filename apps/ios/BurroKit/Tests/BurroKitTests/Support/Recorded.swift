@@ -76,6 +76,14 @@ struct Recorded: Sendable {
         return try JSONDecoder().decode(Envelope<Payload>.self, from: recorded.body).data
     }
 
+    /// What an answer says of the release and the engine that gave it, whether it went well or not.
+    var meta: Meta {
+        get throws {
+            struct Said: Decodable { let meta: Meta }
+            return try JSONDecoder().decode(Said.self, from: body).meta
+        }
+    }
+
     /// A recorded error, in the API's error envelope.
     static func error(_ scenario: String) throws -> ErrorEnvelope {
         let recorded = try read(scenario)
@@ -140,6 +148,27 @@ enum Answers {
     static func profile(_ slug: String) -> AreaData {
         must { try Recorded.data(.getArea, "area/\(slug)") }
     }
+
+    /// The share the service made, as it answered. The id it gave is made again each time
+    /// the answers are recorded, so a test reads it here and never holds it as written.
+    static let made: ShareCreated = must { try Recorded.data(.createShare, "share-made") }
+
+    /// The id of that share, which is the one `share-opened` was asked for by.
+    static var shareId: String { made.shareId }
+
+    /// The id a share was asked for by, in the recording of that: the end of its path.
+    static func shareId(askedForIn scenario: String) -> String {
+        must { try XCTUnwrap(Recorded.read(scenario).path.split(separator: "/").last.map(String.init)) }
+    }
+
+    /// The release that gave an answer, as the answer names it.
+    static func release(of scenario: String) -> String {
+        must { try Recorded.read(scenario).meta.releaseId }
+    }
+
+    /// A release newer than the one the recordings are of: the one a share was opened on
+    /// after the data had moved. It is what a test says a service has moved to.
+    static var newerRelease: String { release(of: "share-opened-stale") }
 
     /// A failure as the client makes it of a recorded error.
     static func failure(_ scenario: String) -> Failure {

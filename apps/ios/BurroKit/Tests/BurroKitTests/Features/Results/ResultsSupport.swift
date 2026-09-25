@@ -113,7 +113,11 @@ enum ResultsSaid {
             for name in fact.names { said.insert(name) }
             said.insert(fact.asOf)
             said.insert(Results.readableDate(fact.asOf))
-            for source in fact.sources { said.insert(source.name) }
+            for source in fact.sources {
+                said.insert(source.name)
+                // The statement its publisher asks to see beside a figure, where it asks.
+                if let credit = Credited.asDrawn(source) { said.insert(credit) }
+            }
             for line in Results.sourceLines(of: [fact]) { said.insert(line.date) }
         }
         return said

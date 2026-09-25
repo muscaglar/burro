@@ -12,7 +12,11 @@ final class AreaPageTests: XCTestCase {
         for neighbour in data.neighbours { sent.insert(neighbour.name) }
         for fact in data.facts {
             sent.insert(fact.label)
-            for source in fact.sources { sent.insert(source.name) }
+            for source in fact.sources {
+                sent.insert(source.name)
+                // The statement its publisher asks to see beside a figure, where it asks.
+                if let credit = Credited.asDrawn(source) { sent.insert(credit) }
+            }
             for value in fact.slots.values {
                 sent.insert(value)
                 sent.insert("£\(value)")
@@ -31,7 +35,7 @@ final class AreaPageTests: XCTestCase {
 
     @MainActor
     func test_an_area_page_shows_only_what_the_api_sent() {
-        XCTAssertEqual(AreaFixtures.slugs.count, 24)
+        XCTAssertEqual(AreaFixtures.slugs.count, Answers.areas.count)
         for slug in AreaFixtures.slugs {
             let page = AreaFixtures.page(slug)
             let sent = sent(Answers.profile(slug))
@@ -356,7 +360,7 @@ final class AreaPageTests: XCTestCase {
         XCTAssertEqual(page.area, AreaFixtures.farrowmere)
         XCTAssertEqual(page.neighbours.map(\.name), ["Cindermoor", "Dulcimer Green", "Sedgewater Marsh"])
         XCTAssertEqual(page.sources.map(\.name), ["Synthetic test data"])
-        XCTAssertEqual(page.releaseId, "syn-2026-09-23-01")
+        XCTAssertEqual(page.releaseId, Answers.meta.releaseId)
         XCTAssertTrue(page.synthetic)
         XCTAssertFalse(page.preview)
     }

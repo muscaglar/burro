@@ -10,7 +10,7 @@ import XCTest
 final class ResultsShareTests: XCTestCase {
     // A string found nowhere else, planted in what a person types.
     private let canary = "zqxresults5290"
-    private let shareId = "3TQkoOxY0dYBEVyMymzDjg"
+    private let shareId = Answers.shareId
 
     // MARK: - Sharing the search
 
@@ -181,7 +181,7 @@ final class ResultsShareTests: XCTestCase {
                 words: "Something went wrong on the server.",
                 requestId: try Recorded.read("error-internal").headers["x-request-id"]))
         // The search is as it was.
-        XCTAssertEqual(app.listed.cards.count, 20)
+        XCTAssertEqual(app.listed.cards.count, Answers.ranked("rank-first").ranked.count)
         XCTAssertEqual(app.listed.lines, [])
     }
 
@@ -287,7 +287,7 @@ final class ResultsShareTests: XCTestCase {
         XCTAssertEqual(app.app.searchPath, [])
         XCTAssertEqual(app.app.tab, .search)
         // The search is still open.
-        XCTAssertEqual(app.listed.cards.count, 20)
+        XCTAssertEqual(app.listed.cards.count, Answers.ranked("rank-first").ranked.count)
     }
 
     @MainActor

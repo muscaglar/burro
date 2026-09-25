@@ -57,7 +57,7 @@ final class ClientTests: XCTestCase {
 
         _ = await api.rank(RankBody(spec: spec))
         _ = await api.getArea("farrowmere")
-        _ = await api.getShare("3TQkoOxY0dYBEVyMymzDjg")
+        _ = await api.getShare(Answers.shareId)
         _ = await api.getGeometry()
 
         XCTAssertEqual(
@@ -65,7 +65,7 @@ final class ClientTests: XCTestCase {
             [
                 "https://api.example.test/v1/rank",
                 "https://api.example.test/v1/areas/farrowmere",
-                "https://api.example.test/v1/shares/3TQkoOxY0dYBEVyMymzDjg",
+                "https://api.example.test/v1/shares/\(Answers.shareId)",
                 "https://api.example.test/v1/areas/geometry",
             ])
         XCTAssertEqual(standIn.unexpected.count, 0)
@@ -108,7 +108,7 @@ final class ClientTests: XCTestCase {
         let compare = await api.compare(CompareBody(areaIds: ["syn-n0006", "syn-n0017"], spec: spec))
         let places = await api.searchPlaces(PlaceSearchBody(q: "pel"))
         let made = await api.createShare(ShareBody(spec: spec))
-        let share = await api.getShare("3TQkoOxY0dYBEVyMymzDjg")
+        let share = await api.getShare(Answers.shareId)
         let areas = await api.listAreas()
         let geometry = await api.getGeometry()
         let area = await api.getArea("farrowmere")
@@ -120,9 +120,9 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(try interpret.get().data, Answers.read("interpret-first"))
         XCTAssertEqual(try rank.get().data, Answers.ranked("rank-first"))
         XCTAssertEqual(try explain.get().data, Answers.explained("explanations-first"))
-        XCTAssertEqual(try compare.get().data.areas.count, 3)
-        XCTAssertEqual(try places.get().data.places.first?.placeId, "syn-p0012")
-        XCTAssertEqual(try made.get().data.shareId, "3TQkoOxY0dYBEVyMymzDjg")
+        XCTAssertEqual(try compare.get().data, try Recorded.data(.compare, "compare-three", as: CompareData.self))
+        XCTAssertEqual(try places.get().data, try Recorded.data(.searchPlaces, "places-search", as: PlacesData.self))
+        XCTAssertEqual(try made.get().data, Answers.made)
         XCTAssertEqual(try share.get().data, Answers.shared("share-opened"))
         XCTAssertEqual(try areas.get().data.areas, Answers.areas)
         XCTAssertEqual(try geometry.get().data, Answers.geometry)
@@ -142,7 +142,7 @@ final class ClientTests: XCTestCase {
 
         let recorded = try Recorded.read("rank-first")
         XCTAssertEqual(answer.status, 200)
-        XCTAssertEqual(answer.meta.releaseId, "syn-2026-09-23-01")
+        XCTAssertEqual(answer.meta, try recorded.meta)
         XCTAssertTrue(answer.synthetic)
         XCTAssertFalse(answer.preview)
         XCTAssertEqual(answer.requestId, recorded.headers["x-request-id"])
@@ -156,7 +156,7 @@ final class ClientTests: XCTestCase {
         _ = await api.rank(RankBody(spec: spec))
         XCTAssertEqual(standIn.synthetic, [true])
         XCTAssertEqual(standIn.preview, [false])
-        _ = await api.getShare("a9yIlz7uQ1b3F4vDySSZRg")
+        _ = await api.getShare(Answers.shareId(askedForIn: "share-gone"))
         XCTAssertEqual(standIn.synthetic, [true, true])
         XCTAssertEqual(standIn.preview, [false, false])
     }
@@ -222,7 +222,7 @@ final class ClientTests: XCTestCase {
 
         let text = await api.interpret(InterpretBody(text: canary, spec: spec))
         let stale = await api.rank(RankBody(spec: spec))
-        let gone = await api.getShare("a9yIlz7uQ1b3F4vDySSZRg")
+        let gone = await api.getShare(Answers.shareId(askedForIn: "share-gone"))
         let fault = await api.explainTop(ExplanationsBody(spec: spec))
 
         let refusal = try XCTUnwrap(text.failure?.api)

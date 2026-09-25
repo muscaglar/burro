@@ -454,13 +454,22 @@ final class SearchOffersTests: XCTestCase {
         XCTAssertEqual(asked.commuteOps.map(\.strictness), [.soft])
         XCTAssertEqual(asked.budgetOps.map(\.strictness), [.hard])
         XCTAssertEqual(try JSON.written(asked), try sent(in: "rank-one-press"))
-        // What is left is the person's to choose: four in sight, and three behind "Show all".
+        // What is left is the person's to choose. It waits behind one line, which says how
+        // many there are, and one press opens every one of them.
         let left = try XCTUnwrap(search.shown().offers)
-        XCTAssertEqual(
-            left.offers.map(\.name),
-            ["Mix of brands", "Gritty", "What homes sell for", "Homes in the higher council tax bands"])
+        XCTAssertEqual(left.offers, [])
         XCTAssertNil(left.addAll)
-        XCTAssertEqual(left.showAll, "Show all 7")
+        XCTAssertEqual(left.showAll, "Show the 7 left to choose")
+        let opened = try XCTUnwrap(
+            SearchScreen.shown(search.state, consent: .allowed, allOffers: true).offers)
+        XCTAssertEqual(
+            opened.offers.map(\.name),
+            [
+                "Mix of brands", "Gritty", "What homes sell for", "Homes in the higher council tax bands",
+                "Village feel", "Age of buildings", "Nearer a town centre",
+            ])
+        XCTAssertNil(opened.addAll)
+        XCTAssertNil(opened.showAll)
     }
 
     @MainActor
@@ -482,8 +491,221 @@ final class SearchOffersTests: XCTestCase {
             ].joined(separator: "; "))
         XCTAssertEqual(offers.says, offers.added)
         XCTAssertEqual(offers.takeBack, "Take it all back")
-        XCTAssertEqual(offers.offers.count, 4)
-        XCTAssertEqual(offers.showAll, "Show all 7")
+        // What is left waits behind one line, under the line that names each.
+        XCTAssertEqual(offers.offers, [])
+        XCTAssertEqual(offers.showAll, "Show the 7 left to choose")
+    }
+
+    // MARK: - What is left after one press
+
+    /// The long sentence, with what one press may add added: seven things are left.
+    @MainActor
+    private func pressed() async -> OpenSearch {
+        let search = await noticed("interpret-by-model-long", then: "rank-one-press")
+        await search.flow.chooseAll([0, 1, 6, 10, 11])
+        return search
+    }
+
+    /// What is left for the person after that press, by the API's names, without these.
+    private func needs(without gone: [String] = []) -> String {
+        let all = [
+            "the journey can be made a firm limit", "mix of brands",
+            "recorded crime, which is added under its own name", "what homes sell for",
+            "homes in the higher council tax bands", "Village feel", "Age of buildings",
+            "nearer a town centre",
+        ]
+        let left = all.filter { !gone.contains($0) }
+        return "\(left.count) need you: \(left.joined(separator: "; "))."
+    }
+
+    /// What the line says of the firm budget. How many areas it left out is what the
+    /// ranking that answers lists as over the budget, and is read from the recording.
+    private var budget: String {
+        let left = Answers.ranked("rank-one-press").filtered.filter { $0.reason == .overBudget }
+        return "Your budget is a firm limit and left out \(left.count) areas: "
+            + "the table of all areas lists each."
+    }
+
+    @MainActor
+    func test_what_is_left_after_one_press_folds_to_one_line_and_opens_whole() async throws {
+        // On the website seven offers of several lines each stood between the press and
+        // the first result. Here they stood between the press and the way to the results.
+        let search = await pressed()
+        let left = Answers.read("interpret-by-model-long").suggestions.filter { $0.addAll.isEmpty }
+
+        let folded = try XCTUnwrap(search.shown().offers)
+        let opened = try XCTUnwrap(
+            SearchScreen.shown(search.state, consent: .allowed, allOffers: true).offers)
+
+        XCTAssertEqual(left.count, 7)
+        XCTAssertEqual(SearchScreen.leftInSight(search.state.suggestions), [])
+        // No offer is drawn, and no choice of one: the block is the line, the way back and the fold.
+        XCTAssertEqual(folded.offers, [])
+        XCTAssertEqual(folded.showAll, "Show the 7 left to choose")
+        XCTAssertEqual(folded.takeBack, "Take it all back")
+        XCTAssertNil(folded.addAll)
+        // What is said of pressing an offer is said where one can be pressed.
+        XCTAssertNil(folded.why)
+        XCTAssertEqual(opened.why, "Nothing is added until you press it.")
+        // The line over the fold names each thing that is left, by the name the API gives it.
+        for one in left { XCTAssertTrue(folded.added?.contains(one.needs) ?? false, one.needs) }
+        // Opened, each is whole, in the order it stood in. To open the fold sends nothing.
+        XCTAssertEqual(opened.offers.map(\.does), left.map(\.does))
+        XCTAssertEqual(opened.offers.map { $0.choices.map(\.id) }, left.map { $0.choices.map(\.id) })
+        XCTAssertNil(opened.showAll)
+        XCTAssertEqual(opened.added, folded.added)
+        XCTAssertEqual(search.api.calls(to: .rank).count, 1)
+        // The way to the list and the map stands directly after what is offered.
+        XCTAssertEqual(search.shown().parts.suffix(3), [.offers, .results, .settings])
+    }
+
+    func test_what_one_press_may_still_add_stays_in_sight_after_the_press() throws {
+        // A model may read the words after the press, and mark a guess. What one press may
+        // add is then in sight with its button, and what is a question waits behind "Show all".
+        let long = Answers.read("interpret-by-model-long").suggestions
+        let added = Added(count: 1, needs: [], firm: false, spec: Answers.meta.defaults.rent, suggestions: long)
+
+        let offers = try XCTUnwrap(SearchScreen.offers(long, all: false, added: added))
+
+        XCTAssertEqual(SearchScreen.leftInSight(long), [0, 1, 6, 10, 11])
+        XCTAssertEqual(offers.offers.map(\.at), [0, 1, 6, 10, 11])
+        XCTAssertEqual(offers.addAll, "Add all 5")
+        XCTAssertEqual(offers.showAll, "Show all 12")
+        XCTAssertEqual(offers.why, "Nothing is added until you press it.")
+        // Before any press the offers are in sight as they were.
+        XCTAssertEqual(SearchScreen.offers(long, all: false)?.offers.map(\.at), [0, 1, 6, 10, 11, 2, 3])
+        XCTAssertEqual(SearchScreen.offers(long, all: false)?.showAll, "Show all 12")
+        XCTAssertEqual(SearchCopy.Suggest.showLeft(1), "Show the one left to choose")
+    }
+
+    @MainActor
+    func test_what_is_left_folds_again_once_an_offer_is_added_from_the_open_fold() async throws {
+        // On the website the fold was opened and one offer was added from it. The fold
+        // stayed open, and the first result was two screens away.
+        let search = await pressed()
+        let left = search.state.suggestions
+        var held = (all: true, since: ChosenSince())
+
+        held = SearchScreen.held(held.all, held.since, afterChoosing: "more", at: 0, in: search.state)
+        await search.flow.choose(at: 0, id: "more")
+        let shown = SearchScreen.shown(search.state, consent: .allowed, allOffers: held.all, since: held.since)
+        let offers = try XCTUnwrap(shown.offers)
+
+        // What was pressed is sent, and nothing else: the edits the API gave with that way.
+        XCTAssertEqual(left[0].label, "Mix of brands")
+        XCTAssertEqual(search.api.calls(to: .rank).count, 2)
+        let asked = try XCTUnwrap(try search.api.lastCall(to: .rank).body(as: RankBody.self).operations)
+        XCTAssertEqual(asked, left[0].choices[0].operations)
+        // What is left is one line again, which says one fewer.
+        XCTAssertFalse(held.all)
+        XCTAssertEqual(offers.offers, [])
+        XCTAssertEqual(offers.showAll, "Show the 6 left to choose")
+        XCTAssertNil(offers.why)
+        // The line says what one press added, and then what was added since. What was
+        // chosen of is no longer named as left for the person.
+        XCTAssertEqual(
+            offers.added, "5 added. Then 1 more added. \(budget) \(needs(without: ["mix of brands"]))")
+        XCTAssertEqual(offers.says, offers.added)
+        XCTAssertEqual(shown.parts.suffix(3), [.offers, .results, .settings])
+    }
+
+    @MainActor
+    func test_the_line_counts_every_offer_that_was_added_or_skipped_since_one_press() async throws {
+        let search = await pressed()
+        var held = (all: true, since: ChosenSince())
+
+        for way in ["more", Suggestion.skip, "more"] {
+            held = SearchScreen.held(true, held.since, afterChoosing: way, at: 0, in: search.state)
+            await search.flow.choose(at: 0, id: way)
+        }
+        let offers = try XCTUnwrap(
+            SearchScreen.shown(search.state, consent: .allowed, allOffers: held.all, since: held.since).offers)
+
+        // A skip sends nothing: two rankings followed the two that were added.
+        XCTAssertEqual(search.api.calls(to: .rank).count, 3)
+        XCTAssertEqual(held.since.added, 2)
+        XCTAssertEqual(held.since.skipped, 1)
+        XCTAssertEqual(
+            offers.added,
+            "5 added. Then 2 more added, and 1 skipped. \(budget) "
+                + needs(without: [
+                    "mix of brands", "recorded crime, which is added under its own name",
+                    "what homes sell for",
+                ]))
+        XCTAssertEqual(offers.showAll, "Show the 4 left to choose")
+        XCTAssertEqual(SearchCopy.Suggest.added(5, needs: []), "5 added.")
+        XCTAssertEqual(
+            SearchCopy.Suggest.added(5, needs: [], since: (added: 0, skipped: 2)), "5 added. Then 2 skipped.")
+        XCTAssertEqual(
+            SearchCopy.Suggest.added(5, needs: ["a thing"], leftOut: 0, since: (added: 1, skipped: 0)),
+            "5 added. Then 1 more added. Your budget is a firm limit. It left no area out. "
+                + "1 needs you: a thing.")
+    }
+
+    @MainActor
+    func test_before_any_press_a_choice_folds_nothing_and_counts_nothing() async throws {
+        let search = await noticed("interpret-by-model-long", then: "rank-first")
+
+        let open = SearchScreen.held(true, ChosenSince(), afterChoosing: "more", at: 2, in: search.state)
+        let closed = SearchScreen.held(false, ChosenSince(), afterChoosing: "more", at: 2, in: search.state)
+
+        // What Burro asks comes before what it ranked without the answer: the offers stay in sight.
+        XCTAssertNil(search.state.added)
+        XCTAssertTrue(open.all)
+        XCTAssertFalse(closed.all)
+        XCTAssertEqual(open.since, ChosenSince())
+        XCTAssertEqual(closed.since, ChosenSince())
+        // A place in the list that holds no offer is no choice.
+        let pressed = await self.pressed()
+        XCTAssertEqual(
+            SearchScreen.held(true, ChosenSince(), afterChoosing: "more", at: 17, in: pressed.state).since,
+            ChosenSince())
+        XCTAssertTrue(SearchScreen.held(true, ChosenSince(), afterChoosing: "more", at: 17, in: pressed.state).all)
+    }
+
+    func test_the_screen_folds_by_the_press_and_forgets_what_was_chosen_when_all_is_added_or_taken_back()
+        throws
+    {
+        let block = try Repository.text(Written.search.appendingPathComponent("OffersBlock.swift"))
+        let root = try Repository.text(Written.search.appendingPathComponent("SearchRootView.swift"))
+
+        // What the screen holds of the offers is worked out where it is tested, at the press
+        // of a choice, and is handed to what decides what is drawn.
+        XCTAssertTrue(root.contains("(allOffers, since) = SearchScreen.held("))
+        XCTAssertTrue(root.contains("allOffers, since, afterChoosing: id, at: at, in: search.state)"))
+        XCTAssertTrue(root.contains("allOffers: allOffers, since: since)"))
+        // A sentence that is sent, one press and "Take it all back" each forget what was
+        // chosen since, and one press folds what it leaves whatever was opened before it.
+        XCTAssertEqual(root.components(separatedBy: "since = ChosenSince()").count - 1, 4)
+        let pressed = try XCTUnwrap(root.range(of: "chooseAll: { ats in"))
+        let back = try XCTUnwrap(root.range(of: "takeItBack: {"))
+        XCTAssertTrue(root[pressed.upperBound..<back.lowerBound].contains("allOffers = false"))
+        // Nothing folds by a clock, or by where a person is on the screen.
+        for moved in ["Timer", "asyncAfter", "Task.sleep", "onDisappear", "AccessibilityFocusState"] {
+            XCTAssertFalse(root.contains(moved), moved)
+            XCTAssertFalse(block.contains(moved), moved)
+        }
+        // The line under the heading is said where an offer can be pressed.
+        XCTAssertTrue(block.contains("if let why = offers.why"))
+        XCTAssertFalse(block.contains("HintLine(SearchCopy.Suggest.why)"))
+    }
+
+    func test_what_was_chosen_of_is_no_longer_named_as_left_and_each_name_goes_once() throws {
+        let long = Answers.read("interpret-by-model-long").suggestions
+        var since = ChosenSince()
+
+        since.chose(long[2], way: "more")
+        since.chose(long[0], way: Suggestion.skip)
+
+        // A thing that carries no name of what is left takes none away.
+        XCTAssertEqual(long[0].needs, "")
+        XCTAssertEqual(since.settled, ["mix of brands"])
+        XCTAssertEqual(since.added, 1)
+        XCTAssertEqual(since.skipped, 1)
+        XCTAssertEqual(
+            since.stillNeeded(of: ["mix of brands", "Village feel", "mix of brands"]),
+            ["Village feel", "mix of brands"])
+        XCTAssertEqual(ChosenSince().stillNeeded(of: ["Village feel"]), ["Village feel"])
     }
 
     @MainActor
@@ -497,15 +719,16 @@ final class SearchOffersTests: XCTestCase {
 
         // How many the budget left out is what the ranking lists as over the budget.
         let left = Answers.ranked("rank-one-press").filtered.filter { $0.reason == .overBudget }
-        XCTAssertEqual(left.count, 13)
+        // More than one, so that the words that follow are those for many.
+        XCTAssertGreaterThan(left.count, 1)
         XCTAssertEqual(search.state.read?.added?.firm, true)
         XCTAssertEqual(search.state.spec.budget.strictness, .hard)
         XCTAssertEqual(search.state.spec.commutes.map(\.strictness), [.soft])
-        XCTAssertEqual(search.state.leftOutByTheBudget, 13)
+        XCTAssertEqual(search.state.leftOutByTheBudget, left.count)
         XCTAssertEqual(
             offers.added,
             [
-                "5 added. Your budget is a firm limit and left out 13 areas: "
+                "5 added. Your budget is a firm limit and left out \(left.count) areas: "
                     + "the table of all areas lists each. "
                     + "8 need you: the journey can be made a firm limit",
                 "mix of brands", "recorded crime, which is added under its own name", "what homes sell for",
@@ -706,18 +929,42 @@ final class SearchOffersTests: XCTestCase {
 
     func test_a_note_that_neighbours_share_is_drawn_once_with_the_first_of_them() throws {
         let long = Answers.read("interpret-by-model-long").suggestions
-        let offers = try XCTUnwrap(SearchScreen.offers(long, all: true))
+        let offers = try XCTUnwrap(SearchScreen.offers(long, all: true)).offers
 
         // The five that carry a guess are drawn first, and none of them carries a note.
-        XCTAssertEqual(offers.offers.map(\.at), [0, 1, 6, 10, 11, 2, 3, 4, 5, 7, 8, 9])
-        XCTAssertEqual(offers.offers.map { $0.note != nil }, [
+        XCTAssertEqual(offers.map(\.at), [0, 1, 6, 10, 11, 2, 3, 4, 5, 7, 8, 9])
+        XCTAssertEqual(offers.map { $0.note != nil }, [
             false, false, false, false, false, true, true, true, true, true, true, true,
         ])
-        // The last three that carry one share it, word for word.
-        XCTAssertEqual(Set(offers.offers[9...11].map(\.note)).count, 1)
-        XCTAssertEqual(offers.offers.map(\.noteDrawn), [
-            false, false, false, false, false, true, true, true, false, true, false, false,
-        ])
+        // Each note is the API's, word for word. Which neighbours share one is read from
+        // the answer, which holds both: two that share a note, and two whose notes differ.
+        let notes = offers.map { long[$0.at].noteShown }
+        let shares = notes.indices.map { $0 > 0 && notes[$0] != nil && notes[$0] == notes[$0 - 1] }
+        XCTAssertEqual(offers.map(\.note), notes)
+        XCTAssertTrue(shares.contains(true))
+        XCTAssertTrue(notes.indices.contains { $0 > 0 && notes[$0 - 1] != nil && notes[$0] != nil && !shares[$0] })
+        // A note is drawn with the first of the neighbours that share it, and with no other.
+        XCTAssertEqual(offers.map(\.noteDrawn), notes.indices.map { notes[$0] != nil && !shares[$0] })
+    }
+
+    func test_a_note_that_says_more_than_the_one_before_it_is_another_note_and_is_drawn() throws {
+        // A vibe that is a rough guide says so after the words its neighbours carry. Only a
+        // note that is the same word for word is left out, so each of the two is drawn, and
+        // the words they share are drawn again with the first offer after them.
+        let one = try XCTUnwrap(Answers.read("interpret-suggest").suggestions.first)
+        let shared = "A note that is made up, which three neighbours carry."
+        let offered = [
+            one.with(note: shared), one.with(note: shared), one.with(note: "\(shared) And more."),
+            one.with(note: shared), one.with(note: shared), one, one.with(note: shared),
+        ]
+
+        let offers = try XCTUnwrap(SearchScreen.offers(offered, all: true)).offers
+
+        XCTAssertNil(one.noteShown)
+        XCTAssertEqual(offers.map(\.at), Array(offered.indices))
+        XCTAssertEqual(offers.map(\.noteDrawn), [true, false, true, true, false, false, true])
+        // A note that is not drawn is still held, to be said of the offer it is a note of.
+        XCTAssertEqual(offers.map(\.note), offered.map(\.noteShown))
     }
 
     func test_the_offers_that_carry_a_guess_come_first_in_the_order_their_words_stand() throws {

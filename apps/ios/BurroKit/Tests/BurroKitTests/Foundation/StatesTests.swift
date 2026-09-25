@@ -62,7 +62,7 @@ final class StatesTests: XCTestCase {
 
         XCTAssertEqual(state.phase, .results)
         XCTAssertEqual(state.conditions, [])
-        XCTAssertEqual(state.ranking?.ranked.count, 20)
+        XCTAssertEqual(state.ranking?.ranked.count, ranked.ranked.count)
         XCTAssertEqual(state.ranking?.ranked.first?.areaId, "syn-n0006")
         XCTAssertEqual(state.area("syn-n0006")?.name, "Farrowmere")
         XCTAssertFalse(state.explained)
@@ -153,8 +153,8 @@ final class StatesTests: XCTestCase {
         XCTAssertEqual(state.phase, .results)
         XCTAssertEqual(state.conditions, [.nothingMatches])
         XCTAssertEqual(state.ranking?.ranked, [])
-        XCTAssertEqual(state.ranking?.filtered.count, 22)
-        XCTAssertEqual(state.ranking?.unranked.count, 2)
+        XCTAssertEqual(state.ranking?.filtered.count, Answers.ranked("rank-nothing-matches").filtered.count)
+        XCTAssertEqual(state.ranking?.unranked.count, Answers.ranked("rank-nothing-matches").unranked.count)
     }
 
     func test_nothing_read_the_settings_open_and_results_already_on_screen_stay() {

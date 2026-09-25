@@ -8,7 +8,7 @@ import XCTest
 /// under the same name where the two share one.
 final class FlowServedTests: XCTestCase {
     /// The release a service moves to, after the search was opened on the recorded one.
-    private let newer = "syn-2026-10-01-01"
+    private let newer = Answers.newerRelease
     private let first = (
         read: Answers.read("interpret-first"),
         rank: Answers.ranked("rank-first"),

@@ -145,6 +145,50 @@ final class RecordedAnswersTests: XCTestCase {
         XCTAssertEqual(notSent, [])
     }
 
+    /// What the service makes, and what says which build answered, as the recordings hold
+    /// them: the id of a share and of a request, the hash of a spec, the release and the engine.
+    private func madeByTheService() throws -> Set<String> {
+        let made: Set<String> = ["share_id", "spec_hash", "release_id", "original_release_id", "engine_version"]
+        var held: Set<String> = []
+        func gather(_ value: JSON, under key: String) {
+            switch value {
+            case .object(let fields): fields.forEach { gather($0.value, under: $0.key) }
+            case .array(let items): items.forEach { gather($0, under: key) }
+            case .string(let text): if made.contains(key) { held.insert(text) }
+            default: break
+            }
+        }
+        for scenario in Recorded.scenarios {
+            let recorded = try Recorded.read(scenario)
+            gather(try JSON.read(recorded.body), under: "")
+            if let id = recorded.headers["x-request-id"] { held.insert(id) }
+            // A share that was asked for is named in the path, and in no body.
+            if recorded.operationId == APIRoute.getShare.rawValue, let id = recorded.path.split(separator: "/").last {
+                held.insert(String(id))
+            }
+        }
+        return held.filter { !$0.isEmpty }
+    }
+
+    func test_no_test_holds_as_written_what_the_service_made_or_which_build_answered() throws {
+        // An id is made again each time the answers are recorded, and the release and the
+        // engine move with a build. A test that held one as written went on holding it
+        // after the recordings had moved: it failed, or it looked for an id nothing made.
+        let made = try madeByTheService()
+        XCTAssertTrue(made.contains(Answers.shareId))
+        XCTAssertTrue(made.contains(Answers.meta.releaseId))
+        XCTAssertTrue(made.contains(Answers.meta.engineVersion))
+        XCTAssertTrue(made.contains(Answers.ranked("rank-first").specHash))
+
+        let holding = try Repository.files(under: Repository.tests, ending: ".swift").filter { name in
+            let text = try Repository.text(Repository.tests.appendingPathComponent(name))
+            return made.contains { text.contains($0) }
+        }
+
+        // Which file holds one is said, and never what it holds.
+        XCTAssertEqual(holding, [], "Read it from the recording: `Answers.shareId`, `Answers.meta`.")
+    }
+
     func test_every_area_of_the_release_has_a_recorded_profile() {
         XCTAssertEqual(Answers.areas.filter { !Recorded.scenarios.contains("area/\($0.slug)") }.map(\.slug), [])
     }

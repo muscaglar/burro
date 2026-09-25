@@ -251,11 +251,15 @@ enum SearchCopy {
         /// What one press did, in full: how many it added, how many areas a firm budget
         /// among them left out, and what is left for the person, which the API names.
         /// `leftOut` is `nil` where no firm budget was among them, and until the ranking
-        /// that follows is in.
+        /// that follows is in. `since` is what the person has chosen of since, offer by
+        /// offer: it is said straight after what the press added, so that it is the first
+        /// thing read when the line changes.
         static func added(
-            _ count: Int, needs: [String], leftOut: Int? = nil, heldAgainst: String? = nil
+            _ count: Int, needs: [String], leftOut: Int? = nil, heldAgainst: String? = nil,
+            since: (added: Int, skipped: Int) = (0, 0)
         ) -> String {
             var said = ["\(count) added."]
+            if let then = Self.since(since.added, since.skipped) { said.append(then) }
             if let leftOut { said.append(Self.leftOut(leftOut, heldAgainst: heldAgainst)) }
             if !needs.isEmpty {
                 let verb = needs.count == 1 ? "needs" : "need"
@@ -276,6 +280,13 @@ enum SearchCopy {
             return
                 "Your budget is a firm limit and left out \(areas): the table of all areas lists \(which).\(of)"
         }
+        /// How many offers were added and how many skipped since one press, each by its
+        /// own button. `nil` where none was.
+        static func since(_ added: Int, _ skipped: Int) -> String? {
+            if added > 0 && skipped > 0 { return "Then \(added) more added, and \(skipped) skipped." }
+            if added > 0 { return "Then \(added) more added." }
+            return skipped > 0 ? "Then \(skipped) skipped." : nil
+        }
         static let takeBack = "Take it all back"
         /// A choice that is said of every suggestion, named by the thing it is a choice of.
         static func named(_ choice: String, _ thing: String) -> String { "\(choice): \(thing)" }
@@ -286,6 +297,11 @@ enum SearchCopy {
         static let showWords = "Show the words"
         static func showWordsOf(_ thing: String) -> String { "Show the words in the box: \(thing)" }
         static func showAll(_ count: Int) -> String { "Show all \(count)" }
+        /// The one line that what is left folds to, once one press has added what it may.
+        /// It says how many are left, under the line that names each, and opens them all.
+        static func showLeft(_ count: Int) -> String {
+            count == 1 ? "Show the one left to choose" : "Show the \(count) left to choose"
+        }
         /// Selects, in the box, a part of what was typed that the reader made nothing of.
         static let showUnread = "Show in the box"
         static let showNextUnread = "Show the next in the box"

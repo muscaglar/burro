@@ -16,11 +16,20 @@ public struct KeptSource: Codable, Hashable, Sendable {
     public let name: String
     /// Who published it, as the release names them.
     public let publisher: String
+    /// The statement of credit its publisher asks to see beside every figure made from its
+    /// data, and what its terms ask to be said with it, as the API served them. They are
+    /// kept so that a saved area says them with no connection. `nil` for a source that
+    /// brings none, and in a file that was written before they were kept: a key is
+    /// written only where there is something to keep.
+    public let attribution: String?
+    public let saidWithAttribution: String?
 
     enum CodingKeys: String, CodingKey {
         case sourceId = "source_id"
         case name
         case publisher
+        case attribution
+        case saidWithAttribution = "said_with_attribution"
     }
 }
 
@@ -65,7 +74,9 @@ public struct KeptFact: Codable, Hashable, Sendable {
         template = fact.template
         slots = fact.slots
         sources = fact.sources.map {
-            KeptSource(sourceId: $0.sourceId, name: $0.name, publisher: $0.publisher)
+            KeptSource(
+                sourceId: $0.sourceId, name: $0.name, publisher: $0.publisher,
+                attribution: $0.attribution, saidWithAttribution: $0.saidWithAttribution)
         }
         asOf = fact.asOf
         synthetic = fact.synthetic
@@ -95,7 +106,9 @@ public struct KeptFact: Codable, Hashable, Sendable {
             factId: "\(areaId)/\(kind.rawValue)/\(key)", areaId: areaId, kind: kind, key: key, label: label,
             template: template, slots: slots, numbers: [], names: [],
             sources: sources.map {
-                FactSource(sourceId: $0.sourceId, name: $0.name, publisher: $0.publisher)
+                FactSource(
+                    sourceId: $0.sourceId, name: $0.name, publisher: $0.publisher,
+                    attribution: $0.attribution, saidWithAttribution: $0.saidWithAttribution)
             },
             asOf: asOf, synthetic: synthetic)
     }

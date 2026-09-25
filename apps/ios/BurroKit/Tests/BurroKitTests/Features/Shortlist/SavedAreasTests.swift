@@ -46,7 +46,7 @@ final class SavedAreasTests: XCTestCase {
             let page = AreaFixtures.page(slug)
             XCTAssertEqual(entry.kept?.page.said, page.said)
             XCTAssertEqual(entry.kept?.page.measured.map(\.dimension), page.measured.map(\.dimension))
-            XCTAssertEqual(entry.kept?.releaseId, "syn-2026-09-23-01")
+            XCTAssertEqual(entry.kept?.releaseId, Answers.meta.releaseId)
             XCTAssertEqual(entry.kept?.synthetic, true)
             XCTAssertEqual(
                 entry.kept?.savedOn.timeIntervalSince1970 ?? 0, entry.saved.savedOn.timeIntervalSince1970,
@@ -110,7 +110,7 @@ final class SavedAreasTests: XCTestCase {
             Set(area.keys),
             ["area_id", "slug", "name", "borough", "saved_on", "release_id", "synthetic", "preview", "rankable",
              "neighbours", "rows", "vibes"])
-        XCTAssertEqual(area["release_id"], .string("syn-2026-09-23-01"))
+        XCTAssertEqual(area["release_id"], .string(Answers.meta.releaseId))
         XCTAssertEqual(area["preview"], .bool(false))
         XCTAssertEqual(Set(object(array(area["neighbours"]).first).keys), ["area_id", "slug", "name", "borough"])
         XCTAssertFalse(rows.isEmpty)
@@ -140,6 +140,83 @@ final class SavedAreasTests: XCTestCase {
             Mirror(reflecting: try XCTUnwrap(saved.kept["syn-n0003"])).children.compactMap(\.label),
             ["areaId", "slug", "name", "borough", "savedOn", "releaseId", "synthetic", "preview", "rankable",
              "neighbours", "rows", "vibes"])
+    }
+
+    @MainActor
+    func test_the_credit_of_a_source_is_kept_with_its_fact_and_said_with_no_connection() throws {
+        // A publisher may ask that its statement stands wherever a figure made from its data
+        // is shown. A saved area is shown with no connection, so the statement is kept with
+        // the source of each fact, as the API served it.
+        let data: AreaData = try Credited.data(
+            "area/farrowmere", of: [Credited.plain, Credited.stations, Credited.outlines])
+        let page = AreaPage(
+            data, release: AreaFixtures.release, features: Answers.meta.features, tags: Answers.meta.tags,
+            recipes: Answers.meta.recipes, guides: Answers.meta.roughGuides)
+        let names = MemoryPhoneStorage()
+        let facts = FileSavedAreasStorage(MemoryPhoneStorage())
+        let first = opened(names: names, facts: facts)
+        first.saved.add(page.area, page: page)
+
+        // The app is opened again, and nothing is reached.
+        let again = opened(names: names, facts: facts, api: StandIn().unreachable(.getMeta))
+        let kept = try XCTUnwrap(again.saved.kept[page.area.areaId]?.page)
+
+        let credits = "Station data. \(Credited.drawn) Data from August 2026. "
+            + "Outlines. Contains data of an authority. \(Credited.said). Data from August 2026."
+        XCTAssertEqual(kept.rentRows.first?.sourceWords, "Source: NaPTAN. Data from August 2026. \(credits)")
+        XCTAssertEqual(kept.rentRows.map(\.sourceWords), page.rentRows.map(\.sourceWords))
+        XCTAssertEqual(kept.stationRows.map(\.sourceWords), page.stationRows.map(\.sourceWords))
+        XCTAssertEqual(kept.vibes.map(\.shown), page.vibes.map(\.shown))
+        XCTAssertEqual(kept.said, page.said)
+        XCTAssertTrue(kept.said.contains(Credited.drawn))
+        XCTAssertTrue(kept.said.contains("Contains data of an authority. \(Credited.said)."))
+        // The file holds each statement as it was served, with its source and with no other.
+        let written = object(try JSON.read(XCTUnwrap(facts.written)))
+        let sources = array(object(array(written["areas"]).first)["rows"])
+            .flatMap { array(object($0["fact"])["sources"]) }
+            .map(object)
+        XCTAssertGreaterThan(sources.count, 100)
+        for source in sources {
+            switch source["source_id"]?.string {
+            case "naptan":
+                XCTAssertEqual(Set(source.keys), ["source_id", "name", "publisher"])
+            case "station-data":
+                XCTAssertEqual(Set(source.keys), ["source_id", "name", "publisher", "attribution"])
+                XCTAssertEqual(source["attribution"], .string(Credited.statement))
+            case "outlines":
+                XCTAssertEqual(
+                    Set(source.keys),
+                    ["source_id", "name", "publisher", "attribution", "said_with_attribution"])
+                XCTAssertEqual(source["said_with_attribution"], .string(Credited.said))
+            default:
+                XCTFail("A source that no fact was of is kept.")
+            }
+        }
+    }
+
+    @MainActor
+    func test_a_source_that_brings_no_credit_is_kept_as_it_was_before_a_credit_was_kept() throws {
+        let page = AreaFixtures.page("farrowmere")
+        let kept = KeptArea(page, savedOn: day)
+
+        let written = try JSON.written(kept)
+        let sources = (array(written["rows"]).map { $0["fact"] } + array(written["vibes"]).map { $0["fact"] })
+            .flatMap { array(object($0)["sources"]) }
+            .map(object)
+
+        // The made-up release credits one source, which asks for no more than its name. So
+        // the file is what a build before this one wrote, and is read as that one's was.
+        XCTAssertGreaterThan(sources.count, 100)
+        for source in sources {
+            XCTAssertEqual(Set(source.keys), ["source_id", "name", "publisher"])
+        }
+        XCTAssertFalse(String(decoding: try written.data, as: UTF8.self).contains("attribution"))
+        let read = try JSONDecoder().decode(KeptArea.self, from: written.data)
+        XCTAssertEqual(read, kept)
+        XCTAssertEqual(read.page.said, page.said)
+        for row in read.page.rentRows + read.page.stationRows {
+            XCTAssertEqual(row.sources.map(\.credit), [nil], row.name)
+        }
     }
 
     @MainActor

@@ -152,7 +152,7 @@ final class ResultsCopyTests: XCTestCase {
         XCTAssertNil(Results.chosen(of: state)?.words)
         // The pattern still marks it, and the table still lists it.
         XCTAssertEqual(Results.fills(state.ranking)[first.scores[0].areaId]?.pattern, .filtered)
-        XCTAssertEqual(Results.tabled(state).rows.count, 24)
+        XCTAssertEqual(Results.tabled(state).rows.count, Answers.areas.count)
     }
 
     func test_one_is_said_as_one_and_many_as_many() {

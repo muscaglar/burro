@@ -521,7 +521,7 @@ final class FlowTests: XCTestCase {
         XCTAssertEqual(
             try call.body(as: ShareBody.self), ShareBody(spec: first.rank.spec, exactDestinations: false))
         XCTAssertFalse(String(decoding: call.sent ?? Data(), as: UTF8.self).contains(canary))
-        XCTAssertEqual(try made.get().data.shareId, "3TQkoOxY0dYBEVyMymzDjg")
+        XCTAssertEqual(try made.get().data.shareId, Answers.made.shareId)
         XCTAssertEqual(try made.get().data.coarsened, true)
         // The search is as it was.
         XCTAssertEqual(search.state.spec, first.rank.spec)
@@ -532,17 +532,17 @@ final class FlowTests: XCTestCase {
         let api = StandIn.firstSearch().on(.getShare, "share-opened")
         let search = OpenSearch(api)
 
-        let failure = await search.flow.openShare("3TQkoOxY0dYBEVyMymzDjg")
+        let failure = await search.flow.openShare(Answers.shareId)
 
         let shared = Answers.shared("share-opened")
         XCTAssertNil(failure)
         XCTAssertEqual(search.state.spec, shared.spec)
-        XCTAssertEqual(search.state.shared?.id, "3TQkoOxY0dYBEVyMymzDjg")
+        XCTAssertEqual(search.state.shared?.id, Answers.shareId)
         XCTAssertEqual(search.state.shared?.coarsened, true)
         XCTAssertEqual(search.state.ranking, Ranking(shared))
         XCTAssertEqual(try api.lastCall(to: .explainTop).body(as: ExplanationsBody.self).spec, shared.spec)
         XCTAssertEqual(api.calls(to: .getArea).count, 5)
-        XCTAssertEqual(try api.lastCall(to: .getShare).path, "/v1/shares/3TQkoOxY0dYBEVyMymzDjg")
+        XCTAssertEqual(try api.lastCall(to: .getShare).path, try Recorded.read("share-opened").path)
     }
 
     @MainActor
@@ -552,7 +552,7 @@ final class FlowTests: XCTestCase {
         await search.flow.submitText("leafy")
         let before = search.state
 
-        let failure = await search.flow.openShare("a9yIlz7uQ1b3F4vDySSZRg")
+        let failure = await search.flow.openShare(Answers.shareId(askedForIn: "share-gone"))
 
         XCTAssertEqual(failure?.code, .releaseChanged)
         XCTAssertEqual(failure?.api?.message, "The data has changed and this shared search cannot be shown.")
@@ -569,7 +569,7 @@ final class FlowTests: XCTestCase {
         XCTAssertEqual(
             try search.api.lastCall(to: .compare).body(as: CompareBody.self),
             CompareBody(areaIds: ["syn-n0006", "syn-n0017", "syn-n0003"], spec: first.rank.spec))
-        XCTAssertEqual(try compared.get().data.areas.count, 3)
+        XCTAssertEqual(try compared.get().data, try Recorded.data(.compare, "compare-three", as: CompareData.self))
     }
 
     // MARK: - The map and the release
@@ -593,7 +593,7 @@ final class FlowTests: XCTestCase {
         await search.flow.submitText("leafy")
 
         XCTAssertTrue(search.state.geometryFailed)
-        XCTAssertEqual(search.state.ranking?.ranked.count, 20)
+        XCTAssertEqual(search.state.ranking?.ranked.count, first.rank.ranked.count)
     }
 
     @MainActor
@@ -610,7 +610,7 @@ final class FlowTests: XCTestCase {
 
     @MainActor
     func test_when_an_answer_names_another_release_the_form_is_read_again() async throws {
-        let api = StandIn.firstSearch().movedTo("syn-2026-10-01-01")
+        let api = StandIn.firstSearch().movedTo(Answers.newerRelease)
         let search = OpenSearch(api)
 
         await search.flow.submitText("leafy")
@@ -621,7 +621,7 @@ final class FlowTests: XCTestCase {
         // It is read once for each release, however many answers name it.
         XCTAssertEqual(api.calls(to: .getMeta).count, 1)
         XCTAssertEqual(api.calls(to: .listAreas).count, 1)
-        XCTAssertEqual(search.state.meta.releaseId, "syn-2026-10-01-01")
+        XCTAssertEqual(search.state.meta.releaseId, Answers.newerRelease)
         XCTAssertEqual(search.state.geometry, Answers.geometry)
     }
 

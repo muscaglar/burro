@@ -23,6 +23,11 @@ import SwiftUI
 /// works nothing out. What the API marks for no such press stays the person's
 /// to choose whatever is pressed. The block says what the press added and what
 /// is left for the person, and one press takes it all back.
+///
+/// Once that button is pressed the way to the answer comes first: the offers
+/// that are left are folded to one line, which says how many there are, under
+/// the line that names them. One press opens them all, and they fold again
+/// when one of them is chosen. The fold applies nothing and loses no offer.
 struct OffersBlock: View {
     let offers: OffersShown
     /// True where the box can select a stretch of what it holds. Where it
@@ -53,7 +58,9 @@ struct OffersBlock: View {
                 .foregroundStyle(Tokens.Colour.text)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityAddTraits(.isHeader)
-            HintLine(SearchCopy.Suggest.why)
+            if let why = offers.why {
+                HintLine(why)
+            }
             if let says = offers.says {
                 // That a model reads the rest, or else what one press added. What is
                 // offered is drawn below, and is there to choose of meanwhile.

@@ -100,13 +100,13 @@ final class AreaLoaderTests: XCTestCase {
         guard case .page(let page, let origin) = loader.shown else { return XCTFail("Nothing was shown.") }
         XCTAssertEqual(origin, .kept(savedOn: day, because: .because(.offline)))
         XCTAssertEqual(page.said, AreaFixtures.page("farrowmere").said)
-        XCTAssertEqual(page.releaseId, "syn-2026-09-23-01")
+        XCTAssertEqual(page.releaseId, Answers.meta.releaseId)
         XCTAssertTrue(app.synthetic.seen)
         XCTAssertNil(app.search)
         XCTAssertEqual(
             AreaCopy.asSaved(on: ShortlistCopy.date(day, in: .gmt), release: page.releaseId),
             "This is the data as it was when you saved this area, on 21 September 2026, "
-                + "from data release syn-2026-09-23-01.")
+                + "from data release \(Answers.meta.releaseId).")
     }
 
     @MainActor
@@ -152,7 +152,7 @@ final class AreaLoaderTests: XCTestCase {
         loader.keepWhatIsShown()
 
         XCTAssertFalse(loader.keptIsOlder)
-        XCTAssertEqual(saved.kept["syn-n0006"]?.releaseId, "syn-2026-09-23-01")
+        XCTAssertEqual(saved.kept["syn-n0006"]?.releaseId, Answers.meta.releaseId)
         XCTAssertEqual(saved.kept["syn-n0006"]?.savedOn, day)
     }
 

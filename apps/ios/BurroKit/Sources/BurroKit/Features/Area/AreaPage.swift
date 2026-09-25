@@ -272,22 +272,27 @@ extension AreaPage {
         rows += buyRows
         for group in measured { rows += self.rows(of: group) }
 
+        /// The name of each source of some lines, and the credit of each that brings one.
+        func cited(_ lines: [SourceLine]) -> [String] {
+            lines.map(\.name) + lines.compactMap(\.credit)
+        }
+
         var said: [String] = [name, borough]
         if let rentCaution { said.append(rentCaution) }
         said += neighbours.map(\.name)
-        if let named { said += SourceLines.of([named]).map(\.name) }
+        if let named { said += cited(SourceLines.of([named])) }
         for vibe in vibes {
             said.append(vibe.shown.name)
             // The two ends are drawn beside the line of five, which an area that cannot be placed has none of.
             if vibe.shown.placed != nil { said += [vibe.shown.low, vibe.shown.high] }
             // What a band rests on is the API's own clause, where the fact holds one.
             if let partly = vibe.fact?.slots["partly"], vibe.shown.restsOn == partly { said.append(partly) }
-            said += vibe.shown.sources.map(\.name)
+            said += cited(vibe.shown.sources)
         }
         for row in rows {
             said.append(row.name)
             said += row.columns.map(\.value)
-            said += row.sources.map(\.name)
+            said += cited(row.sources)
         }
         said += sources.map(\.name)
         return said

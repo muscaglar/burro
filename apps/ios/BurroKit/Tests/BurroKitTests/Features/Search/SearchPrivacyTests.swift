@@ -238,9 +238,12 @@ final class SearchPrivacyTests: XCTestCase {
     }
 
     func test_the_app_builds_edits_and_never_a_spec_or_a_state() throws {
-        let making = ["PreferenceSpec(", "SearchState(", ".dispatch(", "reduce(", "Budget(", "Commute("]
+        let records = ["PreferenceSpec", "SearchState", "Budget", "Commute"]
+        let calling = [".dispatch(", "reduce("]
         for file in try Written.files() {
-            for word in making {
+            // A record is found where it is made, and not where a name ends as its name does.
+            XCTAssertEqual(Repository.made(records, in: file.text), [], "\(file.name) makes one")
+            for word in calling {
                 XCTAssertFalse(file.text.contains(word), "\(file.name) makes \(word)")
             }
         }

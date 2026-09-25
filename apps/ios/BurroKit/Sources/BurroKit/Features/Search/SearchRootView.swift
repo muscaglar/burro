@@ -22,6 +22,8 @@ public struct SearchRootView: View {
     @State private var examplesOpen = true
     /// True once "Show all" was pressed, of what Burro noticed.
     @State private var allOffers = false
+    /// What the person has chosen of, offer by offer, since one press added what it may.
+    @State private var since = ChosenSince()
     /// The stretch of what is in the box that is selected, and what is said of it.
     /// Where words stand is known for the text that was sent, and for no other, so
     /// both go when the box changes.
@@ -31,7 +33,8 @@ public struct SearchRootView: View {
 
     public var body: some View {
         let state = search.state
-        let shown = SearchScreen.shown(state, consent: app.consent.choice, allOffers: allOffers)
+        let shown = SearchScreen.shown(
+            state, consent: app.consent.choice, allOffers: allOffers, since: since)
         let context = ControlContext(state: state, send: { send($0) })
         ScrollView {
             VStack(alignment: .leading, spacing: Tokens.Space.s5) {
@@ -119,6 +122,7 @@ public struct SearchRootView: View {
                     onSubmit: { text in
                         examplesOpen = false
                         allOffers = false
+                        since = ChosenSince()
                         showing = Showing()
                         Task { await hands.submit(text) }
                     },
@@ -249,14 +253,22 @@ public struct SearchRootView: View {
                 search: searchPlaces,
                 choose: { at, id, place in
                     showing = Showing()
+                    // Once one press has added what it may, what is left folds again when
+                    // one of them is chosen: the way to the answer comes first.
+                    (allOffers, since) = SearchScreen.held(
+                        allOffers, since, afterChoosing: id, at: at, in: search.state)
                     Task { await hands.choose(at, id, place: place.map { (id: $0.id, name: $0.name) }) }
                 },
                 chooseAll: { ats in
                     showing = Showing()
+                    // What is left is folded, whatever was opened before the press.
+                    allOffers = false
+                    since = ChosenSince()
                     Task { await hands.chooseAll(ats) }
                 },
                 takeItBack: {
                     showing = Showing()
+                    since = ChosenSince()
                     Task { await hands.takeBack() }
                 },
                 showAll: { allOffers = true },

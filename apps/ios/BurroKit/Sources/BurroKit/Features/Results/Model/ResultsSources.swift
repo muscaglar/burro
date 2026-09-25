@@ -17,12 +17,20 @@ extension Results {
         /// The date as a person reads it.
         let date: String
         let synthetic: Bool
+        /// The statement of credit the source brings, where its publisher asks that it
+        /// stands wherever a figure made from its data is shown, and what its terms ask to
+        /// be said with it. `nil` for a source that brings none, and where a line before
+        /// this one, under the same figure, has said it.
+        var credit: String?
 
         var id: String { "\(sourceId) \(asOf)" }
 
-        /// The line in full, as it is read out.
+        /// The line in full, as it is read out: the source, its credit where it brings
+        /// one, the date, and that it is made up when it is. It is the order the website
+        /// says them in.
         var words: String {
-            let line = "\(ResultsCopy.Source.source): \(name). \(ResultsCopy.Source.dataFrom) \(date)."
+            let named = credit.map { "\(name). \($0)" } ?? "\(name)."
+            let line = "\(ResultsCopy.Source.source): \(named) \(ResultsCopy.Source.dataFrom) \(date)."
             return synthetic ? "\(line) \(ResultsCopy.Source.madeUp)" : line
         }
     }
@@ -30,11 +38,13 @@ extension Results {
     /// One line for each source and date, however many facts share them.
     static func sourceLines(of facts: [Fact]) -> [SourceLine] {
         var lines: [SourceLine] = []
+        var credited = CreditsSaid()
         for fact in facts {
             for source in fact.sources {
                 let line = SourceLine(
                     sourceId: source.sourceId, name: source.name, asOf: fact.asOf,
-                    date: readableDate(fact.asOf), synthetic: fact.synthetic)
+                    date: readableDate(fact.asOf), synthetic: fact.synthetic,
+                    credit: credited.credit(of: source, on: "\(source.sourceId) \(fact.asOf)"))
                 if let at = lines.firstIndex(where: { $0.id == line.id }) {
                     lines[at] = line
                 } else {

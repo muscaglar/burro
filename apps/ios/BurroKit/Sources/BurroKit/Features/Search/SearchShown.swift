@@ -143,9 +143,37 @@ struct OfferShown: Hashable, Sendable, Identifiable {
     }
 }
 
+/// What a person has chosen of, offer by offer, since one press added what it may: how
+/// many they added, how many they skipped, and what the API calls each, which is then no
+/// longer left for them. The screen counts it, where the presses are made, and it goes
+/// when all is taken back. It holds the API's names, and nothing a person typed.
+struct ChosenSince: Hashable, Sendable {
+    private(set) var added = 0
+    private(set) var skipped = 0
+    private(set) var settled: [String] = []
+
+    /// Counts a choice of one offer: a way of it that was added, or that it was skipped.
+    mutating func chose(_ suggestion: Suggestion, way: String) {
+        if way == Suggestion.skip { skipped += 1 } else { added += 1 }
+        if !suggestion.needs.isEmpty { settled.append(suggestion.needs) }
+    }
+
+    /// What is left for the person, without what they have chosen of since: each name goes once.
+    func stillNeeded(of needs: [String]) -> [String] {
+        var left = needs
+        for gone in settled {
+            if let at = left.firstIndex(of: gone) { left.remove(at: at) }
+        }
+        return left
+    }
+}
+
 /// Everything that is offered, as the screen draws it.
 struct OffersShown: Hashable, Sendable {
     let offers: [OfferShown]
+    /// Under the heading: that nothing is added until it is pressed. It is said of what
+    /// can be pressed, so it is `nil` where every offer is folded away.
+    let why: String?
     /// Said while a model reads what the rules left unread. `nil` when none does. What
     /// the rules noticed is drawn meanwhile, and may be chosen of.
     let reading: String?
@@ -161,6 +189,8 @@ struct OffersShown: Hashable, Sendable {
     let addAll: String?
     let addAllAts: [Int]
     /// The button that shows the suggestions that wait out of sight. `nil` when none does.
+    /// Once one press has added what it may and nothing of what is left is drawn, it is
+    /// the one line they fold to, which says how many are left.
     let showAll: String?
 
     /// The one line that says what goes on: that a model reads, or else what one press added.
@@ -294,10 +324,32 @@ enum SearchScreen {
             suggestions.indices.filter { $0 < offersAtFirst || suggestions[$0].addedWithOthers != nil })
     }
 
+    /// Where in the list the suggestions stand that are drawn once one press has added
+    /// what it may: what one press may add still, and nothing that is a question. A person
+    /// pressed for an answer, so what is left waits behind one line, and the way to the
+    /// list and the map is in sight.
+    static func leftInSight(_ suggestions: [Suggestion]) -> [Int] {
+        suggestions.guessFirst(suggestions.indices.filter { suggestions[$0].addedWithOthers != nil })
+    }
+
     /// Where every suggestion stands, as they are drawn once "Show all" is pressed: in
     /// the same order, so that nothing that was in sight moves when the rest is shown.
     static func everyOffer(_ suggestions: [Suggestion]) -> [Int] {
         suggestions.guessFirst(Array(suggestions.indices))
+    }
+
+    /// What the screen holds of the offers once a way of one is chosen: whether every
+    /// offer is drawn, and what was chosen since one press. Once one press has added what
+    /// it may, the choice is counted and what is left folds again, so that the way to the
+    /// answer comes first. Before any press a choice changes neither: what Burro asks
+    /// stays in sight.
+    static func held(
+        _ all: Bool, _ since: ChosenSince, afterChoosing way: String, at: Int, in state: SearchState
+    ) -> (all: Bool, since: ChosenSince) {
+        guard state.added != nil, state.suggestions.indices.contains(at) else { return (all, since) }
+        var since = since
+        since.chose(state.suggestions[at], way: way)
+        return (false, since)
     }
 
     /// What is offered, as the screen draws it. `nil` where nothing is, no model reads
@@ -305,10 +357,11 @@ enum SearchScreen {
     /// noticed nothing, and what one press added can be taken back though nothing is left.
     static func offers(
         _ suggestions: [Suggestion], all: Bool, reading: Bool = false, added: Added? = nil,
-        leftOut: Int? = nil, heldAgainst: String? = nil
+        leftOut: Int? = nil, heldAgainst: String? = nil, since: ChosenSince = ChosenSince()
     ) -> OffersShown? {
         guard !suggestions.isEmpty || reading || added != nil else { return nil }
-        let shown = all ? everyOffer(suggestions) : inSight(suggestions)
+        let atFirst = added == nil ? inSight(suggestions) : leftInSight(suggestions)
+        let shown = all ? everyOffer(suggestions) : atFirst
         var offers: [OfferShown] = []
         for at in shown {
             let suggestion = suggestions[at]
@@ -334,14 +387,18 @@ enum SearchScreen {
         let oneWay = shown.filter { suggestions[$0].addedWithOthers != nil }
         let every = oneWay.count == shown.count
         let more = suggestions.count - shown.count
+        // One press was made, and none of what is left is drawn: it waits behind one line.
+        let folded = added != nil && shown.isEmpty && more > 0
         return OffersShown(
             offers: offers,
+            why: folded ? nil : SearchCopy.Suggest.why,
             reading: reading ? SearchCopy.Suggest.reading : nil,
             added: reading
                 ? nil
                 : added.map {
                     SearchCopy.Suggest.added(
-                        $0.count, needs: $0.needs, leftOut: leftOut, heldAgainst: heldAgainst)
+                        $0.count, needs: since.stillNeeded(of: $0.needs), leftOut: leftOut,
+                        heldAgainst: heldAgainst, since: (since.added, since.skipped))
                 },
             takeBack: added == nil ? nil : SearchCopy.Suggest.takeBack,
             addAll: oneWay.count > 1
@@ -349,7 +406,9 @@ enum SearchScreen {
                     ? SearchCopy.Suggest.addAll(oneWay.count) : SearchCopy.Suggest.addThese(oneWay.count))
                 : nil,
             addAllAts: oneWay.count > 1 ? oneWay : [],
-            showAll: more > 0 ? SearchCopy.Suggest.showAll(suggestions.count) : nil)
+            showAll: more > 0
+                ? (folded ? SearchCopy.Suggest.showLeft(more) : SearchCopy.Suggest.showAll(suggestions.count))
+                : nil)
     }
 
     /// True where the words of a choice name the thing it is a choice of, as "More pubs
@@ -374,8 +433,10 @@ enum SearchScreen {
     /// What the screen shows of a search.
     ///
     /// - Parameter allOffers: True once "Show all" was pressed, of what was noticed.
+    /// - Parameter since: What the person has chosen of since one press added what it may.
     static func shown(
-        _ state: SearchState, consent: ConsentChoice?, allOffers: Bool = false
+        _ state: SearchState, consent: ConsentChoice?, allOffers: Bool = false,
+        since: ChosenSince = ChosenSince()
     ) -> SearchShown {
         let reading = state.isReading
         let place = state.failurePlace
@@ -440,7 +501,7 @@ enum SearchScreen {
             readInPart: state.readInPart,
             offers: offers(
                 state.suggestions, all: allOffers, reading: state.modelIsReading, added: state.added,
-                leftOut: state.leftOutByTheBudget, heldAgainst: state.rentsHeldAgainst),
+                leftOut: state.leftOutByTheBudget, heldAgainst: state.rentsHeldAgainst, since: since),
             unread: state.unread,
             questions: questions.enumerated().map { at, question in
                 asked(question, at: at + 1, of: questions.count)

@@ -96,9 +96,35 @@ final class ResultsRulesTests: XCTestCase {
     }
 
     func test_the_app_builds_edits_and_never_a_spec() throws {
-        let building = ["PreferenceSpec(", "Budget(", "Commute(", "FeatureWeight(", "TagWeight(", "AreaRule("]
+        let parts = ["PreferenceSpec", "Budget", "Commute", "FeatureWeight", "TagWeight", "AreaRule"]
 
-        XCTAssertEqual(using(building, in: try files()), [])
+        let made = try files().flatMap { file in
+            Repository.made(parts, in: code(file.text)).map { "\($0) in \(file.name)" }
+        }
+
+        XCTAssertEqual(made, [])
+        // Nor can anything the feature makes be written out to be sent: what it makes is drawn.
+        XCTAssertEqual(using(["Encodable", "Codable", "JSONEncoder", "JSONSerialization"], in: try files()), [])
+    }
+
+    func test_a_part_of_a_spec_that_is_made_is_found_and_a_name_that_ends_as_one_does_is_not() {
+        let parts = ["Budget", "Commute"]
+        let making = [
+            "let held = Budget(amount: 1_900)", "spec.budget = BurroKit.Budget (amount: 1_900)",
+            "[Budget.init(amount: 1_900)]", "\treturn Commute(\n    placeId: place)", "(Budget(amount: 1))",
+        ]
+        // Each reads a fact or names a record, and makes none.
+        let reading = [
+            "pairs + againstTheBudget(fact)", "func overBudget(_ fact: Fact)", "let held: Budget? = nil",
+            "var journeys: [Commute] = []", "theCommute(to: place)", "Budget_(1)", "budget(of: spec)",
+        ]
+
+        for text in making {
+            XCTAssertEqual(Repository.made(parts, in: text).count, 1, text)
+        }
+        for text in reading {
+            XCTAssertEqual(Repository.made(parts, in: text), [], text)
+        }
     }
 
     func test_nothing_is_said_of_who_lives_somewhere_or_of_how_safe_a_place_is() throws {

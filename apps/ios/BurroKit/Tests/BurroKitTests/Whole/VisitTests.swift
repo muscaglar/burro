@@ -404,7 +404,7 @@ final class VisitTests: XCTestCase {
         XCTAssertTrue(shown.parts.contains(.results))
         hands.showResults()
         XCTAssertEqual(app.searchPath, [.results])
-        XCTAssertEqual(Results.listed(search.state).cards.count, 20)
+        XCTAssertEqual(Results.listed(search.state).cards.count, Answers.ranked("rank-first").ranked.count)
 
         // Whatever is pressed, a sentence is never sent.
         await hands.submit("leafy and quiet")
@@ -443,7 +443,7 @@ final class VisitTests: XCTestCase {
         await hands.send(Edits.tagOn(.villageFeel))
         shown = SearchScreen.shown(search.state, consent: app.consent.choice)
         XCTAssertEqual(shown.offlineWaiting, true)
-        XCTAssertEqual(Results.listed(search.state).cards.count, 20)
+        XCTAssertEqual(Results.listed(search.state).cards.count, Answers.ranked("rank-first").ranked.count)
         XCTAssertEqual(Results.listed(search.state).lines.map(\.kind), [.offline])
         let asked = api.calls(to: .rank).count
         api.on(.rank, "rank-refined").on(.explainTop, "explanations-refined")

@@ -6,7 +6,7 @@ import XCTest
 /// that a link holds an id or a slug and nothing else.
 final class LinkTests: XCTestCase {
     private let site = SiteAddress("https://burro.example.test")
-    private let shareId = "3TQkoOxY0dYBEVyMymzDjg"
+    private let shareId = Answers.shareId
     // A string found nowhere else, planted where a link could carry it.
     private let canary = "zqxcanary7431"
 
@@ -324,7 +324,7 @@ final class LinkTests: XCTestCase {
     func test_a_share_made_on_older_data_says_so_and_names_both_releases() async throws {
         let api = StandIn.firstSearch().on(.getShare, "share-opened-stale")
         let app = AreaFixtures.app(api)
-        let shared = try XCTUnwrap(SharedSearch(shareId: "a9yIlz7uQ1b3F4vDySSZRg", app: app))
+        let shared = try XCTUnwrap(SharedSearch(shareId: Answers.shareId(askedForIn: "share-opened-stale"), app: app))
 
         await shared.open()
 
@@ -332,14 +332,14 @@ final class LinkTests: XCTestCase {
         XCTAssertTrue(opened.stale)
         XCTAssertFalse(opened.coarsened)
         XCTAssertTrue(opened.hasPlaces)
-        XCTAssertEqual(opened.madeOn, "syn-2026-09-23-01")
+        XCTAssertEqual(opened.madeOn, Answers.shared("share-opened-stale").originalReleaseId)
         XCTAssertEqual(
             Array(opened.lines.suffix(2)),
             [
                 "The places in this search are the ones the sender named: "
                     + "they chose to share them, or each is a station or a district already.",
                 "The data has changed since this link was made, so the ranking may differ from what the sender saw. "
-                    + "It was made on data release syn-2026-09-23-01. It is shown on \(opened.shownOn).",
+                    + "It was made on data release \(opened.madeOn). It is shown on \(opened.shownOn).",
             ])
     }
 

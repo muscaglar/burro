@@ -25,7 +25,7 @@ final class ResultsStatesTests: XCTestCase {
         XCTAssertNil(listed.nothing)
         XCTAssertNil(listed.announcement)
         // The map of every area in one plain colour, with no pin and no figure.
-        XCTAssertEqual(app.mapped.regions.count, 24)
+        XCTAssertEqual(app.mapped.regions.count, Answers.areas.count)
         XCTAssertEqual(Set(app.mapped.regions.map(\.fill)), [.land])
         XCTAssertEqual(app.mapped.marks, [])
         XCTAssertEqual(app.mapped.legend.map(\.words), ["No fit yet"])
@@ -70,12 +70,12 @@ final class ResultsStatesTests: XCTestCase {
         XCTAssertEqual(listed.changes, ["What you asked for counts most."])
         XCTAssertEqual(
             listed.announcement, "21 areas ranked. First: Farrowmere. What you asked for counts most.")
-        XCTAssertEqual(listed.cards.map(\.heading.rank), Array(1...20))
+        XCTAssertEqual(listed.cards.map(\.heading.rank), Array(1...first.ranked.count))
         XCTAssertEqual(listed.cards.map(\.id), first.ranked.map(\.areaId))
-        XCTAssertEqual(listed.cards.map(\.full), Array(repeating: true, count: 5) + Array(repeating: false, count: 15))
+        XCTAssertEqual(listed.cards.map(\.full), Array(repeating: true, count: 5) + Array(repeating: false, count: first.ranked.count - 5))
         XCTAssertTrue(listed.saysFirstFive)
         XCTAssertEqual(listed.lines, [])
-        XCTAssertEqual(listed.release, "syn-2026-09-23-01")
+        XCTAssertEqual(listed.release, Answers.meta.releaseId)
         XCTAssertEqual(listed.engine, app.state.meta.engineVersion)
     }
 
@@ -116,13 +116,13 @@ final class ResultsStatesTests: XCTestCase {
     func test_results_the_release_named_under_a_result_is_the_one_that_made_the_ranking() async throws {
         // The service moved to a newer release after the app was opened, and its form cannot be read again.
         let app = try await ResultsApp()
-        app.api.movedTo("syn-2026-10-01-01").on(.getMeta, "error-internal")
+        app.api.movedTo(Answers.newerRelease).on(.getMeta, "error-internal")
 
         await app.flow.submitText("leafy and quiet")
         await app.flow.caughtUp()
 
         XCTAssertEqual(app.state.meta.releaseId, Answers.meta.releaseId)
-        XCTAssertEqual(app.listed.release, "syn-2026-10-01-01")
+        XCTAssertEqual(app.listed.release, Answers.newerRelease)
         XCTAssertEqual(app.listed.engine, Answers.meta.engineVersion)
     }
 
@@ -134,7 +134,7 @@ final class ResultsStatesTests: XCTestCase {
         XCTAssertEqual(card.reasons, .failed)
         XCTAssertEqual(card.orientation, .hidden)
         XCTAssertEqual(card.tradeOff, .hidden)
-        XCTAssertEqual(app.listed.cards.count, 20)
+        XCTAssertEqual(app.listed.cards.count, first.ranked.count)
         // The card says what it lacks. One line says why, in the API's words, with the id to quote.
         let fault = try Recorded.error("error-internal")
         XCTAssertEqual(app.listed.lines.map(\.kind), [.failure])
@@ -201,7 +201,7 @@ final class ResultsStatesTests: XCTestCase {
         XCTAssertEqual(app.listed.changes, ["20 areas changed place."])
         XCTAssertEqual(app.listed.announcement, "10 areas ranked. First: Farrowmere. 20 areas changed place.")
         // The areas a firm limit left out are on the map with lines, and in the table with the reason.
-        XCTAssertEqual(app.mapped.regions.filter { $0.fill.pattern == .filtered }.count, 11)
+        XCTAssertEqual(app.mapped.regions.filter { $0.fill.pattern == .filtered }.count, refined.filtered.count)
         XCTAssertTrue(app.tabled.rows.contains { $0.status == "A journey is longer than a firm limit" })
     }
 
@@ -249,7 +249,7 @@ final class ResultsStatesTests: XCTestCase {
         await app.flow.submitText("near pellam")
 
         XCTAssertTrue(app.state.conditions.contains(.clarifying))
-        XCTAssertEqual(app.listed.cards.count, 20)
+        XCTAssertEqual(app.listed.cards.count, first.ranked.count)
         let line = try XCTUnwrap(app.listed.lines.first)
         XCTAssertEqual(app.listed.lines.count, 1)
         XCTAssertEqual(line.words, ["Burro has a question about a place."])
@@ -288,8 +288,8 @@ final class ResultsStatesTests: XCTestCase {
         XCTAssertEqual(nothing.ways.count, 1 + spec.commutes.filter { $0.strictness == .hard }.count)
         // The map is hatched, and gives no area a pin.
         XCTAssertEqual(app.mapped.marks, [])
-        XCTAssertEqual(app.mapped.regions.filter { $0.fill.pattern == .filtered }.count, 22)
-        XCTAssertEqual(app.mapped.regions.filter { $0.fill.pattern == .unranked }.count, 2)
+        XCTAssertEqual(app.mapped.regions.filter { $0.fill.pattern == .filtered }.count, Answers.ranked("rank-nothing-matches").filtered.count)
+        XCTAssertEqual(app.mapped.regions.filter { $0.fill.pattern == .unranked }.count, Answers.ranked("rank-nothing-matches").unranked.count)
         XCTAssertFalse(app.mapped.strokes.isEmpty)
         XCTAssertFalse(app.mapped.dots.isEmpty)
     }
@@ -307,7 +307,7 @@ final class ResultsStatesTests: XCTestCase {
         XCTAssertEqual(sent.operations, Edits.budgetStrictness(.soft))
         XCTAssertEqual(sent.spec, Answers.ranked("rank-nothing-matches").spec)
         XCTAssertNil(app.listed.nothing)
-        XCTAssertEqual(app.listed.cards.count, 20)
+        XCTAssertEqual(app.listed.cards.count, first.ranked.count)
     }
 
     // MARK: - Nothing read
@@ -376,7 +376,7 @@ final class ResultsStatesTests: XCTestCase {
         XCTAssertEqual(app.state.conditions, [.nothingChanged])
         XCTAssertEqual(
             app.listed.lines, [Results.Line(.info, ["That changed nothing. Your search already says it."])])
-        XCTAssertEqual(app.listed.cards.count, 20)
+        XCTAssertEqual(app.listed.cards.count, first.ranked.count)
     }
 
     // MARK: - What was noticed, what was not read, and what the data does not hold
@@ -417,7 +417,7 @@ final class ResultsStatesTests: XCTestCase {
         await app.flow.submitText("leafy and quiet")
 
         XCTAssertEqual(app.state.conditions, [.readInPart])
-        XCTAssertEqual(app.listed.cards.count, 20)
+        XCTAssertEqual(app.listed.cards.count, first.ranked.count)
         XCTAssertEqual(
             app.listed.lines,
             [
@@ -456,7 +456,7 @@ final class ResultsStatesTests: XCTestCase {
                             + "Land that is residential garden, 40 of 100; Land that is woodland, 30 of 100.",
                     ])
             ])
-        XCTAssertEqual(app.listed.cards.count, 20)
+        XCTAssertEqual(app.listed.cards.count, Answers.ranked("preview/rank-plain").ranked.count)
         XCTAssertTrue(app.app.preview.seen)
     }
 
@@ -469,7 +469,7 @@ final class ResultsStatesTests: XCTestCase {
         await app.flow.submitText("leafy")
 
         XCTAssertTrue(app.state.conditions.contains(.degraded))
-        XCTAssertEqual(app.listed.cards.count, 20)
+        XCTAssertEqual(app.listed.cards.count, first.ranked.count)
         XCTAssertEqual(
             app.listed.lines,
             [
@@ -486,7 +486,7 @@ final class ResultsStatesTests: XCTestCase {
         await app.flow.submitText("leafy")
 
         XCTAssertTrue(app.state.modelRefused)
-        XCTAssertEqual(app.listed.cards.count, 20)
+        XCTAssertEqual(app.listed.cards.count, first.ranked.count)
         XCTAssertEqual(
             app.listed.lines,
             [
@@ -509,7 +509,7 @@ final class ResultsStatesTests: XCTestCase {
             app.listed.lines.first?.words,
             ["Your words could not be read just now. The settings do the same job."])
         // The last results stay readable.
-        XCTAssertEqual(app.listed.cards.count, 20)
+        XCTAssertEqual(app.listed.cards.count, first.ranked.count)
     }
 
     // MARK: - Neutral notice
@@ -523,7 +523,7 @@ final class ResultsStatesTests: XCTestCase {
         let said = Answers.read("interpret-notice").noticeText
         XCTAssertEqual(app.listed.lines, [Results.Line(.notice, [said])])
         XCTAssertFalse(said.isEmpty)
-        XCTAssertEqual(app.listed.cards.count, 20)
+        XCTAssertEqual(app.listed.cards.count, first.ranked.count)
     }
 
     // MARK: - Error from the API
@@ -558,7 +558,7 @@ final class ResultsStatesTests: XCTestCase {
 
         XCTAssertEqual(try app.api.lastCall(to: .rank).body(as: RankBody.self).operations, Edits.tagOn(.villageFeel))
         XCTAssertEqual(app.listed.lines, [])
-        XCTAssertEqual(app.listed.cards.count, 10)
+        XCTAssertEqual(app.listed.cards.count, Answers.ranked("rank-refined").ranked.count)
     }
 
     @MainActor
@@ -669,7 +669,7 @@ final class ResultsStatesTests: XCTestCase {
         await app.flow.wentOnline()
 
         XCTAssertEqual(app.listed.lines, [])
-        XCTAssertEqual(app.listed.cards.count, 10)
+        XCTAssertEqual(app.listed.cards.count, Answers.ranked("rank-refined").ranked.count)
     }
 
     // MARK: - A shared search, and nothing to rank by
@@ -679,7 +679,7 @@ final class ResultsStatesTests: XCTestCase {
         let api = StandIn.firstSearch().on(.getShare, "share-opened")
         let app = try await ResultsApp(api)
 
-        let failure = await app.flow.openShare("3TQkoOxY0dYBEVyMymzDjg")
+        let failure = await app.flow.openShare(Answers.shareId)
 
         XCTAssertNil(failure)
         let line = try XCTUnwrap(app.listed.lines.first)
@@ -693,14 +693,14 @@ final class ResultsStatesTests: XCTestCase {
             ])
         XCTAssertFalse(app.listed.cards.isEmpty)
         // The id of the share is never drawn.
-        XCTAssertFalse(ResultsDrawn.all(in: app.listed).texts.contains { $0.contains("3TQkoOxY0dYBEVyMymzDjg") })
+        XCTAssertFalse(ResultsDrawn.all(in: app.listed).texts.contains { $0.contains(Answers.shareId) })
     }
 
     @MainActor
     func test_a_shared_search_on_newer_data_says_the_ranking_may_differ() async throws {
         let app = try await ResultsApp(StandIn.firstSearch().on(.getShare, "share-opened-stale"))
 
-        _ = await app.flow.openShare("3TQkoOxY0dYBEVyMymzDjg")
+        _ = await app.flow.openShare(Answers.shareId(askedForIn: "share-opened-stale"))
 
         XCTAssertEqual(app.listed.lines.first?.words.last, ResultsCopy.Notice.sharedStale)
     }

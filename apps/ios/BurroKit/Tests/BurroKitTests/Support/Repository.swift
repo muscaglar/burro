@@ -38,4 +38,17 @@ enum Repository {
     static func text(_ url: URL) throws -> String {
         try String(contentsOf: url, encoding: .utf8)
     }
+
+    /// The records of these names that a text makes: the name as a whole word, and
+    /// the bracket that makes one of it. A function whose name ends as the name of a
+    /// record does makes none: `againstTheBudget(` reads a fact, and is no `Budget(`.
+    static func made(_ records: [String], in text: String) -> [String] {
+        records.filter { record in
+            let named = NSRegularExpression.escapedPattern(for: record)
+            let pattern = "(?<![A-Za-z0-9_])\(named)(\\.init)?\\s*\\("
+            // A pattern that cannot be read finds the record, and never lets it by.
+            guard let making = try? NSRegularExpression(pattern: pattern) else { return true }
+            return making.firstMatch(in: text, range: NSRange(text.startIndex..., in: text)) != nil
+        }
+    }
 }

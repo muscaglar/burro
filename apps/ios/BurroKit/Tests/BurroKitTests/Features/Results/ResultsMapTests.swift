@@ -176,7 +176,7 @@ final class ResultsMapTests: XCTestCase {
 
         let fills = Results.fills(ranking)
 
-        XCTAssertEqual(fills.count, 24)
+        XCTAssertEqual(fills.count, Answers.areas.count)
         for score in ranking.scores {
             let band = try XCTUnwrap(fills[score.areaId]?.band)
             XCTAssertEqual(band, min(Int(score.score) / 20 + 1, 5))
@@ -443,9 +443,10 @@ final class ResultsMapTests: XCTestCase {
         let app = try await ResultsApp.searched()
 
         let rows = app.tabled.rows
+        let ranked = Answers.ranked("rank-first").scores.count
 
-        XCTAssertEqual(rows.count, 24)
-        XCTAssertEqual(rows.prefix(21).map(\.rank), (1...21).map(Optional.some))
+        XCTAssertEqual(rows.count, Answers.areas.count)
+        XCTAssertEqual(rows.prefix(ranked).map(\.rank), (1...ranked).map(Optional.some))
         XCTAssertEqual(rows.suffix(3).map(\.area.name), ["Grapnel Dock", "Otterby Fields", "Sedgewater Marsh"])
         XCTAssertEqual(rows[22].status, "Too little data for what counts in your search")
         XCTAssertEqual(rows[0].words, "Farrowmere, Quillhaven, Rank 1, Fit 71 of 100, Ranked")
@@ -464,8 +465,8 @@ final class ResultsMapTests: XCTestCase {
         XCTAssertTrue(app.state.geometryFailed)
         XCTAssertTrue(app.ground.isEmpty)
         XCTAssertEqual(app.mapped.regions, [])
-        XCTAssertEqual(app.tabled.rows.count, 24)
-        XCTAssertEqual(app.listed.cards.count, 20)
+        XCTAssertEqual(app.tabled.rows.count, Answers.areas.count)
+        XCTAssertEqual(app.listed.cards.count, Answers.ranked("rank-first").ranked.count)
         XCTAssertEqual(
             ResultsCopy.Map.noGeometryHere,
             "The boundaries of the areas could not be loaded. The table says everything the map would.")

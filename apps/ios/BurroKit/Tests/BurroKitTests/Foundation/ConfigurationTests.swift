@@ -87,7 +87,7 @@ final class ConfigurationTests: XCTestCase {
         XCTAssertEqual(project.components(separatedBy: #"BURRO_SITE_URL = "";"#).count - 1, 2)
         XCTAssertNil(SiteAddress.none.area(farrowmere))
         XCTAssertNil(SiteAddress("$(BURRO_SITE_URL)").origin)
-        XCTAssertNil(SiteAddress(infoDictionary: [:]).share("3TQkoOxY0dYBEVyMymzDjg"))
+        XCTAssertNil(SiteAddress(infoDictionary: [:]).share(Answers.shareId))
     }
 
     func test_the_address_of_an_area_holds_its_city_and_its_slug_and_nothing_else() {
@@ -106,7 +106,7 @@ final class ConfigurationTests: XCTestCase {
         let site = SiteAddress("https://burro.example.test")
 
         XCTAssertEqual(
-            site.share("3TQkoOxY0dYBEVyMymzDjg")?.absoluteString, "https://burro.example.test/s#3TQkoOxY0dYBEVyMymzDjg")
+            site.share(Answers.shareId)?.absoluteString, "https://burro.example.test/s#\(Answers.shareId)")
         XCTAssertEqual(site.share("Prqi4-zqlo9VIPSME2DL6A")?.fragment, "Prqi4-zqlo9VIPSME2DL6A")
         XCTAssertNil(site.share("too-short"))
         XCTAssertNil(site.share("TbfsnjL3GyTlKt967hH2H?"))

@@ -11,12 +11,19 @@ public struct SourceLine: Hashable, Sendable, Identifiable {
     public let name: String
     public let asOf: String
     public let synthetic: Bool
+    /// The statement of credit the source brings, where its publisher asks that it stands
+    /// wherever a figure made from its data is shown, and what its terms ask to be said
+    /// with it. `nil` for a source that brings none, and where a line before this one,
+    /// under the same figure, has said it.
+    public let credit: String?
 
     public var id: String { "\(sourceId) \(asOf)" }
 
-    /// The line as it is read: the source, the date, and that it is made up when it is.
+    /// The line as it is read: the source, its credit where it brings one, the date, and
+    /// that it is made up when it is. It is the order the website says them in.
     public var words: String {
-        let from = "\(name). \(AreaCopy.Source.dataFrom) \(ReadableDate.words(asOf))."
+        let named = credit.map { "\(name). \($0)" } ?? "\(name)."
+        let from = "\(named) \(AreaCopy.Source.dataFrom) \(ReadableDate.words(asOf))."
         return synthetic ? "\(from) \(AreaCopy.Source.madeUp)" : from
     }
 }
@@ -26,15 +33,34 @@ public enum SourceLines {
     public static func of(_ facts: [Fact]) -> [SourceLine] {
         var order: [String] = []
         var lines: [String: SourceLine] = [:]
+        var credited = CreditsSaid()
         for fact in facts {
             for source in fact.sources {
+                let id = "\(source.sourceId) \(fact.asOf)"
                 let line = SourceLine(
-                    sourceId: source.sourceId, name: source.name, asOf: fact.asOf, synthetic: fact.synthetic)
+                    sourceId: source.sourceId, name: source.name, asOf: fact.asOf, synthetic: fact.synthetic,
+                    credit: credited.credit(of: source, on: id))
                 if lines[line.id] == nil { order.append(line.id) }
                 lines[line.id] = line
             }
         }
         return order.compactMap { lines[$0] }
+    }
+
+    /// The statement of credit a source brings with it, where its publisher asks that it
+    /// stands wherever a figure made from its data is shown. The API says which: a source
+    /// that is credited by its name brings none. A statement of several lines is one line
+    /// here, each part ended with a full stop. What the publisher's terms ask to be said
+    /// with its credit comes with it, after it. It mirrors `creditOf` of the website.
+    public static func credit(of source: FactSource) -> String? {
+        let said = [source.attribution, source.saidWithAttribution]
+            .flatMap { ($0 ?? "").components(separatedBy: "\n") }
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        guard !said.isEmpty else { return nil }
+        return said.map { line in
+            line.last.map { ".!?".contains($0) } == true ? line : "\(line)."
+        }.joined(separator: " ")
     }
 
     /// Every source the facts name, once each, in the order of their names.
@@ -56,6 +82,22 @@ public enum SourceLines {
         let lines = of(facts)
         guard !lines.isEmpty else { return nil }
         return "\(AreaCopy.Source.source): " + lines.map(\.words).joined(separator: " ")
+    }
+}
+
+/// Which line under one figure says each statement of credit. Two sources of one
+/// publisher bring the same statement: it is said once, with the first of them, however
+/// many facts share it.
+struct CreditsSaid {
+    private var said: [String: String] = [:]
+
+    /// The credit the line of this id says: the statement of its source, where no line
+    /// of another id has said it.
+    mutating func credit(of source: FactSource, on id: String) -> String? {
+        guard let credit = SourceLines.credit(of: source) else { return nil }
+        if let line = said[credit] { return line == id ? credit : nil }
+        said[credit] = id
+        return credit
     }
 }
 

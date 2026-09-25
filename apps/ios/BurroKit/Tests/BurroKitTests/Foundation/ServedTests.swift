@@ -16,13 +16,13 @@ final class ServedTests: XCTestCase {
     private let reasons = Answers.explained("explanations-first")
     private let later = Answers.explained("explanations-refined")
     private let profile = Answers.profile("farrowmere")
-    private let shareId = "3TQkoOxY0dYBEVyMymzDjg"
+    private let shareId = Answers.shareId
     private let timeout = Failure.because(.timeout)
     private let fault = Answers.failure("error-internal")
 
     /// What every recording was served by, and the same service once it holds a newer release.
     private var a: Served { Served(form: meta) }
-    private var b: Served { Served(releaseId: "syn-2026-10-01-01", engineVersion: meta.engineVersion) }
+    private var b: Served { Served(releaseId: Answers.newerRelease, engineVersion: meta.engineVersion) }
     private var newerEngine: Served { Served(releaseId: meta.releaseId, engineVersion: "9.9.9") }
 
     private func opened() -> SearchState {

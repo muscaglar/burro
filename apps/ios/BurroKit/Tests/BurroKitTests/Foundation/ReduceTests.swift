@@ -12,7 +12,7 @@ final class ReduceTests: XCTestCase {
     private let shared = Answers.shared("share-opened")
     private let reasons = Answers.explained("explanations-first")
     private let later = Answers.explained("explanations-refined")
-    private let shareId = "3TQkoOxY0dYBEVyMymzDjg"
+    private let shareId = Answers.shareId
     private let timeout = Failure.because(.timeout)
     private let offline = Failure.because(.offline)
 
@@ -264,7 +264,7 @@ final class ReduceTests: XCTestCase {
         XCTAssertEqual(state.phase, .results)
         XCTAssertEqual(state.before, .results)
         XCTAssertEqual(state.ranking?.ranked, ranked.ranked)
-        XCTAssertEqual(state.ranking?.scores.count, 21)
+        XCTAssertEqual(state.ranking?.scores.count, ranked.scores.count)
         XCTAssertEqual(state.rankedHash, ranked.specHash)
         XCTAssertEqual(state.pending, .none)
         XCTAssertNil(state.moved)
@@ -308,7 +308,7 @@ final class ReduceTests: XCTestCase {
         XCTAssertEqual(state.phase, .results)
         XCTAssertEqual(
             state.shared,
-            Shared(id: shareId, coarsened: true, stale: false, originalReleaseId: "syn-2026-09-23-01"))
+            Shared(id: shareId, coarsened: true, stale: false, originalReleaseId: shared.originalReleaseId))
         // Nothing of the search before is carried into it. The places are named by the share's own answer.
         XCTAssertNil(state.read)
         XCTAssertEqual(state.placeNames, ["syn-p0005": "Eskerfold"])
