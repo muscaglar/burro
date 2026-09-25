@@ -11,7 +11,7 @@
 
 export const VIBES = {
   title: "Vibes",
-  lead: "A vibe is a published recipe over measured parts. It is named for the place, never for who lives there, and it says what it cannot see.",
+  lead: "A vibe is a published recipe over measured parts, and it says what it cannot see. A vibe that counts who lived in an area says so, and counts their age or their households and nothing else.",
 
   how: {
     title: "How an area is placed on a vibe",

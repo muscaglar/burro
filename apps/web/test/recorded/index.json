@@ -241,10 +241,64 @@
       "shows": "Four areas on a search with two journeys, which the person weighs above all else: a row for each, one area with no time for one of them, one whose fit rests on part of what counts, and one listed apart"
     },
     {
+      "scenario": "counted/area",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of an area whose prices are each the middle of the sales counted"
+    },
+    {
+      "scenario": "counted/explanations-firm",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons: an area over the budget says that about half of the homes sold there went for less"
+    },
+    {
+      "scenario": "counted/meta",
+      "operation_id": "get_meta",
+      "status": 200,
+      "shows": "The form of the release"
+    },
+    {
+      "scenario": "counted/rank-firm",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A firm budget held against the middle price: an area is left out only where it is far over, and some that are kept are over it"
+    },
+    {
       "scenario": "error-internal",
       "operation_id": "explain_top",
       "status": 500,
       "shows": "A fault in the service: 500, with fixed words and a request id to quote"
+    },
+    {
+      "scenario": "estimate/compare",
+      "operation_id": "compare",
+      "status": 200,
+      "shows": "Three areas compared on the firm limit: one of each band, the last of them left out"
+    },
+    {
+      "scenario": "estimate/explanations",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons: a journey is said as a band, and said to be estimated"
+    },
+    {
+      "scenario": "estimate/meta",
+      "operation_id": "get_meta",
+      "status": 200,
+      "shows": "The form of a release that holds no journey time: how a journey is estimated"
+    },
+    {
+      "scenario": "estimate/rank",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A journey with a flexible limit: every area is listed, each with one of three bands"
+    },
+    {
+      "scenario": "estimate/rank-firm",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "The same journey with a firm limit: only what is likely beyond it is left out"
     },
     {
       "scenario": "example-1",
@@ -415,6 +469,30 @@
       "shows": "The service is up. The one answer with no meta"
     },
     {
+      "scenario": "income",
+      "operation_id": "get_income",
+      "status": 200,
+      "shows": "The household income of one area: the estimate, its limits, its year and its source"
+    },
+    {
+      "scenario": "income-none-given",
+      "operation_id": "get_income",
+      "status": 200,
+      "shows": "An area the estimates hold no figure for: it says so, and gives none"
+    },
+    {
+      "scenario": "income-not-found",
+      "operation_id": "get_income",
+      "status": 404,
+      "shows": "A slug the release lacks: 404"
+    },
+    {
+      "scenario": "income-off",
+      "operation_id": "get_income",
+      "status": 404,
+      "shows": "A service that serves no household income: 404, and no figure"
+    },
+    {
       "scenario": "interpret-buyer-family",
       "operation_id": "interpret",
       "status": 200,
@@ -442,7 +520,7 @@
       "scenario": "interpret-by-model-long",
       "operation_id": "interpret",
       "status": 200,
-      "shows": "A long sentence read by a model: ten offers, each in four parts, one with a choice of two things, a journey and a budget that may be made firm, words nothing was made of, and five readings of two words that the rules offer with no guess"
+      "shows": "A long sentence read by a model: twelve offers, each in four parts, one with a choice of two things, a journey and a budget that may be made firm, words nothing was made of, and seven readings of two words that the rules offer with no guess"
     },
     {
       "scenario": "interpret-by-model-place",
@@ -607,6 +685,12 @@
       "shows": "A place noticed in a prompt that is not plain: offered by name, and not added"
     },
     {
+      "scenario": "interpret-suggest-who-is-counted",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "Who lived there at the census, offered towards more and no other way, with its note"
+    },
+    {
       "scenario": "interpret-two-journeys",
       "operation_id": "interpret",
       "status": 200,
@@ -649,6 +733,12 @@
       "shows": "What route 11 says where no census is served"
     },
     {
+      "scenario": "meta-no-income",
+      "operation_id": "get_meta",
+      "status": 200,
+      "shows": "What route 11 says where none is served"
+    },
+    {
       "scenario": "not-found",
       "operation_id": null,
       "status": 404,
@@ -683,6 +773,12 @@
       "operation_id": "search_places",
       "status": 200,
       "shows": "Places offered as a name is typed"
+    },
+    {
+      "scenario": "places-search-area",
+      "operation_id": "search_places",
+      "status": 200,
+      "shows": "A search by name that finds an area and no place: the area, with its label beside it"
     },
     {
       "scenario": "places-search-invalid",
@@ -797,6 +893,12 @@
       "operation_id": "get_meta",
       "status": 200,
       "shows": "The form of a preview: what it holds of each recipe, and that it holds no journey or cost"
+    },
+    {
+      "scenario": "preview/places-search",
+      "operation_id": "search_places",
+      "status": 200,
+      "shows": "A search by name in a preview: it names no place to reach, and finds the area"
     },
     {
       "scenario": "preview/rank-lacking",

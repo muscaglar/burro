@@ -6,7 +6,17 @@ import userEvent from "@testing-library/user-event";
 
 import { DIMENSION, POLARITY, SEGMENT } from "@/content/labels";
 import { PLACE, REJECTED, TENURE_CHOICE } from "@/content/search";
-import { BUDGET, CRIME_CAVEAT, FEATURES, HIDDEN, JOURNEY, SEGMENTS, SETTINGS, SLIDER } from "@/content/settings";
+import {
+  BRANDS,
+  BUDGET,
+  CRIME_CAVEAT,
+  FEATURES,
+  HIDDEN,
+  JOURNEY,
+  SEGMENTS,
+  SETTINGS,
+  SLIDER,
+} from "@/content/settings";
 import { failed } from "@/lib/api/failure";
 import { readRecorded, recordedAnswer, recordedFolder } from "@/lib/api/recorded";
 import type { AreaData, FoundPlace, Operations, PreferenceSpec, RejectReason, Tenure } from "@/lib/api/schema";
@@ -84,14 +94,49 @@ describe("the settings, in groups", () => {
   test("test_the_groups_are_money_journeys_each_family_of_vibes_and_recorded_crime_last", () => {
     show();
 
-    expect(FAMILIES).toEqual(["Streets and homes", "Pace and food", "Green", "Daily life"]);
+    // What is there comes first, and who lived there after it.
+    expect(FAMILIES).toEqual([
+      "Streets and homes",
+      "Pace and food",
+      "Green",
+      "Daily life",
+      "Who lives there, at the 2021 census",
+    ]);
     expect(groups()).toEqual([
       SETTINGS.money,
       SETTINGS.journeys,
       ...FAMILIES,
+      DIMENSION.brands,
       SETTINGS.airAndNoise,
       DIMENSION.crime,
     ]);
+  });
+
+  test("test_the_brands_are_a_group_of_their_own_with_the_mix_first_and_a_switch_for_each_chain", async () => {
+    // A switch for every chain, under the family the brands belong to, would bury the family.
+    const { open } = show();
+    await open(DIMENSION.brands);
+
+    const opened = within(
+      document.getElementById(
+        screen.getByRole("button", { name: DIMENSION.brands }).getAttribute("aria-controls") ?? "",
+      ) as HTMLElement,
+    );
+    const brands = meta.features.filter((metric) => metric.dimension === "brands");
+    const ranked = brands.filter((metric) => metric.rankable);
+    const switches = opened.getAllByRole("switch");
+    // The mix, and each of 29 chains.
+    expect(switches).toHaveLength(ranked.length);
+    expect(ranked).toHaveLength(30);
+    expect(switches[0]).toHaveAccessibleName("Mix of brands");
+    expect(opened.getByText(BRANDS.lead)).toBeVisible();
+    // Nothing of the brands counts until a person asks: every switch is off, and no slider is drawn.
+    for (const one of switches) expect(one).not.toBeChecked();
+    expect(opened.queryAllByRole("slider")).toHaveLength(0);
+    // What is counted of a tier is shown on an area's page, and has no switch.
+    const shown = brands.filter((metric) => !metric.rankable);
+    expect(shown).toHaveLength(18);
+    for (const metric of shown) expect(screen.queryByRole("switch", { name: metric.short_label })).toBeNull();
   });
 
   test("test_every_group_is_closed_at_first_and_few_controls_are_on_screen", () => {
@@ -133,7 +178,11 @@ describe("the settings, in groups", () => {
     // A count that is shown and never ranked on has no switch: its rate is what counts.
     const expected = meta.features.filter(
       (metric) =>
-        metric.rankable && metric.family !== null && metric.dimension !== "crime" && !inARecipe.has(metric.feature_id),
+        metric.rankable &&
+        metric.family !== null &&
+        metric.dimension !== "crime" &&
+        metric.dimension !== "brands" &&
+        !inARecipe.has(metric.feature_id),
     );
     expect(meta.features.filter((metric) => !metric.rankable && metric.family !== null).map((one) => one.feature_id)).toEqual(
       expect.arrayContaining(["venue_food_drink", "culture_venues"]),
@@ -156,7 +205,7 @@ describe("the settings, in groups", () => {
 
   test("test_every_feature_the_release_can_rank_can_be_reached", async () => {
     const { open } = show();
-    await open(...FAMILIES, SETTINGS.airAndNoise, DIMENSION.crime);
+    await open(...FAMILIES, DIMENSION.brands, SETTINGS.airAndNoise, DIMENSION.crime);
     for (const tag of meta.tags) await open(FEATURES.madeOfName(tag.label));
 
     for (const metric of meta.features.filter((one) => one.rankable)) {
@@ -347,7 +396,7 @@ describe("the settings", () => {
       edits.journeyBasis("just_missed"),
       edits.placeStep("syn-p0021", "up_small"),
       edits.placeRemove("syn-p0021"),
-      edits.featureOn("venue_evening"),
+      edits.featureOn("venue_evening_per_homes"),
     ]);
     // Renting or buying is the page's to send: before anything is asked for, it sends nothing.
     expect(tenures).toEqual(["buy"]);
@@ -425,7 +474,7 @@ describe("the settings", () => {
     const pubs = group(FEATURES.direction("Pubs and bars"));
     expect(pubs.getByRole("radio", { name: "Higher is better" })).toBeChecked();
     await user.click(pubs.getByRole("radio", { name: "Lower is better" }));
-    expect(sent).toEqual([edits.featureDirection("venue_evening", 0.5, "less")]);
+    expect(sent).toEqual([edits.featureDirection("venue_evening_per_homes", 0.5, "less")]);
   });
 
   test("test_a_change_of_direction_is_sent_with_the_weight_the_person_just_set_and_not_the_one_before", async () => {
@@ -444,9 +493,9 @@ describe("the settings", () => {
     await user.type(number, "50{Enter}");
 
     expect(sent).toEqual([
-      edits.featureWeight("venue_evening", 0.7),
-      edits.featureDirection("venue_evening", 0.7, "less"),
-      edits.featureWeight("venue_evening", 0.5),
+      edits.featureWeight("venue_evening_per_homes", 0.7),
+      edits.featureDirection("venue_evening_per_homes", 0.7, "less"),
+      edits.featureWeight("venue_evening_per_homes", 0.5),
     ]);
     // As the API applies them, in order: it counts for 50, and fewer is better.
     expect(sent.reduce(merged, NO_EDITS).weight_ops.at(-1)).toMatchObject({ value: 0.5, direction: "default" });
@@ -466,12 +515,12 @@ describe("the settings", () => {
     again(nights, 2);
     await user.click(group(FEATURES.direction(pubs)).getByRole("radio", { name: "Lower is better" }));
 
-    expect(sent.at(-1)).toEqual(edits.featureDirection("venue_evening", 0.5, "less"));
+    expect(sent.at(-1)).toEqual(edits.featureDirection("venue_evening_per_homes", 0.5, "less"));
   });
 
   test("test_every_feature_is_named_plainly_and_says_under_its_switch_which_way_counts_as_better", async () => {
     const { open } = show();
-    await open(...FAMILIES, SETTINGS.airAndNoise, DIMENSION.crime);
+    await open(...FAMILIES, DIMENSION.brands, SETTINGS.airAndNoise, DIMENSION.crime);
     for (const tag of meta.tags) await open(FEATURES.madeOfName(tag.label));
 
     // The settings stand alone when the words cannot be read, so a switch says the wish
@@ -528,7 +577,7 @@ describe("the settings", () => {
   test("test_the_form_offers_only_what_the_release_can_rank", async () => {
     const some = { ...meta, features: meta.features.map((metric, at) => ({ ...metric, rankable: at % 2 === 0 })) };
     const { open } = show(meta.defaults.rent, { form: some });
-    await open(...FAMILIES, SETTINGS.airAndNoise, DIMENSION.crime);
+    await open(...FAMILIES, DIMENSION.brands, SETTINGS.airAndNoise, DIMENSION.crime);
     for (const tag of some.tags) await open(FEATURES.madeOfName(tag.label));
 
     for (const metric of some.features) {

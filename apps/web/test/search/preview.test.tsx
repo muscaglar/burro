@@ -32,10 +32,11 @@ import {
   SEARCH,
   SHELF,
   SUGGEST,
+  FIND_AREA,
 } from "@/content/search";
 import { BUDGET, JOURNEY, SETTINGS } from "@/content/settings";
 import { saysItsBorough } from "@/lib/area/named";
-import { recordedAnswer } from "@/lib/api/recorded";
+import { readRecorded, recordedAnswer, responseFrom } from "@/lib/api/recorded";
 import { examplesFor } from "@/lib/holds";
 
 import { standInApi, type StandIn } from "../support/api";
@@ -113,14 +114,23 @@ describe("the first screen, on data that is not finished", () => {
     expect(document.body.textContent?.includes(SEARCH.leadNoJourneys)).toBe(true);
   });
 
-  test("test_no_field_asks_for_a_place_where_the_data_names_none", async () => {
+  test("test_no_field_asks_for_a_place_where_the_data_names_none_and_the_box_finds_areas", async () => {
     // Seen in a browser: a place typed in the field was met with "No place matches. Try
-    // another spelling", where no spelling could match.
-    await openPreview();
+    // another spelling", where no spelling could match. The box finds an area by its name,
+    // and says that the data names no place to reach.
+    const { api, user } = await openPreview();
+    api.on("search_places", () => responseFrom(readRecorded("preview/places-search")));
 
-    expect(screen.queryByRole("combobox")).toBeNull();
-    expect(document.body.textContent?.includes(PLACE.label)).toBe(true);
-    expect(document.body.textContent?.includes(PLACE.notInData)).toBe(true);
+    expect(screen.queryByRole("combobox", { name: PLACE.label })).toBeNull();
+    expect(screen.queryByRole("combobox", { name: FIND_AREA.label })).toBeNull();
+    expect(document.body.textContent?.includes(FIND_AREA.hintAlone)).toBe(true);
+    expect(FIND_AREA.hintAlone).toContain("names no places to reach");
+    await user.type(screen.getByRole("combobox", { name: FIND_AREA.labelAlone }), "alder");
+    await arrived();
+
+    const found = await screen.findByRole("group", { name: FIND_AREA.title });
+    expect(Array.from(found.querySelectorAll("a")).map((link) => link.textContent)).toEqual(["Alderwick"]);
+    expect(screen.queryAllByRole("option")).toEqual([]);
   });
 
   test("test_every_example_the_page_offers_gives_a_list", async () => {
@@ -183,7 +193,10 @@ describe("the first screen, on data that is not finished", () => {
       "walkable",
       "Food and drink",
       "Family amenities",
+      "Well connected",
       "Gritty",
+      "Family area",
+      "Young professionals",
     ]);
     expect(words().slice(0, 4)).toEqual(["quiet street", "near a big park", "Houses or flats", SHELF.fewer]);
   });
@@ -220,7 +233,7 @@ describe("the first screen, on data that is not finished", () => {
 
     expect(card.textContent?.includes(SHELF.held(70, 60))).toBe(true);
     expect(held?.waits_on.map((part) => [part.label, part.hundredths])).toEqual([
-      ["Share of homes within 150 m of a cluster of evening venues", 30],
+      ["Share of homes with three or more pubs or bars within 150 m, in a straight line", 30],
     ]);
     expect(card.textContent?.includes(held?.waits_on[0]?.label ?? "none")).toBe(true);
     // It can be added, as ever.
@@ -242,7 +255,7 @@ describe("the first screen, on data that is not finished", () => {
 
     expect(document.body.textContent?.includes(PROMPT.hint)).toBe(true);
     expect(document.body.textContent?.includes(SEARCH.lead)).toBe(true);
-    expect(screen.getByRole("combobox", { name: PLACE.label })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: FIND_AREA.label })).toBeInTheDocument();
     expect(shelf().queryByRole("list", { name: SHELF.waiting })).toBeNull();
     await user.click(shelf().getByRole("button", { name: SHELF.more }));
     expect(shelf().queryByRole("list", { name: SHELF.waiting })).toBeNull();

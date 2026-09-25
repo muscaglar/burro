@@ -33,8 +33,14 @@ const SLUGS = recordedAnswer("list_areas", "areas").body.data.areas.map((area) =
  * them all: the most was 161, and the room was used up. It carries eleven again. The census
  * of an area is a part of the page that is closed at first. It draws two lines, and one in
  * the list of contents, so the most was 164 with twelve vibes. Neither was measured again.
+ * A release carries fourteen vibes now: Well connected joined, and the two that count who
+ * lived there, and the chains of grocers, gyms and coffee stand beside them. Each vibe is a
+ * line of the portrait where an area is placed on it, and says what it cannot see under
+ * "Go and look". The household income of an area is a part that is closed at first, as the
+ * census is: it draws two lines, and one in the list of contents. The most a page draws is
+ * 190 lines and 40 controls, of Pellam Cross. It was not measured in a browser again.
  */
-const AT_FIRST = { lines: 164, controls: 36, vibes: 14, stations: 4 } as const;
+const AT_FIRST = { lines: 190, controls: 40, vibes: 14, stations: 4 } as const;
 /** The parts that are closed until they are pressed, by the id the list of contents names them by. */
 const CLOSED = ["alike", "cost", "measured", "sources", "census"] as const;
 

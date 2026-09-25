@@ -130,6 +130,15 @@ describe("site copy", () => {
     expect(lead).toContain("Half of homes of this kind cost between these two figures.");
   });
 
+  test("test_the_accessibility_statement_does_not_say_what_kind_of_data_is_shown", () => {
+    // Seen on a build of a real city: under the banner that says the figures are of real
+    // places, the statement said "This is a test release on made-up data." The statement is
+    // drawn on every release, and only an answer knows whether its data is made up.
+    const said = copy.filter(([where, text]) => where.startsWith("accessibility.ts") && /made.up/i.test(text));
+
+    expect(said.map(([where]) => where)).toEqual([]);
+  });
+
   test("test_the_banner_says_the_three_things_it_must", () => {
     const banner = copy.find(([where]) => where === "site.ts.BANNER.text")?.[1];
 

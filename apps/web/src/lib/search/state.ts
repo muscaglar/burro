@@ -120,9 +120,14 @@ export interface Added {
   readonly count: number;
   /** What is left for the person, each in the API's words. */
   readonly needs: readonly string[];
-  /** The search as it stood before the press, and what was offered then. */
+  /**
+   * The search as it stood before the press, and what is offered once it is all taken back:
+   * what was offered at the press, or what a model has offered since.
+   */
   readonly spec: PreferenceSpec;
   readonly suggestions: Read["suggestions"];
+  /** What the person had chosen of, each by its own button, before the press. */
+  readonly chosen: readonly string[];
 }
 
 export type Ranking = Pick<
@@ -319,7 +324,7 @@ export type SearchEvent =
   | { readonly type: "suggestion_chosen"; readonly at: number; readonly changes?: boolean }
   // A model has read what the rules left unread. What it read joins what is offered.
   | { readonly type: "read_more_answered"; readonly data: InterpretData }
-  // It could not be asked, or did not answer. What the rules offered stands.
+  // It could not be asked, did not answer, or was stopped. What the rules offered stands.
   | { readonly type: "read_more_failed" }
   // One press added several things. What it added is kept until it is taken back.
   | { readonly type: "all_added"; readonly ats: readonly number[] }
@@ -662,6 +667,18 @@ function settingsAfter(
   if (unread) return { settingsOpen: true, settingsByPage: state.settingsOpen ? state.settingsByPage : true };
   if (state.settingsByPage) return { settingsOpen: false, settingsByPage: false };
   return { settingsOpen: state.settingsOpen, settingsByPage: false };
+}
+
+/**
+ * What one press added, once a model has read the words since. What is put back when it is
+ * all taken back is then what the model offers, and not what the rules offered at the
+ * press: its guesses and the ways it added would be lost with it. What the person chose of
+ * by its own button before the press stays chosen, as it was when the press was made.
+ */
+function afterTheModelRead(read: Read, offered: Read["suggestions"]): Added | null {
+  const { added } = read;
+  if (added === null) return null;
+  return { ...added, suggestions: offered.filter((one) => !added.chosen.includes(keyOf(one))) };
 }
 
 /**
@@ -1063,6 +1080,7 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
         read: {
           ...read,
           suggestions,
+          added: afterTheModelRead(read, data.suggestions),
           unread: data.unread,
           unmet: data.unmet,
           partUnread: data.unread.length > 0,
@@ -1098,6 +1116,7 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
             needs: [...added, ...left].map((one) => one.needs).filter((needs) => needs !== ""),
             spec: state.spec,
             suggestions: read.suggestions,
+            chosen: read.chosen,
           },
         },
       };
@@ -1106,13 +1125,12 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
     case "all_taken_back": {
       const { read } = state;
       if (read === null || read.added === null) return state;
-      const back = new Set(read.added.suggestions.map(keyOf));
       return {
         ...state,
         read: {
           ...read,
           suggestions: read.added.suggestions,
-          chosen: read.chosen.filter((key) => !back.has(key)),
+          chosen: read.added.chosen,
           added: null,
         },
       };

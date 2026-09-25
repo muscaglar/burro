@@ -96,17 +96,17 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "50540",
+    "content-length": "50898",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "a649eae7-210c-4001-8ac4-0103dec34b96"
+    "x-request-id": "3226f66d-c249-412c-84cc-cdd9eb98ab2a"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
@@ -363,7 +363,8 @@
               "minutes": 22,
               "minutes_typical": 22,
               "minutes_just_missed": 27,
-              "utility": 0.86
+              "utility": 0.86,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -397,13 +398,13 @@
               "fact_id": "syn-n0004/tag/family_amenities"
             },
             {
-              "tag_id": "leafy",
-              "band": 4,
-              "spread_low": 4,
-              "spread_high": 4,
+              "tag_id": "well_connected",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
               "asked": false,
               "toward": null,
-              "fact_id": "syn-n0004/tag/leafy"
+              "fact_id": "syn-n0004/tag/well_connected"
             }
           ]
         },
@@ -530,7 +531,8 @@
               "minutes": 28,
               "minutes_typical": 28,
               "minutes_just_missed": 33,
-              "utility": 0.74
+              "utility": 0.74,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -697,7 +699,8 @@
               "minutes": 27,
               "minutes_typical": 27,
               "minutes_just_missed": 32,
-              "utility": 0.76
+              "utility": 0.76,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -864,7 +867,8 @@
               "minutes": 25,
               "minutes_typical": 25,
               "minutes_just_missed": 27,
-              "utility": 0.8
+              "utility": 0.8,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -1031,7 +1035,8 @@
               "minutes": 26,
               "minutes_typical": 26,
               "minutes_just_missed": 31,
-              "utility": 0.78
+              "utility": 0.78,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -1198,7 +1203,8 @@
               "minutes": 42,
               "minutes_typical": 42,
               "minutes_just_missed": 47,
-              "utility": 0.45
+              "utility": 0.45,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -1365,7 +1371,8 @@
               "minutes": 40,
               "minutes_typical": 40,
               "minutes_just_missed": 44,
-              "utility": 0.5
+              "utility": 0.5,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -1532,7 +1539,8 @@
               "minutes": 33,
               "minutes_typical": 33,
               "minutes_just_missed": 35,
-              "utility": 0.64
+              "utility": 0.64,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -1699,7 +1707,8 @@
               "minutes": 24,
               "minutes_typical": 24,
               "minutes_just_missed": 26,
-              "utility": 0.82
+              "utility": 0.82,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -1866,7 +1875,8 @@
               "minutes": 22,
               "minutes_typical": 22,
               "minutes_just_missed": 24,
-              "utility": 0.86
+              "utility": 0.86,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -2033,7 +2043,8 @@
               "minutes": 12,
               "minutes_typical": 12,
               "minutes_just_missed": 12,
-              "utility": 1.0
+              "utility": 1.0,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -2200,7 +2211,8 @@
               "minutes": 36,
               "minutes_typical": 36,
               "minutes_just_missed": 41,
-              "utility": 0.58
+              "utility": 0.58,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -2367,7 +2379,8 @@
               "minutes": 33,
               "minutes_typical": 33,
               "minutes_just_missed": 38,
-              "utility": 0.64
+              "utility": 0.64,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -2534,7 +2547,8 @@
               "minutes": 34,
               "minutes_typical": 34,
               "minutes_just_missed": 39,
-              "utility": 0.62
+              "utility": 0.62,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -2568,13 +2582,13 @@
               "fact_id": "syn-n0011/tag/foodie"
             },
             {
-              "tag_id": "pace",
-              "band": 4,
-              "spread_low": 4,
-              "spread_high": 4,
+              "tag_id": "well_connected",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
               "asked": false,
               "toward": null,
-              "fact_id": "syn-n0011/tag/pace"
+              "fact_id": "syn-n0011/tag/well_connected"
             }
           ]
         },
@@ -2701,7 +2715,8 @@
               "minutes": 41,
               "minutes_typical": 41,
               "minutes_just_missed": 46,
-              "utility": 0.475
+              "utility": 0.475,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -2868,7 +2883,8 @@
               "minutes": 34,
               "minutes_typical": 34,
               "minutes_just_missed": 39,
-              "utility": 0.62
+              "utility": 0.62,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -3035,7 +3051,8 @@
               "minutes": 31,
               "minutes_typical": 31,
               "minutes_just_missed": 33,
-              "utility": 0.68
+              "utility": 0.68,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -3202,7 +3219,8 @@
               "minutes": 45,
               "minutes_typical": 45,
               "minutes_just_missed": 50,
-              "utility": 0.375
+              "utility": 0.375,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -3369,7 +3387,8 @@
               "minutes": 51,
               "minutes_typical": 51,
               "minutes_just_missed": 56,
-              "utility": 0.225
+              "utility": 0.225,
+              "estimate": null
             }
           ],
           "budget": null,
@@ -3536,7 +3555,8 @@
               "minutes": 46,
               "minutes_typical": 46,
               "minutes_just_missed": 51,
-              "utility": 0.35
+              "utility": 0.35,
+              "estimate": null
             }
           ],
           "budget": null,

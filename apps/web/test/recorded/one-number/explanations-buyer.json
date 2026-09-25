@@ -81,7 +81,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "24695",
+    "content-length": "26147",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -91,7 +91,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
@@ -135,7 +135,7 @@
             }
           ],
           "trade_off": {
-            "text": "The middle price of flats of all sizes is £20,000 over your budget of £455,000.",
+            "text": "The middle price of flats of all sizes is £20,000 over your budget of £455,000. About half of the flats sold here went for under £475,000.",
             "fact_ids": [
               "syn-n0002/budget_fit/buy.flat"
             ],
@@ -325,18 +325,23 @@
           "template": "area",
           "slots": {
             "name": "Brackenhythe",
-            "borough": "Quillhaven"
+            "borough": "Quillhaven",
+            "label": "Quillhaven 002",
+            "written_by": "Burro",
+            "state": "draft"
           },
           "numbers": [],
           "names": [
             "Brackenhythe",
-            "Quillhaven"
+            "Quillhaven",
+            "Quillhaven 002"
           ],
           "sources": [
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -353,7 +358,8 @@
             "margin": "20,000",
             "amount": "455,000",
             "median": "475,000",
-            "homes": "flats"
+            "homes": "flats",
+            "half_sold": "About half of the flats sold here went for under £475,000."
           },
           "numbers": [
             "£455000",
@@ -365,7 +371,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -401,7 +408,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -437,7 +445,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -473,7 +482,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -514,7 +524,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -555,7 +566,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -570,18 +582,23 @@
           "template": "area",
           "slots": {
             "name": "Eskerfold",
-            "borough": "Quillhaven"
+            "borough": "Quillhaven",
+            "label": "Quillhaven 005",
+            "written_by": "Burro",
+            "state": "draft"
           },
           "numbers": [],
           "names": [
             "Eskerfold",
-            "Quillhaven"
+            "Quillhaven",
+            "Quillhaven 005"
           ],
           "sources": [
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -598,7 +615,8 @@
             "margin": "55,000",
             "amount": "455,000",
             "median": "400,000",
-            "homes": "flats"
+            "homes": "flats",
+            "half_sold": "About half of the flats sold here went for under £400,000."
           },
           "numbers": [
             "£455000",
@@ -610,7 +628,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -646,7 +665,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -684,7 +704,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -726,7 +747,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -767,7 +789,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -782,18 +805,23 @@
           "template": "area",
           "slots": {
             "name": "Dulcimer Green",
-            "borough": "Quillhaven"
+            "borough": "Quillhaven",
+            "label": "Quillhaven 004",
+            "written_by": "Burro",
+            "state": "draft"
           },
           "numbers": [],
           "names": [
             "Dulcimer Green",
-            "Quillhaven"
+            "Quillhaven",
+            "Quillhaven 004"
           ],
           "sources": [
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -810,7 +838,8 @@
             "margin": "55,000",
             "amount": "455,000",
             "median": "400,000",
-            "homes": "flats"
+            "homes": "flats",
+            "half_sold": "About half of the flats sold here went for under £400,000."
           },
           "numbers": [
             "£455000",
@@ -822,7 +851,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -858,7 +888,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -896,7 +927,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -938,7 +970,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -979,7 +1012,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -994,18 +1028,23 @@
           "template": "area",
           "slots": {
             "name": "Wickerford",
-            "borough": "Quillhaven"
+            "borough": "Quillhaven",
+            "label": "Quillhaven 024",
+            "written_by": "Burro",
+            "state": "draft"
           },
           "numbers": [],
           "names": [
             "Wickerford",
-            "Quillhaven"
+            "Quillhaven",
+            "Quillhaven 024"
           ],
           "sources": [
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1022,7 +1061,8 @@
             "margin": "0",
             "amount": "455,000",
             "median": "455,000",
-            "homes": "flats"
+            "homes": "flats",
+            "half_sold": "About half of the flats sold here went for under £455,000."
           },
           "numbers": [
             "£455000",
@@ -1033,7 +1073,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -1069,7 +1110,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1105,7 +1147,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1141,7 +1184,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1182,7 +1226,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1222,7 +1267,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1237,18 +1283,23 @@
           "template": "area",
           "slots": {
             "name": "Larkspur Hill",
-            "borough": "Quillhaven"
+            "borough": "Quillhaven",
+            "label": "Quillhaven 013",
+            "written_by": "Burro",
+            "state": "draft"
           },
           "numbers": [],
           "names": [
             "Larkspur Hill",
-            "Quillhaven"
+            "Quillhaven",
+            "Quillhaven 013"
           ],
           "sources": [
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1265,7 +1316,8 @@
             "margin": "0",
             "amount": "455,000",
             "median": "455,000",
-            "homes": "flats"
+            "homes": "flats",
+            "half_sold": "About half of the flats sold here went for under £455,000."
           },
           "numbers": [
             "£455000",
@@ -1276,7 +1328,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -1312,7 +1365,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1348,7 +1402,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1384,7 +1439,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1425,7 +1481,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1466,7 +1523,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",

@@ -405,8 +405,8 @@ function namesOf(sources: readonly Source[]): Names {
 }
 
 /**
- * The methods page: how the ranking works, what is measured, the way to the
- * page of vibes, where a search starts, the limits, how a journey is timed,
+ * The methods page: how the ranking works, how an area is named, what is
+ * measured, the way to the page of vibes, where a search starts, the limits, how a journey is timed,
  * what each word for how sure a cost is means, the release, and how a
  * person's words are handled. Every figure and every definition of a feature
  * is the API's.
@@ -417,6 +417,8 @@ export function MethodsTables({ meta }: Props) {
   return (
     <>
       <Points id="ranking" title={METHODS.ranking.title} points={METHODS.ranking.points} />
+      {/* The page of an area leads here by this id: `paths.methods` names it. */}
+      <Points id="names" title={METHODS.names.title} points={METHODS.names.points} />
       <Features features={meta.features} sources={sources} meta={meta} />
       <Vibes meta={meta} />
       <section aria-labelledby="defaults">
@@ -429,12 +431,23 @@ export function MethodsTables({ meta }: Props) {
       </section>
       <Limits limits={meta.limits} holds={meta.holds} />
       {/* A result leads here by these two ids: `paths.methods` names them. */}
-      <Points
-        id="journeys"
-        title={METHODS.journeys.title}
-        lead={meta.holds.journeys ? undefined : METHODS.journeys.notYet}
-        points={METHODS.journeys.points}
-      />
+      {meta.journey_estimate ? (
+        // The data holds no journey time, and a journey is estimated: how, in the API's
+        // numbers, under the line that stands wherever an estimate is shown.
+        <Points
+          id="journeys"
+          title={METHODS.estimate.title}
+          lead={`${meta.journey_estimate.said} ${METHODS.estimate.lead}`}
+          points={METHODS.estimate.points(meta.journey_estimate)}
+        />
+      ) : (
+        <Points
+          id="journeys"
+          title={METHODS.journeys.title}
+          lead={meta.holds.journeys ? undefined : METHODS.journeys.notYet}
+          points={METHODS.journeys.points}
+        />
+      )}
       <Points
         id="confidence"
         title={METHODS.confidence.title}

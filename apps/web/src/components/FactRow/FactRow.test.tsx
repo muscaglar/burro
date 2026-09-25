@@ -5,10 +5,10 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
 import { CANNOT_PLACE, FACT_KIND, ONE_NUMBER } from "@/content/facts";
-import { SOURCE } from "@/content/search";
+import { JOURNEYS, SOURCE } from "@/content/search";
 import { CRIME_CAVEAT } from "@/content/settings";
 import { readRecorded, recordedAnswer, recordedFolder } from "@/lib/api/recorded";
-import type { AreaData, ExplanationsData, Fact, TemplateId } from "@/lib/api/schema";
+import type { AreaData, ExplanationsData, Fact, JourneyBand, TemplateId } from "@/lib/api/schema";
 
 import { faultsIn } from "../../../test/support/axe";
 import { columnsOf, FactRow } from "./FactRow";
@@ -29,6 +29,13 @@ function everyFact(): Fact[] {
   // recorded from a release of its own.
   facts.push(...recordedAnswer("get_area", "one-number/area").body.data.facts);
   facts.push(...recordedAnswer("explain_top", "one-number/explanations-buyer").body.data.facts);
+  // The committed release holds a time for every journey. A journey that is estimated is
+  // recorded from a release that holds none.
+  facts.push(...recordedAnswer("explain_top", "estimate/explanations").body.data.facts);
+  facts.push(...recordedAnswer("compare", "estimate/compare").body.data.facts);
+  // And a price that was counted from sales, from another.
+  facts.push(...recordedAnswer("get_area", "counted/area").body.data.facts);
+  facts.push(...recordedAnswer("explain_top", "counted/explanations-firm").body.data.facts);
   return facts;
 }
 
@@ -68,12 +75,14 @@ describe("a fact laid out in columns", () => {
     ["cost_rent", ["Kind of home", "Range", "Middle", "As of", "Confidence"]],
     ["cost_buy", ["Kind of home", "Range", "Middle", "As of", "Confidence"]],
     ["cost_buy_median", ["Kind of home", "Middle price, homes of all sizes", "Homes sold in"]],
+    ["cost_buy_sold", ["Kind of home", "Middle price, homes of all sizes", "Homes sold in", "Sales it rests on"]],
     ["budget_under", ["Upper end of the range", "Your budget", "Under your budget by"]],
     ["budget_over", ["Upper end of the range", "Your budget", "Over your budget by"]],
     ["budget_under_median", ["Middle price, homes of all sizes", "Your budget", "Under your budget by"]],
     ["budget_over_median", ["Middle price, homes of all sizes", "Your budget", "Over your budget by"]],
     ["travel_pt", ["To", "How", "Typical minutes", "Minutes if you just miss one"]],
     ["travel_other", ["To", "How", "Minutes"]],
+    ["travel_estimated", ["To", "How", "How this is known"]],
     ["likeness", ["Alike", "Measures in the same band", "Measures compared", "Least alike in"]],
     ["missing_journey", ["Name", "To"]],
     ["station", ["Station", "Minutes on foot", "Lines"]],
@@ -107,6 +116,30 @@ describe("a fact laid out in columns", () => {
       "Your limit, in minutes": fact.slots.limit,
       [column]: fact.slots.margin,
     });
+  });
+
+  test("test_a_journey_that_was_estimated_says_its_band_and_that_it_is_an_estimate_and_gives_no_minutes", () => {
+    const bands = all.filter((fact) => fact.template === "travel_estimated");
+
+    // One of each band is recorded: likely within, borderline and likely beyond.
+    expect(new Set(bands.map((fact) => fact.slots.band))).toEqual(
+      new Set(["likely_within", "borderline", "likely_beyond"]),
+    );
+    for (const fact of bands) {
+      expect(Object.fromEntries(columnsOf(fact))).toEqual({
+        To: fact.slots.place,
+        How: fact.slots.mode,
+        "Your limit, in minutes": fact.slots.limit,
+        "Against your limit": fact.slots.verdict,
+        "How this is known": fact.slots.estimated,
+      });
+      // The words the website says a band in, and the line under it, are the API's own.
+      expect(fact.slots.verdict).toBe(JOURNEYS.estimated[fact.slots.band as JourneyBand]);
+      expect(fact.slots.estimated).toBe(JOURNEYS.estimatedFrom);
+      // An estimate is never given in minutes: the one number of the fact is the limit.
+      expect(fact.numbers).toEqual([fact.slots.limit]);
+      for (const slot of ["minutes", "typical", "missed", "margin"]) expect(fact.slots[slot]).toBeUndefined();
+    }
   });
 
   test("test_a_price_that_is_one_number_is_a_row_of_one_number_and_says_what_is_not_known_of_it", () => {

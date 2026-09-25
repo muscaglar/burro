@@ -8,7 +8,7 @@ import { MODE } from "@/content/labels";
 import { JOURNEYS } from "@/content/search";
 import type { Commute, CommuteLeg, Cutoffs } from "@/lib/api/schema";
 import { paths } from "@/lib/paths";
-import { factsForJourney, withinLimit } from "@/lib/search/card";
+import { estimateOf, factsForJourney, withinLimit } from "@/lib/search/card";
 import { useOpenSearch } from "@/lib/search/store";
 
 import { SourceNote } from "../SourceNote/SourceNote";
@@ -21,6 +21,9 @@ interface Props {
 
 /** How long a journey takes, in the words a result says it in. */
 function timeOf(leg: CommuteLeg, cutoffs: Cutoffs): string {
+  const band = estimateOf(leg);
+  // No time is held: the band is said, and that it is an estimate, and no minutes.
+  if (band !== null) return `${JOURNEYS.estimated[band]}. ${JOURNEYS.estimatedFrom}`;
   if (leg.status === "missing") return JOURNEYS.missing;
   if (leg.status === "beyond_cutoff") return JOURNEYS.beyond(cutoffs[leg.mode]);
   // The time the ranking holds against the limit, so that the verdict beside it is of this figure.
@@ -78,7 +81,9 @@ export function YourJourneys({ areaId }: Props) {
                 <span className={styles.name}>{name}</span>
                 <span className="visually-hidden">: </span>
                 <span>
-                  {timeOf(leg, meta.limits.cutoff_minutes)}, {MODE[leg.mode]}
+                  {estimateOf(leg) === null
+                    ? `${timeOf(leg, meta.limits.cutoff_minutes)}, ${MODE[leg.mode]}`
+                    : `${MODE[leg.mode]}: ${timeOf(leg, meta.limits.cutoff_minutes)}`}
                   {verdict === null ? null : `. ${verdict}`}
                 </span>
                 <SourceNote facts={factsForJourney(area, leg, facts)} of={name} />

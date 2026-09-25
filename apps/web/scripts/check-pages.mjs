@@ -37,8 +37,12 @@ const CONTROLS = "a[href], button, input, select, textarea";
 // Measured on the made-up release: 151 lines and 32 controls at the most, with 11 vibes. The
 // portrait opens with what the area is like in short, five lines at most, and where it is.
 // With 12 vibes the most was 161 lines. The census of an area is closed at first and draws three
-// lines, so the most is 164. Neither was measured again.
-const AREA_AT_FIRST = { lines: 164, controls: 36, vibes: 14, short: 5 };
+// lines, so the most was 164. Neither was measured again. With 14 vibes, Well connected and the
+// two that count who lived there among them, and with the chains of grocers, gyms and coffee,
+// what "Go and look" says of an area grew, and the household income of an area is a part that
+// is closed at first: the most is 190 lines and 40 controls, of the centre. That was not
+// measured in a browser either.
+const AREA_AT_FIRST = { lines: 190, controls: 40, vibes: 14, short: 5 };
 const LINES = "h1, h2, h3, h4, p, li, summary, dt, dd";
 // The parts of the page of an area that are closed until they are pressed.
 const AREA_CLOSED = ["alike", "cost", "measured", "sources"];
@@ -272,7 +276,10 @@ function faultsIn(page, document) {
     // The tray of areas to compare is at the foot of the screen, and is no part of the page's order.
     const ordered = parts.filter((heading) => heading.closest("[data-closed]") === null);
     if (ordered.at(-1)?.id !== "look") say("the page of an area does not end with where to go and look");
-    const vibes = main.querySelectorAll("section[aria-labelledby='character'] details").length;
+    // What opens the sources of what is said in short is no vibe, and is not counted as one.
+    const vibes = [...main.querySelectorAll("section[aria-labelledby='character'] details")].filter(
+      (opens) => opens.closest("[aria-labelledby='character-short']") === null,
+    ).length;
     if (vibes === 0) say("the portrait of an area holds no vibe");
     if (vibes > AREA_AT_FIRST.vibes) say(`the portrait holds ${vibes} vibes, and may hold ${AREA_AT_FIRST.vibes}`);
     const short = main.querySelector("section[aria-labelledby='character'] [aria-labelledby='character-short']");

@@ -207,8 +207,9 @@ describe("a results page, before anything is opened", () => {
     expect(controlsIn(settings).map((control) => control.getAttribute("aria-expanded"))).toEqual(
       controlsIn(settings).map(() => "false"),
     );
-    // One group for the money, one for the journeys, one for each family, and two that stand apart.
-    expect(controlsIn(settings)).toHaveLength(meta.data.families.length + 4);
+    // One group for the money, one for the journeys, one for each family, one for the brands, and
+    // two that stand apart.
+    expect(controlsIn(settings)).toHaveLength(meta.data.families.length + 5);
   });
 
   test("test_of_what_the_reader_noticed_four_things_that_need_a_choice_are_drawn_at_most", async () => {

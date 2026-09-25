@@ -13,6 +13,7 @@ import type {
   Contribution,
   CostEstimate,
   Fact,
+  JourneyBand,
   MetaData,
   PreferenceSpec,
   RankedArea,
@@ -65,9 +66,20 @@ export function factsForJourney(area: RankedArea, leg: CommuteLeg, facts: Facts)
   return any === undefined ? [] : [any];
 }
 
-/** Whether a journey is within the longest the person set. `null` when there is no time to compare. */
+/**
+ * Where a journey that was estimated stands against its limit, or `null` for any other. The
+ * release holds no time for it, so it has a band and no minutes.
+ */
+export function estimateOf(leg: Pick<CommuteLeg, "status" | "estimate">): JourneyBand | null {
+  return leg.status === "estimated" ? (leg.estimate ?? null) : null;
+}
+
+/**
+ * Whether a journey is within the longest the person set. `null` when there is no time to
+ * compare: one that was estimated has a band, and is never said to be within or over.
+ */
 export function withinLimit(leg: CommuteLeg, commute: Commute | undefined): boolean | null {
-  if (commute === undefined || leg.status === "missing") return null;
+  if (commute === undefined || leg.status === "missing" || leg.status === "estimated") return null;
   if (leg.status === "beyond_cutoff" || leg.minutes === null) return false;
   return leg.minutes <= commute.max_minutes;
 }

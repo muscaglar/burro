@@ -92,17 +92,17 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "38085",
+    "content-length": "38105",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "77988775-c2b9-43c7-ae62-4f788affe2aa"
+    "x-request-id": "ae94fca1-f6e7-49c7-90a3-b046810b783f"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
@@ -2334,13 +2334,13 @@
               "fact_id": "syn-n0011/tag/foodie"
             },
             {
-              "tag_id": "pace",
-              "band": 4,
-              "spread_low": 4,
-              "spread_high": 4,
+              "tag_id": "well_connected",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
               "asked": false,
               "toward": null,
-              "fact_id": "syn-n0011/tag/pace"
+              "fact_id": "syn-n0011/tag/well_connected"
             }
           ]
         },

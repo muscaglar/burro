@@ -13,7 +13,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "41916",
+    "content-length": "42384",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -23,7 +23,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
@@ -251,7 +251,8 @@
               "minutes": 12,
               "minutes_typical": 12,
               "minutes_just_missed": 14,
-              "utility": 1.0
+              "utility": 1.0,
+              "estimate": null
             },
             {
               "place_id": "syn-p0021",
@@ -260,7 +261,8 @@
               "minutes": 27,
               "minutes_typical": 27,
               "minutes_just_missed": 29,
-              "utility": 0.7
+              "utility": 0.7,
+              "estimate": null
             }
           ],
           "budget": {
@@ -446,7 +448,8 @@
               "minutes": 15,
               "minutes_typical": 15,
               "minutes_just_missed": 18,
-              "utility": 1.0
+              "utility": 1.0,
+              "estimate": null
             },
             {
               "place_id": "syn-p0021",
@@ -455,7 +458,8 @@
               "minutes": 35,
               "minutes_typical": 35,
               "minutes_just_missed": 38,
-              "utility": 0.5
+              "utility": 0.5,
+              "estimate": null
             }
           ],
           "budget": {
@@ -641,7 +645,8 @@
               "minutes": 18,
               "minutes_typical": 18,
               "minutes_just_missed": 22,
-              "utility": 0.9
+              "utility": 0.9,
+              "estimate": null
             },
             {
               "place_id": "syn-p0021",
@@ -650,7 +655,8 @@
               "minutes": 27,
               "minutes_typical": 27,
               "minutes_just_missed": 32,
-              "utility": 0.7
+              "utility": 0.7,
+              "estimate": null
             }
           ],
           "budget": {
@@ -836,7 +842,8 @@
               "minutes": 24,
               "minutes_typical": 24,
               "minutes_just_missed": 28,
-              "utility": 0.7
+              "utility": 0.7,
+              "estimate": null
             },
             {
               "place_id": "syn-p0021",
@@ -845,7 +852,8 @@
               "minutes": 21,
               "minutes_typical": 21,
               "minutes_just_missed": 26,
-              "utility": 0.85
+              "utility": 0.85,
+              "estimate": null
             }
           ],
           "budget": {
@@ -1031,7 +1039,8 @@
               "minutes": 17,
               "minutes_typical": 17,
               "minutes_just_missed": 19,
-              "utility": 0.9333
+              "utility": 0.9333,
+              "estimate": null
             },
             {
               "place_id": "syn-p0021",
@@ -1040,7 +1049,8 @@
               "minutes": 16,
               "minutes_typical": 16,
               "minutes_just_missed": 18,
-              "utility": 0.975
+              "utility": 0.975,
+              "estimate": null
             }
           ],
           "budget": {
@@ -1226,7 +1236,8 @@
               "minutes": 16,
               "minutes_typical": 16,
               "minutes_just_missed": 18,
-              "utility": 0.9667
+              "utility": 0.9667,
+              "estimate": null
             },
             {
               "place_id": "syn-p0021",
@@ -1235,7 +1246,8 @@
               "minutes": 2,
               "minutes_typical": 2,
               "minutes_just_missed": 2,
-              "utility": 1.0
+              "utility": 1.0,
+              "estimate": null
             }
           ],
           "budget": {
@@ -1421,7 +1433,8 @@
               "minutes": 19,
               "minutes_typical": 19,
               "minutes_just_missed": 24,
-              "utility": 0.8667
+              "utility": 0.8667,
+              "estimate": null
             },
             {
               "place_id": "syn-p0021",
@@ -1430,7 +1443,8 @@
               "minutes": 28,
               "minutes_typical": 28,
               "minutes_just_missed": 33,
-              "utility": 0.675
+              "utility": 0.675,
+              "estimate": null
             }
           ],
           "budget": {
@@ -1616,7 +1630,8 @@
               "minutes": 14,
               "minutes_typical": 14,
               "minutes_just_missed": 18,
-              "utility": 1.0
+              "utility": 1.0,
+              "estimate": null
             },
             {
               "place_id": "syn-p0021",
@@ -1625,7 +1640,8 @@
               "minutes": 34,
               "minutes_typical": 34,
               "minutes_just_missed": 38,
-              "utility": 0.525
+              "utility": 0.525,
+              "estimate": null
             }
           ],
           "budget": {
@@ -1811,7 +1827,8 @@
               "minutes": 37,
               "minutes_typical": 37,
               "minutes_just_missed": 42,
-              "utility": 0.2667
+              "utility": 0.2667,
+              "estimate": null
             },
             {
               "place_id": "syn-p0021",
@@ -1820,7 +1837,8 @@
               "minutes": 35,
               "minutes_typical": 35,
               "minutes_just_missed": 40,
-              "utility": 0.5
+              "utility": 0.5,
+              "estimate": null
             }
           ],
           "budget": {
@@ -2006,7 +2024,8 @@
               "minutes": 10,
               "minutes_typical": 10,
               "minutes_just_missed": 12,
-              "utility": 1.0
+              "utility": 1.0,
+              "estimate": null
             },
             {
               "place_id": "syn-p0021",
@@ -2015,7 +2034,8 @@
               "minutes": 25,
               "minutes_typical": 25,
               "minutes_just_missed": 27,
-              "utility": 0.75
+              "utility": 0.75,
+              "estimate": null
             }
           ],
           "budget": {
@@ -2201,7 +2221,8 @@
               "minutes": 9,
               "minutes_typical": 9,
               "minutes_just_missed": 11,
-              "utility": 1.0
+              "utility": 1.0,
+              "estimate": null
             },
             {
               "place_id": "syn-p0021",
@@ -2210,7 +2231,8 @@
               "minutes": 18,
               "minutes_typical": 18,
               "minutes_just_missed": 20,
-              "utility": 0.925
+              "utility": 0.925,
+              "estimate": null
             }
           ],
           "budget": {
@@ -2396,7 +2418,8 @@
               "minutes": 13,
               "minutes_typical": 13,
               "minutes_just_missed": 16,
-              "utility": 1.0
+              "utility": 1.0,
+              "estimate": null
             },
             {
               "place_id": "syn-p0021",
@@ -2405,7 +2428,8 @@
               "minutes": 33,
               "minutes_typical": 33,
               "minutes_just_missed": 36,
-              "utility": 0.55
+              "utility": 0.55,
+              "estimate": null
             }
           ],
           "budget": {
@@ -2445,13 +2469,13 @@
               "fact_id": "syn-n0011/tag/foodie"
             },
             {
-              "tag_id": "pace",
-              "band": 4,
-              "spread_low": 4,
-              "spread_high": 4,
+              "tag_id": "well_connected",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
               "asked": false,
               "toward": null,
-              "fact_id": "syn-n0011/tag/pace"
+              "fact_id": "syn-n0011/tag/well_connected"
             }
           ]
         },
@@ -2591,7 +2615,8 @@
               "minutes": 2,
               "minutes_typical": 2,
               "minutes_just_missed": 2,
-              "utility": 1.0
+              "utility": 1.0,
+              "estimate": null
             },
             {
               "place_id": "syn-p0021",
@@ -2600,7 +2625,8 @@
               "minutes": 19,
               "minutes_typical": 19,
               "minutes_just_missed": 21,
-              "utility": 0.9
+              "utility": 0.9,
+              "estimate": null
             }
           ],
           "budget": {
@@ -2786,7 +2812,8 @@
               "minutes": 10,
               "minutes_typical": 10,
               "minutes_just_missed": 13,
-              "utility": 1.0
+              "utility": 1.0,
+              "estimate": null
             },
             {
               "place_id": "syn-p0021",
@@ -2795,7 +2822,8 @@
               "minutes": 30,
               "minutes_typical": 30,
               "minutes_just_missed": 33,
-              "utility": 0.625
+              "utility": 0.625,
+              "estimate": null
             }
           ],
           "budget": {

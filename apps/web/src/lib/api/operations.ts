@@ -39,7 +39,8 @@ type Route = {
  * Where each operation is served, and how long the website waits for it:
  * 8 seconds for reading a sentence, which may wait on a model, 3 for place
  * search, which runs as a person types, 5 for the rest that depend on a
- * search, and 10 for what a page is built from.
+ * search, and 10 for what a page is built from. A build waits longer for a read it
+ * asks for again, which `server.ts` holds, and a browser never does.
  */
 export const ROUTES = {
   interpret: { method: "POST", path: "/v1/interpret", timeoutMs: 8_000 },
@@ -56,6 +57,13 @@ export const ROUTES = {
   get_census: {
     method: "GET",
     path: "/v1/areas/{id_or_slug}/census",
+    timeoutMs: 5_000,
+    neverKept: true,
+  },
+  // The household income of one area, which is asked for and kept as the census is.
+  get_income: {
+    method: "GET",
+    path: "/v1/areas/{id_or_slug}/income",
     timeoutMs: 5_000,
     neverKept: true,
   },

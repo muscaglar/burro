@@ -226,7 +226,7 @@ describe("the chips", () => {
   test("test_a_feature_that_counts_either_way_says_which_way", () => {
     const nights = recordedAnswer("interpret", "interpret-nights-out").body.data.spec;
 
-    const venues = said(nights, { "feature:venue_evening": ["direction"] }).filter((chip) =>
+    const venues = said(nights, { "feature:venue_evening_per_homes": ["direction"] }).filter((chip) =>
       chip.chip.startsWith("Pubs"),
     );
 

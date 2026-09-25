@@ -104,6 +104,26 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/v1/areas/{id_or_slug}/income": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /**
+         * Get Income
+         * @description The household income of one area, as its publisher estimates it, and nothing else.
+         */
+        readonly get: operations["get_income"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/v1/compare": {
         readonly parameters: {
             readonly query?: never;
@@ -195,7 +215,7 @@ export interface paths {
         readonly put?: never;
         /**
          * Search Places
-         * @description The places that match, best first.
+         * @description The places and the areas that match, each best first.
          */
         readonly post: operations["search_places"];
         readonly delete?: never;
@@ -332,6 +352,7 @@ export interface components {
             ];
             /** Name */
             readonly name: string;
+            readonly named: components["schemas"]["Named"] | null;
             /** Rankable */
             readonly rankable: boolean;
             /** Slug */
@@ -617,6 +638,7 @@ export interface components {
         };
         /** CommuteLeg */
         readonly CommuteLeg: {
+            readonly estimate?: components["schemas"]["JourneyBand"] | null;
             /** Minutes */
             readonly minutes: number | null;
             /** Minutes Just Missed */
@@ -642,6 +664,7 @@ export interface components {
             readonly area_id: string;
             /** Contribution */
             readonly contribution: number | null;
+            readonly estimate?: components["schemas"]["JourneyBand"] | null;
             /** Fact Id */
             readonly fact_id: string | null;
             /** Percentile */
@@ -689,7 +712,7 @@ export interface components {
          *     type. A test holds it to `FilterReason` and `UnrankedReason`.
          * @enum {string}
          */
-        readonly CompareStatus: "ranked" | "excluded" | "not_selected" | "over_budget" | "commute_cap" | "not_rankable" | "insufficient_data" | "character_unknown";
+        readonly CompareStatus: "ranked" | "excluded" | "not_selected" | "over_budget" | "commute_cap" | "commute_likely_beyond" | "not_rankable" | "insufficient_data" | "character_unknown";
         /** ComparedArea */
         readonly ComparedArea: {
             /** Area Id */
@@ -731,10 +754,13 @@ export interface components {
          * CostEstimate
          * @description What a home of one kind costs in one area: a range, or one number where no range is known.
          *
-         *     A row holds both quartiles or neither. A row with neither is a publisher's
-         *     own median of what was paid for the homes sold in the twelve months that
-         *     end with `as_of`. Nothing stands in for the range, and what the median
-         *     rests on is `unstated`: the publisher gives no count of the sales.
+         *     A row holds both quartiles or neither. A row with neither is a median of
+         *     what was paid for the homes that were sold, and is one of two things. A
+         *     publisher's own median is of the twelve months that end with `as_of`, and
+         *     what it rests on is `unstated`: the publisher gives no count of the sales.
+         *     A median worked out from the sales themselves says how many it rests on,
+         *     in `sales`, and the first month they were made in, in `since`. Nothing
+         *     stands in for the range of either.
          */
         readonly CostEstimate: {
             /** Area Id */
@@ -746,7 +772,11 @@ export interface components {
             readonly lower_quartile: number | null;
             /** Median */
             readonly median: number;
+            /** Sales */
+            readonly sales?: number | null;
             readonly segment: components["schemas"]["Segment"];
+            /** Since */
+            readonly since?: string | null;
             /** Source Ids */
             readonly source_ids: readonly string[];
             readonly tenure: components["schemas"]["Tenure"];
@@ -785,15 +815,15 @@ export interface components {
         };
         /**
          * Describes
-         * @description What a feature is a fact about. There is no value for who lives somewhere.
+         * @description What a feature is a fact about.
          * @enum {string}
          */
-        readonly Describes: "place" | "buildings" | "events";
+        readonly Describes: "place" | "buildings" | "events" | "residents";
         /**
          * Dimension
          * @enum {string}
          */
-        readonly Dimension: "crime" | "schools" | "green_water" | "air_noise" | "venues_culture" | "homes" | "station_access" | "services";
+        readonly Dimension: "crime" | "schools" | "green_water" | "air_noise" | "venues_culture" | "homes" | "station_access" | "services" | "brands" | "residents";
         /**
          * Direction
          * @enum {string}
@@ -839,6 +869,11 @@ export interface components {
             readonly data: components["schemas"]["GeometryData"];
             readonly meta: components["schemas"]["Meta"];
         };
+        /** Envelope[IncomeShown] */
+        readonly Envelope_IncomeShown_: {
+            readonly data: components["schemas"]["IncomeShown"];
+            readonly meta: components["schemas"]["Meta"];
+        };
         /** Envelope[InterpretData] */
         readonly Envelope_InterpretData_: {
             readonly data: components["schemas"]["InterpretData"];
@@ -881,7 +916,7 @@ export interface components {
          * ErrorCode
          * @enum {string}
          */
-        readonly ErrorCode: "malformed_json" | "body_too_large" | "unsupported_media_type" | "internal_error" | "not_found" | "method_not_allowed" | "invalid_request" | "invalid_text" | "invalid_spec" | "invalid_operations" | "invalid_compare" | "invalid_query" | "unknown_place" | "unknown_area" | "area_not_found" | "share_not_found" | "release_changed" | "census_not_available";
+        readonly ErrorCode: "malformed_json" | "body_too_large" | "unsupported_media_type" | "internal_error" | "not_found" | "method_not_allowed" | "invalid_request" | "invalid_text" | "invalid_spec" | "invalid_operations" | "invalid_compare" | "invalid_query" | "unknown_place" | "unknown_area" | "area_not_found" | "share_not_found" | "release_changed" | "census_not_available" | "income_not_available";
         /** ErrorEnvelope */
         readonly ErrorEnvelope: {
             readonly error: components["schemas"]["ErrorBody"];
@@ -960,6 +995,8 @@ export interface components {
         readonly FactKind: "area" | "feature" | "tag" | "cost" | "budget_fit" | "travel" | "station" | "missing" | "likeness";
         /** FactSource */
         readonly FactSource: {
+            /** Attribution */
+            readonly attribution?: string | null;
             /** Name */
             readonly name: string;
             /** Publisher */
@@ -972,7 +1009,7 @@ export interface components {
          * @description The groups of the settings, in the order they are shown.
          * @enum {string}
          */
-        readonly Family: "streets_homes" | "pace_food" | "green" | "daily_life";
+        readonly Family: "streets_homes" | "pace_food" | "green" | "daily_life" | "who_lives_there";
         /** FamilyLabel */
         readonly FamilyLabel: {
             readonly family: components["schemas"]["Family"];
@@ -983,13 +1020,13 @@ export interface components {
          * FeatureId
          * @enum {string}
          */
-        readonly FeatureId: "crime_violence_robbery" | "crime_burglary_theft" | "school_primary_nearby" | "school_primary_attainment" | "school_secondary_attainment" | "university_proximity" | "green_cover" | "park_proximity" | "play_space_proximity" | "water_access" | "air_no2" | "noise_exposure" | "venue_food_drink" | "venue_evening" | "venue_independent" | "culture_venues" | "highstreet_access" | "homes_flats" | "homes_pre1919" | "homes_density" | "conservation_cover" | "station_walk" | "station_lines" | "independents_nearby" | "centre_small" | "centre_compact" | "listed_buildings" | "homes_post2000" | "road_major_exposure" | "evening_cluster_exposure" | "land_industry" | "land_storage" | "land_transport_other" | "land_gardens" | "land_woodland" | "park_large_proximity" | "park_facilities" | "grocery_walk" | "incident_criminal_damage" | "incident_antisocial" | "private_outdoor_space" | "cuisine_variety" | "gp_walk" | "pharmacy_walk" | "venue_food_drink_per_homes" | "price_median" | "culture_venues_per_homes";
+        readonly FeatureId: "crime_violence_robbery" | "crime_burglary_theft" | "school_primary_nearby" | "school_primary_attainment" | "school_secondary_attainment" | "university_proximity" | "green_cover" | "park_proximity" | "play_space_proximity" | "water_access" | "air_no2" | "noise_exposure" | "venue_food_drink" | "venue_evening" | "venue_independent" | "culture_venues" | "highstreet_access" | "homes_flats" | "homes_pre1919" | "homes_density" | "conservation_cover" | "station_walk" | "station_lines" | "independents_nearby" | "centre_small" | "centre_compact" | "listed_buildings" | "homes_post2000" | "road_major_exposure" | "evening_cluster_exposure" | "land_industry" | "land_storage" | "land_transport_other" | "land_gardens" | "land_woodland" | "park_large_proximity" | "park_facilities" | "grocery_walk" | "incident_criminal_damage" | "incident_antisocial" | "private_outdoor_space" | "cuisine_variety" | "gp_walk" | "pharmacy_walk" | "venue_food_drink_per_homes" | "price_median" | "culture_venues_per_homes" | "venue_cafe" | "venue_cafe_per_homes" | "venue_gym" | "venue_gym_per_homes" | "venue_evening_per_homes" | "grocer_premium_nearby" | "grocer_mid_nearby" | "grocer_value_nearby" | "gym_premium_nearby" | "gym_mid_nearby" | "gym_value_nearby" | "coffee_premium_nearby" | "coffee_mid_nearby" | "coffee_value_nearby" | "grocer_premium_distance" | "grocer_mid_distance" | "grocer_value_distance" | "gym_premium_distance" | "gym_mid_distance" | "gym_value_distance" | "coffee_premium_distance" | "coffee_mid_distance" | "coffee_value_distance" | "brand_mix" | "brand_waitrose" | "brand_mands" | "brand_whole_foods" | "brand_sainsburys" | "brand_tesco" | "brand_coop" | "brand_morrisons" | "brand_asda" | "brand_aldi" | "brand_lidl" | "brand_iceland" | "brand_equinox" | "brand_third_space" | "brand_barrys" | "brand_virgin_active" | "brand_nuffield" | "brand_gymbox" | "brand_david_lloyd" | "brand_anytime_fitness" | "brand_puregym" | "brand_the_gym_group" | "brand_gails" | "brand_ole_and_steen" | "brand_pret" | "brand_nero" | "brand_starbucks" | "brand_costa" | "brand_blank_street" | "brand_greggs" | "underground_proximity" | "overground_proximity" | "rail_proximity" | "bus_stops_nearby" | "bus_routes_nearby" | "residents_aged_20_34" | "residents_aged_65_over" | "households_dependent_children" | "households_one_person" | "homes_higher_bands" | "price_rise_5y" | "price_rise_10y";
         /**
          * FeatureKind
          * @description What a person may want of a feature, which decides where it may stand.
          * @enum {string}
          */
-        readonly FeatureKind: "taste" | "amenity" | "nuisance" | "on_request";
+        readonly FeatureKind: "taste" | "amenity" | "nuisance" | "on_request" | "residents";
         /** FeatureValue */
         readonly FeatureValue: {
             /** Area Id */
@@ -1021,7 +1058,7 @@ export interface components {
          * @description In the order the filters are applied. An area stops at the first that catches it.
          * @enum {string}
          */
-        readonly FilterReason: "excluded" | "not_selected" | "over_budget" | "commute_cap";
+        readonly FilterReason: "excluded" | "not_selected" | "over_budget" | "commute_cap" | "commute_likely_beyond";
         /** Filtered */
         readonly Filtered: {
             /** Area Id */
@@ -1112,6 +1149,83 @@ export interface components {
             /** Journeys */
             readonly journeys: boolean;
         };
+        /**
+         * HowEstimated
+         * @description The numbers an estimate is made with, for a page of methods to print.
+         */
+        readonly HowEstimated: {
+            /** Beyond By */
+            readonly beyond_by: number;
+            /** Fixed Minutes */
+            readonly fixed_minutes: number;
+            /** Minutes A Km */
+            readonly minutes_a_km: number;
+            /** Minutes A Km Near The Underground */
+            readonly minutes_a_km_near_the_underground: number;
+            /** Near The Underground M */
+            readonly near_the_underground_m: number;
+            /** Said */
+            readonly said: string;
+            /** Within By */
+            readonly within_by: number;
+        };
+        /**
+         * IncomeOffer
+         * @description What the closed block of an area's page says. It holds no figure and names no area.
+         */
+        readonly IncomeOffer: {
+            /** Available */
+            readonly available: boolean;
+            /** Heading */
+            readonly heading: string;
+            /** Intro */
+            readonly intro: string;
+        };
+        /**
+         * IncomeShown
+         * @description The figure of one area, as its page shows it. Every word but a button's is here.
+         *
+         *     A figure is said in words, as it is to be printed: `£52,300`. `limits`
+         *     holds both limits as they are printed, `£46,100 to £59,300`, so that no
+         *     client joins two figures. Where the publisher gives none for the area,
+         *     `estimate` and the limits are `None` and `none_given` says so.
+         */
+        readonly IncomeShown: {
+            /** Area Id */
+            readonly area_id: string;
+            /** Definition */
+            readonly definition: string;
+            /** Estimate */
+            readonly estimate: string | null;
+            /** Heading */
+            readonly heading: string;
+            /** Kind */
+            readonly kind: string;
+            /** Licence Line */
+            readonly licence_line: string;
+            /** Limits */
+            readonly limits: string | null;
+            /** Limits Label */
+            readonly limits_label: string;
+            /** Lower */
+            readonly lower: string | null;
+            /** Modelled */
+            readonly modelled: string;
+            /** None Given */
+            readonly none_given: string | null;
+            /** Notes */
+            readonly notes: readonly string[];
+            /** Open Source */
+            readonly open_source: string;
+            /** Source Line */
+            readonly source_line: string;
+            /** Source Url */
+            readonly source_url: string;
+            /** Upper */
+            readonly upper: string | null;
+            /** Year Line */
+            readonly year_line: string;
+        };
         /** InterpretBody */
         readonly InterpretBody: {
             /**
@@ -1174,6 +1288,12 @@ export interface components {
          * @enum {string}
          */
         readonly InterpreterName: "rule" | "model";
+        /**
+         * JourneyBand
+         * @description Where an estimated journey stands against the limit a person gave. Never minutes.
+         * @enum {string}
+         */
+        readonly JourneyBand: "likely_within" | "borderline" | "likely_beyond";
         /** Meta */
         readonly Meta: {
             /** Engine Version */
@@ -1204,6 +1324,8 @@ export interface components {
             readonly features: readonly components["schemas"]["Metric"][];
             readonly gritty_variant: components["schemas"]["GrittyVariant"];
             readonly holds: components["schemas"]["Holds"];
+            readonly income: components["schemas"]["IncomeOffer"];
+            readonly journey_estimate?: components["schemas"]["HowEstimated"] | null;
             readonly limits: components["schemas"]["ServedLimits"];
             /** Preview */
             readonly preview: boolean;
@@ -1272,6 +1394,28 @@ export interface components {
             readonly unit: number;
         };
         /**
+         * NameState
+         * @description How far the name an area bears has been checked.
+         * @enum {string}
+         */
+        readonly NameState: "draft" | "checked";
+        /**
+         * Named
+         * @description What is known of the name an area bears, where it is not its publisher's label.
+         *
+         *     An area is drawn as its publisher draws it, and its publisher labels it
+         *     with a borough and a number. Where the area bears the name of a
+         *     neighbourhood, this says what the label was, who wrote the name, and
+         *     whether a person has checked it. A name is a draft until one has.
+         */
+        readonly Named: {
+            /** Label */
+            readonly label: string;
+            /** Source Ids */
+            readonly source_ids: readonly string[];
+            readonly state: components["schemas"]["NameState"];
+        };
+        /**
          * NamedPlace
          * @description A place a spec names, by the release's own name for it. Never what was typed.
          *
@@ -1303,8 +1447,14 @@ export interface components {
                 number,
                 number
             ];
+            /** Homes At */
+            readonly homes_at?: readonly [
+                number,
+                number
+            ] | null;
             /** Name */
             readonly name: string;
+            readonly named?: components["schemas"]["Named"] | null;
             /** Neighbours */
             readonly neighbours: readonly string[];
             /** Rankable */
@@ -1379,6 +1529,8 @@ export interface components {
         };
         /** PlacesData */
         readonly PlacesData: {
+            /** Areas */
+            readonly areas: readonly components["schemas"]["AreaSummary"][];
             /** Places */
             readonly places: readonly components["schemas"]["FoundPlace"][];
         };
@@ -1787,6 +1939,11 @@ export interface components {
         readonly Source: {
             /** Attribution */
             readonly attribution: string;
+            /**
+             * Credit Beside Figures
+             * @default false
+             */
+            readonly credit_beside_figures: boolean;
             /** Licence */
             readonly licence: string;
             /** Name */
@@ -1969,7 +2126,7 @@ export interface components {
          *     near_universities and waterside.
          * @enum {string}
          */
-        readonly TagId: "leafy" | "village_feel" | "pace" | "quiet_residential" | "built_age" | "everyday_on_foot" | "parks_close_by" | "homes" | "foodie" | "family_amenities" | "works_warehouses" | "street_character";
+        readonly TagId: "leafy" | "village_feel" | "pace" | "quiet_residential" | "built_age" | "everyday_on_foot" | "parks_close_by" | "homes" | "foodie" | "family_amenities" | "works_warehouses" | "street_character" | "well_connected" | "family_area" | "young_professionals";
         /**
          * TagShape
          * @enum {string}
@@ -2020,7 +2177,7 @@ export interface components {
          * TemplateId
          * @enum {string}
          */
-        readonly TemplateId: "area" | "feature" | "feature_crime" | "vibe" | "vibe_range" | "vibe_unknown" | "cost_rent" | "cost_buy" | "cost_buy_median" | "budget_under" | "budget_over" | "budget_under_median" | "budget_over_median" | "travel_pt" | "travel_pt_over" | "travel_other" | "travel_other_over" | "travel_beyond" | "station" | "station_nearby" | "missing" | "missing_journey" | "likeness" | "likeness_same";
+        readonly TemplateId: "area" | "feature" | "feature_crime" | "vibe" | "vibe_range" | "vibe_unknown" | "cost_rent" | "cost_buy" | "cost_buy_median" | "cost_buy_sold" | "budget_under" | "budget_over" | "budget_under_median" | "budget_over_median" | "travel_pt" | "travel_pt_over" | "travel_other" | "travel_other_over" | "travel_beyond" | "travel_estimated" | "station" | "station_nearby" | "missing" | "missing_journey" | "likeness" | "likeness_same";
         /**
          * Tenure
          * @enum {string}
@@ -2051,7 +2208,7 @@ export interface components {
          * TravelStatus
          * @enum {string}
          */
-        readonly TravelStatus: "ok" | "beyond_cutoff" | "missing";
+        readonly TravelStatus: "ok" | "beyond_cutoff" | "missing" | "estimated";
         /**
          * UnmetAt
          * @description Something that was asked for which nothing measures, and where it was said.
@@ -2172,6 +2329,7 @@ export type EnvelopeCensusPanel = components['schemas']['Envelope_CensusPanel_']
 export type EnvelopeCompareData = components['schemas']['Envelope_CompareData_'];
 export type EnvelopeExplanationsData = components['schemas']['Envelope_ExplanationsData_'];
 export type EnvelopeGeometryData = components['schemas']['Envelope_GeometryData_'];
+export type EnvelopeIncomeShown = components['schemas']['Envelope_IncomeShown_'];
 export type EnvelopeInterpretData = components['schemas']['Envelope_InterpretData_'];
 export type EnvelopeMetaData = components['schemas']['Envelope_MetaData_'];
 export type EnvelopePlacesData = components['schemas']['Envelope_PlacesData_'];
@@ -2206,10 +2364,14 @@ export type GeometryType = components['schemas']['GeometryType'];
 export type GrittyVariant = components['schemas']['GrittyVariant'];
 export type Health = components['schemas']['Health'];
 export type Holds = components['schemas']['Holds'];
+export type HowEstimated = components['schemas']['HowEstimated'];
+export type IncomeOffer = components['schemas']['IncomeOffer'];
+export type IncomeShown = components['schemas']['IncomeShown'];
 export type InterpretBody = components['schemas']['InterpretBody'];
 export type InterpretData = components['schemas']['InterpretData'];
 export type InterpretStatus = components['schemas']['InterpretStatus'];
 export type InterpreterName = components['schemas']['InterpreterName'];
+export type JourneyBand = components['schemas']['JourneyBand'];
 export type Meta = components['schemas']['Meta'];
 export type MetaData = components['schemas']['MetaData'];
 export type Method = components['schemas']['Method'];
@@ -2217,6 +2379,8 @@ export type Metric = components['schemas']['Metric'];
 export type Mode = components['schemas']['Mode'];
 export type ModeChoice = components['schemas']['ModeChoice'];
 export type MoneyLimits = components['schemas']['MoneyLimits'];
+export type NameState = components['schemas']['NameState'];
+export type Named = components['schemas']['Named'];
 export type NamedPlace = components['schemas']['NamedPlace'];
 export type NativeResolution = components['schemas']['NativeResolution'];
 export type Neighbourhood = components['schemas']['Neighbourhood'];
@@ -2466,6 +2630,55 @@ export interface operations {
                 };
                 content: {
                     readonly "application/json": components["schemas"]["Envelope_CensusPanel_"];
+                };
+            };
+            /** @description Not Found */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly get_income: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path: {
+                readonly id_or_slug: string;
+            };
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_IncomeShown_"];
                 };
             };
             /** @description Not Found */

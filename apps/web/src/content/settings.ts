@@ -100,6 +100,13 @@ export const HIDDEN = {
 export const CRIME_CAVEAT =
   "Recorded crime depends on what is reported, and locations are approximate.";
 
+/** What the group of brands holds. It names the group, and says nothing of a place. */
+export const BRANDS = {
+  lead:
+    "Which chains of grocers, gyms and coffee are within reach of home, and how far the nearest of each is. " +
+    "Burro measures places, not the people in them.",
+} as const;
+
 export const CRIME = {
   // The one account of when recorded crime counts, as every page says it.
   lead: `${CRIME_RULE} It is a count of what was reported, by kind.`,

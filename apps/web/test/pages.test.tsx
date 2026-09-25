@@ -151,7 +151,7 @@ describe("the pages built from the API", () => {
     for (const metric of data.features) {
       expect(screen.getByRole("heading", { name: metric.label })).toBeInTheDocument();
     }
-    expect(data.features).toHaveLength(43);
+    expect(data.features).toHaveLength(108);
   });
 
   test("test_the_vibes_page_holds_every_vibe_of_the_release_with_its_recipe", async () => {
@@ -161,7 +161,7 @@ describe("the pages built from the API", () => {
       expect(screen.getByRole("heading", { level: 2, name: tag.label })).toBeInTheDocument();
       expect(screen.getByRole("table", { name: VIBES.recipe.caption(tag.label) })).toBeInTheDocument();
     }
-    expect(data.tags).toHaveLength(11);
+    expect(data.tags).toHaveLength(14);
   });
 
   test("test_the_sources_page_holds_every_source_of_the_release", async () => {

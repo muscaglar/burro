@@ -18,12 +18,12 @@
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "2be04c48-28ae-4919-bc30-2cb785d8ae1f"
+    "x-request-id": "19be41f4-51f9-4d00-b6c3-d944e72bf05f"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },

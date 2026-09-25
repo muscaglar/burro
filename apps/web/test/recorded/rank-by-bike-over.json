@@ -89,17 +89,17 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "4390",
+    "content-length": "4406",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "ee4f047c-ff83-4cf3-ad2b-20216aa68a53"
+    "x-request-id": "beb63339-31ae-43f6-b116-6f283b9a64a8"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
@@ -212,7 +212,8 @@
               "minutes": 17,
               "minutes_typical": 17,
               "minutes_just_missed": 17,
-              "utility": 0.0
+              "utility": 0.0,
+              "estimate": null
             }
           ],
           "budget": null,

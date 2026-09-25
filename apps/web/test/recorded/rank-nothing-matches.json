@@ -100,12 +100,12 @@
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "41c1fd9e-6d9e-4eaa-8270-a35af2186f0b"
+    "x-request-id": "b32e1038-ed6b-4b74-9abb-99937ae371a9"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },

@@ -58,7 +58,13 @@ export function lacksOf(
     .sort((one, other) => other.count - one.count);
 }
 
-const FILTER_ORDER: readonly FilterReason[] = ["excluded", "not_selected", "over_budget", "commute_cap"];
+const FILTER_ORDER: readonly FilterReason[] = [
+  "excluded",
+  "not_selected",
+  "over_budget",
+  "commute_cap",
+  "commute_likely_beyond",
+];
 const UNRANKED_ORDER: readonly UnrankedReason[] = ["not_rankable", "insufficient_data", "character_unknown"];
 
 /** Each firm limit in the spec, with the one edit that loosens it. */

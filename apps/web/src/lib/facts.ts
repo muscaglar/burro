@@ -63,6 +63,20 @@ export function citedBy(facts: readonly Fact[]): Cited {
   };
 }
 
+/**
+ * The statement of credit a source brings with it, where its publisher asks that it stands
+ * wherever a figure made from its data is shown. The API says which: a source that is
+ * credited by its name and its publisher brings none. A statement of several lines is one
+ * line here, each part ended with a full stop.
+ */
+export function creditOf(source: FactSource): string | null {
+  const said = (source.attribution ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line !== "");
+  return said.length === 0 ? null : said.map((line) => (/[.!?]$/.test(line) ? line : `${line}.`)).join(" ");
+}
+
 /** Every source the facts name, once each, in the order of their names. */
 export function sourcesOf(facts: readonly Fact[]): readonly FactSource[] {
   const found = new Map<string, FactSource>();

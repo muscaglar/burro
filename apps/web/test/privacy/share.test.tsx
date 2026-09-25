@@ -55,7 +55,7 @@ function standIn(): StandIn {
   const places = recordedAnswer("search_places", "places-search");
   const found: FoundPlace = { place_id: PLACE_ID, name: PLACE_NAME, kind: "landmark", coarse_name: PLACE_NAME };
   return firstSearch()
-    .on("search_places", () => responseFrom({ ...places, body: { ...places.body, data: { places: [found] } } }))
+    .on("search_places", () => responseFrom({ ...places, body: { ...places.body, data: { places: [found], areas: [] } } }))
     .on("create_share", "share-made")
     .on("compare", "compare-two-defaults");
 }

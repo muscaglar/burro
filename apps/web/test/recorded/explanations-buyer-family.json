@@ -95,17 +95,17 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "26661",
+    "content-length": "27740",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "2b076e0b-5f31-438d-abd1-6d2c7211310f"
+    "x-request-id": "14984ae2-6837-4b97-b3aa-f8be76bca0da"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
@@ -362,18 +362,23 @@
           "template": "area",
           "slots": {
             "name": "Farrowmere",
-            "borough": "Quillhaven"
+            "borough": "Quillhaven",
+            "label": "Quillhaven 006",
+            "written_by": "Burro",
+            "state": "draft"
           },
           "numbers": [],
           "names": [
             "Farrowmere",
-            "Quillhaven"
+            "Quillhaven",
+            "Quillhaven 006"
           ],
           "sources": [
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -401,7 +406,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -437,7 +443,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -473,7 +480,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -515,7 +523,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -558,7 +567,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -593,7 +603,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09",
@@ -608,18 +619,23 @@
           "template": "area",
           "slots": {
             "name": "Dulcimer Green",
-            "borough": "Quillhaven"
+            "borough": "Quillhaven",
+            "label": "Quillhaven 004",
+            "written_by": "Burro",
+            "state": "draft"
           },
           "numbers": [],
           "names": [
             "Dulcimer Green",
-            "Quillhaven"
+            "Quillhaven",
+            "Quillhaven 004"
           ],
           "sources": [
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -647,7 +663,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -683,7 +700,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -718,7 +736,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -760,7 +779,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -801,7 +821,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -835,7 +856,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09",
@@ -850,18 +872,23 @@
           "template": "area",
           "slots": {
             "name": "Foxholt",
-            "borough": "Quillhaven"
+            "borough": "Quillhaven",
+            "label": "Quillhaven 007",
+            "written_by": "Burro",
+            "state": "draft"
           },
           "numbers": [],
           "names": [
             "Foxholt",
-            "Quillhaven"
+            "Quillhaven",
+            "Quillhaven 007"
           ],
           "sources": [
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -889,7 +916,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -924,7 +952,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -960,7 +989,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1002,7 +1032,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1044,7 +1075,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1079,7 +1111,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09",
@@ -1094,18 +1127,23 @@
           "template": "area",
           "slots": {
             "name": "Marrowfen",
-            "borough": "Quillhaven"
+            "borough": "Quillhaven",
+            "label": "Quillhaven 014",
+            "written_by": "Burro",
+            "state": "draft"
           },
           "numbers": [],
           "names": [
             "Marrowfen",
-            "Quillhaven"
+            "Quillhaven",
+            "Quillhaven 014"
           ],
           "sources": [
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1141,7 +1179,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1177,7 +1216,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1213,7 +1253,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1238,7 +1279,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1282,7 +1324,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1326,7 +1369,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1361,7 +1405,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09",
@@ -1376,18 +1421,23 @@
           "template": "area",
           "slots": {
             "name": "Eskerfold",
-            "borough": "Quillhaven"
+            "borough": "Quillhaven",
+            "label": "Quillhaven 005",
+            "written_by": "Burro",
+            "state": "draft"
           },
           "numbers": [],
           "names": [
             "Eskerfold",
-            "Quillhaven"
+            "Quillhaven",
+            "Quillhaven 005"
           ],
           "sources": [
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1415,7 +1465,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -1451,7 +1502,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1487,7 +1539,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1529,7 +1582,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1570,7 +1624,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1605,7 +1660,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09",

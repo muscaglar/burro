@@ -77,7 +77,7 @@ describe("the portrait of an area", () => {
   test("test_a_vibe_the_area_cannot_be_placed_on_has_no_band_and_is_never_put_in_the_middle", () => {
     const otterby = portraitOf(profile("otterby-fields"), meta);
 
-    expect(otterby.unplaced).toHaveLength(10);
+    expect(otterby.unplaced).toHaveLength(13);
     for (const mark of otterby.unplaced) {
       expect(mark.fact.template).toBe("vibe_unknown");
       expect(mark.placed).toBeNull();
@@ -143,7 +143,7 @@ describe("the portrait of an area", () => {
     const drawn = GROUPS.flatMap((group) => marksOf(profile("thrushcombe"), without, group));
 
     expect(drawn.map((mark) => mark.tag.tag_id)).not.toContain("pace");
-    expect(drawn).toHaveLength(10);
+    expect(drawn).toHaveLength(13);
   });
 
   test("test_a_mark_whose_fact_did_not_come_is_left_out_because_nothing_can_be_said_of_it", () => {
@@ -253,10 +253,10 @@ describe("the figure that stands beside a vibe", () => {
     GROUPS.flatMap((group) => portraitOf(profile(slug), meta)[group]).find((one) => one.tag.tag_id === tagId)?.pictured ?? null;
 
   test("test_it_is_one_a_person_can_picture_where_the_recipe_holds_one", () => {
-    // The heaviest part of Food and drink is a count for each square kilometre. Beside it in the
-    // recipe, and as heavy, is a count within a walk.
+    // The heaviest part of Food and drink is a count for each 1,000 homes. Beside it in the
+    // recipe, and as heavy, is a share of the places within reach.
     expect(pictured("thrushcombe", "foodie")?.key).toBe("independents_nearby");
-    expect(pictured("thrushcombe", "foodie")?.slots.value).toBe("28");
+    expect(pictured("thrushcombe", "foodie")?.slots.value).toBe("84%");
     expect(pictured("thrushcombe", "everyday_on_foot")?.key).toBe("grocery_walk");
     // A walk in metres, and of the two walks the one that sits nearest the band of the vibe.
     expect(pictured("thrushcombe", "parks_close_by")?.key).toBe("park_large_proximity");
@@ -359,7 +359,7 @@ describe("what an area is like, in short", () => {
 
   test("test_it_says_what_an_area_has_least_of_as_well_as_what_it_has_most_of", () => {
     // Pellam Cross sits at an end of many vibes. What it has least of is not crowded out.
-    expect(ids("pellam-cross")).toEqual(["everyday_on_foot", "homes", "pace", "family_amenities", "leafy"]);
+    expect(ids("pellam-cross")).toEqual(["well_connected", "everyday_on_foot", "homes", "family_amenities", "leafy"]);
     for (const data of profiles) {
       const portrait = portraitOf(data, meta);
       const lines = inShort(portrait, meta.features);

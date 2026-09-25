@@ -149,7 +149,7 @@ describe("where an area sits on each vibe", () => {
 
     // The picture is kept from a screen reader, because the words beside it say the same.
     // So the words must be drawn, and not hidden.
-    expect(lines()).toHaveLength(11);
+    expect(lines()).toHaveLength(14);
     for (const one of lines()) {
       const words = [...one.querySelectorAll("span")].filter(
         (span) => /^band \d of 5$/.test(span.childNodes[0]?.textContent ?? "") && !span.classList.contains("visually-hidden"),
@@ -185,9 +185,11 @@ describe("where an area sits on each vibe", () => {
         expect(line(mark.tag.label).textContent?.includes(`${mark.pictured?.label}: ${mark.pictured?.slots.value}`)).toBe(true);
       }
     }
-    // Food and drink is a count of places within a walk, and not a count for each square kilometre.
+    // Food and drink is a share of the places within reach, and not a count for each square kilometre.
     expect(line("Food and drink").textContent?.includes("per km")).toBe(false);
-    expect(line("Food and drink")).toHaveTextContent("Independent places to eat and drink within a 10-minute walk: 9");
+    expect(line("Food and drink")).toHaveTextContent(
+      "Share of the places to eat and drink within 800 m of home, in a straight line, that belong to no chain: 27%",
+    );
     // A scale says its two ends. The heaviest part of one may be a figure of recorded crime,
     // which is never shown before it is asked for.
     for (const mark of portrait.scales) {
@@ -203,7 +205,7 @@ describe("what Burro cannot place", () => {
   test("test_an_area_that_cannot_be_placed_says_so_once_with_why_and_not_once_for_each_vibe", () => {
     const { portrait } = show("otterby-fields");
 
-    expect(portrait.unplaced).toHaveLength(10);
+    expect(portrait.unplaced).toHaveLength(13);
     expect(within(unplaced()).getByRole("heading", { level: 3 })).toHaveTextContent(PORTRAIT.groups.unplaced);
     // Why is said once on the page, however many vibes it is true of.
     expect(document.body.textContent?.split(PORTRAIT.unplacedWhy)).toHaveLength(2);
@@ -262,7 +264,7 @@ describe("what Burro cannot place", () => {
   test("test_the_summary_says_how_many_vibes_cannot_place_the_area_and_leads_to_why", () => {
     show("otterby-fields");
 
-    expect(short()).toHaveTextContent(PORTRAIT.short.unplaced(10, 11));
+    expect(short()).toHaveTextContent(PORTRAIT.short.unplaced(13, 14));
     const why = within(short()).getByRole("link", { name: PORTRAIT.short.why });
     expect(document.getElementById((why.getAttribute("href") ?? "").slice(1))).toBe(
       within(unplaced()).getByRole("heading", { level: 3 }),
@@ -325,7 +327,9 @@ describe("what an area is like, in short", () => {
       expect(data.facts.map((fact) => fact.fact_id)).toContain(mark.pictured.fact_id);
       expect(said[at]?.textContent?.includes(`${mark.pictured.label}: ${mark.pictured.slots.value}`)).toBe(true);
     });
-    expect(said[0]).toHaveTextContent("Independent places to eat and drink within a 10-minute walk: 28");
+    expect(said[0]).toHaveTextContent(
+      "Share of the places to eat and drink within 800 m of home, in a straight line, that belong to no chain: 84%",
+    );
     expect(said[2]).toHaveTextContent("Straight-line distance to the nearest marked way into a park of 20 ha or more: 1,420 m");
   });
 
@@ -354,7 +358,11 @@ describe("what an area is like, in short", () => {
     const html = renderToStaticMarkup(<Portrait data={profile("thrushcombe")} meta={meta} />);
     show("thrushcombe");
 
-    expect(short().querySelectorAll("button, details, input")).toHaveLength(0);
+    expect(short().querySelectorAll("button, input")).toHaveLength(0);
+    // What opens is the browser's own, and opens the sources of the lines and nothing else.
+    const opens = [...short().querySelectorAll("details")];
+    expect(opens.map((part) => part.querySelector(":scope > summary")?.textContent)).toEqual([PORTRAIT.short.sources]);
+    expect(opens.map((part) => part.querySelectorAll("a[href^='/sources#']").length > 0)).toEqual([true]);
     expect(html).toContain(PORTRAIT.short.title);
     expect(html).toContain("among the most here");
   });
@@ -597,7 +605,7 @@ describe("the parts behind a vibe, one press away", () => {
     const said = list("unplaced")?.textContent ?? "";
     const nowhere = preview.recipes.filter((held) => !held.placed).map((held) => held.tag_id);
 
-    expect(nowhere).toHaveLength(8);
+    expect(nowhere).toHaveLength(11);
     expect(said.includes(PORTRAIT.notInData)).toBe(true);
     // Every vibe Alderwick cannot be placed on is one that no area can, so the other is not said.
     expect(data.portrait.unplaced.map((mark) => mark.tag_id).sort()).toEqual([...nowhere].sort());
@@ -682,7 +690,7 @@ describe("the portrait, whichever way gritty is built", () => {
 
     expect(variantA.tags.map((tag) => tag.tag_id)).toContain("works_warehouses");
     expect(screen.queryByText("Gritty")).toBeNull();
-    expect(vibes()).toHaveLength(10);
+    expect(vibes()).toHaveLength(13);
   });
 });
 

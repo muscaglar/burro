@@ -1642,11 +1642,19 @@ describe("a prompt that is not plain", () => {
   const noticed = recordedAnswer("interpret", "interpret-suggest").body.data;
   const chosen = recordedAnswer("rank", "rank-suggestion-chosen");
   const long = recordedAnswer("interpret", "interpret-by-model-long");
-  // The long sentence holds ten offers. One press may add five of them: two wishes, the culture,
-  // the journey and the budget. The five readings of two words are the person's to choose.
+  // The long sentence holds eleven offers. One press may add five of them: two wishes, the culture,
+  // the journey and the budget. The six readings of two words are the person's to choose.
   const EVERY_OFFER = long.body.data.suggestions.map((_, at) => at);
-  const ONE_PRESS_ADDS = [0, 1, 4, 8, 9];
-  const LEFT_TO_CHOOSE = ["Gritty", "What homes sell for", "Village feel", "Age of buildings", "Nearer a town centre"];
+  const ONE_PRESS_ADDS = [0, 1, 6, 10, 11];
+  const LEFT_TO_CHOOSE = [
+    "Mix of brands",
+    "Gritty",
+    "What homes sell for",
+    "Homes in the higher council tax bands",
+    "Village feel",
+    "Age of buildings",
+    "Nearer a town centre",
+  ];
   const typedOf = (recorded: { request: { body?: unknown } }) => (recorded.request.body as { text: string }).text;
   const suggesting = () =>
     standInApi()
@@ -1742,6 +1750,75 @@ describe("a prompt that is not plain", () => {
     expect(state().read).toMatchObject({ more: false, suggestions: [], unread: [], added: null });
   });
 
+  test("test_a_reading_that_a_second_search_stopped_is_not_said_to_go_on_when_that_search_fails", async () => {
+    // Seen in a browser: Search was pressed again, with the box as it was, while the model
+    // read. The second call could not leave, and the page said for good that Burro was still
+    // reading the rest of the words, though nothing read them.
+    const atOnce = recordedAnswer("interpret", "interpret-rules-at-once").body.data;
+    const api = standInApi().inTurn(
+      "interpret",
+      "interpret-rules-at-once",
+      () => new Promise(() => undefined),
+      () => {
+        throw new TypeError("Failed to fetch");
+      },
+    );
+    const { flow, state } = open(api);
+    void flow.submitText(typedOf(long));
+    await arrived();
+    expect(state().read?.more).toBe(true);
+
+    await flow.submitText(typedOf(long));
+
+    expect(state().failure?.kind).toBe("network");
+    expect(state().read?.more).toBe(false);
+    // What the rules offered is still there to choose from.
+    expect(state().read?.suggestions).toEqual(atOnce.suggestions);
+  });
+
+  test("test_a_reading_that_a_second_search_stopped_is_not_said_to_go_on_when_that_search_is_stopped", async () => {
+    const never = () => new Promise<Response>(() => undefined);
+    const api = standInApi().inTurn("interpret", "interpret-rules-at-once", never, never);
+    const { flow, state } = open(api);
+    void flow.submitText(typedOf(long));
+    await arrived();
+    expect(state().read?.more).toBe(true);
+    void flow.submitText(typedOf(long));
+    await arrived();
+    expect(state().phase).toBe("interpreting");
+
+    flow.stop();
+
+    expect(state().phase).not.toBe("interpreting");
+    expect(state().read?.more).toBe(false);
+  });
+
+  test("test_a_second_search_that_is_read_asks_the_model_again_and_says_so", async () => {
+    // The mend must not take away what is true: a second search that the rules answer is
+    // read by the model once more, and the page says so while it is.
+    const api = standInApi().inTurn(
+      "interpret",
+      "interpret-rules-at-once",
+      () => new Promise(() => undefined),
+      "interpret-rules-at-once",
+      () => new Promise(() => undefined),
+    );
+    const { flow, state } = open(api);
+    void flow.submitText(typedOf(long));
+    await arrived();
+
+    void flow.submitText(typedOf(long));
+    await arrived();
+
+    expect(api.callsTo("interpret").map((call) => (call.body as { ask_model: boolean }).ask_model)).toEqual([
+      false,
+      true,
+      false,
+      true,
+    ]);
+    expect(state().read?.more).toBe(true);
+  });
+
   test("test_nothing_is_ranked_from_what_was_noticed_until_the_person_chooses", async () => {
     const api = suggesting();
     const { flow, state } = open(api);
@@ -1820,8 +1897,10 @@ describe("a prompt that is not plain", () => {
       needs: [
         "the journey can be made a firm limit",
         "the budget can be made a firm limit",
+        "mix of brands",
         "recorded crime, which is added under its own name",
         "what homes sell for",
+        "homes in the higher council tax bands",
         "Village feel",
         "Age of buildings",
         "nearer a town centre",
@@ -1848,6 +1927,90 @@ describe("a prompt that is not plain", () => {
     const calls = api.calls.length;
     await flow.takeBack();
     expect(api.calls).toHaveLength(calls);
+  });
+
+  describe("one press made while the model reads", () => {
+    /** A service whose model answers when the test lets it. */
+    function readingUntilLetGo() {
+      const api = standInApi()
+        .on("rank", "rank-suggestion-chosen")
+        .on("explain_top", "explanations-suggestion-chosen");
+      let letGo: () => void = () => undefined;
+      api.inTurn("interpret", "interpret-rules-at-once", async () => {
+        await new Promise<void>((resolve) => (letGo = resolve));
+        return recordedAnswer("interpret", "interpret-by-model-long");
+      });
+      return { api, answer: () => letGo() };
+    }
+    type Offered = NonNullable<SearchState["read"]>["suggestions"];
+    const guessed = (offers: Offered | undefined) =>
+      (offers ?? []).filter((one) => one.choices.some((way) => way.guess)).length;
+    /** An offer in a line: what it would do, each of its ways, and which of them is the guess. */
+    const inALine = (offers: Offered | undefined) =>
+      (offers ?? []).map((one) => `${one.does} ${one.choices.map((way) => (way.guess ? `[${way.id}]` : way.id)).join(" ")}`);
+
+    test("test_taking_it_all_back_keeps_what_the_model_read_since_the_press", async () => {
+      // Seen in a browser: one press added three things before the model had answered. The
+      // model then marked its guesses and gave two offers a way more. "Take it all back" put
+      // back what the rules had offered: no guess, and none of the ways the model added.
+      const { api, answer } = readingUntilLetGo();
+      const { flow, state } = open(api);
+      const read = flow.submitText(typedOf(long));
+      await arrived();
+      const before = state().spec;
+      const atOnce = state().read?.suggestions ?? [];
+      expect(guessed(atOnce)).toBe(0);
+      await flow.chooseAll(atOnce.map((_, at) => at));
+      expect(state().read?.added).not.toBeNull();
+      answer();
+      await read;
+
+      await flow.takeBack();
+
+      expect(guessed(long.body.data.suggestions)).toBeGreaterThan(0);
+      expect(inALine(state().read?.suggestions)).toEqual(inALine(long.body.data.suggestions));
+      expect(state().read?.suggestions === undefined).toBe(false);
+      expect(state().read?.added).toBeNull();
+      expect(state().read?.chosen).toEqual([]);
+      // The search that is ranked again is the one that stood before the press.
+      const again = api.lastCallTo("rank").body as { operations?: Operations; spec: PreferenceSpec };
+      expect(again.spec).toEqual(before);
+      expect(again.operations).toBeUndefined();
+    });
+
+    test("test_what_was_chosen_before_the_press_is_not_offered_again_when_it_is_taken_back", async () => {
+      const { api, answer } = readingUntilLetGo();
+      const { flow, state } = open(api);
+      const read = flow.submitText(typedOf(long));
+      await arrived();
+      // "Quiet streets" is left out by its own button, and then the rest is added at one press.
+      const [first] = state().read?.suggestions ?? [];
+      await flow.choose(0, "ignore");
+      await flow.chooseAll((state().read?.suggestions ?? []).map((_, at) => at));
+      answer();
+      await read;
+
+      await flow.takeBack();
+
+      const offered = state().read?.suggestions.map((one) => one.target) ?? [];
+      expect(offered).toEqual(long.body.data.suggestions.slice(1).map((one) => one.target));
+      expect(offered).not.toContain(first?.target);
+    });
+
+    test("test_taking_it_all_back_before_the_model_answers_puts_back_what_the_rules_offered", async () => {
+      // Nothing has been read since the press, so what comes back is what stood there.
+      const { api } = readingUntilLetGo();
+      const { flow, state } = open(api);
+      void flow.submitText(typedOf(long));
+      await arrived();
+      const atOnce = state().read?.suggestions ?? [];
+      await flow.chooseAll(atOnce.map((_, at) => at));
+
+      await flow.takeBack();
+
+      expect(inALine(state().read?.suggestions)).toEqual(inALine(atOnce));
+      expect(state().read?.more).toBe(true);
+    });
   });
 
   test("test_what_the_api_names_no_way_for_is_never_added_with_the_rest", async () => {

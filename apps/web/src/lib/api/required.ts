@@ -11,10 +11,11 @@ export const REQUIRED_IN_DATA = {
   get_area: ["area", "cost", "facts", "features", "neighbours", "portrait", "similar", "stations", "tags"],
   get_census: ["area_id", "city", "date_line", "derivation_line", "heading", "licence_line", "notes", "output_areas", "source_line", "tables"],
   get_geometry: ["features", "type"],
-  get_meta: ["attributions", "built_at", "catalogue_version", "census", "counts", "defaults", "engine_version", "families", "features", "gritty_variant", "holds", "limits", "preview", "reader", "recipes", "release_id", "synthetic", "tags"],
+  get_income: ["area_id", "definition", "estimate", "heading", "kind", "licence_line", "limits", "limits_label", "lower", "modelled", "none_given", "notes", "open_source", "source_line", "source_url", "upper", "year_line"],
+  get_meta: ["attributions", "built_at", "catalogue_version", "census", "counts", "defaults", "engine_version", "families", "features", "gritty_variant", "holds", "income", "limits", "preview", "reader", "recipes", "release_id", "synthetic", "tags"],
   get_share: ["areas_listed", "areas_ranked", "coarsened", "empty_spec", "filtered", "original_release_id", "places", "ranked", "scores", "spec", "spec_hash", "stale", "unranked"],
   interpret: ["applied", "assumptions", "clarify", "degraded", "interpreter", "model_pending", "model_refused", "not_in_release", "notice", "notice_text", "operations", "places", "rejected", "rests_on", "spec", "spec_hash", "status", "suggestions", "unmet", "unmet_at", "unread"],
   list_areas: ["areas", "bands"],
   rank: ["applied", "areas_listed", "areas_ranked", "empty_spec", "filtered", "places", "ranked", "rejected", "scores", "spec", "spec_hash", "unranked"],
-  search_places: ["places"],
+  search_places: ["areas", "places"],
 } as const;

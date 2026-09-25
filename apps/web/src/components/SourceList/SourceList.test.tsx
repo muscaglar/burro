@@ -18,6 +18,7 @@ const greenspace: Source = {
   attribution: "Contains data from a mapping agency.",
   url: "https://publisher.example/greenspace",
   retrieved_on: "2026-08-01",
+  credit_beside_figures: false,
 };
 
 function entryFor(source: Source) {

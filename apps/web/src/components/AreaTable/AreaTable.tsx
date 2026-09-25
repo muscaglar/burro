@@ -10,6 +10,7 @@ import { paths } from "@/lib/paths";
 import { basedOn } from "@/lib/search/card";
 import { placedOn, type Lens } from "@/lib/vibes";
 
+import { BesideName } from "../BesideName/BesideName";
 import styles from "./AreaTable.module.css";
 
 interface Props {
@@ -188,6 +189,8 @@ export function AreaTable(props: Props) {
                   <Link className={`${styles.link} target-min`} href={paths.area(area)} prefetch={false}>
                     {area.name}
                   </Link>
+                  {/* Under a name, the label its publisher gives the area. */}
+                  <BesideName area={area} className={styles.label} labelOnly />
                 </th>
                 {/* eslint-disable-next-line jsx-a11y/no-interactive-element-to-noninteractive-role */}
                 <td role="cell">

@@ -70,8 +70,8 @@ describe("the page of vibes", () => {
 
     // Every vibe, and then how an area is placed on one.
     expect(names).toEqual([...meta.tags.map((tag) => tag.label), VIBES.how.title]);
-    // The ten, and the one way gritty is built in this release.
-    expect(meta.tags).toHaveLength(11);
+    // The thirteen, and the one way gritty is built in this release.
+    expect(meta.tags).toHaveLength(14);
   });
 
   test("test_each_vibe_can_be_reached_from_the_list_at_the_head_of_the_page", () => {
@@ -128,9 +128,28 @@ describe("the page of vibes", () => {
     ]);
   });
 
-  test("test_no_vibe_is_named_for_who_lives_somewhere", () => {
-    // Every part of every recipe is of a place, its buildings or what was recorded there.
-    const parts = new Set(meta.tags.flatMap((tag) => tag.terms.map((term) => term.feature_id)));
+  test("test_a_vibe_that_counts_who_lived_somewhere_says_so_and_no_other_vibe_counts_them", () => {
+    // Every part of every recipe is of a place, its buildings or what was recorded there,
+    // but for the one part of each of the two vibes that count who lived there.
+    const of = (featureId: string) => meta.features.find((one) => one.feature_id === featureId)?.describes;
+    const counting = meta.tags.filter((tag) => tag.terms.some((term) => of(term.feature_id) === "residents"));
+    show();
+
+    expect(counting.map((tag) => tag.tag_id)).toEqual(["family_area", "young_professionals"]);
+    for (const tag of counting) {
+      const counted = tag.terms.filter((term) => of(term.feature_id) === "residents");
+      // One part of it, read from its high end, and four in ten of it at most.
+      expect(counted.map((term) => [term.reading, term.hundredths <= 40])).toEqual([["high", true]]);
+      expect(tag.shape).toBe("one_way");
+      // Its own words say which census, and the page draws them as they came.
+      expect(tag.meaning).toContain("Census 2021");
+      expect(tag.meaning).toContain("It counts who lived there beside what is there");
+      expect(vibe(tag.tag_id)).toHaveTextContent(tag.meaning);
+      expect(vibe(tag.tag_id)).toHaveTextContent(VIBES.oneWay);
+    }
+    const parts = new Set(
+      meta.tags.filter((tag) => !counting.includes(tag)).flatMap((tag) => tag.terms.map((term) => term.feature_id)),
+    );
     const described = meta.features.filter((metric) => parts.has(metric.feature_id)).map((metric) => metric.describes);
 
     expect(new Set(described)).toEqual(new Set(["place", "buildings", "events"]));

@@ -6,6 +6,7 @@ import { render, screen, within } from "@testing-library/react";
 import { CRIME_ACCOUNT, CRIME_RULE } from "@/content/crime";
 import { DIMENSION, POLARITY, TENURE } from "@/content/labels";
 import { METHODS } from "@/content/methods";
+import { JOURNEYS } from "@/content/search";
 import { CRIME_CAVEAT } from "@/content/settings";
 import { READER } from "@/content/site";
 import { readRecorded, recordedAnswer } from "@/lib/api/recorded";
@@ -216,8 +217,22 @@ describe("the methods page", () => {
     render(<MethodsTables meta={meta} />);
 
     // A figure of recorded crime describes what was recorded, and not a place or a building.
-    expect(new Set(meta.features.map((metric) => metric.describes))).toEqual(new Set(["place", "buildings", "events"]));
-    expect(METHODS.features.lead).toContain("a place, its buildings or what was recorded there");
+    // A figure of the census describes who lived there, and says so in its name.
+    expect(new Set(meta.features.map((metric) => metric.describes))).toEqual(
+      new Set(["place", "buildings", "events", "residents"]),
+    );
+    expect(METHODS.features.lead).toContain("a place, its buildings, what was recorded there, or who lived there");
+    const counted = meta.features.filter((metric) => metric.describes === "residents");
+    expect(counted.map((metric) => metric.feature_id).sort()).toEqual([
+      "households_dependent_children",
+      "households_one_person",
+      "residents_aged_20_34",
+      "residents_aged_65_over",
+    ]);
+    for (const metric of counted) {
+      expect(metric.label.endsWith(", Census 2021")).toBe(true);
+      expect([metric.unit, metric.polarity, metric.dimension]).toEqual(["%", "more", "residents"]);
+    }
     expect(screen.getByRole("region", { name: METHODS.features.title })).toHaveTextContent(METHODS.features.lead);
   });
 
@@ -364,6 +379,33 @@ describe("the methods page", () => {
     expect(METHODS.confidence.rows.low).toMatch(/^Low: .*modelled/);
   });
 
+  test("test_how_an_area_is_named_is_said_as_the_contract_defines_it_and_that_a_name_is_a_draft", () => {
+    render(<MethodsTables meta={meta} />);
+
+    const said = screen.getByRole("region", { name: METHODS.names.title });
+    // The page of an area leads here by this id.
+    expect(said.querySelector("h2")).toHaveAttribute("id", "names");
+    expect(within(said).getAllByRole("listitem").map((item) => item.textContent)).toEqual([
+      ...METHODS.names.points,
+    ]);
+    // Which name an area bears, as the contract gives the rule.
+    expect(contract()).toContain(
+      "An area bears the name of the drafted neighbourhood that holds more of its output areas than any other",
+    );
+    expect(said).toHaveTextContent("bears the name of the neighbourhood that holds most of its output areas");
+    expect(contract()).toContain("keeps its publisher's label");
+    expect(said).toHaveTextContent("keeps its label");
+    // Two areas of one name, and what each then says.
+    expect(contract()).toContain("each adds the side of them it lies on");
+    expect(said).toHaveTextContent("each adds the side it lies on");
+    // A name is a draft until a person has checked it, and the page says so.
+    expect(contract()).toContain("A name is a draft until a person has decided it at the review desk");
+    expect(said).toHaveTextContent("Every name is a draft until a person has checked it");
+    // No name is coined, and the page names no place and holds no figure.
+    expect(said).toHaveTextContent("Burro coins no name and changes none");
+    expect(/\d/.test(METHODS.names.points.join(" "))).toBe(false);
+  });
+
   test("test_how_a_journey_is_timed_is_said_as_the_contract_defines_it", () => {
     render(<MethodsTables meta={meta} />);
 
@@ -383,6 +425,45 @@ describe("the methods page", () => {
     expect(said).toHaveTextContent("only the journey that does worst against its own limit counts");
     // It holds no figure of its own: the longest journey the data holds is in the limits, from the API.
     expect(/\d/.test(METHODS.journeys.points.join(" "))).toBe(false);
+  });
+
+  test("test_where_a_journey_is_estimated_the_page_says_how_in_the_apis_own_numbers", () => {
+    const estimated = recordedAnswer("get_meta", "estimate/meta").body.data;
+    const how = estimated.journey_estimate;
+    if (!how) throw new Error("the recorded release estimates no journey");
+    render(<MethodsTables meta={estimated} />);
+
+    const said = screen.getByRole("region", { name: METHODS.estimate.title });
+    // A result leads here by the same id, whether a journey is timed or estimated.
+    expect(said.querySelector("h2")).toHaveAttribute("id", "journeys");
+    expect(screen.queryByRole("region", { name: METHODS.journeys.title })).toBeNull();
+    // The line that stands wherever an estimate is shown comes first, as the API serves it.
+    expect(said.querySelector("p")?.textContent?.startsWith(how.said)).toBe(true);
+    expect(how.said).toBe(JOURNEYS.estimatedFrom);
+    expect(said).toHaveTextContent("It is never given in minutes.");
+    // Every number of it is the API's. Site copy holds none of its own.
+    expect(numbersIn(METHODS.estimate.lead)).toEqual([]);
+    const sent = numbersSent(how);
+    const shown = numbersIn(said.textContent ?? "");
+    expect(shown.filter((number) => !sent.has(number))).toEqual([]);
+    expect(shown).toEqual(
+      [how.fixed_minutes, how.minutes_a_km, how.near_the_underground_m, how.minutes_a_km_near_the_underground]
+        .map(String)
+        .concat([String(how.within_by), String(how.beyond_by)]),
+    );
+    expect(said).toHaveTextContent("A firm limit leaves out only the areas that are likely beyond it.");
+    expect(said).toHaveTextContent("By bike and on foot nothing is estimated.");
+    expect(said).toHaveTextContent("Once the data holds a journey time, the time takes the place of the estimate.");
+    expect(said).toHaveTextContent("The numbers are a first guess.");
+  });
+
+  test("test_a_release_that_holds_its_journey_times_says_nothing_of_an_estimate", () => {
+    render(<MethodsTables meta={meta} />);
+
+    expect(meta.journey_estimate ?? null).toBeNull();
+    expect(screen.queryByRole("region", { name: METHODS.estimate.title })).toBeNull();
+    expect(screen.getByRole("region", { name: METHODS.journeys.title })).toBeInTheDocument();
+    expect(document.body.textContent?.includes(JOURNEYS.estimatedFrom)).toBe(false);
   });
 
   test("test_how_a_persons_words_are_handled_is_said_in_full", () => {

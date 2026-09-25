@@ -20,6 +20,7 @@ import { paths } from "@/lib/paths";
 import {
   completenessOf,
   drivingLeg,
+  estimateOf,
   factsForJourney,
   hundredths,
   journeysLeftOut,
@@ -254,6 +255,7 @@ export function JourneyList({ area, commutes, combine, cutoffs, names, facts }: 
           {area.legs.map((leg) => {
             const commute = commutes.find((one) => one.place_id === leg.place_id);
             const within = withinLimit(leg, commute);
+            const band = estimateOf(leg);
             const name = names.get(leg.place_id) ?? "";
             // By bike and on foot there is one time, and no service to miss.
             const oneTime = leg.mode !== "pt";
@@ -292,7 +294,16 @@ export function JourneyList({ area, commutes, combine, cutoffs, names, facts }: 
                   // eslint-disable-next-line jsx-a11y/no-interactive-element-to-noninteractive-role
                   <td role="cell" colSpan={2}>
                     <CellLabel>{columns.time}</CellLabel>
-                    {leg.status === "beyond_cutoff" ? JOURNEYS.beyond(cutoffs[leg.mode]) : JOURNEYS.missing}
+                    {band !== null ? (
+                      // No time is held. The band is said, and that it is an estimate, and no minutes.
+                      <>
+                        <strong>{JOURNEYS.estimated[band]}</strong>. {JOURNEYS.estimatedFrom}
+                      </>
+                    ) : leg.status === "beyond_cutoff" ? (
+                      JOURNEYS.beyond(cutoffs[leg.mode])
+                    ) : (
+                      JOURNEYS.missing
+                    )}
                   </td>
                 )}
                 {/* eslint-disable-next-line jsx-a11y/no-interactive-element-to-noninteractive-role */}

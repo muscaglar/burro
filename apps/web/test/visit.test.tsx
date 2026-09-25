@@ -316,7 +316,7 @@ describe("one person's whole visit", () => {
     await settled();
     const chosen = answerOf<RankData>("chosen-rank");
     expect(results()[0]).toHaveTextContent(nameOf(chosen.ranked[0]?.area_id));
-    expect(chip(plainNameOf("venue_evening"))).toBeInTheDocument();
+    expect(chip(plainNameOf("venue_evening_per_homes"))).toBeInTheDocument();
 
     // Nothing was sent that the service was not sent when the visit was recorded,
     // and nothing was recorded that the website does not send.

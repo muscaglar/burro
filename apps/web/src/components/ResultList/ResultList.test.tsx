@@ -4,6 +4,7 @@ import path from "node:path";
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { NAMED } from "@/content/area";
 import { FACT_COLUMNS } from "@/content/facts";
 import { COMPARE } from "@/content/compare";
 import {
@@ -370,9 +371,10 @@ describe("a result, in short", () => {
     const farrowmere = cards()[FARROWMERE] as HTMLElement;
     const given = first.explanations.find((one) => one.area_id === "syn-n0006");
 
-    // Rank, name, borough and fit. What the fit rests on. The strip. One reason and the trade-off.
+    // Rank, name, the label beside it and fit. What the fit rests on. The strip. One reason and
+    // the trade-off.
     expect(within(farrowmere).getByRole("heading", { level: 3, name: "Farrowmere" })).toBeInTheDocument();
-    expect(within(farrowmere).getByText("Quillhaven")).toBeInTheDocument();
+    expect(within(farrowmere).getByText("Quillhaven 006")).toBeInTheDocument();
     expect(within(farrowmere).getByText("71 of 100")).toBeInTheDocument();
     // Its fit rests on everything that counts, so no more is said of what it rests on.
     expect(within(farrowmere).queryByText(COMPLETENESS.all)).toBeNull();
@@ -519,7 +521,11 @@ describe("a result card", () => {
     const { unmount } = show(first);
 
     expect(card(FARROWMERE).getByRole("heading", { level: 3, name: "Farrowmere" })).toBeInTheDocument();
-    expect(card(FARROWMERE).getByText("Quillhaven")).toBeInTheDocument();
+    // The name comes first. Beside it, smaller, is the label its publisher gives the area,
+    // which says its borough, and that the name is a draft.
+    const beside = card(FARROWMERE).getByText("Quillhaven 006");
+    expect(beside.textContent).toBe(`Quillhaven 006${NAMED.between}${NAMED.draft}`);
+    expect(beside.tagName).toBe("P");
     expect(card(FARROWMERE).getByText("Rank 1")).toBeInTheDocument();
     expect(first.ranking.ranked[FARROWMERE]?.score).toBe(71.38);
     expect(card(FARROWMERE).getByText("71 of 100")).toBeInTheDocument();
@@ -1230,6 +1236,78 @@ describe("the journeys", () => {
     expect(journeys(0).getByText(JOURNEYS.missing)).toBeInTheDocument();
     expect(journeys(0).queryByText(JOURNEYS.within)).toBeNull();
     expect(journeys(0).queryByText(JOURNEYS.over)).toBeNull();
+  });
+
+  /** A release that holds no journey time: each journey is estimated from distance. */
+  const estimated = {
+    ranking: recordedAnswer("rank", "estimate/rank").body.data,
+    ...recordedAnswer("explain_top", "estimate/explanations").body.data,
+  };
+
+  test("test_a_journey_that_was_estimated_says_its_band_and_that_it_is_an_estimate_and_gives_no_minutes", () => {
+    show(estimated);
+
+    const bands = new Set<string>();
+    for (const [at, area] of estimated.ranking.ranked.slice(0, 5).entries()) {
+      const [leg] = area.legs;
+      if (!leg?.estimate) throw new Error("the recorded journey was not estimated");
+      bands.add(leg.estimate);
+      const row = journeys(at).getAllByRole("row")[1] as HTMLElement;
+      const [how, long, limit] = within(row).getAllByRole("cell").map(said);
+
+      expect(leg.status).toBe("estimated");
+      expect(how).toBe("Public transport");
+      // The band in words, and that it is an estimate. No time, typical or missed.
+      expect(long).toBe(`${JOURNEYS.estimated[leg.estimate]}. ${JOURNEYS.estimatedFrom}`);
+      expect([leg.minutes, leg.minutes_typical, leg.minutes_just_missed]).toEqual([null, null, null]);
+      // The limit is said, and the journey is not said to be within it or over it.
+      expect(limit).toBe("30 minutes Source");
+      expect(journeys(at).queryByText(JOURNEYS.within)).toBeNull();
+      expect(journeys(at).queryByText(JOURNEYS.over)).toBeNull();
+      expect(journeys(at).queryByText(JOURNEYS.missing)).toBeNull();
+    }
+    expect(bands.size).toBeGreaterThan(0);
+  });
+
+  test.each(["likely_within", "borderline", "likely_beyond"] as const)(
+    "test_each_band_of_an_estimate_is_said_in_the_words_its_fact_says_it_in: %s",
+    (band) => {
+      const recorded = estimated.ranking.ranked.find((area) => area.legs[0]?.estimate === band);
+      if (!recorded) throw new Error(`no recorded journey is ${band}`);
+      // The comparison of the same search cites a fact of each band.
+      const fact = recordedAnswer("compare", "estimate/compare").body.data.facts.find(
+        (one) => one.template === "travel_estimated" && one.slots.band === band,
+      );
+      if (!fact) throw new Error(`no recorded fact of a journey that is ${band}`);
+      show({ ...estimated, ranking: { ...estimated.ranking, ranked: [recorded] } });
+
+      // The words are the API's own: the website keeps them for a journey whose fact is not in hand.
+      expect(journeys(0).getByText(JOURNEYS.estimated[band])).toBeInTheDocument();
+      expect(fact.slots.verdict).toBe(JOURNEYS.estimated[band]);
+      expect(fact.slots.estimated).toBe(JOURNEYS.estimatedFrom);
+      expect(said(journeys(0).getAllByRole("row")[1])).toContain(JOURNEYS.estimatedFrom);
+    },
+  );
+
+  test("test_an_estimate_is_given_up_only_where_it_is_likely_beyond_the_limit", () => {
+    const { spec } = estimated.ranking;
+    const about = (area: RankedArea) => ({ fact_ids: [`${area.area_id}/travel/${area.legs[0]?.place_id}.pt`] });
+    const given = (band: string) => {
+      const area = estimated.ranking.ranked.find((one) => one.legs[0]?.estimate === band);
+      if (!area) throw new Error(`no recorded journey is ${band}`);
+      // What the journeys are worth is left out of it, so that the band alone decides.
+      const alone = {
+        ...area,
+        contributions: area.contributions.map((part) =>
+          part.component === "commute" ? { ...part, utility: 1 } : part,
+        ),
+      };
+      return isGivenUp(alone, about(area), spec.commutes, meta.data.limits.trade_off_max_utility);
+    };
+
+    expect(given("likely_beyond")).toBe(true);
+    expect(given("borderline")).toBe(false);
+    expect(given("likely_within")).toBe(false);
   });
 
   test("test_by_bike_there_is_one_time_and_no_service_to_miss", () => {

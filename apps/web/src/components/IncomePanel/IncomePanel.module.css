@@ -1,0 +1,62 @@
+/*
+ * The household income of an area. It is a list of names and figures, in words.
+ *
+ * One rule holds for everything drawn here, as it does for the census. No colour, shade,
+ * weight or size says that a figure is much or little. The figure is set in the type and
+ * the colour of the text of the page, and nothing is drawn beside it: no bar, no mark and
+ * no scale. test/income/shown.test.tsx reads this file for it.
+ */
+
+.shown {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+  max-width: 45rem;
+}
+
+.shown p {
+  margin: 0;
+}
+
+.year {
+  font-weight: 600;
+}
+
+.figures {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+}
+
+.figures dt {
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.figures dd {
+  margin: 0;
+}
+
+.notes {
+  display: grid;
+  gap: var(--space-1);
+  margin: var(--space-2) 0;
+  padding-inline-start: var(--space-5);
+}
+
+.foot {
+  display: grid;
+  gap: var(--space-1);
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+.state {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+}
+
+.state p {
+  margin: 0;
+}

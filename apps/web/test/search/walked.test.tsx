@@ -30,6 +30,7 @@ import {
   SUGGEST,
   TENURE_CHOICE,
   UNMET,
+  FIND_AREA,
 } from "@/content/search";
 import { SETTINGS } from "@/content/settings";
 import { SHARE } from "@/content/share";
@@ -105,6 +106,7 @@ describe("after Search is pressed", () => {
     // Renting or buying and the place field are in the settings now, so that the answer comes first.
     expect(screen.queryByRole("group", { name: TENURE_CHOICE.legend })).toBeNull();
     expect(screen.queryByRole("combobox", { name: PLACE.label })).toBeNull();
+    expect(screen.queryByRole("combobox", { name: FIND_AREA.label })).toBeNull();
     // Nothing a person must act on stands between the box and what Burro says of the search.
     const between = [...document.querySelectorAll<HTMLElement>("main button, main input, main select, main textarea")]
       .filter((control) => comesBefore(promptBox(), control) && comesBefore(control, line as HTMLElement))
@@ -478,6 +480,62 @@ describe("a notice, when nothing else was read", () => {
   });
 });
 
+describe("a sentence the rules noticed nothing in, while a model reads it", () => {
+  const nothing = recordedAnswer("interpret", "interpret-nothing-read");
+  /** What the service answered: the rules at once, with a model still to read, and then the model. */
+  const as = (change: Partial<InterpretData>) =>
+    responseFrom({ ...nothing, body: { ...nothing.body, data: { ...nothing.body.data, ...change } } });
+
+  test("test_the_page_does_not_say_that_nothing_could_be_read_while_burro_is_still_reading", async () => {
+    // Seen in a browser: the rules noticed nothing, and a model was asked. For as long as it
+    // read, the page said that nothing in the words could be read, and under that that Burro
+    // was still reading the rest of them.
+    let letGo: () => void = () => undefined;
+    const { user } = await openSearch(
+      firstSearch().inTurn(
+        "interpret",
+        () => as({ model_pending: true }),
+        async () => {
+          await new Promise<void>((resolve) => (letGo = resolve));
+          return as({ interpreter: "model" });
+        },
+      ),
+    );
+    const says = (words: string) => document.body.textContent?.includes(words) ?? false;
+    await user.type(promptBox(), sentenceOf("interpret-nothing-read"));
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
+
+    expect(says(SUGGEST.reading)).toBe(true);
+    expect(says(NOTICE.nothingRead)).toBe(false);
+
+    await act(async () => letGo());
+    await settled();
+
+    // Once the model has read the words and made nothing of them either, the page says so.
+    expect(says(SUGGEST.reading)).toBe(false);
+    expect(status()).toContain(NOTICE.nothingRead);
+  });
+
+  test("test_the_page_says_that_nothing_could_be_read_once_the_model_could_not_be_asked", async () => {
+    const { user } = await openSearch(
+      firstSearch().inTurn(
+        "interpret",
+        () => as({ model_pending: true }),
+        () => {
+          throw new TypeError("Failed to fetch");
+        },
+      ),
+    );
+    await user.type(promptBox(), sentenceOf("interpret-nothing-read"));
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
+
+    expect(document.body.textContent?.includes(SUGGEST.reading)).toBe(false);
+    expect(status()).toContain(NOTICE.nothingRead);
+  });
+});
+
 describe("a natural sentence", () => {
   /** A service with a model behind it: the rules answer at once, and then the model. */
   const reading = () =>
@@ -501,18 +559,20 @@ describe("a natural sentence", () => {
     const block = screen.getByRole("region", { name: SUGGEST.title });
     expect(within(block).getByRole("status").textContent).toBe(
       [
-        "5 added. 7 need you: the journey can be made a firm limit; the budget can be made a firm limit",
+        "5 added. 9 need you: the journey can be made a firm limit; the budget can be made a firm limit",
+        "mix of brands",
         "recorded crime, which is added under its own name",
         "what homes sell for",
+        "homes in the higher council tax bands",
         "Village feel",
         "Age of buildings",
         "nearer a town centre.",
       ].join("; "),
     );
-    // What one press may not add is still offered: the two readings of a word for how well off a
-    // place is, and the three of a word for its identity. None has a guess. Four are in sight.
+    // What one press may not add is still offered: the four readings of a word for how well off
+    // a place is, and the three of a word for its identity. None has a guess. Four are in sight.
     expect(within(block).queryAllByRole("listitem")).toHaveLength(4);
-    expect(within(block).getByRole("button", { name: SUGGEST.showAll(5) })).toBeVisible();
+    expect(within(block).getByRole("button", { name: SUGGEST.showAll(7) })).toBeVisible();
     // The button went with what it added. The focus is on the block that says so, and not on nothing.
     expect(block === document.activeElement).toBe(true);
   });
@@ -556,13 +616,78 @@ describe("a natural sentence", () => {
       "At most 35-40min commute from Pellam Exchange",
       "If I'm renting, max \u00a31,900 a month for a 1 bed flat",
     ]);
-    // The third and the fourth have no guess: they are the two readings of a word for how well
-    // off a place is, which are the rules' to offer.
+    // The third and the fourth have no guess: they are the first two of the three readings of a
+    // word for how well off a place is, which are the rules' to offer.
     expect(offers.map((offer) => offer.querySelectorAll("[data-guess]").length)).toEqual([1, 1, 0, 0, 1, 1, 1]);
-    // Three readings of a word for the identity of a place wait behind one press.
-    expect(screen.getByRole("button", { name: SUGGEST.showAll(10) })).toBeVisible();
+    // The third and the fourth of them, and three readings of a word for the identity of a
+    // place, wait behind one press.
+    expect(screen.getByRole("button", { name: SUGGEST.showAll(12) })).toBeVisible();
     // Nothing is ranked until a choice is pressed.
     expect(api.callsTo("rank")).toEqual([]);
+  });
+
+  test("test_the_page_does_not_go_on_saying_that_burro_reads_once_nothing_does", async () => {
+    // Seen in a browser: Search was pressed a second time, with the box as it was, while the
+    // model read. That call could not leave. The page said that Burro could not be reached,
+    // and went on saying that Burro was still reading the rest of the words.
+    const { user } = await openSearch(
+      firstSearch().inTurn(
+        "interpret",
+        "interpret-rules-at-once",
+        () => new Promise(() => undefined),
+        () => {
+          throw new TypeError("Failed to fetch");
+        },
+      ),
+    );
+    await user.type(promptBox(), sentenceOf("interpret-by-model-long"));
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
+    expect(document.body.textContent?.includes(SUGGEST.reading)).toBe(true);
+
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
+
+    expect(document.body.textContent?.includes(FAILURE.network)).toBe(true);
+    expect(document.body.textContent?.includes(SUGGEST.reading)).toBe(false);
+    // What the rules offered is still there to choose from.
+    expect(within(screen.getByRole("region", { name: SUGGEST.title })).getAllByRole("listitem").length).toBeGreaterThan(0);
+  });
+
+  test("test_taking_it_all_back_shows_what_the_model_read_since_the_press", async () => {
+    // Seen in a browser: the one button was pressed before the model had answered. The model
+    // then marked its guesses. "Take it all back" showed what the rules had offered at the
+    // press, with no guess marked and without the ways the model had added.
+    let letGo: () => void = () => undefined;
+    const { user } = await openSearch(
+      firstSearch()
+        .inTurn("interpret", "interpret-rules-at-once", async () => {
+          await new Promise<void>((resolve) => (letGo = resolve));
+          return recordedAnswer("interpret", "interpret-by-model-long");
+        })
+        .on("rank", "rank-suggestion-chosen")
+        .on("explain_top", "explanations-suggestion-chosen"),
+    );
+    const guesses = () => document.querySelectorAll("button[data-guess]").length;
+    await user.type(promptBox(), sentenceOf("interpret-by-model-long"));
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
+    expect(guesses()).toBe(0);
+    await user.click(screen.getByRole("button", { name: SUGGEST.addThese(4) }));
+    await settled();
+    await act(async () => letGo());
+    await settled();
+
+    await user.click(screen.getByRole("button", { name: SUGGEST.takeBack }));
+    await settled();
+
+    const offered = recordedAnswer("interpret", "interpret-by-model-long").body.data.suggestions;
+    expect(guesses()).toBeGreaterThan(0);
+    expect(guesses()).toBe(
+      // Four are in sight, and with them every other thing that one press may add.
+      offered.filter((one, at) => (at < 4 || one.add_all !== "") && one.choices.some((way) => way.guess)).length,
+    );
+    expect(screen.queryByRole("button", { name: SUGGEST.takeBack })).toBeNull();
   });
 
   test("test_choosing_the_last_thing_burro_noticed_leaves_the_focus_on_what_burro_understood", async () => {
@@ -759,7 +884,7 @@ describe("what is marked as assumed", () => {
     };
     const { user } = await openSearch(firstSearch().on("rank", withThePlace));
 
-    await user.type(screen.getAllByRole("combobox", { name: PLACE.label })[0] as HTMLElement, "cin");
+    await user.type(screen.getAllByRole("combobox", { name: FIND_AREA.label })[0] as HTMLElement, "cin");
     await user.click(await screen.findByRole("option", { name: new RegExp(`^${place.name}`) }));
     await settled();
 

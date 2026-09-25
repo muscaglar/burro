@@ -10,7 +10,7 @@
 
 import { act, screen, waitFor, within } from "@testing-library/react";
 
-import { CHIPS, NOTICE, PLACE, PROMPT, RESULTS, SUGGEST } from "@/content/search";
+import { CHIPS, NOTICE, PLACE, PROMPT, RESULTS, SUGGEST, FIND_AREA } from "@/content/search";
 import { JOURNEY, SETTINGS } from "@/content/settings";
 import { recordedAnswer, responseFrom } from "@/lib/api/recorded";
 import type { FoundPlace } from "@/lib/api/schema";
@@ -43,7 +43,7 @@ function answeringWithThePlace(api: StandIn): StandIn {
   const places = recordedAnswer("search_places", "places-search");
   const found: FoundPlace = { place_id: PLACE_ID, name: PLACE_NAME, kind: "landmark", coarse_name: PLACE_NAME };
   return api.on("search_places", () =>
-    responseFrom({ ...places, body: { ...places.body, data: { places: [found] } } }),
+    responseFrom({ ...places, body: { ...places.body, data: { places: [found], areas: [] } } }),
   );
 }
 
@@ -288,7 +288,7 @@ describe("what a person types", () => {
     expect(promptBox()).toHaveAttribute("autocomplete", "off");
     // Nor is the browser asked to check the spelling, which may send the words to its maker.
     expect(promptBox()).toHaveAttribute("spellcheck", "false");
-    const place = screen.getByRole("combobox", { name: PLACE.label });
+    const place = screen.getByRole("combobox", { name: FIND_AREA.label });
     expect(place).not.toHaveAttribute("name");
     expect(place).toHaveAttribute("autocomplete", "off");
     expect(place).toHaveAttribute("spellcheck", "false");
@@ -300,7 +300,7 @@ describe("what a person types", () => {
     const { user, container } = await openSearch();
 
     await user.type(promptBox(), `leafy ${CANARY}`);
-    await user.type(screen.getByRole("combobox", { name: PLACE.label }), CANARY);
+    await user.type(screen.getByRole("combobox", { name: FIND_AREA.label }), CANARY);
     await arrived();
 
     // The box holds the text. Nothing else in the page's markup does.

@@ -355,10 +355,16 @@ export function createFlow({ client, getState, dispatch }: FlowDeps): Flow {
     else dispatch({ type: "read_more_failed" });
   }
 
-  /** Stops the model's reading, where one is under way. What it would have added is let go. */
+  /**
+   * Stops the model's reading, where one is under way. What it would have added is let go,
+   * and the store is told that nothing reads the words now: a search that is sent next may
+   * fail or be stopped, and the page must not be left saying that Burro is still reading.
+   */
   function stopReading() {
-    reading?.abort();
+    if (reading === null) return;
+    reading.abort();
     reading = null;
+    dispatch({ type: "read_more_failed" });
   }
 
   return {

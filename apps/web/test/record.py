@@ -38,14 +38,15 @@ from burro_api import logs
 from burro_api.app import create_app
 from burro_api.calls import InMemoryCallLog
 from burro_api.deps import Deps
-from burro_api.loading import load_census, load_release
+from burro_api.loading import load_census, load_income, load_release
 from burro_api.providers.choose import BY_RULES, told_of
 from burro_api.providers.terms import TERMS
 from burro_api.reader import ModelInterpreter, ModelRefused, ModelReply, ModelTimeout
-from burro_api.settings import SYNTHETIC_CENSUS, SYNTHETIC_FIXTURE
+from burro_api.settings import SYNTHETIC_CENSUS, SYNTHETIC_FIXTURE, SYNTHETIC_INCOME
 from burro_api.stores import InMemoryShareStore
 from burro_core import RuleInterpreter, TemplateExplainer
 from burro_core.catalogue import band_of, percentile_of, tag_raw, tags_of
+from burro_core.estimate import ESTIMATED
 from burro_core.ids import FeatureId, GrittyVariant, InterpreterName
 from burro_core.release import InMemoryRelease, parse_release
 from burro_pipeline.release.synthetic.build import RELEASE_IDS, build_synthetic
@@ -66,6 +67,7 @@ ROUTES = {
     "get_geometry": ("GET", "/v1/areas/geometry"),
     "get_area": ("GET", "/v1/areas/{id_or_slug}"),
     "get_census": ("GET", "/v1/areas/{id_or_slug}/census"),
+    "get_income": ("GET", "/v1/areas/{id_or_slug}/income"),
     "interpret": ("POST", "/v1/interpret"),
     "rank": ("POST", "/v1/rank"),
     "explain_top": ("POST", "/v1/explanations"),
@@ -167,6 +169,10 @@ def make_deps(**changes: Any) -> Deps:
     # The made-up count is of the committed release. Another release is served with none.
     changes.setdefault(
         "census", None if "release" in changes else load_census(SYNTHETIC_CENSUS, release)
+    )
+    # So is the made-up estimate of household income.
+    changes.setdefault(
+        "income", None if "release" in changes else load_income(SYNTHETIC_INCOME, release)
     )
     deps = Deps(
         release=release,
@@ -289,6 +295,18 @@ def _shares(body: Any) -> set[str]:
     return {row["share"] for table in _data(body).get("tables", []) for row in table["rows"]}
 
 
+def _bands(body: Any) -> set[str | None]:
+    """Where each journey of each listed area stands against its limit, as it was estimated."""
+    return {leg["estimate"] for area in _data(body)["ranked"] for leg in area["legs"]}
+
+
+def _no_minutes(body: Any) -> bool:
+    """True when no journey of an answer is given in minutes: an estimate is a band alone."""
+    times = ("minutes", "minutes_typical", "minutes_just_missed")
+    legs = [leg for area in _data(body)["ranked"] for leg in area["legs"]]
+    return all(leg[time] is None for leg in legs for time in times)
+
+
 def _mixed(body: Any) -> bool:
     """True when a result's strip holds a mark drawn as a range: three bands or more."""
     marks = [mark for area in _data(body)["ranked"] for mark in area["strip"]]
@@ -308,6 +326,17 @@ PROVES: dict[str, Callable[[Any], bool]] = {
     "census-not-found": lambda b: b["error"]["code"] == "area_not_found",
     "census-off": lambda b: b["error"]["code"] == "census_not_available",
     "meta-no-census": lambda b: _data(b)["census"]["available"] is False,
+    "income": lambda b: (
+        _data(b)["estimate"] is not None
+        and _data(b)["limits"] is not None
+        and _data(b)["none_given"] is None
+    ),
+    "income-none-given": lambda b: (
+        (_data(b)["estimate"], _data(b)["limits"]) == (None, None) and bool(_data(b)["none_given"])
+    ),
+    "income-not-found": lambda b: b["error"]["code"] == "area_not_found",
+    "income-off": lambda b: b["error"]["code"] == "income_not_available",
+    "meta-no-income": lambda b: _data(b)["income"]["available"] is False,
     "interpret-first": lambda b: _changed(b) == 4 and not _data(b)["rejected"],
     "interpret-two-journeys": lambda b: len(_data(b)["spec"]["commutes"]) == 2,
     "interpret-by-the-river": lambda b: (
@@ -342,6 +371,15 @@ PROVES: dict[str, Callable[[Any], bool]] = {
     "interpret-suggest-place": lambda b: (
         _nothing_applied(b) and [s["target"] for s in _data(b)["suggestions"]] == ["commute"]
     ),
+    "interpret-suggest-who-is-counted": lambda b: (
+        _data(b)["notice"] == "none"
+        and _nothing_applied(b)
+        and [s["target"] for s in _data(b)["suggestions"]]
+        == ["tag:young_professionals", "tag:pace", "feature:station_walk"]
+        and _offered(b)[0] == ["more", "ignore"]
+        and "census of 2021" in _data(b)["suggestions"][0]["note"]
+        and not _data(b)["suggestions"][0]["add_all"]
+    ),
     "interpret-suggest-newcomer": lambda b: (
         _nothing_applied(b)
         and [len(ways) for ways in _offered(b)] == [2, 2, 2, 3, 2, 2]
@@ -364,6 +402,7 @@ PROVES: dict[str, Callable[[Any], bool]] = {
         _reads(b) == (False, False)
         and _data(b)["reader"]["terms_url"] is None
         and _data(b)["census"]["available"] is True
+        and _data(b)["income"]["available"] is True
     ),
     "meta-model-reads": lambda b: _reads(b) == (True, False) and _data(b)["reader"]["terms_url"],
     "meta-model-reads-with-settings": lambda b: _reads(b) == (True, True),
@@ -379,13 +418,13 @@ PROVES: dict[str, Callable[[Any], bool]] = {
         and _guessed(b) == ["more", "firm"]
         and not _data(b)["model_pending"]
     ),
-    # Five of the ten have no guess. They are the rules' to offer, and a model adds nothing to
-    # one: the two readings of a word for how well off a place is, and the three of a word for
-    # its identity.
+    # Seven of the twelve have no guess. They are the rules' to offer, and a model adds nothing
+    # to one: the four readings of a word for how well off a place is, and the three of a word
+    # for its identity.
     "interpret-by-model-long": lambda b: (
         _data(b)["interpreter"] == "model"
         and _nothing_applied(b)
-        and len(_data(b)["suggestions"]) == 10
+        and len(_data(b)["suggestions"]) == 12
         and len(_guessed(b)) == 5
         and _data(b)["notice"] == "none"
         and sum(1 for s in _data(b)["suggestions"] if len(s["choices"]) > 3) == 1
@@ -475,6 +514,18 @@ PROVES: dict[str, Callable[[Any], bool]] = {
         and bool(_data(b)["ranked"])
     ),
     "preview/rank-lacking": lambda b: _stands_below(b),
+    "preview/places-search": lambda b: (
+        _data(b)["places"] == [] and [area["name"] for area in _data(b)["areas"]] == ["Alderwick"]
+    ),
+    "places-search": lambda b: (
+        len(_data(b)["places"]) == 3
+        and [area["name"] for area in _data(b)["areas"]] == ["Pellam Cross"]
+    ),
+    "places-search-area": lambda b: (
+        _data(b)["places"] == []
+        and [(a["name"], a["named"]["label"]) for a in _data(b)["areas"]]
+        == [("Ostrel Vale", "Quillhaven 016")]
+    ),
     **{
         f"example-{at}": lambda b: (
             _data(b)["status"] == "ok"
@@ -505,6 +556,45 @@ PROVES: dict[str, Callable[[Any], bool]] = {
     ),
     "one-number/explanations-buyer": lambda b: (
         {"budget_under_median", "budget_over_median"} <= _templates(b)
+    ),
+    "estimate/meta": lambda b: (
+        _data(b)["journey_estimate"] is not None
+        and _data(b)["journey_estimate"]["said"] == ESTIMATED
+        and _data(b)["holds"]["journeys"] is True
+    ),
+    "estimate/rank": lambda b: (
+        _bands(b) == {"likely_within", "borderline", "likely_beyond"}
+        and _legs(b, "estimated") == len(_data(b)["ranked"])
+        and not _data(b)["filtered"]
+        and _no_minutes(b)
+    ),
+    "estimate/explanations": lambda b: "travel_estimated" in _templates(b),
+    "estimate/rank-firm": lambda b: (
+        _bands(b) == {"likely_within", "borderline"}
+        and {one["reason"] for one in _data(b)["filtered"]} == {"commute_likely_beyond"}
+    ),
+    "estimate/compare": lambda b: (
+        {c["estimate"] for row in _data(b)["rows"] for c in row["cells"]}
+        == {None, "likely_within", "borderline", "likely_beyond"}
+        and {area["status"] for area in _data(b)["areas"]} == {"ranked", "commute_likely_beyond"}
+    ),
+    "counted/area": lambda b: (
+        "cost_buy_sold" in _templates(b)
+        and not {"cost_buy", "cost_rent", "cost_buy_median"} & _templates(b)
+        and all(
+            row["sales"] >= 10 and row["since"] and row["confidence"] in ("high", "medium")
+            for row in _data(b)["cost"]
+        )
+        and {row["confidence"] for row in _data(b)["cost"]} == {"high", "medium"}
+    ),
+    "counted/rank-firm": lambda b: (
+        bool(_data(b)["filtered"])
+        and {fit["margin"] < 0 for fit in _fits(b)} == {True, False}
+        and all(fit["upper_quartile"] is None for fit in _fits(b))
+    ),
+    "counted/explanations-firm": lambda b: (
+        {"budget_under_median", "budget_over_median"} <= _templates(b)
+        and any("half_sold" in fact["slots"] for fact in _data(b)["facts"])
     ),
     "visit/first": lambda b: _changed(b) == 4,
     "visit/second": lambda b: _changed(b) == 2 and _off(b, "highstreet_access"),
@@ -825,6 +915,11 @@ NOT_PLAIN = (
         "suggest-notice",
         "leafy with lots of students. My street is noisy.",
         "Not plain, with a phrase about who lives somewhere: the notice, and what was noticed",
+    ),
+    (
+        "suggest-who-is-counted",
+        "young professionals, lively, near a station",
+        "Who lived there at the census, offered towards more and no other way, with its note",
     ),
     (
         "suggest-place",
@@ -1356,6 +1451,13 @@ def record_the_rest(
     )
     rec.call(
         client,
+        "places-search-area",
+        "A search by name that finds an area and no place: the area, with its label beside it",
+        "search_places",
+        {"q": "ostrel"},
+    )
+    rec.call(
+        client,
         "places-search-none",
         "A search that finds nothing",
         "search_places",
@@ -1488,9 +1590,9 @@ def record_what_needs_another_service(rec: Recorder, specs: dict[str, dict[str, 
     rec.call(
         read_by(read_long),
         "interpret-by-model-long",
-        "A long sentence read by a model: ten offers, each in four parts, one with a choice of "
-        "two things, a journey and a budget that may be made firm, words nothing was made of, "
-        "and five readings of two words that the rules offer with no guess",
+        "A long sentence read by a model: twelve offers, each in four parts, one with a choice "
+        "of two things, a journey and a budget that may be made firm, words nothing was made of, "
+        "and seven readings of two words that the rules offer with no guess",
         "interpret",
         {"text": long},
     )
@@ -1805,6 +1907,92 @@ def record_a_preview(rec: Recorder) -> None:
         "explain_top",
         {"spec": period["data"]["spec"], "limit": 5},
     )
+    rec.call(
+        client,
+        "preview/places-search",
+        "A search by name in a preview: it names no place to reach, and finds the area",
+        "search_places",
+        {"q": "alder"},
+    )
+
+
+# The longest journey the estimated searches set, in minutes. Of the made-up areas, some are
+# then likely within it, some borderline and some likely beyond.
+ESTIMATE_LIMIT = 30
+
+
+def a_release_that_estimates() -> InMemoryRelease:
+    """The committed release as a build of a city holds it before it has read a timetable.
+
+    It names its places and holds no journey time, and says of each area where its homes
+    stand: at the point inside it, which is made up as the rest is. So a journey by public
+    transport is estimated from distance, and said as a band. It is made up all the same.
+    """
+    found: dict[str, Any] = load_release(SYNTHETIC_FIXTURE).documents()  # pyright: ignore[reportAssignmentType]
+    found["manifest.json"].update(preview=True)
+    for area in found["neighbourhoods.json"]["neighbourhoods"]:
+        area["homes_at"] = area["centroid"]
+    travel = found["travel.json"]
+    travel.update(source_ids=[], as_of=None, destination_ids=[])
+    for matrix in ("pt_typical", "pt_just_missed", "cycle", "walk"):
+        travel[matrix] = [[] for _ in travel["area_ids"]]
+    return parse_release(found)
+
+
+def record_an_estimate(rec: Recorder) -> None:
+    """A release that holds no journey time: a journey is estimated, and said to be.
+
+    The committed release holds a time for every journey, so no other recording shows a
+    page what an estimate looks like: on a result, in its reasons, in a comparison, where a
+    firm limit leaves an area out, and on the page of methods.
+    """
+    client = TestClient(create_app(make_deps(release=a_release_that_estimates())))
+    meta = rec.call(
+        client,
+        "estimate/meta",
+        "The form of a release that holds no journey time: how a journey is estimated",
+        "get_meta",
+    )
+    renter = meta["data"]["defaults"]["rent"]
+    spec = renter | {"commutes": [commute(WORKS, ESTIMATE_LIMIT)]}
+    ranked = rec.call(
+        client,
+        "estimate/rank",
+        "A journey with a flexible limit: every area is listed, each with one of three bands",
+        "rank",
+        {"spec": spec, "limit": 100},
+    )
+    rec.call(
+        client,
+        "estimate/explanations",
+        "Its reasons: a journey is said as a band, and said to be estimated",
+        "explain_top",
+        {"spec": spec, "limit": 5},
+    )
+    firm = renter | {"commutes": [commute(WORKS, ESTIMATE_LIMIT, "hard")]}
+    rec.call(
+        client,
+        "estimate/rank-firm",
+        "The same journey with a firm limit: only what is likely beyond it is left out",
+        "rank",
+        {"spec": firm, "limit": 100},
+    )
+    # One area of each band, by the order of the ranking, which puts the nearest first.
+    of_band: dict[str, str] = {}
+    for area in ranked["data"]["ranked"]:
+        of_band.setdefault(area["legs"][0]["estimate"], area["area_id"])
+    rec.call(
+        client,
+        "estimate/compare",
+        "Three areas compared on the firm limit: one of each band, the last of them left out",
+        "compare",
+        {
+            "spec": firm,
+            "area_ids": [
+                of_band[band] for band in ("likely_within", "borderline", "likely_beyond")
+            ],
+        },
+    )
 
 
 # What one person types on one visit, in order. Each sentence is made up for the recording.
@@ -1875,6 +2063,107 @@ def record_one_number(rec: Recorder) -> None:
         "explain_top",
         {"spec": spec, "limit": 5},
     )
+
+
+# The first month of the three years a counted price is of, where the last is June 2026.
+SOLD_SINCE = "2023-07"
+# How many sales a made-up price rests on: some on many, and some on few.
+MANY, FEW = 120, 14
+
+
+def a_release_of_counted_sales() -> InMemoryRelease:
+    """The committed release with each price as a build works one out from the sales.
+
+    Every price to buy keeps its median, loses both quartiles, and says how many
+    sales it rests on and since when: many for a flat, and few for a detached house.
+    It holds no rent. It is made up all the same.
+    """
+    found: dict[str, Any] = load_release(SYNTHETIC_FIXTURE).documents()  # pyright: ignore[reportAssignmentType]
+    prices = [row for row in found["cost.json"]["rows"] if row["tenure"] == "buy"]
+    for row in prices:
+        few = row["segment"] == "detached"
+        row.update(
+            lower_quartile=None,
+            upper_quartile=None,
+            sales=FEW if few else MANY,
+            since=SOLD_SINCE,
+            confidence="medium" if few else "high",
+        )
+    found["cost.json"]["rows"] = prices
+    return parse_release(found)
+
+
+def record_counted_sales(rec: Recorder) -> None:
+    """A release whose prices are counted from sales, as a build of London holds them.
+
+    Each is one number that says how many sales it rests on. A firm budget leaves an
+    area out only where the middle price is far over it, and an area near the line
+    says that about half of the homes sold there went for less.
+    """
+    client = TestClient(create_app(make_deps(release=a_release_of_counted_sales())))
+    meta = rec.call(client, "counted/meta", "The form of the release", "get_meta")
+    rec.call(
+        client,
+        "counted/area",
+        "The profile of an area whose prices are each the middle of the sales counted",
+        "get_area",
+        id_or_slug="farrowmere",
+    )
+    buyer = meta["data"]["defaults"]["buy"]
+    spec = buyer | {
+        "budget": buyer["budget"]
+        | {"amount": BUYER_HAS, "strictness": "hard", "provenance": "stated"}
+    }
+    rec.call(
+        client,
+        "counted/rank-firm",
+        "A firm budget held against the middle price: an area is left out only where it is "
+        "far over, and some that are kept are over it",
+        "rank",
+        {"spec": spec, "limit": 20},
+    )
+    rec.call(
+        client,
+        "counted/explanations-firm",
+        "Its reasons: an area over the budget says that about half of the homes sold there "
+        "went for less",
+        "explain_top",
+        {"spec": spec, "limit": 5},
+    )
+
+
+def record_the_income(rec: Recorder, client: TestClient) -> None:
+    """Route 14: the household income of one area, which only the page of an area asks for."""
+    rec.call(
+        client,
+        "income",
+        "The household income of one area: the estimate, its limits, its year and its source",
+        "get_income",
+        id_or_slug="foxholt",
+    )
+    rec.call(
+        client,
+        "income-none-given",
+        "An area the estimates hold no figure for: it says so, and gives none",
+        "get_income",
+        id_or_slug="otterby-fields",
+    )
+    rec.call(
+        client,
+        "income-not-found",
+        "A slug the release lacks: 404",
+        "get_income",
+        id_or_slug="nowhere-at-all",
+    )
+    off = TestClient(create_app(make_deps(income=None)))
+    rec.call(
+        off,
+        "income-off",
+        "A service that serves no household income: 404, and no figure",
+        "get_income",
+        id_or_slug="foxholt",
+    )
+    rec.call(off, "meta-no-income", "What route 11 says where none is served", "get_meta")
 
 
 def record_the_visit(rec: Recorder, defaults: dict[str, Any]) -> None:
@@ -2034,10 +2323,13 @@ def main() -> int:
     record_the_other_gritty(rec)
     record_a_preview(rec)
     record_one_number(rec)
+    record_an_estimate(rec)
+    record_counted_sales(rec)
     record_the_examples(rec, client, TestClient(create_app(make_deps(release=a_preview()))))
     record_the_visit(rec, meta["defaults"])
     # From a service of its own, so that it moves the id of no other recording.
     record_the_census(rec, TestClient(create_app(make_deps())))
+    record_the_income(rec, TestClient(create_app(make_deps())))
     if not rec.finish():
         sys.stderr.write("Nothing was written. Reword these in record.py, and record again:\n")
         sys.stderr.write("".join(f"  {failure}\n" for failure in rec.failed))

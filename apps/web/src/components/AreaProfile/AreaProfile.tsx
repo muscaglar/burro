@@ -1,11 +1,12 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { AREA, LOOK } from "@/content/area";
+import { AREA, LOOK, NAMED } from "@/content/area";
 import { ruleIn } from "@/content/crime";
 import { DIMENSION } from "@/content/labels";
 import { sentenceOf } from "@/content/templates";
 import type { AreaData, AreaSummary, Fact, GeometryData, MetaData, Tenure, VibeBands } from "@/lib/api/schema";
+import { saidOfTheName } from "@/lib/area/named";
 import { cannotSee, nearestStation, portraitOf, shownOn } from "@/lib/area/portrait";
 import {
   alikeRows,
@@ -24,6 +25,8 @@ import { CENSUS_PART } from "../CensusPanel/part";
 import { CompareButton } from "../CompareTray/CompareButton";
 import { CompareTray } from "../CompareTray/CompareTray";
 import { FactRow } from "../FactRow/FactRow";
+import { IncomePanel } from "../IncomePanel/IncomePanel";
+import { INCOME_PART } from "../IncomePanel/part";
 import { LocatorMap } from "../LocatorMap/LocatorMap";
 import { Portrait } from "../Portrait/Portrait";
 import { SourceLine } from "../SourceLine/SourceLine";
@@ -37,9 +40,10 @@ interface Props {
   readonly data: AreaData;
   /**
    * The features and the vibes of the release, from route 11: their names, and what each is
-   * about. And whether census figures are served, with the words of the block that offers them.
+   * about. And whether census figures are served, with the words of the block that offers them,
+   * and the same of household income.
    */
-  readonly meta: Pick<MetaData, "features" | "tags"> & Partial<Pick<MetaData, "census">>;
+  readonly meta: Pick<MetaData, "features" | "tags"> & Partial<Pick<MetaData, "census" | "income" | "counts">>;
   /** The boundary of every area, from route 5. */
   readonly geometry: GeometryData;
   /** Every area of the release, from route 4: the address of each area that is like this one. */
@@ -146,8 +150,12 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
   // The name and the borough are the fact's, where there is one: it carries their source.
   const name = named?.slots.name ?? area.name;
   const borough = named?.slots.borough ?? area.borough;
+  const said = named === null ? null : saidOfTheName(named);
   const stations = stationFacts(data);
   const nearest = nearestStation(data);
+  // A release may name no station for any area. No area is then said to have none near it:
+  // that is so of the data, and a vibe of the same page may give how far the nearest one is.
+  const namesStations = meta.counts === undefined || meta.counts.stations > 0;
   const nearestSaid = nearest === null ? null : sentenceOf(nearest);
   const groups = featuresByDimension(data, meta.features);
   const alike = alikeRows(data, areas);
@@ -160,6 +168,7 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
   const here = { area_id: area.area_id, slug: area.slug, name };
   // Offered only where the service serves one. The words are the API's, and hold no figure.
   const census = meta.census?.available === true ? meta.census : null;
+  const income = meta.income?.available === true ? meta.income : null;
 
   return (
     <article className={styles.profile} aria-labelledby="area-name">
@@ -172,6 +181,25 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
                 <dt>{AREA.borough}</dt>
                 <dd>{borough}</dd>
               </div>
+              {/* The label its publisher gives the area, and what is known of the name it
+                  bears: who wrote it, and whether a person has checked it. Each is the fact's. */}
+              {named?.slots.label ? (
+                <div>
+                  <dt>{NAMED.label}</dt>
+                  <dd>{named.slots.label}</dd>
+                </div>
+              ) : null}
+              {said !== null ? (
+                <div>
+                  <dt>{NAMED.name}</dt>
+                  <dd>
+                    {said}{" "}
+                    <Link className="target-min" href={paths.methods("names")} prefetch={false}>
+                      {NAMED.how}
+                    </Link>
+                  </dd>
+                </div>
+              ) : null}
             </dl>
             {named ? <SourceLine facts={[named]} /> : null}
           </div>
@@ -219,7 +247,7 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
                 <SourceLine facts={[nearest]} />
               </div>
             ) : (
-              <p>{AREA.where.noStation}</p>
+              <p>{namesStations ? AREA.where.noStation : AREA.where.noStations}</p>
             )}
             <YourJourneys areaId={area.area_id} />
           </div>
@@ -241,6 +269,7 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
               [SECTION.features, AREA.features.title],
               [SECTION.sources, AREA.sources.title],
               ...(census === null ? [] : ([[CENSUS_PART, census.heading]] as const)),
+              ...(income === null ? [] : ([[INCOME_PART, income.heading]] as const)),
               [SECTION.look, LOOK.title],
             ] as const
           ).map(([id, title]) => (
@@ -326,9 +355,14 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
 
         <Closed id={SECTION.features} title={AREA.features.title}>
           <p className={styles.lead}>{AREA.features.lead}</p>
+          {/* A release holds a hundred measures, and a person came for a few of them. Each
+              group is closed under its own name, in the browser's own element, so that the
+              part opens to the names of its groups and not to every row of them all. */}
           {groups.map((group) => (
-            <div key={group.dimension} className={styles.part}>
-              <h3>{DIMENSION[group.dimension]}</h3>
+            <details key={group.dimension} className={styles.group}>
+              <summary className="target">
+                <h3>{DIMENSION[group.dimension]}</h3>
+              </summary>
               {/* When recorded crime counts, as every page says it. */}
               {group.dimension === "crime" ? <p className={styles.lead}>{ruleIn(meta)}</p> : null}
               <ul className={styles.rows}>
@@ -342,7 +376,7 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
                   </li>
                 ))}
               </ul>
-            </div>
+            </details>
           ))}
         </Closed>
 
@@ -370,16 +404,24 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
           and are asked for when it is opened.
         */}
         {census === null ? null : <CensusPanel offer={census} area={{ slug: area.slug }} />}
+        {/*
+          What the households here are estimated to have as income. It stands where the census
+          does and is asked for as it is: the figure is not in the page, and is handed to nothing.
+        */}
+        {income === null ? null : <IncomePanel offer={income} area={{ slug: area.slug }} />}
       </div>
 
       <section className={styles.part} aria-labelledby={SECTION.look}>
         <h2 id={SECTION.look}>{LOOK.title}</h2>
         <p className={styles.lead}>{LOOK.lead}</p>
         <div className={styles.look}>
-          <div className={styles.part}>
-            <h3 className={styles.small}>{LOOK.start}</h3>
-            {stations.length > 0 ? <Rows facts={stations} /> : <p>{LOOK.noStation}</p>}
-          </div>
+          {/* With no station in the data there is none to start from, and the part is left out. */}
+          {namesStations ? (
+            <div className={styles.part}>
+              <h3 className={styles.small}>{LOOK.start}</h3>
+              {stations.length > 0 ? <Rows facts={stations} /> : <p>{LOOK.noStation}</p>}
+            </div>
+          ) : null}
           {unseen.own.length > 0 ? (
             <div className={styles.part}>
               <h3 className={styles.small}>{LOOK.cannotSee}</h3>
@@ -388,25 +430,30 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
               {unseen.common.map((line) => (
                 <p key={line}>{line}</p>
               ))}
-              <dl className={styles.unseen}>
-                {unseen.own.map(({ tag, lines }) => (
-                  <div key={tag.tag_id}>
-                    <dt>{tag.label}</dt>
-                    <dd>
-                      <ul>
-                        {lines.map((line) => (
-                          <li key={line}>{line}</li>
-                        ))}
-                      </ul>
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-              <p>
-                <Link className="target-min" href={paths.vibes()}>
-                  {LOOK.vibes}
-                </Link>
-              </p>
+              {/* A release holds fourteen vibes, and each cannot see four things or five. The
+                  list is one press away, in the browser's own element. */}
+              <details className={styles.group}>
+                <summary className="target">{LOOK.cannotSeeEach}</summary>
+                <dl className={styles.unseen}>
+                  {unseen.own.map(({ tag, lines }) => (
+                    <div key={tag.tag_id}>
+                      <dt>{tag.label}</dt>
+                      <dd>
+                        <ul>
+                          {lines.map((line) => (
+                            <li key={line}>{line}</li>
+                          ))}
+                        </ul>
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+                <p>
+                  <Link className="target-min" href={paths.vibes()}>
+                    {LOOK.vibes}
+                  </Link>
+                </p>
+              </details>
             </div>
           ) : null}
         </div>

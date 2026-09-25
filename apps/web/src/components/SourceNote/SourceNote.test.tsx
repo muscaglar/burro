@@ -53,6 +53,34 @@ describe("the source of a figure", () => {
     expect(screen.getByText(SOURCE.madeUp)).toBeInTheDocument();
   });
 
+  test("test_a_publishers_own_statement_is_shown_with_its_source_where_it_asks_to_see_it_there", async () => {
+    // Transport for London asks that its statement is shown wherever a figure made from its
+    // data is. The API says which source asks, and brings the statement with the fact.
+    const fact: Fact = {
+      ...(farrowmere.facts[0] as Fact),
+      sources: [
+        { source_id: "naptan", name: "NaPTAN", publisher: "Department for Transport", attribution: null },
+        {
+          source_id: "station-data",
+          name: "Station data",
+          publisher: "Transport for London",
+          attribution: "Powered by TfL Open Data\nContains OS data © Crown copyright and database rights 2016",
+        },
+      ],
+    };
+    render(<SourceNote facts={[fact]} />);
+
+    await userEvent.setup({ delay: null }).click(screen.getByRole("button", { name: SOURCE.button }));
+
+    const credited = screen.getByRole("link", { name: "Station data" }).closest("li");
+    expect(credited).toHaveTextContent(
+      "Powered by TfL Open Data. Contains OS data © Crown copyright and database rights 2016.",
+    );
+    // A source that asks for no more than its name has no more than its name and its publisher.
+    const plain = screen.getByRole("link", { name: "NaPTAN" }).closest("li");
+    expect(plain?.textContent).toBe(`NaPTAN${SOURCE.by} Department for Transport`);
+  });
+
   test("test_data_that_is_not_made_up_is_not_said_to_be", async () => {
     const fact = { ...(farrowmere.facts[0] as Fact), synthetic: false };
     render(<SourceNote facts={[fact]} />);

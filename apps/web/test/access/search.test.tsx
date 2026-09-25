@@ -497,8 +497,10 @@ describe("colour is never the only signal", () => {
     for (const { area_id: areaId } of refined.filtered) {
       expect(rowOf(areaId)).toHaveTextContent("A journey is longer than a firm limit");
     }
-    // In rank order, and then by name.
-    const names = table().getAllByRole("rowheader").map((cell) => cell.textContent);
+    // In rank order, and then by name. Under a name is the label its publisher gives the area.
+    const names = table()
+      .getAllByRole("rowheader")
+      .map((cell) => cell.querySelector("a")?.textContent);
     const ranked = refined.scores.map((score) => nameOf(score.area_id));
     expect(names.slice(0, ranked.length)).toEqual(ranked);
     expect(names.slice(ranked.length)).toEqual([...names.slice(ranked.length)].sort());

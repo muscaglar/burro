@@ -1,0 +1,358 @@
+{
+  "scenario": "interpret-suggest-who-is-counted",
+  "shows": "Who lived there at the census, offered towards more and no other way, with its note",
+  "captured": true,
+  "request": {
+    "operation_id": "interpret",
+    "method": "POST",
+    "route": "/v1/interpret",
+    "path": "/v1/interpret",
+    "body": {
+      "text": "young professionals, lively, near a station"
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "4919",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "false",
+    "x-burro-synthetic": "true",
+    "x-request-id": "c7902a1d-d8be-4e97-bf89-3f5267069b0d"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.13.0",
+      "synthetic": true,
+      "preview": false
+    },
+    "data": {
+      "status": "suggest",
+      "operations": {
+        "budget_ops": [],
+        "commute_ops": [],
+        "weight_ops": [],
+        "tag_ops": [],
+        "area_ops": [],
+        "setting_ops": []
+      },
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.3,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.2,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.3,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.2,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.3,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.3,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.5,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "spec_hash": "6c8de5435684a83166d75f9c1c0c25959efec036499e2359868c9a0f973a6640",
+      "applied": [],
+      "rejected": [],
+      "assumptions": [],
+      "unmet": [],
+      "clarify": [],
+      "notice": "none",
+      "notice_text": "",
+      "interpreter": "rule",
+      "degraded": false,
+      "model_refused": false,
+      "rests_on": [],
+      "suggestions": [
+        {
+          "target": "tag:young_professionals",
+          "label": "Young professionals",
+          "does": "Add Young professionals.",
+          "spans": [
+            {
+              "start": 0,
+              "end": 19
+            }
+          ],
+          "shown": {
+            "start": 0,
+            "end": 19
+          },
+          "follows": "What it counts: residents aged 20 to 34 at Census 2021, with a station, places to eat and drink and culture nearby. It counts who lived there beside what is there. It cannot see: one street or one home. An area is many streets.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Add",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [
+                  {
+                    "action": "nudge",
+                    "tag_id": "young_professionals",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "toward": "high",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "Burro counts who was living there at the census of 2021. It measures places first.",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "Young professionals",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "tag:pace",
+          "label": "Going out",
+          "does": "Going out runs from Calm to Buzzy. Which way?",
+          "spans": [
+            {
+              "start": 21,
+              "end": 27
+            }
+          ],
+          "shown": {
+            "start": 21,
+            "end": 27
+          },
+          "follows": "What it counts: how much there is to eat, drink and go out to within reach of homes. It cannot see: one street or one home. An area is many streets.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Towards Buzzy",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [
+                  {
+                    "action": "nudge",
+                    "tag_id": "pace",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "toward": "high",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "less",
+              "direction": "less",
+              "label": "Towards Calm",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [
+                  {
+                    "action": "nudge",
+                    "tag_id": "pace",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "toward": "low",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "Going out",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "feature:station_walk",
+          "label": "Nearer a station",
+          "does": "Nearer a station: count it, or stop counting it?",
+          "spans": [
+            {
+              "start": 29,
+              "end": 43
+            }
+          ],
+          "shown": {
+            "start": 29,
+            "end": 43
+          },
+          "follows": "What Burro counts: straight-line distance to the nearest way in to a station.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Add",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "nudge",
+                    "feature_id": "station_walk",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "direction": "default",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "off",
+              "direction": "less",
+              "label": "Stop counting it",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "remove",
+                    "feature_id": "station_walk",
+                    "value": 0.0,
+                    "step": "none",
+                    "direction": "default",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "nearer a station",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        }
+      ],
+      "unread": [],
+      "not_in_release": [],
+      "unmet_at": [],
+      "model_pending": false,
+      "places": []
+    }
+  }
+}

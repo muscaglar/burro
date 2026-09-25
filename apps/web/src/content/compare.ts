@@ -118,6 +118,8 @@ export const COMPARE_STATUS: Readonly<Record<CompareStatus, string>> = {
   not_selected: "Left out: not one of the areas you chose",
   over_budget: "Left out: over your budget, which is a firm limit",
   commute_cap: "Left out: a journey is longer than a firm limit",
+  commute_likely_beyond:
+    "Left out: a journey is likely beyond a firm limit. Estimated from distance, not from a timetable.",
   not_rankable: "Not ranked in this data",
   insufficient_data: "Not ranked: too little data for what counts",
   // A default counts as character too, so the words say what counts and not what was asked for.

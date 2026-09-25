@@ -210,3 +210,58 @@ describe("a price that is one number", () => {
     expect(await faultsIn(container)).toEqual([]);
   });
 });
+
+describe("a price that was counted from sales", () => {
+  // A release whose prices are each the middle of the sales of three years, as a build of
+  // London counts them: one number, with how many sales it rests on.
+  const area = recordedAnswer("get_area", "counted/area").body.data;
+  const [estimate] = area.cost.filter((cost) => cost.tenure === "buy" && cost.segment === "flat");
+  const fact = area.facts.find((one) => one.kind === "cost" && one.key === "buy.flat");
+  if (!estimate || !fact) throw new Error("no recorded price");
+  const ranked = recordedAnswer("rank", "counted/rank-firm").body.data;
+  const amount = ranked.spec.budget.amount ?? 0;
+
+  test("test_the_recorded_price_is_one_number_that_says_how_many_sales_it_rests_on", () => {
+    expect([estimate.lower_quartile, estimate.upper_quartile]).toEqual([null, null]);
+    expect(estimate.sales).toBeGreaterThanOrEqual(10);
+    expect(estimate.since).toMatch(/^\d{4}-\d{2}$/);
+    expect(fact.template).toBe("cost_buy_sold");
+    expect(hasARange(estimate)).toBe(false);
+  });
+
+  test("test_it_says_how_many_sales_and_over_which_months_in_the_apis_words", () => {
+    render(<CostRange fact={fact} estimate={estimate} budget={{ amount: null }} />);
+
+    expect(screen.getByText(COST.sales)).toBeInTheDocument();
+    expect(screen.getByText(fact.slots.sales ?? "no count")).toBeInTheDocument();
+    expect(screen.getByText(fact.slots.period ?? "no period")).toBeInTheDocument();
+    // What is known of it is said, so the page does not say that it is not known.
+    expect(screen.queryByText(ONE_NUMBER)).toBeNull();
+  });
+
+  test("test_it_says_that_about_half_of_what_sold_went_for_less_as_the_api_wrote_it", () => {
+    render(<CostRange fact={fact} estimate={estimate} budget={{ amount }} />);
+
+    expect(fact.slots.half_sold).toMatch(/^About half of the flats sold here went for under £[\d,]+\.$/);
+    expect(screen.getByText(fact.slots.half_sold ?? "no sentence")).toBeInTheDocument();
+  });
+
+  test("test_it_is_drawn_as_one_number_and_never_as_a_range", async () => {
+    const { container } = render(<CostRange fact={fact} estimate={estimate} budget={{ amount }} />);
+
+    expect(container.querySelector("[class*='figure']")?.textContent).toBe(`£${fact.slots.median}`);
+    expect((container.textContent ?? "").includes(` ${COST.to} £`)).toBe(false);
+    expect(container.querySelector("[class*='span']")).toBeNull();
+    expect(container.querySelector("[class*='pips']")).toBeNull();
+    expect(await faultsIn(container)).toEqual([]);
+  });
+
+  test("test_a_firm_budget_keeps_an_area_whose_middle_price_is_a_little_over_it", () => {
+    const over = ranked.ranked.filter((one) => one.budget !== null && one.budget.margin < 0);
+
+    // Half of what sold went for less, so an area a little over the budget is kept.
+    expect(over.length).toBeGreaterThan(0);
+    expect(ranked.filtered.length).toBeGreaterThan(0);
+    expect(ranked.spec.budget.strictness).toBe("hard");
+  });
+});

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { countsOf } from "@/content/crime";
 import { SOURCE } from "@/content/search";
 import type { Fact, MetaData } from "@/lib/api/schema";
-import { citedBy, linesOf } from "@/lib/facts";
+import { citedBy, creditOf, linesOf } from "@/lib/facts";
 import { readableDate } from "@/lib/format";
 import { paths } from "@/lib/paths";
 
@@ -87,6 +87,8 @@ export function SourceNote({ facts, of, judgementSaid = false, meta }: Props) {
                 {SOURCE.by} {source.publisher}
               </span>
             )}
+            {/* The publisher's own statement, where it asks to see it beside the figure. */}
+            {creditOf(source) === null ? null : <span className={styles.credit}>{creditOf(source)}</span>}
           </li>
         ))}
         {dates.map((date) => (

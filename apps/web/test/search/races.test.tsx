@@ -273,7 +273,7 @@ describe("a control moved twice before its answer", () => {
     await arrived();
     // Pubs and bars are a part of the recipe of Going out.
     await settingsAt(user, "Pace and food", FEATURES.madeOfName("Going out"));
-    const pubs = labelOf("venue_evening");
+    const pubs = labelOf("venue_evening_per_homes");
     const number = screen.getAllByRole("textbox", { name: SLIDER.number(FEATURES.weight(pubs)) })[0] as HTMLElement;
     // No answer comes until all three have been done.
     api.calls.length = 0;

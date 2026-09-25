@@ -28,17 +28,24 @@ export const DIMENSION: Readonly<Record<Dimension, string>> = {
   homes: "Homes",
   station_access: "Stations",
   services: "Shops and services",
+  brands: "Brands nearby",
+  residents: "Who lived there at the census",
 };
 
-/** The order the dimensions are shown in. Recorded crime is last: it is off unless asked for. */
+/**
+ * The order the dimensions are shown in. What is there comes first, and who lived there
+ * after it. Recorded crime is last: it is off unless asked for.
+ */
 export const DIMENSION_ORDER: readonly Dimension[] = [
   "station_access",
   "green_water",
   "air_noise",
   "venues_culture",
   "services",
+  "brands",
   "schools",
   "homes",
+  "residents",
   "crime",
 ];
 

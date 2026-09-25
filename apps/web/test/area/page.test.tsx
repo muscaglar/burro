@@ -16,7 +16,7 @@ import { AreaProfile } from "@/components/AreaProfile/AreaProfile";
 import { columnsOf } from "@/components/FactRow/FactRow";
 import { SearchApp } from "@/components/SearchApp/SearchApp";
 import { Shell } from "@/components/Shell/Shell";
-import { AREA, LOOK, PORTRAIT } from "@/content/area";
+import { AREA, LOOK, NAMED, PORTRAIT } from "@/content/area";
 import { ONE_NUMBER } from "@/content/facts";
 import { RESTS_ON } from "@/content/bands";
 import { COMPARE, TRAY } from "@/content/compare";
@@ -69,7 +69,7 @@ const part = (id: string) => {
  */
 function siteCopyWithFigures(): string[] {
   const five = [1, 2, 3, 4, 5];
-  const counts = Array.from({ length: 13 }, (_, at) => at);
+  const counts = Array.from({ length: 15 }, (_, at) => at);
   return [
     ...five.map((band) => STRIP.band(band)),
     ...five.flatMap((low) => five.map((high) => STRIP.bands(low, high))),
@@ -171,6 +171,55 @@ describe("what an area's page says", () => {
     expect(screen.getByRole("article", { name: "Alderwick" })).toHaveTextContent(
       `${AREA.borough}Quillhaven`,
     );
+  });
+
+  test("test_the_name_comes_first_and_the_label_of_the_area_stands_under_it", async () => {
+    const data = profile("alderwick");
+    await show("alderwick");
+    const named = data.facts.find((fact) => fact.kind === "area");
+    const head = screen.getByRole("heading", { level: 1 }).parentElement as HTMLElement;
+
+    // The label is the fact's own, so it has the source and the date of the fact.
+    expect(named?.slots.label).toBe("Quillhaven 001");
+    expect(head).toHaveTextContent(`${NAMED.label}Quillhaven 001`);
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Alderwick");
+    expect(figuresNotFrom(head, saidBy(data.facts))).toEqual([]);
+  });
+
+  test("test_a_name_no_person_has_checked_is_said_to_be_a_draft_with_who_wrote_it", async () => {
+    const data = profile("alderwick");
+    await show("alderwick");
+    const named = data.facts.find((fact) => fact.kind === "area");
+    const head = screen.getByRole("heading", { level: 1 }).parentElement as HTMLElement;
+
+    expect(data.area.named?.state).toBe("draft");
+    // Who wrote the name is the API's word. That it is a draft is said in the page's words.
+    expect(head).toHaveTextContent(NAMED.state.draft(named?.slots.written_by ?? "nobody"));
+    expect(head).toHaveTextContent("No person has checked it");
+    // One press away is how a name is chosen.
+    expect(within(head).getByRole("link", { name: NAMED.how })).toHaveAttribute("href", "/methods#names");
+  });
+
+  test("test_a_name_a_person_has_checked_says_so_and_is_no_draft", async () => {
+    const data = profile("tallowgate");
+    await show("tallowgate");
+    const head = screen.getByRole("heading", { level: 1 }).parentElement as HTMLElement;
+
+    expect(data.area.named?.state).toBe("checked");
+    expect(head).toHaveTextContent(NAMED.state.checked("Burro"));
+    expect(head).not.toHaveTextContent("draft");
+    expect(head).toHaveTextContent(`${NAMED.label}Quillhaven 021`);
+  });
+
+  test("test_an_area_that_bears_no_name_but_its_label_says_nothing_of_a_name", async () => {
+    const data = profile("grapnel-dock");
+    await show("grapnel-dock");
+    const head = screen.getByRole("heading", { level: 1 }).parentElement as HTMLElement;
+
+    expect(data.area.named).toBeNull();
+    expect(head).not.toHaveTextContent(NAMED.label);
+    expect(within(head).queryByRole("link", { name: NAMED.how })).toBeNull();
+    expect(head).toHaveTextContent(`${AREA.borough}Quillhaven`);
   });
 
   test("test_the_page_carries_the_banner_that_says_the_data_is_made_up", async () => {
@@ -316,13 +365,36 @@ describe("what an area's page says", () => {
     expect(groups.flatMap((group) => group.rows)).toHaveLength(meta.data.features.length);
   });
 
+  test("test_each_group_of_what_is_measured_is_closed_under_its_own_name", async () => {
+    // Seen in a browser, on a release of a hundred measures: the part opened to seventeen
+    // screens of rows, every group at once, and the brands stood eight screens down.
+    const data = profile("alderwick");
+    await show("alderwick");
+    const measured = part("measured");
+
+    const groups = featuresByDimension(data, meta.data.features);
+    const closed = [...measured.querySelectorAll<HTMLDetailsElement>(":scope details")];
+
+    expect(closed.map((group) => group.querySelector(":scope > summary h3")?.textContent)).toEqual(
+      groups.map((group) => DIMENSION[group.dimension]),
+    );
+    expect(closed.filter((group) => group.open)).toEqual([]);
+    // Every row is in the group it belongs to, and none stands outside one.
+    expect(closed.map((group) => group.querySelectorAll(":scope > ul > li").length)).toEqual(
+      groups.map((group) => group.rows.length),
+    );
+    expect(measured.querySelectorAll("ul > li").length).toBe(groups.flatMap((group) => group.rows).length);
+    // What opens a group is the browser's own, so it opens with scripts off.
+    for (const group of closed) expect(group.querySelector(":scope > summary")).toHaveClass("target");
+  });
+
   test("test_where_the_page_speaks_of_recorded_crime_it_says_when_recorded_crime_counts", async () => {
     await show("alderwick");
     const measured = part("measured");
 
     // Under what is measured of recorded crime, the one rule, as every page says it.
     const heading = within(measured).getByRole("heading", { level: 3, name: DIMENSION.crime, hidden: true });
-    expect(heading.parentElement?.textContent?.includes(CRIME_RULE)).toBe(true);
+    expect(heading.closest("details:not(#measured)")?.textContent?.includes(CRIME_RULE)).toBe(true);
     // It is said of recorded crime, and under no other heading of what is measured.
     expect(measured.textContent?.split(CRIME_RULE)).toHaveLength(2);
   });
@@ -365,7 +437,8 @@ describe("what an area's page says", () => {
   test("test_the_nearest_station_comes_first_and_is_said_to_be_the_nearest", async () => {
     const data = profile("pellam-cross");
     await show("pellam-cross");
-    const rows = within(part("look")).getAllByRole("group");
+    // A row of a station is named as one. What opens the list of what no vibe can see is no row.
+    const rows = [...part("look").querySelectorAll<HTMLElement>("[role='group']")];
     const facts = stationFacts(data);
 
     expect(facts.length).toBeGreaterThan(1);
@@ -390,7 +463,7 @@ describe("what an area's page says", () => {
     // Whether a station is step-free is served, and no fact holds it, so it has no source or date.
     // It is said of no station. That Burro cannot see it is the API's own line, and may be said.
     expect(data.stations.some((station) => "step_free" in station)).toBe(true);
-    const stations = within(part("look")).getAllByRole("group");
+    const stations = [...part("look").querySelectorAll<HTMLElement>("[role='group']")];
     expect(stations.length).toBeGreaterThan(0);
     expect(stations.filter((row) => /step.free/i.test(row.textContent ?? ""))).toEqual([]);
     // Nor is a percentile, a coverage or a tag's raw score ever printed.
@@ -399,7 +472,12 @@ describe("what an area's page says", () => {
       ...data.tags.flatMap((tag) => [tag.raw, tag.score, tag.coverage]),
     ].filter((value): value is number => value !== null && !Number.isInteger(value));
     expect(unsourced.length).toBeGreaterThan(20);
-    expect(unsourced.filter((value) => text.includes(String(value)))).toEqual([]);
+    // A figure that a fact gives may be the same number, and is shown: a count of 0.9 places
+    // within reach is a fact, and a share of 0.9 that is covered is not.
+    const numbers = (said: string) => said.match(/\d+(?:\.\d+)?/g) ?? [];
+    const given = new Set(data.facts.flatMap((fact) => Object.values(fact.slots)).flatMap(numbers));
+    const printed = new Set(numbers(text));
+    expect(unsourced.map(String).filter((value) => printed.has(value) && !given.has(value))).toEqual([]);
   });
 
   test("test_every_vibe_of_the_release_is_on_the_page_once_in_the_list_the_api_puts_it_in", async () => {
@@ -428,8 +506,8 @@ describe("what an area's page says", () => {
     const unplaced = within(part("character")).getByRole("group", { name: PORTRAIT.groups.unplaced });
     const unknown = otterby.facts.filter((fact) => fact.template === "vibe_unknown");
 
-    // Ten of the eleven vibes: Burro says so once, and why, and draws no mark for any of them.
-    expect(unknown).toHaveLength(10);
+    // Thirteen of the fourteen vibes: Burro says so once, and why, and draws no mark for any of them.
+    expect(unknown).toHaveLength(13);
     expect(unplaced.querySelectorAll("summary")).toHaveLength(1);
     expect(screen.getByRole("main").textContent?.split(PORTRAIT.unplacedWhy)).toHaveLength(2);
     for (const fact of unknown) expect(unplaced.querySelector("p")?.textContent?.includes(fact.label)).toBe(true);
@@ -437,7 +515,7 @@ describe("what an area's page says", () => {
     expect(unplaced.querySelectorAll("[data-on]")).toHaveLength(0);
     // What the area is like says how many, in short, before anything else is read.
     expect(within(part("character")).getByRole("group", { name: PORTRAIT.short.title })).toHaveTextContent(
-      PORTRAIT.short.unplaced(10, 11),
+      PORTRAIT.short.unplaced(13, 14),
     );
   });
 
@@ -486,6 +564,8 @@ describe("the order of an area's page", () => {
       AREA.sources.title,
       // Who lived here comes after every figure of the place, and its heading is the API's.
       meta.data.census.heading,
+      // So does what the households here are estimated to have as income.
+      meta.data.income.heading,
       LOOK.title,
     ]);
   });
@@ -557,10 +637,34 @@ describe("go and look", () => {
     expect(unseen.getByRole("link", { name: LOOK.vibes })).toHaveAttribute("href", "/vibes");
   });
 
+  test("test_what_each_vibe_cannot_see_is_one_press_away_and_what_none_can_see_is_in_sight", async () => {
+    // Seen in a browser, on a release of fourteen vibes: the list of what each cannot see
+    // was two screens of a phone, at the foot of a page that was eight and a half.
+    const data = profile("alderwick");
+    await show("alderwick");
+    const shown = shownOn(portraitOf(data, meta.data)).map((mark) => mark.tag);
+    const { common, own } = cannotSee(shown, meta.data.tags);
+    const heading = within(part("look")).getByRole("heading", { level: 3, name: LOOK.cannotSee });
+    const unseen = heading.parentElement as HTMLElement;
+
+    const closed = unseen.querySelector("details") as HTMLDetailsElement;
+
+    expect(closed.open).toBe(false);
+    expect(closed.querySelector(":scope > summary")).toHaveTextContent(LOOK.cannotSeeEach);
+    expect(closed.querySelector(":scope > summary")).toHaveClass("target");
+    expect(closed.querySelectorAll("dt")).toHaveLength(own.length);
+    expect(unseen.querySelectorAll("dt")).toHaveLength(own.length);
+    // What every vibe cannot see is in sight before it is opened.
+    expect(common.length).toBeGreaterThan(0);
+    for (const line of common) expect(closed.textContent?.includes(line)).toBe(false);
+    // The way to every vibe is with the list: the head of every page leads there too.
+    expect(closed.contains(within(unseen).getByRole("link", { name: LOOK.vibes }))).toBe(true);
+  });
+
   test("test_a_vibe_that_cannot_place_the_area_says_nothing_of_what_to_look_for", async () => {
     await show("otterby-fields");
 
-    // Burro says nothing of the area on ten of the eleven vibes, so there is nothing of them to check.
+    // Burro says nothing of the area on thirteen of the fourteen vibes, so there is nothing of them to check.
     const heading = within(part("look")).getByRole("heading", { level: 3, name: LOOK.cannotSee });
 
     expect(within(heading.parentElement as HTMLElement).getAllByRole("term").map((term) => term.textContent)).toEqual([
@@ -600,6 +704,27 @@ describe("go and look", () => {
 
 describe("where an area is", () => {
   const where = () => within(part("character")).getByRole("group", { name: AREA.where.title });
+
+  test("test_the_sources_of_what_is_said_in_short_are_one_press_away", async () => {
+    // Seen in a browser, on a build of a real city: thirteen sources and seven dates stood
+    // written out under the five lines, a screen and a quarter of a phone, between what the
+    // area is like and where it is.
+    await show("alderwick");
+    const short = within(part("character")).getByRole("group", { name: PORTRAIT.short.title });
+
+    const closed = short.querySelector("details") as HTMLDetailsElement;
+
+    expect(closed.open).toBe(false);
+    expect(closed.querySelector(":scope > summary")).toHaveTextContent(PORTRAIT.short.sources);
+    expect(closed.querySelector(":scope > summary")).toHaveClass("target-min");
+    // Every source of the five lines is in it, with the date, and none stands outside it.
+    expect(closed.querySelectorAll("a[href^='/sources#']").length).toBeGreaterThan(0);
+    expect(short.querySelectorAll("a[href^='/sources#']")).toHaveLength(closed.querySelectorAll("a[href^='/sources#']").length);
+    expect(closed.textContent?.includes(SOURCE.dataFrom)).toBe(true);
+    // The five lines themselves are in sight.
+    expect(closed.querySelectorAll("li")).toHaveLength(0);
+    expect(short.querySelectorAll("li").length).toBeGreaterThan(0);
+  });
 
   test("test_it_stands_in_the_portrait_beside_what_the_area_is_like_and_before_every_vibe", async () => {
     await show("alderwick");
@@ -650,6 +775,36 @@ describe("where an area is", () => {
 
     expect(where()).toHaveTextContent(AREA.where.noStation);
     expect(where().textContent?.includes("minutes on foot")).toBe(false);
+  });
+
+  test("test_where_the_data_names_no_station_at_all_no_area_is_said_to_have_none_near_it", () => {
+    // Seen in a browser, on a build of a real city that names no station yet: the page of an
+    // area said "No station near this area is in this data.", twice, over a vibe that gave
+    // the distance to the nearest station as 540 m.
+    const data = profile("alderwick");
+    const geometry = recordedAnswer("get_geometry", "geometry").body.data;
+    const nameless = { ...meta.data, counts: { ...meta.data.counts, stations: 0 } };
+    render(
+      <Shell meta={meta.meta}>
+        <AreaProfile
+          data={{ ...data, stations: [], facts: data.facts.filter((fact) => fact.kind !== "station") }}
+          meta={nameless}
+          geometry={geometry}
+          areas={areas}
+          bands={bands}
+        />
+      </Shell>,
+    );
+    const page = screen.getByRole("main").textContent ?? "";
+
+    expect(page.includes(AREA.where.noStation)).toBe(false);
+    expect(page.includes(LOOK.noStation)).toBe(false);
+    // It is said once, of the data, where the nearest station would stand.
+    expect(page.split(AREA.where.noStations)).toHaveLength(2);
+    expect(where()).toHaveTextContent(AREA.where.noStations);
+    // With no station to start from, the part that says where to start is left out.
+    expect(within(part("look")).queryByRole("heading", { level: 3, name: LOOK.start })).toBeNull();
+    expect(within(part("look")).getByRole("heading", { level: 3, name: LOOK.cannotSee })).toBeInTheDocument();
   });
 
   test("test_the_picture_takes_no_key_and_no_pointer", async () => {
@@ -703,6 +858,29 @@ describe("how long it takes to the places a person named", () => {
     expect(area.legs[0].minutes).toBeGreaterThan(commute.max_minutes);
     expect(journeys()).toHaveTextContent(JOURNEYS.overLimit(commute.max_minutes));
     expect(journeys()?.textContent?.includes(JOURNEYS.withinLimit(commute.max_minutes))).toBe(false);
+  });
+
+  test("test_a_journey_that_was_estimated_says_its_band_and_that_it_is_an_estimate_and_no_minutes", async () => {
+    // A release that holds no journey time: the ranking brings a band for each journey.
+    const estimated = recordedAnswer("rank", "estimate/rank").body.data;
+    const api = standInApi()
+      .on("interpret", "interpret-first")
+      .on("rank", "estimate/rank")
+      .on("explain_top", "estimate/explanations");
+    await openFromASearch("farrowmere", api);
+    const area = estimated.ranked.find((one) => one.area_id === profile("farrowmere").area.area_id);
+    const leg = area?.legs[0];
+    if (!leg?.estimate) throw new Error("the recorded journey was not estimated");
+
+    const said = journeys();
+
+    expect(leg.status).toBe("estimated");
+    expect(said).toHaveTextContent(estimated.places[0]?.name ?? "no name");
+    expect(said).toHaveTextContent(`${MODE[leg.mode]}: ${JOURNEYS.estimated[leg.estimate]}. ${JOURNEYS.estimatedFrom}`);
+    // It is given in no minutes, and is not said to be within its limit or over it.
+    expect(/\d/.test(said?.textContent ?? "")).toBe(false);
+    expect(said?.textContent?.includes(JOURNEYS.missing)).toBe(false);
+    expect(within(said as HTMLElement).getByRole("button", { name: /^Source/ })).toBeInTheDocument();
   });
 
   test("test_with_no_search_open_the_page_says_nothing_of_journeys", async () => {
@@ -779,6 +957,7 @@ describe("an area's page, by keyboard and to a screen reader", () => {
       AREA.features.title,
       AREA.sources.title,
       meta.data.census.heading,
+      meta.data.income.heading,
       LOOK.title,
     ]);
     for (const link of links) {

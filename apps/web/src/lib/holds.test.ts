@@ -14,7 +14,7 @@ describe("what the release of a page can answer", () => {
       "parks_close_by",
       "homes",
     ]);
-    expect(waitingOf(preview, preview.tags)).toHaveLength(8);
+    expect(waitingOf(preview, preview.tags)).toHaveLength(11);
     expect(waitingOf(whole, whole.tags)).toEqual([]);
     expect(recipeOf(preview, "leafy")).toMatchObject({ held: 30, needed: 60, placed: false });
     // A vibe the API says nothing of is taken to be placed: the API answers for it.
@@ -43,7 +43,7 @@ describe("what the release of a page can answer", () => {
     // bands, of which eight thousand said that an area could not be placed.
     const drawn = bandsToDraw(preview, listed.bands);
 
-    expect(listed.bands).toHaveLength(11);
+    expect(listed.bands).toHaveLength(14);
     expect(drawn.map((one) => one.tag_id)).toEqual(["quiet_residential", "parks_close_by", "homes"]);
     for (const one of listed.bands.filter((band) => !drawn.includes(band))) {
       expect(one.marks.every((mark) => mark.band === null)).toBe(true);

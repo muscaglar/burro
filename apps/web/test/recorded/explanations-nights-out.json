@@ -68,7 +68,7 @@
             "provenance": "default"
           },
           {
-            "feature_id": "venue_evening",
+            "feature_id": "venue_evening_per_homes",
             "weight": 0.5,
             "direction": "more",
             "provenance": "stated"
@@ -102,22 +102,22 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "26770",
+    "content-length": "29432",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "d8294235-afb7-4089-8763-5c489ef9989e"
+    "x-request-id": "2d72b254-3528-4bdd-84c7-fc299a4eb821"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
     "data": {
-      "spec_hash": "af2f4370515a9095711492c360383e915372fc642f789fa0e021a58b1c1cc22e",
+      "spec_hash": "b7f59a5004fe7f222adb90212656b7286d4597755b3d599c250c180faae80b12",
       "explanations": [
         {
           "area_id": "syn-n0018",
@@ -131,9 +131,9 @@
           },
           "reasons": [
             {
-              "text": "Pubs, bars and evening venues: 46.6 per km², more than 95% of the 21 areas compared in this release.",
+              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 8.2 per 1,000 homes, more than 95% of the 21 areas compared in this release.",
               "fact_ids": [
-                "syn-n0018/feature/venue_evening"
+                "syn-n0018/feature/venue_evening_per_homes"
               ],
               "origin": "template",
               "replaced": false
@@ -177,9 +177,9 @@
           },
           "reasons": [
             {
-              "text": "Pubs, bars and evening venues: 42 per km², more than 90% of the 21 areas compared in this release.",
+              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 7.6 per 1,000 homes, more than 90% of the 21 areas compared in this release.",
               "fact_ids": [
-                "syn-n0012/feature/venue_evening"
+                "syn-n0012/feature/venue_evening_per_homes"
               ],
               "origin": "template",
               "replaced": false
@@ -212,6 +212,52 @@
           "missing": []
         },
         {
+          "area_id": "syn-n0021",
+          "orientation": {
+            "text": "Tallowgate is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0021/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "Going out: band 5 of 5, counted from Calm to Buzzy, among the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0021/tag/pace"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 5.4 per 1,000 homes, more than 80% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0021/feature/venue_evening_per_homes"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line: 11.7 per 1,000 homes, more than 80% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0021/feature/venue_food_drink_per_homes"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 1,070 m, further than 80% of the 21 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0021/feature/park_proximity"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
           "area_id": "syn-n0023",
           "orientation": {
             "text": "Wexmoor is in Quillhaven.",
@@ -223,9 +269,9 @@
           },
           "reasons": [
             {
-              "text": "Pubs, bars and evening venues: 30 per km², more than 85% of the 21 areas compared in this release.",
+              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 6 per 1,000 homes, more than 85% of the 21 areas compared in this release.",
               "fact_ids": [
-                "syn-n0023/feature/venue_evening"
+                "syn-n0023/feature/venue_evening_per_homes"
               ],
               "origin": "template",
               "replaced": false
@@ -258,52 +304,6 @@
           "missing": []
         },
         {
-          "area_id": "syn-n0021",
-          "orientation": {
-            "text": "Tallowgate is in Quillhaven.",
-            "fact_ids": [
-              "syn-n0021/area/name"
-            ],
-            "origin": "template",
-            "replaced": false
-          },
-          "reasons": [
-            {
-              "text": "Going out: band 5 of 5, counted from Calm to Buzzy, among the 21 areas compared in this release.",
-              "fact_ids": [
-                "syn-n0021/tag/pace"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
-              "text": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line: 11.7 per 1,000 homes, more than 80% of the 21 areas compared in this release.",
-              "fact_ids": [
-                "syn-n0021/feature/venue_food_drink_per_homes"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
-              "text": "By public transport to Pellam Exchange: about 9 minutes on a typical weekday morning, 11 if you just miss a service.",
-              "fact_ids": [
-                "syn-n0021/travel/syn-p0017.pt"
-              ],
-              "origin": "template",
-              "replaced": false
-            }
-          ],
-          "trade_off": {
-            "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 1,070 m, further than 80% of the 21 areas compared in this release.",
-            "fact_ids": [
-              "syn-n0021/feature/park_proximity"
-            ],
-            "origin": "template",
-            "replaced": false
-          },
-          "missing": []
-        },
-        {
           "area_id": "syn-n0011",
           "orientation": {
             "text": "Kindlewharf is in Quillhaven.",
@@ -315,17 +315,17 @@
           },
           "reasons": [
             {
-              "text": "Pubs, bars and evening venues: 23.9 per km², more than 80% of the 21 areas compared in this release.",
+              "text": "By public transport to Pellam Exchange: about 13 minutes on a typical weekday morning, 16 if you just miss a service.",
               "fact_ids": [
-                "syn-n0011/feature/venue_evening"
+                "syn-n0011/travel/syn-p0017.pt"
               ],
               "origin": "template",
               "replaced": false
             },
             {
-              "text": "By public transport to Pellam Exchange: about 13 minutes on a typical weekday morning, 16 if you just miss a service.",
+              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 5.2 per 1,000 homes, more than 76% of the 21 areas compared in this release.",
               "fact_ids": [
-                "syn-n0011/travel/syn-p0017.pt"
+                "syn-n0011/feature/venue_evening_per_homes"
               ],
               "origin": "template",
               "replaced": false
@@ -360,18 +360,23 @@
           "template": "area",
           "slots": {
             "name": "Pellam Cross",
-            "borough": "Quillhaven"
+            "borough": "Quillhaven",
+            "label": "Quillhaven 018",
+            "written_by": "Burro",
+            "state": "checked"
           },
           "numbers": [],
           "names": [
             "Pellam Cross",
-            "Quillhaven"
+            "Quillhaven",
+            "Quillhaven 018"
           ],
           "sources": [
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -406,22 +411,23 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0018/feature/venue_evening",
+          "fact_id": "syn-n0018/feature/venue_evening_per_homes",
           "area_id": "syn-n0018",
           "kind": "feature",
-          "key": "venue_evening",
-          "label": "Pubs, bars and evening venues",
+          "key": "venue_evening_per_homes",
+          "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Pubs, bars and evening venues",
-            "value": "46.6 per km²",
+            "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
+            "value": "8.2 per 1,000 homes",
             "band": "5",
             "comparative": "more than",
             "pct": "95",
@@ -431,7 +437,7 @@
             "compared": "21"
           },
           "numbers": [
-            "46.6",
+            "8.2",
             "95%",
             "21",
             "20"
@@ -441,7 +447,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -476,7 +483,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -518,7 +526,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -561,7 +570,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -583,8 +593,8 @@
             "span": "2025",
             "spread_low": "5",
             "spread_high": "5",
-            "known": "3",
-            "parts": "3",
+            "known": "4",
+            "parts": "4",
             "share": "100",
             "partly": "",
             "judgement": "The recipe is Burro's own. The weights are a judgement.",
@@ -593,7 +603,7 @@
           "numbers": [
             "5",
             "21",
-            "3",
+            "4",
             "100",
             "2025"
           ],
@@ -602,7 +612,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -617,18 +628,23 @@
           "template": "area",
           "slots": {
             "name": "Lantern Yard",
-            "borough": "Quillhaven"
+            "borough": "Quillhaven",
+            "label": "Quillhaven 012",
+            "written_by": "Burro",
+            "state": "draft"
           },
           "numbers": [],
           "names": [
             "Lantern Yard",
-            "Quillhaven"
+            "Quillhaven",
+            "Quillhaven 012"
           ],
           "sources": [
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -664,22 +680,23 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0012/feature/venue_evening",
+          "fact_id": "syn-n0012/feature/venue_evening_per_homes",
           "area_id": "syn-n0012",
           "kind": "feature",
-          "key": "venue_evening",
-          "label": "Pubs, bars and evening venues",
+          "key": "venue_evening_per_homes",
+          "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Pubs, bars and evening venues",
-            "value": "42 per km²",
+            "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
+            "value": "7.6 per 1,000 homes",
             "band": "5",
             "comparative": "more than",
             "pct": "90",
@@ -690,7 +707,7 @@
             "compared": "21"
           },
           "numbers": [
-            "42",
+            "7.6",
             "90%",
             "21",
             "4%"
@@ -700,7 +717,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -736,7 +754,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -777,7 +796,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -820,7 +840,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -842,8 +863,8 @@
             "span": "2025",
             "spread_low": "5",
             "spread_high": "5",
-            "known": "3",
-            "parts": "3",
+            "known": "4",
+            "parts": "4",
             "share": "100",
             "partly": "",
             "judgement": "The recipe is Burro's own. The weights are a judgement.",
@@ -852,7 +873,7 @@
           "numbers": [
             "5",
             "21",
-            "3",
+            "4",
             "100",
             "2025"
           ],
@@ -861,7 +882,277 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/area/name",
+          "area_id": "syn-n0021",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Tallowgate",
+            "borough": "Quillhaven",
+            "label": "Quillhaven 021",
+            "written_by": "Burro",
+            "state": "checked"
+          },
+          "numbers": [],
+          "names": [
+            "Tallowgate",
+            "Quillhaven",
+            "Quillhaven 021"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/feature/park_proximity",
+          "area_id": "syn-n0021",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "value": "1,070 m",
+            "band": "5",
+            "comparative": "closer than",
+            "pct": "14",
+            "standing": "closer than 14% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "80",
+            "standing_worse": "further than 80% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1070",
+            "14%",
+            "21",
+            "80%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/feature/venue_evening_per_homes",
+          "area_id": "syn-n0021",
+          "kind": "feature",
+          "key": "venue_evening_per_homes",
+          "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
+            "value": "5.4 per 1,000 homes",
+            "band": "5",
+            "comparative": "more than",
+            "pct": "80",
+            "standing": "more than 80% of the 21 areas compared in this release",
+            "comparative_worse": "fewer than",
+            "pct_worse": "14",
+            "standing_worse": "fewer than 14% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "5.4",
+            "80%",
+            "21",
+            "14%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/feature/venue_food_drink_per_homes",
+          "area_id": "syn-n0021",
+          "kind": "feature",
+          "key": "venue_food_drink_per_homes",
+          "label": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line",
+            "value": "11.7 per 1,000 homes",
+            "band": "5",
+            "comparative": "more than",
+            "pct": "80",
+            "standing": "more than 80% of the 21 areas compared in this release",
+            "comparative_worse": "fewer than",
+            "pct_worse": "14",
+            "standing_worse": "fewer than 14% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "11.7",
+            "80%",
+            "21",
+            "14%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/tag/built_age",
+          "area_id": "syn-n0021",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
+          "slots": {
+            "label": "Age of buildings",
+            "band": "5",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/tag/everyday_on_foot",
+          "area_id": "syn-n0021",
+          "kind": "tag",
+          "key": "everyday_on_foot",
+          "label": "Everyday on foot",
+          "template": "vibe",
+          "slots": {
+            "label": "Everyday on foot",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "5",
+            "share": "70",
+            "partly": "Worked out from 3 of its 5 parts, 70 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "70",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0021/tag/pace",
+          "area_id": "syn-n0021",
+          "kind": "tag",
+          "key": "pace",
+          "label": "Going out",
+          "template": "vibe",
+          "slots": {
+            "label": "Going out",
+            "band": "5",
+            "low_end": "Calm",
+            "high_end": "Buzzy",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -876,18 +1167,23 @@
           "template": "area",
           "slots": {
             "name": "Wexmoor",
-            "borough": "Quillhaven"
+            "borough": "Quillhaven",
+            "label": "Quillhaven 023",
+            "written_by": "Burro",
+            "state": "draft"
           },
           "numbers": [],
           "names": [
             "Wexmoor",
-            "Quillhaven"
+            "Quillhaven",
+            "Quillhaven 023"
           ],
           "sources": [
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -923,22 +1219,23 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0023/feature/venue_evening",
+          "fact_id": "syn-n0023/feature/venue_evening_per_homes",
           "area_id": "syn-n0023",
           "kind": "feature",
-          "key": "venue_evening",
-          "label": "Pubs, bars and evening venues",
+          "key": "venue_evening_per_homes",
+          "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Pubs, bars and evening venues",
-            "value": "30 per km²",
+            "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
+            "value": "6 per 1,000 homes",
             "band": "5",
             "comparative": "more than",
             "pct": "85",
@@ -949,7 +1246,7 @@
             "compared": "21"
           },
           "numbers": [
-            "30",
+            "6",
             "85%",
             "21",
             "9%"
@@ -959,7 +1256,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -995,7 +1293,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1039,7 +1338,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1057,145 +1357,6 @@
             "band": "5",
             "low_end": "Calm",
             "high_end": "Buzzy",
-            "compared": "21",
-            "span": "2025",
-            "spread_low": "5",
-            "spread_high": "5",
-            "known": "3",
-            "parts": "3",
-            "share": "100",
-            "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
-          },
-          "numbers": [
-            "5",
-            "21",
-            "3",
-            "100",
-            "2025"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro"
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0021/area/name",
-          "area_id": "syn-n0021",
-          "kind": "area",
-          "key": "name",
-          "label": "Area",
-          "template": "area",
-          "slots": {
-            "name": "Tallowgate",
-            "borough": "Quillhaven"
-          },
-          "numbers": [],
-          "names": [
-            "Tallowgate",
-            "Quillhaven"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro"
-            }
-          ],
-          "as_of": "2026-09-23",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0021/feature/park_proximity",
-          "area_id": "syn-n0021",
-          "kind": "feature",
-          "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
-          "template": "feature",
-          "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
-            "value": "1,070 m",
-            "band": "5",
-            "comparative": "closer than",
-            "pct": "14",
-            "standing": "closer than 14% of the 21 areas compared in this release",
-            "comparative_worse": "further than",
-            "pct_worse": "80",
-            "standing_worse": "further than 80% of the 21 areas compared in this release",
-            "compared": "21"
-          },
-          "numbers": [
-            "1070",
-            "14%",
-            "21",
-            "80%"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro"
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0021/feature/venue_food_drink_per_homes",
-          "area_id": "syn-n0021",
-          "kind": "feature",
-          "key": "venue_food_drink_per_homes",
-          "label": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line",
-          "template": "feature",
-          "slots": {
-            "label": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line",
-            "value": "11.7 per 1,000 homes",
-            "band": "5",
-            "comparative": "more than",
-            "pct": "80",
-            "standing": "more than 80% of the 21 areas compared in this release",
-            "comparative_worse": "fewer than",
-            "pct_worse": "14",
-            "standing_worse": "fewer than 14% of the 21 areas compared in this release",
-            "compared": "21"
-          },
-          "numbers": [
-            "11.7",
-            "80%",
-            "21",
-            "14%"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro"
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0021/tag/built_age",
-          "area_id": "syn-n0021",
-          "kind": "tag",
-          "key": "built_age",
-          "label": "Age of buildings",
-          "template": "vibe",
-          "slots": {
-            "label": "Age of buildings",
-            "band": "5",
-            "low_end": "Newer",
-            "high_end": "Historic",
             "compared": "21",
             "span": "2025",
             "spread_low": "5",
@@ -1219,128 +1380,11 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0021/tag/everyday_on_foot",
-          "area_id": "syn-n0021",
-          "kind": "tag",
-          "key": "everyday_on_foot",
-          "label": "Everyday on foot",
-          "template": "vibe",
-          "slots": {
-            "label": "Everyday on foot",
-            "band": "5",
-            "low_end": "least",
-            "high_end": "most",
-            "compared": "21",
-            "span": "2025",
-            "spread_low": "5",
-            "spread_high": "5",
-            "known": "3",
-            "parts": "5",
-            "share": "70",
-            "partly": "Worked out from 3 of its 5 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
-          },
-          "numbers": [
-            "5",
-            "21",
-            "3",
-            "70",
-            "100",
-            "2025"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro"
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0021/tag/pace",
-          "area_id": "syn-n0021",
-          "kind": "tag",
-          "key": "pace",
-          "label": "Going out",
-          "template": "vibe",
-          "slots": {
-            "label": "Going out",
-            "band": "5",
-            "low_end": "Calm",
-            "high_end": "Buzzy",
-            "compared": "21",
-            "span": "2025",
-            "spread_low": "5",
-            "spread_high": "5",
-            "known": "3",
-            "parts": "3",
-            "share": "100",
-            "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
-          },
-          "numbers": [
-            "5",
-            "21",
-            "3",
-            "100",
-            "2025"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro"
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0021/travel/syn-p0017.pt",
-          "area_id": "syn-n0021",
-          "kind": "travel",
-          "key": "syn-p0017.pt",
-          "label": "Journey",
-          "template": "travel_pt",
-          "slots": {
-            "mode": "By public transport",
-            "place": "Pellam Exchange",
-            "limit": "45",
-            "margin": "36",
-            "margin_unit": "minutes",
-            "typical": "9",
-            "missed": "11"
-          },
-          "numbers": [
-            "9",
-            "11",
-            "45",
-            "36"
-          ],
-          "names": [
-            "Pellam Exchange"
-          ],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro"
-            }
-          ],
-          "as_of": "2026-09",
           "synthetic": true
         },
         {
@@ -1352,18 +1396,23 @@
           "template": "area",
           "slots": {
             "name": "Kindlewharf",
-            "borough": "Quillhaven"
+            "borough": "Quillhaven",
+            "label": "Quillhaven 011",
+            "written_by": "Burro",
+            "state": "draft"
           },
           "numbers": [],
           "names": [
             "Kindlewharf",
-            "Quillhaven"
+            "Quillhaven",
+            "Quillhaven 011"
           ],
           "sources": [
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1399,43 +1448,45 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0011/feature/venue_evening",
+          "fact_id": "syn-n0011/feature/venue_evening_per_homes",
           "area_id": "syn-n0011",
           "kind": "feature",
-          "key": "venue_evening",
-          "label": "Pubs, bars and evening venues",
+          "key": "venue_evening_per_homes",
+          "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Pubs, bars and evening venues",
-            "value": "23.9 per km²",
-            "band": "5",
+            "label": "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
+            "value": "5.2 per 1,000 homes",
+            "band": "4",
             "comparative": "more than",
-            "pct": "80",
-            "standing": "more than 80% of the 21 areas compared in this release",
+            "pct": "76",
+            "standing": "more than 76% of the 21 areas compared in this release",
             "comparative_worse": "fewer than",
-            "pct_worse": "14",
-            "standing_worse": "fewer than 14% of the 21 areas compared in this release",
+            "pct_worse": "19",
+            "standing_worse": "fewer than 19% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
-            "23.9",
-            "80%",
+            "5.2",
+            "76%",
             "21",
-            "14%"
+            "19%"
           ],
           "names": [],
           "sources": [
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1471,7 +1522,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1514,7 +1566,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1536,8 +1589,8 @@
             "span": "2025",
             "spread_low": "4",
             "spread_high": "4",
-            "known": "3",
-            "parts": "3",
+            "known": "4",
+            "parts": "4",
             "share": "100",
             "partly": "",
             "judgement": "The recipe is Burro's own. The weights are a judgement.",
@@ -1547,7 +1600,6 @@
             "4",
             "5",
             "21",
-            "3",
             "100",
             "2025"
           ],
@@ -1556,7 +1608,50 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0011/tag/well_connected",
+          "area_id": "syn-n0011",
+          "kind": "tag",
+          "key": "well_connected",
+          "label": "Well connected",
+          "template": "vibe",
+          "slots": {
+            "label": "Well connected",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2025",
@@ -1591,7 +1686,8 @@
             {
               "source_id": "synthetic",
               "name": "Synthetic test data",
-              "publisher": "Burro"
+              "publisher": "Burro",
+              "attribution": null
             }
           ],
           "as_of": "2026-09",

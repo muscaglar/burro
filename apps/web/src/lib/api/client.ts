@@ -52,6 +52,8 @@ export interface Client {
   readonly getMeta: Get<"get_meta">;
   /** Route 13. The census figures of one area, by its id or its slug. Only an area's page asks. */
   readonly getCensus: GetOne<"get_census">;
+  /** Route 14. The household income of one area, as its publisher estimates it. Only an area's page asks. */
+  readonly getIncome: GetOne<"get_income">;
 }
 
 export interface ClientSettings extends Omit<SendSettings, "baseUrl"> {
@@ -90,6 +92,7 @@ export function createClient(settings: ClientSettings = {}): Client {
     getArea: getOne("get_area"),
     getMeta: get("get_meta"),
     getCensus: getOne("get_census"),
+    getIncome: getOne("get_income"),
   };
 }
 

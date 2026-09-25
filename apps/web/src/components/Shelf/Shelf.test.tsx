@@ -89,7 +89,15 @@ describe("the shelf a search can start from", () => {
     await user.click(word(SHELF.more));
 
     const unworded = meta.tags.filter((tag) => tag.shelf_word === null);
-    expect(unworded.map((tag) => tag.tag_id).sort()).toEqual(["family_amenities", "foodie", "homes", "street_character"]);
+    expect(unworded.map((tag) => tag.tag_id).sort()).toEqual([
+      "family_amenities",
+      "family_area",
+      "foodie",
+      "homes",
+      "street_character",
+      "well_connected",
+      "young_professionals",
+    ]);
     for (const tag of unworded) expect(word(tag.short_label)).toBeInTheDocument();
   });
 

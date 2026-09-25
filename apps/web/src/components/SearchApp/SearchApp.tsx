@@ -216,8 +216,16 @@ export function SearchView({ shared = false, bands = [] }: ViewProps) {
     questions.length === 0 &&
     read.suggestions.length === 0 &&
     (read.status === "off_topic" || read.edits === 0);
+  // While a model reads what the rules left unread, it is not yet so that nothing could be
+  // read: the page says that Burro is still reading, and says no more until it has.
   const nothingRead =
-    !reading && isLatest && read !== null && questions.length === 0 && suggestions.length === 0 && !read.changed
+    !reading &&
+    isLatest &&
+    read !== null &&
+    !read.more &&
+    questions.length === 0 &&
+    suggestions.length === 0 &&
+    !read.changed
       ? readNothing
         ? NOTICE.nothingRead
         : read.rejected.length === 0 && read.edits > 0
@@ -607,6 +615,8 @@ export function SearchView({ shared = false, bands = [] }: ViewProps) {
                   onChoose={(tenure) => void flow.setTenure(tenure)}
                   version={state.answers}
                 />
+                {/* The one box that finds by name: a place to reach, which is added to the
+                    search, and an area, which is a link to its page. */}
                 <PlaceCombobox
                   search={flow.searchPlaces}
                   onPick={(place) => {
@@ -615,6 +625,7 @@ export function SearchView({ shared = false, bands = [] }: ViewProps) {
                   }}
                   full={full}
                   noPlaces={!meta.holds.journeys}
+                  areas
                 />
               </div>
               <Examples examples={examplesFor(meta)} onUse={(example) => prompt.current?.fill(example)} />

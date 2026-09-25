@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SOURCE_LINE } from "@/content/area";
 import { SOURCE } from "@/content/search";
 import type { Fact } from "@/lib/api/schema";
-import { citedBy } from "@/lib/facts";
+import { citedBy, creditOf } from "@/lib/facts";
 import { readableDate } from "@/lib/format";
 import { paths } from "@/lib/paths";
 
@@ -55,6 +55,11 @@ export function SourceLine({ facts }: Props) {
         </span>
       ))}
       .{" "}
+      {/* The publisher's own statement, where it asks to see it beside the figure. Two
+          sources of one publisher bring the same statement, and it is said once. */}
+      {[...new Set(sources.map(creditOf))].map((credit) =>
+        credit === null ? null : <span key={credit}>{credit} </span>,
+      )}
       {dates.length === 0 ? null : (
         // The words before the date and the date stay on one line: a line once broke between them.
         <span className={styles.dated}>

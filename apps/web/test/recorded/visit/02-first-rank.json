@@ -96,7 +96,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "55440",
+    "content-length": "55780",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -106,7 +106,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
@@ -375,7 +375,8 @@
               "minutes": 21,
               "minutes_typical": 21,
               "minutes_just_missed": 26,
-              "utility": 0.85
+              "utility": 0.85,
+              "estimate": null
             }
           ],
           "budget": {
@@ -560,7 +561,8 @@
               "minutes": 35,
               "minutes_typical": 35,
               "minutes_just_missed": 38,
-              "utility": 0.5
+              "utility": 0.5,
+              "estimate": null
             }
           ],
           "budget": {
@@ -745,7 +747,8 @@
               "minutes": 63,
               "minutes_typical": 63,
               "minutes_just_missed": 68,
-              "utility": 0.0
+              "utility": 0.0,
+              "estimate": null
             }
           ],
           "budget": {
@@ -930,7 +933,8 @@
               "minutes": 2,
               "minutes_typical": 2,
               "minutes_just_missed": 2,
-              "utility": 1.0
+              "utility": 1.0,
+              "estimate": null
             }
           ],
           "budget": {
@@ -1115,7 +1119,8 @@
               "minutes": 27,
               "minutes_typical": 27,
               "minutes_just_missed": 29,
-              "utility": 0.7
+              "utility": 0.7,
+              "estimate": null
             }
           ],
           "budget": {
@@ -1300,7 +1305,8 @@
               "minutes": 27,
               "minutes_typical": 27,
               "minutes_just_missed": 32,
-              "utility": 0.7
+              "utility": 0.7,
+              "estimate": null
             }
           ],
           "budget": {
@@ -1485,7 +1491,8 @@
               "minutes": 16,
               "minutes_typical": 16,
               "minutes_just_missed": 18,
-              "utility": 0.975
+              "utility": 0.975,
+              "estimate": null
             }
           ],
           "budget": {
@@ -1670,7 +1677,8 @@
               "minutes": 53,
               "minutes_typical": 53,
               "minutes_just_missed": 58,
-              "utility": 0.0
+              "utility": 0.0,
+              "estimate": null
             }
           ],
           "budget": {
@@ -1855,7 +1863,8 @@
               "minutes": 28,
               "minutes_typical": 28,
               "minutes_just_missed": 33,
-              "utility": 0.675
+              "utility": 0.675,
+              "estimate": null
             }
           ],
           "budget": {
@@ -2040,7 +2049,8 @@
               "minutes": 54,
               "minutes_typical": 54,
               "minutes_just_missed": 56,
-              "utility": 0.0
+              "utility": 0.0,
+              "estimate": null
             }
           ],
           "budget": {
@@ -2225,7 +2235,8 @@
               "minutes": 39,
               "minutes_typical": 39,
               "minutes_just_missed": 44,
-              "utility": 0.3857
+              "utility": 0.3857,
+              "estimate": null
             }
           ],
           "budget": {
@@ -2410,7 +2421,8 @@
               "minutes": 35,
               "minutes_typical": 35,
               "minutes_just_missed": 40,
-              "utility": 0.5
+              "utility": 0.5,
+              "estimate": null
             }
           ],
           "budget": {
@@ -2595,7 +2607,8 @@
               "minutes": 38,
               "minutes_typical": 38,
               "minutes_just_missed": 43,
-              "utility": 0.4143
+              "utility": 0.4143,
+              "estimate": null
             }
           ],
           "budget": {
@@ -2780,7 +2793,8 @@
               "minutes": 34,
               "minutes_typical": 34,
               "minutes_just_missed": 38,
-              "utility": 0.525
+              "utility": 0.525,
+              "estimate": null
             }
           ],
           "budget": {
@@ -2965,7 +2979,8 @@
               "minutes": 18,
               "minutes_typical": 18,
               "minutes_just_missed": 20,
-              "utility": 0.925
+              "utility": 0.925,
+              "estimate": null
             }
           ],
           "budget": {
@@ -3150,7 +3165,8 @@
               "minutes": 45,
               "minutes_typical": 45,
               "minutes_just_missed": 47,
-              "utility": 0.2143
+              "utility": 0.2143,
+              "estimate": null
             }
           ],
           "budget": {
@@ -3335,7 +3351,8 @@
               "minutes": 25,
               "minutes_typical": 25,
               "minutes_just_missed": 27,
-              "utility": 0.75
+              "utility": 0.75,
+              "estimate": null
             }
           ],
           "budget": {
@@ -3520,7 +3537,8 @@
               "minutes": 19,
               "minutes_typical": 19,
               "minutes_just_missed": 21,
-              "utility": 0.9
+              "utility": 0.9,
+              "estimate": null
             }
           ],
           "budget": {
@@ -3705,7 +3723,8 @@
               "minutes": 33,
               "minutes_typical": 33,
               "minutes_just_missed": 36,
-              "utility": 0.55
+              "utility": 0.55,
+              "estimate": null
             }
           ],
           "budget": {
@@ -3745,13 +3764,13 @@
               "fact_id": "syn-n0011/tag/foodie"
             },
             {
-              "tag_id": "pace",
-              "band": 4,
-              "spread_low": 4,
-              "spread_high": 4,
+              "tag_id": "well_connected",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
               "asked": false,
               "toward": null,
-              "fact_id": "syn-n0011/tag/pace"
+              "fact_id": "syn-n0011/tag/well_connected"
             }
           ]
         },
@@ -3890,7 +3909,8 @@
               "minutes": 30,
               "minutes_typical": 30,
               "minutes_just_missed": 33,
-              "utility": 0.625
+              "utility": 0.625,
+              "estimate": null
             }
           ],
           "budget": {

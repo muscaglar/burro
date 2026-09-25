@@ -19,7 +19,7 @@ const { tags, features } = recordedAnswer("get_meta", "meta").body.data;
 const crime = crimeVibes({ tags, features });
 const three: CompareData = recordedAnswer("compare", "compare-three").body.data;
 const two: CompareData = recordedAnswer("compare", "compare-two-defaults").body.data;
-/** Four areas, of which the last can be placed on one vibe of the eleven. */
+/** Four areas, of which the last can be placed on one vibe of the fourteen. */
 const four: CompareData = recordedAnswer("compare", "compare-two-journeys").body.data;
 const LAST = four.areas.length - 1;
 
@@ -37,7 +37,7 @@ describe("the character of the areas compared", () => {
     expect(rows().map((row) => within(row).getByRole("rowheader").querySelector("span")?.textContent)).toEqual(
       three.character.map((row) => labelOf(row.tag_id)),
     );
-    expect(three.character).toHaveLength(11);
+    expect(three.character).toHaveLength(14);
   });
 
   test("test_there_is_one_column_for_each_area_under_its_name", () => {
@@ -93,17 +93,17 @@ describe("the character of the areas compared", () => {
     const last = four.areas[LAST];
     const unplaced = four.character.filter((row) => row.marks[LAST]?.band === null).length;
 
-    // Burro places the last area on one vibe of the eleven.
-    expect(unplaced).toBe(10);
-    expect(container.textContent?.split(COMPARE_TABLE.character.unplaced(last?.name ?? "", 10, 11))).toHaveLength(2);
+    // Burro places the last area on one vibe of the fourteen.
+    expect(unplaced).toBe(13);
+    expect(container.textContent?.split(COMPARE_TABLE.character.unplaced(last?.name ?? "", 13, 14))).toHaveLength(2);
     expect(container.textContent?.split(COMPARE_TABLE.character.unplacedWhy)).toHaveLength(2);
     // It is said over the table, before any row of it.
-    const note = screen.getByText(COMPARE_TABLE.character.unplaced(last?.name ?? "", 10, 11));
+    const note = screen.getByText(COMPARE_TABLE.character.unplaced(last?.name ?? "", 13, 14));
     expect(note.compareDocumentPosition(table()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     // The long line is in no cell. A cell says in two words that the area is not placed.
     expect(table().textContent?.includes(CANNOT_PLACE)).toBe(false);
     const cells = rows().flatMap((row) => within(row).getAllByRole("cell")[LAST] as HTMLElement);
-    expect(cells.filter((cell) => cell.textContent?.includes(COMPARE_TABLE.character.notPlaced))).toHaveLength(10);
+    expect(cells.filter((cell) => cell.textContent?.includes(COMPARE_TABLE.character.notPlaced))).toHaveLength(13);
     // The areas Burro places on every vibe are said nothing of.
     for (const area of four.areas.slice(0, LAST)) expect(container.textContent?.includes(`cannot place ${area.name}`)).toBe(false);
   });
@@ -193,7 +193,7 @@ describe("the character of the areas compared", () => {
     const cells = rows().flatMap((row) => within(row).getAllByRole("cell"));
     const unplaced = cells.filter((cell) => cell.textContent?.includes(COMPARE_TABLE.character.notPlaced));
 
-    expect(unplaced).toHaveLength(10);
+    expect(unplaced).toHaveLength(13);
     for (const cell of unplaced) expect(within(cell).queryByRole("button")).toBeNull();
   });
 
@@ -248,7 +248,7 @@ describe("the character of the areas compared", () => {
   test("test_a_vibe_the_release_does_not_name_has_no_row", () => {
     render(<CharacterTable data={three} tags={tags.filter((tag) => tag.tag_id !== "pace")} />);
 
-    expect(rows()).toHaveLength(10);
+    expect(rows()).toHaveLength(13);
     expect(table()).not.toHaveTextContent("Going out");
   });
 

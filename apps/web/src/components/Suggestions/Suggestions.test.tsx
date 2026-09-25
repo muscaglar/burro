@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
@@ -9,6 +12,7 @@ import { written } from "@/lib/search/spans";
 import type { Added } from "@/lib/search/state";
 
 import { faultsIn } from "../../../test/support/axe";
+import { rulesOf } from "../../../test/support/css";
 import { SHOWN_AT_FIRST, Suggestions, inSight } from "./Suggestions";
 
 const two = recordedAnswer("interpret", "interpret-suggest");
@@ -18,13 +22,15 @@ const long = recordedAnswer("interpret", "interpret-by-model-long");
 const asksPlace = recordedAnswer("interpret", "interpret-by-model-place");
 const least = recordedAnswer("interpret", "interpret-by-model-least");
 const natural = recordedAnswer("interpret", "interpret-suggest-notice");
+const counted = recordedAnswer("interpret", "interpret-suggest-who-is-counted");
 const typedOf = (recorded: { request: { body?: unknown } }) => (recorded.request.body as { text: string }).text;
-// The long sentence holds ten offers. Seven are in sight at first: the first four, and each that one
-// press may add. Three readings of a word for the identity of a place wait behind "Show all 10".
+// The long sentence holds eleven offers. Seven are in sight at first: the first four, and each that
+// one press may add. What homes sell for, and three readings of a word for the identity of a place,
+// wait behind "Show all 11".
 const longOffers = long.body.data.suggestions;
 const longInSight = inSight(longOffers).map((at) => longOffers[at] as Suggestion);
-// Where the journey of the long sentence stands among the ten, and among the seven in sight.
-const JOURNEY = { of: 8, drawn: 5 };
+// Where the journey of the long sentence stands among the twelve, and among the seven in sight.
+const JOURNEY = { of: 10, drawn: 5 };
 
 interface Told {
   chosen: [number, string, string?][];
@@ -65,6 +71,7 @@ function Held({ offered, told, box, reading = false }: Drawn) {
           needs: [...gone, ...stay].map((one) => one.needs).filter((needs) => needs !== ""),
           spec: long.body.data.spec,
           suggestions: left,
+          chosen: [],
         });
         setLeft(stay);
       }}
@@ -232,14 +239,30 @@ describe("the way Burro reads the words", () => {
     expect(marked.map((button) => button.textContent)).toEqual([
       `Add ${SUGGEST.guess}`,
       `Add: nearer a park ${SUGGEST.guess}`,
-      // The third and the fourth have no guess: they are the two readings of a word for how
-      // well off a place is, which are the rules' to offer. The fifth is the culture beside it.
+      // The third and the fourth have no guess: they are the first two of the four readings of
+      // a word for how well off a place is, which are the rules' to offer. The next is the
+      // culture beside them.
       `Add ${SUGGEST.guess}`,
       `Add as a firm limit: areas further off are left out ${SUGGEST.guess}`,
       // "Max" says the most that can be paid, so the guess is the firm limit.
       `Set as a firm limit: dearer areas are left out ${SUGGEST.guess}`,
     ]);
     expect(SUGGEST.guess).toBe("Burro's guess");
+  });
+
+  test("test_the_brackets_of_the_mark_stand_against_its_words_and_a_space_before_them", () => {
+    // Seen in a browser: "Add( Burro's guess)". The style sheet puts the mark in brackets, and
+    // the space that parts it from the way stood inside them.
+    show(long.body.data.suggestions);
+
+    const marks = [...block().querySelectorAll("button[data-guess] span")];
+    expect(marks.length).toBeGreaterThan(0);
+    expect(marks.map((mark) => mark.textContent)).toEqual(marks.map(() => SUGGEST.guess));
+    expect(marks.map((mark) => mark.previousSibling?.textContent?.endsWith(" "))).toEqual(marks.map(() => true));
+    // The brackets are the style sheet's, and are drawn hard against what the mark holds.
+    const rules = rulesOf(readFileSync(path.join(__dirname, "Suggestions.module.css"), "utf8"));
+    const brackets = rules.filter((rule) => /\.guess::(before|after)$/.test(rule.selector));
+    expect(brackets.map((rule) => rule.sets.get("content"))).toEqual(['"("', '")"']);
   });
 
   test("test_a_guess_is_a_mark_and_nothing_is_chosen_until_it_is_pressed", async () => {
@@ -289,10 +312,12 @@ describe("what one press may add", () => {
 
     await user.click(screen.getByRole("button", { name: SUGGEST.addThese(5) }));
 
-    expect(told.all).toEqual([[0, 1, 4, 8, 9]]);
+    expect(told.all).toEqual([[0, 1, 6, 10, 11]]);
     expect(long.body.data.suggestions.map((one) => one.add_all)).toEqual([
       "more",
       "more",
+      "",
+      "",
       "",
       "",
       "more",
@@ -311,9 +336,11 @@ describe("what one press may add", () => {
 
     expect(screen.getByRole("status")).toHaveTextContent(
       [
-        "5 added. 7 need you: the journey can be made a firm limit; the budget can be made a firm limit",
+        "5 added. 9 need you: the journey can be made a firm limit; the budget can be made a firm limit",
+        "mix of brands",
         "recorded crime, which is added under its own name",
         "what homes sell for",
+        "homes in the higher council tax bands",
         "Village feel",
         "Age of buildings",
         "nearer a town centre.",
@@ -325,9 +352,9 @@ describe("what one press may add", () => {
     const { told, user } = show(long.body.data.suggestions);
 
     await user.click(screen.getByRole("button", { name: SUGGEST.addThese(5) }));
-    // What one press may not add is still offered: five things, of which four are in sight.
+    // What one press may not add is still offered: seven things, of which four are in sight.
     expect(screen.queryAllByRole("listitem")).toHaveLength(SHOWN_AT_FIRST);
-    expect(screen.getByRole("button", { name: SUGGEST.showAll(5) })).toBeVisible();
+    expect(screen.getByRole("button", { name: SUGGEST.showAll(7) })).toBeVisible();
     await user.click(screen.getByRole("button", { name: SUGGEST.takeBack }));
 
     expect(told.back).toEqual([true]);
@@ -469,6 +496,31 @@ describe("what the page holds and where the focus goes", () => {
     expect(notes).toHaveLength(1);
     const groups = items().map((one) => within(one).getAllByRole("group")[0] as HTMLElement);
     expect(groups.map((group) => group.getAttribute("aria-describedby"))).toEqual([notes[0]?.id, notes[0]?.id]);
+  });
+
+  test("test_who_lived_somewhere_is_offered_towards_more_with_the_apis_note_and_never_at_one_press", async () => {
+    const offered = counted.body.data.suggestions;
+    const [first] = offered;
+    const { told, user } = show(offered, { box: typedOf(counted) });
+
+    // The note is the API's, word for word, and is said of the one offer that counts residents.
+    expect(first?.target).toBe("tag:young_professionals");
+    const notes = [...block().querySelectorAll("[class*='note']")];
+    expect(notes.map((note) => note.textContent)).toEqual([first?.note]);
+    expect(first?.note).toBe("Burro counts who was living there at the census of 2021. It measures places first.");
+    expect(within(item(0)).getAllByRole("group")[0]?.getAttribute("aria-describedby")).toBe(notes[0]?.id);
+    // There is a way to ask for more of them and a way to leave them out. There is none to
+    // ask for fewer of anyone, and none is made here.
+    expect(first?.choices.map((way) => way.direction)).toEqual(["more", "ignore"]);
+    expect(buttonsOf(item(0))).toEqual(["Add", "Skip", SUGGEST.showWords]);
+    expect(within(item(0)).queryByRole("button", { name: /fewer|less|towards|stop/i })).toBeNull();
+    // One press adds nothing of it: it is chosen by its own button.
+    expect(first?.add_all).toBe("");
+    expect(screen.queryByRole("button", { name: /^Add (all|the) / })).toBeNull();
+
+    await user.click(within(item(0)).getAllByRole("button")[0] as HTMLElement);
+
+    expect(told.chosen).toEqual([[0, "more"]]);
   });
 
   test("test_the_button_shows_where_the_words_stand_in_the_box", async () => {

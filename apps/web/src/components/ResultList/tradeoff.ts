@@ -24,7 +24,7 @@ import type {
   RankedArea,
   ServedLimits,
 } from "@/lib/api/schema";
-import { withinLimit } from "@/lib/search/card";
+import { estimateOf, withinLimit } from "@/lib/search/card";
 
 /** The thing that counts which a sentence is about: the one whose fact it cites first. */
 export function partOf(
@@ -57,7 +57,11 @@ function fallsShort(
   if (part.component === "budget") return area.budget !== null && area.budget.margin < 0;
   if (part.component !== "commute") return false;
   return area.legs.some(
-    (leg) => withinLimit(leg, commutes.find((one) => one.place_id === leg.place_id)) === false,
+    (leg) =>
+      // An estimate falls short only where it is likely beyond the limit. What is borderline
+      // is not said to be given up.
+      estimateOf(leg) === "likely_beyond" ||
+      withinLimit(leg, commutes.find((one) => one.place_id === leg.place_id)) === false,
   );
 }
 

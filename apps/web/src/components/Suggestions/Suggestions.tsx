@@ -229,7 +229,13 @@ export function Suggestions({
                     onClick={(event) => choose(event, at, suggestion, choice.id)}
                   >
                     {choice.label}
-                    {choice.guess ? <span className={styles.guess}> {SUGGEST.guess}</span> : null}
+                    {/* The style sheet puts the mark in brackets, so the space stands before them. */}
+                    {choice.guess ? (
+                      <>
+                        {" "}
+                        <span className={styles.guess}>{SUGGEST.guess}</span>
+                      </>
+                    ) : null}
                   </button>
                 ))}
                 {onShow && suggestion.spans.length > 0 ? (

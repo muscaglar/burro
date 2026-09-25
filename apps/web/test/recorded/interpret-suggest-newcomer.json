@@ -16,17 +16,17 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "7078",
+    "content-length": "7148",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "0f944687-59a9-409d-90c7-632ad8d92ee3"
+    "x-request-id": "b3400a5c-a90d-4f56-a1dd-e6cab5ee07cd"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.12.0",
+      "engine_version": "1.13.0",
       "synthetic": true,
       "preview": false
     },
@@ -258,7 +258,7 @@
             "start": 97,
             "end": 136
           },
-          "follows": "What it counts: homes away from main roads and from clusters of late venues, with little transport noise. It cannot see: one street or one home. An area is many streets.",
+          "follows": "What it counts: homes away from main roads and from clusters of pubs and bars, with little transport noise. It cannot see: one street or one home. An area is many streets.",
           "said": [],
           "choices": [
             {
@@ -308,7 +308,7 @@
           "options": []
         },
         {
-          "target": "feature:venue_evening",
+          "target": "feature:venue_evening_per_homes",
           "label": "Pubs and bars",
           "does": "Pubs and bars: more, or fewer?",
           "spans": [
@@ -321,7 +321,7 @@
             "start": 138,
             "end": 167
           },
-          "follows": "What Burro counts: pubs, bars and evening venues.",
+          "follows": "What Burro counts: pubs and bars for each 1,000 homes within 800 m, in a straight line.",
           "said": [],
           "choices": [
             {
@@ -335,7 +335,7 @@
                 "weight_ops": [
                   {
                     "action": "nudge",
-                    "feature_id": "venue_evening",
+                    "feature_id": "venue_evening_per_homes",
                     "value": 0.0,
                     "step": "up_large",
                     "direction": "more",
@@ -358,7 +358,7 @@
                 "weight_ops": [
                   {
                     "action": "nudge",
-                    "feature_id": "venue_evening",
+                    "feature_id": "venue_evening_per_homes",
                     "value": 0.0,
                     "step": "up_large",
                     "direction": "less",

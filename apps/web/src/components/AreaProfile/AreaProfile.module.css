@@ -289,7 +289,21 @@
   border-block-end: 1px solid var(--border);
 }
 
-.closed > summary {
+/* A group of what a part holds, closed under its own name inside the part. */
+.group {
+  min-width: 0;
+}
+
+.group[open] > summary {
+  margin-block-end: var(--space-3);
+}
+
+.group > .lead {
+  margin-block: 0 var(--space-3);
+}
+
+.closed > summary,
+.group > summary {
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -297,11 +311,13 @@
   cursor: pointer;
 }
 
-.closed > summary::-webkit-details-marker {
+.closed > summary::-webkit-details-marker,
+.group > summary::-webkit-details-marker {
   display: none;
 }
 
-.closed > summary::before {
+.closed > summary::before,
+.group > summary::before {
   content: "";
   flex: none;
   width: 0.5em;
@@ -312,7 +328,8 @@
   transition: transform var(--motion-fast);
 }
 
-.closed[open] > summary::before {
+.closed[open] > summary::before,
+.group[open] > summary::before {
   transform: rotate(45deg);
 }
 
@@ -399,6 +416,11 @@
 @media (min-width: 60rem) {
   .look {
     grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  }
+
+  /* Where there is no station to start from, what no vibe can see has the row to itself. */
+  .look > :only-child {
+    grid-column: 1 / -1;
   }
 }
 

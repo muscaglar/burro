@@ -25,8 +25,7 @@ import { CompareButton } from "../CompareTray/CompareButton";
 import { CostRange, type Scale } from "../CostRange/CostRange";
 import { Disclosure } from "../Disclosure/Disclosure";
 import { FactRow } from "../FactRow/FactRow";
-import { saysItsBorough } from "@/lib/area/named";
-
+import { BesideName } from "../BesideName/BesideName";
 import { LocatorMap } from "../LocatorMap/LocatorMap";
 import { Sentence } from "../Sentence/Sentence";
 import { Skeleton } from "../Skeleton/Skeleton";
@@ -76,8 +75,9 @@ function Heading({ area, summary, noFit, id, short = false }: HeadingProps) {
           {summary.name}
         </Link>
       </h3>
-      {/* A name that begins with its borough says it already. */}
-      {short || saysItsBorough(summary) ? null : <p className={styles.borough}>{summary.borough}</p>}
+      {/* Beside the name, smaller: the label its publisher gives the area, which says its
+          borough, and that the name is a draft. A name that says its borough says it once. */}
+      {short ? null : <BesideName area={summary} className={styles.borough} />}
       {noFit ? null : (
         <p className={styles.fit}>
           <span className={styles.fitLabel}>{RESULTS.fit} </span>

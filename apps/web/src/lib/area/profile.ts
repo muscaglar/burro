@@ -53,10 +53,46 @@ export function areaFact(data: AreaData): Fact | null {
 export function featuresByDimension(data: AreaData, features: readonly Metric[]): readonly DimensionGroup[] {
   return DIMENSION_ORDER.map((dimension) => ({
     dimension,
-    rows: features
-      .filter((metric) => metric.dimension === dimension)
-      .map((metric) => ({ metric, fact: factOf(data, "feature", metric.feature_id) })),
+    rows: inOrder(features.filter((metric) => metric.dimension === dimension)).map((metric) => ({
+      metric,
+      fact: factOf(data, "feature", metric.feature_id),
+    })),
   })).filter((group) => group.rows.length > 0);
+}
+
+/** The kinds of place and the tiers of the brands, in the order the table of tiers lists them. */
+const KINDS_OF_BRAND = ["grocer", "gym", "coffee"];
+const TIERS_OF_BRAND = ["premium", "mid", "value"];
+
+/**
+ * Where a measure of a tier stands among its like: by its kind, then its tier, as the table
+ * of tiers reads, and the places within reach before the distance to the nearest. The id of
+ * such a measure is its kind, its tier and what is measured, and the contract holds it so.
+ */
+function amongTiers(metric: Metric): number {
+  const [kind = "", tier = "", what = ""] = metric.feature_id.split("_");
+  const at = [KINDS_OF_BRAND.indexOf(kind), TIERS_OF_BRAND.indexOf(tier)];
+  if (at.includes(-1)) return Infinity;
+  return ((at[0] ?? 0) * TIERS_OF_BRAND.length + (at[1] ?? 0)) * 2 + (what === "nearby" ? 0 : 1);
+}
+
+/**
+ * The features of one group, in the order its rows are drawn: the API's, but for the brands.
+ * There the measure that is ranked on comes first, then what is counted of each tier, and
+ * then the chains, each of which a person asks for by name.
+ */
+export function inOrder(features: readonly Metric[]): readonly Metric[] {
+  const place = (metric: Metric) => {
+    if (metric.dimension !== "brands") return 0;
+    if (metric.kind === "on_request") return 2;
+    return metric.rankable ? 0 : 1;
+  };
+  // A sort keeps the order of what it finds equal, so the API's order stands wherever
+  // nothing here says otherwise.
+  return [...features].sort(
+    (one, other) =>
+      place(one) - place(other) || (place(one) === 1 ? amongTiers(one) - amongTiers(other) : 0),
+  );
 }
 
 /** What homes cost, for renting or for buying: one fact for each kind of home that has a figure. */

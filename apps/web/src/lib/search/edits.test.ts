@@ -23,7 +23,7 @@ const EVERY_EDIT: readonly (readonly [string, Operations])[] = [
   ["journeyWeight", edits.journeyWeight(0.5)],
   ["featureOn", edits.featureOn("park_proximity")],
   ["featureWeight", edits.featureWeight("park_proximity", 0.4)],
-  ["featureDirection", edits.featureDirection("venue_evening", 0.5, "less")],
+  ["featureDirection", edits.featureDirection("venue_evening_per_homes", 0.5, "less")],
   ["featureOff", edits.featureOff("park_proximity")],
   ["tagOn", edits.tagOn("leafy")],
   ["tagWeight", edits.tagWeight("leafy", 0.25)],
@@ -191,8 +191,8 @@ describe("which part of the search an edit is about", () => {
     expect(saidBy(edits.tenure("buy"), "budget_ops", 0)).toEqual([
       { key: "tenure", states: ["tenure"] },
     ]);
-    expect(saidBy(edits.featureDirection("venue_evening", 0.5, "less"), "weight_ops", 0)).toEqual([
-      { key: "feature:venue_evening", states: ["weight", "direction"] },
+    expect(saidBy(edits.featureDirection("venue_evening_per_homes", 0.5, "less"), "weight_ops", 0)).toEqual([
+      { key: "feature:venue_evening_per_homes", states: ["weight", "direction"] },
     ]);
     // A vibe a person set is theirs: it is no longer what a word with two meanings was read as.
     expect(saidBy(edits.tagWeight("leafy", 0.5), "tag_ops", 0)).toEqual([

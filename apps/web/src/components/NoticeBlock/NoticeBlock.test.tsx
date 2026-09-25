@@ -19,7 +19,7 @@ describe("the neutral notice", () => {
     const block = screen.getByRole("status", { name: NOTICE.label });
     expect(block.textContent).toBe(notice.notice_text);
     expect(notice.notice_text).toBe(
-      "Burro ranks places by what is there, such as schools, parks, venues and transport, and never by who lives there. The rest of your search has been applied.",
+      "Burro ranks places by what is there. Of who lives in a place it counts only their age and their households, at the census of 2021, and you cannot ask for fewer of anyone. The rest of your search has been applied.",
     );
   });
 

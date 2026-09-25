@@ -1,12 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 
-import { PLACE, PLACE_KIND } from "@/content/search";
+import { FIND_AREA, PLACE, PLACE_KIND } from "@/content/search";
 import type { Answer } from "@/lib/api/client";
-import type { FoundPlace, PlacesData } from "@/lib/api/schema";
+import type { AreaSummary, FoundPlace, PlacesData } from "@/lib/api/schema";
+import { paths } from "@/lib/paths";
 import { PLACE_QUERY } from "@/lib/search/flow";
 
+import { BesideName } from "../BesideName/BesideName";
 import styles from "./PlaceCombobox.module.css";
 
 /** How long after the last key the search is sent. */
@@ -25,8 +28,15 @@ interface Props {
   /**
    * True where the data names no place at all. The field is then not drawn: nothing typed
    * in it could match, and it once said "Try another spelling" of every spelling there is.
+   * Where the box finds areas too it is drawn all the same, and finds areas alone.
    */
   readonly noPlaces?: boolean;
+  /**
+   * True where the box finds an area by its name too. Every area that bears the name is
+   * listed under the field, each as a link to its page. An area is no place to reach, so it
+   * is no option of the list and is never handed to `onPick`.
+   */
+  readonly areas?: boolean;
 }
 
 /**
@@ -41,16 +51,20 @@ interface Props {
 export function PlaceCombobox({
   search,
   onPick,
-  label = PLACE.label,
-  hint = PLACE.hint,
+  label,
+  hint,
   full = null,
   noPlaces = false,
+  areas = false,
 }: Props) {
   const id = useId();
+  const named = label ?? (areas ? (noPlaces ? FIND_AREA.labelAlone : FIND_AREA.label) : PLACE.label);
+  const hinted = hint ?? (areas ? (noPlaces ? FIND_AREA.hintAlone : FIND_AREA.hint) : PLACE.hint);
   const field = useRef<HTMLInputElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inFlight = useRef<AbortController | null>(null);
   const [options, setOptions] = useState<readonly FoundPlace[]>([]);
+  const [found, setFound] = useState<readonly AreaSummary[]>([]);
   const [status, setStatus] = useState<Status>("idle");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
@@ -79,13 +93,19 @@ export function PlaceCombobox({
     inFlight.current = null;
     if (!answer.ok) {
       setOptions([]);
+      setFound([]);
       setStatus("failed");
       close();
       return;
     }
-    setOptions(answer.data.places);
-    setStatus(answer.data.places.length > 0 ? "found" : "none");
-    setOpen(answer.data.places.length > 0);
+    // A place is offered only where the data names places, and an area only where the box
+    // finds areas.
+    const places = noPlaces ? [] : answer.data.places;
+    const bearing = areas ? answer.data.areas : [];
+    setOptions(places);
+    setFound(bearing);
+    setStatus(places.length + bearing.length > 0 ? "found" : "none");
+    setOpen(places.length > 0);
     setActive(-1);
   };
 
@@ -94,6 +114,7 @@ export function PlaceCombobox({
     const text = (field.current?.value ?? "").trim();
     if (text.length < PLACE_QUERY.least) {
       setOptions([]);
+      setFound([]);
       setStatus("idle");
       close();
       return;
@@ -109,6 +130,7 @@ export function PlaceCombobox({
     halt();
     if (field.current) field.current.value = "";
     setOptions([]);
+    setFound([]);
     setStatus("idle");
     close();
     onPick(place);
@@ -151,21 +173,24 @@ export function PlaceCombobox({
     }
   };
 
+  const nothing = areas ? (noPlaces ? FIND_AREA.noneAlone : FIND_AREA.none) : PLACE.none;
   const said =
     status === "searching"
       ? PLACE.searching
       : status === "found"
-        ? PLACE.found(options.length)
+        ? areas
+          ? FIND_AREA.found(options.length, found.length)
+          : PLACE.found(options.length)
         : status === "none"
-          ? PLACE.none
+          ? nothing
           : status === "failed"
             ? PLACE.failed
             : "";
 
-  if (noPlaces) {
+  if (noPlaces && !areas) {
     return (
       <div className={styles.combobox}>
-        <p className={styles.label}>{label}</p>
+        <p className={styles.label}>{named}</p>
         <p className={styles.hint}>{PLACE.notInData}</p>
       </div>
     );
@@ -181,10 +206,10 @@ export function PlaceCombobox({
   return (
     <div className={styles.combobox}>
       <label className={styles.label} htmlFor={`${id}-field`}>
-        {label}
+        {named}
       </label>
       <p id={`${id}-hint`} className={styles.hint}>
-        {hint}
+        {hinted}
       </p>
       <input
         ref={field}
@@ -206,6 +231,26 @@ export function PlaceCombobox({
         onKeyDown={onKeyDown}
         onBlur={close}
       />
+      {/* The areas that bear the name, each a link to its page. They stand in the flow of the
+          page, over the list of places, which is laid over what is under it: so neither
+          hides the other. Which page a person reads next is told to no server ahead of time. */}
+      {found.length > 0 ? (
+        <div className={styles.areas} role="group" aria-labelledby={`${id}-areas`}>
+          <p id={`${id}-areas`} className={styles.areasTitle}>
+            {FIND_AREA.title}
+          </p>
+          <ul className={styles.areasList}>
+            {found.map((area) => (
+              <li key={area.area_id}>
+                <Link className="target-min" href={paths.area(area)} prefetch={false}>
+                  {area.name}
+                </Link>
+                <BesideName area={area} className={styles.kind} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
       <ul
         id={`${id}-list`}
         className={styles.list}

@@ -30,6 +30,11 @@
   color: var(--muted);
 }
 
+/* A publisher's statement of credit takes a line of its own, under the name of its source. */
+.lines .credit {
+  flex-basis: 100%;
+}
+
 .lines .madeUp {
   color: var(--notice-text);
   background: var(--notice-bg);

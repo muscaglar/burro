@@ -5,6 +5,7 @@ import { render, screen, within } from "@testing-library/react";
 
 import { COMPARE_STATUS, COMPARE_TABLE, statusWords } from "@/content/compare";
 import { COMBINE } from "@/content/labels";
+import { JOURNEYS } from "@/content/search";
 import { recordedAnswer } from "@/lib/api/recorded";
 import type { CompareData, CompareRow, ComparedArea, Fact } from "@/lib/api/schema";
 
@@ -169,6 +170,46 @@ describe("the journeys of a comparison", () => {
     const { container } = render(<CompareTable data={data} combine="slowest" />);
 
     expect(await faultsIn(container)).toEqual([]);
+  });
+});
+
+describe("a journey that was estimated, in a comparison", () => {
+  /** Three areas on a firm limit, in a release that holds no journey time: one of each band. */
+  const estimated: CompareData = recordedAnswer("compare", "estimate/compare").body.data;
+  const theJourney = () => journeys()[0] as HTMLElement;
+  const cellsOf = () => within(theJourney()).getAllByRole("cell");
+
+  test("test_each_cell_says_the_band_in_the_apis_words_and_that_it_is_an_estimate", () => {
+    render(<CompareTable data={estimated} combine="slowest" />);
+    const row = estimated.rows.find((one) => one.place !== null);
+    if (!row) throw new Error("the recording compares no journey");
+
+    expect(row.cells.map((cell) => cell.estimate)).toEqual(["likely_within", "borderline", "likely_beyond"]);
+    for (const [at, cell] of row.cells.entries()) {
+      const fact = estimated.facts.find((one) => one.fact_id === cell.fact_id);
+      if (!fact || !cell.estimate) throw new Error("the cell cites no fact of an estimate");
+      const drawn = cellsOf()[at] as HTMLElement;
+
+      expect(fact.template).toBe("travel_estimated");
+      expect(drawn).toHaveTextContent(`Against your limit${fact.slots.verdict}`);
+      expect(fact.slots.verdict).toBe(JOURNEYS.estimated[cell.estimate]);
+      expect(drawn).toHaveTextContent(`How this is known${JOURNEYS.estimatedFrom}`);
+      // It is never given in minutes: the one number of the cell is the limit that was set.
+      expect(cell.value).toBeNull();
+      expect(drawn).toHaveTextContent(`Your limit, in minutes${fact.slots.limit}`);
+      expect(drawn.textContent?.includes(COMPARE_TABLE.journeys.missing)).toBe(false);
+      expect(within(drawn).getByRole("button", { name: /^Source for / })).toBeInTheDocument();
+    }
+  });
+
+  test("test_an_area_a_firm_limit_leaves_out_says_that_the_journey_is_likely_beyond_it_and_estimated", () => {
+    const left = estimated.areas.filter((area) => area.status === "commute_likely_beyond");
+
+    expect(left).toHaveLength(1);
+    expect(estimated.areas.filter((area) => area.status === "ranked")).toHaveLength(2);
+    expect(statusWords("commute_likely_beyond")).toBe(COMPARE_STATUS.commute_likely_beyond);
+    expect(COMPARE_STATUS.commute_likely_beyond).toContain("likely beyond a firm limit");
+    expect(COMPARE_STATUS.commute_likely_beyond).toContain(JOURNEYS.estimatedFrom);
   });
 });
 

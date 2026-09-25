@@ -118,6 +118,14 @@ export function columnsOf(fact: Fact): readonly Column[] {
           [FACT_COLUMNS.middleOfAll, pounds(slots.median)],
           [FACT_COLUMNS.soldIn, slots.period],
         ];
+      case "cost_buy_sold":
+        // One number, counted from the sales of three years. It says how many it rests on.
+        return [
+          [FACT_COLUMNS.segment, slots.segment],
+          [FACT_COLUMNS.middleOfAll, pounds(slots.median)],
+          [FACT_COLUMNS.soldIn, slots.period],
+          [FACT_COLUMNS.sales, slots.sales],
+        ];
       case "budget_under":
       case "budget_over":
         return [
@@ -155,6 +163,16 @@ export function columnsOf(fact: Fact): readonly Column[] {
           [FACT_COLUMNS.mode, slots.mode],
           [FACT_COLUMNS.minutes, slots.minutes],
           ...againstTheLimit(fact),
+        ];
+      case "travel_estimated":
+        // No time is held. The fact says where an estimate stands against the limit, and
+        // that it is one, and gives no minutes of its own.
+        return [
+          [FACT_COLUMNS.place, slots.place],
+          [FACT_COLUMNS.mode, slots.mode],
+          [FACT_COLUMNS.limit, slots.limit],
+          [FACT_COLUMNS.estimate, slots.verdict],
+          [FACT_COLUMNS.howKnown, slots.estimated],
         ];
       case "travel_beyond":
         return [
@@ -229,6 +247,10 @@ export function FactRow({ fact, withSource = true, source = "button", name: give
       {fact.template === "feature_crime" ? <p className={styles.caveat}>{CRIME_CAVEAT}</p> : null}
       {fact.template === "vibe_unknown" ? <p className={styles.caveat}>{CANNOT_PLACE}</p> : null}
       {fact.template === "cost_buy_median" ? <p className={styles.caveat}>{ONE_NUMBER}</p> : null}
+      {/* What a middle price means, in the API's words: about half of what sold went for less. */}
+      {fact.kind === "cost" && fact.slots.half_sold ? (
+        <p className={styles.caveat}>{fact.slots.half_sold}</p>
+      ) : null}
       {/* What every sentence about a vibe ends in, as the API holds it: that the recipe is a judgement. */}
       {fact.kind === "tag" && fact.slots.judgement ? (
         <p className={styles.caveat}>{fact.slots.judgement}</p>

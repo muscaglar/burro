@@ -10,7 +10,7 @@
 export const ACCESSIBILITY = {
   title: "Accessibility statement",
   lead: "Burro aims to meet the Web Content Accessibility Guidelines, version 2.2, at level AA. It has not been audited, and parts of it have not been tested with the tools people use.",
-  updated: { label: "Last updated", date: "2026-09-24" },
+  updated: { label: "Last updated", date: "2026-09-25" },
 
   built: {
     title: "What the website is built to do",
@@ -100,8 +100,9 @@ export const ACCESSIBILITY = {
 
   report: {
     title: "How to report a problem",
-    // There is no address yet. Do not invent one.
+    // There is no address yet. Do not invent one. It says nothing of whether the data is
+    // made up: the statement is drawn on every release, and the banner says what is shown.
     noAddressYet:
-      "There is nowhere to send a report yet. This is a test release on made-up data. An address will be given here before the website opens to the public.",
+      "There is nowhere to send a report yet. This is a test release. An address will be given here before the website opens to the public.",
   },
 } as const;

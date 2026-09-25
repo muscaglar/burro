@@ -80,12 +80,14 @@ function isConfidence(value: string | undefined): value is Exclude<Confidence, "
 }
 
 /**
- * A price that is one number: a publisher's own middle price, with no range.
+ * A price that is one number: the middle of what was paid, with no range.
  *
- * It is drawn as one number. No range is made of it, no word says how sure it is, and the
- * line under it says what is not known of it. The figure and the year it is of are slots of
- * the fact, as the API formatted them. The bar is drawn only where there is a budget to
- * hold the number against, and says in words where the budget falls.
+ * It is drawn as one number. No range is made of it. Where it is a publisher's own figure
+ * no word says how sure it is, and the line under it says what is not known of it. Where
+ * it was counted from sales it says how many, and over which months. The figure, the
+ * months, the count and the sentence that says what a middle price means are slots of the
+ * fact, as the API formatted them. The bar is drawn only where there is a budget to hold
+ * the number against, and says in words where the budget falls.
  */
 function OneNumber({ fact, estimate, budget, scale = null }: Props) {
   const { slots } = fact;
@@ -120,6 +122,12 @@ function OneNumber({ fact, estimate, budget, scale = null }: Props) {
             <dd>{slots.period}</dd>
           </div>
         ) : null}
+        {slots.sales !== undefined ? (
+          <div>
+            <dt>{COST.sales}</dt>
+            <dd>{slots.sales}</dd>
+          </div>
+        ) : null}
         {amount !== null ? (
           <div>
             <dt>{COST.budget}</dt>
@@ -134,7 +142,10 @@ function OneNumber({ fact, estimate, budget, scale = null }: Props) {
         </div>
       ) : null}
       {falls !== null ? <p className={styles.falls}>{falls}</p> : null}
-      <p className={styles.falls}>{ONE_NUMBER}</p>
+      {/* What a middle price means, in the API's words: about half of what sold went for less. */}
+      {slots.half_sold ? <p className={styles.falls}>{slots.half_sold}</p> : null}
+      {/* A figure that was counted says how many sales it rests on, so nothing is unknown of it. */}
+      {slots.sales === undefined ? <p className={styles.falls}>{ONE_NUMBER}</p> : null}
       <SourceNote facts={[fact]} of={fact.label} />
     </div>
   );

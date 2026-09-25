@@ -9,8 +9,8 @@ import { fitOf } from "@/lib/map/fill";
 import { paths } from "@/lib/paths";
 import { basedOn } from "@/lib/search/card";
 import { placedOn, type Lens } from "@/lib/vibes";
-import { saysItsBorough } from "@/lib/area/named";
 
+import { BesideName } from "../BesideName/BesideName";
 import { CompareButton } from "../CompareTray/CompareButton";
 import styles from "./MapView.module.css";
 
@@ -69,8 +69,8 @@ export function MapCard({
             {summary.name}
           </Link>
         </p>
-        {/* A name that begins with its borough says it already. */}
-        {saysItsBorough(summary) ? null : <p className={styles.cardBorough}>{summary.borough}</p>}
+        {/* Beside the name: the label its publisher gives the area, and that the name is a draft. */}
+        <BesideName area={summary} className={styles.cardBorough} />
       </div>
       {lens !== null && placed !== null ? (
         <p>

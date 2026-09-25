@@ -6,7 +6,29 @@
  * in it, the gap is filled with a name the API sent.
  */
 
-import type { Tenure } from "@/lib/api/schema";
+import type { NameState, Tenure } from "@/lib/api/schema";
+
+/**
+ * What is said of the name of an area. The name, the label and who wrote the name are the
+ * API's. How far a name has been checked is a code of the API's, and these are its words.
+ */
+export const NAMED = {
+  /** Between the parts of what stands beside a name. */
+  between: " \u00b7 ",
+  /** Beside a name that no person has checked. */
+  draft: "draft name",
+  /** On the page of an area, before the label its publisher gives the area. */
+  label: "Census area",
+  /** On the page of an area, before what is said of its name. */
+  name: "Name",
+  /** What is said of a name. `by` is who wrote it, as the API names them. */
+  state: {
+    draft: (by: string) => `A draft, as ${by} writes it. No person has checked it yet.`,
+    checked: (by: string) => `As ${by} writes it. A person has checked it.`,
+  } satisfies Record<NameState, (by: string) => string>,
+  /** The way to the page that says how a name is chosen. */
+  how: "How an area is named",
+} as const;
 
 export const AREA = {
   /** The title of the page: the area and its borough, as the API names them. */
@@ -26,6 +48,8 @@ export const AREA = {
     /** After the minutes of the walk, which are the fact's own. */
     onFoot: "minutes on foot",
     noStation: "No station near this area is in this data.",
+    /** Where the data names no station for any area: it is so of the data, and says nothing of the area. */
+    noStations: "This data names no stations yet.",
   },
   /**
    * How long it takes to the places the person named in the search that is open. It is drawn
@@ -105,6 +129,8 @@ export const PORTRAIT = {
         : `Burro cannot place this area on ${count} of the ${of} vibes.`,
     /** The way to why, which is said once, under the vibes. */
     why: "Why not",
+    /** What opens the sources and the dates of the lines, which are written out under it. */
+    sources: "Sources and dates of these figures",
   },
   /** The heading of each list of the portrait. Which vibe stands in which list is the API's to say. */
   groups: {
@@ -167,6 +193,8 @@ export const LOOK = {
   noStation: "No station near this area is in this data.",
   cannotSee: "What Burro cannot see",
   cannotSeeLead: "No vibe on this page sees any of this. It is for you to see.",
+  /** What opens the list of what each vibe cannot see. What none can see is said above it. */
+  cannotSeeEach: "What each vibe cannot see",
   vibes: "Every vibe, its recipe and what it cannot see",
 } as const;
 

@@ -5,7 +5,7 @@ import { useId, type ReactNode } from "react";
 import { DIMENSION } from "@/content/labels";
 import { whyRefused } from "@/content/search";
 import { CRIME_ACCOUNT, countsOf, crimeVibes } from "@/content/crime";
-import { CRIME, CRIME_CAVEAT, FEATURES, HIDDEN, JOURNEY, SETTINGS, SLIDER } from "@/content/settings";
+import { BRANDS, CRIME, CRIME_CAVEAT, FEATURES, HIDDEN, JOURNEY, SETTINGS, SLIDER } from "@/content/settings";
 import type { Answer } from "@/lib/api/client";
 import type {
   AreaSummary,
@@ -18,6 +18,7 @@ import type {
   RejectReason,
   Tenure,
 } from "@/lib/api/schema";
+import { inOrder } from "@/lib/area/profile";
 import { recipeOf } from "@/lib/holds";
 import { namesOfPlaces } from "@/lib/search/chips";
 import { counts } from "@/lib/search/counts";
@@ -61,10 +62,16 @@ interface Props {
 const isCrime = (metric: Metric) => metric.dimension === "crime";
 
 /**
+ * True when the feature is of the chains of grocers, gyms and coffee. They are a group of
+ * their own: a switch for every chain would bury the family they belong to.
+ */
+const isBrand = (metric: Metric) => metric.dimension === "brands";
+
+/**
  * The settings: the same search as a form, in groups, each closed at first.
  * Money and journeys first, then one group for each family of vibes, as the
- * API names and orders them, then what belongs to no family, and recorded
- * crime last. Every control here makes the edit a sentence would, so the page
+ * API names and orders them, then the brands, then what belongs to no family,
+ * and recorded crime last. Every control here makes the edit a sentence would, so the page
  * works with no words read at all.
  *
  * In a family each vibe has one slider, and "Made of" opens its parts. A
@@ -137,7 +144,8 @@ export function SettingsPanel({
   const families = meta.families.map(({ family, label }) => {
     const vibes = meta.tags.filter((tag) => tag.family === family);
     const others = rankable.filter(
-      (metric) => metric.family === family && !isCrime(metric) && !inARecipe.has(metric.feature_id),
+      (metric) =>
+        metric.family === family && !isCrime(metric) && !isBrand(metric) && !inARecipe.has(metric.feature_id),
     );
     if (vibes.length === 0 && others.length === 0) return null;
     // A vibe that runs one way always shows its slider, where any area can be placed on it.
@@ -179,7 +187,8 @@ export function SettingsPanel({
     ));
   });
 
-  const apart = rankable.filter((metric) => metric.family === null && !isCrime(metric));
+  const apart = rankable.filter((metric) => metric.family === null && !isCrime(metric) && !isBrand(metric));
+  const brands = inOrder(rankable.filter(isBrand));
   const crime = rankable.filter(isCrime);
 
   return (
@@ -225,6 +234,16 @@ export function SettingsPanel({
         </Disclosure>
 
         {families}
+
+        {brands.length > 0
+          ? // The mix of brands, and every chain a person may ask to be near. Closed at first.
+            group("brands", DIMENSION.brands, anyCounts(brands), (scale) => (
+              <>
+                <p>{BRANDS.lead}</p>
+                <ul className={styles.list}>{controlsOf(brands, scale)}</ul>
+              </>
+            ))
+          : null}
 
         {apart.length > 0
           ? group("apart", SETTINGS.airAndNoise, anyCounts(apart), (scale) => (

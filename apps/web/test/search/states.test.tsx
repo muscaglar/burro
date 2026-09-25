@@ -13,7 +13,6 @@ import {
   FILTERED,
   NOTHING_MATCHES,
   NOTICE,
-  PLACE,
   PROMPT,
   REJECTED,
   REJECTED_LABEL,
@@ -24,6 +23,7 @@ import {
   UNMET,
   UNMET_LABEL,
   UNRANKED,
+  FIND_AREA,
 } from "@/content/search";
 import { BUDGET, JOURNEY, SETTINGS } from "@/content/settings";
 import { SHOWN_AT_FIRST } from "@/components/ResultList/ResultList";
@@ -86,7 +86,8 @@ describe("empty: before anything is asked for", () => {
     expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
     expect(promptBox()).toHaveValue("");
     expect(screen.getByRole("radio", { name: TENURE_CHOICE.rent })).toBeChecked();
-    expect(screen.getByRole("combobox", { name: PLACE.label })).toBeInTheDocument();
+    // The one box that finds by name: a place to reach, or an area.
+    expect(screen.getByRole("combobox", { name: FIND_AREA.label })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /./ }).map((button) => button.textContent)).toEqual(
       expect.arrayContaining([PROMPT.submit]),
     );

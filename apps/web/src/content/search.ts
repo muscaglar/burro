@@ -101,7 +101,7 @@ export const EXAMPLE_POOL: readonly Example[] = [
   },
   {
     text: "Somewhere buzzy with bars and restaurants, close to a station",
-    asks: ["tag:pace", "feature:venue_evening", "feature:venue_food_drink_per_homes", "feature:station_walk"],
+    asks: ["tag:pace", "feature:venue_evening_per_homes", "feature:venue_food_drink_per_homes", "feature:station_walk"],
   },
   { text: "Somewhere quiet, near a big park", asks: ["tag:quiet_residential", "tag:parks_close_by"] },
   { text: "Clean air and a park nearby", asks: ["feature:air_no2", "feature:park_proximity"] },
@@ -238,6 +238,29 @@ export const PLACE = {
   /** In place of the field, where the data names no place: no spelling could match. */
   notInData:
     "This data names no places yet, so Burro cannot work out a journey. Nothing you type here could match.",
+} as const;
+
+/**
+ * The same box, where it finds an area by its name too. An area that matches is a link to
+ * its page, and is no place to reach: it adds nothing to the search.
+ */
+export const FIND_AREA = {
+  /** The box where the data names places to reach. */
+  label: "A place you need to reach, or an area by name",
+  hint: "A station, a workplace, a school, a district or a neighbourhood. Type two letters or more.",
+  /** The box where the data names no place to reach: an area is all it can find. */
+  labelAlone: "Find an area by name",
+  hintAlone:
+    "The name of a neighbourhood. Type two letters or more. This data names no places to reach yet, so Burro cannot work out a journey.",
+  /** Over the areas that match. Each is a link to the page of its area. */
+  title: "Areas of that name",
+  none: "No place and no area matches. Try another spelling.",
+  noneAlone: "No area matches. Try another spelling.",
+  found: (places: number, areas: number) =>
+    [
+      ...(places > 0 ? [places === 1 ? "1 place found" : `${places} places found`] : []),
+      ...(areas > 0 ? [areas === 1 ? "1 area found" : `${areas} areas found`] : []),
+    ].join(", "),
 } as const;
 
 export const PLACE_KIND: Readonly<Record<OptionKind, string>> = {
@@ -388,7 +411,7 @@ export const FAILURE = {
 export const UNMET: Readonly<Record<UnmetCategory, string>> = {
   broadband: "Burro has no data on broadband, so that part was left out.",
   flood_risk: "Burro has no data on flood risk, so that part was left out.",
-  health_services: "Burro has no data on health services nearby, so that part was left out.",
+  health_services: "Burro has no data on health services other than GP surgeries and pharmacies, so that part was left out.",
   driving: "Burro does not work out journeys by car. It covers public transport, cycling and walking.",
   listings: "Burro does not show homes to rent or to buy. It ranks areas.",
   affordability_verdict: "Burro does not say what you can afford. It shows what homes cost in each area.",
@@ -455,6 +478,8 @@ export const FILTERED: Readonly<Record<FilterReason, string>> = {
   not_selected: "Not one of the areas you chose",
   over_budget: "Over your budget, which is a firm limit",
   commute_cap: "A journey is longer than a firm limit",
+  commute_likely_beyond:
+    "A journey is likely beyond a firm limit. Estimated from distance, not from a timetable.",
 };
 
 export const UNRANKED: Readonly<Record<UnrankedReason, string>> = {
@@ -482,6 +507,8 @@ export const UNTESTED: Readonly<Record<FilterReason, string>> = {
   not_selected: "Whether this is one of the areas you chose could not be checked.",
   over_budget: "Your budget is a firm limit, and it could not be tested here: there is no cost figure.",
   commute_cap: "A journey is a firm limit, and it could not be tested here: there is no journey time.",
+  commute_likely_beyond:
+    "A journey is a firm limit, and it could not be tested here: there is no journey time.",
 };
 
 export const NOTHING_MATCHES = {
@@ -601,6 +628,18 @@ export const JOURNEYS = {
   beyond: (minutes: number) => `More than ${minutes} minutes`,
   missing: "No journey time in this data",
   /**
+   * Where a journey that was estimated stands against the limit a person set: the three
+   * bands of the API, each in the words its fact says it in where it stands alone. An
+   * estimate is never given in minutes.
+   */
+  estimated: {
+    likely_within: "Likely within your limit",
+    borderline: "Borderline for your limit",
+    likely_beyond: "Likely beyond your limit",
+  },
+  /** What stands wherever an estimate is shown: the API's line, word for word. */
+  estimatedFrom: "Estimated from distance, not from a timetable.",
+  /**
    * Under two journeys or more: which of them the fit is worked out from. It
    * is the one that does worst against its own limit, which need not be the
    * one that takes the most minutes.
@@ -645,6 +684,8 @@ export const COST = {
   what: "What this is",
   middleOfAll: "The middle price of homes of this kind, of all sizes",
   soldIn: "Homes sold in",
+  /** How many sales a price that was counted rests on. The count is the API's. */
+  sales: "Sales it rests on",
   pictureOfOne: "The middle price, with your budget marked beside it",
   belowMiddle: "Your budget is below this middle price.",
   aboveMiddle: "Your budget is above this middle price.",

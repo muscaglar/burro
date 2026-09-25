@@ -66,6 +66,34 @@ describe("how an area's profile is laid out", () => {
     expect(order.at(-1)).toBe("crime");
   });
 
+  test("test_the_brands_are_in_the_order_of_the_table_of_tiers_with_the_mix_first_and_the_chains_last", () => {
+    const brands = featuresByDimension(alderwick, meta.features).find((group) => group.dimension === "brands");
+    const ids = (brands?.rows ?? []).map((row) => row.metric.feature_id);
+
+    expect(ids).toHaveLength(48);
+    expect(ids.slice(0, 7)).toEqual([
+      "brand_mix",
+      "grocer_premium_nearby",
+      "grocer_premium_distance",
+      "grocer_mid_nearby",
+      "grocer_mid_distance",
+      "grocer_value_nearby",
+      "grocer_value_distance",
+    ]);
+    expect(ids.slice(7, 19).map((id) => id.split("_")[0])).toEqual([...Array(6).fill("gym"), ...Array(6).fill("coffee")]);
+    // Every chain, by its name, in the order the API gives them.
+    const chains = ids.slice(19);
+    expect(chains).toHaveLength(29);
+    expect(chains.every((id) => id.startsWith("brand_"))).toBe(true);
+    expect(chains).toEqual(meta.features.map((metric) => metric.feature_id).filter((id) => chains.includes(id)));
+    // No other group is moved: each is in the order the API gives.
+    for (const group of featuresByDimension(alderwick, meta.features)) {
+      if (group.dimension === "brands") continue;
+      const held = group.rows.map((row) => row.metric.feature_id);
+      expect(held).toEqual(meta.features.map((metric) => metric.feature_id).filter((id) => held.includes(id)));
+    }
+  });
+
   test("test_a_group_the_release_has_no_feature_in_is_left_out", () => {
     const withoutSchools = meta.features.filter((metric) => metric.dimension !== "schools");
 
@@ -114,7 +142,14 @@ describe("how an area's profile is laid out", () => {
   });
 
   test("test_the_fact_that_names_the_area_is_the_one_of_kind_area", () => {
-    expect(areaFact(alderwick)?.slots).toEqual({ name: "Alderwick", borough: "Quillhaven" });
+    // It holds the label its publisher gives the area, who wrote the name, and that it is a draft.
+    expect(areaFact(alderwick)?.slots).toEqual({
+      name: "Alderwick",
+      borough: "Quillhaven",
+      label: "Quillhaven 001",
+      written_by: "Burro",
+      state: "draft",
+    });
     expect(areaFact({ ...alderwick, facts: [] })).toBeNull();
   });
 });

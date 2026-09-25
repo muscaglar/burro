@@ -39,6 +39,52 @@ describe("the source of a figure, written out", () => {
     );
   });
 
+  test("test_a_publishers_own_statement_stands_under_the_figure_where_it_asks_to_see_it_there", () => {
+    // Transport for London asks that its statement is shown wherever a figure made from its
+    // data is. The API says which source asks, and brings the statement with the fact.
+    const credited: Fact = {
+      ...real,
+      sources: [
+        { source_id: "naptan", name: "NaPTAN", publisher: "Department for Transport", attribution: null },
+        {
+          source_id: "station-data",
+          name: "Station data",
+          publisher: "Transport for London",
+          attribution: "Powered by TfL Open Data\nContains OS data © Crown copyright and database rights 2016",
+        },
+      ],
+    };
+    render(<SourceLine facts={[credited, { ...credited, fact_id: "another" }]} />);
+    const line = screen.getAllByRole("link")[0]?.closest("p");
+
+    // Each part of it is a sentence, and it is said once however many facts bring it.
+    expect(line?.textContent?.split("Powered by TfL Open Data.")).toHaveLength(2);
+    expect(line).toHaveTextContent(
+      "Powered by TfL Open Data. Contains OS data © Crown copyright and database rights 2016.",
+    );
+    // A source that asks for no more than its name has no more than its name.
+    expect(renderToStaticMarkup(<SourceLine facts={[real]} />)).not.toContain("Powered by");
+  });
+
+  test("test_a_statement_that_two_sources_of_one_publisher_bring_is_said_once", () => {
+    // Seen in a browser: a figure made from two files of Transport for London, the bus stops
+    // and the stations, each of which brings the publisher's statement. It stood twice, one
+    // straight after the other.
+    const statement = "Powered by TfL Open Data\nContains OS data © Crown copyright and database rights 2016";
+    const twice: Fact = {
+      ...real,
+      sources: [
+        { source_id: "bus-stops", name: "Bus stops", publisher: "Transport for London", attribution: statement },
+        { source_id: "station-data", name: "Station data", publisher: "Transport for London", attribution: statement },
+      ],
+    };
+    render(<SourceLine facts={[twice]} />);
+    const line = screen.getAllByRole("link")[0]?.closest("p");
+
+    expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual(["Bus stops", "Station data"]);
+    expect(line?.textContent?.split("Powered by TfL Open Data.")).toHaveLength(2);
+  });
+
   test("test_each_source_is_named_once_with_its_publisher_and_the_date_is_said_once_after_them", () => {
     // Seen in a browser: thirteen sources in one paragraph, some three times over, each
     // followed by the date of the figure, so that a census of 2021 read "Data from April 2026".

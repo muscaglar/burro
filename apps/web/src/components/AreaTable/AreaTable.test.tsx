@@ -4,6 +4,7 @@ import path from "node:path";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { NAMED } from "@/content/area";
 import { TABLE } from "@/content/map";
 import { COMPLETENESS, FILTERED, UNRANKED } from "@/content/search";
 import { recordedAnswer } from "@/lib/api/recorded";
@@ -201,6 +202,25 @@ describe("the table of every area", () => {
     const rows = screen.getAllByRole("row").slice(1);
     expect(rows.filter((row) => row.textContent?.includes(TABLE.notYet))).toHaveLength(22);
     expect(rows.filter((row) => row.textContent?.includes(UNRANKED.not_rankable))).toHaveLength(2);
+  });
+
+  test("test_under_the_name_of_an_area_is_the_label_its_publisher_gives_it", () => {
+    show(null);
+
+    for (const area of areas) {
+      const header = screen.getByRole("link", { name: area.name }).closest("th") as HTMLElement;
+      // The name comes first, and is the link. The label is under it, and is no link.
+      expect(header.firstElementChild?.tagName).toBe("A");
+      expect(header.textContent).toBe(`${area.name}${area.named?.label ?? ""}`);
+      expect(header.querySelectorAll("a")).toHaveLength(1);
+    }
+    // An area that bears no name but its label has nothing under its name.
+    expect(areas.filter((area) => area.named === null).map((area) => area.name)).toEqual([
+      "Grapnel Dock",
+      "Otterby Fields",
+    ]);
+    // The table says of no name that it is a draft: the card and the page of an area do.
+    expect(document.body.textContent?.includes(NAMED.draft)).toBe(false);
   });
 
   test("test_with_nothing_to_rank_by_no_fit_is_shown", () => {

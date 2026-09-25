@@ -283,7 +283,15 @@ function InShort({ lines, unplaced, vibes }: ShortProps) {
           </a>
         </p>
       ) : null}
-      <SourceLine facts={facts} />
+      {/* Five lines rest on a dozen sources and as many dates. They are written out, as
+          under every figure of the page, and are one press away: the browser's own element,
+          so that they open with scripts off. */}
+      {facts.length === 0 ? null : (
+        <details className={styles.shortSources}>
+          <summary className="target-min">{PORTRAIT.short.sources}</summary>
+          <SourceLine facts={facts} />
+        </details>
+      )}
     </div>
   );
 }

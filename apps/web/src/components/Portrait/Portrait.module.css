@@ -62,6 +62,36 @@
   align-items: center;
 }
 
+/* The sources and the dates of the lines: closed under them, and drawn as the source line is. */
+.shortSources > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--muted);
+  font-size: var(--size-small);
+  list-style: none;
+  cursor: pointer;
+}
+
+.shortSources > summary::-webkit-details-marker {
+  display: none;
+}
+
+.shortSources > summary::before {
+  content: "";
+  flex: none;
+  width: 0.5em;
+  height: 0.5em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform var(--motion-fast);
+}
+
+.shortSources[open] > summary::before {
+  transform: rotate(45deg);
+}
+
 /* One line for each vibe: its name, where the area sits in words, and a figure to picture it by. */
 .shortLines {
   display: grid;

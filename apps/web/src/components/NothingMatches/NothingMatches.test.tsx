@@ -45,6 +45,31 @@ describe("when no area passes every limit", () => {
     expect(21 + 1 + 2).toBe(areas.length);
   });
 
+  test("test_an_area_left_out_by_an_estimate_is_counted_under_words_that_say_it_is_one", () => {
+    // A release that holds no journey time: a firm limit leaves out what is likely beyond it.
+    const firm = recordedAnswer("rank", "estimate/rank-firm").body.data;
+    render(
+      <NothingMatches
+        filtered={firm.filtered}
+        unranked={[]}
+        spec={firm.spec}
+        areas={areas}
+        placeNames={NAMES}
+        onEdit={() => undefined}
+      />,
+    );
+
+    const block = within(screen.getByRole("region", { name: NOTHING_MATCHES.title }));
+    const counts = block.getAllByRole("term").map((term) => [term.textContent, term.nextElementSibling?.textContent]);
+    expect(new Set(firm.filtered.map((one) => one.reason))).toEqual(new Set(["commute_likely_beyond"]));
+    expect(counts).toEqual([[FILTERED.commute_likely_beyond, NOTHING_MATCHES.count(firm.filtered.length)]]);
+    expect(FILTERED.commute_likely_beyond).toContain("Estimated from distance, not from a timetable.");
+    // The way out is the one for any firm limit on a journey: make it flexible.
+    expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual([
+      NOTHING_MATCHES.journeyFlexible("Cindermoor Works"),
+    ]);
+  });
+
   test("test_there_is_one_button_for_each_firm_limit_in_the_spec", () => {
     show();
 
