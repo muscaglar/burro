@@ -30,7 +30,7 @@ from burro_core.interpret import InterpretRequest, InterpretResult
 from burro_core.interpret import Span as Stretch
 from burro_core.ops import BudgetEdit
 
-from burro_api.guard import DOUBTS, Check, Guarded, Reading, thing_named
+from burro_api.guard import BEYOND, DOUBTS, Check, Guarded, Reading, thing_named
 from burro_api.offers import (
     FIRM,
     GUIDE,
@@ -232,7 +232,7 @@ class _Merge:
             self.offers[at] = held.replace(
                 choices=(*_marked(_in_order(kept.values()), meant, guess), SKIP),
                 spans=_spans([*spans, *_held(held)]),
-                whole_sentence=held.whole_sentence or Check.DISAGREES in fired,
+                whole_sentence=held.whole_sentence or bool(fired & BEYOND),
             )
             return
         if not ways or (meant and meant not in {way.id for way in ways}):
@@ -248,7 +248,7 @@ class _Merge:
                     spans=_spans(spans),
                     choices=(*_marked(ways, meant, guess), SKIP),
                     read_by=InterpreterName.MODEL,
-                    whole_sentence=Check.DISAGREES in fired,
+                    whole_sentence=bool(fired & BEYOND),
                 )
             )
             return
@@ -269,6 +269,7 @@ class _Merge:
         self.offers[beside] = held.replace(
             choices=(*(way if sure else way.replace(guess=False) for way in theirs), *others, SKIP),
             spans=_spans([*spans, *_held(held)]),
+            whole_sentence=held.whole_sentence or bool(fired & BEYOND),
         )
 
     def _journey(
@@ -366,18 +367,51 @@ class _Merge:
         )
 
 
+def _as_it_stands(
+    reading: Reading,
+) -> tuple[Span, str, str, Span, str, list[str], list[str], list[str]]:
+    """Where a reading stands in the text, and then all that tells it from another.
+
+    A model does not write its edits in the same order twice. So the
+    readings are put in the order of their words before anything is made of
+    them, and two that stand on the same words in the order of what they hold.
+    """
+    return (
+        reading.span,
+        reading.target,
+        reading.key,
+        reading.named_at or (-1, -1),
+        reading.meant,
+        sorted(check.value for check in reading.fired),
+        [way.model_dump_json() for way in reading.ways],
+        [unsaid.model_dump_json() for unsaid in reading.unsaid],
+    )
+
+
+def _where_it_stands(offer: Offer) -> tuple[int, int]:
+    """Where an offer stands among the others: by its first word, and then by what it names.
+
+    Two journeys may rest on the same words, where a model rested each on
+    the whole of a sentence. They stand in the order of the places they name.
+    Two offers that still tie keep the order they were made in, which is the
+    rules' own for what the rules noticed.
+    """
+    return offer.spans[0].start, -1 if offer.named_at is None else offer.named_at.start
+
+
 def offers_of(
     found: Guarded, request: InterpretRequest, typed: Typed, ruled: InterpretResult
 ) -> tuple[tuple[Offer, ...], Counter[Check]]:
     """What is offered: what the rules noticed, with what a model read put beside it.
 
-    There is one offer for each thing, in the order of their words. With
-    them comes how often the checks fired that are made once every reading is
-    in: one thing pulled two ways, and what would change nothing.
+    There is one offer for each thing, in the order of their words. Nothing
+    of them rests on the order in which a model wrote its edits. With them
+    comes how often the checks fired that are made once every reading is in:
+    one thing pulled two ways, and what would change nothing.
     """
     merge = _Merge(request, typed, [of_the_rules(suggestion) for suggestion in ruled.suggestions])
     things: dict[tuple[str, str, Span | None], list[Reading]] = {}
-    for reading in found.readings:
+    for reading in sorted(found.readings, key=_as_it_stands):
         # A place that is asked about is told apart by where its name stands.
         things.setdefault((reading.target, reading.key, reading.named_at), []).append(reading)
     for together in things.values():
@@ -388,4 +422,4 @@ def offers_of(
         offer if any(way.guess for way in offer.choices) else offer.replace(alone=True)
         for offer in merge.offers
     )
-    return tuple(sorted(left, key=lambda offer: offer.spans[0].start)), merge.fired
+    return tuple(sorted(left, key=_where_it_stands)), merge.fired

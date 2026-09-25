@@ -30,6 +30,7 @@ STATUS: Mapping[ErrorCode, int] = {
     ErrorCode.AREA_NOT_FOUND: 404,
     ErrorCode.SHARE_NOT_FOUND: 404,
     ErrorCode.CENSUS_NOT_AVAILABLE: 404,
+    ErrorCode.INCOME_NOT_AVAILABLE: 404,
     ErrorCode.METHOD_NOT_ALLOWED: 405,
     ErrorCode.RELEASE_CHANGED: 410,
     ErrorCode.BODY_TOO_LARGE: 413,
@@ -58,6 +59,7 @@ MESSAGES: Mapping[ErrorCode, str] = {
     ErrorCode.SHARE_NOT_FOUND: "There is no such shared search.",
     ErrorCode.RELEASE_CHANGED: "The data has changed and this shared search cannot be shown.",
     ErrorCode.CENSUS_NOT_AVAILABLE: "No census figures are served for this release.",
+    ErrorCode.INCOME_NOT_AVAILABLE: "No household income is served for this release.",
 }
 
 # Which part of the body an error is about decides the code.

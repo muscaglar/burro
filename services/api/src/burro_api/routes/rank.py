@@ -9,6 +9,7 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 
 from burro_core.catalogue import FEATURES, TAGS
+from burro_core.estimate import estimate
 from burro_core.explain import Explanation, explain
 from burro_core.facts import (
     Fact,
@@ -25,8 +26,10 @@ from burro_core.ids import (
     Combine,
     FactKind,
     FeatureId,
+    JourneyBand,
     PtBasis,
     TagId,
+    TravelStatus,
     component_for_feature,
     component_for_tag,
 )
@@ -285,6 +288,25 @@ class _Comparison:
         basis = PtBasis.JUST_MISSED if late else PtBasis.TYPICAL
         return self._release.travel(area_id, place.destination_id, journey.mode, basis).minutes
 
+    def _estimated(
+        self, area_id: str, journey: Commute, minutes: float | None
+    ) -> JourneyBand | None:
+        """Where a journey with no time stands against its limit, as core estimates it.
+
+        Core works it out, as it does for the ranking. A journey the release
+        holds a time for is never estimated, and nor is one it says has no
+        journey within the cutoff: that is data.
+        """
+        place = self._release.place(journey.place_id)
+        if minutes is not None or place is None:
+            return None
+        late = scored_on_just_missed(journey, self._spec)
+        basis = PtBasis.JUST_MISSED if late else PtBasis.TYPICAL
+        held = self._release.travel(area_id, place.destination_id, journey.mode, basis)
+        if held.status is not TravelStatus.MISSING:
+            return None
+        return estimate(self._release, area_id, journey.place_id, journey.mode, journey.max_minutes)
+
     def _figures(self, area_id: str, component: _Component) -> tuple[float | None, float | None]:
         """The value and the percentile, read from the release. `None` where there is none."""
         release, spec = self._release, self._spec
@@ -345,8 +367,10 @@ class _Comparison:
         contributions = area.contributions if area else ()
         scored = next((c for c in contributions if c.component == component.scored_as), None)
         value, percentile = self._figures(area_id, component)
+        band = None
         if component.journey is not None:
             utility, contribution = self._journey(area_id, component.journey, scored)
+            band = self._estimated(area_id, component.journey, value)
         else:
             # An area that is not ranked was not scored, so it has neither.
             utility = scored.utility if scored else None
@@ -358,6 +382,7 @@ class _Comparison:
             utility=utility,
             contribution=contribution,
             fact_id=self._fact_id(area_id, component, scored),
+            estimate=band,
         )
 
     def place(self, component: _Component) -> NamedPlace | None:

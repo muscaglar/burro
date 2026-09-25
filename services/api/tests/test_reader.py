@@ -24,7 +24,7 @@ from burro_api.reader import (
     ModelTimeout,
 )
 from burro_core import RuleInterpreter
-from burro_core.catalogue import HOLDS_CRIME, TAGS
+from burro_core.catalogue import COUNTS_RESIDENTS, HOLDS_CRIME, HOLDS_RESIDENTS, TAGS
 from burro_core.ids import FeatureId, InterpretStatus, Notice, TagId, UnmetCategory
 from burro_core.interpret import InterpretRequest
 from burro_core.ops import NO_OPERATIONS, BudgetEdit, SettingEdit, TagEdit, WeightEdit
@@ -52,6 +52,7 @@ from .support import (
     model_weight,
     offers,
     on_disk,
+    quoted,
     reader_asking,
     release,
     renter,
@@ -161,10 +162,13 @@ def test_the_model_is_never_sent_anything_about_a_place(with_settings: bool):
     # place, no figure. It cannot describe a place it was never shown.
     assert not [name for name in names if name in everything]
     assert "syn-" not in everything
+    # But for what counts who lives somewhere, which is the rules' to offer and never a
+    # model's: it is told of no such measure and no such vibe.
     for feature in FeatureId:
-        assert f"- {feature.value}:" in sent["system"]
+        assert (f"- {feature.value}:" in sent["system"]) is (feature not in COUNTS_RESIDENTS)
     for tag in TagId:
-        assert f"- {tag.value}:" in sent["system"]
+        assert (f"- {tag.value}:" in sent["system"]) is (tag not in HOLDS_RESIDENTS)
+    assert "census" not in sent["system"].casefold()
 
 
 def test_what_a_person_types_cannot_close_the_field_it_is_sent_in():
@@ -247,7 +251,7 @@ PLAIN = [
 def test_a_plain_prompt_is_applied_by_the_rules_and_no_call_is_made(text: str):
     # Whatever a model would have said: it took the station for a wish to be near one.
     backwards = model_output(
-        weight_ops=[model_weight("station_walk"), model_weight("venue_evening")],
+        weight_ops=[model_weight("station_walk"), model_weight("venue_evening_per_homes")],
         tag_ops=[model_tag("pace", toward="high")],
     )
 
@@ -435,6 +439,54 @@ def test_what_could_not_be_placed_says_which_words_and_an_answer_that_says_none_
     assert with_words["unmet"] == without["unmet"] == ["broadband", "other"]
     assert with_words["unmet_at"] == [{"category": "broadband", "span": {"start": 0, "end": 14}}]
     assert without["unmet_at"] == []
+
+
+@pytest.mark.parametrize("words", ["affluent", "slightly affluent"])
+def test_what_was_offered_is_not_said_to_have_been_left_out(words: str):
+    # A model filed the words for how well off a place is as a verdict on what the person
+    # can afford, of a sentence that asked for nothing of the kind. The rules had offered
+    # four things for the same words, and under them the page said that Burro does not say
+    # what a person can afford. What an offer rests on was not left out, whatever a model
+    # files it as. A word of degree beside the thing belongs to it.
+    text = "slightly affluent, with fast broadband, mind"
+    answer = model_output(
+        unmet=[
+            {"category": "affordability_verdict", "words": words},
+            {"category": "broadband", "words": "fast broadband"},
+        ],
+    )
+
+    served = through_the_route(answer, text)
+    result, _ = asked(answer, text=text)
+
+    assert {words for said in quoted(result, text).values() for words in said} == {"affluent"}
+    assert result.unmet == (UnmetCategory.BROADBAND, UnmetCategory.OTHER)
+    assert served["unmet"] == ["broadband", "other"]
+    [filed] = served["unmet_at"]
+    assert filed["category"] == "broadband"
+    assert text[filed["span"]["start"] : filed["span"]["end"]] == "fast broadband"
+
+
+@pytest.mark.parametrize(
+    "words",
+    [
+        # Words that no offer rests on.
+        "tell me what I can afford there",
+        # Words that an offer rests on, and more that name something of their own.
+        "affluent, and tell me what I can afford there",
+        # No words at all: code cannot say what the model meant, and the model may be right.
+        "",
+    ],
+)
+def test_what_a_model_could_not_place_is_kept_where_its_words_say_more_than_an_offer(words: str):
+    text = "slightly affluent, and tell me what I can afford there"
+    category = "affordability_verdict"
+    filed = {"category": category, "words": words} if words else category
+
+    result, _ = asked(model_output(unmet=[filed]), text=text)
+
+    assert {words for said in quoted(result, text).values() for words in said} == {"affluent"}
+    assert UnmetCategory.AFFORDABILITY_VERDICT in result.unmet
 
 
 def test_a_request_about_who_lives_somewhere_is_redirected_whoever_notices():

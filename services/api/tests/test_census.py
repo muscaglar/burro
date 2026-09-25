@@ -21,6 +21,7 @@ from burro_api.loading import load_census
 from burro_api.logs import LOGGABLE
 from burro_api.settings import SYNTHETIC_CENSUS, SYNTHETIC_FIXTURE, Settings
 from burro_api.wire import BODIES
+from burro_core.catalogue import COUNTS_RESIDENTS
 from burro_core.census import (
     CENSUS,
     FEWER,
@@ -428,8 +429,20 @@ def test_no_share_and_no_explanation_can_ask_for_a_census_figure(client: TestCli
 
 
 def test_no_body_the_service_takes_has_a_field_for_a_census_figure():
+    # A measure of the catalogue that counts who lived somewhere is named by its id, as
+    # any measure is: it is a feature of the release, and no figure of the census. A body
+    # can weigh it, and can hold nothing of the census itself.
+    measures = sorted(feature_id.value for feature_id in COUNTS_RESIDENTS)
+    assert measures == [
+        "households_dependent_children",
+        "households_one_person",
+        "residents_aged_20_34",
+        "residents_aged_65_over",
+    ]
     for body in BODIES:
         schema = json.dumps(body.model_json_schema()).casefold()
+        for measure in measures:
+            schema = schema.replace(f'"{measure}"', "")
         for word in ("census", "ethnic", "religion", "country_of_birth", "residents"):
             assert word not in schema, (body.__name__, word)
 

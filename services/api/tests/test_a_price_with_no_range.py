@@ -13,6 +13,7 @@ from typing import Any
 
 import pytest
 from burro_core.ids import Confidence, Provenance, Segment, Strictness, Tenure
+from burro_core.rank import FIRM_BUDGET_MARGIN_PERCENT
 from burro_core.release import CostEstimate, InMemoryRelease
 from burro_core.spec import Budget, PreferenceSpec, default_spec
 from fastapi.testclient import TestClient
@@ -20,6 +21,8 @@ from fastapi.testclient import TestClient
 from .support import client_for, make_deps, release, wire
 
 BUDGET = 400_000
+# The most a median may be and not be left out by a firm budget: a quarter over it.
+AT_THE_LINE = BUDGET * (100 + FIRM_BUDGET_MARGIN_PERCENT) // 100
 
 
 def _as_a_median(row: CostEstimate) -> CostEstimate:
@@ -92,8 +95,9 @@ def dear_and_cheap() -> tuple[str, str]:
     return dear, cheap
 
 
-def test_the_made_up_prices_stand_on_both_sides_of_the_budget():
-    assert any(paid > BUDGET for paid in flats().values())
+def test_the_made_up_prices_stand_on_both_sides_of_the_budget_and_of_the_line():
+    assert any(paid > AT_THE_LINE for paid in flats().values())
+    assert any(BUDGET < paid <= AT_THE_LINE for paid in flats().values())
     assert any(paid < BUDGET for paid in flats().values())
 
 
@@ -121,15 +125,30 @@ def test_a_rent_with_a_range_is_served_as_it_was(client: TestClient):
     assert all(c["confidence"] != "unstated" for c in rents)
 
 
-def test_a_firm_budget_leaves_out_every_area_whose_flats_sold_for_more(client: TestClient):
+def test_a_firm_budget_leaves_out_an_area_only_where_the_median_is_far_over_it(
+    client: TestClient,
+):
+    """About half of the flats behind a median sold for less, so the median has a margin."""
     found = ranked(client, buyer(hard=True))
     over = {f["area_id"] for f in found["filtered"] if f["reason"] == "over_budget"}
-    assert over == {area for area, paid in flats().items() if paid > BUDGET}
+    assert over == {area for area, paid in flats().items() if paid > AT_THE_LINE}
     kept = {area["area_id"] for area in found["ranked"]}
-    assert {area for area, paid in flats().items() if paid <= BUDGET} <= kept | {
+    assert {area for area, paid in flats().items() if paid <= AT_THE_LINE} <= kept | {
         u["area_id"] for u in found["unranked"]
     }
     assert not over & kept
+
+
+def test_an_area_kept_by_the_margin_is_ranked_lower_and_says_how_far_over_it_is(
+    client: TestClient,
+):
+    found = ranked(client, buyer(hard=True))
+    near = {area for area, paid in flats().items() if BUDGET < paid <= AT_THE_LINE}
+    fits = {area["area_id"]: area["budget"] for area in found["ranked"]}
+    assert near and near <= set(fits)
+    for area in near:
+        assert fits[area]["margin"] == BUDGET - flats()[area] < 0
+        assert 0 <= fits[area]["utility"] < 1
 
 
 def test_a_soft_budget_leaves_none_out_and_says_how_far_each_median_is_from_it(
@@ -197,3 +216,34 @@ def test_an_explanation_says_the_middle_price_and_passes_the_check(client: TestC
         assert sentence["text"].startswith("The middle price of flats of all sizes is £")
         assert sentence["text"].endswith(f" under your budget of £{BUDGET:,}.")
         assert sentence["replaced"] is False
+
+
+# What an offer says of a firm budget
+
+
+def offered_budget(client: TestClient, text: str) -> dict[str, Any]:
+    found = data(client.post("/v1/interpret", json={"text": text}))
+    # The amount is one offer, and the kind of home another.
+    [budget] = [offer for offer in found["suggestions"] if offer["label"].startswith("A budget")]
+    return budget
+
+
+def test_a_firm_budget_for_a_flat_says_how_far_over_it_a_middle_price_may_be(client: TestClient):
+    """The offer says what it would leave out, and why a middle price has a margin."""
+    budget = offered_budget(client, "Somewhere lovely. If I'm buying, max £400k for a flat.")
+    assert budget["does"] == "Set a budget of £400,000 to buy, as a firm limit."
+    assert budget["follows"] == (
+        f"Areas where the middle price is more than {FIRM_BUDGET_MARGIN_PERCENT}% over it are "
+        "left out. About half of the homes sold in an area went for under its middle price."
+    )
+    assert [way["label"] for way in budget["choices"]] == [
+        "Set as a firm limit: areas where the middle price is more than 25% over it are left out",
+        "Skip",
+    ]
+
+
+def test_a_firm_budget_for_a_rent_says_what_it_said(client: TestClient):
+    """A rent is a range, and is held against its upper end as it was."""
+    budget = offered_budget(client, "Somewhere lovely. If I'm renting, max £1,900 a month.")
+    assert budget["follows"] == "Dearer areas are left out."
+    assert budget["choices"][0]["label"] == "Set as a firm limit: dearer areas are left out"

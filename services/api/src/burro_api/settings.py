@@ -24,7 +24,12 @@ RESIDENTS_FOLDER = "-residents"
 SYNTHETIC_CENSUS = (
     SYNTHETIC_FIXTURE.parents[1] / "residents" / f"{SYNTHETIC_FIXTURE.name}{RESIDENTS_FOLDER}"
 )
-# The one word that switches the census off.
+# The made-up estimate of household income that was made for it, kept the same way.
+INCOME_FOLDER = "-income"
+SYNTHETIC_INCOME = (
+    SYNTHETIC_FIXTURE.parents[1] / "income" / f"{SYNTHETIC_FIXTURE.name}{INCOME_FOLDER}"
+)
+# The one word that switches the census off, or household income.
 OFF = "off"
 DEFAULT_TIMEOUT_S = 6.0
 DEFAULT_MAX_TOKENS = 2048
@@ -87,6 +92,23 @@ def _census_dir(env: Mapping[str, str]) -> Path | None:
     return SYNTHETIC_CENSUS
 
 
+def _income_dir(env: Mapping[str, str]) -> Path | None:
+    """Where the household income of the release is looked for, or `None` where it is off.
+
+    It is found as the census is: the made-up one with nothing set, the folder
+    beside a release that is named, with `-income` after its name, or the
+    folder `BURRO_INCOME_DIR` names. `BURRO_INCOME=off` serves none.
+    """
+    if env.get("BURRO_INCOME", "").strip().lower() == OFF:
+        return None
+    if named := env.get("BURRO_INCOME_DIR"):
+        return Path(named)
+    if release := env.get("BURRO_RELEASE_DIR"):
+        folder = Path(release).resolve()
+        return folder.with_name(f"{folder.name}{INCOME_FOLDER}")
+    return SYNTHETIC_INCOME
+
+
 class Settings(Wire):
     release_dir: Path
     # The folder of the census that was made for the release, or `None` where none is
@@ -96,6 +118,10 @@ class Settings(Wire):
     # Whether the folder was named by whoever runs the service. One that was named and
     # is not there is a fault, and not the want of a census.
     census_named: bool
+    # The folder of household income that was made for the release, found and held as
+    # the folder of the census is.
+    income_dir: Path | None = None
+    income_named: bool = False
     model_timeout_s: float = Field(gt=0, le=60)
     model_max_tokens: int = Field(ge=256, le=16_000)
     host: str
@@ -111,6 +137,8 @@ class Settings(Wire):
                 "release_dir": env.get("BURRO_RELEASE_DIR") or SYNTHETIC_FIXTURE,
                 "census_dir": _census_dir(env),
                 "census_named": bool(env.get("BURRO_CENSUS_DIR")),
+                "income_dir": _income_dir(env),
+                "income_named": bool(env.get("BURRO_INCOME_DIR")),
                 "model_timeout_s": env.get("BURRO_MODEL_TIMEOUT_S") or DEFAULT_TIMEOUT_S,
                 "model_max_tokens": env.get("BURRO_MODEL_MAX_TOKENS") or DEFAULT_MAX_TOKENS,
                 # The local machine only, unless whoever deploys it says otherwise.

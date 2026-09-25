@@ -193,6 +193,16 @@
             "title": "Name",
             "type": "string"
           },
+          "named": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Named"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "rankable": {
             "title": "Rankable",
             "type": "boolean"
@@ -208,7 +218,8 @@
           "name",
           "borough",
           "centroid",
-          "rankable"
+          "rankable",
+          "named"
         ],
         "title": "AreaSummary",
         "type": "object"
@@ -1029,6 +1040,16 @@
       "CommuteLeg": {
         "additionalProperties": false,
         "properties": {
+          "estimate": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JourneyBand"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "minutes": {
             "anyOf": [
               {
@@ -1139,6 +1160,16 @@
               }
             ],
             "title": "Contribution"
+          },
+          "estimate": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/JourneyBand"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "fact_id": {
             "anyOf": [
@@ -1289,6 +1320,7 @@
           "not_selected",
           "over_budget",
           "commute_cap",
+          "commute_likely_beyond",
           "not_rankable",
           "insufficient_data",
           "character_unknown"
@@ -1402,7 +1434,7 @@
       },
       "CostEstimate": {
         "additionalProperties": false,
-        "description": "What a home of one kind costs in one area: a range, or one number where no range is known.\n\nA row holds both quartiles or neither. A row with neither is a publisher's\nown median of what was paid for the homes sold in the twelve months that\nend with `as_of`. Nothing stands in for the range, and what the median\nrests on is `unstated`: the publisher gives no count of the sales.",
+        "description": "What a home of one kind costs in one area: a range, or one number where no range is known.\n\nA row holds both quartiles or neither. A row with neither is a median of\nwhat was paid for the homes that were sold, and is one of two things. A\npublisher's own median is of the twelve months that end with `as_of`, and\nwhat it rests on is `unstated`: the publisher gives no count of the sales.\nA median worked out from the sales themselves says how many it rests on,\nin `sales`, and the first month they were made in, in `since`. Nothing\nstands in for the range of either.",
         "properties": {
           "area_id": {
             "pattern": "^(syn|lon)-n[0-9a-z]+$",
@@ -1434,8 +1466,32 @@
             "title": "Median",
             "type": "integer"
           },
+          "sales": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sales"
+          },
           "segment": {
             "$ref": "#/components/schemas/Segment"
+          },
+          "since": {
+            "anyOf": [
+              {
+                "pattern": "^\\d{4}-(0[1-9]|1[0-2])$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Since"
           },
           "source_ids": {
             "items": {
@@ -1564,11 +1620,12 @@
         "type": "object"
       },
       "Describes": {
-        "description": "What a feature is a fact about. There is no value for who lives somewhere.",
+        "description": "What a feature is a fact about.",
         "enum": [
           "place",
           "buildings",
-          "events"
+          "events",
+          "residents"
         ],
         "title": "Describes",
         "type": "string"
@@ -1582,7 +1639,9 @@
           "venues_culture",
           "homes",
           "station_access",
-          "services"
+          "services",
+          "brands",
+          "residents"
         ],
         "title": "Dimension",
         "type": "string"
@@ -1713,6 +1772,23 @@
           "data"
         ],
         "title": "Envelope[GeometryData]",
+        "type": "object"
+      },
+      "Envelope_IncomeShown_": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/IncomeShown"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "meta",
+          "data"
+        ],
+        "title": "Envelope[IncomeShown]",
         "type": "object"
       },
       "Envelope_InterpretData_": {
@@ -1862,7 +1938,8 @@
           "area_not_found",
           "share_not_found",
           "release_changed",
-          "census_not_available"
+          "census_not_available",
+          "income_not_available"
         ],
         "title": "ErrorCode",
         "type": "string"
@@ -2109,6 +2186,17 @@
       "FactSource": {
         "additionalProperties": false,
         "properties": {
+          "attribution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attribution"
+          },
           "name": {
             "title": "Name",
             "type": "string"
@@ -2136,7 +2224,8 @@
           "streets_homes",
           "pace_food",
           "green",
-          "daily_life"
+          "daily_life",
+          "who_lives_there"
         ],
         "title": "Family",
         "type": "string"
@@ -2207,7 +2296,72 @@
           "pharmacy_walk",
           "venue_food_drink_per_homes",
           "price_median",
-          "culture_venues_per_homes"
+          "culture_venues_per_homes",
+          "venue_cafe",
+          "venue_cafe_per_homes",
+          "venue_gym",
+          "venue_gym_per_homes",
+          "venue_evening_per_homes",
+          "grocer_premium_nearby",
+          "grocer_mid_nearby",
+          "grocer_value_nearby",
+          "gym_premium_nearby",
+          "gym_mid_nearby",
+          "gym_value_nearby",
+          "coffee_premium_nearby",
+          "coffee_mid_nearby",
+          "coffee_value_nearby",
+          "grocer_premium_distance",
+          "grocer_mid_distance",
+          "grocer_value_distance",
+          "gym_premium_distance",
+          "gym_mid_distance",
+          "gym_value_distance",
+          "coffee_premium_distance",
+          "coffee_mid_distance",
+          "coffee_value_distance",
+          "brand_mix",
+          "brand_waitrose",
+          "brand_mands",
+          "brand_whole_foods",
+          "brand_sainsburys",
+          "brand_tesco",
+          "brand_coop",
+          "brand_morrisons",
+          "brand_asda",
+          "brand_aldi",
+          "brand_lidl",
+          "brand_iceland",
+          "brand_equinox",
+          "brand_third_space",
+          "brand_barrys",
+          "brand_virgin_active",
+          "brand_nuffield",
+          "brand_gymbox",
+          "brand_david_lloyd",
+          "brand_anytime_fitness",
+          "brand_puregym",
+          "brand_the_gym_group",
+          "brand_gails",
+          "brand_ole_and_steen",
+          "brand_pret",
+          "brand_nero",
+          "brand_starbucks",
+          "brand_costa",
+          "brand_blank_street",
+          "brand_greggs",
+          "underground_proximity",
+          "overground_proximity",
+          "rail_proximity",
+          "bus_stops_nearby",
+          "bus_routes_nearby",
+          "residents_aged_20_34",
+          "residents_aged_65_over",
+          "households_dependent_children",
+          "households_one_person",
+          "homes_higher_bands",
+          "price_rise_5y",
+          "price_rise_10y"
         ],
         "title": "FeatureId",
         "type": "string"
@@ -2218,7 +2372,8 @@
           "taste",
           "amenity",
           "nuisance",
-          "on_request"
+          "on_request",
+          "residents"
         ],
         "title": "FeatureKind",
         "type": "string"
@@ -2327,7 +2482,8 @@
           "excluded",
           "not_selected",
           "over_budget",
-          "commute_cap"
+          "commute_cap",
+          "commute_likely_beyond"
         ],
         "title": "FilterReason",
         "type": "string"
@@ -2573,6 +2729,210 @@
         "title": "Holds",
         "type": "object"
       },
+      "HowEstimated": {
+        "additionalProperties": false,
+        "description": "The numbers an estimate is made with, for a page of methods to print.",
+        "properties": {
+          "beyond_by": {
+            "title": "Beyond By",
+            "type": "integer"
+          },
+          "fixed_minutes": {
+            "title": "Fixed Minutes",
+            "type": "number"
+          },
+          "minutes_a_km": {
+            "title": "Minutes A Km",
+            "type": "number"
+          },
+          "minutes_a_km_near_the_underground": {
+            "title": "Minutes A Km Near The Underground",
+            "type": "number"
+          },
+          "near_the_underground_m": {
+            "title": "Near The Underground M",
+            "type": "integer"
+          },
+          "said": {
+            "title": "Said",
+            "type": "string"
+          },
+          "within_by": {
+            "title": "Within By",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "fixed_minutes",
+          "minutes_a_km",
+          "minutes_a_km_near_the_underground",
+          "near_the_underground_m",
+          "within_by",
+          "beyond_by",
+          "said"
+        ],
+        "title": "HowEstimated",
+        "type": "object"
+      },
+      "IncomeOffer": {
+        "additionalProperties": false,
+        "description": "What the closed block of an area's page says. It holds no figure and names no area.",
+        "properties": {
+          "available": {
+            "title": "Available",
+            "type": "boolean"
+          },
+          "heading": {
+            "title": "Heading",
+            "type": "string"
+          },
+          "intro": {
+            "title": "Intro",
+            "type": "string"
+          }
+        },
+        "required": [
+          "available",
+          "heading",
+          "intro"
+        ],
+        "title": "IncomeOffer",
+        "type": "object"
+      },
+      "IncomeShown": {
+        "additionalProperties": false,
+        "description": "The figure of one area, as its page shows it. Every word but a button's is here.\n\nA figure is said in words, as it is to be printed: `£52,300`. `limits`\nholds both limits as they are printed, `£46,100 to £59,300`, so that no\nclient joins two figures. Where the publisher gives none for the area,\n`estimate` and the limits are `None` and `none_given` says so.",
+        "properties": {
+          "area_id": {
+            "pattern": "^(syn|lon)-n[0-9a-z]+$",
+            "title": "Area Id",
+            "type": "string"
+          },
+          "definition": {
+            "title": "Definition",
+            "type": "string"
+          },
+          "estimate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimate"
+          },
+          "heading": {
+            "title": "Heading",
+            "type": "string"
+          },
+          "kind": {
+            "title": "Kind",
+            "type": "string"
+          },
+          "licence_line": {
+            "title": "Licence Line",
+            "type": "string"
+          },
+          "limits": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Limits"
+          },
+          "limits_label": {
+            "title": "Limits Label",
+            "type": "string"
+          },
+          "lower": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lower"
+          },
+          "modelled": {
+            "title": "Modelled",
+            "type": "string"
+          },
+          "none_given": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "None Given"
+          },
+          "notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Notes",
+            "type": "array"
+          },
+          "open_source": {
+            "title": "Open Source",
+            "type": "string"
+          },
+          "source_line": {
+            "title": "Source Line",
+            "type": "string"
+          },
+          "source_url": {
+            "title": "Source Url",
+            "type": "string"
+          },
+          "upper": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upper"
+          },
+          "year_line": {
+            "title": "Year Line",
+            "type": "string"
+          }
+        },
+        "required": [
+          "area_id",
+          "heading",
+          "kind",
+          "definition",
+          "estimate",
+          "limits_label",
+          "lower",
+          "upper",
+          "limits",
+          "none_given",
+          "year_line",
+          "modelled",
+          "notes",
+          "source_line",
+          "licence_line",
+          "source_url",
+          "open_source"
+        ],
+        "title": "IncomeShown",
+        "type": "object"
+      },
       "InterpretBody": {
         "additionalProperties": false,
         "properties": {
@@ -2766,6 +3126,16 @@
         "title": "InterpreterName",
         "type": "string"
       },
+      "JourneyBand": {
+        "description": "Where an estimated journey stands against the limit a person gave. Never minutes.",
+        "enum": [
+          "likely_within",
+          "borderline",
+          "likely_beyond"
+        ],
+        "title": "JourneyBand",
+        "type": "string"
+      },
       "Meta": {
         "additionalProperties": false,
         "properties": {
@@ -2847,6 +3217,19 @@
           "holds": {
             "$ref": "#/components/schemas/Holds"
           },
+          "income": {
+            "$ref": "#/components/schemas/IncomeOffer"
+          },
+          "journey_estimate": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HowEstimated"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "limits": {
             "$ref": "#/components/schemas/ServedLimits"
           },
@@ -2899,7 +3282,8 @@
           "defaults",
           "limits",
           "reader",
-          "census"
+          "census",
+          "income"
         ],
         "title": "MetaData",
         "type": "object"
@@ -3052,6 +3436,45 @@
         "title": "MoneyLimits",
         "type": "object"
       },
+      "NameState": {
+        "description": "How far the name an area bears has been checked.",
+        "enum": [
+          "draft",
+          "checked"
+        ],
+        "title": "NameState",
+        "type": "string"
+      },
+      "Named": {
+        "additionalProperties": false,
+        "description": "What is known of the name an area bears, where it is not its publisher's label.\n\nAn area is drawn as its publisher draws it, and its publisher labels it\nwith a borough and a number. Where the area bears the name of a\nneighbourhood, this says what the label was, who wrote the name, and\nwhether a person has checked it. A name is a draft until one has.",
+        "properties": {
+          "label": {
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "source_ids": {
+            "items": {
+              "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Source Ids",
+            "type": "array"
+          },
+          "state": {
+            "$ref": "#/components/schemas/NameState"
+          }
+        },
+        "required": [
+          "label",
+          "source_ids",
+          "state"
+        ],
+        "title": "Named",
+        "type": "object"
+      },
       "NamedPlace": {
         "additionalProperties": false,
         "description": "A place a spec names, by the release's own name for it. Never what was typed.\n\nA spec holds a `place_id` and no name. A name says where someone works as\nan id does, so it is handled as one: served in a body, and in no log.",
@@ -3129,10 +3552,45 @@
             "title": "Centroid",
             "type": "array"
           },
+          "homes_at": {
+            "anyOf": [
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "maximum": 180.0,
+                    "minimum": -180.0,
+                    "type": "number"
+                  },
+                  {
+                    "maximum": 90.0,
+                    "minimum": -90.0,
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Homes At"
+          },
           "name": {
             "minLength": 1,
             "title": "Name",
             "type": "string"
+          },
+          "named": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Named"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "neighbours": {
             "items": {
@@ -3327,6 +3785,13 @@
       "PlacesData": {
         "additionalProperties": false,
         "properties": {
+          "areas": {
+            "items": {
+              "$ref": "#/components/schemas/AreaSummary"
+            },
+            "title": "Areas",
+            "type": "array"
+          },
           "places": {
             "items": {
               "$ref": "#/components/schemas/FoundPlace"
@@ -3336,7 +3801,8 @@
           }
         },
         "required": [
-          "places"
+          "places",
+          "areas"
         ],
         "title": "PlacesData",
         "type": "object"
@@ -4365,6 +4831,11 @@
             "title": "Attribution",
             "type": "string"
           },
+          "credit_beside_figures": {
+            "default": false,
+            "title": "Credit Beside Figures",
+            "type": "boolean"
+          },
           "licence": {
             "minLength": 1,
             "title": "Licence",
@@ -4884,7 +5355,10 @@
           "foodie",
           "family_amenities",
           "works_warehouses",
-          "street_character"
+          "street_character",
+          "well_connected",
+          "family_area",
+          "young_professionals"
         ],
         "title": "TagId",
         "type": "string"
@@ -5057,6 +5531,7 @@
           "cost_rent",
           "cost_buy",
           "cost_buy_median",
+          "cost_buy_sold",
           "budget_under",
           "budget_over",
           "budget_under_median",
@@ -5066,6 +5541,7 @@
           "travel_other",
           "travel_other_over",
           "travel_beyond",
+          "travel_estimated",
           "station",
           "station_nearby",
           "missing",
@@ -5123,7 +5599,8 @@
         "enum": [
           "ok",
           "beyond_cutoff",
-          "missing"
+          "missing",
+          "estimated"
         ],
         "title": "TravelStatus",
         "type": "string"
@@ -5518,6 +5995,66 @@
         "summary": "Get Census"
       }
     },
+    "/v1/areas/{id_or_slug}/income": {
+      "get": {
+        "description": "The household income of one area, as its publisher estimates it, and nothing else.",
+        "operationId": "get_income",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id_or_slug",
+            "required": true,
+            "schema": {
+              "title": "Id Or Slug",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_IncomeShown_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorEnvelope"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          }
+        },
+        "summary": "Get Income"
+      }
+    },
     "/v1/compare": {
       "post": {
         "description": "Two to four areas side by side, the rows in the order of the person's own weights.",
@@ -5799,7 +6336,7 @@
     },
     "/v1/places/search": {
       "post": {
-        "description": "The places that match, best first.",
+        "description": "The places and the areas that match, each best first.",
         "operationId": "search_places",
         "requestBody": {
           "content": {

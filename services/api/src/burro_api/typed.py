@@ -24,6 +24,7 @@ from burro_core.grammar import (
     THOUSANDS,
     WALKED,
     Grammar,
+    Join,
     about_a_campus,
 )
 from burro_core.ids import (
@@ -32,10 +33,17 @@ from burro_core.ids import (
     GrittyVariant,
     PlaceKind,
     TagId,
+    Toward,
     UnmetCategory,
 )
-from burro_core.interpret import SIGNS_OF_DOUBT
-from burro_core.lexicon import Target, lexicon_of, prepare
+from burro_core.interpret import SIGNS_OF_DOUBT, may_ask_for_fewer
+from burro_core.lexicon import (
+    ENDS_NAMED_AS_HOMES,
+    Target,
+    counts_residents,
+    lexicon_of,
+    prepare,
+)
 from burro_core.reading import COUNTED, MINUTES, Is, Item, Line, Token, lines_of, whole
 from burro_core.release import Release
 from burro_core.vocabulary import (
@@ -44,10 +52,13 @@ from burro_core.vocabulary import (
     CAPS,
     CAPS_FIRMLY,
     COURTESY,
+    DREADS,
     ESSENTIAL,
     FIRM_OF_MINUTES,
     FIRM_OF_MONEY,
+    FOR_WHOM,
     JOINS,
+    LARGE_STEP,
     NEAR_TO,
     NEARBY,
     PHRASES_OF_DOUBT,
@@ -55,6 +66,7 @@ from burro_core.vocabulary import (
     SOMEWHERE,
     SOMEWHERE_THAT,
     SPEAKER,
+    STANDS_FOR,
     STRENGTHENS,
     TAKES_OFF,
     TAKES_OFF_AFTER,
@@ -64,8 +76,10 @@ from burro_core.vocabulary import (
     TURNS_DOWN_AFTER,
     TURNS_FIRMLY,
     TURNS_SOFTLY,
+    WHO_ELSE,
     WHOSE,
     WISH,
+    WISHES_OF_ANOTHER,
     WORDS_OF_DOUBT,
     WORDS_THAT_TURN_AWAY,
 )
@@ -87,7 +101,9 @@ __all__ = [
     "is_nuisance",
     "not_minded",
     "overlap",
+    "somebody_elses",
     "stands_against",
+    "turned_about",
     "without",
 ]
 
@@ -156,7 +172,37 @@ _NAMES_NOTHING = _phrases(
         )
     )
 )
+# What turns a wish for a thing round wherever it stands about the thing: what a person
+# dreads, thinks little of or cannot bear, and what is said of how little a thing counts.
+# A bare word that turns is not among them: after a thing it is as often said of
+# something else, "a park that is not too far".
+_DREADED = _phrases(DREADS, TAKES_OFF_AFTER, TURNS_DOWN_AFTER)
+# Every word that turns a wish, as it is read where it stands apart from the thing, beyond
+# a mark. It turns the wish only where nothing more is said beside it: what names nothing,
+# what stands for the thing, and what is itself a sign of doubt. "No thanks" turns a wish,
+# and "not too expensive" says something of the price.
+_TURNS_APART = _phrases(TURNS, _DREADED)
+_SAYS_NO_MORE = _phrases(_NAMES_NOTHING, STANDS_FOR, DOUBT)
+# What leads in to a thing, and what says after it where it is wanted, is no doubt about
+# it: "a park within walking distance".
+_NO_DOUBT_ABOUT = _phrases(_NO_DOUBT, NEARBY.words)
+# Who else may wish, and the third person of a wish, which says whose wish it is only
+# where somebody stands straight before it who is not of the speaker's own household.
+_WHO_ELSE = _phrases(WHO_ELSE)
+_WISHES_OF_ANOTHER = tuple(tuple(wish.split()) for wish in sorted(WISHES_OF_ANOTHER))
+_HOUSEHOLD = frozenset(whom.split()[-1] for whom in FOR_WHOM.words)
+# The words that begin a wish of the speaker's own: "I want", "we'd like", "I am after".
+_SPEAKS = frozenset(SPEAKER.words)
+_WISHES = frozenset(wish.split()[0] for wish in WISH.words)
+_JOINS = frozenset(JOINS.words)
+# The one word that joins which begins a new wish, whoever wished before it.
+_BUT = Join.BUT.value
+_ARTICLES = _phrases(ARTICLE.words)
+# What core reads as something, which what is said of one thing does not reach across.
+_READ = frozenset({Is.THING, Is.NAME, Is.NUMBER, Is.PEOPLE, Is.AMENITY, Is.UNMET})
 SMALL = _phrases(SMALL_STEP)
+# What names nothing, and what says how much of a thing is wanted and never whether.
+_HOW_MUCH_AND_NO_MORE = _phrases(_NAMES_NOTHING, SMALL_STEP, LARGE_STEP)
 ESSENTIALLY = _phrases(ESSENTIAL)
 WALKS = _phrases(WALKED)
 CYCLES = _phrases(CYCLED)
@@ -205,6 +251,50 @@ def stands_against(before: str, after: str, phrases: Sequence[str]) -> bool:
         if unit is None:
             return False
         follows = follows[len(unit) + 1 :]
+
+
+def _own_wish(tokens: Sequence[Token], index: int) -> bool:
+    """Whether a wish of the speaker's own begins at a token: "I want", "we'd like"."""
+    return (
+        tokens[index].word in _SPEAKS
+        and index + 1 < len(tokens)
+        and tokens[index + 1].word in _WISHES
+    )
+
+
+def _cut(tokens: Sequence[Token], index: int, others: set[int]) -> bool:
+    """Whether what is said of a thing reaches no further than a token beside it.
+
+    It stops at another thing, at a wish of the speaker's own, and at a word
+    that joins two wishes. A word that joins nothing, which the sentence
+    ends with, is part of what is said: "a high street, anything but".
+    """
+    joins = tokens[index].word in _JOINS and index + 1 < len(tokens)
+    return index in others or joins or _own_wish(tokens, index)
+
+
+def _wishes_as_another(tokens: Sequence[Token], index: int) -> bool:
+    """Whether the third person of a wish begins at a token, with somebody before it.
+
+    "My mum wants", "the landlord is after". Nobody stands before the
+    heading of a list, "Wants: a park", and the speaker's own household
+    wishes as the speaker does: "my dog needs a park".
+    """
+    if index == 0 or tokens[index].apart or tokens[index - 1].word in _HOUSEHOLD:
+        return False
+    return any(
+        tuple(token.word for token in tokens[index : index + len(wish)]) == wish
+        and not any(token.apart for token in tokens[index + 1 : index + len(wish)])
+        for wish in _WISHES_OF_ANOTHER
+    )
+
+
+def _turns_in(said: str) -> int:
+    """How many words that turn a wish some words hold, each phrase counted once."""
+    left, found = without(said, _NO_DOUBT), 0
+    while (sign := next((sign for sign in TURNS if holds(left, (sign,))), None)) is not None:
+        left, found = without(left, (sign,)), found + 1
+    return found
 
 
 def _fold(typed: str) -> str:
@@ -304,6 +394,14 @@ class Typed:
         """
         return bool(without(self.said(span), _NAMES_NOTHING))
 
+    def says_more_than_how_much(self, span: Span) -> bool:
+        """Whether a stretch says something beside how much of a thing is wanted.
+
+        It does not where it says nothing, and where all it says is a word of
+        degree, which belongs to the thing it stands with: "slightly", "a bit".
+        """
+        return bool(without(self.said(span), _HOW_MUCH_AND_NO_MORE))
+
     def find(self, quoted: str, after: int = 0) -> Span | None:
         """Where some words stand in the text, or nothing where they do not.
 
@@ -364,6 +462,114 @@ class Typed:
         while last + 1 < len(tokens) and not tokens[last + 1].apart:
             last += 1
         return self.led_up_to(span)[0], max(span[1], tokens[last].end)
+
+    def _stands(self, span: Span) -> tuple[Sequence[Token], int, int, set[int]] | None:
+        """The sentence a thing stands in, its first and last token there, and what else is there.
+
+        What else is there is every token of another thing that core finds
+        in the sentence: a thing of the lexicon, a name, a number.
+        """
+        for line, items in zip(self._lines, self._items, strict=True):
+            inside = [
+                index
+                for index, token in enumerate(line.tokens)
+                if overlap(span, (token.start, token.end))
+            ]
+            if inside:
+                others = {
+                    index
+                    for item in items
+                    if item.what in _READ and not overlap(span, item.span)
+                    for index in range(item.first, item.last)
+                }
+                return line.tokens, inside[0], inside[-1], others
+        return None
+
+    def about(self, span: Span) -> tuple[Span, Span, Span]:
+        """What is said of a thing where it stands: in its clause, and beyond the marks beside it.
+
+        A model chooses the words it quotes, and the words that turn a wish
+        round are the ones it leaves out: "a station", of "a station, heaven
+        forbid". So what is said of a thing is read from where it stands in
+        the sentence, in three stretches, of which any may be empty.
+
+        The thing with its own clause, before it and after, as far as a mark
+        either way. The stretch straight after the mark that ends the clause.
+        And the stretch straight before the mark that begins it, where
+        nothing but an article stands between that mark and the thing: "no",
+        of "no, a park", and nothing of "no, I want a park".
+
+        None reaches further than a word that joins two wishes or a wish of
+        the speaker's own: "quiet but not dead", "a park, I want little
+        else". And what runs up to another thing that core finds, with no
+        mark between, is said of that thing: "not", of "a park, not pubs".
+        """
+        found = self._stands(span)
+        if found is None:
+            return span, (span[1], span[1]), (span[0], span[0])
+        tokens, first, last, others = found
+
+        def reach(begins: int) -> int:
+            """Where what begins at a token ends: at the next mark, or at what cuts it short."""
+            ends = begins
+            while ends < len(tokens) and not _cut(tokens, ends, others):
+                if ends > begins and tokens[ends].apart:
+                    break
+                ends += 1
+            return begins if ends in others else ends
+
+        def stretch(begins: int, ends: int, empty: int) -> Span:
+            return (tokens[begins].start, tokens[ends - 1].end) if ends > begins else (empty, empty)
+
+        led = mark = first
+        while mark > 0 and not tokens[mark].apart:
+            mark -= 1
+        while led > mark and not _cut(tokens, led - 1, others):
+            led -= 1
+        follows = last + 1
+        ends = follows if follows == len(tokens) or tokens[follows].apart else reach(follows)
+        # No further than the sentence the words begin in, however much a model quoted.
+        within = tokens[led].start, tokens[ends - 1].end
+        marked = ends < len(tokens) and tokens[ends].apart
+        beyond = stretch(ends, reach(ends), span[1]) if marked else (span[1], span[1])
+        between = self.said((tokens[mark].start, tokens[first].start))
+        begins = mark
+        while begins > 0 and (begins == mark or not tokens[begins].apart):
+            begins -= 1
+            if begins in others:
+                begins = mark
+                break
+        apart = mark > 0 and not without(between, _ARTICLES)
+        return within, beyond, stretch(begins, mark if apart else begins, span[0])
+
+    def anothers(self, span: Span) -> bool:
+        """Whether the words of a thing's sentence give the wish for it to someone else.
+
+        Who wishes is said once for every thing of a list, "he wants pubs
+        and a station", so it is read as far back as the start of the
+        sentence, across marks and other things, and no further than a wish
+        of the speaker's own or the word that begins a new wish: "my brother
+        wants a pub but a park would do me", "and I want a park". After the
+        thing it is read as far as what is said of the thing reaches: "a
+        park is what my sister wants".
+        """
+        found = self._stands(span)
+        if found is None:
+            return False
+        tokens, first, last, _ = found
+        begins = first
+        if not any(_own_wish(tokens, index) for index in range(first, last + 1)):
+            while begins > 0 and tokens[begins - 1].word != _BUT:
+                begins -= 1
+                if _own_wish(tokens, begins):
+                    break
+        within, beyond, _ = self.about(span)
+        reach = tokens[begins].start, max(within[1], beyond[1])
+        return holds(self.said(reach), _WHO_ELSE) or any(
+            _wishes_as_another(tokens, index)
+            for index, token in enumerate(tokens)
+            if reach[0] <= token.start and token.end <= reach[1]
+        )
 
     def sentences(self, span: Span) -> Span:
         """The whole of every sentence a stretch stands in."""
@@ -512,6 +718,57 @@ class Typed:
             target for phrase, target in self._named_by.get(thing, ()) if holds(said, (phrase,))
         )
 
+    def ends_named(self, span: Span, scale: TagId) -> tuple[frozenset[Toward], bool]:
+        """The ends of a scale that the words of a clause name, and whether one was turned away.
+
+        "Calm" names the low end of Going out, and so does "not buzzy": an
+        end that is turned away is a wish for the other, as the rules read
+        it. "Calm by day and buzzy by night" names both, and nobody can say
+        which is meant. Nor can anybody where two words that turn lead up to
+        one end, "I wouldn't say no to buzzy": no end is named there.
+
+        A word for a home says what is being looked for, "a flat", and is
+        no wish of its own. It names an end of Houses or flats only where one
+        end is set against the other: "houses not flats".
+
+        The name of a scale names no end of it, though it holds the word for
+        each: "houses or flats". Its words are read as the name, and a word
+        that turns beside it turns no end away.
+        """
+        begins, ends = self.clause(span)
+        named_by: list[tuple[str, Toward | None, bool]] = [
+            (phrase, None if target.no_end else target.toward, False)
+            for phrase, target in self._named_by.get(scale, ())
+            if not target.note
+        ]
+        named_by += [
+            (word, toward, True) for word, toward in ENDS_NAMED_AS_HOMES.get(scale, {}).items()
+        ]
+        stand = sorted(
+            (start, -end, toward is None, toward or Toward.HIGH, of_a_home)
+            for phrase, toward, of_a_home in named_by
+            for start, end in self.every(phrase)
+            if begins <= start and end <= ends
+        )
+        named: set[Toward] = set()
+        turned = in_the_lexicon = False
+        at = begins
+        for start, ended, no_end, toward, of_a_home in stand:
+            if start < at:
+                continue  # part of a longer phrase, which was read
+            if no_end:
+                at = -ended
+                continue
+            turns = _turns_in(self.said((at, start)))
+            if turns > 1:
+                return frozenset(), False
+            other = Toward.LOW if toward is Toward.HIGH else Toward.HIGH
+            named.add(other if turns else toward)
+            turned = turned or bool(turns)
+            in_the_lexicon = in_the_lexicon or not of_a_home
+            at = -ended
+        return (frozenset(named) if turned or in_the_lexicon else frozenset()), turned
+
     def reads(self, span: Span) -> bool:
         """Whether core finds a thing, a name or a number in a stretch."""
         return any(
@@ -549,15 +806,23 @@ class Typed:
 
         A word for people, and a campus by word or by name: in a prompt that
         is not plain a campus is heard as a request about who lives somewhere.
+        So are the words for those Burro counts, their age or their households,
+        where a word that turns stands with them: they may ask for fewer of a
+        group of people, which nothing reads.
         """
         found: list[Span] = []
         for items in self._items:
-            for item in items:
+            for at, item in enumerate(items):
                 place = self.release.place(item.place) if item.place else None
                 campus = (place is not None and place.kind is PlaceKind.UNIVERSITY) or (
                     item.what is Is.THING and about_a_campus(self._lexicon[item.text])
                 )
-                if item.what is Is.PEOPLE or campus:
+                fewer = (
+                    item.what is Is.THING
+                    and counts_residents(self._lexicon[item.text])
+                    and may_ask_for_fewer(items, at)
+                )
+                if item.what is Is.PEOPLE or campus or fewer:
                     found.append(item.span)
         return tuple(found)
 
@@ -583,6 +848,46 @@ def in_doubt(
         only_named = any(target.nuisance and not target.wanted_low for target in named)
         return only_named and not holds(said, _TROUBLED_BY)
     return holds(without(said, _NO_DOUBT), signs)
+
+
+def _turns_alone(said: str) -> bool:
+    """Whether some words turn a wish round and say nothing more: "no thanks", "I'd hate that".
+
+    Words that go on to say something are said of that: "not too expensive".
+    """
+    return holds(said, _TURNS_APART) and not without(said, _SAYS_NO_MORE)
+
+
+def turned_about(typed: Typed, where: Span, thing: FeatureId | TagId | None) -> bool:
+    """Whether the words about a thing turn a wish for it round, wherever they stand.
+
+    In its own clause, a word of dread or distaste, before the thing or
+    after: "a pub on the corner would be hell". Beyond the mark either side
+    of its clause, any word that turns and says nothing more: "a station,
+    heaven forbid", "pubs, no thanks", "no, a park". What leads in to a thing
+    and what says where it is wanted is no doubt about it: "a park within
+    walking distance".
+
+    A nuisance is wanted less, so what is dreaded of it is the wish itself.
+    `in_doubt` and `not_minded` say what puts one in doubt.
+    """
+    if is_nuisance(thing):
+        return False
+    within, beyond, before = typed.about(where)
+    return (
+        holds(without(typed.said(within), _NO_DOUBT_ABOUT), _DREADED)
+        or _turns_alone(typed.said(beyond))
+        or _turns_alone(typed.said(before))
+    )
+
+
+def somebody_elses(typed: Typed, where: Span) -> bool:
+    """Whether the words about a thing give the wish to someone else: "my mum is after a park".
+
+    Whichever way the wish runs: what a friend cannot stand is no more the
+    person's own than what a friend is after.
+    """
+    return typed.anothers(where)
 
 
 def not_minded(

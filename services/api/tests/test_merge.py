@@ -5,6 +5,7 @@ every answer a model gave that is on disk, and on answers written to disagree
 with the rules.
 """
 
+import json
 from typing import Any
 
 import pytest
@@ -15,6 +16,8 @@ from burro_core.interpret import InterpretRequest, InterpretResult
 from burro_core.ops import BudgetEdit, CommuteEdit, Operations
 
 from .support import (
+    GROUPS,
+    FakeModelClient,
     answers_on_disk,
     asked,
     guessed,
@@ -108,7 +111,7 @@ def test_a_person_never_sees_less_than_the_rules_alone_give():
     "answer",
     [
         model_output(),
-        model_output(weight_ops=[model_weight("venue_evening", action="remove")]),
+        model_output(weight_ops=[model_weight("venue_evening_per_homes", action="remove")]),
         model_output(weight_ops=[model_weight("noise_exposure", direction="more")]),
         model_output(tag_ops=[model_tag("pace", toward="low")], policy_flags=["avoid_group"]),
         model_output(status="off_topic"),
@@ -209,7 +212,7 @@ def test_the_end_of_a_scale_that_cores_words_name_is_the_guess_where_a_model_nam
 
 def test_against_the_one_thing_is_towards_the_other_end_of_the_scale():
     text = "Honestly, nightlife is the last thing on my mind"
-    fewer = model_weight("venue_evening", action="remove", words=text)
+    fewer = model_weight("venue_evening_per_homes", action="remove", words=text)
 
     result, _ = asked(model_output(weight_ops=[fewer]), text=text)
 
@@ -341,6 +344,139 @@ def test_offers_stand_in_the_order_of_their_words():
         result, _ = read_again(case, look)
         starts = [offer.spans[0].start for offer in result.suggestions]
         assert starts == sorted(starts), case
+
+
+# Two places the release does not hold, in one sentence.
+TWO_PLACES = "I work at Mirrowick Basin and my partner at Zorvane Halt, 45 minutes to each"
+
+
+def _the_other_way_round(answer: dict[str, Any]) -> dict[str, Any]:
+    """An answer with the edits of each kind written in the other order."""
+    return answer | {group: list(reversed(answer[group])) for group in GROUPS}
+
+
+def test_what_is_offered_does_not_rest_on_the_order_a_model_wrote_its_edits_in():
+    # A model does not write its edits in the same order twice. What reaches the
+    # person is the same whichever it wrote first: two budgets, and a thing pulled two ways.
+    moved: list[str] = []
+    for (case, look), row in answers_on_disk().items():
+        if "output" not in row:
+            continue
+        text, spec, _ = on_disk(case, look)
+        request = InterpretRequest(text=text, spec=spec, release=release())
+        answer = json.loads(row["output"])
+        one, other = (
+            reader_asking(FakeModelClient(json.dumps(written))).interpret(request)
+            for written in (answer, _the_other_way_round(answer))
+        )
+        if one.suggestions != other.suggestions:
+            moved.append(f"{case} look {look}")
+    assert moved == []
+
+
+@pytest.mark.parametrize(
+    ("text", "answer"),
+    [
+        # Two things for the same words, which the rules make nothing of.
+        (
+            "Honestly, a proper brunch spot would do",
+            model_output(
+                weight_ops=[
+                    model_weight("venue_independent", words="a proper brunch spot"),
+                    model_weight("venue_food_drink", words="a proper brunch spot"),
+                ]
+            ),
+        ),
+        # Two amounts, of which the person may mean either.
+        (
+            "Honestly, \N{POUND SIGN}1,500 a month would do, or \N{POUND SIGN}1,700 for a gem",
+            model_output(
+                budget_ops=[
+                    model_budget(amount=1700, words="\N{POUND SIGN}1,700 for a gem"),
+                    model_budget(amount=1500, words="\N{POUND SIGN}1,500 a month would do"),
+                ]
+            ),
+        ),
+        # One journey, read with two numbers.
+        (
+            "Honestly, 20 minutes to Foxholt Market would be grand, 35 to Foxholt Market would do",
+            model_output(
+                commute_ops=[
+                    model_commute(
+                        destination_text="Foxholt Market",
+                        max_minutes=35,
+                        words="35 to Foxholt Market would do",
+                    ),
+                    model_commute(
+                        destination_text="Foxholt Market",
+                        max_minutes=20,
+                        words="20 minutes to Foxholt Market would be grand",
+                    ),
+                ]
+            ),
+        ),
+        # One thing, pulled two ways, and said to count for more in one place than the other.
+        (
+            "Honestly, a boozer is essential, and slightly fewer boozers would suit my partner",
+            model_output(
+                weight_ops=[
+                    model_weight(
+                        "venue_evening",
+                        direction="less",
+                        words="slightly fewer boozers would suit my partner",
+                    ),
+                    model_weight("venue_evening", words="a boozer is essential"),
+                ]
+            ),
+        ),
+        # Two vibes, on words that begin at the same word and end apart.
+        (
+            "Honestly, bunting and cobbles and that",
+            model_output(
+                tag_ops=[
+                    model_tag("village_feel", words="bunting and cobbles and that"),
+                    model_tag("leafy", words="bunting"),
+                ]
+            ),
+        ),
+        # Two places the release does not hold, each rested on the whole of what was typed.
+        (
+            TWO_PLACES,
+            model_output(
+                commute_ops=[
+                    model_commute(destination_text="Zorvane Halt", max_minutes=45),
+                    model_commute(destination_text="Mirrowick Basin", max_minutes=45),
+                ]
+            ),
+        ),
+    ],
+    ids=["two things", "two budgets", "two numbers", "two ways", "two vibes", "two places"],
+)
+def test_the_same_readings_make_the_same_offers_whichever_a_model_wrote_first(
+    text: str, answer: dict[str, Any]
+):
+    one, _ = asked(answer, text=text)
+    other, _ = asked(_the_other_way_round(answer), text=text)
+
+    assert one.suggestions and one.suggestions == other.suggestions
+
+
+def test_two_offers_that_rest_on_the_same_words_stand_in_the_order_of_what_they_name():
+    text = TWO_PLACES
+    answer = model_output(
+        commute_ops=[
+            model_commute(destination_text="Zorvane Halt", max_minutes=45),
+            model_commute(destination_text="Mirrowick Basin", max_minutes=45),
+        ]
+    )
+
+    result, _ = asked(answer, text=text)
+
+    named = [offer.named_at for offer in offers(result).values()]
+    assert [text[at.start : at.end] for at in named if at is not None] == [
+        "Mirrowick Basin",
+        "Zorvane Halt",
+    ]
 
 
 def test_what_an_offer_rests_on_is_not_said_to_be_unread():

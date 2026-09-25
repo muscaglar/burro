@@ -176,4 +176,5 @@ def summary(area: Neighbourhood) -> AreaSummary:
         borough=area.borough,
         centroid=area.centroid,
         rankable=area.rankable,
+        named=area.named,
     )

@@ -21,11 +21,18 @@ tests as tests that are expected to fail.
 """
 
 from collections import Counter
-from collections.abc import Sequence
+from collections.abc import Collection, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
 
-from burro_core.catalogue import FEATURES, HOLDS_CRIME, RANKED_AS, TAGS
+from burro_core.catalogue import (
+    COUNTS_RESIDENTS,
+    FEATURES,
+    HOLDS_CRIME,
+    HOLDS_RESIDENTS,
+    RANKED_AS,
+    TAGS,
+)
 from burro_core.ids import (
     BudgetAction,
     CommuteAction,
@@ -46,6 +53,7 @@ from burro_core.ids import (
     TagShape,
     Tenure,
     TenureChoice,
+    Toward,
     TowardChoice,
     UnmetCategory,
     WeightAction,
@@ -94,11 +102,22 @@ from burro_api.typed import (
     is_nuisance,
     not_minded,
     overlap,
+    somebody_elses,
     stands_against,
+    turned_about,
     without,
 )
 
-__all__ = ["DOUBTS", "Check", "Guarded", "Reading", "guarded", "settled", "thing_named"]
+__all__ = [
+    "BEYOND",
+    "DOUBTS",
+    "Check",
+    "Guarded",
+    "Reading",
+    "guarded",
+    "settled",
+    "thing_named",
+]
 
 
 class Check(StrEnum):
@@ -128,12 +147,20 @@ class Check(StrEnum):
     NEAREST = "the_rules_offer_what_is_nearest_for_the_words"
     AREA = "a_rule_for_an_area_is_the_rules"
     NOT_WORDED = "no_offer_is_worded_for_it"
+    ABOUT = "the_words_about_it_turn_it_round"
+    ANOTHERS = "the_wish_is_somebody_elses"
 
 
 # The checks that take the guess away and leave the thing offered, with every way open.
 DOUBTS = frozenset(
-    {Check.TURNED, Check.NO_END, Check.TWO_WAYS, Check.DIRECTION, Check.DISAGREES, Check.LEAST}
+    {
+        *(Check.TURNED, Check.NO_END, Check.TWO_WAYS, Check.DIRECTION, Check.DISAGREES),
+        *(Check.LEAST, Check.ABOUT, Check.ANOTHERS),
+    }
 )
+# The checks that are made of words which may stand beyond the clause of the thing. The
+# whole of the sentence is then shown with the offer, so that the person sees them.
+BEYOND = frozenset({Check.DISAGREES, Check.ABOUT, Check.ANOTHERS})
 _DOWN = frozenset({Step.DOWN_SMALL, Step.DOWN_LARGE})
 
 
@@ -250,6 +277,12 @@ class _Guard:
             if suggestion.note or thing_named(suggestion.target) in HOLDS_CRIME
             for span in suggestion.spans
         )
+        # The things the rules offer with a note of what Burro cannot measure:
+        # a reading of a word about identity, about wealth, about safety. Each
+        # is theirs to offer, as they offer it with no model.
+        self._kept = frozenset(
+            suggestion.target for suggestion in ruled.suggestions if suggestion.note
+        )
         # Where the rules noticed each thing, which is where core finds it named.
         self._noticed: dict[str, list[Span]] = {}
         for suggestion in ruled.suggestions:
@@ -317,6 +350,21 @@ class _Guard:
             return span
         return None
 
+    def _is_the_rules(self, target: str) -> bool:
+        """Whether a thing is one the rules offer as what is nearest, and so theirs alone.
+
+        A model chooses the words it quotes. A reading of a word the rules
+        keep is dropped where it rests on that word, and a model may name the
+        same thing and rest it on any other: Village feel on "somewhere
+        quiet", of "somewhere quiet, with a real identity". The guess would
+        then be marked on the rules' own reading of the word. So a thing the
+        rules offer with a note is theirs wherever a model says it stands.
+        """
+        if target not in self._kept:
+            return False
+        self._drop(Check.NEAREST)
+        return True
+
     def _degree(self, target: str, span: Span, fired: set[Check], given: bool) -> Degree:
         """Check 9: how much a wish counts is read from the person's words, never a number.
 
@@ -355,6 +403,27 @@ class _Guard:
             return any(self._not_minded(where, thing) for where in noticed)
         stands = [span, *noticed]
         return any(in_doubt(self._typed, self._typed.led_up_to(where), thing) for where in stands)
+
+    def _about(
+        self, target: str, span: Span, thing: FeatureId | TagId, fired: set[Check], raised: bool
+    ) -> None:
+        """What the words about a thing say of the wish, wherever they stand in its sentence.
+
+        A guess is never marked where they turn the wish round, or give it
+        to someone else: "a station, heaven forbid", "my mum is after a
+        park". It is asked of where the thing stands, as core finds it and
+        as the model's words stand in the text, and never of what a model
+        says it quoted: the words that turn a wish are the ones a model
+        leaves out. What turns a wish is asked only of a wish for the thing.
+        A wish against it is the wish a turn makes.
+        """
+        noticed = self._noticed.get(target, ())
+        # Whose wish it is, is read where core finds the thing, where it does: a model that
+        # quotes the whole of a sentence quotes what is said of every thing in it.
+        if any(somebody_elses(self._typed, where) for where in noticed or (span,)):
+            fired.add(Check.ANOTHERS)
+        if raised and any(turned_about(self._typed, where, thing) for where in (span, *noticed)):
+            fired.add(Check.ABOUT)
 
     def _not_minded(self, where: Span, thing: FeatureId | TagId) -> bool:
         """Whether a nuisance, where the rules noticed it, is not said to be unwanted.
@@ -396,11 +465,18 @@ class _Guard:
         span = self._stands(sent.words)
         if span is None:
             return
+        if sent.feature_id in COUNTS_RESIDENTS:
+            # Check 13: what counts who lives somewhere is never a model's to offer. The
+            # rules offer it where the words name it, towards more and no other way.
+            self._drop(Check.PEOPLE)
+            return
         # A thing that is shown and never ranked on is read as a wish for the thing that is
         # ranked on in its place, as core reads a word that names it.
         sent = sent.replace(feature_id=RANKED_AS.get(sent.feature_id, sent.feature_id))
         feature = FEATURES[sent.feature_id]
         target = f"feature:{sent.feature_id.value}"
+        if self._is_the_rules(target):
+            return
         named = self._typed.names(self._typed.led_up_to(span), sent.feature_id)
         stated = any(one.provenance is EditProvenance.STATED for one in named)
         if feature.dimension is Dimension.CRIME and not stated:
@@ -430,8 +506,10 @@ class _Guard:
                 fired.add(Check.DIRECTION)
         # To want fewer of a thing is the wish that a word that turns makes.
         fewer = feature.polarity is Polarity.EITHER and meant == LESS
-        if meant != OFF and not fewer and self._turned(target, span, sent.feature_id):
+        raised = meant != OFF and not fewer
+        if raised and self._turned(target, span, sent.feature_id):
             fired.add(Check.TURNED)
+        self._about(target, span, sent.feature_id, fired, raised)
         given = sent.action is WeightAction.SET and sent.value > 0
         degree = self._degree(target, span, fired, given)
         if self._disagrees(target, span, meant):
@@ -442,45 +520,67 @@ class _Guard:
         span = self._stands(sent.words)
         if span is None:
             return
+        if sent.tag_id in HOLDS_RESIDENTS:
+            # Check 13, as of a measure: a vibe that counts who lives somewhere is the
+            # rules' to offer, and never a model's.
+            self._drop(Check.PEOPLE)
+            return
         if sent.tag_id in HOLDS_CRIME:
             # A vibe that counts recorded crime is never a model's to offer,
             # towards either end. Where the words name it, the rules offer it.
             self._drop(Check.CRIME)
             return
         target = f"tag:{sent.tag_id.value}"
+        if self._is_the_rules(target):
+            return
         fired: set[Check] = set()
         against = _against(sent.action, sent.step, sent.value)
         scale = TAGS[sent.tag_id].shape is TagShape.SCALE
-        if scale and sent.toward is TowardChoice.DEFAULT:
-            # Check 5: the model named a scale and no end of it.
-            meant = OFF if against else ""
-            if not against:
-                fired.add(Check.NO_END)
-        elif scale:
+        named: Collection[Toward] = ()
+        set_against = False
+        if scale and not against:
+            named, set_against = self._typed.ends_named(span, sent.tag_id)
+        if not scale:
+            meant = OFF if against else MORE
+        elif sent.toward is TowardChoice.DEFAULT:
+            meant = OFF if against else self._end_named(named, set_against, fired)
+        else:
             meant = MORE if sent.toward is TowardChoice.HIGH else LESS
-            if against:
-                # Less of one end is not said to be more of the other.
+            if against or not named:
+                # Check 5: less of one end is not said to be more of the other. And no
+                # phrase of core's names an end of the scale in these words, whichever
+                # of them the model chose. They name the scale alone, or name it in no
+                # words core holds.
                 fired.add(Check.NO_END)
-            named = self._typed.names(self._typed.clause(span), sent.tag_id)
-            ends = {one.toward.value for one in named if not one.no_end}
-            if not ends:
-                # Check 5: no phrase of core's names an end of the scale in
-                # these words, whichever of them the model chose. They name
-                # the scale alone, or name it in no words core holds.
-                fired.add(Check.NO_END)
-            if ends and sent.toward.value not in ends:
+            elif sent.toward.value not in named:
                 # The words name one end in core's own phrase for it, and the
                 # model read the other.
                 fired.add(Check.DISAGREES)
-        else:
-            meant = OFF if against else MORE
-        if meant in (MORE, LESS) and self._turned(target, span, sent.tag_id):
+        # Where the words name an end, what turns a wish has been read with each: an
+        # end that is turned away is a wish for the other end.
+        if meant in (MORE, LESS) and not named and self._turned(target, span, sent.tag_id):
             fired.add(Check.TURNED)
+        self._about(target, span, sent.tag_id, fired, meant in (MORE, LESS))
         given = sent.action is WeightAction.SET and sent.value > 0
         degree = self._degree(target, span, fired, given)
         if meant and self._disagrees(target, span, meant):
             fired.add(Check.DISAGREES)
         self._keep(target, "", span, ways_of(sent.tag_id, degree), meant, fired)
+
+    @staticmethod
+    def _end_named(named: Collection[Toward], set_against: bool, fired: set[Check]) -> str:
+        """The end of a scale that the person named, where a model named the scale alone.
+
+        A guess takes the end the person named, where they said which by
+        turning one away: "houses not flats" is Houses, and "not buzzy" is
+        Calm. Check 5: an end that is only named is no more than the rules
+        noticed, and a model that names no end has added nothing to it:
+        "nightlife, I'll pass". It stays a question.
+        """
+        if len(named) != 1 or not set_against:
+            fired.add(Check.NO_END)
+            return ""
+        return MORE if Toward.HIGH in named else LESS
 
     def budget(self, sent: ModelBudgetEdit) -> None:
         span = self._stands(sent.words)
@@ -740,20 +840,27 @@ def settled(offer: Suggestion, typed: Typed) -> bool:
     A nuisance that the rules noticed is held to what is said of it either
     side of where it is named, which is the least of the words the offer
     rests on: "crime doesn't bother me" is not settled.
+
+    Nor is a wish a model read, where the words about it turn it round or
+    give it to someone else, wherever they stand in its sentence: the guess
+    was taken from it, so it is asked and not said. What the rules alone
+    noticed is offered as it was, and a journey is nobody's wish.
     """
     thing = thing_named(offer.target)
     stands = [(span.start, span.end) for span in offer.spans]
+    least = [
+        one
+        for one in stands
+        if not any(one != other and one[0] <= other[0] and other[1] <= one[1] for other in stands)
+    ]
     noticed = getattr(offer, "read_by", InterpreterName.RULE) is InterpreterName.RULE
-    if noticed and thing is not None and is_nuisance(thing):
-        named = [
-            one
-            for one in stands
-            if not any(
-                one != other and one[0] <= other[0] and other[1] <= one[1] for other in stands
-            )
-        ]
-        if any(not_minded(typed, where, thing) for where in named):
-            return False
+    read = any(getattr(way, "meant", False) for way in offer.choices)
+    if thing is not None and any(
+        (noticed and is_nuisance(thing) and not_minded(typed, where, thing))
+        or (read and (turned_about(typed, where, thing) or somebody_elses(typed, where)))
+        for where in least
+    ):
+        return False
     return not any(
         typed.asks(span) or in_doubt(typed, typed.clause(span), thing, DOUBT) for span in stands
     )

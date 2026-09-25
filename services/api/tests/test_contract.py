@@ -11,7 +11,7 @@ from typing import Any, cast
 
 import pytest
 from burro_api.cli import openapi_document
-from burro_api.routes import areas, census, interpret, meta, places, rank, shares
+from burro_api.routes import areas, census, income, interpret, meta, places, rank, shares
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 
@@ -27,6 +27,7 @@ ROUTES = {
     ("GET", "/v1/areas/geometry"),
     ("GET", "/v1/areas/{id_or_slug}"),
     ("GET", "/v1/areas/{id_or_slug}/census"),
+    ("GET", "/v1/areas/{id_or_slug}/income"),
     ("POST", "/v1/compare"),
     ("POST", "/v1/places/search"),
     ("POST", "/v1/shares"),
@@ -83,7 +84,7 @@ def test_the_routes_are_the_routes_of_the_contract(document: dict[str, Any]):
 
 def test_an_operation_is_named_for_its_route(document: dict[str, Any]):
     # The routes as they were declared, whatever the framework nests them in.
-    groups = (interpret, rank, areas, census, places, shares, meta)
+    groups = (interpret, rank, areas, census, income, places, shares, meta)
     declared = [route for group in groups for route in group.router.routes]
     routes = [route for route in (*declared, *meta.health.routes) if isinstance(route, APIRoute)]
     named = {route.path: route.name for route in routes}
@@ -108,6 +109,7 @@ def test_no_route_takes_typed_text_in_a_path_or_query(document: dict[str, Any]):
     assert parameters == {
         ("/v1/areas/{id_or_slug}", "path", "id_or_slug"),
         ("/v1/areas/{id_or_slug}/census", "path", "id_or_slug"),
+        ("/v1/areas/{id_or_slug}/income", "path", "id_or_slug"),
         ("/v1/shares/{share_id}", "path", "share_id"),
     }
     # What a person types is sent in a body, so every route that reads it is a POST.

@@ -17,11 +17,15 @@ Every other stray file is handed over, and refused.
 The census of a release is read the same way, from a folder of its own, and
 core's `open_census` is its only judge. It is handed the bytes, and of the
 release only its id, whether it is made up, and the ids of its areas.
+
+So is the estimate of household income, which is shown on an area's page as
+the census is: a folder of its own, and core's `open_income` its only judge.
 """
 
 from pathlib import Path
 
 from burro_core.census import Census, CensusError, open_census
+from burro_core.income import Income, IncomeError, open_income
 from burro_core.release import (
     BUILD_FOLDER,
     EVIDENCE,
@@ -111,6 +115,38 @@ def load_census(
         return None
     manifest = release.manifest
     return open_census(
+        folder.resolve().name,
+        files,
+        manifest.release_id,
+        manifest.synthetic,
+        [area.area_id for area in release.neighbourhoods],
+    )
+
+
+def load_income(
+    folder: Path | None, release: InMemoryRelease, named: bool = False
+) -> Income | None:
+    """The household income in `folder`, held to every rule and to the release, or `None`.
+
+    A folder that is not there is none, unless whoever runs the service named
+    it: then it is a fault. A folder that is there is never passed over: one
+    that breaks a rule raises `IncomeError`, which names the file and the rule
+    and never a value.
+    """
+    if folder is None:
+        return None
+    try:
+        files = _files_of(folder)
+    except CensusError as error:
+        raise IncomeError(error.file, error.rule) from None
+    except OSError:
+        raise IncomeError("", FOLDER_IS_READABLE) from None
+    if files is None:
+        if named:
+            raise IncomeError("", FOLDER_IS_READABLE)
+        return None
+    manifest = release.manifest
+    return open_income(
         folder.resolve().name,
         files,
         manifest.release_id,

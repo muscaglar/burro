@@ -309,7 +309,7 @@ def test_an_answer_that_comes_in_time_is_read_though_it_comes_in_pieces():
     [
         (TimeoutError(f"timed out reaching {KEY_TEXT}"), ModelTimeout),
         (ConnectionRefusedError(f"refused {KEY_TEXT}"), ModelError),
-        (socket.gaierror(8, f"no such name {KEY_TEXT}"), ModelError),
+        (socket.gaierror(socket.EAI_NONAME, f"no such name {KEY_TEXT}"), ModelError),
         (ssl.SSLCertVerificationError(1, f"certificate verify failed {KEY_TEXT}"), ModelError),
         (ssl.SSLError(1, f"handshake failure {KEY_TEXT}"), ModelError),
         (RuntimeError(f"anything else {KEY_TEXT}"), ModelError),
@@ -662,7 +662,7 @@ def test_looking_a_name_up_is_inside_the_deadline_too(monkeypatch: pytest.Monkey
 
 def test_a_name_that_cannot_be_found_is_an_error(monkeypatch: pytest.MonkeyPatch):
     def missing(host: str, port: int, **_: object) -> list[object]:
-        raise socket.gaierror(8, f"nodename nor servname provided for {host}")
+        raise socket.gaierror(socket.EAI_NONAME, f"nodename nor servname provided for {host}")
 
     monkeypatch.setattr(socket, "getaddrinfo", missing)
 

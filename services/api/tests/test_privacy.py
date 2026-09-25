@@ -11,6 +11,7 @@ each also asserts what should be there: the event, the route template, the
 exception's type.
 """
 
+import errno
 import json
 import logging
 import re
@@ -470,6 +471,11 @@ def test_request_log_names_the_route_template_not_the_path(watch: Watch, clean: 
         ("GET", f"/v1/areas/{CANARY}/census", 404, "/v1/areas/{id_or_slug}/census"),
         ("GET", f"/v1/areas/alderwick/census?{CANARY}=1", 422, "/v1/areas/{id_or_slug}/census"),
         ("POST", f"/v1/areas/{CANARY}/census", 405, "/v1/areas/{id_or_slug}/census"),
+        # So does the household income of an area.
+        ("GET", "/v1/areas/alderwick/income", 200, "/v1/areas/{id_or_slug}/income"),
+        ("GET", f"/v1/areas/{CANARY}/income", 404, "/v1/areas/{id_or_slug}/income"),
+        ("GET", f"/v1/areas/alderwick/income?{CANARY}=1", 422, "/v1/areas/{id_or_slug}/income"),
+        ("POST", f"/v1/areas/{CANARY}/income", 405, "/v1/areas/{id_or_slug}/income"),
         ("GET", f"/v1/{CANARY}", 404, "unmatched"),
         ("GET", f"/{CANARY}/v1/meta", 404, "unmatched"),
         ("DELETE", f"/v1/areas/{CANARY}", 405, "/v1/areas/{id_or_slug}"),
@@ -810,11 +816,11 @@ def test_a_server_that_cannot_start_says_what_kind_of_error_it_was(
 ):
     watch()
     # As the server logs a port it may not listen on: the error itself, as the message.
-    logging.getLogger("a.server").error(PermissionError(1, f"not permitted: {CANARY}"))
+    logging.getLogger("a.server").error(PermissionError(errno.EPERM, f"not permitted: {CANARY}"))
 
     out, _ = capsys.readouterr()
     [line] = [json.loads(row) for row in out.splitlines()]
-    assert (line["exception"], line["errno"]) == ("PermissionError", 1)
+    assert (line["exception"], line["errno"]) == ("PermissionError", errno.EPERM)
     assert CANARY not in out and set(line) <= LIBRARY_LINE
 
 
@@ -1308,7 +1314,7 @@ def test_what_was_noticed_and_what_was_left_unread_are_offsets_and_written_nowhe
     assert noticed == {
         "commute": ["Pellam Infirmary"],
         "area": ["Wexmoor"],
-        "feature:venue_evening": ["Pubs"],
+        "feature:venue_evening_per_homes": ["Pubs"],
         "budget": ["\N{POUND SIGN}1,450 a month"],
     }
     # The canary is what nothing was made of, and the answer points at it.

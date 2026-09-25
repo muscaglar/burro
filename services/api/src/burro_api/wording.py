@@ -50,9 +50,15 @@ from burro_core.ids import (
 )
 from burro_core.interpret import Choice
 from burro_core.ops import AreaEdit, BudgetEdit, CommuteEdit, TagEdit, WeightEdit
+from burro_core.rank import FIRM_BUDGET_MARGIN_PERCENT
 from burro_core.reducer import minutes_limit
 from burro_core.release import Release
-from burro_core.spec import DEFAULT_COMMUTE_MINUTES, DEFAULT_COMMUTE_MODE, PreferenceSpec
+from burro_core.spec import (
+    DEFAULT_COMMUTE_MINUTES,
+    DEFAULT_COMMUTE_MODE,
+    PreferenceSpec,
+    default_spec,
+)
 
 from burro_api.offers import IGNORE, Offer, Unsaid, UnsaidCode, Way, holds_crime, in_add_all
 
@@ -83,6 +89,15 @@ NO_LEAST = (
 ANOTHER_WAY = (
     "Burro took public transport. If you travel another way, change it once the journey is added."
 )
+# What a firm budget leaves out. Where a price is a range, an area is left out where the
+# upper end is over the budget. Where it is a median of what sold, an area is left out only
+# where the median is over the budget by more than the margin core holds, and the offer
+# says why.
+DEARER = "Dearer areas are left out."
+FAR_DEARER = (
+    f"Areas where the middle price is more than {FIRM_BUDGET_MARGIN_PERCENT}% over it are left out."
+)
+HALF_SOLD_FOR_LESS = "About half of the homes sold in an area went for under its middle price."
 
 _Edit = WeightEdit | TagEdit | CommuteEdit | BudgetEdit | AreaEdit
 
@@ -268,14 +283,32 @@ def _home(edit: BudgetEdit, spec: PreferenceSpec) -> str:
     return f"Look for{home}"
 
 
-def _budget(edit: BudgetEdit, spec: PreferenceSpec) -> _Part:
+def _on_a_median(edit: BudgetEdit, spec: PreferenceSpec, release: Release) -> bool:
+    """Whether the budget would be held against a median of what sold, and against no range."""
+    tenure = _tenure_of(edit, spec)
+    if edit.segment is not SegmentChoice.UNCHANGED:
+        segment = Segment(edit.segment.value)
+    elif tenure is spec.tenure:
+        segment = spec.budget.segment
+    else:
+        segment = default_spec(tenure).budget.segment
+    held = (release.cost(area.area_id, tenure, segment) for area in release.neighbourhoods)
+    return any(cost is not None and not cost.ranged for cost in held)
+
+
+def _budget(edit: BudgetEdit, spec: PreferenceSpec, release: Release) -> _Part:
     home = _home(edit, spec)
     if edit.strictness is StrictnessChoice.HARD:
-        left_out = "Dearer areas are left out."
+        if _on_a_median(edit, spec, release):
+            return _Part(
+                f"{home}, as a firm limit.",
+                f"{FAR_DEARER} {HALF_SOLD_FOR_LESS}",
+                f"Set as a firm limit: {_lower_first(FAR_DEARER)[:-1]}",
+            )
         return _Part(
             f"{home}, as a firm limit.",
-            left_out,
-            f"Set as a firm limit: {_lower_first(left_out)[:-1]}",
+            DEARER,
+            f"Set as a firm limit: {_lower_first(DEARER)[:-1]}",
         )
     if edit.strictness is StrictnessChoice.SOFT:
         lower = "Dearer areas rank lower."
@@ -318,7 +351,7 @@ def _part(way: Choice, spec: PreferenceSpec, release: Release, asks_place: bool)
     if isinstance(edit, CommuteEdit):
         return _journey(edit, release, asks_place)
     if isinstance(edit, BudgetEdit):
-        return _budget(edit, spec)
+        return _budget(edit, spec, release)
     if isinstance(edit, AreaEdit):
         return _area(edit, release)
     return _Part("", "", SKIP_LABEL)

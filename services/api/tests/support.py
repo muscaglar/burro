@@ -21,18 +21,19 @@ from anyio.from_thread import BlockingPortal
 from burro_api.app import create_app
 from burro_api.calls import InMemoryCallLog
 from burro_api.deps import Deps
-from burro_api.loading import load_census, load_release
+from burro_api.loading import load_census, load_income, load_release
 from burro_api.logs import JsonFormatter
 from burro_api.offers import Offer, Way, of_the_rules
 from burro_api.providers.choose import BY_RULES, told_of
 from burro_api.providers.interface import ModelError
 from burro_api.providers.terms import TERMS, Provider
 from burro_api.reader import ModelInterpreter, ModelReply
-from burro_api.settings import SYNTHETIC_CENSUS, SYNTHETIC_FIXTURE
+from burro_api.settings import SYNTHETIC_CENSUS, SYNTHETIC_FIXTURE, SYNTHETIC_INCOME
 from burro_api.stores import InMemoryShareStore
 from burro_core import RuleInterpreter, TemplateExplainer, default_spec
 from burro_core.census import Census
 from burro_core.ids import Mode, Provenance, Strictness, Tenure
+from burro_core.income import Income
 from burro_core.interpret import InterpretRequest, InterpretResult
 from burro_core.release import InMemoryRelease
 from burro_core.spec import Budget, Commute, PreferenceSpec
@@ -59,6 +60,14 @@ def release() -> InMemoryRelease:
 def census() -> Census:
     """The made-up count that is committed, which is what the service serves with nothing set."""
     found = load_census(SYNTHETIC_CENSUS, release())
+    assert found is not None
+    return found
+
+
+@cache
+def income() -> Income:
+    """The made-up estimate of household income that is committed, served with nothing set."""
+    found = load_income(SYNTHETIC_INCOME, release())
     assert found is not None
     return found
 
@@ -121,6 +130,7 @@ def make_deps(**changes: Any) -> Deps:
     # The committed count is of the committed release. A test that serves another
     # release serves no census, unless it brings one made for that release.
     changes.setdefault("census", None if "release" in changes else census())
+    changes.setdefault("income", None if "release" in changes else income())
     return replace(deps, **({"told": BY_RULES if by_rules else A_MODEL_READS} | changes))
 
 

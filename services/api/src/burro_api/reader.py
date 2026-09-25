@@ -28,7 +28,13 @@ from collections.abc import Sequence
 from threading import Lock
 from typing import cast
 
-from burro_core.catalogue import FEATURES, HOLDS_CRIME, TAGS
+from burro_core.catalogue import (
+    COUNTS_RESIDENTS,
+    FEATURES,
+    HOLDS_CRIME,
+    HOLDS_RESIDENTS,
+    TAGS,
+)
 from burro_core.grammar import Grammar
 from burro_core.ids import InterpreterName, InterpretStatus, Notice, UnmetCategory
 from burro_core.interpret import (
@@ -98,9 +104,12 @@ class Read(InterpretResult):
 
 
 def _vocabulary() -> str:
+    # What counts who lives somewhere is the rules' to offer, and never a model's. So a
+    # model is told of no such measure and no such vibe, and makes no edit of one.
     features = "\n".join(
         f"- {feature_id}: {feature.label} ({feature.unit}). Polarity: {feature.polarity}."
         for feature_id, feature in FEATURES.items()
+        if feature_id not in COUNTS_RESIDENTS
     )
     # What a vibe is made of, in the catalogue's one line, so that a model
     # reads looser words into the vibe that counts them and into no other.
@@ -109,6 +118,7 @@ def _vocabulary() -> str:
         + (f" A scale from {tag.low_end} (low) to {tag.high_end} (high)." if tag.low_end else "")
         + (" It counts recorded crime." if tag_id in HOLDS_CRIME else "")
         for tag_id, tag in TAGS.items()
+        if tag_id not in HOLDS_RESIDENTS
     )
     return f"Features\n{features}\n\nTags\n{tags}"
 
@@ -194,7 +204,7 @@ Numbers
 Every number is a JSON number: 30, 0.5, 1700. Never a string and never true or false.
 
 Who lives somewhere
-Burro ranks places by what is there and never by who lives there. If any part of the request \
+A wish about who lives somewhere is never yours to read. If any part of the request \
 is about the kind of people who live in a place, by age, family, occupation, class, religion, \
 ethnicity, nationality, sexuality, disability or anything like them, make no edit for that \
 part and add a flag: "avoid_group" for a wish to avoid them, "seek_group" for a wish to find \
@@ -303,6 +313,28 @@ def _left_unread(unread: Sequence[Span], offers: Sequence[Offer], text: str) -> 
     return tuple(found)
 
 
+def _was_offered(where: tuple[int, int], offers: Sequence[Offer], typed: Typed) -> bool:
+    """Whether every word that stands there and names something is one an offer rests on.
+
+    A model files what it takes to be asked for and not to be met, with the words
+    it rests on. Where those are the words of an offer, the person is offered
+    what they asked for, and nothing of it was left out: "slightly affluent" was
+    filed as a verdict on what a person can afford, under four offers for it. A
+    word of degree beside the thing belongs to it, whether or not the offer rests
+    on it too.
+    """
+    left = [where]
+    for offer in offers:
+        for span in offer.spans:
+            left = [
+                part
+                for begun, ended in left
+                for part in ((begun, min(ended, span.start)), (max(begun, span.end), ended))
+                if part[0] < part[1]
+            ]
+    return left != [where] and not any(typed.says_more_than_how_much(part) for part in left)
+
+
 class ModelInterpreter:
     """Asks a model what the rules could not read. Raises a `ModelFailure` when it cannot.
 
@@ -398,8 +430,14 @@ class ModelInterpreter:
             self.fired.update(found.fired)
             self.fired.update(more)
         unread = _left_unread(read.unread, offers, request.text)
+        # What an offer rests on was not left out, whatever a model files it as.
+        filed = [
+            (category, where)
+            for category, where in found.unmet
+            if where is None or not _was_offered(where, offers, typed)
+        ]
         # `other` says that words were left unread, and is said exactly then.
-        unmet = {*read.unmet, *(category for category, _ in found.unmet)} - {UnmetCategory.OTHER}
+        unmet = {*read.unmet, *(category for category, _ in filed)} - {UnmetCategory.OTHER}
         if unread:
             unmet.add(UnmetCategory.OTHER)
         if found.about_people:
@@ -422,7 +460,7 @@ class ModelInterpreter:
             unread=unread,
             unmet_at=tuple(
                 (category, Span(start=where[0], end=where[1]))
-                for category, where in found.unmet
+                for category, where in filed
                 if where is not None
             ),
             # The reader's own, as the rules give it. Nothing of a model's is in it.

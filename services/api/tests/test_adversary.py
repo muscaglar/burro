@@ -17,12 +17,13 @@ from typing import Any
 import pytest
 from burro_api.answer import parsed
 from burro_api.guard import Check, Guarded, guarded
-from burro_api.offers import FIRM, GUIDE
+from burro_api.offers import FIRM, GUIDE, in_add_all
 from burro_api.reader import ModelInterpreter
 from burro_api.typed import Typed
 from burro_core.grammar import Grammar
 from burro_core.ids import InterpreterName, Notice, UnmetCategory, WeightAction
 from burro_core.interpret import InterpretRequest, RuleInterpreter
+from burro_core.ops import NO_OPERATIONS
 from burro_core.places import Names
 
 from .support import (
@@ -158,12 +159,15 @@ def test_a_budget_is_firm_where_the_words_are_said_of_its_own_amount(text: str):
     ("text", "words"),
     [
         # The words about people stand after the quote, in the same clause.
-        ("honestly somewhere lively for young professionals", "somewhere lively"),
+        ("honestly somewhere lively for professionals", "somewhere lively"),
         ("honestly a buzzy spot where students live", "a buzzy spot"),
         # They stand in another clause, and the quote is no wish of its own.
-        ("honestly young professionals, like me", "like me"),
-        ("honestly lots of young families, that sort of place", "that sort of place"),
+        ("honestly young couples, like me", "like me"),
+        ("honestly lots of students, that sort of place", "that sort of place"),
         ("honestly a good mix - not too many students - and so on", "and so on"),
+        # A wish for fewer of those Burro counts is a wish about people as any other is.
+        ("honestly somewhere lively with fewer young professionals", "somewhere lively"),
+        ("honestly not too many families, that sort of place", "that sort of place"),
     ],
 )
 def test_no_offer_of_a_models_rests_on_a_wish_about_who_lives_somewhere(text: str, words: str):
@@ -183,7 +187,7 @@ def test_no_offer_of_a_models_rests_on_a_wish_about_who_lives_somewhere(text: st
     [
         # A wish of its own, in a clause of its own, is the rest of the request.
         (
-            "honestly lots of young families about, and a park nearby",
+            "honestly lots of students about, and a park nearby",
             "a park nearby",
             "feature:park_proximity",
         ),
@@ -201,6 +205,74 @@ def test_the_rest_of_a_request_about_people_is_still_offered(text: str, words: s
 
     assert result.notice is Notice.NEUTRAL_PLACES
     assert _guesses(result, thing) == ["more"]
+
+
+WHO_IS_COUNTED = ("tag:young_professionals", "tag:family_area", "feature:residents_aged_20_34")
+
+
+@pytest.mark.parametrize(
+    ("text", "answer"),
+    [
+        # A model names the measure or the vibe itself, from whatever words.
+        (
+            "honestly somewhere with plenty of twentysomethings",
+            model_output(
+                weight_ops=[model_weight("residents_aged_20_34", words="twentysomethings")],
+                tag_ops=[model_tag("young_professionals", words="plenty of twentysomethings")],
+            ),
+        ),
+        (
+            "honestly somewhere the kids have friends on the street",
+            model_output(
+                weight_ops=[
+                    model_weight("households_dependent_children", words="kids have friends")
+                ],
+                tag_ops=[model_tag("family_area", words="friends on the street")],
+            ),
+        ),
+        # It asks for fewer, in the one field of an answer that could say so.
+        (
+            "honestly somewhere grown up",
+            model_output(
+                weight_ops=[
+                    model_weight("residents_aged_20_34", direction="less", words="grown up"),
+                    model_weight("residents_aged_65_over", step="down_large", words="grown up"),
+                ]
+            ),
+        ),
+    ],
+)
+def test_what_counts_who_lives_somewhere_is_never_a_models_to_offer(text: str, answer: Any):
+    result, _ = asked(answer, text=text)
+
+    assert Check.PEOPLE in fired(answer, text)
+    assert not [offer for offer in offers(result) if offer.rstrip("+") in WHO_IS_COUNTED]
+    assert result.suggestions == () and result.operations == NO_OPERATIONS
+
+
+def test_the_words_the_rules_offer_who_is_counted_for_are_the_rules_to_read():
+    # The rules offer the vibe for "young professionals", towards more and no other way.
+    # What a model reads into the same words is dropped, and what it reads of the place
+    # beside them is offered as any other reading of a model's is.
+    text = "honestly somewhere lively for young professionals"
+    answer = model_output(
+        tag_ops=[
+            model_tag("pace", toward="high", words="somewhere lively"),
+            model_tag("foodie", words="young professionals"),
+        ],
+        weight_ops=[model_weight("venue_evening", words="for young professionals")],
+    )
+
+    result, _ = asked(answer, text=text)
+
+    assert result.notice is Notice.NONE and Check.NEAREST in fired(answer, text)
+    found = offers(result)
+    assert set(found) == {"tag:young_professionals", "tag:pace"}
+    counted = found["tag:young_professionals"]
+    assert counted.read_by is InterpreterName.RULE
+    assert [way.id for way in counted.choices] == ["more", "ignore"]
+    assert not any(way.guess for way in counted.choices) and in_add_all(counted) is None
+    assert _guesses(result, "tag:pace") == ["more"]
 
 
 def test_a_long_sentence_that_names_a_campus_keeps_what_a_model_read_of_its_other_wishes():
@@ -263,6 +335,62 @@ def test_a_nuisance_that_is_said_not_to_matter_is_no_guess(text: str, feature: s
     assert _guesses(result, f"feature:{feature}") == []
 
 
+# --- What is said about a thing, which a model leaves out of what it quotes ------------------
+
+
+@pytest.mark.parametrize(
+    ("text", "feature", "words"),
+    [
+        # The words that turn the wish stand after the thing, beyond a mark, and the model
+        # rests the thing on words that stand clear of both.
+        ("honestly a station, heaven forbid, and that is final", "station_walk", "is final"),
+        ("honestly a park, no thanks, as I said before", "park_proximity", "as I said before"),
+        ("honestly a playground would be hell, believe me", "play_space_proximity", "believe me"),
+        # The wish is somebody else's, and the model quotes the thing alone or other words.
+        ("my mum is after a park, and that is final", "park_proximity", "that is final"),
+        ("honestly my partner wants a station nearby", "station_walk", "a station nearby"),
+        ("a playground is what my sister is after, truly", "play_space_proximity", "truly"),
+    ],
+)
+def test_what_is_said_about_a_thing_is_read_where_the_thing_stands(
+    text: str, feature: str, words: str
+):
+    answer = model_output(weight_ops=[model_weight(feature, words=words)])
+
+    result, _ = asked(answer, text=text)
+
+    assert _guesses(result, f"feature:{feature}") == []
+    # The rules' own offer of it stands, with every way they give.
+    assert f"feature:{feature}" in offers(result)
+
+
+@pytest.mark.parametrize(
+    ("text", "words"),
+    [
+        # What turns a wish, or whose it is, is said of another thing of the sentence.
+        ("honestly pubs, heaven forbid, but a park would be grand", "a park would be grand"),
+        ("honestly my mum wants a pub, but a park would do me", "a park would do me"),
+        ("honestly no pubs, and a park nearby", "a park nearby"),
+        ("My mate is after nightlife and I want a park", "I want a park"),
+        # A heading of a list is nobody's wish but the speaker's.
+        ("Wants: a park, honestly", "a park"),
+        ("Needs: a park and a station", "a park"),
+        # What goes on to say something is said of that.
+        ("honestly a park, not too expensive", "a park"),
+        ("honestly a park, nothing fancy", "a park"),
+        ("honestly a park, I can't wait", "a park"),
+        # The speaker's own household wishes as the speaker does.
+        ("honestly my dog needs a park", "a park"),
+    ],
+)
+def test_what_is_said_of_another_thing_takes_no_guess_from_this_one(text: str, words: str):
+    answer = model_output(weight_ops=[model_weight("park_proximity", words=words)])
+
+    result, _ = asked(answer, text=text)
+
+    assert _guesses(result, "feature:park_proximity") == ["more"]
+
+
 # --- An end of a scale nobody named --------------------------------------------------------
 
 
@@ -310,6 +438,32 @@ def test_an_end_that_the_words_name_is_the_guess(text: str, words: str, toward: 
     assert _guesses(result, "tag:pace") == [way]
 
 
+@pytest.mark.parametrize(
+    ("text", "tag", "words", "toward"),
+    [
+        # The model quotes the end alone, and leaves out the word that turns it away.
+        ("honestly not buzzy at all", "pace", "buzzy", "high"),
+        ("honestly houses, not flats", "homes", "flats", "high"),
+        ("honestly nothing historic for me", "built_age", "historic", "high"),
+        # It quotes all of it, and names the end that was turned away.
+        ("honestly calm, not buzzy", "pace", "honestly calm, not buzzy", "high"),
+        ("honestly flats, not houses", "homes", "honestly flats, not houses", "low"),
+        # Two words that turn: nobody can say which way, whichever end it names.
+        ("honestly I wouldn't say no to buzzy", "pace", "buzzy", "high"),
+        ("honestly I wouldn't say no to buzzy", "pace", "buzzy", "low"),
+    ],
+)
+def test_an_end_that_the_words_turn_away_is_no_guess_however_little_a_model_quotes(
+    text: str, tag: str, words: str, toward: str
+):
+    answer = model_output(tag_ops=[model_tag(tag, toward=toward, words=words)])
+
+    result, _ = asked(answer, text=text)
+
+    assert _guesses(result, f"tag:{tag}") == []
+    assert [way.id for way in offers(result)[f"tag:{tag}"].choices][:2] == ["more", "less"]
+
+
 # --- How much a wish counts ---------------------------------------------------------------
 
 
@@ -333,11 +487,13 @@ def _above_all(result: Any, target: str) -> bool:
     ],
 )
 def test_a_thing_does_not_count_above_all_for_what_is_said_of_another(text: str, words: str):
-    answer = model_output(weight_ops=[model_weight("venue_evening", direction="more", words=words)])
+    answer = model_output(
+        weight_ops=[model_weight("venue_evening_per_homes", direction="more", words=words)]
+    )
 
     result, _ = asked(answer, text=text)
 
-    assert not _above_all(result, "feature:venue_evening")
+    assert not _above_all(result, "feature:venue_evening_per_homes")
 
 
 @pytest.mark.parametrize(
@@ -349,11 +505,13 @@ def test_a_thing_does_not_count_above_all_for_what_is_said_of_another(text: str,
     ],
 )
 def test_a_thing_counts_above_all_where_it_is_said_of_the_thing(text: str, words: str):
-    answer = model_output(weight_ops=[model_weight("venue_evening", direction="more", words=words)])
+    answer = model_output(
+        weight_ops=[model_weight("venue_evening_per_homes", direction="more", words=words)]
+    )
 
     result, _ = asked(answer, text=text)
 
-    assert _above_all(result, "feature:venue_evening")
+    assert _above_all(result, "feature:venue_evening_per_homes")
 
 
 # --- What is shown under "You wrote" --------------------------------------------------------
@@ -370,7 +528,9 @@ def test_a_thing_counts_above_all_where_it_is_said_of_the_thing(text: str, words
 def test_all_that_an_offer_rests_on_is_shown_with_it(text: str, words: str):
     # What a model quoted runs on past the thing, and what is shown ran no
     # further than the thing: the words that mock the wish were left out.
-    answer = model_output(weight_ops=[model_weight("venue_evening", direction="more", words=words)])
+    answer = model_output(
+        weight_ops=[model_weight("venue_evening_per_homes", direction="more", words=words)]
+    )
 
     found = through_the_route(answer, text)
 

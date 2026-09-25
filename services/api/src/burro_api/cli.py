@@ -8,6 +8,7 @@ from pathlib import Path
 
 import uvicorn
 from burro_core.census import CensusError
+from burro_core.income import IncomeError
 from burro_core.release import ReleaseError
 from fastapi import FastAPI
 from pydantic import ValidationError
@@ -23,7 +24,7 @@ def openapi_document(app: FastAPI) -> str:
     return json.dumps(app.openapi(), indent=2, sort_keys=True, ensure_ascii=False) + "\n"
 
 
-def _refusal(folder: Path, error: ReleaseError | CensusError) -> str:
+def _refusal(folder: Path, error: ReleaseError | CensusError | IncomeError) -> str:
     """Why a release was refused, in one line: the folder, the file, the row and the rule.
 
     Never a value from a file. `burro-release check` says the same in more words.
@@ -78,12 +79,14 @@ def main(argv: list[str] | None = None) -> int:
 
     folder = Path()
     census: Path | None = None
+    income: Path | None = None
     try:
         serving = args.command == "serve"
         # The OpenAPI document does not depend on the release, so it is written
         # from the fixture, whatever the environment says.
         settings = Settings.from_env(os.environ if serving else {})
         folder, census = settings.release_dir, settings.census_dir
+        income = settings.income_dir
         if serving:
             logs.configure_logging()
             # Who reads what is typed is decided here, once, from the
@@ -102,6 +105,10 @@ def main(argv: list[str] | None = None) -> int:
     except CensusError as error:
         where = _refusal(census or Path(), error)
         print(f"error: the census could not be loaded: {where}", file=sys.stderr)
+        return 2
+    except IncomeError as error:
+        where = _refusal(income or Path(), error)
+        print(f"error: the household income could not be loaded: {where}", file=sys.stderr)
         return 2
     except OSError as error:
         print(f"error: {error.strerror}", file=sys.stderr)

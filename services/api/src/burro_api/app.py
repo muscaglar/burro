@@ -17,10 +17,10 @@ from burro_api.boundary import ERROR_CODE, Boundary
 from burro_api.calls import InMemoryCallLog
 from burro_api.deps import Context, Deps, RandomIds, SystemClock, context_for
 from burro_api.errors import ApiError, error_response, from_validation, spec_refused
-from burro_api.loading import load_census, load_release
+from burro_api.loading import load_census, load_income, load_release
 from burro_api.providers.choose import Choice, by_rules
 from burro_api.reader import ModelInterpreter
-from burro_api.routes import areas, census, interpret, meta, places, rank, shares
+from burro_api.routes import areas, census, income, interpret, meta, places, rank, shares
 from burro_api.routes.common import NotModified
 from burro_api.settings import Settings
 from burro_api.stores import InMemoryShareStore
@@ -130,7 +130,7 @@ def create_app(deps: Deps) -> FastAPI:
     app.state.context = context
 
     gates = [Depends(identify), Depends(admit)]
-    groups = (interpret, rank, areas, census, places, shares, meta)
+    groups = (interpret, rank, areas, census, income, places, shares, meta)
     routers = [group.router for group in groups]
     for router in routers:
         app.include_router(router, dependencies=gates)
@@ -169,6 +169,7 @@ def deps_from(settings: Settings, choice: Choice | None = None) -> Deps:
     return Deps(
         release=release,
         census=load_census(settings.census_dir, release, settings.census_named),
+        income=load_income(settings.income_dir, release, settings.income_named),
         interpreter=_reader(settings, choice),
         explainer=TemplateExplainer(),
         shares=InMemoryShareStore(),

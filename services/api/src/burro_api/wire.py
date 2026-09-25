@@ -15,6 +15,7 @@ from typing import Annotated, Any, Literal, cast
 
 from burro_core.catalogue import Tag
 from burro_core.census import CensusOffer
+from burro_core.estimate import HowEstimated
 from burro_core.explain import Explanation
 from burro_core.facts import Fact
 from burro_core.ids import (
@@ -23,6 +24,7 @@ from burro_core.ids import (
     GrittyVariant,
     InterpreterName,
     InterpretStatus,
+    JourneyBand,
     Notice,
     PlaceId,
     PlaceKind,
@@ -31,6 +33,7 @@ from burro_core.ids import (
     TagId,
     UnmetCategory,
 )
+from burro_core.income import IncomeOffer
 from burro_core.interpret import (
     MAX_TEXT,
     Assumption,
@@ -52,6 +55,7 @@ from burro_core.release import (
     FeatureValue,
     Geometry,
     Metric,
+    Named,
     Neighbourhood,
     Point,
     RecipeHeld,
@@ -126,6 +130,7 @@ class ErrorCode(StrEnum):
     SHARE_NOT_FOUND = "share_not_found"
     RELEASE_CHANGED = "release_changed"
     CENSUS_NOT_AVAILABLE = "census_not_available"
+    INCOME_NOT_AVAILABLE = "income_not_available"
 
 
 class Problem(StrEnum):
@@ -517,6 +522,10 @@ class AreaSummary(Wire):
     borough: str
     centroid: Point
     rankable: bool
+    # What is known of the name: the label of the area as its publisher gives it, who wrote
+    # the name, and whether a person has checked it. `null` where the area bears no name but
+    # its publisher's label.
+    named: Named | None
 
 
 class BandMark(Wire):
@@ -598,6 +607,7 @@ class CompareStatus(StrEnum):
     NOT_SELECTED = "not_selected"
     OVER_BUDGET = "over_budget"
     COMMUTE_CAP = "commute_cap"
+    COMMUTE_LIKELY_BEYOND = "commute_likely_beyond"
     NOT_RANKABLE = "not_rankable"
     INSUFFICIENT_DATA = "insufficient_data"
     CHARACTER_UNKNOWN = "character_unknown"
@@ -629,8 +639,13 @@ class CompareCell(Wire):
     contribution: float | None
     # The fact that carries the source and the date of the numbers in this
     # cell, or that says there is no figure. For a journey with no time it is
-    # the `missing` fact of that journey.
+    # the `missing` fact of that journey, or the `travel` fact that says where
+    # an estimate of it stands.
     fact_id: str | None
+    # Where the journey of the row stands against its limit, where the release holds no
+    # time for it and one was estimated from distance. It is an estimate, and is never
+    # given in minutes: `value` is `null` beside it. `null` in every other cell.
+    estimate: JourneyBand | None = None
 
 
 class CompareRow(Wire):
@@ -680,6 +695,9 @@ class FoundPlace(Wire):
 
 class PlacesData(Wire):
     places: tuple[FoundPlace, ...]
+    # The areas that match, best first: every area that bears the name comes first. An
+    # area is no place to reach, so it is listed apart.
+    areas: tuple[AreaSummary, ...]
 
 
 class ShareCreated(Wire):
@@ -797,6 +815,14 @@ class MetaData(Wire):
     # Whether census figures are served for the areas of this release, and the words of
     # the block that offers them. It holds no figure and names no area.
     census: CensusOffer
+    # How a journey is estimated, where this release holds no journey time and a journey
+    # by public transport is estimated from distance: the numbers, for a page of methods,
+    # and the line that stands wherever an estimate is shown. `null` where no journey of
+    # this release is estimated.
+    journey_estimate: HowEstimated | None = None
+    # Whether household income is served for the areas of this release, and the words of
+    # the block that offers it. It holds no figure and names no area.
+    income: IncomeOffer
 
 
 class Health(Wire):

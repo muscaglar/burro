@@ -7,6 +7,7 @@ it happened during, in every frame of ours it passed through, and in the
 `repr` and `str` of every object that was in reach.
 """
 
+import errno
 import json
 import logging
 import traceback
@@ -182,7 +183,7 @@ def test_the_function_that_sends_gives_away_nothing_when_it_fails(
     )
     raised = (
         TimeoutError(LEAKY),
-        OSError(61, LEAKY),
+        OSError(errno.ECONNREFUSED, LEAKY),
         ValueError(f"Invalid header value {KEY_TEXT!r}"),
         RuntimeError(LEAKY),
     )

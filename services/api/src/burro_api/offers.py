@@ -19,7 +19,7 @@ from collections.abc import Sequence
 from enum import StrEnum
 
 from burro_core._record import Record
-from burro_core.catalogue import FEATURES, HOLDS_CRIME, TAGS
+from burro_core.catalogue import COUNTS_RESIDENTS, FEATURES, HOLDS_CRIME, HOLDS_RESIDENTS, TAGS
 from burro_core.ids import (
     AreaAction,
     BudgetAction,
@@ -65,6 +65,7 @@ __all__ = [
     "Way",
     "budget_ways",
     "changes",
+    "counts_residents",
     "holds_crime",
     "in_add_all",
     "journey_ways",
@@ -340,6 +341,13 @@ def holds_crime(operations: Operations) -> bool:
     ) or any(edit.tag_id in HOLDS_CRIME for edit in operations.tag_ops)
 
 
+def counts_residents(operations: Operations) -> bool:
+    """Whether some edit sets counting who lived somewhere, by a measure or inside a vibe."""
+    return any(edit.feature_id in COUNTS_RESIDENTS for edit in operations.weight_ops) or any(
+        edit.tag_id in HOLDS_RESIDENTS for edit in operations.tag_ops
+    )
+
+
 def _leaves_areas_out(operations: Operations) -> bool:
     """Whether some edit is a filter: a firm limit, or a rule for an area."""
     firm = StrictnessChoice.HARD
@@ -365,8 +373,9 @@ def in_add_all(offer: Offer) -> Way | None:
     It takes a wish or a vibe at a mention or a small step, the tenure, a
     budget as a guide and a journey as a guide to a place named in full. It
     never takes what leaves areas out, what runs two ways with no guess,
-    a journey to a place the person has yet to choose, or recorded crime.
-    A thing the rules offer with a note is chosen by its own label.
+    a journey to a place the person has yet to choose, recorded crime, or
+    what counts who lives somewhere. A thing the rules offer with a note is
+    chosen by its own label.
     """
     if offer.alone or offer.asks_place or offer.note:
         return None
@@ -386,6 +395,8 @@ def in_add_all(offer: Offer) -> Way | None:
     else:
         return None
     if holds_crime(taken.operations) or _leaves_areas_out(taken.operations):
+        return None
+    if counts_residents(taken.operations):
         return None
     return taken if _taken_up(taken) and _names_its_place(taken) else None
 

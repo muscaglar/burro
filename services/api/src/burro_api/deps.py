@@ -18,6 +18,7 @@ from typing import Annotated, Protocol, cast
 from burro_core.census import Census
 from burro_core.explain import Explainer
 from burro_core.ids import InterpreterName
+from burro_core.income import Income
 from burro_core.interpret import Interpreter
 from burro_core.places import Names
 from burro_core.rank import ENGINE_VERSION
@@ -89,6 +90,9 @@ class Deps:
     # The census that was made for the release, or `None` where none is served. It stands
     # beside the release and is no part of it: one route reads it, and no other can.
     census: Census | None = None
+    # The household income that was made for the release, or `None` where none is served.
+    # It stands beside the release as the census does: one route reads it, and no other can.
+    income: Income | None = None
     # How long route 1 waits for an interpreter before the rules answer in its place.
     model_timeout_s: float = DEFAULT_TIMEOUT_S
     # The origins a browser may call from, and no other.
@@ -101,6 +105,8 @@ class Deps:
             raise ValueError("what people are told does not fit who reads")
         if self.census is not None and self.census.release_id != self.release.manifest.release_id:
             raise ValueError("the census was made for another release")
+        if self.income is not None and self.income.release_id != self.release.manifest.release_id:
+            raise ValueError("the household income was made for another release")
 
 
 @dataclass(frozen=True)

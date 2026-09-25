@@ -118,7 +118,7 @@ def test_a_vibe_says_what_it_counts_and_what_it_cannot_see():
     assert quiet["does"] == "Add Quiet streets."
     assert wrote(quiet, text) == "Quiet but not dead"
     assert quiet["follows"] == (
-        "What it counts: homes away from main roads and from clusters of late venues, with "
+        "What it counts: homes away from main roads and from clusters of pubs and bars, with "
         "little transport noise. It cannot see: one street or one home. An area is many streets."
     )
     assert buttons(quiet) == ["Add", "Skip"]
@@ -140,7 +140,7 @@ def test_an_end_of_a_scale_says_how_the_scale_runs(client: TestClient):
 def test_a_wish_turned_round_of_a_thing_that_runs_two_ways_is_fewer_of_it():
     found, _ = served_again("list-040")
 
-    pubs = by_target(found["suggestions"])["feature:venue_evening"]
+    pubs = by_target(found["suggestions"])["feature:venue_evening_per_homes"]
     assert pubs["does"] == "Rank areas higher for this: fewer pubs and bars."
     assert buttons(pubs) == ["More pubs and bars", "Fewer pubs and bars", "Skip"]
     assert [way["guess"] for way in pubs["choices"]] == [False, True, False]

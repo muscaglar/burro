@@ -148,7 +148,7 @@ def test_a_vibe_on_part_of_its_recipe_says_how_much_and_any_other_says_it_cannot
 ):
     profile = data(client.get(f"/v1/areas/{AREA}"))
     vibes = {fact["fact_id"]: fact for fact in profile["facts"] if fact["kind"] == "tag"}
-    assert len(vibes) == 11
+    assert len(vibes) == 14
     homes = vibes.pop(f"{AREA}/tag/homes")
     assert homes["template"] == "vibe"
     assert homes["slots"]["partly"] == "Worked out from 2 of its 3 parts, 75 of 100 by weight."
@@ -349,7 +349,7 @@ def test_a_preview_says_what_it_holds_of_each_vibe_and_that_it_holds_no_journey_
         "waits_on": [
             {
                 "feature_id": "private_outdoor_space",
-                "label": "Homes with private outdoor space",
+                "label": "Addresses with private outdoor space",
                 "hundredths": 25,
             }
         ],
@@ -362,7 +362,7 @@ def test_a_preview_says_what_it_holds_of_each_vibe_and_that_it_holds_no_journey_
         assert held["held"] + waited == 100
         assert held["placed"] is (held["held"] >= held["needed"])
         assert all(part["label"] for part in held["waits_on"])
-    assert recipes["pace"]["held"] == 0 and len(recipes["pace"]["waits_on"]) == 3
+    assert recipes["pace"]["held"] == 0 and len(recipes["pace"]["waits_on"]) == 4
 
 
 def test_a_sentence_on_a_preview_names_what_is_missing_and_ranks_on_the_rest(client: TestClient):

@@ -42,7 +42,7 @@ vercel env ls
 
 ## The API must be up before a build
 
-With `NEXT_PUBLIC_BURRO_API_URL` set, a build calls routes 4, 5, 6 and 11 of the API. A failure stops the build, and the deployment before it stays live. Deploy the API first. After a new release reaches the API, the pages catch up within the hour, or at once with a new deployment.
+With `NEXT_PUBLIC_BURRO_API_URL` set, a build calls routes 4, 5, 6 and 11 of the API. A read that timed out, or met a service too busy to answer, is asked for four times at most, each waited for longer than the last. A failure then stops the build, and the deployment before it stays live. Deploy the API first. After a new release reaches the API, the pages catch up within the hour, or at once with a new deployment.
 
 ## The headers the website already sets
 

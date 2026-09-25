@@ -12,24 +12,32 @@ import json
 from typing import Any
 
 import pytest
-from burro_api.guard import Check
+from burro_api.guard import Check, thing_named
 from burro_api.offers import FIRM, GUIDE, LESS, MORE, OFF
 from burro_api.reader import ModelInterpreter
 from burro_core.catalogue import FEATURES, HOLDS_CRIME
 from burro_core.ids import (
     Dimension,
+    FeatureId,
     InterpreterName,
     InterpretStatus,
     ModeChoice,
     Notice,
+    Polarity,
     SegmentChoice,
     Step,
     StrictnessChoice,
+    TagId,
     TenureChoice,
     UnmetCategory,
     WeightAction,
 )
-from burro_core.interpret import SIGNS_OF_DOUBT, InterpretRequest, InterpretResult
+from burro_core.interpret import (
+    SIGNS_OF_DOUBT,
+    InterpretRequest,
+    InterpretResult,
+    RuleInterpreter,
+)
 from burro_core.lexicon import lexicon_of
 from burro_core.vocabulary import PHRASES_OF_DOUBT, TURNS_FIRMLY, WORDS_THAT_TURN_AWAY
 
@@ -39,7 +47,9 @@ from .support import (
     FakeModelClient,
     answers_on_disk,
     asked,
+    client_for,
     guessed,
+    make_deps,
     model_area,
     model_budget,
     model_commute,
@@ -365,6 +375,202 @@ def test_every_sign_of_doubt_keeps_a_thing_out_of_add_all():
     assert left_in == []
 
 
+# --- The words around a thing: what turns it round, and whose wish it is -------------------
+
+
+def _raise_of(feature: str, words: str) -> Any:
+    """An answer that raises one thing, and rests it on some words."""
+    either = FEATURES[FeatureId(feature)].polarity is Polarity.EITHER
+    direction = "more" if either else "default"
+    return model_output(weight_ops=[model_weight(feature, direction=direction, words=words)])
+
+
+AROUND = [
+    # A word of dread or distaste stands after the thing, beyond a mark. The model
+    # copies the thing alone, and the words that turn the wish are not in what it quotes.
+    ("a station, god forbid", "station_walk", "a station"),
+    ("honestly a lido round the corner, heaven forbid", "park_facilities", "a lido"),
+    ("a nightclub next door, God no", "venue_evening", "a nightclub next door"),
+    ("a park on the doorstep, perish the thought", "park_proximity", "a park"),
+    ("a playground by the house, I'd hate that", "play_space_proximity", "a playground"),
+    ("honestly a boozer on the corner, no more of those", "venue_evening", "a boozer"),
+    ("a high street, anything but", "highstreet_access", "a high street"),
+    # It stands after the thing with no mark between them.
+    ("honestly a high street would be hell", "highstreet_access", "a high street"),
+    ("a brunch spot on every corner is my idea of hell", "venue_food_drink", "a brunch spot"),
+    ("theatres would be ghastly, honestly", "culture_venues", "theatres"),
+    # It stands before the thing, beyond a mark, with no wish of the speaker's between.
+    ("No, a park", "park_proximity", "a park"),
+    ("What I don't want: a station", "station_walk", "a station"),
+]
+
+
+@pytest.mark.parametrize(("text", "feature", "words"), AROUND)
+def test_a_raise_is_no_guess_where_the_words_around_the_thing_turn_it_round(
+    text: str, feature: str, words: str
+):
+    for quoted_by_the_model in (words, text):
+        result, _ = asked(_raise_of(feature, quoted_by_the_model), text=text)
+
+        assert guessed(result) == {}, quoted_by_the_model
+        # The thing is still offered, with every way open.
+        assert [way.id for offer in offers(result).values() for way in offer.choices if way.meant]
+
+
+ANOTHERS = [
+    ("my dad is after a playground", "play_space_proximity", "a playground"),
+    ("honestly my partner wants a pub nearby", "venue_evening", "a pub nearby"),
+    ("my mum, bless her, would like a park", "park_proximity", "a park"),
+    ("a brunch spot nearby is what my sister wants", "venue_food_drink", "a brunch spot"),
+    ("honestly everyone wants a station", "station_walk", "a station"),
+    ("she needs a playground close by", "play_space_proximity", "a playground close by"),
+    ("the landlord likes a high street, honestly", "highstreet_access", "a high street"),
+]
+
+
+@pytest.mark.parametrize(("text", "feature", "words"), ANOTHERS)
+def test_a_wish_is_no_guess_where_the_words_around_the_thing_give_it_to_somebody_else(
+    text: str, feature: str, words: str
+):
+    for quoted_by_the_model in (words, text):
+        result, _ = asked(_raise_of(feature, quoted_by_the_model), text=text)
+
+        assert guessed(result) == {}, quoted_by_the_model
+        assert [way.id for offer in offers(result).values() for way in offer.choices if way.meant]
+
+
+def test_what_somebody_else_is_against_is_no_guess_of_what_the_person_is_against():
+    # The model reads the words rightly, as a wish for fewer pubs. The wish is the friend's.
+    text = "honestly my friend hates pubs"
+    fewer = model_weight("venue_evening", direction="less", words="hates pubs")
+
+    result, _ = asked(model_output(weight_ops=[fewer]), text=text)
+
+    assert guessed(result) == {}
+    assert list(offers(result)) == ["feature:venue_evening_per_homes"]
+
+
+@pytest.mark.parametrize(
+    ("text", "answer", "guesses"),
+    [
+        # Two wishes in one sentence, of which one is the speaker's own.
+        (
+            "My brother wants a pub nearby and I want a park",
+            model_output(
+                weight_ops=[
+                    model_weight("venue_evening", direction="more", words="a pub nearby"),
+                    model_weight("park_proximity", words="I want a park"),
+                ]
+            ),
+            {"feature:park_proximity": MORE},
+        ),
+        # What is said of one thing is not said of the thing beside it.
+        (
+            "Honestly, a park, not pubs",
+            model_output(
+                weight_ops=[
+                    model_weight("park_proximity", words="a park"),
+                    model_weight("venue_evening", direction="less", words="not pubs"),
+                ]
+            ),
+            {"feature:park_proximity": MORE, "feature:venue_evening_per_homes": LESS},
+        ),
+        (
+            "Honestly, pubs are awful and parks are great",
+            model_output(
+                weight_ops=[
+                    model_weight("park_proximity", words="parks are great"),
+                    model_weight("venue_evening", direction="less", words="pubs are awful"),
+                ]
+            ),
+            {"feature:park_proximity": MORE, "feature:venue_evening_per_homes": LESS},
+        ),
+        (
+            "Honestly, I can't stand pubs, I want a park",
+            model_output(weight_ops=[model_weight("park_proximity", words="a park")]),
+            {"feature:park_proximity": MORE},
+        ),
+        # What says where a thing is wanted is no word of distance from it.
+        (
+            "Honestly, a park within walking distance",
+            model_output(weight_ops=[model_weight("park_proximity", words="a park")]),
+            {"feature:park_proximity": MORE},
+        ),
+        ("Honestly, I would love a park nearby", _raise_of("park_proximity", "a park"), None),
+        ("Honestly, a park would be lovely", _raise_of("park_proximity", "a park"), None),
+        ("Honestly, a park, please", _raise_of("park_proximity", "a park"), None),
+    ],
+)
+def test_a_wish_that_nothing_around_it_turns_is_still_the_guess(
+    text: str, answer: Any, guesses: dict[str, str] | None
+):
+    result, _ = asked(answer, text=text)
+
+    assert guessed(result) == (guesses or {"feature:park_proximity": MORE})
+
+
+@pytest.mark.parametrize(
+    ("text", "feature", "words"),
+    [
+        ("a station, god forbid", "station_walk", "a station"),
+        ("my mum, bless her, would like a park", "park_proximity", "a park"),
+        ("honestly a lido round the corner, heaven forbid", "park_facilities", "a lido"),
+    ],
+)
+def test_a_wish_in_doubt_is_asked_and_what_is_shown_takes_in_the_words_that_turned_it(
+    text: str, feature: str, words: str
+):
+    found = through_the_route(_raise_of(feature, words), text)
+
+    [offer] = found["suggestions"]
+    shown = text[offer["shown"]["start"] : offer["shown"]["end"]]
+    assert shown == text
+    assert not any(way["guess"] for way in offer["choices"])
+    # It is a question, and the one button takes none of it.
+    assert offer["does"].endswith("?") and offer["add_all"] == ""
+
+
+def _by_the_rules_alone(text: str) -> list[dict[str, Any]]:
+    """What route 1 offers of a sentence where no model reads."""
+    response = client_for(make_deps()).post("/v1/interpret", json={"text": text})
+    assert response.status_code == 200
+    return response.json()["data"]["suggestions"]
+
+
+def test_what_the_rules_alone_offer_is_offered_as_it_was():
+    # The new checks are made of what a model read. Where no model reads, a sister's
+    # playground is offered as the rules always offered it, and so is a journey to
+    # where a partner works, which is a place to reach and nobody's wish.
+    [playground] = _by_the_rules_alone("My sister wants a playground")
+    [journey] = _by_the_rules_alone("My partner works at Pellam Infirmary")
+
+    assert (playground["does"], playground["add_all"]) == (
+        "Rank areas higher for this: nearer a play space.",
+        "more",
+    )
+    assert (journey["target"], journey["add_all"]) == ("commute", "more")
+
+
+def test_a_wish_a_model_read_that_is_somebody_elses_is_asked_and_not_said():
+    text = "My sister wants a playground"
+    found = through_the_route(_raise_of("play_space_proximity", "a playground"), text)
+
+    [playground] = found["suggestions"]
+    assert playground["does"] == "Nearer a play space: count it?"
+    assert playground["add_all"] == ""
+    assert not any(way["guess"] for way in playground["choices"])
+
+
+def test_a_word_of_dread_beside_a_nuisance_takes_no_guess_away():
+    # To dread noise is to want less of it, so the word of dread turns nothing round.
+    text = "honestly no traffic noise, god forbid"
+    noise = model_weight("noise_exposure", words="no traffic noise")
+
+    result, _ = asked(model_output(weight_ops=[noise]), text=text)
+
+    assert guessed(result) == {"feature:noise_exposure": LESS}
+
+
 # --- 5. A scale with no end ----------------------------------------------------------------
 
 
@@ -378,6 +584,100 @@ def test_a_scale_the_model_names_with_no_end_is_offered_with_both_ends_and_no_gu
     assert [way.id for way in pace.choices] == [MORE, LESS, "ignore"]
     assert guessed(result) == {}
     assert Check.NO_END in fired(model_output(tag_ops=[no_end]), text)
+
+
+@pytest.mark.parametrize(
+    ("text", "tag", "guess"),
+    [
+        # The person said which way: one end is named, and the other is turned away.
+        ("houses not flats", "homes", LESS),
+        ("honestly flats, not houses", "homes", MORE),
+        ("a house rather than a flat, honestly", "homes", LESS),
+        ("honestly no flats, a house", "homes", LESS),
+        ("somewhere calm, not buzzy, honestly", "pace", LESS),
+        ("honestly historic, not newer", "built_age", MORE),
+        # One end is named, and turned away: it is a wish for the other.
+        ("honestly not buzzy at all", "pace", LESS),
+        ("honestly not flats", "homes", LESS),
+    ],
+)
+def test_a_guess_on_a_scale_takes_the_end_the_person_named(text: str, tag: str, guess: str):
+    # Whichever end the model names that the words bear out, and where it names none.
+    right = {MORE: "high", LESS: "low"}[guess]
+    for toward in (right, "default"):
+        for words in (text, text.removeprefix("honestly ").removesuffix(", honestly")):
+            answer = model_output(tag_ops=[model_tag(tag, toward=toward, words=words)])
+
+            result, _ = asked(answer, text=text)
+
+            assert guessed(result) == {f"tag:{tag}": guess}, (toward, words)
+
+
+@pytest.mark.parametrize(
+    ("text", "tag", "wrong"),
+    [
+        ("houses not flats", "homes", "high"),
+        ("somewhere calm, not buzzy, honestly", "pace", "high"),
+        ("honestly not buzzy at all", "pace", "high"),
+        ("honestly buzzy, not calm", "pace", "low"),
+    ],
+)
+def test_the_end_a_model_names_against_the_words_is_no_guess(text: str, tag: str, wrong: str):
+    # The words name one end, and the model the other. Both are offered, and neither is marked.
+    answer = model_output(tag_ops=[model_tag(tag, toward=wrong, words=text)])
+
+    result, _ = asked(answer, text=text)
+
+    assert guessed(result) == {}
+    assert [way.id for way in offers(result)[f"tag:{tag}"].choices][:2] == [MORE, LESS]
+
+
+@pytest.mark.parametrize(
+    ("text", "tag", "toward"),
+    [
+        # A word for a home says what is being looked for, and no more.
+        ("honestly a flat would do", "homes", "high"),
+        ("honestly houses", "homes", "low"),
+        ("honestly a 1 bed flat for the two of us", "homes", "high"),
+        # Both ends of it are named, and neither is turned away.
+        ("honestly houses and flats alike", "homes", "low"),
+        # The name of the scale holds the word for each end, and names neither: a word
+        # that turns beside it turns no end away.
+        ("honestly a long way houses or flats round here", "homes", "high"),
+        ("honestly not houses or flats round here", "homes", "low"),
+        # Two words that turn leave nobody sure which way.
+        ("honestly I wouldn't say no to flats", "homes", "high"),
+        ("honestly never not buzzy", "pace", "high"),
+        # An end that is only named, where the model names none: no more than the rules noticed.
+        ("honestly nightlife, I suppose", "pace", "default"),
+        ("honestly calm by day and buzzy by night", "pace", "default"),
+    ],
+)
+def test_a_scale_stays_a_question_where_the_words_do_not_say_which_end(
+    text: str, tag: str, toward: str
+):
+    for named in (toward, "default"):
+        answer = model_output(tag_ops=[model_tag(tag, toward=named, words=text)])
+
+        result, _ = asked(answer, text=text)
+
+        assert guessed(result).get(f"tag:{tag}") is None, named
+
+
+def test_houses_not_flats_is_offered_as_houses_with_the_guess_marked():
+    text = "houses not flats"
+    answer = model_output(tag_ops=[model_tag("homes", toward="low", words=text)])
+
+    found = through_the_route(answer, text)
+
+    [homes] = found["suggestions"]
+    assert homes["does"] == "Add Houses or flats, towards Houses."
+    assert [(way["label"], way["guess"]) for way in homes["choices"]] == [
+        ("Towards Flats", False),
+        ("Towards Houses", True),
+        ("Skip", False),
+    ]
+    assert text[homes["shown"]["start"] : homes["shown"]["end"]] == text
 
 
 def test_the_name_of_a_scale_alone_is_the_rules_to_offer_and_no_model_is_asked():
@@ -700,7 +1000,7 @@ def test_a_thing_that_runs_two_ways_and_is_not_held_is_offered_as_fewer():
     # "pubs, forget it": the model took pubs off, and no pubs were on.
     result, _ = read_again("neg-031")
 
-    assert guessed(result) == {"feature:venue_evening": LESS}
+    assert guessed(result) == {"feature:venue_evening_per_homes": LESS}
 
 
 def test_a_thing_that_counts_because_nobody_chose_may_be_taken_off():
@@ -875,16 +1175,114 @@ def test_never_a_reading_of_a_word_the_rules_offer_what_is_nearest_for(phrase: s
         ]
 
 
+def _kept_by_the_rules(ruled: InterpretResult) -> dict[str, Any]:
+    """What the rules offer with a note of what Burro cannot measure, as they give it."""
+    return {
+        offer.target: ([way.id for way in offer.choices], offer.spans, offer.note)
+        for offer in offers(ruled).values()
+        if offer.note and thing_named(offer.target) is not None
+    }
+
+
+def _as_served(result: InterpretResult, targets: Any) -> dict[str, Any]:
+    return {
+        offer.target: ([way.id for way in offer.choices], offer.spans, offer.note)
+        for offer in offers(result).values()
+        if offer.target in targets
+    }
+
+
+def _marked(result: InterpretResult, targets: Any) -> list[str]:
+    """Every way of some offers that a model's reading is marked on, as a guess or not."""
+    return [
+        f"{offer.target} {way.id}"
+        for offer in offers(result).values()
+        if offer.target in targets
+        for way in offer.choices
+        if way.guess or way.meant
+    ]
+
+
+@pytest.mark.parametrize("phrase", NOTED)
+def test_never_a_guess_at_a_reading_the_rules_keep_whatever_words_a_model_rests_it_on(
+    phrase: str,
+):
+    # The readings of a word about identity, about wealth, about safety: each is the
+    # rules' to offer, as they offer it with no model. A model that names the same
+    # thing, and rests it on other words of the sentence, adds no guess and no way to it.
+    text = f"somewhere {phrase}, and a proper brunch spot, honestly"
+    ruled, _ = asked(model_output(), text=text)
+    kept = _kept_by_the_rules(ruled)
+    things = [thing_named(target) for target in kept]
+    answer = model_output(
+        weight_ops=[
+            model_weight(thing.value, direction=way, words="a proper brunch spot")
+            for thing in things
+            if isinstance(thing, FeatureId)
+            for way in ("more", "less")
+        ],
+        tag_ops=[
+            model_tag(thing.value, toward=end, words="and a proper brunch spot")
+            for thing in things
+            if isinstance(thing, TagId)
+            for end in ("high", "low")
+        ],
+    )
+
+    result, _ = asked(answer, text=text)
+
+    assert kept and _as_served(result, kept) == kept
+    assert _marked(result, kept) == []
+
+
+def test_what_the_rules_keep_is_served_as_the_rules_give_it_whatever_a_model_answered():
+    # "A real identity", in the sentence of `own-021`: in one look the model rested the
+    # age of buildings on the words about culture, and the rules' reading of the word
+    # about identity gained a way and a guess could have been marked on it.
+    changed: list[str] = []
+    for (case, look), row in answers_on_disk().items():
+        if "output" not in row:
+            continue
+        text, spec, _ = on_disk(case, look)
+        ruled = RuleInterpreter().interpret(
+            InterpretRequest(text=text, spec=spec, release=release())
+        )
+        kept = _kept_by_the_rules(ruled)
+        result, _ = read_again(case, look)
+        if _as_served(result, kept) != kept or _marked(result, kept):
+            changed.append(f"{case} look {look}")
+    assert changed == []
+
+
 def test_never_anything_about_who_lives_somewhere():
+    text = "full of bankers and students, honestly"
+    answer = model_output(
+        tag_ops=[model_tag("family_amenities", words="students")],
+        weight_ops=[model_weight("school_primary_attainment", words="students")],
+    )
+
+    result, _ = asked(answer, text=text)
+
+    assert result.notice is Notice.NEUTRAL_PLACES and result.suggestions == ()
+
+
+def test_what_a_model_reads_into_words_for_who_is_counted_is_dropped():
+    # The rules offer Family area for the words, and a model's reading of them is not
+    # put beside it: nothing about who lives somewhere is read into a measure of a place.
     text = "full of bankers and young families, honestly"
     answer = model_output(
         tag_ops=[model_tag("family_amenities", words="young families")],
         weight_ops=[model_weight("school_primary_attainment", words="young families")],
     )
 
+    ruled, _ = asked(model_output(), text=text)
     result, _ = asked(answer, text=text)
 
-    assert result.notice is Notice.NEUTRAL_PLACES and result.suggestions == ()
+    assert [offer.target for offer in ruled.suggestions] == ["tag:family_area"]
+    assert [(o.target, o.note) for o in result.suggestions] == [
+        (o.target, o.note) for o in ruled.suggestions
+    ]
+    assert guessed(result) == {}
 
 
 @pytest.mark.parametrize(
@@ -1052,14 +1450,14 @@ def test_a_setting_a_step_of_the_budget_and_a_journey_changed_are_not_offered():
 # --- What is known to get through ---------------------------------------------------------
 
 
-@pytest.mark.xfail(strict=True, reason="contract, section 8.2: what the guard cannot do")
 @pytest.mark.parametrize(("case", "look"), [("sugg-022", 1), ("sugg-022", 2), ("sugg-022", 3)])
 def test_someone_elses_wish_is_not_marked_as_the_guess(case: str, look: int):
-    # "my mum is after a park": no word core lists says whose wish it is. The
-    # offer shows the whole of the clause, so that the person can see.
+    # "my mum is after a park": the model read it as the person's own wish, every time
+    # it was asked. Core lists the words that say whose wish it is.
     result, _ = read_again(case, look)
 
     assert guessed(result) == {}
+    assert list(offers(result)) == ["feature:park_proximity"]
 
 
 @pytest.mark.xfail(strict=True, reason="contract, section 8.2: what the guard cannot do")
@@ -1067,11 +1465,13 @@ def test_someone_elses_wish_is_not_marked_as_the_guess(case: str, look: int):
     "text",
     [
         "boozers on every corner would finish me off",
-        "a proper brunch spot is my idea of hell",
+        "a proper brunch spot would bankrupt me",
     ],
 )
 def test_a_wish_turned_round_in_words_core_does_not_list_is_not_the_guess(text: str):
-    answer = model_output(weight_ops=[model_weight("venue_evening", direction="more", words=text)])
+    answer = model_output(
+        weight_ops=[model_weight("venue_evening_per_homes", direction="more", words=text)]
+    )
 
     result, _ = asked(answer, text=text)
 

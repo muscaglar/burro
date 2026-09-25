@@ -8,8 +8,10 @@ client writes a provider's terms of its own.
 
 from burro_core.catalogue import CATALOGUE_VERSION, FAMILIES
 from burro_core.census import offer
+from burro_core.estimate import HOW, estimates_journeys
 from burro_core.explain import REASON_MIN_UTILITY, TRADE_OFF_MAX_UTILITY
 from burro_core.ids import Mode, Tenure, segments_for
+from burro_core.income import offer as offer_of_income
 from burro_core.interpret import MAX_TEXT
 from burro_core.release import Cutoffs, Release, recipes_held
 from burro_core.spec import LIMITS
@@ -98,6 +100,7 @@ def get_meta(context: Ctx, request: Request, response: Response) -> Envelope[Met
             catalogue_version=CATALOGUE_VERSION,
             counts=manifest.counts,
             holds=_holds(release),
+            journey_estimate=HOW if estimates_journeys(release) else None,
             # Every source is credited, with its licence.
             attributions=manifest.sources,
             features=release.metrics,
@@ -115,6 +118,8 @@ def get_meta(context: Ctx, request: Request, response: Response) -> Envelope[Met
             reader=_reader(told),
             # The words of the block that offers the census. No figure, and no area.
             census=offer(context.deps.census),
+            # And of the block that offers household income. No figure, and no area.
+            income=offer_of_income(context.deps.income),
         ),
     )
 
