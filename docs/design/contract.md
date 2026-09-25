@@ -40,7 +40,7 @@ Dependencies point one way: `burro_pipeline → burro_core ← burro_api`. The p
 |---|---|
 | `ids.py` | `FeatureId`, `TagId` and every other enum, and the id patterns. This is the allowlist of ADR 0006 |
 | `catalogue.py` | `FEATURES`, `TAGS`, `FAMILIES`, `GRITTY`, `NUISANCES`, `NEVER_A_TRADE_OFF`, `CATALOGUE_VERSION`, `percentile_of()`, `band_of()`, `tag_raw()`, `tags_of()`, and `checked_recipe()`, which holds every recipe to its rules at import |
-| `release.py` | The `Release` protocol, its records, `InMemoryRelease`, `parse_release()`, `open_release()`, `open_served()` and the record `Hashes` |
+| `release.py` | The `Release` protocol, its records, `InMemoryRelease`, `parse_release()`, `open_release()`, `open_served()`, `open_built()` and the record `Hashes` |
 | `spec.py` | `PreferenceSpec`, `LIMITS`, `default_spec()`, `check_spec()`, `canonical()`, `spec_hash()` |
 | `ops.py` | `Operations` and its six edit types |
 | `reducer.py` | `apply()` |
@@ -64,7 +64,7 @@ Dependencies point one way: `burro_pipeline → burro_core ← burro_api`. The p
 | Module | Holds |
 |---|---|
 | `release/write.py` | `write_release(release, folder, registry=None)`: the source check of 2.1, canonical JSON, checksums, manifest written last |
-| `release/read.py` | `read_release(folder)`: reads the bytes, leaving out a `.DS_Store`, and calls `open_release` (section 2.8). `read_served(folder)` reads the folder beside the release too, and calls `open_served` |
+| `release/read.py` | `read_release(folder)`: reads the bytes, leaving out a `.DS_Store`, and calls `open_release` (section 2.8). `read_served(folder)` reads the folder beside the release too, and calls `open_served`. `read_built(folder)` reads the same, and calls `open_built` |
 | `release/synthetic/build.py` | `build_synthetic(seed, release_id, built_at, gritty_variant) -> InMemoryRelease` |
 | `release/synthetic/names.py` | The fixed lists of made-up names, and the plan of the made-up city |
 | `release/synthetic/journeys.py` | How long a journey takes, and `whole_minutes()`, which holds the shortest at 2 minutes (section 2.9) |
@@ -344,6 +344,10 @@ A third function holds a release to what it was built with:
 6. Parse `hashes.json` as the record `Hashes`: `release_id`, `manifest_sha256`, `evidence_sha256`, `lock_sha256`. Refuse if its `release_id` is not the release's.
 7. Refuse if the SHA-256 of `manifest.json`, of `evidence.json` or of `lock.json` is not the one the record holds.
 
+A fourth reads a release that is never served, to hold one build against another:
+
+- `open_built(folder_name: str, files: Mapping[str, bytes], beside: Mapping[str, bytes] | None) -> InMemoryRelease` is `open_served`, but for the seven rules that hold a release to the catalogue as core holds it today: `versions_match`, `catalogue_matches_core`, `vibes_match_core`, `names_name_no_place`, `held_off_stays_held_off`, `changes_are_named` and `raw_matches_recipe`. `OF_CORES_CATALOGUE` names them. A release that was built under another version of the catalogue breaks them by being what it was built as: it holds another recipe, or a vibe that was held off then. In their place one thing is asked of its versions, under the name `versions_are_its_own`: that `schema_version` is 2, and that the manifest and the catalogue say one `catalogue_version`. Everything else is held as it is of what is served: every file to the manifest, the release to itself, and the release to its build. It is read with the records this code has, so a release that holds a field or an id they do not know is refused as any release of that shape is. `read_built(folder)` in the pipeline calls it, for the step `moved` and for the panel of the review desk. Nothing that serves a release or checks one does.
+
 `read_release(folder)` in the pipeline reads every file in the folder into bytes and calls `open_release`. `read_served(folder)` in the pipeline and `load_release(folder)` in the API read the folder beside the release too, and call `open_served`. So the service and `burro-release check` refuse the same releases. `burro-release check` then reads the evidence, which the service cannot: it fails if any fact the release would show has no row of evidence behind it, or a row that holds another figure.
 
 `read_release` and `load_release` each leave one file out: a file named exactly `.DS_Store`, which a Mac leaves in any folder that has been opened in a window. It is never opened, it is not handed to `open_release`, and it is left where it is. Nothing else is left out: a folder of that name, the same name in another case, `._manifest.json`, `Thumbs.db` and `.gitkeep` are all handed over and refused as before. `write_release` leaves the same file alone when it rebuilds the synthetic release, so a folder that reads as a release can be rebuilt. Core is unchanged: `open_release` still refuses any file the manifest does not list, this one included, if it is handed one. The name is spelt out once in each reader, because the pipeline and the API never import each other, and a test in each holds it to `.DS_Store`.
@@ -381,6 +385,7 @@ A refusal that is not one of the seventeen rules has a name of its own, raised a
 | `json_is_valid`, `shape_is_valid` | core | A file is not JSON, or a field is missing, unknown or of the wrong type |
 | `files_match_manifest`, `files_are_expected` | core | A file is missing, extra or changed, a hidden file included, or is not a file a release has. `read_release` and `load_release` never hand core a `.DS_Store` |
 | `release_id_matches_folder` | core | The manifest names a release other than its folder |
+| `versions_are_its_own` | core, in `open_built` | `schema_version` is not 2, or the manifest and the catalogue of the release say two versions of the catalogue |
 | `real_release_has_its_build` | core, in `open_served` | A release that is not made up has no `hashes.json`, no `evidence.json` or no `lock.json` beside it |
 | `build_is_of_this_release` | core, in `open_served` | `hashes.json` names another release |
 | `build_is_as_it_was_written` | core, in `open_served` | The manifest, the evidence or the lock does not have the hash `hashes.json` holds for it |

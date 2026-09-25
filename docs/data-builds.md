@@ -1111,6 +1111,8 @@ Open the run, then the job with the red cross, then the step with the red cross.
 | Keep the release | `step=keep status=failed exit=2` | The bucket of releases did not answer, or refused the keep key | Check the three values of the bucket of releases. Then run the failed job again: a file that is kept already is left as it is |
 | Any step | `secrets=1` or more | A step printed a secret. The line was withheld | Rotate that key: section 10. Tell the builder |
 
+Where "Hash what was built", "Compare the two builds" or "Show the lock of the release" stops on a fault nobody foresaw, its log holds no traceback and ends with one line, as `step=lock status=failed why=17 withheld=11`, or the same of `step=compare`: `why=17` is a fault of the step's own, as it is of a fetch, and `withheld` counts the lines that were not shown, which could have held what the step read. No lock was shown, so nothing the run built can be approved: tell the builder the line, who finds the fault by running the same command on a made-up build.
+
 A run that ends red has kept nothing, unless the step "Keep the release" is the one that failed. What such a run left in the bucket is served nowhere: no lock was shown, so none can be committed.
 
 ### What only a first run can show

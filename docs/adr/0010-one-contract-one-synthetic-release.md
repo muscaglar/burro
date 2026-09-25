@@ -1,6 +1,6 @@
 # 0010. One contract, and a synthetic release to build on
 
-Status: accepted, 2026-09-23. Two points marked below are judgement calls for the founder to confirm. Three more have been decided.
+Status: accepted, 2026-09-23. Three points marked below are judgement calls for the founder to confirm. Three more have been decided.
 
 ## Context
 
@@ -21,6 +21,7 @@ The backend has three parts: the ranking engine, the release builder and the API
 |---|---|---|
 | The manifest names no engine range | A release never changes, so it must not have to be rebuilt because the arithmetic moved. `rank()` records both | Add the range to the manifest and a rule to `parse_release` |
 | The release holds no population figure | Nothing after the pipeline needs one, and a count of residents that is not there cannot be ranked on or shown | Add the field to `neighbourhoods.json` |
+| A release of another catalogue is read by its own, to be held against another build. Made on 2026-09-25 | The step `moved` and the panel could say nothing of two builds once a measure, a vibe or a recipe had changed, which is when what moved most needs saying. `open_built` in core passes over the seven rules that hold a release to the catalogue of today, and holds it to itself and to its build. What is served is still decided by `open_release` alone | Take `open_built` out of core. `moved` then refuses two builds of two catalogues, as it did |
 
 **Decided**
 

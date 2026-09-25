@@ -13,7 +13,7 @@ One short file per decision that would be expensive to reverse or easy to forget
 | [0007](0007-no-solicitor.md) | Close legal questions by design | Accepted, amended 2026-09-24 |
 | [0008](0008-package-sources.md) | Where packages come from | Accepted |
 | [0009](0009-registry-in-toml.md) | The registry is TOML, one file per topic | Accepted |
-| [0010](0010-one-contract-one-synthetic-release.md) | One contract, and a synthetic release to build on | Accepted, two points to confirm |
+| [0010](0010-one-contract-one-synthetic-release.md) | One contract, and a synthetic release to build on | Accepted, three points to confirm |
 | [0011](0011-nothing-is-kept-for-a-search.md) | Nothing is kept for a search | Accepted, one point to confirm |
 | [0012](0012-a-closed-vocabulary-and-a-guard-on-the-model.md) | The reader applies a plain prompt and asks about any other, and a model proposes | Accepted, amended three times on 2026-09-24, six points to confirm |
 | [0013](0013-vibes-are-the-centre.md) | Vibes are the centre, and gritty is built two ways | Accepted, amended 2026-09-24 and 2026-09-25, three points to decide |

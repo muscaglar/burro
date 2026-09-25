@@ -27,7 +27,7 @@ Section 8 gives the path and the line of each place named here.
 | The website | The address of an area's page, which knows `lon` alone (`lib/city.ts:9`). Two sentences of the page of methods | Its copy says "Burro covers one city". Its map is framed on the release's outlines |
 | The app | The city of a shared address (`SiteAddress.swift:47`), and the name of the bundle | Its copy names no city |
 | The desk and its panel | To the desk, what is not made up is London: its banner, the prefix of an item, and eight refusals and printed lines | The queues, the records, the screens of the panel and the file of changes |
-| The workflows and tools | The workflow `data-london`. The tool that holds an image to its lock admits `lon-` alone (`tools/release_lock.py:72`) | The five other workflows, and the checks of them |
+| The workflows and tools | The workflow `data-london`. The tool that holds an image to its lock admits `lon-` alone (`tools/release_lock.py:81`) | The five other workflows, and the checks of them |
 | Deployment | No value names London. Both hosts stand in London | The image carries whatever release its lock names |
 
 ## 2. What does: where the pipeline writes London into its code
@@ -241,7 +241,7 @@ No place. No point is written as the middle of the city: where a sentence speaks
 | `cells/cli.py:98` | `lon-2026-10-02-01` | An example, on two lines |
 | `evidence/cli.py:114` | `lon-2026-10-02-01` | An example, on six lines |
 | `kept/cli.py:106` | `lon-2026-10-02-01` | An example, on five lines |
-| `upkeep/cli.py:133` | `lon-2026-09-25-01` | An example, on two lines |
+| `upkeep/cli.py:137` | `lon-2026-09-25-01` | An example, on two lines |
 
 ### Kind 6: the names of its lists
 
@@ -331,7 +331,7 @@ No place. No point is written as the middle of the city: where a sentence speaks
 | `assemble/cli.py:1378` | `London's stops` | A note of a build |
 | `assemble/cli.py:1551` | `London's named areas` | The help of an argument |
 | `assemble/names.py:109` | `another area of its borough` | The sentence of a method |
-| `release/read.py:61` | `a borough or a place of the release` | What a rule means |
+| `release/read.py:67` | `a borough or a place of the release` | What a rule means |
 | `kept/cli.py:118` | `release of London` | The help of a step, on four lines |
 | `kept/cli.py:206` | `release of London` | A refusal |
 | `kept/cli.py:297` | `releases of London` | A refusal |
@@ -442,7 +442,7 @@ What section 1 names, with the whole path of each.
 |---|---|---|---|
 | `packages/core/src/burro_core/ids.py:21` | `RELEASE_ID_PATTERN = r"^(syn\|lon)-` | Core | The pattern of the id of a release. Lines 17 to 20 hold the same of an area, a destination, a place and a station |
 | `packages/core/src/burro_core/ids.py:316` | `LON = "lon"` | Core | The one city that is not made up |
-| `packages/core/src/burro_core/release.py:217` | `city: City` | Core | The city of a manifest |
+| `packages/core/src/burro_core/release.py:221` | `city: City` | Core | The city of a manifest |
 | `packages/core/src/burro_core/ids.py:159` | `UNDERGROUND_PROXIMITY = "underground_proximity"` | Core | With `OVERGROUND_PROXIMITY`, line 160: the ids of two measures |
 | `packages/core/src/burro_core/catalogue.py:1199` | `Underground or DLR` | Core | The label of a measure. So line 1214, of the Overground, and line 1832, the meaning of Well connected |
 | `packages/core/src/burro_core/estimate.py:37` | `MINUTES_A_KM_NEAR_THE_UNDERGROUND = 2.5` | Core | With `NEAR_THE_UNDERGROUND_M`, line 39. Both are names of the contract |
@@ -464,7 +464,7 @@ What section 1 names, with the whole path of each.
 | `.github/workflows/data-london.yml:1` | `name: data-london` | Workflows | The workflow, its environment and its group |
 | `.github/workflows/data-london.yml:123` | `--list m1 --list m10-health` | Workflows | The thirteen lists a build takes, on two lines |
 | `tools/public_log.py:83` | `"data-london"` | Tools | The one environment that is given the key that writes a release |
-| `tools/release_lock.py:72` | `LONDON = re.compile(r"lon-` | Tools | The lock an image is held to. Line 71 admits `syn` and `lon` |
+| `tools/release_lock.py:81` | `LONDON = re.compile(r"lon-` | Tools | The lock an image is held to. Line 80 admits `syn` and `lon` |
 | `Makefile:146` | `gazetteer/london` | Tools | Two lines of help |
 | `deploy/api/fly.toml:16` | `primary_region = "lhr"` | Deployment | Where the service stands |
 | `deploy/web/vercel.json:6` | `"lhr1"` | Deployment | Where the website stands |

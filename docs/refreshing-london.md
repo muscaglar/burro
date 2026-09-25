@@ -2,7 +2,7 @@
 
 For the founder. Written 2026-09-25. It puts in one order what [the guide to data builds](data-builds.md) and [the guide to deployment](../deploy/README.md) say at length, and adds the step at each end of it: `fresh`, which says what is due, and `moved`, which says what a build changed.
 
-**No hosted run has fetched a file or built London, and nothing has been deployed.** The two steps added here were driven on the receipts this repository holds, and on two builds of London made outside a hosted run. Every hosted step below is as its own guide gives it.
+**No hosted run has fetched a file or built London, and nothing has been deployed.** The two steps added here were driven on the receipts this repository holds, and on two builds of London made outside a hosted run, of two versions of the catalogue. Every hosted step below is as its own guide gives it.
 
 ## 0. In short
 
@@ -103,31 +103,42 @@ uv run python -m burro_pipeline take --release lon-2026-10-02-01 --approved FOLD
 uv run python -m burro_pipeline moved data/releases/before/lon-2026-09-25-01 data/releases/look/lon-2026-10-02-01 --out data/releases/moved
 ```
 
+**The two builds need not be of one catalogue.** `moved` reads each by its own, so it says what moved after a measure or a vibe was added or a recipe was changed, which is when it is most needed. It refuses only a release it cannot read, and says the rule in words: one of a catalogue that is newer than the code the step is run from, one that does not hold together, and one that was changed since it was built. So run it from a working copy that is as new as the newer build.
+
 `moved` prints counts, and ends with one line for the whole:
 
 ```
-step=moved feature=private_outdoor_space came=1
-step=moved vibe=homes areas=1002 changed=202 up=101 down=101 gained=0 lost=0
-step=moved source=gla-high-street-boundaries changed=0 came=1 went=0
+step=moved feature=highstreet_conserved came=1
+step=moved vibe=village_feel areas=1002 changed=0 up=0 down=0 gained=925 lost=0
+step=moved vibe=village_feel parts_came=2 parts_went=3 shares_changed=2 names_changed=0 rough_came=1 rough_went=0
 step=moved search=1 kept=10 came=0 went=0 reordered=0
-step=moved status=ok before=lon-2026-09-25-01 after=lon-2026-09-25-51 areas=1002 areas_came=0 areas_went=0 areas_renamed=0 areas_redrawn=0 measures=99 measures_came=1 measures_went=0 measures_moved=0 vibes=14 vibes_came=0 vibes_went=0 vibes_moved=1 costs_moved=0 files_changed=0 files_came=1 files_went=0 searches=3 searches_moved=0
+step=moved search=2 kept=10 came=0 went=0 reordered=0
+step=moved search=3 kept=4 came=6 went=6 reordered=3
+step=moved status=ok before=lon-2026-09-25-73 after=lon-2026-09-25-82 catalogue_before=13 catalogue_after=14 areas=1002 areas_came=0 areas_went=0 areas_renamed=0 areas_redrawn=0 measures=100 measures_came=1 measures_went=0 measures_moved=0 vibes=14 vibes_came=0 vibes_went=0 vibes_moved=1 costs_moved=0 files_changed=0 files_came=0 files_went=0 searches=3 searches_moved=1 parts_came=2 parts_went=3 shares_changed=2 names_changed=0 rough_came=1 rough_went=0
 ```
 
-Those are the lines of the two builds of 2026-09-25. Then read `data/releases/moved/moved.md`, which names the areas that moved most, or see the same at the panel:
+Those are the lines of two builds of 2026-09-25, one of catalogue version 13 and one of version 14. They say that one measure came, that Village feel gained a band in 925 areas and lost none, that its recipe gained two parts, lost three and holds two at other shares, that it became a rough guide, and that the third search, which asks for Village feel, has other areas among its first ten. No figure of any measure that both builds carry moved, and no file behind the builds is another file.
+
+Then read `data/releases/moved/moved.md`, which says each part of a recipe that came or went by its name, and names the areas that moved most, or see the same at the panel:
 
 ```
 make desk RELEASE=data/releases/look/lon-2026-10-02-01 BEFORE=data/releases/before/lon-2026-09-25-01
 ```
 
-and open the screen **What moved**. What is written names areas and gives figures of them: never commit it, and remove the three folders when you have read it.
+and open the screen **What moved**. The release the panel shows is the newer build, which the code serves, and the older is the one it is held against: the panel shows no release of another catalogue than its own. What is written names areas and gives figures of them: never commit it, and remove the three folders when you have read it.
 
 | Read | For |
 |---|---|
+| `catalogue_before`, `catalogue_after` | The version of the catalogue each build was made under. Where the two differ, read the part of `moved.md` on the catalogue first: it is why the rest moved |
+| `parts_came`, `parts_went`, `shares_changed` | A recipe that is made of other parts, or of the same parts at other shares. Every band of that vibe may move with it |
+| `names_changed` | A measure or a vibe that people will find under another name. What is printed counts it, and `moved.md` says what the name was and is |
+| `rough_came`, `rough_went` | A vibe that became a rough guide, or ceased to be one. A rough guide says so wherever it is shown, and is on a result only where it was asked for |
+| A vibe with many `gained` | A vibe that places areas it did not place. With `changed=0` no area that had a band has another |
 | `measures_went`, `vibes_went` | A measure or a vibe that people will no longer find. The lock names the rule that left it out |
 | `areas_came`, `areas_went`, `areas_renamed`, `areas_redrawn` | Each should be nought unless the names or the borders were meant to change |
 | A measure with many `lost` | A publisher's file that no longer covers what it did |
 | `files_changed` | That every file you meant to refresh is another file, and no other |
-| `searches_moved` | The first ten of each search, side by side. It is the nearest thing to what a person will see |
+| `searches_moved` | The first ten of each search, side by side. It is the nearest thing to what a person will see. A search is ranked on each build by what that build holds: where it asks for a vibe that one build does not place, `moved.md` says of which build, and the search is ranked without it there |
 
 ## 7. Approve, and 8. Deploy
 
@@ -151,7 +162,7 @@ Nothing runs on a clock, and nothing starts by itself. **Every step above is sta
 | Saving four files in a browser | Their publishers give them from a form |
 | Bringing the receipts back, and committing them | No workflow may write to the repository |
 | Starting and approving each run | A job that is given a key waits for you, by design |
-| Taking two releases, and running `moved` | A run may show counts and no name, and the run that builds holds no release to compare with |
+| Taking two releases, and running `moved` | A run may show counts and no name, and the run that builds holds no release to compare with. |
 | Committing the lock, and deploying | To approve is yours alone, and no workflow may install the host's program |
 | A fetch that found nothing new | It leaves no record, so the file stays due. Note it yourself |
 | The names a person decided | A hosted build makes its own draft of names from the store, and reads no decision of the desk |
@@ -179,4 +190,4 @@ Of the 99 measures of the build of 2026-09-25, 59 rest on a file that changes mo
 | A name that changed | `areas_renamed` above nought | Every name is a draft until a person has checked it. Read each at the desk |
 | The address of a file | The fetch ends `status=failed` or `status=refused why=18` | Item 2 of step 2 |
 | A series that ended | The fetch ends `status=failed`, with what the publisher answered after `http=`, or the page names no newer edition | Begin the entry's `cadence` with `Frozen`, and decide whether the measure stays |
-| Figures that did not change, in bands that did | `vibes_moved` with no measure moved | A band is a place among London's areas. One area's new figure moves the band of others |
+| Figures that did not change, in bands that did | `vibes_moved` with no measure moved | A band is a place among London's areas. One area's new figure moves the band of others. Where `parts_came`, `parts_went` or `shares_changed` is above nought it is the recipe that changed, and the publisher changed nothing |
