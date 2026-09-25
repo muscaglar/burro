@@ -740,7 +740,62 @@ export const MOST_SHOWN = 5;
 
 function builtRow(one) {
   const kind = one.synthetic ? 'The made-up city' : one.preview ? 'A preview' : 'A finished release';
-  return [one.release_id, one.built_at.slice(0, 10), kind, number(one.areas), number(one.measures), number(one.vibes)];
+  return [one.release_id, one.built_at.slice(0, 10), kind, number(one.areas), number(one.measures), number(one.vibes), String(one.catalogue_version)];
+}
+
+// What a name of a vibe or of a measure is, and the end a part of a recipe is read from.
+const NAMED = { label: 'Its label', short_label: 'Its short label', low_end: 'The name of its low end', high_end: 'The name of its high end' };
+const ENDS = { high: 'read from its high end', low: 'read from its low end' };
+
+// What changed of the recipe of one vibe between the two catalogues: the parts that came
+// and went, and the shares that changed. A vibe that is a rough guide says so here too.
+function recipeOf(one, rough) {
+  const rows = [
+    ...one.parts_came.map((part) => [part.label, part.id, '', String(part.share), `Came, ${ENDS[part.reading]}`]),
+    ...one.parts_went.map((part) => [part.label, part.id, String(part.share), '', `Went, ${ENDS[part.reading]}`]),
+    ...one.shares.map((part) => [part.label, part.id, String(part.was), String(part.now), 'Its share changed']),
+  ];
+  const became = one.rough.was === one.rough.now ? null : h('p', {}, `${one.label} ${one.rough.now ? 'became a rough guide' : 'is no longer a rough guide'}.`);
+  return [
+    h('h3', {}, link('vibe', one.id, `${one.label}: its recipe`)),
+    roughWords(rough[one.id]),
+    became,
+    table(['Part', 'Id', 'Its share was', 'Its share is', 'What changed'], rows, 'No part of its recipe came, went or changed its share.'),
+  ];
+}
+
+// What came and went of the catalogue itself, as the step `moved` found it: the version
+// on each side, the names and the labels that changed, and the recipes that changed.
+function catalogueOf(found, rough) {
+  const { catalogue, measures, vibes } = found;
+  const versions = catalogue.before === catalogue.after ? `version ${catalogue.before} in both` : `version ${catalogue.before} before, and version ${catalogue.after} after`;
+  const head = h('h2', {}, `The catalogue: ${versions}`);
+  const counts = [measures.came, measures.went, vibes.came, vibes.went].map((rows) => rows.length);
+  if (!counts.some(Boolean) && !catalogue.measures.length && !catalogue.vibes.length) {
+    return [head, h('p', { class: 'none' }, 'Nothing of the catalogue changed between the two.')];
+  }
+  const names = [...catalogue.measures.map((one) => ['measure', one]), ...catalogue.vibes.map((one) => ['vibe', one])].flatMap(([view, one]) =>
+    one.names.map((name) => [link(view, one.id, one.label), one.id, NAMED[name.what], name.was || '', name.now || '']),
+  );
+  return [
+    head,
+    h('p', {}, `Measures: ${number(counts[0])} came, and ${number(counts[1])} went. Vibes: ${number(counts[2])} came, and ${number(counts[3])} went. Each is named below.`),
+    h('h3', {}, `Names and labels that changed: ${number(names.length)}`),
+    table(['Measure or vibe', 'Id', 'What changed', 'Was', 'Is'], names, 'None.'),
+    catalogue.vibes.map((one) => recipeOf(one, rough)),
+  ];
+}
+
+// What a search could not be ranked on. What is so of one release alone says of which: a
+// search is ranked on each release by what that release holds.
+function notesOf(search) {
+  const was = [...new Set(search.before.notes)];
+  const now = [...new Set(search.after.notes)];
+  return [
+    ...was.filter((words) => now.includes(words)),
+    ...was.filter((words) => !now.includes(words)).map((words) => `Before: ${words}`),
+    ...now.filter((words) => !was.includes(words)).map((words) => `After: ${words}`),
+  ];
 }
 
 function stepsOf(one, unit) {
@@ -782,7 +837,7 @@ export function viewWhatMoved(data) {
       const now = search.after.first[at];
       rows.push([String(at + 1), was ? `${was.name}, ${was.borough}` : '', now ? `${now.name}, ${now.borough}` : '']);
     }
-    const notes = [...new Set([...search.before.notes, ...search.after.notes])];
+    const notes = notesOf(search);
     const same = search.same ? 'The first ten are the same, in the same order.' : `The first ten differ: ${number(search.kept)} stayed, ${number(search.came)} came and ${number(search.went)} went, and ${number(search.reordered)} of those that stayed stand at another place.`;
     return [
       h('h3', {}, search.name),
@@ -795,8 +850,9 @@ export function viewWhatMoved(data) {
   return [
     h('h1', {}, 'What moved'),
     h('p', {}, `Between ${found.before.release_id} and ${found.after.release_id}, which is the release that is shown.`),
-    table(['Release', 'Built on', 'Kind', 'Areas', 'Measures', 'Vibes'], [builtRow(found.before), builtRow(found.after)], ''),
+    table(['Release', 'Built on', 'Kind', 'Areas', 'Measures', 'Vibes', 'Catalogue'], [builtRow(found.before), builtRow(found.after)], ''),
     h('p', { class: 'rule' }, 'Nothing here approves a build. To approve one is to commit its lock.'),
+    catalogueOf(found, rough),
     h('h2', {}, `Areas: ${number(areas.came.length)} came, and ${number(areas.went.length)} went`),
     h('p', {}, `${number(areas.same)} areas are in both. ${number(areas.renamed.length)} bear another name, and ${number(areas.redrawn.length)} another outline.`),
     areas.came.length ? [h('h3', {}, 'Areas that came'), table(['Area', 'Borough'], areas.came.map((row) => place(row)), '')] : null,

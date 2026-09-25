@@ -39,6 +39,11 @@ held to these rules:
    The lock of a release is shown only once the release is kept. No step that
    compares, keeps or shows is ever left out of a run. A job holds no key that no
    step of it reads.
+10. In a job that holds a key of a store, a tool of this folder runs with no
+    public log before it only where it is on a list written here, by its name
+    and what it does. Such a job reads what is real, so a traceback of a tool
+    it runs could hold the name of a place or a figure. Each on the list ends
+    on a line whatever goes wrong, and a test holds it to that.
 
 No other workflow may name a secret or an environment of a data workflow.
 
@@ -179,6 +184,17 @@ LOCK_TOOL = "release_lock.py"
 COMPARES, SHOWS = "compare", "show"
 # Under which name the step that compares is given the lock of the other build.
 OTHER_BUILD = "COPY_A"
+# The tools a job that holds a key of a store may run with no public log before them, by
+# what each does. They write to the run's outputs and its summary, which a step behind
+# the public log is not told of. What such a tool prints is what the log of the run
+# holds, and it reads a release of real places: so each ends on a line whatever goes
+# wrong, and never on a traceback. tools/tests/test_release_lock.py holds each to that. A
+# step is added here in the change that adds its test, which a person reads.
+NEVER_A_TRACEBACK: Mapping[str, frozenset[str]] = {
+    LOCK_TOOL: frozenset({"hash", COMPARES, SHOWS}),
+}
+# What a tool does, as a command names it: one plain word.
+DOES = re.compile(r"[a-z][a-z-]*")
 # What these print holds names from a file's own layout. No run shows it, and none runs them.
 FOR_A_PERSONS_OWN_MACHINE = frozenset({"describe"})
 MASK = f"{PUBLIC_LOG} mask"
@@ -560,6 +576,7 @@ def _of_a_job(job: dict[str, Node], known: _Known) -> Iterator[str]:
         yield "`steps` must be a list of steps"
     yield from _of_the_order(steps)
     yield from _of_the_install(steps)
+    yield from _of_what_no_log_guards(steps)
     for step in steps:
         for key in sorted(set(step) - STEP_KEYS):
             yield f"a step may not hold `{key}`"
@@ -580,6 +597,35 @@ def _of_the_install(steps: list[dict[str, Node]]) -> Iterator[str]:
     first = next((n for n, run in enumerate(runs) if f"{AS_INSTALLED} " in run), None)
     if first is not None and INSTALL not in runs[:first]:
         yield "runs a command of the project before it installs"
+
+
+def _of_what_no_log_guards(steps: list[dict[str, Node]]) -> Iterator[str]:
+    """In a job that holds a key of a store, a tool that runs with no public log before it
+    is one of the list of those that never print a traceback.
+
+    A job holds a key where a step of it is given a secret and the secrets are not made
+    up. Only such a job reads a store, so only in one can a release of real places be.
+    """
+    runs = [str(step.get("run", "")) for step in steps]
+    given = [value for step in steps for value in _strings(_map(step.get("env")))]
+    if MASK_MADE_UP in runs or not any(SECRET.fullmatch(value) for value in given):
+        return
+    for run in runs:
+        tool = TOOL.fullmatch(run)
+        if tool is None or tool[1] == "public_log.py":
+            continue
+        words = run.split()
+        # What a tool does is its first word, where that is a plain one: any other is
+        # what the tool was handed, which is no part of its name.
+        after = words[words.index(f"tools/{tool[1]}") + 1 :][:1]
+        does = [word for word in after if DOES.fullmatch(word)]
+        if not does or does[0] not in NEVER_A_TRACEBACK.get(tool[1], ()):
+            yield (
+                f"`{' '.join([tool[1], *does])}` is not on the list of the tools that never "
+                "print a traceback, and runs with no public log before it in a job that "
+                "holds a key of a store: run it behind tools/public_log.py, or add it to "
+                "the list with the test that holds it"
+            )
 
 
 def _of_the_order(steps: list[dict[str, Node]]) -> Iterator[str]:

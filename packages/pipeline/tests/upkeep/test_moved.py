@@ -15,6 +15,7 @@ from typing import Any
 
 import public_log
 import pytest
+from burro_core.catalogue import CATALOGUE_VERSION as VERSION
 from burro_core.ids import FeatureId
 from burro_pipeline import cli
 from burro_pipeline.derive import air_no2
@@ -115,6 +116,7 @@ def found(two: Two) -> dict[str, Any]:
 def test_a_build_held_against_itself_has_moved_nothing(two: Two):
     same = moved.open_build(two.before.out / BEFORE)
     found = moved.compare(same, same, searches=read_searches(SEARCHES, REPOSITORY))
+    assert found["catalogue"] == {"before": VERSION, "after": VERSION, "measures": [], "vibes": []}
     counts = moved.counted(found)
     assert {key: count for key, count in counts.items() if count} == {
         "areas": 3,
@@ -411,10 +413,12 @@ def test_the_step_prints_counts_and_never_an_area(two: Two, capsys: Printed, tmp
         "step=moved search=1 kept=3 came=0 went=0 reordered=2",
         "step=moved search=2 kept=3 came=0 went=0 reordered=2",
         "step=moved search=3 kept=3 came=0 went=0 reordered=2",
-        f"step=moved status=ok before={BEFORE} after={AFTER} areas=3 areas_came=0 "
+        f"step=moved status=ok before={BEFORE} after={AFTER} catalogue_before={VERSION} "
+        f"catalogue_after={VERSION} areas=3 areas_came=0 "
         "areas_went=0 areas_renamed=0 areas_redrawn=0 measures=23 measures_came=0 "
         "measures_went=1 measures_moved=1 vibes=14 vibes_came=0 vibes_went=0 vibes_moved=1 "
-        "costs_moved=0 files_changed=1 files_came=0 files_went=1 searches=3 searches_moved=3",
+        "costs_moved=0 files_changed=1 files_came=0 files_went=1 searches=3 searches_moved=3 "
+        "parts_came=0 parts_went=0 shares_changed=0 names_changed=0 rough_came=0 rough_went=0",
     ]
     assert all(public_log.is_public(line) for line in lines)
     assert out.err == ""
@@ -464,27 +468,28 @@ def test_what_it_writes_is_never_written_where_git_would_take_it_in(
 
 
 @pytest.mark.parametrize("which", [0, 1])
-def test_a_release_that_would_not_be_served_is_not_compared(
+def test_a_release_that_cannot_be_read_is_not_compared(
     two: Two, capsys: Printed, tmp_path: Path, which: int
 ):
     folders = list(two.folders)
     folders[which] = str(tmp_path / "lon-2026-09-23-09")
     assert main(["moved", *folders, "--root", str(REPOSITORY)]) == 2
     out = capsys.readouterr()
-    assert out.out == "" and "would not be served" in out.err
+    assert out.out == "" and "a release cannot be read" in out.err
     assert out.err.count("\n") == 1
 
 
 def test_a_release_with_no_lock_beside_it_is_not_compared(
     two: Two, capsys: Printed, tmp_path: Path
 ):
-    """A release that is served was opened with the folder of its build, so a lock that
-    cannot be read is one that was changed since."""
+    """A release is read with the folder of its build, and held to the hashes there, so a
+    lock that cannot be read is one that was changed since."""
     copied = tmp_path / "copy"
     shutil.copytree(two.before.out, copied)
     (copied / f"{BEFORE}-build" / "lock.json").write_text("{}", encoding="utf-8")
     assert main(["moved", str(copied / BEFORE), two.folders[1], "--root", str(REPOSITORY)]) == 2
-    assert "would not be served" in capsys.readouterr().err
+    said = capsys.readouterr().err
+    assert "a release cannot be read" in said and "[build_is_as_it_was_written]" in said
 
 
 def test_two_releases_of_two_cities_are_not_compared(two: Two, capsys: Printed):

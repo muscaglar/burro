@@ -48,6 +48,7 @@ def _build(one: Mapping[str, Any]) -> list[object]:
         one["areas"],
         one["measures"],
         one["vibes"],
+        one["catalogue_version"],
     ]
 
 
@@ -80,6 +81,68 @@ def _file(one: Mapping[str, Any]) -> list[object]:
 
 
 FILE = ("Source", "List", "Item", "Edition", "Period", "File")
+
+
+# What a name of a vibe or of a measure is, in words.
+NAMED = {
+    "label": "Its label",
+    "short_label": "Its short label",
+    "low_end": "The name of its low end",
+    "high_end": "The name of its high end",
+}
+ENDS = {"high": "read from its high end", "low": "read from its low end"}
+
+
+def _recipe(one: Mapping[str, Any]) -> list[str]:
+    """What changed of the recipe of one vibe: the parts that came and went, and the
+    shares that changed."""
+    rows = [
+        *(
+            [p["label"], p["id"], "", p["share"], f"Came, {ENDS[p['reading']]}"]
+            for p in one["parts_came"]
+        ),
+        *(
+            [p["label"], p["id"], p["share"], "", f"Went, {ENDS[p['reading']]}"]
+            for p in one["parts_went"]
+        ),
+        *([p["label"], p["id"], p["was"], p["now"], "Its share changed"] for p in one["shares"]),
+    ]
+    rough = one["rough"]
+    said = [f"### {one['label']}: its recipe", ""]
+    if rough["was"] != rough["now"]:
+        how = "became a rough guide" if rough["now"] else "is no longer a rough guide"
+        said += [f"{one['label']} {how}.", ""]
+    head = ("Part", "Id", "Its share was", "Its share is", "What changed")
+    return said + _table(head, rows, "No part of its recipe came, went or changed its share.")
+
+
+def _catalogue(found: Mapping[str, Any]) -> list[str]:
+    """What came and went of the catalogue itself."""
+    catalogue, measures, vibes = found["catalogue"], found["measures"], found["vibes"]
+    was, now = catalogue["before"], catalogue["after"]
+    versions = (
+        f"version {was} in both" if was == now else f"version {was} before, and version {now} after"
+    )
+    said = [f"## The catalogue: {versions}", ""]
+    came_or_went = [len(of[how]) for of in (measures, vibes) for how in ("came", "went")]
+    if not (any(came_or_went) or catalogue["measures"] or catalogue["vibes"]):
+        return [*said, "Nothing of the catalogue changed between the two.", ""]
+    said += [
+        "Measures: {} came, and {} went. Vibes: {} came, and {} went. Each is named below.".format(
+            *came_or_went
+        ),
+        "",
+    ]
+    names = [
+        [one["label"], one["id"], NAMED[name["what"]], name["was"] or "", name["now"] or ""]
+        for one in (*catalogue["measures"], *catalogue["vibes"])
+        for name in one["names"]
+    ]
+    said += [f"### Names and labels that changed: {len(names)}", ""]
+    said += _table(("Measure or vibe", "Id", "What changed", "Was", "Is"), names, "None.")
+    for one in catalogue["vibes"]:
+        said += _recipe(one)
+    return said
 
 
 def _measures(found: Mapping[str, Any]) -> list[str]:
@@ -147,6 +210,17 @@ def _vibes(found: Mapping[str, Any]) -> list[str]:
     return said
 
 
+def _notes(was: Sequence[str], now: Sequence[str]) -> list[str]:
+    """What a search could not be ranked on. What is so of one build alone says of which:
+    a search is ranked on each build by what that build holds."""
+    of_both = [words for words in dict.fromkeys(was) if words in now]
+    return [
+        *(f"- {words}" for words in of_both),
+        *(f"- Before: {words}" for words in dict.fromkeys(was) if words not in now),
+        *(f"- After: {words}" for words in dict.fromkeys(now) if words not in was),
+    ]
+
+
 def _searches(found: Mapping[str, Any]) -> list[str]:
     said = [f"## The first ten areas of {len(found['searches'])} searches", ""]
     for one in found["searches"]:
@@ -160,7 +234,7 @@ def _searches(found: Mapping[str, Any]) -> list[str]:
             )
         )
         said += [f"### {one['name']}", "", one["read_as"], ""]
-        said += [f"- {words}" for words in dict.fromkeys([*was["notes"], *now["notes"]])]
+        said += _notes(was["notes"], now["notes"])
         said += [
             f"- Before, {was['ranked']} areas were ranked and {was['left_out']} left out by a "
             f"firm limit. After, {now['ranked']} and {now['left_out']}.",
@@ -189,8 +263,9 @@ def page(found: Mapping[str, Any]) -> str:
         "committed.",
         "",
     ]
-    head = ("Release", "Built at", "Commit", "Kind", "Areas", "Measures", "Vibes")
+    head = ("Release", "Built at", "Commit", "Kind", "Areas", "Measures", "Vibes", "Catalogue")
     said += _table(head, [_build(before), _build(after)], "")
+    said += _catalogue(found)
     said += [f"## Areas: {len(areas['came'])} came, {len(areas['went'])} went", ""]
     for how in ("came", "went", "redrawn"):
         said += [

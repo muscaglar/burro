@@ -13,7 +13,9 @@ from pathlib import Path
 import pytest
 from check_data_workflows import (
     BEHIND,
+    LOCK_TOOL,
     NAMES_GIVEN,
+    NEVER_A_TRACEBACK,
     STEPS_OF_A_RUN,
     commands_of,
     pinned_in,
@@ -250,6 +252,92 @@ def test_a_step_that_compares_keeps_or_shows_is_never_left_out_of_a_run(name: st
     left_out = one.replace(named, f"{named}        if: inputs.release == ''\n")
     rule = f"second: the step that {does}s a release is never left out of a run"
     assert breaks(changed(one, left_out), rule)
+
+
+# What no public log guards
+
+# What is said of a tool that a job with a key runs bare, and that is on no list.
+NOT_GUARDED = "is not on the list of the tools that never print a traceback"
+
+
+def bare(text: str) -> list[tuple[str, str]]:
+    """Every tool a job that is given a key runs with no public log before it: its job,
+    and the tool with what it does."""
+    found: list[tuple[str, str]] = []
+    jobs = read_workflow(text)["jobs"]
+    assert isinstance(jobs, dict)
+    for name, job in jobs.items():
+        assert isinstance(job, dict) and isinstance(job["steps"], list)
+        runs = [str(one.get("run", "")) for one in job["steps"] if isinstance(one, dict)]
+        if not any(" secrets." in str(one) for one in job["steps"]):
+            continue
+        for run in runs:
+            tool = re.search(r" python tools/([a-z_]+\.py) ([a-z-]+)", run)
+            if tool is not None and tool[1] != "public_log.py":
+                found.append((name, f"{tool[1]} {tool[2]}"))
+    return found
+
+
+def test_the_three_steps_no_public_log_guards_are_the_three_on_the_list():
+    """They write to the run's outputs and its summary, which a step behind the public
+    log is not told of. So each is a program that never prints a traceback."""
+    assert bare(text_of()) == [
+        ("first", f"{LOCK_TOOL} hash"),
+        ("second", f"{LOCK_TOOL} compare"),
+        ("second", f"{LOCK_TOOL} show"),
+    ]
+    assert dict(NEVER_A_TRACEBACK) == {LOCK_TOOL: frozenset({"hash", "compare", "show"})}
+    for name in (HASH, COMPARE, SHOW):
+        assert "tools/public_log.py" not in step(name)
+
+
+def test_a_command_of_the_lock_tool_that_is_on_no_list_is_refused():
+    """The tool holds an image to its lock too. No run does that, so no list names it."""
+    shown = 'tools/release_lock.py show "$RUNNER_TEMP/releases"'
+    text = changed(shown, shown.replace(" show ", " carried "))
+    assert breaks(text, f"second: `{LOCK_TOOL} carried` {NOT_GUARDED}")
+    read = changed(f'{shown} "$RELEASE"', "tools/release_lock.py read data/approved/x.json")
+    assert breaks(read, f"second: `{LOCK_TOOL} read` {NOT_GUARDED}")
+
+
+@pytest.mark.parametrize(
+    "run",
+    [
+        'uv run --no-project python tools/same_manifest.py hash "$RUNNER_TEMP/releases"',
+        "uv run --no-project python tools/same_manifest.py compare",
+        "uv run --no-sync python tools/canary.py plant",
+        "uv run --no-project python tools/check_public_only.py",
+    ],
+)
+@pytest.mark.parametrize("after", [HASH, SHOW])
+def test_another_tool_is_run_with_no_public_log_in_no_job_that_holds_a_key(run: str, after: str):
+    """A later step of the kind is added with its test, or behind the public log."""
+    one = step(after)
+    more = f"{one}      - name: One more\n        run: {run}\n"
+    job = "first" if after == HASH else "second"
+    tool = run.split("tools/")[1].removesuffix(' "$RUNNER_TEMP/releases"')
+    assert breaks(changed(one, more), f"{job}: `{tool}` {NOT_GUARDED}")
+
+
+def test_a_job_that_holds_no_key_may_run_a_tool_that_is_on_no_list():
+    """A build of the made-up city reads nothing real, and its job holds made-up secrets."""
+    for workflow in ("data-build.yml", "data-travel.yml"):
+        path = WORKFLOWS / workflow
+        text = text_of(path)
+        assert "tools/same_manifest.py hash" in text and "public_log.py mask --made-up" in text
+        assert not [problem for problem in problems(text, path) if NOT_GUARDED in problem]
+    # The job that checks the rules of this workflow holds no secret at all.
+    assert "first: " in " ".join(
+        problems(changed("tools/release_lock.py hash a", "tools/canary.py plant"))
+    )
+    assert not breaks(text_of(), NOT_GUARDED)
+
+
+def test_a_tool_on_the_list_may_not_be_moved_behind_the_key_of_another_name():
+    """The list is of a tool and what it does: a tool of another name that does the same
+    is another program, which no test holds."""
+    text = changed("tools/release_lock.py hash a", "tools/same_manifest.py hash a")
+    assert breaks(text, f"first: `same_manifest.py hash` {NOT_GUARDED}")
 
 
 # What a person decided at the panel

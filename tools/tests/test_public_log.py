@@ -207,6 +207,26 @@ def test_a_build_is_named_before_and_after_by_the_id_of_its_release_alone():
     assert not is_public(f"step=moved status=ok after={ROW}")
 
 
+def test_what_changed_of_the_catalogue_is_a_version_and_a_count_and_never_a_name():
+    """A name or a label that changed is words that a catalogue held. It is counted."""
+    assert is_public(
+        "step=moved vibe=village_feel parts_came=2 parts_went=3 shares_changed=2 "
+        "names_changed=0 rough_came=1 rough_went=0"
+    )
+    assert is_public("step=moved feature=air_no2 names_changed=1")
+    assert is_public(
+        "step=moved status=ok before=lon-2026-09-25-01 after=lon-2026-10-02-01 "
+        "catalogue_before=13 catalogue_after=14"
+    )
+    for line in (
+        "step=moved catalogue_before=thirteen",
+        f"step=moved vibe=leafy names_changed={ROW}",
+        "step=moved vibe=leafy was=Leafy now=Green",
+        "step=moved vibe=leafy parts_came=highstreet_conserved",
+    ):
+        assert not is_public(line), line
+
+
 def test_a_measure_is_named_by_its_id_in_cores_catalogue_and_by_nothing_else():
     from burro_core.ids import FeatureId
 

@@ -275,21 +275,18 @@ GIT = _where_git_is()
 def git(root: Path, *words: str) -> str:
     """Run git in a folder of a test, as a made-up person, and give what it printed.
 
-    It reads no settings of the machine or of the person who runs the tests,
-    so that a commit is never signed and never bears a real name.
+    It reads no settings of the machine or of the person who runs the tests, so that a
+    commit is never signed and never bears a real name. And it does no upkeep of its own,
+    so that nothing writes in a repository once git has answered. `conftest.py` at the
+    root sees to both, in the environment of every git that a test starts: what the run
+    itself was started with for git is dropped there, and is not handed on here.
 
     The tests run git some hundred times, from a process that has grown large. Left to
     close every file it holds first, Python copies that whole process to start each
     one. Python opens no file that a program it starts is given, so there is nothing
     to close, and git is started without the copy.
     """
-    # What git would take from the run it is started in: another repository, or its index.
-    of_the_run = {name: held for name, held in os.environ.items() if not name.startswith("GIT_")}
-    apart = of_the_run | {
-        "GIT_CONFIG_GLOBAL": os.devnull,
-        "GIT_CONFIG_SYSTEM": os.devnull,
-        "GIT_CONFIG_NOSYSTEM": "1",
-        "GIT_TERMINAL_PROMPT": "0",
+    apart = os.environ | {
         "GIT_AUTHOR_NAME": "A made-up person",
         "GIT_AUTHOR_EMAIL": "made-up@example.org",
         "GIT_AUTHOR_DATE": "2026-09-23T00:00:00Z",

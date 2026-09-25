@@ -10,6 +10,11 @@ up is served only with what it was built with: the hashes of the build, its
 evidence and its lock, in the folder beside it. It hands their bytes to
 `open_served` in core, as the API does.
 
+`read_built` reads a release as it was built, by its own catalogue, through
+`open_built` in core. It is for holding one build against another, and what it
+reads is never served: a release of another catalogue may hold what core no
+longer does.
+
 One file is left out and never read: the `.DS_Store` a Mac leaves in any folder
 that has been opened in a window. It is no part of a release and says nothing
 about one. Every other stray file is handed over, and refused.
@@ -25,6 +30,7 @@ from burro_core.release import (
     LOCK,
     InMemoryRelease,
     ReleaseError,
+    open_built,
     open_release,
     open_served,
 )
@@ -87,6 +93,9 @@ MEANING: Mapping[str, str] = {
     "changed since, or it is of another build",
     "changes_are_locked": "does not name the file of changes the release says it was built "
     "with, and no other: it is not there, or it names none, another or more than one",
+    # What `open_built` refuses for, of a release that is read by its own catalogue.
+    "versions_are_its_own": "has a schema version that this code does not read, or says "
+    "another version of the catalogue than the manifest of its release does",
     # What `write_release` refuses for.
     "real_release_needs_a_registry": "says the release is real, and a real release is written "
     "only with the licence registry to check its sources against",
@@ -146,6 +155,21 @@ def read_served(folder: Path) -> InMemoryRelease:
     files = _files_of(folder)
     try:
         return open_served(folder.resolve().name, files, _built_with(folder))
+    except ReleaseError as error:
+        raise UnreadableRelease(folder, error, missing=_is_missing(error, files)) from None
+
+
+def read_built(folder: Path) -> InMemoryRelease:
+    """The release in `folder`, as it was built: read by its own catalogue, and held to
+    what it was built with.
+
+    It is `read_served`, but that the release is held to its own catalogue and
+    not to core's of today. It is for holding one build against another. What
+    it gives back is never served.
+    """
+    files = _files_of(folder)
+    try:
+        return open_built(folder.resolve().name, files, _built_with(folder))
     except ReleaseError as error:
         raise UnreadableRelease(folder, error, missing=_is_missing(error, files)) from None
 

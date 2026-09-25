@@ -603,7 +603,24 @@ const WHAT_MOVED = {
   counts: { areas: 24 },
   moved: {
     before: { release_id: 'syn-2026-09-23-01', built_at: '2026-09-23T00:00:00Z', commit: null, synthetic: true, preview: false, catalogue_version: 13, areas: 24, measures: 107, vibes: 14 },
-    after: { release_id: 'syn-2026-10-02-01', built_at: '2026-10-02T09:00:00Z', commit: null, synthetic: true, preview: false, catalogue_version: 13, areas: 24, measures: 108, vibes: 14 },
+    after: { release_id: 'syn-2026-10-02-01', built_at: '2026-10-02T09:00:00Z', commit: null, synthetic: true, preview: false, catalogue_version: 14, areas: 24, measures: 108, vibes: 14 },
+    catalogue: {
+      before: 13,
+      after: 14,
+      measures: [{ id: 'air_no2', label: 'Modelled annual mean nitrogen dioxide', names: [{ what: 'label', was: 'Nitrogen dioxide, as it was', now: 'Modelled annual mean nitrogen dioxide' }] }],
+      vibes: [
+        {
+          id: 'homes', label: 'Houses or flats',
+          parts_came: [{ id: 'private_outdoor_space', label: 'Addresses with private outdoor space', share: 25, reading: 'low' }],
+          parts_went: [{ id: 'homes_post2000', label: 'Homes built since 2000', share: 20, reading: 'high' }],
+          shares: [{ id: 'homes_flats', label: 'Flats', was: 45, now: 40 }],
+          names: [{ what: 'label', was: 'Homes', now: 'Houses or flats' }, { what: 'low_end', was: 'Mostly houses', now: 'Houses' }],
+          rough: { was: false, now: false },
+        },
+        { id: 'village_feel', label: 'Village feel', parts_came: [], parts_went: [], shares: [], names: [], rough: { was: false, now: true } },
+        { id: 'leafy', label: 'Leafy', parts_came: [], parts_went: [], shares: [], names: [], rough: { was: true, now: false } },
+      ],
+    },
     areas: {
       same: 23,
       came: [PLACE('syn-n0024', 'Yarrowfield')],
@@ -695,6 +712,69 @@ test('the screen of what moved says what came and went, and how far each measure
   ]) {
     assert.ok(said.includes(words), words);
   }
+});
+
+test('the table of the two builds says the catalogue of each', () => {
+  const said = textOf(viewWhatMoved(WHAT_MOVED));
+  assert.ok(said.includes('Release Built on Kind Areas Measures Vibes Catalogue'));
+  assert.ok(said.includes('syn-2026-09-23-01 2026-09-23 The made-up city 24 107 14 13'));
+  assert.ok(said.includes('syn-2026-10-02-01 2026-10-02 The made-up city 24 108 14 14'));
+});
+
+test('the screen of what moved says what came and went of the catalogue itself', () => {
+  const rough = { village_feel: { label: 'Rough guide', why: 'Of the areas it puts highest, about half read as villages to people.' } };
+  const said = textOf(viewWhatMoved({ ...WHAT_MOVED, rough }));
+  for (const words of [
+    'The catalogue: version 13 before, and version 14 after',
+    'Measures: 1 came, and 0 went. Vibes: 0 came, and 0 went. Each is named below.',
+    'Names and labels that changed: 3',
+    'Modelled annual mean nitrogen dioxide air_no2 Its label Nitrogen dioxide, as it was Modelled annual mean nitrogen dioxide',
+    'Houses or flats homes Its label Homes Houses or flats',
+    'Houses or flats homes The name of its low end Mostly houses Houses',
+    'Houses or flats: its recipe',
+    // A part that came had no share, and one that went has none: its cell is empty.
+    'Addresses with private outdoor space private_outdoor_space  25 Came, read from its low end',
+    'Homes built since 2000 homes_post2000 20  Went, read from its high end',
+    'Flats homes_flats 45 40 Its share changed',
+    'Village feel: its recipe Rough guide. Of the areas it puts highest, about half read as villages to people. Village feel became a rough guide. No part of its recipe came, went or changed its share.',
+    'Leafy: its recipe Leafy is no longer a rough guide.',
+  ]) {
+    assert.ok(said.includes(words), words);
+  }
+  // It stands before the areas, the figures and the bands: it is why they moved.
+  assert.ok(said.indexOf('The catalogue: version 13') < said.indexOf('Areas: 1 came, and 1 went'));
+});
+
+test('a measure and a vibe of the catalogue that changed each open their own screen', () => {
+  const links = every(viewWhatMoved(WHAT_MOVED), (node) => node.tag === 'a').map((node) => `${node.attrs.href} ${textOf(node)}`);
+  for (const link of ['#/measure/air_no2 Modelled annual mean nitrogen dioxide', '#/vibe/homes Houses or flats', '#/vibe/homes Houses or flats: its recipe', '#/vibe/village_feel Village feel: its recipe']) {
+    assert.ok(links.includes(link), link);
+  }
+});
+
+test('two builds of one catalogue say that nothing of it changed', () => {
+  const still = {
+    ...WHAT_MOVED.moved,
+    after: { ...WHAT_MOVED.moved.after, catalogue_version: 13 },
+    catalogue: { before: 13, after: 13, measures: [], vibes: [] },
+    measures: { same: 108, came: [], went: [], moved: [] },
+    vibes: { same: 14, came: [], went: [], moved: [] },
+  };
+  const said = textOf(viewWhatMoved({ synthetic: true, moved: still }));
+  assert.ok(said.includes('The catalogue: version 13 in both Nothing of the catalogue changed between the two.'));
+  assert.ok(!said.includes('Names and labels that changed'));
+  // A measure that came is of the catalogue, whatever its version.
+  const came = textOf(viewWhatMoved({ synthetic: true, moved: { ...still, measures: WHAT_MOVED.moved.measures } }));
+  assert.ok(came.includes('The catalogue: version 13 in both Measures: 1 came, and 0 went.'));
+});
+
+test('what a search was ranked without says on which of the two releases', () => {
+  const gone = 'Village feel is not in this release, so the search is ranked without it.';
+  const other = 'Quiet streets is not in this release, so the search is ranked without it.';
+  const search = { ...WHAT_MOVED.moved.searches[0], before: { ...FIRST_TEN(['Alderwick']), notes: [gone, other] }, after: { ...FIRST_TEN(['Alderwick']), notes: [gone, 'The release names no place.'] } };
+  const said = textOf(viewWhatMoved({ synthetic: true, moved: { ...WHAT_MOVED.moved, searches: [search] } }));
+  assert.ok(said.includes(`${gone} Before: ${other} After: The release names no place.`));
+  assert.ok(!said.includes(`Before: ${gone}`) && !said.includes(`After: ${gone}`));
 });
 
 test('of the areas that moved most on a measure, the first five are shown', () => {
@@ -989,11 +1069,12 @@ test('a vibe that is a rough guide says so beside its name wherever the panel na
   const vibe = { ...VIBE, vibe: { ...VIBE.vibe, id: 'village_feel', label: 'Village feel', shape: 'one_way', rough: ROUGH } };
   const moved = { ...WHAT_MOVED, rough: { village_feel: ROUGH }, moved: { ...WHAT_MOVED.moved, vibes: { ...WHAT_MOVED.moved.vibes, came: [{ id: 'village_feel', label: 'Village feel' }], moved: [...WHAT_MOVED.moved.vibes.moved, { ...WHAT_MOVED.moved.vibes.moved[0], id: 'village_feel', label: 'Village feel' }] } } };
   // Once where every vibe is listed, once in the audit of an area, once on its own screen,
-  // and on the screen of what moved once where it came and once where its bands moved.
+  // and on the screen of what moved once where the catalogue changed of it, once where it
+  // came and once where its bands moved.
   assert.equal(timesSaid(VIEWS.vibes(home)), 1);
   assert.equal(timesSaid(VIEWS.area(area)), 1);
   assert.equal(timesSaid(VIEWS.vibe(vibe)), 1);
-  assert.equal(timesSaid(viewWhatMoved(moved)), 2);
+  assert.equal(timesSaid(viewWhatMoved(moved)), 3);
   // It follows the name of its vibe, and is drawn: nothing is pressed to read it.
   for (const trees of [VIEWS.vibes(home), VIEWS.area(area), VIEWS.vibe(vibe), viewWhatMoved(moved)]) {
     const said = textOf(trees);

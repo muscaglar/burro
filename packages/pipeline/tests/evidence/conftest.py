@@ -43,7 +43,24 @@ def made(tmp_path_factory: pytest.TempPathFactory) -> Path:
     return root
 
 
+def copy_of(repository: Path, to: Path) -> Path:
+    """A copy of a repository, but for the locks git holds in it.
+
+    Git makes a lock beside a file while it writes the file, and takes the lock away when
+    it is done. So a lock may be listed and then gone by the time it is read, and one that
+    is still there would stop git in the copy. A lock is no part of a repository: a copy
+    without it is whole. Any other file that is gone by the time it is read is still an
+    error, because the copy would not be the repository.
+    """
+
+    def locks(folder: str, names: list[str]) -> list[str]:
+        of_git = Path(folder).relative_to(repository).parts[:1] == (".git",)
+        return [name for name in names if of_git and name.endswith(".lock")]
+
+    return Path(shutil.copytree(repository, to, symlinks=True, ignore=locks))
+
+
 @pytest.fixture
 def repository(made: Path, tmp_path: Path) -> Path:
     """A copy of that repository, for one test to change."""
-    return shutil.copytree(made, tmp_path / "repository", symlinks=True)
+    return copy_of(made, tmp_path / "repository")

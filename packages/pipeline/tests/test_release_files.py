@@ -10,11 +10,13 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from burro_core.catalogue import CATALOGUE_VERSION
 from burro_core.release import (
     DATA_FILES,
     MANIFEST,
     NEIGHBOURHOODS,
     RULES,
+    RULES_OF_ITS_OWN,
     InMemoryRelease,
     ReleaseError,
     parse_release,
@@ -39,7 +41,7 @@ from burro_pipeline.release import (
     write_release,
 )
 from burro_pipeline.release.cli import main
-from burro_pipeline.release.read import IGNORED, MEANING
+from burro_pipeline.release.read import IGNORED, MEANING, read_built, read_served
 from burro_pipeline.release.synthetic import RELEASE_ID
 from burro_pipeline.release.write import packed
 
@@ -398,7 +400,7 @@ def test_every_refusal_core_can_make_has_a_meaning_in_plain_words():
         "release_id_matches_folder",
         "json_is_valid",
     }
-    rules = {getattr(rule, "__name__", "") for rule in RULES}
+    rules = {getattr(rule, "__name__", "") for rule in (*RULES, *RULES_OF_ITS_OWN)}
     when_writing = {
         "real_release_needs_a_registry",
         "release_is_never_overwritten",
@@ -406,6 +408,80 @@ def test_every_refusal_core_can_make_has_a_meaning_in_plain_words():
     }
     assert rules | beyond_the_rules | when_writing <= set(MEANING)
     assert all(meaning and meaning[0].islower() for meaning in MEANING.values())
+
+
+# A release of another catalogue, which is read by its own and never served
+
+
+def of_the_catalogue_before(folder: Path) -> Path:
+    """Write a release on disk again as a build under the catalogue before would have:
+    another version, a recipe of other shares, and no word of how sure a vibe is."""
+
+    def older(document: dict[str, Any]) -> None:
+        document["catalogue_version"] = CATALOGUE_VERSION - 1
+        for vibe in document.get("vibes", []):
+            del vibe["sureness"]
+            if vibe["tag_id"] == "leafy":
+                vibe["terms"][0]["hundredths"] += 5
+                vibe["terms"][1]["hundredths"] -= 5
+
+    changed(folder, "catalogue.json", older)
+    changed(folder, MANIFEST, older)
+    return folder
+
+
+def two_versions(folder: Path) -> None:
+    def another(document: dict[str, Any]) -> None:
+        document["catalogue_version"] = 1
+
+    changed(folder, "catalogue.json", another)
+
+
+def test_a_release_of_another_catalogue_is_read_by_its_own_and_is_not_served(tmp_path: Path):
+    folder = of_the_catalogue_before(on_disk(tmp_path))
+    for served in (read_release, read_served):
+        with pytest.raises(UnreadableRelease) as refused:
+            served(folder)
+        assert refused.value.rule == "versions_match"
+    release = read_built(folder)
+    assert release.manifest.catalogue_version == CATALOGUE_VERSION - 1
+    (leafy,) = [vibe for vibe in release.vibes if vibe.tag_id == "leafy"]
+    (cores,) = [vibe for vibe in synthetic().vibes if vibe.tag_id == "leafy"]
+    assert [term.feature_id for term in leafy.terms] == [term.feature_id for term in cores.terms]
+    assert leafy.terms[0].hundredths == cores.terms[0].hundredths + 5
+    # But for its catalogue, it is the release that was written.
+    assert release.features == synthetic().features and release.tags == synthetic().tags
+
+
+def test_a_release_of_todays_catalogue_is_read_the_same_both_ways(tmp_path: Path):
+    folder = on_disk(tmp_path)
+    assert read_built(folder) == read_served(folder) == read_release(folder)
+
+
+@pytest.mark.parametrize(
+    ("damage", "said"),
+    [
+        ("not_json", "travel.json is not valid JSON [json_is_valid]"),
+        ("unknown_field", "is not shaped as the contract says"),
+        ("score_moved", "[scores_match_raw]"),
+        ("two_versions", "says another version of the catalogue than the manifest of its"),
+    ],
+)
+def test_read_by_its_own_catalogue_a_release_is_still_refused_in_one_readable_line(
+    tmp_path: Path, damage: str, said: str
+):
+    folder = of_the_catalogue_before(on_disk(tmp_path))
+    {
+        "not_json": not_json,
+        "unknown_field": unknown_field,
+        "score_moved": score_moved,
+        "two_versions": two_versions,
+    }[damage](folder)
+    with pytest.raises(UnreadableRelease) as refused:
+        read_built(folder)
+    line = str(refused.value)
+    assert said in line and "\n" not in line and line.startswith(str(folder))
+    assert CANARY not in line
 
 
 # The licence gate. A real release is made here by renaming the synthetic one,

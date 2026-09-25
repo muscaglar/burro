@@ -8,8 +8,10 @@ from check_data_workflows import (
     GUARD,
     INSTALL,
     INSTALLER,
+    LOCK_TOOL,
     MASK,
     MASK_MADE_UP,
+    NEVER_A_TRACEBACK,
     PACKAGES_BEFORE,
     STEPS_OF_A_RUN,
     Unreadable,
@@ -32,7 +34,15 @@ jobs:
 """
 PINNED = pinned_in(CI)
 COMMANDS = frozenset({"burro-release", "python -m burro_pipeline"})
-TOOLS = frozenset({"public_log.py", "canary.py", "check_data_workflows.py", "same_manifest.py"})
+TOOLS = frozenset(
+    {
+        "public_log.py",
+        "canary.py",
+        "check_data_workflows.py",
+        "same_manifest.py",
+        "release_lock.py",
+    }
+)
 # The four secrets of the store, as a step is given them.
 GIVEN = "".join(f"          {name}: ${{{{ secrets.{name} }}}}\n" for name in STORE)
 ONE_GIVEN = "          BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}\n"
@@ -117,7 +127,7 @@ jobs:
       - id: manifest
         env:
           COPY: ${{{{ matrix.copy }}}}
-        run: uv run --no-project python tools/same_manifest.py hash "$RUNNER_TEMP/releases"
+        run: uv run --no-project python tools/release_lock.py hash "$RUNNER_TEMP/releases"
 
   search:
     needs: [check, build]
@@ -336,6 +346,56 @@ def test_a_step_given_a_secret_must_run_behind_the_public_log():
         "tools/same_manifest.py hash",
     )
     assert any("is given a secret and does not run behind" in p for p in problems(text))
+
+
+# What no public log guards, in a job that holds a key
+
+# What the made-up workflow hashes its build with: a tool that is on the list.
+HASHED = 'tools/release_lock.py hash "$RUNNER_TEMP/releases"'
+NOT_GUARDED = "is not on the list of the tools that never print a traceback"
+
+
+@pytest.mark.parametrize(
+    ("run", "said"),
+    [
+        ('tools/same_manifest.py hash "$RUNNER_TEMP/releases"', "same_manifest.py hash"),
+        ('tools/release_lock.py carried "$RUNNER_TEMP/releases"', "release_lock.py carried"),
+        ('tools/release_lock.py "$RUNNER_TEMP/releases"', "release_lock.py"),
+        ("tools/canary.py plant", "canary.py plant"),
+        ("tools/check_data_workflows.py", "check_data_workflows.py"),
+    ],
+)
+def test_a_job_that_holds_a_key_runs_with_no_public_log_only_a_tool_that_is_on_the_list(
+    run: str, said: str
+):
+    """A job that holds a key reads what is real, and what a tool of it prints is what
+    the log of the run holds. A tool that a test holds to no traceback is on the list."""
+    found = problems(changed(HASHED, run))
+    assert f"{WORKFLOW}: build: `{said}` {NOT_GUARDED}" in [
+        problem.split(", and runs with no public log")[0] for problem in found
+    ]
+
+
+def test_the_list_is_of_a_tool_and_of_what_it_does():
+    assert LOCK_TOOL in TOOLS and NEVER_A_TRACEBACK[LOCK_TOOL] == {"hash", "compare", "show"}
+    for does in NEVER_A_TRACEBACK[LOCK_TOOL]:
+        found = problems(changed(HASHED, HASHED.replace(" hash ", f" {does} ")))
+        assert not [problem for problem in found if NOT_GUARDED in problem], does
+
+
+def test_a_job_that_holds_made_up_secrets_may_run_a_tool_that_is_on_no_list():
+    """No step of it reads a store, so what it builds is made up: nothing it could print
+    is of a real place. It is how the made-up city is built and compared."""
+    made_up = changed(THE_STEP_THAT_READS, "").replace(f"run: {MASK}\n", f"run: {MASK_MADE_UP}\n")
+    bare = made_up.replace(HASHED, 'tools/same_manifest.py hash "$RUNNER_TEMP/releases"')
+    assert bare != made_up and problems(bare) == []
+    # Nor is it asked of a job that is given nothing at all.
+    assert "tools/canary.py plant" in GOOD and problems(GOOD) == []
+
+
+def test_a_tool_behind_the_public_log_is_asked_nothing_more():
+    assert not [problem for problem in problems(GOOD) if NOT_GUARDED in problem]
+    assert GOOD.count("tools/public_log.py --step") == 2
 
 
 def test_the_token_is_given_only_to_the_step_that_searches_the_log():

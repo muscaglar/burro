@@ -246,6 +246,17 @@ COUNTS = frozenset(
         "files_changed",
         "files_came",
         "files_went",
+        # What came and went of the catalogue itself between two builds: the version on
+        # each side, the parts of a recipe, its shares, the measures and the vibes that
+        # bear another name, and the vibes that became a rough guide or ceased to be one.
+        "catalogue_before",
+        "catalogue_after",
+        "parts_came",
+        "parts_went",
+        "shares_changed",
+        "names_changed",
+        "rough_came",
+        "rough_went",
         # The lock, the check of the evidence, and the coverage report.
         "inputs",
         "development",

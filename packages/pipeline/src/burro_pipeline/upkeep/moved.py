@@ -6,9 +6,16 @@ how far the figures of each measure moved, how many areas changed band on each v
 which publishers' files behind the build are other files than before, and the first ten
 areas of a few searches, before and after.
 
-Each release is read as it is served, through `read_served`, so that what is compared is
-what a person would be shown. Every band and every rank is core's own. Nothing is worked
-out again but the difference.
+It says what came and went of the catalogue itself too: the version on each side, a part
+of a recipe that came or went, a share that changed, a name or a label that changed, and
+a vibe that became a rough guide or ceased to be one. That is when a person most needs
+it, so two builds are compared whatever the version of each one's catalogue.
+
+Each release is read as it was built, by its own catalogue, through `read_built`: it is
+held to itself and to what it was built with, and not to the catalogue as core holds it
+today. So what is compared is what each build holds, and what is read here is never
+served. Every band is the release's own, and every rank is worked out by core as it
+stands, on what each build holds. Nothing is worked out again but the difference.
 
 What is found names areas, by the id and the name each bears in its release. So it is
 written only to a folder a person names, and is never printed: what a step prints is
@@ -22,14 +29,15 @@ from decimal import Decimal
 from pathlib import Path
 from typing import Any
 
-from burro_core.ids import FeatureId, TagId
-from burro_core.release import LOCK, InMemoryRelease, Neighbourhood
+from burro_core.catalogue import FEATURES, Tag, TagTerm
+from burro_core.ids import FeatureId, Sureness, TagId, TermReading
+from burro_core.release import LOCK, InMemoryRelease, Metric, Neighbourhood
 from pydantic import ValidationError
 
 from burro_pipeline.evidence import InputKind, Lock, LockedInput, Receipt
 from burro_pipeline.fetch.cli import paired
 from burro_pipeline.fetch.sources import FetchList
-from burro_pipeline.release.read import beside, read_served
+from burro_pipeline.release.read import beside, read_built
 from burro_pipeline.upkeep import searches as ranked
 from burro_pipeline.upkeep.searches import Search
 
@@ -58,8 +66,7 @@ class Build:
 
 
 def with_its_lock(release: InMemoryRelease, folder: Path) -> Build:
-    """A release that was read from a folder as it is served, with the lock beside it.
-    Raises `NoLock`."""
+    """A release that was read from a folder, with the lock beside it. Raises `NoLock`."""
     if release.manifest.synthetic:
         return Build(release, None)
     try:
@@ -69,11 +76,12 @@ def with_its_lock(release: InMemoryRelease, folder: Path) -> Build:
 
 
 def open_build(folder: Path) -> Build:
-    """The release in a folder, as it is served, and the lock beside it.
+    """The release in a folder, as it was built, and the lock beside it.
 
-    Raises `ReleaseError` for a release that would not be served, and `NoLock`.
+    It is read by its own catalogue, whatever the version of it. Raises `ReleaseError`
+    for a release that cannot be read, or that is not as it was built, and `NoLock`.
     """
-    return with_its_lock(read_served(folder), folder)
+    return with_its_lock(read_built(folder), folder)
 
 
 def _apart(was: float, now: float) -> float:
@@ -289,6 +297,93 @@ def _vibes(pair: _Pair) -> dict[str, Any]:
     return {**_came_and_went(said(was), said(now)), "moved": moved}
 
 
+# The catalogue itself
+
+# What a vibe and a measure are named by, which a catalogue may word otherwise.
+NAMES_OF_A_VIBE = ("label", "low_end", "high_end")
+NAMES_OF_A_MEASURE = ("label", "short_label")
+
+
+def _names(was: Tag | Metric, now: Tag | Metric, names: Sequence[str]) -> list[dict[str, Any]]:
+    """Each name of a vibe or of a measure that the two catalogues word otherwise."""
+    return [
+        {"what": name, "was": getattr(was, name), "now": getattr(now, name)}
+        for name in names
+        if getattr(was, name) != getattr(now, name)
+    ]
+
+
+def _read_as(term: TagTerm) -> tuple[FeatureId, TermReading]:
+    """What a part of a recipe is: a measure, and the end it is read from."""
+    return term.feature_id, term.reading
+
+
+def _part(term: TagTerm) -> dict[str, Any]:
+    """A part of a recipe, by the name core gives the measure: a build may not carry it."""
+    return {"id": term.feature_id.value, "label": FEATURES[term.feature_id].label}
+
+
+def _recipe(was: Tag, now: Tag) -> dict[str, Any]:
+    """The parts of a recipe that came or went, and the shares that changed. A part is a
+    measure and the end it is read from: one that is read from its other end went, and
+    came."""
+    before = {_read_as(term): term for term in was.terms}
+    after = {_read_as(term): term for term in now.terms}
+
+    def whole(term: TagTerm) -> dict[str, Any]:
+        return _part(term) | {"share": term.hundredths, "reading": term.reading.value}
+
+    return {
+        "parts_came": [whole(term) for key, term in after.items() if key not in before],
+        "parts_went": [whole(term) for key, term in before.items() if key not in after],
+        "shares": [
+            _part(term) | {"was": before[key].hundredths, "now": term.hundredths}
+            for key, term in after.items()
+            if key in before and before[key].hundredths != term.hundredths
+        ],
+    }
+
+
+def _is_rough(vibe: Tag) -> bool:
+    return vibe.sureness is Sureness.ROUGH_GUIDE
+
+
+def _catalogue(pair: _Pair) -> dict[str, Any]:
+    """What came and went of the catalogue itself, between the two builds.
+
+    The version on each side. Of each measure both carry, a label that changed. Of each
+    vibe both carry: the parts of its recipe that came or went, the shares that changed,
+    a name that changed, and whether it became a rough guide or ceased to be one. A
+    measure or a vibe of which none of these changed is not said. The measures and the
+    vibes that came or went are said with the figures and the bands, where they always
+    were.
+    """
+    measures: list[dict[str, Any]] = []
+    was_measured = {metric.feature_id: metric for metric in pair.before.metrics}
+    for metric in pair.after.metrics:
+        held = was_measured.get(metric.feature_id)
+        names = [] if held is None else _names(held, metric, NAMES_OF_A_MEASURE)
+        if names:
+            measures.append({"id": metric.feature_id.value, "label": metric.label, "names": names})
+    vibes: list[dict[str, Any]] = []
+    was_made = {vibe.tag_id: vibe for vibe in pair.before.vibes}
+    for vibe in pair.after.vibes:
+        held = was_made.get(vibe.tag_id)
+        if held is None:
+            continue
+        recipe, names = _recipe(held, vibe), _names(held, vibe, NAMES_OF_A_VIBE)
+        rough = {"was": _is_rough(held), "now": _is_rough(vibe)}
+        if any(recipe.values()) or names or rough["was"] != rough["now"]:
+            about = {"id": vibe.tag_id.value, "label": vibe.label}
+            vibes.append(about | recipe | {"names": names, "rough": rough})
+    return {
+        "before": pair.before.manifest.catalogue_version,
+        "after": pair.after.manifest.catalogue_version,
+        "measures": sorted(measures, key=lambda one: one["id"]),
+        "vibes": sorted(vibes, key=lambda one: one["id"]),
+    }
+
+
 # The files behind a build
 
 Known = tuple[Receipt | None, str | None, str | None]
@@ -446,6 +541,7 @@ def compare(
     return {
         "before": _said(before),
         "after": _said(after),
+        "catalogue": _catalogue(pair),
         "areas": _areas(pair) | {"moved_most": _moved_most(pair, vibes, measures)},
         "measures": measures,
         "vibes": vibes,
@@ -453,6 +549,39 @@ def compare(
         "files": _files(before.lock, after.lock, receipts, lists),
         "searches": _searched(pair, searches),
     }
+
+
+# What is counted of a vibe whose recipe, name or sureness the catalogue changed.
+OF_A_VIBE = (
+    "parts_came",
+    "parts_went",
+    "shares_changed",
+    "names_changed",
+    "rough_came",
+    "rough_went",
+)
+
+
+def _of_a_vibe(one: Mapping[str, Any]) -> dict[str, int]:
+    """What changed of one vibe in the catalogue, in counts."""
+    rough = one["rough"]
+    counts = (
+        len(one["parts_came"]),
+        len(one["parts_went"]),
+        len(one["shares"]),
+        int(bool(one["names"])),
+        int(rough["now"] and not rough["was"]),
+        int(rough["was"] and not rough["now"]),
+    )
+    return dict(zip(OF_A_VIBE, counts, strict=True))
+
+
+def _of_the_catalogue(catalogue: Mapping[str, Any]) -> dict[str, int]:
+    """What changed of the catalogue, in counts: of every vibe, and with the vibes that
+    bear another name, the measures that bear another label."""
+    vibes = [_of_a_vibe(one) for one in catalogue["vibes"]]
+    whole = {name: sum(one[name] for one in vibes) for name in OF_A_VIBE}
+    return whole | {"names_changed": whole["names_changed"] + len(catalogue["measures"])}
 
 
 def counted(found: Mapping[str, Any]) -> dict[str, int]:
@@ -478,6 +607,7 @@ def counted(found: Mapping[str, Any]) -> dict[str, int]:
         "files_went": len(files["went"]),
         "searches": len(found["searches"]),
         "searches_moved": sum(not one["same"] for one in found["searches"]),
+        **_of_the_catalogue(found["catalogue"]),
     }
 
 
@@ -498,20 +628,25 @@ def _by_source(files: Mapping[str, Any]) -> dict[str, dict[str, int]]:
 
 def lines(found: Mapping[str, Any]) -> list[str]:
     """What the step prints: a line for each measure, vibe, source and search that moved,
-    and one for the whole. Each holds ids of the catalogue and the registry, and counts."""
+    and one for the whole. Each holds ids of the catalogue and the registry, the two
+    versions of the catalogue, and counts. A name that changed is counted: it is words."""
     said: list[str] = []
-    measures, vibes = found["measures"], found["vibes"]
+    measures, vibes, catalogue = found["measures"], found["vibes"], found["catalogue"]
     for how in ("came", "went"):
         said += [f"step=moved feature={one['id']} {how}=1" for one in measures[how]]
     for one in measures["moved"]:
         counts = " ".join(f"{key}={one[key]}" for key in ("areas", "changed", "gained", "lost"))
         said.append(f"step=moved feature={one['id']} {counts}")
+    said += [f"step=moved feature={one['id']} names_changed=1" for one in catalogue["measures"]]
     for how in ("came", "went"):
         said += [f"step=moved vibe={one['id']} {how}=1" for one in vibes[how]]
     for one in vibes["moved"]:
         counts = " ".join(
             f"{key}={one[key]}" for key in ("areas", "changed", "up", "down", "gained", "lost")
         )
+        said.append(f"step=moved vibe={one['id']} {counts}")
+    for one in catalogue["vibes"]:
+        counts = " ".join(f"{key}={count}" for key, count in _of_a_vibe(one).items())
         said.append(f"step=moved vibe={one['id']} {counts}")
     for source, counts in sorted(_by_source(found["files"]).items()):
         said.append(
@@ -523,6 +658,7 @@ def lines(found: Mapping[str, Any]) -> list[str]:
     whole = " ".join(f"{key}={count}" for key, count in counted(found).items())
     said.append(
         f"step=moved status=ok before={found['before']['release_id']} "
-        f"after={found['after']['release_id']} {whole}"
+        f"after={found['after']['release_id']} catalogue_before={catalogue['before']} "
+        f"catalogue_after={catalogue['after']} {whole}"
     )
     return said

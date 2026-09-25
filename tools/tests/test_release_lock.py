@@ -8,14 +8,21 @@ made up.
 import hashlib
 import io
 import json
+import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
 import pytest
-from public_log import FOLDERS, is_public
+import release_lock
+from check_data_workflows import LOCK_TOOL, NEVER_A_TRACEBACK
+from public_log import FOLDERS, STATUSES, is_public
 from release_lock import (
     APPROVED,
     BESIDE,
+    FAULT,
+    FAULTED,
+    STEP_OF,
     Unreadable,
     carried,
     checked,
@@ -23,6 +30,7 @@ from release_lock import (
     digest,
     hash_build,
     lock_of,
+    main,
     read,
     show,
     written,
@@ -683,3 +691,245 @@ def test_every_line_printed_is_one_the_public_log_would_show(tmp_path: Path):
     assert all(is_public(line) for line in printed.splitlines())
     # A folder is said by one of three words, which are the three the public log shows.
     assert set(BESIDE.values()) == FOLDERS
+
+
+# Whatever goes wrong
+
+# Three steps of a hosted build run this tool with no public log before it, because it
+# writes to the run's outputs and its summary. So what it prints is what the log of the
+# run holds, and a traceback of a tool that reads a release of London could hold the name
+# of a place, a figure of one, or a path of the machine. Each command is made to fail
+# here in ways nobody foresaw, and everything it printed is read.
+
+Printed = pytest.CaptureFixture[str]
+Patch = pytest.MonkeyPatch
+# Lists inside lists, deeper than the reader of JSON reads. It is a fault of the reader's
+# own, which is no fault of the form of a file: no rule of this tool is of it.
+TOO_DEEP = b"[" * 100_000 + b"]" * 100_000
+COMMANDS = ("hash", "compare", "show", "carried", "read")
+FAULTS = ("a_folder", "a_list", "vanishes", "too_deep", "says_what_it_read")
+# The faults nobody foresaw: what a command met on its way that no rule of it names. Any
+# other is one the tool refuses by a rule, in a line it printed before this was written.
+NOT_FORESEEN = {
+    *((command, fault) for command in COMMANDS for fault in ("too_deep", "says_what_it_read")),
+    *((command, "a_list") for command in ("hash", "compare", "show")),
+    ("carried", "vanishes"),
+}
+
+
+def said_what_it_read(*_: object, **__: object) -> Any:
+    """A fault whose words repeat what was read, as the key of a `KeyError` does."""
+    raise KeyError(f"{NAME} {FIGURE}")
+
+
+def gone_before_it_is_read(patch: Patch) -> None:
+    """Every file is there when the folder is listed, and gone when it is opened."""
+    hash_of = release_lock._hash  # pyright: ignore[reportPrivateUsage]
+
+    def vanishing(path: Path) -> tuple[str, int]:
+        path.unlink()
+        return hash_of(path)
+
+    patch.setattr(release_lock, "_hash", vanishing)
+
+
+def broken(command: str, fault: str, folder: Path, patch: Patch) -> list[str]:
+    """A command as a run gives it, on a build that one thing has gone wrong with.
+
+    What goes wrong is of the file the command reads: the manifest of the release, or for
+    the two commands that read a lock, the lock. A lock is committed and so is never gone:
+    what vanishes is a file of the release, which `read` does not open.
+    """
+    out = built(folder / "built")
+    locks = approved(folder / "approved", built(folder / "as-approved"))
+    patch.setenv("COPY_A", output_of(built(folder / "a")))
+    lock, manifest = locks / f"{RELEASE}.json", out / RELEASE / "manifest.json"
+    of_the_release = {"hash", "compare", "show"}
+    reads = manifest if command in of_the_release or fault == "a_folder" else lock
+    if command == "read":
+        reads = lock
+    if fault == "a_folder":
+        reads.unlink()
+        reads.mkdir()
+        (reads / f"{NAME}.json").write_text(FIGURE, encoding="utf-8")
+    elif fault == "a_list":
+        held = json.loads(reads.read_bytes())
+        reads.write_bytes(packed({**held, "release_id": [NAME, FIGURE]}))
+    elif fault == "vanishes" and command == "read":
+        reads.unlink()
+    elif fault == "vanishes":
+        gone_before_it_is_read(patch)
+    elif fault == "too_deep":
+        reads.write_bytes(TOO_DEEP)
+    else:
+        patch.setattr(release_lock.json, "loads", said_what_it_read)
+    return {
+        "hash": ["hash", "a", str(out), RELEASE],
+        "compare": ["compare", str(out), RELEASE],
+        "show": ["show", str(out), RELEASE],
+        "carried": ["carried", str(out), RELEASE, "--approved", str(locks)],
+        "read": ["read", str(lock)],
+    }[command]
+
+
+def holds_nothing_that_was_read(said: str, folder: Path) -> None:
+    """Every line is one the public log would show, and none holds what was planted."""
+    assert said.endswith("\n") and "Traceback" not in said
+    for line in said.splitlines():
+        assert is_public(line), line
+    for planted in (NAME, NAME.lower(), FIGURE, str(folder), folder.name, "Error"):
+        assert planted not in said, planted
+
+
+def ended(said: str) -> dict[str, str]:
+    """What the last line a command printed says, by name."""
+    return dict(word.split("=", 1) for word in said.splitlines()[-1].split(" "))
+
+
+@pytest.mark.parametrize("fault", FAULTS)
+@pytest.mark.parametrize("command", COMMANDS)
+def test_whatever_goes_wrong_a_command_ends_on_one_line_and_never_on_a_traceback(
+    tmp_path: Path, monkeypatch: Patch, capsys: Printed, command: str, fault: str
+):
+    arguments = broken(command, fault, tmp_path, monkeypatch)
+    status = main(arguments)
+    monkeypatch.undo()
+    out = capsys.readouterr()
+    assert status != 0 and out.err == ""
+    holds_nothing_that_was_read(out.out, tmp_path)
+    last = ended(out.out)
+    assert last["step"] == STEP_OF[command] and last["status"] in STATUSES - {"ok", "skipped"}
+    if (command, fault) in NOT_FORESEEN:
+        # It says the step, that it failed, and why as a number. What it would have
+        # printed is counted, and none of it is shown.
+        assert status == FAULTED
+        assert set(last) == {"step", "status", "why", "withheld"}
+        assert (last["status"], last["why"]) == ("failed", str(FAULT))
+        assert int(last["withheld"]) >= 3
+    else:
+        assert status == 1 and "why" not in last
+
+
+@pytest.mark.parametrize(
+    ("command", "written_to"), [("hash", "GITHUB_OUTPUT"), ("show", "GITHUB_STEP_SUMMARY")]
+)
+def test_a_file_of_the_runner_that_turns_out_to_be_a_folder_is_named_in_no_line(
+    tmp_path: Path, monkeypatch: Patch, capsys: Printed, command: str, written_to: str
+):
+    """The two commands that write to a file of the runner are told where it is, as a path
+    of the machine. The fault of a path that cannot be written names the path."""
+    (tmp_path / NAME).mkdir()
+    monkeypatch.setenv(written_to, str(tmp_path / NAME))
+    arguments = [
+        command,
+        *(["a"] if command == "hash" else []),
+        str(built(tmp_path / "b")),
+        RELEASE,
+    ]
+    assert main(arguments) == FAULTED
+    out = capsys.readouterr()
+    holds_nothing_that_was_read(out.out, tmp_path)
+    assert out.out.startswith(f"step=lock status=failed why={FAULT} withheld=") and out.err == ""
+
+
+@pytest.mark.parametrize(
+    "fault", [KeyError, RuntimeError, MemoryError, KeyboardInterrupt, UnicodeError]
+)
+def test_a_fault_of_any_kind_is_counted_and_not_shown(
+    tmp_path: Path, monkeypatch: Patch, capsys: Printed, fault: type[BaseException]
+):
+    """A run that is stopped by a person ends as a fault does: the program is told to stop
+    wherever it stands, and what it would print of that names where it stood."""
+
+    def raised(*_: object) -> Any:
+        raise fault(f"{NAME} {FIGURE}")
+
+    of_a_build = broken("hash", "a_folder", tmp_path, monkeypatch)
+    monkeypatch.setattr(release_lock, "lock_of", raised)
+    monkeypatch.setattr(release_lock, "read", raised)
+    for arguments in of_a_build, ["read", str(tmp_path / "x.json")]:
+        assert main(arguments) == FAULTED
+        out = capsys.readouterr()
+        holds_nothing_that_was_read(out.out, tmp_path)
+        assert out.out.count("\n") == 1 and f"status=failed why={FAULT} " in out.out
+
+
+def test_where_the_line_cannot_be_printed_nothing_is(
+    tmp_path: Path, monkeypatch: Patch, capsys: Printed
+):
+    """A log that is gone takes no line. What would be printed of that would be printed
+    with the fault before it, which may say what was read."""
+
+    class Gone(io.StringIO):
+        def write(self, _: str) -> int:
+            raise BrokenPipeError(f"{NAME} {FIGURE}")
+
+    arguments = broken("read", "too_deep", tmp_path, monkeypatch)
+    monkeypatch.setattr(sys, "stdout", Gone())
+    assert main(arguments) == FAULTED
+    monkeypatch.undo()
+    out = capsys.readouterr()
+    assert (out.out, out.err) == ("", "")
+
+
+@pytest.mark.parametrize(
+    "arguments",
+    [
+        [],
+        [NAME],
+        ["hash"],
+        ["hash", "a", "/a/path/of/the/machine"],
+        ["hash", "a", "/a/path", RELEASE, "--what", f"/a/path/to/{NAME}"],
+        ["compare", "/a/path", RELEASE, NAME],
+        ["carried", "/a/path", RELEASE, "--approved"],
+        ["read"],
+        ["read", f"--{NAME}"],
+    ],
+)
+def test_a_command_the_tool_does_not_take_is_refused_and_not_repeated(
+    capsys: Printed, arguments: list[str]
+):
+    """A word of a command may be a path of the machine, or what somebody typed."""
+    assert main(arguments) == 2
+    out = capsys.readouterr()
+    step = STEP_OF.get(arguments[0] if arguments else "", "lock")
+    assert (out.out, out.err) == (f"step={step} status=refused\n", "")
+    assert is_public(out.out.strip())
+
+
+def test_the_tool_still_says_how_it_is_run(capsys: Printed):
+    with pytest.raises(SystemExit) as stopped:
+        main(["--help"])
+    assert stopped.value.code == 0
+    assert capsys.readouterr().out.startswith("usage: release_lock ")
+
+
+@pytest.mark.parametrize("command", COMMANDS)
+def test_run_as_a_workflow_runs_it_a_command_prints_no_traceback(
+    tmp_path: Path, monkeypatch: Patch, command: str
+):
+    """The same, of the program as a step starts it: nothing here stands between what it
+    prints and what is read, as nothing does in a run."""
+    arguments = broken(command, "too_deep", tmp_path, monkeypatch)
+    tool = str(Path(release_lock.__file__).resolve())
+    ran = subprocess.run(
+        [sys.executable, tool, *arguments], capture_output=True, text=True, check=False
+    )
+    assert ran.returncode == FAULTED and ran.stderr == ""
+    holds_nothing_that_was_read(ran.stdout, tmp_path)
+    assert ran.stdout.startswith(f"step={STEP_OF[command]} status=failed why={FAULT} withheld=")
+
+
+def test_every_step_that_no_public_log_guards_is_a_command_that_is_held_here():
+    """The rules of a data workflow name the tools a job that holds a key may run with no
+    public log before them. Each is a command of this tool, and is made to fail above."""
+    assert set(NEVER_A_TRACEBACK) == {LOCK_TOOL}
+    assert NEVER_A_TRACEBACK[LOCK_TOOL] <= set(COMMANDS) == set(STEP_OF)
+
+
+def test_why_a_command_stopped_is_the_number_a_fetch_gives_a_fault_of_its_own():
+    from burro_pipeline.fetch.run import Why
+
+    assert FAULT == Why.FAULT and is_public(f"step=lock status=failed why={FAULT} withheld=9")
+    # No command ends with it for any other reason, and none with nought.
+    assert FAULTED not in (0, 1, 2)

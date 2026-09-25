@@ -30,6 +30,14 @@ a whole number, a time, the id of a measure in core's catalogue, the name of a
 rule, the name of a file that a build is known to write. Nothing else is
 copied from a file of a build.
 
+A hosted run starts three of these with no public log before them, because
+they write to the run's outputs and its summary. So whatever goes wrong, a
+command ends on one line of that kind, with a code that is not nought, and it
+never prints a traceback: one could hold a name or a figure of the release it
+read, or a path of the machine. A fault nobody foresaw is said as
+`status=failed why=17`, the number a line of fetch gives a fault of its own.
+What it would have printed is counted, as `withheld`, and never shown.
+
 Standard library only. See docs/data-builds.md.
 """
 
@@ -40,10 +48,11 @@ import json
 import os
 import re
 import sys
+import traceback
 from collections.abc import Generator, Mapping, Sequence
 from datetime import UTC, datetime
 from pathlib import Path, PurePosixPath
-from typing import Any, TextIO, cast
+from typing import Any, NoReturn, TextIO, cast
 
 from public_log import BESIDE_FILES, FEATURES, RELEASE_FILES, RULES
 
@@ -624,8 +633,70 @@ def _runners_file(variable: str) -> Generator[TextIO]:
         yield file
 
 
+# The step each command is, on the lines it prints.
+STEP_OF: Mapping[str, str] = {
+    "hash": "lock",
+    "compare": "compare",
+    "show": "lock",
+    "carried": "take",
+    "read": "lock",
+}
+# Why a command stopped on a fault of its own, as the number a line gives for it: the one
+# a line of fetch gives a fault of its own, which `python -m burro_pipeline why` says in
+# words. This file imports no package, so a test holds the two together.
+FAULT = 17
+# What a command ends with then. 1 is of what it was asked about, and 2 of how it was asked.
+FAULTED = 3
+
+
+class _NotTaken(Exception):
+    """The words of a command are not ones this tool takes."""
+
+
+class _Parser(argparse.ArgumentParser):
+    """A parser that repeats nothing it was handed: a word of a command may be a path of
+    the machine, or what somebody typed."""
+
+    def error(self, message: str) -> NoReturn:
+        raise _NotTaken
+
+
+def _withheld(fault: BaseException) -> int:
+    """How many lines a fault would have printed. None of them is kept."""
+    try:
+        return sum(len(part.splitlines()) for part in traceback.format_exception(fault))
+    except Exception:
+        return 1
+
+
 def main(argv: Sequence[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="release_lock", description=__doc__)
+    """Run one command, and end on a line whatever goes wrong.
+
+    No public log stands between this tool and the log of a run. So a fault nobody
+    foresaw is caught here, whatever it is, and a run that is stopped as well: what it
+    would have printed is counted and not shown, and the line says the step, that it
+    failed, and why as a number. It holds nothing of what was read.
+    """
+    words = list(sys.argv[1:] if argv is None else argv)
+    step = STEP_OF.get(words[0] if words else "", "lock")
+    try:
+        return _run(words)
+    except _NotTaken:
+        print(f"step={step} status=refused", flush=True)
+        return 2
+    except SystemExit:
+        # The tool was asked how it is run, and has said so.
+        raise
+    except BaseException as fault:
+        # Where the line itself cannot be printed, nothing is: a fault of that would be
+        # printed with the fault before it.
+        with contextlib.suppress(BaseException):
+            print(f"step={step} status=failed why={FAULT} withheld={_withheld(fault)}", flush=True)
+        return FAULTED
+
+
+def _run(argv: Sequence[str]) -> int:
+    parser = _Parser(prog="release_lock", description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
     one = commands.add_parser("hash")
     one.add_argument("copy")

@@ -25,7 +25,7 @@ from burro_core.catalogue import (
 )
 from burro_core.catalogue import PART_MAX_WHERE_RESIDENTS_COUNT as PART_MAX_BESIDE_RESIDENTS
 from burro_core.ids import FeatureId, TagId
-from burro_core.release import holds_the_name_of_a_place
+from burro_core.release import ReleaseError, holds_the_name_of_a_place
 from burro_pipeline import changes
 from burro_pipeline.changes import Change, ChangesError, What
 from burro_pipeline.derive import brand_table
@@ -64,6 +64,9 @@ NO_OTHER: Final = (
 OTHER_CITY: Final = (
     "The release that is shown and the release it is held against are not of one city. Two "
     "cities are never held against each other"
+)
+NO_LOCK: Final = (
+    "The lock of a release, the receipts or the lists cannot be read, so what moved cannot be said"
 )
 FLAG: Final = frozenset({"of", "why", "leave_out"})
 TAKE_BACK: Final = frozenset({"n", "why"})
@@ -169,25 +172,36 @@ def open_panel(
     held, ranked = look.open_held(release), preview.read_searches(searches, root)
     if before is None:
         return Panel(held, ranked)
-    return Panel(held, ranked, moved_since(look.open_held(before), held, ranked, root))
+    return Panel(held, ranked, moved_since(held_against(before), held, ranked, root))
 
 
-def moved_since(before: Held, held: Held, searches: Sequence[Search], root: Path) -> dict[str, Any]:
+def held_against(folder: Path) -> between.Build:
+    """The release the one that is shown is held against, as the step `moved` reads it: by
+    its own catalogue, whatever the version of it. No screen shows a figure of it as
+    served: it is held against, and no more. Raises `look.NotServed`, in one line of words."""
+    try:
+        return between.open_build(folder)
+    except ReleaseError as refused:
+        raise look.NotServed(str(refused)) from None
+    except between.NoLock:
+        raise look.NotServed(NO_LOCK) from None
+
+
+def moved_since(
+    before: between.Build, held: Held, searches: Sequence[Search], root: Path
+) -> dict[str, Any]:
     """What moved between a release and the one that is shown, as the step `moved` finds
     it: by the same function, from the receipts and the lists of this repository."""
     try:
-        was, now = (between.with_its_lock(one.release, one.folder) for one in (before, held))
+        now = between.with_its_lock(held.release, held.folder)
         folder = root / RECEIPTS_FOLDER
         receipts = [one for one in read_receipts(folder) if not one.made_up]
         lists = [load_list(path) for path in sorted(LISTS.glob("*.toml"))] if receipts else []
-        return between.compare(was, now, receipts=receipts, lists=lists, searches=searches)
+        return between.compare(before, now, receipts=receipts, lists=lists, searches=searches)
     except between.OtherCity:
         raise look.NotServed(OTHER_CITY) from None
     except (between.NoLock, LockError, ListError):
-        raise look.NotServed(
-            "The lock of a release, the receipts or the lists cannot be read, so what moved "
-            "cannot be said"
-        ) from None
+        raise look.NotServed(NO_LOCK) from None
 
 
 def what_moved(panel: Panel) -> dict[str, Any]:

@@ -5,8 +5,8 @@
     python -m burro_pipeline moved BEFORE AFTER --out FOLDER  what differs between two builds
 
 `fresh` reads what the repository holds and nothing else: no store, no publisher and no
-clock. `moved` reads two releases, each with the folder of its build beside it. Neither
-reaches a network, and neither changes what it reads.
+clock. `moved` reads two releases, each with the folder of its build beside it, and each
+by its own catalogue. Neither reaches a network, and neither changes what it reads.
 
 What each prints for anyone to read is lines of `key=value` that hold step names, ids of
 the registry and of the catalogue, the names a list gives its files, days and counts,
@@ -97,11 +97,14 @@ before a fetch of it.""",
 Run it once a build is made and before its lock is committed. It is given two
 releases: the one that is served, and the one that was built. Each is the
 folder of a release, with the folder of its build beside it, named for it
-with -build after. It reads each as it is served, so a release that would not
-be served is not compared.
+with -build after. It reads each by its own catalogue, whatever its version,
+and refuses only a release it cannot read, or that is not as it was built.
 
 It says:
 
+  catalogue  its version on each side. Of each vibe both carry: the parts of
+             its recipe that came or went, the shares that changed, and
+             whether it became a rough guide. A name or a label that changed
   areas      which came or went, which bear another name, and which another
              outline
   measures   which came or went. Of each that both carry: how many areas
@@ -114,7 +117,8 @@ It says:
              before, from the two locks, each with the edition and the period
              its receipt states
   searches   the first ten areas of each search of --searches, before and
-             after
+             after, ranked on each build by what that build holds. A vibe a
+             search asks for that a build does not hold is said of that side
 
 What it prints is counts: a line for each measure, vibe, source and search
 that moved, and one for the whole. It never prints the name of an area, its
@@ -136,7 +140,7 @@ Reaches no network and no store. Changes nothing it reads.""",
         ),
         {
             0: "The two were compared, whatever moved",
-            2: "It could not start: a release would not be served or has no lock beside it, "
+            2: "It could not start: a release cannot be read or has no lock beside it, "
             "the two are not of one city, the searches or the receipts could not be read, or "
             "--out is where git would take it in. The reason is said in words",
         },
@@ -214,9 +218,9 @@ def _opened(folder: Path) -> moved.Build:
     try:
         return moved.open_build(folder)
     except UnreadableRelease as error:
-        raise Stop(f"a release would not be served: {error}") from None
+        raise Stop(f"a release cannot be read: {error}") from None
     except ReleaseError as error:
-        raise Stop(f"a release would not be served: {error.file} [{error.rule}]") from None
+        raise Stop(f"a release cannot be read: {error.file} [{error.rule}]") from None
     except moved.NoLock:
         raise Stop(
             f"{folder.name} has no lock beside it that can be read. A release that is not "
