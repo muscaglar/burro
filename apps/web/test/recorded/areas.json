@@ -13,7 +13,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-cache",
-    "content-length": "27423",
+    "content-length": "27450",
     "content-type": "application/json",
     "etag": "\"syn-2026-09-23-01\"",
     "vary": "Origin",
@@ -24,7 +24,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.13.0",
+      "engine_version": "1.14.0",
       "synthetic": true,
       "preview": false
     },
@@ -612,15 +612,15 @@
             },
             {
               "area_id": "syn-n0002",
-              "band": 5,
-              "spread_low": 5,
-              "spread_high": 5
-            },
-            {
-              "area_id": "syn-n0003",
               "band": 4,
               "spread_low": 4,
               "spread_high": 4
+            },
+            {
+              "area_id": "syn-n0003",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5
             },
             {
               "area_id": "syn-n0004",
@@ -630,33 +630,33 @@
             },
             {
               "area_id": "syn-n0005",
-              "band": 4,
-              "spread_low": 4,
-              "spread_high": 4
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2
             },
             {
               "area_id": "syn-n0006",
-              "band": 2,
-              "spread_low": 2,
-              "spread_high": 2
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1
             },
             {
               "area_id": "syn-n0007",
-              "band": 2,
-              "spread_low": 2,
-              "spread_high": 2
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3
             },
             {
               "area_id": "syn-n0008",
-              "band": 1,
-              "spread_low": 1,
-              "spread_high": 1
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
             },
             {
               "area_id": "syn-n0009",
-              "band": 1,
-              "spread_low": 1,
-              "spread_high": 1
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
             },
             {
               "area_id": "syn-n0010",
@@ -666,15 +666,15 @@
             },
             {
               "area_id": "syn-n0011",
-              "band": 3,
-              "spread_low": 3,
-              "spread_high": 3
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4
             },
             {
               "area_id": "syn-n0012",
-              "band": 1,
-              "spread_low": 1,
-              "spread_high": 1
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3
             },
             {
               "area_id": "syn-n0013",
@@ -684,9 +684,9 @@
             },
             {
               "area_id": "syn-n0014",
-              "band": 1,
-              "spread_low": 1,
-              "spread_high": 1
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2
             },
             {
               "area_id": "syn-n0015",
@@ -714,15 +714,15 @@
             },
             {
               "area_id": "syn-n0019",
-              "band": 3,
-              "spread_low": 3,
-              "spread_high": 3
-            },
-            {
-              "area_id": "syn-n0020",
               "band": 1,
               "spread_low": 1,
               "spread_high": 1
+            },
+            {
+              "area_id": "syn-n0020",
+              "band": null,
+              "spread_low": null,
+              "spread_high": null
             },
             {
               "area_id": "syn-n0021",

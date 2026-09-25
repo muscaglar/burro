@@ -6,7 +6,7 @@ import { SUGGEST } from "@/content/search";
 import type { Answer } from "@/lib/api/client";
 import type { FoundPlace, PlacesData, Span, Suggestion, SuggestionChoice } from "@/lib/api/schema";
 import type { Added } from "@/lib/search/state";
-import { SKIP, addedWithOthers, keyOf, noteOf } from "@/lib/search/suggestion";
+import { SKIP, addedWithOthers, guessFirst, keyOf, noteOf } from "@/lib/search/suggestion";
 
 import { PlaceCombobox } from "../PlaceCombobox/PlaceCombobox";
 import styles from "./Suggestions.module.css";
@@ -21,10 +21,40 @@ export const SHOWN_AT_FIRST = 4;
  * Where in the list the offers stand that are drawn before "Show all" is pressed: the
  * first four, and every other that one press may add. So what waits out of sight is only
  * what is the person's to choose, and the one button adds nothing that is not in sight.
+ *
+ * Those that carry Burro's guess come first, in the order their words stand in the
+ * sentence, and the rest after them in theirs: what Burro read stands before what it asks.
  */
 export function inSight(suggestions: readonly Suggestion[]): readonly number[] {
-  return suggestions.flatMap((suggestion, at) =>
-    at < SHOWN_AT_FIRST || addedWithOthers(suggestion) !== null ? [at] : [],
+  return guessFirst(
+    suggestions,
+    suggestions.flatMap((suggestion, at) =>
+      at < SHOWN_AT_FIRST || addedWithOthers(suggestion) !== null ? [at] : [],
+    ),
+  );
+}
+
+/**
+ * Where in the list the offers stand that are drawn once one press has added what it may:
+ * what one press may add still, and nothing that is a question. A person pressed for an
+ * answer, so what is left waits behind one line and the answer is in sight. Seven offers
+ * of several lines each once stood between the press and the first result.
+ */
+export function leftInSight(suggestions: readonly Suggestion[]): readonly number[] {
+  return guessFirst(
+    suggestions,
+    suggestions.flatMap((suggestion, at) => (addedWithOthers(suggestion) !== null ? [at] : [])),
+  );
+}
+
+/**
+ * Where every offer stands, as they are drawn once "Show all" is pressed: in the same
+ * order, so that nothing that was in sight moves when the rest is shown.
+ */
+export function everyOffer(suggestions: readonly Suggestion[]): readonly number[] {
+  return guessFirst(
+    suggestions,
+    suggestions.map((_, at) => at),
   );
 }
 
@@ -43,6 +73,16 @@ interface Props {
   readonly onChooseAll?: (ats: readonly number[]) => void;
   /** What the last such press added, until it is taken back. */
   readonly added?: Added | null;
+  /**
+   * How many areas a firm budget among what it added left out of the ranking, as the API
+   * lists them. `null` where there was none, and until that ranking is in.
+   */
+  readonly leftOut?: number | null;
+  /**
+   * What the API says of the rents that budget was held against, where each is of a
+   * postcode district or a borough. It is said with the count. `null` where none is.
+   */
+  readonly heldAgainst?: string | null;
   /** Takes back all that the last such press added. */
   readonly onTakeBack?: () => void;
   /** True while a model reads what the rules left unread. */
@@ -101,13 +141,20 @@ function nameOf(choice: SuggestionChoice, suggestion: Suggestion): string | unde
  * sent, and are kept nowhere.
  *
  * One button adds every offer in sight that the API says one press may add. It says what
- * it added and what is left for the person, and one press takes it all back.
+ * it did, in full: how many it added, how many areas a firm budget among them left out, and
+ * what is left for the person. One press takes it all back.
+ *
+ * Once that button is pressed the answer comes first: the offers that are left are folded
+ * to one line, which says how many there are, under the line that names them. One press
+ * opens them all, and nothing of them is lost or added by the fold.
  */
 export function Suggestions({
   suggestions,
   onChoose,
   onChooseAll,
   added = null,
+  leftOut = null,
+  heldAgainst = null,
   onTakeBack,
   reading = false,
   onShow,
@@ -122,11 +169,14 @@ export function Suggestions({
   if (suggestions.length === 0 && added === null && !reading) return null;
   // Each offer that is drawn, with where it stands among them all: a choice names its offer
   // by its place in the whole list.
-  const shown = (all ? suggestions.map((_, at) => at) : inSight(suggestions)).flatMap((at) => {
+  const atFirst = added === null ? inSight(suggestions) : leftInSight(suggestions);
+  const shown = (all ? everyOffer(suggestions) : atFirst).flatMap((at) => {
     const suggestion = suggestions[at];
     return suggestion === undefined ? [] : [{ suggestion, at }];
   });
   const more = suggestions.length - shown.length;
+  // One press was made, and none of what is left is drawn: it waits behind one line.
+  const folded = added !== null && shown.length === 0 && more > 0;
   // The offers in sight that one press may add. What is out of sight is never added.
   const together = shown.flatMap(({ suggestion, at }) => (addedWithOthers(suggestion) === null ? [] : [at]));
   const every = together.length === shown.length;
@@ -160,7 +210,21 @@ export function Suggestions({
   const chooseAll = () => {
     // The button goes with what it added. The focus goes to the block, or to what holds it.
     block.current?.focus();
+    // What is left is folded, whatever was opened before: the answer comes first.
+    setAll(false);
     onChooseAll?.(together);
+  };
+
+  const showAll = () => {
+    // The button goes once all are shown. The focus goes to the block, and is not left on nothing.
+    block.current?.focus();
+    setAll(true);
+  };
+
+  const takeBack = () => {
+    // The button goes with what it took back, and the focus is not left on nothing.
+    block.current?.focus();
+    onTakeBack?.();
   };
 
   return (
@@ -169,13 +233,18 @@ export function Suggestions({
       <h2 id={`${id}-title`} className={styles.title}>
         {SUGGEST.title}
       </h2>
-      <p className={styles.why}>{SUGGEST.why}</p>
+      {/* It is said of what can be pressed. Where every offer is folded away, none is in sight. */}
+      {folded ? null : <p className={styles.why}>{SUGGEST.why}</p>}
       {/* It is on the page before it says anything, so that a screen reader is told when it does. */}
       <p className={styles.state} role="status">
-        {reading ? SUGGEST.reading : added !== null ? SUGGEST.added(added.count, added.needs) : ""}
+        {reading
+          ? SUGGEST.reading
+          : added !== null
+            ? SUGGEST.added(added.count, added.needs, leftOut, heldAgainst)
+            : ""}
       </p>
       {added !== null && onTakeBack ? (
-        <button type="button" className={`${styles.back} target`} onClick={onTakeBack}>
+        <button type="button" className={`${styles.back} target`} onClick={takeBack}>
           {SUGGEST.takeBack}
         </button>
       ) : null}
@@ -279,8 +348,8 @@ export function Suggestions({
         })}
       </ul>
       {more > 0 ? (
-        <button type="button" className={`${styles.all} target`} onClick={() => setAll(true)}>
-          {SUGGEST.showAll(suggestions.length)}
+        <button type="button" className={`${styles.all} target`} onClick={showAll}>
+          {folded ? SUGGEST.showLeft(more) : SUGGEST.showAll(suggestions.length)}
         </button>
       ) : null}
     </section>

@@ -11,6 +11,7 @@ import { basedOn } from "@/lib/search/card";
 import { placedOn, type Lens } from "@/lib/vibes";
 
 import { BesideName } from "../BesideName/BesideName";
+import { RoughLabel } from "../RoughGuide/RoughGuide";
 import styles from "./AreaTable.module.css";
 
 interface Props {
@@ -153,6 +154,7 @@ export function AreaTable(props: Props) {
               {lens !== null ? (
                 <th role="columnheader" scope="col">
                   {lens.tag.label}
+                  <RoughLabel told={lens.rough ?? null} />
                 </th>
               ) : null}
               <th role="columnheader" scope="col">

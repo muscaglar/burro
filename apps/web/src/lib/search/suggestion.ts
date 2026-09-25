@@ -3,10 +3,11 @@
  *
  * Nothing is applied until a person presses it. Where Burro reads a thing one
  * way, that way is marked as its guess, and the mark applies nothing. Which
- * way one press may add with others is the API's to say, in `add_all`: it
- * never names a way that leaves areas out, a thing with two ways and no
- * guess, a journey to a place that is yet to be chosen, or recorded crime.
- * docs/design/contract.md, 8.2.
+ * way one press may add with others is the API's to say, in `add_all`: a
+ * budget as the person worded it, which may be a firm limit, and a journey as
+ * a guide. It never names a journey as a firm limit, a thing with two ways
+ * and no guess, a journey to a place that is yet to be chosen, or recorded
+ * crime. docs/design/contract.md, 8.2.
  */
 
 import type { Operations, Suggestion, SuggestionChoice } from "@/lib/api/schema";
@@ -32,6 +33,26 @@ export function guessOf(suggestion: Pick<Suggestion, "choices">): SuggestionChoi
 export function noteOf(suggestion: object): string | null {
   const note: unknown = "note" in suggestion ? suggestion.note : null;
   return typeof note === "string" && note.trim() !== "" ? note : null;
+}
+
+/**
+ * Some offers of a list, by where each stands in it, with those that carry Burro's guess
+ * first. Each part keeps the order of the list, which is the order the words stand in.
+ */
+export function guessFirst(
+  suggestions: readonly Pick<Suggestion, "choices">[],
+  ats: readonly number[],
+): readonly number[] {
+  const guessed = (at: number) => {
+    const suggestion = suggestions[at];
+    return suggestion !== undefined && guessOf(suggestion) !== null;
+  };
+  return [...ats.filter(guessed), ...ats.filter((at) => !guessed(at))];
+}
+
+/** Whether some edits set a budget as a firm limit, which leaves areas out. */
+export function setsAFirmBudget(operations: Pick<Operations, "budget_ops">): boolean {
+  return operations.budget_ops.some((edit) => edit.amount > 0 && edit.strictness === "hard");
 }
 
 /** The way of a thing that one press may add with others, or `null` where the API names none. */

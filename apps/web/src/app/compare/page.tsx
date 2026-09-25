@@ -41,6 +41,7 @@ export default async function ComparePage({ searchParams }: Props) {
       defaults={meta.data.defaults}
       tags={meta.data.tags}
       crime={crimeVibes(meta.data)}
+      guides={meta.data.rough_guides}
       unknown={unknown}
       dropped={dropped}
     />

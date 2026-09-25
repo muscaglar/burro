@@ -145,6 +145,77 @@ describe("an area whose prices are one number", () => {
   });
 });
 
+describe("an area whose rents are of a wider place", () => {
+  const data = recordedAnswer("get_area", "let/area").body.data;
+  const wide = recordedAnswer("get_area", "let/area-borough").body.data;
+  const form = recordedAnswer("get_meta", "let/meta").body.data;
+  const geometry = recordedAnswer("get_geometry", "geometry").body.data;
+
+  test("test_each_rent_says_the_place_it_is_of_the_months_and_how_many_rents_it_rests_on", () => {
+    render(<AreaProfile data={data} meta={form} geometry={geometry} areas={[]} />);
+    const cost = part("cost");
+    const rents = costFacts(data, "rent");
+
+    expect(rents.length).toBeGreaterThan(3);
+    expect(new Set(rents.map((fact) => fact.template))).toEqual(new Set(["cost_rent_recorded"]));
+    for (const fact of rents) {
+      const row = within(cost).getByRole("group", { name: fact.slots.segment });
+      expect(row).toHaveTextContent(`£${fact.slots.lower} to £${fact.slots.upper}`);
+      expect(row).toHaveTextContent(`£${fact.slots.median}`);
+      for (const slot of ["of", "period", "rents", "is_of"] as const) {
+        expect(fact.slots[slot]).toBeTruthy();
+        expect(row).toHaveTextContent(fact.slots[slot] ?? "no slot");
+      }
+      // No word says how sure it is: it says how many rents it rests on.
+      expect(new Map(columnsOf(fact)).has("Confidence")).toBe(false);
+    }
+  });
+
+  test("test_the_caution_of_the_publisher_is_said_once_in_the_apis_words", () => {
+    render(<AreaProfile data={data} meta={form} geometry={geometry} areas={[]} />);
+    const caution = costFacts(data, "rent")[0]?.slots.caution ?? "no caution";
+    const said = part("cost").textContent ?? "";
+
+    expect(caution).toBe(form.rents?.caution);
+    expect(caution).toContain("not drawn at random");
+    expect(said.split(caution)).toHaveLength(2);
+    // What the two figures of a range mean is said, and how a rent is held is one press away.
+    expect(said.includes(AREA.cost.lead)).toBe(true);
+    expect(within(part("cost")).getByRole("link", { name: AREA.cost.rents })).toHaveAttribute(
+      "href",
+      "/methods#rents",
+    );
+  });
+
+  test("test_a_rent_of_a_whole_borough_says_that_it_is_of_the_whole_borough", () => {
+    render(<AreaProfile data={wide} meta={form} geometry={geometry} areas={[]} />);
+    const rents = costFacts(wide, "rent");
+
+    expect(rents.length).toBeGreaterThan(3);
+    for (const fact of rents) {
+      expect(fact.slots.of).toBe(`the whole borough of ${wide.area.borough}`);
+      expect(within(part("cost")).getByRole("group", { name: fact.slots.segment })).toHaveTextContent(
+        fact.slots.is_of ?? "no sentence",
+      );
+    }
+  });
+
+  test("test_every_figure_of_a_rent_is_a_slot_of_its_fact", () => {
+    render(<AreaProfile data={data} meta={form} geometry={geometry} areas={[]} />);
+
+    expect(figuresNotFrom(part("cost"), saidBy(data.facts))).toEqual([]);
+  });
+
+  test("test_an_area_whose_rents_are_its_own_says_no_caution", () => {
+    const own = profile("farrowmere");
+    render(<AreaProfile data={own} meta={meta.data} geometry={geometry} areas={[]} />);
+
+    expect(costFacts(own, "rent").some((fact) => fact.slots.caution !== undefined)).toBe(false);
+    expect(part("cost").textContent?.includes("not drawn at random")).toBe(false);
+    expect(within(part("cost")).queryByRole("link", { name: AREA.cost.rents })).toBeNull();
+  });
+});
+
 describe("an area of data that is not finished", () => {
   test("test_what_a_range_of_costs_means_is_not_said_where_there_is_no_cost", () => {
     // Seen in a browser: "Half of homes of this kind cost between these two figures",
@@ -412,7 +483,9 @@ describe("what an area's page says", () => {
     }
 
     expect(crime).toHaveLength(4);
-    expect(/\b(safe|safer|safest|unsafe|dangerous|rough|dodgy|sketchy)\b/i.test(main.textContent ?? "")).toBe(false);
+    // The label of a rough guide is the API's, and is said of a guide: no word of it is said of a place.
+    const said = meta.data.rough_guides.reduce((text, one) => text.replaceAll(one.label, ""), main.textContent ?? "");
+    expect(/\b(safe|safer|safest|unsafe|dangerous|rough|dodgy|sketchy)\b/i.test(said)).toBe(false);
   });
 
   test("test_the_cost_of_every_kind_of_home_is_given_as_a_range_with_its_date_and_confidence", async () => {
@@ -1233,9 +1306,11 @@ describe("starting a search from an area", () => {
     await show("thrushcombe");
     const list = within(part("character")).getByRole("group", { name: PORTRAIT.groups.more });
 
-    expect(more("thrushcombe").map((tag) => tag.label)).toEqual(["Village feel", "Food and drink", "Parks close by"]);
+    // Thrushcombe is in the highest band of Village feel, which is a rough guide: it is among
+    // what an area has more of than most for no area, so no one press adds it with others.
+    expect(more("thrushcombe").map((tag) => tag.label)).toEqual(["Food and drink", "Parks close by", "Everyday on foot"]);
     expect(within(list).getByRole("link", { name: PORTRAIT.search.button })).toHaveAttribute("href", "/");
-    expect(list).toHaveTextContent(PORTRAIT.search.adds("Village feel, Food and drink and Parks close by"));
+    expect(list).toHaveTextContent(PORTRAIT.search.adds("Food and drink, Parks close by and Everyday on foot"));
     expect(button()).toHaveClass("target");
   });
 

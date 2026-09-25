@@ -81,7 +81,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "26147",
+    "content-length": "27162",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -91,7 +91,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.13.0",
+      "engine_version": "1.14.0",
       "synthetic": true,
       "preview": false
     },
@@ -242,7 +242,7 @@
               "replaced": false
             },
             {
-              "text": "The middle price of flats of all sizes is £0 under your budget of £455,000.",
+              "text": "The middle price of flats of all sizes is at your budget of £455,000.",
               "fact_ids": [
                 "syn-n0024/budget_fit/buy.flat"
               ],
@@ -288,7 +288,7 @@
               "replaced": false
             },
             {
-              "text": "The middle price of flats of all sizes is £0 under your budget of £455,000.",
+              "text": "The middle price of flats of all sizes is at your budget of £455,000.",
               "fact_ids": [
                 "syn-n0013/budget_fit/buy.flat"
               ],
@@ -341,7 +341,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -372,7 +373,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -409,7 +411,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -446,7 +449,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -483,7 +487,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -525,7 +530,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -567,7 +573,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -598,7 +605,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -629,7 +637,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -666,7 +675,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -705,7 +715,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -748,7 +759,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -790,7 +802,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -821,7 +834,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -852,7 +866,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -889,7 +904,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -928,7 +944,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -971,7 +988,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1013,7 +1031,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1044,7 +1063,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1056,17 +1076,16 @@
           "kind": "budget_fit",
           "key": "buy.flat",
           "label": "Budget",
-          "template": "budget_under_median",
+          "template": "budget_at_median",
           "slots": {
-            "margin": "0",
+            "verdict": "At your budget",
             "amount": "455,000",
             "median": "455,000",
             "homes": "flats",
             "half_sold": "About half of the flats sold here went for under £455,000."
           },
           "numbers": [
-            "£455000",
-            "£0"
+            "£455000"
           ],
           "names": [],
           "sources": [
@@ -1074,7 +1093,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -1111,7 +1131,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1148,7 +1169,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1185,7 +1207,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1227,38 +1250,43 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0024/tag/village_feel",
+          "fact_id": "syn-n0024/tag/foodie",
           "area_id": "syn-n0024",
           "kind": "tag",
-          "key": "village_feel",
-          "label": "Village feel",
+          "key": "foodie",
+          "label": "Food and drink",
           "template": "vibe",
           "slots": {
-            "label": "Village feel",
-            "band": "5",
+            "label": "Food and drink",
+            "band": "4",
             "low_end": "least",
             "high_end": "most",
             "compared": "21",
             "span": "2025",
-            "spread_low": "5",
-            "spread_high": "5",
-            "known": "5",
-            "parts": "5",
-            "share": "100",
-            "partly": "",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "2",
+            "parts": "3",
+            "share": "80",
+            "partly": "Worked out from 2 of its 3 parts, 80 of 100 by weight.",
             "judgement": "The recipe is Burro's own. The weights are a judgement.",
             "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
+            "4",
             "5",
             "21",
+            "2",
+            "3",
+            "80",
             "100",
             "2025"
           ],
@@ -1268,7 +1296,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1299,7 +1328,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1311,17 +1341,16 @@
           "kind": "budget_fit",
           "key": "buy.flat",
           "label": "Budget",
-          "template": "budget_under_median",
+          "template": "budget_at_median",
           "slots": {
-            "margin": "0",
+            "verdict": "At your budget",
             "amount": "455,000",
             "median": "455,000",
             "homes": "flats",
             "half_sold": "About half of the flats sold here went for under £455,000."
           },
           "numbers": [
-            "£455000",
-            "£0"
+            "£455000"
           ],
           "names": [],
           "sources": [
@@ -1329,7 +1358,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2026-08",
@@ -1366,7 +1396,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1403,7 +1434,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1440,7 +1472,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1482,7 +1515,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1524,7 +1558,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",

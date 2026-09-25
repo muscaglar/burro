@@ -305,6 +305,25 @@ describe("the slider of a vibe", () => {
     for (const operations of sent) expect(problemsWith("Operations", operations)).toEqual([]);
   });
 
+  test("test_a_vibe_that_is_a_rough_guide_says_so_beside_its_slider_and_says_why", async () => {
+    const { open, sent } = show();
+    const [told] = meta.rough_guides;
+    await open("Streets and homes");
+
+    // Beside the slider, before it is moved: nothing but the group was opened.
+    const village = screen.getByRole("group", { name: "Village feel" });
+    const note = village.querySelector("[data-rough-guide='note']");
+    expect(note?.textContent).toBe(`${told?.label}. ${told?.why}`);
+    expect(note?.closest("[hidden], [aria-hidden='true'], details:not([open])")).toBeNull();
+    const slider = within(village).getByRole("slider", { name: "Village feel" });
+    expect((note as Element).compareDocumentPosition(slider) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
+    expect(sent).toEqual([]);
+    // No other vibe of the group says it.
+    for (const tag of meta.tags.filter((one) => one.tag_id !== "village_feel" && one.family === "streets_homes")) {
+      expect(screen.getByRole("group", { name: tag.label }).querySelector("[data-rough-guide]")).toBeNull();
+    }
+  });
+
   test("test_every_vibe_of_the_release_that_is_a_scale_names_both_its_ends", async () => {
     const { open } = show();
     await open(...FAMILIES);

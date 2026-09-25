@@ -23,9 +23,17 @@ export const FACT_COLUMNS = {
   soldIn: "Homes sold in",
   // A price counted from sales says how many it rests on. The count is a slot of the fact.
   sales: "Sales it rests on",
+  // A rent that is of a wider place than the area: the place it is of, the months the rents
+  // were recorded in, and how many they were. Each value is a slot of the fact.
+  middleRent: "Middle rent",
+  figureOf: "A figure of",
+  recordedIn: "Rents recorded in",
+  rents: "Rents it rests on, to the nearest ten",
   amount: "Your budget",
   under: "Under your budget by",
   over: "Over your budget by",
+  /** Over where a cost stands against the budget, where it is the budget to the pound. The API says where. */
+  againstBudget: "Against your budget",
   place: "To",
   mode: "How",
   typical: "Typical minutes",
@@ -39,7 +47,10 @@ export const FACT_COLUMNS = {
   lines: "Lines",
   to: "to",
   limit: "Your limit, in minutes",
-  /** Over where a journey that was estimated stands against the limit, and over what says it is one. */
+  /**
+   * Over where a journey stands against the limit, in the API's words: one that was
+   * estimated, and one that takes the minutes of its limit.
+   */
   estimate: "Against your limit",
   howKnown: "How this is known",
   underLimit: "Under your limit by, in minutes",
@@ -80,10 +91,16 @@ export const FACT_KIND: Readonly<Record<TemplateId, string>> = {
   cost_buy: "Price",
   cost_buy_median: "Price",
   cost_buy_sold: "Price",
+  cost_rent_recorded: "Rent",
   budget_under: "Budget",
   budget_over: "Budget",
+  budget_at: "Budget",
   budget_under_median: "Budget",
   budget_over_median: "Budget",
+  budget_at_median: "Budget",
+  budget_under_recorded: "Budget",
+  budget_over_recorded: "Budget",
+  budget_at_recorded: "Budget",
   travel_pt: "Journey",
   travel_pt_over: "Journey",
   travel_other: "Journey",

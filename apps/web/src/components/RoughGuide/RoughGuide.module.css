@@ -1,0 +1,34 @@
+/*
+ * What a vibe that is a rough guide says of itself. The label is a small mark beside the
+ * name, told from the name by its edge and not by colour alone. The note is a line of text
+ * under the vibe, as wide as a line reads well.
+ */
+.label {
+  display: inline-block;
+  justify-self: start;
+  margin-inline-start: var(--space-2);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--notice-edge);
+  border-radius: var(--radius);
+  background: var(--notice-bg);
+  color: var(--notice-text);
+  font-size: var(--size-small);
+  font-weight: 600;
+  line-height: var(--leading-text);
+  white-space: nowrap;
+}
+
+.note {
+  max-width: var(--measure);
+  margin: var(--space-1) 0 0;
+  padding-inline-start: var(--space-3);
+  border-inline-start: 3px solid var(--notice-edge);
+  color: var(--text);
+  font-size: var(--size-small);
+  line-height: var(--leading-text);
+}
+
+.of,
+.said {
+  font-weight: 600;
+}

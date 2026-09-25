@@ -2,6 +2,7 @@ import { LEGEND } from "@/content/map";
 import { BANDS } from "@/lib/map/fill";
 import { endsOf, type Lens } from "@/lib/vibes";
 
+import { RoughNote } from "../RoughGuide/RoughGuide";
 import styles from "./MapView.module.css";
 
 interface Props {
@@ -39,6 +40,8 @@ export function MapLegend({
     return (
       <section className={styles.legend} aria-label={LEGEND.title}>
         <p className={styles.legendTitle}>{LEGEND.vibe(lens.tag.label)}</p>
+        {/* A vibe that is a rough guide says so wherever the map is coloured by it. */}
+        <RoughNote told={lens.rough ?? null} />
         <ul>
           {BANDS.map(({ band }) => (
             <li key={band}>

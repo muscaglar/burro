@@ -1,0 +1,312 @@
+{
+  "scenario": "interpret-suggest-rough-guide",
+  "shows": "A vibe that is a rough guide: offered with its label and its sentence, never applied, and never taken by the one press that takes what stands beside it",
+  "captured": true,
+  "request": {
+    "operation_id": "interpret",
+    "method": "POST",
+    "route": "/v1/interpret",
+    "path": "/v1/interpret",
+    "body": {
+      "text": "leafy, quiet streets, villagey"
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "4309",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "false",
+    "x-burro-synthetic": "true",
+    "x-request-id": "0f944687-59a9-409d-90c7-632ad8d92ee3"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.14.0",
+      "synthetic": true,
+      "preview": false
+    },
+    "data": {
+      "status": "suggest",
+      "operations": {
+        "budget_ops": [],
+        "commute_ops": [],
+        "weight_ops": [],
+        "tag_ops": [],
+        "area_ops": [],
+        "setting_ops": []
+      },
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": null,
+          "segment": "bed_1",
+          "strictness": "soft",
+          "weight": 0.3,
+          "provenance": "default"
+        },
+        "commutes": [],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.2,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.3,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.2,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.3,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.3,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.5,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [],
+        "areas": [],
+        "tenure_from": "default",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "spec_hash": "6c8de5435684a83166d75f9c1c0c25959efec036499e2359868c9a0f973a6640",
+      "applied": [],
+      "rejected": [],
+      "assumptions": [],
+      "unmet": [],
+      "clarify": [],
+      "notice": "none",
+      "notice_text": "",
+      "interpreter": "rule",
+      "degraded": false,
+      "model_refused": false,
+      "rests_on": [],
+      "suggestions": [
+        {
+          "target": "tag:leafy",
+          "label": "Leafy",
+          "does": "Add Leafy.",
+          "spans": [
+            {
+              "start": 0,
+              "end": 5
+            }
+          ],
+          "shown": {
+            "start": 0,
+            "end": 5
+          },
+          "follows": "What it counts: gardens, woodland and trees, and a public park near home. It cannot see: one street or one home. An area is many streets.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Add",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [
+                  {
+                    "action": "nudge",
+                    "tag_id": "leafy",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "toward": "high",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "more",
+          "needs": "",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "tag:quiet_residential",
+          "label": "Quiet streets",
+          "does": "Add Quiet streets.",
+          "spans": [
+            {
+              "start": 7,
+              "end": 20
+            }
+          ],
+          "shown": {
+            "start": 7,
+            "end": 20
+          },
+          "follows": "What it counts: homes away from main roads and from clusters of pubs and bars, with little transport noise. It cannot see: one street or one home. An area is many streets.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Add",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [
+                  {
+                    "action": "nudge",
+                    "tag_id": "quiet_residential",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "toward": "high",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "",
+          "read_by": "rule",
+          "add_all": "more",
+          "needs": "",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        },
+        {
+          "target": "tag:village_feel",
+          "label": "Village feel",
+          "does": "Add Village feel.",
+          "spans": [
+            {
+              "start": 22,
+              "end": 30
+            }
+          ],
+          "shown": {
+            "start": 22,
+            "end": 30
+          },
+          "follows": "What it counts: a high street in a conservation area, homes that stand apart, period homes and protected streets. It cannot see: one street or one home. An area is many streets.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Add",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [
+                  {
+                    "action": "nudge",
+                    "tag_id": "village_feel",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "toward": "high",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "Rough guide. Of the areas it puts highest, about half read as villages to people, and it takes some busy main roads and some grand inner streets for villages.",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "Village feel",
+          "asks_place": false,
+          "named_at": null,
+          "options": []
+        }
+      ],
+      "unread": [],
+      "not_in_release": [],
+      "unmet_at": [],
+      "model_pending": false,
+      "places": []
+    }
+  }
+}

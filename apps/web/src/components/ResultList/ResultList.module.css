@@ -470,9 +470,12 @@
 }
 
 /*
- * A row is two lines where there is room: the name and the fit with the ways on beside
- * them, and then the strip. What the fit rests on is said between them where it is not
- * all that counts. The working opens under the whole row.
+ * A row is three lines: the rank, the name, what stands beside the name and the fit,
+ * then the ways on, and then the strip. What the fit rests on is said between them where
+ * it is not all that counts. The working opens under the whole row.
+ *
+ * The heading has a line of its own. With the borough beside the name it left room for
+ * one of the three ways on, and the other two were drawn under it.
  *
  * The ways on come after the strip in the page, and are drawn before it. The strip of a
  * row holds nothing a keyboard stops at, so the order of the keyboard is the order drawn.
@@ -485,7 +488,7 @@
 }
 
 .row .heading {
-  flex: 1 1 auto;
+  flex: 1 1 100%;
 }
 
 .row .waysOn {

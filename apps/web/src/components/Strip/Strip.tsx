@@ -1,11 +1,13 @@
 "use client";
 
+import { roughOf, type Told } from "@/content/rough";
 import { STRIP } from "@/content/search";
-import type { Fact, StripMark, Tag } from "@/lib/api/schema";
+import type { Fact, RoughGuide, StripMark, Tag } from "@/lib/api/schema";
 import { endsOf, inWords, isRange, VIBE_BANDS } from "@/lib/vibes";
 
 import { Disclosure } from "../Disclosure/Disclosure";
 import { FactRow } from "../FactRow/FactRow";
+import { RoughLabel, RoughNote } from "../RoughGuide/RoughGuide";
 import { Track } from "../Track/Track";
 import styles from "./Strip.module.css";
 
@@ -75,10 +77,12 @@ interface MarkProps extends PictureProps {
    * not. It is drawn for the eye. A screen reader hears it of each mark, from its picture.
    */
   readonly group?: string;
+  /** What the vibe says of itself where it is a rough guide. Its label stands after its name. */
+  readonly rough?: Told | null;
 }
 
 /** One vibe of the strip: its name, its two ends, and where between them the area sits. */
-function Mark({ mark, tag, group }: MarkProps) {
+function Mark({ mark, tag, group, rough = null }: MarkProps) {
   return (
     <span className={styles.mark} data-asked={mark.asked}>
       {group === undefined ? null : (
@@ -87,8 +91,38 @@ function Mark({ mark, tag, group }: MarkProps) {
         </span>
       )}
       <span className={styles.name}>{tag.label}</span>
+      <RoughLabel told={rough} />
       <Picture mark={mark} tag={tag} />
     </span>
+  );
+}
+
+interface SaidProps {
+  /** Every vibe a result shows, in its strip or beside a sentence. */
+  readonly marks: readonly StripMark[];
+  readonly tags: readonly Tag[];
+  /** What each vibe that is a rough guide says of itself, from route 11. */
+  readonly guides?: readonly RoughGuide[];
+}
+
+/**
+ * What the vibes of a result that are a rough guide say of themselves: the
+ * name of each, its label and the sentence that says why. It is drawn under
+ * the strip, in sight, once for each such vibe and never behind a press. A
+ * result shows such a vibe only where a person asked for it.
+ */
+export function RoughOnResult({ marks, tags, guides = [] }: SaidProps) {
+  const said = marks.flatMap((mark) => {
+    const tag = tags.find((one) => one.tag_id === mark.tag_id);
+    const told = tag === undefined ? null : roughOf(tag, { rough_guides: guides });
+    return tag === undefined || told === null ? [] : [{ tag, told }];
+  });
+  return (
+    <>
+      {said.map(({ tag, told }) => (
+        <RoughNote key={tag.tag_id} told={told} of={tag.label} />
+      ))}
+    </>
   );
 }
 
@@ -96,6 +130,8 @@ interface Props {
   readonly marks: readonly StripMark[];
   /** The vibes of the release, from route 11: their names and the names of their ends. */
   readonly tags: readonly Tag[];
+  /** What each vibe that is a rough guide says of itself, from route 11. */
+  readonly guides?: readonly RoughGuide[];
   /** The facts in hand. A mark whose fact is among them opens to it, with its source and date. */
   readonly facts?: Readonly<Record<string, Fact>>;
   /** The area, to tell one strip's buttons from the next. */
@@ -114,9 +150,10 @@ interface Props {
  *
  * Which vibes, in what order, and every band are the API's. A vibe the
  * release does not name is left out. Where the fact behind a mark is in
- * hand, the mark opens to it in place, with its source and date.
+ * hand, the mark opens to it in place, with its source and date. A vibe that
+ * is a rough guide bears its label after its name.
  */
-export function Strip({ marks, tags, facts = {}, of, also = false }: Props) {
+export function Strip({ marks, tags, guides = [], facts = {}, of, also = false }: Props) {
   const drawn = marks.flatMap((mark) => {
     const tag = tags.find((one) => one.tag_id === mark.tag_id);
     return tag === undefined ? [] : [{ mark, tag }];
@@ -138,13 +175,14 @@ export function Strip({ marks, tags, facts = {}, of, also = false }: Props) {
               : at > 0 || also
                 ? STRIP.group.also
                 : undefined;
+        const rough = roughOf(tag, { rough_guides: guides });
         return (
           <li key={mark.tag_id} className={styles.item} data-asked={mark.asked}>
             {fact === undefined ? (
-              <Mark mark={mark} tag={tag} group={group} />
+              <Mark mark={mark} tag={tag} group={group} rough={rough} />
             ) : (
               <Disclosure
-                label={<Mark mark={mark} tag={tag} group={group} />}
+                label={<Mark mark={mark} tag={tag} group={group} rough={rough} />}
                 size="small"
                 className={styles.opens}
               >

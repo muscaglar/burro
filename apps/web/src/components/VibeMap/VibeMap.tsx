@@ -29,8 +29,15 @@ interface Props {
   readonly shared?: string;
 }
 
-/** The id an outline is drawn under, where a page draws it once for all its maps. */
-const sharedId = (shared: string, areaId: string) => `${shared}-${areaId}`;
+/**
+ * The id an outline is drawn under, where a page draws it once for all its maps: where it
+ * stands among the outlines, and not the id of its area. A page of 26 maps of a thousand
+ * areas writes it 26,000 times, and twice over, in what is drawn and in what React is
+ * sent to take the page up. Written with the id of the area, with a class and with the
+ * area again, each pointer was 270 bytes and the page 14 MB. The area is said once, on the
+ * outline itself.
+ */
+const sharedId = (shared: string, at: number) => `${shared}${at}`;
 
 /**
  * The outline of every area, drawn once and shown nowhere: each map of the page points at
@@ -41,8 +48,8 @@ export function SharedOutlines({ outlines, id }: { readonly outlines: readonly O
   return (
     <svg className={styles.shared} width="0" height="0" aria-hidden="true" focusable="false">
       <defs>
-        {outlines.map((outline) => (
-          <path key={outline.areaId} id={sharedId(id, outline.areaId)} d={outline.path} />
+        {outlines.map((outline, at) => (
+          <path key={at} id={sharedId(id, at)} data-area={outline.areaId} d={outline.path} />
         ))}
       </defs>
     </svg>
@@ -82,16 +89,16 @@ export function VibeMap({ outlines, marks, title, shared }: Props) {
         </pattern>
       </defs>
       <rect className={styles.water} width={width} height={height} />
-      {outlines.map((outline) => {
+      {outlines.map((outline, at) => {
         const band = fills.get(outline.areaId)?.band ?? 0;
         if (shared !== undefined) {
+          // As short as it can be: its band, and where its outline is. It is drawn in the
+          // order of the outlines, as it was, so that the picture is the same to the pixel.
           return (
             <use
-              key={outline.areaId}
-              className={styles.area}
-              data-area={outline.areaId}
+              key={at}
               data-band={band === 0 ? "none" : band}
-              href={`#${sharedId(shared, outline.areaId)}`}
+              href={`#${sharedId(shared, at)}`}
               {...(band === 0 ? { fill: `url(#${id}-dots)` } : {})}
             />
           );

@@ -76,7 +76,7 @@
         "commute_weight_from": "default"
       },
       "area_ids": [
-        "syn-n0004",
+        "syn-n0006",
         "syn-n0002",
         "syn-n0024"
       ]
@@ -87,7 +87,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "52663",
+    "content-length": "54558",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "true",
@@ -97,15 +97,15 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.13.0",
+      "engine_version": "1.14.0",
       "synthetic": true,
       "preview": true
     },
     "data": {
       "areas": [
         {
-          "area_id": "syn-n0004",
-          "name": "Dulcimer Green",
+          "area_id": "syn-n0006",
+          "name": "Farrowmere",
           "status": "ranked",
           "counted": 7,
           "present": 7
@@ -130,11 +130,11 @@
           "tag_id": "leafy",
           "marks": [
             {
-              "area_id": "syn-n0004",
-              "band": 4,
-              "spread_low": 4,
-              "spread_high": 4,
-              "fact_id": "syn-n0004/tag/leafy"
+              "area_id": "syn-n0006",
+              "band": 3,
+              "spread_low": 3,
+              "spread_high": 3,
+              "fact_id": "syn-n0006/tag/leafy"
             },
             {
               "area_id": "syn-n0002",
@@ -156,17 +156,17 @@
           "tag_id": "village_feel",
           "marks": [
             {
-              "area_id": "syn-n0004",
-              "band": 2,
-              "spread_low": 2,
-              "spread_high": 2,
-              "fact_id": "syn-n0004/tag/village_feel"
+              "area_id": "syn-n0006",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "fact_id": "syn-n0006/tag/village_feel"
             },
             {
               "area_id": "syn-n0002",
-              "band": 5,
-              "spread_low": 5,
-              "spread_high": 5,
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
               "fact_id": "syn-n0002/tag/village_feel"
             },
             {
@@ -182,11 +182,11 @@
           "tag_id": "pace",
           "marks": [
             {
-              "area_id": "syn-n0004",
-              "band": 2,
-              "spread_low": 2,
-              "spread_high": 2,
-              "fact_id": "syn-n0004/tag/pace"
+              "area_id": "syn-n0006",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "fact_id": "syn-n0006/tag/pace"
             },
             {
               "area_id": "syn-n0002",
@@ -208,11 +208,11 @@
           "tag_id": "quiet_residential",
           "marks": [
             {
-              "area_id": "syn-n0004",
-              "band": 1,
-              "spread_low": 1,
-              "spread_high": 1,
-              "fact_id": "syn-n0004/tag/quiet_residential"
+              "area_id": "syn-n0006",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "fact_id": "syn-n0006/tag/quiet_residential"
             },
             {
               "area_id": "syn-n0002",
@@ -234,11 +234,11 @@
           "tag_id": "built_age",
           "marks": [
             {
-              "area_id": "syn-n0004",
+              "area_id": "syn-n0006",
               "band": 1,
               "spread_low": 1,
               "spread_high": 1,
-              "fact_id": "syn-n0004/tag/built_age"
+              "fact_id": "syn-n0006/tag/built_age"
             },
             {
               "area_id": "syn-n0002",
@@ -260,11 +260,11 @@
           "tag_id": "everyday_on_foot",
           "marks": [
             {
-              "area_id": "syn-n0004",
-              "band": 4,
-              "spread_low": 4,
-              "spread_high": 4,
-              "fact_id": "syn-n0004/tag/everyday_on_foot"
+              "area_id": "syn-n0006",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "fact_id": "syn-n0006/tag/everyday_on_foot"
             },
             {
               "area_id": "syn-n0002",
@@ -286,11 +286,11 @@
           "tag_id": "parks_close_by",
           "marks": [
             {
-              "area_id": "syn-n0004",
-              "band": 4,
-              "spread_low": 4,
-              "spread_high": 4,
-              "fact_id": "syn-n0004/tag/parks_close_by"
+              "area_id": "syn-n0006",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "fact_id": "syn-n0006/tag/parks_close_by"
             },
             {
               "area_id": "syn-n0002",
@@ -312,11 +312,11 @@
           "tag_id": "homes",
           "marks": [
             {
-              "area_id": "syn-n0004",
-              "band": 3,
-              "spread_low": 3,
-              "spread_high": 3,
-              "fact_id": "syn-n0004/tag/homes"
+              "area_id": "syn-n0006",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "fact_id": "syn-n0006/tag/homes"
             },
             {
               "area_id": "syn-n0002",
@@ -338,11 +338,11 @@
           "tag_id": "foodie",
           "marks": [
             {
-              "area_id": "syn-n0004",
-              "band": 3,
-              "spread_low": 3,
-              "spread_high": 3,
-              "fact_id": "syn-n0004/tag/foodie"
+              "area_id": "syn-n0006",
+              "band": 1,
+              "spread_low": 1,
+              "spread_high": 1,
+              "fact_id": "syn-n0006/tag/foodie"
             },
             {
               "area_id": "syn-n0002",
@@ -364,11 +364,11 @@
           "tag_id": "family_amenities",
           "marks": [
             {
-              "area_id": "syn-n0004",
-              "band": 5,
-              "spread_low": 5,
-              "spread_high": 5,
-              "fact_id": "syn-n0004/tag/family_amenities"
+              "area_id": "syn-n0006",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
+              "fact_id": "syn-n0006/tag/family_amenities"
             },
             {
               "area_id": "syn-n0002",
@@ -390,11 +390,11 @@
           "tag_id": "well_connected",
           "marks": [
             {
-              "area_id": "syn-n0004",
+              "area_id": "syn-n0006",
               "band": 5,
               "spread_low": 5,
               "spread_high": 5,
-              "fact_id": "syn-n0004/tag/well_connected"
+              "fact_id": "syn-n0006/tag/well_connected"
             },
             {
               "area_id": "syn-n0002",
@@ -416,11 +416,11 @@
           "tag_id": "street_character",
           "marks": [
             {
-              "area_id": "syn-n0004",
-              "band": 3,
-              "spread_low": 3,
-              "spread_high": 3,
-              "fact_id": "syn-n0004/tag/street_character"
+              "area_id": "syn-n0006",
+              "band": 2,
+              "spread_low": 2,
+              "spread_high": 2,
+              "fact_id": "syn-n0006/tag/street_character"
             },
             {
               "area_id": "syn-n0002",
@@ -442,11 +442,11 @@
           "tag_id": "family_area",
           "marks": [
             {
-              "area_id": "syn-n0004",
-              "band": 3,
-              "spread_low": 3,
-              "spread_high": 3,
-              "fact_id": "syn-n0004/tag/family_area"
+              "area_id": "syn-n0006",
+              "band": 5,
+              "spread_low": 5,
+              "spread_high": 5,
+              "fact_id": "syn-n0006/tag/family_area"
             },
             {
               "area_id": "syn-n0002",
@@ -468,11 +468,11 @@
           "tag_id": "young_professionals",
           "marks": [
             {
-              "area_id": "syn-n0004",
+              "area_id": "syn-n0006",
               "band": 3,
               "spread_low": 3,
               "spread_high": 3,
-              "fact_id": "syn-n0004/tag/young_professionals"
+              "fact_id": "syn-n0006/tag/young_professionals"
             },
             {
               "area_id": "syn-n0002",
@@ -499,12 +499,12 @@
           "place": null,
           "cells": [
             {
-              "area_id": "syn-n0004",
-              "value": 320.0,
-              "percentile": 36.4,
-              "utility": 0.636,
-              "contribution": 0.1445,
-              "fact_id": "syn-n0004/feature/station_walk",
+              "area_id": "syn-n0006",
+              "value": 400.0,
+              "percentile": 54.5,
+              "utility": 0.455,
+              "contribution": 0.1034,
+              "fact_id": "syn-n0006/feature/station_walk",
               "estimate": null
             },
             {
@@ -538,12 +538,12 @@
           },
           "cells": [
             {
-              "area_id": "syn-n0004",
+              "area_id": "syn-n0006",
               "value": null,
               "percentile": null,
               "utility": 1.0,
               "contribution": 0.1818,
-              "fact_id": "syn-n0004/travel/syn-p0021.pt",
+              "fact_id": "syn-n0006/travel/syn-p0021.pt",
               "estimate": "likely_within"
             },
             {
@@ -573,12 +573,12 @@
           "place": null,
           "cells": [
             {
-              "area_id": "syn-n0004",
-              "value": 1220.0,
-              "percentile": 45.2,
-              "utility": 0.548,
-              "contribution": 0.0747,
-              "fact_id": "syn-n0004/feature/highstreet_access",
+              "area_id": "syn-n0006",
+              "value": 1460.0,
+              "percentile": 69.0,
+              "utility": 0.31,
+              "contribution": 0.0423,
+              "fact_id": "syn-n0006/feature/highstreet_access",
               "estimate": null
             },
             {
@@ -608,12 +608,12 @@
           "place": null,
           "cells": [
             {
-              "area_id": "syn-n0004",
-              "value": 600.0,
-              "percentile": 31.0,
-              "utility": 0.69,
-              "contribution": 0.0941,
-              "fact_id": "syn-n0004/feature/park_proximity",
+              "area_id": "syn-n0006",
+              "value": 820.0,
+              "percentile": 52.4,
+              "utility": 0.476,
+              "contribution": 0.0649,
+              "fact_id": "syn-n0006/feature/park_proximity",
               "estimate": null
             },
             {
@@ -643,12 +643,12 @@
           "place": null,
           "cells": [
             {
-              "area_id": "syn-n0004",
+              "area_id": "syn-n0006",
               "value": 1.0,
               "percentile": 59.1,
               "utility": 0.591,
               "contribution": 0.0806,
-              "fact_id": "syn-n0004/feature/station_lines",
+              "fact_id": "syn-n0006/feature/station_lines",
               "estimate": null
             },
             {
@@ -678,12 +678,12 @@
           "place": null,
           "cells": [
             {
-              "area_id": "syn-n0004",
-              "value": 19.7,
-              "percentile": 37.5,
-              "utility": 0.625,
-              "contribution": 0.0568,
-              "fact_id": "syn-n0004/feature/air_no2",
+              "area_id": "syn-n0006",
+              "value": 15.4,
+              "percentile": 7.5,
+              "utility": 0.925,
+              "contribution": 0.0841,
+              "fact_id": "syn-n0006/feature/air_no2",
               "estimate": null
             },
             {
@@ -713,12 +713,12 @@
           "place": null,
           "cells": [
             {
-              "area_id": "syn-n0004",
-              "value": 20.3,
-              "percentile": 42.5,
-              "utility": 0.575,
-              "contribution": 0.0523,
-              "fact_id": "syn-n0004/feature/noise_exposure",
+              "area_id": "syn-n0006",
+              "value": 11.8,
+              "percentile": 12.5,
+              "utility": 0.875,
+              "contribution": 0.0795,
+              "fact_id": "syn-n0006/feature/noise_exposure",
               "estimate": null
             },
             {
@@ -774,7 +774,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -811,7 +812,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -848,7 +850,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -885,7 +888,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -924,7 +928,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -961,7 +966,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1003,7 +1009,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1047,7 +1054,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1089,7 +1097,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1131,7 +1140,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1176,7 +1186,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1220,7 +1231,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1262,7 +1274,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1305,7 +1318,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1347,7 +1361,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1390,7 +1405,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1433,7 +1449,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1448,23 +1465,24 @@
           "template": "vibe",
           "slots": {
             "label": "Village feel",
-            "band": "5",
+            "band": "4",
             "low_end": "least",
             "high_end": "most",
-            "compared": "21",
+            "compared": "20",
             "span": "2025",
-            "spread_low": "5",
-            "spread_high": "5",
-            "known": "5",
-            "parts": "5",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "4",
+            "parts": "4",
             "share": "100",
             "partly": "",
             "judgement": "The recipe is Burro's own. The weights are a judgement.",
             "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
+            "4",
             "5",
-            "21",
+            "20",
             "100",
             "2025"
           ],
@@ -1474,7 +1492,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1517,7 +1536,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1559,7 +1579,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1592,36 +1613,37 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025 to 2026-09-23",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/feature/air_no2",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/feature/air_no2",
+          "area_id": "syn-n0006",
           "kind": "feature",
           "key": "air_no2",
           "label": "Modelled annual mean nitrogen dioxide",
           "template": "feature",
           "slots": {
             "label": "Modelled annual mean nitrogen dioxide",
-            "value": "19.7 µg/m³",
-            "band": "2",
+            "value": "15.4 µg/m³",
+            "band": "1",
             "comparative": "lower than",
-            "pct": "60",
-            "standing": "lower than 60% of the 20 areas compared in this release",
+            "pct": "90",
+            "standing": "lower than 90% of the 20 areas compared in this release",
             "comparative_worse": "higher than",
-            "pct_worse": "35",
-            "standing_worse": "higher than 35% of the 20 areas compared in this release",
+            "pct_worse": "5",
+            "standing_worse": "higher than 5% of the 20 areas compared in this release",
             "compared": "20"
           },
           "numbers": [
-            "19.7",
-            "60%",
+            "15.4",
+            "90%",
             "20",
-            "35%"
+            "5%"
           ],
           "names": [],
           "sources": [
@@ -1629,36 +1651,37 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/feature/highstreet_access",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/feature/highstreet_access",
+          "area_id": "syn-n0006",
           "kind": "feature",
           "key": "highstreet_access",
           "label": "Straight-line distance to the nearest town centre boundary",
           "template": "feature",
           "slots": {
             "label": "Straight-line distance to the nearest town centre boundary",
-            "value": "1,220 m",
-            "band": "3",
+            "value": "1,460 m",
+            "band": "4",
             "comparative": "closer than",
-            "pct": "52",
-            "standing": "closer than 52% of the 21 areas compared in this release",
+            "pct": "28",
+            "standing": "closer than 28% of the 21 areas compared in this release",
             "comparative_worse": "further than",
-            "pct_worse": "42",
-            "standing_worse": "further than 42% of the 21 areas compared in this release",
+            "pct_worse": "66",
+            "standing_worse": "further than 66% of the 21 areas compared in this release",
             "compared": "21"
           },
           "numbers": [
-            "1220",
-            "52%",
+            "1460",
+            "28%",
             "21",
-            "42%"
+            "66%"
           ],
           "names": [],
           "sources": [
@@ -1666,36 +1689,37 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/feature/noise_exposure",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/feature/noise_exposure",
+          "area_id": "syn-n0006",
           "kind": "feature",
           "key": "noise_exposure",
           "label": "Share of residents exposed to 55 dB or more of transport noise",
           "template": "feature",
           "slots": {
             "label": "Share of residents exposed to 55 dB or more of transport noise",
-            "value": "20%",
-            "band": "3",
+            "value": "12%",
+            "band": "1",
             "comparative": "quieter than",
-            "pct": "55",
-            "standing": "quieter than 55% of the 20 areas compared in this release",
+            "pct": "85",
+            "standing": "quieter than 85% of the 20 areas compared in this release",
             "comparative_worse": "noisier than",
-            "pct_worse": "40",
-            "standing_worse": "noisier than 40% of the 20 areas compared in this release",
+            "pct_worse": "10",
+            "standing_worse": "noisier than 10% of the 20 areas compared in this release",
             "compared": "20"
           },
           "numbers": [
-            "20%",
-            "55%",
+            "12%",
+            "85%",
             "20",
-            "40%"
+            "10%"
           ],
           "names": [],
           "sources": [
@@ -1703,36 +1727,39 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/feature/park_proximity",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/feature/park_proximity",
+          "area_id": "syn-n0006",
           "kind": "feature",
           "key": "park_proximity",
           "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
           "template": "feature",
           "slots": {
             "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
-            "value": "600 m",
-            "band": "2",
+            "value": "820 m",
+            "band": "3",
             "comparative": "closer than",
-            "pct": "66",
-            "standing": "closer than 66% of the 21 areas compared in this release",
+            "pct": "42",
+            "standing": "closer than 42% of the 21 areas compared in this release, and the same as 1 other",
             "comparative_worse": "further than",
-            "pct_worse": "28",
-            "standing_worse": "further than 28% of the 21 areas compared in this release",
-            "compared": "21"
+            "pct_worse": "47",
+            "standing_worse": "further than 47% of the 21 areas compared in this release, and the same as 1 other",
+            "compared": "21",
+            "level": "1"
           },
           "numbers": [
-            "600",
-            "66%",
+            "820",
+            "42%",
             "21",
-            "28%"
+            "1",
+            "47%"
           ],
           "names": [],
           "sources": [
@@ -1740,15 +1767,16 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/feature/station_lines",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/feature/station_lines",
+          "area_id": "syn-n0006",
           "kind": "feature",
           "key": "station_lines",
           "label": "Lines within a 10-minute walk",
@@ -1779,38 +1807,39 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/feature/station_walk",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/feature/station_walk",
+          "area_id": "syn-n0006",
           "kind": "feature",
           "key": "station_walk",
           "label": "Straight-line distance to the nearest way in to a station",
           "template": "feature",
           "slots": {
             "label": "Straight-line distance to the nearest way in to a station",
-            "value": "320 m",
-            "band": "2",
+            "value": "400 m",
+            "band": "3",
             "comparative": "closer than",
-            "pct": "50",
-            "standing": "closer than 50% of the 22 areas compared in this release, and the same as 5 others",
+            "pct": "40",
+            "standing": "closer than 40% of the 22 areas compared in this release, and the same as 1 other",
             "comparative_worse": "further than",
-            "pct_worse": "22",
-            "standing_worse": "further than 22% of the 22 areas compared in this release, and the same as 5 others",
+            "pct_worse": "50",
+            "standing_worse": "further than 50% of the 22 areas compared in this release, and the same as 1 other",
             "compared": "22",
-            "level": "5"
+            "level": "1"
           },
           "numbers": [
-            "320",
-            "50%",
+            "400",
+            "40%",
             "22",
-            "5",
-            "22%"
+            "1",
+            "50%"
           ],
           "names": [],
           "sources": [
@@ -1818,15 +1847,16 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/tag/built_age",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/tag/built_age",
+          "area_id": "syn-n0006",
           "kind": "tag",
           "key": "built_age",
           "label": "Age of buildings",
@@ -1861,28 +1891,29 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/tag/everyday_on_foot",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/tag/everyday_on_foot",
+          "area_id": "syn-n0006",
           "kind": "tag",
           "key": "everyday_on_foot",
           "label": "Everyday on foot",
           "template": "vibe",
           "slots": {
             "label": "Everyday on foot",
-            "band": "4",
+            "band": "2",
             "low_end": "least",
             "high_end": "most",
             "compared": "21",
             "span": "2025",
-            "spread_low": "4",
-            "spread_high": "4",
+            "spread_low": "2",
+            "spread_high": "2",
             "known": "3",
             "parts": "5",
             "share": "70",
@@ -1891,7 +1922,7 @@
             "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "4",
+            "2",
             "5",
             "21",
             "3",
@@ -1905,28 +1936,29 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/tag/family_amenities",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/tag/family_amenities",
+          "area_id": "syn-n0006",
           "kind": "tag",
           "key": "family_amenities",
           "label": "Family amenities",
           "template": "vibe",
           "slots": {
             "label": "Family amenities",
-            "band": "5",
+            "band": "4",
             "low_end": "least",
             "high_end": "most",
             "compared": "21",
             "span": "2025",
-            "spread_low": "5",
-            "spread_high": "5",
+            "spread_low": "4",
+            "spread_high": "4",
             "known": "3",
             "parts": "3",
             "share": "100",
@@ -1935,6 +1967,7 @@
             "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
+            "4",
             "5",
             "21",
             "3",
@@ -1947,28 +1980,29 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/tag/family_area",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/tag/family_area",
+          "area_id": "syn-n0006",
           "kind": "tag",
           "key": "family_area",
           "label": "Family area",
           "template": "vibe",
           "slots": {
             "label": "Family area",
-            "band": "3",
+            "band": "5",
             "low_end": "least",
             "high_end": "most",
             "compared": "21",
             "span": "2025",
-            "spread_low": "3",
-            "spread_high": "3",
+            "spread_low": "5",
+            "spread_high": "5",
             "known": "4",
             "parts": "4",
             "share": "100",
@@ -1977,7 +2011,6 @@
             "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "3",
             "5",
             "21",
             "4",
@@ -1990,28 +2023,29 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/tag/foodie",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/tag/foodie",
+          "area_id": "syn-n0006",
           "kind": "tag",
           "key": "foodie",
           "label": "Food and drink",
           "template": "vibe",
           "slots": {
             "label": "Food and drink",
-            "band": "3",
+            "band": "1",
             "low_end": "least",
             "high_end": "most",
             "compared": "21",
             "span": "2025",
-            "spread_low": "3",
-            "spread_high": "3",
+            "spread_low": "1",
+            "spread_high": "1",
             "known": "2",
             "parts": "3",
             "share": "80",
@@ -2020,10 +2054,11 @@
             "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "3",
+            "1",
             "5",
             "21",
             "2",
+            "3",
             "80",
             "100",
             "2025"
@@ -2034,28 +2069,29 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/tag/homes",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/tag/homes",
+          "area_id": "syn-n0006",
           "kind": "tag",
           "key": "homes",
           "label": "Houses or flats",
           "template": "vibe",
           "slots": {
             "label": "Houses or flats",
-            "band": "3",
+            "band": "5",
             "low_end": "Houses",
             "high_end": "Flats",
             "compared": "22",
             "span": "2025",
-            "spread_low": "3",
-            "spread_high": "3",
+            "spread_low": "5",
+            "spread_high": "5",
             "known": "2",
             "parts": "3",
             "share": "75",
@@ -2064,10 +2100,10 @@
             "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "3",
             "5",
             "22",
             "2",
+            "3",
             "75",
             "100",
             "2025"
@@ -2078,28 +2114,29 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/tag/leafy",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/tag/leafy",
+          "area_id": "syn-n0006",
           "kind": "tag",
           "key": "leafy",
           "label": "Leafy",
           "template": "vibe",
           "slots": {
             "label": "Leafy",
-            "band": "4",
+            "band": "3",
             "low_end": "least",
             "high_end": "most",
             "compared": "21",
             "span": "2025",
-            "spread_low": "4",
-            "spread_high": "4",
+            "spread_low": "3",
+            "spread_high": "3",
             "known": "3",
             "parts": "3",
             "share": "100",
@@ -2108,10 +2145,9 @@
             "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "4",
+            "3",
             "5",
             "21",
-            "3",
             "100",
             "2025"
           ],
@@ -2121,116 +2157,31 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/tag/pace",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/tag/pace",
+          "area_id": "syn-n0006",
           "kind": "tag",
           "key": "pace",
           "label": "Going out",
           "template": "vibe",
           "slots": {
             "label": "Going out",
-            "band": "2",
+            "band": "1",
             "low_end": "Calm",
             "high_end": "Buzzy",
             "compared": "21",
             "span": "2025",
-            "spread_low": "2",
-            "spread_high": "2",
-            "known": "4",
-            "parts": "4",
-            "share": "100",
-            "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
-          },
-          "numbers": [
-            "2",
-            "5",
-            "21",
-            "4",
-            "100",
-            "2025"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0004/tag/parks_close_by",
-          "area_id": "syn-n0004",
-          "kind": "tag",
-          "key": "parks_close_by",
-          "label": "Parks close by",
-          "template": "vibe",
-          "slots": {
-            "label": "Parks close by",
-            "band": "4",
-            "low_end": "least",
-            "high_end": "most",
-            "compared": "21",
-            "span": "2025",
-            "spread_low": "4",
-            "spread_high": "4",
-            "known": "3",
-            "parts": "3",
-            "share": "100",
-            "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
-          },
-          "numbers": [
-            "4",
-            "5",
-            "21",
-            "3",
-            "100",
-            "2025"
-          ],
-          "names": [],
-          "sources": [
-            {
-              "source_id": "synthetic",
-              "name": "Synthetic test data",
-              "publisher": "Burro",
-              "attribution": null
-            }
-          ],
-          "as_of": "2025",
-          "synthetic": true
-        },
-        {
-          "fact_id": "syn-n0004/tag/quiet_residential",
-          "area_id": "syn-n0004",
-          "kind": "tag",
-          "key": "quiet_residential",
-          "label": "Quiet streets",
-          "template": "vibe",
-          "slots": {
-            "label": "Quiet streets",
-            "band": "1",
-            "low_end": "least",
-            "high_end": "most",
-            "compared": "21",
-            "span": "2025",
             "spread_low": "1",
             "spread_high": "1",
-            "known": "3",
-            "parts": "3",
+            "known": "4",
+            "parts": "4",
             "share": "100",
             "partly": "",
             "judgement": "The recipe is Burro's own. The weights are a judgement.",
@@ -2240,6 +2191,50 @@
             "1",
             "5",
             "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/tag/parks_close_by",
+          "area_id": "syn-n0006",
+          "kind": "tag",
+          "key": "parks_close_by",
+          "label": "Parks close by",
+          "template": "vibe",
+          "slots": {
+            "label": "Parks close by",
+            "band": "2",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "2",
+            "spread_high": "2",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "2",
+            "5",
+            "21",
             "3",
             "100",
             "2025"
@@ -2250,28 +2245,73 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/tag/street_character",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/tag/quiet_residential",
+          "area_id": "syn-n0006",
+          "kind": "tag",
+          "key": "quiet_residential",
+          "label": "Quiet streets",
+          "template": "vibe",
+          "slots": {
+            "label": "Quiet streets",
+            "band": "4",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "4",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/tag/street_character",
+          "area_id": "syn-n0006",
           "kind": "tag",
           "key": "street_character",
           "label": "Gritty",
           "template": "vibe",
           "slots": {
             "label": "Gritty",
-            "band": "3",
+            "band": "2",
             "low_end": "Polished",
             "high_end": "Gritty",
             "compared": "21",
             "span": "2025",
-            "spread_low": "3",
-            "spread_high": "3",
+            "spread_low": "2",
+            "spread_high": "2",
             "known": "6",
             "parts": "6",
             "share": "100",
@@ -2280,7 +2320,7 @@
             "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "3",
+            "2",
             "5",
             "21",
             "6",
@@ -2293,39 +2333,41 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/tag/village_feel",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/tag/village_feel",
+          "area_id": "syn-n0006",
           "kind": "tag",
           "key": "village_feel",
           "label": "Village feel",
           "template": "vibe",
           "slots": {
             "label": "Village feel",
-            "band": "2",
+            "band": "1",
             "low_end": "least",
             "high_end": "most",
-            "compared": "21",
+            "compared": "20",
             "span": "2025",
-            "spread_low": "2",
-            "spread_high": "2",
-            "known": "5",
-            "parts": "5",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "4",
+            "parts": "4",
             "share": "100",
             "partly": "",
             "judgement": "The recipe is Burro's own. The weights are a judgement.",
             "made_from": "Burro's recipe. Made from data published by:"
           },
           "numbers": [
-            "2",
+            "1",
             "5",
-            "21",
+            "20",
+            "4",
             "100",
             "2025"
           ],
@@ -2335,15 +2377,16 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/tag/well_connected",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/tag/well_connected",
+          "area_id": "syn-n0006",
           "kind": "tag",
           "key": "well_connected",
           "label": "Well connected",
@@ -2377,15 +2420,16 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/tag/young_professionals",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/tag/young_professionals",
+          "area_id": "syn-n0006",
           "kind": "tag",
           "key": "young_professionals",
           "label": "Young professionals",
@@ -2420,15 +2464,16 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
           "synthetic": true
         },
         {
-          "fact_id": "syn-n0004/travel/syn-p0021.pt",
-          "area_id": "syn-n0004",
+          "fact_id": "syn-n0006/travel/syn-p0021.pt",
+          "area_id": "syn-n0006",
           "kind": "travel",
           "key": "syn-p0021.pt",
           "label": "Journey",
@@ -2453,7 +2498,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025 to 2026-09-23",
@@ -2492,7 +2538,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -2529,7 +2576,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -2566,7 +2614,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -2605,7 +2654,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -2644,7 +2694,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -2681,7 +2732,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -2723,7 +2775,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -2766,7 +2819,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -2809,7 +2863,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -2852,7 +2907,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -2897,7 +2953,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -2941,7 +2998,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -2983,7 +3041,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -3026,7 +3085,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -3068,7 +3128,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -3111,7 +3172,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -3154,7 +3216,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -3172,12 +3235,12 @@
             "band": "5",
             "low_end": "least",
             "high_end": "most",
-            "compared": "21",
+            "compared": "20",
             "span": "2025",
             "spread_low": "5",
             "spread_high": "5",
-            "known": "5",
-            "parts": "5",
+            "known": "4",
+            "parts": "4",
             "share": "100",
             "partly": "",
             "judgement": "The recipe is Burro's own. The weights are a judgement.",
@@ -3185,7 +3248,8 @@
           },
           "numbers": [
             "5",
-            "21",
+            "20",
+            "4",
             "100",
             "2025"
           ],
@@ -3195,7 +3259,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -3238,7 +3303,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -3281,7 +3347,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -3314,7 +3381,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025 to 2026-09-23",

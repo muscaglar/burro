@@ -1,5 +1,6 @@
 "use client";
 
+import type { Told } from "@/content/rough";
 import { NOT_IN_DATA, SHELF } from "@/content/search";
 import { FEATURES } from "@/content/settings";
 import type {
@@ -15,6 +16,7 @@ import { counts } from "@/lib/search/counts";
 import { edits } from "@/lib/search/edits";
 
 import { Disclosure } from "../Disclosure/Disclosure";
+import { RoughNote } from "../RoughGuide/RoughGuide";
 import { WeightSlider } from "../WeightSlider/WeightSlider";
 import styles from "./SettingsPanel.module.css";
 import { WeightControl } from "./WeightControl";
@@ -39,6 +41,11 @@ interface Props {
    * the slider of such a vibe is to ask for recorded crime, so the line stands beside it.
    */
   readonly crime?: string | null;
+  /**
+   * What the vibe says of itself where it is a rough guide: its label, and the sentence
+   * that says why. It stands beside the slider, in sight, before the slider is moved.
+   */
+  readonly rough?: Told | null;
 }
 
 /** Where a vibe stands on its slider: from -1 at its low end, through 0, to 1 at its high end. */
@@ -65,6 +72,7 @@ export function VibeControl({
   problem = null,
   scale,
   crime = null,
+  rough = null,
 }: Props) {
   const { tag_id: tagId, label } = tag;
   const ends = tag.shape === "scale" && tag.low_end !== null && tag.high_end !== null
@@ -74,6 +82,7 @@ export function VibeControl({
     return (
       <div className={styles.weight} role="group" aria-label={label}>
         <p className={styles.label}>{label}</p>
+        <RoughNote told={rough} />
         <p className={styles.hint}>
           {NOT_IN_DATA.why.vibe} {SHELF.held(held.held, held.needed)}
         </p>
@@ -97,6 +106,7 @@ export function VibeControl({
         version={version}
         scale={ends === undefined ? scale : undefined}
       />
+      <RoughNote told={rough} />
       {crime === null ? null : <p className={styles.hint}>{crime}</p>}
       {problem ? (
         <p className={styles.problem} role="alert">

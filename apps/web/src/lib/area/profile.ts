@@ -23,6 +23,8 @@ import type {
 } from "@/lib/api/schema";
 import { isRange } from "@/lib/vibes";
 
+import { isRough } from "@/content/rough";
+
 import { factsOf, holdsRecordedCrime, portraitOf } from "./portrait";
 
 /** A feature of the release, with the fact the area has for it, if it has one. */
@@ -144,7 +146,8 @@ export function alikeRows(
  * neither, and nor is one on which either is mixed, which sits at no one point.
  *
  * A vibe whose recipe holds recorded crime is never among them: likeness is never counted on
- * recorded crime, and nobody asked for it here.
+ * recorded crime, and nobody asked for it here. Nor is a vibe that is a rough guide: it is
+ * used to work out nothing else, and what two areas share is worked out.
  */
 export function sharedVibes(
   areaId: string,
@@ -154,7 +157,7 @@ export function sharedVibes(
 ): readonly Tag[] {
   if (areaId === otherId) return [];
   return meta.tags.filter((tag) => {
-    if (holdsRecordedCrime(tag, meta.features)) return false;
+    if (holdsRecordedCrime(tag, meta.features) || isRough(tag)) return false;
     const marks = bands.find((one) => one.tag_id === tag.tag_id)?.marks ?? [];
     const [one, other] = [areaId, otherId].map((id) => marks.find((mark) => mark.area_id === id));
     if (one === undefined || other === undefined) return false;

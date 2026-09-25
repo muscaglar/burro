@@ -20,6 +20,7 @@ import {
   CLARIFY,
   COMPLETENESS,
   FAILURE,
+  FILTERED,
   NOTICE,
   PLACE,
   PROMPT,
@@ -38,7 +39,7 @@ import { recordedAnswer, responseFrom } from "@/lib/api/recorded";
 import type { InterpretData, Operations } from "@/lib/api/schema";
 import { NO_EDITS } from "@/lib/search/edits";
 
-import { setOnline, withTheSpecSent, type Responder } from "../support/api";
+import { reasonsFor, setOnline, withTheSpecSent, type Responder } from "../support/api";
 import { lastMap } from "../support/maplibre";
 import {
   areas,
@@ -537,13 +538,20 @@ describe("a sentence the rules noticed nothing in, while a model reads it", () =
 });
 
 describe("a natural sentence", () => {
-  /** A service with a model behind it: the rules answer at once, and then the model. */
+  /**
+   * A service with a model behind it: the rules answer at once, and then the model. One
+   * press is answered with the ranking the service gave to it.
+   */
   const reading = () =>
-    firstSearch().inTurn("interpret", "interpret-rules-at-once", "interpret-by-model-long");
+    firstSearch()
+      .inTurn("interpret", "interpret-rules-at-once", "interpret-by-model-long")
+      .on("rank", "rank-one-press")
+      .on("explain_top", "explanations-one-press");
 
-  test("test_one_press_adds_every_offer_that_one_press_may_add_and_says_what_it_added", async () => {
+  test("test_one_press_adds_every_offer_that_one_press_may_add_and_says_what_it_did_in_full", async () => {
     // Seen in a browser: a sentence of five things cost five presses on a desk and six on a
-    // phone, with no way to take them all.
+    // phone, with no way to take them all. And once there was one, the budget that was typed
+    // was not among what it took: the search still assumed renting, and held no budget.
     const { user, api } = await openSearch(reading());
     await user.type(promptBox(), sentenceOf("interpret-by-model-long"));
     await user.click(screen.getByRole("button", { name: PROMPT.submit }));
@@ -555,11 +563,13 @@ describe("a natural sentence", () => {
     await settled();
 
     expect(api.callsTo("rank")).toHaveLength(1);
+    expect(api.lastCallTo("rank").body).toEqual(recordedAnswer("rank", "rank-one-press").request.body);
     expect(results().length).toBeGreaterThan(0);
     const block = screen.getByRole("region", { name: SUGGEST.title });
     expect(within(block).getByRole("status").textContent).toBe(
       [
-        "5 added. 9 need you: the journey can be made a firm limit; the budget can be made a firm limit",
+        "5 added. Your budget is a firm limit and left out 13 areas: the table of all areas lists each. " +
+          "8 need you: the journey can be made a firm limit",
         "mix of brands",
         "recorded crime, which is added under its own name",
         "what homes sell for",
@@ -570,11 +580,136 @@ describe("a natural sentence", () => {
       ].join("; "),
     );
     // What one press may not add is still offered: the four readings of a word for how well off
-    // a place is, and the three of a word for its identity. None has a guess. Four are in sight.
-    expect(within(block).queryAllByRole("listitem")).toHaveLength(4);
-    expect(within(block).getByRole("button", { name: SUGGEST.showAll(7) })).toBeVisible();
+    // a place is, and the three of a word for its identity. None has a guess. They wait behind
+    // one line, so that the answer is in sight.
+    expect(within(block).queryAllByRole("listitem")).toHaveLength(0);
+    expect(within(block).getByRole("button", { name: SUGGEST.showLeft(7) })).toBeVisible();
     // The button went with what it added. The focus is on the block that says so, and not on nothing.
     expect(block === document.activeElement).toBe(true);
+    // What the line says is so: the table of all areas lists each area the budget left out.
+    const rows = within(await theTable(user)).getAllByRole("row");
+    expect(rows.filter((row) => row.textContent?.includes(FILTERED.over_budget))).toHaveLength(13);
+  });
+
+  test("test_after_one_press_the_first_result_stands_directly_after_the_line_that_says_what_it_did", async () => {
+    // Seen in a browser, on a build of a real city: after the press the page said what was
+    // added and listed seven more offers, each several lines long. The name of the first
+    // result was 1,626 px down a desk's screen of 900, and 2,149 px down a phone's of 844.
+    const { user } = await openSearch(reading());
+    await user.type(promptBox(), sentenceOf("interpret-by-model-long"));
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
+    await user.click(screen.getByRole("button", { name: SUGGEST.addThese(5) }));
+    await settled();
+
+    const [first] = results();
+    const block = screen.getByRole("region", { name: SUGGEST.title });
+    const line = within(block).getByRole("status");
+    const back = within(block).getByRole("button", { name: SUGGEST.takeBack });
+    // What the press did and how to take it back stand before the first result.
+    expect(line.textContent?.startsWith("5 added.")).toBe(true);
+    expect(comesBefore(line, back)).toBe(true);
+    expect(comesBefore(back, first as HTMLElement)).toBe(true);
+    // No offer stands between them: what is left is one button, and nothing of an offer is drawn.
+    expect(block.querySelectorAll("li")).toHaveLength(0);
+    const between = [...document.querySelectorAll<HTMLElement>("main button, main input, main select, main a[href]")]
+      .filter((control) => comesBefore(chipsRegion(), control) && comesBefore(control, first as HTMLElement))
+      .filter((control) => !chipsRegion().contains(control))
+      .map((control) => control.textContent || control.getAttribute("aria-label"));
+    expect(between).toEqual([SUGGEST.takeBack, SUGGEST.showLeft(7)]);
+    // Nothing was made of how each wish is led in to, "I want to live somewhere". It asks
+    // for nothing, so the page does not say that words were not read.
+    expect(screen.queryByText(SUGGEST.unread)).toBeNull();
+    expect(screen.queryByRole("button", { name: SUGGEST.showUnread })).toBeNull();
+
+    // Each offer that is left is one press away, and the press adds nothing.
+    const ranked = document.body.textContent?.includes("5 added.");
+    await user.click(within(block).getByRole("button", { name: SUGGEST.showLeft(7) }));
+    expect(within(block).getAllByRole("listitem")).toHaveLength(7);
+    expect(ranked).toBe(true);
+    expect(within(block).getByRole("status").textContent?.startsWith("5 added.")).toBe(true);
+  });
+
+  test("test_the_fold_never_hides_that_a_vibe_is_a_rough_guide", async () => {
+    // A vibe that is a rough guide says so wherever it is shown, in sight: its label, and the
+    // sentence that says why. One press never takes it, so it is among what one press leaves,
+    // and what one press leaves folds to one line. The fold takes nothing from its offer, and
+    // hides nothing of the vibe once it has been added.
+    const [told] = meta.data.rough_guides;
+    const said = `${told?.label}. ${told?.why}`;
+    const { user, api } = await openSearch(
+      firstSearch()
+        .on("interpret", "interpret-suggest-rough-guide")
+        .inTurn("rank", "rank-rough-guide-one-press", "rank-rough-guide-with-the-rest")
+        .inTurn(
+          "explain_top",
+          reasonsFor("rank-rough-guide-one-press", "explanations-rough-guide"),
+          reasonsFor("rank-rough-guide-with-the-rest", "explanations-rough-guide"),
+        ),
+    );
+    await user.type(promptBox(), sentenceOf("interpret-suggest-rough-guide"));
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
+    const block = screen.getByRole("region", { name: SUGGEST.title });
+    const offers = () => within(block).queryAllByRole("listitem");
+    const ofTheGuide = () => offers().find((offer) => offer.textContent?.includes("Add Village feel."));
+    const hidden = "[hidden], [aria-hidden='true'], .visually-hidden, details:not([open])";
+
+    // Open, before any press: the offer says its label and its sentence, and nothing hides them.
+    expect(told?.label).toBe("Rough guide");
+    expect(offers()).toHaveLength(3);
+    expect(ofTheGuide()).toHaveTextContent(said);
+    expect(ofTheGuide()?.querySelector("[class*='note']")?.closest(hidden)).toBeNull();
+
+    // One press adds the two that need no choice. What is left is the rough guide, behind
+    // one line, and the first result stands directly after the line and the fold.
+    await user.click(within(block).getByRole("button", { name: SUGGEST.addThese(2) }));
+    await settled();
+    expect(api.lastCallTo("rank").body).toEqual(recordedAnswer("rank", "rank-rough-guide-one-press").request.body);
+    expect(within(block).getByRole("status").textContent).toBe("2 added. 1 needs you: Village feel.");
+    expect(offers()).toHaveLength(0);
+    const fold = within(block).getByRole("button", { name: SUGGEST.showLeft(1) });
+    const [first] = results();
+    expect(comesBefore(fold, first as HTMLElement)).toBe(true);
+    const between = [...document.querySelectorAll<HTMLElement>("main button, main input, main select, main a[href]")]
+      .filter((control) => comesBefore(chipsRegion(), control) && comesBefore(control, first as HTMLElement))
+      .filter((control) => !chipsRegion().contains(control))
+      .map((control) => control.textContent || control.getAttribute("aria-label"));
+    expect(between).toEqual([SUGGEST.takeBack, SUGGEST.showLeft(1)]);
+    // It was not added, so the search does not hold it, and no chip is of it.
+    expect(chipsRegion().textContent?.includes("Village feel")).toBe(false);
+
+    // Opened, the offer is whole: the label and the sentence are in sight as they were, and
+    // to open the fold added nothing.
+    await user.click(fold);
+    expect(offers()).toHaveLength(1);
+    expect(ofTheGuide()).toHaveTextContent(said);
+    expect(ofTheGuide()?.querySelector("[class*='note']")?.closest(hidden)).toBeNull();
+    expect(api.callsTo("rank")).toHaveLength(1);
+
+    // Pressed by a press of its own, it is added. Wherever the page now names it, it says
+    // that it is a rough guide, and why: under the chips, in sight, with nothing to press.
+    await user.click(within(ofTheGuide() as HTMLElement).getAllByRole("button")[0] as HTMLElement);
+    await settled();
+    expect(api.callsTo("rank")).toHaveLength(2);
+    expect(api.lastCallTo("rank").body).toEqual(
+      recordedAnswer("rank", "rank-rough-guide-with-the-rest").request.body,
+    );
+    expect(chipsRegion().textContent?.includes("Village feel")).toBe(true);
+    const notes = [...chipsRegion().querySelectorAll<HTMLElement>("[data-rough-guide='note']")];
+    expect(notes.map((note) => note.textContent)).toEqual([`Village feel: ${said}`]);
+    expect(notes[0]?.closest(hidden)).toBeNull();
+    // The line of what one press did still stands, and nothing is left to fold.
+    expect(within(block).getByRole("status").textContent?.startsWith("2 added.")).toBe(true);
+    expect(within(block).queryByRole("button", { name: SUGGEST.showLeft(1) })).toBeNull();
+    // The first result names the vibe, as it was asked for, and says beside its name that
+    // it is a rough guide.
+    const [now] = results();
+    const labels = [...(now as HTMLElement).querySelectorAll<HTMLElement>("[data-rough-guide]")];
+    expect((now as HTMLElement).textContent?.includes("Village feel")).toBe(true);
+    expect(labels.length).toBeGreaterThan(0);
+    expect(labels.every((label) => label.textContent?.includes(told?.label ?? "no label"))).toBe(true);
+    expect(labels.some((label) => label.closest(hidden) !== null)).toBe(false);
   });
 
   test("test_one_press_takes_back_all_that_was_added_and_the_offers_are_as_they_were", async () => {
@@ -607,20 +742,22 @@ describe("a natural sentence", () => {
     await settled();
 
     const offers = within(screen.getByRole("region", { name: SUGGEST.title })).getAllByRole("listitem");
+    // What carries Burro's guess comes first, in the order its words stand in the sentence:
+    // quiet, the park, the culture, the journey and the budget.
     expect(offers.map((offer) => offer.querySelector("q")?.textContent)).toEqual([
       "I want to live somewhere quiet",
       "with access to parks",
       "slightly affluent but with some culture around it",
-      "slightly affluent but with some culture around it",
-      "slightly affluent but with some culture around it",
       "At most 35-40min commute from Pellam Exchange",
       "If I'm renting, max \u00a31,900 a month for a 1 bed flat",
+      "slightly affluent but with some culture around it",
+      "slightly affluent but with some culture around it",
     ]);
-    // The third and the fourth have no guess: they are the first two of the three readings of a
-    // word for how well off a place is, which are the rules' to offer.
-    expect(offers.map((offer) => offer.querySelectorAll("[data-guess]").length)).toEqual([1, 1, 0, 0, 1, 1, 1]);
-    // The third and the fourth of them, and three readings of a word for the identity of a
-    // place, wait behind one press.
+    // The last two have no guess: they are the first two of the four readings of a word for
+    // how well off a place is, which are the rules' to offer.
+    expect(offers.map((offer) => offer.querySelectorAll("[data-guess]").length)).toEqual([1, 1, 1, 1, 1, 0, 0]);
+    // The other two of them, and three readings of a word for the identity of a place, wait
+    // behind one press.
     expect(screen.getByRole("button", { name: SUGGEST.showAll(12) })).toBeVisible();
     // Nothing is ranked until a choice is pressed.
     expect(api.callsTo("rank")).toEqual([]);
@@ -672,8 +809,9 @@ describe("a natural sentence", () => {
     await user.type(promptBox(), sentenceOf("interpret-by-model-long"));
     await user.click(screen.getByRole("button", { name: PROMPT.submit }));
     await settled();
-    expect(guesses()).toBe(0);
-    await user.click(screen.getByRole("button", { name: SUGGEST.addThese(4) }));
+    // The rules guess at what was plainly said: the journey, renting, the budget and the size.
+    expect(guesses()).toBe(4);
+    await user.click(screen.getByRole("button", { name: SUGGEST.addThese(6) }));
     await settled();
     await act(async () => letGo());
     await settled();
@@ -865,6 +1003,58 @@ describe("what is marked as assumed", () => {
 
     expect(recordedAnswer("interpret", "interpret-notice").body.data.spec.tenure_from).toBe("default");
     expect(within(chipsRegion()).getByRole("button", { name: /^Renting/ }).textContent).toBe(`Renting ${CHIPS.assumed}`);
+  });
+
+  test("test_the_kind_of_home_that_one_press_took_is_not_marked_assumed", async () => {
+    // Seen in a browser, on the founder's sentence: "£400,000, A flat assumed, firm limit". The
+    // person wrote "a 1 bed flat", Burro offered the kind of home with its guess, and one press
+    // took it. The way of travelling was not said, and is rightly marked.
+    const { user } = await openSearch(
+      firstSearch()
+        .inTurn("interpret", "interpret-rules-at-once", () => new Promise(() => undefined))
+        .on("rank", "rank-one-press")
+        .on("explain_top", "explanations-one-press"),
+    );
+    await user.type(promptBox(), sentenceOf("interpret-by-model-long"));
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
+
+    await user.click(screen.getByRole("button", { name: SUGGEST.addThese(6) }));
+    await settled();
+
+    const budget = within(chipsRegion()).getByRole("button", { name: /^£1,900 a month/ });
+    expect(budget.textContent).toBe(`£1,900 a month, One bedroom, ${CHIPS.firm}`);
+    const journey = within(chipsRegion()).getByRole("button", { name: /^Pellam Exchange/ });
+    expect(journey.textContent).toBe(
+      `Pellam Exchange, Public transport ${CHIPS.assumed}, within 40 minutes, ${CHIPS.flexible}`,
+    );
+    expect(within(chipsRegion()).getByRole("button", { name: /^Renting/ }).textContent).toBe("Renting");
+  });
+
+  test("test_the_kind_of_house_that_burro_took_is_marked_assumed_after_one_press", async () => {
+    // The person wrote "a house" and no kind of house. One press holds the budget against a
+    // terraced house, and the search says that the kind is assumed.
+    const { user } = await openSearch(
+      firstSearch().on("interpret", "interpret-suggest-house").on("rank", "rank-house-one-press"),
+    );
+    await search(user, sentenceOf("interpret-suggest-house"));
+
+    await user.click(screen.getByRole("button", { name: SUGGEST.addAll(2) }));
+    await settled();
+
+    const budget = within(chipsRegion()).getByRole("button", { name: /^£400,000/ });
+    expect(budget.textContent).toBe(`£400,000, A terraced house ${CHIPS.assumed}, ${CHIPS.firm}`);
+    expect(within(chipsRegion()).getByRole("button", { name: /^Buying/ }).textContent).toBe("Buying");
+  });
+
+  test("test_the_kind_of_house_of_a_plain_sentence_is_marked_assumed_as_the_api_says", async () => {
+    const { user } = await openSearch(
+      firstSearch().on("interpret", "interpret-house").on("rank", withTheSpecSent("rank-first")),
+    );
+    await search(user, sentenceOf("interpret-house"));
+
+    const budget = within(chipsRegion()).getByRole("button", { name: /^£600,000/ });
+    expect(budget.textContent).toBe(`£600,000, A terraced house ${CHIPS.assumed}, ${CHIPS.flexible} ${CHIPS.assumed}`);
   });
 
   test("test_a_place_added_from_the_field_is_marked_as_one_read_from_a_sentence_is", async () => {

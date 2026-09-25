@@ -776,6 +776,51 @@ describe("what the person said, and what was assumed for them", () => {
     expect(firm.assumed.budget).toEqual(["segment"]);
   });
 
+  test("test_what_one_press_says_of_a_budget_in_an_edit_of_its_own_is_not_marked_assumed", () => {
+    // Seen in a browser: "£400,000, A flat assumed, firm limit" after one press on a sentence
+    // that said "max £400k for a 1 bed flat". One press sends the amount and the kind of home
+    // in an edit each, as they were offered, and the kind of home is the person's own words.
+    const amount = { ...(edits.budgetAmount(400000).budget_ops[0] as BudgetEdit), tenure: "buy" as const };
+    const pressed: Operations = {
+      ...NO_EDITS,
+      budget_ops: [
+        { ...amount, amount: 0 },
+        { ...amount, strictness: "hard" },
+        { ...amount, amount: 0, segment: "flat" },
+      ],
+    };
+
+    expect(reduce(opened(), { type: "queued", operations: pressed }).assumed.budget).toBeUndefined();
+    // In whichever order the edits stand.
+    const turned = { ...pressed, budget_ops: [...pressed.budget_ops].reverse() };
+    expect(reduce(opened(), { type: "queued", operations: turned }).assumed.budget).toBeUndefined();
+    // What no edit of the press says is still marked: here the kind of home.
+    const unsized = { ...pressed, budget_ops: pressed.budget_ops.slice(0, 2) };
+    expect(reduce(opened(), { type: "queued", operations: unsized }).assumed.budget).toEqual(["segment"]);
+  });
+
+  test("test_the_kind_of_house_that_burro_took_is_marked_assumed_and_one_a_person_pressed_is_not", () => {
+    // A person named a house and no kind of house. One press holds the budget against a
+    // terraced house, in an edit that says the kind is Burro's.
+    const amount = { ...(edits.budgetAmount(400000).budget_ops[0] as BudgetEdit), tenure: "buy" as const };
+    const kind = (segment: BudgetEdit["segment"], provenance: BudgetEdit["provenance"]): Operations => ({
+      ...NO_EDITS,
+      budget_ops: [
+        { ...amount, amount: 0, segment, provenance },
+        { ...amount, strictness: "hard" },
+      ],
+    });
+
+    const taken = reduce(opened(), { type: "queued", operations: kind("terraced", "inferred") });
+    expect(taken.assumed.budget).toEqual(["segment"]);
+    // Whatever was set before: the kind is still Burro's.
+    const set = { ...opened(), spec: { ...opened().spec, budget: { ...opened().spec.budget, provenance: "ui_edit" as const } } };
+    expect(reduce(set, { type: "queued", operations: kind("terraced", "inferred") }).assumed.budget).toEqual(["segment"]);
+    // Another kind, pressed by the person, is theirs. It takes the mark off.
+    const pressed = reduce(taken, { type: "queued", operations: kind("semi_detached", "ui_edit") });
+    expect(pressed.assumed.budget).toBeUndefined();
+  });
+
   test("test_a_budget_the_person_had_already_set_a_part_of_is_not_marked_again", () => {
     // The size of home was chosen in the settings, and then an amount was given.
     const chosen = { ...opened(), spec: { ...opened().spec, budget: { ...opened().spec.budget, provenance: "ui_edit" as const } } };

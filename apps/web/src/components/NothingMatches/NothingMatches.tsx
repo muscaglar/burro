@@ -23,7 +23,7 @@ interface Props {
   readonly areas: readonly AreaSummary[];
   readonly placeNames: Readonly<Record<string, string>>;
   /** The names the API gives what counts, so that what has no figure is said by name. */
-  readonly meta?: Pick<MetaData, "features" | "tags">;
+  readonly meta?: Pick<MetaData, "features" | "tags"> & Partial<Pick<MetaData, "rents">>;
   readonly onEdit: (operations: Operations) => void;
 }
 
@@ -121,6 +121,9 @@ export function NothingMatches({ filtered, unranked, spec, areas, placeNames, me
   ].filter(({ count }) => count > 0);
   // A limit is offered to be loosened only where a limit left an area out.
   const limited = filtered.length > 0;
+  // What the API says of the rents a budget to rent was held against, where each is of a
+  // postcode district or a borough.
+  const heldAgainst = spec.tenure === "rent" ? (meta?.rents?.of_a_place ?? null) : null;
   const ways = limited ? waysOut(spec, areas, placeNames) : [];
   const lacks = lacksOf(unranked, meta);
 
@@ -138,6 +141,10 @@ export function NothingMatches({ filtered, unranked, spec, areas, placeNames, me
           </div>
         ))}
       </dl>
+      {/* What the budget was held against, in the API's words: a rent of a district or a borough. */}
+      {heldAgainst !== null && counts.some(({ reason }) => reason === "over_budget") ? (
+        <p>{heldAgainst}</p>
+      ) : null}
       {lacks.length > 0 ? (
         <>
           <p className={styles.lacks} id="nothing-lacks">

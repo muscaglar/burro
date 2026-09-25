@@ -2,6 +2,7 @@
 import { readdirSync } from "node:fs";
 import path from "node:path";
 
+import { isRough } from "@/content/rough";
 import { readRecorded, recordedAnswer, recordedFolder } from "@/lib/api/recorded";
 import type { AreaData, MetaData } from "@/lib/api/schema";
 
@@ -341,6 +342,7 @@ describe("what an area is like, in short", () => {
       // No vibe at an end is left out for one that is nearer the middle.
       const leftOut = shownOn(portrait)
         .filter((mark) => !lines.includes(mark) && !holdsRecordedCrime(mark.tag, meta.features))
+        .filter((mark) => !isRough(mark.tag))
         .filter((mark) => mark.placed !== null && mark.placed.spread_high - mark.placed.spread_low < 2);
       const nearest = Math.min(...lines.map((mark) => Math.abs((mark.placed?.band ?? 3) - 3)), 2);
       if (lines.length === IN_SHORT) {
@@ -353,8 +355,23 @@ describe("what an area is like, in short", () => {
   });
 
   test("test_it_reads_what_an_area_has_most_of_then_where_it_sits_between_two_ends_then_what_it_has_least_of", () => {
-    expect(ids("thrushcombe")).toEqual(["village_feel", "foodie", "parks_close_by", "homes", "built_age"]);
+    expect(ids("thrushcombe")).toEqual(["foodie", "parks_close_by", "everyday_on_foot", "homes", "built_age"]);
     expect(short("thrushcombe").map((mark) => mark.placed?.band)).toEqual([5, 5, 5, 1, 5]);
+  });
+
+  test("test_a_vibe_that_is_a_rough_guide_is_in_no_line_of_it_wherever_the_area_sits", () => {
+    // Thrushcombe is a made-up village, in the highest band of Village feel.
+    const village = shownOn(portraitOf(profile("thrushcombe"), meta)).find((mark) => isRough(mark.tag));
+    expect(village?.tag.tag_id).toBe("village_feel");
+    expect(village?.placed?.band).toBe(5);
+    expect(village?.rough).toEqual(meta.rough_guides.find((one) => one.tag_id === "village_feel"));
+    for (const data of profiles) {
+      expect(inShort(portraitOf(data, meta), meta.features).filter((mark) => isRough(mark.tag))).toEqual([]);
+    }
+    // A vibe that does not say is as sure as the rest, and nothing is said of it.
+    const sure = shownOn(portraitOf(profile("thrushcombe"), meta)).filter((mark) => !isRough(mark.tag));
+    expect(sure.length).toBeGreaterThan(0);
+    for (const mark of sure) expect(mark.rough).toBeNull();
   });
 
   test("test_it_says_what_an_area_has_least_of_as_well_as_what_it_has_most_of", () => {
@@ -363,7 +380,7 @@ describe("what an area is like, in short", () => {
     for (const data of profiles) {
       const portrait = portraitOf(data, meta);
       const lines = inShort(portrait, meta.features);
-      const oneWay = shownOn(portrait).filter((mark) => mark.tag.shape === "one_way");
+      const oneWay = shownOn(portrait).filter((mark) => mark.tag.shape === "one_way" && !isRough(mark.tag));
       const has = (from: number, to: number) => (mark: { placed: { band: number } | null }) =>
         (mark.placed?.band ?? 3) >= from && (mark.placed?.band ?? 3) <= to;
       if (oneWay.some(has(1, 1)) && lines.length === IN_SHORT) expect(lines.some(has(1, 1))).toBe(true);

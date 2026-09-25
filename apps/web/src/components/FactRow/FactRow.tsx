@@ -36,7 +36,11 @@ const pounds = (value: string | undefined) => (value === undefined ? undefined :
 const range = (from: string | undefined, to: string | undefined) =>
   from === undefined || to === undefined ? undefined : `${from} ${FACT_COLUMNS.to} ${to}`;
 
-/** Where a journey stands against the limit the person set, where the fact holds one. */
+/**
+ * Where a journey stands against the limit the person set, where the fact holds one. A
+ * journey that takes the minutes of its limit holds no difference: the fact says that it
+ * is at the limit, and a difference of nothing is never drawn as a figure.
+ */
 const againstTheLimit = ({ template, slots }: Fact): readonly Column[] => [
   [FACT_COLUMNS.limit, slots.limit],
   [
@@ -45,6 +49,18 @@ const againstTheLimit = ({ template, slots }: Fact): readonly Column[] => [
       : FACT_COLUMNS.underLimit,
     slots.margin,
   ],
+  [FACT_COLUMNS.estimate, slots.verdict],
+];
+
+/**
+ * Where a cost stands against the budget: under it or over it by an amount, or at it.
+ * Which is said by the template. At the budget the fact holds no difference, and says in
+ * the API's words where the cost stands.
+ */
+const againstTheBudget = ({ template, slots }: Fact): readonly Column[] => [
+  [FACT_COLUMNS.amount, pounds(slots.amount)],
+  [template.startsWith("budget_under") ? FACT_COLUMNS.under : FACT_COLUMNS.over, pounds(slots.margin)],
+  [FACT_COLUMNS.againstBudget, slots.verdict],
 ];
 
 /**
@@ -126,27 +142,38 @@ export function columnsOf(fact: Fact): readonly Column[] {
           [FACT_COLUMNS.soldIn, slots.period],
           [FACT_COLUMNS.sales, slots.sales],
         ];
+      case "cost_rent_recorded":
+        // A rent of the postcode district or of the borough the area lies in. It says the
+        // place it is of, the months and how many rents it rests on, and no word for how
+        // sure it is: the count says it.
+        return [
+          [FACT_COLUMNS.segment, slots.segment],
+          [FACT_COLUMNS.range, range(pounds(slots.lower), pounds(slots.upper))],
+          [FACT_COLUMNS.median, pounds(slots.median)],
+          [FACT_COLUMNS.figureOf, slots.of],
+          [FACT_COLUMNS.recordedIn, slots.period],
+          [FACT_COLUMNS.rents, slots.rents],
+        ];
+      case "budget_under_recorded":
+      case "budget_over_recorded":
+      case "budget_at_recorded":
+        // The budget is held against the middle rent of the place, and the row names it.
+        return [
+          [FACT_COLUMNS.middleRent, pounds(slots.median)],
+          [FACT_COLUMNS.figureOf, slots.of],
+          [FACT_COLUMNS.recordedIn, slots.period],
+          [FACT_COLUMNS.rents, slots.rents],
+          ...againstTheBudget(fact),
+        ];
       case "budget_under":
       case "budget_over":
-        return [
-          [FACT_COLUMNS.upper, pounds(slots.upper)],
-          [FACT_COLUMNS.amount, pounds(slots.amount)],
-          [
-            fact.template === "budget_under" ? FACT_COLUMNS.under : FACT_COLUMNS.over,
-            pounds(slots.margin),
-          ],
-        ];
+      case "budget_at":
+        return [[FACT_COLUMNS.upper, pounds(slots.upper)], ...againstTheBudget(fact)];
       case "budget_under_median":
       case "budget_over_median":
+      case "budget_at_median":
         // The budget is held against the one number there is, and the row names it.
-        return [
-          [FACT_COLUMNS.middleOfAll, pounds(slots.median)],
-          [FACT_COLUMNS.amount, pounds(slots.amount)],
-          [
-            fact.template === "budget_under_median" ? FACT_COLUMNS.under : FACT_COLUMNS.over,
-            pounds(slots.margin),
-          ],
-        ];
+        return [[FACT_COLUMNS.middleOfAll, pounds(slots.median)], ...againstTheBudget(fact)];
       case "travel_pt":
       case "travel_pt_over":
         return [
@@ -250,6 +277,12 @@ export function FactRow({ fact, withSource = true, source = "button", name: give
       {/* What a middle price means, in the API's words: about half of what sold went for less. */}
       {fact.kind === "cost" && fact.slots.half_sold ? (
         <p className={styles.caveat}>{fact.slots.half_sold}</p>
+      ) : null}
+      {/* Which place a figure is of, and that it is not of this area alone, in the API's words. */}
+      {fact.slots.is_of ? <p className={styles.caveat}>{fact.slots.is_of}</p> : null}
+      {/* What a middle rent means, in the API's words: about half were let for less. */}
+      {fact.kind === "cost" && fact.slots.half_let ? (
+        <p className={styles.caveat}>{fact.slots.half_let}</p>
       ) : null}
       {/* What every sentence about a vibe ends in, as the API holds it: that the recipe is a judgement. */}
       {fact.kind === "tag" && fact.slots.judgement ? (

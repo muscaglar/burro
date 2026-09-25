@@ -761,6 +761,12 @@ export interface components {
          *     A median worked out from the sales themselves says how many it rests on,
          *     in `sales`, and the first month they were made in, in `since`. Nothing
          *     stands in for the range of either.
+         *
+         *     A rent may be of a wider place than the area: no publisher gives one for
+         *     an area. It is then a range as its publisher gives it for the place, and
+         *     says the place in `of`, how many rents were recorded there in `rents`,
+         *     and the first month of them in `since`. Every area of the place that
+         *     takes its figure holds the same row.
          */
         readonly CostEstimate: {
             /** Area Id */
@@ -772,6 +778,9 @@ export interface components {
             readonly lower_quartile: number | null;
             /** Median */
             readonly median: number;
+            readonly of?: components["schemas"]["CostOf"] | null;
+            /** Rents */
+            readonly rents?: number | null;
             /** Sales */
             readonly sales?: number | null;
             readonly segment: components["schemas"]["Segment"];
@@ -783,6 +792,29 @@ export interface components {
             /** Upper Quartile */
             readonly upper_quartile: number | null;
         };
+        /**
+         * CostOf
+         * @description The place a cost is of, where it is of a wider place than the area.
+         *
+         *     A postcode district the area lies in, by what stands before the space of
+         *     its postcodes, or the borough the area is in, by its name. A cost that is
+         *     of the area alone holds none.
+         */
+        readonly CostOf: {
+            readonly kind: components["schemas"]["CostOfKind"];
+            /** Name */
+            readonly name: string;
+        };
+        /**
+         * CostOfKind
+         * @description The kind of place a cost is of, where it is of a wider place than the area.
+         *
+         *     No publisher gives a rent for an area. One gives the rents that were
+         *     recorded in a postcode district and in a borough, and an area is given the
+         *     figure of the place it lies in.
+         * @enum {string}
+         */
+        readonly CostOfKind: "postcode_district" | "borough";
         /** Counts */
         readonly Counts: {
             /** Destinations */
@@ -1001,6 +1033,8 @@ export interface components {
             readonly name: string;
             /** Publisher */
             readonly publisher: string;
+            /** Said With Attribution */
+            readonly said_with_attribution?: string | null;
             /** Source Id */
             readonly source_id: string;
         };
@@ -1020,7 +1054,7 @@ export interface components {
          * FeatureId
          * @enum {string}
          */
-        readonly FeatureId: "crime_violence_robbery" | "crime_burglary_theft" | "school_primary_nearby" | "school_primary_attainment" | "school_secondary_attainment" | "university_proximity" | "green_cover" | "park_proximity" | "play_space_proximity" | "water_access" | "air_no2" | "noise_exposure" | "venue_food_drink" | "venue_evening" | "venue_independent" | "culture_venues" | "highstreet_access" | "homes_flats" | "homes_pre1919" | "homes_density" | "conservation_cover" | "station_walk" | "station_lines" | "independents_nearby" | "centre_small" | "centre_compact" | "listed_buildings" | "homes_post2000" | "road_major_exposure" | "evening_cluster_exposure" | "land_industry" | "land_storage" | "land_transport_other" | "land_gardens" | "land_woodland" | "park_large_proximity" | "park_facilities" | "grocery_walk" | "incident_criminal_damage" | "incident_antisocial" | "private_outdoor_space" | "cuisine_variety" | "gp_walk" | "pharmacy_walk" | "venue_food_drink_per_homes" | "price_median" | "culture_venues_per_homes" | "venue_cafe" | "venue_cafe_per_homes" | "venue_gym" | "venue_gym_per_homes" | "venue_evening_per_homes" | "grocer_premium_nearby" | "grocer_mid_nearby" | "grocer_value_nearby" | "gym_premium_nearby" | "gym_mid_nearby" | "gym_value_nearby" | "coffee_premium_nearby" | "coffee_mid_nearby" | "coffee_value_nearby" | "grocer_premium_distance" | "grocer_mid_distance" | "grocer_value_distance" | "gym_premium_distance" | "gym_mid_distance" | "gym_value_distance" | "coffee_premium_distance" | "coffee_mid_distance" | "coffee_value_distance" | "brand_mix" | "brand_waitrose" | "brand_mands" | "brand_whole_foods" | "brand_sainsburys" | "brand_tesco" | "brand_coop" | "brand_morrisons" | "brand_asda" | "brand_aldi" | "brand_lidl" | "brand_iceland" | "brand_equinox" | "brand_third_space" | "brand_barrys" | "brand_virgin_active" | "brand_nuffield" | "brand_gymbox" | "brand_david_lloyd" | "brand_anytime_fitness" | "brand_puregym" | "brand_the_gym_group" | "brand_gails" | "brand_ole_and_steen" | "brand_pret" | "brand_nero" | "brand_starbucks" | "brand_costa" | "brand_blank_street" | "brand_greggs" | "underground_proximity" | "overground_proximity" | "rail_proximity" | "bus_stops_nearby" | "bus_routes_nearby" | "residents_aged_20_34" | "residents_aged_65_over" | "households_dependent_children" | "households_one_person" | "homes_higher_bands" | "price_rise_5y" | "price_rise_10y";
+        readonly FeatureId: "crime_violence_robbery" | "crime_burglary_theft" | "school_primary_nearby" | "school_primary_attainment" | "school_secondary_attainment" | "university_proximity" | "green_cover" | "park_proximity" | "play_space_proximity" | "water_access" | "air_no2" | "noise_exposure" | "venue_food_drink" | "venue_evening" | "venue_independent" | "culture_venues" | "highstreet_access" | "homes_flats" | "homes_pre1919" | "homes_density" | "conservation_cover" | "station_walk" | "station_lines" | "independents_nearby" | "centre_small" | "centre_compact" | "listed_buildings" | "homes_post2000" | "road_major_exposure" | "evening_cluster_exposure" | "land_industry" | "land_storage" | "land_transport_other" | "land_gardens" | "land_woodland" | "park_large_proximity" | "park_facilities" | "grocery_walk" | "incident_criminal_damage" | "incident_antisocial" | "private_outdoor_space" | "cuisine_variety" | "gp_walk" | "pharmacy_walk" | "venue_food_drink_per_homes" | "price_median" | "culture_venues_per_homes" | "venue_cafe" | "venue_cafe_per_homes" | "venue_gym" | "venue_gym_per_homes" | "venue_evening_per_homes" | "grocer_premium_nearby" | "grocer_mid_nearby" | "grocer_value_nearby" | "gym_premium_nearby" | "gym_mid_nearby" | "gym_value_nearby" | "coffee_premium_nearby" | "coffee_mid_nearby" | "coffee_value_nearby" | "grocer_premium_distance" | "grocer_mid_distance" | "grocer_value_distance" | "gym_premium_distance" | "gym_mid_distance" | "gym_value_distance" | "coffee_premium_distance" | "coffee_mid_distance" | "coffee_value_distance" | "brand_mix" | "brand_waitrose" | "brand_mands" | "brand_whole_foods" | "brand_sainsburys" | "brand_tesco" | "brand_coop" | "brand_morrisons" | "brand_asda" | "brand_aldi" | "brand_lidl" | "brand_iceland" | "brand_equinox" | "brand_third_space" | "brand_barrys" | "brand_virgin_active" | "brand_nuffield" | "brand_gymbox" | "brand_david_lloyd" | "brand_anytime_fitness" | "brand_puregym" | "brand_the_gym_group" | "brand_gails" | "brand_ole_and_steen" | "brand_pret" | "brand_nero" | "brand_starbucks" | "brand_costa" | "brand_blank_street" | "brand_greggs" | "underground_proximity" | "overground_proximity" | "rail_proximity" | "bus_stops_nearby" | "bus_routes_nearby" | "residents_aged_20_34" | "residents_aged_65_over" | "households_dependent_children" | "households_one_person" | "homes_higher_bands" | "price_rise_5y" | "price_rise_10y" | "highstreet_conserved";
         /**
          * FeatureKind
          * @description What a person may want of a feature, which decides where it may stand.
@@ -1334,6 +1368,12 @@ export interface components {
             readonly recipes: readonly components["schemas"]["RecipeHeld"][];
             /** Release Id */
             readonly release_id: string;
+            readonly rents?: components["schemas"]["RentsSaid"] | null;
+            /**
+             * Rough Guides
+             * @default []
+             */
+            readonly rough_guides: readonly components["schemas"]["RoughGuide"][];
             /** Synthetic */
             readonly synthetic: boolean;
             /** Tags */
@@ -1732,6 +1772,20 @@ export interface components {
             readonly reason: components["schemas"]["RejectReason"];
         };
         /**
+         * RentsSaid
+         * @description What is said of the rents of a release, where each is of a wider place than an area.
+         *
+         *     It holds words and no figure. A client shows them where no one area is
+         *     spoken of: the first beside the count of the areas a firm budget to rent
+         *     left out, and the second on the page of methods.
+         */
+        readonly RentsSaid: {
+            /** Caution */
+            readonly caution: string;
+            /** Of A Place */
+            readonly of_a_place: string;
+        };
+        /**
          * RestsOn
          * @description Which words of the text an edit rests on: where they start and end, never the words.
          *
@@ -1749,6 +1803,17 @@ export interface components {
             readonly index: number;
             /** Start */
             readonly start: number;
+        };
+        /**
+         * RoughGuide
+         * @description What stands beside a vibe that is a rough guide, wherever the vibe is shown.
+         */
+        readonly RoughGuide: {
+            /** Label */
+            readonly label: string;
+            readonly tag_id: components["schemas"]["TagId"];
+            /** Why */
+            readonly why: string;
         };
         /** Score */
         readonly Score: {
@@ -1952,6 +2017,8 @@ export interface components {
             readonly publisher: string;
             /** Retrieved On */
             readonly retrieved_on: string;
+            /** Said With Attribution */
+            readonly said_with_attribution?: string | null;
             /** Source Id */
             readonly source_id: string;
             /** Url */
@@ -2078,6 +2145,16 @@ export interface components {
          * @enum {string}
          */
         readonly SuggestionDirection: "more" | "less" | "ignore";
+        /**
+         * Sureness
+         * @description Whether a vibe is as sure as the rest, or a rough guide. It says so of itself.
+         *
+         *     It has these two values and no other. It is no number, and no word of praise or
+         *     blame: it says how far a vibe is to be trusted, and nothing of any place. No client
+         *     works it out. A vibe that does not say is as sure as the rest.
+         * @enum {string}
+         */
+        readonly Sureness: "as_the_rest" | "rough_guide";
         /** Tag */
         readonly Tag: {
             /** Cannot See */
@@ -2103,6 +2180,8 @@ export interface components {
             readonly short_label: string;
             /** Strip */
             readonly strip: boolean;
+            /** @default as_the_rest */
+            readonly sureness: components["schemas"]["Sureness"];
             /** Table */
             readonly table: boolean;
             readonly tag_id: components["schemas"]["TagId"];
@@ -2177,7 +2256,7 @@ export interface components {
          * TemplateId
          * @enum {string}
          */
-        readonly TemplateId: "area" | "feature" | "feature_crime" | "vibe" | "vibe_range" | "vibe_unknown" | "cost_rent" | "cost_buy" | "cost_buy_median" | "cost_buy_sold" | "budget_under" | "budget_over" | "budget_under_median" | "budget_over_median" | "travel_pt" | "travel_pt_over" | "travel_other" | "travel_other_over" | "travel_beyond" | "travel_estimated" | "station" | "station_nearby" | "missing" | "missing_journey" | "likeness" | "likeness_same";
+        readonly TemplateId: "area" | "feature" | "feature_crime" | "vibe" | "vibe_range" | "vibe_unknown" | "cost_rent" | "cost_buy" | "cost_buy_median" | "cost_buy_sold" | "cost_rent_recorded" | "budget_under" | "budget_over" | "budget_at" | "budget_under_median" | "budget_over_median" | "budget_at_median" | "budget_under_recorded" | "budget_over_recorded" | "budget_at_recorded" | "travel_pt" | "travel_pt_over" | "travel_other" | "travel_other_over" | "travel_beyond" | "travel_estimated" | "station" | "station_nearby" | "missing" | "missing_journey" | "likeness" | "likeness_same";
         /**
          * Tenure
          * @enum {string}
@@ -2315,6 +2394,8 @@ export type ComparedArea = components['schemas']['ComparedArea'];
 export type Confidence = components['schemas']['Confidence'];
 export type Contribution = components['schemas']['Contribution'];
 export type CostEstimate = components['schemas']['CostEstimate'];
+export type CostOf = components['schemas']['CostOf'];
+export type CostOfKind = components['schemas']['CostOfKind'];
 export type Counts = components['schemas']['Counts'];
 export type Cutoffs = components['schemas']['Cutoffs'];
 export type Defaults = components['schemas']['Defaults'];
@@ -2408,7 +2489,9 @@ export type Reader = components['schemas']['Reader'];
 export type RecipeHeld = components['schemas']['RecipeHeld'];
 export type RejectReason = components['schemas']['RejectReason'];
 export type Rejected = components['schemas']['Rejected'];
+export type RentsSaid = components['schemas']['RentsSaid'];
 export type RestsOn = components['schemas']['RestsOn'];
+export type RoughGuide = components['schemas']['RoughGuide'];
 export type Score = components['schemas']['Score'];
 export type Segment = components['schemas']['Segment'];
 export type SegmentChoice = components['schemas']['SegmentChoice'];
@@ -2431,6 +2514,7 @@ export type StripMark = components['schemas']['StripMark'];
 export type Suggestion = components['schemas']['Suggestion'];
 export type SuggestionChoice = components['schemas']['SuggestionChoice'];
 export type SuggestionDirection = components['schemas']['SuggestionDirection'];
+export type Sureness = components['schemas']['Sureness'];
 export type Tag = components['schemas']['Tag'];
 export type TagEdit = components['schemas']['TagEdit'];
 export type TagId = components['schemas']['TagId'];

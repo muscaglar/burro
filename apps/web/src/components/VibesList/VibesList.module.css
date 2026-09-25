@@ -93,6 +93,13 @@
   gap: 0;
 }
 
+/* The name of a vibe, with what it says of itself beside it where it is a rough guide. */
+.nameLine {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
 /* The room for the case for other names. It takes no height until a name is set down. */
 .room {
   min-width: 0;

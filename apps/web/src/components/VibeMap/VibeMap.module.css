@@ -36,28 +36,38 @@
  * picture, and not of the screen. On a map of a thousand areas a line of a fixed width hid
  * the colour of every small area.
  */
-.area {
+.area,
+.map > use {
   stroke: var(--map-line);
   stroke-width: 0.2;
 }
 
-.area[data-band="1"] {
+/*
+ * An area that points at an outline the page draws once is known by what it is, and bears
+ * no class: a page of many maps writes each of them a thousand times.
+ */
+.area[data-band="1"],
+.map > use[data-band="1"] {
   fill: var(--map-1);
 }
 
-.area[data-band="2"] {
+.area[data-band="2"],
+.map > use[data-band="2"] {
   fill: var(--map-2);
 }
 
-.area[data-band="3"] {
+.area[data-band="3"],
+.map > use[data-band="3"] {
   fill: var(--map-3);
 }
 
-.area[data-band="4"] {
+.area[data-band="4"],
+.map > use[data-band="4"] {
   fill: var(--map-4);
 }
 
-.area[data-band="5"] {
+.area[data-band="5"],
+.map > use[data-band="5"] {
   fill: var(--map-5);
 }
 
@@ -65,11 +75,13 @@
 @media (forced-colors: active) {
   .water,
   .land,
-  .area[data-band] {
+  .area[data-band],
+  .map > use[data-band] {
     fill: Canvas;
   }
 
-  .area {
+  .area,
+  .map > use {
     stroke: CanvasText;
   }
 

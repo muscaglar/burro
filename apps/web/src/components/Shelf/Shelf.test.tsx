@@ -41,6 +41,7 @@ function Held({ told, form = meta, withTheCity = true }: Shown) {
     <Shelf
       tags={form.tags}
       features={form.features}
+      guides={form.rough_guides}
       open={open}
       onOpen={(tagId) => {
         told.opened.push(tagId);
@@ -243,6 +244,8 @@ describe("the shelf a search can start from", () => {
         ...tag.cannot_see,
         tag.meaning,
         ...[1, 2, 3, 4, 5].map((count) => SHELF.missing(count)),
+        // What a vibe that is a rough guide says of itself, which is the API's too.
+        ...meta.rough_guides.flatMap((one) => [one.label, one.why]),
       ]);
       expect(figuresNotFrom(opened, allowed)).toEqual([]);
       // No code is shown in place of a name: not the vibe's, and not a part's.
@@ -327,6 +330,41 @@ describe("the shelf a search can start from", () => {
       const opened = card(tag.label);
       expect(opened.queryByRole("note", { name: CRIME_ACCOUNT.counts })).toBeNull();
       expect(screen.getByRole("region", { name: tag.label }).textContent?.includes(CRIME_ACCOUNT.counts)).toBe(false);
+    }
+  });
+
+  test("test_a_vibe_that_is_a_rough_guide_says_so_beside_its_word_and_its_card_says_why_before_it_is_added", async () => {
+    const { user, added } = show();
+    const [told] = meta.rough_guides;
+
+    // Beside the word and not in it: the button is named by its word alone.
+    const villagey = word("villagey");
+    expect(villagey.textContent).toBe("villagey");
+    expect(villagey.nextElementSibling?.textContent).toBe(`, ${told?.label}`);
+    expect(document.querySelectorAll("[data-rough-guide='label']")).toHaveLength(1);
+
+    await user.click(villagey);
+    const opened = card("Village feel");
+
+    // The label and the sentence are the API's, word for word, and are drawn in the card.
+    const said = screen.getByRole("region", { name: "Village feel" }).querySelector("[data-rough-guide='note']");
+    expect(said?.textContent).toBe(`${told?.label}. ${told?.why}`);
+    // It stands before what can be pressed, so that it is read first, and nothing is added by opening.
+    const add = opened.getByRole("button", { name: SHELF.add });
+    expect((said as Element).compareDocumentPosition(add) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(added).toEqual([]);
+    // To press it is the person's own choice, and is sent as one edit of that vibe alone.
+    await user.click(add);
+    expect(added).toEqual([edits.tagOn("village_feel", "high")]);
+  });
+
+  test("test_the_card_of_a_vibe_that_is_as_sure_as_the_rest_says_nothing_of_it", async () => {
+    const { user } = show();
+    await user.click(word(SHELF.more));
+
+    for (const tag of meta.tags.filter((one) => one.tag_id !== "village_feel")) {
+      await user.click(word(wordOf(tag)));
+      expect(screen.getByRole("region", { name: tag.label }).querySelector("[data-rough-guide]")).toBeNull();
     }
   });
 

@@ -31,7 +31,7 @@ function slugOr(value: string, what: string): string {
 }
 
 /** The parts of the methods page that another page leads to. */
-export type MethodsPart = "confidence" | "journeys" | "names" | "words";
+export type MethodsPart = "confidence" | "journeys" | "names" | "rents" | "words";
 
 /** The parts of an area's page that another page leads to. */
 export type AreaPart = "alike";

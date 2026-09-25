@@ -137,7 +137,9 @@ export const METHODS = {
    * How a journey is estimated, where the data holds no journey time: decision record
    * 0027. It holds no figure of its own. Every number is the API's, from
    * `journey_estimate` of route 11, and the line that stands wherever an estimate is
-   * shown is served with them.
+   * shown is served with them. So what likely within means is said with the number the
+   * API serves. What the estimate was held against, and what it could not be held
+   * against, is the record's: it was held against timetables on 2026-09-25.
    */
   estimate: {
     title: "How journeys are estimated",
@@ -145,12 +147,29 @@ export const METHODS = {
     points: (how: HowEstimated): readonly string[] => [
       `An estimate is a fixed part and a part for distance: ${how.fixed_minutes} minutes for the walk to a stop, the wait and the far end, and ${how.minutes_a_km} minutes for each kilometre, in a straight line, between where the homes of an area stand and the place.`,
       `Where the homes of an area are within ${how.near_the_underground_m} metres of an Underground or DLR station, in a straight line, it is ${how.minutes_a_km_near_the_underground} minutes for each kilometre.`,
-      `Likely within: the estimate is at least ${how.within_by} minutes under your limit. Likely beyond: it is more than ${how.beyond_by} minutes over it. Anything between the two is borderline.`,
+      `Likely within: the estimate is at least ${how.within_by} minutes under your limit. Likely beyond: it is more than ${how.beyond_by} minutes over it. Anything between the two is borderline. Likely within is what the estimate says, and is no promise.`,
       "A firm limit leaves out only the areas that are likely beyond it. A flexible limit leaves none out: a journey that is likely within it counts in full, one that is borderline counts for a half, and one that is likely beyond it counts for nothing.",
       "An estimate knows nothing of lines, of changes, or of how often anything runs. Two places the same distance apart are estimated the same, whatever runs between them.",
       "By bike and on foot nothing is estimated.",
-      "The numbers are a first guess. They have not been checked against journeys that were timed.",
+      "The estimate has been held against journeys timed from the timetables of the Underground and the DLR. It could not be held against trains: Burro holds no timetable of theirs. So it is less sure for an area whose nearest station is a railway station.",
       "Once the data holds a journey time, the time takes the place of the estimate.",
+    ],
+  },
+
+  /**
+   * How a rent is held, where each rent of the data is of a postcode district or of a
+   * borough: decision record 0021, as amended. What is said of the rents themselves is the
+   * API's, from `rents` of route 11. It quotes no figure of any place.
+   */
+  rents: {
+    title: "How rents are held",
+    points: [
+      "No publisher gives a rent for an area as small as one of these. The rents here are the ones recorded over twelve months in each postcode district and each borough, as their publisher gives them: the middle rent, and the two figures that half of the rents lie between.",
+      "An area shows the figures of the postcode district where half or more of its homes stand. Where no district holds half, or the district has no such figures, it shows the figures of its borough. Where neither has them it shows none, and nothing is filled in.",
+      "Every figure says which place it is of, the months the rents were recorded in, and how many rents it rests on, to the nearest ten. Two areas of one place show the same figures.",
+      "A budget to rent is held against the middle rent of the place. About half of the rents recorded there were under it. As a guide, an area counts in full where the middle rent is within your budget, and for less the further it is over. As a firm limit, an area is left out only where the middle rent is more than a quarter over your budget.",
+      "The rents were collected by Rent Officers of the Valuation Office Agency, from the letting agents and landlords who were willing to give them. The figures take no account of how the homes that were let differ in kind or in quality, so they are to be read with caution.",
+      "The figures are of rents that were recorded, and not of what is asked for a home today.",
     ],
   },
 

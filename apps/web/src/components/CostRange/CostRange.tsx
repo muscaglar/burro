@@ -162,7 +162,96 @@ function OneNumber({ fact, estimate, budget, scale = null }: Props) {
  */
 export function CostRange({ fact, estimate, budget, scale = null }: Props) {
   if (!hasARange(estimate)) return <OneNumber fact={fact} estimate={estimate} budget={budget} scale={scale} />;
+  if (isOfAWiderPlace(estimate)) {
+    return <OfAPlace fact={fact} estimate={estimate} budget={budget} scale={scale} />;
+  }
   return <Range fact={fact} estimate={estimate} budget={budget} scale={scale} />;
+}
+
+/** True of a rent that is of a postcode district or of a borough, and not of the area alone. */
+export function isOfAWiderPlace(estimate: CostEstimate): boolean {
+  return (estimate.of ?? null) !== null;
+}
+
+/**
+ * A rent that is of a wider place than the area: the range as its publisher gives it for the
+ * postcode district the area lies in, or for its borough.
+ *
+ * No figure of it is drawn without the place it is of, the months the rents were recorded in
+ * and how many they were: each is a slot of the fact, as the API formatted it, and so is the
+ * sentence that says the figure is not of this area alone. No word says how sure it is: the
+ * count does. A budget is held against the middle rent, so the words say where the budget
+ * falls against the middle.
+ */
+function OfAPlace({ fact, estimate, budget, scale = null }: Props & { readonly estimate: Ranged }) {
+  const { slots } = fact;
+  const amount = budget?.amount ?? null;
+  const at = placesOnBar(estimate, amount, scale);
+  const lower = at.lower ?? at.median;
+  const upper = at.upper ?? at.median;
+  const falls =
+    amount === null
+      ? null
+      : amount < estimate.median
+        ? COST.belowMiddleRent
+        : amount > estimate.median
+          ? COST.aboveMiddleRent
+          : COST.atMiddleRent;
+
+  return (
+    <div className={styles.cost}>
+      <p className={styles.range}>
+        <span className={styles.figure}>
+          £{slots.lower} {COST.to} £{slots.upper}
+        </span>{" "}
+        {COST.aMonth}
+      </p>
+      <dl className={styles.facts}>
+        <div>
+          <dt>{fact.label}</dt>
+          <dd>{slots.segment}</dd>
+        </div>
+        <div>
+          <dt>{COST.middle}</dt>
+          <dd>£{slots.median}</dd>
+        </div>
+        <div>
+          <dt>{COST.figureOf}</dt>
+          <dd>{slots.of}</dd>
+        </div>
+        <div>
+          <dt>{COST.recordedIn}</dt>
+          <dd>{slots.period}</dd>
+        </div>
+        <div>
+          <dt>{COST.rents}</dt>
+          <dd>{slots.rents}</dd>
+        </div>
+        {amount !== null ? (
+          <div>
+            <dt>{COST.budget}</dt>
+            <dd>£{grouped(amount)}</dd>
+          </div>
+        ) : null}
+      </dl>
+      <div className={styles.bar} role="img" aria-label={COST.pictureOfRent}>
+        <span
+          className={styles.span}
+          style={{ insetInlineStart: `${lower}%`, width: `${upper - lower}%` }}
+        />
+        <span className={styles.median} style={{ insetInlineStart: `${at.median}%` }} />
+        {at.budget !== null ? (
+          <span className={styles.budget} style={{ insetInlineStart: `${at.budget}%` }} />
+        ) : null}
+      </div>
+      {falls !== null ? <p className={styles.falls}>{falls}</p> : null}
+      {/* Which place the figure is of, and that it is not of this area alone: the API's words. */}
+      {slots.is_of ? <p className={styles.falls}>{slots.is_of}</p> : null}
+      {/* What a middle rent means, in the API's words: about half were let for less. */}
+      {amount !== null && slots.half_let ? <p className={styles.falls}>{slots.half_let}</p> : null}
+      <SourceNote facts={[fact]} of={fact.label} />
+    </div>
+  );
 }
 
 function Range({ fact, estimate, budget, scale = null }: Props & { readonly estimate: Ranged }) {

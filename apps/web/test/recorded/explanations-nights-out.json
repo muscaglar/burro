@@ -102,17 +102,17 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "29432",
+    "content-length": "30447",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "2d72b254-3528-4bdd-84c7-fc299a4eb821"
+    "x-request-id": "37a06405-d792-4dde-b112-4d0d25564dcf"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.13.0",
+      "engine_version": "1.14.0",
       "synthetic": true,
       "preview": false
     },
@@ -376,7 +376,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -412,7 +413,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -448,7 +450,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -484,7 +487,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -527,7 +531,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -571,7 +576,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -613,7 +619,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -644,7 +651,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -681,7 +689,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -718,7 +727,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -755,7 +765,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -797,7 +808,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -841,7 +853,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -883,7 +896,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -914,7 +928,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -951,7 +966,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -988,7 +1004,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1025,7 +1042,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1067,7 +1085,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1110,7 +1129,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1152,7 +1172,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1183,7 +1204,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1220,7 +1242,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1257,7 +1280,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1294,7 +1318,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1339,7 +1364,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1381,7 +1407,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1412,7 +1439,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2026-09-23",
@@ -1449,7 +1477,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1486,7 +1515,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1523,7 +1553,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1567,7 +1598,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1609,7 +1641,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1651,7 +1684,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2025",
@@ -1687,7 +1721,8 @@
               "source_id": "synthetic",
               "name": "Synthetic test data",
               "publisher": "Burro",
-              "attribution": null
+              "attribution": null,
+              "said_with_attribution": null
             }
           ],
           "as_of": "2026-09",

@@ -6,7 +6,7 @@ import { recordedAnswer } from "@/lib/api/recorded";
 import type { CostEstimate } from "@/lib/api/schema";
 
 import { faultsIn } from "../../../test/support/axe";
-import { CostRange, hasARange, placesOnBar, scaleOf } from "./CostRange";
+import { CostRange, hasARange, isOfAWiderPlace, placesOnBar, scaleOf } from "./CostRange";
 
 const farrowmere = recordedAnswer("get_area", "area/farrowmere").body.data;
 const areas = recordedAnswer("list_areas", "areas").body.data.areas;
@@ -263,5 +263,93 @@ describe("a price that was counted from sales", () => {
     expect(over.length).toBeGreaterThan(0);
     expect(ranked.filtered.length).toBeGreaterThan(0);
     expect(ranked.spec.budget.strictness).toBe("hard");
+  });
+});
+
+describe("a rent that is of a wider place than the area", () => {
+  // A release whose rents are each of a postcode district or of a borough, as a build of
+  // London holds them: a range as its publisher gives it, with the place it is of.
+  const area = recordedAnswer("get_area", "let/area").body.data;
+  const [estimate] = area.cost.filter((cost) => cost.tenure === "rent" && cost.segment === "bed_1");
+  const fact = area.facts.find((one) => one.kind === "cost" && one.key === "rent.bed_1");
+  if (!estimate || !fact) throw new Error("no recorded rent");
+  const ranked = recordedAnswer("rank", "let/rank-firm").body.data;
+  const amount = ranked.spec.budget.amount ?? 0;
+
+  test("test_the_recorded_rent_is_a_range_that_says_the_place_it_is_of", () => {
+    expect(estimate.of).toEqual({ kind: "postcode_district", name: fact.slots.of_name });
+    expect(estimate.rents).toBeGreaterThanOrEqual(10);
+    expect(estimate.since).toMatch(/^\d{4}-\d{2}$/);
+    expect(fact.template).toBe("cost_rent_recorded");
+    expect(hasARange(estimate)).toBe(true);
+    expect(isOfAWiderPlace(estimate)).toBe(true);
+    expect(amount).toBeGreaterThan(0);
+  });
+
+  test("test_it_is_never_drawn_without_the_place_the_months_and_the_count", () => {
+    render(<CostRange fact={fact} estimate={estimate} budget={{ amount }} />);
+
+    for (const [name, slot] of [
+      [COST.figureOf, fact.slots.of],
+      [COST.recordedIn, fact.slots.period],
+      [COST.rents, fact.slots.rents],
+    ] as const) {
+      expect(slot).toBeTruthy();
+      expect(screen.getByText(name).closest("div")?.querySelector("dd")?.textContent).toBe(slot);
+    }
+    expect(screen.getByText(fact.slots.is_of ?? "no sentence")).toBeInTheDocument();
+  });
+
+  test("test_no_word_and_no_pip_says_how_sure_it_is", () => {
+    const { container } = render(<CostRange fact={fact} estimate={estimate} budget={{ amount }} />);
+
+    expect(screen.queryByRole("link", { name: COST.confidence })).toBeNull();
+    expect(container.querySelector("[class*='pips']")).toBeNull();
+  });
+
+  test.each([
+    ["below", -1, COST.belowMiddleRent],
+    ["above", 1, COST.aboveMiddleRent],
+    ["at", 0, COST.atMiddleRent],
+  ] as const)("test_the_budget_is_said_to_be_%s_the_middle_rent", (_, more, words) => {
+    render(<CostRange fact={fact} estimate={estimate} budget={{ amount: estimate.median + more }} />);
+
+    expect(screen.getByText(words)).toBeInTheDocument();
+    // A budget is held against the middle rent, and never against an end of the range.
+    for (const range of [COST.below, COST.above, COST.inside]) expect(screen.queryByText(range)).toBeNull();
+  });
+
+  test("test_with_a_budget_it_says_that_about_half_were_let_for_less_as_the_api_wrote_it", () => {
+    render(<CostRange fact={fact} estimate={estimate} budget={{ amount }} />);
+
+    expect(fact.slots.half_let).toMatch(/^About half of the rents recorded there were under £[\d,]+\.$/);
+    expect(screen.getByText(fact.slots.half_let ?? "no sentence")).toBeInTheDocument();
+  });
+
+  test("test_with_no_budget_set_no_budget_is_marked_or_mentioned", () => {
+    render(<CostRange fact={fact} estimate={estimate} budget={{ amount: null }} />);
+
+    expect(screen.queryByText(/budget/i)).toBeNull();
+    expect(placesOnBar(estimate, null).budget).toBeNull();
+  });
+
+  test("test_the_range_is_drawn_with_its_middle_and_the_picture_has_a_name_and_no_fault", async () => {
+    const { container } = render(<CostRange fact={fact} estimate={estimate} budget={{ amount }} />);
+
+    expect(container.querySelector("[class*='figure']")?.textContent).toBe(
+      `£${fact.slots.lower} ${COST.to} £${fact.slots.upper}`,
+    );
+    expect(container.querySelector("[class*='span']")).not.toBeNull();
+    expect(screen.getByRole("img")).toHaveAccessibleName(COST.pictureOfRent);
+    expect(await faultsIn(container)).toEqual([]);
+  });
+
+  test("test_a_firm_budget_keeps_an_area_whose_middle_rent_is_a_little_over_it", () => {
+    const over = ranked.ranked.filter((one) => one.budget !== null && one.budget.margin < 0);
+
+    expect(over.length).toBeGreaterThan(0);
+    // The margin is to the middle rent, and the fit names no upper end.
+    expect(over.every((one) => one.budget?.upper_quartile === null)).toBe(true);
+    expect(ranked.filtered.filter((one) => one.reason === "over_budget").length).toBeGreaterThan(0);
   });
 });

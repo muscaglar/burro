@@ -13,7 +13,7 @@ import { rulesOf } from "../../../test/support/css";
 import { figuresNotFrom, saidBy } from "../../../test/support/figures";
 import { endsOf, inWords } from "@/lib/vibes";
 
-import { Strip } from "./Strip";
+import { RoughOnResult, Strip } from "./Strip";
 
 const meta = recordedAnswer("get_meta", "meta").body.data;
 const calm = recordedAnswer("rank", "rank-scale").body.data;
@@ -39,6 +39,57 @@ function heardIn(mark: HTMLElement | undefined): string {
   copy.querySelectorAll("[role='img']").forEach((picture) => picture.replaceWith(` ${picture.getAttribute("aria-label")} `));
   return (copy.textContent ?? "").replace(/\s+/g, " ").trim();
 }
+
+describe("a vibe that is a rough guide, on a result", () => {
+  const asked = recordedAnswer("rank", "rank-rough-guide").body.data;
+  const [top] = asked.ranked;
+  if (top === undefined) throw new Error("The recording holds no result.");
+  const [told] = meta.rough_guides;
+
+  test("test_it_is_on_a_result_only_where_it_was_asked_for", () => {
+    for (const area of asked.ranked) {
+      for (const mark of area.strip.filter((one) => one.tag_id === "village_feel")) expect(mark.asked).toBe(true);
+    }
+    expect(top.strip.map((mark) => mark.tag_id)).toContain("village_feel");
+    // Asked for nothing of the kind, no result of any search shows it.
+    for (const area of calm.ranked) expect(area.strip.map((mark) => mark.tag_id)).not.toContain("village_feel");
+  });
+
+  test("test_its_mark_bears_its_label_after_its_name_and_no_other_mark_does", () => {
+    render(<Strip marks={top.strip} tags={meta.tags} guides={meta.rough_guides} of="Wickerford" />);
+    const marks = within(screen.getByRole("list", { name: STRIP.label("Wickerford") })).getAllByRole("listitem");
+
+    const labelled = marks.filter((mark) => mark.querySelector("[data-rough-guide='label']") !== null);
+    expect(labelled).toHaveLength(1);
+    expect(heardIn(labelled[0])).toContain(`Village feel, ${told?.label}`);
+    // The word is drawn, and is not kept for a screen reader alone.
+    const label = labelled[0]?.querySelector("[data-rough-guide='label']");
+    expect(label?.closest("[aria-hidden='true']")).toBeNull();
+    expect(label?.lastChild?.textContent).toBe(told?.label);
+  });
+
+  test("test_the_sentence_that_says_why_stands_under_the_strip_in_sight_once_for_the_vibe", () => {
+    const { container } = render(
+      <RoughOnResult marks={top.strip} tags={meta.tags} guides={meta.rough_guides} />,
+    );
+
+    const notes = [...container.querySelectorAll("[data-rough-guide='note']")];
+    expect(notes.map((note) => note.textContent)).toEqual([`Village feel: ${told?.label}. ${told?.why}`]);
+    expect(container.querySelector("details, button, [hidden]")).toBeNull();
+  });
+
+  test("test_nothing_is_said_of_a_result_that_shows_no_such_vibe_or_where_the_api_says_nothing", () => {
+    const { container } = render(
+      <>
+        <RoughOnResult marks={first.strip} tags={meta.tags} guides={meta.rough_guides} />
+        <RoughOnResult marks={top.strip} tags={meta.tags} />
+        <Strip marks={top.strip} tags={meta.tags} of="Wickerford" />
+      </>,
+    );
+
+    expect(container.querySelector("[data-rough-guide]")).toBeNull();
+  });
+});
 
 describe("the strip of vibes under a result's name", () => {
   test("test_each_mark_is_named_by_the_api_and_says_its_band_in_words", () => {

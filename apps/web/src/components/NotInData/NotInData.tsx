@@ -25,7 +25,9 @@ function kindOf(target: string): "budget" | "commute" | "vibe" | "feature" {
 
 /**
  * What a person asked for that the data does not hold yet, said by name directly under
- * the box, with why. A vibe says how much of its recipe is held and what it waits on.
+ * the box, in one line. Why is one press away, in the browser's own element: a vibe says
+ * how much of its recipe is held and what it waits on. Drawn in full it was a fifth of a
+ * desk's screen and a third of a phone's, above the answer a person had pressed for.
  *
  * It was said nowhere. "Leafy and quiet" was ranked as quiet alone under both words,
  * and a budget that could not be tested was offered, accepted, and left no area ranked.
@@ -38,37 +40,49 @@ function kindOf(target: string): "budget" | "commute" | "vibe" | "feature" {
 export function NotInData({ missing, meta }: Props) {
   if (missing.length === 0) return null;
   const vibes = missing.some(({ target }) => kindOf(target) === "vibe");
+  const nameOf = ({ target, label }: Props["missing"][number]) => {
+    const kind = kindOf(target);
+    return kind === "budget" || kind === "commute" ? NOT_IN_DATA[kind] : label;
+  };
   return (
     <div className={styles.missing} role="status" aria-label={NOT_IN_DATA.title}>
-      <p className={styles.title}>{NOT_IN_DATA.title}</p>
-      <p>{NOT_IN_DATA.lead(missing.length)}</p>
-      <ul className={styles.things}>
-        {missing.map(({ target, label }) => {
-          const kind = kindOf(target);
-          const held = kind === "vibe" ? recipeOf(meta, target.slice("tag:".length)) : undefined;
-          const name = kind === "budget" || kind === "commute" ? NOT_IN_DATA[kind] : label;
-          return (
-            <li key={target}>
-              <strong>{name}</strong>
-              {". "}
-              {NOT_IN_DATA.why[kind]}
-              {held !== undefined && held.waits_on.length > 0
-                ? ` ${NOT_IN_DATA.waitsOn(
-                    held.waits_on.map((part) => NOT_IN_DATA.part(part.label, part.hundredths)).join("; "),
-                  )}`
-                : null}
-            </li>
-          );
-        })}
-      </ul>
-      {vibes ? (
-        <p>
-          {/* Which page a person reads next is told to no server ahead of time. */}
-          <Link className="target-min" href={paths.vibes()} prefetch={false}>
-            {NOT_IN_DATA.more}
-          </Link>
-        </p>
-      ) : null}
+      <details className={styles.opens}>
+        <summary className="target-min">
+          <span>
+            <span className={styles.title}>{NOT_IN_DATA.title}</span>
+            {NOT_IN_DATA.named(missing.map(nameOf))}
+          </span>
+        </summary>
+        <div className={styles.why}>
+          <p>{NOT_IN_DATA.lead(missing.length)}</p>
+          <ul className={styles.things}>
+            {missing.map((thing) => {
+              const kind = kindOf(thing.target);
+              const held = kind === "vibe" ? recipeOf(meta, thing.target.slice("tag:".length)) : undefined;
+              return (
+                <li key={thing.target}>
+                  <strong>{nameOf(thing)}</strong>
+                  {". "}
+                  {NOT_IN_DATA.why[kind]}
+                  {held !== undefined && held.waits_on.length > 0
+                    ? ` ${NOT_IN_DATA.waitsOn(
+                        held.waits_on.map((part) => NOT_IN_DATA.part(part.label, part.hundredths)).join("; "),
+                      )}`
+                    : null}
+                </li>
+              );
+            })}
+          </ul>
+          {vibes ? (
+            <p>
+              {/* Which page a person reads next is told to no server ahead of time. */}
+              <Link className="target-min" href={paths.vibes()} prefetch={false}>
+                {NOT_IN_DATA.more}
+              </Link>
+            </p>
+          ) : null}
+        </div>
+      </details>
     </div>
   );
 }

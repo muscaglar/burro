@@ -39,6 +39,22 @@ describe("the data sources page", () => {
     expect(screen.getAllByRole("article")).toHaveLength(2);
   });
 
+  test("test_what_is_said_with_a_credit_stands_under_it_and_under_no_other", () => {
+    // The terms of a publisher may ask that something is said wherever its credit is shown.
+    // The API brings it with the source, and the credit stays as the publisher worded it.
+    const said = "The publisher cannot warrant the quality or accuracy of the data.";
+    const outlines: Source = { ...greenspace, source_id: "outlines", name: "Outlines", said_with_attribution: said };
+    render(<SourceList sources={[synthetic, greenspace, outlines]} features={[]} />);
+
+    const credit = entryFor(outlines).getByText(outlines.attribution);
+    expect(credit.nextElementSibling).toHaveTextContent(said);
+    expect(entryFor(outlines).getAllByText(said)).toHaveLength(1);
+    for (const source of [synthetic, greenspace]) {
+      expect(entryFor(source).queryByText(said)).toBeNull();
+      expect(entryFor(source).getByText(source.attribution).nextElementSibling?.tagName).toBe("DL");
+    }
+  });
+
   test("test_every_source_is_anchored_by_its_id_so_a_figure_can_link_to_it", () => {
     const { container } = render(
       <SourceList sources={[synthetic, greenspace]} features={meta.features} />,

@@ -69,6 +69,8 @@ export const AREA = {
     title: "What homes cost",
     lead: "Half of homes of this kind cost between these two figures. The middle is the figure half are below.",
     confidence: "What each word for confidence means",
+    /** Under the rents of an area, where each is of a wider place: it leads to how they are held. */
+    rents: "How a rent is held against a budget, and which place it is of",
     tenure: { rent: "Renting, a month", buy: "Buying" } satisfies Record<Tenure, string>,
     none: { rent: "No rent figure in this data.", buy: "No price figure in this data." } satisfies Record<
       Tenure,

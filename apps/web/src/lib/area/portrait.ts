@@ -9,6 +9,7 @@
  * be said of it.
  */
 
+import { isRough, roughOf, type Guides, type Told } from "@/content/rough";
 import type { AreaData, Fact, MetaData, Metric, PortraitPart, RecipeHeld, Tag } from "@/lib/api/schema";
 import { fromTheMiddle, isRange, VIBE_BANDS, type Placed } from "@/lib/vibes";
 
@@ -30,8 +31,11 @@ export interface PartRow {
   readonly waits: string | null;
 }
 
-/** What a portrait is read against: the vibes and the features of the release, and what it holds of each recipe. */
-export type Form = Pick<MetaData, "tags" | "features"> & Partial<Pick<MetaData, "recipes">>;
+/**
+ * What a portrait is read against: the vibes and the features of the release, what it holds
+ * of each recipe, and what a vibe that is a rough guide says of itself.
+ */
+export type Form = Pick<MetaData, "tags" | "features"> & Partial<Pick<MetaData, "recipes">> & Guides;
 
 /** One vibe on the portrait. */
 export interface MarkRow {
@@ -53,6 +57,11 @@ export interface MarkRow {
    * for the vibe, and how much of its recipe is held. `null` where it does not say.
    */
   readonly held: RecipeHeld | null;
+  /**
+   * What the vibe says of itself where it is a rough guide, as the API serves it: its label,
+   * and the sentence that says why. `null` of a vibe that is as sure as the rest.
+   */
+  readonly rough: Told | null;
 }
 
 export type Portrait = Readonly<Record<Group, readonly MarkRow[]>>;
@@ -152,6 +161,7 @@ export function marksOf(data: AreaData, meta: Form, group: Group): readonly Mark
         pictured: picturedOf(figure, parts, placed?.band ?? null),
         parts,
         held,
+        rough: roughOf(tag, meta),
       },
     ];
   });
@@ -252,11 +262,14 @@ function kindOf(mark: MarkRow): Kind {
  * A vibe in the middle band says little, and is left to its own line. So is a mixed area,
  * which sits at no one point. A vibe whose recipe holds recorded crime is in no line of it:
  * recorded crime counts only when a person asks for it, and nobody asked for the summary.
+ * Nor is a vibe that is a rough guide: what is less sure is said of an area on its own
+ * line, with what it says of itself, and is never what an area is said to be like.
  */
 export function inShort(portrait: Portrait, features: readonly Metric[]): readonly MarkRow[] {
   const apart = shownOn(portrait)
     .filter((mark) => mark.placed !== null && !isRange(mark.placed) && fromTheMiddle(mark.placed) > 0)
-    .filter((mark) => !holdsRecordedCrime(mark.tag, features));
+    .filter((mark) => !holdsRecordedCrime(mark.tag, features))
+    .filter((mark) => !isRough(mark.tag));
   const chosen: MarkRow[] = [];
   for (const far of [2, 1]) {
     const waiting = TURNS.map((kind) =>

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { MAP } from "@/content/map";
+import { roughOf } from "@/content/rough";
 import { leadFor, NOTICE, PLACE, PROMPT, REJECTED_PART, RESULTS, SEARCH, SUGGEST } from "@/content/search";
 import { SHARED } from "@/content/share";
 import type { Client } from "@/lib/api/client";
@@ -15,6 +16,8 @@ import { inTheBox, written } from "@/lib/search/spans";
 import {
   failureOfTheCards,
   isUnreachable,
+  leftOutByTheBudget,
+  rentsHeldAgainst,
   profilesFailed,
   reasonsAreIn,
   reasonsFailure,
@@ -253,7 +256,7 @@ export function SearchView({ shared = false, bands = [] }: ViewProps) {
     if (!isPlaced(meta, looksAt)) return null;
     const tag = meta.tags.find((one) => one.tag_id === looksAt && one.lens);
     const marks = bands.find((one) => one.tag_id === looksAt)?.marks;
-    return tag === undefined || marks === undefined ? null : { tag, marks };
+    return tag === undefined || marks === undefined ? null : { tag, marks, rough: roughOf(tag, meta) };
   }, [open, looksAt, meta, bands]);
 
   const nameOfPart = (key: string): string | null => {
@@ -465,6 +468,8 @@ export function SearchView({ shared = false, bands = [] }: ViewProps) {
       <Suggestions
         suggestions={suggestions}
         added={reading ? null : (read?.added ?? null)}
+        leftOut={leftOutByTheBudget(state)}
+        heldAgainst={rentsHeldAgainst(state)}
         reading={!reading && read !== null && read.more}
         onChoose={(at, id, placeId) => {
           setShown(null);
@@ -600,6 +605,7 @@ export function SearchView({ shared = false, bands = [] }: ViewProps) {
                 tags={meta.tags}
                 features={meta.features}
                 recipes={meta.recipes}
+                guides={meta.rough_guides}
                 geometry={state.geometry}
                 bands={bands}
                 open={looksAt}

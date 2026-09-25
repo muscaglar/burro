@@ -235,6 +235,33 @@ def _guessed(body: Any) -> list[str]:
     ]
 
 
+def _guessed_of(body: Any) -> list[str]:
+    """What each suggestion that holds a guess is of, in the order they stand."""
+    return [
+        s["target"]
+        for s in _data(body).get("suggestions", [])
+        if any(way["guess"] for way in s["choices"])
+    ]
+
+
+def _whose_kind(way: Any) -> list[str]:
+    """Where the kind of home that a way holds came from: Burro's, or a person's press."""
+    return [
+        edit["provenance"]
+        for edit in way["operations"]["budget_ops"]
+        if edit["segment"] != "unchanged"
+    ]
+
+
+def _taken(body: Any, *targets: str) -> list[tuple[str, bool]]:
+    """Of each suggestion of some kinds: the way one press takes, and whether more is left."""
+    return [
+        (s["add_all"], bool(s["needs"]))
+        for s in _data(body).get("suggestions", [])
+        if s["target"] in targets
+    ]
+
+
 def _nothing_applied(body: Any) -> bool:
     """True when the reader applied nothing: a prompt that is not plain is read not at all."""
     return _changed(body) == 0 and not any(_data(body)["operations"].values())
@@ -279,6 +306,15 @@ def _stands_below(body: Any) -> bool:
 def _templates(body: Any) -> set[str]:
     """The template of every fact an answer holds."""
     return {fact["template"] for fact in _data(body)["facts"]}
+
+
+def _gives_no_difference_of_nothing(body: Any) -> bool:
+    """Whether no fact and no sentence of an answer gives a difference of nothing."""
+    data = _data(body)
+    said = [sentence["text"] for sentence in data.get("sentences", [])]
+    facts = data["facts"]
+    no_figure = all(fact["slots"].get("margin") != "0" for fact in facts)
+    return no_figure and not any("\N{POUND SIGN}0 " in text for text in said)
 
 
 def _fits(body: Any) -> list[dict[str, Any]]:
@@ -371,6 +407,39 @@ PROVES: dict[str, Callable[[Any], bool]] = {
     "interpret-suggest-place": lambda b: (
         _nothing_applied(b) and [s["target"] for s in _data(b)["suggestions"]] == ["commute"]
     ),
+    "interpret-suggest-rough-guide": lambda b: (
+        _nothing_applied(b)
+        and [(one["target"], one["add_all"]) for one in _data(b)["suggestions"]]
+        == [("tag:leafy", "more"), ("tag:quiet_residential", "more"), ("tag:village_feel", "")]
+        and _data(b)["suggestions"][2]["note"].startswith("Rough guide. ")
+        and not any(way["guess"] for way in _data(b)["suggestions"][2]["choices"])
+    ),
+    "rank-rough-guide": lambda b: (
+        _changed(b) == 1
+        and _towards(b, "village_feel", "high")
+        and all(
+            [mark["asked"] for mark in area["strip"] if mark["tag_id"] == "village_feel"] == [True]
+            for area in _data(b)["ranked"]
+        )
+    ),
+    "explanations-rough-guide": lambda b: "village_feel" in json.dumps(_data(b)),
+    "rank-rough-guide-one-press": lambda b: (
+        _changed(b) == 2
+        and _towards(b, "leafy", "high")
+        and _towards(b, "quiet_residential", "high")
+        and _vibe(b, "village_feel") is None
+    ),
+    "rank-rough-guide-with-the-rest": lambda b: (
+        _changed(b) == 1
+        and _towards(b, "leafy", "high")
+        and _towards(b, "quiet_residential", "high")
+        and _towards(b, "village_feel", "high")
+        and any(
+            mark["tag_id"] == "village_feel" and mark["asked"]
+            for area in _data(b)["ranked"]
+            for mark in area["strip"]
+        )
+    ),
     "interpret-suggest-who-is-counted": lambda b: (
         _data(b)["notice"] == "none"
         and _nothing_applied(b)
@@ -384,6 +453,37 @@ PROVES: dict[str, Callable[[Any], bool]] = {
         _nothing_applied(b)
         and [len(ways) for ways in _offered(b)] == [2, 2, 2, 3, 2, 2]
         and [found["target"] for found in _data(b)["suggestions"][-2:]] == ["budget", "budget"]
+    ),
+    # A house is no flat. It is taken as a terraced house, which is the guess and is marked as
+    # Burro's, and every other kind of house is one press away.
+    "interpret-suggest-house": lambda b: (
+        _nothing_applied(b)
+        and _guessed_of(b) == ["tenure", "budget"]
+        and _taken(b, "tenure", "budget") == [("more", False), ("terraced", False)]
+        and [
+            [(way["id"], way["guess"], _whose_kind(way)) for way in s["choices"][:-1]]
+            for s in _data(b)["suggestions"]
+            if s["target"] == "budget"
+        ]
+        == [
+            [
+                ("terraced", True, ["inferred"]),
+                ("semi_detached", False, ["ui_edit"]),
+                ("detached", False, ["ui_edit"]),
+            ]
+        ]
+    ),
+    "interpret-house": lambda b: (
+        _data(b)["status"] == "ok"
+        and _data(b)["spec"]["budget"]["segment"] == "terraced"
+        and "segment" in [a["code"] for a in _data(b)["assumptions"] if a["group"] == "budget_ops"]
+    ),
+    # Three edits at one press: to buy, the kind of house, and the amount.
+    "rank-house-one-press": lambda b: (
+        _changed(b) == 3
+        and (_data(b)["spec"]["budget"]["segment"], _data(b)["spec"]["budget"]["strictness"])
+        == ("terraced", "hard")
+        and _data(b)["spec"]["budget"]["provenance"] == "ui_edit"
     ),
     "interpret-plain-list": lambda b: (
         _data(b)["status"] == "ok" and _changed(b) == 3 and not _data(b)["unread"]
@@ -420,7 +520,9 @@ PROVES: dict[str, Callable[[Any], bool]] = {
     ),
     # Seven of the twelve have no guess. They are the rules' to offer, and a model adds nothing
     # to one: the four readings of a word for how well off a place is, and the three of a word
-    # for its identity.
+    # for its identity. One press takes the journey as a guide, which may be made firm, and
+    # the budget as it was worded, which is firm. Nothing was made of how each wish is led in
+    # to, "I want to live somewhere", which asks for nothing: no word is said to be unread.
     "interpret-by-model-long": lambda b: (
         _data(b)["interpreter"] == "model"
         and _nothing_applied(b)
@@ -428,8 +530,9 @@ PROVES: dict[str, Callable[[Any], bool]] = {
         and len(_guessed(b)) == 5
         and _data(b)["notice"] == "none"
         and sum(1 for s in _data(b)["suggestions"] if len(s["choices"]) > 3) == 1
-        and sum(1 for s in _data(b)["suggestions"] if s["add_all"] and s["needs"]) == 2
-        and bool(_data(b)["unread"])
+        and _taken(b, "commute", "budget") == [("guide", True), ("firm", False)]
+        and "other" in _data(b)["unmet"]
+        and not _data(b)["unread"]
     ),
     "interpret-by-model-place": lambda b: (
         _nothing_applied(b)
@@ -440,11 +543,15 @@ PROVES: dict[str, Callable[[Any], bool]] = {
     "interpret-by-model-least": lambda b: (
         _nothing_applied(b) and _offered(b) == [["ignore"]] and _guessed(b) == []
     ),
+    # The rules guess at what was plainly said and at no wish: the journey, renting, the
+    # budget and the size. One press takes each, the journey as a guide, which may be made firm.
     "interpret-rules-at-once": lambda b: (
         _data(b)["interpreter"] == "rule"
         and _data(b)["model_pending"] is True
         and _nothing_applied(b)
-        and _guessed(b) == []
+        and _guessed_of(b) == ["commute", "tenure", "budget", "budget"]
+        and _taken(b, "tenure", "budget") == [("more", False)] * 3
+        and _taken(b, "commute") == [("guide", True)]
         and len(_data(b)["suggestions"]) >= 4
     ),
     "interpret-off-topic": lambda b: (
@@ -459,6 +566,15 @@ PROVES: dict[str, Callable[[Any], bool]] = {
     "rank-nothing-matches": lambda b: not _data(b)["ranked"] and bool(_data(b)["filtered"]),
     "rank-two-journeys": lambda b: any(area["untested_filters"] for area in _data(b)["ranked"]),
     "rank-suggestion-chosen": lambda b: _changed(b) == 1 and len(_data(b)["ranked"]) == 20,
+    # Five things at one press. The budget is firm, as it was worded, and is all that leaves an
+    # area out: the journey is a guide.
+    "rank-one-press": lambda b: (
+        _changed(b) == 5
+        and _data(b)["spec"]["budget"]["strictness"] == "hard"
+        and [journey["strictness"] for journey in _data(b)["spec"]["commutes"]] == ["soft"]
+        and {area["reason"] for area in _data(b)["filtered"]} == {"over_budget"}
+        and bool(_data(b)["ranked"])
+    ),
     "rank-shelf": lambda b: _changed(b) == 1 and _towards(b, "leafy", "high"),
     "rank-scale": lambda b: _towards(b, "pace", "low") and _mixed(b),
     "rank-scale-turned": lambda b: _changed(b) == 1 and _towards(b, "pace", "high"),
@@ -595,6 +711,57 @@ PROVES: dict[str, Callable[[Any], bool]] = {
     "counted/explanations-firm": lambda b: (
         {"budget_under_median", "budget_over_median"} <= _templates(b)
         and any("half_sold" in fact["slots"] for fact in _data(b)["facts"])
+    ),
+    "let/meta": lambda b: (
+        _data(b)["rents"] is not None
+        and set(_data(b)["rents"]) == {"of_a_place", "caution"}
+        and _data(b)["holds"]["costs"] is True
+    ),
+    "let/area": lambda b: (
+        "cost_rent_recorded" in _templates(b)
+        and "cost_rent" not in _templates(b)
+        and all(
+            row["of"]["kind"] == "postcode_district" and row["rents"] >= 10 and row["since"]
+            for row in _data(b)["cost"]
+            if row["tenure"] == "rent"
+        )
+        and all(row["of"] is None for row in _data(b)["cost"] if row["tenure"] == "buy")
+    ),
+    "let/area-borough": lambda b: (
+        {row["of"]["kind"] for row in _data(b)["cost"] if row["tenure"] == "rent"} == {"borough"}
+        and {row["of"]["name"] for row in _data(b)["cost"] if row["tenure"] == "rent"}
+        == {_data(b)["area"]["borough"]}
+    ),
+    "let/interpret-firm": lambda b: (
+        _nothing_applied(b)
+        and any(
+            offer["target"] == "budget"
+            and "not drawn at random" in offer["note"]
+            and offer["add_all"] != ""
+            for offer in _data(b)["suggestions"]
+        )
+    ),
+    "let/rank-firm": lambda b: (
+        bool(_data(b)["filtered"])
+        and {fit["margin"] < 0 for fit in _fits(b)} == {True, False}
+        and all(fit["upper_quartile"] is None for fit in _fits(b))
+    ),
+    "let/explanations-firm": lambda b: (
+        {"budget_under_recorded", "budget_over_recorded"} <= _templates(b)
+        and any("half_let" in fact["slots"] for fact in _data(b)["facts"])
+        and all(
+            fact["slots"]["is_of"] and fact["slots"]["period"] and fact["slots"]["rents"]
+            for fact in _data(b)["facts"]
+            if fact["kind"] == "budget_fit"
+        )
+    ),
+    # A cost that is the budget to the pound is said to be at it, beside one that is over it.
+    "at/compare": lambda b: (
+        {"budget_at", "budget_over"} <= _templates(b) and _gives_no_difference_of_nothing(b)
+    ),
+    "at/compare-let": lambda b: (
+        {"budget_at_recorded", "budget_over_recorded"} <= _templates(b)
+        and _gives_no_difference_of_nothing(b)
     ),
     "visit/first": lambda b: _changed(b) == 4,
     "visit/second": lambda b: _changed(b) == 2 and _off(b, "highstreet_access"),
@@ -813,6 +980,17 @@ def wish_read(feature_id: str, words: str) -> dict[str, Any]:
     }
 
 
+def one_press(read: dict[str, Any]) -> dict[str, list[Any]]:
+    """The edits one press sends: of each offer the way `add_all` names, in the order they stand."""
+    edits: dict[str, list[Any]] = {}
+    for offer in read["suggestions"]:
+        for way in offer["choices"]:
+            for group, held in way["operations"].items():
+                taken = offer["add_all"] != "" and way["id"] == offer["add_all"]
+                edits[group] = [*edits.get(group, []), *(held if taken else [])]
+    return edits
+
+
 def read_by(answer: dict[str, Any], with_settings: bool = False) -> TestClient:
     """The service with a model behind it that gives this answer."""
     interpreter = ModelInterpreter(
@@ -920,6 +1098,12 @@ NOT_PLAIN = (
         "suggest-who-is-counted",
         "young professionals, lively, near a station",
         "Who lived there at the census, offered towards more and no other way, with its note",
+    ),
+    (
+        "suggest-rough-guide",
+        "leafy, quiet streets, villagey",
+        "A vibe that is a rough guide: offered with its label and its sentence, never applied, "
+        "and never taken by the one press that takes what stands beside it",
     ),
     (
         "suggest-place",
@@ -1324,6 +1508,51 @@ def record_the_vibes(
         "explain_top",
         {"spec": chosen["data"]["spec"], "limit": 5},
     )
+    offered = client.post(
+        "/v1/interpret", json={"text": "villagey", "spec": defaults["rent"]}
+    ).json()["data"]
+    (village,) = offered["suggestions"]
+    pressed = rec.call(
+        client,
+        "rank-rough-guide",
+        "A vibe that is a rough guide, taken by a press of its own: it is on every result "
+        "that it places, marked as asked for",
+        "rank",
+        {"spec": offered["spec"], "operations": village["choices"][0]["operations"], "limit": 20},
+    )
+    rec.call(
+        client,
+        "explanations-rough-guide",
+        "The reasons of a search for a vibe that is a rough guide",
+        "explain_top",
+        {"spec": pressed["data"]["spec"], "limit": 5},
+    )
+    # From a service of its own, so that it moves the id of no other recording.
+    beside = TestClient(create_app(make_deps()))
+    left = beside.post(
+        "/v1/interpret", json={"text": "leafy, quiet streets, villagey", "spec": defaults["rent"]}
+    ).json()["data"]
+    its_own = next(one for one in left["suggestions"] if one["target"] == "tag:village_feel")
+    folded = rec.call(
+        beside,
+        "rank-rough-guide-one-press",
+        "One press beside a vibe that is a rough guide: it adds the two that need no choice, "
+        "and the rough guide is left to a press of its own",
+        "rank",
+        {"spec": left["spec"], "operations": one_press(left), "limit": 20},
+    )
+    rec.call(
+        beside,
+        "rank-rough-guide-with-the-rest",
+        "A vibe that is a rough guide, taken by a press of its own once one press had added "
+        "what stood beside it",
+        "rank",
+        {
+            "spec": folded["data"]["spec"],
+            "operations": its_own["choices"][0]["operations"],
+            "limit": 20,
+        },
+    )
     calm = next(tag for tag in specs["scale"]["tags"] if tag["tag_id"] == "pace")
     turned = rec.call(
         client,
@@ -1587,20 +1816,64 @@ def record_what_needs_another_service(rec: Recorder, specs: dict[str, dict[str, 
             vibe_read("parks_close_by", "with access to parks"),
         ],
     )
-    rec.call(
+    read = rec.call(
         read_by(read_long),
         "interpret-by-model-long",
         "A long sentence read by a model: twelve offers, each in four parts, one with a choice "
-        "of two things, a journey and a budget that may be made firm, words nothing was made of, "
-        "and seven readings of two words that the rules offer with no guess",
+        "of two things, a journey that one press takes as a guide, a budget that it takes as "
+        "it was worded, no word said to be unread where nothing but how a wish is led in to "
+        "was left, and seven readings of two words that the rules offer with no guess",
         "interpret",
         {"text": long},
+    )
+    # From a service of its own, so that it moves the id of no other recording.
+    of_its_own = TestClient(create_app(make_deps()))
+    added = rec.call(
+        of_its_own,
+        "rank-one-press",
+        "One press on the long sentence: the way `add_all` names of each offer, in one request. "
+        "The journey is a guide and the budget a firm limit, which leaves areas out",
+        "rank",
+        {"spec": read["data"]["spec"], "operations": one_press(read["data"]), "limit": 20},
+    )
+    rec.call(
+        of_its_own,
+        "explanations-one-press",
+        "The reasons of the search that one press made",
+        "explain_top",
+        {"spec": added["data"]["spec"], "limit": 5},
+    )
+    house = rec.call(
+        of_its_own,
+        "interpret-suggest-house",
+        "A budget to buy a house of no kind, in a sentence that is not plain: the budget is "
+        "offered for a terraced house, which is the guess and which one press takes, and for "
+        "each other kind of house",
+        "interpret",
+        {"text": "If I'm buying, max \N{POUND SIGN}400k for a house"},
+    )
+    rec.call(
+        of_its_own,
+        "rank-house-one-press",
+        "One press on it: the search is to buy, and the budget is held against a terraced house "
+        "in an edit that says the kind is Burro's",
+        "rank",
+        {"spec": house["data"]["spec"], "operations": one_press(house["data"]), "limit": 20},
+    )
+    rec.call(
+        of_its_own,
+        "interpret-house",
+        "The same of a plain sentence: it is applied whole, held against a terraced house, and "
+        "the kind is said to be assumed",
+        "interpret",
+        {"text": "Buying a house, about \N{POUND SIGN}600k, near a station"},
     )
     rec.call(
         read_by(read_long),
         "interpret-rules-at-once",
-        "The same, asked of the rules alone: what they offer is served at once, with no guess, "
-        "and the answer says that a model has more to read",
+        "The same, asked of the rules alone: what they offer is served at once, with a guess "
+        "at what was plainly said of the journey and of the home and at no wish, and the answer "
+        "says that a model has more to read",
         "interpret",
         {"text": long, "ask_model": False},
     )
@@ -2310,6 +2583,170 @@ def record_the_visit(rec: Recorder, defaults: dict[str, Any]) -> None:
     )
 
 
+# The months the made-up rents were recorded in, and how many rents a made-up figure rests
+# on: few in a district, and many in a borough.
+LET_SINCE, LET_UNTIL = "2025-04", "2026-03"
+IN_A_DISTRICT, IN_A_BOROUGH = 30, 520
+# How many areas take the figure of their borough. Every other lies in a district with one
+# other area. No postcode begins with a Q, so no district here is a district.
+OF_THE_BOROUGH = 4
+# What a renter of the recording has for a home of one bedroom each month. Some places of
+# the made-up city are under it, some a little over and some far over.
+RENTER_HAS = 1_400
+
+
+def a_release_of_recorded_rents() -> InMemoryRelease:
+    """The committed release with every rent as a publisher gives one for a wider place.
+
+    A build of London holds no rent of an area: it holds the rents that were recorded in
+    each postcode district and each borough, and gives an area the figure of the place it
+    lies in. Here the areas lie two to a made-up district, and the last four take the figure
+    of their borough. A place has one figure for a kind of home, which is that of the first
+    of its areas. Every price is left as it was. It is made up all the same.
+    """
+    found: dict[str, Any] = load_release(SYNTHETIC_FIXTURE).documents()  # pyright: ignore[reportAssignmentType]
+    rows = found["cost.json"]["rows"]
+    areas = sorted({row["area_id"] for row in rows if row["tenure"] == "rent"})
+    borough = {
+        area["area_id"]: area["borough"] for area in found["neighbourhoods.json"]["neighbourhoods"]
+    }
+    of_the_place: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for row in rows:
+        if row["tenure"] != "rent":
+            continue
+        at = areas.index(row["area_id"])
+        wide = at >= len(areas) - OF_THE_BOROUGH
+        place = (
+            {"kind": "borough", "name": borough[row["area_id"]]}
+            if wide
+            else {"kind": "postcode_district", "name": f"QA{at // 2 + 1}"}
+        )
+        rents = IN_A_BOROUGH if wide else IN_A_DISTRICT
+        first = of_the_place.setdefault(
+            (place["kind"], place["name"], row["segment"]),
+            {
+                "lower_quartile": row["lower_quartile"],
+                "median": row["median"],
+                "upper_quartile": row["upper_quartile"],
+                "of": place,
+                "rents": rents,
+                "since": LET_SINCE,
+                "as_of": LET_UNTIL,
+                "confidence": "high" if rents >= 50 else "medium",
+            },
+        )
+        row.update(first)
+    return parse_release(found)
+
+
+def record_recorded_rents(rec: Recorder) -> None:
+    """A release whose rents are each of a postcode district or of a borough.
+
+    The committed release holds every rent as a range of the area itself, so no other
+    recording shows the page what a rent of a wider place looks like: on the page of an
+    area, in the offer of a budget to rent, on a result, and in the sentence that holds it
+    against a budget. Each says the place the rent is of, the months and how many rents
+    were recorded.
+    """
+    client = TestClient(create_app(make_deps(release=a_release_of_recorded_rents())))
+    meta = rec.call(
+        client,
+        "let/meta",
+        "The form of the release: what is said of rents that are of a wider place",
+        "get_meta",
+    )
+    rec.call(
+        client,
+        "let/area",
+        "The profile of an area whose rents are each of the postcode district it lies in",
+        "get_area",
+        id_or_slug="farrowmere",
+    )
+    rec.call(
+        client,
+        "let/area-borough",
+        "The profile of an area whose rents are each of its whole borough",
+        "get_area",
+        id_or_slug="wickerford",
+    )
+    rec.call(
+        client,
+        "let/interpret-firm",
+        "A budget to rent that is offered: its note says the place a rent is of, and the "
+        "caution of its publisher",
+        "interpret",
+        {"text": "Somewhere lovely. If I'm renting, max £1,400 a month."},
+    )
+    renter = meta["data"]["defaults"]["rent"]
+    spec = renter | {
+        "budget": renter["budget"]
+        | {"amount": RENTER_HAS, "strictness": "hard", "provenance": "stated"}
+    }
+    rec.call(
+        client,
+        "let/rank-firm",
+        "A firm budget held against the middle rent of a place: an area is left out only "
+        "where it is far over, and some that are kept are over it",
+        "rank",
+        {"spec": spec, "limit": 20},
+    )
+    rec.call(
+        client,
+        "let/explanations-firm",
+        "Its reasons: each says the place the rent is of, and an area over the budget says "
+        "that about half of the rents recorded there were under the middle",
+        "explain_top",
+        {"spec": spec, "limit": 5},
+    )
+
+
+def _at_and_over(release: Any, tenure: str, segment: str, held: str) -> tuple[int, list[str]]:
+    """A budget that is what it is held against in one area, with that area and one over it."""
+    rows = sorted(
+        (row.area_id, getattr(row, held))
+        for row in release.costs
+        if (row.tenure, row.segment) == (tenure, segment)
+    )
+    (at, amount), *_ = rows
+    over = next(area for area, figure in rows if figure > amount)
+    return amount, [at, over]
+
+
+def record_a_difference_of_nothing(rec: Recorder) -> None:
+    """A budget that is, to the pound, what it is held against.
+
+    Seen in a browser on a build of a real city: a sentence said that a middle price was
+    nothing under a budget, with the figure. A rent is a round number and so is a budget,
+    so the two are often one amount. Each way a budget is held has a sentence that says
+    the cost is at the budget. That of a price that is one number is recorded with the
+    release of one number, whose buyer has what the flats of two areas sold for. Here
+    are the other two, each in a comparison of the area that is at the budget with one
+    that is over it: the upper end of a range, and a rent that is of a wider place.
+    """
+    for name, release, held, shows in (
+        ("at/compare", None, "upper_quartile", "the upper end of its rents"),
+        ("at/compare-let", a_release_of_recorded_rents(), "median", "the middle rent of its place"),
+    ):
+        deps = make_deps() if release is None else make_deps(release=release)
+        client = TestClient(create_app(deps))
+        renter = rec_defaults(client)["rent"]
+        amount, areas = _at_and_over(deps.release, "rent", renter["budget"]["segment"], held)
+        spec = renter | {"budget": renter["budget"] | {"amount": amount, "provenance": "stated"}}
+        rec.call(
+            client,
+            name,
+            f"Two areas compared on a budget that is {shows} in the first, to the pound: it "
+            "is said to be at the budget, and the second to be over it",
+            "compare",
+            {"spec": spec, "area_ids": areas},
+        )
+
+
+def rec_defaults(client: TestClient) -> dict[str, Any]:
+    """The searches a service starts from. It is asked, and the answer is not recorded."""
+    return client.get("/v1/meta").json()["data"]["defaults"]
+
+
 def main() -> int:
     # The service writes its log to a stream. Here it is kept and never read.
     logs.configure_logging(io.StringIO())
@@ -2325,6 +2762,8 @@ def main() -> int:
     record_one_number(rec)
     record_an_estimate(rec)
     record_counted_sales(rec)
+    record_recorded_rents(rec)
+    record_a_difference_of_nothing(rec)
     record_the_examples(rec, client, TestClient(create_app(make_deps(release=a_preview()))))
     record_the_visit(rec, meta["defaults"])
     # From a service of its own, so that it moves the id of no other recording.

@@ -55,6 +55,16 @@ const vibe = (tagId: string) => {
   return found;
 };
 const ends = (tag: Tag): readonly [string, string] => [tag.low_end ?? STRIP.least, tag.high_end ?? STRIP.most];
+/**
+ * The band an area is drawn in on a map of the page. A map points at the outline of each
+ * area, which the page draws once and which says whose it is: the pointer says its band.
+ */
+const bandOn = (picture: Element | null | undefined, areaId: string): string | null => {
+  const outline = document.querySelector(`defs > path[data-area="${areaId}"]`);
+  const pointers = picture?.querySelectorAll(`use[href="#${outline?.id ?? "no outline"}"]`) ?? [];
+  // It is drawn once on each map, and never twice.
+  return pointers.length === 1 ? (pointers[0]?.getAttribute("data-band") ?? null) : null;
+};
 const nameOf = (areaId: string) => areas.find((area) => area.area_id === areaId)?.name ?? "";
 /** The areas a vibe places in a band, in the order the API gives them. A mixed area is at no one band. */
 const inBand = (tagId: string, band: number | null) =>
@@ -177,9 +187,7 @@ describe("every vibe at a glance", () => {
       const picture = item.querySelector("svg");
       const marks = bands.find((one) => one.tag_id === tag.tag_id)?.marks ?? [];
       for (const mark of marks) {
-        expect(picture?.querySelector(`[data-area="${mark.area_id}"]`)?.getAttribute("data-band")).toBe(
-          mark.band === null ? "none" : String(mark.band),
-        );
+        expect(bandOn(picture, mark.area_id)).toBe(mark.band === null ? "none" : String(mark.band));
       }
       expect(within(item).getByRole("link")).toHaveTextContent(tag.label);
       expect(item.textContent?.includes(VIBES.glance.ends(low, high))).toBe(true);
@@ -259,8 +267,7 @@ describe("one vibe beside the next", () => {
       const marks = bands.find((one) => one.tag_id === tag.tag_id)?.marks ?? [];
       expect(marks).toHaveLength(areas.length);
       for (const mark of marks) {
-        const drawn = picture.querySelector(`[data-area="${mark.area_id}"]`);
-        expect(drawn?.getAttribute("data-band")).toBe(mark.band === null ? "none" : String(mark.band));
+        expect(bandOn(picture, mark.area_id)).toBe(mark.band === null ? "none" : String(mark.band));
       }
       // Under the map, in words: which way the colours run, and by the names of its two ends.
       expect(vibe(tag.tag_id)).toHaveTextContent(VIBES.map.runs(low, high));
@@ -549,7 +556,53 @@ describe("a vibe that counts recorded crime", () => {
     show(variantA);
 
     expect(document.body.textContent?.includes(CRIME_ACCOUNT.counts)).toBe(false);
-    expect(/\b(safe|safer|unsafe|dangerous|rough)\b/i.test(document.body.textContent ?? "")).toBe(false);
+    // The label of a rough guide is the API's, and is said of a guide: no word of it is said of a place.
+    const said = variantA.rough_guides.reduce((text, one) => text.replaceAll(one.label, ""), document.body.textContent ?? "");
+    expect(/\b(safe|safer|unsafe|dangerous|rough)\b/i.test(said)).toBe(false);
+  });
+});
+
+describe("a vibe that is a rough guide, on the page of vibes", () => {
+  const [told] = meta.rough_guides;
+  const seen = (element: Element) => element.closest(".visually-hidden, [aria-hidden='true'], [hidden], details:not([open])") === null;
+
+  test("test_it_says_so_beside_its_name_and_says_why_under_it_with_nothing_pressed", () => {
+    show();
+
+    const village = vibe("village_feel");
+    const label = village.querySelector("[data-rough-guide='label']");
+    const note = village.querySelector("[data-rough-guide='note']");
+    expect(told).toEqual({
+      tag_id: "village_feel",
+      label: "Rough guide",
+      why: "Of the areas it puts highest, about half read as villages to people, and it takes some busy main roads and some grand inner streets for villages.",
+    });
+    expect(label?.textContent).toBe(`, ${told?.label}`);
+    expect(note?.textContent).toBe(told?.why);
+    // Beside the name and under it, before the map and the recipe, and behind no press.
+    expect(within(village).getByRole("heading", { level: 2, name: "Village feel" }).nextElementSibling).toBe(label);
+    expect(seen(label as Element) && seen(note as Element)).toBe(true);
+    const map = village.querySelector("figure") as Element;
+    expect((note as Element).compareDocumentPosition(map) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  test("test_it_is_said_where_every_vibe_is_listed_at_a_glance_and_of_no_other_vibe", () => {
+    show();
+
+    const contents = screen.getByRole("navigation", { name: VIBES.contents });
+    const marked = [...contents.querySelectorAll("[data-rough-guide='label']")].map((label) => label.parentElement?.querySelector("a")?.textContent);
+    expect(marked).toEqual(["Village feel"]);
+    for (const tag of meta.tags.filter((one) => one.tag_id !== "village_feel")) {
+      expect(vibe(tag.tag_id).querySelector("[data-rough-guide]")).toBeNull();
+    }
+  });
+
+  test("test_the_words_are_the_apis_and_nothing_is_said_where_the_api_says_nothing", () => {
+    show({ ...meta, rough_guides: [] });
+    expect(document.querySelector("[data-rough-guide]")).toBeNull();
+    cleanup();
+    show({ ...meta, tags: meta.tags.map((tag) => ({ ...tag, sureness: "as_the_rest" as const })) });
+    expect(document.querySelector("[data-rough-guide]")).toBeNull();
   });
 });
 
@@ -651,6 +704,32 @@ describe("the page of vibes, on data that is not finished", () => {
     const ids = [...html.matchAll(/ id="([^"]+)"/g)].map((found) => found[1]);
     expect(new Set(ids).size).toBe(ids.length);
     for (const found of html.matchAll(/<use [^>]*href="#([^"]+)"/g)) expect(ids).toContain(found[1]);
+  });
+
+  test("test_a_pointer_to_an_outline_says_its_band_and_where_the_outline_is_and_nothing_else", () => {
+    // Seen on a build of a thousand areas and fourteen vibes: the page was 14 MB. Each of its
+    // 26,000 pointers bore a class, the id of its area, and the id again in where it pointed:
+    // 120 bytes as it is drawn, and as many again in what React is sent to take the page up.
+    const html = renderToStaticMarkup(
+      <VibesList meta={meta} areas={areas} bands={bands} geometry={geometry} />,
+    );
+    const pointers = html.match(/<use [^>]*>/g) ?? [];
+
+    expect(pointers.length).toBeGreaterThan(geometry.features.length * 10);
+    for (const pointer of pointers) {
+      expect(pointer).toMatch(/^<use data-band="(?:[1-5]|none)" href="#o\d+"(?: fill="url\(#[\w-]+\)")?\/?>$/);
+    }
+    // Whose each outline is, the page says once, on the outline.
+    const outlines = html.match(/<path [^>]*\bd="M/g) ?? [];
+    expect(outlines).toHaveLength(geometry.features.length);
+    for (const area of areas) expect(html.split(`data-area="${area.area_id}"`)).toHaveLength(2);
+    // The areas are drawn in the order of the outlines on every map, as they were: a line
+    // is as thin as a point of the screen, and which of two areas is drawn last shows in it.
+    const order = pointers.map((pointer) => Number(/href="#o(\d+)"/.exec(pointer)?.[1]));
+    const each = geometry.features.length;
+    for (let from = 0; from < order.length; from += each) {
+      expect(order.slice(from, from + each)).toEqual(Array.from({ length: each }, (_, at) => at));
+    }
   });
 
   test("test_an_end_that_holds_more_areas_than_can_be_read_says_how_many_and_names_them_one_press_away", () => {

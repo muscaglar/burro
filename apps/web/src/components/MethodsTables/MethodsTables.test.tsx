@@ -454,7 +454,44 @@ describe("the methods page", () => {
     expect(said).toHaveTextContent("A firm limit leaves out only the areas that are likely beyond it.");
     expect(said).toHaveTextContent("By bike and on foot nothing is estimated.");
     expect(said).toHaveTextContent("Once the data holds a journey time, the time takes the place of the estimate.");
-    expect(said).toHaveTextContent("The numbers are a first guess.");
+    // What likely within means is said from the number the API serves, which the founder
+    // widened on 2026-09-25, and the page says it is no promise.
+    expect(said).toHaveTextContent(
+      `Likely within: the estimate is at least ${how.within_by} minutes under your limit.`,
+    );
+    expect(said).toHaveTextContent("Likely within is what the estimate says, and is no promise.");
+    // And what the estimate was held against, and what it could not be held against.
+    expect(said).toHaveTextContent(
+      "The estimate has been held against journeys timed from the timetables of the Underground and the DLR.",
+    );
+    expect(said).toHaveTextContent("It could not be held against trains");
+    expect(said).not.toHaveTextContent("The numbers are a first guess.");
+    expect(said).not.toHaveTextContent("They have not been checked against journeys that were timed.");
+  });
+
+  test("test_where_a_rent_is_of_a_wider_place_the_page_says_so_and_says_the_caution_once", () => {
+    const let_ = recordedAnswer("get_meta", "let/meta").body.data;
+    const said = let_.rents;
+    if (!said) throw new Error("the recorded release holds no rent of a wider place");
+    render(<MethodsTables meta={let_} />);
+
+    const rents = screen.getByRole("region", { name: METHODS.rents.title });
+    // An area's page leads here by this id.
+    expect(rents.querySelector("h2")).toHaveAttribute("id", "rents");
+    // What is said of the rents themselves is the API's, and comes first.
+    expect(rents.querySelector("p")?.textContent).toBe(`${said.of_a_place} ${said.caution}`);
+    expect(document.body.textContent?.split(said.caution)).toHaveLength(2);
+    expect(rents).toHaveTextContent("half or more of its homes");
+    expect(rents).toHaveTextContent("more than a quarter over your budget");
+    // It quotes no figure of any place to make the point.
+    expect(said.caution).not.toMatch(/[0-9£]/);
+  });
+
+  test("test_a_release_whose_rents_are_of_the_area_alone_says_nothing_of_a_wider_place", () => {
+    render(<MethodsTables meta={meta} />);
+
+    expect(meta.rents ?? null).toBeNull();
+    expect(screen.queryByRole("region", { name: METHODS.rents.title })).toBeNull();
   });
 
   test("test_a_release_that_holds_its_journey_times_says_nothing_of_an_estimate", () => {

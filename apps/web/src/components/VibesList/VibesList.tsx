@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import { askingFor, CRIME_ACCOUNT, crimeParts } from "@/content/crime";
 import { CASE_LINES, OTHER_NAMES, type OtherName } from "@/content/names";
+import { roughOf, type Guides } from "@/content/rough";
 import { CRIME_CAVEAT } from "@/content/settings";
 import { VIBES } from "@/content/vibes";
 import type { AreaSummary, BandMark, GeometryData, MetaData, Metric, Tag, VibeBands } from "@/lib/api/schema";
@@ -12,14 +13,18 @@ import { paths } from "@/lib/paths";
 import { endsOf, isRange, readingOf, VIBE_BANDS } from "@/lib/vibes";
 
 import { outlinesOf, type Outline } from "../LocatorMap/LocatorMap";
+import { RoughLabel, RoughNote } from "../RoughGuide/RoughGuide";
 import { SharedOutlines, VIBE_MAP_FRAME, VibeMap } from "../VibeMap/VibeMap";
 import styles from "./VibesList.module.css";
 
 type Area = Pick<AreaSummary, "area_id" | "slug" | "name">;
 
 interface Props {
-  /** The release, from route 11: its vibes, the features their recipes are made of, and the sources. */
-  readonly meta: Pick<MetaData, "tags" | "features" | "attributions" | "families" | "recipes">;
+  /**
+   * The release, from route 11: its vibes, the features their recipes are made of, the
+   * sources, and what a vibe that is a rough guide says of itself.
+   */
+  readonly meta: Pick<MetaData, "tags" | "features" | "attributions" | "families" | "recipes"> & Guides;
   /** Every area of the release, from route 4: its name, and the address of its page. */
   readonly areas?: readonly Area[];
   /** The band of every area on every vibe, from route 4. */
@@ -77,8 +82,11 @@ interface Part {
   readonly alsoIn: readonly Tag[];
 }
 
-/** The id the outlines of the page are drawn under, once for all its maps. */
-const OUTLINES = "outline";
+/**
+ * What the id of each outline of the page begins with, where it is drawn once for all its
+ * maps. One letter: every map writes it once for every area.
+ */
+const OUTLINES = "o";
 /** The most areas an end names where it stands. With more, it says how many, and they are named below. */
 export const NAMED_AT_AN_END = 12;
 
@@ -142,7 +150,8 @@ interface VibeProps {
  * One vibe, laid out as every other is, so that one is read against the next:
  * its name, the room for other names, what it means, the city coloured by it,
  * the areas at each of its ends, its recipe and what it cannot see. The
- * period and the source of each part are one press away.
+ * period and the source of each part are one press away. A vibe that is a
+ * rough guide says so beside its name, and says why under it.
  */
 function Vibe({ tag, meta, sourceNames, areas, marks, outlines, weighed }: VibeProps) {
   const { recipe, found } = VIBES;
@@ -159,6 +168,7 @@ function Vibe({ tag, meta, sourceNames, areas, marks, outlines, weighed }: VibeP
   const sources = [...new Set(parts.flatMap((part) => part.metric?.source_ids ?? []))];
   const family = meta.families.find((one) => one.family === tag.family);
   const crime = crimeParts(tag, meta.features);
+  const rough = roughOf(tag, meta);
   const heading = `${tag.tag_id}-name`;
   const byId = new Map(areas.map((area) => [area.area_id, area]));
   const named = (wanted: (mark: BandMark) => boolean): readonly Area[] =>
@@ -172,8 +182,13 @@ function Vibe({ tag, meta, sourceNames, areas, marks, outlines, weighed }: VibeP
   return (
     <section id={tag.tag_id} className={styles.vibe} aria-labelledby={heading}>
       <div className={styles.named}>
-        <h2 id={heading}>{tag.label}</h2>
+        <div className={styles.nameLine}>
+          <h2 id={heading}>{tag.label}</h2>
+          <RoughLabel told={rough} />
+        </div>
         <p className="muted">{scale ? VIBES.scale(low, high) : VIBES.oneWay}</p>
+        {/* Under its name, in sight. Every vibe keeps the same parts, so that one is read against the next. */}
+        <RoughNote told={rough} labelled />
       </div>
 
       {/* The room for the case for other names. It is drawn only where a name is set down. */}
@@ -434,6 +449,7 @@ export function VibesList({ meta, areas = [], bands, geometry = null, names = OT
                   <a className="target-min" href={`#${tag.tag_id}`}>
                     {tag.label}
                   </a>
+                  <RoughLabel told={roughOf(tag, meta)} />
                   {drawn ? <span className={styles.glanceEnds}>{VIBES.glance.ends(low, high)}</span> : null}
                   {/* A vibe that no area is placed on has no map, and says so where its map would be. */}
                   {isPlaced(tag) ? null : <span className={styles.glanceEnds}>{VIBES.notYet}</span>}

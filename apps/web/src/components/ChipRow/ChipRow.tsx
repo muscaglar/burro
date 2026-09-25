@@ -4,6 +4,7 @@ import { useId, useRef, useState, type KeyboardEvent, type MouseEvent, type Reac
 
 import { COMBINE } from "@/content/labels";
 import { countsOf } from "@/content/crime";
+import { roughOf } from "@/content/rough";
 import { CHIPS, whyRefused } from "@/content/search";
 import type {
   AreaSummary,
@@ -15,9 +16,11 @@ import type {
   Tenure,
 } from "@/lib/api/schema";
 import { chipsOf, endAskedFor, type Beside, type Chip as ChipData } from "@/lib/search/chips";
+import { counts } from "@/lib/search/counts";
 import { leadsOf } from "@/lib/search/leads";
 import type { Assumed } from "@/lib/search/state";
 
+import { RoughNote } from "../RoughGuide/RoughGuide";
 import { BudgetControl } from "../SettingsPanel/BudgetControl";
 import { CommuteControl, JourneySettings } from "../SettingsPanel/CommuteControl";
 import { TenureChoice } from "../SettingsPanel/TenureChoice";
@@ -103,7 +106,10 @@ function isWhereASearchStarts(spec: PreferenceSpec, defaults: MetaData["defaults
  *
  * Everything that explains the chips is drawn where it can be seen, once the
  * row is opened out: what "assumed" means, and what the usual settings are.
- * Who read the words is said in the heading, always.
+ * Who read the words is said in the heading, always. So is what a vibe that
+ * is a rough guide says of itself: its label stands on its chip, and the
+ * sentence that says why stands under the row, whether or not the row is
+ * opened out.
  */
 export function ChipRow({
   spec,
@@ -150,6 +156,12 @@ export function ChipRow({
   const shown = out
     ? chips
     : [...asked.slice(0, SHOWN_AT_FIRST), ...chips.filter((chip) => chip.kind === "usual")];
+  // The vibes of the search that are a rough guide, each with what it says of itself.
+  const rough = spec.tags.flatMap((weight) => {
+    const tag = counts(weight) ? meta.tags.find((one) => one.tag_id === weight.tag_id) : undefined;
+    const told = tag === undefined ? null : roughOf(tag, meta);
+    return tag === undefined || told === null ? [] : [{ tag, told }];
+  });
   const hints = {
     assumed: chips.some((chip) => chip.assumed),
     usual: chips.some((chip) => chip.kind === "usual"),
@@ -188,6 +200,7 @@ export function ChipRow({
             weight={weight}
             problem={problem}
             crime={countsOf(tag, meta.features)}
+            rough={roughOf(tag, meta)}
           />
         ) : null;
       }
@@ -257,6 +270,8 @@ export function ChipRow({
           ) : null}
         </div>
       )}
+      {/* In sight whether or not the row is opened out: it is never left for a press. */}
+      {waiting ? null : rough.map(({ tag, told }) => <RoughNote key={tag.tag_id} told={told} of={tag.label} />)}
       {waiting || !out || !(hints.assumed || hints.usual || hints.leads) ? null : (
         <div className={styles.hints}>
           {hints.leads ? <p>{CHIPS.leadsHint}</p> : null}

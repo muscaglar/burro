@@ -37,8 +37,8 @@ function PublisherPage({ url }: { url: string }) {
 
 /**
  * Every source of the release, each anchored by its id, with its licence, the
- * credit its publisher asks for, and the features that came from it. Every
- * word about a source is the API's.
+ * credit its publisher asks for, what its terms ask to be said with the credit,
+ * and the features that came from it. Every word about a source is the API's.
  */
 export function SourceList({ sources, features }: Props) {
   if (sources.length === 0) return <p>{SOURCES.none}</p>;
@@ -54,6 +54,11 @@ export function SourceList({ sources, features }: Props) {
                 {source.name}
               </h2>
               <p className={styles.attribution}>{source.attribution}</p>
+              {/* What the publisher's terms ask to be said wherever its credit is shown. It is
+                  the API's, as the credit is, and stands under it. */}
+              {(source.said_with_attribution ?? "") === "" ? null : (
+                <p className={styles.attribution}>{source.said_with_attribution}</p>
+              )}
               {GAP.test(source.attribution) ? <p className={styles.unfinished}>{SOURCES.unfinished}</p> : null}
               <dl className={styles.facts}>
                 <div>

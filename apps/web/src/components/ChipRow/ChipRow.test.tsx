@@ -504,6 +504,62 @@ describe("the chips", () => {
   });
 });
 
+describe("a vibe that is a rough guide, in a search", () => {
+  const [told] = meta.rough_guides;
+  const asked = (tagId: "village_feel" | "parks_close_by", weight = 0.5): PreferenceSpec => ({
+    ...first.spec,
+    tags: [{ tag_id: tagId, weight, toward: "high", provenance: "stated" }],
+  });
+  const notes = () => [...document.querySelectorAll<HTMLElement>("[data-rough-guide='note']")];
+
+  test("test_its_chip_bears_its_label_and_the_row_says_why_in_sight_with_nothing_pressed", () => {
+    show(asked("village_feel"), { inARow: true });
+
+    expect(told).toEqual({
+      tag_id: "village_feel",
+      label: "Rough guide",
+      why: "Of the areas it puts highest, about half read as villages to people, and it takes some busy main roads and some grand inner streets for villages.",
+    });
+    expect(chips().map(wordsOf)[0]).toBe(`Village feel, ${told?.label}`);
+    // The sentence stands under the row, and says which vibe it is of. Nothing was opened.
+    expect(notes().map((note) => note.textContent)).toEqual([`Village feel: ${told?.label}. ${told?.why}`]);
+    expect(notes().every(canBeSeen)).toBe(true);
+    expect(screen.queryByRole("button", { expanded: true })).toBeNull();
+  });
+
+  test("test_it_is_said_whether_or_not_the_row_is_opened_out_and_beside_the_slider_the_chip_opens", async () => {
+    const { user } = show(asked("village_feel"), { inARow: true });
+
+    await user.click(screen.getByRole("button", { name: /^Village feel/ }));
+
+    // Under the row as before, and beside the slider that the chip opened.
+    expect(notes().map((note) => note.textContent)).toEqual([
+      `${told?.label}. ${told?.why}`,
+      `Village feel: ${told?.label}. ${told?.why}`,
+    ]);
+    expect(notes().every(canBeSeen)).toBe(true);
+  });
+
+  test("test_nothing_is_said_of_a_vibe_that_is_as_sure_as_the_rest_or_of_one_that_was_taken_off", () => {
+    show(asked("parks_close_by"), { inARow: true });
+    expect(notes()).toEqual([]);
+    expect(document.body.textContent?.includes(told?.label ?? "")).toBe(false);
+
+    cleanup();
+    // Taken off, it counts for nothing, and its chip says so and no more.
+    show(asked("village_feel", 0), { inARow: true });
+    expect(notes()).toEqual([]);
+  });
+
+  test("test_the_words_are_the_apis_and_none_is_written_where_the_api_says_nothing", () => {
+    const silent = { ...meta, rough_guides: [] };
+    show(asked("village_feel"), { inARow: true, form: silent });
+
+    expect(chips().map(wordsOf)[0]).toBe("Village feel");
+    expect(notes()).toEqual([]);
+  });
+});
+
 describe("the chips in the row", () => {
   const STYLES = rulesOf(readFileSync(path.join(__dirname, "ChipRow.module.css"), "utf8"));
 
@@ -512,10 +568,11 @@ describe("the chips in the row", () => {
 
     expect(SHOWN_AT_FIRST).toBe(6);
     // Five vibes and the place. The budget and the tenure wait, and the usual settings stand last.
+    // Village feel is a rough guide, and its chip says so in the row.
     expect(chips().map(wordsOf)).toEqual([
       "Leafy",
       "Quiet streets",
-      "Village feel",
+      "Village feel, Rough guide",
       "Parks close by",
       "Food and drink",
       `Cindermoor Works, within 35 minutes, ${CHIPS.restAssumed}`,

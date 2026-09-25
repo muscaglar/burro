@@ -12,6 +12,7 @@ import { placedOn, type Lens } from "@/lib/vibes";
 
 import { BesideName } from "../BesideName/BesideName";
 import { CompareButton } from "../CompareTray/CompareButton";
+import { RoughLabel } from "../RoughGuide/RoughGuide";
 import styles from "./MapView.module.css";
 
 interface Props {
@@ -74,7 +75,8 @@ export function MapCard({
       </div>
       {lens !== null && placed !== null ? (
         <p>
-          {lens.tag.label}: {placed}
+          {lens.tag.label}
+          <RoughLabel told={lens.rough ?? null} />: {placed}
         </p>
       ) : null}
       {score !== undefined ? (

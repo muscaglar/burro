@@ -30,6 +30,40 @@ function show(spec: PreferenceSpec = nothing.spec) {
   return { sent, user: userEvent.setup({ delay: null }), ...view };
 }
 
+describe("where a budget to rent was held against rents of a wider place", () => {
+  const let_ = recordedAnswer("get_meta", "let/meta").body.data;
+
+  function shown(spec: PreferenceSpec, form: typeof meta | undefined = let_) {
+    return render(
+      <NothingMatches
+        filtered={nothing.filtered}
+        unranked={nothing.unranked}
+        spec={spec}
+        areas={areas}
+        placeNames={NAMES}
+        meta={form}
+        onEdit={() => undefined}
+      />,
+    );
+  }
+
+  test("test_the_count_of_what_was_left_out_says_which_places_the_rents_are_of", () => {
+    shown({ ...nothing.spec, tenure: "rent" });
+
+    expect(let_.rents?.of_a_place).toBeTruthy();
+    expect(screen.getByText(let_.rents?.of_a_place ?? "no words")).toBeInTheDocument();
+  });
+
+  test("test_it_is_not_said_to_a_buyer_or_of_rents_that_are_of_the_area_alone", () => {
+    const { unmount } = shown({ ...nothing.spec, tenure: "buy" });
+    expect(screen.queryByText(let_.rents?.of_a_place ?? "no words")).toBeNull();
+    unmount();
+
+    shown({ ...nothing.spec, tenure: "rent" }, meta);
+    expect(screen.queryByText(let_.rents?.of_a_place ?? "no words")).toBeNull();
+  });
+});
+
 describe("when no area passes every limit", () => {
   test("test_the_page_says_so_and_counts_the_areas_left_out_for_each_reason", () => {
     show();

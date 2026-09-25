@@ -11,6 +11,30 @@
   font-weight: 600;
 }
 
+/* The one line that stands for the whole on a narrow screen. It is drawn nowhere else. */
+.short {
+  display: none;
+}
+
+/*
+ * A narrow screen, once a search is open: the banner is one line, so that the first result
+ * is in sight on the first screen. It still says that this is a preview. Before a search,
+ * and on every other page, it says all of it. On a phone it was 138 px of a screen of 844.
+ */
+@media (max-width: 40rem) {
+  :global(body):has([data-search="open"]) .banner {
+    padding-block: var(--space-1);
+  }
+
+  :global(body):has([data-search="open"]) .whole {
+    display: none;
+  }
+
+  :global(body):has([data-search="open"]) .short {
+    display: inline;
+  }
+}
+
 @media (forced-colors: active) {
   .banner {
     border-block-end-color: CanvasText;

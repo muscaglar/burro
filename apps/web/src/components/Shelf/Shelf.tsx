@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent } from 
 
 import { askingFor, CRIME_ACCOUNT, countsOf } from "@/content/crime";
 import { READING } from "@/content/labels";
+import { roughOf, type Told } from "@/content/rough";
 import { LEGEND } from "@/content/map";
 import { SHELF } from "@/content/search";
 import type {
@@ -12,6 +13,7 @@ import type {
   Metric,
   Operations,
   RecipeHeld,
+  RoughGuide,
   Tag,
   TagId,
   VibeBands,
@@ -22,6 +24,7 @@ import { edits } from "@/lib/search/edits";
 import { endsOf } from "@/lib/vibes";
 
 import { outlinesOf, type Outline } from "../LocatorMap/LocatorMap";
+import { RoughLabel, RoughNote } from "../RoughGuide/RoughGuide";
 import { VIBE_MAP_FRAME, VibeMap } from "../VibeMap/VibeMap";
 import styles from "./Shelf.module.css";
 
@@ -36,6 +39,11 @@ interface Props {
    * be placed on stands apart, and cannot be added to a search: added, it left no area ranked.
    */
   readonly recipes?: readonly RecipeHeld[];
+  /**
+   * What each vibe that is a rough guide says of itself, from route 11. Its label stands
+   * beside its word on the shelf, and its card says why before anything is pressed.
+   */
+  readonly guides?: readonly RoughGuide[];
   /** The vibe whose card is open. The map is coloured by it, where it may be. */
   readonly open: TagId | null;
   readonly onOpen: (tagId: TagId | null) => void;
@@ -84,6 +92,8 @@ interface CardProps extends Pick<Props, "features" | "onAdd"> {
   readonly tag: Tag;
   /** What the release holds of this vibe's recipe. `undefined` where the API said nothing of it. */
   readonly held?: RecipeHeld;
+  /** What the vibe says of itself where it is a rough guide, from route 11. */
+  readonly rough?: Told | null;
   readonly id: string;
   readonly onClose: () => void;
   /** The outline of every area, and where each sits on this vibe. `null` where either is not in hand. */
@@ -125,7 +135,7 @@ function City({ tag, city }: { readonly tag: Tag; readonly city: NonNullable<Car
  * is made of, and what it cannot see. Every word of it is the API's. Under
  * it, the button that adds it to the search.
  */
-function VibeCard({ tag, held, features, id, onAdd, onClose, city }: CardProps) {
+function VibeCard({ tag, held, features, rough = null, id, onAdd, onClose, city }: CardProps) {
   const card = useRef<HTMLElement>(null);
   const parts = tag.terms.flatMap((term) => {
     const metric = features.find((one) => one.feature_id === term.feature_id);
@@ -154,6 +164,8 @@ function VibeCard({ tag, held, features, id, onAdd, onClose, city }: CardProps) 
         {tag.label}
       </h3>
       <p className={styles.meaning}>{tag.meaning}</p>
+      {/* A vibe that is a rough guide says so, and why, before anything is pressed. */}
+      <RoughNote told={rough} />
       {scale ? <p className={styles.ends}>{SHELF.scale(tag.low_end ?? "", tag.high_end ?? "")}</p> : null}
 
       {/* A vibe that no area can be placed on says so first, and is not offered: there is
@@ -256,6 +268,7 @@ export function Shelf({
   tags,
   features,
   recipes = [],
+  guides = [],
   open,
   onOpen,
   onAdd,
@@ -309,6 +322,8 @@ export function Shelf({
       >
         {wordOf(tag)}
       </button>
+      {/* Beside the word and not in it, so that the button is named by its word alone. */}
+      <RoughLabel told={roughOf(tag, { rough_guides: guides })} />
     </li>
   );
   return (
@@ -357,6 +372,7 @@ export function Shelf({
             tag={opened}
             held={heldOf(opened)}
             features={features}
+            rough={roughOf(opened, { rough_guides: guides })}
             id={`${id}-open`}
             onAdd={onAdd}
             onClose={() => close(opened.tag_id)}

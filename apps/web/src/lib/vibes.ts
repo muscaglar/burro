@@ -23,6 +23,12 @@ export type Placed = Pick<StripMark, "band" | "spread_low" | "spread_high">;
 export interface Lens {
   readonly tag: Tag;
   readonly marks: readonly BandMark[];
+  /**
+   * What the vibe says of itself where it is a rough guide, as route 11 serves it: its
+   * label, and the sentence that says why. It stands wherever the map is said to be
+   * coloured by the vibe. Left out, or `null`, of a vibe that is as sure as the rest.
+   */
+  readonly rough?: { readonly label: string; readonly why: string } | null;
 }
 
 /** True when the area is drawn as a range: it spans three bands or more, and is no one point. */

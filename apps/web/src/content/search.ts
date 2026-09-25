@@ -167,11 +167,37 @@ export const SUGGEST = {
   addAll: (count: number) => `Add all ${count}`,
   /** The same, where a thing that is the person's to choose is in sight as well. */
   addThese: (count: number) => `Add the ${count} that need no choice`,
-  /** What one press added, and what is left for the person, which the API names. */
-  added: (count: number, needs: readonly string[]) =>
-    needs.length === 0
-      ? `${count} added.`
-      : `${count} added. ${needs.length} ${needs.length === 1 ? "needs" : "need"} you: ${needs.join("; ")}.`,
+  /**
+   * What one press did, in full: how many it added, how many areas a firm budget among them
+   * left out, and what is left for the person, which the API names. `leftOut` is `null`
+   * where no firm budget was among them, and until the ranking that follows is in.
+   */
+  added: (
+    count: number,
+    needs: readonly string[],
+    leftOut: number | null = null,
+    heldAgainst: string | null = null,
+  ) =>
+    [
+      `${count} added.`,
+      leftOut === null ? "" : SUGGEST.leftOut(leftOut, heldAgainst),
+      needs.length === 0
+        ? ""
+        : `${needs.length} ${needs.length === 1 ? "needs" : "need"} you: ${needs.join("; ")}.`,
+    ]
+      .filter((line) => line !== "")
+      .join(" "),
+  /**
+   * How many areas a firm budget left out, as the API lists them, and where each is listed.
+   * `heldAgainst` is what the API says of the rents the budget was held against, where each
+   * is of a postcode district or a borough: the line says so, in the API's words.
+   */
+  leftOut: (count: number, heldAgainst: string | null = null): string => {
+    const of = heldAgainst === null ? "" : ` ${heldAgainst}`;
+    if (count === 0) return `Your budget is a firm limit. It left no area out.${of}`;
+    const [areas, which] = count === 1 ? ["1 area", "it"] : [`${count} areas`, "each"];
+    return `Your budget is a firm limit and left out ${areas}: the table of all areas lists ${which}.${of}`;
+  },
   takeBack: "Take it all back",
   takenBack: "Taken back. Nothing of it is added.",
   /** A choice that is said of every offer, named by the thing it is a choice of. */
@@ -183,6 +209,11 @@ export const SUGGEST = {
   showWords: "Show the words",
   showWordsOf: (thing: string) => `Show the words in the box: ${thing}`,
   showAll: (count: number) => `Show all ${count}`,
+  /**
+   * The one line that what is left folds to, once one press has added what it may. It says
+   * how many are left, under the line that names each, and opens them all.
+   */
+  showLeft: (count: number) => (count === 1 ? "Show the one left to choose" : `Show the ${count} left to choose`),
   /** Selects, in the box, a part of what was typed that the reader made nothing of. */
   showUnread: "Show in the box",
   showNextUnread: "Show the next in the box",
@@ -197,6 +228,8 @@ export const SUGGEST = {
  */
 export const NOT_IN_DATA = {
   title: "Not in this data yet",
+  /** After the title, on its line: each thing by its name. Why is one press away. */
+  named: (names: readonly string[]) => `: ${names.join("; ")}`,
   lead: (count: number) =>
     count === 1
       ? "You asked for one thing this data cannot answer yet. It counts for nothing in the ranking."
@@ -690,6 +723,15 @@ export const COST = {
   belowMiddle: "Your budget is below this middle price.",
   aboveMiddle: "Your budget is above this middle price.",
   atMiddle: "Your budget is this middle price.",
+  // A rent that is of a wider place than the area. The place, the months and the count are
+  // slots of the fact, and no figure is drawn without them.
+  figureOf: "A figure of",
+  recordedIn: "Rents recorded in",
+  rents: "Rents it rests on, to the nearest ten",
+  pictureOfRent: "The range of rents of the place, with the middle and your budget marked on it",
+  belowMiddleRent: "Your budget is below this middle rent.",
+  aboveMiddleRent: "Your budget is above this middle rent.",
+  atMiddleRent: "Your budget is this middle rent.",
 } as const;
 
 /**

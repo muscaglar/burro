@@ -477,17 +477,33 @@ describe("a result, in short", () => {
     expect(strip(5, "Dulcimer Green").queryAllByRole("button")).toEqual([]);
   });
 
-  test("test_a_row_gives_the_rank_the_name_and_the_fit_and_leaves_the_borough_to_the_table", () => {
+  test("test_a_row_says_beside_its_name_what_a_card_says_the_borough_and_that_the_name_is_a_draft", () => {
+    // Seen in a browser: the first five results said their borough and that the name was a
+    // draft, and results six to ten gave a name alone. A name with nothing beside it was
+    // taken for one somebody had checked.
     show({ ...first, opened: false });
+    const ranked = first.ranking.ranked.slice(0, SHOWN_AT_FIRST);
 
-    for (const row of cards().slice(5)) {
-      const heading = row.querySelector("header") as HTMLElement;
-      expect(within(heading).getByRole("heading", { level: 3 })).toBeInTheDocument();
-      expect(heading.textContent).toMatch(/^Rank \d+\d+.+Fit \d+ of 100$/);
-      expect(heading.textContent?.includes("Quillhaven")).toBe(false);
-    }
-    // A card gives the borough.
-    for (const one of cards().slice(0, 5)) expect(one.querySelector("header")?.textContent).toContain("Quillhaven");
+    expect(cards()).toHaveLength(SHOWN_AT_FIRST);
+    cards().forEach((result, at) => {
+      const summary = areas.find((area) => area.area_id === ranked[at]?.area_id);
+      const heading = result.querySelector("header") as HTMLElement;
+      const [rank, beside, fit] = [...heading.querySelectorAll("p")].map((part) => part.textContent);
+      expect(within(heading).getByRole("heading", { level: 3 }).textContent).toBe(summary?.name);
+      expect(rank).toMatch(/^Rank \d+\d+$/);
+      // The label its publisher gives the area begins with its borough.
+      expect(summary?.named?.label.startsWith(`${summary.borough} `)).toBe(true);
+      expect(beside).toBe(`${summary?.named?.label}${NAMED.between}${NAMED.draft}`);
+      expect(fit).toMatch(/^Fit \d+ of 100$/);
+      expect(heading.querySelectorAll("p")).toHaveLength(3);
+    });
+  });
+
+  test("test_the_heading_of_a_row_has_a_line_of_its_own_so_that_the_ways_on_stand_together", () => {
+    // With the borough beside the name there was room on the line for one of the three
+    // ways on, and the other two were drawn under it.
+    const heading = STYLES.filter((rule) => rule.selector === ".row .heading" && rule.under === null);
+    expect(heading.map((rule) => rule.sets.get("flex"))).toEqual(["1 1 100%"]);
   });
 
   test("test_a_result_says_what_its_fit_rests_on_only_where_that_is_not_everything", () => {
@@ -884,6 +900,41 @@ describe("a trade-off is something the area does badly", () => {
       const verdict = within(tradeOff(at)).queryByText(/your limit of/);
       if (aJourney(at)) expect(verdict).toBeInTheDocument();
       else expect(verdict).toBeNull();
+    }
+  });
+});
+
+describe("a vibe that is a rough guide, on a card", () => {
+  const village = {
+    ranking: recordedAnswer("rank", "rank-rough-guide").body.data,
+    ...recordedAnswer("explain_top", "explanations-rough-guide").body.data,
+  };
+  const [told] = meta.data.rough_guides;
+  const notes = (at: number) => [...(cards()[at] as HTMLElement).querySelectorAll<HTMLElement>("[data-rough-guide='note']")];
+  const labels = (at: number) => [...(cards()[at] as HTMLElement).querySelectorAll<HTMLElement>("[data-rough-guide='label']")];
+
+  test("test_every_card_that_shows_it_says_that_it_is_a_rough_guide_and_why_with_nothing_pressed", () => {
+    show({ ...village, opened: false });
+
+    village.ranking.ranked.slice(0, cards().length).forEach((area, at) => {
+      const shows = area.strip.some((mark) => mark.tag_id === "village_feel");
+      expect(shows).toBe(true);
+      // The label stands once, beside the name or the picture of the vibe, and the sentence under it.
+      expect(labels(at).map((label) => label.lastChild?.textContent)).toEqual([told?.label]);
+      expect(notes(at).map((note) => note.textContent)).toEqual([`Village feel: ${told?.label}. ${told?.why}`]);
+      for (const drawn of [...labels(at), ...notes(at)]) {
+        expect(drawn.closest("[hidden], [aria-hidden='true'], details:not([open])")).toBeNull();
+      }
+    });
+    expect(cards().length).toBeGreaterThan(0);
+  });
+
+  test("test_a_card_of_a_search_that_did_not_ask_for_it_says_nothing_of_it", () => {
+    show({ ...first, opened: false });
+
+    for (const one of cards()) {
+      expect(one.querySelector("[data-rough-guide]")).toBeNull();
+      expect(one.textContent?.includes("Village feel")).toBe(false);
     }
   });
 });

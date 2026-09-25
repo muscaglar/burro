@@ -66,6 +66,31 @@ describe("the source of a figure, written out", () => {
     expect(renderToStaticMarkup(<SourceLine facts={[real]} />)).not.toContain("Powered by");
   });
 
+  test("test_what_is_said_with_a_credit_follows_it_wherever_the_credit_stands", () => {
+    // The terms of a publisher may ask that something is said wherever its credit is shown.
+    // The API brings it with the credit, and it is said after it, as a sentence of its own.
+    const said = "The publisher cannot warrant the quality or accuracy of the data";
+    const credited: Fact = {
+      ...real,
+      sources: [
+        { source_id: "naptan", name: "NaPTAN", publisher: "Department for Transport", attribution: null },
+        {
+          source_id: "outlines",
+          name: "Outlines",
+          publisher: "An authority",
+          attribution: "Contains data of an authority",
+          said_with_attribution: said,
+        },
+      ],
+    };
+    render(<SourceLine facts={[credited]} />);
+    const line = screen.getAllByRole("link")[0]?.closest("p");
+
+    expect(line).toHaveTextContent(`Contains data of an authority. ${said}.`);
+    // A source that brings no credit brings nothing to say with one.
+    expect(renderToStaticMarkup(<SourceLine facts={[real]} />)).not.toContain("cannot warrant");
+  });
+
   test("test_a_statement_that_two_sources_of_one_publisher_bring_is_said_once", () => {
     // Seen in a browser: a figure made from two files of Transport for London, the bus stops
     // and the stations, each of which brings the publisher's statement. It stood twice, one

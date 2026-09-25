@@ -175,6 +175,18 @@
       "shows": "Every area of the release, by id"
     },
     {
+      "scenario": "at/compare",
+      "operation_id": "compare",
+      "status": 200,
+      "shows": "Two areas compared on a budget that is the upper end of its rents in the first, to the pound: it is said to be at the budget, and the second to be over it"
+    },
+    {
+      "scenario": "at/compare-let",
+      "operation_id": "compare",
+      "status": 200,
+      "shows": "Two areas compared on a budget that is the middle rent of its place in the first, to the pound: it is said to be at the budget, and the second to be over it"
+    },
+    {
       "scenario": "census",
       "operation_id": "get_census",
       "status": 200,
@@ -397,6 +409,12 @@
       "shows": "Reasons and trade-offs where a journey is beyond the longest time the release holds"
     },
     {
+      "scenario": "explanations-one-press",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "The reasons of the search that one press made"
+    },
+    {
       "scenario": "explanations-only-one",
       "operation_id": "explain_top",
       "status": 200,
@@ -407,6 +425,12 @@
       "operation_id": "explain_top",
       "status": 200,
       "shows": "The reasons after the refinement"
+    },
+    {
+      "scenario": "explanations-rough-guide",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "The reasons of a search for a vibe that is a rough guide"
     },
     {
       "scenario": "explanations-scale",
@@ -520,7 +544,7 @@
       "scenario": "interpret-by-model-long",
       "operation_id": "interpret",
       "status": 200,
-      "shows": "A long sentence read by a model: twelve offers, each in four parts, one with a choice of two things, a journey and a budget that may be made firm, words nothing was made of, and seven readings of two words that the rules offer with no guess"
+      "shows": "A long sentence read by a model: twelve offers, each in four parts, one with a choice of two things, a journey that one press takes as a guide, a budget that it takes as it was worded, no word said to be unread where nothing but how a wish is led in to was left, and seven readings of two words that the rules offer with no guess"
     },
     {
       "scenario": "interpret-by-model-place",
@@ -563,6 +587,12 @@
       "operation_id": "interpret",
       "status": 200,
       "shows": "A word with two meanings, where gritty is a scale"
+    },
+    {
+      "scenario": "interpret-house",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "The same of a plain sentence: it is applied whole, held against a terraced house, and the kind is said to be assumed"
     },
     {
       "scenario": "interpret-invalid-text",
@@ -640,7 +670,7 @@
       "scenario": "interpret-rules-at-once",
       "operation_id": "interpret",
       "status": 200,
-      "shows": "The same, asked of the rules alone: what they offer is served at once, with no guess, and the answer says that a model has more to read"
+      "shows": "The same, asked of the rules alone: what they offer is served at once, with a guess at what was plainly said of the journey and of the home and at no wish, and the answer says that a model has more to read"
     },
     {
       "scenario": "interpret-scale",
@@ -659,6 +689,12 @@
       "operation_id": "interpret",
       "status": 200,
       "shows": "A prompt that is not plain: nothing applied, two things noticed, and a stretch not read"
+    },
+    {
+      "scenario": "interpret-suggest-house",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A budget to buy a house of no kind, in a sentence that is not plain: the budget is offered for a terraced house, which is the guess and which one press takes, and for each other kind of house"
     },
     {
       "scenario": "interpret-suggest-many",
@@ -685,6 +721,12 @@
       "shows": "A place noticed in a prompt that is not plain: offered by name, and not added"
     },
     {
+      "scenario": "interpret-suggest-rough-guide",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A vibe that is a rough guide: offered with its label and its sentence, never applied, and never taken by the one press that takes what stands beside it"
+    },
+    {
       "scenario": "interpret-suggest-who-is-counted",
       "operation_id": "interpret",
       "status": 200,
@@ -707,6 +749,42 @@
       "operation_id": "interpret",
       "status": 200,
       "shows": "Things the data cannot answer: each is named in unmet, and the rest is applied"
+    },
+    {
+      "scenario": "let/area",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of an area whose rents are each of the postcode district it lies in"
+    },
+    {
+      "scenario": "let/area-borough",
+      "operation_id": "get_area",
+      "status": 200,
+      "shows": "The profile of an area whose rents are each of its whole borough"
+    },
+    {
+      "scenario": "let/explanations-firm",
+      "operation_id": "explain_top",
+      "status": 200,
+      "shows": "Its reasons: each says the place the rent is of, and an area over the budget says that about half of the rents recorded there were under the middle"
+    },
+    {
+      "scenario": "let/interpret-firm",
+      "operation_id": "interpret",
+      "status": 200,
+      "shows": "A budget to rent that is offered: its note says the place a rent is of, and the caution of its publisher"
+    },
+    {
+      "scenario": "let/meta",
+      "operation_id": "get_meta",
+      "status": 200,
+      "shows": "The form of the release: what is said of rents that are of a wider place"
+    },
+    {
+      "scenario": "let/rank-firm",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A firm budget held against the middle rent of a place: an area is left out only where it is far over, and some that are kept are over it"
     },
     {
       "scenario": "meta",
@@ -967,6 +1045,12 @@
       "shows": "Another search, ranked"
     },
     {
+      "scenario": "rank-house-one-press",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "One press on it: the search is to buy, and the budget is held against a terraced house in an edit that says the kind is Burro's"
+    },
+    {
       "scenario": "rank-invalid-operations",
       "operation_id": "rank",
       "status": 422,
@@ -1009,6 +1093,12 @@
       "shows": "A journey on foot: for most areas it is beyond the longest time the release holds"
     },
     {
+      "scenario": "rank-one-press",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "One press on the long sentence: the way `add_all` names of each offer, in one request. The journey is a guide and the budget a firm limit, which leaves areas out"
+    },
+    {
       "scenario": "rank-only-one",
       "operation_id": "rank",
       "status": 200,
@@ -1025,6 +1115,24 @@
       "operation_id": "rank",
       "status": 200,
       "shows": "An edit the reducer refuses: a budget of one pound. The spec comes back as it was"
+    },
+    {
+      "scenario": "rank-rough-guide",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A vibe that is a rough guide, taken by a press of its own: it is on every result that it places, marked as asked for"
+    },
+    {
+      "scenario": "rank-rough-guide-one-press",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "One press beside a vibe that is a rough guide: it adds the two that need no choice, and the rough guide is left to a press of its own"
+    },
+    {
+      "scenario": "rank-rough-guide-with-the-rest",
+      "operation_id": "rank",
+      "status": 200,
+      "shows": "A vibe that is a rough guide, taken by a press of its own once one press had added what stood beside it"
     },
     {
       "scenario": "rank-scale",

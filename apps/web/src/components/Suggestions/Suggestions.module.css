@@ -64,6 +64,11 @@
   list-style: none;
 }
 
+/* With every offer folded away it holds nothing, and takes no room above the answer. */
+.list:empty {
+  display: none;
+}
+
 .item {
   display: grid;
   gap: var(--space-1);

@@ -4,7 +4,7 @@ import path from "node:path";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
-import { CANNOT_PLACE, FACT_KIND, ONE_NUMBER } from "@/content/facts";
+import { CANNOT_PLACE, FACT_COLUMNS, FACT_KIND, ONE_NUMBER } from "@/content/facts";
 import { JOURNEYS, SOURCE } from "@/content/search";
 import { CRIME_CAVEAT } from "@/content/settings";
 import { readRecorded, recordedAnswer, recordedFolder } from "@/lib/api/recorded";
@@ -36,11 +36,21 @@ function everyFact(): Fact[] {
   // And a price that was counted from sales, from another.
   facts.push(...recordedAnswer("get_area", "counted/area").body.data.facts);
   facts.push(...recordedAnswer("explain_top", "counted/explanations-firm").body.data.facts);
+  // And a rent that is of a postcode district or of a borough, from a third.
+  facts.push(...recordedAnswer("get_area", "let/area").body.data.facts);
+  facts.push(...recordedAnswer("get_area", "let/area-borough").body.data.facts);
+  facts.push(...recordedAnswer("explain_top", "let/explanations-firm").body.data.facts);
+  // And a budget that is, to the pound, what it is held against: the upper end of a range,
+  // and the middle rent of a wider place.
+  facts.push(...recordedAnswer("compare", "at/compare").body.data.facts);
+  facts.push(...recordedAnswer("compare", "at/compare-let").body.data.facts);
   return facts;
 }
 
 const all = everyFact();
 const byTemplate = (template: TemplateId) => all.find((fact) => fact.template === template);
+/** The slot that holds what a budget is held against: the upper end of a range, or a middle. */
+const heldIn = (fact: Fact) => (fact.slots.upper === undefined ? "median" : "upper");
 
 describe("a fact laid out in columns", () => {
   test("test_there_is_a_recorded_fact_of_nearly_every_template_to_test_with", () => {
@@ -80,6 +90,12 @@ describe("a fact laid out in columns", () => {
     ["budget_over", ["Upper end of the range", "Your budget", "Over your budget by"]],
     ["budget_under_median", ["Middle price, homes of all sizes", "Your budget", "Under your budget by"]],
     ["budget_over_median", ["Middle price, homes of all sizes", "Your budget", "Over your budget by"]],
+    ["budget_at", ["Upper end of the range", "Your budget", "Against your budget"]],
+    ["budget_at_median", ["Middle price, homes of all sizes", "Your budget", "Against your budget"]],
+    [
+      "budget_at_recorded",
+      ["Middle rent", "A figure of", "Rents recorded in", "Rents it rests on, to the nearest ten", "Your budget", "Against your budget"],
+    ],
     ["travel_pt", ["To", "How", "Typical minutes", "Minutes if you just miss one"]],
     ["travel_other", ["To", "How", "Minutes"]],
     ["travel_estimated", ["To", "How", "How this is known"]],
@@ -116,6 +132,81 @@ describe("a fact laid out in columns", () => {
       "Your limit, in minutes": fact.slots.limit,
       [column]: fact.slots.margin,
     });
+  });
+
+  test("test_a_cost_that_is_the_budget_to_the_pound_is_said_to_be_at_it_and_no_difference_is_drawn", () => {
+    // Seen in a browser: "Under your budget by £0", and a sentence that gave the same.
+    const at = all.filter((fact) => fact.kind === "budget_fit" && fact.slots.amount === fact.slots[heldIn(fact)]);
+
+    expect(new Set(at.map((fact) => fact.template))).toEqual(
+      new Set(["budget_at", "budget_at_median", "budget_at_recorded"]),
+    );
+    for (const fact of at) {
+      const columns = Object.fromEntries(columnsOf(fact));
+      expect(columns[FACT_COLUMNS.amount]).toBe(`£${fact.slots.amount}`);
+      // Where it stands is the API's own word, and the fact holds no difference to draw.
+      expect(columns[FACT_COLUMNS.againstBudget]).toBe(fact.slots.verdict);
+      expect(fact.slots.verdict).toBe("At your budget");
+      expect(fact.slots.margin).toBeUndefined();
+      expect(columns[FACT_COLUMNS.under]).toBeUndefined();
+      expect(columns[FACT_COLUMNS.over]).toBeUndefined();
+    }
+    // A cost that is not the budget says by how much, and not where it stands.
+    const apart = all.filter((fact) => fact.kind === "budget_fit" && !at.includes(fact));
+    expect(apart.length).toBeGreaterThan(20);
+    for (const fact of apart) {
+      const columns = Object.fromEntries(columnsOf(fact));
+      const by = fact.template.startsWith("budget_under") ? FACT_COLUMNS.under : FACT_COLUMNS.over;
+      expect(columns[by]).toBe(`£${fact.slots.margin}`);
+      expect(columns[FACT_COLUMNS.againstBudget]).toBeUndefined();
+    }
+  });
+
+  test("test_a_journey_that_takes_the_minutes_of_its_limit_is_said_to_be_at_it", () => {
+    const timed = all.filter(
+      (fact) => ["travel_pt", "travel_other"].includes(fact.template) && fact.slots.limit !== undefined,
+    );
+    const at = timed.filter((fact) => fact.slots.verdict !== undefined);
+
+    expect(at.length).toBeGreaterThan(0);
+    for (const fact of at) {
+      const columns = Object.fromEntries(columnsOf(fact));
+      // One of its times is the limit to the minute: the one the search is scored on.
+      expect([fact.slots.typical, fact.slots.missed, fact.slots.minutes]).toContain(fact.slots.limit);
+      expect(columns[FACT_COLUMNS.limit]).toBe(fact.slots.limit);
+      expect(columns[FACT_COLUMNS.estimate]).toBe(fact.slots.verdict);
+      expect(fact.slots.verdict).toBe("At your limit");
+      expect(fact.slots.margin).toBeUndefined();
+      expect(columns[FACT_COLUMNS.underLimit]).toBeUndefined();
+      expect(columns[FACT_COLUMNS.overLimit]).toBeUndefined();
+    }
+    // A journey that is under its limit says by how many minutes, and not where it stands.
+    const under = timed.filter((fact) => !at.includes(fact));
+    expect(under.length).toBeGreaterThan(20);
+    for (const fact of under) {
+      const columns = Object.fromEntries(columnsOf(fact));
+      expect(columns[FACT_COLUMNS.underLimit]).toBe(fact.slots.margin);
+      expect(Number(fact.slots.margin)).toBeGreaterThan(0);
+      expect(columns[FACT_COLUMNS.estimate]).toBeUndefined();
+    }
+  });
+
+  test("test_no_fact_is_drawn_with_a_difference_of_nothing", () => {
+    const differences: readonly string[] = [
+      FACT_COLUMNS.under,
+      FACT_COLUMNS.over,
+      FACT_COLUMNS.underLimit,
+      FACT_COLUMNS.overLimit,
+    ];
+    let drawn = 0;
+    for (const fact of all) {
+      for (const [column, value] of columnsOf(fact)) {
+        if (!differences.includes(column)) continue;
+        drawn += 1;
+        expect(value?.replace(/^£/, "")).not.toBe("0");
+      }
+    }
+    expect(drawn).toBeGreaterThan(50);
   });
 
   test("test_a_journey_that_was_estimated_says_its_band_and_that_it_is_an_estimate_and_gives_no_minutes", () => {
@@ -398,5 +489,65 @@ describe("a fact on a page that must read with scripts off", () => {
     const { container } = render(<FactRow fact={cost} source="line" />);
 
     expect(await faultsIn(container)).toEqual([]);
+  });
+});
+
+describe("a rent that is of a wider place than the area", () => {
+  const rent = byTemplate("cost_rent_recorded");
+  const over = byTemplate("budget_over_recorded");
+  const under = byTemplate("budget_under_recorded");
+  if (!rent || !over || !under) throw new Error("no recorded rent of a wider place");
+
+  test("test_a_rent_says_the_place_it_is_of_the_months_and_how_many_rents_it_rests_on", () => {
+    const columns = new Map(columnsOf(rent));
+
+    expect(columns.get(FACT_COLUMNS.figureOf)).toBe(rent.slots.of);
+    expect(columns.get(FACT_COLUMNS.recordedIn)).toBe(rent.slots.period);
+    expect(columns.get(FACT_COLUMNS.rents)).toBe(rent.slots.rents);
+    expect(columns.get(FACT_COLUMNS.range)).toBe(`£${rent.slots.lower} to £${rent.slots.upper}`);
+    expect(columns.get(FACT_COLUMNS.median)).toBe(`£${rent.slots.median}`);
+    // No word says how sure it is: the count of rents does.
+    expect(columns.has(FACT_COLUMNS.confidence)).toBe(false);
+  });
+
+  test("test_no_rent_of_a_wider_place_is_drawn_without_the_place_the_months_and_the_count", () => {
+    const of = all.filter((fact) =>
+      ["cost_rent_recorded", "budget_under_recorded", "budget_over_recorded"].includes(fact.template),
+    );
+
+    expect(of.length).toBeGreaterThan(10);
+    for (const fact of of) {
+      const names = columnsOf(fact).map(([name]) => name);
+      expect(names).toEqual(
+        expect.arrayContaining([FACT_COLUMNS.figureOf, FACT_COLUMNS.recordedIn, FACT_COLUMNS.rents]),
+      );
+    }
+  });
+
+  test("test_the_row_says_that_the_figure_is_not_of_the_area_alone_in_the_apis_words", () => {
+    for (const fact of [rent, over, under]) {
+      const { unmount } = render(<FactRow fact={fact} source="line" />);
+
+      expect(fact.slots.is_of).toMatch(/^This is of .+, and not of .+ alone\.$/);
+      expect(screen.getByText(fact.slots.is_of ?? "no sentence")).toBeInTheDocument();
+      unmount();
+    }
+  });
+
+  test("test_a_budget_is_said_against_the_middle_rent_of_the_place", () => {
+    const columns = new Map(columnsOf(over));
+
+    expect(columns.get(FACT_COLUMNS.middleRent)).toBe(`£${over.slots.median}`);
+    expect(columns.get(FACT_COLUMNS.over)).toBe(`£${over.slots.margin}`);
+    expect(new Map(columnsOf(under)).get(FACT_COLUMNS.under)).toBe(`£${under.slots.margin}`);
+    expect(columns.has(FACT_COLUMNS.upper)).toBe(false);
+  });
+
+  test("test_a_rent_of_a_whole_borough_says_so", () => {
+    const wide = all.find((fact) => fact.template === "cost_rent_recorded" && fact.slots.of_kind === "borough");
+    if (!wide) throw new Error("no recorded rent of a borough");
+
+    expect(wide.slots.of).toBe(`the whole borough of ${wide.slots.of_name}`);
+    expect(new Map(columnsOf(wide)).get(FACT_COLUMNS.figureOf)).toBe(wide.slots.of);
   });
 });

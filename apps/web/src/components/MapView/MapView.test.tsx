@@ -685,6 +685,38 @@ describe("the map, coloured by one vibe before a search", () => {
     ]);
   });
 
+  test("test_coloured_by_a_vibe_that_is_a_rough_guide_the_legend_says_so_and_says_why", async () => {
+    const [told] = meta.rough_guides;
+    await show(null, { ...lensOf("village_feel"), rough: told });
+    const legend = screen.getByRole("region", { name: LEGEND.title });
+
+    expect(within(legend).getByText(LEGEND.vibe("Village feel"))).toBeInTheDocument();
+    expect(legend.querySelector("[data-rough-guide='note']")?.textContent).toBe(`${told?.label}. ${told?.why}`);
+  });
+
+  test("test_the_table_of_areas_names_a_rough_guide_over_its_column_with_its_label", () => {
+    const [told] = meta.rough_guides;
+    const shared = { areas, scores: [], filtered: [], unranked: [], emptySpec: false, selectedId: null };
+    render(
+      <AreaTable
+        {...shared}
+        onSelect={() => undefined}
+        onHover={() => undefined}
+        lens={{ ...lensOf("village_feel"), rough: told }}
+        searched={false}
+      />,
+    );
+
+    const columns = screen.getAllByRole("columnheader").map((column) => column.textContent);
+    expect(columns).toContain(`Village feel, ${told?.label}`);
+  });
+
+  test("test_coloured_by_a_vibe_that_is_as_sure_as_the_rest_the_legend_says_nothing_of_it", async () => {
+    await show(null, lensOf("pace"));
+
+    expect(document.querySelector("[data-rough-guide]")).toBeNull();
+  });
+
   test("test_a_vibe_that_runs_one_way_is_counted_from_least_to_most", async () => {
     await show(null, lensOf("leafy"));
     const legend = within(screen.getByRole("region", { name: LEGEND.title }));

@@ -448,6 +448,17 @@ export function MethodsTables({ meta }: Props) {
           points={METHODS.journeys.points}
         />
       )}
+      {meta.rents ? (
+        // Each rent of the data is of a wider place than an area. What is said of the rents
+        // is the API's: that each is of a district or a borough, and what their publisher
+        // advises. How an area takes one, and how a budget is held against it, follows.
+        <Points
+          id="rents"
+          title={METHODS.rents.title}
+          lead={`${meta.rents.of_a_place} ${meta.rents.caution}`}
+          points={METHODS.rents.points}
+        />
+      ) : null}
       <Points
         id="confidence"
         title={METHODS.confidence.title}

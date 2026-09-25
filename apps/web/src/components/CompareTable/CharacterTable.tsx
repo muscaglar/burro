@@ -2,9 +2,10 @@
 
 import { COMPARE_TABLE } from "@/content/compare";
 import { CRIME_ACCOUNT, type CrimeVibe } from "@/content/crime";
+import { roughOf, saidOf } from "@/content/rough";
 import { STRIP } from "@/content/search";
 import { CRIME_CAVEAT } from "@/content/settings";
-import type { CharacterMark, CompareData, ComparedArea, Fact, Tag } from "@/lib/api/schema";
+import type { CharacterMark, CompareData, ComparedArea, Fact, RoughGuide, Tag } from "@/lib/api/schema";
 import { endsOf, type Placed } from "@/lib/vibes";
 
 import { SourceNote } from "../SourceNote/SourceNote";
@@ -18,6 +19,8 @@ interface Props {
   readonly tags: readonly Tag[];
   /** The vibes whose recipe holds recorded crime, with the parts of it that are of crime. */
   readonly crime?: readonly CrimeVibe[];
+  /** What each vibe that is a rough guide says of itself, from route 11. */
+  readonly guides?: readonly RoughGuide[];
 }
 
 /** Where a mark says the area sits. `null` for an area the vibe cannot place. */
@@ -73,9 +76,10 @@ function Cell({ mark, fact, tag, area }: CellProps) {
  *
  * Every band is the API's, and is shown as a band between two named ends,
  * never as a score. On a narrow screen each row is stacked, as the rows of
- * what counts are, and it stays a table to a screen reader either way.
+ * what counts are, and it stays a table to a screen reader either way. A
+ * vibe that is a rough guide says so under its name, and says why.
  */
-export function CharacterTable({ data, tags, crime = [] }: Props) {
+export function CharacterTable({ data, tags, crime = [], guides = [] }: Props) {
   const facts = new Map(data.facts.map((fact) => [fact.fact_id, fact]));
   const rows = data.character.flatMap((row) => {
     const tag = tags.find((one) => one.tag_id === row.tag_id);
@@ -100,7 +104,7 @@ export function CharacterTable({ data, tags, crime = [] }: Props) {
           <p className={styles.why}>{COMPARE_TABLE.character.unplacedWhy}</p>
         </div>
       )}
-      <Rows data={data} rows={rows} facts={facts} crime={crime} />
+      <Rows data={data} rows={rows} facts={facts} crime={crime} guides={guides} />
     </>
   );
 }
@@ -109,9 +113,10 @@ interface RowsProps extends Pick<Props, "data"> {
   readonly rows: readonly { readonly row: CompareData["character"][number]; readonly tag: Tag }[];
   readonly facts: ReadonlyMap<string, Fact>;
   readonly crime: readonly CrimeVibe[];
+  readonly guides: readonly RoughGuide[];
 }
 
-function Rows({ data, rows, facts, crime }: RowsProps) {
+function Rows({ data, rows, facts, crime, guides }: RowsProps) {
   return (
     <table role="table" className={`${styles.table} ${styles.character}`}>
       <caption>{COMPARE_TABLE.character.caption}</caption>
@@ -133,12 +138,22 @@ function Rows({ data, rows, facts, crime }: RowsProps) {
         {rows.map(({ row, tag }) => {
           const [low, high] = endsOf(tag);
           const counted = crime.find((one) => one.tag.tag_id === tag.tag_id)?.parts ?? [];
+          const rough = roughOf(tag, { rough_guides: guides });
           return (
             <tr role="row" key={row.tag_id} className={styles.row}>
               <th role="rowheader" scope="row" className={styles.thing}>
                 <span className={styles.label}>{tag.label}</span>
                 <span className="visually-hidden">. </span>
                 <span className={styles.weight}>{STRIP.from(low, high)}</span>
+                {rough === null ? null : (
+                  // A vibe that is a rough guide says so, and why, in the API's own words.
+                  <>
+                    <span className="visually-hidden">. </span>
+                    <span className={styles.caveat} data-rough-guide="note">
+                      {saidOf(rough)}
+                    </span>
+                  </>
+                )}
                 {counted.length === 0 ? null : (
                   // A vibe that counts recorded crime says so, with the caveat of every such figure.
                   <>

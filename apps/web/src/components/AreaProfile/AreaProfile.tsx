@@ -88,12 +88,19 @@ function NoFigure({ name, says }: { readonly name: string; readonly says: string
   );
 }
 
+/** The templates of a cost that is a range: two figures that half of the homes lie between. */
+const RANGES: readonly Fact["template"][] = ["cost_rent", "cost_buy", "cost_rent_recorded"];
+
 function Cost({ data, tenure }: { readonly data: AreaData; readonly tenure: Tenure }) {
   const facts = costFacts(data, tenure);
+  // What the publisher of the rents advises, in the API's words. It is said once, over the
+  // rows it is said of, however many kinds of home there are.
+  const caution = facts.find((fact) => fact.slots.caution)?.slots.caution;
   return (
     // A heading and its rows. It is no landmark: the page has one for each part, and no more.
     <div className={styles.part}>
       <h3>{AREA.cost.tenure[tenure]}</h3>
+      {caution ? <p className={styles.lead}>{caution}</p> : null}
       {facts.length > 0 ? (
         <ul className={styles.rows}>
           {facts.map((fact) => (
@@ -339,15 +346,24 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
 
         <Closed id={SECTION.cost} title={AREA.cost.title}>
           {/* What the two figures of a range mean is said where there is a range to read. */}
+          {data.facts.some((fact) => RANGES.includes(fact.template)) ? (
+            <p className={styles.lead}>{AREA.cost.lead}</p>
+          ) : null}
+          {/* Only a range that Burro worked out says how sure it is in a word. */}
           {data.facts.some((fact) => fact.template === "cost_rent" || fact.template === "cost_buy") ? (
-            <>
-              <p className={styles.lead}>{AREA.cost.lead}</p>
-              <p>
-                <Link className="target-min" href={paths.methods("confidence")} prefetch={false}>
-                  {AREA.cost.confidence}
-                </Link>
-              </p>
-            </>
+            <p>
+              <Link className="target-min" href={paths.methods("confidence")} prefetch={false}>
+                {AREA.cost.confidence}
+              </Link>
+            </p>
+          ) : null}
+          {/* A rent of a wider place says how many rents it rests on, and which place it is of. */}
+          {data.facts.some((fact) => fact.template === "cost_rent_recorded") ? (
+            <p>
+              <Link className="target-min" href={paths.methods("rents")} prefetch={false}>
+                {AREA.cost.rents}
+              </Link>
+            </p>
           ) : null}
           <Cost data={data} tenure="rent" />
           <Cost data={data} tenure="buy" />

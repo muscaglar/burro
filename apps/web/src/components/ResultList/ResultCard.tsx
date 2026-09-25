@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useId, type ReactNode } from "react";
 
+import { roughOf } from "@/content/rough";
 import { COST, JOURNEYS, RESULTS } from "@/content/search";
 import type {
   AreaData,
@@ -27,9 +28,10 @@ import { Disclosure } from "../Disclosure/Disclosure";
 import { FactRow } from "../FactRow/FactRow";
 import { BesideName } from "../BesideName/BesideName";
 import { LocatorMap } from "../LocatorMap/LocatorMap";
+import { RoughLabel } from "../RoughGuide/RoughGuide";
 import { Sentence } from "../Sentence/Sentence";
 import { Skeleton } from "../Skeleton/Skeleton";
-import { Picture, Strip } from "../Strip/Strip";
+import { Picture, RoughOnResult, Strip } from "../Strip/Strip";
 import stripStyles from "../Strip/Strip.module.css";
 import { Completeness, JourneyList, Missing, ScoreBreakdown } from "./parts";
 import styles from "./ResultList.module.css";
@@ -56,11 +58,9 @@ interface Shared {
 
 interface HeadingProps extends Pick<Shared, "area" | "summary" | "noFit"> {
   readonly id: string;
-  /** True on a row, which gives the rank, the name and the fit. The borough is in the table and on the area's page. */
-  readonly short?: boolean;
 }
 
-function Heading({ area, summary, noFit, id, short = false }: HeadingProps) {
+function Heading({ area, summary, noFit, id }: HeadingProps) {
   return (
     <header className={styles.heading}>
       <p className={styles.rank}>
@@ -76,8 +76,10 @@ function Heading({ area, summary, noFit, id, short = false }: HeadingProps) {
         </Link>
       </h3>
       {/* Beside the name, smaller: the label its publisher gives the area, which says its
-          borough, and that the name is a draft. A name that says its borough says it once. */}
-      {short ? null : <BesideName area={summary} className={styles.borough} />}
+          borough, and that the name is a draft. A name that says its borough says it once.
+          A row says it as a card does: a name with no borough beside it was taken for a
+          name somebody had checked, and two areas of one name could not be told apart. */}
+      <BesideName area={summary} className={styles.borough} />
       {noFit ? null : (
         <p className={styles.fit}>
           <span className={styles.fitLabel}>{RESULTS.fit} </span>
@@ -197,6 +199,7 @@ function Beside({ mark, meta }: BesideProps) {
   return (
     <span className={stripStyles.beside}>
       <Picture mark={mark} tag={tag} />
+      <RoughLabel told={roughOf(tag, meta)} />
     </span>
   );
 }
@@ -322,10 +325,13 @@ export function ResultCard({
         <Strip
           marks={inStrip}
           tags={meta.tags}
+          guides={meta.rough_guides}
           facts={facts}
           of={summary.name}
           also={beside.some((mark) => mark.asked)}
         />
+        {/* Of every vibe the card shows, in the strip or beside a sentence. */}
+        <RoughOnResult marks={area.strip} tags={meta.tags} guides={meta.rough_guides} />
 
         <div className={`${styles.part} ${styles.runIn}`}>
           <h4>{RESULTS.reasonsTitle}</h4>
@@ -423,10 +429,10 @@ export function ResultCard({
 }
 
 /**
- * One of results 6 to 20, in one line: rank, name, fit, how much of what
- * counts the fit rests on, and the strip. The API writes reasons for the
- * first five only, so a row has none. Its working is one press away: the
- * journeys, and how the fit is worked out.
+ * One of results 6 to 20, in short: rank, name, what stands beside the name,
+ * fit, how much of what counts the fit rests on, and the strip. The API
+ * writes reasons for the first five only, so a row has none. Its working is
+ * one press away: the journeys, and how the fit is worked out.
  */
 export function ResultRow({
   area,
@@ -459,9 +465,16 @@ export function ResultRow({
         // It can be given the focus by "Show in the list", and is no stop of its own.
         tabIndex={-1}
       >
-        <Heading area={area} summary={summary} noFit={noFit} id={`${id}-name`} short />
+        <Heading area={area} summary={summary} noFit={noFit} id={`${id}-name`} />
         <Completeness area={area} meta={meta} spec={spec} />
-        <Strip marks={area.strip} tags={meta.tags} facts={facts} of={summary.name} />
+        <Strip
+          marks={area.strip}
+          tags={meta.tags}
+          guides={meta.rough_guides}
+          facts={facts}
+          of={summary.name}
+        />
+        <RoughOnResult marks={area.strip} tags={meta.tags} guides={meta.rough_guides} />
         <WaysOn summary={summary}>
           <div className={styles.opened}>
             {area.legs.length > 0 ? (

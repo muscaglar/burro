@@ -240,6 +240,21 @@ describe("what two areas share", () => {
     }
   });
 
+  test("test_a_vibe_that_is_a_rough_guide_is_never_among_what_two_areas_share", () => {
+    // Thrushcombe and Wickerford are the two made-up villages, and sit in one band of it.
+    const marks = bands.find((one) => one.tag_id === "village_feel")?.marks ?? [];
+    const [one, other] = ["thrushcombe", "wickerford"].map((slug) => marks.find((mark) => mark.area_id === idOf(slug)));
+    expect(one?.band).toBe(5);
+    expect(other?.band).toBe(5);
+    expect(shared("thrushcombe", "wickerford")).not.toContain("village_feel");
+    for (const area of areas) expect(shared("thrushcombe", area.slug)).not.toContain("village_feel");
+    // It is the API that says which vibe is one. Said of none, it is shared as any vibe is.
+    const sure = { ...meta, tags: meta.tags.map((tag) => ({ ...tag, sureness: "as_the_rest" as const })) };
+    expect(sharedVibes(idOf("thrushcombe"), idOf("wickerford"), bands, sure).map((tag) => tag.tag_id)).toContain(
+      "village_feel",
+    );
+  });
+
   test("test_an_area_shares_nothing_with_itself_and_nothing_with_an_area_the_bands_do_not_hold", () => {
     expect(shared("thrushcombe", "thrushcombe")).toEqual([]);
     expect(sharedVibes(idOf("thrushcombe"), "syn-n9999", bands, meta)).toEqual([]);

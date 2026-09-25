@@ -4,8 +4,9 @@ import Link from "next/link";
 
 import { COMPARE_TABLE, statusWords } from "@/content/compare";
 import { COMBINE } from "@/content/labels";
+import { roughOf, saidOf } from "@/content/rough";
 import { CRIME_CAVEAT } from "@/content/settings";
-import type { Combine, CompareData, ComparedArea, Tag } from "@/lib/api/schema";
+import type { Combine, CompareData, ComparedArea, RoughGuide, Tag } from "@/lib/api/schema";
 import { placedBy } from "@/lib/area/portrait";
 import type { Chosen } from "@/lib/compare/list";
 import { drawnRows, type DrawnCell, type DrawnRow } from "@/lib/compare/rows";
@@ -33,6 +34,8 @@ interface Props {
   readonly combine?: Combine;
   /** The vibes of the release, from route 11: the names of their ends. */
   readonly tags?: readonly Tag[];
+  /** What each vibe that is a rough guide says of itself, from route 11. */
+  readonly guides?: readonly RoughGuide[];
 }
 
 interface AreasProps {
@@ -200,7 +203,7 @@ export function CompareAreas({ chosen, compared = [], waiting = false, standings
  * On a narrow screen each row is stacked: the thing that counts, and under it
  * each area by name. It stays a table to a screen reader either way.
  */
-export function CompareTable({ data, combine, tags = [] }: Props) {
+export function CompareTable({ data, combine, tags = [], guides = [] }: Props) {
   const rows = drawnRows(data);
   const journeys = rows.filter((row) => row.journey).length;
   return (
@@ -237,6 +240,9 @@ export function CompareTable({ data, combine, tags = [] }: Props) {
               // Where every journey counts, the API gives what they add for none of them.
               several && combine === "mean" ? COMPARE_TABLE.journeys.together : null,
             ].filter((note): note is string => note !== null);
+            // A vibe that was asked for and is a rough guide says so in its row, and why.
+            const vibe = tags.find((tag) => `tag:${tag.tag_id}` === row.row.component);
+            const rough = vibe === undefined ? null : roughOf(vibe, { rough_guides: guides });
             return (
               <tr role="row" key={row.key} className={styles.row}>
                 <th role="rowheader" scope="row" className={styles.thing}>
@@ -260,6 +266,14 @@ export function CompareTable({ data, combine, tags = [] }: Props) {
                       <span className={styles.caveat}>{CRIME_CAVEAT}</span>
                     </>
                   ) : null}
+                  {rough === null ? null : (
+                    <>
+                      <span className="visually-hidden">. </span>
+                      <span className={styles.caveat} data-rough-guide="note">
+                        {saidOf(rough)}
+                      </span>
+                    </>
+                  )}
                 </th>
                 {row.cells.map((drawn) => (
                   <Cell key={drawn.area.area_id} drawn={drawn} row={row} tags={tags} />

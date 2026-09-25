@@ -287,6 +287,25 @@ describe("a sentence, on data that is not finished", () => {
     expect(results().length).toBeGreaterThan(0);
   });
 
+  test("test_what_is_not_in_the_data_is_said_in_one_line_and_why_is_one_press_away", async () => {
+    // Seen in a browser: the notice was 192 px high on a desk and 288 on a phone, above the
+    // answer. It names each thing in one line, and opens to why by the browser's own element.
+    await typed("preview/interpret-long");
+
+    const opens = notInData().querySelector("details");
+    const line = opens?.querySelector("summary");
+    expect(opens).not.toBeNull();
+    expect(opens?.open).toBe(false);
+    expect(line?.textContent).toBe(
+      `${NOT_IN_DATA.title}: ${["More culture nearby", NOT_IN_DATA.commute, NOT_IN_DATA.budget].join("; ")}`,
+    );
+    expect(line).toHaveClass("target-min");
+    // Everything else that is said of it is inside what opens, and nothing of it is left out.
+    const rest = [...(opens?.children ?? [])].filter((child) => child !== line);
+    expect(rest.map((child) => child.textContent ?? "").join(" ")).toContain(NOT_IN_DATA.lead(3));
+    expect(notInData().querySelectorAll(":scope > :not(details)")).toHaveLength(0);
+  });
+
   test("test_it_stands_directly_under_the_box_before_what_was_understood", async () => {
     await typed("preview/interpret-plain", "preview/rank-plain", "preview/explanations-plain");
     const understood = screen.getByRole("region", { name: CHIPS.label });

@@ -45,6 +45,12 @@ function show(slug: string) {
   return { data, portrait: portraitOf(data, meta), ...view };
 }
 
+/**
+ * What a page says, without the label of a vibe that is a rough guide. The label is the
+ * API's, and is said of a guide: no word of it is said of a place.
+ */
+const butTheLabel = (text: string) => meta.rough_guides.reduce((said, one) => said.replaceAll(one.label, ""), text);
+
 /** The list a heading stands over, with its vibes. */
 const list = (group: Group) => screen.queryByRole("group", { name: PORTRAIT.groups[group] });
 /** Every vibe the area is placed on: each is one line, which opens what it is made of. */
@@ -330,7 +336,7 @@ describe("what an area is like, in short", () => {
     expect(said[0]).toHaveTextContent(
       "Share of the places to eat and drink within 800 m of home, in a straight line, that belong to no chain: 84%",
     );
-    expect(said[2]).toHaveTextContent("Straight-line distance to the nearest marked way into a park of 20 ha or more: 1,420 m");
+    expect(said[1]).toHaveTextContent("Straight-line distance to the nearest marked way into a park of 20 ha or more: 1,420 m");
   });
 
   test("test_it_ends_in_the_source_and_the_date_of_what_it_says", () => {
@@ -678,7 +684,56 @@ describe("the parts behind a vibe, one press away", () => {
         CRIME_CAVEAT,
       );
     }
-    expect(/\b(safe|safer|safest|unsafe|dangerous|rough|dodgy|sketchy)\b/i.test(document.body.textContent ?? "")).toBe(false);
+    const said = butTheLabel(document.body.textContent ?? "");
+    expect(/\b(safe|safer|safest|unsafe|dangerous|rough|dodgy|sketchy)\b/i.test(said)).toBe(false);
+  });
+});
+
+describe("a vibe that is a rough guide, on the page of an area", () => {
+  const [told] = meta.rough_guides;
+  const notes = () => [...document.querySelectorAll<HTMLElement>("[data-rough-guide='note']")];
+  const labels = () => [...document.querySelectorAll<HTMLElement>("[data-rough-guide='label']")];
+  const seen = (element: HTMLElement) => element.closest(".visually-hidden, [aria-hidden='true'], [hidden]") === null;
+
+  test("test_its_label_stands_beside_its_band_and_the_sentence_under_its_line_with_nothing_pressed", () => {
+    show("thrushcombe");
+
+    const village = vibe("Village feel");
+    // Beside the band, on the line that is always drawn: the vibe has not been opened.
+    expect(village.open).toBe(false);
+    expect(labels().map((label) => label.textContent)).toEqual([`, ${told?.label}`]);
+    expect(line("Village feel")).toContainElement(labels()[0] as HTMLElement);
+    expect(line("Village feel")).toHaveTextContent(plainly(meta.tags.find((tag) => tag.tag_id === "village_feel")!, { band: 5, spread_low: 5, spread_high: 5 }) ?? "");
+    // The sentence is no part of what the line opens. It stands under it, in sight.
+    expect(notes().map((note) => note.textContent)).toEqual([told?.why]);
+    expect(village).not.toContainElement(notes()[0] as HTMLElement);
+    expect(village.nextElementSibling).toBe(notes()[0]);
+    expect([...labels(), ...notes()].every(seen)).toBe(true);
+  });
+
+  test("test_it_is_said_of_every_area_the_vibe_places_and_of_no_other_vibe", () => {
+    for (const slug of SLUGS) {
+      const { portrait, unmount } = show(slug);
+      const placed = shownOn(portrait).filter((mark) => mark.tag.sureness === "rough_guide");
+      expect(labels()).toHaveLength(placed.length);
+      expect(notes()).toHaveLength(placed.length);
+      for (const note of notes()) expect(note.previousElementSibling?.getAttribute("data-vibe")).toBe("village_feel");
+      unmount();
+    }
+  });
+
+  test("test_it_is_in_no_line_of_what_the_area_is_like_in_short_and_in_neither_list_of_most_and_least", () => {
+    const { portrait } = show("thrushcombe");
+
+    expect(short().textContent?.includes("Village feel")).toBe(false);
+    expect([...portrait.more, ...portrait.less].map((mark) => mark.tag.tag_id)).not.toContain("village_feel");
+    expect(portrait.others.map((mark) => mark.tag.tag_id)).toContain("village_feel");
+  });
+
+  test("test_the_words_are_the_apis_and_nothing_is_said_where_the_api_says_nothing", () => {
+    render(<Portrait data={profile("thrushcombe")} meta={{ ...meta, rough_guides: [] }} />);
+    expect(labels()).toEqual([]);
+    expect(notes()).toEqual([]);
   });
 });
 

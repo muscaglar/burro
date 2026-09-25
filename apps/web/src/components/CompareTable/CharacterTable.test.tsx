@@ -104,8 +104,12 @@ describe("the character of the areas compared", () => {
     expect(table().textContent?.includes(CANNOT_PLACE)).toBe(false);
     const cells = rows().flatMap((row) => within(row).getAllByRole("cell")[LAST] as HTMLElement);
     expect(cells.filter((cell) => cell.textContent?.includes(COMPARE_TABLE.character.notPlaced))).toHaveLength(13);
-    // The areas Burro places on every vibe are said nothing of.
-    for (const area of four.areas.slice(0, LAST)) expect(container.textContent?.includes(`cannot place ${area.name}`)).toBe(false);
+    // The areas Burro places on every vibe are said nothing of. The third has no figure for
+    // its high street, so it cannot be placed on Village feel, and that is said of it once.
+    const placedOnAll = four.areas.filter((area, at) => four.character.every((row) => row.marks[at]?.band !== null));
+    expect(placedOnAll.map((area) => area.name)).toEqual(["Wexmoor", "Marrowfen"]);
+    for (const area of placedOnAll) expect(container.textContent?.includes(`cannot place ${area.name}`)).toBe(false);
+    expect(container.textContent?.split(COMPARE_TABLE.character.unplaced("Gorsebeck", 1, 14))).toHaveLength(2);
   });
 
   test("test_with_every_area_placed_on_every_vibe_nothing_is_said_of_placing", () => {
@@ -154,7 +158,8 @@ describe("the character of the areas compared", () => {
     const homes = two.character.findIndex((row) => row.tag_id === "homes");
     const leafy = two.character.findIndex((row) => row.tag_id === "leafy");
 
-    // No release carries private outdoor space, so Homes rests on two parts of three for every area.
+    // The made-up release carries no private outdoor space, so Homes rests on two parts of
+    // three for every area.
     for (const cell of within(rows()[homes] as HTMLElement).getAllByRole("cell")) {
       expect(cell.textContent?.includes(RESTS_ON.short("2", "3"))).toBe(true);
     }
@@ -193,8 +198,34 @@ describe("the character of the areas compared", () => {
     const cells = rows().flatMap((row) => within(row).getAllByRole("cell"));
     const unplaced = cells.filter((cell) => cell.textContent?.includes(COMPARE_TABLE.character.notPlaced));
 
-    expect(unplaced).toHaveLength(13);
+    // Thirteen of the last area, and one of the third, which has no figure for its high street.
+    expect(unplaced).toHaveLength(14);
     for (const cell of unplaced) expect(within(cell).queryByRole("button")).toBeNull();
+  });
+
+  test("test_a_vibe_that_is_a_rough_guide_says_so_under_its_name_and_says_why", () => {
+    const { rough_guides: guides } = recordedAnswer("get_meta", "meta").body.data;
+    render(<CharacterTable data={three} tags={tags} guides={guides} />);
+
+    const village = rows().find((row) => within(row).getByRole("rowheader").querySelector("span")?.textContent === "Village feel");
+    const said = within(village as HTMLElement).getByRole("rowheader");
+    // The label and the sentence are the API's, word for word, and are drawn: nothing is pressed.
+    expect(guides).toHaveLength(1);
+    expect(said).toHaveTextContent(`${guides[0]?.label}. ${guides[0]?.why}`);
+    expect(said.querySelector("[data-rough-guide]")).toBeVisible();
+    // No other vibe says it.
+    const others = rows().filter((row) => row !== village);
+    expect(others).toHaveLength(13);
+    for (const row of others) expect(row.textContent?.includes(guides[0]?.label ?? "")).toBe(false);
+  });
+
+  test("test_with_nothing_said_by_the_api_no_vibe_is_called_a_rough_guide", () => {
+    render(<CharacterTable data={three} tags={tags} />);
+    expect(table().querySelector("[data-rough-guide]")).toBeNull();
+    const sure = tags.map((tag) => ({ ...tag, sureness: "as_the_rest" as const }));
+    const { rough_guides: guides } = recordedAnswer("get_meta", "meta").body.data;
+    render(<CharacterTable data={two} tags={sure} guides={guides} />);
+    expect(document.body.querySelector("[data-rough-guide]")).toBeNull();
   });
 
   test("test_every_mark_ends_in_its_source_and_its_date", async () => {

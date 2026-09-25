@@ -148,8 +148,9 @@ describe("a results page, before anything is opened", () => {
       expect(controlsIn(row).length).toBe(4);
       expect(controlsIn(row)[0]?.closest("h3")).not.toBeNull();
       // What the fit rests on, where that is not everything, and a firm limit that was not tested.
-      expect(row.querySelectorAll("p").length).toBeLessThanOrEqual(5);
-      expect(row.querySelectorAll("header p")).toHaveLength(2);
+      expect(row.querySelectorAll("p").length).toBeLessThanOrEqual(6);
+      // The rank, what stands beside the name, and the fit.
+      expect(row.querySelectorAll("header p")).toHaveLength(3);
     }
   });
 

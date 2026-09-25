@@ -68,6 +68,11 @@ export const PREVIEW_BANNER = {
     "This is a preview for the people who build Burro. It is not finished: " +
     "what it has not measured is missing, and nothing in it has been approved for the public.",
   /**
+   * All of the banner that is drawn on a narrow screen once a search is open: the rest
+   * gives way to the answer, as the rest of the other banner does.
+   */
+  short: "This is a preview.",
+  /**
    * Said after it on a preview of data that is not made up. Which places the figures are
    * of is the release's to say: the page names them, and this line names none.
    */

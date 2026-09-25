@@ -34,7 +34,7 @@ import type {
   Tenure,
 } from "@/lib/api/schema";
 
-import { keyOf } from "./suggestion";
+import { addedWithOthers, keyOf, setsAFirmBudget } from "./suggestion";
 import { chipOf, countOf, GROUPS, isEmpty, merged, NO_EDITS, saidBy, type ChipKey } from "./edits";
 
 export type Phase = "empty" | "interpreting" | "results" | "refining";
@@ -120,6 +120,8 @@ export interface Added {
   readonly count: number;
   /** What is left for the person, each in the API's words. */
   readonly needs: readonly string[];
+  /** True where a budget that is a firm limit was among what it added. It leaves areas out. */
+  readonly firm: boolean;
   /**
    * The search as it stood before the press, and what is offered once it is all taken back:
    * what was offered at the press, or what a model has offered since.
@@ -455,24 +457,43 @@ function withPlacesAdded(assumed: Assumed, operations: Operations): Assumed {
 const OF_A_BUDGET: readonly AssumptionCode[] = ["segment", "strictness"];
 
 /**
- * A budget that is given to a search that had none is assumed in every part its edit does
+ * A budget that is given to a search that had none is assumed in every part its edits do
  * not state. An offer of a budget holds the amount alone, and so does the number typed in
  * the settings: nobody chose the size of home or whether the limit is firm, and the chip
  * must not read as if they had. A budget the person has set a part of before is left as it is.
+ *
+ * What is sent together is read together. One press sends the amount and the kind of home
+ * in an edit each, as they were offered, so the kind of home is the person's own words
+ * though the edit that holds the amount does not hold it: "£400,000, A flat assumed" stood
+ * under a sentence that said "a 1 bed flat".
  */
 function withBudgetSet(assumed: Assumed, budget: PreferenceSpec["budget"], operations: Operations): Assumed {
   if (budget.amount !== null || budget.provenance !== "default") return assumed;
+  const ofTheBudget = operations.budget_ops.flatMap((edit, index) =>
+    saidBy(operations, "budget_ops", index).filter(({ key }) => key === "budget"),
+  );
+  const stated = new Set(ofTheBudget.flatMap(({ states }) => states));
   let next = assumed;
-  operations.budget_ops.forEach((edit, index) => {
+  operations.budget_ops.forEach((edit) => {
     if (edit.action !== "set" || edit.amount === 0) return;
-    for (const { key, states } of saidBy(operations, "budget_ops", index)) {
-      if (key !== "budget") continue;
-      const held = next[key] ?? [];
-      const unsaid = OF_A_BUDGET.filter((code) => !states.includes(code) && !held.includes(code));
-      if (unsaid.length > 0) next = { ...next, [key]: [...held, ...unsaid] };
-    }
+    const held = next.budget ?? [];
+    const unsaid = OF_A_BUDGET.filter((code) => !stated.has(code) && !held.includes(code));
+    if (unsaid.length > 0) next = { ...next, budget: [...held, ...unsaid] };
   });
   return next;
+}
+
+/**
+ * The kind of home that Burro took, where a person named a house and no kind of house. The
+ * edit that holds it says that it is Burro's, `inferred`, so the search says that it is
+ * assumed, as it does where the API applies the same of a plain sentence. A kind that a
+ * person presses is theirs, and is marked as nothing.
+ */
+function withTheKindTaken(assumed: Assumed, operations: Operations): Assumed {
+  const took = operations.budget_ops.some((edit) => edit.segment !== "unchanged" && edit.provenance === "inferred");
+  const held = assumed.budget ?? [];
+  if (!took || held.includes("segment")) return assumed;
+  return { ...assumed, budget: [...held, "segment"] };
 }
 
 function withAssumptions(assumed: Assumed, data: Pick<InterpretData, "operations" | "assumptions">) {
@@ -682,6 +703,31 @@ function afterTheModelRead(read: Read, offered: Read["suggestions"]): Added | nu
 }
 
 /**
+ * How many areas the firm budget that one press added leaves out of the ranking on screen,
+ * as the API lists them. `null` where one press added no firm budget, while the ranking
+ * that follows the press is awaited, and once the budget is a firm limit no longer.
+ */
+export function leftOutByTheBudget(
+  state: Pick<SearchState, "read" | "spec" | "ranking" | "phase">,
+): number | null {
+  const added = state.read?.added ?? null;
+  if (added === null || !added.firm || state.ranking === null || state.phase !== "results") return null;
+  if (state.spec.budget.strictness !== "hard") return null;
+  return state.ranking.filtered.filter((area) => area.reason === "over_budget").length;
+}
+
+/**
+ * What the API says of the rents a budget is held against, where the search is for a home
+ * to rent and each rent of the release is of a postcode district or a borough. It stands
+ * beside the count of the areas a firm budget left out. `null` for a buyer, and where the
+ * rents of the release are of the area alone.
+ */
+export function rentsHeldAgainst(state: Pick<SearchState, "spec" | "meta">): string | null {
+  if (state.spec.tenure !== "rent") return null;
+  return state.meta.rents?.of_a_place ?? null;
+}
+
+/**
  * True when the reasons in hand are the reasons of the ranking on screen: they
  * are for the same spec, and the same release and engine made both. The hash
  * alone cannot say so, because it is of the spec alone.
@@ -753,9 +799,12 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
       return {
         ...state,
         pending: merged(state.pending, event.operations),
-        assumed: withBudgetSet(
-          withPlacesAdded(afterEdits(state.assumed, event.operations), event.operations),
-          state.spec.budget,
+        assumed: withTheKindTaken(
+          withBudgetSet(
+            withPlacesAdded(afterEdits(state.assumed, event.operations), event.operations),
+            state.spec.budget,
+            event.operations,
+          ),
           event.operations,
         ),
         // The person is using the controls, so the settings are theirs to close.
@@ -1114,6 +1163,7 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
             count: added.length,
             // What is left for the person: of what was added, and of what was not.
             needs: [...added, ...left].map((one) => one.needs).filter((needs) => needs !== ""),
+            firm: added.some((one) => setsAFirmBudget(addedWithOthers(one)?.operations ?? NO_EDITS)),
             spec: state.spec,
             suggestions: read.suggestions,
             chosen: read.chosen,

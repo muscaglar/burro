@@ -23,6 +23,7 @@ import { paths } from "@/lib/paths";
 import { endsOf, inWords, isRange, plainly, readingOf } from "@/lib/vibes";
 
 import { FactRow } from "../FactRow/FactRow";
+import { RoughLabel, RoughNote } from "../RoughGuide/RoughGuide";
 import { SourceLine } from "../SourceLine/SourceLine";
 import { Track } from "../Track/Track";
 import styles from "./Portrait.module.css";
@@ -186,45 +187,51 @@ function Mark({ mark, withFigure }: { readonly mark: MarkRow; readonly withFigur
   // The API's own clause is a sentence, and ends in a full stop of its own.
   const stopped = rests !== null && rests.partly !== null;
   return (
-    <details className={styles.mark} data-vibe={mark.tag.tag_id} data-shape={mark.tag.shape}>
-      <summary className={`${styles.line} target-min`}>
-        <span className={styles.name}>{mark.tag.label}</span>
-        {/* The picture is for the eye. The words beside it say the same, and more. */}
-        <span className={styles.picture} aria-hidden="true">
-          <span className={styles.end}>{low}</span>
-          <Track placed={placed} />
-          <span className={styles.end}>{high}</span>
-        </span>
-        <span className={styles.words}>
-          {plain === null ? null : (
-            <>
-              <span className={styles.plain}>{plain}</span>
-              {/* Where the words stand over the band, the comma between them is for a screen reader. */}
-              <span className={styles.then}>, </span>
-            </>
-          )}
-          {/* The band is said in full, in words that are drawn: it is never told by the picture alone. */}
-          <small className={styles.detail}>
-            <span className={styles.band}>{inWords(placed)}</span>
-            <span className="visually-hidden">, {STRIP.from(low, high)}</span>
-            {rests === null ? null : (
+    <>
+      <details className={styles.mark} data-vibe={mark.tag.tag_id} data-shape={mark.tag.shape}>
+        <summary className={`${styles.line} target-min`}>
+          <span className={styles.name}>{mark.tag.label}</span>
+          {/* The picture is for the eye. The words beside it say the same, and more. */}
+          <span className={styles.picture} aria-hidden="true">
+            <span className={styles.end}>{low}</span>
+            <Track placed={placed} />
+            <span className={styles.end}>{high}</span>
+          </span>
+          <span className={styles.words}>
+            {plain === null ? null : (
               <>
-                {stopped ? ". " : ", "}
-                <span className={styles.part}>{restsOnWords(rests, "short")}</span>
+                <span className={styles.plain}>{plain}</span>
+                {/* Where the words stand over the band, the comma between them is for a screen reader. */}
+                <span className={styles.then}>, </span>
               </>
             )}
-          </small>
-        </span>
-        {withFigure && pictured !== null ? (
-          <Figure fact={pictured} className={styles.figure} afterStop={stopped} />
-        ) : null}
-        <span className={styles.opens}>
-          <span className="visually-hidden">{stopped && !(withFigure && pictured !== null) ? " " : ". "}</span>
-          {PORTRAIT.opens}
-        </span>
-      </summary>
-      <MadeOf mark={mark} />
-    </details>
+            {/* The band is said in full, in words that are drawn: it is never told by the picture alone. */}
+            <small className={styles.detail}>
+              <span className={styles.band}>{inWords(placed)}</span>
+              <span className="visually-hidden">, {STRIP.from(low, high)}</span>
+              {rests === null ? null : (
+                <>
+                  {stopped ? ". " : ", "}
+                  <span className={styles.part}>{restsOnWords(rests, "short")}</span>
+                </>
+              )}
+            </small>
+            {/* Beside the band: what is less sure says so where it says where the area sits. */}
+            <RoughLabel told={mark.rough} />
+          </span>
+          {withFigure && pictured !== null ? (
+            <Figure fact={pictured} className={styles.figure} afterStop={stopped} />
+          ) : null}
+          <span className={styles.opens}>
+            <span className="visually-hidden">{stopped && !(withFigure && pictured !== null) ? " " : ". "}</span>
+            {PORTRAIT.opens}
+          </span>
+        </summary>
+        <MadeOf mark={mark} />
+      </details>
+      {/* Beside its band and under its line, in sight: it is never left for a press. */}
+      <RoughNote told={mark.rough} labelled />
+    </>
   );
 }
 

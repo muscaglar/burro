@@ -5,6 +5,7 @@ import { useId, type ReactNode } from "react";
 import { DIMENSION } from "@/content/labels";
 import { whyRefused } from "@/content/search";
 import { CRIME_ACCOUNT, countsOf, crimeVibes } from "@/content/crime";
+import { roughOf } from "@/content/rough";
 import { BRANDS, CRIME, CRIME_CAVEAT, FEATURES, HIDDEN, JOURNEY, SETTINGS, SLIDER } from "@/content/settings";
 import type { Answer } from "@/lib/api/client";
 import type {
@@ -166,6 +167,7 @@ export function SettingsPanel({
                 problem={why(`tag:${tag.tag_id}`)}
                 scale={scale}
                 crime={countsOf(tag, meta.features)}
+                rough={roughOf(tag, meta)}
               />
               <MadeOf
                 {...shared}

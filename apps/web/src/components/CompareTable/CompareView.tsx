@@ -7,7 +7,7 @@ import { COMPARE, COMPARE_TABLE } from "@/content/compare";
 import type { CrimeVibe } from "@/content/crime";
 import { NOTICE, PROMPT } from "@/content/search";
 import { api, type Client, type Failure } from "@/lib/api/client";
-import type { CompareData, Defaults, PreferenceSpec, Tag } from "@/lib/api/schema";
+import type { CompareData, Defaults, PreferenceSpec, RoughGuide, Tag } from "@/lib/api/schema";
 import { isEnough, type Chosen } from "@/lib/compare/list";
 import { paths } from "@/lib/paths";
 import { useOpenSearch } from "@/lib/search/store";
@@ -28,6 +28,8 @@ interface Props {
   readonly tags: readonly Tag[];
   /** The vibes whose recipe holds recorded crime, read from route 11 where the page is built. */
   readonly crime?: readonly CrimeVibe[];
+  /** What each vibe that is a rough guide says of itself, from route 11. */
+  readonly guides?: readonly RoughGuide[];
   /** How many slugs of the address named no area. They are counted and never shown. */
   readonly unknown?: number;
   /** How many areas beyond the fourth the address named. */
@@ -59,7 +61,16 @@ export function CompareView(props: Props) {
   );
 }
 
-function Comparison({ chosen, defaults, tags, crime = [], unknown = 0, dropped = 0, client = api }: Props) {
+function Comparison({
+  chosen,
+  defaults,
+  tags,
+  crime = [],
+  guides = [],
+  unknown = 0,
+  dropped = 0,
+  client = api,
+}: Props) {
   const search = useOpenSearch();
   const { set } = useCompare();
   const [attempt, setAttempt] = useState(0);
@@ -166,7 +177,7 @@ function Comparison({ chosen, defaults, tags, crime = [], unknown = 0, dropped =
               {current.data.character.length > 0 ? (
                 <section className={styles.part} aria-labelledby="compare-character">
                   <h2 id="compare-character">{COMPARE_TABLE.character.title}</h2>
-                  <CharacterTable data={current.data} tags={tags} crime={crime} />
+                  <CharacterTable data={current.data} tags={tags} crime={crime} guides={guides} />
                 </section>
               ) : null}
               <section className={styles.part} aria-labelledby="compare-counts">
@@ -176,7 +187,12 @@ function Comparison({ chosen, defaults, tags, crime = [], unknown = 0, dropped =
                     <p>{COMPARE.nothingCounts}</p>
                   </div>
                 ) : (
-                  <CompareTable data={current.data} combine={spec.commute_combine} tags={tags} />
+                  <CompareTable
+                    data={current.data}
+                    combine={spec.commute_combine}
+                    tags={tags}
+                    guides={guides}
+                  />
                 )}
               </section>
             </>

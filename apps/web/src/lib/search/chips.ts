@@ -8,6 +8,7 @@
  */
 
 import { CRIME_ACCOUNT, crimeParts } from "@/content/crime";
+import { roughOf, type Guides } from "@/content/rough";
 import { CHIPS, PLACE } from "@/content/search";
 import { MODE, SEGMENT, TENURE } from "@/content/labels";
 import type {
@@ -25,6 +26,9 @@ import { grouped } from "@/lib/format";
 import { counts } from "./counts";
 import { edits } from "./edits";
 import type { Assumed } from "./state";
+
+/** The kinds of house that what houses sold for is held by. */
+const OF_A_HOUSE: ReadonlySet<string> = new Set(["terraced", "semi_detached", "detached"]);
 
 export type ChipKind = "tenure" | "budget" | "place" | "feature" | "tag" | "area" | "usual";
 
@@ -96,7 +100,7 @@ export interface Beside {
 
 export function chipsOf(
   spec: PreferenceSpec,
-  meta: Pick<MetaData, "features" | "tags">,
+  meta: Pick<MetaData, "features" | "tags"> & Guides,
   areas: readonly AreaSummary[],
   placeNames: Readonly<Record<string, string>>,
   assumed: Assumed,
@@ -135,6 +139,8 @@ export function chipsOf(
     // Recorded crime counts only when a person asks for it. A vibe whose recipe holds it
     // says so on its chip, in the row, so that no search counts it unseen.
     const crime = tag !== undefined && crimeParts(tag, meta.features).length > 0;
+    // A vibe that is a rough guide says so on its chip, in the row, in the API's own word.
+    const rough = tag === undefined ? null : roughOf(tag, meta);
     chips.push(
       chip({
         key,
@@ -144,6 +150,7 @@ export function chipsOf(
         label: end === null || !on ? name : CHIPS.towards(name, end),
         parts: on
           ? [
+              ...(rough === null ? [] : [{ text: rough.label, assumed: false, always: true }]),
               ...(crime ? [{ text: CRIME_ACCOUNT.chip, assumed: false, always: true }] : []),
               ...(word === undefined ? [] : [{ text: CHIPS.readFrom(word), assumed: true, always: true }]),
             ]
@@ -215,7 +222,13 @@ export function chipsOf(
         id: null,
         label: budgetText(spec.budget.amount, spec.tenure),
         parts: [
-          { text: SEGMENT[spec.budget.segment], assumed: has("budget", "segment") },
+          {
+            text: SEGMENT[spec.budget.segment],
+            assumed: has("budget", "segment"),
+            // A kind of house that Burro took is named in the row, and never folded into
+            // "rest assumed": it is what the budget is held against, and nobody said it.
+            always: has("budget", "segment") && OF_A_HOUSE.has(spec.budget.segment),
+          },
           {
             text: spec.budget.strictness === "hard" ? CHIPS.firm : CHIPS.flexible,
             assumed: has("budget", "strictness"),

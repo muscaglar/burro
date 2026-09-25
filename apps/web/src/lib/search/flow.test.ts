@@ -5,7 +5,14 @@ import { landed, setOnline, standInApi, withTheSpecSent, type StandIn } from "..
 import { problemsWith } from "../../../test/support/contract";
 import { edits, merged, NO_EDITS } from "./edits";
 import { createFlow } from "./flow";
-import { failureOfTheCards, initialState, reasonsAreIn, reasonsFailure, type SearchState } from "./state";
+import {
+  failureOfTheCards,
+  initialState,
+  leftOutByTheBudget,
+  reasonsAreIn,
+  reasonsFailure,
+  type SearchState,
+} from "./state";
 import { createStore } from "./store";
 
 // A string found nowhere else, planted in what a person types.
@@ -1642,8 +1649,8 @@ describe("a prompt that is not plain", () => {
   const noticed = recordedAnswer("interpret", "interpret-suggest").body.data;
   const chosen = recordedAnswer("rank", "rank-suggestion-chosen");
   const long = recordedAnswer("interpret", "interpret-by-model-long");
-  // The long sentence holds eleven offers. One press may add five of them: two wishes, the culture,
-  // the journey and the budget. The six readings of two words are the person's to choose.
+  // The long sentence holds twelve offers. One press may add five of them: two wishes, the culture,
+  // the journey and the budget. The seven readings of two words are the person's to choose.
   const EVERY_OFFER = long.body.data.suggestions.map((_, at) => at);
   const ONE_PRESS_ADDS = [0, 1, 6, 10, 11];
   const LEFT_TO_CHOOSE = [
@@ -1667,6 +1674,13 @@ describe("a prompt that is not plain", () => {
       .inTurn("interpret", "interpret-rules-at-once", "interpret-by-model-long")
       .on("rank", "rank-suggestion-chosen")
       .on("explain_top", "explanations-suggestion-chosen");
+  /** The same, which answers one press with the ranking the service gave to it. */
+  const pressed = recordedAnswer("rank", "rank-one-press");
+  const readingAndPressed = () =>
+    standInApi()
+      .inTurn("interpret", "interpret-rules-at-once", "interpret-by-model-long")
+      .on("rank", "rank-one-press")
+      .on("explain_top", "explanations-one-press");
 
   test("test_the_rules_are_asked_first_and_then_the_model_with_the_same_words_and_the_same_search", async () => {
     const api = reading();
@@ -1696,7 +1710,9 @@ describe("a prompt that is not plain", () => {
 
     expect(state().read?.more).toBe(true);
     expect(state().read?.suggestions).toEqual(atOnce.suggestions);
-    expect(state().read?.suggestions.some((one) => one.choices.some((way) => way.guess))).toBe(false);
+    // The rules guess at what was plainly said of the journey and of the home, and at no wish.
+    const guessed = (state().read?.suggestions ?? []).filter((one) => one.choices.some((way) => way.guess));
+    expect(guessed.map((one) => one.target)).toEqual(["commute", "tenure", "budget", "budget"]);
     expect(state().phase).not.toBe("interpreting");
   });
 
@@ -1855,7 +1871,7 @@ describe("a prompt that is not plain", () => {
     await flow.submitText(`${typedOf(long)} ${CANARY}`);
     const offered = state().read?.suggestions ?? [];
     expect(offered.flatMap((one, at) => (one.add_all === "" ? [] : [at]))).toEqual(ONE_PRESS_ADDS);
-    expect(ONE_PRESS_ADDS.map((at) => offered[at]?.add_all)).toEqual(["more", "more", "more", "guide", "guide"]);
+    expect(ONE_PRESS_ADDS.map((at) => offered[at]?.add_all)).toEqual(["more", "more", "more", "guide", "firm"]);
 
     await flow.chooseAll(ONE_PRESS_ADDS);
 
@@ -1865,13 +1881,15 @@ describe("a prompt that is not plain", () => {
     const ways = offered.map((one) => one.choices.find((way) => way.id === one.add_all)?.operations ?? NO_EDITS);
     expect(sent.operations).toEqual(ways.reduce(merged, NO_EDITS));
     expect(sent.spec).toEqual(long.body.data.spec);
+    // It is what the service was recorded taking at one press.
+    expect(api.lastCallTo("rank").body).toEqual(pressed.request.body);
     expect(problemsWith("Operations", sent.operations)).toEqual([]);
     expect(api.lastCallTo("rank").sent?.includes(CANARY)).toBe(false);
     // What one press may not add is still offered.
     expect(state().read?.suggestions.map((one) => one.label)).toEqual(LEFT_TO_CHOOSE);
   });
 
-  test("test_one_press_never_adds_what_leaves_areas_out_though_it_is_the_guess", async () => {
+  test("test_one_press_adds_a_journey_as_a_guide_though_the_guess_is_firm_and_a_budget_as_it_was_worded", async () => {
     const api = reading();
     const { flow, state } = open(api);
     await flow.submitText(typedOf(long));
@@ -1880,10 +1898,64 @@ describe("a prompt that is not plain", () => {
 
     await flow.chooseAll(EVERY_OFFER);
 
+    // A journey is estimated from distance, so one press leaves no area out on one.
     const sent = api.lastCallTo("rank").body as { operations: Operations };
     expect(sent.operations.commute_ops.map((edit) => edit.strictness)).toEqual(["soft"]);
-    expect(sent.operations.budget_ops.map((edit) => edit.strictness)).toEqual(["soft"]);
+    // "Max" makes the budget a firm limit, and it is added as it was worded.
+    expect(sent.operations.budget_ops.map((edit) => edit.strictness)).toEqual(["hard"]);
     expect(sent.operations.area_ops).toEqual([]);
+  });
+
+  test("test_what_one_press_did_is_said_in_full_once_the_ranking_is_in", async () => {
+    const { flow, state } = open(readingAndPressed());
+    await flow.submitText(typedOf(long));
+    expect(leftOutByTheBudget(state())).toBeNull();
+
+    const added = flow.chooseAll(EVERY_OFFER);
+    // While the ranking is awaited nothing is said of what it leaves out.
+    expect(state().read?.added?.firm).toBe(true);
+    expect(leftOutByTheBudget(state())).toBeNull();
+    await added;
+
+    // How many the budget left out is what the ranking lists as over the budget.
+    const left = pressed.body.data.filtered.filter((area) => area.reason === "over_budget");
+    expect(state().spec.budget).toMatchObject({ amount: 1900, strictness: "hard" });
+    expect(state().spec.commutes.map((journey) => journey.strictness)).toEqual(["soft"]);
+    expect(leftOutByTheBudget(state())).toBe(left.length);
+    expect(left).toHaveLength(13);
+    expect(state().ranking?.filtered).toEqual(pressed.body.data.filtered);
+  });
+
+  test("test_nothing_is_said_of_areas_left_out_once_the_budget_is_a_firm_limit_no_longer", async () => {
+    const api = readingAndPressed();
+    const { flow, state } = open(api);
+    await flow.submitText(typedOf(long));
+    await flow.chooseAll(EVERY_OFFER);
+    expect(leftOutByTheBudget(state())).toBe(13);
+
+    // The person makes the budget flexible, and the ranking that comes has it so.
+    api.on("rank", "rank-suggestion-chosen");
+    await flow.applyEdits(edits.budgetStrictness("soft"));
+
+    expect(state().spec.budget.strictness).toBe("soft");
+    expect(state().read?.added).not.toBeNull();
+    expect(leftOutByTheBudget(state())).toBeNull();
+  });
+
+  test("test_one_press_that_adds_no_firm_budget_says_nothing_of_areas_left_out", async () => {
+    const api = standInApi()
+      .on("interpret", "interpret-suggest-many")
+      .on("rank", "rank-one-press")
+      .on("explain_top", "explanations-one-press");
+    const { flow, state } = open(api);
+    await flow.submitText("anything that is not plain");
+
+    await flow.chooseAll((state().read?.suggestions ?? []).map((_, at) => at));
+
+    // The ranking leaves areas out over a budget, which this press did not add.
+    expect(state().read?.added).toMatchObject({ count: 3, firm: false });
+    expect(state().ranking?.filtered.length).toBeGreaterThan(0);
+    expect(leftOutByTheBudget(state())).toBeNull();
   });
 
   test("test_what_one_press_added_is_said_with_what_still_needs_the_person", async () => {
@@ -1894,9 +1966,9 @@ describe("a prompt that is not plain", () => {
 
     expect(state().read?.added).toMatchObject({
       count: 5,
+      firm: true,
       needs: [
         "the journey can be made a firm limit",
-        "the budget can be made a firm limit",
         "mix of brands",
         "recorded crime, which is added under its own name",
         "what homes sell for",
@@ -1959,7 +2031,10 @@ describe("a prompt that is not plain", () => {
       await arrived();
       const before = state().spec;
       const atOnce = state().read?.suggestions ?? [];
-      expect(guessed(atOnce)).toBe(0);
+      // The rules guess at what was plainly said, the journey and three things of the home,
+      // and the model at five things.
+      expect(guessed(atOnce)).toBe(4);
+      expect(guessed(long.body.data.suggestions)).toBe(5);
       await flow.chooseAll(atOnce.map((_, at) => at));
       expect(state().read?.added).not.toBeNull();
       answer();

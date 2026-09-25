@@ -1,7 +1,9 @@
-/* What was asked for and is not in the data: a notice, directly under the box. */
+/*
+ * What was asked for and is not in the data: a notice, directly under the box. It is one
+ * line, which names each thing, so that the answer stands on the first screen. Why is one
+ * press away.
+ */
 .missing {
-  display: grid;
-  gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
   background: var(--info-bg);
   color: var(--info-text);
@@ -11,6 +13,39 @@
 
 .missing p {
   margin: 0;
+}
+
+/* What opens: the browser's own element, with a mark that points right when closed and down when open. */
+.opens > summary {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  list-style: none;
+  cursor: pointer;
+}
+
+.opens > summary::-webkit-details-marker {
+  display: none;
+}
+
+.opens > summary::before {
+  content: "";
+  flex: none;
+  width: 0.5em;
+  height: 0.5em;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateY(-0.15em) rotate(-45deg);
+}
+
+.opens[open] > summary::before {
+  transform: translateY(-0.25em) rotate(45deg);
+}
+
+.why {
+  display: grid;
+  gap: var(--space-2);
+  padding-block-start: var(--space-2);
 }
 
 .title {
