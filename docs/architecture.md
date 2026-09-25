@@ -115,6 +115,7 @@ It is the sketch of [AGENTS.md](../AGENTS.md), which calls the reader the interp
 | **The server keeps nothing for a search.** There is no search id. A share is the only stored spec, and a person makes one on purpose | [ADR 0011](adr/0011-nothing-is-kept-for-a-search.md) |
 | **The model never ranks.** A model stands in one box, the reader, and only where one is turned on. What it reads is offered and never applied. From the typed edits on, everything is code | [ADR 0002](adr/0002-deterministic-core.md), [ADR 0012](adr/0012-a-closed-vocabulary-and-a-guard-on-the-model.md) |
 | With no model, or one that is slow, capped or broken, the rules read, and every route works | [ADR 0019](adr/0019-no-one-provider-and-a-key-alone-turns-nothing-on.md) |
+| No more than 30 calls a minute and 2,000 a day reach a model, unless it is set otherwise, whoever asks. Over the cap the rules read | [ADR 0032](adr/0032-calls-to-a-model-are-capped-for-the-whole-service.md) |
 | A sentence is shown only once the verifier has held every number and every name in it to the fact it cites | [The contract](design/contract.md#7-facts-explanations-and-the-verifier) |
 
 ## 4. What may import what

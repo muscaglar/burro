@@ -18,6 +18,7 @@ The way in to every guide. Find what you want to do, and open the one guide besi
 | Put the website and the API on the internet | [Putting Burro on the internet](../deploy/README.md) |
 | Set the project up at Vercel | [The website on Vercel](../deploy/web/README.md) |
 | Serve a release of London, or go back to the one before | [The same guide, "Serving a release of London"](../deploy/README.md#serving-a-release-of-london) |
+| Turn a model on, or change how many calls it may be sent | [The same guide, "Turning the model on"](../deploy/README.md#turning-the-model-on) |
 
 ## To refresh the data
 
@@ -117,6 +118,7 @@ The way in to every guide. Find what you want to do, and open the one guide besi
 |  | [0012](adr/0012-a-closed-vocabulary-and-a-guard-on-the-model.md) | The reader applies a plain prompt and asks about any other, and a model proposes |
 |  | [0019](adr/0019-no-one-provider-and-a-key-alone-turns-nothing-on.md) | No one provider of a model, and a key alone turns nothing on |
 |  | [0023](adr/0023-what-is-typed-goes-as-typed-and-people-are-told.md) | What is typed goes to the provider as typed, and people are told so |
+|  | [0032](adr/0032-calls-to-a-model-are-capped-for-the-whole-service.md) | Calls to a model are capped for the whole service, and nobody is told apart |
 | Who lives in a place | [0006](adr/0006-rank-places-not-residents.md) | Rank places, never residents |
 |  | [0014](adr/0014-evidence-first-and-census-figures-shown.md) | Evidence first, and census figures are shown |
 |  | [0028](adr/0028-household-income-is-shown-and-never-ranked-on.md) | Household income is shown, and never ranked on |

@@ -104,9 +104,10 @@ Read once, when the service starts: the command line hands `choose` the environm
 | `BURRO_MODEL_TERMS_ACCEPTED` | The same provider's name. It says that whoever runs the service has read its terms and taken them on | None |
 | `BURRO_MODEL_ID` | The model | The provider's entry in `terms.py` |
 | `BURRO_MODEL_TIMEOUT_S`, `BURRO_MODEL_MAX_TOKENS` | How long an answer is waited for, and the most it may hold | 6 seconds, 2,048 tokens |
+| `BURRO_MODEL_CALLS_PER_MINUTE`, `BURRO_MODEL_CALLS_PER_DAY` | The most calls the whole service makes to a model in a minute, and in a day by the clock in UTC. A whole number, from nought to 600 and to 100,000. Nought means the model is never called. Over a cap the rules read, as where a provider says that it is capped: [ADR 0032](../adr/0032-calls-to-a-model-are-capped-for-the-whole-service.md) | 30 calls, 2,000 calls |
 | `BURRO_MODEL_SENDS_SETTINGS` | `yes` sends the search settings to the provider with the words. Section 6 says what goes | Not set: the words go alone |
 
-A model reads what is typed only when all five hold. They are looked at in this order, and the first that fails is the reason.
+A model reads what is typed only when all six hold. They are looked at in this order, and the first that fails is the reason. `choose` looks at the first five, and the service at the sixth.
 
 | # | What must hold | If not |
 |---|---|---|
@@ -115,8 +116,9 @@ A model reads what is typed only when all five hold. They are looked at in this 
 | 3 | The terms are accepted for that provider | `terms_not_accepted` |
 | 4 | The model is one the adapter was fitted to | `unfit_model` |
 | 5 | The provider is one that may read what real people type. DeepSeek is not | `not_for_people` |
+| 6 | Neither cap on calls to a model is nought | `capped_at_nought` |
 
-Otherwise the rules read, and one line is logged, at the level of a warning. It holds two fixed words and no more: `provider`, the provider that is not used, and `reason`, the first of the five that does not hold.
+Otherwise the rules read, and one line is logged, at the level of a warning. It holds two fixed words and no more: `provider`, the provider that is not used, and `reason`, the first of the six that does not hold.
 
 ```json
 {"at": "2026-09-24T09:00:00Z", "event": "model_not_used", "level": "warning", "provider": "gemini", "reason": "no_key"}

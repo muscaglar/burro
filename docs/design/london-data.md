@@ -405,7 +405,7 @@ Work proceeds on the recommendation unless the founder says otherwise.
 | Contract | The residents artefact, `open_census`, the census route, and a release folder that refuses a census file | M4 |
 | Contract | `claims.json` and the fact kind `quote` | M8 |
 | Contract | Three faults found: `university_proximity` names a source with no universities, `station_lines` a feed with no rail, and `noise_exposure` is a share of residents, not homes | M1 for the noise label, which M1 prints. M5 for the rest |
-| Deploy | The API takes the release and the residents artefact from the vault at deploy, by hash. Today the image copies a release from the repository, and the machine has 512 MB | M5 |
+| Deploy | The API takes the release and the residents artefact from the vault at deploy, by hash. Today the image copies a release from the repository, and the machine has 1 GB | M5 |
 | AGENTS.md | Rule 8, third sentence | Done, for the founder to approve: task 11 |
 | Decision records | 0013 on vibes. New records on the routing engine and the day modelled, and on the researcher. ADR 0014 amended by decision 7. Written: 0015, on where builds run and the launch gates, and 0016, on the geography behind a measure | With the code |
 | PLAN | Sections 4, 7, 11 and 12 | With the code |

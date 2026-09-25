@@ -206,7 +206,7 @@ Each is outside `docs/legal/`, so none was changed for these drafts.
 | [deploy/README.md](../../deploy/README.md) | Fly.io is a processor and must be named | No agreement with Fly.io was found. Its list of legal documents was read a second time on 23 September 2026, through an extraction, and named a privacy policy, supplemental terms and terms of service. The terms of service were not read in full for one |
 | `services/api`, `calls.py` and `logs.py` | A status of `policy_redirect` is kept in the call record and written to the log | ADR 0011 leaves four fields of the log line to the founder. The status is not one of the four |
 | `services/api` | No route deletes one shared link | A person may ask for one to be deleted |
-| `services/api`, `admit` in `app.py` | Every call is let in | The terms ask people not to send requests in bulk, and nothing enforces it. With a model on, a cap on spending at the provider is what stops a bill |
+| `services/api`, `admit` in `app.py` | Every call is let in | The terms ask people not to send requests in bulk, and nothing enforces it. With a model on, what stops a bill is the service's own cap on calls to a model, which is for everyone together and tells nobody apart ([ADR 0032](../adr/0032-calls-to-a-model-are-capped-for-the-whole-service.md)), and a cap on spending at the provider |
 | `apps/web` | No step asks before a sentence is sent. No page holds a privacy notice or terms. The accessibility page has no address for a report | Each is needed before launch |
 | [accounts-compliance.md](../research/reports/accounts-compliance.md) | Legitimate interests for a typed sentence, and no step that asks | Risk 1 |
 

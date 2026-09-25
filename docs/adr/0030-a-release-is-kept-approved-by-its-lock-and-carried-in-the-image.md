@@ -60,7 +60,7 @@ What was not taken:
 - To roll back is to deploy again and name the release before. Its lock is still committed and its files are still kept. To stop a release from being served again, its lock is taken out with `git rm`.
 - What 0018 left open is closed for a release that is carried: a name, an outline, which areas are ranked and the sentence of a measure are each in a file that the committed lock names by its hash.
 - The key that takes a release is used on the machine the founder deploys from, and the release passes through a folder of that machine that git ignores. The guide says to remove it after.
-- The image is about 90 MB larger with London than with the made-up city. Loaded with no socket, on a Mac, the service took 380 MB at its peak with London and 71 MB with the made-up city. The machine in `deploy/api/fly.toml` has 512 MB. That has not been tried on the host.
+- The image is about 90 MB larger with London than with the made-up city. Loaded with no socket, on a Mac, the service took 380 MB at its peak with London and 71 MB with the made-up city. The machine in `deploy/api/fly.toml` had 512 MB. Measured again on 2026-09-26 over a socket, with eight rankings asked for at once, the service held 498 MB at its most, so the machine was given 1 GB. That has not been tried on the host.
 - A list of files that is added is added to the workflow in the same change, as it is added to the workflow that fetches. A test holds the two together.
 
 ## What would change it
