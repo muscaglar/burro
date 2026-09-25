@@ -328,11 +328,18 @@ final class SearchOffersTests: XCTestCase {
             [3, 4, 5].compactMap { suggestions[$0].addedWithOthers?.operations }
                 .reduce(Operations.none) { $0.merged(with: $1) })
         XCTAssertEqual(asked.weightOps.map(\.featureId), [.playSpaceProximity, .waterAccess, .airNo2])
-        // What the API names no way for is still the person's to choose.
+        // What the API names no way for is still the person's to choose. It waits behind one
+        // line, which says how many there are, and one press opens every one of them.
+        let left = try XCTUnwrap(search.shown().offers)
+        XCTAssertEqual(left.offers, [])
+        XCTAssertNil(left.addAll)
+        XCTAssertEqual(left.showAll, "Show the 3 left to choose")
+        let opened = try XCTUnwrap(
+            SearchScreen.shown(search.state, consent: .allowed, allOffers: true).offers)
         XCTAssertEqual(
-            search.shown().offers?.offers.map(\.name),
-            ["Pubs and bars", "Nearer a station", "Nearer a town centre"])
-        XCTAssertNil(search.shown().offers?.addAll)
+            opened.offers.map(\.name), ["Pubs and bars", "Nearer a station", "Nearer a town centre"])
+        XCTAssertNil(opened.addAll)
+        XCTAssertNil(opened.showAll)
     }
 
     @MainActor
@@ -348,7 +355,19 @@ final class SearchOffersTests: XCTestCase {
 
         let asked = try XCTUnwrap(try search.api.lastCall(to: .rank).body(as: RankBody.self).operations)
         XCTAssertEqual(asked.weightOps.map(\.featureId), [.playSpaceProximity])
-        XCTAssertEqual(search.shown().offers?.offers.count, 5)
+        // Every other offer is left, and the first among them, though the press was handed it.
+        // The two that one press may still add stay in sight, and "Show all" opens the rest.
+        let left = try XCTUnwrap(search.shown().offers)
+        XCTAssertEqual(left.offers.map(\.name), ["Nearer a river or canal", "Cleaner air"])
+        XCTAssertEqual(left.showAll, "Show all 5")
+        let opened = try XCTUnwrap(
+            SearchScreen.shown(search.state, consent: .allowed, allOffers: true).offers)
+        XCTAssertEqual(
+            opened.offers.map(\.name),
+            [
+                "Pubs and bars", "Nearer a station", "Nearer a town centre", "Nearer a river or canal",
+                "Cleaner air",
+            ])
     }
 
     func test_what_one_press_may_add_is_the_apis_to_say_and_the_app_works_nothing_out() throws {
