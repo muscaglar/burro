@@ -25,11 +25,10 @@ kill_timeout = 10
   # host, no path, no slash at the end, no port. It must be the same origin as
   # BURRO_SITE_URL on Vercel. Two origins are separated by a comma.
   #
-  # The value below is one the service refuses, on purpose. A deploy that
-  # leaves it in fails its health check and says so in `fly logs`. A deploy
-  # with no value at all would pass, and answer no browser but one on the
-  # visitor's own machine.
-  BURRO_ALLOWED_ORIGINS = "https://SET-THE-WEBSITE-ORIGIN"
+  # A value the service cannot read as an origin fails the health check of a
+  # deploy, and `fly logs` says so. A deploy with no value at all would pass,
+  # and answer no browser but one on the visitor's own machine.
+  BURRO_ALLOWED_ORIGINS = "https://burro-silk.vercel.app"
 
   # The release folder, the address and the port are set in the image.
   # BURRO_MODEL_ID, BURRO_MODEL_TIMEOUT_S and BURRO_MODEL_MAX_TOKENS have
