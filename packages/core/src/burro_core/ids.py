@@ -178,6 +178,9 @@ class FeatureId(StrEnum):
     # How much of the high street nearest a home lies in a conservation area. It is the
     # heaviest part of Village feel, and counts towards no likeness.
     HIGHSTREET_CONSERVED = "highstreet_conserved"
+    # How much traffic passes the busiest count point near a home. It is a nuisance, as
+    # main roads are, and a part of Quiet streets.
+    ROAD_TRAFFIC_NEARBY = "road_traffic_nearby"
 
 
 class TagId(StrEnum):

@@ -134,7 +134,7 @@ def manifest(
         release_id=RELEASE_ID,
         schema_version=2,
         built_at=BUILT_AT,
-        catalogue_version=14,
+        catalogue_version=15,
         gritty_variant=variant,
         synthetic=True,
         preview=False,
@@ -496,7 +496,7 @@ def build_documents(variant: GrittyVariant = VARIANT) -> dict[str, Any]:
             ],
         },
         "catalogue.json": {
-            "catalogue_version": 14,
+            "catalogue_version": 15,
             "metrics": [metric(feature_id).model_dump(mode="json") for feature_id in CARRIED],
             "vibes": [vibe.model_dump(mode="json") for vibe in tags_of(variant)],
         },

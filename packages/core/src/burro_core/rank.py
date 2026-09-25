@@ -104,8 +104,11 @@ from burro_core.spec import (
 # In the same version a cost is said to be at a budget, and a journey at its limit,
 # where the difference is nothing: no fact gives a difference of nothing as a
 # figure. It moves no result. 1.14.0 is one number for the three: nothing past
-# 1.13.0 had been served when they were joined.
-ENGINE_VERSION = "1.14.0"
+# 1.13.0 had been served when they were joined. 1.15.0 says a flow of traffic whole
+# and with its separator, as it says metres and pounds, and reads the plain ways a
+# person asks for little traffic. It moves no arithmetic: a search is ranked as it
+# was on what a release held before.
+ENGINE_VERSION = "1.15.0"
 
 FULL_UNTIL_MIN = 15  # a journey this short is as good as any shorter
 FULL_UNTIL_SHARE = 0.5  # unless that is more than half the cap

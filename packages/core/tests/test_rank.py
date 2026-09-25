@@ -67,6 +67,7 @@ from .support import (
     small_release,
     tag_value,
     travel_table,
+    with_figures,
 )
 
 ALDERWICK, BRACKENHYTHE, CINDERMOOR, DULCIMER_GREEN = (area_id(n) for n in range(1, 5))
@@ -147,7 +148,7 @@ def test_the_result_records_what_it_was_ranked_from():
     result = rank(spec, build_worked_release())
     assert result.spec_hash == spec_hash(spec)
     assert result.release_id == "syn-2026-09-23-01"
-    assert result.engine_version == ENGINE_VERSION == "1.14.0"
+    assert result.engine_version == ENGINE_VERSION == "1.15.0"
     assert result.synthetic is True
 
 
@@ -427,6 +428,92 @@ def test_an_area_with_no_figure_for_what_was_asked_stands_below_every_area_that_
     assert [area.area_id for area in whole] == [CINDERMOOR, DULCIMER_GREEN]
     assert [area.score for area in whole] == sorted((a.score for a in whole), reverse=True)
     assert [area.rank for area in result.ranked] == list(range(1, len(result.ranked) + 1))
+
+
+def quiet_with_traffic(*traffic: float | None) -> InMemoryRelease:
+    """A release whose areas are alike on every part of Quiet streets but traffic."""
+    alike = [50.0] * len(small_release().neighbourhoods)
+    return with_figures(
+        small_release(),
+        {
+            FeatureId.ROAD_MAJOR_EXPOSURE: alike,
+            FeatureId.EVENING_CLUSTER_EXPOSURE: alike,
+            FeatureId.NOISE_EXPOSURE: alike,
+            FeatureId.ROAD_TRAFFIC_NEARBY: [*traffic, *[20_000.0] * (len(alike) - len(traffic))],
+        },
+    )
+
+
+def test_an_area_with_no_figure_of_traffic_is_not_ranked_as_though_it_had_no_traffic():
+    """A street nobody counted has no figure, which is not a figure of nought.
+
+    Every area is alike on main roads, on clusters of pubs and on transport
+    noise. Alderwick has no figure of traffic, Brackenhythe has the least of
+    any area and Cindermoor the most. Asked for Quiet streets, Alderwick is
+    placed on its other parts, which are 80 in 100 of the recipe: it stands
+    where they put it, below the area that is known to have little traffic
+    and above the one that is known to have much. Taken to have none, it
+    would have come first.
+    """
+    release = quiet_with_traffic(None, 400.0, 90_000.0)
+    quiet = TagWeight(tag_id=TagId.QUIET_RESIDENTIAL, weight=1.0, provenance=Provenance.STATED)
+    result = rank(default_spec(Tenure.RENT).replace(weights=(), tags=(quiet,)), release)
+    order = [area.area_id for area in result.ranked]
+    assert order[0] == BRACKENHYTHE and order[-1] == CINDERMOOR
+    assert order.index(BRACKENHYTHE) < order.index(ALDERWICK) < order.index(CINDERMOOR)
+    held = {row.area_id: row for row in release.tags if row.tag_id is TagId.QUIET_RESIDENTIAL}
+    assert (held[ALDERWICK].raw, held[ALDERWICK].coverage) == (0.5, 0.8)
+    assert held[BRACKENHYTHE].coverage == held[CINDERMOOR].coverage == 1.0
+    raws = {area: row.raw for area, row in held.items() if row.raw is not None}
+    assert raws[BRACKENHYTHE] > raws[ALDERWICK] > raws[CINDERMOOR]
+    # It is ranked, and nothing says it lacks what was asked for: the vibe has a band.
+    assert ALDERWICK not in {one.area_id for one in result.unranked}
+    assert all(c.present for c in by_area(result)[ALDERWICK].contributions)
+
+
+def less_traffic(*more: FeatureWeight) -> PreferenceSpec:
+    less = FeatureWeight(
+        feature_id=FeatureId.ROAD_TRAFFIC_NEARBY,
+        weight=0.5,
+        direction=Direction.LESS,
+        provenance=Provenance.STATED,
+    )
+    return default_spec(Tenure.RENT).replace(weights=(less, *more))
+
+
+def test_asked_for_traffic_puts_an_area_with_no_figure_below_every_area_that_has_one():
+    """A person who asks for little traffic is shown first the areas that are known to have
+    little. An area nobody counted is never shown as the quietest of all.
+
+    Asked for beside less transport noise, which every area has a figure for, the area
+    with no figure of traffic is ranked, below every area that has one, and says what it
+    lacks. Asked for alone, nothing that was asked for is known of it, so it is not
+    ranked, and says what it lacks.
+    """
+    release = quiet_with_traffic(None, 400.0, 90_000.0)
+    noise = FeatureWeight(
+        feature_id=FeatureId.NOISE_EXPOSURE,
+        weight=0.5,
+        direction=Direction.LESS,
+        provenance=Provenance.STATED,
+    )
+    result = rank(less_traffic(noise), release)
+    order = [area.area_id for area in result.ranked]
+    assert order[0] == BRACKENHYTHE and order[-1] == ALDERWICK
+    assert order.index(CINDERMOOR) == len(order) - 2
+    lacking = by_area(result)[ALDERWICK]
+    assert [c.component for c in lacking.contributions if not c.present] == [
+        "feature:road_traffic_nearby"
+    ]
+    assert lacking.contributions[-1].fact_ids == (
+        f"{ALDERWICK}/missing/feature:road_traffic_nearby",
+    )
+    alone = rank(less_traffic(), release)
+    assert alone.ranked[0].area_id == BRACKENHYTHE
+    assert ALDERWICK not in by_area(alone)
+    assert [(u.reason, u.missing) for u in alone.unranked if u.area_id == ALDERWICK] == [
+        (UnrankedReason.INSUFFICIENT_DATA, ("feature:road_traffic_nearby",))
+    ]
 
 
 def test_the_areas_that_lack_what_was_asked_are_in_the_order_of_their_fit():

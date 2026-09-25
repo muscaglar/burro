@@ -26,6 +26,7 @@ from burro_core.catalogue import (
     SHOWN_BESIDE_THE_MIX,
     TAGS,
     TIERS,
+    TRAFFIC_WITHIN_M,
     WHY_A_ROUGH_GUIDE,
     WITHIN_M,
     Chain,
@@ -546,6 +547,34 @@ def test_village_feel_is_the_recipe_the_founder_chose_to_serve():
     )
 
 
+def test_the_traffic_near_homes_is_a_nuisance_that_a_person_may_rank_on():
+    traffic = FEATURES[FeatureId.ROAD_TRAFFIC_NEARBY]
+    assert traffic.label == (
+        "Traffic past the busiest count point within 500 m of home, in a straight line"
+    )
+    assert traffic.short_label == "Less traffic nearby"
+    assert (traffic.unit, traffic.polarity, traffic.kind) == (
+        "motor vehicles a day",
+        Polarity.LESS,
+        FeatureKind.NUISANCE,
+    )
+    # It is a figure of air and noise that is measured from where homes stand, so it is
+    # shown with the streets and homes, as main roads are.
+    assert (traffic.dimension, traffic.family) == (Dimension.AIR_NOISE, Family.STREETS_HOMES)
+    # Its publisher gives an estimate, at a point on a road.
+    assert (traffic.native_resolution, traffic.method) == (
+        NativeResolution.POINT,
+        Method.MODELLED,
+    )
+    assert traffic.describes is Describes.PLACE
+    # The name says how near a count point stands, which is one line of the catalogue.
+    assert f"within {TRAFFIC_WITHIN_M} m" in traffic.label and TRAFFIC_WITHIN_M == 500
+    # No likeness counts a nuisance, and a person is ranked on the figure itself.
+    assert traffic.in_likeness is False
+    assert FeatureId.ROAD_TRAFFIC_NEARBY not in RANKED_AS
+    assert FeatureId.ROAD_TRAFFIC_NEARBY in NUISANCES
+
+
 def test_the_high_street_in_a_conservation_area_is_a_measure_of_the_place():
     street = FEATURES[FeatureId.HIGHSTREET_CONSERVED]
     assert street.label == "Share of the nearest high street that lies in a conservation area"
@@ -842,7 +871,7 @@ def test_what_is_shown_and_not_ranked_on_is_ranked_as_a_measure_of_the_same_kind
 def test_the_catalogue_holds_every_feature_and_tag_once():
     assert set(FEATURES) == set(FeatureId)
     assert set(TAGS) == set(TagId)
-    assert len(FEATURES) == 113
+    assert len(FEATURES) == 114
     # Thirteen vibes, and gritty in both its variants.
     assert len(TAGS) == 15
 
@@ -1174,13 +1203,69 @@ def test_the_homes_near_a_cluster_of_pubs_are_named_for_what_is_counted():
     assert near.short_label == "Away from clusters of pubs and bars"
     assert (near.unit, near.polarity, near.kind) == ("%", Polarity.LESS, FeatureKind.NUISANCE)
     quiet = TAGS[TagId.QUIET_RESIDENTIAL]
-    assert {term.feature_id: (term.hundredths, term.reading) for term in quiet.terms} == {
-        FeatureId.ROAD_MAJOR_EXPOSURE: (40, TermReading.LOW),
-        FeatureId.EVENING_CLUSTER_EXPOSURE: (30, TermReading.LOW),
-        FeatureId.NOISE_EXPOSURE: (30, TermReading.LOW),
-    }
+    assert (FeatureId.EVENING_CLUSTER_EXPOSURE, 30, TermReading.LOW) in [
+        (term.feature_id, term.hundredths, term.reading) for term in quiet.terms
+    ]
     assert "late" not in quiet.meaning and "pubs and bars" in quiet.meaning
     assert "How late a pub or a bar is open." in quiet.cannot_see
+
+
+def test_traffic_is_a_part_of_quiet_streets_and_of_no_other_vibe():
+    """Decided for the founder on 2026-09-25, as a first opinion for a person to adjust.
+
+    Main roads held 40 in 100 of Quiet streets. Traffic took half of that and nothing of
+    any other part: both are of the roads near a home, the one says how many homes stand
+    beside a main road and the other how busy the busiest road nearby is. So roads are
+    40 in 100 of the vibe, as they were.
+    """
+    quiet = TAGS[TagId.QUIET_RESIDENTIAL]
+    assert [(term.feature_id, term.hundredths, term.reading) for term in quiet.terms] == [
+        (FeatureId.ROAD_MAJOR_EXPOSURE, 20, TermReading.LOW),
+        (FeatureId.ROAD_TRAFFIC_NEARBY, 20, TermReading.LOW),
+        (FeatureId.EVENING_CLUSTER_EXPOSURE, 30, TermReading.LOW),
+        (FeatureId.NOISE_EXPOSURE, 30, TermReading.LOW),
+    ]
+    assert "traffic" in quiet.meaning
+    holding = [
+        tag.tag_id
+        for tag in TAGS.values()
+        if any(term.feature_id is FeatureId.ROAD_TRAFFIC_NEARBY for term in tag.terms)
+    ]
+    assert holding == [TagId.QUIET_RESIDENTIAL]
+    # Gritty counts main roads and transport noise, and its recipe is as it was decided.
+    # Village feel is as the founder chose to serve it.
+    gritty = TAGS[TagId.STREET_CHARACTER]
+    assert {term.feature_id: term.hundredths for term in gritty.terms}[
+        FeatureId.ROAD_MAJOR_EXPOSURE
+    ] == 15
+    assert [term.hundredths for term in TAGS[TagId.VILLAGE_FEEL].terms] == [45, 30, 15, 10]
+
+
+def test_an_area_with_no_figure_of_traffic_is_not_placed_as_though_it_had_no_traffic():
+    """A street nobody counted has no figure, which is not a figure of nought.
+
+    Quiet streets is then worked out from its other parts, which are 80 in 100 of it.
+    Had the area been taken to have no traffic, it would have stood higher than its
+    other parts put it.
+    """
+    middling = {
+        FeatureId.ROAD_MAJOR_EXPOSURE: 50.0,
+        FeatureId.EVENING_CLUSTER_EXPOSURE: 50.0,
+        FeatureId.NOISE_EXPOSURE: 50.0,
+    }
+    not_known = tag_raw(TagId.QUIET_RESIDENTIAL, middling)
+    assert (not_known.raw, not_known.coverage) == (0.5, 0.8)
+    assert tag_raw(TagId.QUIET_RESIDENTIAL, middling | {FeatureId.ROAD_TRAFFIC_NEARBY: None}) == (
+        not_known
+    )
+    as_though_none = tag_raw(
+        TagId.QUIET_RESIDENTIAL, middling | {FeatureId.ROAD_TRAFFIC_NEARBY: 0.0}
+    )
+    assert (as_though_none.raw, as_though_none.coverage) == (0.6, 1.0)
+    # And an area that is known to have the most traffic of all stands lower.
+    busiest = tag_raw(TagId.QUIET_RESIDENTIAL, middling | {FeatureId.ROAD_TRAFFIC_NEARBY: 100.0})
+    assert (busiest.raw, busiest.coverage) == (0.4, 1.0)
+    assert "is not taken to have none" in " ".join(TAGS[TagId.QUIET_RESIDENTIAL].cannot_see)
 
 
 def test_gritty_is_one_vibe_on_a_scale_that_counts_recorded_crime():
@@ -1378,6 +1463,7 @@ def test_the_nuisances_are_read_from_what_kind_of_thing_a_feature_is():
         FeatureId.EVENING_CLUSTER_EXPOSURE,
         FeatureId.INCIDENT_CRIMINAL_DAMAGE,
         FeatureId.INCIDENT_ANTISOCIAL,
+        FeatureId.ROAD_TRAFFIC_NEARBY,
     } == NUISANCES
     # Less of a nuisance is the only wish there is, so its one direction is less.
     assert all(FEATURES[f].polarity is Polarity.LESS for f in NUISANCES)
@@ -1410,11 +1496,12 @@ def test_what_a_feature_describes_is_a_place_its_buildings_or_what_was_recorded_
 
 
 def test_a_figure_that_its_publisher_models_is_said_to_be_modelled():
-    # Nitrogen dioxide is the one figure a real build has found to be a model's: its
-    # publisher gives no reading, and the name of the feature says so. The rest are
-    # said to be measured until a real build finds one that is not.
+    # Nitrogen dioxide is a model's figure: its publisher gives no reading, and the name
+    # of the feature says so. The traffic past a count point is its publisher's estimate
+    # of the average day of a year, and no reading either. The rest are said to be
+    # measured until a real build finds one that is not.
     modelled = {f for f, feature in FEATURES.items() if feature.method is Method.MODELLED}
-    assert modelled == {FeatureId.AIR_NO2}
+    assert modelled == {FeatureId.AIR_NO2, FeatureId.ROAD_TRAFFIC_NEARBY}
     assert "Modelled" in FEATURES[FeatureId.AIR_NO2].label
     averaged = {f for f, feature in FEATURES.items() if feature.method is Method.AVERAGED}
     others = [feature for f, feature in FEATURES.items() if f not in modelled | averaged]

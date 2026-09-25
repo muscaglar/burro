@@ -524,8 +524,25 @@ LEXICON: Mapping[str, Target] = {
     **_said(_nuisance(_F.AIR_NO2, provenance=_INFERRED), "fumes"),
     **_said(_nuisance(_F.NOISE_EXPOSURE), "noise", "noisy", "traffic noise", "transport noise"),
     **_said(_low(_F.NOISE_EXPOSURE), "low noise"),
-    **_said(_nuisance(_F.ROAD_MAJOR_EXPOSURE), "main road", "main roads"),
-    **_said(_tag(_T.QUIET_RESIDENTIAL), "quiet", "quieter", "quiet street", "quiet streets"),
+    # A main road is asked of two ways, each of the place: the share of homes that stand
+    # beside one, and the traffic past the busiest count point near home. A release that
+    # ranks no area on the first by itself still ranks on the second, so a person who
+    # asks to be away from main roads is never told only that it is not in the data.
+    **_said(_nuisance(_F.ROAD_MAJOR_EXPOSURE, _F.ROAD_TRAFFIC_NEARBY), "main road", "main roads"),
+    **_said(_low(_F.ROAD_MAJOR_EXPOSURE, _F.ROAD_TRAFFIC_NEARBY), "away from main roads"),
+    # Traffic is the measure of it, and no vibe: a vibe is asked for by a word for quiet.
+    # "Traffic noise" is a longer phrase, and is the noise. A busy road is a nuisance that
+    # is only named until a word turns it away: "not on a busy road".
+    **_said(
+        _nuisance(_F.ROAD_TRAFFIC_NEARBY),
+        *("traffic", "road traffic", "heavy traffic", "busy road", "busy roads"),
+    ),
+    **_said(_low(_F.ROAD_TRAFFIC_NEARBY), "low traffic"),
+    # A quiet road is a quiet street.
+    **_said(
+        _tag(_T.QUIET_RESIDENTIAL),
+        *("quiet", "quieter", "quiet street", "quiet streets", "quiet road", "quiet roads"),
+    ),
     **_said(_tag(_T.QUIET_RESIDENTIAL, _INFERRED), "peaceful", "residential", "peace and quiet"),
     # A wish for places to eat and drink is ranked on the places for each 1,000 homes.
     # The count is shown beside it, and no word asks to be ranked on the count.

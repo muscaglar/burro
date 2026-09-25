@@ -30,6 +30,7 @@ from burro_core.catalogue import (
     FEATURES,
     JUDGEMENT,
     MADE_FROM,
+    MOTOR_VEHICLES_A_DAY,
     TAGS,
     Tag,
     band_of,
@@ -311,6 +312,11 @@ def _value(value: float, unit: str) -> tuple[str, str]:
         # Printed with its separator, as a cost is. The number is held as money.
         whole = round(value)
         return f"£{money(whole)}", pounds(whole)
+    if unit == MOTOR_VEHICLES_A_DAY:
+        # A flow runs to tens of thousands, so it is printed with its separator, as
+        # metres are. The number is held without one.
+        whole = round(value)
+        return f"{whole:,} {unit}", str(whole)
     number = plain(value)
     return (number if unit == "count" else f"{number} {unit}"), number
 

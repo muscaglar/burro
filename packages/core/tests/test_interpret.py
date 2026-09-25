@@ -1375,6 +1375,102 @@ def test_wanting_less_of_a_nuisance_is_caring_about_it(text: str, feature_id: Fe
     assert weight_of(after.spec, feature_id) >= 0.5
 
 
+# The plain ways a person asks for little traffic, and what each is read as.
+LITTLE_TRAFFIC: list[tuple[str, tuple[FeatureId, ...]]] = [
+    ("no traffic", (FeatureId.ROAD_TRAFFIC_NEARBY,)),
+    ("less traffic", (FeatureId.ROAD_TRAFFIC_NEARBY,)),
+    ("low traffic", (FeatureId.ROAD_TRAFFIC_NEARBY,)),
+    ("without heavy traffic", (FeatureId.ROAD_TRAFFIC_NEARBY,)),
+    ("no busy roads", (FeatureId.ROAD_TRAFFIC_NEARBY,)),
+    ("Less traffic nearby", (FeatureId.ROAD_TRAFFIC_NEARBY,)),
+    # A main road is asked of as the homes beside one and as the traffic near home.
+    ("away from main roads", (FeatureId.ROAD_MAJOR_EXPOSURE, FeatureId.ROAD_TRAFFIC_NEARBY)),
+    ("not near a main road", (FeatureId.ROAD_MAJOR_EXPOSURE, FeatureId.ROAD_TRAFFIC_NEARBY)),
+    ("no main roads", (FeatureId.ROAD_MAJOR_EXPOSURE, FeatureId.ROAD_TRAFFIC_NEARBY)),
+]
+
+
+@pytest.mark.parametrize(
+    ("text", "features"), LITTLE_TRAFFIC, ids=[said for said, _ in LITTLE_TRAFFIC]
+)
+def test_a_wish_for_little_traffic_is_a_weight_on_the_traffic_near_home(
+    text: str, features: tuple[FeatureId, ...]
+):
+    result = read(text)
+    assert result.status is InterpretStatus.OK and result.unmet == ()
+    assert [edit.feature_id for edit in result.operations.weight_ops] == list(features)
+    assert {(e.action, e.direction) for e in result.operations.weight_ops} == {("nudge", "default")}
+    assert result.operations.tag_ops == ()
+    after = reduced(result)
+    assert after.rejected == ()
+    for feature_id in features:
+        assert weight_of(after.spec, feature_id) >= 0.25
+        held = next(w for w in after.spec.weights if w.feature_id is feature_id)
+        assert held.direction == "less"
+
+
+def test_a_release_that_ranks_no_area_on_main_roads_alone_still_answers_with_traffic():
+    """A build of London shows main roads and ranks no area on them alone. A person who
+    asks to be away from them is answered with the traffic near home, and is told that
+    the other is not in the data: never that alone."""
+    release = small_release()
+    shown_only = dataclasses.replace(
+        release,
+        metrics=tuple(
+            m.replace(rankable=False) if m.feature_id is FeatureId.ROAD_MAJOR_EXPOSURE else m
+            for m in release.metrics
+        ),
+    )
+    result = READER.interpret(
+        InterpretRequest(text="away from main roads", spec=RENTER, release=shown_only)
+    )
+    after = apply(RENTER, result.operations, shown_only)
+    assert [(r.group, r.reason) for r in after.rejected] == [("weight_ops", "not_in_release")]
+    assert weight_of(after.spec, FeatureId.ROAD_TRAFFIC_NEARBY) >= 0.5
+    assert weight_of(after.spec, FeatureId.ROAD_MAJOR_EXPOSURE) == 0.0
+
+
+@pytest.mark.parametrize("text", ["quiet road", "a quiet road", "quiet roads"])
+def test_a_quiet_road_is_a_quiet_street(text: str):
+    (edit,) = read(text).operations.tag_ops
+    assert (edit.tag_id, edit.action, edit.toward) == (TagId.QUIET_RESIDENTIAL, "nudge", "high")
+    assert read(text).operations.weight_ops == ()
+    assert read(text).operations == read(text.replace("road", "street")).operations
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "not on a busy road",
+        "I don't want to live on a busy road",
+        "somewhere that isn't on a main road",
+        "traffic",
+        "busy roads",
+        "I don't mind a bit of traffic",
+        "I like being on a busy road, it feels alive",
+    ],
+)
+def test_traffic_in_words_the_rules_cannot_place_is_offered_one_way_and_never_applied(text: str):
+    """'On' is no word the grammar places, and a nuisance that is only named may be liked.
+    So nothing is applied, and less of it is the one thing that can be chosen."""
+    result = read(text)
+    assert result.operations == NO_OPERATIONS
+    assert result.status is InterpretStatus.SUGGEST
+    offered = {found.target: found for found in result.suggestions}
+    traffic = offered[f"feature:{FeatureId.ROAD_TRAFFIC_NEARBY}"]
+    assert traffic.label == "Less traffic nearby"
+    assert [choice.direction for choice in traffic.choices] == ["less", "ignore"]
+    for found in result.suggestions:
+        assert "more" not in [choice.direction for choice in found.choices], found.target
+
+
+def test_the_noise_of_traffic_is_the_noise_and_not_the_traffic():
+    for text in ("less traffic noise", "no traffic noise"):
+        assert [e.feature_id for e in read(text).operations.weight_ops] == [
+            FeatureId.NOISE_EXPOSURE
+        ]
+
+
 def test_only_what_it_is_a_nuisance_to_have_is_marked_as_one():
     assert {
         FeatureId.CRIME_VIOLENCE_ROBBERY,
@@ -1385,6 +1481,7 @@ def test_only_what_it_is_a_nuisance_to_have_is_marked_as_one():
         FeatureId.EVENING_CLUSTER_EXPOSURE,
         FeatureId.INCIDENT_CRIMINAL_DAMAGE,
         FeatureId.INCIDENT_ANTISOCIAL,
+        FeatureId.ROAD_TRAFFIC_NEARBY,
     } == NUISANCES
     assert {f for f, feature in FEATURES.items() if feature.kind is FeatureKind.NUISANCE} == (
         NUISANCES

@@ -1,4 +1,4 @@
-"""The catalogue: 113 features and the fifteen vibes made of them.
+"""The catalogue: 114 features and the fifteen vibes made of them.
 
 A release carries fourteen of the fifteen: the thirteen, and the one that gritty is
 read as.
@@ -102,7 +102,12 @@ from burro_core.ids import (
 # independent places. A vibe says whether it is as sure as the rest or a rough guide, and
 # Village feel is the one rough guide: it is on a result only where it was asked for. No
 # vibe is held off.
-CATALOGUE_VERSION = 14
+# 15 holds the traffic near where homes stand: the motor vehicles that pass the busiest
+# count point within 500 m of home on an average day, as its publisher estimates them. It
+# is a nuisance, as main roads are, and a person may rank on it. A street with no count
+# point near it has no figure, which is not a figure of nought. Quiet streets holds it at
+# 20 in 100, which it took from main roads, and no other recipe moved.
+CATALOGUE_VERSION = 15
 
 # Below this share of a tag's formula, by weight, the tag is unknown for the area.
 TAG_MIN_COVERAGE_HUNDREDTHS = 60
@@ -206,6 +211,11 @@ _PER_1000_HOMES = "per 1,000 homes"
 # no count of residents.
 _PER_1000_HOMES_A_YEAR = "per 1,000 homes a year"
 _PER_KM2 = "per km²"
+# The unit of a flow of traffic: every vehicle but a pedal cycle, on an average day of a
+# year. A figure of it is printed whole, with a separator, as metres and pounds are.
+MOTOR_VEHICLES_A_DAY = "motor vehicles a day"
+# How near a count point stands to count as near a home, in a straight line.
+TRAFFIC_WITHIN_M = 500
 
 _FAMILY_OF: Mapping[Dimension, Family | None] = {
     Dimension.CRIME: None,
@@ -235,11 +245,12 @@ _BUILDINGS = frozenset(
         _F.HIGHSTREET_CONSERVED,
     }
 )
-# Two nuisances are measured from where homes stand, so each is shown in a
+# Three nuisances are measured from where homes stand, so each is shown in a
 # family of the settings though it is a figure of air and noise.
 _SHOWN_IN: Mapping[FeatureId, Family] = {
     _F.ROAD_MAJOR_EXPOSURE: Family.STREETS_HOMES,
     _F.EVENING_CLUSTER_EXPOSURE: Family.PACE_FOOD,
+    _F.ROAD_TRAFFIC_NEARBY: Family.STREETS_HOMES,
 }
 # The three kinds of place the table of tiers holds, as a label says one and many of each,
 # and the three tiers, as a label says each. A place of coffee is a coffee shop, a bakery
@@ -1377,6 +1388,27 @@ _FEATURES = (
         "less",
         _K.TASTE,
     ),
+    # The traffic near where homes stand. Its publisher counts every link of a main road
+    # and a sample of the minor roads, at one point on each, so the name says a count
+    # point and how near it stands. A home with no count point within that distance has
+    # no figure, and an area where under half the homes have one has none: a quiet
+    # street that nobody counted is not known to be quiet. It says how busy a road is,
+    # which the share of homes beside a main road cannot.
+    _feature(
+        _F.ROAD_TRAFFIC_NEARBY,
+        _D.AIR_NOISE,
+        f"Traffic past the busiest count point within {TRAFFIC_WITHIN_M} m of home, in a "
+        "straight line",
+        "Less traffic nearby",
+        MOTOR_VEHICLES_A_DAY,
+        _LESS,
+        _N.POINT,
+        "more",
+        "less",
+        _K.NUISANCE,
+        # Its publisher gives an estimate of the average day of a year, and no reading.
+        Method.MODELLED,
+    ),
 )
 
 FEATURES: Mapping[FeatureId, Feature] = MappingProxyType({f.feature_id: f for f in _FEATURES})
@@ -1713,16 +1745,25 @@ _TAGS = (
         ends=("Calm", "Buzzy"),
         shelf="lively",
     ),
+    # Roads are 40 in 100 of it, as they were while main roads stood alone: traffic took
+    # half of what main roads held, and nothing of any other part. Main roads say how many
+    # homes stand beside a motorway or an A road, and traffic how busy the busiest road
+    # near a home is, which the class of a road cannot say. A street nobody counted has
+    # no figure of traffic, and the area is then placed on its other parts. The weights
+    # are a first judgement, for a person to review.
     _tag(
         TagId.QUIET_RESIDENTIAL,
         "Quiet streets",
         _STREETS,
-        "Homes away from main roads and from clusters of pubs and bars, with little transport "
-        "noise",
+        "Homes away from main roads, from heavy traffic and from clusters of pubs and bars, "
+        "with little transport noise",
         "Noise from neighbours, venues or works. Which noise is from roads and which from "
-        "aircraft. How busy a road is. How late a pub or a bar is open",
+        "aircraft. How busy a street is where no count point stands near: an area with no "
+        "figure of traffic is placed on its other parts, and is not taken to have none. How "
+        "late a pub or a bar is open",
         4,
-        (40, _F.ROAD_MAJOR_EXPOSURE, _LOW),
+        (20, _F.ROAD_MAJOR_EXPOSURE, _LOW),
+        (20, _F.ROAD_TRAFFIC_NEARBY, _LOW),
         (30, _F.EVENING_CLUSTER_EXPOSURE, _LOW),
         (30, _F.NOISE_EXPOSURE, _LOW),
         shelf="quiet street",

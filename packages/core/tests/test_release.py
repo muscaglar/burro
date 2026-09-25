@@ -582,7 +582,7 @@ def test_the_small_release_is_valid_before_it_is_broken():
     found = parse_release(documents())
     assert len(found.neighbourhoods) == 8
     # Four features are in core and in no release yet.
-    assert len(found.metrics) == 109
+    assert len(found.metrics) == 110
     assert found.manifest.synthetic is True
     assert [vibe.tag_id for vibe in found.vibes] == [
         vibe.tag_id for vibe in tags_of(GrittyVariant.B)
@@ -938,7 +938,7 @@ def test_a_release_may_carry_fewer_features_than_the_catalogue_holds():
         r for r in fewer["features.json"]["rows"] if r["feature_id"] != dropped
     ]
     found = parse_release(fewer)
-    assert len(found.metrics) == 108
+    assert len(found.metrics) == 109
     assert found.feature(area_id(1), FeatureId.SCHOOL_PRIMARY_ATTAINMENT) is None
 
 

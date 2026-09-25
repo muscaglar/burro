@@ -973,3 +973,33 @@ def test_a_distance_of_a_thousand_metres_or_more_is_printed_with_its_separator()
     for fact in printed:
         assert verify(render(fact), {fact.fact_id: fact}).ok, render(fact).text
         assert verify(render(fact, SentenceRole.TRADE_OFF), {fact.fact_id: fact}).ok
+
+
+def test_a_flow_of_traffic_is_printed_whole_and_with_its_separator():
+    # A flow runs to tens of thousands of motor vehicles a day, and is given to the whole
+    # vehicle: "16915.5 motor vehicles a day" would be read as a figure of two kinds.
+    release = with_figures(
+        small_release(),
+        {FeatureId.ROAD_TRAFFIC_NEARBY: (16_915.0, 478.0, 101_407.0, 0.0, 9_999.5)},
+    )
+    printed = [
+        by_id(facts_for(release, area_id(n), None))[f"{area_id(n)}/feature/road_traffic_nearby"]
+        for n in range(1, 6)
+    ]
+    assert [fact.slots["value"] for fact in printed] == [
+        "16,915 motor vehicles a day",
+        "478 motor vehicles a day",
+        "101,407 motor vehicles a day",
+        "0 motor vehicles a day",
+        "10,000 motor vehicles a day",
+    ]
+    # The number the verifier holds has no separator, as it holds every number.
+    assert [fact.numbers[0] for fact in printed] == ["16915", "478", "101407", "0", "10000"]
+    for fact in printed:
+        assert verify(render(fact), {fact.fact_id: fact}).ok, render(fact).text
+        assert verify(render(fact, SentenceRole.TRADE_OFF), {fact.fact_id: fact}).ok
+    # It is said from the side of less, which is the side that counts as better.
+    assert render(printed[1]).text.startswith(
+        "Traffic past the busiest count point within 500 m of home, in a straight line: "
+        "478 motor vehicles a day, less than "
+    )

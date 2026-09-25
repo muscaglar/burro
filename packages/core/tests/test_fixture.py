@@ -498,7 +498,7 @@ def test_every_comparison_said_of_the_release_is_literally_true():
     assert {area.rankable for area, _ in checked} == {True, False}
     carried = {metric.feature_id for metric in release().metrics}
     assert {fact.key for _, fact in checked} == {*carried, *(v.tag_id for v in release().vibes)}
-    assert len(carried) == 109 and len(release().vibes) == 14
+    assert len(carried) == 110 and len(release().vibes) == 14
     # Every way a vibe can be said is said of some area of the release.
     assert {fact.template for _, fact in checked if fact.kind is FactKind.TAG} == {
         TemplateId.VIBE,
