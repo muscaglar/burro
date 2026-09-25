@@ -6,6 +6,8 @@ This is the first time anything about who lives somewhere may feed a vibe. It is
 
 **It was built later the same day.** Section 13 says what was built and what was chosen where this page left a choice, and section 12 holds the row of the proxy audit, which was written first. Sections 5 to 11 are kept as they were written, before anything was built, so that what was proposed can be held against what was done.
 
+**The proxy audit was dropped on 2026-09-25.** The founder decided it ([decision record 0006](../adr/0006-rank-places-not-residents.md), as amended that day). It answers question 13 of section 11: no vibe and no measure waits on an audit. Where sections 5 to 11 say that the audit comes first, they say what was proposed. Every rule of section 5 for a part that counts residents stands as it was, and so does every test of section 9.
+
 ## 1. What was decided, and its limits
 
 The founder decided on 24 September 2026. The record is [ADR 0006](../adr/0006-rank-places-not-residents.md), as amended that day.
@@ -574,6 +576,8 @@ Nothing was built on any of these. Each is a question for the founder.
 
 ## 12. The row of the proxy audit
 
+**The proxy audit was dropped on 25 September 2026**, by the founder's decision ([decision record 0006](../adr/0006-rank-places-not-residents.md), as amended that day). This row stays where it is, as a record of what was measured, and holds nothing back.
+
 [Decision record 0006](../adr/0006-rank-places-not-residents.md) asks for this row before a measure is served. It covers the four measures, and the two vibes that hold one at 40 in 100 of their recipes: Family area, which holds households with dependent children, and Young professionals, which holds residents aged 20 to 34. It follows the row written for [recorded incidents](../research/data/incidents.md), section 11. It was written on 2026-09-24, before any of the six was in a release. Nobody has reviewed it, and no audit has run.
 
 | | |
@@ -617,7 +621,7 @@ Built on 2026-09-24, after the row of section 12 was written. Every rule of sect
 | A word that was not decided on, beside those who are counted | The notice: "young white professionals", "muslim families", "wealthy families" | |
 | What a result shows | A vibe that counts residents holds no `strip`. It is on a result where it was asked for, and is among the others on the portrait of an area, never in the list of what the area has most or least of | Recorded crime is held the same way on a result |
 | A model | It is told of no measure and no vibe that counts residents, and an edit of its that names one is dropped | |
-| Whether a vibe waits for the audit to run, question 13 | It did not wait. The row is written, and no audit has run | The founder asked for it to work. No release of London is served |
+| Whether a vibe waits for the audit to run, question 13 | It did not wait. The row is written, and no audit has run. Since 2026-09-25 none is to run: the founder dropped the proxy audit | The founder asked for it to work. No release of London is served |
 | A band while residents are most of what is held, question 15 | Core's rule stands: a vibe has a band where 60 in 100 of its recipe is measured | With every part held, residents are 40 in 100. Where one part of the place is missing they are more of what is held: half, where primary schools are missing from Family area |
 | The website | It draws each where it draws a measure or a vibe: the settings, the shelf, the page of vibes, the methods, the map, a comparison and the page of an area. An offer is drawn with its note, as the API sends it | The page of an area draws eight lines more at most before anything is opened, and its height was not measured again in a browser |
 | The iPhone app | Its generated files are made again, and it names the new group of measures. Its tests and its build were not run | |

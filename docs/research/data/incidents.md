@@ -288,6 +288,8 @@ What the publisher's pages said on 2026-09-24, read once through a reader that e
 
 ## 11. The row of the proxy audit
 
+**The proxy audit was dropped on 25 September 2026**, by the founder's decision ([decision record 0006](../../adr/0006-rank-places-not-residents.md), as amended that day). This row stays where it is, as a record of what was measured, and holds nothing back.
+
 [Decision record 0006](../../adr/0006-rank-places-not-residents.md) asks for this row before a measure is served. It covers both measures, and Gritty, which holds them at 45 in 100 of its recipe. It was written on 2026-09-24, before either was in a release. Nobody has reviewed it.
 
 | | |

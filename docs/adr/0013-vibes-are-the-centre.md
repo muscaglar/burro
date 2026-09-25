@@ -1,6 +1,6 @@
 # 0013. Vibes are the centre, and gritty is built two ways
 
-Status: accepted, 2026-09-23. Builds on [0002](0002-deterministic-core.md), [0006](0006-rank-places-not-residents.md) and [0010](0010-one-contract-one-synthetic-release.md). Amended on 2026-09-24: the founder decided which way gritty is built for London, which was the first of five points to decide, and then its name and its recipe. Three are still for the founder to decide.
+Status: accepted, 2026-09-23. Builds on [0002](0002-deterministic-core.md), [0006](0006-rank-places-not-residents.md) and [0010](0010-one-contract-one-synthetic-release.md). Amended on 2026-09-24: the founder decided which way gritty is built for London, which was the first of five points to decide, and then its name and its recipe. Three are still for the founder to decide. Amended on 2026-09-25: a second try at Village feel did not clear the founder's bar, and the founder accepts that pubs and bars are counted from the file of places. Amended again on 2026-09-25: the founder chose to serve Village feel as a rough guide, though no try had reached the bar.
 
 ## Context
 
@@ -64,7 +64,7 @@ Neither holds a figure about who lives somewhere: no income, employment, health 
 - **Going out is pubs and bars 35, places to eat and drink 30, a town centre within reach 20 and culture venues 15,** which are the shares it had before the pubs were taken out. While they were out it was 45, 30 and 25. Each count of venues is the figure for each 1,000 homes, and the town centre is a distance, read from its near end.
 - **Quiet streets is as it was:** main roads 40, homes near a cluster of pubs and bars 30, transport noise 30. The part was named for clusters of evening venues and no build measured it. It is measured now, and is named for what is counted: the share of homes with three or more pubs or bars within 150 metres, in a straight line. The file cannot say how late a place is open, so no name says late, and a nightclub is not counted.
 - **Cafes, gyms and pubs are measures a person may ask for by name,** each shown as a count within 800 metres of home and ranked on for each 1,000 homes, as places to eat and cultural venues are. Cafes and gyms are in no vibe: nobody asked for one, and a recipe is the founder's to change.
-- That the file stands in the register's place is a call made for the founder, and theirs to overturn: the founder's decision was that a second source confirms the pubs, and this one did not. So are which category of the file is which kind, that three are a cluster, and that records within 25 metres are one place.
+- That the file stands in the register's place was a call made for the founder: the founder's decision was that a second source confirms the pubs, and this one did not. **The founder accepted it on 2026-09-25:** see the amendment of that day, below. Which category of the file is which kind, that three are a cluster, and that records within 25 metres are one place are calls made for the founder still, and theirs to overturn.
 
 **Amended, 2026-09-24: three vibes are named for what a person would call them.** The founder chose the names. Pace is "Going out", and its ends are still Calm and Buzzy. Homes is "Houses or flats". Built age is "Age of buildings". Each had the name of its recipe, and nobody asks for a place by one. No id, end or recipe moved, so a search that was saved ranks as it did. The reader answers to each new name and to the old, and the name of a scale still names no end: it is offered with both and never applied. "Homes" alone is what is being looked for, and is no name of a vibe to the reader.
 
@@ -79,6 +79,46 @@ Neither holds a figure about who lives somewhere: no income, employment, health 
 The contract, sections 2 to 7, holds the records and the rules.
 
 **Amended, 2026-09-24: Village feel places an area only where something of its town centre has a figure.** The founder decided that Village feel is served only if a second try at it reads as villages. No second try has been made. Once independent places were measured, a build of London held 60 in 100 of its recipe, which is enough for a band, and none of it was the size or the shape of a town centre: it found inner London's old streets and no villages. So core places an area on it only where one of those two measures has a figure, whatever else has. No build carries either yet, so no build places an area on it, and nothing else of the catalogue moved. [The contract](../design/contract.md), section 3.2, has the rule.
+
+**Amended, 2026-09-25: a second try was made, and Village feel stays held off.** The founder set the bar on 2026-09-24: at least 30 of the 50 areas a recipe puts highest read as villages. The first try reached 8. The second read the file of high street boundaries for the first time, and measured how much of the high street nearest a home lies inside a conservation area. Three recipes were worked out for every area of London, and each fifty was read three times, by the name of the nearest high street and the borough alone. No reading was made by a person who knows the places.
+
+| Recipe | Read as villages, of its fifty highest |
+|---|---|
+| The first try | 8 |
+| A: a small high street 25, the high street in a conservation area 35, homes built before 1919 20, conservation cover 20 | 10, 11 and 9 |
+| B: as A, and the conservation area counts only where the high street is under 20 hectares | 8, 9 and 7 |
+| C: the high street in a conservation area 45, homes per hectare read from the low end 30, homes built before 1919 15, conservation cover 10 | 24, 24 and 23 |
+
+- **None clears the bar, so nothing changed in core.** The recipe of Village feel is as it was, `PLACED_ONLY_WITH` names the size and the shape of a town centre as it did, and no build places an area on the vibe. A wish for it is turned away as it was.
+- **C is the best that was found.** It puts the seven places the founder named as villages among its first 37 of 925. A search of 65,000 simple recipes of the figures that are held found none that reached 30.
+- **The measure is built and joins no build.** Core holds no feature for it. It is worked out by `derive/highstreet_conserved.py`, and a test fails when core gains the feature.
+- **What would mend it** is in [the page on high streets](../research/data/high-streets.md), section 8: a person who knows the places reads the fifty, and a figure that tells a village street from a trunk road.
+- **The founder may overrule the readings, or the bar.** To serve C is one change to core: a feature for the measure, the recipe, and nothing in `PLACED_ONLY_WITH`, since no area has 60 in 100 of C without the high street.
+
+**Amended, 2026-09-25: Village feel is served, and says that it is less sure.** The founder was shown that no try had reached the bar, and asked: "4. Can we include village anyhow? With less certainty perhaps?" So it is served, as a rough guide. What is above is as it was written, and is the history of how it came to this.
+
+The bar of 2026-09-24 was not reached. It was that at least 30 of the 50 areas a recipe puts highest read as villages. Three tries were made.
+
+| Try | What its recipe counts, in 100 | Read as villages, of its fifty highest |
+|---|---|---|
+| The first | Independent places 25, a small centre 20, a compact centre 20, homes built before 1919 20, conservation cover 15. A build held 60 of it, and nothing of a town centre | 8 |
+| The second, which is recipe C above | The high street in a conservation area 45, homes per hectare read from the low end 30, homes built before 1919 15, conservation cover 10 | 24, 24 and 23, by three readers who read the name of a high street and a borough alone. 27 once the founder had read thirteen of the fifty, and their reading stood in place of the readers' |
+| The third | As the second, with the traffic counted on the nearest high street read from the low end: 40, 25, 20, 10 and 5 | 25, by the founder's reading where the founder had read, and the readers' elsewhere |
+
+- **What is served is the recipe of the second try, with no share changed:** 45, 30, 15 and 10. It has no part for a small or a compact centre, for independent places, for traffic, or for homes per hectare of the land that is no park.
+- **The measure of the high street joins a build.** Core names it `highstreet_conserved`, the catalogue is at version 14, and no likeness between areas counts it. The parts of a recipe that rest on the conservation areas come to under 60 in 100 between them, so that their publisher's file never places an area alone: they are 55 of Village feel.
+- **No vibe is held off.** `PLACED_ONLY_WITH` names none. The rule stands, for any vibe that is held off in future, and a test holds it on a vibe that is not. Village feel needs no such rule: without its high street an area holds 55 in 100 of the recipe, which is under what a band needs.
+- **A vibe says how sure it is.** It is one field, `sureness`, with two values: `as_the_rest`, and `rough_guide`. It is no number and no word of praise or blame, and no client works it out. A vibe that does not say is as sure as the rest, which is what a client assumes of a release that was written before. The field is core's: a release that says otherwise of any vibe is refused, and no change at the panel moves it. Village feel is the one rough guide.
+- **A person is told, in sight and behind no press.** One label, "Rough guide", and one sentence: "Of the areas it puts highest, about half read as villages to people, and it takes some busy main roads and some grand inner streets for villages." Core holds both, and the website, the app and the panel draw them: on the chip of a search, on a result, beside the band on the page of an area, in its offer, on the page of vibes, and at the panel. The sentence holds no figure that a build could make false, and names no place.
+- **It is never taken without a press of its own.** The rules apply it from no word, its own name among them, and offer it with its label and its sentence. The one press that adds what needs no choice never takes it. A model's guess of it is no guess. The note under a word for character names it among the ways that are offered, with its label.
+- **It is used to work out nothing else.** No likeness counts it. It is on a result only where the person asked for it, so no explanation gives it as a reason unless they did. No portrait says that an area has most or least of it.
+- **What would make it as sure as the rest** is what the bar asked: 30 of the fifty, read by a person who knows the places. That is a decision of its own, and one line of core.
+
+**Amended, 2026-09-25: the founder accepts the file of places for pubs and bars.** The founder had decided that the pubs join Going out when a second source confirms the food register. The file of places is a second source, and it did not confirm the register: it was taken in the register's place, as a call made for the founder. It was put to the founder as the fifth of a list of questions, and these are their words:
+
+> (5) Accept the venue file
+
+So pubs and bars are counted from the file of places and from nothing else, as they are built, and are 35 in 100 of Going out. The register's pubs alone are carried by no release. No code changed. What the file cannot see is said beside every figure of pubs, as it was: it holds fewer pubs toward the edge of London, and no person has looked at a sample of its records.
 
 ## Consequences
 

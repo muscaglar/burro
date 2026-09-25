@@ -411,6 +411,8 @@ Added 2026-09-24. **Measured** here was run on made-up numbers with Python 3.13.
 | `plain.py` | A plain, slow router. Its first line says it is for tests | **No.** It measures as if the ground were flat and reads no street extract |
 | `made_up.py` | The city of the synthetic release as a timetable, streets and homes | It is made up |
 | `cli.py` | The step `python -m burro_pipeline travel --made-up` | It routes the made-up town alone. Without `--made-up` it stops, and names the rule `engine_is_installed` |
+| `transxchange.py` | Reads a publisher's timetable in TransXChange as it stands on one day: the journeys that run, where each calls and when. It reads no name, and refuses a day on which a line has two timetables. It writes no feed: the converters of section 6 are not built | For the Underground and the DLR, whose files it has read as they were fetched on 2026-09-24. No timetable of a bus has been read with it |
+| `timed.py` | Times a journey on the trains it is handed, by when a person must be there: what an estimate of a journey is held against ([ADR 0027](../adr/0027-a-journey-is-estimated-from-distance-until-a-timetable-is-held.md)). It is no step of a build | For the check alone. It knows no street: a walk is a straight line made longer by one number |
 
 What is not built: the two converters of section 6, the adapter that asks R5, the hexagons and their routing points, the rule that chooses the day, the comparison with TfL's planner, the weekly check, and `travel.bin`.
 

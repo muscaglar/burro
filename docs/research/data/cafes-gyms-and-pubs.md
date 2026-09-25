@@ -157,7 +157,7 @@ What the table says:
 
 **So the file is not fit to confirm the register, and is fit to stand in its place.** The register's fault is of kind: what a council calls a pub. It moves whole boroughs, and nothing in the register can mend it. The file's fault is of reach: it holds fewer places toward the edge. It moves the edge down against the middle, which is the way every count of venues leans, and it is said beside every figure of pubs. The file is one table of kinds for all of London, it tells a pub from a nightclub, and the cafes, the gyms and the cultural venues are counted from it the same way. The register's pubs are still worked out, under an id of their own, and no release carries them: `packages/pipeline/src/burro_pipeline/derive/venue_pub.py`.
 
-This is a call made for the founder, and theirs to overturn. Their decision was that a second source confirms the pubs, and this one did not.
+This was a call made for the founder. Their decision was that a second source confirms the pubs, and this one did not. **The founder accepted it on 2026-09-25:** pubs and bars are counted from the file of places ([decision record 0013](../../adr/0013-vibes-are-the-centre.md), as amended that day).
 
 ## 5. What a build of London holds
 

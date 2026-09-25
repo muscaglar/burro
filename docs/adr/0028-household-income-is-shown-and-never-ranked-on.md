@@ -1,6 +1,6 @@
 # 0028. Household income is shown on an area's page, and no area is ranked on it
 
-Status: accepted in part, 2026-09-24. The founder decided that the figure is fetched, shown and checked against, and that no area is ranked on it. Where it stands on the page and in what words are proposed here, and are the founder's to approve. Nobody has reviewed the words.
+Status: accepted in part, 2026-09-24. The founder decided that the figure is fetched, shown and checked against, and that no area is ranked on it. Where it stands on the page and in what words are proposed here, and are the founder's to approve. Nobody has reviewed the words. Amended on 2026-09-25: the proxy audit is dropped ([0006](0006-rank-places-not-residents.md), as amended that day), so what the check found is held to no line of it. What is left open of the check is the founder's own choice about the higher council tax bands.
 
 ## Context
 
@@ -36,7 +36,9 @@ The three measures were held against household income across London's areas, in 
 | Price rise over five years | 1,002 | 0.04 |
 | Price rise over ten years | 1,002 | -0.13 |
 
-**Two of them are at or over the line that the rows of the proxy audit set, which is 0.5**: the council tax bands, and what homes of any kind sell for. Each is a figure of the homes of a place, and each follows what the households there are estimated to have. [0006](0006-rank-places-not-residents.md) says that finding a correlation and doing nothing is worse than not looking. What is done today, and what is the founder's to decide, is in the last section.
+**Two of them follow household income more closely than the rest**: the council tax bands, and what homes of any kind sell for. Each is a figure of the homes of a place, and each follows what the households there are estimated to have. What is done today, and what is the founder's to decide, is in the last section.
+
+**Amended, 2026-09-25.** This section said that the two are at or over the line that the rows of the proxy audit set, which was 0.5, and that [0006](0006-rank-places-not-residents.md) holds that finding a correlation and doing nothing is worse than not looking. The founder dropped the proxy audit on 2026-09-25. No line is set, and no figure of this table triggers a review. The table stands as what was measured.
 
 ## Consequences
 
@@ -51,6 +53,6 @@ The three measures were held against household income across London's areas, in 
 | Matter | Whose | What stands today |
 |---|---|---|
 | The words of the block | The founder's | Those of `ONS` in core's `income.py`. Each line that quotes the publisher is quoted from the workbook |
-| Whether the council tax bands and what homes sell for may still be asked for, now that each is known to follow household income at 0.71 and 0.58 | The founder's, under 0006 | Each is offered for a word for a smart area and never applied. Each stands in no vibe and in no likeness, and nothing weighs it by default. What can be done: show each and rank on it no longer, or leave it as it is served today |
+| Whether the share of homes in the higher council tax bands may still be asked for, now that it is known to follow household income at 0.71 | The founder's own choice, which they make after looking at the figure | It is offered for a word for a smart area and never applied. It stands in no vibe and in no likeness, and nothing weighs it by default. What can be done: show it and rank on it no longer, or leave it as it is served today. Until 2026-09-25 this row asked the same of what homes sell for, under the line of the proxy audit. The line went with the audit, and what homes sell for stays as it is served |
 | Whether the figure is ever ranked on | The founder's, by a new record | It is not. The registry entry lists no scoring |
 | The credit | A person's, by opening the workbook | "Source: Office for National Statistics", as the workbook's terms ask. `attribution_verified` stays false until a person has read it |

@@ -476,6 +476,8 @@ Core's list of features holds nothing for a price. The contract's place for a pr
 
 No rent was read. The statistics office publishes rents for boroughs and for postcode districts, and both files are in the store with a receipt. The plan says that the model which would bring one down to an area was never designed. The contract has no place for a borough's figure beside an area, and the pipeline design forbids a figure of a larger area to be pasted onto a smaller one. So rent is left out.
 
+Since 2026-09-25 that no longer holds. The founder decided that a rent may be shown as its publisher gives it for a postcode district or a borough, with the place said beside it, and `derive/rent.py` reads the workbook of the rents of London ([ADR 0021](../../adr/0021-a-price-is-shown-as-the-publisher-gives-it.md), as amended).
+
 ### What was made from it, and where
 
 Nothing made from the file is in a tracked file, but for the counts on this page and the counts and three figures in `packages/pipeline/tests/derive/test_price_on_the_real_files.py`. The figure of every area, with its row of evidence, was written to a scratch folder that git does not hold.

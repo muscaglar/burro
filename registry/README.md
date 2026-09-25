@@ -40,16 +40,34 @@ Internal uses are `prototyping_only`, `validation_only` and `audit_only`. They e
 | `attribution` | if approved | The publisher's exact required wording |
 | `attribution_verified` | no | True only when the wording was read from the page itself, in a browser or as raw text, and the publisher states it for this dataset. A summary of the page does not count |
 | `attribution_beside_figures` | no | True where the publisher asks that its statement stands wherever a figure made from the data is shown, and not on the page of attributions alone. A release says so of the source, and every fact that cites it carries the statement |
+| `said_with_attribution` | no | What the publisher's terms ask to be said wherever its credit is shown, in plain words: what they ask, and no more. It is no part of `attribution`, which stays as the publisher worded it. A release carries it with the credit, and it is served and drawn wherever the credit is: on the page of sources, and beside a figure wherever the credit stands there. `check` holds a release to it, as it holds it to the credit |
 | `conditions` | if conditional | Anything Burro must do or never do with this data |
 | `status`, `status_reason` | yes | A reason is required unless `approved` |
 | `before_launch` | no | For an approved source: what must be settled before the product is public. Ingest is allowed meanwhile |
 | `uses` | if approved | What Burro uses it for. The gate checks this |
-| `cadence` | no | How often the publisher updates it |
+| `cadence` | no | How often the publisher updates it. The step `fresh` reads its first words into a rhythm, so begin it with one of: daily, weekly, monthly, quarterly, six-monthly, twice a year, annual, every two years, one-off, irregular, occasional, fixed, static, reissued or frozen. Say the rest after it. What does not begin so is reported as not said, and its file is never called fresh: see "How a cadence is read" |
 | `verified_how` | yes | `primary_source`, `secondary_source`, `unverified` |
 | `verified_on` | yes | A TOML date: `2026-09-23` |
 | `evidence_urls` | if approved | Where the licence was confirmed |
 | `file_urls` | if a file of it is fetched | The addresses its files are fetched from. Each is a whole address, or a prefix that ends in `/` and at the dataset. A file is fetched from no other address: see "What fetch asks of a source" |
 | `notes` | no | |
+
+## How a cadence is read
+
+`uv run python -m burro_pipeline fresh --on DAY` says of every file that has a receipt how long ago it was retrieved, against how often its publisher says it changes. It reads the first words of `cadence`, and nothing after them.
+
+| The cadence begins | It is read as | A file is due once it was retrieved over |
+|---|---|---|
+| Daily, nightly, weekly, continuous | weekly | 7 days ago |
+| Monthly | monthly | 31 days ago |
+| Quarterly, six-monthly, every six months, twice a year | quarterly | 92 days ago |
+| Annual, annually, yearly, every two years | yearly | 366 days ago |
+| One-off, irregular, occasional, fixed, static, reissued, frozen | rarely | Never, by its age. Read its page once a year |
+| Anything else, or nothing | not said | It is not known, and is never called fresh |
+
+`About` may stand before any of them. Two readings are choices, and both err towards looking too soon. A publisher that says daily is read as weekly, because no build is made each day. A rhythm between two of the five is read as the shorter.
+
+Write what the publisher says, and never what Burro plans to do. Where the publisher states no rhythm, say so in words, as the entry `tfl-step-free-station-topology` does: the step then names the source until a person has found one. `packages/pipeline/src/burro_pipeline/registry/cadence.py` holds the table, and a test reads every entry that holds a receipt.
 
 ## Rules
 

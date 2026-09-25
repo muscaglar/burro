@@ -165,7 +165,7 @@ Every area is a set of output areas. Every method below goes through output area
 | Borough | `borough_as_prior` | A model input only. Never printed as the area's own figure | | The model's own sentence |
 | Origin by destination times | `travel_rollup` | The median over the area's origins, weighted by homes | Origins with a time | The routing part's sentence |
 
-- A figure published for a larger area than the one shown is never pasted onto it. A borough holds about 14 areas (repo).
+- A figure published for a larger area than the one shown is never pasted onto it. A borough holds about 14 areas (repo). One exception was decided on 2026-09-25, for rents: no publisher gives a rent for an area, so an area shows the rents of the postcode district or the borough it lies in, as their publisher gives them, and says the place wherever the figure is ([ADR 0021](../adr/0021-a-price-is-shown-as-the-publisher-gives-it.md), as amended).
 - The geography of a file is read from the file. The police data's page does not say which census its LSOA codes follow (read). Where a file uses 2011 codes, a registered lookup is needed, or the file's own coordinates are used.
 - An area that the source does not cover is unknown and never zero. Below half the homes covered, the value is null (contract section 2).
 - A count rounded or withheld by the publisher stays so, and carries its flag.

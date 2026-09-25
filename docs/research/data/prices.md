@@ -128,6 +128,8 @@ The statistics office's workbook holds a median for every year that ends with a 
 
 ## 7. The row of the proxy audit
 
+**The proxy audit was dropped on 25 September 2026**, by the founder's decision ([decision record 0006](../../adr/0006-rank-places-not-residents.md), as amended that day). This row stays where it is, as a record of what was measured, and holds nothing back.
+
 [Decision record 0006](../../adr/0006-rank-places-not-residents.md) asks for this row before a measure is served. It covers what homes sell for, the council tax bands, and the rise in prices. It was written on 2026-09-25, before any of the last three was in a release that is served. Nobody has reviewed it.
 
 | | |

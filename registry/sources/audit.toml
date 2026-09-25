@@ -4,7 +4,7 @@ schema_version = 1
 
 [[source]]
 id = "ons-census-2021-protected-characteristics"
-name = "Census 2021 protected-characteristic tables (Nomis bulk), for the offline proxy audit only"
+name = "Census 2021 protected-characteristic tables (Nomis bulk), kept out of the product. No audit is planned"
 publisher = "Office for National Statistics"
 url = "https://www.nomisweb.co.uk/sources/census_2021_bulk"
 dimension = "audit"
@@ -33,7 +33,7 @@ evidence_urls = [
     "https://www.ons.gov.uk/datasets/TS021/editions/2021/versions/3",
     "https://www.ons.gov.uk/census/aboutcensus/censusproducts/topicsummaries",
 ]
-notes = "The restriction here is a fairness rule, not a licence limit. The Nomis bulk page itself shows only '© Crown Copyright', so the licence evidence is the ONS table page and the Nomis copyright page. The Nomis copyright page names the OGL without a version. Attribution is the line Nomis asks for: 'Users should include a source accreditation to ONS: Source: Office for National Statistics'. Table codes and titles were read from the Nomis bulk page through a reader that summarises, including TS002 (legal partnership status), TS008 (sex) and TS029 (proficiency in English). The smallest geography for the sexual orientation and gender identity tables is not confirmed. Non-sensitive census tables (tenure, accommodation type) belong in a separate entry owned by the housing domain. Intended use once the gate passes: audit_only."
+notes = "The restriction here is a fairness rule, not a licence limit. The Nomis bulk page itself shows only '© Crown Copyright', so the licence evidence is the ONS table page and the Nomis copyright page. The Nomis copyright page names the OGL without a version. Attribution is the line Nomis asks for: 'Users should include a source accreditation to ONS: Source: Office for National Statistics'. Table codes and titles were read from the Nomis bulk page through a reader that summarises, including TS002 (legal partnership status), TS008 (sex) and TS029 (proficiency in English). The smallest geography for the sexual orientation and gender identity tables is not confirmed. Non-sensitive census tables (tenure, accommodation type) belong in a separate entry owned by the housing domain. The entry was written for the offline proxy audit, and the use once intended for it was audit_only. No audit is planned: the founder dropped the proxy audit on 25 September 2026 (ADR 0006 as amended that day). No list names a file of this entry, and none has a receipt. Its status, its conditions and its uses stand as they were, and the gate refuses it for every use."
 
 [[source]]
 id = "gla-loac-2021"

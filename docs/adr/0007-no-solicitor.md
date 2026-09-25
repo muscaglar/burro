@@ -1,6 +1,6 @@
 # 0007. Close legal questions by design
 
-Status: accepted, 2026-09-23. Amended the same day: Burro relies on published licences, and no launch waits on a reply from a data owner. Amended on 2026-09-24: the row on steering says what the founder decided that day.
+Status: accepted, 2026-09-23. Amended the same day: Burro relies on published licences, and no launch waits on a reply from a data owner. Amended on 2026-09-24: the row on steering says what the founder decided that day. Amended on 2026-09-25: the same row says that the proxy audit is dropped.
 
 ## Context
 
@@ -12,7 +12,7 @@ For each open question, take the most conservative design that still delivers th
 
 | Question | How it is closed | What is left over |
 |---|---|---|
-| Could ranking areas amount to steering? | Rank places, and of residents only their age and the make-up of their households. Show ethnic group and religion, and never rank on them. Read no wish for fewer of any group. Forbid steering in the terms of use. See [0006](0006-rank-places-not-residents.md) as amended on 2026-09-24 | Whether ranking on age and households is safe. Whether the census table leads anyone to steer. Proxy effects, covered by the audit. [The reading of the law](../legal/residents-crime-and-equality.md) marks each |
+| Could ranking areas amount to steering? | Rank places, and of residents only their age and the make-up of their households. Show ethnic group and religion, and never rank on them. Read no wish for fewer of any group. Forbid steering in the terms of use. See [0006](0006-rank-places-not-residents.md) as amended on 2026-09-24 | Whether ranking on age and households is safe. Whether the census table leads anyone to steer. Proxy effects: a neutral feature may still follow a protected group, and no audit looks for it since the founder dropped the proxy audit on 2026-09-25. [The reading of the law](../legal/residents-crime-and-equality.md) marks each |
 | Does share-alike reach the travel-time table? | Follow the published guidelines, publish the method, credit OSM. See 0004 | Being asked to publish the table. Accepted |
 | May Price Paid be aggregated by postcode? | Rely on the published terms, which allow showing price information. Never display postcode rows | Low. Standard practice |
 | Privacy notice, DPIA, terms | Written from the regulator's templates. Vendor agreements accepted online | Unreviewed wording |

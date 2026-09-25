@@ -1,6 +1,6 @@
 # 0012. The reader applies a plain prompt and asks about any other, and a model proposes
 
-Status: accepted, 2026-09-23. Amended the same day: the reader now applies a prompt only when the whole of it is plain, which was the next step this record named. Amended 2026-09-24: the guard on the model went, and nothing a model reads is applied. The model proposes, the person confirms, code checks. Amended again that day: what makes a limit firm, and then what is said about a thing, which the foot of this record says. Builds on [0002](0002-deterministic-core.md) and [0005](0005-raw-prompts-are-never-stored.md). Three calls of the amendment are for the founder to confirm.
+Status: accepted, 2026-09-23. Amended the same day: the reader now applies a prompt only when the whole of it is plain, which was the next step this record named. Amended 2026-09-24: the guard on the model went, and nothing a model reads is applied. The model proposes, the person confirms, code checks. Amended again that day: what makes a limit firm, and then what is said about a thing, which the foot of this record says. Amended 2026-09-25: one press may take what a person plainly said of the home they look for, which the foot of this record says too, and later that day a journey that was plainly said, as a guide, by the rules alone as with a model, and a budget to buy a house is asked about by the kind of house. Amended again that day: a place to stay away from is never a journey to it, and a house of no kind is taken as a terraced house and said to be assumed. Builds on [0002](0002-deterministic-core.md) and [0005](0005-raw-prompts-are-never-stored.md). Three calls of the amendment are for the founder to confirm.
 
 ## Context
 
@@ -109,7 +109,7 @@ The model by itself reads more, and reads some of it backwards. Five of its six 
 5. **Thirteen checks stand between an answer and an offer**, and a list of what is never offered from a model whatever it says. The contract, section 8.2, holds each with what it was measured to stop and to cost. Every list of words the checks use is core's. The guard writes none of its own.
 6. **An offer is worded in four parts, by the API**: what it would do, the person's own words cut from the text by where they stand, what follows for areas, and the choices. Doing nothing is "Skip". What nobody said is said.
 7. **A place the release does not hold is kept as a question**, with its minutes. The model is never asked where a place is, and is never sent a name of the release.
-8. **"Add all" adds less than a person may**: a wish or a vibe at a mention or a small step, the tenure, a budget as a guide, a journey as a guide to a place named in full. Never what leaves areas out, what runs two ways with no guess, a journey to a place that is yet to be chosen, or recorded crime.
+8. **"Add all" adds less than a person may**: a wish or a vibe at a mention or a small step, the tenure, a budget as a guide, a journey as a guide to a place named in full. Never what leaves areas out, what runs two ways with no guess, a journey to a place that is yet to be chosen, or recorded crime. **Overtaken on 2026-09-25 for what is said of a home**: see "What one press may take", at the foot of this record.
 9. **When a model is slow, capped or broken the rules answer**, and what the rules offer never waits on a model.
 
 What the rules offer is kept whatever a model says. For a word the rules offer what is nearest for, "safe", "a sense of community", and the words about wealth and about identity as core comes to hold them, a model's reading of the same words is dropped in favour of the rules' offer. **A vibe that counts recorded crime is never offered from a model**: typing its name asks for it, and then the rules offer it.
@@ -168,7 +168,7 @@ Each but the first is held as a test that is expected to fail.
 ### To confirm
 
 1. **"Max", "up to" and "under" are offered as a guide first**, with the firm limit as the second choice. "At most", "no more than" and "can't go over" are firm, by core's list. **Overtaken the same day**: see "What makes a limit firm", at the foot of this record.
-2. **"Add all" never adds anything that leaves areas out.** Where the guess is a firm limit, it adds the guide, and says that the limit can be made firm.
+2. **"Add all" never adds anything that leaves areas out.** Where the guess is a firm limit, it adds the guide, and says that the limit can be made firm. **Settled on 2026-09-25**: it adds a budget as the person worded it, and a journey as a guide still. See "What one press may take", at the foot of this record.
 3. **The floor is as above.**
 
 4. **A budget that may be a least has no guess.** It costs the guess on "I can't pay more than", which is firm in plain English and not by core's list.
@@ -187,7 +187,7 @@ Amended on 2026-09-24. The founder typed "max £400k" and "at most 35-40min". Re
 | A number of minutes | "at most", "max", "no more than", "within", and what was firm before: "no further than" | "up to", "under", "less than", and minutes with no such word |
 | A range of minutes | Firm at its longer end, with or without a word: "35-40min" is 40 minutes and no more | The shorter end is never a limit |
 
-The lists are core's, `FIRM_OF_MONEY` and `FIRM_OF_MINUTES`. The rules read them in a plain prompt and in an offer. The guard on a model reads them where a model called a limit firm, and the scorer of the evaluation reads them too, so the three cannot disagree. A budget or a journey that is only noticed is offered as a firm limit where the words say so, and "add all" still adds nothing that leaves areas out.
+The lists are core's, `FIRM_OF_MONEY` and `FIRM_OF_MINUTES`. The rules read them in a plain prompt and in an offer. The guard on a model reads them where a model called a limit firm, and the scorer of the evaluation reads them too, so the three cannot disagree. A budget or a journey that is only noticed is offered as a firm limit where the words say so, and "add all" still adds nothing that leaves areas out. Since 2026-09-25 it adds a firm budget that was plainly said, and no firm journey: see "What one press may take".
 
 Each list was a call made for the founder, from their own sentence, and is theirs to overturn. Two things follow that they may not want. "Up to £1,700 a month" is a firm limit, and on the made-up city it leaves out sixteen of the twenty-four areas, so the example sentences of the website say "about" where they said "up to". And "maximum" and "tops" are not on the lists, so "maximum £400k" is a guide where "max £400k" is a limit.
 
@@ -235,3 +235,170 @@ A fifth of the sentences, 23, was held back by a hash of each id before any answ
 1. **A wish of a partner's is asked, and not guessed.** The evaluation set says two people make one search. Either the cases change or the guard does.
 2. **A word for a home alone names no end.** "A flat" stays a question, and "houses not flats" is Houses.
 3. **Where a model names no end of a scale, the guess takes the end the words name only where they turned one away.** Let through for every end that is only named, a stand-in that raises whatever is named was marked backwards on eleven cases more.
+
+### What one press may take
+
+Amended on 2026-09-25. The founder typed their own sentence into a browser: a quiet place with parks, a journey from Chancery Lane, and "If I'm buying, max £400k for a 1 bed flat". Thirteen things were offered. With a model reading, three carried Burro's guess: quiet streets, a park and the journey. The one button took those three. Buying, a budget of £400,000 and a flat carried no guess, though the person plainly said each. After the press the search still assumed renting and held no budget, and the first results were flats the person could not buy at their price. The answer took ten presses.
+
+**Decided by the founder: one press may take what a person plainly said: that they are buying, their budget, and the kind of home.**
+
+1. **What is plainly said of a home carries Burro's guess**, whether or not a model reads: that a person is renting or buying, a budget with its amount, and a kind of home.
+2. **One press takes each**, with the rest that need no choice. **A budget is taken as the person worded it**: firm where they used a word of `FIRM_OF_MONEY`, "max", "up to", and a guide where they used none. A kind of home is taken with its note, which says what Burro cannot hold of what was said, and is shown before the press.
+3. **A journey is taken as a guide, and never as a firm limit.** A journey is estimated from distance and no timetable stands behind it ([0027](0027-a-journey-is-estimated-from-distance-until-a-timetable-is-held.md)), so one press must not leave areas out on an estimate. On the first build of London, which is a preview, a firm limit of 40 minutes to Chancery Lane leaves out 422 of 1,002 areas. A person makes a journey firm with a press of its own. **Settled later on 2026-09-25: it is so by the rules alone too.** That the journey stays as it is was said of this rule, and not of what the rules offer. See "A journey by the rules alone", below.
+4. **The rules that stay.** One press never takes recorded crime, anything that counts who lives somewhere, anything offered as a question, or a reading the rules keep for themselves, such as the readings of "affluent" and of "a real identity".
+
+### What plainly is
+
+The decision was to hold it to what the rules already mean by no doubt: the words stand in the sentence, nothing beside them turns them round or gives them to someone else, and the amount is one amount. Held to that and no more, six of the 901 sentences that are held as cases were a backwards guess: "I earn 60k" and "I have a 50k deposit" as a budget, "I'm done renting", "Renting is dead money" and "Finally escaping the rental market" as renting, and "Buying is out of the question" as buying. Two of the six are among the 112 answers on disk, where the floor allows one. So it is held to more, and every part is asked of what the rules read.
+
+| What is asked | How it is kept |
+|---|---|
+| The rules would apply the clause, were it all that was typed | The clause the words stand in, from one mark to the next, is read by the rules alone. They apply a prompt only where the grammar makes the whole of it. "Max £400k for a 1 bed flat" is such a clause. "I earn 60k" is not, for "earn", and nor is "I'm done renting", for "done". So one press takes no more than Burro does unasked of a plain prompt |
+| An "if" that leads the clause in is no doubt | "If I'm buying" says which of renting and buying the rest is said of, and is read as "I'm buying". Core lists the word, as `IN_CASE`. It is still no word of the grammar: a prompt that holds it is not plain, and nothing of it is applied. "Buying if I must" and "if I could buy" hold doubt that core lists |
+| The words give one of each | One tenure, one amount, one kind of home. "If I rent, up to £1,700 a month, and if I buy, max £400k" sets one case against another: it names both tenures, and nothing of it is the guess. Two amounts leave the tenure and the home plain, and two kinds of home leave the rest plain |
+| The wish is nobody else's | It is read where the amount stands, or the word for the tenure or the home, as far back as the start of its sentence and no further than "but" or a wish of the speaker's own: "my partner wants to buy" |
+| Nothing beside it puts it in doubt | No sign of doubt that core lists stands in its clause, and its sentence does not ask |
+
+Whose wish it is and which tenure is meant are asked of a model's reading of a budget too. Where either is in doubt no guess stands on what is said of a home, whoever read it. `plainly_said` in `guard.py` holds all of it, and `in_add_all` in `offers.py` what one press takes.
+
+### What it did
+
+- **The founder's sentence, on the first build of London.** By the rules alone one press takes five of the thirteen: quiet streets, culture nearby, buying, the budget and the flat. It takes six since later that day, the journey among them: see "A journey by the rules alone". With a model that reads quiet, the park and the journey it takes six: those three, and buying, the budget and the flat. The search then holds a home to buy, a flat, and £400,000 as a firm limit. 771 areas are ranked and 231 are left out, each where the middle price of a flat is more than 25% over the budget. On the made-up city the same sentence leaves out 16 of 24.
+- **"My partner wants to buy but I'd rather rent, max £400k".** One press takes nothing, by the rules alone and whatever a model answers. All of it is offered, each by its own button.
+- **What the rules mark, pressed.** Of the 901 sentences, 41 hold a guess of the rules. To press every one leaves 2 right and 38 in part, and one where nothing that was asked for was guessed. None is backwards and none holds an edit nobody asked for. A test holds it: `test_to_press_every_guess_of_the_rules_does_the_opposite_of_no_case_that_is_held`.
+- **What holding it to the clause cost.** Held to the words alone, 70 of the 901 held a guess, and to press every one left 10 right, 49 in part, 6 backwards and 2 with an edit nobody asked for. Held to the clause, 29 fewer hold a guess and 8 fewer are right: "I'm a buyer, £325,000, semi-detached ideally" takes buying and the budget and leaves the kind of home, for "ideally".
+- **The answers on disk are as they were**: 84 right, and no backwards reading marked as the guess. `test_replay.py` holds the counts.
+- **By the rules alone one press takes less of a home than it did.** It took a tenure, and a budget that was no firm limit, wherever the clause held no sign of doubt. So "I'm done renting" set renting at one press, and "I have a 50k deposit" a budget of £50,000. Neither is taken now.
+- **A firm budget leaves areas out at one press.** The line after the press says how many, and "Take it all back" puts the search back as it stood.
+
+### What it still gets wrong, of what one press takes
+
+- **By the rules alone the journey is not taken.** The rules offer a journey one way, as it was worded, and "at most 35-40min" is a firm limit. One press takes no firm journey, and the rules make no guide to take in its place. With a model it is offered both ways, and the guide is taken. To take it by the rules alone, the rules would offer a journey both ways. **Mended later on 2026-09-25**: see "A journey by the rules alone".
+- **A deposit in a clause of its own.** "I have a decent deposit, around £50k" is a budget of £50,000, with the guess: "around £50k" is a clause the rules apply. Core lists no word for what an amount is of but money, minutes and bedrooms.
+- **What is plainly said in a clause that holds a word the grammar does not place.** "We're hoping to buy a flat for around £350k" carries no guess of the rules', for "hoping". With a model on, its reading of the budget is the guess.
+- **A kind of home in a sentence of its own, in a search of the other tenure.** Of "Honestly. Buying. Max £400k. A flat." one press takes buying and the budget, and leaves the flat: read alone into a search for a home to rent, "a flat" is no kind of home Burro holds.
+
+### To confirm, of what one press takes
+
+1. **Plainly is what the rules would apply of the clause alone.** It is narrower than the words of the decision, and was made so to hold the floor.
+2. **Where the words name both tenures, nothing of a home is taken**, not even an amount that can be of one tenure alone.
+3. **"If" is the one word that leads a clause in.** "When I'm buying" and "as I'm buying" carry no guess at buying.
+4. **By the rules alone the journey waits for a press of its own.** **Settled later on 2026-09-25**: it does not. One press takes it as a guide.
+
+### A journey by the rules alone
+
+Amended later on 2026-09-25. No model is turned on where Burro is hosted, so what the rules alone give is what a person gets. Of the founder's sentence they gave a journey of at most 40 minutes to Chancery Lane one way, as a firm limit. No press takes a firm journey with others, so one press took nothing of it, and it waited behind "Show all 13".
+
+**Settled: where the rules read, with no doubt, a journey to one place with one time, the offer carries the guess and is offered both ways, and one press takes it as a guide.** A person makes it firm with a press of its own. It is offered exactly as a model's reading of it is.
+
+| What is asked | How it is kept |
+|---|---|
+| One place | The rules offer the journey one way, to a place the release holds. A journey to a place that is yet to be chosen is asked about, and carries no guess |
+| One time | The offer holds a number of minutes. In the sentence it stands in, no other number may be one of minutes, but for the other end of its own range. Of "30-45 minutes, no more than 40" and "at most 30 minutes, ideally 20" which is meant is the person's to say. A journey with no time has no limit to be firm, and is offered as it was |
+| The rules would apply the clause, were it all that was typed | As for a home. "At most 35-40min commute from Chancery Lane" is such a clause. "I commute from Chancery Lane" is not: the place may be where the person lives now. Nor is "max 30 minutes to one place or another", nor "within 40 minutes by car", which is a way of travelling Burro does not hold |
+| What is offered is what the rules would apply | The place, the minutes and the way of travelling are those of the clause read alone, so "by bike" is kept. The guess is on the way the words give: the firm limit where a word of `FIRM_OF_MINUTES` stands against the number, "at most", "within", "max", and the guide where none does |
+| A range is read as the rules read it | Of "35-40min" the longer is taken, 40, and a range is a limit at its longer end with no word against it: whoever gives one has said how long is too long. The offer says which was taken, in its note, and is taken with its note |
+| Nothing beside it puts it in doubt | No sign of doubt that core lists stands in its clause, and its sentence does not ask: "is 30 minutes too far?" |
+
+A journey is nobody's wish, so whose it is is not asked: a partner's workplace is a place the household must reach. `_journey_as_said` in `guard.py` holds it.
+
+**What it did.**
+
+- **The founder's sentence, on the first build of London, by the rules alone.** One press takes six of the thirteen: quiet streets, culture nearby, the journey to Chancery Lane as a guide of 40 minutes by public transport, buying, the budget and the flat. The journey is in sight before "Show all". 771 areas are ranked and 231 are left out, each over the budget, and none for the journey.
+- **What the rules mark, pressed.** Of the 901 sentences, 42 hold a guess of the rules, and five of them a guess at a journey. To press every one leaves 2 right and 39 in part, and one where nothing that was asked for was guessed. None is backwards. The scorer presses the guess, which for a journey may be the firm limit. One press takes the guide of each of the five.
+- **The answers on disk are as they were.**
+
+**What it still gets wrong.**
+
+- **A journey with no time is taken as it was**, and the rules read a place after words that do not say a journey to it. Of "my ex lives at Pellam Exchange, 30 minutes away at least" they offer a journey to Pellam Exchange with no time, and one press takes it. It was so before this amendment.
+- **A journey in a sentence that holds another time is not taken.** Of "at most 40 minutes to Pellam Exchange and a park within 10 minutes' walk" the journey waits for a press of its own.
+- **Minutes that stand apart from the place are lost.** Of "my partner works at Pellam Infirmary, 30 minutes max" the rules offer the journey with no time.
+
+### A place to stay away from
+
+Amended later on 2026-09-25. In a prompt that is not plain the rules offer any place that is named as a journey to it, one way. While one press took no journey by the rules alone that cost little. Once it took one, "my ex lives at Pellam Exchange, 30 minutes away at least" added a journey to that place at one press. **A person who asked to live far from somebody was ranked by how near they were to them.** It is the worst misreading Burro can make of a place, and it is of a person's safety.
+
+**Decided: a journey that is read backwards is never taken by one press.**
+
+1. **A place that is named with a word for staying away carries no guess, is taken by no press, and is never applied from a plain prompt.** By a word for far, wherever it stands in the sentence of the place, and by a least against a number of minutes. The rules offer it with nothing to choose, and say why in one sentence: "Burro cannot rank on being far from a place."
+2. **A place that may be somebody else's is offered, and no press takes it with others.** Where the words do not say that the person or their household must reach it, Burro does not guess.
+3. **"My partner works at" and "my kids' school is" are places a household must reach**, and are read as they were.
+4. **A model's reading is held to what the rules say of the place.** Of a place to stay away from it is dropped. Of a place that may be somebody else's it is no guess.
+
+**How the two are told apart.** By who is named before the place, in its clause, and by whether a word says that they live there. Each is a closed list in core, `vocabulary.py`.
+
+| The words | Who | What is made of the place |
+|---|---|---|
+| "I work at", "my boss and I work at" | the speaker's own words for a journey | a place to reach |
+| "my partner works at", "and my partner at" | one of the household, `OF_THE_HOUSEHOLD` | a place the household must reach |
+| "my kids' school is" | nobody that `SOMEBODY_ELSE` names | read as it was |
+| "my partner lives at" | one of the household, with a word of `LIVES_THERE` | offered, and not taken |
+| "my ex lives at", "my mate works at", "his mother is in", "she's at" | somebody else, `SOMEBODY_ELSE` | offered, and not taken |
+| "we moved from" | a place that was left, `LEFT_BEHIND` | offered, and not taken |
+
+Where the words do not say, the place is offered and nothing is guessed. "She" and "he" are nobody the words name, so where a partner was named a sentence before, "she's at" is offered and not taken.
+
+**What was read from core before a word was added.** Core already listed every word for far and for a least as one that turns a wish away or puts it in doubt, and read them only before the name of a place, in its clause. `STAYS_AWAY` and `AT_LEAST` name the ones that are said of a place, and are read through the whole of its sentence. New to core are "over", "or more", "a minimum of", "not less than", "upwards of" and "at the least" as a least, "nowhere near" as a phrase, the household, who "his", "her" and "their" are, and what says that somebody lives somewhere.
+
+**What it did.**
+
+- **The sentence that was found, and twenty-one more**, on the made-up city and on the first build of London, by the rules alone, with a made-up model that reads every place as a firm journey to it, and with a model that fails: no journey is applied, none carries a guess, and one press takes none. Sixteen are answered with nothing to press, and six are offered by a button of their own.
+- **What the rules mark, pressed, is as it was**: of the 901 sentences 42 hold a guess, 2 are right, 39 in part, one is not read, and none is backwards.
+- **The answers on disk are as they were**: 84 right, and none backwards.
+- **Every count of the scorer is as it was but one.** "Offered where nothing was asked" is 146 where it was 141: five sentences that ask for a least distance are now answered with the sentence, which the scorer counts as an offer though nothing of it can be pressed.
+- **Seven cases of the evaluation set are read anew**, and each as its case asks: five that give a least distance are said to be so, and "my ex works at" and "my mate works at, not me" are offered with no press.
+
+**What it still gets wrong.**
+
+- **A wish to stay away that core's words for dread say, and no word for far.** "I hate Pellam Exchange" and "I don't want to be near Foxholt Works" are offered nothing, as before, and are told nothing of why.
+- **A word for far that is said of another thing.** Of "at most 40 minutes to Pellam Exchange, and far from the motorway" no journey is offered. The person adds it with the settings.
+- **A place of a partner who was named a sentence before.** "She's at" is offered, and no press takes it.
+- **A place that is misspelt is no place the rules read**, so nothing is said of it.
+
+### A budget for a house
+
+Amended later on 2026-09-25. "Buying a house, about £600k, near a station" is a plain prompt, and was applied whole. A search to buy holds a flat until a kind of home is said, and "a house" said none, so the budget was held against what flats sold for.
+
+**Decided: a house is never held against what flats sold for.** Where a person names a house, the budget is held against what houses sold for where the release carries that, and where it does not the answer says so.
+
+**What a release carries.** A price is held by the kind of home: a flat, a terraced house, a semi-detached house, a detached house. No release holds a figure for a house of any kind, and the contract has no kind of home to hold one under.
+
+| Release | Areas | Flat | Terraced | Semi-detached | Detached | A house of any kind |
+|---|---|---|---|---|---|---|
+| The made-up city | 24 | 21 | 21 | 21 | 19 | none |
+| The first build of London, a preview | 1,002 | 984 | 940 | 653 | 282 | none |
+
+So what houses sold for is carried, by kind, and which kind a person means is theirs to say. It matters which: in the first build of London a terraced house sold for more than a flat in 918 of the 922 areas that hold a price for both. A flat is within £600,000 in 879 areas, a terraced house in 461, a semi-detached house in 276 and a detached house in 34.
+
+**Decided the same day, by the founder's own decision of that morning: a house of no kind is taken as a terraced house, and the kind is said to be assumed.** That morning it was decided that one press may take what a person plainly said of a home, because the answer was too many presses away. To ask which kind of house costs three presses where there were none, and goes against that. So the question is kept only where a terraced house cannot serve.
+
+**It is a default, and the founder may overturn it.** It is `DEFAULT_HOUSE` in `burro_core.spec`, and one line. To ask which kind was built first, in the two commits "Ask which kind of house a budget to buy a house is for" and "Record the answer to a budget for a house, and hold the clients to it", and is one commit away: `_for_a_house_of_no_kind` makes the prompt not plain again, and the offer loses its guess.
+
+1. **Where a person plainly names a house and no kind of house, the budget is held against what terraced houses sold for.** A plain prompt is applied whole, with no press, and the answer says that the kind is assumed, `Assumption.code` `segment`, as it says of public transport where a person named no way of travelling.
+2. **In a prompt that is not plain, the budget is offered for a terraced house first, which carries the guess and which one press takes**, as it takes any home that was plainly said. Semi-detached and detached are each a way of the same offer, one press away.
+3. **The offer says why, in one sentence**, of the release that is served: "You named no kind of house, so Burro has taken a terraced house, the least dear kind in most areas. Semi-detached and detached are one press away." That it is the least dear kind is said only where it is, in more than half of the areas that hold a price for any kind of house. In the first build of London it is, in 884 of 953.
+4. **The kind stands in an edit of its own, which says whose it is.** The one Burro took is `inferred`, and a client marks the kind as assumed after the press. One that a person presses is theirs.
+5. **An area that holds no price for a terraced house has no figure for that budget, and is held to the price of no other kind.** It is ranked, it is not left out by a firm limit, and it says that the limit could not be tested. The first build of London has 62 such areas of 1,002.
+6. **Where a release holds no price for a terraced house, which kind it is is asked**, of the kinds that have one, as it was built first. Where it holds a price for no kind of house, the budget is said to be missing, as any figure that is not in the data is.
+7. **A model's reading of the amount is dropped.** It rests on words the rules offer with a note, which are the rules' to offer.
+8. **Nothing else of a home is read another way.** A kind that is named is the kind. A rent is held by the number of bedrooms, whatever kind of home it is for. A house with no amount holds a budget against nothing.
+
+**What it did.**
+
+- **The floor of core's plain sentences is back where it stood**: of 170 the rules apply 136. "A house to buy for about 500k" is applied, held against a terraced house.
+- **The evaluation set is as it was**: every count of the scorer, and of the answers on disk. Of the 901 sentences, what the rules mark is right or in part in each that holds a guess, and none is backwards.
+- **On the first build of London, by the rules alone.** "Buying a house, about £600k, near a station" is applied with no press: to buy, £600,000 against a terraced house, flexible, nearer a station. 970 areas are ranked and none is left out. Of whole-003, "Two bed house, max £650k", one press takes £650,000 against a terraced house as a firm limit: 721 areas are ranked and 281 are left out as over the budget.
+
+**What it cost.**
+
+- **A person who meant a semi-detached or a detached house is shown a search they did not ask for**, until they read the word "assumed" or the note. In the first build of London a terraced house is within £600,000 in 461 areas, a semi-detached house in 276 and a detached house in 34.
+- **In the row of chips a kind of house that was assumed is always named.** A part that nobody said is folded into "rest assumed" where there are two. A kind of house is not: it is what the budget is held against.
+
+**What was not chosen.**
+
+- **A figure for a house of any kind.** The sales of the three kinds would be read together by the build. `Segment` would gain a kind, which is a change to the contract and to every client.
+
+**What it still gets wrong.**
+
+- **A house that is named of another home is heard as the home that is looked for.** Of "selling the house, buying, max £500k" the budget is asked about by kind of house.
+- **The number of bedrooms of a house to buy is heard and not held.** Of "two bed house, max £650k" the budget is held against what terraced houses of any size sold for, and the two bedrooms are said not to be in the data.

@@ -1,6 +1,6 @@
 # 0021. What a home sells for is shown as the publisher gives it: one number, with no range
 
-Status: accepted in part, 2026-09-24. That a price may be shown is the founder's decision of that day. How a release carries it changes the contract, so that part is proposed, and is the founder's to approve. **Amended the same day**, three times: a person may ask for homes that sell for more, a price is worked out from the sales themselves, with a margin on a firm budget, and two more figures of homes may be asked for. See the three amendments below. Two points are left for the founder to decide. It follows [0002](0002-deterministic-core.md), [0006](0006-rank-places-not-residents.md) and [0014](0014-evidence-first-and-census-figures-shown.md).
+Status: accepted in part, 2026-09-24. That a price may be shown is the founder's decision of that day. How a release carries it changes the contract, so that part is proposed, and is the founder's to approve. **Amended the same day**, three times: a person may ask for homes that sell for more, a price is worked out from the sales themselves, with a margin on a firm budget, and two more figures of homes may be asked for. See the three amendments below. **Amended on 2026-09-25**: a rent is shown as its publisher gives it, for the postcode district or the borough an area lies in, with the place said beside it. The founder decided so that day, in the words "Rents -> yes". See the fourth amendment below. Two points are left for the founder to decide. It follows [0002](0002-deterministic-core.md), [0006](0006-rank-places-not-residents.md) and [0014](0014-evidence-first-and-census-figures-shown.md).
 
 ## Context
 
@@ -46,7 +46,7 @@ The sentence prints no word for a confidence. A figure for a one-bedroom flat wo
 
 **The row of evidence holds the median.** The check of a release holds the figure to its row, as it does for a measure. So a price that is changed after a build is found, and so is one that is added where the publisher gave none.
 
-**A release holds no rent.** Rents are published for boroughs and for postcode districts, and not for areas. No design holds the model that would bring one to an area, and a figure of a larger area is never pasted onto a smaller one. A renter's budget is turned away as `not_in_release`: what a release holds for no area cannot be asked for (contract, section 5.3, rule 15).
+**A release holds no rent.** Rents are published for boroughs and for postcode districts, and not for areas. No design holds the model that would bring one to an area, and a figure of a larger area is never pasted onto a smaller one. A renter's budget is turned away as `not_in_release`: what a release holds for no area cannot be asked for (contract, section 5.3, rule 15). *Changed on 2026-09-25 by the fourth amendment below: a release may hold the rent of the place an area lies in, and says the place.*
 
 **A price is no verdict.** It says what homes sold for. It says nothing of a place, or of who lives there. It is a cost and no measure: core's catalogue has no feature for a price, so no vibe and no likeness can rest on one. Whether a person may ask for homes that sell for more was another decision, and was not made here: see the amendment below.
 
@@ -78,6 +78,24 @@ Why a quarter. About half of the homes behind a median sold for less than it, an
 
 Both follow household income, as [0028](0028-household-income-is-shown-and-never-ranked-on.md) measured: the bands at 0.71 in rank, and what homes of any kind sell for at 0.58. The rises do not: 0.04 and -0.13. What that means for the first two is the founder's to decide, and 0028 says what can be done.
 
+**Amended, 2026-09-25: a rent is shown as its publisher gives it, for the place an area lies in.** A renter who named a budget was answered that no release held a rent. The founder asked for rents, and decided that the figures of a wider place may be shown and used for a budget, with the place a figure is of and the publisher's caution said beside it.
+
+| | Decided |
+|---|---|
+| Where a rent comes from | From the workbook the Office for National Statistics gave on request, under `ons-private-rental-market-london-postcode-district`: the rents the Valuation Office Agency recorded in London from April 2025 to March 2026. It gives the count of rents, the mean, the median and both quartiles, for six kinds of home, for each borough and for each postcode district. No other open source gives a rent below a borough |
+| Which place an area takes | The postcode district where half or more of its homes stand, and its borough otherwise. An output area stands in the district of most of its postcodes in use. Where the district has no row that may be carried, the borough's row is taken. Where neither has one the area has no rent, and none is filled in from a neighbour |
+| Which rows are carried | Only a row that holds the median and both quartiles. The publisher gives none of them on fewer than 10 rents |
+| What a row holds | The three figures as the publisher wrote them, to the pound. The count of rents, which the publisher rounds to the nearest 10. The first month and the last of the twelve. And `of`: the kind of place, and its name. Every area of one place holds the same row, and core refuses a release where two differ |
+| How sure it is | `high` from 50 rents and `medium` from 10 to 49, as for a price that was counted. No client prints the word: the count is shown in its place |
+| What is said wherever it is shown | The place the figure is of, that it is not of the area alone, the months, and how many rents were recorded. No figure is shown without them, in the API, on the website or in the app |
+| The publisher's caution | Said once where a person reads it: beside the rents on an area's page, in the offer of a budget to rent, and on the page of methods. In Burro's words, faithful to the workbook's: the rents are a sample that was not drawn at random, the publisher advises against comparing one area with another on them, and Burro uses them as a rough guide to what a home lets for. No figure is quoted to make the point |
+| A budget to rent | Held as a budget to buy is, against the median. As a guide it counts an area in full where the median is within it, and for less the further it is over. As a firm limit it leaves out an area only where the median is more than a quarter over it, by `FIRM_BUDGET_MARGIN_PERCENT`. What it leaves out is counted and listed, and the line that counts it says that the rents behind it are of a district or a borough. The quartiles are shown, and no budget is held against one |
+| The row of evidence | Holds the median, the count, and how much of the area's homes stand in the district. The check of a release holds the figure to its row |
+
+Why the median, where the row holds an upper quartile. A budget to rent on the made-up release is held against the upper quartile of the area's own range. The figures of London are of a wider place, and the publisher says they are not to be read as exact. To hold a firm limit against the upper end of such a range would leave out the areas of a whole district on a figure that is not theirs. The margin of a quarter is the one the founder set for prices.
+
+What the amendment does not settle is in the registry, under `before_launch` of the source: what line of credit the publisher asks for, and whether the series goes on. The workbook said its next edition was due in July 2026, and none has appeared.
+
 What was not taken:
 
 | Way | Why not |
@@ -89,7 +107,7 @@ What was not taken:
 | Round the median to 5,000, as an estimate is | A reader who opens the publisher's sheet must find the number that is shown |
 | Give a price a file of its own in a release | A budget is held against a cost, and a second kind of cost would need a second rule in every client |
 | Carry a price as a feature of the catalogue | A feature can be a part of a vibe and of likeness. A price would then say what a place is like |
-| Show a borough's rent beside an area | It is a figure of a larger area, and reads as the area's own |
+| Show a borough's rent beside an area | It is a figure of a larger area, and reads as the area's own. Taken on 2026-09-25 all the same, with the place said wherever the figure is: the fourth amendment |
 | Hold a firm budget against a lower figure than the median | The workbook gives none |
 
 ## What is not settled
@@ -116,3 +134,4 @@ Each is the founder's to decide.
 - The synthetic release is not changed: every cost in it is a range.
 - When areas are drawn by hand, no sheet of the workbook holds a row for one. A price is then worked out from sales, under `hmlr-price-paid`, and can be a range with a count behind it. The rows of this record give way to those.
 - The design of the data for London says the workbook is never shown. It was written before the decision, and this record stands in its place on that point.
+- Since the fourth amendment, `contracts/openapi.json` gains `CostOf`, the fields `of` and `rents` of a cost, `rents` of route 11, and three templates. The engine is 1.14.0. No result moves on a release whose rents are of the area alone, as the made-up release's are.

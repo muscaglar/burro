@@ -58,7 +58,7 @@ Nothing weighs any of these by default, none stands in a vibe, and no likeness i
 
 [Decision 0006](0006-rank-places-not-residents.md) holds that Burro ranks places and never residents. Every measure here counts shops. None counts a person, and none is told from who lives anywhere.
 
-The founder's aim names socioeconomic factors, so the mix is wanted because it follows how well off a place is. That makes it a stand-in by design, and 0006 asks for a row of the proxy audit before such a measure is served. The row is in [the page on brands](../research/data/brands.md), section 8, and was written before any release held the mix. What it found: across London's areas the mix follows what homes sell for, at a rank correlation of 0.48. What it could not find is whether the mix follows who lives in an area, because no file is registered for the audit.
+The founder's aim names socioeconomic factors, so the mix is wanted because it follows how well off a place is. That makes it a stand-in by design, and 0006 asks for a row of the proxy audit before such a measure is served. The row is in [the page on brands](../research/data/brands.md), section 8, and was written before any release held the mix. What it found: across London's areas the mix follows what homes sell for, at a rank correlation of 0.48. What it could not find is whether the mix follows who lives in an area, because no file is registered for the audit. **Amended, 2026-09-25:** the founder dropped the proxy audit that day ([0006](0006-rank-places-not-residents.md), as amended). The row stays as a record of what was measured, and holds nothing back.
 
 One name was shortened. Core holds no name of a measure with a word that may be said of residents, and the full name of one chain of gyms holds such a word. It is said "Nuffield".
 
@@ -75,13 +75,13 @@ One name was shortened. Core holds no name of a measure with a word that may be 
 
 | If | Then |
 |---|---|
-| The founder moves a chain to another tier, or adds or takes off a chain | One row of `brand_tiers.toml` changes, and a chain that is new to core gains an id. The measures are built again |
+| The founder moves a chain to another tier, or adds or takes off a chain | One row of `brand_tiers.toml` changes, and a chain that is new to core gains an id. The measures are built again. Since 2026-09-25 the same is done at the panel of the review desk, as a line of the file of changes that a build lays over the table ([0029](0029-a-change-reaches-a-release-through-a-file-of-changes.md)): the file of the table is then what a build starts from |
 | The founder does not want one of the five that were added | Its row comes off the table, and its id stays in core and is carried by no release |
 | A mid-range place should count for more or less than half | One number in `brands_nearby.py`, and the method of the mix gains a version |
 | The mix should not be said where few places stand behind it | The measure is left out for an area with fewer than a set number within reach, and says so |
 | Independent places, as measured, do not belong in a vibe | The recipe of Food and drink or of Village feel changes, which is a change of the catalogue |
 | A second source of shops is registered | The chains the file misses can be counted. Until then an area's page says what the file holds, and that it misses some |
-| The audit finds that the mix follows who lives in an area, at 0.5 or more | The mix is taken out of what is offered for a word for a smart area, or is shown and no longer ranked on |
+| The audit finds that the mix follows who lives in an area, at 0.5 or more | The mix is taken out of what is offered for a word for a smart area, or is shown and no longer ranked on. **Dropped on 2026-09-25**, with the proxy audit: no audit is run, so none finds it |
 
 ## For the founder to confirm
 

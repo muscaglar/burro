@@ -90,6 +90,7 @@ conditions = [
     "AllThePlaces records are scraped from retailer store locators. The CC0 waiver covers only the project's own rights, not any rights the retailers hold. Keep these records filterable so they can be dropped if a retailer objects.",
     "Put the Overture line and the Foursquare notice on the attributions page. If the raw data is ever shared, include the CDLA-Permissive-2.0 text and the full Foursquare NOTICE.txt.",
     "Aggregates only in v1. Do not show place names or any record-level row; showing Foursquare-sourced names brings the Apache notice duty onto that display.",
+    "What the published terms say of showing a name, as read on 2026-09-25 through a reader that extracts, each page asked twice in different words: Overture's attribution page and Places guide, CDLA-Permissive-2.0, under which Meta's records are given, and AllThePlaces' own page with the CC0 1.0 it names state no term on showing the name of a place or of a brand, the page Overture links for Meta says nothing of its data, and no licence of the entry grants a right in a trade mark: CC0 says in section 4 that no trademark right of its affirmer is waived, and that the affirmer takes no responsibility for clearing the rights of other persons. The founder's reading, accepted on 2026-09-25: a chain is not a place, so an area's page may name a chain by Burro's own table of brands, as in 'Straight-line distance to the nearest Waitrose', and the name of a place is never shown.",
     "Pin one release per data release and build against basic_category and taxonomy, not the removed categories property.",
     "OpenStreetMap may be used to set a global confidence threshold only, never to drop, add or correct individual Overture records.",
     "This entry covers the Places theme only. Overture base, buildings, divisions and transportation contain OpenStreetMap data under ODbL and need their own entries.",
@@ -140,7 +141,7 @@ before_launch = [
     "The founder says that the walk to a GP practice comes into the first version. The plan, in section 4, lists GP access as out, and the design of the London data recommends that it comes in.",
 ]
 uses = ["scoring"]
-cadence = "The page says the predefined reports are dynamic and the source data updates nightly. The specification gives the update of the data behind this report as weekly, for England and Wales."
+cadence = "Weekly, for England and Wales: the specification gives the update of the data behind this report so. The page says the predefined reports are dynamic and the source data updates nightly."
 verified_how = "primary_source"
 verified_on = 2026-09-24
 evidence_urls = [

@@ -25,6 +25,7 @@ No dataset was downloaded to write this plan. Nothing was run or measured for it
 - **37 files had no receipt**, because the page of each names no edition. 36 have one since 2026-09-24, when each was fetched again and read for the edition it states of itself. The street extract has none, and no step of a build reads it.
 - **Nothing of it is published, and nothing is served.** Two previews of London and a draft of its named areas were made from the files. Each is written where git does not look, each says that it is not finished, and no person has checked any of them. [The guide to data builds](../data-builds.md), sections 15 and 16, says how a preview is made and seen.
 - **The plan below is as it was written.** Where it says that a size, a layout or a census is not known, those six pages say what was found in the files that were fetched.
+- **The proxy audit is dropped.** The founder decided it on 2026-09-25 ([ADR 0006](../adr/0006-rank-places-not-residents.md), as amended that day). Where the plan below speaks of the audit, of its store or of its rule, it says what was planned on 2026-09-23: no audit is run, no store is made for one, and no vibe or measure waits on one. What keeps figures about residents out of a ranking is as it was.
 
 Reviewed the same day against the six designs, the registry and the code as it stood. Corrected on review: the size of the first files, the schema number, the registry change M1 needs, the method behind the noise figure, and what M1 to M5 wait on. What the review could not settle is in section 14.
 
@@ -274,7 +275,7 @@ The public launch also waits on things outside this plan: the privacy notice, th
 | 7 | 25 Sep | Mark each of the 33 boroughs "know well", "know a little" or "do not know". Start looking for the second reviewer | 1 |
 | 8 | 25 Sep | Open and save the pages that nobody has read: Open Parliament Licence, DfE performance tables, Arts Council England, Active Places licence, Code-Point Open | 2 |
 | 9 | 25 Sep | Apply to a free legal clinic, with sections 5 and 6 of the census design | 2 |
-| 10 | By 2 Oct | Write the proxy audit rule of vibes 6.1, before any audit table is opened | 4 |
+| 10 | By 2 Oct | Write the proxy audit rule of vibes 6.1, before any audit table is opened. **Dropped on 2026-09-25:** the founder decided that no proxy audit is run ([ADR 0006](../adr/0006-rank-places-not-residents.md), as amended), so no rule is written and no audit table is opened | None |
 | 11 | By 2 Oct | Approve the registry changes and the new wording of rule 8 | 2 |
 | 12 | By 9 Oct | Read the first coverage report. Check that 20 named commons, heaths and forests are in the greenspace file | 2 |
 | 13 | By 9 Oct | Mark every sentence of 30 articles fit or unfit: the golden set | 6 |
@@ -292,7 +293,7 @@ The public launch also waits on things outside this plan: the privacy notice, th
 | 25 | Before the first build that reads one | For each of the three owners who gave permission in writing, as the founder reports, file a dated note written from the reply itself, and make decision 19. The registry's README says what a note holds | Not timed |
 | | | **To 20 November: about 155. To 18 December: about 210** | |
 
-Row 25 is in neither total. Hours for rows 10, 19 and 20 are this document's own guesses. The rest are the six designs' guesses. None was timed. Not counted: starting and approving each data run and reading its log, accepting ADR 0013, standing up a host for the preview and for testers, and finding more than one reviewer (section 14, rows 2, 12 and 16).
+Row 25 is in neither total. Row 10 was dropped on 2026-09-25, and the four hours it stood at are in both totals still. Hours for rows 10, 19 and 20 are this document's own guesses. The rest are the six designs' guesses. None was timed. Not counted: starting and approving each data run and reading its log, accepting ADR 0013, standing up a host for the preview and for testers, and finding more than one reviewer (section 14, rows 2, 12 and 16).
 
 ## 7. If something is late
 

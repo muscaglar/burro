@@ -2,6 +2,8 @@
 
 Status: design, 2026-09-23. Revised the same day after two reviews, one on fairness and law and one from a person who knows London. Section 11 lists what the reviews changed, and section 12 what they did not. It is the one design the team builds from. It merges three proposals, which stay beside it as the record of what was weighed: [from the person](vibes-proposal-newcomer.md), [from the data](vibes-proposal-evidence.md) and [from difference](vibes-proposal-difference.md).
 
+**Amended on 2026-09-25: the proxy audit of section 6.1 is dropped.** The founder decided it ([ADR 0006](../adr/0006-rank-places-not-residents.md), as amended that day). No measure and no vibe waits on a row of the audit, and its lines of 0.3, 0.5 and 0.6 hold nothing back. Section 6.1 says what was proposed and what is decided now. Wherever else this document says that something waits on the audit, or on one of its lines, it says what was proposed on 2026-09-23.
+
 Nothing here is built. Nothing here changes a rule, the registry or a decision record: each of those changes is listed, and is made by its owner in the same change as the code. Nothing here is legal advice, and no lawyer has read it. Every weight and threshold is a first guess. Every example uses the made-up city, and no sentence describes a real place. Nothing was measured on real data, so every statement about where a recipe would place a real kind of area is a prediction.
 
 It rests on the seven reports in [`docs/research/vibes/`](../research/vibes/), on [PLAN](../PLAN.md), on ADRs 0002, 0004, 0006, 0007 and 0010, and on [the contract](contract.md). Where this design and a report disagree, this design is what is built. Section 13 lists the pages re-read for this document.
@@ -39,7 +41,7 @@ A vibe has one of two shapes. A scale has two ends, both named and both plain ta
 | 6 | Is measured from where homes are | A part is a share of homes within a walk, or a mean weighted by homes, and not a count per km² or a share of the drawn boundary. A mixed area is drawn as a range, never as a point in the middle | The `basis` field of a feature. The `spread` of 5.3 |
 | 7 | Is Burro's own judgement, and says so | Every vibe carries the fixed line "The recipe is Burro's own. The weights are a judgement." The source line reads "Burro's recipe. Made from data published by: ...", so no publisher appears to have placed the area. No marketing copy uses a vibe word about a real named area. The methods page names a contact, and promises a review within 28 days when a resident objects to how their area is placed | Fixed text in core. A test on the templates. The promise is the founder's to keep |
 
-A vibe ships on real data only when it has passed section 6 on that release. The audit of 6.1 comes first and wins.
+A vibe ships on real data only when it has passed section 6 on that release. The audit of 6.1 comes first and wins. **Dropped on 2026-09-25:** no audit is run, so no vibe waits on one.
 
 ## 2. The catalogue
 
@@ -74,7 +76,7 @@ Broadband is not a vibe. It is a line on the portrait, with the regulator's chec
 
 | Vibe | Recipe, in hundredths | State | Approved | What settles it |
 |---|---|---|---|---|
-| Homes | 40 `homes_flats` + 35 `homes_density` + 25 `private_outdoor_space` shortfall | Now | 100. It runs at 75 until the audit row for outdoor space passes | Outdoor space is a modelled score from the Indices of Deprivation, and the review expects it to follow race and income. It enters only if it is under 0.3 on every table of 6.1 |
+| Homes | 40 `homes_flats` + 35 `homes_density` + 25 `private_outdoor_space` shortfall | Now | 100. It runs at 75 until the audit row for outdoor space passes. **Since 2026-09-25 it runs on all of it:** the audit is dropped, and a build carries private outdoor space at 25 | Outdoor space is a modelled score from the Indices of Deprivation, and the review expects it to follow race and income. It enters only if it is under 0.3 on every table of 6.1. **Dropped on 2026-09-25:** no line of 0.3 stands. As built it is no modelled score: it is a share of addresses, from the statistics office's workbook of April 2020 |
 | Built age | 35 `homes_pre1919` + 25 `conservation_cover` + 20 `listed_buildings` + 20 `homes_post2000` low | Now | 100 | The build period bands, read in the file. Catalogue rows |
 | Village feel | 25 `independents_nearby` + 20 `centre_small` + 20 `centre_compact` + 20 `homes_pre1919` + 15 `conservation_cover` | Now | 100 | Whether each town centre boundary carries its class. The village and high-road trap of 6.2 |
 | Quiet streets | 40 `road_major_exposure` low + 30 `evening_cluster_exposure` low + 30 `noise_exposure` low | Now | 100 | Catalogue rows. The golden query "a quiet street near a lively high street" |
@@ -249,7 +251,7 @@ There is no honest way to build "gritty" as one metric of crime, socioeconomic f
 |---|---|---|
 | The spike, about a day once the land use table is registered | 20 areas that residents describe as full of works, warehouses, depots and arches, and 20 they describe as having none. The recipe must tell them apart | The vibe is dropped. "Gritty" is then answered by the fixed line and the two nuisances, and is not renamed into something else |
 | The word, with ten people on the synthetic city | Shown the chip, do they accept Works and warehouses as a fair reading of "gritty"? | If most do not, "gritty" makes no edit and gets the fixed line alone. The vibe stays for the words of its own |
-| The audit of 6.1 | Works and warehouses is tested against the audit tables and the income domain before any weight is tuned | At 0.6 it is dropped. It is never shown and barred from being sought |
+| The audit of 6.1 | Works and warehouses is tested against the audit tables and the income domain before any weight is tuned | At 0.6 it is dropped. It is never shown and barred from being sought. **Dropped on 2026-09-25:** no audit is run, and no line of 0.6 stands |
 | Until these pass | On a real release it has no lens, no place in the strip, the table or likeness, and its bands are left out of route 4. On the area page it is never first, and shows its parts with their figures | |
 
 ## 4. The founder's decision on residents
@@ -385,8 +387,8 @@ A vibe has three flags: `lens`, `strip` and `table`. A sorted column is a league
 
 | Rule | Detail |
 |---|---|
-| To hold a flag | Both ends are plain tastes. The vibe is under 0.5 on every table of 6.1, and at 0.3 or over its review note is published. The gap between its 20th and 80th percentile areas is large enough to matter, by a threshold written for that vibe |
-| On a real release | Every flag starts off, and is turned on by the audit's outcome. A test: no vibe at 0.5 or over has a flag, and none at 0.3 or over has one without a published note |
+| To hold a flag | Both ends are plain tastes. The vibe is under 0.5 on every table of 6.1, and at 0.3 or over its review note is published. The gap between its 20th and 80th percentile areas is large enough to matter, by a threshold written for that vibe. **Since 2026-09-25** the lines of 0.5 and of 0.3 are dropped with the audit, and the rest of this row stands as it was proposed |
+| On a real release | Every flag starts off, and is turned on by the audit's outcome. A test: no vibe at 0.5 or over has a flag, and none at 0.3 or over has one without a published note. **Dropped on 2026-09-25:** no audit has an outcome. As built, core holds one catalogue, and a vibe holds the same flags on every release ([the contract](contract.md), section 13) |
 | Candidates | Pace, Homes, Built age, Leafy, Parks close by, Quiet streets, Village feel, and the amenity vibes |
 | On the synthetic city | Every vibe may hold every flag, so the founder can judge the controls |
 | What this does not stop | Anyone can read 450 static pages and sort them. With literal names, what they get is a list of areas with the most storage land |
@@ -415,9 +417,21 @@ Every name in "Go and look" comes from a stored fact in a source registered for 
 
 ## 6. How a vibe earns its place on real data
 
-PLAN section 8 says a tag ships only if it passes a sanity set of 40 neighbourhoods. The first draft asked five people to name areas at each end. That could not be assembled, and it would have rewarded a recipe for matching an area's reputation. It is replaced by an audit and a test with people, in that order. **When the audit and the people disagree, the audit wins.**
+PLAN section 8 says a tag ships only if it passes a sanity set of 40 neighbourhoods. The first draft asked five people to name areas at each end. That could not be assembled, and it would have rewarded a recipe for matching an area's reputation. It is replaced by an audit and a test with people, in that order. **When the audit and the people disagree, the audit wins.** Since 2026-09-25 the audit is dropped, and the test with people is what is left of this section.
 
 ### 6.1 The proxy audit, written before any recipe is tuned
+
+**Dropped on 2026-09-25.** The founder decided that no proxy audit is run ([ADR 0006](../adr/0006-rank-places-not-residents.md), as amended that day). What stands below is the rule this design proposed on 2026-09-23. It was never adopted, no store was made for it, and it never ran.
+
+| | Proposed on 2026-09-23 | Decided on 2026-09-25 |
+|---|---|---|
+| A row of the audit before a measure joins a release | Asked of every part | Not asked. No part waits on one |
+| The line of 0.3 | Review, and a note on the methods page | Dropped |
+| The line of 0.5 | The vibe loses its flags, leaves likeness, and cannot be sought in one direction | Dropped |
+| The line of 0.6 | The vibe or the part is dropped from the release | Dropped |
+| The rows that were written by hand | Four: recorded incidents, the age of residents and their households, the brands, and prices | Each stays as a record of what was measured, and holds nothing back |
+| Private outdoor space | Held out of Homes until its row had passed | A part of Houses or flats, at 25 in 100 |
+| What keeps residents out of a ranking | The gate, the closed list of features, and the rules for a part that counts residents | Unchanged. None of it rested on the audit |
 
 ADR 0006 asks for a written rule before the audit runs, and the founder writes it. This is the rule the design proposes. It has a line at which a vibe is dropped without discretion, because a rule that only triggers a review leaves the founder judging their own product.
 
@@ -433,7 +447,7 @@ ADR 0006 asks for a written rule before the audit runs, and the founder writes i
 | Published | The rule, and each outcome: passed, changed or dropped |
 | What it cannot do | It tests what Burro can correlate. It does not say whether an aim is legitimate or a means proportionate. That is a legal judgement. Nobody independent checks the founder's arithmetic |
 
-The audit tables are gated in the registry until a store the product cannot read exists, with its check in CI. That gate is unchanged.
+The audit tables are gated in the registry until a store the product cannot read exists, with its check in CI. That gate is unchanged. **Since 2026-09-25** it is unchanged still: no audit is planned, no such store is to be built, and the gate refuses the tables for every use.
 
 ### 6.2 The people test
 
@@ -493,7 +507,7 @@ What `kind` decides:
 
 | Step | Rule |
 |---|---|
-| What is compared | Parts, not vibes, and each part once. The first draft compared vibes, which counted the walk to a park six times. Only a part with `in_likeness`. Never crime, a nuisance, cost, a journey, a figure of 2.5, or a part at 0.5 or over in 6.1. `private_outdoor_space`, `homes_flats`, `homes_density` and the school parts stay out until the likeness row of the audit passes |
+| What is compared | Parts, not vibes, and each part once. The first draft compared vibes, which counted the walk to a park six times. Only a part with `in_likeness`. Never crime, a nuisance, cost, a journey, a figure of 2.5, or a part at 0.5 or over in 6.1. `private_outdoor_space`, `homes_flats`, `homes_density` and the school parts stay out until the likeness row of the audit passes. **Since 2026-09-25** no audit is run and no line of 0.5 stands. The parts that were held out stay out of likeness, as core holds them: whether one joins was not asked, and is the founder's to decide |
 | Distance | The parts are grouped by family. Within a family, the mean difference in band, divided by four. Across families, the mean, so each family counts the same. 0 is the same band on every part |
 | In a search | Never a part of a vibe the person has set themselves, so "like Thrushcombe but quieter" matches on everything but the parts of Quiet streets. Component `like`, utility one less the distance, weight as any mention. The anchor stays in the results, marked "your starting point" |
 | Too little known | If either area has a figure for under 60% of those parts, likeness is unknown and says so. If the anchor has, the edit is rejected as `anchor_not_placed` |
@@ -571,7 +585,7 @@ These choices still stand after the reviews. Where a review overturned one, sect
 | 10 | May a place of worship within a walk, no faith named, be weighed on request? | Yes, near only, after a check of coverage by faith against a list the founder trusts | The founder |
 | 11 | May household type be shown before a reading? | The founder's call. See 4.3 | The founder |
 | 12 | Who keeps the operator list, and may it say "premium"? | The founder approves each row. The operator's own words only | The founder |
-| 13 | The lines of the proxy audit | 0.3, 0.5 and 0.6 | The founder writes the rule. ADR 0006 asks for it before any audit runs |
+| 13 | The lines of the proxy audit | 0.3, 0.5 and 0.6. **Decided on 2026-09-25: none.** The proxy audit is dropped, and its lines with it | The founder decided it ([ADR 0006](../adr/0006-rank-places-not-residents.md), as amended) |
 | 14 | May a consumer service print census tables about residents on an area page, if it never ranks or filters on them? | | A free legal clinic |
 | 15 | Does the land use table tell works and warehouses from the rest? What does "Transport (other)" hold? Which LSOA vintage? | | The spike of 3.1. MHCLG |
 | 16 | Are London's commons, heaths and forests in OS Open Greenspace, with a way in and a name? | | A check of 20 named sites |
@@ -620,7 +634,7 @@ F is the review on fairness and law. L is the review from a person who knows Lon
 | F: refuse "food from all over the world" as it refuses "diverse" | Contract 8.4 already reads a wish about places to eat as an ordinary wish. The vibe has one direction, so nobody can ask for fewer kinds. The part is capped and audited |
 | L: print "an area holds about 20,000 people" | A release holds no count of residents (ADR 0010), and every number on screen needs a stored fact. The line is said without the number |
 | L: counts for each cuisine, as a table | The reviewer's own second choice, to be decided with option 2. Presence alone at launch |
-| F: no flag for any vibe over the review line | Taken at 0.5, not at 0.3. The reviewer expects Homes, Pace and Built age to follow income or age to some degree and still names them as candidates. Across some 25 tables most place measures will pass 0.3 on one. At 0.3 a note must be published. At 0.5 the flags go, and nobody may overrule it |
+| F: no flag for any vibe over the review line | Taken at 0.5, not at 0.3. The reviewer expects Homes, Pace and Built age to follow income or age to some degree and still names them as candidates. Across some 25 tables most place measures will pass 0.3 on one. At 0.3 a note must be published. At 0.5 the flags go, and nobody may overrule it. **Dropped on 2026-09-25**, with the audit |
 | F: drop option 2 | It is the founder's decision. It is set out in full, with the gate corrected |
 
 ## 13. What was re-read for this document
@@ -642,7 +656,7 @@ The three proposals opened no web page. "Tool" means a reader that summarises, s
 | Open Government Licence v3.0 | Tool | The licence "does not grant you any right to use the Information in a way that suggests any official status or that the Information Provider and/or Licensor endorse you or your use of the Information" |
 | Equality Act 2010, section 19A, on legislation.gov.uk | Tool | "Indirect discrimination: same disadvantage". Inserted on 1 January 2024. A person who does not share the characteristic may claim where a rule puts them at substantively the same disadvantage. `people.md` did not read it |
 | Digital Markets, Competition and Consumers Act 2024, section 226 | Tool | The words quoted in section 10. The page shows the section in force from 6 April 2025 |
-| ONS, "One in eight British households has no garden", 14 May 2020 | Tool | "In England, Black people are nearly four times as likely as White people to have no access to outdoor space at home". It is why outdoor space waits on its audit row |
+| ONS, "One in eight British households has no garden", 14 May 2020 | Tool | "In England, Black people are nearly four times as likely as White people to have no access to outdoor space at home". It is why outdoor space waited on its audit row, until the audit was dropped on 2026-09-25 |
 
 The fairness review also read a report for the GLA on air pollution and inequality, and the EHRC Code's page on GOV.UK. Neither was re-read here, and nothing in this design rests on a figure from either. No other statement in this document was checked against its source.
 

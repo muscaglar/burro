@@ -71,7 +71,7 @@ before_launch = [
     "A written answer from TfL, or a decision record, on showing travel times computed from a timetable snapshot that is rebuilt quarterly, given the timing values TfL publishes for this feed.",
 ]
 uses = ["routing", "scoring", "display"]
-cadence = "TfL publishes a fresh copy every 1440 minutes. The zip its page links is an example of 24.31 MB, and the file fetched on 2026-09-24 is 143,161,603 bytes. TfL says 'The timetables are updated every 7 days.' Burro plans one snapshot per data release (quarterly, plus after major network changes), subject to the gate check."
+cadence = "Weekly. TfL says 'The timetables are updated every 7 days.' TfL publishes a fresh copy every 1440 minutes. The zip its page links is an example of 24.31 MB, and the file fetched on 2026-09-24 is 143,161,603 bytes. Burro plans one snapshot per data release (quarterly, plus after major network changes), subject to the gate check."
 verified_how = "primary_source"
 verified_on = 2026-09-24
 evidence_urls = [
@@ -190,7 +190,7 @@ before_launch = [
     "A person opens the page of the dataset in a browser, confirms the licence it shows, and saves a dated copy in registry/evidence. It was read on 2026-09-24 through a reader that extracts, which is not the page.",
 ]
 uses = ["scoring", "display", "validation_only"]
-cadence = "None. The Datastore says the dataset was last updated over nine years ago, and holds the files of 2015 alone."
+cadence = "Static. The Datastore says the dataset was last updated over nine years ago, and holds the files of 2015 alone."
 verified_how = "primary_source"
 verified_on = 2026-09-24
 evidence_urls = [
@@ -236,7 +236,7 @@ before_launch = [
     "A person opens the terms and the open data page in a browser, confirms the three statements of credit and the three timings, and saves a dated copy of each in registry/evidence. Each was read on 2026-09-24 through a reader that extracts, which is not the page.",
 ]
 uses = ["scoring", "display"]
-cadence = "The open data page says weekly. TfL's forum says otherwise: no file has been put out on a schedule since September 2024, and the newest files are of 3 October 2025, put out by hand."
+cadence = "Weekly, the open data page says. TfL's forum says otherwise: no file has been put out on a schedule since September 2024, and the newest files are of 3 October 2025, put out by hand."
 verified_how = "primary_source"
 verified_on = 2026-09-24
 evidence_urls = [

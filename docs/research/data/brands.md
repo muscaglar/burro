@@ -210,6 +210,8 @@ London was built once with these measures, as a preview, from every list that ho
 
 ## 8. The row of the proxy audit
 
+**The proxy audit was dropped on 25 September 2026**, by the founder's decision ([decision record 0006](../../adr/0006-rank-places-not-residents.md), as amended that day). This row stays where it is, as a record of what was measured, and holds nothing back.
+
 [Decision record 0006](../../adr/0006-rank-places-not-residents.md) asks for this row before a measure is served. It covers the mix of brands, the places and the nearest place of each tier, the nearest place of each chain, and independent places. It was written on 2026-09-24, before any release held one of them. Nobody has reviewed it.
 
 | | |

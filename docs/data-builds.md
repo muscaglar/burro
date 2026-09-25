@@ -4,7 +4,7 @@ For the founder. Written 2026-09-23. It applies [ADR 0015](adr/0015-where-builds
 
 No workflow here has run yet. Every time below is an estimate. What only a first run can show is listed in section 12. What was read, and where, is in section 14.
 
-The files of nine lists have since been taken to a store that is a folder, by the step `fetch` or from a person who saved them, and two previews of London were built from them. Sections 15 and 16 say how to build each and see it. [The report of the first build](research/data/m1-first-build.md) and [the page on the second](research/data/m2-second-build.md) say what each holds.
+The files of nine lists have since been taken to a store that is a folder, by the step `fetch` or from a person who saved them, and two previews of London were built from them. Sections 15 and 16 say how to build each and see it. [Refreshing London](refreshing-london.md) puts the steps of a refresh in one order, from what is due to what is served, and [Adding a city](adding-a-city.md) says what a second city would take. [The report of the first build](research/data/m1-first-build.md) and [the page on the second](research/data/m2-second-build.md) say what each holds.
 
 ## Where things stand
 
@@ -15,7 +15,7 @@ As of 2026-09-23, on the branch data-m0. Read this first. What follows under thi
 | What | How it stands on 2026-09-24 |
 |---|---|
 | A fetch | The step `fetch` was run outside a workflow, into a store that is a folder. It fetched files of twelve lists, and four files were saved by a person. No hosted run has fetched a file, and no object store exists |
-| Receipts | 86 are in `data/receipts/`, each of a file of a list: the eleven of list m1, all 45 of m2-places, 15 of the 18 of m2-living, all three of m12-public-transport, two of m10-health, two of m11-age-and-households, both of m11-outdoor-space, two of m2-culture, which takes one file of places twice, the second time with the brand of each place, and one each of m10-land-use, m12-household-income, m2-stations and m5-journeys. 33 of them are of the food hygiene register, one for each authority, and four are of files a person saved. Four files of the lists have none: the street extract, the workbooks of sales and of the lower quartile, and the high street boundaries. The workbook of median prices was fetched again on 2026-09-24, and its receipt is for the use the list names |
+| Receipts | 87 are in `data/receipts/`, each of a file of a list: the eleven of list m1, all 45 of m2-places, 15 of the 18 of m2-living, all three of m12-public-transport, two of m10-health, two of m11-age-and-households, both of m11-outdoor-space, two of m2-culture, which takes one file of places twice, the second time with the brand of each place, and one each of m10-land-use, m11-high-streets, m12-household-income, m2-stations and m5-journeys. 33 of them are of the food hygiene register, one for each authority, and four are of files a person saved. Three files of the lists have none: the street extract, and the workbooks of sales and of the lower quartile. The workbook of median prices was fetched again on 2026-09-24, and its receipt is for the use the list names |
 | List m1 | It states the edition and the period of every file, and `plan` reads `ready=11`. A program read each file, and no person has. Section 7 asks that a person read a file before its receipt is written. Decide whether what a program read is enough, or put both names back under `unsure` and take the item out of `READ_IN_THE_FILE` |
 | Two more lists | `m2-places` and `m2-living`. `plan` reads `ready=45` of 45 files and `ready=18` of 18: the three yearly files of prices paid have their addresses since 2026-09-24, and each was fetched that day and has its receipt |
 | Ten later lists | `m10-health`, `m10-land-use`, `m11-age-and-households`, `m11-high-streets`, `m11-outdoor-space`, `m12-household-income`, `m12-public-transport`, `m2-culture`, `m2-stations` and `m5-journeys` hold sixteen files between them. `plan` reads all sixteen ready. The pharmacy list states its period since 2026-09-24, as the quarter its publisher's title names. It was fetched again that day, and has its receipt. The lookup between the census areas of 2011 and of 2021 and the timetables were each fetched on 2026-09-24 and kept with no receipt, until the list of each stated its edition and its period, and what `describe` gave of the file. Each was fetched again that day, was the same file, and has its receipt. The lookup states neither, so both are its record's. The timetables state both: the day in the names of the zips the file holds, and the days its services say they run on. They are replaced each week under one address: read the next issue with `describe --inside`, and state both again, before a fetch that would take it |
@@ -25,8 +25,10 @@ As of 2026-09-23, on the branch data-m0. Read this first. What follows under thi
 | The addresses of files | 45 of the 128 entries name them under `file_urls`: every entry behind a file of a list whose address the list holds, and the four behind a file a person saved |
 | Steps that read a real file | `cells`, the measures under `derive`, and `preview`. Two previews of London were built: sections 15 and 16 |
 | The draft of the areas | `python -m burro_pipeline.areas.draft_run --out FOLDER` makes the names and the borders of London's areas from the store, in one command. It is a draft: a method made it and nobody has checked it. Nothing of it is committed |
+| A hosted build of London | Since 2026-09-25 a workflow builds London from the store in the bucket, on two runners, keeps the release in a bucket of its own where the two builds are the same, and shows its lock. A release is served only once you have committed its lock. The workflow has never run, and no bucket of releases exists: [London, from the bucket to the service](#london-from-the-bucket-to-the-service), after section 14 |
 | The review desk | `make desk` starts it. It is filled from a draft with `make desk-fill`. Names are decided before borders: `packages/pipeline/AGENTS.md` says why |
 | The check of a release | It asks the gate again about every file a row rests on, for the use the figure is put to, and holds a row to the method and the file of its measure. Both previews pass it |
+| The check of what the store holds | The workflow `data-held` says, list by list, whether the store holds every file that the repository holds a receipt for. It fetches nothing, and writes nothing to the store: section 7, "See that the store holds every file that has a receipt". It has never run. The step it runs was driven on 2026-09-25 against the store that is a folder, which holds each of the 87 files that have a receipt |
 
 ### How things stood before the first fetch
 
@@ -84,16 +86,17 @@ Steps 1 to 3 are done before the push, with no key and no run. Step 4 is the pus
 | 3 | Run `make ci`. Bring the branch into `main` | | 10 minutes | No |
 | 4 | Push the repository to GitHub as a public repository. Turn Actions on | Section 1. The push is yours to make | 1 hour, the plan's task 1 | **The first** |
 | 5 | If GitHub refuses the push because of a secret: one test holds the example secret that Amazon prints in its own documentation, to check the signing of requests. It opens nothing. Decide whether it stays. Do not work round the refusal | `packages/pipeline/tests/fetch/test_s3_signing.py` | | |
-| 6 | Make the two environments, each with you as its reviewer and `main` as its only branch | Section 2 | 20 minutes | No |
-| 7 | Make the bucket, its lock and the fetch key | Section 3 | 25 minutes | No |
+| 6 | Make the environments, each with you as its reviewer and `main` as its only branch | Section 2 | 25 minutes | No |
+| 7 | Make the bucket, its lock, the fetch key and the key of the check | Section 3 | 30 minutes | No |
 | 8 | Store the four made-up secrets of the build | Sections 4 and 5 | 5 minutes | No |
 | 9 | Do the rehearsal, and read what the run shows | Sections 5 and 12 | 15 minutes | No. What it shows to be wrong is mended together, in one push |
-| 10 | Make a contact address that is not your own, and store the five secrets of the fetch | Section 4 | 10 minutes | No |
+| 10 | Make a contact address that is not your own, and store the five secrets of the fetch and the four of the check | Section 4 | 15 minutes | No |
 | 11 | Start the fetch, for every file of the list. It writes the receipt of a file whose edition and period the list states. A file that names either under `unsure` is stored with no receipt, and the run then ends red. That is meant | Section 7 | 5 minutes | No |
 | 12 | Save by hand any file that a publisher would not give the runner | Section 7 | Not known | No |
 | 13 | Read each file, on a machine of your own. State in the list the edition and the period you found in it. For list m1 a program has stated both, and no person has read a file: read each of the eleven, and put right what is wrong | Section 7, "The first fetch of a file writes no receipt" | Not known. No person has opened a file as a fetch stored it | It goes with the second push |
 | 14 | Start the fetch again. It writes the receipts that are not yet written | Section 7 | 5 minutes | **The second**, before it |
 | 15 | Bring the receipts back from the store and commit them | Section 7 | 5 minutes | No. They wait for the next push |
+| 16 | Start the check of what the store holds. It ends green where the store holds every file that has a receipt in the repository | Section 7, "See that the store holds every file that has a receipt" | 5 minutes | No. It reads the receipts on `main`, so it follows the push that carries them |
 
 If step 2 is left undone a fetch still runs. Every file is asked for at the address the list holds. A file whose address is wrong ends `status=failed`. A file whose edition or period the list names under `unsure` is stored with no receipt, `status=missing why=6`, whether or not step 2 was done.
 
@@ -127,8 +130,8 @@ What needs a push, and is kept for the next one: a change to a workflow or to a 
 
 | Question | Answer |
 |---|---|
-| What you make | Three environments on GitHub. One bucket, one lock and one key at the store. Thirteen secrets: five for a fetch, four made-up ones for a build, and the same four made-up ones for the routing |
-| How long it takes | About 1 hour and a quarter, once |
+| What you make | Four environments on GitHub. One bucket, one lock and two keys at the store. Seventeen secrets: five for a fetch, four for the check of what the store holds, four made-up ones for a build, and the same four made-up ones for the routing |
+| How long it takes | About 1 hour and a half, once |
 | What it costs | GBP 0 to set up and GBP 0 a month at first. Under GBP 1 a month once the store holds 40 GB (section 11) |
 | How many pushes it needs | One, to the first fetch. Three, to the first release you approve |
 | How a run starts | By hand, from the Actions page of the website. Never from a push, a pull request or a clock |
@@ -136,31 +139,37 @@ What needs a push, and is kept for the next one: a change to a workflow or to a 
 | What a run installs | The pipeline and what it needs: today nine packages from outside, and none published after the day its workflow states (section 10) |
 | What a run shows | Step names, counts and hashes, under names from a list. Never a row, a key or the address of the store |
 | What a run uploads to GitHub | Nothing |
+| What a build of London adds to what you make | One environment, one bucket, three keys and eight secrets: [London, from the bucket to the service](#london-from-the-bucket-to-the-service), after section 14 |
 
-Three workflows exist: `data-fetch`, `data-build` and `data-travel`. Today a build builds the synthetic release, which is made up, and reads no store. The routing routes the made-up town, and reads none either. Section 13 says what is not built.
+Four workflows exist: `data-fetch`, `data-held`, `data-build` and `data-travel`. The second fetches nothing: it says whether the store holds every file that has a receipt. Today a build builds the synthetic release, which is made up, and reads no store. The routing routes the made-up town, and reads none either. Section 13 says what is not built.
+
+One more workflow builds London from the store, and keeps what it built: `data-london`. It has an environment of its own, which holds real keys. [London, from the bucket to the service](#london-from-the-bucket-to-the-service), after section 14, is the whole of it, in the order you do it.
 
 ## 1. Before you start
 
 | You need | Why | Time |
 |---|---|---|
 | The repository on GitHub, public, with Actions turned on | On a free plan GitHub offers environments for public repositories only (read) | Task 1 of the plan |
-| The three workflow files on the default branch, `main` | The "Run workflow" button is shown only for a workflow that is on the default branch (read) | They arrive with the push |
+| The five workflow files on the default branch, `main`: `data-fetch`, `data-held`, `data-build`, `data-travel` and `data-london` | The "Run workflow" button is shown only for a workflow that is on the default branch (read) | They arrive with the push |
 | A Cloudflare account with R2 turned on | The store is an R2 bucket | 10 minutes. Cloudflare may ask for a payment card. That was not read |
 | A password manager | Each key is shown once | |
 
-## 2. On GitHub: three environments
+## 2. On GitHub: four environments
 
-About 20 minutes. An environment holds the secrets, and makes a job wait for you.
+About 25 minutes. An environment holds the secrets, and makes a job wait for you.
 
-There are three, so that a build is never given the key that can write a raw file, and the routing is given a key of its own the day it reads the store.
+There are four, so that a build is never given the key that can write a raw file, the check of what the store holds is given a key that can write nothing, and the routing is given a key of its own the day it reads the store.
 
 | Environment | Used by | Holds |
 |---|---|---|
 | `data-fetch` | The workflow `data-fetch` | The fetch key |
+| `data-held` | The workflow `data-held` | The key of the check, which may read and list the store and no more |
 | `data-build` | The workflow `data-build` | Made-up values, and no key. No step of a build reads the store yet |
 | `data-travel` | The workflow `data-travel` | Made-up values, and no key. It routes the made-up town, which reads nothing |
 
 Make each one the same way. The names must be exact.
+
+A build of London has one more, `data-london`, which holds two real keys. It is made the same way, before the first build of London: [London, from the bucket to the service](#london-from-the-bucket-to-the-service).
 
 1. Open the repository, then **Settings**, then **Environments**, then **New environment**.
 2. Type the name. Press **Configure environment**.
@@ -198,9 +207,9 @@ When a second person is given write access: protect `main` so that a change need
 | Settings, Secrets and variables, Actions, Repository secrets | | Put no secret of the store here. A repository secret is given to every workflow, and `ci.yml` runs on pull requests |
 | Settings, Secrets and variables, Actions | Debug logging | Store no secret and no variable named `ACTIONS_STEP_DEBUG` or `ACTIONS_RUNNER_DEBUG`. Either turns debug logging on for every run (read) |
 
-## 3. At the store: one bucket, one lock and one key
+## 3. At the store: one bucket, one lock and two keys
 
-About 25 minutes. The store is Cloudflare R2, which the plan already names.
+About 30 minutes. The store is Cloudflare R2, which the plan already names.
 
 ### The bucket
 
@@ -314,8 +323,9 @@ For each: **R2**, then **Manage API tokens**, then create a token, pick the perm
 | Key | Make it | Permission at Cloudflare | Buckets | It may | It may not | Kept |
 |---|---|---|---|---|---|---|
 | Fetch | Now | Object Read & Write | The raw bucket only | Read, write and list files in the raw bucket | Touch any other bucket. Make, change or delete a bucket. Change a lock | In the environment `data-fetch` |
+| Check | Now | Object Read only | The raw bucket only | Read and list files in the raw bucket | Write or delete anything. Touch any other bucket | In the environment `data-held` |
 | Reading | On the day you first bring receipts back: section 7 | Object Read only | The raw bucket only | Read and list files in the raw bucket | Write or delete anything. Touch any other bucket | In your password manager, for a machine of your own. Never on GitHub |
-| Build | Not yet. When a step of a build reads the store | Object Read only | The raw bucket only | The same as the reading key | The same | It will go in the environment `data-build`, in place of the made-up values |
+| Build | Before the first build of London: [London, from the bucket to the service](#london-from-the-bucket-to-the-service) | Object Read only | The raw bucket only | The same as the reading key | The same | In the environment `data-london`. The environment `data-build` keeps its made-up values: its workflow builds the made-up city and reads no store |
 
 Cloudflare shows the secret of a key once (read). Put the id, the secret and the address it shows for S3 clients in your password manager before you close the page.
 
@@ -325,28 +335,32 @@ Never make a key with an "Admin" permission for a workflow. An Admin key can del
 
 | When | Make | Why not now |
 |---|---|---|
-| The first real build, M1 | The build key. A second bucket for what a build writes, and a key that may write to it and to nothing else | No step of a build reads the store, and no code writes a release to it. A key that is used for nothing can only be lost. The second bucket needs two more secrets, which will be named with that code |
+| The first build of London in a hosted run | The build key. A second bucket for what a build writes, a key that may write to it and to nothing else, and a key that may read it and no more | Nothing stands in the way: the code is built, and [London, from the bucket to the service](#london-from-the-bucket-to-the-service) says how each is made. Until a build of London is started, a key that is used for nothing can only be lost |
 | The census block, M4 | A bucket and a key for tables about residents, in an environment of their own | ADR 0015: a product build can never read them |
-| The audit, M6 | A bucket and a key for the audit, in an environment of their own | The same |
+| The audit, M6 | Nothing, since 2026-09-25. It was to be a bucket and a key for the audit, in an environment of their own | The proxy audit is dropped ([ADR 0006](adr/0006-rank-places-not-residents.md), as amended), so nothing is fetched for it and nothing is kept for it |
 | Any time | A second copy of the raw bucket in another account | The plan, section 14, row 18. It is not set up by anything here |
 
 The plan speaks of three buckets. It needs one more than that, because a key cannot be held to a folder: the raw files and what a build writes must be in two buckets for the build's key to be unable to write a raw file.
 
 ## 4. The secrets, by name
 
-About 20 minutes. The four names of the store go in each environment. A fetch has one more.
+About 25 minutes. The four names of the store go in each environment. A fetch has one more.
 
-| Name | What it is | In `data-fetch` | In `data-build` | In `data-travel` |
-|---|---|---|---|---|
-| `BURRO_STORE_ENDPOINT` | The address Cloudflare shows for S3 clients, whole, beginning `https://` | The real one | A made-up one: `https://rehearsal-0000.invalid` | The same made-up one |
-| `BURRO_STORE_BUCKET` | The name of the raw bucket | The real one | A made-up one: `rehearsal-bucket-0000` | The same made-up one |
-| `BURRO_STORE_KEY_ID` | The id of a key | The real one, of the fetch key | A made-up one: `rehearsal-key-id-0000` | The same made-up one |
-| `BURRO_STORE_SECRET` | The secret of a key | The real one, of the fetch key | A made-up one: `rehearsal-secret-0000` | The same made-up one |
-| `BURRO_FETCH_CONTACT` | An email address, or an `https://` page, where a publisher can reach Burro | The real one | No | No |
+| Name | What it is | In `data-fetch` | In `data-held` | In `data-build` | In `data-travel` |
+|---|---|---|---|---|---|
+| `BURRO_STORE_ENDPOINT` | The address Cloudflare shows for S3 clients, whole, beginning `https://` | The real one | The real one | A made-up one: `https://rehearsal-0000.invalid` | The same made-up one |
+| `BURRO_STORE_BUCKET` | The name of the raw bucket | The real one | The real one | A made-up one: `rehearsal-bucket-0000` | The same made-up one |
+| `BURRO_STORE_KEY_ID` | The id of a key | The real one, of the fetch key | The real one, of the key of the check | A made-up one: `rehearsal-key-id-0000` | The same made-up one |
+| `BURRO_STORE_SECRET` | The secret of a key | The real one, of the fetch key | The real one, of the key of the check | A made-up one: `rehearsal-secret-0000` | The same made-up one |
+| `BURRO_FETCH_CONTACT` | An email address, or an `https://` page, where a publisher can reach Burro | The real one | No | No | No |
 
 Open **Settings**, **Environments**, the environment, then add each under **Environment secrets**.
 
+A build of London has an environment of its own, `data-london`, which holds two real keys and eight secrets. [London, from the bucket to the service](#london-from-the-bucket-to-the-service) has its table, under "The environment, and its eight secrets". What follows is of the four environments above.
+
 **The build holds made-up values, and no key.** No step of a build reads the store yet, so a build is given nothing that opens it. The step "Every secret is set" of a build refuses a value that could be real: the address must end `.invalid`, which no host can, and every other value must begin `rehearsal-`. The day a step of a build reads the store, its workflow changes, and this table changes with it. A test holds the two together. The routing is the same: it holds the four made-up values until the day it reads a timetable from the store.
+
+**The check of what the store holds has a key of its own, which can write nothing.** Its one step lists the store. Give it a key made with "Object Read only", and never the fetch key: a workflow that is meant to change nothing is then one that cannot. It holds no contact, because it asks no publisher for anything, and the rules check refuses a step of it that would fetch.
 
 `BURRO_FETCH_CONTACT` is sent to every publisher a fetch asks, as part of what the fetch calls itself. It is kept as a secret so that it is in no file and no log. Use an address made for the purpose, and not your own: the plan, section 14, row 16.
 
@@ -525,6 +539,45 @@ git add data/receipts
 
 It writes each receipt under `data/receipts/`, and never writes over one that is there. Its first line says which kind of store it was given, and must read `step=store kind=object_store`. Its last line reads `step=store status=ok receipts=... new=...`. Then commit them, if you have said yes to decision 2 of the plan. They go with your next push: nothing waits for them until a lock is sealed. The step's own `--help` says how the store is named on a machine of your own.
 
+### See that the store holds every file that has a receipt
+
+About 5 minutes of your time. The check fetches nothing, and writes nothing to the store.
+
+A build copies each file out of the store by the hash its receipt gives. So the store holds all that a build reads when it holds every file that the repository holds a receipt for. No fetch says whether it does:
+
+- A fetch says `status=ok by_hand=1` of a file that a person saved, once its receipt is committed. It looks for the receipt, and never for the file.
+- A publisher may have put another file at the address since. The fetch stores what arrives, and the file that was read is not in the store.
+
+1. Open **Actions**, choose **data-held**, and press **Run workflow**. Leave the branch as `main`. It asks for nothing else.
+2. Approve the run as in section 6, in the environment `data-held`.
+3. Read the step "The store holds every file that has a receipt", in the job "What the store holds".
+
+| The step prints | It says |
+|---|---|
+| `step=store status=ok files=89 bytes=5584175799` | How many files the store holds in all, with a receipt or with none |
+| `step=store list=m2-living status=ok files=18 receipts=15 missing=0 differs=0` | One line for each list. `files` is how many files the list names, and `receipts` how many receipts the repository holds of them. A file with no receipt is not asked about: no build reads one. `missing` and `differs` count the files that have a receipt and are not in the store as the receipt has them |
+| `step=store list=m2-living source=dfe-gias item=gias-establishments status=missing file_id=f-e2cf7e0c0508` | One line for each such file: its list, its source, its name in the list, and the id of the file, which its receipt is named for. `status=missing` says the store holds no file of that hash. `status=differs` says it holds one, under another name or at another size than its receipt gives |
+| `step=store status=ok lists=13 receipts=87 missing=0 differs=0 unlisted=0` | The totals. `status=ok` on this line says that the store holds every file that has a receipt. `unlisted` counts the receipts that are of no file of any list: each is held to the store all the same, and one that is missing has a line with no `list` and no `item` |
+
+A green step means the store holds every file the repository holds a receipt for. A red step ends `exit=1`, and the lines above it name each file that is missing or that differs.
+
+What to do about a file that is named:
+
+| The file | Do this |
+|---|---|
+| Its item has an address, and no fetch has yet stored it | Start a fetch for that one item, as the top of this section says. Then start the check again |
+| A person saved it, or its publisher has put another file at its address since | The file is in the store it was first kept in: a folder, under `raw/`, then the id of its source, then its hash. Hand it over from there with the step `by-hand`, on a machine of your own that holds the fetch key, with the object store named in place of the folder. Give `--file` the file as it lies there, under the name its receipt gives. Give `--url` the address the list gives for the item, or for a file a person saved the `url` of its receipt. Give `--saved-on` the `retrieved_at` of its receipt. The line reads `status=ok`, with `new=1`, and the receipt that is committed stands |
+| It is part of a file, which the list names under `take` | Only a fetch writes the receipt of a part. Start a fetch for the item. Where the publisher no longer gives the file the part was taken of, hand the part over as the row above says: the step stores it, and then ends `status=differs` with `why=7`, because it writes no receipt of a part. The receipt that is committed stands, and the check finds the file |
+| `status=differs` | Look at the file in Cloudflare, and tell the builder. Never change a file in the store |
+
+The check reads the lists and the receipts as they are committed on `main`. It reads no file: a file is kept under its hash, which is checked as it is stored, and a build checks the hash again of every file it copies out.
+
+To ask the same of a store on a machine of your own, that is a folder or is named with the reading key: `uv run python -m burro_pipeline held --receipts data/receipts`.
+
+### The four files a person saved
+
+`naptan-london`, `gias-establishments`, `police-crime-london` and `postcode-directory` were each saved by a person, and no fetch takes any of them. Each reaches the object store by the step `by-hand`, run on a machine of your own that holds the file and the fetch key, with the object store named in place of the folder. The row "A person saved it" above says what to give the step.
+
 ### Put a receipt right
 
 The first receipt of a file stands, in the repository and in the store. No run puts a receipt right: a run that finds a receipt which says something else than the list ends `status=differs`, and writes over nothing. That is what keeps a run from dropping a receipt without a word. So a receipt that is wrong is put right by hand.
@@ -585,6 +638,8 @@ A step's own words are never shown. Each step runs behind `tools/public_log.py`,
 | `files=10`, `bytes=168002`, `n=3`, `ready=10` | Counts | A whole number |
 | `ok=9`, `failed=1`, `missing=1` | How many files ended each way | A whole number |
 | `source=...` | The source of a file | An id that is in the licence registry |
+| `list=m1`, `item=oa-lookup` | A list of files, and a file of one, by the name the list gives it | A name that a list of this repository gives |
+| `lists=13`, `unlisted=0` | How many lists the store was held to, and how many receipts are of no file of any list | A whole number |
 | `kind=object_store` | Which kind of store a step was given. In a run it never reads `kind=folder` | A word from a fixed list |
 | `kind=html` | What arrived in place of a file, where it was not kept | A word from a fixed list |
 | `host=...` | A host a request was sent on to: the first twelve digits of a hash of its name, and never the name | Twelve digits of a hash |
@@ -639,6 +694,8 @@ Open the run, then the job with the red cross, then the step with the red cross.
 | Fetch | `status=refused why=36` | The list says to take part of the file, and the publisher did not give a piece that was asked for. Nothing was kept | A publisher that gives no pieces gives the file whole: take `take` out of the item, and see that `max_bytes` allows the whole file |
 | Fetch | `status=refused why=37` | The file changed at the publisher while pieces of it were taken. Nothing was kept | Fetch again. If a new file stands at the address, see that the list still states its edition |
 | Fetch | `status=refused why=38` | The list says to take part of the file, and the file is not laid out so that the part can be taken. Nothing was kept | Run `python -m burro_pipeline why` for what it may be, and put the item of the list right |
+| The store holds every file that has a receipt | `status=missing` or `status=differs` on the line of a file, and `step=store status=failed exit=1` | A file that has a receipt is not in the store, or is not there as its receipt has it. Nothing was changed | Section 7, "See that the store holds every file that has a receipt", says what to do about each |
+| The store holds every file that has a receipt | `step=store status=failed exit=2`, and no line of a list | The store did not answer or refused the key, or the folder of receipts could not be read | As for "The store answers". The key of the check is its own: section 3 |
 | Build the synthetic release | `step=assemble status=failed exit=...` | The build failed. Its words are withheld | Run `make fixture` on any machine: on made-up data it prints the same words |
 | Any step | `secrets=1` or more | A step printed a secret. The line was withheld, so the log does not hold it | Rotate the key all the same: section 10. Tell the builder |
 | Any step | `withheld=` with a number, and a line you expected is not there | The step printed a name that is not on the list | Tell the builder. The name is added to the list, or the step stops printing it |
@@ -715,11 +772,11 @@ What this does not do:
 |---|---|
 | Who moves it | You, or whoever writes the code, in a change that you read before you approve the next run |
 | When | When a change to the code needs a newer version of a package. When a fault is found in a package that a run installs, and a newer version mends it. Otherwise leave it: an old day costs nothing |
-| Where it is written | Once in `tools/check_data_workflows.py`, as `PACKAGES_BEFORE`, and on the line named "Install" of each job that installs: two in each data workflow |
+| Where it is written | Once in `tools/check_data_workflows.py`, as `PACKAGES_BEFORE`, and on the line named "Install" of each job that installs: two in each of `data-fetch`, `data-held`, `data-build` and `data-travel`, and three in `data-london` |
 | What it costs | One change, and one push. It can wait for a push you are making anyway |
 
 1. Choose a day that has come. A test refuses a day that has not: it would hold nothing back.
-2. Change `PACKAGES_BEFORE`, and the same day on the four lines. `make ci` fails until all five agree.
+2. Change `PACKAGES_BEFORE`, and the same day on the eleven lines. `make ci` fails until all twelve agree.
 3. See what the new day brings before you push:
 
    ```
@@ -732,7 +789,7 @@ What this does not do:
 
 ### Move the version of the installer
 
-Seldom. It is written once in `tools/check_data_workflows.py`, as `INSTALLER`, and on the line `version:` of each job of a data workflow: three in `data-fetch`, four in `data-build`, four in `data-travel`. `make ci` fails until all twelve agree. `ci.yml` names its own, and is not held to it. Before the change, read the help of the new version for the words the line that installs uses, against row "The help of `uv`" of section 14. It is one change and one push, and can wait for a push you are making anyway.
+Seldom. It is written once in `tools/check_data_workflows.py`, as `INSTALLER`, and on the line `version:` of each job of a data workflow: three in `data-fetch`, three in `data-held`, four in `data-build`, four in `data-travel`, four in `data-london`. `make ci` fails until all nineteen agree. `ci.yml` names its own, and is not held to it. Before the change, read the help of the new version for the words the line that installs uses, against row "The help of `uv`" of section 14. It is one change and one push, and can wait for a push you are making anyway.
 
 ## 11. What it costs
 
@@ -782,19 +839,22 @@ Nothing below could be tried before the repository was on GitHub. The rehearsal 
 | 16 | That the lock lets a first write through, and refuses a delete | The first fetch stores its files. Then try to delete one in Cloudflare | Take the rule off, fetch, and tell the builder |
 | 17 | That a publisher's host answers a runner | The first fetch of each file | The file is saved by hand, as ADR 0015 allows |
 | 18 | That each address in the first list gives its file | The first fetch of each file | Save the file by hand from the right address, and put the list right in your next commit |
+| 19 | That a key which may read and no more can list the store | "The store holds every file that has a receipt", in the first run of the check | Tell the builder: the step shows only that it failed |
 
 ## 13. What is not built yet
 
 | Not built | Why | Until then |
 |---|---|---|
-| Sending a release to the store | No code writes a release to the store. The store's code keeps raw files only | The build workflow builds, compares and throws away. A release is on no machine after a run |
-| The full log of a step, kept in the store | The same | A failure is found on made-up data: section 9 |
+| A run of the build of London | The workflow that builds London, keeps the release and shows its lock is built, and has never run. No bucket of releases exists: [London, from the bucket to the service](#london-from-the-bucket-to-the-service) | London is built on a machine of your own: section 29. The workflow `data-build` builds the made-up city, compares and throws away, as a rehearsal |
+| The full log of a step, kept in the store | No code writes a log to a store | A failure is found on made-up data: section 9 |
 | Bringing a receipt from a run into the repository | A fetch writes the receipt to the runner's disk, and the runner is thrown away. So the fetch also keeps a copy in the store. To reach the repository from there, a person brings it back, or the run shows it, or the run pushes it. The second shows more than step names, counts and hashes. The third needs a permission to write that no data workflow has. The plan's decision 2, on committing receipts in public, is also open | A person brings the receipts back and commits them: section 7. It needs a key on a machine of your own. Whether that is acceptable is yours to decide |
-| Bringing a lock and a report from a run into the repository | The same. To approve a release is to commit its lock, and a lock sealed in a run is on a disk that is thrown away | No workflow seals a lock yet. `seal` is run on a machine of your own |
+| Bringing the reports of a build from a run into the repository | No run may write to the repository, and a coverage report names areas, so no run may show it. The lock of a release holds no name and no figure, so a run shows it, and you commit it: [London, from the bucket to the service](#london-from-the-bucket-to-the-service) | The reports are kept beside the release, in the bucket of releases. Take the release to a machine of your own to read them: [London, from the bucket to the service](#london-from-the-bucket-to-the-service), under "Read the lock, and approve the release" |
+| A hosted run that serves what was approved | To deploy needs the host's own program on a runner, which no workflow may install | You take the release and deploy it, on a machine of your own: [the guide to deployment](../deploy/README.md) |
+| A build from the names a person decided | The decisions of the review desk are on a machine of a person's own, and the copy that may be committed is not committed | A hosted build makes the draft of names from the store, and every name says that it is a draft |
 | Showing the shape of a fetched file in a run | The plan's fastest route to M1 has the first fetch print each file's sheet and column names. Those are not step names, counts or hashes, and where a table has no header they are a row. So a run withholds them, and no workflow runs it | `uv run python -m burro_pipeline describe` on a machine of your own that holds the reading key: section 7 |
 | A check, inside a run, that the environment has a reviewer and a branch rule | GitHub gives an environment's rules to anyone who may read the repository (read), so the first job could ask and refuse to go on. It was left out because the answer's shape has not been seen, and a check that is wrong would stop every run | You watch for the wait: section 2 |
 | A build from a committed lockfile | The lockfile is not committed yet: ADR 0008 says when it will be | Every build is a development build, and is never served. A run holds its packages to a day, and not to a hash: section 10 |
-| A fetch of only the files the store does not hold | A fetch asks the publisher for every file it is given, stored or not | To fetch again what failed, start a run for each item, or one for the whole list |
+| A fetch of only the files the store does not hold | A fetch asks the publisher for every file it is given, stored or not | The check of section 7 names each file the store does not hold. To fetch again what failed, start a run for each item, or one for the whole list |
 | A receipt written from the store, with nothing asked of the publisher again | The same. The second run of a file asks its publisher for it again, to write the receipt | Every file is fetched twice: section 7 |
 | The hash of the file that was read, held in the list | A list holds no hash. So nothing but `new=0` on the line of the second run shows that the receipt is of the file that was read | Read `new=` on each line of the second run: section 7 |
 | A way to give a build every edition of an earlier lock at once | A build is told an edition with `--edition ITEM=EDITION`, once for each file. The register is 33 files, so a build that repeats an earlier one is given 33 | Read `item` and `edition` of each input in the earlier `lock.json`, and give each: section 7, "Which edition a build takes" |
@@ -846,6 +906,276 @@ Tried, with no network, on made-up packages, with `uv` at the version the workfl
 Not tried: the line against the public index. That is row 12 of section 12. Not tried for this guide: that a settings file, or a setting given to a step, changes what the line brings. The check refuses each on what the installer's help says of it.
 
 Not read, and written from memory: that Cloudflare asks for a payment card, the names of the buttons on Cloudflare's pages, that a run waits 30 days for approval, that the logs of a run can be deleted from its page, that a run can be run again from its page, that a branch can be made on the website, and that to delete is a kind of write in the protocol the store speaks.
+
+## London, from the bucket to the service
+
+For the founder. Written 2026-09-25. It has no number: it is part of the guide to hosted builds, which ends here, and the numbered sections that follow are the record of each preview. It applies [ADR 0030](adr/0030-a-release-is-kept-approved-by-its-lock-and-carried-in-the-image.md).
+
+**Nothing here has run on a host.** The workflow has never run, and no bucket of releases exists. Every step of it was driven on a machine of a developer's own, with a folder standing in for each bucket: the part "What was tried" says what that showed. What only a first run can show is listed under "What only a first run can show". Every time below is an estimate.
+
+Until now London was built on a machine of a developer's own. From here a hosted run builds it from the store in the bucket, and from nothing else. Once the store is in the bucket, the repository and the two buckets are all that a release needs.
+
+A change you keep at the panel of the review desk is served once it is published with `make desk-publish`, committed to `main`, built by a hosted run and approved with its lock. Both builds of a run are given the one place the desk publishes your file to, `gazetteer/london/decisions/changes/r1.jsonl`: where the repository tracks a file there the build applies it and its lock names it by its hash, and where it tracks none the run builds as it did, byte for byte.
+
+| Question | Answer |
+|---|---|
+| What you make, once | One bucket at the store, for releases. Three keys. One environment on GitHub, `data-london`, with eight secrets |
+| What a run asks of you | Two inputs when you start it, and two approvals: one before each build is given the key |
+| What a run keeps | The release, in the bucket of releases, and only where two builds of it are the same, byte for byte |
+| What a run shows | Step names, counts and hashes, and the lock of the release on its summary page. No figure, and no name of a place |
+| What makes a release one that is served | Its lock, committed to `main` under `data/approved/`. Only you commit one |
+| What is served with no lock | The made-up city, as today |
+| How long it takes | About 40 minutes to set up, once. About an hour and a half for a run, of which 5 minutes are yours |
+
+### What you do, in order
+
+| # | Where | Do this | What you see when all is well |
+|---|---|---|---|
+| 1 | Cloudflare | Make the bucket of releases, and its lock | A second bucket, with public access off and one rule |
+| 2 | Cloudflare | Make the three keys: build, keep and take | Three tokens. Each secret is shown once |
+| 3 | GitHub | Make the environment `data-london`, as section 2 says, with you as its reviewer and `main` as its only branch | The environment, with its two rules |
+| 4 | GitHub | Store its eight secrets | Eight names under "Environment secrets" |
+| 5 | GitHub | Start the workflow, with the id of the release and the time it is said to be built | The run. Its first job starts at once |
+| 6 | GitHub | Approve the first build. When it has ended, approve the second | "Build a" runs, then "Build b, and keep what two builds agree on" |
+| 7 | GitHub | Read the run | Every job green. The last line of "Keep the release" reads `status=ok` |
+| 8 | GitHub | Read the lock on the run's summary page | What the release holds, what was left out, and the hash of every file |
+| 9 | A machine of your own | Look at the release before you approve it, if you wish | London on your own screen, as section 15 shows a preview |
+| 10 | A working copy of `main` | Save the lock under `data/approved/`, check it, and commit it, by a pull request or a push of your own | `step=lock status=ok`, with the hash the run showed |
+| 11 | A machine of your own | Take the release and deploy it | [The guide to deployment](../deploy/README.md), "Serving a release of London" |
+
+Steps 1 to 4 are done once. Steps 5 to 11 are done for each release.
+
+### 1. The bucket of releases
+
+About 10 minutes. It is made as the bucket of publishers' files was: section 3, "The bucket".
+
+1. In Cloudflare, open **R2**, and create a bucket.
+2. Name it with a part nobody could guess, such as `burro-releases-` and eight random letters and digits. Its name is a secret, as the other's is.
+3. Choose the location the first bucket has. Set no jurisdiction unless the first bucket has one: the address of both is then the same.
+4. Leave public access off. Never turn on the public address of this bucket, and never give it a domain: a release holds real figures of real places.
+5. Add one lock rule, as section 3 says: name it `releases`, give it the prefix `releases/`, and keep files locked for 90 days.
+
+It is a bucket of its own because a key is held to a bucket, and to nothing finer (read). In a folder of the first bucket, the key that keeps a release could write a publisher's file.
+
+| | |
+|---|---|
+| What is under `releases/` | Every file of every release that was kept, under the folder it was built in and then its own name |
+| What is never there | A publisher's file, and a receipt |
+| What the lock changes for a run | Nothing. A run writes a file only where none is, and never deletes |
+| What the lock stops | For 90 days: a key that was seen, or a workflow that was changed, from deleting a release or putting another in its place |
+| What the lock is not relied on for | That what is served is what you approved. The lock you commit holds the hash of every file, and a file that differs is refused when it is taken and again when the image is built |
+| How much it holds | About 90 MB for each release |
+
+### 2. The three keys
+
+About 15 minutes. Each is made as section 3, "The keys", says: **R2**, then **Manage API tokens**, create a token, pick the permission, pick **Apply to specific buckets only**, and pick the one bucket.
+
+| Key | Permission at Cloudflare | Bucket | It may | It may not | Kept |
+|---|---|---|---|---|---|
+| Build | Object Read only | The bucket of publishers' files | Read and list the files a build is made from | Write or delete anything. Touch the bucket of releases | In the environment `data-london` |
+| Keep | Object Read & Write | The bucket of releases | Read, write and list releases | Touch a publisher's file or a receipt. Make, change or delete a bucket. Change a lock | In the environment `data-london` |
+| Take | Object Read only | The bucket of releases | Read and list releases | Write or delete anything. Touch a publisher's file | In your password manager, for the machine you deploy from. Never on GitHub |
+
+Put the id and the secret of each in your password manager before you close the page. Make each a token of its own: a key that is shared by two jobs cannot be rotated for one of them.
+
+### 3. The environment, and its eight secrets
+
+About 15 minutes. Make the environment as section 2 says: required reviewers, you alone. Prevent self-review off. Administrators may not bypass. Deployment branches, `main` only.
+
+| Name | What it is | In `data-london` |
+|---|---|---|
+| `BURRO_STORE_ENDPOINT` | The address Cloudflare shows for S3 clients, whole, beginning `https://` | The real one |
+| `BURRO_STORE_BUCKET` | The name of the bucket of publishers' files | The real one |
+| `BURRO_STORE_KEY_ID` | The id of a key | The real one, of the build key |
+| `BURRO_STORE_SECRET` | The secret of a key | The real one, of the build key |
+| `BURRO_RELEASES_ENDPOINT` | The address Cloudflare shows for S3 clients. It is the address above, where both buckets are in one account and neither has a jurisdiction | The real one |
+| `BURRO_RELEASES_BUCKET` | The name of the bucket of releases | The real one |
+| `BURRO_RELEASES_KEY_ID` | The id of a key | The real one, of the keep key |
+| `BURRO_RELEASES_SECRET` | The secret of a key | The real one, of the keep key |
+| `BURRO_FETCH_CONTACT` | | No |
+
+Never store the fetch key here, and never the take key. A build that holds the fetch key could write a publisher's file.
+
+Which step is given which key is written in the workflow, and the rules check holds it there:
+
+| Step | It is given | And never |
+|---|---|---|
+| "The store answers", "Draft the names of the areas", "Build London" | The build key | The keep key |
+| "Check the release", "Hash what was built", "Compare the two builds", "Show the lock of the release" | Nothing | Any key |
+| "Keep the release", in the second build alone | The keep key | The build key |
+
+The first build is given no key that writes. Not even its step that checks the secrets is.
+
+### 4. Start a build of London
+
+About an hour and a half, of which 5 minutes are yours.
+
+1. Open **Actions**, choose **data-london**, and press **Run workflow**. Leave the branch as `main`.
+2. Type the id the release is built under: `lon-`, the day, and a number of two digits, as `lon-2026-10-02-01`. Use an id that no build was kept under. A release is never written over, so a second build of one day takes the next number.
+3. Type the time the build is said to be made, in UTC, as `2026-10-02T09:00:00Z`. Give the hour of the last commit on `main`, and never a time that has not come: the service serves it as the time the release was built. It is typed and never read from a clock, so that two builds give the same bytes.
+4. Press the green **Run workflow**. Open the run. "Rules and canary" starts at once.
+5. When it has passed the run says it is waiting. Press **Review deployments**, tick `data-london`, and press **Approve and deploy**. "Build a" starts.
+6. When "Build a" has ended the run waits again. Approve it again. "Build b, and keep what two builds agree on" starts.
+7. When the run has ended, open its summary page. The lock is at the foot of it.
+
+Before you approve, look at the commit the run was started from, as section 2 says under "Who may approve". This run is given a key that writes.
+
+| Job | Waits for you | Is given | What it does |
+|---|---|---|---|
+| Rules and canary | No | Nothing | As in every data workflow |
+| Build a | Yes | The build key | Copies every file out of the store. Drafts the names of the areas. Builds London. Checks the release against the receipts that are committed. Hashes every file it built, and hands the hashes on |
+| Build b, and keep what two builds agree on | Yes | The build key, and for one step the keep key | Builds again on a second runner, the same way. Holds what it built to the hashes of the first build. Keeps the release. Shows its lock |
+| Search what the run made public | No | The run's own token, to read the logs | As in every data workflow |
+
+What is built is what a build on a machine of your own makes: section 29. Two things are no longer handed to it:
+
+| | How it was | How it is |
+|---|---|---|
+| The names the areas bear | A draft was made first, on a machine of a developer's own, and its folder was given to the build | The run makes the draft from the store, with the step `draft`, and gives the build its folder. Every name still says that it is a draft |
+| Household income | It was read by the build, from the store | The same. It is written beside the release, and kept with it |
+
+Once names are decided at the review desk, a build is given what the desk decided. Until those decisions are committed, a hosted run cannot read them: the part "What is not built" says so.
+
+### 5. What a run prints
+
+Each line is one the list of section 8 allows. The counts below are those of a build on a machine of a developer's own, from the thirteen lists there are. `missing` counts the files of a list that have no receipt: a build goes on without them, and the measures that rest on them are left out.
+
+| Step | It prints | What a green step means |
+|---|---|---|
+| Every secret is set | `step=secrets set=4 missing=0` in the first build, and `set=8` in the second | Each secret is stored and was pasted whole |
+| The store answers | `step=store kind=object_store`, then `step=store status=ok files=89 bytes=5584175799` | The address and the build key are right |
+| Draft the names of the areas | `step=store status=ok kind=object_store files=86 bytes=...`, then `step=names status=ok exit=0 withheld=1 seconds=...` | Every file that has a receipt was copied out of the store and is the file of its receipt. The draft was made. Its own line of counts is withheld |
+| Build London | `step=seal status=ok release=lon-2026-10-02-01 inputs=89 missing=4 own_edition=41 named=0 passed_over=0 development=1 lock_sha256=...`, then a line of `step=cells` and of `step=names`, a line of `step=derive` for each measure, and a line each of `step=cost`, `step=places`, `step=assemble`, `step=check`, `step=income` and `step=report` | The release was written on the runner. `findings=0` on the line of `step=check` says that every fact has evidence behind it |
+| Check the release | `step=check status=ok exit=0 withheld=2 seconds=...` | `burro-release check` accepts the release and the folder of household income, against the receipts that are committed. What it says in words is withheld |
+| Hash what was built | `step=lock status=ok copy=a release=lon-2026-10-02-01 files=21 bytes=... areas=1002 measures=98 vibes=14 sha256=...` | Every file was hashed. `sha256` is the hash of what the lock says |
+| Compare the two builds | `step=compare status=ok files=21 differing=0 sha256=...` | The second build is the first, byte for byte. The hash is the one "Hash what was built" gave |
+| Keep the release | `step=keep kind=object_store`, then `step=keep status=ok release=lon-2026-10-02-01 files=21 bytes=... new=21 same=0` | Every file of the release is in the bucket of releases |
+| Show the lock of the release | `step=lock status=ok release=lon-2026-10-02-01 files=21 sha256=...` | The lock is on the run's summary page |
+
+A line of `step=derive status=skipped` names a measure that was worked out and left out, and the rule that kept it out. It is no fault. The lock lists each.
+
+### 6. Read the lock, and approve the release
+
+The lock is the last thing on the run's summary page: a table, and then a block that begins `{` and ends `}`. **To approve the release is to commit that block.** Until you do, the release is kept and served nowhere.
+
+Read these before you approve:
+
+| In the lock | Read it for |
+|---|---|
+| `release_id`, `commit`, `built_at` | That it is the release you started, built from the commit you looked at |
+| `preview` and `development` | Both read `true` today. A preview is a release that is not finished. A development build is one whose packages were held to a day and not to a hash: ADR 0015 says that such a build is never served to the public. To commit the lock is to say that this release may be carried by an image. It is not to say that the public may be shown it |
+| `holds` | How many areas, measures and vibes it holds, against the build before |
+| `left_out` | Each measure that was worked out and left out, and the rule. A measure that is here and was not before is a measure that people will no longer find |
+| `files` | Nothing. It is what the image is held to |
+
+To look at the release itself before you approve it, take it to a machine of your own with the take key, from a copy of the lock that is not yet committed. [The guide to deployment](../deploy/README.md) says how the step is given its key.
+
+```
+uv run python -m burro_pipeline take --release lon-2026-10-02-01 --approved FOLDER --out data/releases/look
+```
+
+`FOLDER` is any folder outside the repository that holds the lock, named `lon-2026-10-02-01.json`. The step holds every file to the lock, so what you look at is what the run built. Then open it as section 15 says, from step 6, with `data/releases/look/lon-2026-10-02-01` as the folder of the release. The coverage report is beside it, in the folder that ends `-build`. Remove `data/releases/look` when you have looked.
+
+To approve, in a working copy of `main`:
+
+1. Press the copy button of the block on the summary page, and save what it holds as `data/approved/lon-2026-10-02-01.json`. The name of the file is the id of the release.
+2. Run `uv run --no-project python tools/release_lock.py read data/approved/lon-2026-10-02-01.json`. It prints one line, which begins `step=lock status=ok`. Its `sha256` must be the one the step "Show the lock of the release" printed. If it is not, what you saved is not what the run showed: copy it again.
+3. Run `make ci`.
+4. Commit the file, and nothing else, with a message that names the release. Bring it into `main` by a pull request or a push of your own.
+
+A lock is never changed once it is committed. A release that is wrong is built again under a new id, and has a lock of its own. To stop a release from being served again, take its lock out with `git rm`, and commit that.
+
+### 7. Serve it
+
+[The guide to deployment](../deploy/README.md), "Serving a release of London", says how the release is taken and carried by the image, what to look at once it is served, and how to go back to the release before.
+
+### When a run of the build fails
+
+Open the run, then the job with the red cross, then the step with the red cross. Section 9 says what to do about a step that every data workflow has. These are the steps of this one.
+
+| The step | The log says | It means | Do this |
+|---|---|---|---|
+| Every secret is set | `error: BURRO_... is not set`, and `step=secrets status=missing` | A secret of the environment is missing or was pasted badly | Paste it again: "The environment, and its eight secrets" |
+| The store answers | `step=store status=failed exit=2` | The store did not answer, or refused the build key | Check the address, the name of the bucket and the key, in that order |
+| Draft the names of the areas | `step=areas-draft status=refused file_is_in_the_vault=1`, and then `step=names status=failed exit=2` | A file that has a receipt is not in the store, or is not the file its receipt names | Fetch the file again, or hand it over with the step `by-hand`: section 7. Never change a file in the store |
+| Build London | `step=assemble status=refused file_is_in_the_vault=1`, with a `file_id` | The same, of a file of the build | The same. The receipt of that file is named for the `file_id` |
+| Build London | `step=assemble status=unreadable` | An input was typed badly, or the list of the build cannot be read. Or the file of changes that was published cannot be built on: a line of it breaks a rule, or was decided of something that has since moved | Read what you typed: the id is `lon-`, a day and two digits, and the time ends `Z`. Start a new run. If what you typed is right, build on a machine of your own with `--changes` to read which line it is, and take the line back at the panel |
+| Build London | `step=assemble status=failed why=8` | The store did not answer, or refused the build key, after the step "The store answers" had its answer. The number is the one a line of fetch gives a store that fails | Check the address, the name of the bucket and the key, in that order. Then run the failed job again |
+| Build London | `step=assemble status=refused`, with the name of a rule | A file is not what the step was written to read, or the release breaks a rule | Tell the builder the rule. Build it on a machine of your own to read the words: section 15 |
+| Build London | `step=check status=failed`, with `findings=` and a number | A fact of the release has no evidence behind it. Nothing was written | Tell the builder the rules that the line counts |
+| Check the release | `step=check status=failed exit=1`, or `exit=2` | `burro-release check` refuses the release, or a receipt in its evidence is not the one that is committed | Bring the receipts back and commit them, if the store holds a receipt that the repository lacks: section 7. Otherwise tell the builder |
+| Compare the two builds | `step=compare status=differs`, with `file=` on a line for each file, and `differing=` | The two runners built different bytes. Nothing was kept | Tell the builder which files. The release is not used |
+| Compare the two builds | `step=compare status=differs`, with `wrong=` and a number | The two builds are of two commits, or of two times. Nothing was kept | Start a new run. Approve both builds of one run, and start no run between them |
+| Compare the two builds | `step=compare status=missing` | The first build handed no hashes on | Look at "Hash what was built" in the first build |
+| Keep the release | `step=keep status=refused`, with `differs=` and a number | A build was kept under this id before, and it is not this one. Nothing was kept, and what was there is as it was | Start a new run under the next number |
+| Keep the release | `step=keep status=failed exit=2` | The bucket of releases did not answer, or refused the keep key | Check the three values of the bucket of releases. Then run the failed job again: a file that is kept already is left as it is |
+| Any step | `secrets=1` or more | A step printed a secret. The line was withheld | Rotate that key: section 10. Tell the builder |
+
+A run that ends red has kept nothing, unless the step "Keep the release" is the one that failed. What such a run left in the bucket is served nowhere: no lock was shown, so none can be committed.
+
+### What only a first run can show
+
+| # | Not known | How the first run shows it | If it is not so |
+|---|---|---|---|
+| 1 | That the second build waits for a second approval, and that the first build's hashes reach it | The run waits twice. "Compare the two builds" does not say `status=missing` | Tell the builder |
+| 2 | That a runner has the disk a build needs. The copies of the store's files took 8.5 GB on a machine of a developer's own, and what a build wrote 170 MB. GitHub gives a runner of a public repository 14 GB of storage, and does not say how much of it is free (read) | "Draft the names of the areas" and "Build London" pass | Tell the builder: a step that fails for want of disk shows only that it failed |
+| 3 | That a runner has the memory a build needs. On a machine of a developer's own the build took 3.1 GB at its peak, the draft 1.7 GB and the check of the release 0.9 GB. GitHub gives a runner of a public repository 16 GB (read) | "Build London" passes | The same |
+| 4 | How long a build takes on a runner. On a machine of a developer's own, with 16 cores, the draft took 2 to 5 minutes, the build 9 to 12 and the check of the release 2 to 3, over five builds. A runner has 4 cores, and copies the files over a network first | The run's page | The limit of each job is two hours. Tell the builder if a build comes near it |
+| 5 | That two runners give the same bytes. Two builds on one machine do | "Compare the two builds" | This is what the step is for |
+| 6 | That a key which may read and no more can list the store and copy a file out | "The store answers", and the first line of "Draft the names of the areas" | Check the key's permission and its bucket |
+| 7 | That the bucket of releases takes a file that is sent only if none is there, and answers as the code expects where one is. Cloudflare lists the condition as one it keeps (read), and not what it answers | "Keep the release", in the first run and in a run that is started again | Tell the builder: the step shows only that it failed |
+| 8 | That the summary page shows the lock whole, with a button to copy it | The run's summary page | Copy the block by hand. The step of "To approve" that reads the lock tells a bad copy |
+| 9 | That GitHub hands a job's output on where it holds many hashes. If a value a run hides stood in it, the output would be dropped | "Compare the two builds" does not say `status=missing` | Tell the builder |
+
+### What was tried
+
+On 2026-09-25, on a machine of a developer's own, with the store as a folder and a second folder standing in for the bucket of releases. No step reached a network, and the step that checks the four secrets was left out, there being none. It was done twice, from two commits, and showed the same each time. Nothing that was built is committed.
+
+| Tried | What it showed |
+|---|---|
+| The commands of the workflow, word for word, as the first build and as the second, each in a folder of its own, from one commit with nothing changed | Both built. The two releases are the same bytes: 21 files of 88,630,949 bytes, 1,002 areas, 98 measures and 14 vibes, and one lock. `diff` found no byte that differs, in the releases or in the two drafts of names |
+| A third build, by the path a step takes when its store is a bucket: the folder was handed to each step as a store that is reached over a network, which answers only while a socket may be made | The draft asked the store for 86 files before it read one, and for none after. The build that followed found the copies and asked for none. What it built is the same bytes as the other two |
+| `burro-release check`, on each build, against the receipts that are committed, with the folder of household income | It accepted each |
+| "Compare the two builds", "Keep the release" and "Show the lock of the release" | `differing=0`. 21 files kept, `new=21`. The lock on the summary page is 4,486 bytes, and the output of the first job 3,530 |
+| "Keep the release" once more, as a failed job that is run again would | `new=0` and `same=21`. Nothing was written twice |
+| "Keep the release", where a build of another commit was kept under the same id | It was refused, with `differs=3`, and ended with 1. What was kept before was as it was, byte for byte. The three files are the three that record the commit |
+| Everything the three builds printed, the output of the job, the summary page and the lock, read for each of the 3,316 names the release holds of an area, a borough or a place to reach, and for each of its 20,718 figures that have a fraction or five digits or more | None is there. No number with a fraction is printed but how many seconds a step took. The same reading finds a name and a figure that are planted |
+| The lock, cut out of the summary page and saved as a person would save it, and then the step `take` with it | It reads as the lock the run showed. The release that was taken is the release that was built, byte for byte |
+| The same, with one byte of one file changed in a copy of what was kept | `take` said `status=differs`, ended with 1, and left no folder |
+| The same, with no lock that names the release | `take` said `status=missing`, and ended with 1 |
+| `take` with no lock at all and no release named | It took the made-up city: 11 files, which are the files that are committed |
+| `take` with a lock approved and no release named | It was refused, and ended with 2 |
+| What the image's own stage does, with no image built: on the release that was taken, on the same with one byte changed after it was taken, on a release no lock names, and on another build of London under the id the lock names | It accepted the first, and refused each of the others by the name of its file |
+| The service, loaded with no socket on the release that was taken, and asked sixteen things | Every answer said `synthetic: false` and `preview: true`. It took 374 MB once loaded and 381 MB at its peak |
+
+Not tried: anything on GitHub, at Cloudflare or at the host of the service. No bucket was reached and no image was built.
+
+### What is not built
+
+| Not built | Why | Until then |
+|---|---|---|
+| A build from the names a person decided | The decisions of the review desk are in a folder of a machine of a person's own, and the copy that may be committed is not committed | A hosted build bears the names of the draft, and says of each that it is a draft |
+| A hosted run that takes a release and deploys the image | It needs the host's own program on a runner, which no workflow may install | You take the release and deploy it, on a machine of your own: the guide to deployment |
+| A build of record | The package lockfile is not committed: ADR 0008 | Every hosted build is a development build. Its lock says so |
+| A way to remove from the bucket a release that was never approved | No key of a workflow may delete | It stays, and is served nowhere. Remove it by hand in Cloudflare, with the rule off, as section 3 says of a file |
+| The coverage report, shown to you by the run | It names areas, so no run may show it | It is kept beside the release. Take the release to read it: "Read the lock, and approve the release" |
+
+### What was read
+
+Read on 2026-09-25 through a reader that summarises. Check the wording in a browser before relying on it.
+
+| Page | What it says |
+|---|---|
+| Cloudflare R2, API tokens | The four permissions. "Object Read only" allows "the ability to read and list objects in specific buckets", and "Object Read & Write" "the ability to read, write, and list objects in specific buckets". The page names no way to hold a token to a prefix, a folder or an object, and does not say whether a token that may write may delete. "You will not be able to access your Secret Access Key again after this step" |
+| Cloudflare R2, temporary credentials | A temporary credential can be held to "a single bucket" and "optionally to specific paths within the bucket", by prefixes or by objects. It is "derived from an existing R2 API token", and "cannot exceed the permissions of its parent token". How long one may last is not said |
+| Cloudflare R2, bucket locks | As section 14 has it. A rule may be given a prefix. Whether a lock stops a new file under a new name is not said |
+| Cloudflare R2, S3 API compatibility | `PutObject`, `GetObject`, `HeadObject` and `ListObjectsV2` are listed as implemented. `PutObject` is listed with the conditional operation `If-None-Match`, which is how a file is sent only where none is. What R2 answers where a file is there is not said, and no header of a checksum is named |
+| GitHub Docs, deployments and environments | "Use required reviewers to require a specific person or team to approve workflow jobs that reference the environment." "If the environment requires approval, a job cannot access environment secrets until one of the required reviewers approves it." Whether one approval covers two jobs that run one after the other is not said |
+| GitHub Docs, workflow commands | "Job summaries support GitHub flavored Markdown." A step's summary is at most 1 MiB. "Summaries automatically mask any secrets that might have been added accidentally" |
+| GitHub Docs, workflow syntax | An input of a run started by hand is one of `boolean`, `choice`, `number`, `environment` or `string`. No more than 25 inputs |
+| GitHub Docs, GitHub-hosted runners | A standard runner of a public repository, under the label `ubuntu-24.04`, has 4 processors, 16 GB of memory and 14 GB of storage. How much of the storage is free is not said |
+
+Not read, and written from memory: that a job's output may hold up to 1 MB, that GitHub drops an output in which it finds a secret, and that a code block on a summary page has a button to copy it.
 
 ## 15. The first preview, on a machine of your own
 
@@ -919,7 +1249,7 @@ Do everything as section 15 says, with these changes:
 What to know before you look:
 
 - `--list` is given once for each list the build takes, in any order. With none, the step takes `m1` alone. A measure whose file is in no list of the build is left out: `step=derive status=skipped feature=green_cover`, with `input_has_one_receipt=1`.
-- A build holds what a home sells for where a list it takes names the workbook of median prices, as `m2-living` does: give `--list m2-living` too. The line `step=cost status=ok` counts the areas and the rows, and prints no price. The line `step=cost status=skipped` names the rule that left the cost out, and the build goes on: `input_has_one_receipt` where the workbook has no receipt for the use the list names, and `input_is_allowed` where the list names it to validate against. `build.json` counts the areas with a figure for each kind of home. No build holds a rent. [ADR 0021](adr/0021-a-price-is-shown-as-the-publisher-gives-it.md) says what is carried, and what waits on a decision.
+- A build holds what a home sells for where a list it takes names the workbook of median prices, as `m2-living` does: give `--list m2-living` too. The line `step=cost status=ok` counts the areas and the rows, and prints no price. The line `step=cost status=skipped` names the rule that left the cost out, and the build goes on: `input_has_one_receipt` where the workbook has no receipt for the use the list names, and `input_is_allowed` where the list names it to validate against. `build.json` counts the areas with a figure for each kind of home. A build of that day held no rent: since 2026-09-25 one holds what a home lets for where a list it takes names the workbook of rents, as `m2-living` does, and section 32 says what it prints. [ADR 0021](adr/0021-a-price-is-shown-as-the-publisher-gives-it.md) says what is carried, and what waits on a decision.
 - No build of London holds a price yet. One file is to be fetched for it: the item `median-prices-msoa` of the list `m2-living`, of the source `ons-median-house-prices-msoa`, for the use `scoring`. Its one receipt, `f-545982134c5e`, says `validation_only`, which is what the gate was asked on the day it was fetched, and the first receipt of a file stands. So the receipt is put aside first, by the steps of section 7, "Put a receipt right", which allow that today for an edition or a period and not for a use: whether they may is yours to say. Then `uv run python -m burro_pipeline fetch --list m2-living --only median-prices-msoa` writes the receipt for `scoring`, and a build that takes `--list m2-living` holds the cost. Until then a build leaves the cost out by `input_has_one_receipt`, and the made-up release is the one that holds a cost.
 - The list m2-places names the 33 files of the food hygiene register, which state their own edition. The build takes the newest of each that has a receipt, and its lock names the edition of each: section 7, "Which edition a build takes". So the first line reads `own_edition=33`. Two measures read the register: places to eat and drink, and pubs and bars. Each is worked out and left out of the release, and [the page on the food register](research/data/food-register.md) says what holds each back.
 - `--built-at` is a time that has passed. It is an input and is never read from the clock, so that a build repeats. Give the hour of the last commit, and never a time later than the day the step is run: the service serves it as the time the release was built.
@@ -1273,6 +1603,8 @@ What to know before you look:
 
 ## 28. A preview with private outdoor space worked out, and held back
 
+**Since 2026-09-25 a build carries the measure.** The proxy audit it was held back for is dropped, and section 31 says what a build holds with it. What follows is how things stood when this preview was made.
+
 The catalogue is at version 13, and the engine is 1.12.0. Core names private outdoor space as it is built: addresses with private outdoor space, by MSOA. The measure is on the table of measures and is held back from every release, until its row of the proxy audit has passed. So this preview carries what the preview of section 20 carried, and works one more measure out.
 
 Do everything as section 15 says, with these changes:
@@ -1356,3 +1688,116 @@ Thirteen of the fourteen vibes place an area:
 | Village feel | 60 | None | The size and the shape of a town centre |
 
 Village feel holds 60 in 100 of its recipe in 969 areas, which would be enough for a band. It places none: core places it only where the size or the shape of a town centre has a figure ([the contract](design/contract.md), section 3.2).
+
+## 30. A preview with the high streets in its lock, and Village feel held off as it was
+
+The catalogue is at version 13, and the engine is 1.13.0, as in section 29. Nothing of core changed. The build names one list more, `m11-high-streets`, whose one file has its receipt since 2026-09-24. It was made to show what a second try at Village feel changed of a build, which is nothing that a person sees: [the page on high streets](research/data/high-streets.md) says what the try found.
+
+Do everything as section 29 says, with these changes:
+
+| # of section 15 | Run this in its place |
+|---|---|
+| Before 4 | Nothing. This build was given no draft of names, so each area is under its publisher's label |
+| 4 | `make preview ARGS="--release-id lon-2026-09-25-21 --built-at 2026-09-25T06:00:00Z --out data/releases --list m1 --list m2-places --list m2-living --list m2-culture --list m2-stations --list m5-journeys --list m10-health --list m10-land-use --list m11-age-and-households --list m11-high-streets --list m11-outdoor-space --list m12-household-income --list m12-public-transport"` |
+| 5 | `uv run burro-release check data/releases/lon-2026-09-25-21 --receipts data/receipts --income data/releases/lon-2026-09-25-21-income` |
+| 6 | The same, with `lon-2026-09-25-21` where section 15 has `lon-2026-09-24-01` |
+
+It names the thirteen lists that hold a receipt. Step 4 takes about ten minutes, and step 5 about three.
+
+What to know before you look:
+
+- The first line reads `inputs=87 missing=3`. The file of high streets is one of the 87. The 89 of section 29 held the three files of a draft of names, which this build was not given.
+- **The file of high streets is in the lock, and no measure of the build reads it.** `derive/highstreet_conserved.py` reads it, and is on no list of a build: core holds no feature for it. A test on the real files works it out, and 925 of the 1,002 areas have a figure.
+- Step 4 prints 98 lines of `step=derive status=ok` and six of `step=derive status=skipped`, which are the six of section 29.
+- Step 5 says `98 measures, 641 destinations, 641 places`. The check counts 104,010 facts, as in section 29.
+- Thirteen of the fourteen vibes place an area, and each places as many as in section 29. Village feel places none.
+
+What a person is told who asks for a village, with no model and the rules reading:
+
+| Typed | What the service does |
+|---|---|
+| "a village feel" | Applies nothing, and says that Village feel is not in this data. It offers nothing in its place, and the ranking is the one a search with nothing said gives |
+| "somewhere with a real identity" | Applies nothing, and says that Village feel is not in this data. It offers two of the three ways it holds for a word of character: Age of buildings towards Historic, and nearer a town centre. Its note names those two. When the build was made the note named a village feel as well, which no press could give: core was put right the same day |
+
+No line the service wrote holds a word that was typed.
+
+## 31. A preview that carries private outdoor space, once the proxy audit was dropped
+
+The catalogue is at version 13, and the engine is 1.13.0. It is the build of section 29, made again from the same files and the same lists. Private outdoor space was held back from every release for want of a row of the proxy audit, and for no other reason. The founder dropped the audit on 2026-09-25 ([ADR 0006](adr/0006-rank-places-not-residents.md), as amended that day), so nothing holds the measure back, and this preview carries it.
+
+Do everything as section 29 says, with these changes:
+
+| # of section 15 | Run this in its place |
+|---|---|
+| 4 | `make preview ARGS="--release-id lon-2026-09-25-31 --built-at 2026-09-25T05:00:00Z --out data/releases --names FOLDER --list m1 --list m2-places --list m2-living --list m2-culture --list m2-stations --list m5-journeys --list m10-health --list m10-land-use --list m11-age-and-households --list m11-outdoor-space --list m12-household-income --list m12-public-transport"` |
+| 5 | `uv run burro-release check data/releases/lon-2026-09-25-31 --receipts data/receipts --income data/releases/lon-2026-09-25-31-income` |
+| 6 | The same, with `lon-2026-09-25-31` where section 15 has `lon-2026-09-24-01` |
+
+What to know before you look:
+
+- Step 4 prints 99 lines of `step=derive status=ok` and five of `step=derive status=skipped`. The five are those of section 29 without private outdoor space: the nearest place of two chains has a figure for no area, and the size and the shape of a town centre and what there is to do in parks keep core's names.
+- Step 5 says `99 measures, 641 destinations, 641 places`.
+- Private outdoor space has a figure in 963 of the 1,002 areas. Of the 39 with none, 38 are parts of an area of 2011 that was split and one was made by joining two: section 28 says why, and what the figure is.
+- Houses or flats rests on its whole recipe in those 963 areas, and on 75 in 100 in the 39. Every area has a band, as before.
+- Against the build of section 29, 202 areas stand in another band of Houses or flats: 101 moved by one band towards Flats and 101 by one towards Houses. None moved by two. No band of any other vibe moved: the measure is a part of no other recipe, and no likeness is counted on it.
+- What keeps residents out of a ranking is as it was. A wish for fewer of any group of people draws the notice and changes nothing, on this build as on every other.
+- Everything sections 16 to 29 say before you look still stands, but for what they say holds private outdoor space back.
+
+## 32. A preview that holds what homes let for
+
+The catalogue is at version 13, and the engine is 1.14.0. It is the build of section 31 with the list of the high streets beside the rest, as the hosted build names its lists, made once the pipeline read the workbook of the rents of London. The list `m2-living` named the workbook already, and its receipt was in `data/receipts/` since 2026-09-23, so nothing was fetched for it. [ADR 0021](adr/0021-a-price-is-shown-as-the-publisher-gives-it.md), as amended on 2026-09-25, says what is carried and why.
+
+Do everything as section 29 says, with these changes:
+
+| # of section 15 | Run this in its place |
+|---|---|
+| Before 4 | `uv run python -m burro_pipeline draft --out FOLDER --work FOLDER`, which is the step the hosted build drafts the names with |
+| 4 | `make preview ARGS="--release-id lon-2026-09-25-61 --built-at 2026-09-25T08:00:00Z --out data/releases --names FOLDER --list m1 --list m10-health --list m10-land-use --list m11-age-and-households --list m11-high-streets --list m11-outdoor-space --list m12-household-income --list m12-public-transport --list m2-culture --list m2-living --list m2-places --list m2-stations --list m5-journeys"` |
+| 5 | `uv run burro-release check data/releases/lon-2026-09-25-61 --receipts data/receipts --income data/releases/lon-2026-09-25-61-income` |
+| 6 | The same, with `lon-2026-09-25-61` where section 15 has `lon-2026-09-24-01` |
+
+The draft of names took a minute and a half, and step 4 eight and a half.
+
+What to know before you look:
+
+- The first line reads `inputs=90 missing=3`. Step 4 prints 99 lines of `step=derive status=ok` and five of `step=derive status=skipped`, as in section 31.
+- It prints two lines of `step=cost`. The first is of what homes sold for, `rows=2859`, as before. The second is of what homes let for: `source=ons-private-rental-market-london-postcode-district areas=1002 rows=5866 files=4`. Neither holds a rent, a postcode or the name of a postcode district, and nor does `build.json`, which counts the rents under `rent`.
+- Step 5 says `99 measures, 641 destinations, 641 places`. The check counts 110,839 facts.
+- A rent is of a postcode district or of a whole borough, and never of the area alone. The workbook names 33 boroughs and 329 postcode districts. Of the 1,002 areas, 959 lie in a district by half or more of their homes, and 43 lie in none and take the figures of their borough.
+- How many areas take which figure, for each kind of home:
+
+  | Kind of home | Of a postcode district | Of the borough | No figure |
+  |---|---|---|---|
+  | A room | 284 | 646 | 72 |
+  | A studio | 355 | 575 | 72 |
+  | One bedroom | 913 | 89 | 0 |
+  | Two bedrooms | 932 | 70 | 0 |
+  | Three bedrooms | 929 | 72 | 1 |
+  | Four bedrooms or more | 663 | 338 | 1 |
+
+- A room and a studio have a range in few districts, so most areas take their borough's. Where the borough has none either the area has no rent for that kind of home, and is ranked with its cost not known.
+- Of the 5,866 rows, 3,024 rest on 50 rents or more and 2,842 on 10 to 49. The count is what a page shows, and no word for how sure a figure is.
+- It holds no journey time. A journey by public transport to a station is estimated for a search, from distance, and is said to be an estimate.
+
+What a renter is answered, by the rules alone, through the API's test client and with no model:
+
+| The words | What Burro does with them |
+|---|---|
+| "renting, up to £1,700 a month, leafy" | Applies all of it: renting, a budget of £1,700 a month for one bedroom as a firm limit, and Leafy. It ranks 937 areas and leaves out 65 as over the budget |
+| "renting a two bed, max £2,400" | Applies all of it: a budget of £2,400 a month for two bedrooms as a firm limit. It ranks 968 areas and leaves out 34 |
+| "somewhere cheap to rent near a park" | Applies nothing. What is cheap is a verdict Burro does not give, and the answer says so. It offers renting and nearer a park, each with no guess, and a budget is for the person to name |
+
+Every sentence of a budget names the place the rent is of, as "in postcode district" and the district, or "in the whole borough of" and the borough. The offer of a budget to rent holds what the publisher advises in its note. No line the service wrote holds a word that was typed, an amount, an id of an area or the name of a borough.
+
+A firm budget of £1,700 a month for one bedroom, held against the middle rent of the place each area lies in:
+
+| | Areas |
+|---|---|
+| The middle rent is within the budget | 738 |
+| It is over the budget by a quarter or less, so the area is kept and ranked lower | 199 |
+| It is over by more than a quarter, so the area is left out | 65 |
+| Left out, had the limit been held against the upper quartile with no margin | 405 |
+
+The 65 are in seven boroughs: 23 of the 24 areas of Westminster, 20 of the 21 of Kensington and Chelsea, 8 of the 23 of Islington, 7 of the 38 of Wandsworth, 3 of the 30 of Hackney, 3 of the 35 of Lambeth, and the one area of the City of London. No area of the other 26 boroughs is left out.
+
+The tables of the first ten areas of each search name places, so they are kept outside the repository and are in no tracked file.

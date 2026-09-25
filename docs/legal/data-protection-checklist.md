@@ -86,7 +86,7 @@ The hours of tasks 4 and 5 include one provider.
 |---|---|---|
 | 1 | No cookie, no storage, no analytics, nothing from another origin. Typed text in the body of a request only. A log that holds a fixed list of fields | A page for the notice and a page for the terms. A link to the notice beside the box. A way to delete one shared link. A limit on requests. An address on the accessibility page for a report |
 | 2 | A key alone turns nothing on. The notice beside the box is the service's own, is shown before anything is typed, and no sentence is sent before it. No provider's library | A step that asks before a sentence is sent. Code that refuses DeepSeek on a release that is not made up. That nothing a model reads is applied until the person chooses it |
-| 3 | Nothing can search, sort or filter by who lives somewhere. A release of a real place is refused if it holds a count of residents, or a Gritty that counts recorded incidents | The census table, with its floor of 1,000 people. The measures of age and of households. The one Gritty. The written rule of the proxy audit. The words of the methods page |
+| 3 | Nothing can search, sort or filter by who lives somewhere. A release of a real place is refused if it holds a count of residents, or a Gritty that counts recorded incidents | The census table, with its floor of 1,000 people. The measures of age and of households. The one Gritty. The words of the methods page. The written rule of the proxy audit stood here until 25 September 2026, when the audit was dropped |
 
 ---
 
@@ -401,7 +401,7 @@ Is one required? The law and the ICO each give a list. Read, at <https://ico.org
 | The steps | "identify the need for a DPIA", "describe the processing", "consider consultation", "assess necessity and proportionality", "identify and assess risks", "identify measures to mitigate the risks", "sign off and record outcomes". Read, at <https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/accountability-and-governance/data-protection-impact-assessments-dpias/how-do-we-do-a-dpia/> |
 | Template | <https://www.ico.org.uk/media2/migrated/2553993/dpia-template.docx>. The address was read from the page. The file was not opened |
 | If a high risk is left | "if there is still a high risk, you need to consult the ICO before you can go ahead with the processing." Read |
-| What to put in it | The decision records already hold most of it: [0005](../adr/0005-raw-prompts-are-never-stored.md), [0006](../adr/0006-rank-places-not-residents.md), [0011](../adr/0011-nothing-is-kept-for-a-search.md), [0012](../adr/0012-a-closed-vocabulary-and-a-guard-on-the-model.md), [0014](../adr/0014-evidence-first-and-census-figures-shown.md), [0019](../adr/0019-no-one-provider-and-a-key-alone-turns-nothing-on.md), and section 10 of the [contract](../design/contract.md). Add the provider's row from `providers/terms.py`, the transfer, what was accepted of Google on 24 September 2026, and the proxy audit |
+| What to put in it | The decision records already hold most of it: [0005](../adr/0005-raw-prompts-are-never-stored.md), [0006](../adr/0006-rank-places-not-residents.md), [0011](../adr/0011-nothing-is-kept-for-a-search.md), [0012](../adr/0012-a-closed-vocabulary-and-a-guard-on-the-model.md), [0014](../adr/0014-evidence-first-and-census-figures-shown.md), [0019](../adr/0019-no-one-provider-and-a-key-alone-turns-nothing-on.md), and section 10 of the [contract](../design/contract.md). Add the provider's row from `providers/terms.py`, the transfer, what was accepted of Google on 24 September 2026, and that the proxy audit was dropped on 25 September 2026 |
 | Each provider offers help | Google and Anthropic both say they will assist with an impact assessment. Read in the reports |
 | Hours | 8 |
 | When to redo it | A new provider, a new host, accounts, a database, anything that stores text |
@@ -422,13 +422,13 @@ Is one required? The law and the ICO each give a list. Read, at <https://ico.org
 | 4 | Shares only, as whole per cents. No count is printed, stored or served | The build | The registry's condition |
 | 5 | A measure of age or of households can be asked for more of, and never for fewer. It is no end of a scale and no filter, and a test holds it | The build | It is the line between describing an area and keeping people out of one |
 | 6 | The tests that say no feature describes residents, and that no release holds a count of them, are changed in the same change as the code, to say what is now allowed and nothing more | The build | They are the fence today. A fence that is taken down and not put back holds nothing |
-| 7 | The written rule of the proxy audit exists: for each measure, the aim it serves, the correlation that triggers a review, and what can be done | The founder | Age and households are about residents by design. [ADR 0006](../adr/0006-rank-places-not-residents.md) |
+| 7 | Dropped on 25 September 2026. It asked that the written rule of the proxy audit exists: for each measure, the aim it serves, the correlation that triggers a review, and what can be done | The founder, who decided that no proxy audit is run | [ADR 0006](../adr/0006-rank-places-not-residents.md), as amended that day. Rows 5 and 6 stand as they were |
 | 8 | Which file feeds the two counts of recorded crime in Gritty is decided, and whether a rate that a publisher divided by residents, or smoothed by the kind of people who live in an area, may feed it | The founder | [The reading](residents-crime-and-equality.md), section 6 |
 | 9 | The police file is saved with the crime box ticked and the other two boxes not. A copy that was saved with all three ticked is saved again and deleted. No step opens an outcomes file or a stop and search file, and a test holds that | The founder, at the form. Then the build | Decided on 24 September 2026: the crime files alone are read. A copy that holds the other two is still held |
 | 10 | The methods page says what Burro holds about residents, that it holds nothing about any person, and why stop and search is never read | The build | [The reading](residents-crime-and-equality.md), section 11, has words for it |
 | 11 | The page of Gritty says that it counts recorded crime, which parts of it do, and that recorded is not the same as committed | The build | The website's words for a vibe that counts recorded crime are built. No real release holds one |
 
-Hours: 2, for rows 2, 7, 8 and 9.
+Hours: 2, for rows 2, 8 and 9, and for row 7 before it was dropped.
 
 ---
 
