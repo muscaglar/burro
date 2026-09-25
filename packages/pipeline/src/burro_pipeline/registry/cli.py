@@ -33,7 +33,9 @@ def _list(registry: Registry) -> int:
 
 def _attributions(registry: Registry) -> int:
     for source, statement in registry.attributions():
-        print(f"{source.name} ({source.publisher})\n  {statement}\n")
+        # What is said with the credit stands under it, as a page draws it.
+        said = f"\n  {source.said_with_attribution}" if source.said_with_attribution else ""
+        print(f"{source.name} ({source.publisher})\n  {statement}{said}\n")
     return 0
 
 

@@ -245,13 +245,15 @@ LATER = (
     _F.HOMES_HIGHER_BANDS,
     _F.PRICE_RISE_5Y,
     _F.PRICE_RISE_10Y,
+    _F.HIGHSTREET_CONSERVED,
 )
 # How far what homes sold for has risen: pounds for each 100 of the price before, and no
 # price. It is given to one decimal place, where a price is given to the pound.
 _RISES = (_F.PRICE_RISE_5Y, _F.PRICE_RISE_10Y)
 # In core and not in the made-up release, so three recipes run short in it: outdoor
-# space and kinds of food wait on an audit, and a pharmacy on the receipt of its file. A
-# build of London carries the distance to a GP, and the made-up release does not yet.
+# space, kinds of food and a pharmacy. No source is cleared for kinds of food. A build
+# of London carries outdoor space and the distance to a GP and to a pharmacy, and the
+# made-up release does not yet.
 CARRIED = (*FIRST, *SECOND, *LATER)
 _OF_HOMES_TOO = (
     _F.CENTRE_SMALL,
@@ -259,6 +261,8 @@ _OF_HOMES_TOO = (
     _F.ROAD_MAJOR_EXPOSURE,
     _F.EVENING_CLUSTER_EXPOSURE,
     _F.HOMES_HIGHER_BANDS,
+    # A mean over an area's homes, of the high street each is nearest to.
+    _F.HIGHSTREET_CONSERVED,
 )
 _INCIDENTS = (_F.INCIDENT_CRIMINAL_DAMAGE, _F.INCIDENT_ANTISOCIAL)
 # The places of each tier within reach, which are a mean over an area's homes, and the mix.
@@ -333,8 +337,11 @@ NOT_MEASURED: Mapping[str, tuple[FeatureId, ...]] = {
         *_OVER_HOMES,
         *_OF_RESIDENTS,
     ),
-    # Where the conservation source has no cover the answer is unknown, not zero.
-    "Gorsebeck": (_F.CONSERVATION_COVER,),
+    # Where the conservation source has no cover the answer is unknown, not zero. So is
+    # how much of the nearest high street lies in a conservation area, where that high
+    # street stands in the same authority. The high street nearest Marrowfen stands in
+    # the next, which sent its conservation areas.
+    "Gorsebeck": (_F.CONSERVATION_COVER, _F.HIGHSTREET_CONSERVED),
     "Marrowfen": (_F.CONSERVATION_COVER, _F.NOISE_EXPOSURE),
     # No primary school within reach, so there are no results to report.
     "Cindermoor": (_F.SCHOOL_PRIMARY_ATTAINMENT,),
@@ -830,6 +837,13 @@ def _later_figure(feature_id: FeatureId, area: _Area, draw: Draw) -> float:
         over_ten = feature_id is _F.PRICE_RISE_10Y
         drawn = (112 + 58 * rising) if over_ten else (97 + 30 * rising)
         return drawn + draw.around(2)
+    if feature_id is _F.HIGHSTREET_CONSERVED:
+        # How much of the nearest high street lies in a conservation area. It is of the
+        # high street and not of the area: it follows a centre of its own, where what is
+        # sold is not part of a chain, more than it follows old homes. So an old high
+        # street stands among newer homes in one area, and old homes stand round a centre
+        # that was built again in another.
+        return 100 * (0.7 * p.indie + 0.15 * p.old + 0.15 * p.street) + draw.around(3)
     if feature_id in _BRANDS:
         return _of_brands(feature_id, area, draw)
     if feature_id in _OF_RESIDENTS:

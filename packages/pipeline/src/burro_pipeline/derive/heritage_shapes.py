@@ -229,6 +229,17 @@ def sharing_land(shapes: Sequence[Shape]) -> list[tuple[int, int]]:
     return found
 
 
+def land_shared(shape: Shape, ground: Shape) -> Shape | None:
+    """The land an outline shares with another, as an outline. Nothing where they share none.
+
+    Two outlines that only touch share a line or a point, which is no land.
+    """
+    if not shapely.intersects(shape, ground):
+        return None
+    shared = _land_of(shapely.intersection(shape, ground))
+    return None if shared is None or float(shared.area) <= 0 else shapely.normalize(shared)
+
+
 def hectares_in_each(shape: Shape, ground: Mapping[str, Shape]) -> dict[str, float]:
     """The land of one outline that lies inside each outline of the ground, in hectares.
 

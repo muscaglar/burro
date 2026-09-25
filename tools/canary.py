@@ -87,8 +87,11 @@ class Markers:
         """A marked value for every secret, no two the same."""
         names = enumerate(public_log.SECRET_NAMES)
         values = {name: f"{self.key}-{number}" for number, name in names}
-        address = {public_log.ENDPOINT: f"https://{self.key}.invalid"}
-        return values | address | {public_log.CONTACT: f"{self.key}@canary.invalid"}
+        addresses = {
+            name: f"https://{self.key}-{number}.invalid"
+            for number, name in enumerate(public_log.ENDPOINTS)
+        }
+        return values | addresses | {public_log.CONTACT: f"{self.key}@canary.invalid"}
 
     def found_in(self, text: str) -> bool:
         lowered = text.lower()

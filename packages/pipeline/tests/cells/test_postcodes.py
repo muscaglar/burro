@@ -314,7 +314,8 @@ def test_the_lookup_gives_out_no_postcode(lookup: Lookup):
     for row in DIRECTORY:
         assert row.postcode not in said
         assert row.postcode.replace(" ", "") not in said
-    # Nothing that is public gives back a text: a point, a code of an area or a count.
+    # Nothing that is public gives back a postcode: a point, a code of an area, a district
+    # or a count.
     public = [
         name
         for name, _ in inspect.getmembers(Lookup, predicate=inspect.isfunction)
@@ -322,6 +323,7 @@ def test_the_lookup_gives_out_no_postcode(lookup: Lookup):
     ]
     assert sorted(public) == [
         "in_use_by_borough",
+        "in_use_by_district",
         "in_use_by_output_area",
         "not_of",
         "place",
@@ -329,6 +331,47 @@ def test_the_lookup_gives_out_no_postcode(lookup: Lookup):
     ]
     with pytest.raises(TypeError):
         iter(lookup)  # type: ignore[call-overload]
+
+
+# The district of a postcode.
+
+
+def test_the_postcodes_in_use_of_an_output_area_are_counted_by_their_district(lookup: Lookup):
+    found = lookup.in_use_by_district()
+    # The first half of a postcode, as it is written before the space.
+    assert found[unit_at((50, 150)).oa] == {"QH1": 1}
+    assert found[unit_at((250, 150)).oa] == {"QH2": 1}
+    assert found[unit_at((350, 50)).oa] == {"QH9": 1}
+    assert found[unit_at((550, 50)).oa] == {"QT1": 1}
+    assert sum(sum(held.values()) for held in found.values()) == lookup.counts.in_use
+
+
+def test_a_postcode_that_has_ended_is_counted_in_no_district(lookup: Lookup):
+    found = lookup.in_use_by_district()
+    # Two postcodes of one district have ended, each in an output area of its own.
+    assert unit_at((150, 50)).oa not in found
+    assert unit_at((130, 150)).oa not in found
+
+
+def test_an_output_area_may_hold_postcodes_of_more_than_one_district(tmp_path: Path):
+    beside = (MadeUpPostcode("QH2 2CK", (60, 160)), MadeUpPostcode("QH2 3CK", (70, 170)))
+    found = postcodes.read(opened_of(tmp_path, directory_zip((*DIRECTORY, *beside))))
+    assert found.in_use_by_district()[unit_at((50, 150)).oa] == {"QH1": 1, "QH2": 2}
+
+
+def test_a_district_is_the_whole_of_what_stands_before_the_space(tmp_path: Path):
+    # A district of two letters and two digits, and one that ends in a letter.
+    long, lettered = MadeUpPostcode("QH10 1CK", (60, 160)), MadeUpPostcode("QH1A 1CK", (70, 170))
+    found = postcodes.read(opened_of(tmp_path, directory_zip((*DIRECTORY, long, lettered))))
+    assert found.in_use_by_district()[unit_at((50, 150)).oa] == {"QH1": 1, "QH10": 1, "QH1A": 1}
+
+
+def test_what_is_counted_by_district_holds_no_postcode(lookup: Lookup):
+    said = repr(lookup.in_use_by_district())
+    for row in DIRECTORY:
+        assert row.postcode not in said
+        assert row.postcode.replace(" ", "") not in said
+        assert row.postcode.split(" ")[1] not in said
 
 
 def test_the_module_writes_nothing():

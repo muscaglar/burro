@@ -585,6 +585,36 @@ def append(
     return line
 
 
+def add_to(path: Path, make: Callable[[bytes], bytes]) -> bytes:
+    """Add to the end of a file what `make` gives for what the file holds, and return it
+    once it is on the disk.
+
+    The file is locked while it is read and written, so two desks on one folder never
+    write over each other. `make` is handed the bytes of the file, and what it raises is
+    raised here, with nothing written. It is for a file of lines that are not decisions
+    of a queue, and are kept as they are: the panel's file of changes.
+    """
+    folder = path.parent
+    if not folder.is_dir():
+        folder.mkdir(parents=True, mode=0o700, exist_ok=True)
+        folder.parent.chmod(0o700)
+        _sync_folder(folder.parent)
+    is_new = not path.exists()
+    descriptor = os.open(path, os.O_RDWR | os.O_APPEND | os.O_CREAT | os.O_NOFOLLOW, 0o600)
+    try:
+        fcntl.flock(descriptor, fcntl.LOCK_EX)
+        with open(descriptor, "rb", closefd=False) as file:
+            held = file.read()
+        added = make(held)
+        _write_all(descriptor, added)
+        _sync(descriptor)
+    finally:
+        os.close(descriptor)
+    if is_new:
+        _sync_folder(folder)
+    return added
+
+
 # The kept copy. The lines are under `data/raw/`, which git ignores, so one `git clean`
 # would take forty hours of decisions. Each line is written to a second folder too,
 # outside the repository, before the desk answers.

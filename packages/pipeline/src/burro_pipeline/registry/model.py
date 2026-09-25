@@ -129,6 +129,11 @@ class Source(BaseModel):
     # the data is shown, and not on the page of attributions alone. A release then says so
     # of the source, and every fact that cites it carries the statement.
     attribution_beside_figures: StrictBool = False
+    # What the terms of the publisher ask to be said wherever its credit is shown, in plain
+    # words: what they ask, and no more. It is no part of the credit, which stays as the
+    # publisher worded it. A release carries it with the credit, and it is served and drawn
+    # wherever the credit is.
+    said_with_attribution: str = ""
     conditions: tuple[str, ...] = ()
     status: Status
     status_reason: str = ""

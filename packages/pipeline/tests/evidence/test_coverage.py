@@ -66,8 +66,8 @@ def states(coverage: Coverage, area_id: str, kind: str) -> Counter[State]:
 
 def test_every_area_and_every_measure_has_a_state():
     coverage = covered()
-    assert len(coverage.areas) == 24 and len(coverage.measures) == 142
-    assert len(coverage.cells) == 24 * 142
+    assert len(coverage.areas) == 24 and len(coverage.measures) == 143
+    assert len(coverage.cells) == 24 * 143
     assert {(c.area_id, c.measure) for c in coverage.cells} == {
         (area.area_id, measure)
         for area in release().neighbourhoods
@@ -79,30 +79,31 @@ def test_every_area_and_every_measure_has_a_state():
 def test_a_release_is_held_to_every_measure_a_result_needs():
     kinds = Counter(measure.split("/")[0] for measure in measures_of(release()))
     # Every feature core knows, and the vibes the release carries: the thirteen, and Gritty.
-    assert kinds == {"area": 2, "travel": 3, "cost": 10, "station": 1, "feature": 112, "tag": 14}
+    assert kinds == {"area": 2, "travel": 3, "cost": 10, "station": 1, "feature": 113, "tag": 14}
 
 
 def test_the_gaps_the_synthetic_release_has_on_purpose_are_counted():
     coverage = covered()
-    assert len(coverage.gaps) == 329
+    assert len(coverage.gaps) == 336
     assert Counter(cell.state for cell in coverage.gaps) == {
-        # 170 features and 17 vibes with too little covered. Twelve of the features are the
+        # 174 features and 21 vibes with too little covered. Twelve of the features are the
         # four shares of who lives there, in the three areas where too few were counted.
-        State.BELOW_THRESHOLD: 187,
-        # 33 costs with no estimate, 12 vibes with none of their parts, and one measure of
+        State.BELOW_THRESHOLD: 195,
+        # 33 costs with no estimate, 11 vibes with none of their parts, and one measure of
         # which nothing at all was covered.
-        State.SOURCE_GAP: 46,
+        State.SOURCE_GAP: 45,
         # Four features that core knows and no release carries yet, in each of 24 areas.
         State.NOT_CARRIED: 96,
     }
     # One rankable area has no cost, one can be placed on one vibe alone and on part of its
     # recipe, and one has journeys that were not routed.
     assert states(coverage, NO_COST, "cost") == {State.SOURCE_GAP: 10}
-    # Of Gritty it holds no part now that homes per hectare is none.
+    # Of Gritty it holds no part now that homes per hectare is none. Of Village feel it
+    # holds one, homes per hectare, which is 30 in 100 of it.
     assert states(coverage, NOT_MEASURED, "tag") == {
         State.PARTIAL: 1,
-        State.BELOW_THRESHOLD: 5,
-        State.SOURCE_GAP: 8,
+        State.BELOW_THRESHOLD: 6,
+        State.SOURCE_GAP: 7,
     }
     assert states(coverage, NOT_ROUTED, "travel") == {State.PARTIAL: 3}
     assert coverage.cell(NOT_ROUTED, "travel/pt").weight_covered == pytest.approx(38 / 40)
@@ -140,11 +141,11 @@ def test_the_reason_a_publisher_gives_is_kept():
 
     suppressed = cover(release(), changed(gap.fact_id, withheld))
     assert suppressed.cell(gap.area_id, gap.measure).state is State.SUPPRESSED
-    assert len(suppressed.gaps) == 329
+    assert len(suppressed.gaps) == 336
     unpublished = cover(release(), changed(gap.fact_id, too_small))
     assert unpublished.cell(gap.area_id, gap.measure).state is State.NOT_PUBLISHED
     # What no source could close is said once, and is not counted as a gap.
-    assert len(unpublished.gaps) == 328
+    assert len(unpublished.gaps) == 335
     assert "| Not published for areas this small | 1 |" in report(unpublished)
 
 
@@ -331,8 +332,8 @@ def test_the_report_has_the_five_tables_and_a_row_for_every_gap():
     titles = ("By source", "By measure", "By area", "Gaps", "Claims")
     assert [line[3:] for line in text.splitlines() if line.startswith("## ")] == list(titles)
     gaps = text.split("## Gaps")[1].split("## Claims")[0]
-    # Of 327 gaps, 96 are of the four measures no area has. Each of those is said once.
-    assert len([line for line in gaps.splitlines() if line.startswith("| syn-")]) == 329 - 96
+    # Of 336 gaps, 96 are of the four measures no area has. Each of those is said once.
+    assert len([line for line in gaps.splitlines() if line.startswith("| syn-")]) == 336 - 96
     assert len([line for line in gaps.splitlines() if "| not_carried | yes |" in line]) == 4
     by_area = text.split("## By area")[1].split("## Gaps")[0]
     assert len([line for line in by_area.splitlines() if line.startswith("| syn-")]) == 24
@@ -343,13 +344,13 @@ def test_the_report_says_once_what_no_area_has_and_not_once_for_every_area():
     _, said = without_a_cost()
     gaps = report(said).split("## Gaps")[1].split("## Claims")[0]
     # No cost of ten, and none of the four measures that no release carries yet.
-    assert "Of the 142 things Burro measures, 128 have a figure in at least one area." in gaps
+    assert "Of the 143 things Burro measures, 129 have a figure in at least one area." in gaps
     assert gaps.count("| cost/rent.bed_1 | not_carried | yes |") == 1
     assert not [line for line in gaps.splitlines() if "| cost/" in line and "| syn-" in line]
     # What some areas lack is still listed for each of them.
-    assert len([line for line in gaps.splitlines() if line.startswith("| syn-")]) == 233 - 33
+    assert len([line for line in gaps.splitlines() if line.startswith("| syn-")]) == 240 - 33
     whole = report(covered())
-    assert "Of the 142 things Burro measures, 138 have a figure in at least one area." in whole
+    assert "Of the 143 things Burro measures, 139 have a figure in at least one area." in whole
 
 
 def test_a_measure_that_was_worked_out_and_left_out_is_said_with_its_rule_and_what_it_waits_on():
@@ -439,7 +440,7 @@ def test_a_share_is_rounded_down_so_that_it_never_says_more_than_is_so():
 def test_what_a_build_prints_holds_counts_and_a_hash_and_names_no_area():
     line = summary(covered())
     assert line == (
-        f"release={RELEASE_ID} areas=24 measures=142 values=3079 gaps=329 no_record=0 "
+        f"release={RELEASE_ID} areas=24 measures=143 values=3096 gaps=336 no_record=0 "
         f"coverage_sha256={covered().digest()}"
     )
     assert is_public(line)

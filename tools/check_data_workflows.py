@@ -33,6 +33,12 @@ held to these rules:
    the day stated. The step that installs is given nothing. Every other
    command runs in what was installed, as it stands, and can install nothing.
 8. It holds no address.
+9. A release is kept only by the job that built it, only once that build was held to
+   the build of another job, byte for byte, and only with the key of the bucket of
+   releases, which is given to that one step. The two builds run the same commands.
+   The lock of a release is shown only once the release is kept. No step that
+   compares, keeps or shows is ever left out of a run. A job holds no key that no
+   step of it reads.
 
 No other workflow may name a secret or an environment of a data workflow.
 
@@ -61,7 +67,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import cast
 
-from public_log import SECRET_NAMES, SECRETS_OF, STEPS, STORE
+from public_log import RELEASES, SECRET_NAMES, SECRETS_OF, STEPS, STORE
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = Path(".github/workflows")
@@ -147,9 +153,32 @@ STEPS_OF_A_RUN: dict[str, dict[str, tuple[str, ...]]] = {
         "held": STORE,
         # The made-up town reads nothing. The day the step reads the store, this changes.
         "travel": (),
+        # A build of London reads the store, and writes nothing to it.
+        "draft": STORE,
+        "preview": STORE,
+        # What keeps a release is given the key of the bucket of releases, and no key of
+        # the store: it can touch no publisher's file and no receipt. `take` is not here:
+        # no run takes a release to an image.
+        "keep": RELEASES,
     },
     "burro-release": {"build-synthetic": (), "check": ()},
 }
+# The step that keeps a release, and the commands by which a job builds one. Two builds
+# that are compared run the same commands.
+KEEPS = ("python -m burro_pipeline", "keep")
+BUILDS = frozenset(
+    {
+        ("python -m burro_pipeline", "draft"),
+        ("python -m burro_pipeline", "preview"),
+        ("burro-release", "check"),
+    }
+)
+# The tool that holds two builds to each other and shows the lock of what was kept. What
+# it does is the first word after its name.
+LOCK_TOOL = "release_lock.py"
+COMPARES, SHOWS = "compare", "show"
+# Under which name the step that compares is given the lock of the other build.
+OTHER_BUILD = "COPY_A"
 # What these print holds names from a file's own layout. No run shows it, and none runs them.
 FOR_A_PERSONS_OWN_MACHINE = frozenset({"describe"})
 MASK = f"{PUBLIC_LOG} mask"
@@ -173,10 +202,11 @@ IN_ENV = re.compile(
 # run types an input, so under a name that the installer, Python or the shell reads it
 # would be a setting. A name is added here when a workflow first gives it, in a change
 # that a person reads.
-NAMES_GIVEN = frozenset({"LIST", "ITEM", "COPY", "COPY_A", "COPY_B"})
+NAMES_GIVEN = frozenset({"LIST", "ITEM", "COPY", "COPY_A", "COPY_B", "RELEASE", "BUILT_AT"})
 # A step may be left out of a run, and only by whether an input is empty.
 STEP_IF = re.compile(rf"inputs\.{NAME} [!=]= ''")
 IN_NAME = re.compile(rf"\$\{{\{{ matrix\.{NAME} \}}\}}")
+FROM_ANOTHER_JOB = re.compile(rf"\$\{{\{{ needs\.({NAME})\.outputs\.{NAME} \}}\}}")
 IN_OUTPUTS = re.compile(rf"\$\{{\{{ steps\.{NAME}\.outputs\.{NAME} \}}\}}")
 
 PINNED = re.compile(r"^\s*-?\s*uses:\s*([A-Za-z0-9_.-]+/[A-Za-z0-9_./-]+@[0-9a-f]{40})\s*(?:#.*)?$")
@@ -576,6 +606,64 @@ def _of_the_order(steps: list[dict[str, Node]]) -> Iterator[str]:
         yield f"no step reads a secret, so the job holds made-up ones: {how}"
     elif check == MASK_MADE_UP and read:
         yield f"a step reads a secret, so none of them is made up: check them with `{MASK}`"
+    elif check == MASK:
+        # The same holds of one key among several: a job is handed none it has no use for.
+        for name in sorted(given[first] - set().union(*given[first + 1 :])):
+            yield f"is given {name}, which no step of the job reads"
+
+
+def _does(step: dict[str, Node]) -> str | None:
+    """What a step does to a release: it compares, keeps or shows, or none of these."""
+    run = str(step.get("run", ""))
+    behind, tool = BEHIND.fullmatch(run), TOOL.fullmatch(run)
+    if behind is not None and (behind[2], behind[3]) == KEEPS:
+        return KEEPS[1]
+    if tool is not None and tool[1] == LOCK_TOOL:
+        words = run.split()
+        does = words[words.index(f"tools/{LOCK_TOOL}") + 1 :][:1]
+        return does[0] if does and does[0] in (COMPARES, SHOWS) else None
+    return None
+
+
+def _builds(job: dict[str, Node]) -> tuple[str, ...]:
+    """The commands by which a job builds a release, in the order it runs them."""
+    runs = [str(step.get("run", "")) for step in _maps(job.get("steps"))]
+    found = [(run, BEHIND.fullmatch(run)) for run in runs]
+    return tuple(run for run, behind in found if behind and (behind[2], behind[3]) in BUILDS)
+
+
+def _of_what_is_kept(job: dict[str, Node], jobs: dict[str, dict[str, Node]]) -> Iterator[str]:
+    """A release is kept by the job that built it, once two builds of it were compared."""
+    steps = _maps(job.get("steps"))
+    does = [_does(step) for step in steps]
+    for step, what in zip(steps, does, strict=True):
+        if what is not None and "if" in step:
+            yield f"the step that {what}s a release is never left out of a run: remove `if`"
+    if KEEPS[1] not in does:
+        if SHOWS in does:
+            yield "shows the lock of a release that is not kept"
+        return
+    keeps = does.index(KEEPS[1])
+    if SHOWS in does[:keeps]:
+        yield "shows the lock of a release before it is kept"
+    if not _builds(job):
+        yield "keeps a release it did not build"
+    if COMPARES not in does[:keeps]:
+        yield "keeps a release before two builds of it were compared"
+        return
+    given = str(_map(steps[does.index(COMPARES)].get("env")).get(OTHER_BUILD, ""))
+    other = FROM_ANOTHER_JOB.fullmatch(given)
+    waited_for = _words(job.get("needs"))
+    if other is None or other[1] not in waited_for or not _builds(jobs.get(other[1], {})):
+        yield (
+            f"compares a build with no build of another job: give it {OTHER_BUILD}, the "
+            "output of a job that builds and that this job waits for"
+        )
+    elif _builds(jobs[other[1]]) != _builds(job):
+        yield (
+            f"builds another way than {other[1]}: two builds that are compared run the "
+            "same commands"
+        )
 
 
 def _of_the_guard(jobs: dict[str, dict[str, Node]]) -> Iterator[str]:
@@ -617,6 +705,7 @@ def problems_in(
     jobs = {name: _map(job) for name, job in _map(workflow.get("jobs")).items()}
     for name, job in jobs.items():
         found += [f"{name}: {problem}" for problem in _of_a_job(job, known)]
+        found += [f"{name}: {problem}" for problem in _of_what_is_kept(job, jobs)]
     found += _of_the_guard(jobs)
     if jobs and not any("environment" in job for job in jobs.values()):
         found.append(

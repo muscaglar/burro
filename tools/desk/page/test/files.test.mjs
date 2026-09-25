@@ -16,9 +16,11 @@ const html = read('index.html');
 const css = read('desk.css');
 const scripts = ['desk.mjs', 'logic.mjs', 'map.mjs'];
 
-test('the page is five files and a manual, with no build step and no package', () => {
+test('the page is five files and a manual, and the panel five, with no build step and no package', () => {
   const names = readdirSync(fileURLToPath(folder)).filter((name) => !name.startsWith('.')).sort();
-  assert.deepEqual(names, ['README.md', 'desk.css', 'desk.mjs', 'index.html', 'logic.mjs', 'map.mjs', 'test']);
+  const desk = ['desk.css', 'desk.mjs', 'index.html', 'logic.mjs', 'map.mjs'];
+  const panel = ['panel-logic.mjs', 'panel-map.mjs', 'panel.css', 'panel.html', 'panel.mjs'];
+  assert.deepEqual(names, ['README.md', ...desk, ...panel, 'test'].sort());
 });
 
 test('no file of the page names another host', () => {

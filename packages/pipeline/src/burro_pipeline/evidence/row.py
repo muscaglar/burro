@@ -7,7 +7,8 @@ A missing figure has a row too: the row is what says why it is missing.
 
 The row of a measure or of a tag holds the figure too. A row that only said
 there was a figure would stand behind any figure at all. The row of a cost
-holds it where the cost is one number: a publisher's median, with no range.
+holds it where the cost is one number, a median with no range, and where it is
+a rent of a wider place than the area, of which it holds the median.
 """
 
 from enum import StrEnum
@@ -40,8 +41,9 @@ ROW_KINDS = (
 )
 ROW_ID_PATTERN = rf"^(syn|lon)-n[0-9a-z]+/({'|'.join(ROW_KINDS)})/[0-9a-z][0-9a-z_.-]*$"
 # The kinds of fact that are one number: the figure of a measure, the score of a tag, and a
-# cost that is a publisher's median with no range. A cost that is a range is three numbers,
-# and its row holds none.
+# cost that is a publisher's median with no range. A cost that is a range Burro worked out
+# is three numbers, and its row holds none. A rent that is of a wider place is a range as
+# its publisher wrote it, and its row holds its median.
 HOLDS_A_FIGURE = (FactKind.FEATURE, FactKind.TAG, FactKind.COST)
 # At or above this share of an area's homes, a figure is said to cover the area.
 FULLY_COVERED = 0.99

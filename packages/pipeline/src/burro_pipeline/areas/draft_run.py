@@ -1,10 +1,12 @@
 """Make the whole draft of London's areas from the store, in one command.
 
+    python -m burro_pipeline draft --out FOLDER
     python -m burro_pipeline.areas.draft_run --out FOLDER
 
 It runs the parts of the areas in the order the design gives them, each as its
-own module makes it, and joins them. It is not yet a step of
-`python -m burro_pipeline`.
+own module makes it, and joins them. It is the step `draft` of the one command
+line, which `cli.py` beside this joins it to, and takes the same arguments
+under either name.
 
 | Step | What is made | By | Written to |
 |---|---|---|---|
@@ -17,9 +19,11 @@ own module makes it, and joins them. It is not yet a step of
 | 6 | The layers a reviewer sees behind a border | `context_files` | `made/context/` |
 | 7 | A picture of London, and one of each borough | `draft_picture` | `pictures/` |
 
-It is a draft: what a method made and nobody has checked. One file has no
-receipt, the town centres, and is read for a draft alone. Everything that
-rests on it says so. A build may not be made this way.
+It is a draft: what a method made and nobody has checked. A file that has no
+receipt is read for a draft alone, from a store that is a folder, and
+everything that rests on it says so. No file of London is read so today: the
+town centres were, until they had their receipt. From an object store no such
+file is read at all, so a hosted run reads none.
 
 **Made again from what was decided.** The review desk cannot take the ground
 from under an area: an answer that turns a name put forward as an area into
@@ -48,10 +52,12 @@ source the gate refuses is not read. Nothing about who lives anywhere is read,
 and nothing from OpenStreetMap. No name and no border is supplied by whoever
 runs this, or by a model.
 
-It reaches no network: no socket can be made while it runs. It reaches the
-store, to copy files out, and writes nothing to it. The store is named by the
-environment and is never printed. The same files give the same bytes: nothing
-here reads a clock.
+It reaches no publisher, and no socket can be made while a file is read. It
+reaches the store, to copy files out, and writes nothing to it. The store is
+named by the environment and is never printed: a folder, or an object store.
+An object store is reached over a network, so every file that has a receipt is
+copied out of it before any is read. The same files give the same bytes:
+nothing here reads a clock.
 
 What it prints may be read by anyone: one line of counts. What it writes names
 places, so it goes to the folder `--out` names, which must be outside what git
@@ -102,7 +108,7 @@ from burro_pipeline.evidence.cli import public
 from burro_pipeline.evidence.lock import LockError, read_receipts
 from burro_pipeline.evidence.receipt import RECEIPTS_FOLDER
 from burro_pipeline.fetch.offline import sockets_refused
-from burro_pipeline.fetch.store import FOLDER_VARIABLE, StoreError, store_from_environment
+from burro_pipeline.fetch.store import FolderStore, StoreError, store_from_environment
 from burro_pipeline.inputs import Inputs
 from burro_pipeline.registry import RegistryError, find, load
 
@@ -675,6 +681,12 @@ def parser() -> argparse.ArgumentParser:
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
+    arguments(given)
+    return given
+
+
+def arguments(given: argparse.ArgumentParser) -> None:
+    """Add the arguments a run takes to a parser: this command's own, or the step's."""
     given.add_argument(
         "--out",
         required=True,
@@ -742,7 +754,6 @@ def parser() -> argparse.ArgumentParser:
         help="where the copies of the files are put while they are read, and left. Without it "
         "they are put in a folder that is removed when the run ends",
     )
-    return given
 
 
 def _run(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
@@ -753,8 +764,6 @@ def _run(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
         raise Refused(f"the folder {out.name} holds something already. Name a folder that is new")
     if (args.points is None) != (args.publishers is None):
         raise Refused("--points and --publishers are given together, or not at all")
-    if not environment.get(FOLDER_VARIABLE):
-        raise Refused(f"no store is named. Set {FOLDER_VARIABLE} to the folder that is the store")
     if not args.receipts.is_dir():
         raise Refused("the folder of receipts is not there. Name it with --receipts")
     if args.ids is not None and not args.ids.is_file():
@@ -772,6 +781,12 @@ def _run(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
             store=store,
             work=args.work or Path(scratch),
         )
+        if store.kind != FolderStore.kind:
+            # A file is read with no socket open, and this store is reached over a network.
+            copied, size = inputs.copy_out()
+            said = public("store", "ok", kind=store.kind, files=copied, bytes=size)
+            sys.stdout.write(f"{said}\n")
+            sys.stdout.flush()
         with sockets_refused():
             settings = Settings(
                 of_areas=assign.Rules(kept=kept),
@@ -786,9 +801,13 @@ def _run(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
 
 
 def main(argv: Sequence[str] | None = None, environment: Mapping[str, str] | None = None) -> int:
-    args = parser().parse_args(argv)
+    return run(parser().parse_args(argv), os.environ if environment is None else environment)
+
+
+def run(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
+    """Make the draft the arguments ask for, and say in one line how it ended."""
     try:
-        return _run(args, os.environ if environment is None else environment)
+        return _run(args, environment)
     except LockError as error:
         sys.stdout.write(public(STEP, "refused", **{error.rule: 1}) + "\n")
         sys.stderr.write(f"error: {error}\n")

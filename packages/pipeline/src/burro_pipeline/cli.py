@@ -13,16 +13,23 @@ import sys
 from collections.abc import Callable, Sequence
 from types import ModuleType
 
+from burro_pipeline.areas import cli as areas
 from burro_pipeline.assemble import cli as assemble
 from burro_pipeline.cells import cli as cells
 from burro_pipeline.command import PROG, Step
 from burro_pipeline.evidence import cli as evidence
 from burro_pipeline.fetch import cli as fetch
+from burro_pipeline.kept import cli as kept
 from burro_pipeline.travel import cli as travel
+from burro_pipeline.upkeep import cli as upkeep
 
-# The steps, in the order a build takes them. `why` comes last: it is no step of a
-# build, and says what the numbers in a line of fetch mean.
+# The steps, in the order a build takes them. `fresh` comes first: it says what is held
+# and how old it is, which is what to fetch again. `keep` and `take` follow a build: one
+# keeps what was built, and one takes what was approved. `moved` follows them: it holds
+# what was built against what is served, before the newer is approved. `why` comes last:
+# it is no step of a build, and says what the numbers in a line of fetch mean.
 ORDER = (
+    "fresh",
     "plan",
     "fetch",
     "by-hand",
@@ -32,12 +39,25 @@ ORDER = (
     "seal",
     "cells",
     "travel",
+    "draft",
     "preview",
     "check",
     "coverage",
+    "keep",
+    "take",
+    "moved",
     "why",
 )
-_OWNERS: tuple[ModuleType, ...] = (fetch, evidence, cells, travel, assemble)
+_OWNERS: tuple[ModuleType, ...] = (
+    fetch,
+    evidence,
+    cells,
+    travel,
+    areas,
+    assemble,
+    kept,
+    upkeep,
+)
 _OWNER: dict[str, ModuleType] = {step.name: owner for owner in _OWNERS for step in owner.STEPS}
 _KNOWN: dict[str, Step] = {step.name: step for owner in _OWNERS for step in owner.STEPS}
 STEPS: dict[str, Step] = {name: _KNOWN[name] for name in ORDER}
@@ -53,11 +73,18 @@ The steps of a data build, in the order a build takes them.
 reaches, and gives examples that work as they stand.
 
 Only `fetch` reaches a publisher. It, `by-hand`, `receipts`, `held`, `describe`,
-`cells` and `preview` reach the store, which the environment names. No other
-step reaches a network. Run each with `uv run` before it, from the top of the
-repository. `preview` is the whole of a first build in one command: it seals,
+`cells`, `draft` and `preview` reach the store, which the environment names. No
+other step reaches a network. Run each with `uv run` before it, from the top of
+the repository. `fresh` reads the receipts the repository holds, and says which
+files it is time to fetch again. `draft` makes the names a build gives its areas. `preview` is
+the whole of a first build in one command: it seals,
 makes the geography, works out each measure, and writes a release. `travel`
 routes the made-up town alone, until the engine that routes London is installed.
+`keep` and `take` reach the store of releases, which is another store and is
+named by variables of its own: `keep` puts a release that was built there, and
+`take` brings the one a committed lock names to the folder an image is built from.
+`moved` says what differs between two releases, so that a build is approved by a
+person who knows what it changed.
 What a step prints for anyone to read is one line of key=value: step names,
 registry ids, counts and hashes. Why a step stopped is said in words beside it.
 """

@@ -84,17 +84,15 @@ with private outdoor space, by MSOA. The licence registry asks that a figure of
 the workbook says addresses and never homes or households, because no page
 says what Ordnance Survey counted as an address.
 
-**The measure is held back from every release and from every vibe.** It counts
+**A build carries the measure, and nothing holds it back.** It counts
 addresses and the ground beside them, and reads nothing of who lives at one.
-The publisher's own article still reports, from a survey of people, that access
-to a garden differs by ethnic group, by age and by occupation. So decision
-record 0006 asks for its row of the proxy audit before it is in a release, and
-the design of the vibes lets it into Houses or flats only once that row has
-passed. No audit has been run, and none can be yet. `HELD_BACK` says so, and
-whose it is to settle. The figure is worked out at every build whose lists
-name its files, so that whoever settles it has the figures, and a build leaves
-it out whatever core says of it. Take nothing out of `HELD_BACK` but in a
-change a person reads, once the row has passed.
+The publisher's own article reports, from a survey of people, that access to a
+garden differs by ethnic group, by age and by occupation. So it was held back
+from every release for want of a row of the proxy audit, which decision record
+0006 then asked for, and for no other reason. The founder dropped the audit on
+2026-09-25, and the record says so. A build whose lists name its files carries
+the figure, and it is 25 in 100 of the recipe of Houses or flats, read from its
+low end.
 """
 
 import re
@@ -179,21 +177,12 @@ CANNOT_SEE = (
 )
 # What the row of the catalogue waits on. Core names the measure as it is built, so nothing.
 WAITS_ON: tuple[str, ...] = ()
-# What keeps the measure out of every release, whatever core says of it, and whose it is to
-# settle. It is no finding of a check of the figures: it is the row of the proxy audit, which
-# is asked for before a measure that may follow who lives somewhere is in a release. While it
-# holds anything, no release carries the measure.
-HELD_BACK = (
-    "The row of the proxy audit for private outdoor space is not written, and no audit has "
-    "been run: the tables an audit is run on are gated or held in the licence registry, and "
-    "no store of the audit's own is built. Decision "
-    "record 0006 asks for the row before the measure is in a release, and the design of the "
-    "vibes lets it into Houses or flats only if it is under 0.3 on every table of the audit. "
-    "The publisher's own article reports, from a survey of people, that access to a garden "
-    "differs by ethnic group, by age and by occupation.",
-    "The rule of the audit, and the tables it is run on, are the founder's to settle. Until "
-    "the row has passed, no release and no vibe carries the figure.",
-)
+# What keeps a measure out of every release, whatever core says of it. It held two lines
+# until 2026-09-25: that the row of the proxy audit for private outdoor space was not
+# written, and that no audit had been run. That day the founder dropped the proxy audit
+# (decision record 0006, as amended). No check of the figures had found anything, so nothing
+# holds the measure back.
+HELD_BACK: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)

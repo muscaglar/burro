@@ -91,9 +91,10 @@ MEASURED = (
     "venue_food_drink_per_homes",
     "water_access",
 )
-# What the build carries and shows, and ranks no area on by itself. No audit of main roads
-# has been run. The count of places to eat and drink is shown, and a wish for them is
-# ranked on the places for each 1,000 homes.
+# What the build carries and shows, and ranks no area on by itself. Main roads are
+# switched off by their own row, until the founder says otherwise. The count of places
+# to eat and drink is shown, and a wish for them is ranked on the places for each 1,000
+# homes.
 SHOWN_ONLY = ("road_major_exposure", "venue_food_drink")
 # What the build works out and leaves out: what it measures is not what core says it is.
 # The two of town centres and what a park offers keep core's names until the founder has
@@ -119,8 +120,10 @@ NO_RECEIPT = "input_has_one_receipt"
 # alone, and one reads the
 # routes of buses, which it does not hold. So are the four shares of who lived in an area:
 # the two census tables they are read from are in a list of their own, which the made-up
-# build does not take. So is private outdoor space, which is held back besides: with its
-# files a build works it out and leaves it out, until its audit has passed.
+# build does not take. So is private outdoor space, whose workbook is in a list of its own:
+# with its files a build carries it, and `test_preview_of_outdoor_space.py` holds that. And
+# so is how much of the nearest high street lies in a conservation area, whose file of high
+# streets is in a list of its own: `test_preview_of_high_streets.py` holds that.
 INCIDENTS = ("incident_antisocial", "incident_criminal_damage")
 CULTURE = ("culture_venues", "culture_venues_per_homes")
 SURGERY, PHARMACY, FOOD_SHOP = ("gp_walk",), ("pharmacy_walk",), ("grocery_walk",)
@@ -144,7 +147,8 @@ STOPS_NEARBY = (
 HOUSEHOLDS = ("households_dependent_children", "households_one_person")
 RESIDENTS = ("residents_aged_20_34", "residents_aged_65_over")
 OF_PRICES = ("price_median", "price_rise_10y", "price_rise_5y")
-HELD_AND_NO_FILE = ("private_outdoor_space",)
+OUTDOOR_SPACE = ("private_outdoor_space",)
+HIGH_STREET = ("highstreet_conserved",)
 NO_FILE = (
     *BRANDS,
     *CULTURE,
@@ -157,10 +161,12 @@ NO_FILE = (
     *STOPS_NEARBY,
     *HOUSEHOLDS,
     *RESIDENTS,
-    *HELD_AND_NO_FILE,
+    *OUTDOOR_SPACE,
+    *HIGH_STREET,
 )
 POLICE, PRICES = "police-uk-street-level-crime", "ons-median-house-prices-msoa"
 OUTDOOR = "ons-access-to-garden-space-2020"
+HIGH_STREETS = "gla-high-street-boundaries"
 CENSUS = "ons-census-2021-age-and-household-tables"
 PLACES, PRACTICES = "overture-places", "nhs-ods-gp-practices"
 PHARMACIES = "nhsbsa-consolidated-pharmaceutical-list"
@@ -211,7 +217,8 @@ SAID_WITH = (
     | {"bus_routes_nearby": "tfl-bus-stops-and-routes"}
     | dict.fromkeys((*HOUSEHOLDS, *RESIDENTS), CENSUS)
     | dict.fromkeys(OF_PRICES, PRICES)
-    | dict.fromkeys(HELD_AND_NO_FILE, OUTDOOR)
+    | dict.fromkeys(OUTDOOR_SPACE, OUTDOOR)
+    | dict.fromkeys(HIGH_STREET, HIGH_STREETS)
     | dict.fromkeys(HELD_BACK, REGISTER)
     | LEFT_OUT_FROM
 )
@@ -487,7 +494,7 @@ def test_a_percentile_is_the_one_core_gives(build: Made):
 
 
 def test_main_roads_are_shown_and_no_area_is_ranked_on_them_alone(build: Made):
-    """No audit of the figure has been run, so the release ranks no area on it by itself.
+    """The row of the measure switches it off, so the release ranks no area on it by itself.
 
     230 of the 500 homes of the first area stand on the square the A road runs by, 480
     of the 660 of the second and 190 of the 820 of the third. Quiet streets rests on
@@ -602,7 +609,7 @@ def test_every_pair_of_an_area_and_a_measure_has_a_row_and_a_state(build: Made):
     assert report.count(f"| tag/{VILLAGE} | below_threshold | yes |") == 1
     # The name and the outline of an area, every measure that is carried, and every placed vibe.
     have = 2 + len(MEASURED) + len(PLACED)
-    assert f"Of the 142 things Burro measures, {have} have a figure in at least one area." in report
+    assert f"Of the 143 things Burro measures, {have} have a figure in at least one area." in report
     # What one area lacks and another has is still listed for the area that lacks it.
     assert f"| {THREE} | feature/air_no2 | below_threshold | yes |" in report
 
@@ -659,8 +666,7 @@ def test_a_measure_that_is_carried_waits_on_nothing_and_one_that_is_not_says_wha
         # A measure with no file, or with no figure, waits on nothing but that.
         kept_out = measure.feature in (*NOT_AS_CORE_SAYS, *HELD_BACK)
         assert bool(measure.waits_on) is kept_out, measure.feature
-        held = measure.feature in (*HELD_BACK, *HELD_AND_NO_FILE)
-        assert bool(measure.held_back) is held, measure.feature
+        assert bool(measure.held_back) is (measure.feature in HELD_BACK), measure.feature
         for said in (*measure.held_back, *measure.waits_on):
             assert said.endswith(".") and "!" not in said and "\n" not in said and "|" not in said
 
@@ -672,11 +678,11 @@ def test_a_measure_that_is_carried_waits_on_nothing_and_one_that_is_not_says_wha
 FOUND_BY_A_CHECK = ("A check found that the figure follows something else.",)
 
 
-def test_one_measure_of_a_build_is_held_back_today():
-    """Private outdoor space is, until its audit has run. The pubs were, while the food
-    register was the one source of them."""
-    held = [measure.feature for measure in MEASURES if measure.held_back]
-    assert held == [*HELD_BACK, *HELD_AND_NO_FILE]
+def test_no_measure_of_a_build_is_held_back_today():
+    """The pubs were, while the food register was the one source of them. Private outdoor
+    space was, for want of a row of the proxy audit, until the audit was dropped on
+    2026-09-25."""
+    assert [measure.feature for measure in MEASURES if measure.held_back] == list(HELD_BACK)
 
 
 def test_a_measure_that_is_held_back_is_left_out_whatever_core_says_of_it(
@@ -803,8 +809,8 @@ def test_a_measure_whose_file_has_no_receipt_is_left_out_and_never_filled_in(
         "noise_exposure": (WORKBOOK, NO_RECEIPT),
         "play_space_proximity": ("os-open-greenspace", "measure_has_a_figure"),
         **{feature: (PRICES, NO_RECEIPT) for feature in OF_PRICES},
-        # It is held back besides. With no file, that is the rule that keeps it out.
-        **{feature: (OUTDOOR, NO_RECEIPT) for feature in HELD_AND_NO_FILE},
+        **{feature: (OUTDOOR, NO_RECEIPT) for feature in OUTDOOR_SPACE},
+        **{feature: (HIGH_STREETS, NO_RECEIPT) for feature in HIGH_STREET},
         # Four read the national file of stops, which the made-up build does not hold.
         **{feature: ("dft-naptan", NO_RECEIPT) for feature in STOPS_NEARBY},
         "bus_routes_nearby": ("tfl-bus-stops-and-routes", NO_RECEIPT),
@@ -1036,6 +1042,35 @@ def test_a_source_says_whether_its_publisher_asks_for_its_statement_beside_every
     assert credited["tfl-step-free-station-topology"].credit_beside_figures is True
     assert credited["tfl-step-free-station-topology"].attribution.startswith("Powered by TfL")
     assert credited["dft-naptan"].credit_beside_figures is False
+
+
+def test_a_source_carries_what_its_terms_ask_to_be_said_with_its_credit():
+    """The London Datastore asks whoever re-uses its data to state that the Greater London
+    Authority cannot warrant the quality or accuracy of the data. The registry holds the
+    statement with each of the authority's two sources, and a release that rests on either
+    carries it with the credit. One that rests on neither says nothing of it."""
+    registry = load(REGISTRY)
+    stops = stops_receipt(b"made up too")
+    centres = stops.model_copy(update={"source_id": "gla-town-centre-boundaries"})
+    streets = stops.model_copy(update={"source_id": HIGH_STREETS})
+    asked = "The Greater London Authority cannot warrant the quality or accuracy of the data."
+
+    credited = {s.source_id: s for s in sources_of(registry, [stops, centres, streets])}
+
+    for source_id in ("gla-town-centre-boundaries", HIGH_STREETS):
+        assert credited[source_id].said_with_attribution == asked
+        # The credit is the publisher's own words, and holds none of the statement.
+        assert credited[source_id].attribution == registry.get(source_id).attribution
+        assert "warrant" not in credited[source_id].attribution
+    assert credited["dft-naptan"].said_with_attribution is None
+    [neither] = sources_of(registry, [stops])
+    assert neither.said_with_attribution is None
+    # What a release is written with says it of the two, and holds no word of it for the rest.
+    written = {s.source_id: s.model_dump(mode="json") for s in credited.values()}
+    assert {k for k, v in written.items() if v["said_with_attribution"]} == {
+        "gla-town-centre-boundaries",
+        HIGH_STREETS,
+    }
 
 
 # The receipts of the list

@@ -15,10 +15,12 @@ from pathlib import Path
 import check_data_workflows
 import pytest
 from burro_pipeline import cli
+from burro_pipeline.areas import cli as areas_cli
 from burro_pipeline.assemble import cli as assemble_cli
 from burro_pipeline.cells import cli as cells_cli
 from burro_pipeline.command import IGNORED_BY_GIT, PROG, may_be_written
 from burro_pipeline.fetch.sources import LISTS, load_list
+from burro_pipeline.kept import cli as kept_cli
 from burro_pipeline.release.cli import parser as release_parser
 
 REPOSITORY = Path(__file__).parents[3]
@@ -26,6 +28,7 @@ FIXTURE = REPOSITORY / "data" / "fixtures" / "synthetic" / "syn-2026-09-23-01"
 WORKFLOWS = REPOSITORY / ".github" / "workflows"
 # In the order a build takes them. `why` is no step: it explains what fetch prints.
 STEPS = [
+    "fresh",
     "plan",
     "fetch",
     "by-hand",
@@ -35,9 +38,13 @@ STEPS = [
     "seal",
     "cells",
     "travel",
+    "draft",
     "preview",
     "check",
     "coverage",
+    "keep",
+    "take",
+    "moved",
     "why",
 ]
 # The steps a person runs from the Makefile.
@@ -132,7 +139,7 @@ def test_it_runs_as_a_module():
         cwd=REPOSITORY,
     )
     assert (done.returncode, done.stderr) == (0, "")
-    assert done.stdout.startswith("step=check status=ok release=syn-2026-09-23-01 facts=3200 ")
+    assert done.stdout.startswith("step=check status=ok release=syn-2026-09-23-01 facts=3220 ")
 
 
 def test_there_is_one_way_to_run_a_step():
@@ -205,7 +212,13 @@ def commands_of_the_workflows() -> list[tuple[str, list[str]]]:
 
 def filled(word: str) -> str:
     """A word of a command with what the run would put in place of each variable."""
-    given = {"$LIST": "m1", "$ITEM": load_list("m1").files[0].item, "$RUNNER_TEMP": "scratch"}
+    given = {
+        "$LIST": "m1",
+        "$ITEM": load_list("m1").files[0].item,
+        "$RUNNER_TEMP": "scratch",
+        "$RELEASE": "lon-2026-10-02-01",
+        "$BUILT_AT": "2026-10-02T09:00:00Z",
+    }
     for name, value in given.items():
         word = word.replace(name, value)
     assert "$" not in word, "a variable this test does not know"
@@ -225,7 +238,22 @@ def test_every_command_a_workflow_runs_is_one_the_pipeline_takes():
 
 def test_a_workflow_runs_the_steps_it_is_named_for():
     steps = {words[3] for command, words in commands_of_the_workflows() if command == PROG}
-    assert steps == {"held", "fetch", "travel"}
+    assert steps == {"held", "fetch", "travel", "draft", "preview", "keep"}
+
+
+def test_a_build_of_london_takes_every_list_there_is():
+    """A list that is added is a list the hosted build takes, in the same change.
+
+    A file of a list that has no receipt is no part of a build, so a list that
+    holds none adds nothing. A list that is left out would leave its measures
+    out of what is served, and nothing would say so.
+    """
+    builds = [words for _, words in commands_of_the_workflows() if words[3:4] == ["preview"]]
+    assert len(builds) == 2 and builds[0] == builds[1]
+    (words, _) = builds
+    taken = [words[n + 1] for n, word in enumerate(words) if word == "--list"]
+    assert taken == sorted(path.stem for path in LISTS.glob("*.toml"))
+    assert "--names" in words and "--work" in words
 
 
 def test_the_lists_a_fetch_may_be_started_with_are_the_lists_there_are():
@@ -268,7 +296,7 @@ def test_every_folder_a_step_may_write_to_is_one_git_ignores():
 
 def test_every_folder_an_example_writes_to_is_one_git_ignores():
     """The help says an example works as it stands. One left copies of files where git saw them."""
-    for step in (*assemble_cli.STEPS, *cells_cli.STEPS):
+    for step in (*areas_cli.STEPS, *assemble_cli.STEPS, *cells_cli.STEPS, *kept_cli.STEPS):
         for example in step.examples:
             words = example.split()
             for flag in ("--out", "--work"):

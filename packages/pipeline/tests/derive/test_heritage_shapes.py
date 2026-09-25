@@ -19,6 +19,7 @@ from burro_pipeline.derive.heritage_shapes import (
     box_round,
     hectares_in_each,
     in_degrees,
+    land_shared,
     on_the_grid,
     outline_from,
     point_from,
@@ -32,8 +33,12 @@ from .heritage_support import at, outline, outlines, ring
 
 
 def square(west: float, south: float, side: float = 100) -> shapes.Shape:
+    return outline_of([[_corners(west, south, side, side)]])
+
+
+def _corners(west: float, south: float, wide: float, high: float) -> list[tuple[float, float]]:
     x, y = EAST + west, NORTH + south
-    return outline_of([[[(x, y), (x + side, y), (x + side, y + side), (x, y + side), (x, y)]]])
+    return [(x, y), (x + wide, y), (x + wide, y + high), (x, y + high), (x, y)]
 
 
 # The way back to the grid
@@ -244,6 +249,25 @@ def test_the_land_of_an_outline_is_shared_out_between_the_outlines_it_lies_in():
 
 def test_an_outline_that_only_touches_another_shares_no_land_with_it():
     assert hectares_in_each(square(100, 0), {"west": square(0, 0)}) == {}
+
+
+def test_the_land_two_outlines_share_is_an_outline_of_its_own():
+    shared = land_shared(square(40, 0), square(0, 0))
+    assert shared is not None and hectares(shared) == pytest.approx(0.6)
+    assert shared.equals(outline_of([[_corners(40, 0, 60, 100)]]))
+
+
+def test_two_outlines_that_only_touch_or_stand_apart_share_no_outline():
+    assert land_shared(square(100, 0), square(0, 0)) is None
+    assert land_shared(square(500, 0), square(0, 0)) is None
+
+
+def test_what_an_outline_in_pieces_shares_is_the_land_of_each_piece():
+    """A line where a piece only touches the other outline is no part of what is shared."""
+    pieces = outline_of([[_corners(-50, 0, 100, 100)], [_corners(100, 0, 50, 100)]])
+    shared = land_shared(pieces, square(0, 0))
+    assert shared is not None and hectares(shared) == pytest.approx(0.5)
+    assert shared.geom_type == POLYGON
 
 
 # Which outline a point stands in

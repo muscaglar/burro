@@ -48,6 +48,7 @@ def test_every_secret_is_given_a_marked_value_long_enough_to_search_for():
     assert set(secrets) == set(SECRET_NAMES)
     assert all(MARKERS.key in value for value in secrets.values())
     assert secrets["BURRO_STORE_ENDPOINT"].startswith("https://")
+    assert secrets["BURRO_RELEASES_ENDPOINT"].startswith("https://")
     assert len(set(secrets.values())) == len(secrets)
 
 

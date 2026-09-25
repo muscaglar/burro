@@ -23,6 +23,9 @@ ROOT = Path(__file__).resolve().parents[2]
 # A document is prose that a person reads: every markdown file, and the registry's entries.
 PROSE = (".md",)
 ENTRIES = ROOT / "registry" / "sources"
+# The lines of a decision hold what a person typed at the review desk: the note of an
+# answer, and the reason of a change or of a flag. So a published decision is a document.
+DECISIONS, LINES = "decisions", ".jsonl"
 # The list that is not published, and what a test says when it is not there.
 LIST = ROOT / "private" / "words.toml"
 ABSENT = "the list is not in this copy"
@@ -69,12 +72,27 @@ def documents() -> tuple[tuple[str, str | None, tuple[str, ...]], ...]:
     """Every document git tracks or would track: its path, its text in small letters, its lines."""
     found: list[tuple[str, str | None, tuple[str, ...]]] = []
     for path in tracked():
-        if path.suffix not in PROSE and ENTRIES not in path.parents:
+        if not is_a_document(path):
             continue
         text = path.read_text(encoding="utf-8")
         lines = tuple(text.splitlines())
         found.append((str(path.relative_to(ROOT)), in_small_letters(text), lines))
     return tuple(found)
+
+
+def is_a_document(path: Path) -> bool:
+    """Whether a file is prose that a person reads, or holds what a person typed."""
+    typed = path.suffix == LINES and DECISIONS in path.relative_to(ROOT).parts
+    return path.suffix in PROSE or ENTRIES in path.parents or typed
+
+
+def decisions() -> tuple[tuple[str, tuple[str, ...]], ...]:
+    """Every published decision: its path and its lines."""
+    return tuple(
+        (path, lines)
+        for path, _, lines in documents()
+        if path.endswith(LINES) and DECISIONS in Path(path).parts
+    )
 
 
 def roughly(words: str) -> re.Pattern[str]:
@@ -186,5 +204,77 @@ def test_no_document_holds_a_postcode():
         for number, line in enumerate(lines, 1)
         for match in (*POSTCODE.finditer(line), *IN_AN_ADDRESS.finditer(line))
         if match[0] not in NOT_A_POSTCODE
+    ]
+    assert found == []
+
+
+# What a person typed at the review desk
+
+
+def test_a_published_decision_is_read_as_a_document():
+    for name in (
+        "gazetteer/london/decisions/names/r1.jsonl",
+        "gazetteer/london/decisions/changes/r1.jsonl",
+    ):
+        assert is_a_document(ROOT / name), name
+    for name in ("evals/reader/cases/whole_searches.jsonl", "tools/desk/questions.json"):
+        assert not is_a_document(ROOT / name), name
+
+
+# Where a file is on somebody's machine, and a machine that is reached by its name. A
+# reason is typed by a person, who may paste either without a thought.
+ON_A_MACHINE = re.compile(
+    r"(?<![A-Za-z0-9_.~-])(?:/(?:Users|home|private|var|tmp|Volumes|mnt|opt)/|~/|[A-Za-z]:\\\\)"
+)
+A_HOST = re.compile(
+    r"(?i)\b(?:[a-z][a-z0-9+.-]*://|[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:internal|local|lan|corp|test)\b"
+    r"|(?:\d{1,3}\.){3}\d{1,3}(?::\d+)?\b|localhost\b)"
+)
+# An address of a person. The desk names a reviewer by a label, r1 or r2, and never so.
+A_PERSON = re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+
+
+def typed_wrongly(line: str) -> list[str]:
+    """What a line of a decision holds that a person should not have typed into it."""
+    found = (*ON_A_MACHINE.finditer(line), *A_HOST.finditer(line), *A_PERSON.finditer(line))
+    return [match[0] for match in found]
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        # Put together here, so that no file of the repository holds a path of a machine
+        # as it would be written, and a check of what is published finds none.
+        '{"why":"See /' + 'Users/somebody/notes.txt"}',
+        '{"why":"It is in ~/desk"}',
+        '{"note":"As https://example.org/page says"}',
+        '{"why":"Ask build-7.corp"}',
+        '{"why":"It ran on 10.0.0.12:8765"}',
+        '{"why":"Ask somebody@example.org"}',
+    ],
+)
+def test_a_path_of_a_machine_a_host_and_an_address_of_a_person_are_each_found(line: str):
+    assert typed_wrongly(line) != []
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        '{"n":2,"on":"2026-09-25","by":"r1","what":"recipe","of":"family_amenities"}',
+        '{"why":"A park says more of a week than a count of schools.","takes_back":null}',
+        '{"was":{"school_primary_nearby":40},"now":{"school_primary_nearby":20}}',
+        '{"of":"figure/syn-n0004/air_no2","why":"It is 3.5 times what stands beside it."}',
+    ],
+)
+def test_a_line_of_a_decision_as_the_desk_writes_it_holds_none_of_them(line: str):
+    assert typed_wrongly(line) == []
+
+
+def test_no_published_decision_holds_a_path_of_a_machine_a_host_or_an_address_of_a_person():
+    found = [
+        f"{path}:{number}: {held}"
+        for path, lines in decisions()
+        for number, line in enumerate(lines, 1)
+        for held in typed_wrongly(line)
     ]
     assert found == []

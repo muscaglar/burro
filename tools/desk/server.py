@@ -27,7 +27,7 @@ from datetime import datetime
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from typing import Any, Final, cast
+from typing import Any, Final, Protocol, cast
 from urllib.parse import unquote
 
 from desk import records
@@ -147,6 +147,18 @@ NOT_AN_AREA: Final = (
 # make it an area. Only the areas build gives an area its id, so a build could not apply it.
 OTHER_NAME, AREA = "a:", "area"
 METHOD_NOT_KNOWN: Final = "The desk takes GET and POST, and nothing else."
+# The desk serves its queues with no panel where it was given no release to show, or the
+# packages the panel reads a release with are not installed. It says which as it starts.
+NO_PANEL: Final = (
+    "The panel is not open. The desk said why as it started: it was given no release to "
+    "show, or the project's packages are not installed."
+)
+# The page of the panel, which is the first screen where the desk holds a panel, and the
+# page of the queues, which is the first screen where it holds none.
+PANEL_PAGE, QUEUES_PAGE = "panel.html", "index.html"
+# The folder of the files of changes lies among the folders of the queues. No queue may
+# bear its name.
+CHANGES: Final = "changes"
 
 
 class Refused(Exception):
@@ -206,6 +218,21 @@ def missing() -> Refused:
 # The desk
 
 
+class Panel(Protocol):
+    """The panel, where the desk holds one: what it answers to each of its routes.
+
+    It is made by `desk.panel`, which reads a release with core. The server holds a
+    request to its own rules first, and hands the panel a route by its name, the word
+    in its place, and what was sent.
+    """
+
+    # Whether the release it shows is of the made-up city.
+    @property
+    def synthetic(self) -> bool: ...
+
+    def answer(self, desk: "Desk", what: str, of: str | None, sent: object) -> dict[str, Any]: ...
+
+
 def say(line: str) -> None:
     """Print a line at once, so that it is seen when it happens, in a file as on a screen."""
     sys.stdout.write(f"{line}\n")
@@ -240,6 +267,8 @@ class Desk:
     files: records.Files = field(default_factory=records.Files)
     # How many lines the kept copy lacked when the desk started, which it then wrote.
     brought_up: int = 0
+    # The panel, where the desk was started with a release to show. None shows the queues.
+    panel: Panel | None = None
 
 
 def _files(folder: Path, endings: frozenset[str]) -> dict[str, Path]:
@@ -309,21 +338,25 @@ def open_desk(
     log: Callable[[str], None] = say,
     keep: Path | None = None,
     outside: Path | None = None,
+    panel: Panel | None = None,
 ) -> Desk:
     """Read what the desk serves. Raises `Unfit`, in words a person can act on.
 
     `keep` is where a second copy of every line is kept, and `outside` the repository it
-    must lie outside of. Real data is not served without a copy.
+    must lie outside of. Real data is not served without a copy. `panel` is the panel,
+    where the desk was started with a release to show.
     """
     if not records.REVIEWER.fullmatch(reviewer):
         raise Unfit("A reviewer is r1, r2 and so on up to r99. It is a label, never a name.")
     asked = records.read_questions(questions)
+    if CHANGES in asked:
+        raise Unfit(f"No queue is named {CHANGES}: the files of changes are kept under that name.")
     found = {
         name: records.read_items(path)
         for name, path in _files(data / "items", frozenset({".jsonl"})).items()
     }
     items = {each.queue: each for each in found.values()}
-    if not items:
+    if not items and panel is None:
         raise Unfit("There is no item to show. Fill the queues with make desk-fill.")
     for queue, held in items.items():
         if queue not in asked:
@@ -333,7 +366,7 @@ def open_desk(
                 f"items/{queue}.jsonl was made for another version of its question. "
                 "Fill the queues again with make desk-fill."
             )
-    if len({held.synthetic for held in items.values()}) != 1:
+    if len({held.synthetic for held in items.values()}) > 1:
         raise Unfit("Some items are of the made-up city and some are real. Fill the queues again.")
     astray = records.misplaced(data, asked)
     if astray:
@@ -351,7 +384,8 @@ def open_desk(
         if group.is_dir() and not group.is_symlink()
         for path in _files(group, frozenset({".geojson"})).values()
     }
-    synthetic = next(iter(items.values())).synthetic
+    # With no queue filled the desk is of the city of the release its panel shows.
+    synthetic = next(iter(items.values())).synthetic if items or panel is None else panel.synthetic
     if keep is None and not synthetic:
         raise NeedsKeep(NEEDS_KEEP)
     brought_up = 0 if keep is None else kept_copy(data, page, keep, outside)
@@ -360,7 +394,7 @@ def open_desk(
         for name in asked
         if name in items and (reviewer == FOUNDER or asked[name].open_to_all)
     }
-    if not listed:
+    if not listed and items:
         raise Unfit("No queue here is one that a second reviewer is asked to work.")
     return Desk(
         data=data,
@@ -375,6 +409,7 @@ def open_desk(
         log=log,
         keep=keep,
         brought_up=brought_up,
+        panel=panel,
     )
 
 
@@ -939,6 +974,22 @@ def layer(desk: Desk, group: str, name: str) -> bytes:
 # The routes
 
 GET, POST = "GET", "POST"
+# The routes of the panel, by the word after `/api/panel/`. One that reads a thing by its
+# id takes the id as one more word. docs/design/panel.md says what each answers.
+PANEL_READS: Final = (
+    "home",
+    "areas",
+    "outlines",
+    "measures",
+    "flags",
+    "history",
+    "brands",
+    "numbers",
+    "moved",
+)
+PANEL_READS_ONE: Final = ("area", "measure", "vibe")
+PANEL_WRITES: Final = ("flag", "take-back", "preview", "keep")
+PANEL: Final = "/api/panel/"
 ROUTES: Final = {
     "/": GET,
     "/favicon.ico": GET,
@@ -949,19 +1000,33 @@ ROUTES: Final = {
     "/api/layer/{group}/{layer}": GET,
     "/api/decide": POST,
     "/api/undo": POST,
+    **{f"{PANEL}{name}": GET for name in PANEL_READS},
+    **{f"{PANEL}{name}/{{id}}": GET for name in PANEL_READS_ONE},
+    **{f"{PANEL}{name}": POST for name in PANEL_WRITES},
 }
+
+
+def path_alone(target: str) -> str:
+    """The path of an address: what stands before its first question mark.
+
+    What follows a question mark is left aside. It is never read, so it chooses nothing
+    and is written nowhere: "/?x=1" is the address "/".
+    """
+    return target.partition("?")[0]
 
 
 def route(target: str) -> tuple[str, list[str]] | None:
     """The template a path fits, and the words in its places. None when it fits none.
 
-    The path is cut at each slash before anything is decoded, so that an encoded
-    slash is one word with a slash in it, and never a step into a folder.
+    An address is read by its path. The path is cut at each slash before anything is
+    decoded, so that an encoded slash is one word with a slash in it, and never a step
+    into a folder. An encoded question mark is part of a word for the same reason.
     """
-    if not target.startswith("/") or "?" in target or "#" in target:
+    path = path_alone(target)
+    if not path.startswith("/") or "#" in path:
         return None
     try:
-        words = [unquote(each, errors="strict") for each in target[1:].split("/")]
+        words = [unquote(each, errors="strict") for each in path[1:].split("/")]
     except UnicodeDecodeError:
         return None
     match words:
@@ -979,6 +1044,10 @@ def route(target: str) -> tuple[str, list[str]] | None:
             return "/api/item/{queue}/{item}", [name, wanted]
         case ["api", "layer", group, name]:
             return "/api/layer/{group}/{layer}", [group, name]
+        case ["api", "panel", name] if name in (*PANEL_READS, *PANEL_WRITES):
+            return f"{PANEL}{name}", []
+        case ["api", "panel", name, wanted] if name in PANEL_READS_ONE:
+            return f"{PANEL}{name}/{{id}}", [wanted]
         case _:
             return None
 
@@ -1063,17 +1132,25 @@ class Handler(BaseHTTPRequestHandler):
         in a frame, a script and a fetch are none of them a page opened.
         """
         how = (self.headers.get_all("Sec-Fetch-Mode"), self.headers.get_all("Sec-Fetch-Dest"))
-        return self.command == GET and self.path == "/" and how == (["navigate"], ["document"])
+        at_the_desk = self.command == GET and path_alone(self.path) == "/"
+        return at_the_desk and how == (["navigate"], ["document"])
 
     def _answer(self, template: str, words: list[str]) -> tuple[str, bytes]:
         desk = self.desk
         if template == "/favicon.ico":
             return KINDS[".svg"], ICON
         if template in ("/", "/page/{name}"):
-            path = desk.pages.get(words[0] if words else "index.html")
+            path = desk.pages.get(words[0] if words else first_page(desk))
             if path is None:
                 raise missing()
             return KINDS[path.suffix], path.read_bytes()
+        if template.startswith(PANEL):
+            if desk.panel is None:
+                raise Refused(HTTPStatus.NOT_FOUND, NOT_FOUND, NO_PANEL)
+            what = template.removeprefix(PANEL).split("/")[0]
+            sent = self._body() if ROUTES[template] == POST else None
+            held = desk.panel.answer(desk, what, words[0] if words else None, sent)
+            return JSON_KIND, _json({**held, "synthetic": desk.synthetic})
         if template == "/api/layer/{group}/{layer}":
             return JSON_KIND, layer(desk, words[0], words[1])
         if template == "/api/state":
@@ -1160,7 +1237,12 @@ class Handler(BaseHTTPRequestHandler):
         self.desk.log(f"{method} {template} {int(status)}")
 
 
-def _json(held: Mapping[str, Json]) -> bytes:
+def first_page(desk: Desk) -> str:
+    """The page that the address of the desk opens: the panel, where the desk holds one."""
+    return PANEL_PAGE if desk.panel is not None and PANEL_PAGE in desk.pages else QUEUES_PAGE
+
+
+def _json(held: Mapping[str, Any]) -> bytes:
     return json.dumps(held, ensure_ascii=False, separators=(",", ":")).encode("utf-8")
 
 

@@ -167,6 +167,66 @@ def test_a_key_in_the_address_a_browser_was_given_is_not_written_down(
     assert read_receipts(receipts)[0].url == f"{PAGE}/download?file=8"
 
 
+# Two addresses as publishers write them. A receipt writes each another way: the `/` in the
+# value of a parameter is encoded, and a parameter with no value is given an empty one.
+AS_THE_LIST_WRITES_IT = {
+    "https://made-up.example/file?uri=/notes/2025/file-8.xlsx": ["uri"],
+    "https://made-up.example/downloads?area=GB&format=Workbook&redirect": [
+        "area",
+        "format",
+        "redirect",
+    ],
+}
+
+
+@pytest.fixture
+def names_each_whole(tmp_path: Path) -> Registry:
+    """The made-up registry, with an entry that names each of the two addresses whole."""
+    whole = "".join(f'    "{address}",\n' for address in AS_THE_LIST_WRITES_IT)
+    prefix = '    "https://made-up.example/notes/",\n'
+    assert MADE_UP_REGISTRY.count(prefix) == 1
+    path = tmp_path / "whole.toml"
+    path.write_text(MADE_UP_REGISTRY.replace(prefix, whole), encoding="utf-8")
+    return load(path)
+
+
+@pytest.mark.parametrize("address", AS_THE_LIST_WRITES_IT)
+def test_a_file_is_taken_from_the_address_of_its_item_as_the_list_writes_it(
+    saved: Path, names_each_whole: Registry, store: FolderStore, receipts: Path, address: str
+):
+    """A file that was fetched is handed over again from where it is kept, to another store.
+
+    The entry names the address as the list writes it. So the address a person gives is held
+    as the list writes it where it is the list's own, however a receipt writes it."""
+    file = listed(url=address, url_parameters=AS_THE_LIST_WRITES_IT[address], by_hand=False)
+    outcome = keep(saved, names_each_whole, store, receipts, file, address=address)
+    assert (outcome.status, outcome.why) == (Status.OK, None)
+    # With a key a browser was given, too: it is no part of the address.
+    again = keep(saved, names_each_whole, store, receipts, file, address=f"{address}&token=zzyzx")
+    assert (again.status, again.new) == (Status.OK, False)
+    (receipt,) = read_receipts(receipts)
+    assert "zzyzx" not in receipt.url and receipt.how is How.BY_HAND
+
+
+@pytest.mark.parametrize(
+    "given",
+    [
+        "https://made-up.example/file?uri=/notes/2025/file-9.xlsx",
+        "https://made-up.example/file",
+        "https://made-up.example/downloads?area=GB&format=Workbook",
+        "https://made-up.example/downloads?area=NI&format=Workbook&redirect",
+    ],
+)
+def test_an_address_that_is_not_the_lists_own_is_held_to_the_entry_as_it_was_given(
+    saved: Path, names_each_whole: Registry, store: FolderStore, receipts: Path, given: str
+):
+    (address,) = [one for one in AS_THE_LIST_WRITES_IT if one.startswith(given.split("?")[0])]
+    file = listed(url=address, url_parameters=AS_THE_LIST_WRITES_IT[address], by_hand=False)
+    outcome = keep(saved, names_each_whole, store, receipts, file, address=given)
+    assert (outcome.status, outcome.why) == (Status.REFUSED, Why.NOT_THE_ADDRESS)
+    assert store.list() == [] and not receipts.exists()
+
+
 @pytest.mark.parametrize("what", ["missing", "folder"])
 def test_a_path_that_is_not_a_file_is_refused(
     registry: Registry, store: FolderStore, receipts: Path, tmp_path: Path, what: str

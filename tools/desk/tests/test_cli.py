@@ -4,13 +4,16 @@ Every name and id here is made up. No socket is opened: the command that serves 
 tested through its own port in `test_server.py`.
 """
 
+import importlib
 import json
 import re
 from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
+from typing import Any
 
 import pytest
-from desk import cli, records
+from desk import cli, records, server
 
 
 def test_the_made_up_city_is_filled_only_into_a_folder_named_for_it(
@@ -249,3 +252,151 @@ def test_the_folder_is_named_in_the_guide_and_the_code_holds_no_path_of_any_mach
             continue
         text = path.read_text(encoding="utf-8")
         assert not re.search(r"""["'](~|/Users/|/home/|[A-Z]:\\)""", text), path.name
+
+
+# The panel
+
+
+def test_the_made_up_city_is_shown_the_committed_release_where_none_is_named(tmp_path: Path):
+    panel, said = cli.panel_for(None, tmp_path / "desk-synthetic")
+    assert panel is not None and panel.synthetic is True
+    assert said.startswith("The panel shows the release in ")
+    assert said.endswith("syn-2026-09-23-01.")
+
+
+def test_real_data_is_shown_no_release_unless_one_is_named(tmp_path: Path):
+    # Nothing made up is ever shown beside real data because nothing else was named.
+    assert cli.panel_for(None, tmp_path / "desk") == (None, cli.NO_RELEASE)
+    assert "make desk RELEASE=FOLDER" in cli.NO_RELEASE
+
+
+def test_the_queues_are_served_where_the_packages_of_the_panel_are_not_installed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    def missing(name: str) -> Any:
+        raise ModuleNotFoundError(name)
+
+    monkeypatch.setattr(importlib, "import_module", missing)
+    assert cli.panel_for(None, tmp_path / "desk-synthetic") == (None, cli.NO_PACKAGES)
+    assert "make setup" in cli.NO_PACKAGES
+
+
+def test_a_folder_that_is_no_release_is_refused_in_words(tmp_path: Path):
+    with pytest.raises(records.Unfit, match=r"The release cannot be shown\. .*manifest\.json"):
+        cli.panel_for(tmp_path, tmp_path / "desk-synthetic")
+
+
+def test_the_made_up_city_and_london_are_never_shown_together(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+):
+    data = tmp_path / "walk-synthetic"
+    assert cli.main(["fill", "--made-up", "--data", str(data)]) == cli.OK
+
+    def open_panel(release: Path) -> Any:
+        return SimpleNamespace(synthetic=False)
+
+    def found(name: str) -> Any:
+        return SimpleNamespace(open_panel=open_panel)
+
+    monkeypatch.setattr(importlib, "import_module", found)
+    capsys.readouterr()
+    # It is refused before any port is opened.
+    assert cli.serve("r1", 0, data, release=tmp_path) == cli.REFUSED
+    assert capsys.readouterr().err == f"The desk did not start. {cli.OTHER_CITY}.\n"
+
+
+# A release, and no queue
+
+
+def a_panel_of_london(monkeypatch: pytest.MonkeyPatch) -> list[Path]:
+    """Stand in for the panel of a release that is not made up. It says what it was shown."""
+    shown: list[Path] = []
+
+    class Panel:
+        synthetic = False
+
+        def answer(self, desk: Any, what: str, of: str | None, sent: object) -> dict[str, Any]:
+            return {"waiting": [], "what": what}
+
+    def open_panel(release: Path) -> Any:
+        shown.append(release)
+        return Panel()
+
+    def found(name: str) -> Any:
+        return SimpleNamespace(open_panel=open_panel)
+
+    monkeypatch.setattr(importlib, "import_module", found)
+    return shown
+
+
+def test_with_a_release_and_no_queue_filled_the_desk_keeps_what_is_decided_where_london_is_kept(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(cli, "REAL", tmp_path / "raw" / "desk")
+    monkeypatch.setattr(cli, "MADE_UP", tmp_path / "raw" / "desk-synthetic")
+    assert cli.folder_for(None, None) == cli.MADE_UP
+    assert cli.folder_for(None, tmp_path / "releases" / "syn-2026-09-23-01") == cli.MADE_UP
+    # A release of London is never shown beside the made-up city because no folder was named.
+    assert cli.folder_for(None, tmp_path / "releases" / "lon-2026-09-25-01") == cli.REAL
+    assert cli.folder_for(tmp_path / "mine", tmp_path / "lon-2026-09-25-01") == tmp_path / "mine"
+    (cli.REAL / "items").mkdir(parents=True)
+    assert cli.folder_for(None, None) == cli.REAL
+
+
+def test_the_panel_opens_on_a_release_where_no_queue_is_filled(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    shown = a_panel_of_london(monkeypatch)
+    release, data, keep = tmp_path / "lon-2026-09-25-01", tmp_path / "desk", tmp_path / "keep"
+    keep.mkdir()
+    panel, said = cli.panel_for(release, data)
+    assert shown == [release] and said.startswith("The panel shows the release in ")
+    desk = server.open_desk(data, cli.PAGE, cli.QUESTIONS, "r1", keep=keep, panel=panel)
+    assert (desk.synthetic, dict(desk.items)) == (False, {})
+    found = server.state(desk)
+    assert (found["queues"], found["resume"]) == ([], None)
+    assert found["banner"] == server.BANNER[False]
+    assert server.first_page(desk) == server.PANEL_PAGE
+
+
+def test_with_no_release_and_no_queue_there_is_nothing_to_show(tmp_path: Path):
+    with pytest.raises(records.Unfit, match="There is no item to show"):
+        server.open_desk(tmp_path / "desk", cli.PAGE, cli.QUESTIONS, "r1", keep=tmp_path)
+
+
+def test_real_data_with_no_queue_still_needs_its_second_copy(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    a_panel_of_london(monkeypatch)
+    panel, _ = cli.panel_for(tmp_path / "lon-2026-09-25-01", tmp_path / "desk")
+    with pytest.raises(server.NeedsKeep):
+        server.open_desk(tmp_path / "desk", cli.PAGE, cli.QUESTIONS, "r1", panel=panel)
+
+
+def test_a_release_alone_is_started_and_says_that_no_queue_is_filled(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+):
+    a_panel_of_london(monkeypatch)
+    monkeypatch.setattr(cli, "REAL", tmp_path / "raw" / "desk")
+    monkeypatch.setattr(cli, "MADE_UP", tmp_path / "raw" / "desk-synthetic")
+    keep = tmp_path / "keep"
+    keep.mkdir()
+
+    class Stopped:
+        server_address = ("127.0.0.1", 8765)
+
+        def serve_forever(self) -> None:
+            raise KeyboardInterrupt
+
+        def server_close(self) -> None:
+            return None
+
+    def started(desk: server.Desk, port: int) -> Any:
+        return Stopped()
+
+    monkeypatch.setattr(server, "serve", started)
+    assert cli.serve("r1", 0, None, keep, tmp_path / "lon-2026-09-25-01") == cli.OK
+    said = capsys.readouterr().out.splitlines()
+    assert said[1] == server.BANNER[False]
+    assert cli.NO_QUEUE in said
+    assert not cli.MADE_UP.exists(), "the made-up city is not filled beside London"

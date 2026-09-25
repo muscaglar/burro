@@ -375,6 +375,40 @@ def test_a_credit_changed_in_the_manifest_is_found_though_every_hash_agrees(
     assert "1 fact may not be served: 1 [credit_is_the_registrys]" in err
 
 
+def test_words_said_with_a_credit_that_the_registry_does_not_hold_are_found(
+    copy: Made, capsys: Printed
+):
+    def said(manifest: Any) -> None:
+        source = next(one for one in manifest["sources"] if one["source_id"] == SITES)
+        source.update(said_with_attribution="Made up.")
+
+    rewrite(copy.release / MANIFEST, said)
+    rehash_the_build(copy)
+    status, out, err = checked(copy, capsys)
+    assert (status, out) == (1, "")
+    assert "1 fact may not be served: 1 [credit_is_the_registrys]" in err
+
+
+def test_a_release_that_leaves_out_what_the_registry_asks_to_be_said_with_a_credit_is_found(
+    copy: Made, capsys: Printed, tmp_path: Path
+):
+    """The terms of a publisher may ask that something is said wherever its credit is shown.
+    Once the registry holds it, a release that credits the source and does not say it is
+    not fit to serve."""
+    asking = tmp_path / "registry"
+    shutil.copytree(REGISTRY, asking)
+    entries = next(path for path in asking.glob("*.toml") if f'id = "{SITES}"' in path.read_text())
+    before, found, after = entries.read_text().partition(f'id = "{SITES}"\n')
+    assert found
+    entries.write_text(f'{before}{found}said_with_attribution = "Made up."\n{after}')
+    assert load(asking).get(SITES).said_with_attribution == "Made up."
+
+    assert checked(copy, capsys)[0] == 0
+    status, out, err = checked(copy, capsys, registry=asking)
+    assert (status, out) == (1, "")
+    assert "1 fact may not be served: 1 [credit_is_the_registrys]" in err
+
+
 # What core works out: where an area stands among the areas, and its tags
 
 

@@ -83,12 +83,11 @@ flats is of flats of every size that were sold, and is what a budget for a
 one-bedroom flat is held against. It is never scaled to a size of home, and
 the sentence beside the figure says what it is of.
 
-Rents. None is given, and a release holds no rent. The statistics office
-publishes rents for boroughs and for postcode districts, and no design holds
-the model that would bring one down to an area. The contract has no place for
-a borough's figure beside an area, and the pipeline design forbids a figure of
-a larger area to be pasted onto a smaller one. `NO_RENT` is what a renter is
-told.
+Rents. None is given here: `derive/rent.py` reads them, from another
+workbook. The statistics office publishes rents for boroughs and for postcode
+districts, and an area is given the figure of the place it lies in, which says
+the place it is of (ADR 0021, as amended on 2026-09-25). `NO_RENT` is what a
+renter is told of a build that did not read that workbook.
 
 What is not read: the names of local authorities and of MSOAs, every year but
 the one the receipt gives, and the sheets of newly built and of existing homes.
@@ -191,7 +190,7 @@ CANNOT_SEE = (
     "It cannot tell a large home from a small one, so an area where large homes were sold "
     "reads dearer than one where small homes were. It is not an asking price or a rent.",
 )
-# What a renter is told, where a rent would stand.
+# What a renter is told, where a rent would stand, of a build that read no rents.
 NO_RENT = (
     "Burro holds no rent for an area. Rents are published for each borough and for each "
     "postcode district, and not for an area as small as this."

@@ -503,14 +503,21 @@ def test_the_workbook_is_registered_for_scoring_on_its_publishers_own_pages():
     assert len(source.file_urls) == 1 and source.file_urls[0].endswith(outdoor.FILE_NAME)
 
 
-def test_the_registry_keeps_the_survey_of_people_out_and_asks_for_the_audit():
-    """The same page offers a survey of people by age and ethnic group. It is never read."""
+def test_the_registry_keeps_the_survey_of_people_out_and_asks_for_no_audit():
+    """The same page offers a survey of people by age and ethnic group. It is never read.
+
+    The entry asked for a row of the proxy audit until 2026-09-25, when the founder
+    dropped the audit (ADR 0006, as amended that day). Its notes say so, and nothing it
+    asks for waits on one.
+    """
     source = registry().get(outdoor.SOURCE)
     said = " ".join(source.conditions)
-    for words in ("describes residents", "never fetched", "proxy audit", "ADR 0006"):
+    for words in ("describes residents", "never fetched", "never who lives in them"):
         assert words in said, words
     assert "2014" not in " ".join(source.file_urls)
-    assert any("proxy audit" in line for line in source.before_launch)
+    for asked in (*source.conditions, *source.before_launch):
+        assert "audit" not in asked.lower(), asked
+    assert "dropped the proxy audit on 25 September 2026" in source.notes
 
 
 def test_the_workbook_asks_that_every_figure_is_held_to_the_lookup():
@@ -651,11 +658,11 @@ def test_the_name_says_addresses_as_core_names_the_measure(tmp_path: Path):
     assert metric.source_ids == (outdoor.SOURCE, outdoor.HELD_TO, spine.LOOKUP)
 
 
-def test_the_measure_is_on_the_list_of_a_build_and_is_held_back(tmp_path: Path):
-    """A build works it out, so that whoever settles it has the figures, and leaves it out."""
+def test_the_measure_is_on_the_list_of_a_build_and_nothing_holds_it_back(tmp_path: Path):
+    """A build whose lists name its files works it out and carries it."""
     (measure,) = [one for one in MEASURES if one.feature is FeatureId.PRIVATE_OUTDOOR_SPACE]
     assert (measure.source, measure.held_back) == (outdoor.SOURCE, outdoor.HELD_BACK)
-    assert measure.held_back and measure.waits_on == ()
+    assert (measure.held_back, measure.waits_on) == ((), ())
     assert measure.reads(outdoor.FILE_NAME) and not measure.reads("another.xlsx")
     assert not (measure.in_squares or measure.in_parts)
     inputs = inputs_with(tmp_path)
@@ -667,22 +674,17 @@ def test_the_measure_is_on_the_list_of_a_build_and_is_held_back(tmp_path: Path):
     )
 
 
-def test_it_is_held_back_until_its_row_of_the_proxy_audit_has_passed():
-    """Core names it as it is built, so nothing but this keeps it out of a release. The
-    licence registry and the design of the vibes both ask for the row first."""
+def test_no_audit_holds_it_back_since_the_proxy_audit_was_dropped():
+    """It was held back for want of a row of the proxy audit, and for no other reason. The
+    founder dropped the audit on 2026-09-25, so nothing keeps it out of a release: core
+    names it as it is built, and no check of its figures found anything."""
+    assert outdoor.HELD_BACK == ()
     assert outdoor.WAITS_ON == ()
-    said = " ".join(outdoor.HELD_BACK)
-    for words in ("proxy audit", "no audit has been run", "0006", "under 0.3", "founder"):
-        assert words in said, words
-    for line in outdoor.HELD_BACK:
-        assert line.endswith(".")
-    entry = registry().get(outdoor.SOURCE)
-    assert any("proxy audit" in line for line in entry.conditions)
-    assert any("proxy audit" in line for line in entry.before_launch)
 
 
 def test_it_is_a_quarter_of_the_recipe_of_homes_which_has_a_band_without_it():
-    """Flats and homes per hectare are 75 in 100 of Homes. This is the rest."""
+    """Flats and homes per hectare are 75 in 100 of Homes. This is the rest: an area with
+    no figure for it keeps its band."""
     parts = {term.feature_id: term.hundredths for term in TAGS[TagId.HOMES].terms}
     assert parts[FeatureId.PRIVATE_OUTDOOR_SPACE] == 25
     assert sum(parts.values()) - parts[FeatureId.PRIVATE_OUTDOOR_SPACE] == 75

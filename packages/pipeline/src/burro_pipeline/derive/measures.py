@@ -27,11 +27,8 @@ A measure is held back by what a check of its figures found: that they do not
 yet say what the measure is named for. It is worked out at every build all
 the same, so that whoever settles it has the figures. What holds it back is
 written in its own module, as `HELD_BACK`, and is taken out in a change a
-person reads. Nothing core says of the measure brings it in before then.
-
-One measure is held back by what has not been checked, and not by what a check
-found: private outdoor space waits for its row of the proxy audit, which
-decision record 0006 asks for before it is in a release.
+person reads. Nothing core says of the measure brings it in before then. No
+measure is held back today.
 """
 
 from collections.abc import Callable, Mapping
@@ -60,6 +57,7 @@ from burro_pipeline.derive import (
     green_cover,
     grocery_walk,
     highstreet_access,
+    highstreet_conserved,
     homes_density,
     homes_flats,
     homes_higher_bands,
@@ -339,6 +337,14 @@ _EVERY_OTHER: tuple[Measure, ...] = (
         highstreet_access.METHODS,
         highstreet_access.CANNOT_SEE,
         lambda inputs, ground: highstreet_access.build(inputs, ground.spine),
+    ),
+    Measure(
+        highstreet_conserved.FEATURE,
+        highstreet_conserved.SOURCE,
+        highstreet_conserved.is_the_file,
+        highstreet_conserved.METHODS,
+        highstreet_conserved.CANNOT_SEE,
+        lambda inputs, ground: highstreet_conserved.build(inputs, ground.spine),
     ),
     Measure(
         homes_density.FEATURE,

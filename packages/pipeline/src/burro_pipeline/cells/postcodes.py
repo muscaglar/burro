@@ -28,6 +28,11 @@ and no postcode. It cannot be asked for its postcodes, for those of an area,
 or for those near a point. What it prints of itself is counts. A refusal
 repeats nothing from a row.
 
+**A district is no postcode.** It is what stands before the space, which the
+postcodes of some thousands of addresses share, and it is how the statistics
+office gives the rents of London. `in_use_by_district` counts the postcodes in
+use of each output area by it, and gives back no postcode.
+
 **What is read.** The zip holds the directory three times over. The file of
 each postcode area is read, under `Data/multi_csv/`, and the whole file is
 never opened. A file is found by its name in the list the zip keeps of itself,
@@ -293,6 +298,19 @@ class Lookup:
         """How many postcodes in use stand in each output area. It names no postcode."""
         found: Counter[str] = Counter(kept[2] for kept in self._rows.values() if kept[4] is None)
         return dict(sorted(found.items()))
+
+    def in_use_by_district(self) -> dict[str, dict[str, int]]:
+        """How many postcodes in use stand in each output area, by their postcode district.
+
+        A district is what stands before the space of a postcode. An output
+        area with no postcode in use is not among them. It names no postcode.
+        """
+        found: dict[str, Counter[str]] = {}
+        for key, kept in self._rows.items():
+            if kept[4] is None:
+                # A postcode is kept with no space, and what follows the space is three long.
+                found.setdefault(kept[2], Counter())[key[:-3]] += 1
+        return {oa: dict(sorted(found[oa].items())) for oa in sorted(found)}
 
     def in_use_by_borough(self) -> dict[str, int]:
         """How many postcodes in use stand in each borough, by its code."""

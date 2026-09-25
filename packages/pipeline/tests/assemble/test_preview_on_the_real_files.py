@@ -123,8 +123,8 @@ WITH_A_FIGURE = {
 # and the file of places are each in a list of their own, and the police's crime files, the
 # register of schools and the files of stops are on the list m2-living, as is the workbook of
 # what homes sell for. The station data and the routes of buses are each on a list of their
-# own, and so are the two census tables of who lived in an area and the workbook of private
-# outdoor space. The file of places is read
+# own, and so are the two census tables of who lived in an area, the workbook of private
+# outdoor space and the file of high streets. The file of places is read
 # for the cultural venues and for the
 # brands, and for independent places, which are told from the chains by their brand. So
 # are the cafes, the gyms and the pubs and bars, which are counted from the file of places.
@@ -144,6 +144,7 @@ _LEFT_OUT = {
     "evening_cluster_exposure": NO_FILE,
     "gp_walk": NO_FILE,
     "grocery_walk": NO_FILE,
+    "highstreet_conserved": NO_FILE,
     "households_dependent_children": NO_FILE,
     "households_one_person": NO_FILE,
     "incident_antisocial": NO_FILE,
@@ -329,12 +330,17 @@ def test_the_vibes_that_have_a_score_are_these_and_no_other_has(release: InMemor
     others = [tag for tag in release.tags if tag.tag_id not in PLACED]
     assert all((tag.raw, tag.score, tag.band) == (None, None, None) for tag in others)
     most = {tag.tag_id: max(t.coverage for t in others if t.tag_id is tag.tag_id) for tag in others}
-    assert max(most.values()) == most[TagId.PACE] == 0.5
+    # Village feel rests on the most of those that are not placed: homes per hectare, homes
+    # built before 1919 and conservation cover are 55 in 100 of it. Its high street is the
+    # rest, and the file of high streets is on a list of its own.
+    assert max(most.values()) == most[TagId.VILLAGE_FEEL] == 0.55
+    assert most[TagId.PACE] == 0.5
     assert most[TagId.FOODIE] == 0.4
     assert (most[TagId.STREET_CHARACTER], most[TagId.LEAFY]) == (0.25, 0.3)
     assert TagId.WORKS_WAREHOUSES not in {tag.tag_id for tag in release.tags}
     village = {tag.coverage for tag in release.tags if tag.tag_id is TagId.VILLAGE_FEEL}
-    assert village == {0.35, 0.15}
+    # The one area with no figure for homes built before 1919 rests on 40 in 100.
+    assert village == {0.55, 0.4}
 
 
 def test_what_is_left_out_has_a_row_that_says_so_and_rests_on_no_file(

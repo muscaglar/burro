@@ -82,10 +82,8 @@ def test_core_holds_no_measure_of_it_so_no_build_carries_one():
     for feature in (FeatureId.VENUE_EVENING, FeatureId.VENUE_EVENING_PER_HOMES):
         assert by_feature[feature].source == venues_nearby.SOURCE != venue_pub.SOURCE
         assert not by_feature[feature].held_back and not by_feature[feature].waits_on
-    # One measure is held back, and it is none of pubs: private outdoor space, until its
-    # audit has run.
-    held = [one.feature for one in measures.MEASURES if one.held_back]
-    assert held == [FeatureId.PRIVATE_OUTDOOR_SPACE]
+    # No measure is held back.
+    assert [one.feature for one in measures.MEASURES if one.held_back] == []
 
 
 def test_what_the_row_of_the_catalogue_would_say_names_a_nightclub_as_core_does_not(

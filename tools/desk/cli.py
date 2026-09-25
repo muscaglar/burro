@@ -1,6 +1,7 @@
 """The command line of the review desk.
 
     python -m desk serve    [--reviewer r1] [--port 8765] [--data FOLDER] [--keep FOLDER]
+                            [--release FOLDER] [--before FOLDER]
     python -m desk fill     --from FOLDER --data FOLDER, or --made-up
     python -m desk compile  [--data FOLDER] [--gazetteer FOLDER]
     python -m desk publish  [--data FOLDER] --to FOLDER
@@ -14,6 +15,14 @@ without one. `--keep` names the folder. With no `--keep` it is the folder
 `burro-desk-decisions` in the home folder of whoever starts the desk, where that
 is there: the desk makes no folder for the copy by itself.
 
+`serve` opens the panel too, where it is given a release to show. `--release` names
+the folder of the release. With none, the made-up city is shown the committed
+synthetic release, and real data is shown no release: the queues are served, and the
+desk says how to name one. The panel reads a release with the project's packages.
+Where they are not installed the queues are served without it, and the desk says so.
+`--before` names the folder of another release, which the one that is shown is held
+against: the screen "What moved" says what differs between the two.
+
 `fill` makes the queues from a draft folder. `compile` makes a build's files from
 the lines of decisions. `publish` makes the copy of the decisions that may be
 committed: the queues that may be published, the lines that stand, the day and
@@ -22,7 +31,8 @@ never the hour. `make desk`, `make desk-fill`, `make desk-compile` and
 
 Exit codes: 0, or 2 where something was refused and nothing was written.
 
-Standard library only. See docs/design/desk.md, section 7.
+Standard library only, but for the panel, which is read only where it can be.
+See docs/design/desk.md, section 7, and docs/design/panel.md.
 """
 
 import argparse
@@ -57,6 +67,25 @@ LOOK: Final = {
 }
 
 
+# What the desk says where it serves the queues and no panel.
+NO_PACKAGES: Final = (
+    "The panel is not open: it reads a release with the project's packages. Run make setup."
+)
+NO_RELEASE: Final = (
+    "The panel is not open: no release is named. Name the folder of one: make desk RELEASE=FOLDER"
+)
+NO_QUEUE: Final = (
+    "No queue is filled, so the panel is all there is. The queues are filled from a draft of "
+    "the areas: make desk-take DRAFT=FOLDER"
+)
+# How the folder of a release of the made-up city begins, as its id does.
+SYNTHETIC: Final = "syn-"
+OTHER_CITY: Final = (
+    "The release and the desk's data are not of one city. The made-up city and London are "
+    "never mixed: name a release of the city the desk's data is of"
+)
+
+
 class Fill(Protocol):
     """The step that fills the queues, which is a part of its own: `desk.fill`."""
 
@@ -79,6 +108,20 @@ def _default() -> Path:
     return REAL if (REAL / "items").is_dir() else MADE_UP
 
 
+def folder_for(data: Path | None, release: Path | None) -> Path:
+    """Where the desk keeps what is decided: the folder that was named, or the usual one.
+
+    With none named it is London's where its queues are filled, and the made-up
+    city's where they are not. A release of London that is named with no folder
+    is shown beside London's folder, filled or not: nothing of London is ever
+    kept in the folder of the made-up city because no folder was named.
+    """
+    if data is not None:
+        return data
+    made_up = release is None or release.resolve().name.startswith(SYNTHETIC)
+    return _default() if made_up else REAL
+
+
 def _refuse(words: str) -> int:
     sys.stderr.write(f"{words.rstrip('.')}.\n")
     return REFUSED
@@ -95,27 +138,86 @@ def kept_in_home() -> Path | None:
     return folder if folder.is_dir() else None
 
 
-def _open(folder: Path, reviewer: str, keep: Path | None) -> server.Desk:
+def _open(
+    folder: Path, reviewer: str, keep: Path | None, panel: server.Panel | None = None
+) -> server.Desk:
     """Read what the desk serves. Real data with no folder named for the second copy is
     served with the copy in the folder of the home folder, and not served without it."""
     try:
-        return server.open_desk(folder, PAGE, QUESTIONS, reviewer, keep=keep, outside=ROOT)
+        return server.open_desk(
+            folder, PAGE, QUESTIONS, reviewer, keep=keep, outside=ROOT, panel=panel
+        )
     except server.NeedsKeep:
         found = kept_in_home()
         if found is None:
             raise
-    return server.open_desk(folder, PAGE, QUESTIONS, reviewer, keep=found, outside=ROOT)
+    return server.open_desk(
+        folder, PAGE, QUESTIONS, reviewer, keep=found, outside=ROOT, panel=panel
+    )
 
 
-def serve(reviewer: str, port: int, data: Path | None, keep: Path | None = None) -> int:
-    folder = data or _default()
+class Panels(Protocol):
+    """The part that opens the panel, which is a part of its own: `desk.panel.routes`."""
+
+    def open_panel(self, release: Path, *, before: Path | None = None) -> server.Panel: ...
+
+
+def made_up_release() -> Path | None:
+    """The committed synthetic release: the one folder of the fixture. None where it is not
+    there, or where the folder holds more than one."""
+    found = sorted(path for path in FIXTURE.glob("syn-*") if path.is_dir())
+    return found[0] if len(found) == 1 else None
+
+
+def panel_for(
+    release: Path | None, folder: Path, before: Path | None = None
+) -> tuple[server.Panel | None, str]:
+    """The panel, and what the desk says of it. Raises `Unfit` for a release that cannot be
+    shown beside the desk's data. `before` is the release the one that is shown is held
+    against, where one is named.
+
+    It is read only where a release is named, or the made-up city is served. The packages
+    it needs are asked for here and nowhere else, so that the queues start without them.
+    """
+    made_up = folder.resolve().name.endswith(NAMED_MADE_UP)
+    shown = release or (made_up_release() if made_up else None)
+    if shown is None:
+        return None, NO_RELEASE
+    try:
+        panels = cast(Panels, importlib.import_module("desk.panel.routes"))
+    except ImportError:
+        return None, NO_PACKAGES
+    try:
+        # With no other release named the panel is opened as it always was.
+        panel = (
+            panels.open_panel(shown) if before is None else panels.open_panel(shown, before=before)
+        )
+    except Exception as refused:
+        # A release that cannot be served is refused in one line, which names no figure.
+        raise records.Unfit(f"The release cannot be shown. {refused}") from None
+    against = "" if before is None else f" It is held against the release in {_near(before)}."
+    return panel, f"The panel shows the release in {_near(shown)}.{against}"
+
+
+def serve(
+    reviewer: str,
+    port: int,
+    data: Path | None,
+    keep: Path | None = None,
+    release: Path | None = None,
+    before: Path | None = None,
+) -> int:
+    folder = folder_for(data, release)
     if data is None and folder == MADE_UP and not (folder / "items").is_dir():
         print("Filling the made-up city, for the first time.")
         status = _fill().run(FIXTURE, folder, synthetic=True)
         if status != OK:
             return status
     try:
-        desk = _open(folder, reviewer, keep)
+        panel, said = panel_for(release, folder, before)
+        desk = _open(folder, reviewer, keep, panel)
+        if panel is not None and panel.synthetic != desk.synthetic:
+            raise records.Unfit(OTHER_CITY)
         running = server.serve(desk, port)
     except records.Unfit as unfit:
         return _refuse(f"The desk did not start. {unfit}")
@@ -142,6 +244,9 @@ def serve(reviewer: str, port: int, data: Path | None, keep: Path | None = None)
     if desk.keep is not None:
         lacked = f" It lacked {desk.brought_up}, which were written." if desk.brought_up else ""
         print(f"A second copy of every decision is kept in {_near(desk.keep)}.{lacked}")
+    print(said)
+    if not desk.items:
+        print(NO_QUEUE)
     print(f"Open http://{server.LOOPBACK}:{running.server_address[1]}/")
     print("Ctrl-C stops it. Every decision is on disk already.", flush=True)
     try:
@@ -234,6 +339,16 @@ def publish(data: Path | None, to: Path | None) -> int:
             print(f"  {note}")
     else:
         print("No note is in it.")
+    for reviewer, held in found.changes.items():
+        count = held.count(b"\n")
+        lines = f"{count} {'line' if count == 1 else 'lines'}"
+        kept = _near(to / copy.TREE / copy.CHANGES)
+        print(f"Wrote the file of changes of {reviewer}, of {lines}, to {kept}.")
+        print(f'A build reads it: make preview ARGS="... --changes {kept}/{reviewer}.jsonl"')
+    if found.reasons:
+        print("These reasons are in it. Read each one before you commit:")
+        for reason in found.reasons:
+            print(f"  {reason}")
     return OK
 
 
@@ -249,6 +364,18 @@ def parser() -> argparse.ArgumentParser:
         type=Path,
         help="a folder outside the repository for a second copy of each line. With none, "
         f"the folder {KEPT_IN_HOME} in your home folder, where it is there",
+    )
+    one.add_argument(
+        "--release",
+        type=Path,
+        help="the folder of the release the panel shows. With none, the made-up city is "
+        "shown the committed synthetic release, and real data is shown none",
+    )
+    one.add_argument(
+        "--before",
+        type=Path,
+        help="the folder of another release, which the one that is shown is held against. "
+        "The panel then says what moved between the two",
     )
     two = steps.add_parser("fill", help="fill the queues from a draft folder")
     two.add_argument("--from", dest="source", type=Path, help="the draft folder")
@@ -266,7 +393,7 @@ def parser() -> argparse.ArgumentParser:
 def main(argv: Sequence[str] | None = None) -> int:
     args = parser().parse_args(argv)
     if args.step == "serve":
-        return serve(args.reviewer, args.port, args.data, args.keep)
+        return serve(args.reviewer, args.port, args.data, args.keep, args.release, args.before)
     if args.step == "fill":
         return fill(args.source, args.data, args.made_up)
     if args.step == "publish":

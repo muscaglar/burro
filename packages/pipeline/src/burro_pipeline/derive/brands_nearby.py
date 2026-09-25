@@ -70,6 +70,8 @@ chain: what it charges and how it presents itself. A figure here counts shops.
 It says nothing of who shops in one, of who lives near one, or of what anyone
 earns. The mix is a stand-in for how well off a place is, and its row of the
 proxy audit was written before it was served: `docs/research/data/brands.md`.
+The audit was dropped on 2026-09-25 (ADR 0006, as amended), and the row holds
+nothing back.
 """
 
 from collections import Counter

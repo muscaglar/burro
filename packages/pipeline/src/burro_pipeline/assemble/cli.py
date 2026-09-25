@@ -22,7 +22,9 @@ from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
-from burro_core.ids import RELEASE_ID_PATTERN, FactKind
+from burro_core.catalogue import tags_of as vibes_of
+from burro_core.facts import cost_key
+from burro_core.ids import RELEASE_ID_PATTERN, FactKind, Tenure
 from burro_core.income import INCOME_FOLDER, IncomeError
 from burro_core.release import (
     BUILD_FOLDER,
@@ -37,9 +39,11 @@ from burro_core.release import (
 )
 from pydantic import ValidationError
 
+from burro_pipeline import changes as decided
 from burro_pipeline.assemble import names
 from burro_pipeline.assemble.names import Bears, NamesError, Naming
 from burro_pipeline.assemble.release import (
+    GRITTY,
     Carried,
     Costed,
     Drawn,
@@ -50,7 +54,15 @@ from burro_pipeline.assemble.release import (
 from burro_pipeline.cells import centres, land, outline, spine
 from burro_pipeline.cells.spine import Spine
 from burro_pipeline.command import NOT_IGNORED, PROG, Step, add_step, may_be_written
-from burro_pipeline.derive import household_income, price, price_paid, station_places
+from burro_pipeline.derive import (
+    brand_table,
+    brands_nearby,
+    household_income,
+    price,
+    price_paid,
+    rent,
+    station_places,
+)
 from burro_pipeline.derive.household_income import Estimated
 from burro_pipeline.derive.measures import (
     MEASURES,
@@ -87,11 +99,14 @@ from burro_pipeline.evidence.lock import (
 )
 from burro_pipeline.evidence.receipt import RECEIPTS_FOLDER, Receipt
 from burro_pipeline.evidence.record import FILE_ID_PATTERN, TIMESTAMP_PATTERN, in_words
+from burro_pipeline.evidence.repository import NotRead, holds, tracks
 from burro_pipeline.evidence.served import counted, served, unevidenced
 from burro_pipeline.evidence.store import Evidence
+from burro_pipeline.fetch.cli import THE_STORE
 from burro_pipeline.fetch.offline import sockets_refused
+from burro_pipeline.fetch.run import WORDS, Why
 from burro_pipeline.fetch.sources import Listed, ListError, load_list
-from burro_pipeline.fetch.store import FOLDER_VARIABLE, Store, StoreError, store_from_environment
+from burro_pipeline.fetch.store import FolderStore, Store, StoreError, store_from_environment
 from burro_pipeline.inputs import Inputs
 from burro_pipeline.registry import Registry, RegistryError, load
 from burro_pipeline.registry.model import INTERNAL_USES, Use
@@ -119,6 +134,14 @@ NAMES_COLUMNS = (
 )
 # Why a measure is left out of a release. Each is the name of a rule of the build.
 NO_RECEIPT = "input_has_one_receipt"
+# The name of the one file of changes a build takes: the founder's.
+FOUNDERS_FILE = f"{decided.FOUNDER}.jsonl"
+NOT_THE_FOUNDERS = f"the file of changes is named {FOUNDERS_FILE}: it is the founder's"
+NOT_PUBLISHED = (
+    "the file of changes is not the copy that was published: a build takes the file "
+    "as the repository holds it, at the commit that is checked out. Make the copy "
+    "with `make desk-publish`, commit it, and name that file"
+)
 HELD_BACK = "measure_is_not_held_back"
 NOT_AS_CORE_SAYS = "measure_is_as_core_says"
 NO_FIGURE = "measure_has_a_figure"
@@ -133,6 +156,16 @@ PRICED_FROM: Mapping[str, str] = {
     price_paid.SOURCE: "A file of prices paid, or the postcode directory a sale is placed by,",
     price.SOURCE: "The workbook of median prices",
 }
+# The file a rent is read from, and what it is called where a line says why it was left out.
+# It is placed by the postcode directory, as a sale is.
+LET_FROM: Mapping[str, str] = {
+    rent.SOURCE: "The workbook of rents, or the postcode directory an area is placed by,",
+}
+# What the record of a build says of its rents, where it carries them.
+RENT_HELD = (
+    "Burro holds the rent of the postcode district or of the borough an area lies in, as "
+    "its publisher gives it, and never a rent of the area alone."
+)
 COST_LEFT_OUT: Mapping[str, tuple[str, str]] = {
     FETCHED_FOR_LESS: (
         "was fetched to validate against and for nothing wider, and a file that was fetched "
@@ -199,17 +232,56 @@ home, with no range. Where the files of prices paid have their receipts, and
 the postcode directory has its own, the median is worked out from the sales,
 and says how many it rests on. Where they have none it is the publisher's own
 median, from the workbook. An area with no figure for a kind of home has none
-in the release. It holds no rent. The line of cost says which source was read
-and how many rows it holds, or by which rule it holds none. A workbook that
-was fetched to validate against stands behind no figure, whatever the
-registry has come to allow: its receipt says what the gate was asked, and no
-run writes a second receipt of the same file.
+in the release. The line of cost says which source was read and how many rows
+it holds, or by which rule it holds none. A workbook that was fetched to
+validate against stands behind no figure, whatever the registry has come to
+allow: its receipt says what the gate was asked, and no run writes a second
+receipt of the same file.
+
+It holds what a home lets for where a list of the build names the workbook of
+the rents of London, and the postcode directory has its receipt: the middle
+monthly rent of each kind of home, with its quartiles, for the postcode
+district an area lies in or for its borough. A figure is of that place and
+never of the area alone, and its row says which place it is of. An area takes
+the figure of a district where half or more of its homes stand in it, and of
+its borough otherwise. An area with neither has no rent, and nothing is
+filled in. A second line of cost says how many rows of rent it holds.
 
 A measure is left out, and never filled in, when its file has no receipt, when
 a check of its figures holds it back, or when what it measures is not what
 core says the measure is. The line of derive says which, by the name of the
 rule. A file of the list with no receipt is counted under `missing` and is not
 in the lock.
+
+With --changes it takes what a person decided at the panel of the review desk:
+a file of changes, one line for each change, with who made it, the day and why.
+The lines that stand are laid over the catalogue: the shares of a recipe, the
+name of a vibe and of its ends, what a vibe cannot see, and the label of a
+measure. Every band is then worked out with the recipe the release carries. A
+chain that was moved to another tier, added or taken out is laid over the table
+of tiers, and the measures of the chains are worked out by that table. The
+file is read whole before a publisher's file is opened. A line that cannot be
+read, a change that breaks a rule of a recipe or of a name, and a change that
+was made of something other than what stands each stop the build: the line is
+named by its number, and nothing it holds is printed. The lock names the file
+by its hash, the manifest of the release says the same hash, and the record of
+the build lists each line that was applied, by its number. With no --changes
+the build is byte for byte what it was.
+
+The file can be written by hand, so the build takes it only as it was
+published: the founder's file, r1.jsonl, as the repository holds it at the
+commit that is checked out. A file that is in no repository, that git does not
+track, or that was changed since it was committed, is refused. A chain is
+added only where the file of places gives its name to two places or more that
+stand apart: one shop is no chain, and the name of a person is none.
+
+With --published-changes it is given the place the review desk publishes the
+founder's file to, whether or not anything was published. It is for a build
+that is started with no person to name a file, as a hosted run is. Where the
+repository tracks a file there, the build takes it as --changes takes one, and
+holds it to every rule above. Where the repository tracks none, the build is
+given none, and is byte for byte what it is with no file. What stands there
+and is not tracked is never read, and stops the build.
 
 A build may take the files of more than one list: give --list once for each.
 A file that is in none of them is no part of the build, whatever receipts the
@@ -232,8 +304,11 @@ each through its receipt. Reaches no publisher. Reaches the store, to list it
 and to copy its files out, and writes nothing to it. No socket is open while a
 file is read. Built twice from the same files, it writes the same bytes.
 
-The store is named by the environment, and is never printed. This step takes
-a folder, which {FOLDER_VARIABLE} names.
+{THE_STORE}
+A folder hands a file over as it is asked for. An object store is reached over
+a network, so every file of the lock is copied out of it before any is read,
+and a line says how many there were. A key that can only read the store is
+enough.
 
 Writes two folders under --out. What is in them is made from publishers' files,
 so --out and --work are refused inside the repository, but for data/releases/
@@ -258,12 +333,17 @@ Prints one line for each part of the work.""",
             '--list m1 --list m2-places --edition fsa-camden="extract of 2026-09-16"',
             "--release-id lon-2026-10-02-01 --built-at 2026-10-02T09:00:00Z --out data/releases "
             "--list m1 --list m2-places --names scratch/draft",
+            "--release-id lon-2026-10-02-01 --built-at 2026-10-02T09:00:00Z --out data/releases "
+            "--list m1 --changes gazetteer/london/decisions/changes/r1.jsonl",
+            "--release-id lon-2026-10-02-01 --built-at 2026-10-02T09:00:00Z --out data/releases "
+            "--list m1 --published-changes gazetteer/london/decisions/changes/r1.jsonl",
         ),
         {
             0: "The release was written",
             1: "A fact of the release has no evidence behind it. Nothing was written",
             2: "A file may not be read, or is not what the step was written to read, or the "
-            "release breaks a rule. The line names the rule. Nothing was written",
+            "release breaks a rule. The line names the rule. Or the store did not answer, or "
+            "refused: the line says `why=8`. Nothing was written",
         },
     ),
 )
@@ -271,6 +351,10 @@ Prints one line for each part of the work.""",
 
 class Refused(Exception):
     """The step could not start or could not finish. Says why, and never what a file holds."""
+
+
+# What a person can do about a store that fails, as fetch says it of the same number.
+WHAT_TO_DO_OF_THE_STORE = WORDS[Why.STORE].partition(". ")[2]
 
 
 @dataclass(frozen=True)
@@ -321,6 +405,8 @@ class CostLeftOut:
     fetched_for: str | None = None
     # The source the cost would have been read from.
     source: str = price.SOURCE
+    # Whether it is what a home sells for that is left out, or what one lets for.
+    tenure: Tenure = Tenure.BUY
 
     @property
     def why(self) -> str:
@@ -338,10 +424,12 @@ class CostLeftOut:
 
     def reported(self) -> tuple[Reported, ...]:
         """The cost of each kind of home, as the coverage report says what was left out."""
+        if self.tenure is Tenure.RENT:
+            keys = [cost_key(Tenure.RENT, home) for home in rent.HOMES]
+        else:
+            keys = [home.cost_key for home in price.HOMES if home.cost_key is not None]
         return tuple(
-            Reported(f"{FactKind.COST}/{home.cost_key}", self.rule, self.why, self.waits_on)
-            for home in price.HOMES
-            if home.cost_key is not None
+            Reported(f"{FactKind.COST}/{key}", self.rule, self.why, self.waits_on) for key in keys
         )
 
 
@@ -456,11 +544,140 @@ def _drafted(args: argparse.Namespace) -> dict[str, bytes] | None:
     return found
 
 
+@dataclass(frozen=True)
+class Changed:
+    """The file of changes a build was given: its name, its bytes and its lines."""
+
+    name: str
+    content: bytes
+    lines: tuple[decided.Change, ...]
+
+    def record(self) -> dict[str, object]:
+        """What the record of a build says of it. It holds no reason and no value."""
+        stands = decided.standing(self.lines)
+        return {
+            "file": self.name,
+            "sha256": hashlib.sha256(self.content).hexdigest(),
+            "lines": len(self.lines),
+            "stand": len(stands),
+            "applied": decided.applied(self.lines, decided.APPLIED),
+            "flagged": sum(one.what in decided.FOR_A_PERSON for one in stands),
+        }
+
+
+def _changed(args: argparse.Namespace) -> Changed | None:
+    """The file of changes the build was given, or nothing where it was given none.
+
+    It is read whole, and what stands of it is laid over core's own, before
+    anything else is done: a change that cannot be built stops the build before
+    a file of a publisher is opened.
+    """
+    path: Path | None = args.changes if args.changes is not None else _published(args)
+    if path is None:
+        return None
+    try:
+        content = path.read_bytes()
+    except OSError:
+        raise Refused("the file of changes cannot be read from the disk") from None
+    if not content:
+        raise Refused(
+            "the file of changes holds no line. Build with no --changes, or name a file "
+            "that holds one"
+        )
+    try:
+        lines = decided.read(content)
+        # Only the founder's file is built. Another reviewer's change is a proposal, which
+        # the founder keeps as their own or does not.
+        if lines[0].by != decided.FOUNDER:
+            raise decided.ChangesError(1, "changes_are_the_founders")
+        decided.adjusted(vibes_of(GRITTY), lines)
+        decided.labels_hold(lines)
+        decided.table_with(brand_table.the_table(), lines)
+        not_yet = [
+            one
+            for one in decided.standing(lines)
+            if one.what not in decided.APPLIED | decided.FOR_A_PERSON
+        ]
+        if not_yet:
+            raise decided.ChangesError(not_yet[0].n, "change_is_one_a_build_applies")
+    except decided.ChangesError as error:
+        raise Refused(
+            f"the file of changes cannot be built on: line {error.line} breaks the rule "
+            f"{error.rule}. Look at the line at the panel, or take it back there"
+        ) from None
+    if path.name != FOUNDERS_FILE:
+        raise Refused(NOT_THE_FOUNDERS)
+    # A file of changes can be written by hand. What a build takes is the copy that was
+    # published: the one the repository holds, at the commit that is checked out. So a
+    # file that was written by hand is built only once it has been committed, where it is
+    # read as any other change is. That nothing is staged is the lock's to say.
+    try:
+        published = holds(args.root, path, content)
+    except NotRead as error:
+        raise Refused(f"the repository cannot be read: {error}") from None
+    if not published:
+        raise Refused(NOT_PUBLISHED)
+    return Changed(path.name, content, lines)
+
+
+def _published(args: argparse.Namespace) -> Path | None:
+    """The founder's published file of changes, where the repository tracks one.
+
+    A build that no person starts by hand is given the place the desk publishes
+    the file to, whether or not anything was published. Where the repository
+    tracks a file there, it is taken as `--changes` takes one, and held to the
+    same rules. Where it tracks none the build is given none. What stands there
+    and is not tracked was written by a run or by a hand: it is never read, and
+    the build stops, so that no build is ever made from less than it seems.
+    """
+    place: Path | None = args.published_changes
+    if place is None:
+        return None
+    if place.name != FOUNDERS_FILE:
+        raise Refused(NOT_THE_FOUNDERS)
+    try:
+        if tracks(args.root, place):
+            return place
+    except NotRead as error:
+        raise Refused(f"the repository cannot be read: {error}") from None
+    if place.is_symlink() or place.exists():
+        raise Refused(NOT_PUBLISHED)
+    return None
+
+
+def _chains_are_seen(changed: Changed | None, inputs: Inputs, found: Spine) -> None:
+    """Refuse a chain that a line adds and that the file of places does not show to be one.
+
+    The name of a chain is said in what Burro says of a measure. So a name that
+    is of a person, or of one shop, is said nowhere: `seen_to_be_a_chain` says
+    how a chain is told from either. A build that reads no file of places with
+    their brands can tell nothing, and adds none.
+    """
+    added = decided.added(brand_table.of_the_repository(), changed.lines) if changed else ()
+    if not added:
+        return
+    written: Mapping[str, Mapping[str, int]] = {}
+    counted: Mapping[str, int] = {}
+    try:
+        held = brands_nearby.build(inputs, found).held
+        written, counted = held.written, held.counted
+    except LockError as error:
+        if error.rule != NO_RECEIPT:
+            raise
+    for line in added:
+        if not decided.seen_to_be_a_chain(line, written, counted):
+            raise Refused(
+                f"the file of changes cannot be built on: line {line.n} breaks the rule "
+                f"{decided.NOT_SEEN}. Look at the line at the panel, or take it back there"
+            )
+
+
 def _sealed(
     args: argparse.Namespace,
     registry: Registry,
     store: Store,
     drafted: Mapping[str, bytes] | None = None,
+    changed: Changed | None = None,
 ) -> tuple[Lock, list[Receipt], list[Listed], tuple[Taken, ...]]:
     listed = _listed(_lists(args))
     editions = editions_of(args)
@@ -477,8 +694,12 @@ def _sealed(
         args.root,
         packages,
         # The files of a draft of names are no publisher's files. The lock names each by
-        # its hash, so that a release says which draft its names were chosen from.
-        others=names.to_lock(drafted) if drafted is not None else (),
+        # its hash, so that a release says which draft its names were chosen from. It names
+        # the file of changes so too, so that a release says which changes it was built with.
+        others=(
+            *(names.to_lock(drafted) if drafted is not None else ()),
+            *((decided.to_lock(changed.name, changed.content),) if changed is not None else ()),
+        ),
         listed=[file for file, _ in paired],
         editions=editions,
     )
@@ -618,6 +839,81 @@ def _costed(
     return made, None
 
 
+def _let(inputs: Inputs, found: Spine) -> tuple[Costed | None, CostLeftOut | None]:
+    """What a home lets for, for the place an area lies in, or the rule that keeps it out.
+
+    It is asked only of a build whose list names the workbook of rents. The
+    workbook is read with the postcode directory, which says which district a
+    postcode is of. Where either has no receipt in the build nothing is read.
+    A workbook that was fetched for an internal use is not read: `check` would
+    refuse every figure that rested on it.
+    """
+    ours = [
+        receipt
+        for receipt in inputs.receipts
+        if receipt.source_id == rent.SOURCE and rent.is_the_workbook(receipt.publisher_file)
+    ]
+
+    def gone(rule: str) -> CostLeftOut:
+        return CostLeftOut(rule, source=rent.SOURCE, tenure=Tenure.RENT)
+
+    if any(receipt.use in INTERNAL_USES for receipt in ours):
+        return None, gone(FETCHED_FOR_LESS)
+    try:
+        rents = rent.build(inputs, found)
+    except LockError as error:
+        if error.rule != NO_RECEIPT:
+            raise
+        return None, gone(NO_RECEIPT)
+    rows = rent.costs(rents)
+    if not rows:
+        return None, gone(NO_FIGURE)
+    counts = rents.counts
+    counted: dict[str, object] = {
+        "since": rents.since,
+        "until": rents.until,
+        "fewest_rents": rent.FEWEST,
+        "least_share_of_homes_percent": rent.HALF,
+        "boroughs": counts.boroughs,
+        "districts": counts.districts,
+        "areas_of_a_district": counts.areas_of_a_district,
+        "areas_of_no_district": counts.areas_of_no_district,
+        "areas_by_home": {str(home): dict(by) for home, by in counts.by_home.items()},
+    }
+    made = Costed(
+        rows,
+        rent.evidence(rents),
+        rents.files,
+        rent.METHODS,
+        rent.SOURCE,
+        rent.CANNOT_SEE,
+        counted,
+    )
+    return made, None
+
+
+def _both(costed: Costed | None, let: Costed | None) -> Costed | None:
+    """What a home sells for and what one lets for, as the one set of costs of a release.
+
+    Each keeps its own rows of evidence, its own files and its own methods.
+    The rows are in the order a release keeps them.
+    """
+    if costed is None or let is None:
+        return costed or let
+    files = {receipt.file_id: receipt for receipt in (*costed.files, *let.files)}
+    methods = {method.derivation_id: method for method in (*costed.methods, *let.methods)}
+    rows = sorted((*costed.rows, *let.rows), key=lambda row: (row.area_id, row.tenure, row.segment))
+    return Costed(
+        tuple(rows),
+        (*costed.evidence, *let.evidence),
+        tuple(files[file_id] for file_id in sorted(files)),
+        tuple(methods[name] for name in sorted(methods)),
+        costed.source,
+        costed.cannot_see,
+        costed.counted,
+    )
+
+
 def _places(inputs: Inputs, found: Spine) -> tuple[Named | None, str | None]:
     """The stations a person can name and where the homes of each area stand, or the rule
     that keeps them out.
@@ -660,7 +956,36 @@ def _places_record(named: Named | None, rule: str | None) -> dict[str, object]:
     }
 
 
-def _cost_record(asked: bool, costed: Costed | None, gone: CostLeftOut | None) -> dict[str, object]:
+def _rent_record(let: Costed | None, gone: CostLeftOut | None) -> dict[str, object]:
+    """What the record of a build says of its rents. It holds counts, and no figure and no
+    name of a place."""
+    rows = let.evidence if let is not None else ()
+    carried: list[dict[str, object]] = []
+    for home in rent.HOMES if let is not None else ():
+        key = f"{FactKind.COST}/{cost_key(Tenure.RENT, home)}"
+        states = [row.state for row in rows if row.measure == key]
+        counted = {state: states.count(state) for state in sorted(set(states))}
+        carried.append({"tenure": "rent", "segment": home, "areas": len(states), **counted})
+    left_out = None
+    if gone is not None:
+        left_out = {"rule": gone.rule, "why": f"It {gone.why}.", "waits_on": list(gone.waits_on)}
+    return {
+        "source_id": rent.SOURCE,
+        "listed": True,
+        "as_of": let.rows[0].as_of if let is not None else None,
+        "carried": carried,
+        "left_out": left_out,
+        "methods": [method.derivation_id for method in (let.methods if let else ())],
+        "cannot_see": list(rent.CANNOT_SEE),
+        "said": RENT_HELD if let is not None else price.NO_RENT,
+        # What the step that read the workbook counted. It holds no rent and names no place.
+        "counted": dict(let.counted) if let is not None and let.counted else None,
+    }
+
+
+def _cost_record(
+    asked: bool, costed: Costed | None, gone: CostLeftOut | None, let: Costed | None = None
+) -> dict[str, object]:
     """What the record of a build says of the cost. It holds counts, and no figure."""
     rows = costed.evidence if costed is not None else ()
     carried: list[dict[str, object]] = []
@@ -683,7 +1008,7 @@ def _cost_record(asked: bool, costed: Costed | None, gone: CostLeftOut | None) -
         "left_out": left_out,
         "methods": [method.derivation_id for method in (costed.methods if costed else ())],
         "cannot_see": list(costed.cannot_see if costed is not None else price.CANNOT_SEE),
-        "rent": price.NO_RENT,
+        "rent": RENT_HELD if let is not None else price.NO_RENT,
         # What the step that read the sales counted. It holds no price and names no area.
         "counted": dict(costed.counted) if costed is not None and costed.counted else None,
     }
@@ -784,6 +1109,8 @@ def _build_record(
     named: Mapping[str, object] | None,
     places: Mapping[str, object],
     income: Mapping[str, object],
+    changed: Changed | None = None,
+    let: Mapping[str, object] | None = None,
 ) -> dict[str, object]:
     """What was built, from what, and what was left out and why. It holds no figure."""
     return {
@@ -821,11 +1148,15 @@ def _build_record(
             for one in left_out
         ],
         "cost": dict(cost),
+        # A build whose lists name no workbook of rents says nothing more of rents, as before.
+        **({"rent": dict(let)} if let is not None else {}),
         # A build that was given no draft of names says nothing of names, as before.
         **({"names": dict(named)} if named is not None else {}),
         "places": dict(places),
         # What stands beside the release to be shown on an area's page, and is no part of it.
         "income": dict(income),
+        # A build that was given no file of changes says nothing of changes, as before.
+        **({"changes": changed.record()} if changed is not None else {}),
     }
 
 
@@ -845,8 +1176,11 @@ def _preview(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
                 f"the folder {folder.name} is there already. A release is never written over: "
                 "a correction is a new release, under a new id"
             )
-    if not environment.get(FOLDER_VARIABLE):
-        raise Refused(f"no store is named. Set {FOLDER_VARIABLE} to the folder that is the store")
+    # What a person decided is read first: a change that cannot be built stops the build
+    # before the store is looked for, and before a file of a publisher is opened. So a
+    # file of changes is held to the copy that was published whatever kind of store is
+    # named, and where none is.
+    changed = _changed(args)
     try:
         store = store_from_environment(environment)
     except StoreError as error:
@@ -854,10 +1188,13 @@ def _preview(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
     registry = load(args.registry)
 
     drafted = _drafted(args)
-    lock, receipts, without, taken = _sealed(args, registry, store, drafted)
-    # The cost is asked for only where a list of the build names a file of prices.
-    priced_from = {file.source_id for file in _listed(_lists(args))} & set(PRICED_FROM)
+    lock, receipts, without, taken = _sealed(args, registry, store, drafted, changed)
+    # The cost is asked for only where a list of the build names a file of prices, and the
+    # rent only where one names the workbook of rents.
+    of_the_lists = {file.source_id for file in _listed(_lists(args))}
+    priced_from = of_the_lists & set(PRICED_FROM)
     asked = bool(priced_from)
+    let_asked = bool(of_the_lists & set(LET_FROM))
     print(
         public(
             "seal",
@@ -870,6 +1207,19 @@ def _preview(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
             lock_sha256=lock.digest(),
         )
     )
+    if changed is not None:
+        said = changed.record()
+        print(
+            public(
+                "changes",
+                "ok",
+                release=args.release_id,
+                lines=said["lines"],
+                stand=said["stand"],
+                applied=len(decided.applied(changed.lines, decided.APPLIED)),
+                changes_sha256=said["sha256"],
+            )
+        )
     for note in taken_in_words(taken):
         print(note, file=sys.stderr)
     for file in without:
@@ -887,6 +1237,10 @@ def _preview(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
             work=args.work or Path(scratch),
             lock=lock,
         )
+        if store.kind != FolderStore.kind:
+            # A file is read with no socket open, and this store is reached over a network.
+            copied, size = inputs.copy_out()
+            print(public("store", "ok", kind=store.kind, files=copied, bytes=size), flush=True)
         with sockets_refused():
             found = spine.build(inputs)
             outlines = outline.build(inputs, found)
@@ -921,12 +1275,20 @@ def _preview(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
                         files=len(naming.files),
                     )
                 )
-            carried, left_out = _measured(inputs, Ground(found, measured_land))
+            # The table of tiers, with what a person decided of it laid over it. With no
+            # file of changes it is the table of the repository, as before.
+            tiers = decided.table_with(
+                brand_table.the_table(), changed.lines if changed is not None else ()
+            )
+            with brand_table.using(tiers):
+                carried, left_out = _measured(inputs, Ground(found, measured_land))
+                _chains_are_seen(changed, inputs, found)
             costed, cost_gone = (
                 _costed(inputs, found, read_receipts(args.receipts), priced_from)
                 if asked
                 else (None, None)
             )
+            let, let_gone = _let(inputs, found) if let_asked else (None, None)
             # Household income is read where a list of the build names its workbook and
             # the workbook has a receipt. It is shown beside the release, and is no measure.
             estimated = (
@@ -980,6 +1342,24 @@ def _preview(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
             f"{PRICED_FROM[cost_gone.source]} {cost_gone.why}. {' '.join(cost_gone.waits_on)}",
             file=sys.stderr,
         )
+    if let is not None:
+        print(
+            public(
+                "cost",
+                "ok",
+                source=let.source,
+                areas=len({row.area_id for row in let.rows}),
+                rows=len(let.rows),
+                files=len(let.files),
+            )
+        )
+    if let_gone is not None:
+        print(public("cost", "skipped", source=let_gone.source, **{let_gone.rule: 1}))
+        print(
+            f"note: what a home lets for is left out of the release. "
+            f"{LET_FROM[let_gone.source]} {let_gone.why}. {' '.join(let_gone.waits_on)}",
+            file=sys.stderr,
+        )
     if named is not None:
         print(
             public(
@@ -1003,12 +1383,27 @@ def _preview(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
 
     try:
         release = release_of(
-            args.release_id, args.built_at, drawn, carried, registry, costed, named
+            args.release_id,
+            args.built_at,
+            drawn,
+            carried,
+            registry,
+            _both(costed, let),
+            named,
+            changes=changed.lines if changed is not None else (),
+            changes_sha256=(
+                hashlib.sha256(changed.content).hexdigest() if changed is not None else None
+            ),
         )
         written = _opened(release)
-        evidence = evidence_of(written, drawn, carried, costed, named)
+        evidence = evidence_of(written, drawn, carried, _both(costed, let), named)
     except ValidationError as error:
         raise Refused(f"the release could not be put together: {in_words(error)}") from None
+    except decided.ChangesError as error:
+        raise Refused(
+            f"the file of changes cannot be built on: line {error.line} breaks the rule "
+            f"{error.rule}. Look at the line at the panel, or take it back there"
+        ) from None
 
     files = packed(release)
     print(
@@ -1083,6 +1478,7 @@ def _preview(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
             [
                 *(gone.reported() for gone in left_out),
                 *(cost_gone.reported() if cost_gone is not None else ()),
+                *(let_gone.reported() if let_gone is not None else ()),
             ],
         ).encode(),
         HOMES: canonical_json(homes),
@@ -1094,10 +1490,12 @@ def _preview(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
                 carried,
                 left_out,
                 evidence,
-                _cost_record(asked, costed, cost_gone),
+                _cost_record(asked, costed, cost_gone, let),
                 _names_record(drawn.naming),
                 _places_record(named, not_named),
                 _income_record(estimated),
+                changed,
+                _rent_record(let, let_gone) if let_asked else None,
             )
         ),
     }
@@ -1154,6 +1552,24 @@ def build(prog: str = PROG) -> tuple[argparse.ArgumentParser, dict[str, argparse
         "gazetteer the review desk compiled from it. Each area then bears the name of the "
         "drafted neighbourhood that holds most of its output areas. Without it each area is "
         "under its publisher's label",
+    )
+    # A build is given a file of changes, or the place one is published to, and never both.
+    changes = preview.add_mutually_exclusive_group()
+    changes.add_argument(
+        "--changes",
+        type=Path,
+        metavar="FILE",
+        help="a file of changes: what a person decided at the panel of the review desk, one "
+        "line for each change. The lines that stand are laid over the catalogue. Without it "
+        "the build is what it was",
+    )
+    changes.add_argument(
+        "--published-changes",
+        type=Path,
+        metavar="FILE",
+        help="the place the review desk publishes the founder's file of changes to. Where the "
+        "repository tracks a file there it is taken as --changes takes one. Where it tracks "
+        "none the build is what it is with no file",
     )
     preview.add_argument(
         "--receipts",
@@ -1220,6 +1636,12 @@ def main(argv: Sequence[str] | None = None, environment: Mapping[str, str] | Non
     except ReleaseError as error:
         print(public("assemble", "refused"))
         print(f"error: the release was refused: {error.file} [{error.rule}]", file=sys.stderr)
+    except StoreError as error:
+        # The store was named, and then did not answer or refused. Why is said by the
+        # number fetch gives a store that fails. What a store's refusal says is fixed
+        # words and a status: it names no address, no bucket and no key.
+        print(public("assemble", "failed", why=Why.STORE.value))
+        print(f"error: {error}. {WHAT_TO_DO_OF_THE_STORE}", file=sys.stderr)
     except OSError as error:
         print(public("assemble", "unreadable"))
         print(f"error: cannot read or write a file: {error.strerror}", file=sys.stderr)

@@ -63,6 +63,10 @@ class StoreError(Exception):
     """The store refused, or could not be reached. The message is safe to print."""
 
 
+class NotTheFile(StoreError):
+    """What the store holds is not the file that was asked for: its hash is another."""
+
+
 class Part(StrEnum):
     """The parts of the store. The key of one part cannot read another (ADR 0015)."""
 
@@ -216,7 +220,7 @@ def copy_checked(source: BinaryIO, to: Path, sha256: str, parts: Path | None = N
                 size += len(piece)
                 file.write(piece)
         if digest.hexdigest() != sha256:
-            raise StoreError(
+            raise NotTheFile(
                 "the file held does not match its hash, so it was not used. A file in the "
                 "store is never written over: look at it by hand"
             )

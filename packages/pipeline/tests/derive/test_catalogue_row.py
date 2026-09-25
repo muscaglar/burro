@@ -79,6 +79,7 @@ def test_the_measures_a_build_carries_are_those_core_names_as_their_files_suppor
         FeatureId.GREEN_COVER,
         FeatureId.GROCERY_WALK,
         FeatureId.HIGHSTREET_ACCESS,
+        FeatureId.HIGHSTREET_CONSERVED,
         FeatureId.HOMES_DENSITY,
         FeatureId.HOMES_FLATS,
         FeatureId.HOMES_HIGHER_BANDS,
@@ -103,6 +104,7 @@ def test_the_measures_a_build_carries_are_those_core_names_as_their_files_suppor
         FeatureId.PRICE_MEDIAN,
         FeatureId.PRICE_RISE_10Y,
         FeatureId.PRICE_RISE_5Y,
+        FeatureId.PRIVATE_OUTDOOR_SPACE,
         FeatureId.RAIL_PROXIMITY,
         FeatureId.RESIDENTS_AGED_20_34,
         FeatureId.RESIDENTS_AGED_65_OVER,
@@ -120,13 +122,12 @@ def test_the_measures_a_build_carries_are_those_core_names_as_their_files_suppor
         FeatureId.VENUE_GYM_PER_HOMES,
         FeatureId.WATER_ACCESS,
     ]
-    # What is left out is named as core names it still, or is held back: private outdoor
-    # space, until its audit has passed. No measure is held back by a check of its figures.
+    # What is left out is named as core names it still. No measure is held back: private
+    # outdoor space was, for want of a row of the proxy audit, until the audit was dropped
+    # on 2026-09-25.
     assert [measure.feature for measure in MEASURES if measure.waits_on] == [
         FeatureId.CENTRE_COMPACT,
         FeatureId.CENTRE_SMALL,
         FeatureId.PARK_FACILITIES,
     ]
-    assert [measure.feature for measure in MEASURES if measure.held_back] == [
-        FeatureId.PRIVATE_OUTDOOR_SPACE,
-    ]
+    assert [measure.feature for measure in MEASURES if measure.held_back] == []

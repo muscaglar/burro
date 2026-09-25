@@ -10,10 +10,12 @@ from public_log import (
     COUNTS,
     FEATURES,
     HASHES,
+    RELEASES,
     RULES,
     SECRET_NAMES,
     SECRETS_OF,
     STATUSES,
+    STORE,
     TRAVEL_RULES,
     forms_of,
     is_public,
@@ -93,6 +95,18 @@ def shown(code: str, environ: dict[str, str] | None = None) -> tuple[int, str]:
         f"gaps=50 no_record=0 coverage_sha256={HASH}",
         "step=canary status=ok steps=3 found=0 unread=0 uncaught=0",
         "step=search status=ok jobs=4 logs=4 artifacts=0 found=0",
+        # The lock of a release, and a release that is kept and taken.
+        f"step=lock status=ok copy=a release=lon-2026-10-02-01 files=25 bytes=88000000 "
+        f"areas=1002 measures=98 vibes=14 sha256={HASH}",
+        "step=compare status=differs folder=build file=evidence.json",
+        "step=compare status=differs files=25 differing=1 wrong=1",
+        "step=keep kind=object_store",
+        "step=keep status=ok release=lon-2026-10-02-01 files=25 bytes=88000000 new=25 same=0",
+        "step=keep status=refused release=lon-2026-10-02-01 differs=1",
+        f"step=take status=ok release=lon-2026-10-02-01 files=25 bytes=88000000 sha256={HASH}",
+        "step=take status=missing release=lon-2026-10-02-01",
+        "step=take status=differs release=lon-2026-10-02-01 folder=income file=income.json",
+        "step=take status=refused release=lon-2026-10-02-01 unlisted=3",
     ],
 )
 def test_a_line_of_step_names_counts_and_hashes_is_public(line: str):
@@ -115,6 +129,11 @@ def test_a_line_of_step_names_counts_and_hashes_is_public(line: str):
         "count=12",
         # Steps that are not built print nothing yet. Their names are added with them.
         "step=normalise rows_in=120000 rows_out=4994 columns_dropped=3",
+        # A folder of a build is one of three, and a file of one is a file a build writes.
+        "step=compare status=differs folder=brackenhythe file=evidence.json",
+        "step=compare status=differs folder=build file=brackenhythe.json",
+        "step=take status=differs folder=../build file=names.csv",
+        "folder=3",
     ],
 )
 def test_a_number_under_a_name_that_is_not_on_the_list_is_withheld(line: str):
@@ -172,6 +191,22 @@ def test_every_rule_the_travel_step_names_may_be_counted_and_no_other():
     assert not any(is_public(f"{rule}={HASH}") for rule in TRAVEL_RULES)
 
 
+def test_a_vibe_is_named_by_its_id_in_cores_catalogue_and_by_nothing_else():
+    from burro_core.ids import TagId
+    from public_log import VIBES
+
+    assert {vibe.value for vibe in TagId} == VIBES
+    assert is_public("step=moved vibe=leafy areas=24 changed=3 up=2 down=1 gained=0 lost=0")
+    assert not is_public("step=moved vibe=Leafy changed=3")
+    assert not is_public(f"step=moved vibe={ROW}")
+
+
+def test_a_build_is_named_before_and_after_by_the_id_of_its_release_alone():
+    assert is_public("step=moved status=ok before=lon-2026-09-25-01 after=lon-2026-10-02-01")
+    assert not is_public("step=moved status=ok before=data/releases/lon-2026-09-25-01")
+    assert not is_public(f"step=moved status=ok after={ROW}")
+
+
 def test_a_measure_is_named_by_its_id_in_cores_catalogue_and_by_nothing_else():
     from burro_core.ids import FeatureId
 
@@ -180,6 +215,33 @@ def test_a_measure_is_named_by_its_id_in_cores_catalogue_and_by_nothing_else():
     assert is_public("step=derive status=skipped feature=noise_exposure input_has_one_receipt=1")
     assert is_public("step=derive status=skipped feature=water_access measure_is_not_held_back=1")
     for line in ("feature=brackenhythe", "feature=3", "feature=homes_flats,0.5", "measure=x"):
+        assert not is_public(line)
+
+
+def test_a_list_and_an_item_are_named_as_the_lists_of_this_repository_name_them():
+    from burro_pipeline.fetch.sources import LISTS, load_list
+
+    lists = [load_list(path.stem) for path in sorted(LISTS.glob("*.toml"))]
+    assert lists, "the repository holds a list of files"
+    for one in lists:
+        assert is_public(f"step=store list={one.build} status=ok files=1 receipts=1 missing=0")
+        assert all(is_public(f"list={one.build} item={file.item}") for file in one.files)
+    assert is_public(
+        "step=store list=m2-living source=dfe-gias item=gias-establishments status=missing "
+        "file_id=f-0123456789ab"
+    )
+    assert is_public("step=store status=ok lists=13 receipts=86 missing=0 differs=0 unlisted=0")
+    # A name that no list gives is not a name: it may be a row, a bucket or an address.
+    for line in (
+        "list=made-up-bucket",
+        "list=m1.toml",
+        "list=3",
+        "item=brackenhythe",
+        "item=SW00XX",
+        "item=extract.zip",
+        f"item={HASH}",
+        "lists=m1",
+    ):
         assert not is_public(line)
 
 
@@ -445,6 +507,84 @@ def test_every_environment_holds_the_stores_four_secrets():
     assert len(store) == 4
     assert all(store <= set(names) for names in SECRETS_OF.values())
     assert set(SECRET_NAMES) == {name for names in SECRETS_OF.values() for name in names}
+
+
+def test_why_a_draft_of_the_areas_stopped_is_shown():
+    """A hosted run drafts the names of the areas, and a draft prints under a name of its own.
+
+    With that name off the list, a draft that stopped for want of a file showed
+    that it had failed, and not why.
+    """
+    assert is_public("step=areas-draft status=refused file_is_in_the_vault=1")
+    assert is_public("step=areas-draft status=unreadable")
+    assert not is_public(f"step=areas-draft status=refused {ROW}")
+    assert not is_public("step=areas-draft status=ok name=Brackenhythe")
+
+
+# The bucket of releases, which has keys of its own
+
+OF_RELEASES = {
+    "BURRO_RELEASES_ENDPOINT": "https://made-up-account.releases.example.test",
+    "BURRO_RELEASES_BUCKET": "made-up-releases",
+    "BURRO_RELEASES_KEY_ID": "made-up-keep-id",
+    "BURRO_RELEASES_SECRET": "made-up-keep-0123456789",
+}
+
+
+def test_the_build_of_london_alone_holds_the_key_that_writes_a_release():
+    assert set(RELEASES) == set(OF_RELEASES)
+    assert SECRETS_OF["data-london"] == (*STORE, *RELEASES)
+    holds = {name for name, held in SECRETS_OF.items() if set(RELEASES) & set(held)}
+    assert holds == {"data-london"}
+    # A fetch is what writes a publisher's file. It is given no key of the releases.
+    assert not set(RELEASES) & set(SECRETS_OF["data-fetch"])
+
+
+def test_the_key_of_the_releases_is_searched_for_in_every_form_too():
+    forms = forms_of(SECRETS | OF_RELEASES)
+    assert {"made-up-releases", "made-up-keep-id", "made-up-keep-0123456789"} <= forms
+    assert "made-up-account.releases.example.test" in forms and HOST in forms
+    pair = "made-up-keep-id:made-up-keep-0123456789"
+    assert base64.b64encode(pair.encode()).decode().lower() in forms
+    # The key of one store is never sent with the id of the other.
+    crossed = f"made-up-key-id:{OF_RELEASES['BURRO_RELEASES_SECRET']}"
+    assert base64.b64encode(crossed.encode()).decode().lower() not in forms
+
+
+def test_a_step_that_prints_the_key_of_the_releases_fails_the_build():
+    key = OF_RELEASES["BURRO_RELEASES_SECRET"]
+    status, out = shown(f"print('kept with {key}')", OF_RELEASES)
+    assert status != 0 and key not in out
+    assert out == "step=assemble status=failed exit=0 secrets=1 withheld=0\n"
+
+
+def test_the_address_of_the_releases_is_held_to_https_and_hidden_as_the_stores_is():
+    out = io.StringIO()
+    assert mask(SECRETS | OF_RELEASES, out) == 0
+    lines = out.getvalue().splitlines()
+    assert "::add-mask::made-up-account.releases.example.test" in lines
+    assert f"::add-mask::{HOST}" in lines
+    assert lines[-1] == "step=secrets set=8 missing=0"
+    plain = OF_RELEASES | {"BURRO_RELEASES_ENDPOINT": "http://made-up.example.test"}
+    out = io.StringIO()
+    assert mask(SECRETS | plain, out) != 0
+    assert "BURRO_RELEASES_ENDPOINT must begin https://" in out.getvalue()
+    assert "made-up.example.test" not in out.getvalue()
+
+
+def test_a_made_up_address_of_the_releases_ends_as_a_made_up_address_does():
+    made_up = {
+        "BURRO_RELEASES_ENDPOINT": "https://rehearsal-0000.invalid",
+        "BURRO_RELEASES_BUCKET": "rehearsal-releases-0000",
+        "BURRO_RELEASES_KEY_ID": "rehearsal-keep-id-0000",
+        "BURRO_RELEASES_SECRET": "rehearsal-keep-0000",
+    }
+    out = io.StringIO()
+    assert mask(REHEARSAL | made_up, out, made_up=True) == 0
+    real = made_up | {"BURRO_RELEASES_ENDPOINT": OF_RELEASES["BURRO_RELEASES_ENDPOINT"]}
+    out = io.StringIO()
+    assert mask(REHEARSAL | real, out, made_up=True) != 0
+    assert "BURRO_RELEASES_ENDPOINT is not a made-up value" in out.getvalue()
 
 
 @pytest.mark.parametrize("pasted", [f"{KEY}\n", f" {KEY}", f"{KEY[:8]} {KEY[8:]}", f"{KEY}\r\n"])

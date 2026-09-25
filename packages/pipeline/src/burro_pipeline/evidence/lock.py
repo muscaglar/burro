@@ -97,8 +97,8 @@ MEANING: Mapping[str, str] = {
     "measure is, so no release may carry it",
     "measure_has_a_figure": "has a figure for no area, so there is nothing of it to carry",
     "measure_is_not_held_back": "is held back: a check of its figures found that they do not "
-    "yet say what the measure is named for, or a check that is asked for before it is served "
-    "has not been made, so no release carries it, whatever the catalogue in core says",
+    "yet say what the measure is named for, so no release carries it, whatever the catalogue "
+    "in core says",
     "gate_refuses": "may not be used as its receipt says",
     "file_is_for_the_product": "is kept for the audit or for the census table, and no such "
     "file is an input of a product release",

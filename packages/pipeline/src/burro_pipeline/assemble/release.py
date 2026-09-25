@@ -9,7 +9,8 @@ What goes into the release:
 | `geometry.json` | Every area's outline |
 | `catalogue.json`, `features.json` | Each measure worked out, and its figure for every area |
 | `tags.json` | A row for every area and vibe, as core works one out. Too few parts make none |
-| `cost.json` | What each kind of home sold for, where the build read it. No rent |
+| `cost.json` | What each kind of home sold for, and what each lets for in the place an |
+| | area lies in, where the build read either |
 | `destinations.json`, `places.json` | The stations of London, where the build read the stops |
 | `travel.json`, `stations.json` | Nothing, and so no source and no date |
 
@@ -33,8 +34,13 @@ many it rests on. Where it reads a publisher's medians alone it is the
 publisher's own. An area with no figure for a kind of home has no row of
 `cost.json`, and its row of evidence says why: too few sales, none at all, or
 a figure the publisher withheld. A build that did not read the prices holds no
-cost, and the evidence says of every cost that it is not carried. No build
-holds a rent.
+cost, and the evidence says of every cost that it is not carried.
+
+A rent is what a home of one kind lets for in the postcode district an area
+lies in, or in its borough: a range, as its publisher gives it, with the place
+it is of. It is never the area's own, and its row says so. An area with no
+figure of either place has no row. A build that did not read the rents holds
+none, and the evidence says of every rent that it is not carried.
 
 A percentile, a vibe and its band are worked out by core: `percentile_of`,
 `tag_raw` and `band_of`. The pipeline holds no second copy of that arithmetic.
@@ -104,6 +110,7 @@ from burro_core.release import (
 # What is known of the name an area bears. `Named`, below, is the places of a build.
 from burro_core.release import Named as NameBorne
 
+from burro_pipeline import changes as decided
 from burro_pipeline.assemble import names
 from burro_pipeline.assemble.names import Bears, Naming
 from burro_pipeline.cells import outline, spine
@@ -323,7 +330,8 @@ def tags_of(
     rankable = [True] * len(areas)
     rows: list[TagValue] = []
     for vibe in sorted(vibes, key=lambda one: one.tag_id):
-        found = [tag_raw(vibe.tag_id, held[area]) for area in areas]
+        # By the recipe the release carries, which is core's unless a person adjusted it.
+        found = [tag_raw(vibe.tag_id, held[area], vibe.terms) for area in areas]
         scores = percentile_of([one.raw for one in found], rankable)
         bands = band_of([one.raw for one in found], rankable)
         rows += [
@@ -364,6 +372,7 @@ def sources_of(registry: Registry, files: Sequence[Receipt]) -> tuple[Source, ..
                 url=entry.url,
                 retrieved_on=retrieved_on(by_source[source_id]),
                 credit_beside_figures=entry.attribution_beside_figures,
+                said_with_attribution=entry.said_with_attribution or None,
             )
         )
     return tuple(found)
@@ -377,6 +386,8 @@ def release_of(
     registry: Registry,
     costed: Costed | None = None,
     named: Named | None = None,
+    changes: Sequence[decided.Change] = (),
+    changes_sha256: str | None = None,
 ) -> InMemoryRelease:
     """The release of a first build: areas, outlines, the measures carried and the costs.
 
@@ -386,10 +397,17 @@ def release_of(
     nothing where it read none. `named` is the places a person can name, and
     where the homes of each area stand, or nothing where the build read no
     file of stops.
+
+    `changes` is what a person decided at the panel, where the build was given
+    a file of changes: the shares of a recipe, a name, a label. What stands of
+    them is laid over core's own, and every band is worked out with the recipe
+    the release then carries. With none the release is what it was.
+    `changes_sha256` is the hash of that file, which the manifest says, so that
+    core can hold the lock of the build to it.
     """
     areas = drawn.area_ids
     features = features_of(carried, areas)
-    vibes = vibes_of(GRITTY)
+    vibes = decided.adjusted(vibes_of(GRITTY), changes)
     drawn_from = (*drawn.named_from, *((named.centres,) if named else ()))
     cited = {receipt.file_id: receipt for receipt in drawn_from}
     for one in carried:
@@ -412,6 +430,7 @@ def release_of(
             sources=sources_of(registry, list(cited.values())),
             files=(),
             counts=Counts(neighbourhoods=0, rankable=0, destinations=0, places=0, stations=0),
+            changes_sha256=changes_sha256,
         ),
         neighbourhoods=neighbourhoods_of(drawn, named),
         neighbourhoods_origin=Origin(
@@ -430,7 +449,7 @@ def release_of(
             walk=tuple(() for _ in areas),
         ),
         stations_origin=Origin(source_ids=(), as_of=None),
-        metrics=tuple(one.measured.metric for one in carried),
+        metrics=decided.relabelled([one.measured.metric for one in carried], changes),
         features=features,
         tags=tags_of(features, areas, vibes),
         vibes=vibes,

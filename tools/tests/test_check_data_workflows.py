@@ -19,7 +19,7 @@ from check_data_workflows import (
     problems_in_settings,
     read_workflow,
 )
-from public_log import CONTACT, SECRETS_OF, STORE
+from public_log import CONTACT, RELEASES, SECRETS_OF, STORE
 
 CHECKOUT = "actions/checkout@" + "a" * 40
 SETUP_UV = "astral-sh/setup-uv@" + "b" * 40
@@ -578,12 +578,16 @@ def test_a_step_is_given_every_secret_it_reads():
 def test_what_each_step_reads_is_what_its_help_says_it_reads():
     from burro_pipeline import cli
     from burro_pipeline.fetch import cli as fetch
+    from burro_pipeline.kept import cli as kept
 
     for name, reads in STEPS_OF_A_RUN["python -m burro_pipeline"].items():
         about = cli.STEPS[name].about
         assert (fetch.THE_STORE in about) == (set(STORE) <= set(reads)), name
         assert (fetch.CONTACT in about) == (CONTACT in reads), name
-        assert set(reads) <= {*STORE, CONTACT}
+        # The bucket of releases is another store, with names of its own.
+        assert (kept.THE_STORE in about) == (set(RELEASES) <= set(reads)), name
+        assert set(reads) <= {*STORE, CONTACT, *RELEASES}
+        assert not (set(STORE) & set(reads) and set(RELEASES) & set(reads)), name
     assert STEPS_OF_A_RUN["python -m burro_pipeline"]["fetch"] == SECRETS_OF["data-fetch"]
     assert all(reads == () for reads in STEPS_OF_A_RUN["burro-release"].values())
 
@@ -1233,6 +1237,63 @@ def test_the_data_workflows_of_this_repository_keep_every_rule(
 
     monkeypatch.chdir(Path(__file__).resolve().parents[2])
     assert main([]) == 0, capsys.readouterr().err
+
+
+# The check of what the store holds, which fetches nothing and writes nothing to the store
+
+REPOSITORY = Path(__file__).resolve().parents[2]
+THE_CHECK = Path(".github/workflows/data-held.yml")
+WHAT_IT_RUNS = "python -m burro_pipeline held --receipts data/receipts"
+
+
+def of_this_repository(text: str, path: Path = THE_CHECK) -> list[str]:
+    """What a workflow breaks, held to what this repository pins, defines and holds."""
+    from check_data_workflows import commands_of
+
+    pinned = pinned_in((REPOSITORY / ".github/workflows/ci.yml").read_text(encoding="utf-8"))
+    tools = frozenset(file.name for file in (REPOSITORY / "tools").glob("*.py"))
+    return problems_in(path, text, pinned, commands_of(REPOSITORY), tools)
+
+
+def the_check() -> str:
+    text = (REPOSITORY / THE_CHECK).read_text(encoding="utf-8")
+    assert text.count(WHAT_IT_RUNS) == 1, "the check holds the store to the receipts, once"
+    return text
+
+
+def test_the_check_of_the_store_runs_one_step_of_the_pipeline_which_lists_the_store():
+    from check_data_workflows import BEHIND
+
+    text = the_check()
+    assert of_this_repository(text) == []
+    runs = [line.split("run: ", 1)[1] for line in text.splitlines() if " run: " in line]
+    assert len(runs) == 8, "every command of the workflow is on a line of its own"
+    behind = [found for run in runs if (found := BEHIND.fullmatch(run)) is not None]
+    assert [(found[2], found[3]) for found in behind] == [("python -m burro_pipeline", "held")]
+    # Whoever starts it types nothing: it takes no list, no item and no address.
+    assert "inputs" not in text and set(read_workflow(text)["on"]) == {"workflow_dispatch"}
+
+
+def test_the_environment_of_the_check_holds_no_contact_so_no_step_of_it_can_fetch():
+    assert SECRETS_OF["data-held"] == STORE and CONTACT not in SECRETS_OF["data-held"]
+    fetch = the_check().replace(WHAT_IT_RUNS, "python -m burro_pipeline fetch --list=m1")
+    assert any(
+        "held: `fetch` reads BURRO_FETCH_CONTACT, and is not given it" in p
+        for p in of_this_repository(fetch)
+    )
+    contact = "          BURRO_FETCH_CONTACT: ${{ secrets.BURRO_FETCH_CONTACT }}\n"
+    given = fetch.replace(ONE_GIVEN, ONE_GIVEN + contact)
+    assert given != fetch
+    assert any(
+        "held: BURRO_FETCH_CONTACT is not a secret of data-held" in p
+        for p in of_this_repository(given)
+    )
+
+
+@pytest.mark.parametrize("step", ["by-hand", "receipts", "seal", "describe"])
+def test_the_check_of_the_store_runs_no_step_that_writes_or_that_shows_a_file(step: str):
+    text = the_check().replace(WHAT_IT_RUNS, f"python -m burro_pipeline {step} --receipts x")
+    assert any(f"`{step}` is " in p for p in of_this_repository(text))
 
 
 def test_the_founders_document_names_every_secret_and_environment_and_no_other():

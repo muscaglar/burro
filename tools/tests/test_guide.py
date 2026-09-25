@@ -13,7 +13,16 @@ from burro_pipeline.fetch.kinds import Kind
 from burro_pipeline.fetch.run import Outcome, Status, Why
 from burro_pipeline.fetch.store import Held
 from check_data_workflows import INSTALL, MASK_MADE_UP, PACKAGES_BEFORE, WORKFLOWS
-from public_log import COUNTS, HASHES, RULES, SECRETS_OF, STATUSES, STORE, TRAVEL_RULES
+from public_log import (
+    COUNTS,
+    HASHES,
+    RULES,
+    SECRETS_OF,
+    STATUSES,
+    STORE,
+    TRAVEL_RULES,
+    is_public,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 GUIDE = (ROOT / "docs" / "data-builds.md").read_text(encoding="utf-8")
@@ -26,7 +35,7 @@ NAMES = (
     | STATUSES
     | {
         *("step", "status", "copy", "source", "file", "release", "file_id", "feature"),
-        *("seconds", "why", "http", "host", "kind"),
+        *("seconds", "why", "http", "host", "kind", "list", "item"),
     }
 )
 
@@ -212,6 +221,35 @@ def test_the_guide_sends_a_receipt_that_differs_to_where_it_is_put_right():
     assert "section 7" in unread[3]
 
 
+# The check of what the store holds
+
+
+def test_the_guide_says_how_to_start_the_check_of_what_the_store_holds_and_how_to_read_it():
+    said = section("### See that the store holds every file that has a receipt")
+    workflow = (ROOT / WORKFLOWS / "data-held.yml").read_text(encoding="utf-8")
+    # The workflow, its job and its step are named as the workflow names them.
+    assert "choose **data-held**" in said and "the environment `data-held`" in said
+    for name in ("What the store holds", "The store holds every file that has a receipt"):
+        assert f"name: {name}\n" in workflow and f'"{name}"' in said
+    # What it does to the store, which is nothing, and what each way of ending means.
+    assert "fetches nothing" in said and "writes nothing to the store" in said
+    assert "A green step means" in said and "A red step ends `exit=1`" in said
+    # Every line it shows is one a run may show: a list, a file that is missing, the totals.
+    lines = re.findall(r"`(step=store [^`\n]+)`", said)
+    assert len(lines) == 4 and all(is_public(line) for line in lines)
+    assert [" list=" in line for line in lines] == [False, True, True, False]
+    assert " item=" in lines[2] and " status=missing " in lines[2]
+    assert " status=ok " in lines[3] and " missing=0 differs=0 " in lines[3]
+    # And what a person does about a file that is named, by the step that hands a file over.
+    assert "`by-hand`" in said and "`--file`" in said and "`retrieved_at`" in said
+
+
+def test_the_check_of_what_the_store_holds_is_given_a_key_that_can_write_nothing():
+    (check,) = [row for row in table_under("### The keys") if row[0] == "Check"]
+    assert "Object Read only" in check[2] and "`data-held`" in check[-1]
+    assert "Write or delete anything" in check[5]
+
+
 # The secrets, and where a real one is kept
 
 
@@ -224,20 +262,34 @@ def test_a_workflow_that_reads_no_secret_is_one_there_is():
     assert environments_with_made_up_secrets() == {"data-build", "data-travel"}
 
 
+# The tables that say which secret each environment holds. The build of London has a
+# table of its own, in the section that is the whole of it.
+TABLES_OF_SECRETS = ("## 4. The secrets, by name", "### 3. The environment, and its eight secrets")
+
+
+def said_of(environment: str) -> dict[str, str]:
+    """What the guide says each secret is in one environment, in the table that names it."""
+    for heading in TABLES_OF_SECRETS:
+        names, *rows = table_under(heading)
+        if f"In `{environment}`" in names:
+            column = names.index(f"In `{environment}`")
+            return {row[0].strip("`"): row[column] for row in rows}
+    raise AssertionError(f"no table of the guide says what {environment} holds")
+
+
 def test_the_guide_keeps_a_real_secret_only_where_a_step_reads_it():
-    names, *rows = table_under("## 4. The secrets, by name")
     made_up = environments_with_made_up_secrets()
-    for environment in SECRETS_OF:
-        column = names.index(f"In `{environment}`")
-        for row in rows:
-            secret = row[0].strip("`")
-            if secret not in SECRETS_OF[environment]:
-                assert row[column] == "No", (secret, environment)
+    for environment, holds in SECRETS_OF.items():
+        said = said_of(environment)
+        assert set(said) >= set(holds), environment
+        for secret, cell in said.items():
+            if secret not in holds:
+                assert cell == "No", (secret, environment)
             elif environment in made_up:
-                assert "made-up" in row[column] and "real" not in row[column], (secret, environment)
+                assert "made-up" in cell and "real" not in cell, (secret, environment)
             else:
-                assert "real" in row[column] and "made-up" not in row[column], (secret, environment)
-    assert {row[0].strip("`") for row in rows} >= set(STORE)
+                assert "real" in cell and "made-up" not in cell, (secret, environment)
+        assert set(said) >= set(STORE)
 
 
 def test_the_guide_never_tells_the_founder_to_put_a_real_value_where_none_is_read():

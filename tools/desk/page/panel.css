@@ -1,0 +1,320 @@
+/* The panel of the review desk. Pages of tables, for one person at their own
+   machine.
+
+   Nothing moves, nothing is smaller than 16 pixels, and no file is fetched
+   from here. The colours are the desk's own, and follow the system's light or
+   dark. The five colours of a band are drawn on a canvas, and are in
+   panel-map.mjs. */
+
+:root {
+  color-scheme: light dark;
+  --paper: #fbfaf7;
+  --panel: #efede6;
+  --ink: #14161a;
+  --soft: #41454e;
+  --line: #5b606b;
+  --key: #e2dfd6;
+  --focus: #0a3fa8;
+  --stands: #d5e8d4;
+  --stands-ink: #10230f;
+  --trouble: #7a1410;
+  --trouble-ink: #ffffff;
+  --made-up: #ffd166;
+  --made-up-ink: #231a00;
+  --real: #7a1410;
+  --real-ink: #ffffff;
+  --unknown: #2b2f36;
+  --unknown-ink: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #14161a;
+    --panel: #1e2127;
+    --ink: #f2f2ee;
+    --soft: #c3c6cd;
+    --line: #8a8f99;
+    --key: #30343c;
+    --focus: #9cc2ff;
+    --stands: #1d3a1f;
+    --stands-ink: #e6f5e6;
+    --trouble: #ffb4a8;
+    --trouble-ink: #2a0502;
+    --made-up: #ffd166;
+    --made-up-ink: #231a00;
+    --real: #8c1d18;
+    --real-ink: #ffffff;
+    --unknown: #d8dbe2;
+    --unknown-ink: #14161a;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+html {
+  font-size: 100%;
+}
+
+body {
+  margin: 0;
+  font: 1rem/1.4 system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+#top {
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+
+#top p {
+  margin: 0;
+}
+
+/*
+ * The banner is as wide as the page. A line of words is kept to a width that can be read,
+ * and the banner is a paragraph: it stopped short of the right edge of a wide window.
+ */
+.banner {
+  max-width: none;
+  padding: 0.4rem 1rem;
+  font-weight: 700;
+}
+
+.banner.made-up {
+  background: var(--made-up);
+  color: var(--made-up-ink);
+}
+
+.banner.real {
+  background: var(--real);
+  color: var(--real-ink);
+}
+
+.banner.unknown {
+  background: var(--unknown);
+  color: var(--unknown-ink);
+}
+
+#parts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  padding: 0.4rem 1rem;
+}
+
+#who {
+  padding: 0 1rem 0.4rem;
+  color: var(--soft);
+}
+
+a {
+  color: var(--focus);
+}
+
+#status {
+  min-height: 2rem;
+  padding: 0 1rem;
+}
+
+#status p {
+  margin: 0.25rem 0;
+}
+
+#trouble:not(:empty),
+#box-trouble:not(:empty) {
+  padding: 0.25rem 0.5rem;
+  background: var(--trouble);
+  color: var(--trouble-ink);
+}
+
+#said:not(:empty) {
+  padding: 0.25rem 0.5rem;
+  background: var(--stands);
+  color: var(--stands-ink);
+}
+
+#main {
+  padding: 0 1rem 3rem;
+  max-width: 90rem;
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin: 0.75rem 0 0.5rem;
+}
+
+h2 {
+  font-size: 1.2rem;
+  margin: 1.5rem 0 0.5rem;
+}
+
+p,
+ul {
+  margin: 0.5rem 0;
+  max-width: 70rem;
+}
+
+table {
+  border-collapse: collapse;
+  margin: 0.5rem 0 1rem;
+}
+
+th,
+td {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+th {
+  background: var(--key);
+}
+
+td ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.none,
+.rule,
+#why-hint {
+  color: var(--soft);
+}
+
+.field label {
+  display: inline-block;
+  margin-right: 0.5rem;
+}
+
+input[type="text"],
+input[type="search"] {
+  font: inherit;
+  width: 30rem;
+  max-width: 100%;
+  padding: 0.3rem 0.5rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+button {
+  font: inherit;
+  padding: 0.25rem 0.75rem;
+  color: var(--ink);
+  background: var(--key);
+  border: 1px solid var(--line);
+  cursor: pointer;
+}
+
+progress {
+  width: 14rem;
+  height: 1rem;
+}
+
+.map {
+  display: block;
+  width: 100%;
+  max-width: 70rem;
+  height: 34rem;
+  border: 1px solid var(--line);
+  cursor: pointer;
+}
+
+dialog {
+  width: 40rem;
+  max-width: 95vw;
+  padding: 1rem 1.25rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 2px solid var(--line);
+}
+
+dialog h2 {
+  margin-top: 0;
+}
+
+input[type="range"] {
+  width: 16rem;
+  max-width: 100%;
+}
+
+output {
+  display: inline-block;
+  min-width: 6rem;
+  font-weight: 700;
+}
+
+button:disabled {
+  color: var(--soft);
+  cursor: default;
+}
+
+h3 {
+  font-size: 1.1rem;
+  margin: 1.25rem 0 0.5rem;
+}
+
+h4 {
+  font-size: 1rem;
+  margin: 1rem 0 0.25rem;
+}
+
+.says {
+  padding-left: 0.75rem;
+  border-left: 3px solid var(--line);
+}
+
+#adjust-trouble:not(:empty) {
+  padding: 0.25rem 0.5rem;
+  background: var(--trouble);
+  color: var(--trouble-ink);
+}
+
+select {
+  font: inherit;
+  padding: 0.2rem 0.4rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.unseen {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+#propose-trouble:not(:empty) {
+  padding: 0.25rem 0.5rem;
+  background: var(--trouble);
+  color: var(--trouble-ink);
+}
+
+textarea {
+  font: inherit;
+  width: 40rem;
+  max-width: 100%;
+  padding: 0.3rem 0.5rem;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}

@@ -956,3 +956,14 @@ test('an item that is read in the middle of the page is paged by the same keys, 
   await page.key('1');
   assert.deepEqual(lines(page, 'kinds').map((line) => line.answer), ['yes'], 'a key that pages decides nothing');
 });
+
+test('with no queue filled the page says so, lists none and asks for no item', async () => {
+  // The desk was started on a release alone: its panel is open, and no queue is filled.
+  const page = await open(null, { synthetic: false, layers: {}, items: {} });
+  assert.equal(page.text('banner'), SAYS.real);
+  assert.deepEqual(page.desk.asked.filter((one) => !one.endsWith('/api/state')), []);
+  assert.equal(page.$('answers').children.length, 0);
+  page.key('q');
+  await page.settle();
+  assert.deepEqual(page.desk.asked.filter((one) => one.includes('/api/queue')), []);
+});

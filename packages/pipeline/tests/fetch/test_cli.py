@@ -18,6 +18,7 @@ from burro_pipeline.evidence import How, read_receipts, seal
 from burro_pipeline.fetch.cli import main
 from burro_pipeline.fetch.download import Downloaded, Limits, download
 from burro_pipeline.fetch.run import Why
+from burro_pipeline.fetch.sources import LISTS
 from burro_pipeline.fetch.store import FolderStore
 from burro_pipeline.registry import load
 
@@ -396,6 +397,233 @@ def test_held_writes_the_listing_that_seal_reads(
         tmp_path,
     )
     assert [locked.name for locked in lock.inputs] == [receipt.file_id]
+
+
+# The store, held to the receipts: whether it holds every file that has one
+
+REPOSITORY = Path(__file__).resolve().parents[4]
+# What a line says of the made-up list, as a line says it of a list of this repository.
+AS_IN_A_RUN = {
+    "source=made-up-homes": "source=defra-pcm-background-air",
+    "list=made-up": "list=m1",
+    "item=notes": "item=oa-lookup",
+}
+
+
+def held_to(folders: Folders, listed: str = LIST) -> int:
+    """Hold the store to the receipts, and to a folder of lists that holds the made-up one."""
+    lists = folders.root / "lists"
+    lists.mkdir(exist_ok=True)
+    (lists / "made-up.toml").write_text(listed, encoding="utf-8")
+    arguments = ["held", "--receipts", str(folders.receipts), "--lists", str(lists)]
+    return main(arguments, folders.environment, never)
+
+
+def as_in_a_run(line: str) -> str:
+    for made_up, real in AS_IN_A_RUN.items():
+        line = line.replace(made_up, real)
+    return line
+
+
+def test_a_store_that_holds_every_file_with_a_receipt_says_so_in_one_line(
+    folders: Folders, saved: Path, capsys: pytest.CaptureFixture[str]
+):
+    by_hand(folders, saved)
+    capsys.readouterr()
+    assert held_to(folders) == 0
+    lines, errors = printed(capsys)
+    assert errors == ""
+    assert lines == [
+        f"step=store status=ok files=1 bytes={saved.stat().st_size}",
+        # The list names two files, and one has its receipt. The other is not asked about.
+        "step=store list=made-up status=ok files=2 receipts=1 missing=0 differs=0",
+        "step=store status=ok lists=1 receipts=1 missing=0 differs=0 unlisted=0",
+    ]
+    assert all(public_log.is_public(as_in_a_run(line)) for line in lines)
+
+
+def test_a_file_that_is_gone_from_the_store_is_named_and_the_step_ends_red(
+    folders: Folders, saved: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+):
+    by_hand(folders, saved)
+    (receipt,) = read_receipts(folders.receipts)
+    (folders.store / receipt.vault_key()).rename(tmp_path / "moved out of the store")
+    capsys.readouterr()
+    assert held_to(folders) == 1
+    lines, errors = printed(capsys)
+    assert lines == [
+        "step=store status=ok files=0 bytes=0",
+        "step=store list=made-up status=missing files=2 receipts=1 missing=1 differs=0",
+        "step=store list=made-up source=made-up-homes item=notes status=missing "
+        f"file_id={receipt.file_id}",
+        "step=store status=missing lists=1 receipts=1 missing=1 differs=0 unlisted=0",
+    ]
+    assert all(public_log.is_public(as_in_a_run(line)) for line in lines)
+    assert "does not hold every file that has a receipt" in errors and errors.count("\n") == 1
+
+
+@pytest.mark.parametrize("how", ["of another size", "under another name"])
+def test_a_file_that_is_not_as_its_receipt_has_it_differs(
+    folders: Folders, saved: Path, capsys: pytest.CaptureFixture[str], how: str
+):
+    by_hand(folders, saved)
+    (receipt,) = read_receipts(folders.receipts)
+    kept = folders.store / receipt.vault_key()
+    if how == "of another size":
+        kept.write_bytes(kept.read_bytes()[:-1])
+    else:
+        kept.rename(kept.with_name("another name.zip"))
+    capsys.readouterr()
+    assert held_to(folders) == 1
+    lines, _ = printed(capsys)
+    assert lines[1:] == [
+        "step=store list=made-up status=differs files=2 receipts=1 missing=0 differs=1",
+        "step=store list=made-up source=made-up-homes item=notes status=differs "
+        f"file_id={receipt.file_id}",
+        "step=store status=differs lists=1 receipts=1 missing=0 differs=1 unlisted=0",
+    ]
+
+
+def test_a_receipt_that_is_of_no_file_of_a_list_is_held_to_the_store_all_the_same(
+    folders: Folders, saved: Path, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+):
+    by_hand(folders, saved)
+    (receipt,) = read_receipts(folders.receipts)
+    # The list no longer names the file that was saved. Its receipt stands in the folder.
+    without = LIST.split('[[file]]\nitem = "notes"')[0]
+    capsys.readouterr()
+    assert held_to(folders, without) == 0
+    assert printed(capsys)[0][1:] == [
+        "step=store list=made-up status=ok files=1 receipts=0 missing=0 differs=0",
+        "step=store status=ok lists=1 receipts=1 missing=0 differs=0 unlisted=1",
+    ]
+    (folders.store / receipt.vault_key()).rename(tmp_path / "moved out of the store")
+    assert held_to(folders, without) == 1
+    lines, _ = printed(capsys)
+    assert lines[1:] == [
+        "step=store list=made-up status=ok files=1 receipts=0 missing=0 differs=0",
+        f"step=store source=made-up-homes status=missing file_id={receipt.file_id}",
+        "step=store status=missing lists=1 receipts=1 missing=1 differs=0 unlisted=1",
+    ]
+    assert all(public_log.is_public(as_in_a_run(line)) for line in lines)
+
+
+@ONLY_LOOPBACK
+def test_two_files_that_a_list_says_alike_are_told_apart_by_their_address(
+    folders: Folders, served: Served, saved: Path, capsys: pytest.CaptureFixture[str]
+):
+    # The same source, use, edition and period, once fetched and once saved by a person.
+    alike = LIST.replace('use = "display"', 'use = "scoring"').replace(
+        'data_period = { as_at = "2025" }', 'data_period = { as_at = "2025-03-31" }'
+    )
+    folders.list.write_text(alike, encoding="utf-8")
+    fetch = ["fetch", *folders.common(), "--receipts", str(folders.receipts)]
+    assert main(fetch, folders.environment, through(served)) == 1
+    assert by_hand(folders, saved) == 0
+    got = {receipt.how: receipt for receipt in read_receipts(folders.receipts)}
+    fetched, by_a_person = got[How.FETCHED], got[How.BY_HAND]
+    for receipt in (fetched, by_a_person):
+        (folders.store / receipt.vault_key()).unlink()
+    capsys.readouterr()
+    assert held_to(folders, alike) == 1
+    lines, _ = printed(capsys)
+    named = {line.split("item=")[1].split()[0]: line for line in lines if " item=" in line}
+    assert set(named) == {"homes", "notes"}
+    assert f"file_id={fetched.file_id}" in named["homes"]
+    assert f"file_id={by_a_person.file_id}" in named["notes"]
+
+
+def test_nothing_the_step_prints_of_a_file_holds_its_name_an_address_or_a_folder(
+    folders: Folders, saved: Path, capsys: pytest.CaptureFixture[str]
+):
+    by_hand(folders, saved)
+    (receipt,) = read_receipts(folders.receipts)
+    (folders.store / receipt.vault_key()).unlink()
+    capsys.readouterr()
+    assert held_to(folders) == 1
+    captured = capsys.readouterr()
+    for secret in (str(folders.store), str(folders.root), "made-up.example", "Made-up notes"):
+        assert secret not in captured.out + captured.err
+
+
+@pytest.mark.parametrize(
+    ("arguments", "said"),
+    [
+        (["held", "--lists", "{root}"], "so --receipts is given too"),
+        (["held", "--receipts", "{root}/absent"], "holds no receipt"),
+        (["held", "--receipts", "{root}/receipts", "--lists", "{root}/absent"], "holds no list"),
+    ],
+)
+def test_held_stops_before_it_asks_the_store_when_it_was_given_nothing_to_hold_it_to(
+    folders: Folders,
+    saved: Path,
+    capsys: pytest.CaptureFixture[str],
+    arguments: list[str],
+    said: str,
+):
+    by_hand(folders, saved)
+    capsys.readouterr()
+    filled = [argument.format(root=folders.root) for argument in arguments]
+    assert main(filled, folders.environment, never) == 2
+    out, errors = capsys.readouterr()
+    # A folder that is wrong never reads as a store that holds everything.
+    assert out == ""
+    assert said in errors and errors.count("\n") == 1
+
+
+def test_every_list_of_this_repository_is_held_and_every_line_is_one_a_run_may_show(
+    folders: Folders, capsys: pytest.CaptureFixture[str]
+):
+    receipts = REPOSITORY / "data" / "receipts"
+    lists = sorted(path.stem for path in LISTS.glob("*.toml"))
+    # Against a store that holds nothing, every file that has a receipt is missing.
+    assert main(["held", "--receipts", str(receipts)], folders.environment, never) == 1
+    lines, _ = printed(capsys)
+    assert [line.split()[1] for line in lines if " source=" not in line][1:-1] == [
+        f"list={name}" for name in lists
+    ]
+    held = len(list(receipts.glob("*/f-*.json")))
+    assert held and lines[-1].startswith(
+        f"step=store status=missing lists={len(lists)} receipts={held} missing={held} differs=0 "
+    )
+    assert all(public_log.is_public(line) for line in lines)
+    assert len([line for line in lines if " source=" in line]) >= held
+
+
+def test_the_step_names_a_file_by_the_item_that_a_build_pairs_its_receipt_with(
+    folders: Folders, capsys: pytest.CaptureFixture[str]
+):
+    """A build pairs a receipt with a file of its list, and the step must name the same file.
+
+    Two files of one list may be said alike, with nothing in a receipt to tell them
+    apart. A build gives them out in order, and so does the step.
+    """
+    from burro_pipeline.assemble.cli import of_the_list
+    from burro_pipeline.evidence import LockError
+    from burro_pipeline.fetch.sources import load_list
+
+    folder = REPOSITORY / "data" / "receipts"
+    main(["held", "--receipts", str(folder)], folders.environment, never)
+    lines, _ = printed(capsys)
+    named = [
+        dict(part.split("=", 1) for part in line.split()) for line in lines if " item=" in line
+    ]
+    receipts = read_receipts(folder)
+    for path in sorted(LISTS.glob("*.toml")):
+        listed = load_list(path.stem)
+        try:
+            paired, files, _ = of_the_list(receipts, listed.files)
+        except LockError:
+            # More receipts than files that are said alike: a build picks none, and nor is
+            # the step held to a choice.
+            continue
+        by_a_build = {
+            (file.item, receipt.file_id) for file, receipt in zip(files, paired, strict=True)
+        }
+        by_the_step = {(one["item"], one["file_id"]) for one in named if one["list"] == path.stem}
+        # A build takes one edition of a file that states its own. The step names each.
+        assert by_the_step >= by_a_build, path.stem
+        assert {item for item, _ in by_the_step} == {item for item, _ in by_a_build}
 
 
 def test_describe_reads_a_stored_file_by_its_file_id(

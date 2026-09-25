@@ -176,7 +176,7 @@ def test_every_fact_has_evidence_and_every_file_behind_it_is_in_the_lock(walked:
     held = load(walk.registry)
     assert unevidenced(walk.release, walked.evidence, walk.lock(), held) == ()
     check = walked.said["check"]
-    assert check.lines[0].startswith(f"step=check status=ok release={RELEASE_ID} facts=3200 ")
+    assert check.lines[0].startswith(f"step=check status=ok release={RELEASE_ID} facts=3220 ")
     assert f" files={len(walk.files)} findings=0 " in check.lines[0]
     assert walk.findings.read_text(encoding="utf-8") == ""
 
@@ -189,9 +189,9 @@ def test_the_coverage_report_counts_what_is_there_and_what_is_missing(walked: Wa
     assert "| feature/homes_flats | 21 | 1 | 2 | 0 | 0 | 0 | 0 | 0 |" in report
     assert "| lon-n0009 | feature/homes_flats | below_threshold | yes | Too little" in report
     assert f"| {SURVEY} | 6 |" in report
-    # 143 figures of a measure, 33 costs and 22 vibes that an area lacks, and the four
+    # 147 figures of a measure, 33 costs and 25 vibes that an area lacks, and the four
     # measures that no release carries yet, in each of 24 areas.
-    assert " gaps=327 no_record=0 " in coverage.lines[0]
+    assert " gaps=334 no_record=0 " in coverage.lines[0]
     assert "made up" not in coverage.everything
 
 

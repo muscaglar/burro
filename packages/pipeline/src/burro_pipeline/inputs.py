@@ -18,6 +18,12 @@ its receipt. Before the copy is handed over:
 evidence names as its inputs. A figure rests on nothing a step did not open
 this way.
 
+A step reads with no socket open. A store that is a folder hands a file over
+as it is asked for. A store that is reached over a network cannot, so every
+file the step was given is copied out of it first, with `Inputs.copy_out`, and
+held to its receipt as it is. What is then read is the copy, which is checked
+again as it is opened.
+
 Some publishers give a file for each part of the whole: a square of the grid,
 an authority. `Inputs.open_each` hands a step every such file of a source, each
 checked as `open` checks one. A step never picks one of two editions of a
@@ -215,6 +221,23 @@ class Inputs:
             self.open(source_id, use, edition=edition, named=lambda name, one=one: name == one)
             for one in names
         )
+
+    def copy_out(self) -> tuple[int, int]:
+        """Copy every file the step was given out of the store, before any is read.
+
+        It is for a store that is reached over a network: a file is read with
+        no socket open, so it cannot be asked for as it is read. Each copy is
+        held to its receipt and to the lock, as a file that is opened is. A
+        file that is kept for the audit or for the census table is never
+        handed to a step, and is not copied. Returns how many files are
+        copied out, and how many bytes they are.
+        """
+        copied = [
+            self._copy(receipt)
+            for receipt in sorted(self.receipts, key=lambda receipt: receipt.file_id)
+            if not is_kept_apart(receipt, self.registry)
+        ]
+        return len(copied), sum(path.stat().st_size for path in copied)
 
     def _copy(self, receipt: Receipt) -> Path:
         """A checked copy of a file, in the step's own folder."""

@@ -140,6 +140,65 @@ def checked_out(folder: Path) -> CheckedOut:
     return CheckedOut(commit, changed, staged)
 
 
+def holds(folder: Path, path: Path, content: bytes | None = None) -> bool:
+    """Whether a file is one the working copy around `folder` tracks, and is as it tracks it.
+
+    The file is looked for where it is, and not where a link leads: a link is
+    no file. It is held to what the index says of it, byte for byte. Whether
+    the index is what was committed is `checked_out`'s to say. False where
+    `folder` is in no working copy, and where the file is outside it.
+
+    `content` is what was read of the file, where it was read already. It is
+    then what is held to the index, so that what is used is what was checked,
+    whatever is written to the file in between.
+    """
+    root = top_of(folder)
+    if root is None:
+        return False
+    try:
+        if path.is_symlink() or not path.is_file():
+            return False
+        found = _under_the_name_of(root, path)
+    except OSError:
+        raise NotRead("a file of the repository could not be read") from None
+    except (struct.error, zlib.error, IndexError, ValueError):
+        raise NotRead("a file of the repository is not as git writes it") from None
+    if len(found) != 1 or found[0].stage or found[0].mode not in (FILE, RUNS):
+        return False
+    if content is not None and _hash(b"blob", content) != found[0].oid:
+        return False
+    return _is_as_tracked(root, found[0])
+
+
+def tracks(folder: Path, path: Path) -> bool:
+    """Whether the working copy around `folder` tracks anything under the name of `path`.
+
+    It says what git was given, and nothing of what is there now: a file that
+    was changed or taken away since is tracked still, and `holds` says that it
+    is not as it was. False where `folder` is in no working copy, and where the
+    path is outside it.
+    """
+    root = top_of(folder)
+    if root is None:
+        return False
+    try:
+        return bool(_under_the_name_of(root, path))
+    except OSError:
+        raise NotRead("a file of the repository could not be read") from None
+    except (struct.error, zlib.error, IndexError, ValueError):
+        raise NotRead("a file of the repository is not as git writes it") from None
+
+
+def _under_the_name_of(root: Path, path: Path) -> list[Tracked]:
+    """What the index holds under the name a path has in the working copy at `root`."""
+    inside = path.parent.resolve() / path.name
+    if not inside.is_relative_to(root):
+        return []
+    named = os.fsencode(inside.relative_to(root).as_posix())
+    own, _ = _folders(root)
+    return [file for file in _index(own / "index") if file.path == named]
+
+
 def held(folder: Path, oid: str) -> tuple[str, bytes]:
     """An object of the repository by its hash: what kind it is, and what it holds."""
     root = _top(folder)

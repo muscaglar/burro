@@ -54,9 +54,16 @@ MEANING: Mapping[str, str] = {
     "references_resolve": "names an area, destination, place, station or source that the "
     "release does not have",
     "catalogue_matches_core": "holds a feature or tag the catalogue does not, or describes "
-    "one differently",
-    "vibes_match_core": "holds a recipe that is not the catalogue's, or not the vibes its "
-    "manifest says it carries",
+    "one differently: a label alone may differ, in plain words",
+    "vibes_match_core": "holds a vibe that is not the catalogue's but for what a person may "
+    "adjust, or a recipe that breaks a rule, or not the vibes its manifest says it carries",
+    "names_name_no_place": "holds a name, a label or a line that a person gave and that "
+    "names an area, a borough or a place of the release. A vibe and a measure are of every "
+    "area alike",
+    "held_off_stays_held_off": "places an area on a vibe that the catalogue's own recipe "
+    "places none on: its shares were moved to the parts that have a figure",
+    "changes_are_named": "carries a recipe, a name or a label that is not the catalogue's, "
+    "and does not say which file of changes it was built with",
     "rows_are_complete": "lacks a row that every release must have",
     "values_are_in_range": "holds a number outside the range it may take",
     "null_means_null": "has a value without its percentile, or a percentile without its value",
@@ -69,7 +76,8 @@ MEANING: Mapping[str, str] = {
     "holds no journey, no place to reach, no cost or no station",
     "percentiles_match_values": "holds a percentile that is not the one its values give",
     "raw_matches_recipe": "places an area on a vibe by figures that are not the ones the "
-    "release holds for it, or says more of the recipe was there than was",
+    "release holds for it, or by another recipe than it carries, or says more of the recipe "
+    "was there than was",
     "scores_match_raw": "holds a score for a vibe that is not the one its raw values give",
     # What `open_served` refuses for. The file is one of the folder beside the release.
     "real_release_has_its_build": "is not in the folder beside the release. A release that "
@@ -77,6 +85,8 @@ MEANING: Mapping[str, str] = {
     "build_is_of_this_release": "holds the hashes of the build of another release",
     "build_is_as_it_was_written": "is not as it was when the release was built: it has "
     "changed since, or it is of another build",
+    "changes_are_locked": "does not name the file of changes the release says it was built "
+    "with, and no other: it is not there, or it names none, another or more than one",
     # What `write_release` refuses for.
     "real_release_needs_a_registry": "says the release is real, and a real release is written "
     "only with the licence registry to check its sources against",

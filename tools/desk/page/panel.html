@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en-GB" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>The panel - Burro review desk</title>
+<link rel="stylesheet" href="/page/panel.css">
+<script type="module" src="/page/panel.mjs"></script>
+</head>
+<body>
+
+<header id="top">
+  <p id="banner" class="banner unknown">Loading. Which data this is will be said here. Decide nothing yet.</p>
+  <nav id="parts" aria-label="The parts of the panel">
+    <a href="#/">What is served</a>
+    <a href="#/moved">What moved</a>
+    <a href="#/areas">Areas</a>
+    <a href="#/measures">Measures</a>
+    <a href="#/vibes">Vibes</a>
+    <a href="#/brands">Brands</a>
+    <a href="#/numbers">Numbers</a>
+    <a href="#/flagged">Flagged</a>
+    <a href="#/history">History</a>
+    <a href="/page/index.html">The queues</a>
+  </nav>
+  <p id="who"></p>
+</header>
+
+<div id="status">
+  <p id="trouble" role="alert"></p>
+  <p id="said" role="status" aria-live="polite"></p>
+</div>
+
+<main id="main" tabindex="-1">
+  <p>Loading.</p>
+</main>
+
+<dialog id="box" aria-labelledby="box-title">
+  <h2 id="box-title"></h2>
+  <p id="box-of"></p>
+  <div id="box-more"></div>
+  <p class="field">
+    <label for="why">Why</label>
+    <input id="why" type="text" maxlength="500" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off" aria-describedby="why-hint">
+  </p>
+  <p id="why-hint">A reason may be published. Write nothing about yourself or anyone else.</p>
+  <p id="box-trouble" role="alert"></p>
+  <p class="field">
+    <button id="box-yes" type="button">Keep</button>
+    <button id="box-no" type="button">Cancel</button>
+  </p>
+</dialog>
+
+<noscript><p class="banner unknown">This page needs JavaScript. It asks nothing of any other machine.</p></noscript>
+
+</body>
+</html>

@@ -19,9 +19,11 @@ distance is a straight line, and that it is to the line the file draws along
 the road and not to its kerb.
 
 **The row switches the measure off for ranking by itself.** Its values are
-shown. The design expects main roads to follow who lives somewhere, and no
-audit of the figure has been run (ADR 0006). A vibe still rests on it: core
-places a vibe on every part of its recipe that a release holds.
+shown. The design expects main roads to follow who lives somewhere. No audit
+of the figure has been run, and none is to be since 2026-09-25 (ADR 0006, as
+amended): whether an area is ranked on the figure by itself is the founder's
+to say. A vibe still rests on it: core places a vibe on every part of its
+recipe that a release holds.
 
 How a figure is made:
 
@@ -122,7 +124,8 @@ FEATURE = FeatureId.ROAD_MAJOR_EXPOSURE
 # The id the rows are written under.
 KEY = FEATURE.value
 # Whether an area is ranked on the figure by itself. The design expects main roads to follow
-# who lives somewhere, and no audit of the figure has been run (ADR 0006).
+# who lives somewhere. No audit of the figure has been run, and none is to be since
+# 2026-09-25 (ADR 0006, as amended), so it is the founder's to say.
 RANKABLE = False
 SOURCE = "os-open-roads"
 PUBLISHER = "Ordnance Survey"

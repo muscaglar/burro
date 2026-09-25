@@ -124,7 +124,7 @@ def packed(release: InMemoryRelease) -> dict[str, bytes]:
             stations=len({row.station_id for row in release.station_rows}),
         ),
     )
-    return files | {MANIFEST: canonical_json(manifest.model_dump(mode="json"))}
+    return files | {MANIFEST: canonical_json(manifest.as_written())}
 
 
 def _refuse_to_overwrite(target: Path, names: set[str], synthetic: bool) -> None:

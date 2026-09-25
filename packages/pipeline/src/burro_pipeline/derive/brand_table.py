@@ -40,7 +40,8 @@ This module reads the table and no other file. It names no place.
 
 import re
 import tomllib
-from collections.abc import Mapping
+from collections.abc import Generator, Mapping
+from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import StrEnum
 from functools import cache, cached_property
@@ -200,9 +201,36 @@ def read(path: Path = TABLE) -> Table:
 
 
 @cache
-def the_table() -> Table:
-    """The table of tiers of the repository, read once."""
+def of_the_repository() -> Table:
+    """The table of tiers of the repository, read once, whatever table a build uses."""
     return read()
+
+
+# The table a build uses in the place of the repository's, while it is one that a person
+# changed at the panel of the review desk. It is set for one build, and put back after it.
+_IN_ITS_PLACE: list[Table] = []
+
+
+def the_table() -> Table:
+    """The table of tiers: the repository's, read once, unless a build uses another."""
+    return _IN_ITS_PLACE[0] if _IN_ITS_PLACE else of_the_repository()
+
+
+@contextmanager
+def using(table: Table) -> Generator[None]:
+    """Use a table in the place of the repository's, until the block ends.
+
+    It is for the table with what a person decided laid over it, which is of
+    one build and of no other. One build uses one table: a second inside the
+    first is refused.
+    """
+    if _IN_ITS_PLACE:
+        raise RuntimeError("a build uses one table of tiers")
+    _IN_ITS_PLACE.append(table)
+    try:
+        yield
+    finally:
+        _IN_ITS_PLACE.clear()
 
 
 def chain_of(brand: Brand | None, table: Table) -> Chain | None:

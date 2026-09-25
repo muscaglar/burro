@@ -264,12 +264,19 @@ def journeys(release: InMemoryRelease) -> dict[tuple[str, Mode], tuple[int, int]
 
 
 def _cost_of(release: InMemoryRelease, area_id: str, key: str) -> float | None:
-    """The median of a cost that is one number. None of a range, which is three."""
+    """The median of a cost that its row of evidence holds.
+
+    It is the median of a cost that is one number, and of a rent that is of a
+    wider place, which is carried as its publisher wrote it. It is none of a
+    range that Burro worked out, which is three numbers and whose row holds none.
+    """
     tenure, _, segment = key.partition(".")
     if tenure not in Tenure or segment not in Segment:
         return None
     held = release.cost(area_id, Tenure(tenure), Segment(segment))
-    return None if held is None or held.ranged else float(held.median)
+    if held is None or (held.ranged and not held.of_a_wider_place):
+        return None
+    return float(held.median)
 
 
 def figure_of(release: InMemoryRelease, served: str) -> float | None:
@@ -329,8 +336,11 @@ def not_as_core_works_it_out(release: InMemoryRelease) -> Iterator[Finding]:
             if not _same_figure(None if one is None else one.percentile, percentile):
                 yield Finding(fact_id(area, FactKind.FEATURE, feature), "percentile_is_cores")
     # The vibes the release carries. That they are the ones its manifest says is core's rule.
-    for tag_id in sorted(vibe.tag_id for vibe in release.vibes):
-        raws = [tag_raw(tag_id, placed[area]) for area in areas]
+    # A vibe is worked out with the recipe the release carries. That the recipe is one a
+    # release may carry is core's rule.
+    for vibe in sorted(release.vibes, key=lambda vibe: vibe.tag_id):
+        tag_id = vibe.tag_id
+        raws = [tag_raw(tag_id, placed[area], vibe.terms) for area in areas]
         scores = percentile_of([one.raw for one in raws], rankable)
         for area, raw, score in zip(areas, raws, scores, strict=True):
             scored = release.tag(area, tag_id)
@@ -419,7 +429,10 @@ def _of_the_credits(release: InMemoryRelease, registry: Registry) -> Iterator[Fi
         entry = registry.get(credited.source_id)
         said = (credited.name, credited.publisher, credited.licence, credited.attribution)
         held = (entry.name, entry.publisher, entry.licence.value, entry.attribution)
-        if (*said, credited.url) != (*held, entry.url):
+        # What is said with a credit is held as the credit is: a release that credits a
+        # source and leaves out what its terms ask to be said with the credit is found.
+        with_it = credited.said_with_attribution or ""
+        if (*said, credited.url, with_it) != (*held, entry.url, entry.said_with_attribution):
             yield Finding(credited.source_id, "credit_is_the_registrys")
 
 

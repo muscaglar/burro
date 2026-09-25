@@ -193,7 +193,7 @@ notes = "Address read on 2026-09-23, on the page above, through a reader that ex
 item = "rents-london-districts"
 source_id = "ons-private-rental-market-london-postcode-district"
 use = "scoring"
-what = "Private rental market in London by postcode district, April 2025 to March 2026, reference 3389"
+what = "Private rental market in London, by borough and by postcode district, April 2025 to March 2026, reference 3389"
 format = "xlsx"
 page = "https://www.ons.gov.uk/economy/inflationandpriceindices/adhocs/3389privaterentalmarketinlondonapril2025tomarch2026"
 url = "https://www.ons.gov.uk/file?uri=/economy/inflationandpriceindices/adhocs/3389privaterentalmarketinlondonapril2025tomarch2026/londonrentalstatsaccessibleq12026.xlsx"
@@ -202,7 +202,7 @@ max_bytes = 1_000_000
 edition = "3389"
 data_period = { start = "2025-04", end = "2026-03" }
 unsure = ["url"]
-notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page writes it as a path from the top of the site, and the address here is that path on the page's own host. Open it once in a browser. The page gives 129.4 kB, and says it was released on 27 April 2026. For London only. The page says no attempt was made to account for a change in the quality or the mix of what is rented, so the figures are read with caution. The registry entry holds this edition alone: another edition needs its own page saved first."
+notes = "Address read on 2026-09-23, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. The page writes it as a path from the top of the site, and the address here is that path on the page's own host. Open it once in a browser. The page gives 129.4 kB, and says it was released on 27 April 2026. For London only. The page says no attempt was made to account for a change in the quality or the mix of what is rented, so the figures are read with caution. The registry entry holds this edition alone: another edition needs its own page saved first. The file was fetched on 2026-09-23 from the address above and has its receipt, f-48d278998714: an xlsx of 129,426 bytes. The page was read again on 2026-09-25, twice in different words, and gave the same address both times, as a path from the top of the site. It is the newest edition the publisher's search lists. The cover of the workbook says the next was due in July 2026, and none was on the publisher's site on 2026-09-25. The workbook was read on 2026-09-25 through its receipt, by a program and by no person. It holds three tables, of London, of 33 boroughs and of 329 postcode districts, each by six kinds of home: a room, a studio, and one, two, three, and four or more bedrooms. Each row gives how many rents were recorded, rounded to 10, and their mean, lower quartile, median and upper quartile, to the pound. Where a row gives no figure it holds two full stops. derive/rent.py reads it since 2026-09-25, the table of boroughs and the table of postcode districts. It stands behind what a home lets for in a build of London: the median and both quartiles for each kind of home, of the postcode district or of the borough an area lies in, with the place said beside it. registry/evidence holds what the cover and the notes of the workbook say."
 
 [[file]]
 item = "rents-index"

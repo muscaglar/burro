@@ -49,6 +49,8 @@ from typing import Any, TextIO, cast
 from urllib.parse import unquote, urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
+# The lists of files a fetch takes. Each names its files, and both names are public.
+LISTS = ROOT / "packages" / "pipeline" / "src" / "burro_pipeline" / "fetch" / "lists"
 
 # The names the code reads, in burro_pipeline.fetch. Each is a secret of the
 # environment a job runs in, and its value is in no file.
@@ -58,9 +60,29 @@ KEY = "BURRO_STORE_SECRET"
 STORE = (ENDPOINT, "BURRO_STORE_BUCKET", KEY_ID, KEY)
 # Where a publisher can write to. It is sent to publishers, and kept out of this repository.
 CONTACT = "BURRO_FETCH_CONTACT"
-# Which secrets each environment holds. A workflow may name no other.
-SECRETS_OF = {"data-fetch": (*STORE, CONTACT), "data-build": STORE, "data-travel": STORE}
-SECRET_NAMES = (*STORE, CONTACT)
+# The names burro_pipeline.kept reads: the bucket a release is kept in, which is not the
+# store of publishers' files and has keys of its own. They stand in the order of `STORE`.
+RELEASES = (
+    "BURRO_RELEASES_ENDPOINT",
+    "BURRO_RELEASES_BUCKET",
+    "BURRO_RELEASES_KEY_ID",
+    "BURRO_RELEASES_SECRET",
+)
+# The two stores a step may be given the key of. Each has an address and a key of its own.
+STORES = (STORE, RELEASES)
+ENDPOINTS = tuple(names[0] for names in STORES)
+# Which secrets each environment holds. A workflow may name no other. A fetch reads the
+# contact, so a workflow whose environment holds none can fetch nothing. The build of London
+# reads the store with one key and keeps a release with another, and no other workflow
+# is given a key that writes a release.
+SECRETS_OF = {
+    "data-fetch": (*STORE, CONTACT),
+    "data-held": STORE,
+    "data-build": STORE,
+    "data-travel": STORE,
+    "data-london": (*STORE, *RELEASES),
+}
+SECRET_NAMES = (*STORE, CONTACT, *RELEASES)
 # The run's own token. The runner sets it, and no step here is given it.
 TOKENS = ("GITHUB_TOKEN", "GH_TOKEN", "ACTIONS_RUNTIME_TOKEN", "ACTIONS_ID_TOKEN_REQUEST_TOKEN")
 # A shorter secret is found in lines that do not hold it, so it cannot be searched for.
@@ -82,6 +104,10 @@ RUNNERS_FILES = (
 
 STEPS = frozenset(
     {
+        # What is held and how old it is, which is read before a fetch, and what moved
+        # between two builds, which is read before the newer is approved.
+        "fresh",
+        "moved",
         # The steps of a build, as docs/design/london-data-pipeline.md numbers them.
         "plan",
         "fetch",
@@ -89,6 +115,8 @@ STEPS = frozenset(
         "normalise",
         "cells",
         "names",
+        # What a person decided at the panel of the review desk, where a build is given it.
+        "changes",
         "network",
         "derive",
         "travel",
@@ -102,6 +130,14 @@ STEPS = frozenset(
         "check",
         "report",
         "publish",
+        # What becomes of a release once it is built: its lock, the bucket it is kept in,
+        # and the folder an image is built from.
+        "lock",
+        "keep",
+        "take",
+        # The draft of the areas, which a hosted build makes before it builds. It prints
+        # under a name of its own, and why it stopped is the name of a rule.
+        "areas-draft",
         # What a workflow does around them.
         "secrets",
         "store",
@@ -131,6 +167,15 @@ RELEASE_FILES = frozenset(
         "travel.json",
     }
 )
+# The files a build writes beside its release, which are not above: the record of the
+# build, its hashes, the homes of each area, the report, the name each area bears, and the
+# estimates of household income. A name says what a file is, and holds nothing from it.
+BESIDE_FILES = frozenset(
+    {"build.json", "coverage.md", "hashes.json", "homes.json", "income.json", "names.csv"}
+)
+# The folders a build writes: the release, the folder of its build, and the folder of
+# household income that stands beside it.
+FOLDERS = frozenset({"release", "build", "income"})
 
 # What a step may count. Each is followed by a whole number and by nothing else.
 COUNTS = frozenset(
@@ -164,6 +209,43 @@ COUNTS = frozenset(
         "by_hand",
         "ready",
         "receipts",
+        "lists",
+        # How old the files that have a receipt are: how many days ago one was retrieved,
+        # how many stand each way, and how many sources say no cadence that is read.
+        "days",
+        "due",
+        "fresh",
+        "not_known",
+        "older",
+        "not_said",
+        # What moved between two builds: of the areas, the measures, the vibes, the
+        # prices, the files behind each build and the first ten areas of a search.
+        "came",
+        "went",
+        "changed",
+        "gained",
+        "lost",
+        "up",
+        "down",
+        "kept",
+        "reordered",
+        "search",
+        "searches",
+        "searches_moved",
+        "areas_came",
+        "areas_went",
+        "areas_renamed",
+        "areas_redrawn",
+        "measures_came",
+        "measures_went",
+        "measures_moved",
+        "vibes_came",
+        "vibes_went",
+        "vibes_moved",
+        "costs_moved",
+        "files_changed",
+        "files_came",
+        "files_went",
         # The lock, the check of the evidence, and the coverage report.
         "inputs",
         "development",
@@ -177,9 +259,15 @@ COUNTS = frozenset(
         "findings",
         "areas",
         "measures",
+        "vibes",
         "values",
         "gaps",
         "no_record",
+        # The file of changes a build was given: its lines, how many stand, and how many
+        # of those the build applied.
+        "lines",
+        "stand",
+        "applied",
         # The geography of a build.
         "output_areas",
         "lsoas",
@@ -304,6 +392,12 @@ KINDS = frozenset(
         "unknown",
     }
 )
+# What the step `fresh` says of a file that has a receipt: how often its publisher says it
+# changes, how it stands against that, and what of its list pins it. Each is a word that
+# burro_pipeline.upkeep prints, and a test there holds these lists to it.
+CADENCES = frozenset({"weekly", "monthly", "quarterly", "yearly", "rarely", "not_said"})
+STATES = frozenset({"due", "fresh", "not_known", "older", "unlisted"})
+PINS = frozenset({"none", "period", "edition_and_period", "not_listed"})
 # The measures a build may name: the ids of core's catalogue, which is in this repository.
 # A test holds this list to it. An id names an idea and holds nothing from a file.
 FEATURES = frozenset(
@@ -372,6 +466,7 @@ FEATURES = frozenset(
         "gym_value_distance",
         "gym_value_nearby",
         "highstreet_access",
+        "highstreet_conserved",
         "homes_density",
         "homes_flats",
         "homes_higher_bands",
@@ -422,9 +517,36 @@ FEATURES = frozenset(
         "water_access",
     }
 )
+# The vibes a step may name: the ids of core's catalogue. A test holds this list to it.
+VIBES = frozenset(
+    {
+        "built_age",
+        "everyday_on_foot",
+        "family_amenities",
+        "family_area",
+        "foodie",
+        "homes",
+        "leafy",
+        "pace",
+        "parks_close_by",
+        "quiet_residential",
+        "street_character",
+        "village_feel",
+        "well_connected",
+        "works_warehouses",
+        "young_professionals",
+    }
+)
 # What is shown as a hash: of a file, or of what a step wrote.
 HASHES = frozenset(
-    {"sha256", "manifest_sha256", "lock_sha256", "evidence_sha256", "coverage_sha256"}
+    {
+        "sha256",
+        "manifest_sha256",
+        "lock_sha256",
+        "evidence_sha256",
+        "coverage_sha256",
+        "changes_sha256",
+    }
 )
 
 TOKEN = re.compile(r"([a-z][a-z0-9_]{0,39})=(\S{1,80})")
@@ -433,6 +555,8 @@ SECONDS = re.compile(r"[0-9]{1,9}(\.[0-9]{1,3})?")
 SHA256 = re.compile(r"[0-9a-f]{64}")
 FILE_ID = re.compile(r"f-[0-9a-f]{12}")
 RELEASE_ID = re.compile(r"[a-z]{3}-[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{2}")
+# A day: the day a file was retrieved, and the day the days are counted to.
+DAY = re.compile(r"[0-9]{4}-[0-9]{2}-[0-9]{2}")
 # The reason a file was not fetched, as a number: `python -m burro_pipeline why` lists them.
 WHY = re.compile(r"[0-9]{1,2}")
 # The status a publisher answered with.
@@ -455,6 +579,26 @@ def registry_ids() -> frozenset[str]:
     return frozenset(found)
 
 
+@cache
+def listed() -> dict[str, frozenset[str]]:
+    """The name of every list of files, and the name of every item of a list.
+
+    They are public: the lists are in this repository. A name is one a person gave a
+    file, and holds nothing from a file.
+    """
+    lists: set[str] = set()
+    items: set[str] = set()
+    for file in sorted(LISTS.glob("*.toml")):
+        try:
+            document = tomllib.loads(file.read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError):
+            continue
+        lists.add(str(document.get("build", "")))
+        entries = cast(list[dict[str, Any]], document.get("file", []))
+        items |= {str(entry.get("item", "")) for entry in entries}
+    return {"list": frozenset(lists - {""}), "item": frozenset(items - {""})}
+
+
 def _may_be_shown(key: str, value: str) -> bool:
     """Whether a name is on the list, and what stands after it has the shape the list gives."""
     if key == "step":
@@ -465,12 +609,20 @@ def _may_be_shown(key: str, value: str) -> bool:
         return value in ("a", "b")
     if key == "source":
         return value in registry_ids()
+    if key in ("list", "item"):
+        return value in listed()[key]
     if key == "file":
-        return value in RELEASE_FILES
+        return value in RELEASE_FILES | BESIDE_FILES
+    if key == "folder":
+        return value in FOLDERS
     if key == "kind":
         return value in KINDS
     if key == "feature":
         return value in FEATURES
+    if key == "vibe":
+        return value in VIBES
+    if key in ("cadence", "state", "pins"):
+        return value in {"cadence": CADENCES, "state": STATES, "pins": PINS}[key]
     shape = (
         SHA256
         if key in HASHES
@@ -479,11 +631,15 @@ def _may_be_shown(key: str, value: str) -> bool:
         if key in COUNTS or key in RULES or key in TRAVEL_RULES or key in STATUSES
         else {
             "release": RELEASE_ID,
+            "before": RELEASE_ID,
+            "after": RELEASE_ID,
             "file_id": FILE_ID,
             "seconds": SECONDS,
             "why": WHY,
             "http": HTTP,
             "host": HOST,
+            "retrieved": DAY,
+            "on": DAY,
         }.get(key)
     )
     return shape is not None and shape.fullmatch(value) is not None
@@ -506,10 +662,11 @@ def _forms(environ: Mapping[str, str]) -> Iterator[tuple[str, bool]]:
         if value := environ.get(name, ""):
             yield value, True
             yield _as_sent(value), False
-    if host := urlsplit(environ.get(ENDPOINT, "")).hostname:
-        yield host, False
-    if environ.get(KEY_ID) and environ.get(KEY):
-        yield _as_sent(f"{environ[KEY_ID]}:{environ[KEY]}"), False
+    for endpoint, _, key_id, key in STORES:
+        if host := urlsplit(environ.get(endpoint, "")).hostname:
+            yield host, False
+        if environ.get(key_id) and environ.get(key):
+            yield _as_sent(f"{environ[key_id]}:{environ[key]}"), False
 
 
 def forms_of(environ: Mapping[str, str]) -> frozenset[str]:
@@ -585,7 +742,7 @@ def _not_made_up(environ: Mapping[str, str]) -> list[str]:
     """The secrets whose value could be a real one."""
 
     def made_up(name: str, value: str) -> bool:
-        if name == ENDPOINT:
+        if name in ENDPOINTS:
             return (urlsplit(value).hostname or "").endswith(MADE_UP_HOST)
         return value.startswith(MADE_UP)
 
@@ -616,9 +773,10 @@ def mask(environ: Mapping[str, str], out: TextIO, made_up: bool = False) -> int:
         for name in SECRET_NAMES
         if re.search(r"\s", environ.get(name, ""))
     ]
-    address = urlsplit(environ.get(ENDPOINT, ""))
-    if environ.get(ENDPOINT) and (address.scheme != "https" or not address.hostname):
-        problems.append(f"{ENDPOINT} must begin https:// and name a host")
+    for endpoint in ENDPOINTS:
+        address = urlsplit(environ.get(endpoint, ""))
+        if environ.get(endpoint) and (address.scheme != "https" or not address.hostname):
+            problems.append(f"{endpoint} must begin https:// and name a host")
     for problem in problems:
         print(f"error: {problem}. See docs/data-builds.md", file=out)
     if problems:

@@ -103,11 +103,16 @@ def keep_by_hand(
         return refused(Why.DAY_GIVEN)
     try:
         as_a_receipt_holds_it = written_down(address, file.url)
+        # An entry names the address of a file as the list writes it, and a receipt may
+        # write a parameter of it another way: a `/` in its value, a name with no value. So
+        # an address that is the list's own is held as the list writes it, which the gate
+        # has held already. Any other is held as it was given.
+        the_lists = bool(file.url) and as_a_receipt_holds_it == written_down(file.url, file.url)
     except ValueError:
         return refused(Why.ADDRESS_GIVEN)
     try:
         gate.hold_what_arrived(source, address)
-        gate.hold_the_address(source, as_a_receipt_holds_it)
+        gate.hold_the_address(source, file.url if the_lists else as_a_receipt_holds_it)
         gate.hold_the_file(source, path, saved.name)
     except gate.Refused as found:
         return refusal(n, file, found, by_hand=True)

@@ -22,11 +22,11 @@ some areas of the build have no row, so the codes are not those of 2021. The
 areas that have no row are the very areas that the lookup marks as split or
 merged: `test_areas_of_2011_on_the_real_files.py` holds what the lookup holds.
 
-The measure is held back from every release, until its row of the proxy audit
-has passed. The last tests here hold what Houses or flats would be if it
-joined, for whoever decides: the vibe is worked out with the measure and
-without it, by the functions a build works a vibe out with, and nothing of it
-is served.
+A build carries the measure since 2026-09-25. It was held back for want of a
+row of the proxy audit, and the founder dropped the audit that day. The last
+tests here hold what Houses or flats is with the measure against what it was
+without it: the vibe is worked out both ways, by the functions a build works
+a vibe out with.
 
 The workbook's own words for its source: "Source: Ordnance Survey" and
 "© Crown copyright and database rights 2020 OS 100019153". It is published
@@ -250,10 +250,11 @@ def test_the_figure_is_as_at_the_month_the_page_names(built: OutdoorSpace):
     assert "as at 2020-04" in built.metric.definition
 
 
-# What Houses or flats would be if the measure joined. No release carries it.
+# What Houses or flats is with the measure, against what it was without it.
 
 HOMES = TAGS[TagId.HOMES]
-# The two parts Houses or flats rests on today, which are 75 in 100 of its recipe.
+# The two parts Houses or flats rested on before the measure joined: 75 in 100 of its
+# recipe.
 RESTS_ON = (FeatureId.HOMES_DENSITY, FeatureId.HOMES_FLATS)
 
 
@@ -282,7 +283,7 @@ def follows(one: dict[str, float | None], other: dict[str, float | None]) -> flo
 
 @pytest.fixture(scope="module")
 def today(real: Inputs, found: Spine) -> tuple[Carried, ...]:
-    """The two measures of homes a build carries, worked out from the real files."""
+    """The two measures of homes a build carried before, worked out from the real files."""
     ground = Ground(found, land.build(real, found))
     wanted = [measure for measure in MEASURES if measure.feature in RESTS_ON]
     return tuple(Carried(measure, measure.build(real, ground)) for measure in wanted)
@@ -314,7 +315,7 @@ def test_the_measure_follows_flats_more_than_it_follows_anything_else_of_homes(
     assert found == {FeatureId.HOMES_DENSITY: -0.46, FeatureId.HOMES_FLATS: -0.77}
 
 
-def test_with_the_measure_the_vibe_would_rest_on_its_whole_recipe_in_963_areas(
+def test_with_the_measure_the_vibe_rests_on_its_whole_recipe_in_963_areas(
     without: dict[str, TagValue], with_it: dict[str, TagValue]
 ):
     assert Counter(row.coverage for row in without.values()) == {0.75: 1_002}
@@ -322,10 +323,10 @@ def test_with_the_measure_the_vibe_would_rest_on_its_whole_recipe_in_963_areas(
     assert all(row.band is not None for row in (*without.values(), *with_it.values()))
 
 
-def test_with_the_measure_one_area_in_five_would_move_one_band_and_none_would_move_two(
+def test_with_the_measure_one_area_in_five_moved_one_band_and_none_moved_two(
     without: dict[str, TagValue], with_it: dict[str, TagValue]
 ):
-    """Band 5 is the end of flats. As many areas would move towards it as away from it."""
+    """Band 5 is the end of flats. As many areas moved towards it as away from it."""
     moved = Counter((with_it[area].band or 0) - (without[area].band or 0) for area in without)
     assert moved == {0: 800, 1: 101, -1: 101}
     order = follows(
@@ -337,7 +338,7 @@ def test_with_the_measure_one_area_in_five_would_move_one_band_and_none_would_mo
         before = {area for area, row in without.items() if row.band == band}
         after = {area for area, row in with_it.items() if row.band == band}
         assert len(before & after) == in_both
-    # Where an area stands among the areas, in 100: how far it would move.
+    # Where an area stands among the areas, in 100: how far it moved.
     by = sorted(abs((with_it[area].score or 0) - (without[area].score or 0)) for area in without)
     found = (statistics.median(by), by[int(0.9 * len(by))], by[-1])
     assert tuple(to_places(one, 1) for one in found) == (3.9, 10.3, 16.9)
@@ -346,8 +347,8 @@ def test_with_the_measure_one_area_in_five_would_move_one_band_and_none_would_mo
 def test_the_areas_with_no_figure_stand_towards_the_end_of_flats(
     built: OutdoorSpace, without: dict[str, TagValue], with_it: dict[str, TagValue]
 ):
-    """They would rest on 75 in 100 still. 38 of the 39 would keep the band they have, and
-    one would move a band towards flats, because the areas round it moved."""
+    """They rest on 75 in 100 still. 38 of the 39 kept the band they had, and one moved a
+    band towards flats, because the areas round it moved."""
     none = sorted(area for area, one in built.worked.items() if one.value is None)
     assert Counter(without[area].band for area in none) == {2: 3, 3: 4, 4: 11, 5: 21}
     assert Counter(with_it[area].band for area in none) == {2: 3, 3: 4, 4: 10, 5: 22}

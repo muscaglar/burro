@@ -15,6 +15,11 @@ made-up city is never published.
 A note may hold what should not be published. So every note is handed back, once, for
 a person to read before they commit.
 
+The file of changes of each reviewer, which the panel writes, is copied whole and byte
+for byte: a line of it says the day and never the hour, and holds no figure, and the lock
+of a build names the file by its hash. Every reason in it is handed back to be read, as
+a note is.
+
 Standard library only. See docs/design/desk.md, section 3.
 """
 
@@ -36,6 +41,8 @@ FIELDS: Final = (
     *("answer", "note", "second", "settles", "detail", "synthetic"),
 )
 TREE: Final = records.PUBLIC_TREE
+# The folder of the files of changes, among the folders of the queues.
+CHANGES: Final = "changes"
 
 
 class Refused(Exception):
@@ -51,6 +58,10 @@ class Published:
     # Every note in them, each once, in order.
     notes: tuple[str, ...]
     lines: int
+    # The file of changes of each reviewer, as it is on the disk, by the reviewer.
+    changes: Mapping[str, bytes]
+    # Every reason in them, each once, in the order they were written.
+    reasons: tuple[str, ...]
 
     @property
     def queues(self) -> tuple[str, ...]:
@@ -82,10 +93,38 @@ def _standing(queue: make.Queue) -> Iterator[tuple[str, list[Line]]]:
             yield reviewer, sorted(kept, key=lambda line: line.n)
 
 
-def build(desk: make.Desk) -> Published:
+def _reasons(changes: Mapping[str, bytes]) -> tuple[str, ...]:
+    """Every reason in the files of changes, each once. Raises `Refused` for a file that
+    is not lines of JSON, each with its reason."""
+    found: dict[str, None] = {}
+    for reviewer in sorted(changes, key=records.number_of):
+        try:
+            for row in changes[reviewer].decode("utf-8").splitlines():
+                why = json.loads(row)["why"]
+                if not isinstance(why, str):
+                    raise TypeError
+                found[why] = None
+        except (ValueError, KeyError, TypeError):
+            raise Refused(f"The file of changes of {reviewer} cannot be read") from None
+    return tuple(found)
+
+
+def changes_in(data: Path) -> dict[str, bytes]:
+    """The file of changes of each reviewer, as it is on the disk."""
+    folder = data / TREE / CHANGES
+    return {
+        path.stem: path.read_bytes()
+        for path in sorted(folder.glob("r*.jsonl"))
+        if path.is_file() and not path.is_symlink() and records.REVIEWER.fullmatch(path.stem)
+    }
+
+
+def build(desk: make.Desk, changes: Mapping[str, bytes] | None = None) -> Published:
     """Every file of the published copy, as bytes. Raises `Refused` for the made-up city."""
     if desk.synthetic:
         raise Refused("The made-up city is never published")
+    changes = dict(changes or {})
+    reasons = _reasons(changes)
     files: dict[tuple[str, str], bytes] = {}
     notes: set[str] = set()
     count = 0
@@ -102,22 +141,26 @@ def build(desk: make.Desk) -> Published:
             files[name, reviewer] = text.encode("utf-8")
             notes.update(line.note for line in lines if line.note)
             count += len(lines)
-    return Published(files, tuple(sorted(notes)), count)
+    return Published(files, tuple(sorted(notes)), count, changes, reasons)
 
 
 def run(data: Path, to: Path, questions: Path) -> Published:
     """Make the copy and write it under `<to>/decisions/`. Raises `Unfit` or `Refused`, and
     then writes nothing. A file of an earlier run that this one did not make is removed."""
-    found = build(make.load(data, questions))
+    found = build(make.load(data, questions), changes_in(data))
     tree = to / TREE
-    for (queue, reviewer), held in found.files.items():
+    every = {
+        **found.files,
+        **{(CHANGES, reviewer): held for reviewer, held in found.changes.items()},
+    }
+    for (queue, reviewer), held in every.items():
         path = tree / queue / f"{reviewer}.jsonl"
         path.parent.mkdir(parents=True, exist_ok=True)
         partial = path.with_name(f".{path.name}.partial")
         partial.write_bytes(held)
         partial.chmod(0o644)
         partial.replace(path)
-    made = {tree / queue / f"{reviewer}.jsonl" for queue, reviewer in found.files}
+    made = {tree / queue / f"{reviewer}.jsonl" for queue, reviewer in every}
     for path in sorted(tree.glob("*/r*.jsonl")) if tree.is_dir() else ():
         if path not in made and path.is_file() and not path.is_symlink():
             path.unlink()

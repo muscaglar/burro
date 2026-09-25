@@ -1,10 +1,11 @@
 """The measures of town centres in the whole of a made-up build, on the day core names them.
 
 A build leaves the size and the shape of a centre out while their names are not
-core's. These tests stand for the day core and the measures say the same, so
+core's. This test stands for the day core and the measures say the same, so
 that nothing but the name is seen to keep either out: the release is written,
-every fact of it has its evidence, and Village feel is placed where both have
-a figure. No real build is made so.
+and every fact of it has its evidence. No real build is made so. Neither is a
+part of any recipe since 2026-09-25, when Village feel came to be made of the
+high street nearest a home: `test_preview_of_high_streets.py` holds that.
 
 The distance to the nearest centre is another matter. Core names it as it is
 built, a distance in metres, so every build made here carries it.
@@ -18,19 +19,15 @@ import io
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
-import pytest
-from burro_core.catalogue import TAG_MIN_COVERAGE_HUNDREDTHS, TAGS
-from burro_core.ids import FeatureId, TagId
-from burro_core.release import FeatureValue, TagValue
-from burro_pipeline.assemble import release as release_rows
+from burro_core.catalogue import TAGS
+from burro_core.ids import FeatureId
 from burro_pipeline.derive import centre_compact, centre_small
 from burro_pipeline.release.read import read_release
 
-from ..derive.centres_support import QUILLHAVEN_1, QUILLHAVEN_2, TALLOWGATE
-from .support import Made, made, named_as_core_names_it
+from ..derive.centres_support import QUILLHAVEN_1, QUILLHAVEN_2
+from .support import made, named_as_core_names_it
 
 SIZE_AND_SHAPE = {FeatureId.CENTRE_SMALL, FeatureId.CENTRE_COMPACT}
-ENOUGH = TAG_MIN_COVERAGE_HUNDREDTHS / 100
 
 
 def test_named_as_core_names_them_the_size_and_the_shape_of_a_centre_are_carried(tmp_path: Path):
@@ -56,62 +53,5 @@ def test_named_as_core_names_them_the_size_and_the_shape_of_a_centre_are_carried
         for feature in SIZE_AND_SHAPE
     }
     assert with_a_figure == {feature: {QUILLHAVEN_1, QUILLHAVEN_2} for feature in SIZE_AND_SHAPE}
-
-
-def test_village_feel_is_placed_where_the_size_and_the_shape_of_a_centre_have_a_figure(
-    tmp_path: Path,
-):
-    """Each is 20 in 100 of the recipe, and homes before 1919 is 20 more."""
-    parts = {term.feature_id: term.hundredths for term in TAGS[TagId.VILLAGE_FEEL].terms}
-    assert {parts[feature] for feature in SIZE_AND_SHAPE} == {20}
-    before = _placed(made(tmp_path / "before"))
-    found = made(tmp_path / "after")
-    with named_as_core_names_it(centre_small), named_as_core_names_it(centre_compact):
-        after = _placed(found)
-    for area in (QUILLHAVEN_1, QUILLHAVEN_2):
-        assert after[area].coverage == pytest.approx(before[area].coverage + 0.4)
-        assert after[area].coverage >= ENOUGH and after[area].score is not None
-    # Nothing is put in for the area with no figure: it is placed no more than it was.
-    assert after[TALLOWGATE].coverage == before[TALLOWGATE].coverage
-    assert (after[TALLOWGATE].score is None) == (before[TALLOWGATE].score is None)
-
-
-def test_no_build_places_an_area_on_village_feel_without_a_figure_of_its_town_centre():
-    """A build with the brands holds 60 in 100 of Village feel, and nothing of a town centre.
-
-    It found inner London's old streets and no villages, so it is held off every build
-    until a second try reads as villages. Food and drink rests on independent places too,
-    and is placed as it was.
-    """
-    areas = ("lon-n0001", "lon-n0002", "lon-n0003")
-    held = (
-        FeatureId.INDEPENDENTS_NEARBY,
-        FeatureId.HOMES_PRE1919,
-        FeatureId.CONSERVATION_COVER,
-        FeatureId.VENUE_FOOD_DRINK_PER_HOMES,
-    )
-    assert not set(held) & SIZE_AND_SHAPE
-    features = [
-        FeatureValue(
-            area_id=area, feature_id=feature, value=value, percentile=percentile, coverage=1.0
-        )
-        for feature in held
-        for area, value, percentile in zip(areas, (1.0, 2.0, 3.0), (16.7, 50.0, 83.3), strict=True)
-    ]
-    vibes = [TAGS[TagId.VILLAGE_FEEL], TAGS[TagId.FOODIE]]
-
-    rows = release_rows.tags_of(features, areas, vibes)
-
-    village = [row for row in rows if row.tag_id is TagId.VILLAGE_FEEL]
-    assert [row.coverage for row in village] == [0.6, 0.6, 0.6]
-    assert {(row.raw, row.score, row.band) for row in village} == {(None, None, None)}
-    food = [row for row in rows if row.tag_id is TagId.FOODIE]
-    assert [row.coverage for row in food] == [0.8, 0.8, 0.8]
-    assert [row.band for row in food] == [1, 2, 4]
-
-
-def _placed(found: Made) -> dict[str, TagValue]:
-    with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
-        assert found.run() == 0
-    release = read_release(found.release)
-    return {tag.area_id: tag for tag in release.tags if tag.tag_id == TagId.VILLAGE_FEEL}
+    # Neither is a part of any recipe, so neither places an area on a vibe.
+    assert not SIZE_AND_SHAPE & {term.feature_id for tag in TAGS.values() for term in tag.terms}

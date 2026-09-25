@@ -1,0 +1,60 @@
+{
+  "panel": 1,
+  "about": "The three searches the panel ranks before and after a change, so that a person sees what the change would move. Each is a search as the website would send it: typed edits, and no words. No search of anyone's is kept here: the first is the founder's own test sentence, which is case whole-035 of the reader's evaluation set, by their consent, and the other two are made up. A place is named by where its words stand in the sentence, as offsets, and never by the words.",
+  "cases": "evals/reader/cases/whole_searches.jsonl",
+  "searches": [
+    {
+      "id": "the_founders_sentence",
+      "name": "The founder's own sentence",
+      "case": "whole-035",
+      "read_as": "Every offer the reader makes of the sentence, pressed the way it is offered first. The journey and the budget are firm limits.",
+      "tenure": "buy",
+      "budget": {"amount": 400000, "segment": "flat", "firm": true},
+      "journeys": [{"words": [167, 180], "minutes": 40, "firm": true}],
+      "vibes": [
+        {"vibe": "quiet_residential", "toward": "high"},
+        {"vibe": "built_age", "toward": "high"},
+        {"vibe": "street_character", "toward": "low"}
+      ],
+      "measures": [
+        {"measure": "park_proximity", "way": "less"},
+        {"measure": "brand_mix", "way": "more"},
+        {"measure": "price_median", "way": "more"},
+        {"measure": "homes_higher_bands", "way": "more"},
+        {"measure": "culture_venues_per_homes", "way": "more"},
+        {"measure": "highstreet_access", "way": "less"}
+      ]
+    },
+    {
+      "id": "a_family_buying_a_house",
+      "name": "A family, buying a house",
+      "says": "Family amenities, parks close by and quiet streets, to buy a terraced house.",
+      "read_as": "Three vibes, each asked for by name, and a budget that is a guide.",
+      "tenure": "buy",
+      "budget": {"amount": 650000, "segment": "terraced", "firm": false},
+      "journeys": [],
+      "vibes": [
+        {"vibe": "family_amenities", "toward": "high"},
+        {"vibe": "parks_close_by", "toward": "high"},
+        {"vibe": "quiet_residential", "toward": "high"}
+      ],
+      "measures": []
+    },
+    {
+      "id": "nights_out_well_connected",
+      "name": "Nights out, and well connected",
+      "says": "Buzzy, with food and drink, a village feel and well connected, to buy a flat.",
+      "read_as": "Four vibes, each asked for by name, and no budget.",
+      "tenure": "buy",
+      "budget": null,
+      "journeys": [],
+      "vibes": [
+        {"vibe": "pace", "toward": "high"},
+        {"vibe": "foodie", "toward": "high"},
+        {"vibe": "village_feel", "toward": "high"},
+        {"vibe": "well_connected", "toward": "high"}
+      ],
+      "measures": []
+    }
+  ]
+}

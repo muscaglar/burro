@@ -48,8 +48,9 @@ together homes stand, and says little that homes per hectare does not.
 **The name and the unit.** The file counts arson with criminal damage, and the
 figure is for each 1,000 homes. The row of the catalogue says both, as core
 names the measure, so a build whose lists hold the police's file carries it.
-The row of the proxy audit that ADR 0006 asks for is in
-`docs/research/data/incidents.md`, section 11.
+A row of the proxy audit was written before it was served, in
+`docs/research/data/incidents.md`, section 11. The audit was dropped on
+2026-09-25 (ADR 0006, as amended), and the row holds nothing back.
 
 What is read from the file and never assumed:
 

@@ -241,8 +241,11 @@ def test_the_desk_prints_nothing_of_what_the_page_asked_or_sent(sat: Sat):
     said = (
         r"The review desk, as r1\.|MADE-UP CITY\. Nothing here is a real place\."
         r"|Decisions are kept in .+|Open http://127\.0\.0\.1:\d+/"
+        r"|The panel shows the release in [a-z/]+/syn-2026-09-23-01\."
         r"|Ctrl-C stops it\. Every decision is on disk already\.|Stopped\.|"
     )
     for line in sat.seen["printed"].splitlines():
         assert re.fullmatch(rf"(GET|POST) ({templates}) \d{{3}}|{said}", line), "a line of its own"
-    assert "A made-up" not in sat.seen["printed"] and "syn-" not in sat.seen["printed"]
+    # The release is named by its id, which names no place. No id of an item is printed.
+    printed = sat.seen["printed"].replace("/syn-2026-09-23-01.", "")
+    assert "A made-up" not in printed and "syn-" not in printed

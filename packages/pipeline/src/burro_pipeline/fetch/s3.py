@@ -16,7 +16,7 @@ import io
 import ipaddress
 import re
 import ssl
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
@@ -29,6 +29,7 @@ from burro_pipeline.fetch.store import (
     LARGEST_RECEIPT,
     PIECE,
     RECEIPT_KEY,
+    S3_VARIABLES,
     Held,
     Part,
     StoreError,
@@ -153,8 +154,13 @@ class S3Store:
     part = Part.PRODUCT
 
     def __init__(
-        self, settings: Settings, now: Callable[[], datetime] = lambda: datetime.now(UTC)
+        self,
+        settings: Settings,
+        now: Callable[[], datetime] = lambda: datetime.now(UTC),
+        named: Sequence[str] = S3_VARIABLES,
     ) -> None:
+        """`named` is what the environment calls the four settings, for a refusal to name."""
+        endpoint, bucket, key_id, secret = named
         address = urlsplit(settings.endpoint)
         try:
             port = address.port
@@ -174,13 +180,11 @@ class S3Store:
             or address.query
             or address.fragment
         ):
-            raise StoreError(
-                "BURRO_STORE_ENDPOINT must be an https address with no path, query or login"
-            )
+            raise StoreError(f"{endpoint} must be an https address with no path, query or login")
         if not BUCKET.fullmatch(settings.bucket):
-            raise StoreError("BURRO_STORE_BUCKET is not a bucket name")
+            raise StoreError(f"{bucket} is not a bucket name")
         if not (settings.key_id and settings.secret and settings.region):
-            raise StoreError("BURRO_STORE_KEY_ID and BURRO_STORE_SECRET must both be set")
+            raise StoreError(f"{key_id} and {secret} must both be set")
         self._settings = settings
         self._secure = address.scheme == "https"
         self._host = address.hostname
@@ -233,6 +237,48 @@ class S3Store:
         if status != 200:
             raise StoreError(f"the store answered {_said(status, said)} when asked for a file")
         return held
+
+    def keep_at(self, key: str, content: Path, sha256: str, size: int) -> bool:
+        """Keep a file under a key of the caller's own choosing, if nothing is kept there.
+
+        Returns whether this call added it. What is kept under the key already
+        is left as it is, whatever it holds: the caller reads it back to say
+        whether it is the same. A publisher's file is never kept this way: it
+        is kept under its hash, by `put`.
+        """
+        try:
+            with content.open("rb") as file:
+                status, _, said = self._ask(
+                    "PUT", key, more={"if-none-match": "*"}, body=file, sha256=sha256, length=size
+                )
+        except OSError:
+            raise StoreError("the file to keep could not be read") from None
+        if status == 412:
+            return False
+        if status not in (200, 201, 204):
+            raise StoreError(f"the store answered {_said(status, said)} to a file sent to it")
+        return True
+
+    def copy_from(self, key: str, sha256: str, to: Path) -> bool:
+        """Copy out what is kept under a key, and keep the copy only if its hash is right.
+
+        Returns whether anything is kept under the key.
+        """
+
+        def keep(answer: BinaryIO) -> None:
+            try:
+                copy_checked(answer, to, sha256)
+            except OSError:
+                raise StoreError("the copy could not be written, or the store stopped") from None
+            except http.client.HTTPException:
+                raise StoreError("the store stopped before the file was whole") from None
+
+        status, _, said = self._ask("GET", key, keep=keep)
+        if status == 404:
+            return False
+        if status != 200:
+            raise StoreError(f"the store answered {_said(status, said)} when asked for a file")
+        return True
 
     def _ask(
         self,

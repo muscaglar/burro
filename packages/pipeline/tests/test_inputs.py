@@ -6,14 +6,18 @@ makes, and the registry is three made-up entries. Nothing is fetched.
 
 import hashlib
 import io
+import socket
 import zipfile
+from collections.abc import Callable, Mapping
 from pathlib import Path
+from typing import cast
 
 import pytest
 from burro_pipeline.evidence.lock import InputKind, Lock, LockedInput, LockError
 from burro_pipeline.evidence.receipt import How, Period, Receipt
 from burro_pipeline.evidence.record import file_id_of
-from burro_pipeline.fetch.store import FolderStore
+from burro_pipeline.fetch.offline import sockets_refused
+from burro_pipeline.fetch.store import FolderStore, Held, Store, StoreError
 from burro_pipeline.inputs import Inputs, period_of, retrieved_on
 from burro_pipeline.registry import (
     CommercialUse,
@@ -140,6 +144,128 @@ def test_nothing_is_written_to_the_store(tmp_path: Path):
     before = held(tmp_path / "store")
     inputs.open("made-up-homes", Use.SCORING)
     assert held(tmp_path / "store") == before
+
+
+# A store that is reached over a network
+
+
+class Reached:
+    """A store that is reached over a network: it answers only while a socket may be made.
+
+    It stands in for an object store. Behind it is a folder, so nothing here
+    reaches a network. It counts what it was asked for.
+    """
+
+    kind = "object_store"
+
+    def __init__(self, folder: Path) -> None:
+        self.behind = FolderStore(folder)
+        self.part = self.behind.part
+        self.asked: list[str] = []
+
+    def get(self, sha256: str, to: Path) -> Held:
+        # What the guard of a step puts in the place of a socket is a class of its own.
+        if socket.socket.__module__ == sockets_refused.__module__:
+            raise StoreError("the store could not be reached")
+        self.asked.append(sha256)
+        return self.behind.get(sha256, to)
+
+    def list(self) -> list[Held]:
+        return self.behind.list()
+
+
+def in_place_of_the_environment(store: Reached) -> Callable[[Mapping[str, str]], Store]:
+    """What a step asks for its store, where it is to be given this one whatever is named."""
+
+    def named(_: Mapping[str, str]) -> Store:
+        return cast(Store, store)
+
+    return named
+
+
+def reached(tmp_path: Path, *files: tuple[Receipt, bytes]) -> tuple[Inputs, Reached]:
+    inputs = inputs_of(tmp_path, *files)
+    store = Reached(tmp_path / "store")
+    inputs.store = cast(Store, store)
+    return inputs, store
+
+
+def test_every_file_is_copied_out_of_a_store_before_any_is_read(tmp_path: Path):
+    """A step reads with no socket open, and an object store is reached over a network."""
+    parks = receipt("made-up-parks", "parks.csv", PARKS)
+    inputs, store = reached(tmp_path, (HOMES_RECEIPT, HOMES), (parks, PARKS))
+    assert inputs.copy_out() == (2, len(HOMES) + len(PARKS))
+    assert sorted(store.asked) == sorted([HOMES_RECEIPT.sha256, parks.sha256])
+    with sockets_refused():
+        opened = inputs.open("made-up-homes", Use.SCORING)
+        assert opened.path.read_bytes() == HOMES
+        assert inputs.open("made-up-parks", Use.DISPLAY).path.read_bytes() == PARKS
+    # Nothing more was asked of the store: each copy was there, and was the file.
+    assert len(store.asked) == 2
+
+
+def test_a_file_that_was_not_copied_out_is_not_read_with_no_socket_open(tmp_path: Path):
+    inputs, store = reached(tmp_path, (HOMES_RECEIPT, HOMES))
+    with sockets_refused():
+        error = refused(inputs, "made-up-homes", Use.SCORING)
+    assert (error.rule, store.asked) == ("file_is_in_the_vault", [])
+
+
+def test_a_file_that_is_copied_out_already_is_not_asked_for_again(tmp_path: Path):
+    inputs, store = reached(tmp_path, (HOMES_RECEIPT, HOMES))
+    assert inputs.copy_out() == (1, len(HOMES))
+    assert inputs.copy_out() == (1, len(HOMES))
+    assert len(store.asked) == 1
+
+
+def test_a_copy_that_is_not_the_file_is_copied_out_again(tmp_path: Path):
+    inputs, store = reached(tmp_path, (HOMES_RECEIPT, HOMES))
+    inputs.copy_out()
+    (copy,) = [path for path in (tmp_path / "work").rglob("*") if path.is_file()]
+    copy.write_bytes(HOMES.replace(b"120", b"121"))
+    inputs.copy_out()
+    assert copy.read_bytes() == HOMES and len(store.asked) == 2
+
+
+def test_a_file_the_store_does_not_hold_stops_the_copying_and_is_named_by_its_id(
+    tmp_path: Path,
+):
+    inputs, _ = reached(tmp_path, (HOMES_RECEIPT, HOMES))
+    (tmp_path / "store" / HOMES_RECEIPT.vault_key()).unlink()
+    with pytest.raises(LockError) as stopped:
+        inputs.copy_out()
+    assert (stopped.value.rule, stopped.value.subject) == (
+        "file_is_in_the_vault",
+        HOMES_RECEIPT.file_id,
+    )
+
+
+def test_a_file_the_lock_does_not_name_is_not_copied_out(tmp_path: Path):
+    inputs, store = reached(tmp_path, (HOMES_RECEIPT, HOMES))
+    inputs.lock = Lock(
+        release_id="lon-2026-10-02-01",
+        built_at="2026-10-02T09:00:00Z",
+        commit="0" * 40,
+        inputs=(
+            LockedInput(
+                name=file_id_of("1" * 64),
+                kind=InputKind.PUBLISHER_FILE,
+                sha256="1" * 64,
+                bytes=1,
+                source_id="made-up-homes",
+            ),
+        ),
+    )
+    with pytest.raises(LockError) as stopped:
+        inputs.copy_out()
+    assert stopped.value.rule == "input_is_locked" and store.asked == []
+
+
+def test_a_file_kept_for_the_audit_is_not_copied_out(tmp_path: Path):
+    given = receipt("made-up-residents", "residents.csv", PARKS, use="audit_only")
+    inputs, store = reached(tmp_path, (given, PARKS), (HOMES_RECEIPT, HOMES))
+    assert inputs.copy_out() == (1, len(HOMES))
+    assert store.asked == [HOMES_RECEIPT.sha256]
 
 
 # The gate

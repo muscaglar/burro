@@ -207,6 +207,8 @@ function parse(html, page) {
 }
 
 export const HTML = readFileSync(fileURLToPath(new URL('../../index.html', import.meta.url)), 'utf8');
+// The page of the panel, which is a page of its own beside the desk's.
+export const PANEL = readFileSync(fileURLToPath(new URL('../../panel.html', import.meta.url)), 'utf8');
 
 // The page, as desk.mjs is handed it. `fetch` is the desk's, or a stand-in's.
 export function browser(fetch, options = {}) {
@@ -222,7 +224,7 @@ export function browser(fetch, options = {}) {
       },
     },
   );
-  const root = parse(HTML, page);
+  const root = parse(options.html || HTML, page);
   const listeners = new Map();
   page.document = {
     listeners,
@@ -256,9 +258,17 @@ export function browser(fetch, options = {}) {
     for (const fn of windowListeners.get(type) || []) fn(event);
     return event;
   };
+  // Where the page is, as the panel reads it: the part of the address after the hash.
+  page.location = { hash: options.hash || '' };
+  page.go = async (hash) => {
+    page.location.hash = hash;
+    page.fireWindow('hashchange');
+    await page.settle();
+  };
   page.env = {
     document: page.document,
     window: page.window,
+    location: page.location,
     fetch,
     now: () => page.at,
     setTimeout: (fn, ms) => {

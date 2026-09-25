@@ -335,7 +335,8 @@ MALFORMED = [
         "tags.json",
         "raw_matches_recipe",
         "tags.json, at rows[4], places an area on a vibe by figures that are not the ones the "
-        "release holds for it, or says more of the recipe was there than was",
+        "release holds for it, or by another recipe than it carries, or says more of the recipe "
+        "was there than was",
     ),
     (
         score_moved,
@@ -619,7 +620,7 @@ def test_the_command_builds_the_release_and_checks_it(
     assert main(["check", str(tmp_path / RELEASE_ID)]) == 0
     built, checked = capsys.readouterr().out.splitlines()
     assert built == checked
-    assert built.startswith(f"{RELEASE_ID}: 24 areas (22 rankable), 108 measures, 40 destinations")
+    assert built.startswith(f"{RELEASE_ID}: 24 areas (22 rankable), 109 measures, 40 destinations")
     assert built.endswith(", synthetic")
 
 

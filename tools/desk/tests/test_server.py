@@ -517,9 +517,90 @@ def test_a_path_that_climbs_out_of_its_folder_finds_nothing(refusing: Sitting, p
     assert b"Not the page" not in got.raw and b"not a file" not in got.raw
 
 
-@pytest.mark.parametrize("path", ["/?x=1", "/api/state?token=1", "/page/index.html?v=2", "/#top"])
-def test_a_path_with_a_query_finds_nothing(refusing: Sitting, path: str):
-    assert refusing.get(path).status == 404
+def lines_on_disk_of(sitting: Sitting) -> dict[str, bytes]:
+    """Every file the desk holds under its data, as it is on disk."""
+    folder = sitting.desk.data
+    return {str(path): path.read_bytes() for path in folder.rglob("*") if path.is_file()}
+
+
+@pytest.mark.parametrize(
+    ("asked", "is_the_address"),
+    [
+        ("/?x=1", "/"),
+        ("/?", "/"),
+        ("/api/state?token=1", "/api/state"),
+        ("/page/index.html?v=2", "/page/index.html"),
+        ("/page/desk.css?v=2&w=%zz", "/page/desk.css"),
+        ("/api/item/names/n%3Asyn-n0004?a/b/../c", "/api/item/names/n%3Asyn-n0004"),
+        ("/?x=1?y=2#top", "/"),
+    ],
+)
+def test_an_address_is_read_by_its_path_and_what_follows_a_question_mark_is_left_aside(
+    refusing: Sitting, asked: str, is_the_address: str
+):
+    # Seen in a browser: "/?x=1" was answered "The desk holds nothing by that name".
+    got, plain = refusing.get(asked), refusing.get(is_the_address)
+    assert (got.status, plain.status) == (200, 200)
+    assert got.raw == plain.raw
+    assert got.headers["content-type"] == plain.headers["content-type"]
+    assert route(asked) is not None
+    assert route(asked) == route(is_the_address)
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/#top",
+        "/page/index.html#top",
+        # An encoded question mark is part of a word, and no page bears such a name.
+        "/page/index.html%3Fv=2",
+        "/%3Fx=1",
+        "/api/state;x=1",
+        "/api/state&x=1",
+        "?x=1",
+    ],
+)
+def test_no_mark_but_a_question_mark_ends_the_path(refusing: Sitting, path: str):
+    got = refusing.get(path)
+    assert (got.status, got.error) == (404, "not_found")
+
+
+def test_what_follows_a_question_mark_chooses_nothing_and_is_written_nowhere(sitting: Sitting):
+    said = CANARY.replace(" ", "%20")
+    assert sitting.get(f"/?{said}").status == 200
+    state = sitting.get("/api/state").held
+    assert sitting.get(f"/api/state?note={said}").held == state
+    # A token in the address is no token: a request to write shows it in its header.
+    token, before = state["token"], len(sitting.lines("names"))
+    sent = decision("names", "n:syn-n0004", "area", stands=None)
+    refused = sitting.ask(
+        "POST",
+        f"/api/decide?token={token}&X-Desk-Token={token}",
+        json.dumps(sent).encode(),
+        {"Content-Type": "application/json"},
+    )
+    assert (refused.status, refused.error) == (403, "forbidden")
+    assert len(sitting.lines("names")) == before
+    # With the token where it belongs, the same address writes: the path alone was read.
+    written = sitting.ask(
+        "POST",
+        f"/api/decide?{said}",
+        json.dumps(sent).encode(),
+        {"Content-Type": "application/json", "X-Desk-Token": token},
+    )
+    assert written.status == 200 and len(sitting.lines("names")) == before + 1
+    # The log holds the template of each, and nothing of what followed the question mark.
+    assert sitting.log == [
+        "GET / 200",
+        "GET /api/state 200",
+        "GET /api/state 200",
+        "POST /api/decide 403",
+        "POST /api/decide 200",
+    ]
+    assert "Zzyzx" not in "".join(sitting.log) and token not in "".join(sitting.log)
+    for answered in (written, sitting.get(f"/nothing?{said}"), sitting.get(f"/?{said}")):
+        assert b"Zzyzx" not in answered.raw and said.encode() not in answered.raw
+    assert not any(b"Zzyzx" in held for held in lines_on_disk_of(sitting).values())
 
 
 def test_a_path_is_cut_at_each_slash_before_it_is_decoded():
@@ -2007,12 +2088,14 @@ def test_the_one_command_starts_the_desk_prints_the_address_and_opens_nothing(tm
     stop.start()
     try:
         assert desk.stdout is not None
-        said = [desk.stdout.readline() for _ in range(5)]
+        said = [desk.stdout.readline() for _ in range(6)]
         assert said[:2] == [
             "The review desk, as r1.\n",
             "MADE-UP CITY. Nothing here is a real place.\n",
         ]
-        address = re.fullmatch(r"Open http://127\.0\.0\.1:(\d+)/\n", said[3])
+        assert said[3].startswith("The panel shows the release in "), "which release is shown"
+        assert said[3].endswith("syn-2026-09-23-01.\n")
+        address = re.fullmatch(r"Open http://127\.0\.0\.1:(\d+)/\n", said[4])
         assert address is not None, "the desk prints the address to open"
         sitting = Sitting(cast(Desk, None), int(address[1]), [], hears=False)
 
@@ -2085,6 +2168,8 @@ def test_make_desk_runs_the_command_and_nothing_more():
     recipe = re.search(r"^desk:.*\n((?:\t.*\n)+)", makefile, re.MULTILINE)
     assert recipe is not None
     assert recipe[1] == (
-        "\t@PYTHONPATH=tools uv run --no-project python -m desk serve "
-        "--reviewer $(REVIEWER) $(if $(KEEP),--keep $(KEEP)) $(ARGS)\n"
+        "\t@PYTHONPATH=tools uv run python -m desk serve "
+        "--reviewer $(REVIEWER) $(if $(KEEP),--keep $(KEEP)) "
+        "$(if $(RELEASE),--release $(RELEASE)) $(if $(BEFORE),--before $(BEFORE)) "
+        "$(if $(DATA),--data $(DATA)) $(ARGS)\n"
     )

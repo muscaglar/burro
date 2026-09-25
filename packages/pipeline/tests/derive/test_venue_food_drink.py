@@ -548,17 +548,15 @@ def test_the_places_for_each_thousand_homes_are_a_measure_of_their_own_and_are_r
 
 def test_nothing_holds_the_two_measures_back_and_the_registers_pubs_are_no_measure():
     """The hold on the count was lifted when core came to say what was decided. The pubs are
-    counted from the file of places, and the register's pubs alone join no build. Private
-    outdoor space is held for another reason: its audit has not been run."""
+    counted from the file of places, and the register's pubs alone join no build. No
+    measure is held back: the hold on private outdoor space went with the proxy audit."""
     listed = {one.feature: one for one in measures.MEASURES}
     for feature in (FeatureId.VENUE_FOOD_DRINK, FeatureId.VENUE_FOOD_DRINK_PER_HOMES):
         assert (listed[feature].held_back, listed[feature].waits_on) == ((), ())
         assert listed[feature].in_parts and not listed[feature].in_squares
     assert venue_food_drink.HELD_BACK == () and venue_food_drink.WAITS_ON == ()
-    # One measure is held back, and by no check of these figures: the register's pubs alone
-    # are no measure of a build.
-    held = [one.feature for one in measures.MEASURES if one.held_back]
-    assert held == [FeatureId.PRIVATE_OUTDOOR_SPACE]
+    # No measure is held back, and the register's pubs alone are no measure of a build.
+    assert [one.feature for one in measures.MEASURES if one.held_back] == []
     assert listed[FeatureId.VENUE_EVENING].source != venue_food_drink.SOURCE
 
 

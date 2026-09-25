@@ -914,12 +914,13 @@ def test_the_row_of_the_catalogue_says_what_core_says_of_the_measure(town: Expos
     assert len(metric.source_ids) == 4
 
 
-def test_no_area_is_ranked_on_the_figure_until_it_has_been_audited(town: Exposure):
+def test_no_area_is_ranked_on_the_figure_by_itself(town: Exposure):
     """The row switches the measure off for ranking by itself. Its values are still shown.
 
-    The design expects main roads to follow who lives somewhere, and no audit of the
-    figure has been run (ADR 0006). A vibe still rests on it: core places a vibe on
-    every part of its recipe that a release holds.
+    The design expects main roads to follow who lives somewhere. No audit of the figure
+    has been run, and none is to be since 2026-09-25 (ADR 0006, as amended): whether an
+    area is ranked on it alone is the founder's to say. A vibe still rests on it: core
+    places a vibe on every part of its recipe that a release holds.
     """
     assert town.metric.rankable is False
     assert roads.RANKABLE is False

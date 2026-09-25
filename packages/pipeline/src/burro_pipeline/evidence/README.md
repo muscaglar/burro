@@ -238,7 +238,7 @@ The step `preview` leaves a measure out of a release, and goes on, in four cases
 | Left out when | Rule |
 |---|---|
 | The file of the measure has no receipt among those of the list | `input_has_one_receipt` |
-| A check of the measure's figures found that they do not yet say what the measure is named for, or a check that is asked for before the measure is served has not been made. Its module says which, under `HELD_BACK`. It is left out whatever core says of it | `measure_is_not_held_back` |
+| A check of the measure's figures found that they do not yet say what the measure is named for. Its module says what was found, under `HELD_BACK`. It is left out whatever core says of it | `measure_is_not_held_back` |
 | The row of the catalogue the measure makes does not name and measure it as core does. Core would refuse the release | `measure_is_as_core_says` |
 | No area has a figure for the measure | `measure_has_a_figure` |
 

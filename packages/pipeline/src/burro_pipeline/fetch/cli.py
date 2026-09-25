@@ -4,6 +4,7 @@
     python -m burro_pipeline fetch --list m1        fetch every file of the list that has an address
     python -m burro_pipeline by-hand --list m1 ...  take a file a person saved from a browser
     python -m burro_pipeline held --out FILE        what the store holds, as `seal` reads it
+    python -m burro_pipeline held --receipts FOLDER whether it holds every file that has a receipt
     python -m burro_pipeline receipts               bring the receipts in the store to the folder
     python -m burro_pipeline describe f-0123...     the shape of a stored file, on your own machine
     python -m burro_pipeline why                    what each `why=` number means
@@ -16,9 +17,10 @@ printed.
 
 `plan`, `fetch`, `by-hand`, `held` and `receipts` print lines of `key=value` that
 hold step names, registry ids, counts and hashes, under names that are on the
-list in `tools/public_log.py`. `--words` adds a sentence for a person at a
-terminal. `describe` prints JSON that holds names from the file's own layout.
-`fetch` is the only command that reaches a publisher.
+list in `tools/public_log.py`. `held` names a list and an item of one too, as
+the lists of this repository name them. `--words` adds a sentence for a person
+at a terminal. `describe` prints JSON that holds names from the file's own
+layout. `fetch` is the only command that reaches a publisher.
 """
 
 import argparse
@@ -34,7 +36,8 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from burro_pipeline.command import PROG, Step, add_step
-from burro_pipeline.evidence import Receipt, Where
+from burro_pipeline.evidence import How, LockError, Receipt, Where, read_receipts
+from burro_pipeline.evidence.lock import said_in, said_of, stated_in
 from burro_pipeline.evidence.receipt import RECEIPTS_FOLDER
 from burro_pipeline.fetch import gate
 from burro_pipeline.fetch.by_hand import keep_by_hand
@@ -54,8 +57,10 @@ from burro_pipeline.fetch.run import (
     refusal,
     summary,
     write_receipt,
+    written_down,
 )
 from burro_pipeline.fetch.sources import (
+    LISTS,
     FetchList,
     InTheFile,
     Listed,
@@ -67,6 +72,7 @@ from burro_pipeline.fetch.store import (
     FOLDER_VARIABLE,
     S3_VARIABLES,
     FolderStore,
+    Held,
     Store,
     StoreError,
     find,
@@ -213,14 +219,33 @@ receipt is kept in the store too.""",
 Run it before `seal`, with --out. The listing gives the size of each file in
 the store by its key, and `seal` checks every receipt against it.
 
-Reaches no publisher. Reaches the store.
+With --receipts it holds the store to the receipts of that folder. Of every
+receipt it asks what `seal` asks: whether the store holds the file under the
+key the receipt gives, at the size the receipt gives. The key holds the hash
+of the file, so a file that is there under its key is the file its receipt is
+of. No file is copied out and none is read. It says what it found list by
+list, for every list of this repository.
+
+Reaches no publisher. Reaches the store, to list it. Writes nothing to it.
 
 {THE_STORE}
 {SAYS_WHICH}
 
-Then it prints one line: how many files the store holds, and how many bytes.""",
-        ("", "--out listing.json"),
-        {0: "The store answered", 2: COULD_NOT_START, 3: A_FAULT},
+Then it prints one line: how many files the store holds, and how many bytes.
+With --receipts it prints one line for each list: how many files the list
+names, how many receipts are of them, and how many of those files are missing
+from the store or differ from their receipt. Under it stands one line for each
+such file, with the list, the source, the item and the id of the file. A
+receipt that is of no file of any list is held to the store too, and counted
+as unlisted. The last line gives the totals, and reads `status=ok` where the
+store holds every file that has a receipt.""",
+        ("", "--out listing.json", f"--receipts {RECEIPTS}"),
+        {
+            0: "The store answered, and holds every file it was held to",
+            1: "A file that has a receipt is missing from the store, or differs from its receipt",
+            2: COULD_NOT_START,
+            3: A_FAULT,
+        },
     ),
     Step(
         "receipts",
@@ -307,12 +332,16 @@ class Stop(Exception):
     """The command cannot start. The message is safe to print."""
 
 
-def _list(args: argparse.Namespace) -> FetchList:
-    which: str = args.list
+def _read(which: str) -> FetchList:
+    """A list, by its name or by the path of a file shaped like one."""
     try:
         return load_list(Path(which) if which.endswith(".toml") else which)
     except ListError as error:
         raise Stop(str(error)) from None
+
+
+def _list(args: argparse.Namespace) -> FetchList:
+    return _read(args.list)
 
 
 def _registry(args: argparse.Namespace) -> Registry:
@@ -502,6 +531,9 @@ def _describe(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
 
 
 def _held(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
+    # What the store is held to is read first: a folder that is not there is found
+    # before anything is asked of the store.
+    lists, receipts = _to_hold_to(args)
     try:
         held = _store(environment, said=True).list()
     except StoreError as error:
@@ -516,8 +548,128 @@ def _held(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
         except OSError:
             raise Stop("the listing could not be written") from None
     total = sum(file.bytes for file in held)
-    print(f"step=store status=ok files={len(held)} bytes={total}")
-    return 0
+    print(f"step=store status=ok files={len(held)} bytes={total}", flush=True)
+    return _held_to(lists, receipts, held) if receipts else 0
+
+
+def _to_hold_to(args: argparse.Namespace) -> tuple[list[FetchList], list[Receipt]]:
+    """The lists and the receipts the store is held to. No receipt where it is held to none."""
+    if args.receipts is None:
+        if args.lists is not None:
+            raise Stop("--lists names the lists the store is held to, so --receipts is given too")
+        return [], []
+    try:
+        receipts = [receipt for receipt in read_receipts(args.receipts) if not receipt.made_up]
+    except LockError as error:
+        raise Stop(str(error)) from None
+    if not receipts:
+        # A folder that is wrong must never read as a store that holds everything.
+        raise Stop("the folder of receipts holds no receipt, so the store is held to nothing")
+    lists = [_read(str(path)) for path in sorted((args.lists or LISTS).glob("*.toml"))]
+    if not lists:
+        raise Stop("the folder of lists holds no list, so the store is held to nothing")
+    return lists, receipts
+
+
+def _is_of(receipt: Receipt, file: Listed) -> bool:
+    """Whether a receipt says of its file what a list says of one of its own."""
+    if file.edition_from is not None:
+        return stated_in(receipt, file) is not None
+    return said_in(receipt) == said_of(file)
+
+
+def _may_be_of(receipt: Receipt, lists: Sequence[FetchList]) -> dict[str, tuple[str, ...]]:
+    """The files of each list that a receipt may be of: their items, by the name of the list.
+
+    A receipt is of a file where fetch could have written it from the item. Two
+    files may be said alike: two files of one source and one edition, or one file
+    that is listed once as a person saved it and once as it is fetched. They are
+    told apart by the address the list gives, and then by whether a person saved
+    the file. Where nothing tells them apart, the receipt may be of each.
+    """
+    alike = [(one.build, file) for one in lists for file in one.files if _is_of(receipt, file)]
+    came_from = {receipt.listed_url, receipt.url}
+    by_address = [
+        (build, file)
+        for build, file in alike
+        if file.url and written_down(file.url, file.url) in came_from
+    ]
+    by_hand = receipt.how is How.BY_HAND
+    as_it_was_got = [(build, file) for build, file in alike if file.by_hand == by_hand]
+    found: dict[str, tuple[str, ...]] = {}
+    for build, file in by_address or as_it_was_got or alike:
+        found[build] = (*found.get(build, ()), file.item)
+    return found
+
+
+def paired(receipts: Sequence[Receipt], lists: Sequence[FetchList]) -> list[dict[str, str]]:
+    """For each receipt, the file of each list that it is of: its item, by the name of the list.
+
+    Files that nothing tells apart are given out as a build gives them out: the
+    receipts in the order of their ids, to the files in the order of the list.
+    The step `fresh` names a file by this pairing too, and by no other.
+    """
+    given: dict[tuple[str, tuple[str, ...]], int] = {}
+    paired: list[dict[str, str]] = []
+    for receipt in receipts:
+        of: dict[str, str] = {}
+        for build, items in _may_be_of(receipt, lists).items():
+            before = given.get((build, items), 0)
+            of[build] = items[min(before, len(items) - 1)]
+            given[build, items] = before + 1
+        paired.append(of)
+    return paired
+
+
+def _found(receipt: Receipt, held: Sequence[Held]) -> Status:
+    """Whether the store holds the file of a receipt, as `seal` asks it of a listing."""
+    of_the_hash = [file for file in held if file.sha256 == receipt.sha256]
+    if any((file.key, file.bytes) == (receipt.vault_key(), receipt.bytes) for file in of_the_hash):
+        return Status.OK
+    # Under its key at another size, or under its hash by another name: a file is there,
+    # and it is not as its receipt has it.
+    of_the_source = any(file.source_id == receipt.source_id for file in of_the_hash)
+    return Status.DIFFERS if of_the_source else Status.MISSING
+
+
+def _counted(found: Sequence[Status]) -> tuple[Status, str]:
+    """How the files of some receipts stand in the store: the worst of them, and the counts."""
+    missing, differs = found.count(Status.MISSING), found.count(Status.DIFFERS)
+    status = Status.MISSING if missing else Status.DIFFERS if differs else Status.OK
+    return status, f"missing={missing} differs={differs}"
+
+
+def _held_to(lists: Sequence[FetchList], receipts: Sequence[Receipt], held: Sequence[Held]) -> int:
+    """Say, list by list, whether the store holds every file that has a receipt."""
+    found = [_found(receipt, held) for receipt in receipts]
+    of = paired(receipts, lists)
+    for one in lists:
+        mine = [(n, items[one.build]) for n, items in enumerate(of) if one.build in items]
+        status, counts = _counted([found[n] for n, _ in mine])
+        files = f"files={len(one.files)} receipts={len(mine)}"
+        print(f"step=store list={one.build} status={status} {files} {counts}")
+        for n, item in mine:
+            if found[n] is not Status.OK:
+                source, file_id = receipts[n].source_id, receipts[n].file_id
+                about = f"list={one.build} source={source} item={item}"
+                print(f"step=store {about} status={found[n]} file_id={file_id}")
+    # A receipt that is of no file of a list is of a file a build was made from all the same.
+    unlisted = [n for n, items in enumerate(of) if not items]
+    for n in unlisted:
+        if found[n] is not Status.OK:
+            source, file_id = receipts[n].source_id, receipts[n].file_id
+            print(f"step=store source={source} status={found[n]} file_id={file_id}")
+    status, counts = _counted(found)
+    totals = f"lists={len(lists)} receipts={len(receipts)} {counts} unlisted={len(unlisted)}"
+    print(f"step=store status={status} {totals}", flush=True)
+    if status is not Status.OK:
+        print(
+            "error: the store does not hold every file that has a receipt, as its receipt has "
+            "it. Each line names one: its list, its source, its item and the id of the file. "
+            "Fetch it again, or hand it over with the step by-hand from where it is kept",
+            file=sys.stderr,
+        )
+    return 0 if status is Status.OK else 1
 
 
 def _receipts(args: argparse.Namespace, environment: Mapping[str, str]) -> int:
@@ -652,6 +804,19 @@ def build(prog: str = PROG) -> tuple[argparse.ArgumentParser, dict[str, argparse
     kept(step["receipts"])
     step["held"].add_argument(
         "--out", type=Path, metavar="FILE", help="write the size of each file by its key, as JSON"
+    )
+    step["held"].add_argument(
+        "--receipts",
+        type=Path,
+        metavar="FOLDER",
+        help=f"hold the store to the receipts of this folder: in the repository, {RECEIPTS}",
+    )
+    step["held"].add_argument(
+        "--lists",
+        type=Path,
+        metavar="FOLDER",
+        help="with --receipts: the folder of the lists to hold the store to, each a .toml file "
+        "(default: the lists of this repository)",
     )
     step["describe"].add_argument(
         "reference",

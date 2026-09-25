@@ -272,3 +272,98 @@ def test_the_command_refuses_the_made_up_city_in_one_line(
     to = tmp_path / "out"
     assert cli.main(["publish", "--data", str(made.data), "--to", str(to)]) == cli.REFUSED
     assert capsys.readouterr().err == "Nothing was written. The made-up city is never published.\n"
+
+
+# The file of changes
+
+
+def a_change(n: int, why: str, **more: Any) -> str:
+    held = {"n": n, "on": "2026-10-06", "by": "r1", "what": "flag", "was": None, "now": None}
+    line = {**held, "of": "name/x-names-1", "why": why, "takes_back": None, **more}
+    return json.dumps(line, ensure_ascii=False, separators=(",", ":")) + "\n"
+
+
+def changes_of(made: Made, *lines: str, by: str = "r1") -> bytes:
+    path = made.data / "decisions" / "changes" / f"{by}.jsonl"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("".join(lines), encoding="utf-8")
+    return path.read_bytes()
+
+
+def test_the_file_of_changes_is_published_byte_for_byte_so_that_a_lock_names_the_same_file(
+    made: Made, tmp_path: Path
+):
+    made.line("names", 1, "area")
+    written = changes_of(made, a_change(1, "A made-up reason."), a_change(2, "Another."))
+    found = publish.run(made.data, tmp_path / "out", cli.QUESTIONS)
+    copy = tmp_path / "out" / "decisions" / "changes" / "r1.jsonl"
+    assert copy.read_bytes() == written == found.changes["r1"]
+    assert stat.S_IMODE(copy.stat().st_mode) == 0o644
+    # A second run changes nothing, and the file outlives it.
+    publish.run(made.data, tmp_path / "out", cli.QUESTIONS)
+    assert copy.read_bytes() == written
+
+
+def test_every_reason_of_a_change_is_given_once_to_be_read_before_it_is_committed(
+    made: Made, tmp_path: Path
+):
+    made.line("names", 1, "area", note="A made-up note.")
+    changes_of(made, a_change(1, "The same reason."), a_change(2, "The same reason."))
+    changes_of(made, a_change(1, CANARY, by="r2"), by="r2")
+    found = publish.run(made.data, tmp_path / "out", cli.QUESTIONS)
+    assert found.reasons == ("The same reason.", CANARY)
+    assert found.notes == ("A made-up note.",)
+
+
+def test_a_file_of_changes_that_is_gone_does_not_outlive_itself(made: Made, tmp_path: Path):
+    made.line("names", 1, "area")
+    changes_of(made, a_change(1, "A made-up reason."))
+    publish.run(made.data, tmp_path / "out", cli.QUESTIONS)
+    (made.data / "decisions" / "changes" / "r1.jsonl").unlink()
+    publish.run(made.data, tmp_path / "out", cli.QUESTIONS)
+    assert not (tmp_path / "out" / "decisions" / "changes" / "r1.jsonl").exists()
+
+
+@pytest.mark.parametrize(
+    "held",
+    [b"not json\n", b'["a list"]\n', b'{"n":1,"why":7}\n', b'{"n":1}\n', b"\xff\xfe\n"],
+)
+def test_a_file_of_changes_that_cannot_be_read_stops_the_copy(
+    made: Made, tmp_path: Path, held: bytes
+):
+    made.line("names", 1, "area")
+    path = made.data / "decisions" / "changes" / "r1.jsonl"
+    path.parent.mkdir(parents=True)
+    path.write_bytes(held)
+    with pytest.raises(publish.Refused, match="The file of changes of r1 cannot be read"):
+        publish.run(made.data, tmp_path / "out", cli.QUESTIONS)
+    assert not (tmp_path / "out").exists()
+
+
+def test_the_changes_of_the_made_up_city_are_never_published(tmp_path: Path):
+    made = Made(tmp_path / "desk-synthetic", synthetic=True).items()
+    made.line("names", 1, "area")
+    changes_of(made, a_change(1, "A made-up reason."))
+    with pytest.raises(publish.Refused):
+        publish.run(made.data, tmp_path / "out", cli.QUESTIONS)
+    assert not (tmp_path / "out").exists()
+
+
+def test_the_command_prints_each_reason_of_a_change_to_be_read(
+    made: Made, tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.chdir(tmp_path)
+    made.line("names", 1, "area")
+    changes_of(made, a_change(1, "A made-up reason."), a_change(2, "Another."))
+    assert cli.main(["publish", "--data", str(made.data), "--to", "gazetteer/london"]) == cli.OK
+    assert capsys.readouterr().out.splitlines() == [
+        "Wrote 1 line of 1 queue to gazetteer/london/decisions.",
+        "Each line says the day it was written, and not the hour.",
+        "No note is in it.",
+        "Wrote the file of changes of r1, of 2 lines, to gazetteer/london/decisions/changes.",
+        'A build reads it: make preview ARGS="... --changes '
+        'gazetteer/london/decisions/changes/r1.jsonl"',
+        "These reasons are in it. Read each one before you commit:",
+        "  A made-up reason.",
+        "  Another.",
+    ]

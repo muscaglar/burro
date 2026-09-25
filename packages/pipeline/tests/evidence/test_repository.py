@@ -15,7 +15,9 @@ from burro_pipeline.evidence.repository import (
     NotRead,
     checked_out,
     held,
+    holds,
     top_of,
+    tracks,
 )
 
 from .conftest import FILES, write
@@ -420,3 +422,97 @@ def test_a_repository_that_is_not_as_git_writes_it_is_refused(
 def test_a_commit_that_is_not_in_the_repository_is_refused(root: Path):
     (root / ".git" / "refs" / "heads" / "main").write_text("0" * 40 + "\n", encoding="utf-8")
     assert refusal(root) == "the commit that is checked out is not in the repository"
+
+
+# Whether a file is one the repository holds.
+
+
+def test_a_file_the_repository_tracks_and_that_is_as_it_tracks_it_is_held(root: Path):
+    assert holds(root, root / "a" / "first.py") is True
+    assert holds(root / "a", root / "a" / "first.py") is True
+    # It is named as it is, and as it is reached from a folder beside it.
+    assert holds(root, root / "a" / ".." / "a" / "first.py") is True
+
+
+def test_a_file_that_was_changed_since_git_took_it_is_not_held(root: Path):
+    (root / "a" / "first.py").write_text(f"# {CANARY}\n", encoding="utf-8")
+    assert holds(root, root / "a" / "first.py") is False
+
+
+def test_a_file_git_does_not_track_is_not_held(root: Path):
+    (root / "a" / "by-hand.py").write_text("# made up\n", encoding="utf-8")
+    assert holds(root, root / "a" / "by-hand.py") is False
+    assert holds(root, root / "a" / "nowhere.py") is False
+    assert holds(root, root / "a") is False
+
+
+def test_a_link_is_not_held_though_the_file_it_leads_to_is(root: Path):
+    assert (root / "latest").is_symlink()
+    assert holds(root, root / "latest") is False
+    (root / "b").symlink_to(root / "a")
+    assert holds(root, root / "b" / "first.py") is True, (
+        "the file is, by whatever way it is reached"
+    )
+
+
+def test_a_file_outside_the_working_copy_is_not_held(root: Path, tmp_path: Path):
+    outside = tmp_path / "outside.py"
+    outside.write_bytes((root / "a" / "first.py").read_bytes())
+    assert holds(root, outside) is False
+    (root / "inside.py").symlink_to(outside)
+    assert holds(root, root / "inside.py") is False
+
+
+def test_no_file_is_held_where_there_is_no_working_copy(tmp_path: Path):
+    (tmp_path / "first.py").write_text("# made up\n", encoding="utf-8")
+    assert holds(tmp_path, tmp_path / "first.py") is False
+
+
+def test_a_file_that_is_staged_and_not_committed_is_held_and_the_lock_refuses_the_tree(
+    root: Path,
+):
+    # `holds` says that the file is as the index has it. That the index is what was
+    # committed is `checked_out`'s to say, and a build asks both.
+    (root / "a" / "first.py").write_text("# staged\n", encoding="utf-8")
+    git(root, "add", "--all")
+    assert holds(root, root / "a" / "first.py") is True
+    assert checked_out(root).clean is False
+
+
+def test_what_was_read_of_a_file_is_what_is_held_to_the_repository(root: Path):
+    path = root / "a" / "first.py"
+    read = path.read_bytes()
+    assert holds(root, path, read) is True
+    assert holds(root, path, read + b" ") is False
+    assert holds(root, path, b"") is False
+
+
+# Whether the repository tracks a file, whatever is there now.
+
+
+def test_a_file_the_repository_tracks_is_tracked_whether_or_not_it_is_there_or_as_it_was(
+    root: Path,
+):
+    path = root / "a" / "first.py"
+    assert tracks(root, path) is True and tracks(root / "a", path) is True
+    assert tracks(root, root / "a" / ".." / "a" / "first.py") is True
+    path.write_text(f"# {CANARY}\n", encoding="utf-8")
+    assert tracks(root, path) is True and holds(root, path) is False
+    path.unlink()
+    assert tracks(root, path) is True and holds(root, path) is False
+
+
+def test_a_file_the_repository_does_not_track_is_not_tracked(root: Path):
+    (root / "a" / "by-hand.py").write_text("# made up\n", encoding="utf-8")
+    assert tracks(root, root / "a" / "by-hand.py") is False
+    assert tracks(root, root / "a" / "nowhere.py") is False
+    assert tracks(root, root / "nowhere" / "deeper" / "first.py") is False
+    assert tracks(root, root / "a") is False
+
+
+def test_a_file_outside_the_working_copy_or_in_none_is_not_tracked(root: Path, tmp_path: Path):
+    outside = tmp_path / "outside" / "first.py"
+    outside.parent.mkdir()
+    outside.write_bytes((root / "a" / "first.py").read_bytes())
+    assert tracks(root, outside) is False
+    assert tracks(outside.parent, outside) is False

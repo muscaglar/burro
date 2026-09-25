@@ -75,7 +75,7 @@ def names(release: InMemoryRelease, area_ids: list[str]) -> list[str]:
 def test_the_committed_release_carries_gritty_and_is_what_the_generator_builds():
     committed = read_release(FIXTURE)
     assert committed.manifest.gritty_variant is GrittyVariant.B
-    assert (committed.manifest.schema_version, committed.manifest.catalogue_version) == (2, 13)
+    assert (committed.manifest.schema_version, committed.manifest.catalogue_version) == (2, 14)
     assert committed.vibes == tags_of(GrittyVariant.B)
     assert committed.features == built().features
     assert committed.tags == built().tags
@@ -157,13 +157,15 @@ def test_no_figure_of_an_older_feature_moves_when_a_newer_part_is_added():
         FeatureId.HOUSEHOLDS_ONE_PERSON,
     )
     assert set(build.LATER[61:65]) == COUNTS_RESIDENTS
-    # The homes in the higher bands, and how far what homes sold for has risen, came last.
-    assert build.LATER[65:] == (
+    # The homes in the higher bands, and how far what homes sold for has risen, came after.
+    assert build.LATER[65:68] == (
         FeatureId.HOMES_HIGHER_BANDS,
         FeatureId.PRICE_RISE_5Y,
         FeatureId.PRICE_RISE_10Y,
     )
-    assert len(build.LATER) == 8 + 48 + 5 + 4 + 3
+    # How much of the nearest high street lies in a conservation area came last.
+    assert build.LATER[68:] == (FeatureId.HIGHSTREET_CONSERVED,)
+    assert len(build.LATER) == 8 + 48 + 5 + 4 + 3 + 1
     assert len(set(build.LATER)) == len(build.LATER)
     assert not set(build.LATER) & {*build.FIRST, *build.SECOND}
 
@@ -327,6 +329,9 @@ def test_an_area_with_too_few_homes_is_placed_only_where_enough_of_a_recipe_is_k
         # Too few live there for a share of them to be steady, and the places and the
         # venues for each 1,000 homes are most of the rest of it.
         TagId.YOUNG_PROFESSIONALS,
+        # How much of the nearest high street lies in a conservation area is a mean over
+        # homes, and homes built before 1919 a share of them: 60 in 100 of it.
+        TagId.VILLAGE_FEEL,
     }
     # Family area is placed on the schools, the play space and the park, which are 60 in
     # 100 of it, and its fact says that it rests on three of its four parts.
@@ -774,6 +779,7 @@ APART = {
     "old, and calm": Apart("Alderwick", TagId.BUILT_AGE, TagId.PACE),
     "a park close by, and not leafy": Apart("Foxholt", TagId.PARKS_CLOSE_BY, TagId.LEAFY),
     "leafy, and no park close by": Apart("Alderwick", TagId.LEAFY, TagId.PARKS_CLOSE_BY),
+    # An old high street among newer homes, which stand apart.
     "a centre of its own, and not old": Apart("Cindermoor", TagId.VILLAGE_FEEL, TagId.BUILT_AGE),
     "schools and play space, and nothing old": Apart(
         "Osierholm", TagId.FAMILY_AMENITIES, TagId.BUILT_AGE

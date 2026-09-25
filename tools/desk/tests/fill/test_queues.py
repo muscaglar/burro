@@ -37,7 +37,7 @@ HELD = (
     ("ratings", 192, ["syn-n0003:homes", "syn-n0003:built_age", "syn-n0003:pace"]),
     (
         "figures",
-        138,
+        143,
         ["syn-n0005:green_cover", "syn-n0018:homes_density", "syn-n0002:venue_food_drink"],
     ),
     ("kinds", 118, ["syn-v0012", "syn-v0008", "syn-v0009"]),
@@ -415,7 +415,7 @@ def test_a_figure_with_no_evidence_comes_before_any_other(made_up: Filled):
     assert Counter(first) == {
         "no_evidence": 2,
         "moved_between_releases": 3,
-        "far_from_neighbours": 129,
+        "far_from_neighbours": 134,
         "zero_thin_cover": 4,
     }
 
@@ -448,7 +448,7 @@ def test_the_made_up_draft_says_of_a_figure_what_the_coverage_report_says(made_u
     planted = set(synthetic.NO_RECORD)
     rows = draft.read_table(made_up.data / "draft", "figures.csv")
     # Every measure the release carries, in every area.
-    assert len(rows) == 24 * 108
+    assert len(rows) == 24 * 109
     for row in rows:
         cell = report.cell(row["area_id"], f"feature/{row['feature_id']}")
         said = set(row["flag"].split())
