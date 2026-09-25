@@ -35,7 +35,8 @@ public struct VibeTrack: View {
 /// A vibe is a band between two named ends, and never a score or a
 /// percentage. The band is said in words beside the picture. An area a vibe
 /// cannot place is said to be so, and is never put in the middle. It is read
-/// as one.
+/// as one. A vibe that is a rough guide says so under its band, with why: the
+/// line is drawn, and is behind no press.
 public struct VibeLine: View {
     private let vibe: VibeShown
     /// The area the line is of, where several areas stand under one vibe. The
@@ -107,9 +108,11 @@ public struct VibeLine: View {
         [vibe.plainly, vibe.band].compactMap { $0 }.joined(separator: ", ")
     }
 
-    /// What follows the band: that it was asked for, what it rests on, and what the vibe waits on.
+    /// What follows the band: that the vibe is a rough guide, and why, that it
+    /// was asked for, what it rests on, and what the vibe waits on.
     static func notes(of vibe: VibeShown) -> [String] {
         var notes: [String] = []
+        if let rough = vibe.rough { notes.append(rough) }
         if let asked = vibe.asked { notes.append(asked) }
         if let restsOn = vibe.restsOn { notes.append(restsOn) }
         if vibe.notInData { notes.append(VibeCopy.noAreaPlaced) }

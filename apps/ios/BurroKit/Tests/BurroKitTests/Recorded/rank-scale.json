@@ -82,17 +82,17 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "37828",
+    "content-length": "37816",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "7a917a0e-b755-4b08-b166-be5a071d4016"
+    "x-request-id": "1beb1bfc-531c-4495-b062-4e312a0b89c0"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.13.0",
+      "engine_version": "1.14.0",
       "synthetic": true,
       "preview": false
     },
@@ -1084,13 +1084,13 @@
               "fact_id": "syn-n0024/tag/built_age"
             },
             {
-              "tag_id": "village_feel",
-              "band": 5,
-              "spread_low": 5,
-              "spread_high": 5,
+              "tag_id": "foodie",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
               "asked": false,
               "toward": null,
-              "fact_id": "syn-n0024/tag/village_feel"
+              "fact_id": "syn-n0024/tag/foodie"
             }
           ]
         },

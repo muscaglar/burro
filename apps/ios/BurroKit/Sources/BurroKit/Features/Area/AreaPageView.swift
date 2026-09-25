@@ -27,6 +27,13 @@ struct AreaPageView: View {
             }
             AreaSection(title: AreaCopy.Cost.title, lead: AreaCopy.Cost.lead) {
                 AreaPart(title: AreaCopy.Cost.rent) {
+                    // What the publisher of the rents advises, in the API's words, said once.
+                    if let caution = page.rentCaution {
+                        Text(verbatim: caution)
+                            .font(Tokens.Text.secondary)
+                            .foregroundStyle(Tokens.Colour.muted)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                     AreaFactRows(rows: page.rentRows, none: AreaCopy.Cost.noRent)
                 }
                 AreaPart(title: AreaCopy.Cost.buy) {

@@ -75,7 +75,7 @@ final class AreaPageTests: XCTestCase {
         let rows = page.stationRows + page.rentRows + page.buyRows
             + page.measured.flatMap { page.rows(of: $0) }
 
-        XCTAssertEqual(rows.count, 1 + 6 + 4 + 108)
+        XCTAssertEqual(rows.count, 1 + 6 + 4 + 109)
         XCTAssertEqual(page.vibes.count, 14)
         for vibe in page.vibes {
             XCTAssertEqual(vibe.shown.sources.map(\.name), ["Synthetic test data"], vibe.shown.name)
@@ -197,6 +197,56 @@ final class AreaPageTests: XCTestCase {
                 FactColumn(name: "As of", value: "August 2026"),
                 FactColumn(name: "Confidence", value: "high"),
             ])
+    }
+
+    @MainActor
+    func test_a_rent_of_a_wider_place_says_the_place_the_months_and_how_many_rents() throws {
+        let data: AreaData = try Recorded.data(.getArea, "let/area")
+        let page = AreaPage(
+            data, release: AreaFixtures.release, features: Answers.meta.features,
+            tags: Answers.meta.tags, recipes: Answers.meta.recipes)
+
+        XCTAssertEqual(Set(page.rent.map(\.template)), [.costRentRecorded])
+        XCTAssertEqual(page.rentRows.count, page.rent.count)
+        for (fact, row) in zip(page.rent, page.rentRows) {
+            XCTAssertEqual(row.name, fact.slots["segment"])
+            XCTAssertEqual(
+                row.columns.map(\.name),
+                [
+                    "Range", "Middle", "A figure of", "Rents recorded in",
+                    "Rents it rests on, to the nearest ten",
+                ])
+            XCTAssertEqual(
+                row.columns.suffix(3).map(\.value),
+                [fact.slots["of"], fact.slots["period"], fact.slots["rents"]].compactMap { $0 })
+            // Which place it is of, and that it is not of this area alone, in the API's words.
+            XCTAssertEqual(FactLayout.caveats(of: fact).first, fact.slots["is_of"])
+        }
+        // What the publisher advises is said once, however many kinds of home there are.
+        let caution = try XCTUnwrap(page.rentCaution)
+        XCTAssertEqual(caution, page.rent.first?.slots["caution"])
+        XCTAssertTrue(caution.contains("not drawn at random"))
+        XCTAssertEqual(page.said.filter { $0 == caution }.count, 1)
+        // A price is of the area alone, and says nothing of a wider place.
+        XCTAssertTrue(page.buy.allSatisfy { $0.slots["is_of"] == nil })
+    }
+
+    @MainActor
+    func test_a_rent_of_a_whole_borough_says_that_it_is_of_the_whole_borough() throws {
+        let data: AreaData = try Recorded.data(.getArea, "let/area-borough")
+        let page = AreaPage(
+            data, release: AreaFixtures.release, features: Answers.meta.features,
+            tags: Answers.meta.tags, recipes: Answers.meta.recipes)
+
+        XCTAssertFalse(page.rent.isEmpty)
+        for fact in page.rent {
+            XCTAssertEqual(fact.slots["of"], "the whole borough of \(data.area.borough)")
+        }
+    }
+
+    @MainActor
+    func test_a_rent_that_is_of_the_area_alone_says_no_caution() {
+        XCTAssertNil(AreaFixtures.page("farrowmere").rentCaution)
     }
 
     @MainActor
@@ -432,7 +482,8 @@ final class AreaPageTests: XCTestCase {
             AreaCopy.Column.value, AreaCopy.Column.standing, AreaCopy.Column.segment, AreaCopy.Column.range,
             AreaCopy.Column.median, AreaCopy.Column.asOf, AreaCopy.Column.confidence, AreaCopy.Column.station,
             AreaCopy.Column.walk, AreaCopy.Column.lines, AreaCopy.Column.name, AreaCopy.Column.borough,
-            AreaCopy.Column.to, AreaCopy.Column.middleOfAll, AreaCopy.Column.soldIn, AreaCopy.Column.band,
+            AreaCopy.Column.to, AreaCopy.Column.middleOfAll, AreaCopy.Column.soldIn,
+            AreaCopy.Column.figureOf, AreaCopy.Column.recordedIn, AreaCopy.Column.rents, AreaCopy.Column.band,
             AreaCopy.Column.bands, AreaCopy.Column.ends, AreaCopy.Column.compared, AreaCopy.Column.partsDated,
             AreaCopy.Column.partsKnown, AreaCopy.Column.parts, AreaCopy.Column.share, AreaCopy.oneNumber,
             VibeCopy.cannotPlace,

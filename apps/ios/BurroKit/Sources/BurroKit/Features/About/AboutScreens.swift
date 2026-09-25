@@ -30,6 +30,11 @@ struct MethodsScreen: View {
                 Text(AboutCopy.Methods.tagsLead)
                 ForEach(AboutPage.tags(meta)) { tag in
                     AboutSection(tag.tag.label, level: .inner) {
+                        // A vibe that is a rough guide says so under its name, and says why.
+                        if let rough = tag.rough {
+                            Text(verbatim: rough)
+                                .foregroundStyle(Tokens.Colour.text)
+                        }
                         AboutRows(
                             tag.terms.map { term in
                                 AboutRow(
@@ -56,6 +61,15 @@ struct MethodsScreen: View {
             }
             AboutSection(AboutCopy.Methods.journeysTitle) {
                 AboutPoints(AboutCopy.Methods.journeysPoints)
+            }
+            if let rents = meta.rents {
+                // Each rent of the data is of a wider place than an area. What is said of the
+                // rents is the API's: that each is of a district or a borough, and what their
+                // publisher advises. How an area takes one, and how a budget is held, follows.
+                AboutSection(AboutCopy.Methods.rentsTitle) {
+                    Text(verbatim: "\(rents.ofAPlace) \(rents.caution)")
+                    AboutPoints(AboutCopy.Methods.rentsPoints)
+                }
             }
             AboutSection(AboutCopy.Methods.confidenceTitle) {
                 Text(AboutCopy.Methods.confidenceLead)
@@ -109,6 +123,11 @@ struct SourcesScreen: View {
                 AboutSection(source.source.name) {
                     Text(verbatim: source.source.attribution)
                         .fixedSize(horizontal: false, vertical: true)
+                    // What the publisher's terms ask to be said wherever its credit is shown.
+                    if let said = source.said {
+                        Text(verbatim: said)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                     AboutRows(source.rows)
                     page(of: source)
                     AboutSection(AboutCopy.Sources.usedFor, level: .inner) {

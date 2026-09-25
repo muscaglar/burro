@@ -202,6 +202,13 @@ extension Results {
         let soldIn: String?
         /// What is not known of a price that is one number.
         let caveat: String?
+        /// Of a rent that is of a wider place than the area: the place it is of, the months
+        /// the rents were recorded in and how many they were, and the sentence that says it
+        /// is not of this area alone. Each is a slot of the fact, as the API wrote it.
+        var figureOf: String?
+        var recordedIn: String?
+        var rents: String?
+        var isOf: String?
         /// True for a rent, which is said to be for a month.
         let aMonth: Bool
         /// What the figure is, in the API's word, and the kind of home it is for.
@@ -484,6 +491,9 @@ extension Results {
         guard let ends = ends(of: estimate) else {
             return oneNumber(of: fact, estimate: estimate, budget: amount, on: scale)
         }
+        if estimate.of != nil {
+            return ofAPlace(of: fact, estimate: estimate, budget: amount, on: scale)
+        }
         // A range with an end missing is no range, and nothing is filled in.
         guard let lower = fact.slots["lower"], let upper = fact.slots["upper"] else { return nil }
         // The fact's own word where it is one this build knows. Otherwise the estimate's.
@@ -513,6 +523,47 @@ extension Results {
             month: fact.slots["as_of"],
             confidence: ResultsCopy.word(for: confidence),
             pips: pips,
+            budget: amount.map { "\(pound)\(grouped($0))" },
+            bar: bar(for: estimate, budget: amount, on: scale),
+            falls: falls,
+            sources: sourceLines(of: [fact]))
+    }
+
+    /// A rent that is of a wider place than the area: the range as its
+    /// publisher gives it for the postcode district the area lies in, or for
+    /// its borough. No figure of it is drawn without the place it is of, the
+    /// months the rents were recorded in and how many they were. No word says
+    /// how sure it is: the count does. A budget is held against the middle
+    /// rent, so the words say where the budget falls against the middle.
+    static func ofAPlace(
+        of fact: Fact, estimate: CostEstimate, budget amount: Int?, on scale: Scale? = nil
+    ) -> Cost? {
+        let pound = ResultsCopy.Cost.pound
+        guard let lower = fact.slots["lower"], let upper = fact.slots["upper"] else { return nil }
+        // A figure with no place, no months or no count is not drawn: nothing is filled in.
+        guard let figureOf = fact.slots["of"], !figureOf.isEmpty,
+            let recordedIn = fact.slots["period"], !recordedIn.isEmpty,
+            let rents = fact.slots["rents"], !rents.isEmpty
+        else { return nil }
+        var falls: String?
+        if let amount {
+            falls =
+                amount < estimate.median
+                ? ResultsCopy.Cost.belowMiddleRent
+                : amount > estimate.median
+                    ? ResultsCopy.Cost.aboveMiddleRent : ResultsCopy.Cost.atMiddleRent
+        }
+        return Cost(
+            range: "\(pound)\(lower) \(ResultsCopy.Cost.to) \(pound)\(upper)",
+            oneNumber: false, what: nil, soldIn: nil,
+            // What a middle rent means, in the API's words, where there is a budget to hold.
+            caveat: amount == nil ? nil : fact.slots["half_let"],
+            figureOf: figureOf, recordedIn: recordedIn, rents: rents, isOf: fact.slots["is_of"],
+            aMonth: true,
+            label: fact.label,
+            segment: fact.slots["segment"],
+            middle: fact.slots["median"].map { "\(pound)\($0)" },
+            month: nil, confidence: nil, pips: 0,
             budget: amount.map { "\(pound)\(grouped($0))" },
             bar: bar(for: estimate, budget: amount, on: scale),
             falls: falls,

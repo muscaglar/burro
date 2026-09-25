@@ -206,7 +206,9 @@ extension Results {
                 }
                 return ComparedVibe.Cell(
                     areaId: area.areaId, area: area.name,
-                    vibe: Vibes.shown(tag, placed: placed, fact: facts[mark.factId], held: held))
+                    vibe: Vibes.shown(
+                        tag, placed: placed, fact: facts[mark.factId], held: held,
+                        guides: meta.roughGuides))
             }
             return cells.isEmpty ? nil : ComparedVibe(tagId: row.tagId, name: tag.label, cells: cells)
         }

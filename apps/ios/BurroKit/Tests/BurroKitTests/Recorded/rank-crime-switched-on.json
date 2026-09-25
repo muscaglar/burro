@@ -112,17 +112,17 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "59852",
+    "content-length": "59834",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "14ff4427-7de9-4d17-8c46-8d29103deb94"
+    "x-request-id": "6abcbd89-bae4-4545-9343-66cbab754bd8"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.13.0",
+      "engine_version": "1.14.0",
       "synthetic": true,
       "preview": false
     },
@@ -1434,13 +1434,13 @@
               "fact_id": "syn-n0002/tag/parks_close_by"
             },
             {
-              "tag_id": "village_feel",
-              "band": 5,
-              "spread_low": 5,
-              "spread_high": 5,
+              "tag_id": "built_age",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
               "asked": false,
               "toward": null,
-              "fact_id": "syn-n0002/tag/village_feel"
+              "fact_id": "syn-n0002/tag/built_age"
             }
           ]
         },
@@ -1632,13 +1632,13 @@
               "fact_id": "syn-n0024/tag/built_age"
             },
             {
-              "tag_id": "village_feel",
-              "band": 5,
-              "spread_low": 5,
-              "spread_high": 5,
+              "tag_id": "foodie",
+              "band": 4,
+              "spread_low": 4,
+              "spread_high": 4,
               "asked": false,
               "toward": null,
-              "fact_id": "syn-n0024/tag/village_feel"
+              "fact_id": "syn-n0024/tag/foodie"
             }
           ]
         },

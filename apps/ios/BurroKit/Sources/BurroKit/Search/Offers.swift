@@ -4,10 +4,11 @@ import Foundation
 // apply. It mirrors apps/web/src/lib/search/suggestion.ts and spans.ts.
 //
 // Nothing is applied until a person presses it. Which way one press may add
-// with others is the API's to say, in `add_all`, and the app works nothing out.
-// The API never names a way that leaves areas out, a thing with two ways and
-// no guess, a journey to a place that is yet to be chosen, or recorded crime.
-// docs/design/contract.md, 8.2.
+// with others is the API's to say, in `add_all`, and the app works nothing out:
+// a budget as the person worded it, which may be a firm limit, and a journey as
+// a guide. The API never names a journey as a firm limit, a thing with two ways
+// and no guess, a journey to a place that is yet to be chosen, or recorded
+// crime. docs/design/contract.md, 8.2.
 
 extension Suggestion {
     /// The id of the choice that does nothing. Its words are the API's: "Skip".
@@ -39,6 +40,22 @@ extension Suggestion {
         guard !addAll.isEmpty, addAll != Self.skip else { return nil }
         return ways.first { $0.id == addAll }
     }
+
+    /// The way Burro reads the words, where it reads them one way. It is the API's
+    /// mark, and applies nothing. `nil` where it marks none.
+    public var guessed: SuggestionChoice? {
+        ways.first { $0.guess }
+    }
+}
+
+extension Array where Element == Suggestion {
+    /// Some offers of the list, by where each stands in it, with those that carry
+    /// Burro's guess first. Each part keeps the order of the list, which is the order
+    /// the words stand in.
+    public func guessFirst(_ ats: [Int]) -> [Int] {
+        let held = ats.filter { indices.contains($0) }
+        return held.filter { self[$0].guessed != nil } + held.filter { self[$0].guessed == nil }
+    }
 }
 
 extension Operations {
@@ -46,6 +63,11 @@ extension Operations {
     /// the release does not hold is offered with no place, and cannot be sent as it is.
     public var namesItsPlaces: Bool {
         commuteOps.allSatisfy { !$0.placeId.isEmpty }
+    }
+
+    /// True where these edits set a budget as a firm limit, which leaves areas out.
+    public var setsAFirmBudget: Bool {
+        budgetOps.contains { $0.amount > 0 && $0.strictness == .hard }
     }
 
     /// The edits of a way, with the place a person chose put into each journey that

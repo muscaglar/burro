@@ -83,12 +83,12 @@
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "59474d7f-c35b-4d28-9281-1ebd782c1f9c"
+    "x-request-id": "dd3424a0-ec58-41d6-8111-5c8cca6cc38e"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.13.0",
+      "engine_version": "1.14.0",
       "synthetic": true,
       "preview": false
     },

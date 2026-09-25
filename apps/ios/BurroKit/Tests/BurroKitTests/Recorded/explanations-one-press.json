@@ -1,0 +1,1745 @@
+{
+  "scenario": "explanations-one-press",
+  "shows": "The reasons of the search that one press made",
+  "captured": true,
+  "request": {
+    "operation_id": "explain_top",
+    "method": "POST",
+    "route": "/v1/explanations",
+    "path": "/v1/explanations",
+    "body": {
+      "spec": {
+        "schema_version": 1,
+        "tenure": "rent",
+        "budget": {
+          "amount": 1900,
+          "segment": "bed_1",
+          "strictness": "hard",
+          "weight": 0.3,
+          "provenance": "ui_edit"
+        },
+        "commutes": [
+          {
+            "place_id": "syn-p0017",
+            "mode": "pt",
+            "max_minutes": 40,
+            "strictness": "soft",
+            "provenance": "ui_edit"
+          }
+        ],
+        "commute_combine": "slowest",
+        "pt_basis": "typical",
+        "commute_weight": 0.4,
+        "weights": [
+          {
+            "feature_id": "air_no2",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "culture_venues_per_homes",
+            "weight": 0.5,
+            "direction": "more",
+            "provenance": "ui_edit"
+          },
+          {
+            "feature_id": "highstreet_access",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "noise_exposure",
+            "weight": 0.05,
+            "direction": "less",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "park_proximity",
+            "weight": 0.5,
+            "direction": "less",
+            "provenance": "ui_edit"
+          },
+          {
+            "feature_id": "station_lines",
+            "weight": 0.05,
+            "direction": "more",
+            "provenance": "default"
+          },
+          {
+            "feature_id": "station_walk",
+            "weight": 0.1,
+            "direction": "less",
+            "provenance": "default"
+          }
+        ],
+        "tags": [
+          {
+            "tag_id": "quiet_residential",
+            "weight": 0.5,
+            "toward": "high",
+            "provenance": "ui_edit"
+          }
+        ],
+        "areas": [],
+        "tenure_from": "ui_edit",
+        "commute_combine_from": "default",
+        "pt_basis_from": "default",
+        "commute_weight_from": "default"
+      },
+      "limit": 5
+    }
+  },
+  "status": 200,
+  "headers": {
+    "access-control-allow-origin": "http://localhost:3000",
+    "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
+    "cache-control": "no-store",
+    "content-length": "29057",
+    "content-type": "application/json",
+    "vary": "Origin",
+    "x-burro-preview": "false",
+    "x-burro-synthetic": "true",
+    "x-request-id": "6bdc8897-3eee-4356-b717-8bc3c9249946"
+  },
+  "body": {
+    "meta": {
+      "release_id": "syn-2026-09-23-01",
+      "engine_version": "1.14.0",
+      "synthetic": true,
+      "preview": false
+    },
+    "data": {
+      "spec_hash": "b57e39a5ce964e8ebbf38678792673f291053a43f895b614679d2dfaf1c72e48",
+      "explanations": [
+        {
+          "area_id": "syn-n0005",
+          "orientation": {
+            "text": "Eskerfold is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0005/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By public transport to Pellam Exchange: about 15 minutes on a typical weekday morning, 18 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0005/travel/syn-p0017.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Quiet streets: band 4 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0005/tag/quiet_residential"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 710 m, closer than 61% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0005/feature/park_proximity"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line: 1.8 per 1,000 homes, fewer than 61% of the 21 areas compared in this release, and the same as 1 other.",
+            "fact_ids": [
+              "syn-n0005/feature/culture_venues_per_homes"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0023",
+          "orientation": {
+            "text": "Wexmoor is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0023/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By public transport to Pellam Exchange: about 17 minutes on a typical weekday morning, 19 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0023/travel/syn-p0017.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line: 5.2 per 1,000 homes, more than 66% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0023/feature/culture_venues_per_homes"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "The upper end is £75 under your budget of £1,900.",
+              "fact_ids": [
+                "syn-n0023/budget_fit/rent.bed_1"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Share of residents exposed to 55 dB or more of transport noise: 36%, noisier than 65% of the 20 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0023/feature/noise_exposure"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0008",
+          "orientation": {
+            "text": "Gorsebeck is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0008/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "Quiet streets: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0008/tag/quiet_residential"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 490 m, closer than 80% of the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0008/feature/park_proximity"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "The upper end is £350 under your budget of £1,900.",
+              "fact_ids": [
+                "syn-n0008/budget_fit/rent.bed_1"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line: 0.7 per 1,000 homes, fewer than 95% of the 21 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0008/feature/culture_venues_per_homes"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0003",
+          "orientation": {
+            "text": "Cindermoor is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0003/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "By public transport to Pellam Exchange: about 16 minutes on a typical weekday morning, 18 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0003/travel/syn-p0017.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "The upper end is £850 under your budget of £1,900.",
+              "fact_ids": [
+                "syn-n0003/budget_fit/rent.bed_1"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Quiet streets: band 3 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0003/tag/quiet_residential"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 1,030 m, further than 66% of the 21 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0003/feature/park_proximity"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        },
+        {
+          "area_id": "syn-n0006",
+          "orientation": {
+            "text": "Farrowmere is in Quillhaven.",
+            "fact_ids": [
+              "syn-n0006/area/name"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "reasons": [
+            {
+              "text": "Quiet streets: band 4 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "fact_ids": [
+                "syn-n0006/tag/quiet_residential"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "By public transport to Pellam Exchange: about 24 minutes on a typical weekday morning, 28 if you just miss a service.",
+              "fact_ids": [
+                "syn-n0006/travel/syn-p0017.pt"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "The upper end is £600 under your budget of £1,900.",
+              "fact_ids": [
+                "syn-n0006/budget_fit/rent.bed_1"
+              ],
+              "origin": "template",
+              "replaced": false
+            }
+          ],
+          "trade_off": {
+            "text": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line: 1 per 1,000 homes, fewer than 85% of the 21 areas compared in this release.",
+            "fact_ids": [
+              "syn-n0006/feature/culture_venues_per_homes"
+            ],
+            "origin": "template",
+            "replaced": false
+          },
+          "missing": []
+        }
+      ],
+      "facts": [
+        {
+          "fact_id": "syn-n0005/area/name",
+          "area_id": "syn-n0005",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Eskerfold",
+            "borough": "Quillhaven",
+            "label": "Quillhaven 005",
+            "written_by": "Burro",
+            "state": "draft"
+          },
+          "numbers": [],
+          "names": [
+            "Eskerfold",
+            "Quillhaven",
+            "Quillhaven 005"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/feature/culture_venues_per_homes",
+          "area_id": "syn-n0005",
+          "kind": "feature",
+          "key": "culture_venues_per_homes",
+          "label": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line",
+            "value": "1.8 per 1,000 homes",
+            "band": "2",
+            "comparative": "more than",
+            "pct": "28",
+            "standing": "more than 28% of the 21 areas compared in this release, and the same as 1 other",
+            "comparative_worse": "fewer than",
+            "pct_worse": "61",
+            "standing_worse": "fewer than 61% of the 21 areas compared in this release, and the same as 1 other",
+            "compared": "21",
+            "level": "1"
+          },
+          "numbers": [
+            "1.8",
+            "28%",
+            "21",
+            "1",
+            "61%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/feature/park_proximity",
+          "area_id": "syn-n0005",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "value": "710 m",
+            "band": "2",
+            "comparative": "closer than",
+            "pct": "61",
+            "standing": "closer than 61% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "33",
+            "standing_worse": "further than 33% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "710",
+            "61%",
+            "21",
+            "33%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/tag/built_age",
+          "area_id": "syn-n0005",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
+          "slots": {
+            "label": "Age of buildings",
+            "band": "2",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "2",
+            "spread_high": "2",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "2",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/tag/family_amenities",
+          "area_id": "syn-n0005",
+          "kind": "tag",
+          "key": "family_amenities",
+          "label": "Family amenities",
+          "template": "vibe",
+          "slots": {
+            "label": "Family amenities",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/tag/quiet_residential",
+          "area_id": "syn-n0005",
+          "kind": "tag",
+          "key": "quiet_residential",
+          "label": "Quiet streets",
+          "template": "vibe",
+          "slots": {
+            "label": "Quiet streets",
+            "band": "4",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "4",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0005/travel/syn-p0017.pt",
+          "area_id": "syn-n0005",
+          "kind": "travel",
+          "key": "syn-p0017.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Pellam Exchange",
+            "limit": "40",
+            "margin": "25",
+            "margin_unit": "minutes",
+            "typical": "15",
+            "missed": "18"
+          },
+          "numbers": [
+            "15",
+            "18",
+            "40",
+            "25"
+          ],
+          "names": [
+            "Pellam Exchange"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/area/name",
+          "area_id": "syn-n0023",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Wexmoor",
+            "borough": "Quillhaven",
+            "label": "Quillhaven 023",
+            "written_by": "Burro",
+            "state": "draft"
+          },
+          "numbers": [],
+          "names": [
+            "Wexmoor",
+            "Quillhaven",
+            "Quillhaven 023"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/budget_fit/rent.bed_1",
+          "area_id": "syn-n0023",
+          "kind": "budget_fit",
+          "key": "rent.bed_1",
+          "label": "Budget",
+          "template": "budget_under",
+          "slots": {
+            "margin": "75",
+            "amount": "1,900",
+            "upper": "1,825"
+          },
+          "numbers": [
+            "£1900",
+            "£1825",
+            "£75"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/feature/culture_venues_per_homes",
+          "area_id": "syn-n0023",
+          "kind": "feature",
+          "key": "culture_venues_per_homes",
+          "label": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line",
+            "value": "5.2 per 1,000 homes",
+            "band": "4",
+            "comparative": "more than",
+            "pct": "66",
+            "standing": "more than 66% of the 21 areas compared in this release",
+            "comparative_worse": "fewer than",
+            "pct_worse": "28",
+            "standing_worse": "fewer than 28% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "5.2",
+            "66%",
+            "21",
+            "28%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/feature/noise_exposure",
+          "area_id": "syn-n0023",
+          "kind": "feature",
+          "key": "noise_exposure",
+          "label": "Share of residents exposed to 55 dB or more of transport noise",
+          "template": "feature",
+          "slots": {
+            "label": "Share of residents exposed to 55 dB or more of transport noise",
+            "value": "36%",
+            "band": "4",
+            "comparative": "quieter than",
+            "pct": "30",
+            "standing": "quieter than 30% of the 20 areas compared in this release",
+            "comparative_worse": "noisier than",
+            "pct_worse": "65",
+            "standing_worse": "noisier than 65% of the 20 areas compared in this release",
+            "compared": "20"
+          },
+          "numbers": [
+            "36%",
+            "30%",
+            "20",
+            "65%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/tag/homes",
+          "area_id": "syn-n0023",
+          "kind": "tag",
+          "key": "homes",
+          "label": "Houses or flats",
+          "template": "vibe",
+          "slots": {
+            "label": "Houses or flats",
+            "band": "4",
+            "low_end": "Houses",
+            "high_end": "Flats",
+            "compared": "22",
+            "span": "2025",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "2",
+            "parts": "3",
+            "share": "75",
+            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "4",
+            "5",
+            "22",
+            "2",
+            "3",
+            "75",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/tag/pace",
+          "area_id": "syn-n0023",
+          "kind": "tag",
+          "key": "pace",
+          "label": "Going out",
+          "template": "vibe",
+          "slots": {
+            "label": "Going out",
+            "band": "5",
+            "low_end": "Calm",
+            "high_end": "Buzzy",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/tag/quiet_residential",
+          "area_id": "syn-n0023",
+          "kind": "tag",
+          "key": "quiet_residential",
+          "label": "Quiet streets",
+          "template": "vibe",
+          "slots": {
+            "label": "Quiet streets",
+            "band": "3",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "3",
+            "spread_high": "3",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "3",
+            "5",
+            "21",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0023/travel/syn-p0017.pt",
+          "area_id": "syn-n0023",
+          "kind": "travel",
+          "key": "syn-p0017.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Pellam Exchange",
+            "limit": "40",
+            "margin": "23",
+            "margin_unit": "minutes",
+            "typical": "17",
+            "missed": "19"
+          },
+          "numbers": [
+            "17",
+            "19",
+            "40",
+            "23"
+          ],
+          "names": [
+            "Pellam Exchange"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/area/name",
+          "area_id": "syn-n0008",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Gorsebeck",
+            "borough": "Quillhaven",
+            "label": "Quillhaven 008",
+            "written_by": "Burro",
+            "state": "draft"
+          },
+          "numbers": [],
+          "names": [
+            "Gorsebeck",
+            "Quillhaven",
+            "Quillhaven 008"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/budget_fit/rent.bed_1",
+          "area_id": "syn-n0008",
+          "kind": "budget_fit",
+          "key": "rent.bed_1",
+          "label": "Budget",
+          "template": "budget_under",
+          "slots": {
+            "margin": "350",
+            "amount": "1,900",
+            "upper": "1,550"
+          },
+          "numbers": [
+            "£1900",
+            "£1550",
+            "£350"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/feature/culture_venues_per_homes",
+          "area_id": "syn-n0008",
+          "kind": "feature",
+          "key": "culture_venues_per_homes",
+          "label": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line",
+            "value": "0.7 per 1,000 homes",
+            "band": "1",
+            "standing": "more than none of the 20 other areas compared in this release",
+            "comparative": "more than",
+            "comparative_worse": "fewer than",
+            "pct_worse": "95",
+            "standing_worse": "fewer than 95% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "0.7",
+            "20",
+            "95%",
+            "21"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/feature/park_proximity",
+          "area_id": "syn-n0008",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "value": "490 m",
+            "band": "1",
+            "comparative": "closer than",
+            "pct": "80",
+            "standing": "closer than 80% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "14",
+            "standing_worse": "further than 14% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "490",
+            "80%",
+            "21",
+            "14%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/tag/homes",
+          "area_id": "syn-n0008",
+          "kind": "tag",
+          "key": "homes",
+          "label": "Houses or flats",
+          "template": "vibe",
+          "slots": {
+            "label": "Houses or flats",
+            "band": "1",
+            "low_end": "Houses",
+            "high_end": "Flats",
+            "compared": "22",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "2",
+            "parts": "3",
+            "share": "75",
+            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "22",
+            "2",
+            "3",
+            "75",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/tag/leafy",
+          "area_id": "syn-n0008",
+          "kind": "tag",
+          "key": "leafy",
+          "label": "Leafy",
+          "template": "vibe",
+          "slots": {
+            "label": "Leafy",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0008/tag/quiet_residential",
+          "area_id": "syn-n0008",
+          "kind": "tag",
+          "key": "quiet_residential",
+          "label": "Quiet streets",
+          "template": "vibe",
+          "slots": {
+            "label": "Quiet streets",
+            "band": "5",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/area/name",
+          "area_id": "syn-n0003",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Cindermoor",
+            "borough": "Quillhaven",
+            "label": "Quillhaven 003",
+            "written_by": "Burro",
+            "state": "draft"
+          },
+          "numbers": [],
+          "names": [
+            "Cindermoor",
+            "Quillhaven",
+            "Quillhaven 003"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/budget_fit/rent.bed_1",
+          "area_id": "syn-n0003",
+          "kind": "budget_fit",
+          "key": "rent.bed_1",
+          "label": "Budget",
+          "template": "budget_under",
+          "slots": {
+            "margin": "850",
+            "amount": "1,900",
+            "upper": "1,050"
+          },
+          "numbers": [
+            "£1900",
+            "£1050",
+            "£850"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/feature/park_proximity",
+          "area_id": "syn-n0003",
+          "kind": "feature",
+          "key": "park_proximity",
+          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "template": "feature",
+          "slots": {
+            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "value": "1,030 m",
+            "band": "4",
+            "comparative": "closer than",
+            "pct": "28",
+            "standing": "closer than 28% of the 21 areas compared in this release",
+            "comparative_worse": "further than",
+            "pct_worse": "66",
+            "standing_worse": "further than 66% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1030",
+            "28%",
+            "21",
+            "66%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/tag/homes",
+          "area_id": "syn-n0003",
+          "kind": "tag",
+          "key": "homes",
+          "label": "Houses or flats",
+          "template": "vibe",
+          "slots": {
+            "label": "Houses or flats",
+            "band": "1",
+            "low_end": "Houses",
+            "high_end": "Flats",
+            "compared": "22",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "2",
+            "parts": "3",
+            "share": "75",
+            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "22",
+            "2",
+            "3",
+            "75",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/tag/pace",
+          "area_id": "syn-n0003",
+          "kind": "tag",
+          "key": "pace",
+          "label": "Going out",
+          "template": "vibe",
+          "slots": {
+            "label": "Going out",
+            "band": "1",
+            "low_end": "Calm",
+            "high_end": "Buzzy",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/tag/quiet_residential",
+          "area_id": "syn-n0003",
+          "kind": "tag",
+          "key": "quiet_residential",
+          "label": "Quiet streets",
+          "template": "vibe",
+          "slots": {
+            "label": "Quiet streets",
+            "band": "3",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "3",
+            "spread_high": "3",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "3",
+            "5",
+            "21",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0003/travel/syn-p0017.pt",
+          "area_id": "syn-n0003",
+          "kind": "travel",
+          "key": "syn-p0017.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Pellam Exchange",
+            "limit": "40",
+            "margin": "24",
+            "margin_unit": "minutes",
+            "typical": "16",
+            "missed": "18"
+          },
+          "numbers": [
+            "16",
+            "18",
+            "40",
+            "24"
+          ],
+          "names": [
+            "Pellam Exchange"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/area/name",
+          "area_id": "syn-n0006",
+          "kind": "area",
+          "key": "name",
+          "label": "Area",
+          "template": "area",
+          "slots": {
+            "name": "Farrowmere",
+            "borough": "Quillhaven",
+            "label": "Quillhaven 006",
+            "written_by": "Burro",
+            "state": "draft"
+          },
+          "numbers": [],
+          "names": [
+            "Farrowmere",
+            "Quillhaven",
+            "Quillhaven 006"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2026-09-23",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/budget_fit/rent.bed_1",
+          "area_id": "syn-n0006",
+          "kind": "budget_fit",
+          "key": "rent.bed_1",
+          "label": "Budget",
+          "template": "budget_under",
+          "slots": {
+            "margin": "600",
+            "amount": "1,900",
+            "upper": "1,300"
+          },
+          "numbers": [
+            "£1900",
+            "£1300",
+            "£600"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2026-08",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/feature/culture_venues_per_homes",
+          "area_id": "syn-n0006",
+          "kind": "feature",
+          "key": "culture_venues_per_homes",
+          "label": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line",
+          "template": "feature",
+          "slots": {
+            "label": "Museums, galleries, theatres, cinemas, music venues and libraries for each 1,000 homes within 800 m, in a straight line",
+            "value": "1 per 1,000 homes",
+            "band": "1",
+            "comparative": "more than",
+            "pct": "9",
+            "standing": "more than 9% of the 21 areas compared in this release",
+            "comparative_worse": "fewer than",
+            "pct_worse": "85",
+            "standing_worse": "fewer than 85% of the 21 areas compared in this release",
+            "compared": "21"
+          },
+          "numbers": [
+            "1",
+            "9%",
+            "21",
+            "85%"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/tag/built_age",
+          "area_id": "syn-n0006",
+          "kind": "tag",
+          "key": "built_age",
+          "label": "Age of buildings",
+          "template": "vibe",
+          "slots": {
+            "label": "Age of buildings",
+            "band": "1",
+            "low_end": "Newer",
+            "high_end": "Historic",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "1",
+            "spread_high": "1",
+            "known": "4",
+            "parts": "4",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "1",
+            "5",
+            "21",
+            "4",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/tag/homes",
+          "area_id": "syn-n0006",
+          "kind": "tag",
+          "key": "homes",
+          "label": "Houses or flats",
+          "template": "vibe",
+          "slots": {
+            "label": "Houses or flats",
+            "band": "5",
+            "low_end": "Houses",
+            "high_end": "Flats",
+            "compared": "22",
+            "span": "2025",
+            "spread_low": "5",
+            "spread_high": "5",
+            "known": "2",
+            "parts": "3",
+            "share": "75",
+            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "5",
+            "22",
+            "2",
+            "3",
+            "75",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/tag/quiet_residential",
+          "area_id": "syn-n0006",
+          "kind": "tag",
+          "key": "quiet_residential",
+          "label": "Quiet streets",
+          "template": "vibe",
+          "slots": {
+            "label": "Quiet streets",
+            "band": "4",
+            "low_end": "least",
+            "high_end": "most",
+            "compared": "21",
+            "span": "2025",
+            "spread_low": "4",
+            "spread_high": "4",
+            "known": "3",
+            "parts": "3",
+            "share": "100",
+            "partly": "",
+            "judgement": "The recipe is Burro's own. The weights are a judgement.",
+            "made_from": "Burro's recipe. Made from data published by:"
+          },
+          "numbers": [
+            "4",
+            "5",
+            "21",
+            "3",
+            "100",
+            "2025"
+          ],
+          "names": [],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2025",
+          "synthetic": true
+        },
+        {
+          "fact_id": "syn-n0006/travel/syn-p0017.pt",
+          "area_id": "syn-n0006",
+          "kind": "travel",
+          "key": "syn-p0017.pt",
+          "label": "Journey",
+          "template": "travel_pt",
+          "slots": {
+            "mode": "By public transport",
+            "place": "Pellam Exchange",
+            "limit": "40",
+            "margin": "16",
+            "margin_unit": "minutes",
+            "typical": "24",
+            "missed": "28"
+          },
+          "numbers": [
+            "24",
+            "28",
+            "40",
+            "16"
+          ],
+          "names": [
+            "Pellam Exchange"
+          ],
+          "sources": [
+            {
+              "source_id": "synthetic",
+              "name": "Synthetic test data",
+              "publisher": "Burro",
+              "attribution": null,
+              "said_with_attribution": null
+            }
+          ],
+          "as_of": "2026-09",
+          "synthetic": true
+        }
+      ]
+    }
+  }
+}

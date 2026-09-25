@@ -149,9 +149,10 @@ struct OffersShown: Hashable, Sendable {
     /// Said while a model reads what the rules left unread. `nil` when none does. What
     /// the rules noticed is drawn meanwhile, and may be chosen of.
     let reading: String?
-    /// What the last press of "Add all" added, and what is left for the person, which
-    /// the API names. `nil` where nothing was added, and while a model reads: one line
-    /// says what goes on.
+    /// What the last press of "Add all" did, in full: how many it added, how many areas
+    /// a firm budget among them left out, and what is left for the person, which the API
+    /// names. `nil` where nothing was added, and while a model reads: one line says what
+    /// goes on.
     let added: String?
     /// The button that takes back all that the press added. `nil` where nothing was.
     let takeBack: String?
@@ -284,18 +285,30 @@ enum SearchScreen {
     /// pressed: the first four, and every other that one press may add. So what waits
     /// out of sight is only what is the person's to choose, and the one button adds
     /// nothing that is not in sight.
+    ///
+    /// Those that carry Burro's guess come first, in the order their words stand in the
+    /// sentence, and the rest after them in theirs: what Burro read stands before what
+    /// it asks.
     static func inSight(_ suggestions: [Suggestion]) -> [Int] {
-        suggestions.indices.filter { $0 < offersAtFirst || suggestions[$0].addedWithOthers != nil }
+        suggestions.guessFirst(
+            suggestions.indices.filter { $0 < offersAtFirst || suggestions[$0].addedWithOthers != nil })
+    }
+
+    /// Where every suggestion stands, as they are drawn once "Show all" is pressed: in
+    /// the same order, so that nothing that was in sight moves when the rest is shown.
+    static func everyOffer(_ suggestions: [Suggestion]) -> [Int] {
+        suggestions.guessFirst(Array(suggestions.indices))
     }
 
     /// What is offered, as the screen draws it. `nil` where nothing is, no model reads
     /// and nothing was added: while one reads the screen says so, though the rules
     /// noticed nothing, and what one press added can be taken back though nothing is left.
     static func offers(
-        _ suggestions: [Suggestion], all: Bool, reading: Bool = false, added: Added? = nil
+        _ suggestions: [Suggestion], all: Bool, reading: Bool = false, added: Added? = nil,
+        leftOut: Int? = nil, heldAgainst: String? = nil
     ) -> OffersShown? {
         guard !suggestions.isEmpty || reading || added != nil else { return nil }
-        let shown = all ? Array(suggestions.indices) : inSight(suggestions)
+        let shown = all ? everyOffer(suggestions) : inSight(suggestions)
         var offers: [OfferShown] = []
         for at in shown {
             let suggestion = suggestions[at]
@@ -324,7 +337,12 @@ enum SearchScreen {
         return OffersShown(
             offers: offers,
             reading: reading ? SearchCopy.Suggest.reading : nil,
-            added: reading ? nil : added.map { SearchCopy.Suggest.added($0.count, needs: $0.needs) },
+            added: reading
+                ? nil
+                : added.map {
+                    SearchCopy.Suggest.added(
+                        $0.count, needs: $0.needs, leftOut: leftOut, heldAgainst: heldAgainst)
+                },
             takeBack: added == nil ? nil : SearchCopy.Suggest.takeBack,
             addAll: oneWay.count > 1
                 ? (every
@@ -421,7 +439,8 @@ enum SearchScreen {
             notInDataLead: missing.isEmpty ? nil : SearchCopy.NotInData.lead(missing.count),
             readInPart: state.readInPart,
             offers: offers(
-                state.suggestions, all: allOffers, reading: state.modelIsReading, added: state.added),
+                state.suggestions, all: allOffers, reading: state.modelIsReading, added: state.added,
+                leftOut: state.leftOutByTheBudget, heldAgainst: state.rentsHeldAgainst),
             unread: state.unread,
             questions: questions.enumerated().map { at, question in
                 asked(question, at: at + 1, of: questions.count)
@@ -476,7 +495,9 @@ enum SearchScreen {
     }
 
     static func chipsHints(_ chips: [SearchChip], _ state: SearchState, readBy: String?) -> [String] {
-        var hints: [String] = []
+        // What a vibe that is a rough guide says of itself comes first: it is of
+        // what the search holds, and is drawn under the chips with nothing pressed.
+        var hints: [String] = SearchChips.rough(in: state.spec, meta: state.meta)
         if chips.contains(where: \.assumed) { hints.append(SearchCopy.Chips.assumedHint) }
         if chips.contains(where: { $0.kind == .usual }) {
             hints.append("\(SearchCopy.Chips.usualHint) \(SearchCopy.Chips.openSettings)")

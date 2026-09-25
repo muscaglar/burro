@@ -181,6 +181,16 @@ extension Results {
                 if let month = cost.month {
                     Named(name: ResultsCopy.Cost.asOf, value: month)
                 }
+                // A rent of a wider place is never drawn without the place, the months and the count.
+                if let figureOf = cost.figureOf {
+                    Named(name: ResultsCopy.Cost.figureOf, value: figureOf)
+                }
+                if let recordedIn = cost.recordedIn {
+                    Named(name: ResultsCopy.Cost.recordedIn, value: recordedIn)
+                }
+                if let rents = cost.rents {
+                    Named(name: ResultsCopy.Cost.rents, value: rents)
+                }
                 if let confidence = cost.confidence {
                     Beside(spacing: Tokens.Space.s2) {
                         Text(ResultsCopy.Cost.confidence)
@@ -202,6 +212,11 @@ extension Results {
                 }
                 if let falls = cost.falls {
                     Text(falls)
+                        .font(Tokens.Text.secondary)
+                        .foregroundStyle(Tokens.Colour.text)
+                }
+                if let isOf = cost.isOf {
+                    Text(isOf)
                         .font(Tokens.Text.secondary)
                         .foregroundStyle(Tokens.Colour.text)
                 }

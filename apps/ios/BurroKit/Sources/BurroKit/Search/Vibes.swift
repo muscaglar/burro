@@ -79,6 +79,10 @@ public struct VibeShown: Hashable, Sendable, Identifiable {
     public let held: String?
     /// What is said of a vibe that was asked for in the search. `nil` for one that was not.
     public let asked: String?
+    /// What the vibe says of itself where it is a rough guide: its label and
+    /// the sentence that says why, as the API serves them, in one line. `nil`
+    /// for a vibe that is as sure as the rest.
+    public let rough: String?
     public let sources: [SourceLine]
 
     public var id: String { tagId.rawValue }
@@ -96,6 +100,7 @@ public struct VibeShown: Hashable, Sendable, Identifiable {
         if let plainly { said.append(plainly) }
         said.append(band)
         if placed != nil { said.append(VibeCopy.from(low, high)) }
+        if let rough { said.append(rough) }
         if let asked { said.append(asked) }
         if let restsOn { said.append(restsOn) }
         if notInData { said.append(VibeCopy.noAreaPlaced) }
@@ -106,6 +111,21 @@ public struct VibeShown: Hashable, Sendable, Identifiable {
 }
 
 public enum Vibes {
+    /// What a vibe that is a rough guide says of itself, as route 11 serves
+    /// it: its label, and the sentence that says why. `nil` for a vibe that is
+    /// as sure as the rest, which is every vibe that does not say, and for one
+    /// the API gives no words for. Which vibe is one is the API's to say, and
+    /// so is every word: the app writes none.
+    public static func rough(_ tag: Tag, in guides: [RoughGuide]) -> RoughGuide? {
+        guard tag.sureness == .roughGuide else { return nil }
+        return guides.first { $0.tagId == tag.tagId }
+    }
+
+    /// The label and the sentence in one line: the label, a full stop, the sentence.
+    public static func said(_ told: RoughGuide) -> String {
+        "\(told.label). \(told.why)"
+    }
+
     /// The names of the two ends of a vibe.
     public static func ends(of tag: Tag) -> (low: String, high: String) {
         (tag.lowEnd ?? VibeCopy.least, tag.highEnd ?? VibeCopy.most)
@@ -134,9 +154,11 @@ public enum Vibes {
         (held?.waitsOn ?? []).map { VibeCopy.part($0.label, $0.hundredths) }
     }
 
-    /// One vibe of an area. `placed` is `nil` for a vibe that cannot place the area.
+    /// One vibe of an area. `placed` is `nil` for a vibe that cannot place the
+    /// area. `guides` is what route 11 says of the vibes that are a rough guide.
     public static func shown(
-        _ tag: Tag, placed: Placed?, fact: Fact?, held: RecipeHeld?, asked: String? = nil
+        _ tag: Tag, placed: Placed?, fact: Fact?, held: RecipeHeld?, asked: String? = nil,
+        guides: [RoughGuide] = []
     ) -> VibeShown {
         let ends = ends(of: tag)
         let notInData = held.map { !$0.placed } ?? false
@@ -147,6 +169,7 @@ public enum Vibes {
             waitsOn: waitsOn(held), notInData: notInData,
             held: notInData ? held.map { VibeCopy.held($0.held, needed: $0.needed) } : nil,
             asked: asked,
+            rough: rough(tag, in: guides).map(said),
             sources: SourceLines.of(fact.map { [$0] } ?? []))
     }
 
@@ -167,7 +190,8 @@ public enum Vibes {
             guard let tag = meta.tags.first(where: { $0.tagId == mark.tagId }) else { return nil }
             return shown(
                 tag, placed: Placed(mark), fact: facts[mark.factId],
-                held: ReleaseHolds.recipe(of: mark.tagId, in: meta), asked: asked(mark, tag))
+                held: ReleaseHolds.recipe(of: mark.tagId, in: meta), asked: asked(mark, tag),
+                guides: meta.roughGuides)
         }
     }
 }

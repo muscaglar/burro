@@ -138,6 +138,18 @@ extension Results {
                 (names.segment, slots["segment"]), (names.middleOfAll, pounds(slots["median"])),
                 (names.soldIn, slots["period"]), (names.sales, slots["sales"]),
             ]
+        case .costRentRecorded:
+            // A rent of the postcode district or of the borough the area lies in, with the
+            // place it is of, the months and how many rents it rests on.
+            var range: String?
+            if let lower = pounds(slots["lower"]), let upper = pounds(slots["upper"]) {
+                range = "\(lower) \(names.to) \(upper)"
+            }
+            pairs = [
+                (names.segment, slots["segment"]), (names.range, range),
+                (names.median, pounds(slots["median"])), (names.figureOf, slots["of"]),
+                (names.recordedIn, slots["period"]), (names.rents, slots["rents"]),
+            ]
         case .costRent, .costBuy:
             var range: String?
             if let lower = pounds(slots["lower"]), let upper = pounds(slots["upper"]) {
@@ -148,17 +160,18 @@ extension Results {
                 (names.median, pounds(slots["median"])), (names.asOf, slots["as_of"]),
                 (names.confidence, slots["confidence"]),
             ]
-        case .budgetUnder, .budgetOver:
-            pairs = [
-                (names.upper, pounds(slots["upper"])), (names.amount, pounds(slots["amount"])),
-                (fact.template == .budgetUnder ? names.under : names.over, pounds(slots["margin"])),
-            ]
-        case .budgetUnderMedian, .budgetOverMedian:
+        case .budgetUnder, .budgetOver, .budgetAt:
+            pairs = [(names.upper, pounds(slots["upper"]))] + againstTheBudget(fact)
+        case .budgetUnderRecorded, .budgetOverRecorded, .budgetAtRecorded:
+            // The budget is held against the middle rent of the place, and the row names it.
+            pairs =
+                [
+                    (names.middleRent, pounds(slots["median"])), (names.figureOf, slots["of"]),
+                    (names.recordedIn, slots["period"]), (names.rents, slots["rents"]),
+                ] + againstTheBudget(fact)
+        case .budgetUnderMedian, .budgetOverMedian, .budgetAtMedian:
             // The budget is held against the one number there is, and the row names it.
-            pairs = [
-                (names.middleOfAll, pounds(slots["median"])), (names.amount, pounds(slots["amount"])),
-                (fact.template == .budgetUnderMedian ? names.under : names.over, pounds(slots["margin"])),
-            ]
+            pairs = [(names.middleOfAll, pounds(slots["median"]))] + againstTheBudget(fact)
         case .travelPt, .travelPtOver:
             pairs =
                 [
@@ -217,12 +230,28 @@ extension Results {
     }
 
     /// Where a journey stands against the limit the person set, where the fact holds one.
+    /// A journey that takes the minutes of its limit holds no difference: the fact says
+    /// that it is at the limit, and a difference of nothing is never drawn as a figure.
     private static func againstTheLimit(_ fact: Fact) -> [(String, String?)] {
         let names = ResultsCopy.Columns.self
         let over = fact.template == .travelPtOver || fact.template == .travelOtherOver
         return [
             (names.limit, fact.slots["limit"]),
             (over ? names.overLimit : names.underLimit, fact.slots["margin"]),
+            (names.estimate, fact.slots["verdict"]),
+        ]
+    }
+
+    /// Where a cost stands against the budget: under it or over it by an amount, or at it.
+    /// Which is said by the template. At the budget the fact holds no difference, and says
+    /// in the API's words where the cost stands.
+    private static func againstTheBudget(_ fact: Fact) -> [(String, String?)] {
+        let names = ResultsCopy.Columns.self
+        let under: Set<TemplateId> = [.budgetUnder, .budgetUnderMedian, .budgetUnderRecorded]
+        return [
+            (names.amount, pounds(fact.slots["amount"])),
+            (under.contains(fact.template) ? names.under : names.over, pounds(fact.slots["margin"])),
+            (names.againstBudget, fact.slots["verdict"]),
         ]
     }
 

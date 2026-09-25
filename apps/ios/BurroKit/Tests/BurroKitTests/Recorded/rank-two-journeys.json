@@ -95,12 +95,12 @@
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "3dbf605d-3c78-46aa-8aec-aca46d801c8e"
+    "x-request-id": "7cbb01fe-18b0-4e11-8cea-d0e745486e84"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.13.0",
+      "engine_version": "1.14.0",
       "synthetic": true,
       "preview": false
     },

@@ -85,6 +85,25 @@ extension SearchState {
         isReading ? nil : read?.added
     }
 
+    /// How many areas the firm budget that one press added leaves out of the ranking on
+    /// screen, as the API lists them. `nil` where one press added no firm budget, while
+    /// the ranking that follows the press is awaited, and once the budget is a firm limit
+    /// no longer.
+    public var leftOutByTheBudget: Int? {
+        guard let added, added.firm, phase == .results, let ranking else { return nil }
+        guard spec.budget.strictness == .hard else { return nil }
+        return ranking.filtered.filter { $0.reason == .overBudget }.count
+    }
+
+    /// What the API says of the rents a budget is held against, where the search is for a
+    /// home to rent and each rent of the release is of a postcode district or a borough.
+    /// It stands beside the count of the areas a firm budget left out. `nil` for a buyer,
+    /// and where the rents of the release are of the area alone.
+    public var rentsHeldAgainst: String? {
+        guard spec.tenure == .rent else { return nil }
+        return meta.rents?.ofAPlace
+    }
+
     /// True while a model reads what the rules left unread. The rules have answered by
     /// then, and what they noticed is offered meanwhile: it never waits on a model.
     public var modelIsReading: Bool {

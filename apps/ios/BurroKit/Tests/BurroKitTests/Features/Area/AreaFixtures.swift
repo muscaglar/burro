@@ -38,7 +38,7 @@ enum AreaFixtures {
     static func page(_ slug: String, release: Meta = AreaFixtures.release) -> AreaPage {
         AreaPage(
             Answers.profile(slug), release: release, features: Answers.meta.features,
-            tags: Answers.meta.tags, recipes: Answers.meta.recipes)
+            tags: Answers.meta.tags, recipes: Answers.meta.recipes, guides: Answers.meta.roughGuides)
     }
 
     /// Every recorded area, by its slug.

@@ -94,6 +94,8 @@ public struct Added: Hashable, Sendable {
     public let count: Int
     /// What is left for the person, each in the API's own name for it.
     public let needs: [String]
+    /// True where a budget that is a firm limit was among what it added. It leaves areas out.
+    public let firm: Bool
     /// The search as it stood before the press, and what was offered then.
     public let spec: PreferenceSpec
     public let suggestions: [Suggestion]

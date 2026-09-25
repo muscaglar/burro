@@ -71,7 +71,8 @@ final class AboutTests: XCTestCase {
             groups.map(\.title),
             [
                 "Stations", "Green space and water", "Air and noise", "Venues and culture",
-                "Shops and services", "Brands nearby", "Schools", "Homes", "Recorded crime",
+                "Shops and services", "Brands nearby", "Schools", "Homes",
+                "Who lived there at the census", "Recorded crime",
             ])
         XCTAssertEqual(described.count, meta.features.count)
         XCTAssertEqual(Set(described.map(\.id)), Set(meta.features.map(\.featureId.rawValue)))
@@ -198,6 +199,22 @@ final class AboutTests: XCTestCase {
         }
     }
 
+    func test_the_methods_say_how_a_rent_is_held_in_the_websites_words() throws {
+        let website = try Website.words()
+
+        XCTAssertEqual(AboutCopy.Methods.rentsPoints.count, 6)
+        for point in AboutCopy.Methods.rentsPoints + [AboutCopy.Methods.rentsTitle] {
+            XCTAssertTrue(website.contains(point), point)
+        }
+        // What is said of the rents themselves is the API's, and the app writes none of it.
+        let meta: MetaData = try Recorded.data(.getMeta, "let/meta")
+        let said = try XCTUnwrap(meta.rents)
+        let copy = try Repository.text(Written.about.appendingPathComponent("AboutCopy.swift"))
+        XCTAssertFalse(copy.contains(said.caution))
+        XCTAssertFalse(copy.contains(said.ofAPlace))
+        XCTAssertFalse(said.caution.contains(where: \.isNumber))
+    }
+
     func test_the_methods_say_how_a_journey_is_timed_in_the_websites_words() throws {
         let website = try Website.words()
 
@@ -268,6 +285,26 @@ final class AboutTests: XCTestCase {
 
         XCTAssertEqual(source.address?.host, "data.example.test")
         XCTAssertEqual(source.addressWords, "https://data.example.test/licence")
+    }
+
+    @MainActor
+    func test_what_is_said_with_a_credit_is_shown_with_it_and_with_no_other() throws {
+        // The terms of a publisher may ask that something is said wherever its credit is
+        // shown. The API brings it with the source, and the credit stays as it was worded.
+        let said = "The publisher cannot warrant the quality or accuracy of the data."
+        let asked = try Recorded.read("meta").with(data: { data in
+            data["attributions"] = data["attributions"]?.each {
+                $0["said_with_attribution"] = .string(said)
+            }
+        })
+        let served = try JSONDecoder().decode(Envelope<MetaData>.self, from: asked.body).data
+
+        let source = try XCTUnwrap(AboutPage.sources(served).first)
+
+        XCTAssertEqual(source.said, said)
+        XCTAssertEqual(source.source.attribution, try XCTUnwrap(meta.attributions.first).attribution)
+        // The release that is recorded asks for nothing to be said, and nothing is.
+        XCTAssertNil(try XCTUnwrap(AboutPage.sources(meta).first).said)
     }
 
     // MARK: - Dates

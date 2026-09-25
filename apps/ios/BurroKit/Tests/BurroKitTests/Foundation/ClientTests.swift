@@ -99,6 +99,7 @@ final class ClientTests: XCTestCase {
             .on(.createShare, "share-made")
             .on(.getShare, "share-opened")
             .on(.getCensus, "census")
+            .on(.getIncome, "income")
         let api = standIn.api()
 
         let interpret = await api.interpret(InterpretBody(text: "leafy", spec: spec))
@@ -112,6 +113,7 @@ final class ClientTests: XCTestCase {
         let geometry = await api.getGeometry()
         let area = await api.getArea("farrowmere")
         let census = await api.getCensus("foxholt")
+        let income = await api.getIncome("foxholt")
         let meta = await api.getMeta()
         let health = await api.healthz()
 
@@ -126,6 +128,7 @@ final class ClientTests: XCTestCase {
         XCTAssertEqual(try geometry.get().data, Answers.geometry)
         XCTAssertEqual(try area.get().data, Answers.profile("farrowmere"))
         XCTAssertEqual(try census.get().data, try Recorded.data(.getCensus, "census", as: CensusPanel.self))
+        XCTAssertEqual(try income.get().data, try Recorded.data(.getIncome, "income", as: IncomeShown.self))
         XCTAssertEqual(try meta.get().data, Answers.meta)
         XCTAssertEqual(try health.get(), Health(ok: true))
         XCTAssertEqual(Set(standIn.routes), Set(APIRoute.allCases))

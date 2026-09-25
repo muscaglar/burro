@@ -31,7 +31,7 @@ public struct KeptFact: Codable, Hashable, Sendable {
     /// The templates that state them.
     public static let templates: Set<TemplateId> = [
         .area, .feature, .featureCrime, .vibe, .vibeRange, .vibeUnknown, .costRent, .costBuy,
-        .costBuyMedian, .costBuySold, .station, .stationNearby,
+        .costBuyMedian, .costBuySold, .costRentRecorded, .station, .stationNearby,
     ]
 
     public let kind: FactKind
@@ -177,6 +177,10 @@ public struct KeptVibe: Codable, Hashable, Sendable {
     public let waitsOn: [String]
     public let notInData: Bool
     public let held: String?
+    /// What the vibe said of itself where it was a rough guide, as the API
+    /// served it. `nil` for a vibe that was as sure as the rest, and in a file
+    /// that was written before the API said it of any.
+    public let rough: String?
     /// `nil` when the fact may not be kept.
     public let fact: KeptFact?
 
@@ -194,6 +198,7 @@ public struct KeptVibe: Codable, Hashable, Sendable {
         case waitsOn = "waits_on"
         case notInData = "not_in_data"
         case held
+        case rough
         case fact
     }
 
@@ -211,6 +216,7 @@ public struct KeptVibe: Codable, Hashable, Sendable {
         waitsOn = vibe.shown.waitsOn
         notInData = vibe.shown.notInData
         held = vibe.shown.held
+        rough = vibe.shown.rough
         fact = vibe.fact.flatMap(KeptFact.init)
     }
 
@@ -226,7 +232,7 @@ public struct KeptVibe: Codable, Hashable, Sendable {
             shown: VibeShown(
                 tagId: TagId(rawValue: tagId), name: name, low: low, high: high, placed: placed,
                 plainly: plainly, restsOn: restsOn, waitsOn: waitsOn, notInData: notInData, held: held,
-                asked: nil, sources: SourceLines.of(kept.map { [$0] } ?? [])),
+                asked: nil, rough: rough, sources: SourceLines.of(kept.map { [$0] } ?? [])),
             fact: kept)
     }
 }

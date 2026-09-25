@@ -18,6 +18,9 @@ struct AboutRow: Hashable, Sendable, Identifiable {
 /// One source of data, as its entry says it.
 struct AboutSource: Hashable, Sendable, Identifiable {
     let source: Source
+    /// What the publisher's terms ask to be said wherever its credit is shown, in the API's
+    /// words. Nothing where nothing is asked.
+    let said: String?
     let rows: [AboutRow]
     /// The publisher's page, where the field holds a web address.
     let address: URL?
@@ -54,6 +57,10 @@ struct AboutTag: Hashable, Sendable, Identifiable {
 
     let tag: Tag
     let terms: [Term]
+    /// What the vibe says of itself where it is a rough guide: its label and
+    /// the sentence that says why, as the API serves them. `nil` for a vibe
+    /// that is as sure as the rest.
+    var rough: String?
     var id: String { tag.tagId.rawValue }
 }
 
@@ -154,7 +161,8 @@ enum AboutPage {
                             ? [VibeCopy.notYet, reading].filter { !$0.isEmpty }.joined(separator: ". ")
                             : reading,
                         share: AboutCopy.Methods.share(term.hundredths))
-                })
+                },
+                rough: Vibes.rough(tag, in: meta.roughGuides).map(Vibes.said))
         }
     }
 
@@ -238,13 +246,15 @@ enum AboutPage {
     // MARK: - The sources
 
     /// Every source of the release, with its licence, the credit its publisher
-    /// asks for, and the features that came from it.
+    /// asks for, what its terms ask to be said with the credit, and the features
+    /// that came from it.
     static func sources(_ meta: MetaData) -> [AboutSource] {
         meta.attributions.map { source in
             let address = webAddress(source.url)
             let field = source.url.trimmingCharacters(in: .whitespacesAndNewlines)
             return AboutSource(
                 source: source,
+                said: source.saidWithAttribution.flatMap { $0.isEmpty ? nil : $0 },
                 rows: [
                     AboutRow(name: AboutCopy.Sources.publisher, value: source.publisher),
                     AboutRow(name: AboutCopy.Sources.licence, value: source.licence),

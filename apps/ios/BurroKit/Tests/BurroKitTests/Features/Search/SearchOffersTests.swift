@@ -93,7 +93,9 @@ final class SearchOffersTests: XCTestCase {
         let offers = try XCTUnwrap(SearchScreen.offers(long, all: true))
 
         XCTAssertEqual(offers.offers.count, 12)
-        for (offer, noticed) in zip(offers.offers, long) {
+        XCTAssertEqual(offers.offers.map(\.at).sorted(), Array(long.indices))
+        for offer in offers.offers {
+            let noticed = long[offer.at]
             XCTAssertEqual(offer.does, noticed.does)
             XCTAssertEqual(offer.shown, noticed.shown)
             XCTAssertEqual(offer.follows, [noticed.follows] + noticed.said)
@@ -101,10 +103,12 @@ final class SearchOffersTests: XCTestCase {
             XCTAssertEqual(offer.choices.map(\.id), noticed.choices.map(\.id))
             XCTAssertEqual(offer.choices.last?.label, "Skip")
         }
-        // What nobody said, and what Burro took, follows what happens to areas.
-        XCTAssertEqual(offers.offers[10].does, "Add a journey to Pellam Exchange: at most 40 minutes, by public transport.")
+        // What nobody said, and what Burro took, follows what happens to areas. The journey
+        // carries a guess, so it is drawn fourth, and is the eleventh thing the API offered.
+        XCTAssertEqual(offers.offers[3].at, 10)
+        XCTAssertEqual(offers.offers[3].does, "Add a journey to Pellam Exchange: at most 40 minutes, by public transport.")
         XCTAssertEqual(
-            offers.offers[10].follows,
+            offers.offers[3].follows,
             [
                 "Areas further off are left out.", "You gave 35 to 40: Burro took 40.",
                 "You named no way of travelling: Burro took public transport.",
@@ -127,13 +131,13 @@ final class SearchOffersTests: XCTestCase {
             wrote,
             [
                 "I want to live somewhere quiet", "with access to parks",
-                // The first two of four readings of the word for how well off a place is, and
-                // the culture beside it.
-                "slightly affluent but with some culture around it",
-                "slightly affluent but with some culture around it",
+                // The culture, which carries a guess, and after the guesses the first two of
+                // four readings of the word for how well off a place is, which stands beside it.
                 "slightly affluent but with some culture around it",
                 "At most 35-40min commute from Pellam Exchange",
                 "If I'm renting, max £1,900 a month for a 1 bed flat",
+                "slightly affluent but with some culture around it",
+                "slightly affluent but with some culture around it",
             ])
         // The box holds the text as it was typed, with whatever space stands before it.
         XCTAssertEqual(BoxSpans.written("  \n \(box)", offers.offers[0].shown), "I want to live somewhere quiet")
@@ -158,18 +162,21 @@ final class SearchOffersTests: XCTestCase {
         XCTAssertEqual(
             offers.offers.map { $0.choices.filter(\.guess).map(\.label) },
             [
-                ["Add"], ["Add: nearer a park"],
+                ["Add"], ["Add: nearer a park"], ["Add"],
+                ["Add as a firm limit: areas further off are left out"],
+                ["Set as a firm limit: dearer areas are left out"],
                 // The first two of four readings of a word for how well off a place is, which
                 // are the rules' to offer: they have no guess.
                 [], [],
-                ["Add"], ["Add as a firm limit: areas further off are left out"],
-                ["Set as a firm limit: dearer areas are left out"],
             ])
-        // Doing nothing is never the guess, and the rules alone guess nothing.
+        // Doing nothing is never the guess. The rules alone guess at what was plainly said
+        // of the journey and of the home, and at no wish.
         XCTAssertFalse(offers.offers.contains { $0.choices.last?.guess == true })
         let atOnce = try XCTUnwrap(
             SearchScreen.offers(Answers.read("interpret-rules-at-once").suggestions, all: true))
-        XCTAssertFalse(atOnce.offers.contains { $0.choices.contains(where: \.guess) })
+        XCTAssertEqual(
+            atOnce.offers.filter { $0.choices.contains(where: \.guess) }.map(\.name),
+            ["Pellam Exchange", "Renting", "A budget of £1,900 a month", "A 1-bedroom home"])
         // The mark is said with the words of the choice, before the thing it is a choice of.
         XCTAssertEqual(SearchScreen.marked("Add"), "Add (Burro's guess)")
         XCTAssertEqual(
@@ -181,7 +188,7 @@ final class SearchOffersTests: XCTestCase {
                 "Add: Parks close by: Nearer a park", "Skip: Nearer a park",
             ])
         XCTAssertEqual(
-            offers.offers[5].choices.map(\.spoken),
+            offers.offers[3].choices.map(\.spoken),
             [
                 "Add as a firm limit: areas further off are left out (Burro's guess): Pellam Exchange",
                 "Add as a guide: areas further off rank lower: Pellam Exchange", "Skip: Pellam Exchange",
@@ -369,27 +376,67 @@ final class SearchOffersTests: XCTestCase {
         XCTAssertNil(leafy.with(note: "  ").noteShown)
     }
 
+    func test_a_budget_for_a_house_is_offered_for_a_terraced_house_and_one_press_adds_it() throws {
+        // "Max £400k for a house" was held against what flats sold for. A price is held by
+        // the kind of house, so the API takes a terraced house, says why, and offers every
+        // other kind. The app draws what it is given.
+        let house = Answers.read("interpret-suggest-house")
+        let offers = try XCTUnwrap(SearchScreen.offers(house.suggestions, all: false))
+        let budget = try XCTUnwrap(offers.offers.first { $0.name == "A budget of £400,000" })
+
+        XCTAssertEqual(house.applied, [])
+        XCTAssertEqual(offers.offers.map(\.name), ["Buying", "A budget of £400,000"])
+        XCTAssertEqual(budget.does, "Set a budget of £400,000 to buy a terraced house, as a firm limit.")
+        XCTAssertEqual(
+            budget.note,
+            "You named no kind of house, so Burro has taken a terraced house, the least dear kind "
+                + "in most areas. Semi-detached and detached are one press away.")
+        XCTAssertEqual(budget.choices.map(\.id), ["terraced", "semi_detached", "detached", "ignore"])
+        // A terraced house is Burro's guess, and one press adds it with the tenure.
+        XCTAssertEqual(budget.choices.map(\.guess), [true, false, false, false])
+        XCTAssertEqual(house.suggestions.map(\.addAll), ["more", "terraced"])
+        XCTAssertEqual(offers.addAllAts, [0, 1])
+        XCTAssertEqual(offers.addAll, "Add all 2")
+        // The kind stands in an edit of its own, which says whose it is.
+        let ways = house.suggestions[1].ways
+        XCTAssertEqual(ways.map { $0.operations.budgetOps.map(\.segment) }, [
+            [.terraced, .unchanged], [.semiDetached, .unchanged], [.detached, .unchanged],
+        ])
+        XCTAssertEqual(ways.map { $0.operations.budgetOps.map(\.provenance) }, [
+            [.inferred, .uiEdit], [.uiEdit, .uiEdit], [.uiEdit, .uiEdit],
+        ])
+        XCTAssertEqual(ways.map { $0.operations.budgetOps.map(\.amount) }, [
+            [0, 400_000], [0, 400_000], [0, 400_000],
+        ])
+    }
+
     func test_of_a_thing_with_two_ways_one_press_adds_the_way_the_api_names() throws {
         let long = Answers.read("interpret-by-model-long").suggestions
         let offers = try XCTUnwrap(SearchScreen.offers(long, all: false))
 
         XCTAssertEqual(
-            long.map(\.addAll), ["more", "more", "", "", "", "", "more", "", "", "", "guide", "guide"])
-        // The first four, and each beyond them that one press may add.
-        XCTAssertEqual(offers.offers.map(\.at), [0, 1, 2, 3, 6, 10, 11])
+            long.map(\.addAll), ["more", "more", "", "", "", "", "more", "", "", "", "guide", "firm"])
+        // The first four, and each beyond them that one press may add. Those that carry a
+        // guess are drawn first.
+        XCTAssertEqual(offers.offers.map(\.at), [0, 1, 6, 10, 11, 2, 3])
         XCTAssertEqual(offers.addAllAts, [0, 1, 6, 10, 11])
         XCTAssertEqual(offers.addAll, "Add the 5 that need no choice")
         XCTAssertEqual(offers.showAll, "Show all 12")
-        // Burro's guess of the journey is the firm limit. One press adds the guide.
+        // Burro's guess of the journey is the firm limit. One press adds the guide: a
+        // journey is estimated from distance, and one press leaves no area out on one.
         XCTAssertEqual(long[10].ways.map(\.id), ["firm", "guide"])
         XCTAssertEqual(long[10].ways.map(\.guess), [true, false])
         XCTAssertEqual(long[10].addedWithOthers?.id, "guide")
         XCTAssertEqual(long[10].addedWithOthers?.operations.commuteOps.map(\.strictness), [.soft])
-        XCTAssertEqual(long[11].addedWithOthers?.operations.budgetOps.map(\.strictness), [.soft])
+        // A budget is added as it was worded, and "max" makes it a firm limit.
+        XCTAssertEqual(long[11].ways.map(\.guess), [true, false])
+        XCTAssertEqual(long[11].addedWithOthers?.id, "firm")
+        XCTAssertEqual(long[11].addedWithOthers?.operations.budgetOps.map(\.strictness), [.hard])
+        XCTAssertEqual(long.map { $0.addedWithOthers?.operations.setsAFirmBudget ?? false }.filter { $0 }.count, 1)
     }
 
     @MainActor
-    func test_add_all_sends_the_guide_where_the_guess_is_a_firm_limit() async throws {
+    func test_add_all_sends_a_journey_as_a_guide_and_a_budget_as_it_was_worded() async throws {
         let search = await noticed("interpret-by-model-long", then: "rank-first")
         let long = Answers.read("interpret-by-model-long").suggestions
         let offers = try XCTUnwrap(search.shown().offers)
@@ -405,7 +452,8 @@ final class SearchOffersTests: XCTestCase {
         XCTAssertEqual(asked.tagOps.map(\.tagId), [.quietResidential])
         XCTAssertEqual(asked.weightOps.map(\.featureId), [.parkProximity, .cultureVenuesPerHomes])
         XCTAssertEqual(asked.commuteOps.map(\.strictness), [.soft])
-        XCTAssertEqual(asked.budgetOps.map(\.strictness), [.soft])
+        XCTAssertEqual(asked.budgetOps.map(\.strictness), [.hard])
+        XCTAssertEqual(try JSON.written(asked), try sent(in: "rank-one-press"))
         // What is left is the person's to choose: four in sight, and three behind "Show all".
         let left = try XCTUnwrap(search.shown().offers)
         XCTAssertEqual(
@@ -427,8 +475,7 @@ final class SearchOffersTests: XCTestCase {
         XCTAssertEqual(
             offers.added,
             [
-                "5 added. 9 need you: the journey can be made a firm limit",
-                "the budget can be made a firm limit", "mix of brands",
+                "5 added. 8 need you: the journey can be made a firm limit", "mix of brands",
                 "recorded crime, which is added under its own name", "what homes sell for",
                 "homes in the higher council tax bands", "Village feel", "Age of buildings",
                 "nearer a town centre.",
@@ -439,8 +486,87 @@ final class SearchOffersTests: XCTestCase {
         XCTAssertEqual(offers.showAll, "Show all 7")
     }
 
+    @MainActor
+    func test_what_one_press_did_is_said_in_full_once_the_ranking_is_in() async throws {
+        let search = await noticed("interpret-by-model-long", then: "rank-one-press")
+        let before = search.state.spec
+        XCTAssertNil(search.state.leftOutByTheBudget)
+
+        await search.flow.chooseAll([0, 1, 6, 10, 11])
+        let offers = try XCTUnwrap(search.shown().offers)
+
+        // How many the budget left out is what the ranking lists as over the budget.
+        let left = Answers.ranked("rank-one-press").filtered.filter { $0.reason == .overBudget }
+        XCTAssertEqual(left.count, 13)
+        XCTAssertEqual(search.state.read?.added?.firm, true)
+        XCTAssertEqual(search.state.spec.budget.strictness, .hard)
+        XCTAssertEqual(search.state.spec.commutes.map(\.strictness), [.soft])
+        XCTAssertEqual(search.state.leftOutByTheBudget, 13)
+        XCTAssertEqual(
+            offers.added,
+            [
+                "5 added. Your budget is a firm limit and left out 13 areas: "
+                    + "the table of all areas lists each. "
+                    + "8 need you: the journey can be made a firm limit",
+                "mix of brands", "recorded crime, which is added under its own name", "what homes sell for",
+                "homes in the higher council tax bands", "Village feel", "Age of buildings",
+                "nearer a town centre.",
+            ].joined(separator: "; "))
+        // "Take it all back" puts the search back as it stood, and the line goes.
+        search.api.on(.rank, StandIn.withTheSpecSent("rank-first"))
+        await search.flow.takeBack()
+        XCTAssertNil(search.state.leftOutByTheBudget)
+        XCTAssertNil(search.shown().offers?.added)
+        XCTAssertEqual(search.state.spec, before)
+    }
+
+    @MainActor
+    func test_nothing_is_said_of_areas_left_out_where_one_press_added_no_firm_budget() async throws {
+        // The ranking leaves areas out over a budget, which this press did not add.
+        let search = await noticed("interpret-suggest-many", then: "rank-one-press")
+
+        await search.flow.chooseAll([3, 4, 5])
+
+        XCTAssertEqual(search.state.read?.added?.firm, false)
+        XCTAssertEqual(search.state.ranking?.filtered.isEmpty, false)
+        XCTAssertNil(search.state.leftOutByTheBudget)
+        XCTAssertEqual(
+            search.shown().offers?.added,
+            "3 added. 3 need you: pubs and bars; nearer a station; nearer a town centre.")
+    }
+
+    func test_the_line_says_that_the_rents_behind_it_are_of_a_district_or_a_borough() throws {
+        // What is said of the rents is the API's, and stands with the count of what was left out.
+        let meta: MetaData = try Recorded.data(.getMeta, "let/meta")
+        let said = try XCTUnwrap(meta.rents?.ofAPlace)
+
+        XCTAssertEqual(
+            said, "Each rent is of a postcode district or of a whole borough, and not of one area alone.")
+        XCTAssertEqual(
+            SearchCopy.Suggest.added(2, needs: [], leftOut: 13, heldAgainst: said),
+            "2 added. Your budget is a firm limit and left out 13 areas: "
+                + "the table of all areas lists each. \(said)")
+        XCTAssertEqual(
+            SearchCopy.Suggest.added(2, needs: [], leftOut: 0, heldAgainst: said),
+            "2 added. Your budget is a firm limit. It left no area out. \(said)")
+        // With no firm budget among what was added, nothing is said of it.
+        XCTAssertEqual(SearchCopy.Suggest.added(2, needs: [], heldAgainst: said), "2 added.")
+        // A release whose rents are of the area alone says nothing of a wider place.
+        XCTAssertNil(Answers.meta.rents)
+    }
+
     func test_the_line_says_how_many_were_added_and_names_what_is_left_as_the_api_names_it() {
         XCTAssertEqual(SearchCopy.Suggest.added(2, needs: []), "2 added.")
+        XCTAssertEqual(
+            SearchCopy.Suggest.added(2, needs: [], leftOut: 1),
+            "2 added. Your budget is a firm limit and left out 1 area: the table of all areas lists it.")
+        XCTAssertEqual(
+            SearchCopy.Suggest.added(2, needs: [], leftOut: 0),
+            "2 added. Your budget is a firm limit. It left no area out.")
+        XCTAssertEqual(
+            SearchCopy.Suggest.added(1, needs: ["pubs and bars"], leftOut: 13),
+            "1 added. Your budget is a firm limit and left out 13 areas: the table of all areas lists each. "
+                + "1 needs you: pubs and bars.")
         XCTAssertEqual(SearchCopy.Suggest.added(1, needs: ["pubs and bars"]), "1 added. 1 needs you: pubs and bars.")
         XCTAssertEqual(
             SearchCopy.Suggest.added(3, needs: ["pubs and bars", "nearer a station", "nearer a town centre"]),
@@ -468,7 +594,8 @@ final class SearchOffersTests: XCTestCase {
 
     @MainActor
     func test_what_is_left_for_the_person_keeps_them_where_the_line_that_says_so_is() async throws {
-        // A journey and a budget, and nothing else: one press adds both, each as a guide.
+        // A journey and a budget, and nothing else: one press adds both, the journey as a
+        // guide and the budget as it was worded.
         let two: StandIn.Responder = .made { _ in
             try Recorded.read("interpret-by-model-long").with(data: { data in
                 guard case .array(let all) = data["suggestions"] else { return }
@@ -484,11 +611,10 @@ final class SearchOffersTests: XCTestCase {
         await needed.flow.chooseAll([0, 1])
         await needless.flow.chooseAll([0, 1, 2])
 
-        // Nothing is left to choose of in either. In the first the line says that two
-        // things need the person, so they are not taken from it to the list and the map.
+        // Nothing is left to choose of in either. In the first the line says that one
+        // thing needs the person, so they are not taken from it to the list and the map.
         XCTAssertEqual(
-            needed.shown().offers?.added,
-            "2 added. 2 need you: the journey can be made a firm limit; the budget can be made a firm limit.")
+            needed.shown().offers?.added, "2 added. 1 needs you: the journey can be made a firm limit.")
         XCTAssertEqual(needed.shown().offers?.offers, [])
         XCTAssertFalse(SearchScreen.arrives(needed.state, since: before.0, onTop: true))
         XCTAssertEqual(needless.shown().offers?.added, "3 added.")
@@ -543,21 +669,38 @@ final class SearchOffersTests: XCTestCase {
         XCTAssertEqual(search.shown().offers?.offers.count, 2)
     }
 
-    func test_add_all_sets_no_firm_limit_though_there_is_one_way_to_want_it() throws {
+    func test_add_all_takes_what_was_plainly_said_a_journey_as_a_guide_and_a_budget_as_worded() throws {
         let atOnce = Answers.read("interpret-rules-at-once").suggestions
         let offers = try XCTUnwrap(SearchScreen.offers(atOnce, all: false))
         let budget = atOnce[12]
 
-        // A budget as a firm limit leaves areas out. There is one way to take it and it
-        // carries no note, and the API names no way for one press to add.
+        // A budget as a firm limit leaves areas out. It was plainly said, "max", so the API
+        // marks it as Burro's guess and names it for one press to add, as it was worded.
         XCTAssertEqual(budget.ways.map(\.label), ["Set as a firm limit: dearer areas are left out"])
         XCTAssertEqual(budget.ways.first?.operations.budgetOps.map(\.strictness), [.hard])
         XCTAssertNil(budget.noteShown)
-        XCTAssertEqual(budget.addAll, "")
-        XCTAssertNil(budget.addedWithOthers)
-        XCTAssertEqual(offers.offers.map(\.at), [0, 1, 2, 3, 6, 11, 13])
-        XCTAssertEqual(offers.addAllAts, [0, 6, 11, 13])
-        XCTAssertEqual(offers.addAll, "Add the 4 that need no choice")
+        XCTAssertEqual(budget.addAll, "more")
+        XCTAssertEqual(budget.addedWithOthers?.id, "more")
+        XCTAssertEqual(budget.guessed?.id, "more")
+        XCTAssertEqual(budget.addedWithOthers?.operations.setsAFirmBudget, true)
+        // The rules guess at the journey, renting, the budget and the size of home, and at
+        // no wish. The journey is offered both ways. Its guess is the firm limit, which
+        // "at most" makes it, and one press adds the guide.
+        XCTAssertEqual(atOnce.indices.filter { atOnce[$0].guessed != nil }, [10, 11, 12, 13])
+        XCTAssertEqual(atOnce[10].target, "commute")
+        XCTAssertEqual(atOnce[10].ways.map(\.id), ["firm", "guide"])
+        XCTAssertEqual(atOnce[10].guessed?.id, "firm")
+        XCTAssertEqual(atOnce[10].addedWithOthers?.id, "guide")
+        XCTAssertEqual(atOnce[10].addedWithOthers?.operations.commuteOps.map(\.strictness), [.soft])
+        XCTAssertEqual(atOnce[10].addedWithOthers?.operations.commuteOps.map(\.maxMinutes), [40])
+        XCTAssertEqual(atOnce[10].needs, "the journey can be made a firm limit")
+        // Of "35-40min" the longer was taken, and the offer says so.
+        XCTAssertEqual(atOnce[10].noteShown, "You gave 35 to 40 minutes. Burro has taken the longer.")
+        // What carries a guess is drawn first, and then the first four and the culture. So
+        // the journey is in sight before "Show all".
+        XCTAssertEqual(offers.offers.map(\.at), [10, 11, 12, 13, 0, 1, 2, 3, 6])
+        XCTAssertEqual(offers.addAllAts, [10, 11, 12, 13, 0, 6])
+        XCTAssertEqual(offers.addAll, "Add the 6 that need no choice")
         XCTAssertEqual(offers.showAll, "Show all 14")
     }
 
@@ -565,14 +708,45 @@ final class SearchOffersTests: XCTestCase {
         let long = Answers.read("interpret-by-model-long").suggestions
         let offers = try XCTUnwrap(SearchScreen.offers(long, all: true))
 
+        // The five that carry a guess are drawn first, and none of them carries a note.
+        XCTAssertEqual(offers.offers.map(\.at), [0, 1, 6, 10, 11, 2, 3, 4, 5, 7, 8, 9])
         XCTAssertEqual(offers.offers.map { $0.note != nil }, [
-            false, false, true, true, true, true, false, true, true, true, false, false,
+            false, false, false, false, false, true, true, true, true, true, true, true,
         ])
         // The last three that carry one share it, word for word.
-        XCTAssertEqual(Set(offers.offers[7...9].map(\.note)).count, 1)
+        XCTAssertEqual(Set(offers.offers[9...11].map(\.note)).count, 1)
         XCTAssertEqual(offers.offers.map(\.noteDrawn), [
-            false, false, true, true, true, false, false, true, false, false, false, false,
+            false, false, false, false, false, true, true, true, false, true, false, false,
         ])
+    }
+
+    func test_the_offers_that_carry_a_guess_come_first_in_the_order_their_words_stand() throws {
+        let long = Answers.read("interpret-by-model-long").suggestions
+        let atOnce = Answers.read("interpret-rules-at-once").suggestions
+        let many = Answers.read("interpret-suggest-many").suggestions
+
+        // Quiet, the park, the culture, the journey and the budget, as they stand in the
+        // sentence. Then what is asked: the first two readings of a word for how well off
+        // a place is.
+        XCTAssertEqual(SearchScreen.inSight(long), [0, 1, 6, 10, 11, 2, 3])
+        XCTAssertEqual(
+            atOnce.guessFirst(Array(atOnce.indices)).prefix(5).map { atOnce[$0].label },
+            ["Pellam Exchange", "Renting", "A budget of £1,900 a month", "A 1-bedroom home", "Quiet streets"])
+        // Which offers are in sight is as it was: the first four, and what one press may add.
+        for offered in [long, atOnce, many] {
+            XCTAssertEqual(
+                SearchScreen.inSight(offered).sorted(),
+                offered.indices.filter { $0 < SearchScreen.offersAtFirst || !offered[$0].addAll.isEmpty })
+        }
+        // Nothing in sight moves when the rest is shown: the rest stands under the guesses.
+        XCTAssertEqual(SearchScreen.everyOffer(long), [0, 1, 6, 10, 11, 2, 3, 4, 5, 7, 8, 9])
+        XCTAssertEqual(
+            SearchScreen.offers(long, all: true)?.offers.prefix(7).map(\.at),
+            SearchScreen.offers(long, all: false)?.offers.map(\.at))
+        // Where nothing carries a guess, nothing moves. A place the list does not hold is no offer.
+        XCTAssertEqual(many.guessFirst([3, 0, 5]), [3, 0, 5])
+        XCTAssertEqual(long.guessFirst([3, 10, 2, 0, 17]), [10, 0, 3, 2])
+        XCTAssertEqual(long.guessFirst([]), [])
     }
 
     func test_what_waits_out_of_sight_is_only_what_is_the_persons_to_choose() throws {
@@ -817,8 +991,9 @@ final class SearchOffersTests: XCTestCase {
         XCTAssertEqual(waiting.reading, "Burro is still reading the rest of your words.")
         // What the rules offer is drawn at once and may be chosen of. It never waits on a model.
         XCTAssertEqual(
-            waiting.offers.map(\.name), [0, 1, 2, 3, 6, 11, 13].map { atOnce.suggestions[$0].label })
-        XCTAssertEqual(waiting.addAllAts, [0, 6, 11, 13])
+            waiting.offers.map(\.name),
+            [10, 11, 12, 13, 0, 1, 2, 3, 6].map { atOnce.suggestions[$0].label })
+        XCTAssertEqual(waiting.addAllAts, [10, 11, 12, 13, 0, 6])
         // The box is not held either: the sentence has been read, and another may be sent.
         XCTAssertFalse(search.shown().reading)
         XCTAssertFalse(search.shown().busy)
@@ -829,7 +1004,7 @@ final class SearchOffersTests: XCTestCase {
         // The model has read. What it read has joined what is offered, and the line has gone.
         let joined = try XCTUnwrap(search.shown().offers)
         XCTAssertNil(joined.reading)
-        XCTAssertEqual(joined.offers.map(\.at), [0, 1, 2, 3, 6, 10, 11])
+        XCTAssertEqual(joined.offers.map(\.at), [0, 1, 6, 10, 11, 2, 3])
     }
 
     @MainActor
@@ -900,7 +1075,7 @@ final class SearchOffersTests: XCTestCase {
 
         // A model that did not answer leaves what the rules offered, and nothing is said of it.
         XCTAssertNil(failing.shown().offers?.reading)
-        XCTAssertEqual(failing.shown().offers?.offers.count, 7)
+        XCTAssertEqual(failing.shown().offers?.offers.count, 9)
         // What rested on the words that were sent goes when the box changes, and the line with it.
         XCTAssertNil(changed.shown().offers)
     }

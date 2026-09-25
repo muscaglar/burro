@@ -210,6 +210,27 @@ final class ReduceTests: XCTestCase {
         XCTAssertEqual(reduce(state, .queued(Edits.placeRemove("syn-p0021"))).assumed, [:])
     }
 
+    func test_the_kind_of_house_that_burro_took_is_assumed_and_one_a_person_pressed_is_not() throws {
+        // A person named a house and no kind of house. One press holds the budget against a
+        // terraced house, in an edit that says the kind is Burro's.
+        let house = Answers.read("interpret-suggest-house")
+        let ways = try XCTUnwrap(house.suggestions.first { $0.target == "budget" }).ways
+        let terraced = try XCTUnwrap(ways.first { $0.id == "terraced" }).operations
+        let semi = try XCTUnwrap(ways.first { $0.id == "semi_detached" }).operations
+
+        let taken = after(.readAnswered(house), .queued(terraced))
+        XCTAssertEqual(taken.assumed[.budget], [.segment])
+        // Another kind, pressed by the person, is theirs. It takes the mark off.
+        XCTAssertNil(reduce(taken, .queued(semi)).assumed[.budget])
+        XCTAssertNil(after(.readAnswered(house), .queued(semi)).assumed[.budget])
+    }
+
+    func test_the_kind_of_house_of_a_plain_sentence_is_assumed_as_the_api_says() {
+        let state = after(.readAnswered(Answers.read("interpret-house")))
+
+        XCTAssertEqual(state.assumed[.budget], [.strictness, .segment])
+    }
+
     func test_a_reading_that_read_nothing_opens_the_settings() {
         let nothing = after(.readAnswered(Answers.read("interpret-nothing-read")))
         let offTopic = after(.readAnswered(Answers.read("interpret-off-topic")))
@@ -604,11 +625,14 @@ final class ReduceTests: XCTestCase {
         XCTAssertEqual(
             added.read?.added?.needs,
             [
-                "the journey can be made a firm limit", "the budget can be made a firm limit",
-                "mix of brands", "recorded crime, which is added under its own name",
-                "what homes sell for", "homes in the higher council tax bands", "Village feel",
-                "Age of buildings", "nearer a town centre",
+                "the journey can be made a firm limit", "mix of brands",
+                "recorded crime, which is added under its own name", "what homes sell for",
+                "homes in the higher council tax bands", "Village feel", "Age of buildings",
+                "nearer a town centre",
             ])
+        // The budget was added as it was worded, which is firm. No other press adds one.
+        XCTAssertEqual(added.read?.added?.firm, true)
+        XCTAssertEqual(reduce(before, .allAdded(ats: [0, 1, 6, 10])).read?.added?.firm, false)
         // The search as it stood before the press, and what was offered then.
         XCTAssertEqual(added.read?.added?.spec, before.spec)
         XCTAssertEqual(added.read?.added?.suggestions, long.suggestions)

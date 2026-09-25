@@ -328,6 +328,10 @@ struct TagControl: View {
                     context.send(SettingsForm.tag(tagId, on: checked))
                 }
             }
+            // A vibe that is a rough guide says so beside its control, and says why.
+            if let rough = Vibes.rough(tag, in: context.state.meta.roughGuides) {
+                HintLine(Vibes.said(rough))
+            }
             if let countsCrime = SearchChips.countsCrime(tag, in: context.state.meta) {
                 HintLine(countsCrime)
             }

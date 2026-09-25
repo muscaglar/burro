@@ -149,6 +149,20 @@ enum AboutCopy {
             "With two places or more, only the journey that does worst against its own limit counts, unless you choose the average in the settings.",
         ]
 
+        /// How a rent is held, where each rent of the data is of a postcode
+        /// district or of a borough: decision record 0021, as amended. What is
+        /// said of the rents themselves is the API's, from `rents` of route 11.
+        /// It quotes no figure of any place.
+        static let rentsTitle = "How rents are held"
+        static let rentsPoints: [String] = [
+            "No publisher gives a rent for an area as small as one of these. The rents here are the ones recorded over twelve months in each postcode district and each borough, as their publisher gives them: the middle rent, and the two figures that half of the rents lie between.",
+            "An area shows the figures of the postcode district where half or more of its homes stand. Where no district holds half, or the district has no such figures, it shows the figures of its borough. Where neither has them it shows none, and nothing is filled in.",
+            "Every figure says which place it is of, the months the rents were recorded in, and how many rents it rests on, to the nearest ten. Two areas of one place show the same figures.",
+            "A budget to rent is held against the middle rent of the place. About half of the rents recorded there were under it. As a guide, an area counts in full where the middle rent is within your budget, and for less the further it is over. As a firm limit, an area is left out only where the middle rent is more than a quarter over your budget.",
+            "The rents were collected by Rent Officers of the Valuation Office Agency, from the letting agents and landlords who were willing to give them. The figures take no account of how the homes that were let differ in kind or in quality, so they are to be read with caution.",
+            "The figures are of rents that were recorded, and not of what is asked for a home today.",
+        ]
+
         /// What each word for how sure a cost is means, as contract 2.5 defines
         /// it. The figures are passed in, and a test holds them to the contract.
         static let confidenceTitle = "How sure a cost is"

@@ -248,13 +248,33 @@ enum SearchCopy {
         static func addAll(_ count: Int) -> String { "Add all \(count)" }
         /// The same, where a thing that is the person's to choose is in sight as well.
         static func addThese(_ count: Int) -> String { "Add the \(count) that need no choice" }
-        /// What one press added, and what is left for the person, which the API names.
-        static func added(_ count: Int, needs: [String]) -> String {
-            let added = "\(count) added."
-            guard !needs.isEmpty else { return added }
-            let verb = needs.count == 1 ? "needs" : "need"
-            let listed = needs.joined(separator: "; ") + "."
-            return [added, String(needs.count), verb, "you:", listed].joined(separator: " ")
+        /// What one press did, in full: how many it added, how many areas a firm budget
+        /// among them left out, and what is left for the person, which the API names.
+        /// `leftOut` is `nil` where no firm budget was among them, and until the ranking
+        /// that follows is in.
+        static func added(
+            _ count: Int, needs: [String], leftOut: Int? = nil, heldAgainst: String? = nil
+        ) -> String {
+            var said = ["\(count) added."]
+            if let leftOut { said.append(Self.leftOut(leftOut, heldAgainst: heldAgainst)) }
+            if !needs.isEmpty {
+                let verb = needs.count == 1 ? "needs" : "need"
+                let listed = needs.joined(separator: "; ") + "."
+                said += [String(needs.count), verb, "you:", listed]
+            }
+            return said.joined(separator: " ")
+        }
+        /// How many areas a firm budget left out, as the API lists them, and where each is
+        /// listed. `heldAgainst` is what the API says of the rents the budget was held
+        /// against, where each is of a postcode district or a borough: the line says so, in
+        /// the API's words.
+        static func leftOut(_ count: Int, heldAgainst: String? = nil) -> String {
+            let of = heldAgainst.map { heldAgainst in " \(heldAgainst)" } ?? ""
+            guard count > 0 else { return "Your budget is a firm limit. It left no area out.\(of)" }
+            // The figure is passed in and never written here: the words hold none.
+            let (areas, which) = count == 1 ? ("\(count) area", "it") : ("\(count) areas", "each")
+            return
+                "Your budget is a firm limit and left out \(areas): the table of all areas lists \(which).\(of)"
         }
         static let takeBack = "Take it all back"
         /// A choice that is said of every suggestion, named by the thing it is a choice of.

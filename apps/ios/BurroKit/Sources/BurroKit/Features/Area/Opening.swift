@@ -36,7 +36,7 @@ extension AppModel {
         guard let state = search?.state, let held = profile(inHandOf: areaId) else { return nil }
         return AreaPage(
             held.data, release: held.release, features: state.meta.features, tags: state.meta.tags,
-            recipes: state.meta.recipes)
+            recipes: state.meta.recipes, guides: state.meta.roughGuides)
     }
 
     /// A twentieth of a second, and no more of them than the longest a call may take.

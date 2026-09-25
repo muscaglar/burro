@@ -338,6 +338,73 @@ final class ResultsCardTests: XCTestCase {
         XCTAssertEqual(cost.sources.map(\.date), ["August 2026"])
     }
 
+    func test_a_rent_of_a_wider_place_is_never_drawn_without_its_place_its_months_and_its_count() throws {
+        let profile: AreaData = try Recorded.data(.getArea, "let/area")
+        let ranked: RankData = try Recorded.data(.rank, "let/rank-firm")
+        let found = try XCTUnwrap(Results.cost(in: profile, for: ranked.spec))
+
+        let cost = try XCTUnwrap(
+            Results.cost(of: found.fact, estimate: found.estimate, budget: ranked.spec.budget.amount))
+
+        XCTAssertEqual(found.fact.template, .costRentRecorded)
+        XCTAssertEqual(found.estimate.of?.kind, .postcodeDistrict)
+        XCTAssertFalse(cost.oneNumber)
+        XCTAssertTrue(cost.aMonth)
+        // Each is a slot of the fact, as the API wrote it.
+        XCTAssertEqual(cost.figureOf, found.fact.slots["of"])
+        XCTAssertEqual(cost.recordedIn, found.fact.slots["period"])
+        XCTAssertEqual(cost.rents, found.fact.slots["rents"])
+        XCTAssertEqual(cost.isOf, found.fact.slots["is_of"])
+        XCTAssertEqual(cost.recordedIn, "April 2025 to March 2026")
+        XCTAssertEqual(cost.caveat, found.fact.slots["half_let"])
+        // No word says how sure it is: the count of rents does.
+        XCTAssertNil(cost.confidence)
+        XCTAssertNil(cost.month)
+        XCTAssertEqual(cost.pips, 0)
+        // A budget is held against the middle rent, and the words say where it falls against it.
+        XCTAssertTrue(
+            [
+                ResultsCopy.Cost.belowMiddleRent, ResultsCopy.Cost.aboveMiddleRent,
+                ResultsCopy.Cost.atMiddleRent,
+            ].contains(try XCTUnwrap(cost.falls)))
+        XCTAssertNotNil(cost.bar.lower)
+        XCTAssertNotNil(cost.bar.upper)
+        XCTAssertNotNil(cost.bar.budget)
+    }
+
+    func test_a_rent_of_a_wider_place_that_does_not_say_its_place_is_not_drawn() throws {
+        let profile: AreaData = try Recorded.data(.getArea, "let/area")
+        let ranked: RankData = try Recorded.data(.rank, "let/rank-firm")
+        let found = try XCTUnwrap(Results.cost(in: profile, for: ranked.spec))
+
+        for missing in ["of", "period", "rents"] {
+            var slots = found.fact.slots
+            slots[missing] = nil
+            let bare = Fact(
+                factId: found.fact.factId, areaId: found.fact.areaId, kind: found.fact.kind,
+                key: found.fact.key, label: found.fact.label, template: found.fact.template,
+                slots: slots, numbers: found.fact.numbers, names: found.fact.names,
+                sources: found.fact.sources, asOf: found.fact.asOf, synthetic: found.fact.synthetic)
+
+            XCTAssertNil(Results.cost(of: bare, estimate: found.estimate, budget: nil), missing)
+        }
+    }
+
+    func test_a_rent_that_is_of_the_area_alone_says_nothing_of_a_wider_place() throws {
+        let profile = Answers.profile("farrowmere")
+        let renter = Answers.meta.defaults.rent
+        let found = try XCTUnwrap(Results.cost(in: profile, for: renter))
+
+        let cost = try XCTUnwrap(Results.cost(of: found.fact, estimate: found.estimate, budget: nil))
+
+        XCTAssertNil(found.estimate.of)
+        XCTAssertNil(cost.figureOf)
+        XCTAssertNil(cost.recordedIn)
+        XCTAssertNil(cost.rents)
+        XCTAssertNil(cost.isOf)
+        XCTAssertNotNil(cost.confidence)
+    }
+
     // MARK: - The strip of vibes
 
     @MainActor
@@ -378,7 +445,9 @@ final class ResultsCardTests: XCTestCase {
 
         XCTAssertFalse(row.full)
         XCTAssertEqual(row.strip.compactMap(\.placed?.band), ranked.strip.map(\.band))
-        XCTAssertEqual(row.strip.map(\.name), ["Leafy", "Quiet streets", "Age of buildings", "Village feel"])
+        // Village feel is a rough guide, and is on a result only where it was asked for.
+        XCTAssertEqual(row.strip.map(\.name), ["Leafy", "Quiet streets", "Age of buildings", "Food and drink"])
+        XCTAssertEqual(row.strip.map(\.rough), [nil, nil, nil, nil])
         // The fact behind a band of a row is not in hand, so nothing is said of what it rests on.
         XCTAssertEqual(row.strip.map(\.sources), [[], [], [], []])
         XCTAssertEqual(row.strip.map(\.restsOn), [nil, nil, nil, nil])
@@ -760,5 +829,57 @@ final class ResultsCardTests: XCTestCase {
         // A kind of fact this build does not know is not laid out by guesswork.
         XCTAssertEqual(Results.columns(of: unknown), [])
         XCTAssertEqual(Results.row(of: rent).caveats, [])
+    }
+
+    func test_a_cost_at_the_budget_and_a_journey_at_its_limit_are_said_in_the_apis_words() throws {
+        // Seen in a browser: "Under your budget by £0". A difference of nothing is no figure of
+        // a fact: the fact says where the cost stands, and the row lays that out.
+        let ranged: CompareData = try Recorded.data(.compare, "at/compare")
+        let recorded: CompareData = try Recorded.data(.compare, "at/compare-let")
+        let priced = Answers.explained("one-number/explanations-buyer")
+        let first = Answers.explained("explanations-first")
+        let atTheUpperEnd = try XCTUnwrap(ranged.facts.first { $0.template == .budgetAt })
+        let atTheMiddleRent = try XCTUnwrap(recorded.facts.first { $0.template == .budgetAtRecorded })
+        let atTheMiddlePrice = try XCTUnwrap(priced.facts.first { $0.template == .budgetAtMedian })
+        let atTheLimit = try XCTUnwrap(first.facts.first { $0.slots["verdict"] == "At your limit" })
+
+        XCTAssertEqual(
+            Results.columns(of: atTheUpperEnd),
+            [
+                .init(name: "Upper end of the range", value: "£1,925"),
+                .init(name: "Your budget", value: "£1,925"),
+                .init(name: "Against your budget", value: "At your budget"),
+            ])
+        XCTAssertEqual(
+            Array(Results.columns(of: atTheMiddleRent).suffix(2)),
+            [
+                .init(name: "Your budget", value: "£1,675"),
+                .init(name: "Against your budget", value: "At your budget"),
+            ])
+        XCTAssertEqual(
+            Results.columns(of: atTheMiddlePrice).map(\.name),
+            ["Middle price, homes of all sizes", "Your budget", "Against your budget"])
+        XCTAssertEqual(
+            Array(Results.columns(of: atTheLimit).suffix(2)),
+            [
+                .init(name: "Your limit, in minutes", value: "35"),
+                .init(name: "Against your limit", value: "At your limit"),
+            ])
+        // No fact of these answers is drawn with a difference of nothing, and each that is
+        // not at its budget or its limit says by how much it is under or over.
+        let differences = [
+            ResultsCopy.Columns.under, ResultsCopy.Columns.over,
+            ResultsCopy.Columns.underLimit, ResultsCopy.Columns.overLimit,
+        ]
+        var drawn = 0
+        for fact in ranged.facts + recorded.facts + priced.facts + first.facts {
+            for column in Results.columns(of: fact) where differences.contains(column.name) {
+                drawn += 1
+                XCTAssertNotEqual(column.value, "0", fact.factId)
+                XCTAssertNotEqual(column.value, "£0", fact.factId)
+                XCTAssertNil(fact.slots["verdict"], fact.factId)
+            }
+        }
+        XCTAssertGreaterThan(drawn, 10)
     }
 }

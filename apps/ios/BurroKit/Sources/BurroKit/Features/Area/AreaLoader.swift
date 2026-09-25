@@ -69,7 +69,7 @@ public final class AreaLoader {
         let meta = app.search?.state.meta
         let page = AreaPage(
             answered.data, release: answered.release, features: meta?.features ?? [],
-            tags: meta?.tags ?? [], recipes: meta?.recipes ?? [])
+            tags: meta?.tags ?? [], recipes: meta?.recipes ?? [], guides: meta?.roughGuides ?? [])
         shown = .page(page, .api)
         // A saved area with no copy of its facts is given one. A copy that is
         // there is left as it was saved, until the person asks for the newer one.

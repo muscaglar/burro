@@ -133,8 +133,11 @@ public struct AreaPage: Hashable, Sendable {
     ///   - tags: The vibes of the release, from route 11. A vibe the release
     ///     does not name is left out: nothing can be said of it.
     ///   - recipes: What the release holds of each recipe, from route 11.
+    ///   - guides: What each vibe that is a rough guide says of itself, from
+    ///     route 11. It is said under the band of such a vibe.
     public init(
-        _ data: AreaData, release: Meta, features: [Metric], tags: [Tag], recipes: [RecipeHeld] = []
+        _ data: AreaData, release: Meta, features: [Metric], tags: [Tag], recipes: [RecipeHeld] = [],
+        guides: [RoughGuide] = []
     ) {
         func fact(_ kind: FactKind, _ key: String) -> Fact? {
             data.facts.first { $0.kind == kind && $0.key == key }
@@ -186,7 +189,8 @@ public struct AreaPage: Hashable, Sendable {
                 let placed = list == .unplaced ? nil : Placed(fact)
                 let held = recipes.first { $0.tagId == mark.tagId }
                 return Vibe(
-                    list: list, shown: Vibes.shown(tag, placed: placed, fact: fact, held: held),
+                    list: list,
+                    shown: Vibes.shown(tag, placed: placed, fact: fact, held: held, guides: guides),
                     fact: fact)
             }
         }
@@ -242,6 +246,13 @@ extension AreaPage {
         buy.compactMap { FactRow($0, named: $0.slots["segment"]) }
     }
 
+    /// What the publisher of the rents advises, in the API's words, where a rent of the
+    /// area is of a wider place. It is said once, over the rows it is said of, however
+    /// many kinds of home there are.
+    public var rentCaution: String? {
+        rent.lazy.compactMap { $0.slots["caution"] }.first { !$0.isEmpty }
+    }
+
     public func rows(of group: Group) -> [FactRow] {
         group.rows.compactMap { Self.row($0, noFigure: AreaCopy.Measured.noFigure) }
     }
@@ -262,6 +273,7 @@ extension AreaPage {
         for group in measured { rows += self.rows(of: group) }
 
         var said: [String] = [name, borough]
+        if let rentCaution { said.append(rentCaution) }
         said += neighbours.map(\.name)
         if let named { said += SourceLines.of([named]).map(\.name) }
         for vibe in vibes {

@@ -288,6 +288,10 @@ class Types:
             return repr(float(value))
         if kind == "string" and isinstance(value, str):
             return swift_string(value)
+        if kind == "array" and value == []:
+            # A list that holds nothing where nothing is sent: what a field that was added
+            # later is taken to be by an answer that was recorded before it.
+            return "[]"
         raise Unsupported(f"{owner}.{field}: a default of this kind")
 
 
@@ -336,13 +340,16 @@ def enum_of(name: str, schema: Schema) -> str:
 
 
 class Field:
-    def __init__(self, types: Types, owner: str, name: str, schema: Schema, required: bool):
+    def __init__(
+        self, types: Types, owner: str, name: str, schema: Schema, required: bool, sent: bool
+    ):
         self.json = name
         self.name = camel(name)
         base, nullable = types.of(schema, owner, name)
         self.base = base
         self.required = required
         self.nullable = nullable
+        self.sent = sent
         self.default: str | None = None
         if "default" in schema and schema["default"] is not None:
             self.default = types.literal(schema["default"], schema, owner, name)
@@ -387,12 +394,16 @@ class Field:
     def encode(self) -> str:
         key = f".{self.name}"
         # A field the contract requires is always written, as `null` when it holds nothing.
-        if self.optional and not self.required:
+        # So is one that may be null in a record the API wrote: the API writes `null` there
+        # whether the contract requires the field or not, and what it wrote is written back
+        # as it came. A body is made by the app, and leaves out what it has nothing to say in.
+        written = self.required or (self.nullable and not self.sent)
+        if self.optional and not written:
             return f"try container.encodeIfPresent({quoted(self.name)}, forKey: {key})"
         return f"try container.encode({quoted(self.name)}, forKey: {key})"
 
 
-def struct_of(types: Types, name: str, schema: Schema) -> str:
+def struct_of(types: Types, name: str, schema: Schema, sent: bool) -> str:
     if schema.get("type") != "object" or schema.get("additionalProperties") is not False:
         raise Unsupported(f"{name}: a record that may hold fields the contract does not name")
     extra = set(schema) - {
@@ -407,7 +418,7 @@ def struct_of(types: Types, name: str, schema: Schema) -> str:
         raise Unsupported(f"{name}: {sorted(extra)} is not understood")
     required = set(schema.get("required", []))
     fields = [
-        Field(types, name, field, one, field in required)
+        Field(types, name, field, one, field in required, sent)
         for field, one in properties_of(name, schema)
     ]
     if len({field.name for field in fields}) != len(fields):
@@ -521,9 +532,24 @@ public struct Envelope<Payload: Decodable & Sendable>: Decodable, Sendable {
 """
 
 
+def body_of(operation: Schema) -> Schema | None:
+    """What a route is sent, as the contract describes it. None where it is sent nothing."""
+    content: Schema = operation.get("requestBody", {}).get("content", {})
+    found: Schema | None = content.get("application/json", {}).get("schema")
+    return found
+
+
+def bodies_of(contract: Schema) -> frozenset[str]:
+    """The records that are the body of a route. The app makes each, and sends it."""
+    operations = [one for methods in contract["paths"].values() for one in methods.values()]
+    found = [body_of(operation) for operation in operations]
+    return frozenset(ref_name(body) for body in found if body is not None)
+
+
 def models(contract: Schema, digest: str) -> str:
     schemas: dict[str, Schema] = contract["components"]["schemas"]
     types = Types(schemas)
+    sent = bodies_of(contract)
     parts: list[str] = []
     for name in sorted(schemas):
         schema = schemas[name]
@@ -535,7 +561,10 @@ def models(contract: Schema, digest: str) -> str:
             continue
         if "_" in name:
             raise Unsupported(f"{name}: a generic record that is not an envelope")
-        parts.append(enum_of(name, schema) if "enum" in schema else struct_of(types, name, schema))
+        if "enum" in schema:
+            parts.append(enum_of(name, schema))
+        else:
+            parts.append(struct_of(types, name, schema, name in sent))
     for name in sorted(types.unions):
         cases, kinds = types.unions[name]
         parts.append(union_of(name, cases, kinds))
@@ -562,12 +591,7 @@ def routes(contract: Schema, digest: str) -> str:
             wrapped = schemas[ref_name(answer)]
             enveloped = is_envelope(ref_name(answer), wrapped)
             payload = ref_name(wrapped["properties"]["data"]) if enveloped else ref_name(answer)
-            body = (
-                operation.get("requestBody", {})
-                .get("content", {})
-                .get("application/json", {})
-                .get("schema")
-            )
+            body = body_of(operation)
             parameters = operation.get("parameters", [])
             if len(parameters) > 1 or any(
                 one["in"] != "path"

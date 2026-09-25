@@ -127,7 +127,7 @@ enum SearchChips {
         withWhichJourneyCounts(
             of(
                 state.spec, features: state.meta.features, tags: state.meta.tags, areas: state.areas,
-                placeNames: state.placeNames, assumed: state.assumed),
+                placeNames: state.placeNames, assumed: state.assumed, guides: state.meta.roughGuides),
             state.spec)
     }
 
@@ -154,13 +154,28 @@ enum SearchChips {
         return drawn
     }
 
+    /// What a vibe that is a rough guide says of itself where it stands in a
+    /// search, in one line under the chips: its name, its label and the
+    /// sentence that says why. The name, the label and the sentence are the
+    /// API's. One line for each such vibe that counts, in the order of the spec.
+    static func rough(in spec: PreferenceSpec, meta: MetaData) -> [String] {
+        spec.tags.compactMap { weight in
+            guard counts(weight.weight),
+                let tag = meta.tags.first(where: { $0.tagId == weight.tagId }),
+                let told = Vibes.rough(tag, in: meta.roughGuides)
+            else { return nil }
+            return "\(tag.label): \(Vibes.said(told))"
+        }
+    }
+
     static func of(
         _ spec: PreferenceSpec,
         features: [Metric],
         tags: [Tag],
         areas: [AreaSummary],
         placeNames: [String: String],
-        assumed: Assumed
+        assumed: Assumed,
+        guides: [RoughGuide] = []
     ) -> [SearchChip] {
         func has(_ key: ChipKey, _ code: AssumptionCode) -> Bool {
             assumed[key]?.contains(code) ?? false
@@ -260,10 +275,13 @@ enum SearchChips {
             let crime =
                 tag.map { holdsRecordedCrime($0, features) } == true
                 ? ChipPart(text: SearchCopy.crimeChip, assumed: false) : nil
+            // A vibe that is a rough guide says so on its chip, in the API's own word.
+            let rough = tag.flatMap { Vibes.rough($0, in: guides) }
+                .map { ChipPart(text: $0.label, assumed: false) }
             chips.append(
                 chip(
                     .tag(weight.tagId), label,
-                    parts: on ? [crime] : [takenOff],
+                    parts: on ? [rough, crime] : [takenOff],
                     assumed: weight.provenance == .inferred || has(key, .weight),
                     removal: on ? Edits.tagOff(weight.tagId) : nil))
         }

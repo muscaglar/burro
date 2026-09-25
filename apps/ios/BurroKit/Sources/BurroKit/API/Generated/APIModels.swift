@@ -1,13 +1,13 @@
 // Generated from contracts/openapi.json by apps/ios/scripts/generate.py.
 // Never edited by hand: change the source and run `make generate`.
-// source-sha256: 061a76b3ba9d7ddd361d0ab6b308e4809cf99742231f70fdc79c99ce0ad5d731
+// source-sha256: 7517d49e52c18b16277d656ade942ad20c34bb9cdb4a3a6c89a4860cb3eaa254
 
 import Foundation
 
 /// What these files were generated from, for the test that says when they are stale.
 public enum GeneratedFrom {
     /// The SHA-256 of `contracts/openapi.json` when the models were written.
-    public static let contractSHA256 = "061a76b3ba9d7ddd361d0ab6b308e4809cf99742231f70fdc79c99ce0ad5d731"
+    public static let contractSHA256 = "7517d49e52c18b16277d656ade942ad20c34bb9cdb4a3a6c89a4860cb3eaa254"
     /// The title and the version the contract gives itself.
     public static let contractTitle = "Burro API"
     public static let contractVersion = "2"
@@ -1472,7 +1472,7 @@ public struct CommuteLeg: Hashable, Sendable, Codable {
         try container.encode(minutesTypical, forKey: .minutesTypical)
         try container.encode(minutesJustMissed, forKey: .minutesJustMissed)
         try container.encode(utility, forKey: .utility)
-        try container.encodeIfPresent(estimate, forKey: .estimate)
+        try container.encode(estimate, forKey: .estimate)
     }
 }
 
@@ -1559,7 +1559,7 @@ public struct CompareCell: Hashable, Sendable, Codable {
         try container.encode(utility, forKey: .utility)
         try container.encode(contribution, forKey: .contribution)
         try container.encode(factId, forKey: .factId)
-        try container.encodeIfPresent(estimate, forKey: .estimate)
+        try container.encode(estimate, forKey: .estimate)
     }
 }
 
@@ -1865,6 +1865,12 @@ public struct Contribution: Hashable, Sendable, Codable {
 /// A median worked out from the sales themselves says how many it rests on,
 /// in `sales`, and the first month they were made in, in `since`. Nothing
 /// stands in for the range of either.
+///
+/// A rent may be of a wider place than the area: no publisher gives one for
+/// an area. It is then a range as its publisher gives it for the place, and
+/// says the place in `of`, how many rents were recorded there in `rents`,
+/// and the first month of them in `since`. Every area of the place that
+/// takes its figure holds the same row.
 public struct CostEstimate: Hashable, Sendable, Codable {
     public let areaId: String
     public let tenure: Tenure
@@ -1875,6 +1881,8 @@ public struct CostEstimate: Hashable, Sendable, Codable {
     public let confidence: Confidence
     public let asOf: String
     public let sourceIds: [String]
+    public let of: CostOf?
+    public let rents: Int?
     public let sales: Int?
     public let since: String?
 
@@ -1888,6 +1896,8 @@ public struct CostEstimate: Hashable, Sendable, Codable {
         confidence: Confidence,
         asOf: String,
         sourceIds: [String],
+        of: CostOf? = nil,
+        rents: Int? = nil,
         sales: Int? = nil,
         since: String? = nil
     ) {
@@ -1900,6 +1910,8 @@ public struct CostEstimate: Hashable, Sendable, Codable {
         self.confidence = confidence
         self.asOf = asOf
         self.sourceIds = sourceIds
+        self.of = of
+        self.rents = rents
         self.sales = sales
         self.since = since
     }
@@ -1914,6 +1926,8 @@ public struct CostEstimate: Hashable, Sendable, Codable {
         case confidence
         case asOf = "as_of"
         case sourceIds = "source_ids"
+        case of
+        case rents
         case sales
         case since
     }
@@ -1929,6 +1943,8 @@ public struct CostEstimate: Hashable, Sendable, Codable {
         confidence = try container.decode(Confidence.self, forKey: .confidence)
         asOf = try container.decode(String.self, forKey: .asOf)
         sourceIds = try container.decode([String].self, forKey: .sourceIds)
+        of = try container.decodeIfPresent(CostOf.self, forKey: .of)
+        rents = try container.decodeIfPresent(Int.self, forKey: .rents)
         sales = try container.decodeIfPresent(Int.self, forKey: .sales)
         since = try container.decodeIfPresent(String.self, forKey: .since)
     }
@@ -1944,8 +1960,73 @@ public struct CostEstimate: Hashable, Sendable, Codable {
         try container.encode(confidence, forKey: .confidence)
         try container.encode(asOf, forKey: .asOf)
         try container.encode(sourceIds, forKey: .sourceIds)
-        try container.encodeIfPresent(sales, forKey: .sales)
-        try container.encodeIfPresent(since, forKey: .since)
+        try container.encode(of, forKey: .of)
+        try container.encode(rents, forKey: .rents)
+        try container.encode(sales, forKey: .sales)
+        try container.encode(since, forKey: .since)
+    }
+}
+
+/// The place a cost is of, where it is of a wider place than the area.
+///
+/// A postcode district the area lies in, by what stands before the space of
+/// its postcodes, or the borough the area is in, by its name. A cost that is
+/// of the area alone holds none.
+public struct CostOf: Hashable, Sendable, Codable {
+    public let kind: CostOfKind
+    public let name: String
+
+    public init(kind: CostOfKind, name: String) {
+        self.kind = kind
+        self.name = name
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case kind
+        case name
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        kind = try container.decode(CostOfKind.self, forKey: .kind)
+        name = try container.decode(String.self, forKey: .name)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(kind, forKey: .kind)
+        try container.encode(name, forKey: .name)
+    }
+}
+
+/// The kind of place a cost is of, where it is of a wider place than the area.
+///
+/// No publisher gives a rent for an area. One gives the rents that were
+/// recorded in a postcode district and in a borough, and an area is given the
+/// figure of the place it lies in.
+public enum CostOfKind: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+    case postcodeDistrict
+    case borough
+    /// A value this build does not know. It is kept, and sent back, as it came.
+    case unlisted(String)
+
+    /// Every value the contract lists.
+    public static let allCases: [CostOfKind] = [.postcodeDistrict, .borough]
+
+    public init(rawValue: String) {
+        switch rawValue {
+        case "postcode_district": self = .postcodeDistrict
+        case "borough": self = .borough
+        default: self = .unlisted(rawValue)
+        }
+    }
+
+    public var rawValue: String {
+        switch self {
+        case .postcodeDistrict: return "postcode_district"
+        case .borough: return "borough"
+        case .unlisted(let value): return value
+        }
     }
 }
 
@@ -2651,17 +2732,20 @@ public struct FactSource: Hashable, Sendable, Codable {
     public let name: String
     public let publisher: String
     public let attribution: String?
+    public let saidWithAttribution: String?
 
     public init(
         sourceId: String,
         name: String,
         publisher: String,
-        attribution: String? = nil
+        attribution: String? = nil,
+        saidWithAttribution: String? = nil
     ) {
         self.sourceId = sourceId
         self.name = name
         self.publisher = publisher
         self.attribution = attribution
+        self.saidWithAttribution = saidWithAttribution
     }
 
     enum CodingKeys: String, CodingKey {
@@ -2669,6 +2753,7 @@ public struct FactSource: Hashable, Sendable, Codable {
         case name
         case publisher
         case attribution
+        case saidWithAttribution = "said_with_attribution"
     }
 
     public init(from decoder: any Decoder) throws {
@@ -2677,6 +2762,7 @@ public struct FactSource: Hashable, Sendable, Codable {
         name = try container.decode(String.self, forKey: .name)
         publisher = try container.decode(String.self, forKey: .publisher)
         attribution = try container.decodeIfPresent(String.self, forKey: .attribution)
+        saidWithAttribution = try container.decodeIfPresent(String.self, forKey: .saidWithAttribution)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -2684,7 +2770,8 @@ public struct FactSource: Hashable, Sendable, Codable {
         try container.encode(sourceId, forKey: .sourceId)
         try container.encode(name, forKey: .name)
         try container.encode(publisher, forKey: .publisher)
-        try container.encodeIfPresent(attribution, forKey: .attribution)
+        try container.encode(attribution, forKey: .attribution)
+        try container.encode(saidWithAttribution, forKey: .saidWithAttribution)
     }
 }
 
@@ -2864,11 +2951,12 @@ public enum FeatureId: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
     case homesHigherBands
     case priceRise5y
     case priceRise10y
+    case highstreetConserved
     /// A value this build does not know. It is kept, and sent back, as it came.
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [FeatureId] = [.crimeViolenceRobbery, .crimeBurglaryTheft, .schoolPrimaryNearby, .schoolPrimaryAttainment, .schoolSecondaryAttainment, .universityProximity, .greenCover, .parkProximity, .playSpaceProximity, .waterAccess, .airNo2, .noiseExposure, .venueFoodDrink, .venueEvening, .venueIndependent, .cultureVenues, .highstreetAccess, .homesFlats, .homesPre1919, .homesDensity, .conservationCover, .stationWalk, .stationLines, .independentsNearby, .centreSmall, .centreCompact, .listedBuildings, .homesPost2000, .roadMajorExposure, .eveningClusterExposure, .landIndustry, .landStorage, .landTransportOther, .landGardens, .landWoodland, .parkLargeProximity, .parkFacilities, .groceryWalk, .incidentCriminalDamage, .incidentAntisocial, .privateOutdoorSpace, .cuisineVariety, .gpWalk, .pharmacyWalk, .venueFoodDrinkPerHomes, .priceMedian, .cultureVenuesPerHomes, .venueCafe, .venueCafePerHomes, .venueGym, .venueGymPerHomes, .venueEveningPerHomes, .grocerPremiumNearby, .grocerMidNearby, .grocerValueNearby, .gymPremiumNearby, .gymMidNearby, .gymValueNearby, .coffeePremiumNearby, .coffeeMidNearby, .coffeeValueNearby, .grocerPremiumDistance, .grocerMidDistance, .grocerValueDistance, .gymPremiumDistance, .gymMidDistance, .gymValueDistance, .coffeePremiumDistance, .coffeeMidDistance, .coffeeValueDistance, .brandMix, .brandWaitrose, .brandMands, .brandWholeFoods, .brandSainsburys, .brandTesco, .brandCoop, .brandMorrisons, .brandAsda, .brandAldi, .brandLidl, .brandIceland, .brandEquinox, .brandThirdSpace, .brandBarrys, .brandVirginActive, .brandNuffield, .brandGymbox, .brandDavidLloyd, .brandAnytimeFitness, .brandPuregym, .brandTheGymGroup, .brandGails, .brandOleAndSteen, .brandPret, .brandNero, .brandStarbucks, .brandCosta, .brandBlankStreet, .brandGreggs, .undergroundProximity, .overgroundProximity, .railProximity, .busStopsNearby, .busRoutesNearby, .residentsAged2034, .residentsAged65Over, .householdsDependentChildren, .householdsOnePerson, .homesHigherBands, .priceRise5y, .priceRise10y]
+    public static let allCases: [FeatureId] = [.crimeViolenceRobbery, .crimeBurglaryTheft, .schoolPrimaryNearby, .schoolPrimaryAttainment, .schoolSecondaryAttainment, .universityProximity, .greenCover, .parkProximity, .playSpaceProximity, .waterAccess, .airNo2, .noiseExposure, .venueFoodDrink, .venueEvening, .venueIndependent, .cultureVenues, .highstreetAccess, .homesFlats, .homesPre1919, .homesDensity, .conservationCover, .stationWalk, .stationLines, .independentsNearby, .centreSmall, .centreCompact, .listedBuildings, .homesPost2000, .roadMajorExposure, .eveningClusterExposure, .landIndustry, .landStorage, .landTransportOther, .landGardens, .landWoodland, .parkLargeProximity, .parkFacilities, .groceryWalk, .incidentCriminalDamage, .incidentAntisocial, .privateOutdoorSpace, .cuisineVariety, .gpWalk, .pharmacyWalk, .venueFoodDrinkPerHomes, .priceMedian, .cultureVenuesPerHomes, .venueCafe, .venueCafePerHomes, .venueGym, .venueGymPerHomes, .venueEveningPerHomes, .grocerPremiumNearby, .grocerMidNearby, .grocerValueNearby, .gymPremiumNearby, .gymMidNearby, .gymValueNearby, .coffeePremiumNearby, .coffeeMidNearby, .coffeeValueNearby, .grocerPremiumDistance, .grocerMidDistance, .grocerValueDistance, .gymPremiumDistance, .gymMidDistance, .gymValueDistance, .coffeePremiumDistance, .coffeeMidDistance, .coffeeValueDistance, .brandMix, .brandWaitrose, .brandMands, .brandWholeFoods, .brandSainsburys, .brandTesco, .brandCoop, .brandMorrisons, .brandAsda, .brandAldi, .brandLidl, .brandIceland, .brandEquinox, .brandThirdSpace, .brandBarrys, .brandVirginActive, .brandNuffield, .brandGymbox, .brandDavidLloyd, .brandAnytimeFitness, .brandPuregym, .brandTheGymGroup, .brandGails, .brandOleAndSteen, .brandPret, .brandNero, .brandStarbucks, .brandCosta, .brandBlankStreet, .brandGreggs, .undergroundProximity, .overgroundProximity, .railProximity, .busStopsNearby, .busRoutesNearby, .residentsAged2034, .residentsAged65Over, .householdsDependentChildren, .householdsOnePerson, .homesHigherBands, .priceRise5y, .priceRise10y, .highstreetConserved]
 
     public init(rawValue: String) {
         switch rawValue {
@@ -2984,6 +3072,7 @@ public enum FeatureId: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
         case "homes_higher_bands": self = .homesHigherBands
         case "price_rise_5y": self = .priceRise5y
         case "price_rise_10y": self = .priceRise10y
+        case "highstreet_conserved": self = .highstreetConserved
         default: self = .unlisted(rawValue)
         }
     }
@@ -3102,6 +3191,7 @@ public enum FeatureId: Hashable, Sendable, Codable, CaseIterable, RawRepresentab
         case .homesHigherBands: return "homes_higher_bands"
         case .priceRise5y: return "price_rise_5y"
         case .priceRise10y: return "price_rise_10y"
+        case .highstreetConserved: return "highstreet_conserved"
         case .unlisted(let value): return value
         }
     }
@@ -4142,6 +4232,8 @@ public struct MetaData: Hashable, Sendable, Codable {
     public let census: CensusOffer
     public let income: IncomeOffer
     public let journeyEstimate: HowEstimated?
+    public let rents: RentsSaid?
+    public let roughGuides: [RoughGuide]
 
     public init(
         releaseId: String,
@@ -4163,7 +4255,9 @@ public struct MetaData: Hashable, Sendable, Codable {
         reader: Reader,
         census: CensusOffer,
         income: IncomeOffer,
-        journeyEstimate: HowEstimated? = nil
+        journeyEstimate: HowEstimated? = nil,
+        rents: RentsSaid? = nil,
+        roughGuides: [RoughGuide] = []
     ) {
         self.releaseId = releaseId
         self.builtAt = builtAt
@@ -4185,6 +4279,8 @@ public struct MetaData: Hashable, Sendable, Codable {
         self.census = census
         self.income = income
         self.journeyEstimate = journeyEstimate
+        self.rents = rents
+        self.roughGuides = roughGuides
     }
 
     enum CodingKeys: String, CodingKey {
@@ -4208,6 +4304,8 @@ public struct MetaData: Hashable, Sendable, Codable {
         case census
         case income
         case journeyEstimate = "journey_estimate"
+        case rents
+        case roughGuides = "rough_guides"
     }
 
     public init(from decoder: any Decoder) throws {
@@ -4232,6 +4330,8 @@ public struct MetaData: Hashable, Sendable, Codable {
         census = try container.decode(CensusOffer.self, forKey: .census)
         income = try container.decode(IncomeOffer.self, forKey: .income)
         journeyEstimate = try container.decodeIfPresent(HowEstimated.self, forKey: .journeyEstimate)
+        rents = try container.decodeIfPresent(RentsSaid.self, forKey: .rents)
+        roughGuides = try container.decodeIfPresent([RoughGuide].self, forKey: .roughGuides) ?? []
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -4255,7 +4355,9 @@ public struct MetaData: Hashable, Sendable, Codable {
         try container.encode(reader, forKey: .reader)
         try container.encode(census, forKey: .census)
         try container.encode(income, forKey: .income)
-        try container.encodeIfPresent(journeyEstimate, forKey: .journeyEstimate)
+        try container.encode(journeyEstimate, forKey: .journeyEstimate)
+        try container.encode(rents, forKey: .rents)
+        try container.encode(roughGuides, forKey: .roughGuides)
     }
 }
 
@@ -4711,8 +4813,8 @@ public struct Neighbourhood: Hashable, Sendable, Codable {
         try container.encode(centroid, forKey: .centroid)
         try container.encode(rankable, forKey: .rankable)
         try container.encode(neighbours, forKey: .neighbours)
-        try container.encodeIfPresent(homesAt, forKey: .homesAt)
-        try container.encodeIfPresent(named, forKey: .named)
+        try container.encode(homesAt, forKey: .homesAt)
+        try container.encode(named, forKey: .named)
     }
 }
 
@@ -5819,6 +5921,38 @@ public struct Rejected: Hashable, Sendable, Codable {
     }
 }
 
+/// What is said of the rents of a release, where each is of a wider place than an area.
+///
+/// It holds words and no figure. A client shows them where no one area is
+/// spoken of: the first beside the count of the areas a firm budget to rent
+/// left out, and the second on the page of methods.
+public struct RentsSaid: Hashable, Sendable, Codable {
+    public let ofAPlace: String
+    public let caution: String
+
+    public init(ofAPlace: String, caution: String) {
+        self.ofAPlace = ofAPlace
+        self.caution = caution
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case ofAPlace = "of_a_place"
+        case caution
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        ofAPlace = try container.decode(String.self, forKey: .ofAPlace)
+        caution = try container.decode(String.self, forKey: .caution)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(ofAPlace, forKey: .ofAPlace)
+        try container.encode(caution, forKey: .caution)
+    }
+}
+
 /// Which words of the text an edit rests on: where they start and end, never the words.
 ///
 /// `start` and `end` count the characters of the text as it was typed, as
@@ -5865,6 +5999,39 @@ public struct RestsOn: Hashable, Sendable, Codable {
         try container.encode(index, forKey: .index)
         try container.encode(start, forKey: .start)
         try container.encode(end, forKey: .end)
+    }
+}
+
+/// What stands beside a vibe that is a rough guide, wherever the vibe is shown.
+public struct RoughGuide: Hashable, Sendable, Codable {
+    public let tagId: TagId
+    public let label: String
+    public let why: String
+
+    public init(tagId: TagId, label: String, why: String) {
+        self.tagId = tagId
+        self.label = label
+        self.why = why
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case tagId = "tag_id"
+        case label
+        case why
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        tagId = try container.decode(TagId.self, forKey: .tagId)
+        label = try container.decode(String.self, forKey: .label)
+        why = try container.decode(String.self, forKey: .why)
+    }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(tagId, forKey: .tagId)
+        try container.encode(label, forKey: .label)
+        try container.encode(why, forKey: .why)
     }
 }
 
@@ -6477,6 +6644,7 @@ public struct Source: Hashable, Sendable, Codable {
     public let url: String
     public let retrievedOn: String
     public let creditBesideFigures: Bool
+    public let saidWithAttribution: String?
 
     public init(
         sourceId: String,
@@ -6486,7 +6654,8 @@ public struct Source: Hashable, Sendable, Codable {
         attribution: String,
         url: String,
         retrievedOn: String,
-        creditBesideFigures: Bool = false
+        creditBesideFigures: Bool = false,
+        saidWithAttribution: String? = nil
     ) {
         self.sourceId = sourceId
         self.name = name
@@ -6496,6 +6665,7 @@ public struct Source: Hashable, Sendable, Codable {
         self.url = url
         self.retrievedOn = retrievedOn
         self.creditBesideFigures = creditBesideFigures
+        self.saidWithAttribution = saidWithAttribution
     }
 
     enum CodingKeys: String, CodingKey {
@@ -6507,6 +6677,7 @@ public struct Source: Hashable, Sendable, Codable {
         case url
         case retrievedOn = "retrieved_on"
         case creditBesideFigures = "credit_beside_figures"
+        case saidWithAttribution = "said_with_attribution"
     }
 
     public init(from decoder: any Decoder) throws {
@@ -6519,6 +6690,7 @@ public struct Source: Hashable, Sendable, Codable {
         url = try container.decode(String.self, forKey: .url)
         retrievedOn = try container.decode(String.self, forKey: .retrievedOn)
         creditBesideFigures = try container.decodeIfPresent(Bool.self, forKey: .creditBesideFigures) ?? false
+        saidWithAttribution = try container.decodeIfPresent(String.self, forKey: .saidWithAttribution)
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -6531,6 +6703,7 @@ public struct Source: Hashable, Sendable, Codable {
         try container.encode(url, forKey: .url)
         try container.encode(retrievedOn, forKey: .retrievedOn)
         try container.encode(creditBesideFigures, forKey: .creditBesideFigures)
+        try container.encode(saidWithAttribution, forKey: .saidWithAttribution)
     }
 }
 
@@ -6969,6 +7142,37 @@ public enum SuggestionDirection: Hashable, Sendable, Codable, CaseIterable, RawR
     }
 }
 
+/// Whether a vibe is as sure as the rest, or a rough guide. It says so of itself.
+///
+/// It has these two values and no other. It is no number, and no word of praise or
+/// blame: it says how far a vibe is to be trusted, and nothing of any place. No client
+/// works it out. A vibe that does not say is as sure as the rest.
+public enum Sureness: Hashable, Sendable, Codable, CaseIterable, RawRepresentable {
+    case asTheRest
+    case roughGuide
+    /// A value this build does not know. It is kept, and sent back, as it came.
+    case unlisted(String)
+
+    /// Every value the contract lists.
+    public static let allCases: [Sureness] = [.asTheRest, .roughGuide]
+
+    public init(rawValue: String) {
+        switch rawValue {
+        case "as_the_rest": self = .asTheRest
+        case "rough_guide": self = .roughGuide
+        default: self = .unlisted(rawValue)
+        }
+    }
+
+    public var rawValue: String {
+        switch self {
+        case .asTheRest: return "as_the_rest"
+        case .roughGuide: return "rough_guide"
+        case .unlisted(let value): return value
+        }
+    }
+}
+
 public struct Tag: Hashable, Sendable, Codable {
     public let tagId: TagId
     public let label: String
@@ -6986,6 +7190,7 @@ public struct Tag: Hashable, Sendable, Codable {
     public let shelfToward: Toward?
     public let shelfOrder: Int?
     public let terms: [TagTerm]
+    public let sureness: Sureness
 
     public init(
         tagId: TagId,
@@ -7003,7 +7208,8 @@ public struct Tag: Hashable, Sendable, Codable {
         shelfWord: String?,
         shelfToward: Toward?,
         shelfOrder: Int?,
-        terms: [TagTerm]
+        terms: [TagTerm],
+        sureness: Sureness = .asTheRest
     ) {
         self.tagId = tagId
         self.label = label
@@ -7021,6 +7227,7 @@ public struct Tag: Hashable, Sendable, Codable {
         self.shelfToward = shelfToward
         self.shelfOrder = shelfOrder
         self.terms = terms
+        self.sureness = sureness
     }
 
     enum CodingKeys: String, CodingKey {
@@ -7040,6 +7247,7 @@ public struct Tag: Hashable, Sendable, Codable {
         case shelfToward = "shelf_toward"
         case shelfOrder = "shelf_order"
         case terms
+        case sureness
     }
 
     public init(from decoder: any Decoder) throws {
@@ -7060,6 +7268,7 @@ public struct Tag: Hashable, Sendable, Codable {
         shelfToward = try container.decodeIfPresent(Toward.self, forKey: .shelfToward)
         shelfOrder = try container.decodeIfPresent(Int.self, forKey: .shelfOrder)
         terms = try container.decode([TagTerm].self, forKey: .terms)
+        sureness = try container.decodeIfPresent(Sureness.self, forKey: .sureness) ?? .asTheRest
     }
 
     public func encode(to encoder: any Encoder) throws {
@@ -7080,6 +7289,7 @@ public struct Tag: Hashable, Sendable, Codable {
         try container.encode(shelfToward, forKey: .shelfToward)
         try container.encode(shelfOrder, forKey: .shelfOrder)
         try container.encode(terms, forKey: .terms)
+        try container.encode(sureness, forKey: .sureness)
     }
 }
 
@@ -7387,10 +7597,16 @@ public enum TemplateId: Hashable, Sendable, Codable, CaseIterable, RawRepresenta
     case costBuy
     case costBuyMedian
     case costBuySold
+    case costRentRecorded
     case budgetUnder
     case budgetOver
+    case budgetAt
     case budgetUnderMedian
     case budgetOverMedian
+    case budgetAtMedian
+    case budgetUnderRecorded
+    case budgetOverRecorded
+    case budgetAtRecorded
     case travelPt
     case travelPtOver
     case travelOther
@@ -7407,7 +7623,7 @@ public enum TemplateId: Hashable, Sendable, Codable, CaseIterable, RawRepresenta
     case unlisted(String)
 
     /// Every value the contract lists.
-    public static let allCases: [TemplateId] = [.area, .feature, .featureCrime, .vibe, .vibeRange, .vibeUnknown, .costRent, .costBuy, .costBuyMedian, .costBuySold, .budgetUnder, .budgetOver, .budgetUnderMedian, .budgetOverMedian, .travelPt, .travelPtOver, .travelOther, .travelOtherOver, .travelBeyond, .travelEstimated, .station, .stationNearby, .missing, .missingJourney, .likeness, .likenessSame]
+    public static let allCases: [TemplateId] = [.area, .feature, .featureCrime, .vibe, .vibeRange, .vibeUnknown, .costRent, .costBuy, .costBuyMedian, .costBuySold, .costRentRecorded, .budgetUnder, .budgetOver, .budgetAt, .budgetUnderMedian, .budgetOverMedian, .budgetAtMedian, .budgetUnderRecorded, .budgetOverRecorded, .budgetAtRecorded, .travelPt, .travelPtOver, .travelOther, .travelOtherOver, .travelBeyond, .travelEstimated, .station, .stationNearby, .missing, .missingJourney, .likeness, .likenessSame]
 
     public init(rawValue: String) {
         switch rawValue {
@@ -7421,10 +7637,16 @@ public enum TemplateId: Hashable, Sendable, Codable, CaseIterable, RawRepresenta
         case "cost_buy": self = .costBuy
         case "cost_buy_median": self = .costBuyMedian
         case "cost_buy_sold": self = .costBuySold
+        case "cost_rent_recorded": self = .costRentRecorded
         case "budget_under": self = .budgetUnder
         case "budget_over": self = .budgetOver
+        case "budget_at": self = .budgetAt
         case "budget_under_median": self = .budgetUnderMedian
         case "budget_over_median": self = .budgetOverMedian
+        case "budget_at_median": self = .budgetAtMedian
+        case "budget_under_recorded": self = .budgetUnderRecorded
+        case "budget_over_recorded": self = .budgetOverRecorded
+        case "budget_at_recorded": self = .budgetAtRecorded
         case "travel_pt": self = .travelPt
         case "travel_pt_over": self = .travelPtOver
         case "travel_other": self = .travelOther
@@ -7453,10 +7675,16 @@ public enum TemplateId: Hashable, Sendable, Codable, CaseIterable, RawRepresenta
         case .costBuy: return "cost_buy"
         case .costBuyMedian: return "cost_buy_median"
         case .costBuySold: return "cost_buy_sold"
+        case .costRentRecorded: return "cost_rent_recorded"
         case .budgetUnder: return "budget_under"
         case .budgetOver: return "budget_over"
+        case .budgetAt: return "budget_at"
         case .budgetUnderMedian: return "budget_under_median"
         case .budgetOverMedian: return "budget_over_median"
+        case .budgetAtMedian: return "budget_at_median"
+        case .budgetUnderRecorded: return "budget_under_recorded"
+        case .budgetOverRecorded: return "budget_over_recorded"
+        case .budgetAtRecorded: return "budget_at_recorded"
         case .travelPt: return "travel_pt"
         case .travelPtOver: return "travel_pt_over"
         case .travelOther: return "travel_other"

@@ -257,6 +257,16 @@ enum ResultsCopy {
         static let atMiddle = "Your budget is this middle price."
         static let oneNumber =
             "The publisher gives no range, and does not say how many sales this figure rests on."
+        // A rent that is of a wider place than the area. The place, the months and the count
+        // are slots of the fact, and no figure is drawn without them.
+        static let figureOf = "A figure of"
+        static let recordedIn = "Rents recorded in"
+        static let rents = "Rents it rests on, to the nearest ten"
+        static let pictureOfRent =
+            "The range of rents of the place, with the middle and your budget marked on it"
+        static let belowMiddleRent = "Your budget is below this middle rent."
+        static let aboveMiddleRent = "Your budget is above this middle rent."
+        static let atMiddleRent = "Your budget is this middle rent."
     }
 
     static func word(for confidence: Confidence) -> String? {
@@ -527,6 +537,9 @@ enum ResultsCopy {
         static let amount = "Your budget"
         static let under = "Under your budget by"
         static let over = "Over your budget by"
+        /// Over where a cost stands against the budget, where it is the budget to the pound.
+        /// The API says where.
+        static let againstBudget = "Against your budget"
         static let place = "To"
         static let mode = "How"
         static let typical = "Typical minutes"
@@ -542,9 +555,14 @@ enum ResultsCopy {
         static let middleOfAll = "Middle price, homes of all sizes"
         static let soldIn = "Homes sold in"
         static let sales = "Sales it rests on"
+        // A rent that is of a wider place than the area: what it is of, and what it rests on.
+        static let middleRent = "Middle rent"
+        static let figureOf = "A figure of"
+        static let recordedIn = "Rents recorded in"
+        static let rents = "Rents it rests on, to the nearest ten"
         static let limit = "Your limit, in minutes"
-        /// Over where a journey that was estimated stands against the limit, and over what
-        /// says that it is an estimate.
+        /// Over where a journey stands against the limit, in the API's words: one that was
+        /// estimated, and one that takes the minutes of its limit.
         static let estimate = "Against your limit"
         static let howKnown = "How this is known"
         static let underLimit = "Under your limit by, in minutes"
@@ -566,9 +584,11 @@ enum ResultsCopy {
         case .feature: return "Feature"
         case .featureCrime: return "Recorded crime"
         case .vibe, .vibeRange, .vibeUnknown: return "Vibe"
-        case .costRent: return "Rent"
+        case .costRent, .costRentRecorded: return "Rent"
         case .costBuy, .costBuyMedian, .costBuySold: return "Price"
-        case .budgetUnder, .budgetOver, .budgetUnderMedian, .budgetOverMedian: return "Budget"
+        case .budgetUnder, .budgetOver, .budgetAt, .budgetUnderMedian, .budgetOverMedian, .budgetAtMedian,
+            .budgetUnderRecorded, .budgetOverRecorded, .budgetAtRecorded:
+            return "Budget"
         case .travelPt, .travelPtOver, .travelOther, .travelOtherOver, .travelBeyond: return "Journey"
         case .travelEstimated: return "Journey, estimated"
         case .station: return "Nearest station"

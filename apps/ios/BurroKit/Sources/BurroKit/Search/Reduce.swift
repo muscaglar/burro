@@ -25,7 +25,7 @@ public func reduce(_ state: SearchState, _ event: SearchEvent) -> SearchState {
 
     case .queued(let operations):
         next.pending = state.pending.merged(with: operations)
-        next.assumed = afterEdits(state.assumed, operations)
+        next.assumed = withTheKindTaken(afterEdits(state.assumed, operations), operations)
 
     case .readStarted(let seq):
         next.phase = .interpreting
@@ -266,6 +266,7 @@ public func reduce(_ state: SearchState, _ event: SearchEvent) -> SearchState {
             count: added.count,
             // What is left for the person: of what was added, and of what was not.
             needs: (added + left).map(\.needs).filter { !$0.isEmpty },
+            firm: added.contains { $0.addedWithOthers?.operations.setsAFirmBudget == true },
             spec: state.spec,
             suggestions: read.suggestions)
         read.suggestions = left
@@ -442,6 +443,20 @@ private func afterEdits(_ assumed: Assumed, _ operations: Operations, only: Set<
             }
         }
     }
+    return next
+}
+
+/// The kind of home that Burro took, where a person named a house and no kind of house.
+/// The edit that holds it says that it is Burro's, so the search says that it is assumed,
+/// as it does where the API applies the same of a plain sentence. A kind that a person
+/// presses is theirs.
+private func withTheKindTaken(_ assumed: Assumed, _ operations: Operations) -> Assumed {
+    let took = operations.budgetOps.contains { $0.segment != .unchanged && $0.provenance == .inferred }
+    var held = assumed[.budget] ?? []
+    guard took, !held.contains(.segment) else { return assumed }
+    held.append(.segment)
+    var next = assumed
+    next[.budget] = held
     return next
 }
 

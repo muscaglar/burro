@@ -201,6 +201,7 @@ final class ControlsTests: XCTestCase {
             [
                 "Stations", "Green space and water", "Air and noise", "Venues and culture",
                 "Shops and services", "Brands nearby", "Schools", "Homes",
+                "Who lived there at the census",
             ])
         XCTAssertEqual(
             Set(offered.map(\.featureId)), Set(Answers.meta.features.filter(\.rankable).map(\.featureId)))

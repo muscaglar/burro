@@ -129,10 +129,13 @@ final class SavedAreasTests: XCTestCase {
             XCTAssertTrue(
                 Set(vibe.keys).isSubset(of: [
                     "list", "tag_id", "name", "low", "high", "band", "spread_low", "spread_high", "plainly",
-                    "rests_on", "waits_on", "not_in_data", "held", "fact",
+                    "rests_on", "waits_on", "not_in_data", "held", "rough", "fact",
                 ]))
             XCTAssertNotNil(vibe["band"])
         }
+        // What a vibe that is a rough guide says of itself is kept with it, and with no other.
+        XCTAssertEqual(
+            vibes.filter { $0["rough"] != nil }.map { $0["tag_id"] }, [.string("village_feel")])
         XCTAssertEqual(
             Mirror(reflecting: try XCTUnwrap(saved.kept["syn-n0003"])).children.compactMap(\.label),
             ["areaId", "slug", "name", "borough", "savedOn", "releaseId", "synthetic", "preview", "rankable",

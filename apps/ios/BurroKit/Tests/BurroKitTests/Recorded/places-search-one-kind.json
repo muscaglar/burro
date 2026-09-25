@@ -22,12 +22,12 @@
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
-    "x-request-id": "b39399d0-6108-4134-ab81-971380ca3215"
+    "x-request-id": "d0901815-b599-4e05-9d38-ac0deddba0eb"
   },
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.13.0",
+      "engine_version": "1.14.0",
       "synthetic": true,
       "preview": false
     },

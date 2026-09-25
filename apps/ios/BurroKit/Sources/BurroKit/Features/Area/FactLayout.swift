@@ -105,6 +105,18 @@ public enum FactLayout {
                 (AreaCopy.Column.soldIn, slots["period"]),
                 (AreaCopy.Column.sales, slots["sales"]),
             ]
+        case .costRentRecorded:
+            // A rent of the postcode district or of the borough the area lies in. It says
+            // the place it is of, the months and how many rents it rests on, and no word
+            // for how sure it is: the count says it.
+            found = [
+                (AreaCopy.Column.segment, slots["segment"]),
+                (AreaCopy.Column.range, range(slots["lower"], slots["upper"])),
+                (AreaCopy.Column.median, pounds(slots["median"])),
+                (AreaCopy.Column.figureOf, slots["of"]),
+                (AreaCopy.Column.recordedIn, slots["period"]),
+                (AreaCopy.Column.rents, slots["rents"]),
+            ]
         case .costRent, .costBuy:
             found = [
                 (AreaCopy.Column.segment, slots["segment"]),
@@ -121,7 +133,8 @@ public enum FactLayout {
             ]
         case .area:
             found = [(AreaCopy.Column.name, slots["name"]), (AreaCopy.Column.borough, slots["borough"])]
-        case .budgetUnder, .budgetOver, .budgetUnderMedian, .budgetOverMedian, .travelPt, .travelPtOver,
+        case .budgetUnder, .budgetOver, .budgetAt, .budgetUnderMedian, .budgetOverMedian, .budgetAtMedian,
+            .budgetUnderRecorded, .budgetOverRecorded, .budgetAtRecorded, .travelPt, .travelPtOver,
             .travelOther, .travelOtherOver, .travelBeyond, .travelEstimated, .missing, .missingJourney,
             .likeness, .likenessSame, .unlisted:
             // These are of a search, or of another area. This page lays neither out in columns.
@@ -166,6 +179,14 @@ public enum FactLayout {
         }
         // What a middle price means, in the API's words: about half of what sold went for less.
         if fact.kind == .cost, let half = fact.slots["half_sold"], !half.isEmpty {
+            said.append(half)
+        }
+        // Which place a figure is of, and that it is not of this area alone: the API's words.
+        if let isOf = fact.slots["is_of"], !isOf.isEmpty {
+            said.append(isOf)
+        }
+        // What a middle rent means, in the API's words: about half were let for less.
+        if fact.kind == .cost, let half = fact.slots["half_let"], !half.isEmpty {
             said.append(half)
         }
         // What every sentence about a vibe ends in, as the API holds it.
