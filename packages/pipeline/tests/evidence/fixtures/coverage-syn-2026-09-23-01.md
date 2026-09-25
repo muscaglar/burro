@@ -6,10 +6,10 @@ This release is made up, and so is its evidence. It describes no real place.
 |---|---|
 | Areas | 24 |
 | Areas that can be ranked | 22 |
-| Measures | 143 |
-| Pairs of an area and a measure | 3432 |
-| Pairs with a value | 3096 |
-| Gaps | 336 |
+| Measures | 144 |
+| Pairs of an area and a measure | 3456 |
+| Pairs with a value | 3117 |
+| Gaps | 339 |
 | Not published for areas this small | 0 |
 | Pairs with no record behind them | 0 |
 | A share of the whole is a share of | areas, each counted once, because no count of homes was given |
@@ -138,6 +138,7 @@ A gap is a pair in the state `below_threshold`, `source_gap`, `suppressed` or `n
 | feature/residents_aged_20_34 | 19 | 2 | 3 | 0 | 0 | 0 | 0 | 0 | Quillhaven: 21 of 24 |
 | feature/residents_aged_65_over | 19 | 2 | 3 | 0 | 0 | 0 | 0 | 0 | Quillhaven: 21 of 24 |
 | feature/road_major_exposure | 19 | 2 | 3 | 0 | 0 | 0 | 0 | 0 | Quillhaven: 21 of 24 |
+| feature/road_traffic_nearby | 19 | 2 | 3 | 0 | 0 | 0 | 0 | 0 | Quillhaven: 21 of 24 |
 | feature/school_primary_attainment | 17 | 3 | 4 | 0 | 0 | 0 | 0 | 0 | Quillhaven: 20 of 24 |
 | feature/school_primary_nearby | 19 | 5 | 0 | 0 | 0 | 0 | 0 | 0 | Quillhaven: 24 of 24 |
 | feature/school_secondary_attainment | 21 | 2 | 1 | 0 | 0 | 0 | 0 | 0 | Quillhaven: 23 of 24 |
@@ -174,34 +175,34 @@ A gap is a pair in the state `below_threshold`, `source_gap`, `suppressed` or `n
 
 | Area | Name | Borough | Ranked | Measures with a value | Essentials | Worst |
 |---|---|---|---|---|---|---|
-| syn-n0001 | Alderwick | Quillhaven | yes | 138 of 139 | 5 of 5 | feature/air_no2: below_threshold |
-| syn-n0002 | Brackenhythe | Quillhaven | yes | 139 of 139 | 5 of 5 | feature/brand_aldi: partial |
-| syn-n0003 | Cindermoor | Quillhaven | yes | 138 of 139 | 5 of 5 | feature/school_primary_attainment: below_threshold |
-| syn-n0004 | Dulcimer Green | Quillhaven | yes | 139 of 139 | 5 of 5 | feature/green_cover: partial |
-| syn-n0005 | Eskerfold | Quillhaven | yes | 139 of 139 | 5 of 5 | feature/underground_proximity: partial |
-| syn-n0006 | Farrowmere | Quillhaven | yes | 139 of 139 | 5 of 5 | feature/brand_equinox: partial |
-| syn-n0007 | Foxholt | Quillhaven | yes | 139 of 139 | 5 of 5 | feature/brand_costa: partial |
-| syn-n0008 | Gorsebeck | Quillhaven | yes | 136 of 139 | 5 of 5 | feature/highstreet_conserved: below_threshold |
-| syn-n0009 | Grapnel Dock | Quillhaven | no | 86 of 139 | 3 of 5: lacks cost, enough to rank | cost/rent.room: source_gap |
-| syn-n0010 | Hollinsworth Quay | Quillhaven | yes | 139 of 139 | 5 of 5 | feature/land_industry: partial |
-| syn-n0011 | Kindlewharf | Quillhaven | yes | 139 of 139 | 5 of 5 | feature/price_median: partial |
-| syn-n0012 | Lantern Yard | Quillhaven | yes | 138 of 139 | 5 of 5 | cost/buy.detached: source_gap |
-| syn-n0013 | Larkspur Hill | Quillhaven | yes | 139 of 139 | 5 of 5 | feature/brand_starbucks: partial |
-| syn-n0014 | Marrowfen | Quillhaven | yes | 137 of 139 | 5 of 5 | feature/conservation_cover: below_threshold |
-| syn-n0015 | Osierholm | Quillhaven | yes | 139 of 139 | 5 of 5 | feature/crime_burglary_theft: partial |
-| syn-n0016 | Ostrel Vale | Quillhaven | yes | 129 of 139 | 4 of 5: lacks cost | cost/rent.room: source_gap |
-| syn-n0017 | Otterby Fields | Quillhaven | yes | 25 of 139 | 4 of 5: lacks enough to rank | feature/brand_david_lloyd: source_gap |
-| syn-n0018 | Pellam Cross | Quillhaven | yes | 137 of 139 | 5 of 5 | cost/rent.bed_4plus: source_gap |
-| syn-n0019 | Sable Reach | Quillhaven | yes | 139 of 139 | 5 of 5 | feature/gym_mid_distance: partial |
-| syn-n0020 | Sedgewater Marsh | Quillhaven | no | 86 of 139 | 3 of 5: lacks cost, enough to rank | cost/rent.room: source_gap |
-| syn-n0021 | Tallowgate | Quillhaven | yes | 139 of 139 | 5 of 5 | feature/brand_greggs: partial |
-| syn-n0022 | Thrushcombe | Quillhaven | yes | 139 of 139 | 5 of 5 | feature/brand_gails: partial |
-| syn-n0023 | Wexmoor | Quillhaven | yes | 139 of 139 | 5 of 5 | feature/brand_puregym: partial |
-| syn-n0024 | Wickerford | Quillhaven | yes | 139 of 139 | 5 of 5 | feature/homes_higher_bands: partial |
+| syn-n0001 | Alderwick | Quillhaven | yes | 139 of 140 | 5 of 5 | feature/air_no2: below_threshold |
+| syn-n0002 | Brackenhythe | Quillhaven | yes | 140 of 140 | 5 of 5 | feature/brand_aldi: partial |
+| syn-n0003 | Cindermoor | Quillhaven | yes | 139 of 140 | 5 of 5 | feature/school_primary_attainment: below_threshold |
+| syn-n0004 | Dulcimer Green | Quillhaven | yes | 140 of 140 | 5 of 5 | feature/green_cover: partial |
+| syn-n0005 | Eskerfold | Quillhaven | yes | 140 of 140 | 5 of 5 | feature/underground_proximity: partial |
+| syn-n0006 | Farrowmere | Quillhaven | yes | 140 of 140 | 5 of 5 | feature/brand_equinox: partial |
+| syn-n0007 | Foxholt | Quillhaven | yes | 140 of 140 | 5 of 5 | feature/brand_costa: partial |
+| syn-n0008 | Gorsebeck | Quillhaven | yes | 137 of 140 | 5 of 5 | feature/highstreet_conserved: below_threshold |
+| syn-n0009 | Grapnel Dock | Quillhaven | no | 86 of 140 | 3 of 5: lacks cost, enough to rank | cost/rent.room: source_gap |
+| syn-n0010 | Hollinsworth Quay | Quillhaven | yes | 140 of 140 | 5 of 5 | feature/land_industry: partial |
+| syn-n0011 | Kindlewharf | Quillhaven | yes | 140 of 140 | 5 of 5 | feature/price_median: partial |
+| syn-n0012 | Lantern Yard | Quillhaven | yes | 139 of 140 | 5 of 5 | cost/buy.detached: source_gap |
+| syn-n0013 | Larkspur Hill | Quillhaven | yes | 140 of 140 | 5 of 5 | feature/brand_starbucks: partial |
+| syn-n0014 | Marrowfen | Quillhaven | yes | 138 of 140 | 5 of 5 | feature/conservation_cover: below_threshold |
+| syn-n0015 | Osierholm | Quillhaven | yes | 140 of 140 | 5 of 5 | feature/crime_burglary_theft: partial |
+| syn-n0016 | Ostrel Vale | Quillhaven | yes | 130 of 140 | 4 of 5: lacks cost | cost/rent.room: source_gap |
+| syn-n0017 | Otterby Fields | Quillhaven | yes | 25 of 140 | 4 of 5: lacks enough to rank | feature/brand_david_lloyd: source_gap |
+| syn-n0018 | Pellam Cross | Quillhaven | yes | 138 of 140 | 5 of 5 | cost/rent.bed_4plus: source_gap |
+| syn-n0019 | Sable Reach | Quillhaven | yes | 140 of 140 | 5 of 5 | feature/gym_mid_distance: partial |
+| syn-n0020 | Sedgewater Marsh | Quillhaven | no | 86 of 140 | 3 of 5: lacks cost, enough to rank | cost/rent.room: source_gap |
+| syn-n0021 | Tallowgate | Quillhaven | yes | 140 of 140 | 5 of 5 | feature/brand_greggs: partial |
+| syn-n0022 | Thrushcombe | Quillhaven | yes | 140 of 140 | 5 of 5 | feature/brand_gails: partial |
+| syn-n0023 | Wexmoor | Quillhaven | yes | 140 of 140 | 5 of 5 | feature/brand_puregym: partial |
+| syn-n0024 | Wickerford | Quillhaven | yes | 140 of 140 | 5 of 5 | feature/homes_higher_bands: partial |
 
 ## Gaps
 
-Of the 143 things Burro measures, 139 have a figure in at least one area. Each of the other 4 is a gap in every area, and is listed once.
+Of the 144 things Burro measures, 140 have a figure in at least one area. Each of the other 4 is a gap in every area, and is listed once.
 
 | Measure | State | Record | Reason | What would close it |
 |---|---|---|---|---|
@@ -256,6 +257,7 @@ Of the 143 things Burro measures, 139 have a figure in at least one area. Each o
 | syn-n0009 | feature/residents_aged_20_34 | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
 | syn-n0009 | feature/residents_aged_65_over | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
 | syn-n0009 | feature/road_major_exposure | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
+| syn-n0009 | feature/road_traffic_nearby | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
 | syn-n0009 | feature/school_primary_attainment | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
 | syn-n0009 | feature/venue_cafe_per_homes | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
 | syn-n0009 | feature/venue_evening_per_homes | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
@@ -372,6 +374,7 @@ Of the 143 things Burro measures, 139 have a figure in at least one area. Each o
 | syn-n0017 | feature/residents_aged_20_34 | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
 | syn-n0017 | feature/residents_aged_65_over | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
 | syn-n0017 | feature/road_major_exposure | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
+| syn-n0017 | feature/road_traffic_nearby | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
 | syn-n0017 | feature/school_primary_attainment | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
 | syn-n0017 | feature/school_secondary_attainment | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
 | syn-n0017 | feature/underground_proximity | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
@@ -438,6 +441,7 @@ Of the 143 things Burro measures, 139 have a figure in at least one area. Each o
 | syn-n0020 | feature/residents_aged_20_34 | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
 | syn-n0020 | feature/residents_aged_65_over | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
 | syn-n0020 | feature/road_major_exposure | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
+| syn-n0020 | feature/road_traffic_nearby | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
 | syn-n0020 | feature/school_primary_attainment | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
 | syn-n0020 | feature/venue_cafe_per_homes | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |
 | syn-n0020 | feature/venue_evening_per_homes | below_threshold | yes | Too little of the area had data to give a figure | A source that covers more of the area |

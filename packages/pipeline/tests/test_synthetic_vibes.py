@@ -75,7 +75,7 @@ def names(release: InMemoryRelease, area_ids: list[str]) -> list[str]:
 def test_the_committed_release_carries_gritty_and_is_what_the_generator_builds():
     committed = read_release(FIXTURE)
     assert committed.manifest.gritty_variant is GrittyVariant.B
-    assert (committed.manifest.schema_version, committed.manifest.catalogue_version) == (2, 14)
+    assert (committed.manifest.schema_version, committed.manifest.catalogue_version) == (2, 15)
     assert committed.vibes == tags_of(GrittyVariant.B)
     assert committed.features == built().features
     assert committed.tags == built().tags
@@ -163,9 +163,10 @@ def test_no_figure_of_an_older_feature_moves_when_a_newer_part_is_added():
         FeatureId.PRICE_RISE_5Y,
         FeatureId.PRICE_RISE_10Y,
     )
-    # How much of the nearest high street lies in a conservation area came last.
-    assert build.LATER[68:] == (FeatureId.HIGHSTREET_CONSERVED,)
-    assert len(build.LATER) == 8 + 48 + 5 + 4 + 3 + 1
+    # How much of the nearest high street lies in a conservation area came after, and the
+    # traffic near where homes stand came last.
+    assert build.LATER[68:] == (FeatureId.HIGHSTREET_CONSERVED, FeatureId.ROAD_TRAFFIC_NEARBY)
+    assert len(build.LATER) == 8 + 48 + 5 + 4 + 3 + 1 + 1
     assert len(set(build.LATER)) == len(build.LATER)
     assert not set(build.LATER) & {*build.FIRST, *build.SECOND}
 

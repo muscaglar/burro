@@ -9,8 +9,9 @@ one command line.
 """
 
 import hashlib
+import io
 from collections.abc import Generator, Mapping, Sequence
-from contextlib import contextmanager
+from contextlib import contextmanager, redirect_stderr, redirect_stdout
 from dataclasses import dataclass, replace
 from functools import cache
 from pathlib import Path
@@ -29,6 +30,7 @@ from burro_pipeline.derive import (
     homes_pre1919,
     listed_buildings,
     road_major_exposure,
+    road_traffic_nearby,
     schools_file,
     stops_file,
     town_centres,
@@ -39,6 +41,7 @@ from burro_pipeline.evidence.record import file_id_of
 from burro_pipeline.fetch.store import FOLDER_VARIABLE, FolderStore
 from burro_pipeline.registry.model import Use
 
+from .. import once
 from ..cells.support import FILES, REPOSITORY, contents
 from ..derive import (
     centres_support,
@@ -49,6 +52,7 @@ from ..derive import (
     noise_support,
     schools_support,
     stops_support,
+    traffic_support,
     water_support,
 )
 from ..derive import test_air_no2 as grid
@@ -205,6 +209,16 @@ def files() -> dict[str, File]:
             by_road.EDITION,
             by_road.EDITION,
             the_roads(),
+        ),
+        # A count point on each road, so that every home of the town has a figure of traffic.
+        File(
+            "traffic",
+            road_traffic_nearby.SOURCE,
+            Use.SCORING,
+            road_traffic_nearby.FILE,
+            f"retrieved {traffic_support.RETRIEVED}",
+            "2025",
+            traffic_support.counts_zip(traffic_support.BY_THE_ROADS),
         ),
         File(
             "schools",
@@ -383,6 +397,9 @@ class Made:
     """A made-up build on disk: its store, its receipts and its list."""
 
     folder: Path
+    # Where the build writes, where that is not beside its files: the files that are made
+    # once are read by many tests, and each builds to a folder of its own.
+    writes_to: Path | None = None
 
     @property
     def store(self) -> Path:
@@ -394,7 +411,7 @@ class Made:
 
     @property
     def out(self) -> Path:
-        return self.folder / "out"
+        return self.writes_to or self.folder / "out"
 
     @property
     def release(self) -> Path:
@@ -456,3 +473,39 @@ def made(
         build.keep(file)
     (folder / "made-up.toml").write_text(list_of(list(every.values())), encoding="utf-8")
     return build
+
+
+@cache
+def _files_made_once() -> Made:
+    found = made(once.folder_for("made-once"))
+    (found.folder / "no-repository").mkdir()
+    once.made(found.folder)
+    return found
+
+
+def made_once(folder: Path) -> Made:
+    """The made-up build as `made` makes it, for a test that gives it no file of its own.
+
+    Its store, its receipts and its list are made once in each process, and no test
+    writes to them: a build reads them and writes to none of them. What this build
+    writes, it writes under `folder`. A test that changes a file of a build, that looks
+    for the folder of its files in what a build prints, or that changes core for a
+    while, makes its own with `made`: what is made once is made as core is.
+    """
+    folder.mkdir(parents=True, exist_ok=True)
+    return replace(_files_made_once(), writes_to=folder / "out")
+
+
+@cache
+def built_once() -> Made:
+    """The made-up build as `made` makes it, built once in each process and never changed.
+
+    It is for a test that only reads a build, or that takes a copy of one. What the step
+    printed is thrown away. A test that gives a build other files, or reads what a build
+    prints, makes its own.
+    """
+    found = made_once(once.folder_for("built-once"))
+    with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+        assert found.run() == 0
+    once.made(found.out)
+    return found

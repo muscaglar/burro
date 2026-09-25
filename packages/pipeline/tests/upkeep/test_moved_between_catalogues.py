@@ -213,7 +213,7 @@ def test_a_measure_and_a_vibe_that_the_catalogue_gained_are_said_to_have_come(
     assert found["measures"]["went"] == []
     assert found["vibes"]["came"] == [{"id": CAME_AS_A_VIBE.value, "label": "Quiet streets"}]
     assert found["vibes"]["went"] == []
-    assert found["before"]["measures"] + 1 == found["after"]["measures"] == 24
+    assert found["before"]["measures"] + 1 == found["after"]["measures"] == 25
     assert found["before"]["vibes"] + 1 == found["after"]["vibes"] == 14
 
 
@@ -336,7 +336,7 @@ def test_the_catalogue_is_counted(found: dict[str, Any]):
     counts = moved.counted(found)
     assert {name: count for name, count in counts.items() if count} == {
         "areas": 3,
-        "measures": 24,
+        "measures": 25,
         "measures_came": 1,
         "vibes": 14,
         "vibes_came": 1,
@@ -359,7 +359,7 @@ def test_what_both_builds_hold_is_compared_as_between_two_builds_of_one_catalogu
 ):
     # The two were built from the same files, so no figure, price or file moved.
     assert found["measures"]["moved"] == [] and found["costs"] == []
-    assert found["measures"]["same"] == 23 and found["vibes"]["same"] == 13
+    assert found["measures"]["same"] == 24 and found["vibes"]["same"] == 13
     assert found["areas"]["same"] == 3 and found["areas"]["moved_most"] == []
     files = found["files"]
     assert (files["compared"], files["changed"], files["came"], files["went"]) == (
@@ -453,7 +453,7 @@ def test_the_step_prints_counts_and_ids_of_the_catalogue_and_never_an_area(
         "step=moved search=3 kept=3 came=0 went=0 reordered=0",
         f"step=moved status=ok before={BEFORE} after={AFTER} catalogue_before={OLDER} "
         f"catalogue_after={CATALOGUE_VERSION} areas=3 areas_came=0 areas_went=0 "
-        "areas_renamed=0 areas_redrawn=0 measures=24 measures_came=1 measures_went=0 "
+        "areas_renamed=0 areas_redrawn=0 measures=25 measures_came=1 measures_went=0 "
         "measures_moved=0 vibes=14 vibes_came=1 vibes_went=0 vibes_moved=2 costs_moved=0 "
         "files_changed=0 files_came=0 files_went=0 searches=3 searches_moved=1 parts_came=2 "
         "parts_went=3 shares_changed=4 names_changed=1 rough_came=1 rough_went=0",

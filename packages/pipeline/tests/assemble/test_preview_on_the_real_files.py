@@ -124,7 +124,7 @@ WITH_A_FIGURE = {
 # register of schools and the files of stops are on the list m2-living, as is the workbook of
 # what homes sell for. The station data and the routes of buses are each on a list of their
 # own, and so are the two census tables of who lived in an area, the workbook of private
-# outdoor space and the file of high streets. The file of places is read
+# outdoor space, the file of high streets and the file of count points. The file of places is read
 # for the cultural venues and for the
 # brands, and for independent places, which are told from the chains by their brand. So
 # are the cafes, the gyms and the pubs and bars, which are counted from the file of places.
@@ -161,6 +161,7 @@ _LEFT_OUT = {
     "rail_proximity": NO_FILE,
     "residents_aged_20_34": NO_FILE,
     "residents_aged_65_over": NO_FILE,
+    "road_traffic_nearby": NO_FILE,
     "price_rise_10y": NO_FILE,
     "price_rise_5y": NO_FILE,
     "private_outdoor_space": NO_FILE,
@@ -181,19 +182,19 @@ LEFT_OUT = dict(sorted(_LEFT_OUT.items()))
 # the nearest play space and the nearest park: this build reads no school. Going out is not
 # placed: the places to eat and drink and the nearest town centre are 50 in 100 of it, and
 # its pubs and its culture are counted from the file of places, which is on no list here.
+# Nor is Quiet streets: main roads and transport noise are 50 in 100 of it, and its traffic
+# and its clusters of pubs and bars are each read from a file of another list.
 PLACED = {
     TagId.BUILT_AGE: 1.0,
     TagId.FAMILY_AMENITIES: 0.6,
     TagId.HOMES: 0.75,
     TagId.PARKS_CLOSE_BY: 0.7,
-    TagId.QUIET_RESIDENTIAL: 0.7,
 }
 AREAS_PLACED = {
     TagId.BUILT_AGE: 1_001,
     TagId.FAMILY_AMENITIES: 1_002,
     TagId.HOMES: 1_002,
     TagId.PARKS_CLOSE_BY: 1_002,
-    TagId.QUIET_RESIDENTIAL: 1_002,
 }
 # How much of a vibe each area rests on, where areas differ. Of Built age, an area with no
 # figure for homes built since 2000 has 80 in 100, and one with none for homes built before
@@ -291,8 +292,7 @@ def test_the_vibes_that_have_a_score_are_these_and_no_other_has(release: InMemor
     """Flats and homes per hectare are 75 in 100 of Homes, so core places every area on it.
 
     The nearest park and the nearest large park are 70 in 100 of Parks close
-    by, and main roads and transport noise are 70 in 100 of Quiet streets.
-    Each rests on two of its three parts, and its sentence says so.
+    by, which rests on two of its three parts, and its sentence says so.
 
     Homes built before 1919, homes built since 2000, conservation cover and
     listed buildings are the whole of Built age, so core places every area
@@ -307,8 +307,9 @@ def test_the_vibes_that_have_a_score_are_these_and_no_other_has(release: InMemor
     band. The places to eat and drink for each 1,000 homes and the nearest
     town centre are 50 in 100 of Going out, whose pubs and culture this build
     does not read. Food and drink holds the places for each 1,000 homes at 40. Main
-    roads and transport noise are 25 in 100 of Gritty, and no land use and no
-    recorded incident is read. Public parks and gardens are 30 in 100 of
+    roads and transport noise are 50 in 100 of Quiet streets, whose traffic and
+    clusters of pubs and bars this build does not read, and 25 in 100 of Gritty,
+    and no land use and no recorded incident is read. Public parks and gardens are 30 in 100 of
     Leafy. No part of Well connected is read: its files are on no list of
     this build.
     """

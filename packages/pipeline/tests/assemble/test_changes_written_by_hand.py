@@ -29,7 +29,7 @@ from burro_pipeline.release.read import read_served
 
 from ..evidence.support import GIT, git
 from .published import Published, published
-from .support import RELEASE, Made, made
+from .support import RELEASE, Made, made, made_once
 
 pytestmark = pytest.mark.skipif(GIT is None, reason="git is needed to publish a file of changes")
 
@@ -70,7 +70,7 @@ def with_a_part(part: str, tag_id: str = "leafy", honest: bool = True) -> dict[s
 
 def refused(folder: Path, capsys: Printed, *lines: dict[str, Any], **how: Any) -> str:
     """Hand a build a file that was published, and give what it said as it stopped."""
-    found = made(folder / "build")
+    found = made_once(folder / "build")
     held = published(folder, *lines, **how)
     assert found.run(*held.arguments()) == 2
     said = capsys.readouterr()
@@ -193,6 +193,8 @@ def test_a_vibe_that_is_held_off_is_placed_by_no_change_to_its_shares(
     monkeypatch.setattr(catalogue, "PLACED_ONLY_WITH", held_off)
     held = changes.recipe_of(TAGS[TagId.PARKS_CLOSE_BY])
     now = dict(zip(held, (50, 40, 10), strict=True))
+    # Files of its own: core is changed here for a while, and nothing that is made once
+    # for every test is made while it is.
     found = made(tmp_path / "build")
     line = a_line(of="parks_close_by", was=held, now=now)
     with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
@@ -374,7 +376,7 @@ def stopped(found: Made, capsys: Printed, *arguments: str) -> str:
 
 
 def test_a_file_that_is_in_no_repository_is_not_built(tmp_path: Path, capsys: Printed):
-    found = made(tmp_path / "build")
+    found = made_once(tmp_path / "build")
     path = tmp_path / "by-hand" / "r1.jsonl"
     path.parent.mkdir()
     path.write_text(json.dumps(a_line()) + "\n", encoding="utf-8")
@@ -386,7 +388,7 @@ def test_a_file_outside_the_repository_of_the_build_is_not_built(tmp_path: Path,
     outside = tmp_path / "by-hand" / "r1.jsonl"
     outside.parent.mkdir()
     shutil.copy(held.path, outside)
-    found = made(tmp_path / "build")
+    found = made_once(tmp_path / "build")
     said = stopped(
         found, capsys, "--changes", str(outside), "--root", str(held.root), "--commit", held.commit
     )
@@ -398,7 +400,7 @@ def test_a_file_the_repository_does_not_track_is_not_built(tmp_path: Path, capsy
     beside = held.path.with_name("r1.jsonl").parent.parent / "by-hand" / "r1.jsonl"
     beside.parent.mkdir()
     shutil.copy(held.path, beside)
-    found = made(tmp_path / "build")
+    found = made_once(tmp_path / "build")
     arguments = ("--changes", str(beside), "--root", str(held.root), "--commit", held.commit)
     assert stopped(found, capsys, *arguments).startswith(NOT_PUBLISHED)
 
@@ -412,7 +414,7 @@ def test_a_file_that_git_is_told_to_ignore_is_not_built(tmp_path: Path, capsys: 
     ignored.parent.mkdir(parents=True)
     shutil.copy(held.path, ignored)
     commit = git(held.root, "rev-parse", "HEAD")
-    found = made(tmp_path / "build")
+    found = made_once(tmp_path / "build")
     arguments = ("--changes", str(ignored), "--root", str(held.root), "--commit", commit)
     assert stopped(found, capsys, *arguments).startswith(NOT_PUBLISHED)
 
@@ -438,7 +440,7 @@ def test_a_file_changed_by_a_byte_after_it_was_published_is_not_built(
     before = held.path.read_bytes()
     held.path.write_bytes(change(before))
     assert held.path.read_bytes() != before
-    found = made(tmp_path / "build")
+    found = made_once(tmp_path / "build")
     said = stopped(found, capsys, *held.arguments())
     # A byte that makes a line no line is refused as that. Any other is refused because the
     # file is no longer what the repository holds.
@@ -455,7 +457,7 @@ def test_a_file_that_is_staged_and_not_committed_is_not_built(tmp_path: Path, ca
         "".join(json.dumps(line) + "\n" for line in (a_line(), later)), encoding="utf-8"
     )
     git(held.root, "add", "--all")
-    found = made(tmp_path / "build")
+    found = made_once(tmp_path / "build")
     said = stopped(found, capsys, *held.arguments())
     assert "what is staged is not what is committed" in said
 
@@ -467,14 +469,14 @@ def test_a_link_to_a_file_is_not_the_file(tmp_path: Path, capsys: Printed):
     git(held.root, "add", "--all")
     git(held.root, "commit", "--quiet", "--message", "Link to the file")
     commit = git(held.root, "rev-parse", "HEAD")
-    found = made(tmp_path / "build")
+    found = made_once(tmp_path / "build")
     arguments = ("--changes", str(link), "--root", str(held.root), "--commit", commit)
     assert "error: the file of changes" in stopped(found, capsys, *arguments)
 
 
 def test_the_copy_that_was_published_is_built_and_the_lock_names_it(tmp_path: Path):
     held = published(tmp_path, a_line())
-    found = made(tmp_path / "build")
+    found = made_once(tmp_path / "build")
     with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
         assert found.run(*held.arguments()) == 0
     release = read_served(found.release)
@@ -494,7 +496,7 @@ def test_the_copy_that_was_published_is_built_and_the_lock_names_it(tmp_path: Pa
 def built(tmp_path_factory: pytest.TempPathFactory) -> tuple[Made, Published]:
     folder = tmp_path_factory.mktemp("built")
     held = published(folder, a_line())
-    found = made(folder / "build")
+    found = made_once(folder / "build")
     with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
         assert found.run(*held.arguments()) == 0
     return found, held

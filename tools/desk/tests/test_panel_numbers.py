@@ -7,7 +7,12 @@ from typing import Any
 
 import pytest
 from burro_core import estimate
-from burro_core.catalogue import NEAREST_WITHIN_M, PART_MAX_HUNDREDTHS, WITHIN_M
+from burro_core.catalogue import (
+    NEAREST_WITHIN_M,
+    PART_MAX_HUNDREDTHS,
+    TRAFFIC_WITHIN_M,
+    WITHIN_M,
+)
 from burro_core.rank import FIRM_BUDGET_MARGIN_PERCENT
 from burro_core.release import FEWEST_SALES
 from desk import cli, fill, server
@@ -41,6 +46,7 @@ def test_every_number_the_founder_named_is_listed_with_what_it_is_today(
         "journey_beyond_by": estimate.BEYOND_BY,
         "near": WITHIN_M,
         "nearest": NEAREST_WITHIN_M,
+        "near_a_count_point": TRAFFIC_WITHIN_M,
         "fewest_sales": FEWEST_SALES,
         "part_most": PART_MAX_HUNDREDTHS,
         "band_needs": 60,

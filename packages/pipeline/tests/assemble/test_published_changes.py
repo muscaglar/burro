@@ -23,7 +23,7 @@ from burro_pipeline.release.read import read_served
 from ..cells.support import held
 from ..evidence.support import GIT, git
 from .published import PUBLISHED_AT, Published, published
-from .support import Made, made
+from .support import Made, made_once
 from .test_changes_written_by_hand import NOT_PUBLISHED, a_line, a_share_moved
 
 pytestmark = pytest.mark.skipif(GIT is None, reason="git is needed to publish a file of changes")
@@ -67,7 +67,7 @@ def test_where_the_repository_tracks_no_file_the_build_is_what_it_is_with_none(
     tmp_path: Path, capsys: Printed
 ):
     kept = with_no_file(tmp_path)
-    build = made(tmp_path / "build")
+    build = made_once(tmp_path / "build")
     plain = ("--root", str(kept.root), "--commit", kept.commit)
     assert build.run(*plain, out=tmp_path / "as-it-was") == 0
     before = capsys.readouterr().out
@@ -81,7 +81,7 @@ def test_where_the_repository_tracks_the_file_it_is_built_as_a_build_by_hand_bui
     tmp_path: Path, capsys: Printed
 ):
     kept = published(tmp_path, a_line())
-    build = made(tmp_path / "build")
+    build = made_once(tmp_path / "build")
     assert build.run(*kept.arguments(), out=tmp_path / "by-hand") == 0
     by_hand = capsys.readouterr().out
     assert build.run(*where_published(kept), out=tmp_path / "hosted") == 0
@@ -100,7 +100,7 @@ def test_where_the_repository_tracks_the_file_it_is_built_as_a_build_by_hand_bui
 def test_a_build_with_the_file_is_not_the_build_with_none(tmp_path: Path):
     kept = published(tmp_path, a_line())
     none = with_no_file(tmp_path / "none")
-    build = made(tmp_path / "build")
+    build = made_once(tmp_path / "build")
     assert quietly(lambda: build.run(*where_published(kept), out=tmp_path / "with")) == 0
     assert quietly(lambda: build.run(*where_published(none), out=tmp_path / "without")) == 0
     assert held(tmp_path / "with") != held(tmp_path / "without")
@@ -131,7 +131,7 @@ def test_what_stands_there_and_is_not_tracked_is_never_read_and_stops_the_build(
 ):
     kept = with_no_file(tmp_path)
     there(kept)
-    line, words = stopped(made(tmp_path / "build"), capsys, *where_published(kept))
+    line, words = stopped(made_once(tmp_path / "build"), capsys, *where_published(kept))
     assert line == UNREADABLE and words.startswith(NOT_PUBLISHED)
 
 
@@ -163,14 +163,14 @@ def test_a_file_that_is_tracked_and_is_not_as_it_was_committed_stops_the_build(
 ):
     kept = published(tmp_path, a_line())
     since(kept)
-    said = stopped(made(tmp_path / "build"), capsys, *where_published(kept))
+    said = stopped(made_once(tmp_path / "build"), capsys, *where_published(kept))
     assert said[0] == line and said[1].startswith(words)
 
 
 def test_the_place_is_the_founders_and_no_other_reviewers(tmp_path: Path, capsys: Printed):
     """A run never chooses between two files: it is given one place, and it is the founder's."""
     kept = published(tmp_path, a_line(by="r2"), name="r2.jsonl")
-    build = made(tmp_path / "build")
+    build = made_once(tmp_path / "build")
     line, words = stopped(build, capsys, *where_published(kept, "r2.jsonl"))
     assert line == UNREADABLE and "is named r1.jsonl" in words
     # With the founder's place named, another reviewer's file beside it is never read.
@@ -183,7 +183,7 @@ def test_a_build_is_given_a_file_or_the_place_of_one_and_never_both(
     tmp_path: Path, capsys: Printed
 ):
     kept = published(tmp_path, a_line())
-    build = made(tmp_path / "build")
+    build = made_once(tmp_path / "build")
     with pytest.raises(SystemExit) as stop:
         assemble.main(build.arguments(*kept.arguments(), OPTION, str(kept.path)), {})
     assert stop.value.code == 2
@@ -193,7 +193,7 @@ def test_a_build_is_given_a_file_or_the_place_of_one_and_never_both(
 def test_where_there_is_no_repository_and_no_file_the_build_is_what_it_is_with_none(
     tmp_path: Path,
 ):
-    build = made(tmp_path / "build")
+    build = made_once(tmp_path / "build")
     place = str(tmp_path / "nowhere" / "r1.jsonl")
     assert quietly(lambda: build.run(out=tmp_path / "as-it-was")) == 0
     assert quietly(lambda: build.run(OPTION, place, out=tmp_path / "given-the-place")) == 0

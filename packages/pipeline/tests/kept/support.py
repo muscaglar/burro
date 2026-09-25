@@ -6,6 +6,7 @@ release of London, because only such a release has a lock.
 """
 
 import io
+import shutil
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
@@ -13,18 +14,20 @@ import release_lock
 from burro_pipeline.kept import cli
 from burro_pipeline.kept.store import FOLDER_VARIABLE
 
-from ..assemble.support import RELEASE, made
+from ..assemble.support import RELEASE, built_once
 
 OTHER = "lon-2026-09-23-02"
 MADE_UP = "syn-2026-09-23-01"
 
 
 def built(folder: Path) -> Path:
-    """The made-up build in a folder of the test's own. Gives the folder it wrote under."""
-    build = made(folder)
-    with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
-        assert build.run() == 0
-    return build.out
+    """What the made-up build wrote, in a folder of the test's own. Gives that folder.
+
+    The build is made once, and each test is handed a copy of what it wrote: the same
+    bytes wherever it is built, which a test of the build holds. So a test may change
+    what it is given, and the next is given what was built.
+    """
+    return shutil.copytree(built_once().out, folder / "out")
 
 
 def approve(folder: Path, out: Path, release: str = RELEASE) -> Path:

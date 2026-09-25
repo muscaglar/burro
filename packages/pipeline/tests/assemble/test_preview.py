@@ -85,6 +85,7 @@ MEASURED = (
     "park_large_proximity",
     "park_proximity",
     "road_major_exposure",
+    "road_traffic_nearby",
     "school_primary_nearby",
     "station_walk",
     "venue_food_drink",
@@ -224,7 +225,7 @@ SAID_WITH = (
 )
 # The files of the made-up build, and the vibes that rest on parks: green cover is a part
 # of Leafy, and the nearest park of Parks close by.
-FILES, SQUARES, LEAFY = 24, ("sites-tb", "sites-tc", "sites-tg", "sites-th"), "leafy"
+FILES, SQUARES, LEAFY = 25, ("sites-tb", "sites-tc", "sites-tg", "sites-th"), "leafy"
 # The file of the food register of each of the town's two authorities.
 REGISTERS = ("register-901", "register-902")
 # The two files of the planning data platform, by their names in the list.
@@ -235,8 +236,8 @@ PARKS, QUIET = "parks_close_by", "quiet_residential"
 LATER = (*SQUARES, "roads", "schools", "stops", "town-centres", "water", *HERITAGE)
 # The vibes a build can place. Homes rests on two of its three parts, 75 in 100: flats and
 # homes per hectare. Parks close by rests on two of its three, 70 in 100: the nearest park
-# and the nearest large park. Quiet streets rests on two of its three, 70 in 100: main
-# roads and transport noise. Built age rests on all four of its parts: homes built before
+# and the nearest large park. Quiet streets rests on three of its four, 70 in 100: main
+# roads, traffic and transport noise. Built age rests on all four of its parts: homes built before
 # 1919, homes built since 2000, conservation cover and listed buildings. Leafy rests on all
 # three of its parts: gardens, woodland, and public parks and gardens. Family amenities
 # rests on two of its three, 65 in 100: the primary schools and the nearest park. Going out
@@ -609,7 +610,7 @@ def test_every_pair_of_an_area_and_a_measure_has_a_row_and_a_state(build: Made):
     assert report.count(f"| tag/{VILLAGE} | below_threshold | yes |") == 1
     # The name and the outline of an area, every measure that is carried, and every placed vibe.
     have = 2 + len(MEASURED) + len(PLACED)
-    assert f"Of the 143 things Burro measures, {have} have a figure in at least one area." in report
+    assert f"Of the 144 things Burro measures, {have} have a figure in at least one area." in report
     # What one area lacks and another has is still listed for the area that lacks it.
     assert f"| {THREE} | feature/air_no2 | below_threshold | yes |" in report
 
@@ -849,6 +850,7 @@ def test_with_no_measure_at_all_there_is_no_release(tmp_path: Path, capsys: Prin
             "noise",
             *SQUARES,
             "roads",
+            "traffic",
             "schools",
             "stops",
             "town-centres",

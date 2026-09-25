@@ -509,6 +509,7 @@ FEATURES = frozenset(
         "residents_aged_20_34",
         "residents_aged_65_over",
         "road_major_exposure",
+        "road_traffic_nearby",
         "school_primary_attainment",
         "school_primary_nearby",
         "school_secondary_attainment",

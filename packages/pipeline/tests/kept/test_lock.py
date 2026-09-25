@@ -54,7 +54,7 @@ def test_a_lock_says_what_the_build_left_out_by_the_id_of_the_measure_and_its_ru
     gone = {one.feature.value: one.rule for one in lock.left_out}
     assert gone["centre_compact"] == "measure_is_as_core_says"
     assert gone["price_median"] == "input_has_one_receipt"
-    assert lock.holds.areas == 3 and lock.holds.measures == 24 and lock.preview
+    assert lock.holds.areas == 3 and lock.holds.measures == 25 and lock.preview
 
 
 def broken(tmp_path: Path, change: dict[str, Any]) -> Path:

@@ -90,7 +90,7 @@ def sources() -> dict[str, list[str]]:
 def test_every_source_that_holds_a_receipt_has_its_row_and_no_other_has():
     held = {path.name for path in (ROOT / "data" / "receipts").iterdir() if path.is_dir()}
     assert set(sources()) == held
-    assert len(held) == 43 or "43" not in section(ADDING, "## 0. In short")
+    assert len(held) == 44 or "44" not in section(ADDING, "## 0. In short")
 
 
 def test_the_reach_of_the_sources_comes_to_what_the_guide_counts():
@@ -104,13 +104,13 @@ def test_the_reach_of_the_sources_comes_to_what_the_guide_counts():
         "London alone": 7,
         "England": 7,
         "England and Wales": 13,
-        "Great Britain": 7,
+        "Great Britain": 8,
         "United Kingdom": 4,
         "The world": 1,
         "Not said in the registry": 4,
     }
     said = (
-        "7 London alone, 7 England, 13 England and Wales, 7 Great Britain, 4 the United "
+        "7 London alone, 7 England, 13 England and Wales, 8 Great Britain, 4 the United "
         "Kingdom, 1 the world. Of 4 the repository does not say"
     )
     assert said in section(ADDING, "## 0. In short")
@@ -137,8 +137,8 @@ def test_the_measures_of_day_one_come_to_the_measures_london_carries():
     # The first table of the section: a row says how many measures, and then which.
     first = section(ADDING, "## 4.").split("| Vibe |", 1)[0]
     counted = [int(found) for found in re.findall(r"^\| [A-Z][^|]+ \| (\d+) \| ", first, re.M)]
-    assert counted == [90, 4, 4, 2] and sum(counted) == 100
-    assert "90 of London's 100 measures, and 9 of its 14 vibes" in ADDING
+    assert counted == [91, 4, 4, 2] and sum(counted) == 101
+    assert "91 of London's 101 measures, and 9 of its 14 vibes" in ADDING
 
 
 def test_the_vibes_of_day_one_are_held_to_cores_recipes():

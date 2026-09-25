@@ -696,7 +696,7 @@ def test_the_command_builds_the_release_and_checks_it(
     assert main(["check", str(tmp_path / RELEASE_ID)]) == 0
     built, checked = capsys.readouterr().out.splitlines()
     assert built == checked
-    assert built.startswith(f"{RELEASE_ID}: 24 areas (22 rankable), 109 measures, 40 destinations")
+    assert built.startswith(f"{RELEASE_ID}: 24 areas (22 rankable), 110 measures, 40 destinations")
     assert built.endswith(", synthetic")
 
 

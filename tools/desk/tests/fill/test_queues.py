@@ -448,7 +448,7 @@ def test_the_made_up_draft_says_of_a_figure_what_the_coverage_report_says(made_u
     planted = set(synthetic.NO_RECORD)
     rows = draft.read_table(made_up.data / "draft", "figures.csv")
     # Every measure the release carries, in every area.
-    assert len(rows) == 24 * 109
+    assert len(rows) == 24 * 110
     for row in rows:
         cell = report.cell(row["area_id"], f"feature/{row['feature_id']}")
         said = set(row["flag"].split())

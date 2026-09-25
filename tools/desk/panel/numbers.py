@@ -13,6 +13,7 @@ from burro_core.catalogue import (
     NEAREST_WITHIN_M,
     PART_MAX_HUNDREDTHS,
     TAG_MIN_COVERAGE_HUNDREDTHS,
+    TRAFFIC_WITHIN_M,
     WITHIN_M,
 )
 from burro_core.rank import FIRM_BUDGET_MARGIN_PERCENT
@@ -132,6 +133,16 @@ def listed() -> dict[str, Any]:
                         f"NEAREST_WITHIN_M in {CORE}/catalogue.py, and in the label of every "
                         "measure of a distance",
                         "A change to the catalogue, in code: the labels say the distance.",
+                    ),
+                    _row(
+                        "near_a_count_point",
+                        "A count point of traffic is near a home where it stands no further "
+                        "than this, in a straight line.",
+                        TRAFFIC_WITHIN_M,
+                        "m",
+                        f"TRAFFIC_WITHIN_M in {CORE}/catalogue.py, and in the label of the "
+                        "measure of traffic",
+                        "A change to the catalogue, in code: the label says the distance.",
                     ),
                 ],
             },

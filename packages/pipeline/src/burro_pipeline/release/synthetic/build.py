@@ -25,6 +25,7 @@ from burro_core.catalogue import (
     DISTANCE,
     FEATURES,
     KINDS_OF_CHAIN,
+    MOTOR_VEHICLES_A_DAY,
     NEARBY,
     NEAREST_WITHIN_M,
     RANKED_AS,
@@ -246,6 +247,7 @@ LATER = (
     _F.PRICE_RISE_5Y,
     _F.PRICE_RISE_10Y,
     _F.HIGHSTREET_CONSERVED,
+    _F.ROAD_TRAFFIC_NEARBY,
 )
 # How far what homes sold for has risen: pounds for each 100 of the price before, and no
 # price. It is given to one decimal place, where a price is given to the pound.
@@ -263,6 +265,8 @@ _OF_HOMES_TOO = (
     _F.HOMES_HIGHER_BANDS,
     # A mean over an area's homes, of the high street each is nearest to.
     _F.HIGHSTREET_CONSERVED,
+    # A mean over an area's homes, of the busiest count point near each.
+    _F.ROAD_TRAFFIC_NEARBY,
 )
 _INCIDENTS = (_F.INCIDENT_CRIMINAL_DAMAGE, _F.INCIDENT_ANTISOCIAL)
 # The places of each tier within reach, which are a mean over an area's homes, and the mix.
@@ -953,6 +957,22 @@ def _of_brands(feature_id: FeatureId, area: _Area, draw: Draw) -> float:
     return NEAREST_WITHIN_M - 100 - 1_750 * near + draw.around(60)
 
 
+# The traffic past the busiest count point near home: so many motor vehicles a day where no
+# home stands beside a main road, and so many more for each home in 100 that does.
+TRAFFIC_BASE, TRAFFIC_FOR_EACH_IN_100 = 1_500, 450
+
+
+def _traffic(beside: float | None) -> float | None:
+    """One area's made-up traffic, from its made-up share of homes beside a main road.
+
+    It is no figure of its own drawing: the busier a road, the more homes are taken to
+    stand beside it, area for area. So Quiet streets, which holds both, places every
+    area where it placed it before traffic was a part of it, and what traffic adds is
+    seen on real data alone. An area with no share of homes has no traffic either.
+    """
+    return None if beside is None else TRAFFIC_BASE + TRAFFIC_FOR_EACH_IN_100 * beside
+
+
 def _tidy(feature_id: FeatureId, value: float) -> float:
     """A figure as its source would publish it: in its unit, and never below nothing."""
     unit = FEATURES[feature_id].unit
@@ -965,6 +985,9 @@ def _tidy(feature_id: FeatureId, value: float) -> float:
     if unit == "£":
         # A median of what was paid is a whole number of pounds, or ends in a half.
         return float(max(round(value / 500) * 500, 500))
+    if unit == MOTOR_VEHICLES_A_DAY:
+        # A flow is given to the whole vehicle, as a build of real files gives it.
+        return _whole(value)
     # The places within reach are a mean over an area's homes, so the count is given to one
     # decimal place, as a build of real files gives it.
     if unit == "count" and feature_id not in _MEANS:
@@ -1005,6 +1028,14 @@ def _features(
         keep(area, _newer_figures(area, newer), newer)
     for feature_id, stream in later.items():
         for area in areas:
+            if feature_id is _F.ROAD_TRAFFIC_NEARBY:
+                # It draws how much of the area was covered, as every figure does.
+                made = _traffic(values[area.area_id, _F.ROAD_MAJOR_EXPOSURE])
+                keep(area, {feature_id: 0.0 if made is None else made}, stream)
+                if made is None and values[area.area_id, feature_id] is not None:
+                    # Nought would stand for what is not known.
+                    raise ValueError("an area with no share of homes has no made-up traffic")
+                continue
             keep(area, {feature_id: _later_figure(feature_id, area, stream)}, stream)
 
     rankable = [area.plan.rankable for area in areas]

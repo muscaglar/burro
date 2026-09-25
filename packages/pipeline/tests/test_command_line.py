@@ -139,7 +139,7 @@ def test_it_runs_as_a_module():
         cwd=REPOSITORY,
     )
     assert (done.returncode, done.stderr) == (0, "")
-    assert done.stdout.startswith("step=check status=ok release=syn-2026-09-23-01 facts=3220 ")
+    assert done.stdout.startswith("step=check status=ok release=syn-2026-09-23-01 facts=3241 ")
 
 
 def test_there_is_one_way_to_run_a_step():

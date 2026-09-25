@@ -164,7 +164,7 @@ def test_the_command_checks_the_release_and_the_evidence_behind_it(build: Made, 
     status, out, err = checked(build, capsys)
     assert (status, err) == (0, "")
     assert out.splitlines() == [
-        f"{RELEASE}: 3 areas (3 rankable), 24 measures, 3 destinations, 3 places, 0 stations, "
+        f"{RELEASE}: 3 areas (3 rankable), 25 measures, 3 destinations, 3 places, 0 stations, "
         "real, a preview, with evidence behind every fact"
     ]
 

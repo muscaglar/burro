@@ -1,0 +1,55 @@
+# Road traffic: the one file that says how many vehicles pass each count point on
+# an average day of each year. The traffic near where homes stand is measured
+# from it.
+#
+# The `page` is the registry entry's own `url`. The address of the file was read
+# on that page on 2026-09-25, through a reader that extracts the text of a page.
+# An extraction is not the page, so no person has seen the address. It was not
+# guessed, and it was not built from a pattern. The reader was asked twice, in
+# different words, and gave the same address both times, letter for letter,
+# written whole. The raw text of the page was read the same day, and holds the
+# address twice. A fetch has since tried it: the file arrived on 2026-09-25 and
+# is kept as f-5273cf63da4c.
+#
+# The licence registry holds its source as approved since 2026-09-25, for scoring
+# and for checking against. The entry says what the publisher asks of whoever
+# shows a figure made from the file, and that a street with no count point has no
+# figure.
+#
+# Not listed, and why:
+#   - The file of count points: the publisher's metadata document gives the
+#     place of the count point among the columns of the file that is listed, so
+#     one file says where a count point stands and what passes it.
+#   - The raw counts: the vehicles counted in each hour of the one day a count
+#     was made. A figure is made from the average day of a year.
+#   - The annual average daily flow by direction: the same flows, split by the
+#     way the traffic runs.
+#   - The totals by region and by local authority: they are of no street.
+#   - The Major Roads Database: the lines of the major road network, as shape
+#     files. The registry entry does not cover it.
+#
+# The page states no edition, and the address names none. The publisher's page of
+# questions says the estimates are updated alongside its yearly publication, so
+# another file may arrive at the address. So the list states no edition: the
+# edition is the day the file was retrieved, which fetch writes from its own
+# clock. That day is about the fetch, and is never the period of the data. The
+# period is the list's to state, and it states the years the page says the file
+# covers. The step that reads the file holds it to them.
+#
+# `uv run python -m burro_pipeline plan --list m13-road-traffic --words` says what
+# the file still needs.
+schema_version = 1
+build = "m13-road-traffic"
+
+[[file]]
+item = "dft-aadf"
+source_id = "dft-road-traffic-counts"
+use = "scoring"
+what = "Annual average daily flow at each count point, for each year, by kind of vehicle: one CSV in a zip"
+format = "zip"
+page = "https://roadtraffic.dft.gov.uk/downloads"
+url = "https://storage.googleapis.com/dft-statistics/road-traffic/downloads/data-gov-uk/dft_traffic_counts_aadf.zip"
+max_bytes = 30_000_000
+edition_from = { where = "retrieved", at = "", words = "retrieved", period_too = false }
+data_period = { start = "2000", end = "2025" }
+notes = "Address read on 2026-09-25, on the page above, through a reader that extracts. The reader was asked twice, in different words, and gave the same address both times. It is written whole on the page, under the heading of downloads at the level of a count point, beside the words annual average daily flow. The raw text of the page was read the same day: it holds the address letter for letter, twice. The host of the file is not the host of the page: the registry entry names the address whole. A fetch took the file on 2026-09-25, from that address and no other: the request was not sent on. It is kept as f-5273cf63da4c, and is 19,464,638 bytes. The page gives 600,551 records and no size, so max_bytes leaves room for half as much again. The page says the file is zipped CSV. The zip holds one file, dft_traffic_counts_aadf.csv. The page states no edition and no day of release, and the address names none, so the edition is the day the file was retrieved. The period is what the page says of the data at the level of a count point: that it covers the years 2000 to 2025. It rested on the page and on nothing else when the file was fetched. The file holds no day of its own that a fetch could read: it holds a row for each count point and year, and the year is a column. So the period could not be read in the file before the file had a receipt, and the step that reads the file holds it to the period instead: it stops where a row is of a year outside the period, and where no row is of the last year of it. The file has been read since, through its receipt, and bears the period out: it holds 600,551 rows of 46,754 count points, as the page says, and rows of every year from 2000 to 2025. The period is of the file as a whole. The figure of a count point is of the latest year that count point has, which may be years before the last: the publisher says a minor road that has left its sample keeps its old figures and gains none. So beside a figure the words are the year the figure is of, and never the period of the file. The period is of the file that was read and of no other: if the line of a later fetch reads new=1, another file has arrived, and the period is stated again before its receipt is used. The publisher's metadata document lists the columns of the file, and the file holds them: 34, under the names the document gives. A measure of the traffic through a street needs few of them: the id of the count point, the year, where the count point stands, the category of the road, how the figure was made, and the flow of all motor vehicles. A program read the pages and the file, and no person has: whether the period stands is the founder's to confirm. Great Britain: no file for London is offered."

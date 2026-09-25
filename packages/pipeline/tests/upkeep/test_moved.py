@@ -415,7 +415,7 @@ def test_the_step_prints_counts_and_never_an_area(two: Two, capsys: Printed, tmp
         "step=moved search=3 kept=3 came=0 went=0 reordered=2",
         f"step=moved status=ok before={BEFORE} after={AFTER} catalogue_before={VERSION} "
         f"catalogue_after={VERSION} areas=3 areas_came=0 "
-        "areas_went=0 areas_renamed=0 areas_redrawn=0 measures=23 measures_came=0 "
+        "areas_went=0 areas_renamed=0 areas_redrawn=0 measures=24 measures_came=0 "
         "measures_went=1 measures_moved=1 vibes=14 vibes_came=0 vibes_went=0 vibes_moved=1 "
         "costs_moved=0 files_changed=1 files_came=0 files_went=1 searches=3 searches_moved=3 "
         "parts_came=0 parts_went=0 shares_changed=0 names_changed=0 rough_came=0 rough_went=0",

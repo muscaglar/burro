@@ -109,6 +109,7 @@ def test_the_measures_a_build_carries_are_those_core_names_as_their_files_suppor
         FeatureId.RESIDENTS_AGED_20_34,
         FeatureId.RESIDENTS_AGED_65_OVER,
         FeatureId.ROAD_MAJOR_EXPOSURE,
+        FeatureId.ROAD_TRAFFIC_NEARBY,
         FeatureId.SCHOOL_PRIMARY_NEARBY,
         FeatureId.STATION_WALK,
         FeatureId.UNDERGROUND_PROXIMITY,

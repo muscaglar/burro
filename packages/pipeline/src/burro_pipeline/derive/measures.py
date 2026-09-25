@@ -80,6 +80,7 @@ from burro_pipeline.derive import (
     residents_aged_20_34,
     residents_aged_65_over,
     road_major_exposure,
+    road_traffic_nearby,
     school_primary_nearby,
     station_walk,
     venue_food_drink,
@@ -517,6 +518,14 @@ _EVERY_OTHER: tuple[Measure, ...] = (
         road_major_exposure.METHODS,
         road_major_exposure.CANNOT_SEE,
         lambda inputs, ground: road_major_exposure.build(inputs, ground.spine),
+    ),
+    Measure(
+        road_traffic_nearby.FEATURE,
+        road_traffic_nearby.SOURCE,
+        road_traffic_nearby.is_the_file,
+        road_traffic_nearby.METHODS,
+        road_traffic_nearby.CANNOT_SEE,
+        lambda inputs, ground: road_traffic_nearby.build(inputs, ground.spine),
     ),
     Measure(
         school_primary_nearby.FEATURE,

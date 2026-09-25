@@ -409,6 +409,37 @@ def test_a_build_reads_what_the_panel_kept(sitting: Sitting):
     ]
 
 
+def test_traffic_is_a_part_of_quiet_streets_at_the_panel_and_its_share_may_be_changed(
+    sitting: Sitting,
+):
+    """The share of traffic is a first opinion. The panel lists the part with what it
+    stands at, shows what another share would move, keeps it, and a build reads it."""
+    quiet = "quiet_residential"
+    was = {
+        "road_major_exposure": 20,
+        "road_traffic_nearby": 20,
+        "evening_cluster_exposure": 30,
+        "noise_exposure": 30,
+    }
+    now = was | {"road_major_exposure": 10, "road_traffic_nearby": 30}
+    adjust = sitting.get("vibe", quiet)["adjust"]
+    assert {part["measure"]: part["hundredths"] for part in adjust["shares"]} == was
+    assert (adjust["least"], adjust["most"], adjust["as_served"]) == (1, 59, True)
+    labels = {part["measure"]: part["label"] for part in adjust["shares"]}
+    assert labels["road_traffic_nearby"] == catalogue.FEATURES[FeatureId.ROAD_TRAFFIC_NEARBY].label
+    found = sitting.preview(now, of=quiet)
+    assert (found["of"], found["was"], found["now"]) == (quiet, was, now)
+    assert found["bands"]["areas"] == 24
+    why = "How busy a road is says more of a quiet street than its class."
+    assert sitting.keep(now, why, of=quiet)["line"]["now"] == now
+    lines = changes.read(kept.path_of(sitting.desk.data, "r1").read_bytes())
+    built = {vibe.tag_id: vibe for vibe in changes.adjusted(tags_of(GrittyVariant.B), lines)}
+    assert changes.recipe_of(built[TagId.QUIET_RESIDENTIAL]) == now
+    # No share may take the part out: a recipe holds what core says it holds.
+    gone = was | {"road_major_exposure": 40, "road_traffic_nearby": 0}
+    assert sitting.refused("preview", what="recipe", of=quiet, now=gone).status == 400
+
+
 def test_what_was_kept_and_not_yet_built_is_said_on_the_first_screen(sitting: Sitting):
     sitting.keep()
     home = sitting.get("home")
