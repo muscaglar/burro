@@ -6,6 +6,7 @@ describes no real place.
 
 import json
 import logging
+import sys
 import traceback
 from collections.abc import Generator, Mapping
 from contextlib import contextmanager
@@ -591,3 +592,20 @@ def sentences() -> Any:
     module = module_from_spec(found)
     found.loader.exec_module(module)
     return module
+
+
+@cache
+def scorer() -> Any:
+    """The scorer of the evaluation set, which judges what a person would get who pressed.
+
+    It is the evaluation's own, read from where it is kept, so that what the service
+    marks as the guess is held to the cases a reader is held to.
+    """
+    held = Path(__file__).resolve().parents[3] / "evals" / "reader" / "score.py"
+    found = spec_from_file_location("reader_score", held)
+    assert found is not None and found.loader is not None
+    module = module_from_spec(found)
+    # Its records are made by name of their module, which must be there to be found.
+    if sys.modules.setdefault("reader_score", module) is module:
+        found.loader.exec_module(module)
+    return sys.modules["reader_score"]

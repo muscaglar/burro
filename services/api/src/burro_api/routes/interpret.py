@@ -37,7 +37,7 @@ from fastapi import APIRouter
 from burro_api import logs
 from burro_api.calls import Caller, CallRecord, CallStatus, Endpoint
 from burro_api.deps import Context, Ctx, Deps
-from burro_api.guard import settled
+from burro_api.guard import plainly_said, settled
 from burro_api.offers import of_the_rules
 from burro_api.providers.interface import ModelCapped, ModelRefused, ModelTimeout
 from burro_api.reader import Read, asks_a_model
@@ -180,16 +180,18 @@ def offered(
     here for the rules' offers and a model's alike.
     """
     found: list[Suggestion] = []
-    for suggestion in result.suggestions:
-        spans = stretches(suggestion.spans, text, lead)
+    # What a person plainly said of the home they look for is Burro's guess, whether
+    # or not a model read the words.
+    noticed = tuple(of_the_rules(suggestion) for suggestion in result.suggestions)
+    for offer in plainly_said(noticed, typed, spec):
+        spans = stretches(offer.spans, text, lead)
         if not spans:
             continue
-        offer = of_the_rules(suggestion)
         # All that the offer rests on is shown: the words that end last may
         # not be the ones that begin last.
         around = (
-            min(span.start for span in suggestion.spans),
-            max(span.end for span in suggestion.spans),
+            min(span.start for span in offer.spans),
+            max(span.end for span in offer.spans),
         )
         sentences = typed.sentences(around)
         shown = sentences if offer.whole_sentence else typed.clause(around)
@@ -216,7 +218,7 @@ def offered(
                     )
                     for way, label in zip(offer.choices, words.labels, strict=True)
                 ),
-                note=offer.note,
+                note=words.note,
                 read_by=offer.read_by,
                 add_all=words.add_all,
                 needs=words.needs,

@@ -15,6 +15,17 @@
 !services/api/src
 !data/fixtures/synthetic
 
+# The locks of the releases that are approved, and what holds a release to its lock
+# while the image is built.
+!data/approved
+!tools/public_log.py
+!tools/release_lock.py
+
+# The one folder a release of London is taken to before the image is built. It is no
+# part of the repository: git ignores it, and the step `take` fills it. Nothing else
+# under data/releases may enter: a preview that lies there is approved by nobody.
+!data/releases/served
+
 # A release folder holds its files and nothing else, so nothing a file browser
 # or an interpreter leaves behind may come with it.
 **/__pycache__

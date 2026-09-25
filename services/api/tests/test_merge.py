@@ -489,7 +489,8 @@ def test_what_an_offer_rests_on_is_not_said_to_be_unread():
             assert not [
                 span for span in rested if span[0] < unread.end and unread.start < span[1]
             ], case
-        assert ("other" in result.unmet) is bool(result.unread), case
+        # `other` says that nothing was made of some word, whether or not it may have asked.
+        assert ("other" in result.unmet) is bool(result.unread or result.asks_nothing), case
 
 
 def test_a_journey_to_a_place_named_twice_is_offered_once():

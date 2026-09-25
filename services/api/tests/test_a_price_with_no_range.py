@@ -213,9 +213,17 @@ def test_an_explanation_says_the_middle_price_and_passes_the_check(client: TestC
     ]
     assert len(said) == 5
     for sentence in said:
-        assert sentence["text"].startswith("The middle price of flats of all sizes is £")
-        assert sentence["text"].endswith(f" under your budget of £{BUDGET:,}.")
+        assert sentence["text"].startswith("The middle price of flats of all sizes is ")
+        assert sentence["text"].endswith(f" your budget of £{BUDGET:,}.")
         assert sentence["replaced"] is False
+    # Where the flats of an area sold for the budget to the pound, the middle price is said
+    # to be at the budget, and no sentence gives a difference of nothing.
+    first = [explained["area_id"] for explained in found["explanations"]]
+    at = [sentence["text"] for sentence in said if " at your budget of " in sentence["text"]]
+    assert len(at) == sum(flats()[area] == BUDGET for area in first) > 0
+    assert set(at) == {f"The middle price of flats of all sizes is at your budget of £{BUDGET:,}."}
+    assert all(" under your budget of " in s["text"] for s in said if s["text"] not in at)
+    assert not any("£0 " in sentence["text"] for sentence in said)
 
 
 # What an offer says of a firm budget

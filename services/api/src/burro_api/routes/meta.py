@@ -6,10 +6,11 @@ says who reads what is typed, and what people are told of it, so that no
 client writes a provider's terms of its own.
 """
 
-from burro_core.catalogue import CATALOGUE_VERSION, FAMILIES
+from burro_core.catalogue import CATALOGUE_VERSION, FAMILIES, rough_guides
 from burro_core.census import offer
 from burro_core.estimate import HOW, estimates_journeys
 from burro_core.explain import REASON_MIN_UTILITY, TRADE_OFF_MAX_UTILITY
+from burro_core.facts import RENTS_SAID, rents_are_of_places
 from burro_core.ids import Mode, Tenure, segments_for
 from burro_core.income import offer as offer_of_income
 from burro_core.interpret import MAX_TEXT
@@ -101,6 +102,7 @@ def get_meta(context: Ctx, request: Request, response: Response) -> Envelope[Met
             counts=manifest.counts,
             holds=_holds(release),
             journey_estimate=HOW if estimates_journeys(release) else None,
+            rents=RENTS_SAID if rents_are_of_places(release) else None,
             # Every source is credited, with its licence.
             attributions=manifest.sources,
             features=release.metrics,
@@ -120,6 +122,8 @@ def get_meta(context: Ctx, request: Request, response: Response) -> Envelope[Met
             census=offer(context.deps.census),
             # And of the block that offers household income. No figure, and no area.
             income=offer_of_income(context.deps.income),
+            # The label and the sentence of each vibe of the release that is a rough guide.
+            rough_guides=rough_guides(release.vibes),
         ),
     )
 

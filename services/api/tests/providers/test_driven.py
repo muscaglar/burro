@@ -127,7 +127,9 @@ def test_in_every_state_the_person_is_answered_and_is_told_who_read(driven: tupl
     [offer] = data["suggestions"]
     assert offer["target"] == "commute"
     journeys = [edit for way in offer["choices"] for edit in way["operations"]["commute_ops"]]
-    assert [edit["max_minutes"] for edit in journeys] == [30]
+    # It is offered as a guide and as a firm limit, and each holds the minutes that were typed.
+    assert [edit["max_minutes"] for edit in journeys] == [30, 30]
+    assert [edit["strictness"] for edit in journeys] == ["soft", "hard"]
     assert data["applied"] == []
 
 

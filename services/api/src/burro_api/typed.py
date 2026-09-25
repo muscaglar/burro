@@ -18,9 +18,11 @@ from typing import NamedTuple
 from burro_core.catalogue import FEATURES, NUISANCES
 from burro_core.grammar import (
     BEDROOMS,
+    BUYS,
     CYCLED,
     IN_MONEY,
     MONTHLY,
+    RENTS,
     THOUSANDS,
     WALKED,
     Grammar,
@@ -33,6 +35,7 @@ from burro_core.ids import (
     GrittyVariant,
     PlaceKind,
     TagId,
+    Tenure,
     Toward,
     UnmetCategory,
 )
@@ -57,6 +60,7 @@ from burro_core.vocabulary import (
     FIRM_OF_MINUTES,
     FIRM_OF_MONEY,
     FOR_WHOM,
+    IN_CASE,
     JOINS,
     LARGE_STEP,
     NEAR_TO,
@@ -206,6 +210,8 @@ _HOW_MUCH_AND_NO_MORE = _phrases(_NAMES_NOTHING, SMALL_STEP, LARGE_STEP)
 ESSENTIALLY = _phrases(ESSENTIAL)
 WALKS = _phrases(WALKED)
 CYCLES = _phrases(CYCLED)
+# Core's words for renting and for buying, by the tenure each names.
+_TENURES = ((Tenure.RENT, _phrases(RENTS)), (Tenure.BUY, _phrases(BUYS)))
 # What core reads as how near a thing is, in words for walking: "a park I can
 # walk to", "within walking distance". It is said of the thing it stands
 # beside, and is no way of travelling to another.
@@ -462,6 +468,19 @@ class Typed:
         while last + 1 < len(tokens) and not tokens[last + 1].apart:
             last += 1
         return self.led_up_to(span)[0], max(span[1], tokens[last].end)
+
+    def alone(self, span: Span) -> str:
+        """The clause a stretch stands in, as it would be typed were it all that was said.
+
+        It is the clause less the word that leads it in and says which case it
+        is said of, where one does: "I'm buying", of "if I'm buying". It is
+        handed to the rules and kept nowhere.
+        """
+        begins, ends = self.clause(span)
+        first = next((word for word in self._words if word.start >= begins), None)
+        if first is not None and first.word in IN_CASE and first.end < ends:
+            begins = first.end
+        return self.text[begins:ends].strip()
 
     def _stands(self, span: Span) -> tuple[Sequence[Token], int, int, set[int]] | None:
         """The sentence a thing stands in, its first and last token there, and what else is there.
@@ -768,6 +787,16 @@ class Typed:
             in_the_lexicon = in_the_lexicon or not of_a_home
             at = -ended
         return (frozenset(named) if turned or in_the_lexicon else frozenset()), turned
+
+    def tenures(self) -> frozenset[Tenure]:
+        """The tenures the words name, by core's words for each, whoever's wish each is.
+
+        "If I rent, up to 1,700, and if I buy, max 400k" names both, and so
+        does "my partner wants to buy but I'd rather rent". Which of two is
+        meant is the person's to say.
+        """
+        said = self.said((0, len(self.text)))
+        return frozenset(tenure for tenure, words in _TENURES if holds(said, words))
 
     def reads(self, span: Span) -> bool:
         """Whether core finds a thing, a name or a number in a stretch."""

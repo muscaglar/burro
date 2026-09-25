@@ -949,10 +949,16 @@ def test_a_size_the_person_typed_is_the_rules_to_offer_and_a_model_adds_nothing_
     )
 
     found = through_the_route(model_output(budget_ops=[budget]), text)
+    alone = client_for(make_deps()).post("/v1/interpret", json={"text": text}).json()["data"]
 
     assert [offer["target"] for offer in found["suggestions"]] == ["tenure", "budget", "budget"]
     assert {offer["read_by"] for offer in found["suggestions"]} == {"rule"}
-    assert not any(way["guess"] for offer in found["suggestions"] for way in offer["choices"])
+    # Each is offered the one way the rules give it, which is the guess because it was
+    # plainly said, and is what the rules offer with no model.
+    assert [[way["guess"] for way in o["choices"]] for o in found["suggestions"]] == [
+        [True, False]
+    ] * 3
+    assert found["suggestions"] == alone["suggestions"]
     assert "not by the number of bedrooms" in found["suggestions"][-1]["note"]
 
 

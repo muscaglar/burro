@@ -63,7 +63,9 @@ def test_what_an_adapter_fails_with_is_what_the_route_counts(case: Case, status:
     # What the rules offer is served, though the model gave nothing.
     [offer] = found["data"]["suggestions"]
     journeys = [edit for way in offer["choices"] for edit in way["operations"]["commute_ops"]]
-    assert [edit["max_minutes"] for edit in journeys] == [30]
+    # It is offered as a guide and as a firm limit, and each holds the minutes that were typed.
+    assert [edit["max_minutes"] for edit in journeys] == [30, 30]
+    assert [edit["strictness"] for edit in journeys] == ["soft", "hard"]
 
 
 @each
@@ -77,7 +79,9 @@ def test_what_a_provider_would_not_read_the_rules_read_and_the_person_is_told(ca
     # What the rules offer is served, as it is where no model reads.
     [offer] = found["data"]["suggestions"]
     journeys = [edit for way in offer["choices"] for edit in way["operations"]["commute_ops"]]
-    assert [edit["max_minutes"] for edit in journeys] == [30]
+    # It is offered as a guide and as a firm limit, and each holds the minutes that were typed.
+    assert [edit["max_minutes"] for edit in journeys] == [30, 30]
+    assert [edit["strictness"] for edit in journeys] == ["soft", "hard"]
 
 
 @each

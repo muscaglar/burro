@@ -1350,6 +1350,50 @@ def test_what_was_noticed_and_what_was_left_unread_are_offsets_and_written_nowhe
     assert record.status is CallStatus.SUGGEST
 
 
+# What is said of a home and of a journey, in a clause that holds the canary and in one that
+# holds no word but the rules' own. Each clause is read again by the rules, alone, to say
+# whether it is plain.
+OF_A_HOME = (
+    f"If I'm buying, max \N{POUND SIGN}400k for a {CANARY} flat. "
+    f"Within 30 minutes of Pellam Cross by {CANARY}. Somewhere {CANARY}, mind."
+)
+
+
+@pytest.mark.parametrize("reader", ["rule", "model"])
+def test_a_clause_that_is_read_again_to_say_what_is_plain_is_written_nowhere(
+    watch: Watch, clean: Clean, reader: str
+):
+    seen = watch(with_model(model_output()) if reader == "model" else None)
+    response = seen.post("/v1/interpret", {"text": OF_A_HOME})
+
+    data = response.json()["data"]
+    assert (data["interpreter"], data["status"], data["applied"]) == (reader, "suggest", [])
+    noticed = {
+        found["label"]: [OF_A_HOME[span["start"] : span["end"]] for span in found["spans"]]
+        for found in data["suggestions"]
+    }
+    assert noticed == {
+        "Buying": ["buying"],
+        "A budget of \N{POUND SIGN}400,000": ["max \N{POUND SIGN}400k"],
+        "A flat": ["flat"],
+        "Pellam Cross": ["Within 30 minutes of Pellam Cross"],
+    }
+    # "If I'm buying" is plain, and carries the guess. The budget and the journey each stand
+    # in a clause that holds a word the rules do not place, and carry none.
+    guessed = [
+        found["label"] for found in data["suggestions"] if any(w["guess"] for w in found["choices"])
+    ]
+    assert guessed == ["Buying"]
+    assert CANARY not in response.text.casefold()
+    out = clean(seen)
+    assert_where_the_words_stand_is_written_nowhere(seen)
+    # Nor is the place of the journey: it says where someone works, in words or as an id.
+    written = out + json.dumps(seen.lines()) + str(seen.deps.calls.records(NOW))
+    assert not [name for name in ("Pellam", "Cross", "syn-p0012") if name in written]
+    [line] = seen.events("interpret")
+    assert set(line["edits"].values()) == {0}
+
+
 def test_what_a_line_says_of_a_prompt_does_not_tell_what_was_noticed_in_it(
     watch: Watch, clean: Clean
 ):

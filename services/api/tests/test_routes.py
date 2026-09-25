@@ -2307,7 +2307,7 @@ def test_the_map_can_be_coloured_by_any_vibe_from_one_answer(client: TestClient)
     # It is a band, one of five. The score an area is ranked on is not served here.
     assert "score" not in str(found["bands"]) and "raw" not in str(found["bands"])
     unplaced = [m for row in found["bands"] for m in row["marks"] if m["band"] is None]
-    assert len(unplaced) == 29 and {m["spread_low"] for m in unplaced} == {None}
+    assert len(unplaced) == 32 and {m["spread_low"] for m in unplaced} == {None}
 
 
 def test_a_vibe_the_release_keeps_off_the_map_is_not_among_the_bands():
@@ -2329,7 +2329,7 @@ def test_an_area_is_found_by_its_id_or_its_slug(client: TestClient):
     profile = by_id["data"]
     assert profile["area"]["name"] == "Dulcimer Green"
     # Every feature the release carries, and every vibe: the thirteen, and Gritty.
-    assert len(profile["features"]) == 108 and len(profile["tags"]) == 14
+    assert len(profile["features"]) == 109 and len(profile["tags"]) == 14
     assert {n["area_id"] for n in profile["neighbours"]} == set(profile["area"]["neighbours"])
     assert profile["stations"] and profile["cost"]
     assert [row["tag_id"] for row in profile["tags"]] == [v.tag_id.value for v in release().vibes]
@@ -2359,11 +2359,19 @@ def test_the_portrait_of_an_area_is_the_same_for_everyone_and_holds_no_sentence(
     assert marks_of(found) == {
         "scales": ["homes", "pace", "built_age", "street_character"],
         "more": ["everyday_on_foot", "parks_close_by", "family_amenities"],
-        "less": ["village_feel", "well_connected"],
+        "less": ["well_connected"],
         # A vibe that counts who lived there is on the portrait with its band, and is
         # never among what an area has most of, though this area is in its highest band
-        # on both.
-        "others": ["leafy", "quiet_residential", "foodie", "family_area", "young_professionals"],
+        # on both. Nor is a vibe that is a rough guide among what an area has most or
+        # least of: Village feel is on the portrait with its band, and leads nothing.
+        "others": [
+            "leafy",
+            "village_feel",
+            "quiet_residential",
+            "foodie",
+            "family_area",
+            "young_professionals",
+        ],
         "unplaced": [],
     }
     for tag_id in ("family_area", "young_professionals"):
@@ -2407,7 +2415,7 @@ def test_an_area_that_cannot_be_placed_is_said_to_be_that_and_is_like_nothing(
         assert sum(part["hundredths"] for part in known) < 60
     assert found["similar"] == []
     assert "likeness" not in {fact["kind"] for fact in found["facts"]}
-    # A part that is in no release yet has no figure, and none is made up.
+    # A part that this release does not carry has no figure, and none is made up.
     [homes] = found["portrait"]["scales"]
     outdoor = [p for p in homes["parts"] if p["feature_id"] == "private_outdoor_space"]
     assert [part["fact_id"] for part in outdoor] == [None]
@@ -2564,12 +2572,12 @@ def test_meta_gives_a_form_everything_it_needs(client: TestClient):
 
     assert found["release_id"] == "syn-2026-09-23-01" and found["synthetic"] is True
     assert found["built_at"] == "2026-09-23T00:00:00Z"
-    # The 95 features the release carries. Four of the catalogue's wait for a source.
+    # The features the release carries. Four of the catalogue's are in no release yet.
     carried = sorted(metric.feature_id for metric in release().metrics)
     assert [f["feature_id"] for f in found["features"]] == carried
-    assert len(carried) == 108 and set(carried) < set(FeatureId)
-    assert {t["tag_id"]: len(t["terms"]) for t in found["tags"]}["village_feel"] == 5
-    assert found["catalogue_version"] == 13 and found["preview"] is False
+    assert len(carried) == 109 and set(carried) < set(FeatureId)
+    assert {t["tag_id"]: len(t["terms"]) for t in found["tags"]}["village_feel"] == 4
+    assert found["catalogue_version"] == 14 and found["preview"] is False
     assert found["limits"]["cutoff_minutes"] == {"pt": 90, "cycle": 60, "walk": 60}
     assert found["limits"]["rent"] == {"minimum": 300, "maximum": 20000, "unit": 25}
     assert found["limits"]["max_text"] == 600
@@ -2720,7 +2728,7 @@ def test_every_thing_a_form_shows_has_a_plain_name_of_a_few_words(client: TestCl
     found = data(client.get("/v1/meta"))
 
     named = [*found["features"], *found["tags"]]
-    assert len(named) == 122
+    assert len(named) == 123
     places = {area.name for area in release().neighbourhoods}
     for thing in named:
         short = thing["short_label"]

@@ -1434,7 +1434,7 @@
       },
       "CostEstimate": {
         "additionalProperties": false,
-        "description": "What a home of one kind costs in one area: a range, or one number where no range is known.\n\nA row holds both quartiles or neither. A row with neither is a median of\nwhat was paid for the homes that were sold, and is one of two things. A\npublisher's own median is of the twelve months that end with `as_of`, and\nwhat it rests on is `unstated`: the publisher gives no count of the sales.\nA median worked out from the sales themselves says how many it rests on,\nin `sales`, and the first month they were made in, in `since`. Nothing\nstands in for the range of either.",
+        "description": "What a home of one kind costs in one area: a range, or one number where no range is known.\n\nA row holds both quartiles or neither. A row with neither is a median of\nwhat was paid for the homes that were sold, and is one of two things. A\npublisher's own median is of the twelve months that end with `as_of`, and\nwhat it rests on is `unstated`: the publisher gives no count of the sales.\nA median worked out from the sales themselves says how many it rests on,\nin `sales`, and the first month they were made in, in `since`. Nothing\nstands in for the range of either.\n\nA rent may be of a wider place than the area: no publisher gives one for\nan area. It is then a range as its publisher gives it for the place, and\nsays the place in `of`, how many rents were recorded there in `rents`,\nand the first month of them in `since`. Every area of the place that\ntakes its figure holds the same row.",
         "properties": {
           "area_id": {
             "pattern": "^(syn|lon)-n[0-9a-z]+$",
@@ -1465,6 +1465,28 @@
             "minimum": 0.0,
             "title": "Median",
             "type": "integer"
+          },
+          "of": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CostOf"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rents": {
+            "anyOf": [
+              {
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rents"
           },
           "sales": {
             "anyOf": [
@@ -1531,6 +1553,36 @@
         ],
         "title": "CostEstimate",
         "type": "object"
+      },
+      "CostOf": {
+        "additionalProperties": false,
+        "description": "The place a cost is of, where it is of a wider place than the area.\n\nA postcode district the area lies in, by what stands before the space of\nits postcodes, or the borough the area is in, by its name. A cost that is\nof the area alone holds none.",
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/CostOfKind"
+          },
+          "name": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "name"
+        ],
+        "title": "CostOf",
+        "type": "object"
+      },
+      "CostOfKind": {
+        "description": "The kind of place a cost is of, where it is of a wider place than the area.\n\nNo publisher gives a rent for an area. One gives the rents that were\nrecorded in a postcode district and in a borough, and an area is given the\nfigure of the place it lies in.",
+        "enum": [
+          "postcode_district",
+          "borough"
+        ],
+        "title": "CostOfKind",
+        "type": "string"
       },
       "Counts": {
         "additionalProperties": false,
@@ -2205,6 +2257,17 @@
             "title": "Publisher",
             "type": "string"
           },
+          "said_with_attribution": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Said With Attribution"
+          },
           "source_id": {
             "title": "Source Id",
             "type": "string"
@@ -2361,7 +2424,8 @@
           "households_one_person",
           "homes_higher_bands",
           "price_rise_5y",
-          "price_rise_10y"
+          "price_rise_10y",
+          "highstreet_conserved"
         ],
         "title": "FeatureId",
         "type": "string"
@@ -3251,6 +3315,24 @@
             "pattern": "^(syn|lon)-\\d{4}-\\d{2}-\\d{2}-\\d{2}$",
             "title": "Release Id",
             "type": "string"
+          },
+          "rents": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RentsSaid"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rough_guides": {
+            "default": [],
+            "items": {
+              "$ref": "#/components/schemas/RoughGuide"
+            },
+            "title": "Rough Guides",
+            "type": "array"
           },
           "synthetic": {
             "title": "Synthetic",
@@ -4410,6 +4492,26 @@
         "title": "Rejected",
         "type": "object"
       },
+      "RentsSaid": {
+        "additionalProperties": false,
+        "description": "What is said of the rents of a release, where each is of a wider place than an area.\n\nIt holds words and no figure. A client shows them where no one area is\nspoken of: the first beside the count of the areas a firm budget to rent\nleft out, and the second on the page of methods.",
+        "properties": {
+          "caution": {
+            "title": "Caution",
+            "type": "string"
+          },
+          "of_a_place": {
+            "title": "Of A Place",
+            "type": "string"
+          }
+        },
+        "required": [
+          "of_a_place",
+          "caution"
+        ],
+        "title": "RentsSaid",
+        "type": "object"
+      },
       "RestsOn": {
         "additionalProperties": false,
         "description": "Which words of the text an edit rests on: where they start and end, never the words.\n\n`start` and `end` count the characters of the text as it was typed, as\nPython counts them, so `text[start:end]` is the words. An edit made of\nseveral parts, as a budget is of \"renting\", \"2 bed\" and \"£1,500\", has one\nof these for each part. They are for showing a person which of their\nwords made each edit. Nothing stores or logs them.",
@@ -4437,6 +4539,30 @@
           "end"
         ],
         "title": "RestsOn",
+        "type": "object"
+      },
+      "RoughGuide": {
+        "additionalProperties": false,
+        "description": "What stands beside a vibe that is a rough guide, wherever the vibe is shown.",
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "tag_id": {
+            "$ref": "#/components/schemas/TagId"
+          },
+          "why": {
+            "title": "Why",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tag_id",
+          "label",
+          "why"
+        ],
+        "title": "RoughGuide",
         "type": "object"
       },
       "Score": {
@@ -4856,6 +4982,18 @@
             "title": "Retrieved On",
             "type": "string"
           },
+          "said_with_attribution": {
+            "anyOf": [
+              {
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Said With Attribution"
+          },
           "source_id": {
             "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
             "title": "Source Id",
@@ -5179,6 +5317,15 @@
         "title": "SuggestionDirection",
         "type": "string"
       },
+      "Sureness": {
+        "description": "Whether a vibe is as sure as the rest, or a rough guide. It says so of itself.\n\nIt has these two values and no other. It is no number, and no word of praise or\nblame: it says how far a vibe is to be trusted, and nothing of any place. No client\nworks it out. A vibe that does not say is as sure as the rest.",
+        "enum": [
+          "as_the_rest",
+          "rough_guide"
+        ],
+        "title": "Sureness",
+        "type": "string"
+      },
       "Tag": {
         "additionalProperties": false,
         "properties": {
@@ -5270,6 +5417,10 @@
           "strip": {
             "title": "Strip",
             "type": "boolean"
+          },
+          "sureness": {
+            "$ref": "#/components/schemas/Sureness",
+            "default": "as_the_rest"
           },
           "table": {
             "title": "Table",
@@ -5532,10 +5683,16 @@
           "cost_buy",
           "cost_buy_median",
           "cost_buy_sold",
+          "cost_rent_recorded",
           "budget_under",
           "budget_over",
+          "budget_at",
           "budget_under_median",
           "budget_over_median",
+          "budget_at_median",
+          "budget_under_recorded",
+          "budget_over_recorded",
+          "budget_at_recorded",
           "travel_pt",
           "travel_pt_over",
           "travel_other",

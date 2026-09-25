@@ -13,11 +13,11 @@ from enum import StrEnum
 from functools import cache
 from typing import Annotated, Any, Literal, cast
 
-from burro_core.catalogue import Tag
+from burro_core.catalogue import RoughGuide, Tag
 from burro_core.census import CensusOffer
 from burro_core.estimate import HowEstimated
 from burro_core.explain import Explanation
-from burro_core.facts import Fact
+from burro_core.facts import Fact, RentsSaid
 from burro_core.ids import (
     AreaId,
     Family,
@@ -366,8 +366,10 @@ class SuggestionChoice(Wire):
     direction: SuggestionDirection
     # The words on the button. Text of Burro's own, never the person's words.
     label: str
-    # The way Burro reads the words, where a model read them and no check
-    # fired. It is a mark on the choice. Nothing is applied until it is pressed.
+    # The way Burro reads the words: where a model read them and no check fired,
+    # and where a person plainly said that they rent or buy, a budget with its
+    # amount, or a kind of home, whether or not a model reads. It is a mark on
+    # the choice. Nothing is applied until it is pressed.
     guess: bool
     # What is sent to route 2 if it is chosen. Every edit is `ui_edit`.
     operations: Operations
@@ -406,9 +408,11 @@ class Suggestion(Wire):
     note: str
     # Who noticed the thing: the rules, or a model alone.
     read_by: InterpreterName
-    # The way that "add all" takes, by its `id`. Empty where it may take none:
-    # what leaves areas out, what runs two ways with no guess, a journey to a
-    # place that is yet to be chosen, and recorded crime.
+    # The way that "add all" takes, by its `id`. A budget is taken as it was
+    # worded, firm where a firm word was used, and a journey as a guide, never
+    # as a firm limit. Empty where it may take none: a rule for an area, what
+    # runs two ways with no guess, what is said of a home with no guess, a
+    # journey to a place that is yet to be chosen, and recorded crime.
     add_all: str
     # What is left for the person once "add all" has been pressed. Empty
     # where nothing is.
@@ -820,9 +824,20 @@ class MetaData(Wire):
     # and the line that stands wherever an estimate is shown. `null` where no journey of
     # this release is estimated.
     journey_estimate: HowEstimated | None = None
+    # What is said of the rents of this release, where each is of a postcode district or of
+    # a borough and not of one area: that it is, which stands beside the count of the areas
+    # a firm budget to rent left out, and the caution of the publisher in plain words, for
+    # a page of methods. It holds no figure. `null` where no rent of this release is of a
+    # wider place than its area.
+    rents: RentsSaid | None = None
     # Whether household income is served for the areas of this release, and the words of
     # the block that offers it. It holds no figure and names no area.
     income: IncomeOffer
+    # What each vibe of `tags` that is a rough guide says of itself wherever it is shown:
+    # one short label, and one sentence that says why. The words are core's, and no client
+    # writes its own. Empty where the release carries no such vibe, which is what a
+    # client takes it to be where it is absent.
+    rough_guides: tuple[RoughGuide, ...] = ()
 
 
 class Health(Wire):

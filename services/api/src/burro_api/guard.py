@@ -31,6 +31,7 @@ from burro_core.catalogue import (
     HOLDS_CRIME,
     HOLDS_RESIDENTS,
     RANKED_AS,
+    ROUGH_GUIDES,
     TAGS,
 )
 from burro_core.ids import (
@@ -42,6 +43,7 @@ from burro_core.ids import (
     FeatureId,
     FeatureKind,
     InterpreterName,
+    InterpretStatus,
     ModeChoice,
     Notice,
     OpsGroup,
@@ -49,6 +51,7 @@ from burro_core.ids import (
     SegmentChoice,
     Step,
     StrictnessChoice,
+    SuggestionDirection,
     TagId,
     TagShape,
     Tenure,
@@ -59,10 +62,18 @@ from burro_core.ids import (
     WeightAction,
     segments_for,
 )
-from burro_core.interpret import ClarifyOption, InterpretRequest, InterpretResult, Suggestion
-from burro_core.ops import BudgetEdit, TagEdit, WeightEdit
+from burro_core.interpret import (
+    COMMUTE_TARGET,
+    MAY_BE_ANOTHERS,
+    ClarifyOption,
+    InterpretRequest,
+    InterpretResult,
+    RuleInterpreter,
+    Suggestion,
+)
+from burro_core.ops import BudgetEdit, CommuteEdit, TagEdit, WeightEdit
 from burro_core.places import MAX_OPTIONS, Names, normalise
-from burro_core.spec import LIMITS
+from burro_core.spec import LIMITS, PreferenceSpec
 
 from burro_api.answer import (
     ModelBudgetEdit,
@@ -77,12 +88,16 @@ from burro_api.offers import (
     GUIDE,
     LESS,
     MORE,
+    OF_A_HOME,
     OFF,
     Degree,
+    Offer,
     Unsaid,
     UnsaidCode,
     Way,
     budget_ways,
+    changes,
+    for_a_house,
     journey_ways,
     ways_of,
 )
@@ -115,6 +130,7 @@ __all__ = [
     "Guarded",
     "Reading",
     "guarded",
+    "plainly_said",
     "settled",
     "thing_named",
 ]
@@ -149,13 +165,14 @@ class Check(StrEnum):
     NOT_WORDED = "no_offer_is_worded_for_it"
     ABOUT = "the_words_about_it_turn_it_round"
     ANOTHERS = "the_wish_is_somebody_elses"
+    ROUGH = "a_rough_guide_is_taken_by_a_press_of_its_own"
 
 
 # The checks that take the guess away and leave the thing offered, with every way open.
 DOUBTS = frozenset(
     {
         *(Check.TURNED, Check.NO_END, Check.TWO_WAYS, Check.DIRECTION, Check.DISAGREES),
-        *(Check.LEAST, Check.ABOUT, Check.ANOTHERS),
+        *(Check.LEAST, Check.ABOUT, Check.ANOTHERS, Check.ROUGH),
     }
 )
 # The checks that are made of words which may stand beyond the clause of the thing. The
@@ -282,6 +299,23 @@ class _Guard:
         # is theirs to offer, as they offer it with no model.
         self._kept = frozenset(
             suggestion.target for suggestion in ruled.suggestions if suggestion.note
+        )
+        # Where a place stands that the words ask to be kept away from. The rules offer
+        # it with nothing to choose, and no reading of a model's makes a journey to it.
+        self._kept_away = tuple(
+            (span.start, span.end)
+            for suggestion in ruled.suggestions
+            if suggestion.target == COMMUTE_TARGET
+            and all(way.direction is SuggestionDirection.IGNORE for way in suggestion.choices)
+            for span in suggestion.spans
+        )
+        # The places that may be somebody else's, which the rules offer with no press.
+        self._may_be_anothers = frozenset(
+            edit.place_id
+            for suggestion in ruled.suggestions
+            if suggestion.note == MAY_BE_ANOTHERS
+            for way in suggestion.choices
+            for edit in way.operations.commute_ops
         )
         # Where the rules noticed each thing, which is where core finds it named.
         self._noticed: dict[str, list[Span]] = {}
@@ -565,6 +599,10 @@ class _Guard:
         degree = self._degree(target, span, fired, given)
         if meant and self._disagrees(target, span, meant):
             fired.add(Check.DISAGREES)
+        if sent.tag_id in ROUGH_GUIDES and not against:
+            # A vibe that is a rough guide is taken by a press of its own, so a
+            # model's guess of it is no guess. It is offered, and says what it is.
+            fired.add(Check.ROUGH)
         self._keep(target, "", span, ways_of(sent.tag_id, degree), meant, fired)
 
     @staticmethod
@@ -684,7 +722,15 @@ class _Guard:
         if self._about_people(span, named_at):
             self._drop(Check.PEOPLE)
             return
+        if any(overlap(named_at, kept) for kept in self._kept_away):
+            # Check 3, wherever the words stand in the sentence: a wish to be far from a
+            # place is never a journey to it. What the rules say of it stands.
+            self._drop(Check.LEAST)
+            return
         fired: set[Check] = set()
+        if place_id and place_id in self._may_be_anothers:
+            # The place may be somebody else's, so the reading is no guess.
+            fired.add(Check.ANOTHERS)
         unsaid: list[Unsaid] = []
         minutes = self._minutes(sent.max_minutes, span, fired, unsaid)
         mode = self._mode(sent.mode, span, named_at, minutes, fired, unsaid)
@@ -864,3 +910,176 @@ def settled(offer: Suggestion, typed: Typed) -> bool:
     return not any(
         typed.asks(span) or in_doubt(typed, typed.clause(span), thing, DOUBT) for span in stands
     )
+
+
+# The rules, to say what they would make of a clause were it all that was typed.
+_RULES = RuleInterpreter()
+
+
+def plainly_said(offers: Sequence[Offer], typed: Typed, spec: PreferenceSpec) -> tuple[Offer, ...]:
+    """The offers, with Burro's guess on what a person plainly said of a home and of a journey.
+
+    Decided on 2026-09-25: that a person is renting or buying, a budget with
+    its amount, and a kind of home each carry the guess where the rules read
+    it with no doubt, whether or not a model reads. So does a journey to one
+    place with one time: `_journey_as_said`.
+
+    **With no doubt is that the rules would apply the clause it stands in,
+    were the clause all that was typed**: "max 400k for a 1 bed flat". So one
+    press takes no more than Burro does unasked of a plain prompt. "I earn
+    60k" and "I'm done renting" are no such clause, and are offered with no
+    guess. It is what `settled` says too, and two things more. The words give
+    one of each: one tenure, one amount, one kind of home. And the wish is
+    nobody else's, read where the amount stands, or the word for the tenure
+    or the home: "my partner wants to buy".
+
+    A budget for a house of no kind is plainly said too, of a terraced
+    house: the rules apply it so, and say that the kind is assumed. The guess
+    stands on that way, and every other kind of house is one press away.
+
+    An "if" that leads a clause in is no doubt: "if I'm buying" says which of
+    renting and buying the rest is said of, and is read as "I'm buying".
+    Where it sets one case against another, "if I rent ..., if I buy ...",
+    the words name both tenures, and nothing is the guess.
+
+    Whose wish it is and which tenure is meant are asked of a model's reading
+    too. Where either is in doubt no guess stands on what is said of a home,
+    whoever read it, so that one press takes none of it.
+    """
+
+    def said(offer: Offer) -> list[Way]:
+        """The ways of an offer that the words give: of a budget for a house, the first."""
+        ways = [way for way in offer.choices if way.direction is not SuggestionDirection.IGNORE]
+        return ways[:1] if for_a_house(offer) else ways
+
+    edits = [
+        edit
+        for offer in offers
+        if offer.target in OF_A_HOME
+        for way in said(offer)
+        for edit in way.operations.budget_ops
+    ]
+    named = {Tenure(e.tenure.value) for e in edits if e.tenure is not TenureChoice.UNCHANGED}
+    one_tenure = len(typed.tenures() | named) < 2
+    amounts = {edit.amount for edit in edits if edit.amount}
+    kinds = {edit.segment for edit in edits if edit.segment is not SegmentChoice.UNCHANGED}
+
+    def as_it_was_said(offer: Offer) -> Offer:
+        ways = said(offer)
+        held = [edit for way in ways for edit in way.operations.budget_ops]
+        spans = [(span.start, span.end) for span in offer.spans]
+        # A model chooses the words it quotes, so an amount is read where it stands.
+        stands = [
+            where
+            for span in spans
+            for edit in held
+            if edit.amount
+            for where in typed.where(span, edit.amount)
+        ]
+        if not one_tenure or any(somebody_elses(typed, where) for where in stands or spans):
+            return offer.replace(choices=tuple(way.replace(guess=False) for way in offer.choices))
+        two_of_it = any(
+            (edit.amount and len(amounts) > 1)
+            or (edit.segment is not SegmentChoice.UNCHANGED and len(kinds) > 1)
+            for edit in held
+        )
+        plain = (
+            len(ways) == 1
+            and ways[0].ruled
+            and not two_of_it
+            and settled(offer, typed)
+            and all(_applied_alone(typed, span, spec) for span in spans)
+        )
+        if not plain:
+            return offer
+        return offer.replace(choices=tuple(w.replace(guess=w is ways[0]) for w in offer.choices))
+
+    def of_each(offer: Offer) -> Offer:
+        if offer.target in OF_A_HOME:
+            return as_it_was_said(offer)
+        return _journey_as_said(offer, typed, spec) if offer.target == COMMUTE_TARGET else offer
+
+    return tuple(of_each(offer) for offer in offers)
+
+
+def _journey_as_said(offer: Offer, typed: Typed, spec: PreferenceSpec) -> Offer:
+    """A journey the rules read with no doubt, offered both ways, with the guess on one.
+
+    Decided on 2026-09-25. The rules offer a journey one way, as it was
+    worded. Where the words make it a limit that way is firm, and no press
+    takes a firm journey with others: so by the rules alone one press took
+    nothing of "at most 40 minutes to work", and no model reads where none is
+    turned on. A journey to one place with one time, which the rules would
+    apply were its clause all that was typed, is now offered as a model's
+    reading of it is: as a firm limit and as a guide, with the guess on the
+    way the words give, and `in_add_all` takes the guide.
+
+    What is offered is what the rules would apply of the clause, so the way
+    of travelling is the one that was said. Of a range, "35-40min", the rules
+    take the longer and read it as a limit, and the offer says so in its
+    note. One time is one number of minutes, or one range, in the sentence
+    the journey stands in: of "30-45 minutes, no more than 40" which is meant
+    is the person's to say. A journey with no time has no limit to be firm,
+    and is offered as it was. A journey is nobody's wish, so whose it is is
+    not asked.
+    """
+    ways = [way for way in offer.choices if way.direction is not SuggestionDirection.IGNORE]
+    if len(ways) != 1 or not ways[0].ruled or offer.asks_place or offer.alone:
+        return offer
+    if offer.note == MAY_BE_ANOTHERS:
+        # It may be somebody else's place: it is offered, and no press takes it with others.
+        return offer.replace(alone=True)
+    noticed = ways[0].operations.commute_ops
+    if len(noticed) != 1 or not noticed[0].place_id or not noticed[0].max_minutes:
+        return offer
+    if not settled(offer, typed):
+        return offer
+    stands = typed.sentences(
+        (min(span.start for span in offer.spans), max(span.end for span in offer.spans))
+    )
+    if typed.minutes(stands) - typed.range_of(stands, noticed[0].max_minutes):
+        return offer
+    said = [_journey_alone(typed, (span.start, span.end), spec) for span in offer.spans]
+    journey = said[0] if said else None
+    if journey is None or any(one != journey for one in said):
+        return offer
+    if (journey.place_id, journey.max_minutes) != (noticed[0].place_id, noticed[0].max_minutes):
+        return offer
+    firm = journey.strictness is StrictnessChoice.HARD
+    both = journey_ways(
+        journey.place_id, journey.mode, journey.max_minutes, firm, CommuteAction.ADD
+    )
+    # Check 11 holds here too: a way that would change nothing is not offered.
+    of_use = [way for way in both if changes(way, spec, typed.release)]
+    if not of_use or of_use[0] is not both[0]:
+        return offer
+    skip = tuple(way for way in offer.choices if way.direction is SuggestionDirection.IGNORE)
+    marked = tuple(way.replace(guess=way is both[0], ruled=True) for way in of_use)
+    return offer.replace(choices=(*marked, *skip))
+
+
+def _read_alone(typed: Typed, span: Span, spec: PreferenceSpec) -> InterpretResult | None:
+    """What the rules make of the clause a stretch stands in, were it all that was typed.
+
+    Nothing where they would not apply it. They apply a prompt only where
+    the grammar makes the whole of it, so a clause they apply holds no word
+    that they do not place: "earn", "deposit", "done".
+    """
+    words = typed.alone(span)
+    if not words:
+        return None
+    read = _RULES.interpret(InterpretRequest(text=words, spec=spec, release=typed.release))
+    return read if read.status is InterpretStatus.OK else None
+
+
+def _applied_alone(typed: Typed, span: Span, spec: PreferenceSpec) -> bool:
+    """Whether the rules would apply what a clause says of a home, were it all that was typed."""
+    read = _read_alone(typed, span, spec)
+    return read is not None and bool(read.operations.budget_ops)
+
+
+def _journey_alone(typed: Typed, span: Span, spec: PreferenceSpec) -> CommuteEdit | None:
+    """The one journey the rules would apply of a clause, were it all that was typed."""
+    read = _read_alone(typed, span, spec)
+    journeys = () if read is None else read.operations.commute_ops
+    return journeys[0] if len(journeys) == 1 else None

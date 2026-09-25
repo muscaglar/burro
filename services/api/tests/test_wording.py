@@ -11,10 +11,10 @@ import re
 from typing import Any
 
 import pytest
-from burro_api.wording import NO_JOURNEY, NO_LEAST, NOTHING_TAKEN
-from burro_core.catalogue import FEATURES, TAGS
+from burro_api.wording import NO_JOURNEY, NOTHING_TAKEN
+from burro_core.catalogue import FEATURES, NEAR_A_STATION, NEVER_A_TRADE_OFF, TAGS
 from burro_core.facts import SEGMENT_LABELS, money
-from burro_core.ids import Segment
+from burro_core.ids import FeatureId, Segment
 from fastapi.testclient import TestClient
 
 from .support import (
@@ -111,6 +111,38 @@ def test_a_wish_says_what_happens_to_areas_and_what_is_counted():
     assert buttons(culture) == ["Add", "Skip"]
 
 
+def test_an_offer_of_a_station_says_what_near_means_and_names_the_figure_no_walk(
+    client: TestClient,
+):
+    """Decided on 2026-09-25: near a station is about a 10 to 15 minute walk.
+
+    Core does not count the distance as a trade-off at or under 800 m, and a straight
+    line of 800 m is a walk of about that. So the offer says it after what is counted,
+    which is still named a straight line. It is said of a station and of nothing else,
+    and it is no note: a phrase with a note is never applied.
+    """
+    text = "Honestly, I think I want to be near a station"
+    [station] = offered(client, text)
+    assert (station["target"], station["label"]) == ("feature:station_walk", "Nearer a station")
+    assert wrote(station, text) == "I think I want to be near a station"
+    assert station["follows"] == (
+        "What Burro counts: straight-line distance to the nearest way in to a station. "
+        "Within 800 m in a straight line is about a 10 to 15 minute walk."
+    )
+    assert NEAR_A_STATION in station["follows"] and station["note"] == ""
+    assert str(NEVER_A_TRADE_OFF[FeatureId.STATION_WALK]) in NEAR_A_STATION
+    assert buttons(station) == ["Add", "Stop counting it", "Skip"]
+    # Said plainly, the words are applied as they were: they weigh the one distance.
+    plain = client.post("/v1/interpret", json={"text": "near a station"}).json()["data"]
+    assert plain["status"] == "ok" and plain["suggestions"] == []
+    assert [edit["feature_id"] for edit in plain["operations"]["weight_ops"]] == ["station_walk"]
+    assert plain["operations"]["tag_ops"] == []
+    # No other distance says it: a park is near at the same figure, and nobody decided it.
+    [park] = offered(client, "Honestly, I think I want to be near a park")
+    assert park["target"] == "feature:park_proximity"
+    assert "minute" not in park["follows"] and "Within" not in park["follows"]
+
+
 def test_a_vibe_says_what_it_counts_and_what_it_cannot_see():
     found, text = served_again("own-022")
 
@@ -205,7 +237,10 @@ def test_a_least_distance_is_answered_in_a_fixed_line_and_with_nothing_to_press(
     found, text = served_again("journey-030")
 
     [notice] = found["suggestions"]
-    assert (notice["does"], notice["follows"]) == (NO_JOURNEY, NO_LEAST)
+    # The rules hear the wish to stay away, and say why in one sentence. What a model
+    # made of the words is dropped.
+    assert (notice["does"], notice["follows"]) == (NO_JOURNEY, "")
+    assert notice["note"] == "Burro cannot rank on being far from a place."
     assert buttons(notice) == ["Skip"] and notice["said"] == []
     assert wrote(notice, text) == "Minimum 45 minutes from Pellam Infirmary"
 

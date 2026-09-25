@@ -1,10 +1,12 @@
 """One offer for each thing: what a model read, put with what the rules noticed.
 
 The rules offer every thing they notice, with every way it runs, and choose
-none. A model's reading of the same thing adds a guess to that offer, where
-no check fired. A thing only the model read is an offer of its own. Every
-offer of the rules is still there, with every way the rules gave it, so a
-person never sees less than the rules alone give (ADR 0012).
+no way of a wish. A model's reading of the same thing adds a guess to that
+offer, where no check fired. A thing only the model read is an offer of its
+own. Every offer of the rules is still there, with every way the rules gave
+it, so a person never sees less than the rules alone give (ADR 0012). What a
+person plainly said of the home they look for carries the guess, whoever
+read it: `plainly_said` in `guard.py`.
 
 Where the rules and the model name different things for the same words, it
 is one offer with both as choices, so that nothing is counted twice. What a
@@ -15,7 +17,7 @@ the model read the words.
 from collections import Counter
 from collections.abc import Iterable, Sequence
 
-from burro_core.catalogue import FEATURES, TAGS
+from burro_core.catalogue import FEATURES, ROUGH_GUIDES, TAGS, says_rough
 from burro_core.ids import (
     DirectionChoice,
     InterpreterName,
@@ -26,11 +28,11 @@ from burro_core.ids import (
     TenureChoice,
     Toward,
 )
-from burro_core.interpret import InterpretRequest, InterpretResult
+from burro_core.interpret import MAY_BE_ANOTHERS, InterpretRequest, InterpretResult
 from burro_core.interpret import Span as Stretch
 from burro_core.ops import BudgetEdit
 
-from burro_api.guard import BEYOND, DOUBTS, Check, Guarded, Reading, thing_named
+from burro_api.guard import BEYOND, DOUBTS, Check, Guarded, Reading, plainly_said, thing_named
 from burro_api.offers import (
     FIRM,
     GUIDE,
@@ -239,7 +241,11 @@ class _Merge:
             # Nothing the model read of it would change the search.
             self.fired[Check.NOTHING] += 1
             return
-        beside = self._beside(spans[0])
+        # A vibe that is a rough guide has an offer of its own, which says what it is: its
+        # label, and the sentence that says why. It is never a choice of another thing's
+        # offer, and never added with others at one press.
+        rough = thing_named(read.target) in ROUGH_GUIDES
+        beside = None if rough else self._beside(spans[0])
         if beside is None:
             self.offers.append(
                 Offer(
@@ -247,8 +253,10 @@ class _Merge:
                     label="",
                     spans=_spans(spans),
                     choices=(*_marked(ways, meant, guess), SKIP),
+                    note=says_rough(TagId(read.target.partition(":")[2])) if rough else "",
                     read_by=InterpreterName.MODEL,
                     whole_sentence=bool(fired & BEYOND),
+                    alone=rough,
                 )
             )
             return
@@ -312,6 +320,8 @@ class _Merge:
             label="" if held is None else held.label,
             spans=_spans([*spans, *([] if held is None else _held(held)), *named]),
             choices=(*_marked(ways, meant, guess), *kept, SKIP),
+            # What the rules say of whose place it may be is still said.
+            note=held.note if held is not None and held.note == MAY_BE_ANOTHERS else "",
             read_by=InterpreterName.MODEL if held is None else InterpreterName.RULE,
             unsaid=read.unsaid,
             asks_place=asks_place,
@@ -417,9 +427,10 @@ def offers_of(
     for together in things.values():
         merge.add(together)
     # A model read the words, so what it did not read is for the person: "add
-    # all" takes what Burro guesses, and no thing that was only noticed.
+    # all" takes what Burro guesses, and no thing that was only noticed. What a
+    # person plainly said of the home they look for is Burro's guess, whoever read.
     left = (
         offer if any(way.guess for way in offer.choices) else offer.replace(alone=True)
-        for offer in merge.offers
+        for offer in plainly_said(merge.offers, typed, request.spec)
     )
     return tuple(sorted(left, key=_where_it_stands)), merge.fired

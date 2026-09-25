@@ -25,8 +25,14 @@ what happens to areas.
 from collections.abc import Sequence
 from typing import NamedTuple
 
-from burro_core.catalogue import CRIME_CAVEAT, FEATURES, HOLDS_CRIME, TAGS
-from burro_core.facts import MODE_LABELS, SEGMENT_LABELS, money
+from burro_core.catalogue import CRIME_CAVEAT, FEATURES, HOLDS_CRIME, NEAR_A_STATION, TAGS
+from burro_core.facts import (
+    MODE_LABELS,
+    RENT_CAUTION,
+    RENT_IS_OF_A_PLACE,
+    SEGMENT_LABELS,
+    money,
+)
 from burro_core.ids import (
     AreaAction,
     Dimension,
@@ -50,9 +56,9 @@ from burro_core.ids import (
 )
 from burro_core.interpret import Choice
 from burro_core.ops import AreaEdit, BudgetEdit, CommuteEdit, TagEdit, WeightEdit
-from burro_core.rank import FIRM_BUDGET_MARGIN_PERCENT
+from burro_core.rank import FIRM_BUDGET_MARGIN_PERCENT, held_on_the_median
 from burro_core.reducer import minutes_limit
-from burro_core.release import Release
+from burro_core.release import CostEstimate, Release
 from burro_core.spec import (
     DEFAULT_COMMUTE_MINUTES,
     DEFAULT_COMMUTE_MODE,
@@ -98,6 +104,15 @@ FAR_DEARER = (
     f"Areas where the middle price is more than {FIRM_BUDGET_MARGIN_PERCENT}% over it are left out."
 )
 HALF_SOLD_FOR_LESS = "About half of the homes sold in an area went for under its middle price."
+# The same of a budget to rent, where a rent is of a postcode district or a borough: it is
+# held against the middle rent of the place, with the same margin.
+FAR_DEARER_TO_RENT = (
+    f"Areas where the middle rent is more than {FIRM_BUDGET_MARGIN_PERCENT}% over it are left out."
+)
+HALF_LET_FOR_LESS = "About half of the rents recorded in a place were under its middle rent."
+# What a person should know before they set a budget to rent, where a rent is of a wider
+# place than an area: that it is, and the caution of its publisher, in plain words.
+RENTS_NOTE = f"{RENT_IS_OF_A_PLACE} {RENT_CAUTION}"
 
 _Edit = WeightEdit | TagEdit | CommuteEdit | BudgetEdit | AreaEdit
 
@@ -115,6 +130,9 @@ class Worded(NamedTuple):
     add_all: str
     # What is left for the person once "add all" has been pressed, or nothing.
     needs: str
+    # What a person should know before they choose: the note of the offer, and of a budget
+    # to rent what is said of a rent that is of a wider place than an area.
+    note: str = ""
 
 
 class _Part(NamedTuple):
@@ -133,10 +151,33 @@ def _upper_first(text: str) -> str:
     return text[:1].upper() + text[1:]
 
 
+def _of_a_home(edits: Sequence[BudgetEdit]) -> tuple[BudgetEdit, ...]:
+    """What some edits to a budget say together, as one edit.
+
+    A budget for a house holds the kind in an edit of its own, before the
+    amount. It is worded as one thing.
+    """
+    if len(edits) < 2:
+        return tuple(edits)
+    whole = edits[0]
+    for edit in edits[1:]:
+        whole = whole.replace(
+            tenure=whole.tenure if edit.tenure is TenureChoice.UNCHANGED else edit.tenure,
+            amount=edit.amount or whole.amount,
+            segment=whole.segment if edit.segment is SegmentChoice.UNCHANGED else edit.segment,
+            strictness=(
+                whole.strictness
+                if edit.strictness is StrictnessChoice.UNCHANGED
+                else edit.strictness
+            ),
+        )
+    return (whole,)
+
+
 def _edit_of(way: Choice) -> _Edit | None:
     edits = way.operations
     found: Sequence[_Edit] = (
-        *edits.budget_ops,
+        *_of_a_home(edits.budget_ops),
         *edits.commute_ops,
         *edits.weight_ops,
         *edits.tag_ops,
@@ -160,9 +201,15 @@ def _wish_of(edit: WeightEdit) -> str:
 
 
 def _counts(feature_id: FeatureId) -> str:
+    """What a feature counts, as the catalogue names it, and what is to be known of it.
+
+    Of a station it says what near means, which the founder decided on 2026-09-25. The
+    figure is still named a straight line, and never a walk.
+    """
     feature = FEATURES[feature_id]
     crime = f" {CRIME_CAVEAT}" if feature.dimension is Dimension.CRIME else ""
-    return f"What Burro counts: {_lower_first(feature.label)}.{crime}"
+    near = f" {NEAR_A_STATION}" if feature_id is FeatureId.STATION_WALK else ""
+    return f"What Burro counts: {_lower_first(feature.label)}.{near}{crime}"
 
 
 def _why_it_counts(spec: PreferenceSpec, feature_id: FeatureId) -> str:
@@ -283,8 +330,8 @@ def _home(edit: BudgetEdit, spec: PreferenceSpec) -> str:
     return f"Look for{home}"
 
 
-def _on_a_median(edit: BudgetEdit, spec: PreferenceSpec, release: Release) -> bool:
-    """Whether the budget would be held against a median of what sold, and against no range."""
+def _costs(edit: BudgetEdit, spec: PreferenceSpec, release: Release) -> list[CostEstimate]:
+    """What the release holds of the kind of home a budget would be held against."""
     tenure = _tenure_of(edit, spec)
     if edit.segment is not SegmentChoice.UNCHANGED:
         segment = Segment(edit.segment.value)
@@ -293,12 +340,28 @@ def _on_a_median(edit: BudgetEdit, spec: PreferenceSpec, release: Release) -> bo
     else:
         segment = default_spec(tenure).budget.segment
     held = (release.cost(area.area_id, tenure, segment) for area in release.neighbourhoods)
-    return any(cost is not None and not cost.ranged for cost in held)
+    return [cost for cost in held if cost is not None]
+
+
+def _on_a_median(edit: BudgetEdit, spec: PreferenceSpec, release: Release) -> bool:
+    """Whether the budget would be held against a median, and against no upper end."""
+    return any(held_on_the_median(cost) for cost in _costs(edit, spec, release))
+
+
+def _of_a_wider_place(edit: BudgetEdit, spec: PreferenceSpec, release: Release) -> bool:
+    """Whether the budget would be held against a rent of a postcode district or a borough."""
+    return any(cost.of_a_wider_place for cost in _costs(edit, spec, release))
 
 
 def _budget(edit: BudgetEdit, spec: PreferenceSpec, release: Release) -> _Part:
     home = _home(edit, spec)
     if edit.strictness is StrictnessChoice.HARD:
+        if _of_a_wider_place(edit, spec, release):
+            return _Part(
+                f"{home}, as a firm limit.",
+                f"{FAR_DEARER_TO_RENT} {HALF_LET_FOR_LESS}",
+                f"Set as a firm limit: {_lower_first(FAR_DEARER_TO_RENT)[:-1]}",
+            )
         if _on_a_median(edit, spec, release):
             return _Part(
                 f"{home}, as a firm limit.",
@@ -416,12 +479,26 @@ def _asks(ways: Sequence[Way], parts: Sequence[_Part], release: Release) -> tupl
         return f"{things[0]}: {asks}", _counts(edit.feature_id)
     if isinstance(edit, AreaEdit):
         return f"{things[0]}: look only there, or leave it out?", ""
+    kinds = list(dict.fromkeys(_kind_of_house(way) for way in ways))
+    if isinstance(edit, BudgetEdit) and len(kinds) > 1 and all(kinds):
+        # A budget for a house, which is held by the kind of house: the person says which.
+        which = f"{', '.join(kinds[:-1])} or {kinds[-1]}"
+        return f"{things[0]} for a house: {which}?", parts[0].follows
     # A journey and a budget say the same of themselves whichever way they are taken.
     firmness = (", as a guide.", ", as a firm limit.")
     does = parts[0].does
     for ending in firmness:
         does = does.removesuffix(ending) + "." if does.endswith(ending) else does
     return does, ""
+
+
+def _kind_of_house(way: Choice) -> str:
+    """The kind of house a way of a budget is for, as a list says it. Nothing for any other."""
+    edit = _edit_of(way)
+    if not isinstance(edit, BudgetEdit) or edit.segment is SegmentChoice.UNCHANGED:
+        return ""
+    kind = SEGMENT_LABELS[Segment(edit.segment.value)]
+    return kind.removesuffix(" house") if kind.endswith(" house") else ""
 
 
 def _unsaid(unsaid: Unsaid, way: Choice | None, spec: PreferenceSpec, release: Release) -> str:
@@ -484,7 +561,9 @@ def _needs(offer: Offer, taken: Way | None, ways: Sequence[Way], release: Releas
         if isinstance(edit, CommuteEdit):
             return f"the journey to {_named(ways[0], release)}"
         return _named(ways[0], release)
-    firmer = any(other.id != taken.id and _is_firm(other) for other in ways)
+    # What is taken as a firm limit can be made no firmer: the other ways of a budget for
+    # a house are other kinds of house.
+    firmer = not _is_firm(taken) and any(other.id != taken.id and _is_firm(other) for other in ways)
     if firmer and isinstance(edit, CommuteEdit):
         return "the journey can be made a firm limit"
     if firmer and isinstance(edit, BudgetEdit):
@@ -526,6 +605,16 @@ def _of_which(way: Way, part: _Part, release: Release) -> str:
     return f"{name}: {_lower_first(part.button)}"
 
 
+def _sets_a_rent_of_a_place(ways: Sequence[Way], spec: PreferenceSpec, release: Release) -> bool:
+    """Whether some way of an offer sets an amount that would be held against a rent of a
+    postcode district or a borough. Such an offer says so, and says the publisher's caution."""
+    return any(
+        edit.amount > 0 and _of_a_wider_place(edit, spec, release)
+        for way in ways
+        for edit in way.operations.budget_ops
+    )
+
+
 def worded(
     offer: Offer,
     spec: PreferenceSpec,
@@ -551,6 +640,9 @@ def worded(
     if not ways:
         journey = offer.target == "commute"
         does, follows = (NO_JOURNEY, NO_LEAST) if journey else (NOTHING_TAKEN, "")
+        if journey and offer.note:
+            # The note says why in one sentence, and nothing is said twice.
+            follows = ""
     elif led is None:
         does, follows = _asks(ways, parts, release)
     else:
@@ -558,6 +650,7 @@ def worded(
     of = ways[led or 0] if ways else None
     unsaid = [*offer.unsaid, *_assumed(of, offer, spec, names_a_way)]
     taken = in_add_all(offer) if settled else None
+    noted = [offer.note, *([RENTS_NOTE] if _sets_a_rent_of_a_place(ways, spec, release) else [])]
     return Worded(
         label=offer.label or (_thing(ways[0], release) if ways else "A journey"),
         does=does,
@@ -570,4 +663,5 @@ def worded(
         ),
         add_all="" if taken is None else taken.id,
         needs=_needs(offer, taken, ways, release),
+        note=" ".join(note for note in noted if note),
     )

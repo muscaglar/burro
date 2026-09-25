@@ -43,6 +43,7 @@ from burro_core.interpret import (
     RuleInterpreter,
     Span,
     Usage,
+    asks_for_nothing,
 )
 from burro_core.ops import NO_OPERATIONS
 from burro_core.places import Names
@@ -284,15 +285,24 @@ def asks_a_model(read: InterpretResult) -> bool:
 
     A plain prompt is applied by the rules, and the rules stand. So is a
     prompt that is not plain of which the rules made something of every word:
-    the name of a scale alone, or a name that stands alone.
+    the name of a scale alone, or a name that stands alone. Words that ask for
+    nothing are words all the same: they are not said to be unread, and a
+    model is asked where the rules made nothing of them, as it was.
     """
-    return bool(read.unread)
+    return bool(read.unread or read.asks_nothing)
 
 
-def _left_unread(unread: Sequence[Span], offers: Sequence[Offer], text: str) -> tuple[Span, ...]:
-    """What is still unread, once the words a model's offer rests on are taken out."""
+def _left_unread(
+    unread: Sequence[Span], offers: Sequence[Offer], text: str
+) -> tuple[tuple[Span, ...], tuple[Span, ...]]:
+    """What is still unread, once the words a model's offer rests on are taken out.
+
+    What may have asked for something comes first, and is what is said to be
+    unread. What is left of a stretch and asks for nothing comes second:
+    "with a", of "with a lido".
+    """
     rested = [(span.start, span.end) for offer in offers for span in offer.spans]
-    found: list[Span] = []
+    found: tuple[list[Span], list[Span]] = ([], [])
     for stretch in unread:
         pieces = [(stretch.start, stretch.end)]
         for start, end in rested:
@@ -309,8 +319,9 @@ def _left_unread(unread: Sequence[Span], offers: Sequence[Offer], text: str) -> 
             while ended > begun and not text[ended - 1].isalnum():
                 ended -= 1
             if begun < ended:
-                found.append(Span(start=begun, end=ended))
-    return tuple(found)
+                nothing = asks_for_nothing(text[begun:ended])
+                found[nothing].append(Span(start=begun, end=ended))
+    return tuple(found[False]), tuple(found[True])
 
 
 def _was_offered(where: tuple[int, int], offers: Sequence[Offer], typed: Typed) -> bool:
@@ -429,16 +440,17 @@ class ModelInterpreter:
         with self._lock:
             self.fired.update(found.fired)
             self.fired.update(more)
-        unread = _left_unread(read.unread, offers, request.text)
+        unread, asks_nothing = _left_unread(read.unread, offers, request.text)
         # What an offer rests on was not left out, whatever a model files it as.
         filed = [
             (category, where)
             for category, where in found.unmet
             if where is None or not _was_offered(where, offers, typed)
         ]
-        # `other` says that words were left unread, and is said exactly then.
+        # `other` says that nothing was made of some word, and is said exactly then.
+        asks_nothing = (*read.asks_nothing, *asks_nothing)
         unmet = {*read.unmet, *(category for category, _ in filed)} - {UnmetCategory.OTHER}
-        if unread:
+        if unread or asks_nothing:
             unmet.add(UnmetCategory.OTHER)
         if found.about_people:
             status = InterpretStatus.POLICY_REDIRECT
@@ -458,6 +470,7 @@ class ModelInterpreter:
             usage=usage,
             suggestions=offers,
             unread=unread,
+            asks_nothing=asks_nothing,
             unmet_at=tuple(
                 (category, Span(start=where[0], end=where[1]))
                 for category, where in filed

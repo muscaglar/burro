@@ -52,13 +52,18 @@ def fired(answer: Any, text: str) -> set[Check]:
 
 
 def _guesses(result: Any, target: str) -> list[str]:
-    """The ways that are marked as the guess, of every offer of one kind."""
+    """The ways that are marked as the guess, of every offer of one kind.
+
+    Of a budget it is the guess at the amount. What the rules read plainly of the home
+    beside it, "2 bedrooms", carries a guess of its own, which says nothing of how firm.
+    """
     return [
         way.id
         for name, offer in offers(result).items()
         if name.rstrip("+") == target
         for way in offer.choices
         if way.guess
+        and (target != "budget" or any(edit.amount for edit in way.operations.budget_ops))
     ]
 
 

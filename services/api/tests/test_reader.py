@@ -683,6 +683,46 @@ def test_the_rules_offers_are_served_at_once_and_never_wait_on_the_model():
     assert [way["id"] for way in then["suggestions"][0]["choices"] if way["guess"]] == ["more"]
 
 
+def test_a_model_is_asked_as_it_was_where_the_rules_left_only_words_that_ask_for_nothing():
+    # "I want somewhere" asks for nothing, and is not said to be unread. The rules made
+    # nothing of it all the same, so a model is asked, as it was before such words were
+    # left out of what is said to be unread: what it marks as its guess is not lost.
+    text = "I want somewhere affluent"
+    model = FakeModelClient(model_output())
+    deps = make_deps(interpreter=ModelInterpreter(model, MODEL, 512, 2.5), model_id=MODEL)
+    client = client_for(deps)
+
+    at_once = client.post("/v1/interpret", json={"text": text, "ask_model": False}).json()["data"]
+    then = client.post("/v1/interpret", json={"text": text}).json()["data"]
+
+    assert (at_once["unread"], at_once["model_pending"]) == ([], True)
+    assert len(model.calls) == 1
+    assert (then["unread"], then["model_pending"]) == ([], False)
+    # That nothing was made of some word is said as it was.
+    assert "other" in at_once["unmet"] and "other" in then["unmet"]
+
+
+def test_what_a_model_leaves_of_a_stretch_is_not_said_to_be_unread_where_it_asks_for_nothing():
+    text = "I want somewhere with a playpark"
+    answer = model_output(weight_ops=[model_weight("park_proximity", words="playpark")])
+    model = FakeModelClient(answer)
+    deps = make_deps(interpreter=ModelInterpreter(model, MODEL, 512, 2.5), model_id=MODEL)
+    client = client_for(deps)
+
+    at_once = client.post("/v1/interpret", json={"text": text, "ask_model": False}).json()["data"]
+    then = client.post("/v1/interpret", json={"text": text}).json()["data"]
+
+    # The rules know no such word, and say that the whole of the stretch is unread.
+    assert at_once["unread"] == [{"start": 0, "end": len(text)}]
+    # The model read the word. What is left of the stretch is how the wish was led in to.
+    assert [offer["target"] for offer in then["suggestions"]] == ["feature:park_proximity"]
+    assert then["unread"] == []
+    # A word that nobody read is still said to be unread, with what stands beside it.
+    other = "I want somewhere with a playpark and a zebra"
+    left = client.post("/v1/interpret", json={"text": other}).json()["data"]["unread"]
+    assert [other[span["start"] : span["end"]] for span in left] == ["and a zebra"]
+
+
 def test_nothing_more_is_pending_where_the_rules_read_the_whole_of_it():
     model = FakeModelClient(model_output())
     deps = make_deps(interpreter=ModelInterpreter(model, MODEL, 512, 2.5), model_id=MODEL)

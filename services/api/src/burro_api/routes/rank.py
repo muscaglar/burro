@@ -200,8 +200,14 @@ class _Component:
         return COMMUTE if self.journey is not None else self.name
 
 
-def _components(spec: PreferenceSpec) -> tuple[_Component, ...]:
-    """Every row, by weight from high to low, then by name. The journeys keep the spec's order."""
+def _components(spec: PreferenceSpec, release: Release) -> tuple[_Component, ...]:
+    """Every row, by weight from high to low, then by name. The journeys keep the spec's order.
+
+    A measure and a vibe are named as the release names them: a person may
+    have given either another name, and a build carries it.
+    """
+    measures = {metric.feature_id: metric.label for metric in release.metrics}
+    vibes = {vibe.tag_id: vibe.label for vibe in release.vibes}
     found: list[_Component] = []
     if spec.commute_requested:
         # Named as core keys a journey, which puts them in the order of their places.
@@ -214,14 +220,19 @@ def _components(spec: PreferenceSpec) -> tuple[_Component, ...]:
     found += [
         _Component(
             component_for_feature(w.feature_id),
-            FEATURES[w.feature_id].label,
+            measures.get(w.feature_id, FEATURES[w.feature_id].label),
             w.weight,
             feature_id=w.feature_id,
         )
         for w in spec.active_weights
     ]
     found += [
-        _Component(component_for_tag(t.tag_id), TAGS[t.tag_id].label, t.weight, tag_id=t.tag_id)
+        _Component(
+            component_for_tag(t.tag_id),
+            vibes.get(t.tag_id, TAGS[t.tag_id].label),
+            t.weight,
+            tag_id=t.tag_id,
+        )
         for t in spec.active_tags
     ]
     return tuple(sorted(found, key=lambda c: (-c.weight, c.name)))
@@ -419,7 +430,7 @@ def compare(body: CompareBody, context: Ctx) -> Envelope[CompareData]:
             place=comparison.place(component),
             cells=tuple(comparison.cell(area_id, component) for area_id in body.area_ids),
         )
-        for component in _components(body.spec)
+        for component in _components(body.spec, release)
     )
     return envelope(
         context,

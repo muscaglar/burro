@@ -5,9 +5,13 @@ model reads is applied. What it reads becomes an offer, beside what the
 rules noticed, and the two are one list: one offer for each thing, so that a
 person never sees less than the rules alone give.
 
-An offer is core's `Suggestion` with what a guess needs beside it. The rules
-make one with no guess. Where a model read the same thing, and no check of
-`guard.py` fired, the way it read is marked as Burro's guess. A person still
+An offer is core's `Suggestion` with what a guess needs beside it. Where a
+model read a thing, and no check of `guard.py` fired, the way it read is
+marked as Burro's guess. So is the one way of what a person plainly said of
+the home they look for, whether or not a model reads: that they are renting
+or buying, a budget with its amount, a kind of home. And so is the way the
+words give of a journey that was plainly said, to one place and with one
+time, which is offered as a guide and as a firm limit. A person still
 presses it.
 
 Every way of every offer is made here, from the catalogue: which ways a
@@ -19,7 +23,14 @@ from collections.abc import Sequence
 from enum import StrEnum
 
 from burro_core._record import Record
-from burro_core.catalogue import COUNTS_RESIDENTS, FEATURES, HOLDS_CRIME, HOLDS_RESIDENTS, TAGS
+from burro_core.catalogue import (
+    COUNTS_RESIDENTS,
+    FEATURES,
+    HOLDS_CRIME,
+    HOLDS_RESIDENTS,
+    ROUGH_GUIDES,
+    TAGS,
+)
 from burro_core.ids import (
     AreaAction,
     BudgetAction,
@@ -32,6 +43,7 @@ from burro_core.ids import (
     InterpreterName,
     ModeChoice,
     Polarity,
+    Segment,
     SegmentChoice,
     Step,
     StrictnessChoice,
@@ -42,7 +54,7 @@ from burro_core.ids import (
     TowardChoice,
     WeightAction,
 )
-from burro_core.interpret import Choice, ClarifyOption, Span, Suggestion
+from burro_core.interpret import COMMUTE_TARGET, Choice, ClarifyOption, Span, Suggestion
 from burro_core.ops import (
     NO_OPERATIONS,
     BudgetEdit,
@@ -53,10 +65,11 @@ from burro_core.ops import (
 )
 from burro_core.reducer import apply, given_way_spec
 from burro_core.release import Release
-from burro_core.spec import PreferenceSpec
+from burro_core.spec import DEFAULT_HOUSE, PreferenceSpec
 
 __all__ = [
     "IGNORE",
+    "OF_A_HOME",
     "SKIP",
     "Degree",
     "Offer",
@@ -66,12 +79,18 @@ __all__ = [
     "budget_ways",
     "changes",
     "counts_residents",
+    "for_a_house",
     "holds_crime",
     "in_add_all",
+    "is_a_rough_guide",
     "journey_ways",
+    "kind_of_house",
     "of_the_rules",
     "ways_of",
 ]
+
+# The kinds of house that what houses sold for is held by.
+KINDS_OF_HOUSE = frozenset({Segment.TERRACED, Segment.SEMI_DETACHED, Segment.DETACHED})
 
 _UI = EditProvenance.UI_EDIT
 # What a client sends back to say that an offer was left alone.
@@ -82,6 +101,9 @@ LESS = "less"
 OFF = "off"
 GUIDE = "guide"
 FIRM = "firm"
+# The targets of what is said of the home a person looks for: whether they rent or buy, and
+# the budget, which holds the amount and the kind of home.
+OF_A_HOME = frozenset({"tenure", "budget"})
 
 
 class Degree(StrEnum):
@@ -97,7 +119,9 @@ class Way(Choice):
 
     # Which way of its offer this is. A client sends it back to say what was pressed.
     id: str
-    # Burro's guess: the way a model read the words, where no check fired.
+    # Burro's guess: the way a model read the words, where no check fired, the one way
+    # of what a person plainly said of the home they look for, and the way the words
+    # give of a journey that was plainly said.
     guess: bool = False
     # The way a model's answer pointed at, marked as a guess or not. It is for
     # measuring a model, and is never served.
@@ -320,7 +344,11 @@ def of_the_rules(suggestion: Suggestion) -> Offer:
 
 
 def _id_of(choice: Choice) -> str:
-    """The way of a thing that a choice of the rules is, by the edit it holds."""
+    """The way of a thing that a choice of the rules is, by the edit it holds.
+
+    A budget for a house is offered once for each kind of house it may be
+    held against, and each way is told from the others by its kind.
+    """
     edits = choice.operations
     for weight in edits.weight_ops:
         if weight.action is WeightAction.REMOVE:
@@ -328,7 +356,37 @@ def _id_of(choice: Choice) -> str:
     for tag in edits.tag_ops:
         if tag.action is WeightAction.REMOVE:
             return OFF
-    return choice.direction.value
+    kind = kind_of_house(edits)
+    return choice.direction.value if kind is None else kind.value
+
+
+def kind_of_house(edits: Operations) -> Segment | None:
+    """The kind of house that an amount is held against, where the edits hold both.
+
+    The kind may stand in an edit of its own, before the amount, so that it
+    can say whose it is: Burro's where a person named no kind of house.
+    """
+    kinds = [
+        Segment(edit.segment.value)
+        for edit in edits.budget_ops
+        if edit.segment is not SegmentChoice.UNCHANGED
+    ]
+    amount = any(edit.amount for edit in edits.budget_ops)
+    return kinds[-1] if amount and kinds and kinds[-1] in KINDS_OF_HOUSE else None
+
+
+def for_a_house(offer: Offer) -> bool:
+    """Whether an offer is a budget for a house of no kind, with the kind Burro takes first.
+
+    Its ways differ only in the kind of house, and the first is held against
+    `DEFAULT_HOUSE` in an edit that says the kind is Burro's.
+    """
+    ways = [way for way in offer.choices if way.direction is not SuggestionDirection.IGNORE]
+    kinds = [kind_of_house(way.operations) for way in ways]
+    if len(ways) < 2 or None in kinds or kinds[0] is not DEFAULT_HOUSE:
+        return False
+    first = ways[0].operations.budget_ops
+    return all(way.ruled for way in ways) and first[0].provenance is EditProvenance.INFERRED
 
 
 # --- What counts recorded crime, and what may be added at one press --------------------
@@ -348,14 +406,20 @@ def counts_residents(operations: Operations) -> bool:
     )
 
 
-def _leaves_areas_out(operations: Operations) -> bool:
-    """Whether some edit is a filter: a firm limit, or a rule for an area."""
-    firm = StrictnessChoice.HARD
-    return (
-        any(edit.strictness is firm for edit in operations.budget_ops)
-        or any(edit.strictness is firm for edit in operations.commute_ops)
-        or any(edit.action is not AreaAction.CLEAR for edit in operations.area_ops)
+def is_a_rough_guide(operations: Operations) -> bool:
+    """Whether some edit adds a vibe that is a rough guide. To take one off is not to add it."""
+    return any(
+        edit.tag_id in ROUGH_GUIDES and edit.action is not WeightAction.REMOVE
+        for edit in operations.tag_ops
     )
+
+
+def _firm_journey(operations: Operations) -> bool:
+    return any(edit.strictness is StrictnessChoice.HARD for edit in operations.commute_ops)
+
+
+def _rules_an_area(operations: Operations) -> bool:
+    return any(edit.action is not AreaAction.CLEAR for edit in operations.area_ops)
 
 
 def _taken_up(way: Way) -> bool:
@@ -370,33 +434,53 @@ def _taken_up(way: Way) -> bool:
 def in_add_all(offer: Offer) -> Way | None:
     """The one way of an offer that "add all" takes, or nothing where it may take none.
 
-    It takes a wish or a vibe at a mention or a small step, the tenure, a
-    budget as a guide and a journey as a guide to a place named in full. It
-    never takes what leaves areas out, what runs two ways with no guess,
-    a journey to a place the person has yet to choose, recorded crime, or
-    what counts who lives somewhere. A thing the rules offer with a note is
-    chosen by its own label.
+    It takes a wish or a vibe at a mention or a small step, and a journey as
+    a guide to a place named in full. And it takes what a person plainly said
+    of the home they look for, which is what carries the guess: that they are
+    renting or buying, the kind of home, and the budget as they worded it,
+    firm where they used a firm word and a guide where they used none
+    (decided on 2026-09-25). What is said of a home with no guess is for the
+    person, and what Burro cannot hold of a home is said in its note.
+
+    **It never takes a journey as a firm limit.** A journey is estimated from
+    distance and no timetable stands behind it (ADR 0027), so one press must
+    not leave areas out on an estimate. Where the guess is a firm journey,
+    what is added is the guide, and a person makes it firm with a press of
+    its own. It is so whoever read the journey, a model or the rules alone.
+
+    Nor does it take a rule for an area, what runs two ways with no guess, a
+    journey to a place the person has yet to choose, recorded crime, what
+    counts who lives somewhere, or a vibe that is a rough guide, which is
+    taken by a press of its own whoever read it and whatever is said of its
+    offer (decided on 2026-09-25). A wish the rules offer with a note is a
+    reading they keep for themselves, and is chosen by its own label. What
+    was plainly said is taken with what is said of it: a kind of home with
+    what Burro cannot hold of it, and a journey that carries the guess with
+    which of two numbers was taken.
     """
-    if offer.alone or offer.asks_place or offer.note:
-        return None
+    of_a_home = offer.target in OF_A_HOME
     ways = [way for way in offer.choices if way.direction is not SuggestionDirection.IGNORE]
     guessed = [way for way in ways if way.guess]
+    said_plainly = of_a_home or (offer.target == COMMUTE_TARGET and bool(guessed))
+    if offer.alone or offer.asks_place or (offer.note and not said_plainly):
+        return None
     if guessed:
         taken = guessed[0]
-        # Where the guess is a firm limit, what is added at one press is the guide.
-        if _leaves_areas_out(taken.operations):
+        if _firm_journey(taken.operations):
             guides = [way for way in ways if way.id == GUIDE]
             if not guides:
                 return None
             taken = guides[0]
-    elif len(ways) == 1:
+    elif len(ways) == 1 and not of_a_home:
         # The rules' own: a thing there is one way to want.
         taken = ways[0]
     else:
         return None
-    if holds_crime(taken.operations) or _leaves_areas_out(taken.operations):
+    if holds_crime(taken.operations) or counts_residents(taken.operations):
         return None
-    if counts_residents(taken.operations):
+    if is_a_rough_guide(taken.operations):
+        return None
+    if _firm_journey(taken.operations) or _rules_an_area(taken.operations):
         return None
     return taken if _taken_up(taken) and _names_its_place(taken) else None
 
