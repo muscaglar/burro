@@ -108,11 +108,16 @@ web-record: ## Record the API's answers again for the website's tests. Generated
 	uv run python apps/web/test/record.py
 
 # The review desk, in tools/desk: where a person looks at data and decides. It runs on this
-# machine alone and asks no other host for anything. It needs Python and no package, so it
-# runs before `make setup`. Only filling the queues from real files needs the licence gate.
+# machine alone and asks no other host for anything. Its queues need Python and no package.
+# Its panel reads a release with the project's packages, so `make desk` is run after
+# `make setup`, as filling the queues from real files is.
 # None of the page's tests is part of `make ci`: hosted CI runs them in the job `desk`.
 .PHONY: desk desk-check desk-take desk-fill desk-compile desk-publish
 REVIEWER ?= r1
+# The folder of the release the panel shows, and the desk's folder of data where it is not
+# data/raw/desk. With no release named, the made-up city is shown the synthetic release.
+RELEASE ?=
+DATA ?=
 # The folder a draft of the areas was written to, which holds what it hands the desk, and
 # the desk's folder of real data, which it is taken to.
 DRAFT ?=
@@ -121,8 +126,8 @@ DESK ?= data/raw/desk
 # is not served without one: `git clean -x` removes data/raw, and the copy is what is left.
 KEEP ?=
 
-desk: ## Start the review desk on 127.0.0.1:8765, as r1, and print the address. KEEP=FOLDER, REVIEWER=r2, ARGS="--port 8766"
-	@PYTHONPATH=tools uv run --no-project python -m desk serve --reviewer $(REVIEWER) $(if $(KEEP),--keep $(KEEP)) $(ARGS)
+desk: ## Start the desk and its panel on 127.0.0.1:8765, as r1, and print the address. RELEASE=FOLDER, BEFORE=FOLDER, DATA=FOLDER, KEEP=FOLDER, REVIEWER=r2, ARGS="--port 8766"
+	@PYTHONPATH=tools uv run python -m desk serve --reviewer $(REVIEWER) $(if $(KEEP),--keep $(KEEP)) $(if $(RELEASE),--release $(RELEASE)) $(if $(BEFORE),--before $(BEFORE)) $(if $(DATA),--data $(DATA)) $(ARGS)
 
 desk-check: ## Everything the review desk is held to: its own tests, and the page's. Needs Node 20 or later
 	uv run pytest tools/desk

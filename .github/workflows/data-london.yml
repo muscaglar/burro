@@ -1,0 +1,228 @@
+name: data-london
+
+# Builds a release of London from the store, twice, on two machines, and keeps it where
+# the two builds are the same, byte for byte.
+# For the founder: docs/data-builds.md says how to start it and what to look at.
+#
+# It reads the store with a key that can only read, and writes nothing to it. It keeps
+# the release in a bucket of its own, with a key that opens nothing else. It serves
+# nothing: a release is served only once its lock is on the default branch, and only
+# the founder puts one there. The run shows the lock on its summary page.
+#
+# It is started by hand, on the default branch, and each build waits for approval.
+# It prints step names, registry ids, counts and hashes, and uploads nothing to GitHub.
+# No line names a place or gives a figure of one. tools/check_data_workflows.py holds
+# this file to its rules: in `make ci`, and again as the first step of every run.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: The id to build under, as lon-2026-10-02-01. One that no build was kept under
+        type: string
+        required: true
+      built_at:
+        description: When the build is said to be made, in UTC, as 2026-10-02T09:00:00Z. A time that has passed
+        type: string
+        required: true
+
+permissions: {}
+
+concurrency:
+  group: data-london
+  cancel-in-progress: false
+
+jobs:
+  # Needs no secret and no approval, so a mistake is found before anyone is asked.
+  check:
+    name: Rules and canary
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.17"
+          enable-cache: false
+      - name: The run is on the default branch, and the workflows keep their rules
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: uv run --no-project python tools/check_data_workflows.py --on-default-branch
+      - name: No file names a private package host or holds credentials
+        run: uv run --no-project python tools/check_public_only.py
+      # Only what a step imports, and nothing published after the day stated. No lockfile
+      # yet, so no --locked, and every build is a development build. docs/data-builds.md
+      # says how the day is moved.
+      - name: Install
+        run: uv sync --package burro-pipeline --no-dev --exclude-newer 2026-09-23T00:00:00Z
+      - name: A planted row and a planted key cannot be seen
+        run: uv run --no-sync python tools/canary.py plant
+
+  # The first build. It is given the key that reads the store, and no other. It keeps
+  # nothing: what it hands on is its lock, which holds hashes and counts.
+  first:
+    name: Build a
+    needs: check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    environment: data-london
+    permissions:
+      contents: read
+    outputs:
+      a: ${{ steps.lock.outputs.a }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.17"
+          enable-cache: false
+      - name: Install
+        run: uv sync --package burro-pipeline --no-dev --exclude-newer 2026-09-23T00:00:00Z
+      - name: Every secret is set, and what is made from one is hidden
+        env:
+          BURRO_STORE_ENDPOINT: ${{ secrets.BURRO_STORE_ENDPOINT }}
+          BURRO_STORE_BUCKET: ${{ secrets.BURRO_STORE_BUCKET }}
+          BURRO_STORE_KEY_ID: ${{ secrets.BURRO_STORE_KEY_ID }}
+          BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
+        run: uv run --no-project python tools/public_log.py mask
+      - name: The store answers, and says how much it holds
+        env:
+          BURRO_STORE_ENDPOINT: ${{ secrets.BURRO_STORE_ENDPOINT }}
+          BURRO_STORE_BUCKET: ${{ secrets.BURRO_STORE_BUCKET }}
+          BURRO_STORE_KEY_ID: ${{ secrets.BURRO_STORE_KEY_ID }}
+          BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
+        run: uv run --no-project python tools/public_log.py --step store -- uv run --no-sync python -m burro_pipeline held
+      # The names the areas bear are drafted from the store, so that nothing is handed to a
+      # build from a machine of a person's own. Every file is copied out of the store here,
+      # once, and the build that follows finds the copies.
+      - name: Draft the names of the areas
+        env:
+          BURRO_STORE_ENDPOINT: ${{ secrets.BURRO_STORE_ENDPOINT }}
+          BURRO_STORE_BUCKET: ${{ secrets.BURRO_STORE_BUCKET }}
+          BURRO_STORE_KEY_ID: ${{ secrets.BURRO_STORE_KEY_ID }}
+          BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
+        run: uv run --no-project python tools/public_log.py --step names -- uv run --no-sync python -m burro_pipeline draft --out "$RUNNER_TEMP/draft" --work "$RUNNER_TEMP/copies"
+      # What the founder decided at the panel is built where it was published and committed:
+      # the build is given the one place the desk publishes the founder's file to. Where the
+      # repository tracks no file there the build is as it was, and it reads none it does not
+      # track. Whether there is a file is the build's to find: no step is left out of a run.
+      - name: Build London
+        env:
+          BURRO_STORE_ENDPOINT: ${{ secrets.BURRO_STORE_ENDPOINT }}
+          BURRO_STORE_BUCKET: ${{ secrets.BURRO_STORE_BUCKET }}
+          BURRO_STORE_KEY_ID: ${{ secrets.BURRO_STORE_KEY_ID }}
+          BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
+          RELEASE: ${{ inputs.release }}
+          BUILT_AT: ${{ inputs.built_at }}
+        run: uv run --no-project python tools/public_log.py --step assemble -- uv run --no-sync python -m burro_pipeline preview --release-id="$RELEASE" --built-at="$BUILT_AT" --out "$RUNNER_TEMP/releases" --work "$RUNNER_TEMP/copies" --names "$RUNNER_TEMP/draft" --list m1 --list m10-health --list m10-land-use --list m11-age-and-households --list m11-high-streets --list m11-outdoor-space --list m12-household-income --list m12-public-transport --list m2-culture --list m2-living --list m2-places --list m2-stations --list m5-journeys --published-changes gazetteer/london/decisions/changes/r1.jsonl
+      # Against the receipts the repository holds. It reads no store, so it is given no key.
+      - name: Check the release
+        env:
+          RELEASE: ${{ inputs.release }}
+        run: uv run --no-project python tools/public_log.py --step check -- uv run --no-sync burro-release check "$RUNNER_TEMP/releases/$RELEASE" --receipts data/receipts --income "$RUNNER_TEMP/releases/$RELEASE-income"
+      - name: Hash what was built
+        id: lock
+        env:
+          RELEASE: ${{ inputs.release }}
+        run: uv run --no-project python tools/release_lock.py hash a "$RUNNER_TEMP/releases" "$RELEASE"
+
+  # The second build, on another machine. It builds as the first did, holds what it built
+  # to the lock of the first, and only then keeps it. If the two differ it ends here, and
+  # nothing is kept.
+  second:
+    name: Build b, and keep what two builds agree on
+    needs: first
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    environment: data-london
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.17"
+          enable-cache: false
+      - name: Install
+        run: uv sync --package burro-pipeline --no-dev --exclude-newer 2026-09-23T00:00:00Z
+      - name: Every secret is set, and what is made from one is hidden
+        env:
+          BURRO_STORE_ENDPOINT: ${{ secrets.BURRO_STORE_ENDPOINT }}
+          BURRO_STORE_BUCKET: ${{ secrets.BURRO_STORE_BUCKET }}
+          BURRO_STORE_KEY_ID: ${{ secrets.BURRO_STORE_KEY_ID }}
+          BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
+          BURRO_RELEASES_ENDPOINT: ${{ secrets.BURRO_RELEASES_ENDPOINT }}
+          BURRO_RELEASES_BUCKET: ${{ secrets.BURRO_RELEASES_BUCKET }}
+          BURRO_RELEASES_KEY_ID: ${{ secrets.BURRO_RELEASES_KEY_ID }}
+          BURRO_RELEASES_SECRET: ${{ secrets.BURRO_RELEASES_SECRET }}
+        run: uv run --no-project python tools/public_log.py mask
+      - name: Draft the names of the areas
+        env:
+          BURRO_STORE_ENDPOINT: ${{ secrets.BURRO_STORE_ENDPOINT }}
+          BURRO_STORE_BUCKET: ${{ secrets.BURRO_STORE_BUCKET }}
+          BURRO_STORE_KEY_ID: ${{ secrets.BURRO_STORE_KEY_ID }}
+          BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
+        run: uv run --no-project python tools/public_log.py --step names -- uv run --no-sync python -m burro_pipeline draft --out "$RUNNER_TEMP/draft" --work "$RUNNER_TEMP/copies"
+      - name: Build London
+        env:
+          BURRO_STORE_ENDPOINT: ${{ secrets.BURRO_STORE_ENDPOINT }}
+          BURRO_STORE_BUCKET: ${{ secrets.BURRO_STORE_BUCKET }}
+          BURRO_STORE_KEY_ID: ${{ secrets.BURRO_STORE_KEY_ID }}
+          BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
+          RELEASE: ${{ inputs.release }}
+          BUILT_AT: ${{ inputs.built_at }}
+        run: uv run --no-project python tools/public_log.py --step assemble -- uv run --no-sync python -m burro_pipeline preview --release-id="$RELEASE" --built-at="$BUILT_AT" --out "$RUNNER_TEMP/releases" --work "$RUNNER_TEMP/copies" --names "$RUNNER_TEMP/draft" --list m1 --list m10-health --list m10-land-use --list m11-age-and-households --list m11-high-streets --list m11-outdoor-space --list m12-household-income --list m12-public-transport --list m2-culture --list m2-living --list m2-places --list m2-stations --list m5-journeys --published-changes gazetteer/london/decisions/changes/r1.jsonl
+      - name: Check the release
+        env:
+          RELEASE: ${{ inputs.release }}
+        run: uv run --no-project python tools/public_log.py --step check -- uv run --no-sync burro-release check "$RUNNER_TEMP/releases/$RELEASE" --receipts data/receipts --income "$RUNNER_TEMP/releases/$RELEASE-income"
+      - name: Compare the two builds
+        env:
+          COPY_A: ${{ needs.first.outputs.a }}
+          RELEASE: ${{ inputs.release }}
+        run: uv run --no-project python tools/release_lock.py compare "$RUNNER_TEMP/releases" "$RELEASE"
+      # The one step that is given the key of the bucket of releases. It is given no key
+      # of the store, so it can touch no publisher's file and no receipt.
+      - name: Keep the release
+        env:
+          BURRO_RELEASES_ENDPOINT: ${{ secrets.BURRO_RELEASES_ENDPOINT }}
+          BURRO_RELEASES_BUCKET: ${{ secrets.BURRO_RELEASES_BUCKET }}
+          BURRO_RELEASES_KEY_ID: ${{ secrets.BURRO_RELEASES_KEY_ID }}
+          BURRO_RELEASES_SECRET: ${{ secrets.BURRO_RELEASES_SECRET }}
+          RELEASE: ${{ inputs.release }}
+        run: uv run --no-project python tools/public_log.py --step keep -- uv run --no-sync python -m burro_pipeline keep "$RUNNER_TEMP/releases" --release="$RELEASE"
+      - name: Show the lock of the release
+        env:
+          RELEASE: ${{ inputs.release }}
+        run: uv run --no-project python tools/release_lock.py show "$RUNNER_TEMP/releases" "$RELEASE"
+
+  # Runs whatever happened before it: a step that failed is where a row would get out.
+  search:
+    name: Search what the run made public
+    needs: [check, first, second]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+        with:
+          version: "0.12.17"
+          enable-cache: false
+      - name: No log holds a planted row or key, and nothing was uploaded
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: uv run --no-project python tools/canary.py search
