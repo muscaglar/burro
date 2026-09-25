@@ -394,12 +394,12 @@ describe("a band that rests on part of a recipe", () => {
   test("test_the_line_of_the_vibe_says_so_beside_the_band_in_words", () => {
     render(<Portrait data={withNoClause(profile("marrowfen"))} meta={meta} />);
 
-    // Marrowfen has no figure for transport noise: Quiet streets is placed from two parts of three.
+    // Marrowfen has no figure for transport noise: Quiet streets is placed from three parts of four.
     expect(line("Quiet streets")).toHaveTextContent(`${STRIP.band(2)}`);
-    expect(line("Quiet streets").textContent?.includes(RESTS_ON.short("2", "3"))).toBe(true);
+    expect(line("Quiet streets").textContent?.includes(RESTS_ON.short("3", "4"))).toBe(true);
     // It is drawn where it can be seen, and not kept for a screen reader.
     const said = [...line("Quiet streets").querySelectorAll("span")].find(
-      (span) => span.textContent === RESTS_ON.short("2", "3"),
+      (span) => span.textContent === RESTS_ON.short("3", "4"),
     );
     expect(said?.closest(".visually-hidden")).toBeNull();
     // A band that rests on the whole of its recipe says no such thing.
@@ -411,7 +411,7 @@ describe("a band that rests on part of a recipe", () => {
 
     const opened = vibe("Quiet streets");
 
-    expect(opened.textContent?.includes(RESTS_ON.full("2", "3"))).toBe(true);
+    expect(opened.textContent?.includes(RESTS_ON.full("3", "4"))).toBe(true);
     expect(opened.textContent?.includes(`${RESTS_ON.without}: Share of residents exposed to 55 dB or more of transport noise`)).toBe(
       true,
     );
@@ -448,7 +448,7 @@ describe("a band that rests on part of a recipe", () => {
 
   test("test_what_a_band_rests_on_is_said_in_the_apis_own_clause_where_the_fact_holds_one", () => {
     const marrowfen = profile("marrowfen");
-    const clause = "Worked out from 2 of its 3 parts, 70 of 100 by weight.";
+    const clause = "Worked out from 3 of its 4 parts, 70 of 100 by weight.";
     const told = {
       ...marrowfen,
       facts: marrowfen.facts.map((fact) =>
@@ -464,10 +464,10 @@ describe("a band that rests on part of a recipe", () => {
     expect(vibe("Quiet streets").textContent?.split(clause).length).toBeGreaterThanOrEqual(3);
     // The website's own words for it give way to the API's.
     const own = [...vibe("Quiet streets").querySelectorAll("span, p")].filter(
-      (one) => one.textContent === RESTS_ON.short("2", "3") || one.textContent === RESTS_ON.full("2", "3"),
+      (one) => one.textContent === RESTS_ON.short("3", "4") || one.textContent === RESTS_ON.full("3", "4"),
     );
     expect(own).toEqual([]);
-    expect(vibe("Quiet streets").textContent?.includes(RESTS_ON.full("2", "3"))).toBe(false);
+    expect(vibe("Quiet streets").textContent?.includes(RESTS_ON.full("3", "4"))).toBe(false);
     // Which parts are missing is still said, by the names the API gives them.
     expect(vibe("Quiet streets").textContent?.includes(`${RESTS_ON.without}: Share of residents exposed to 55 dB`)).toBe(true);
     // A fact that holds no clause is said in the website's words, from the counts it does hold.
@@ -476,7 +476,7 @@ describe("a band that rests on part of a recipe", () => {
 
   test("test_the_apis_clause_stands_as_a_sentence_of_its_own_and_is_followed_by_one_full_stop", () => {
     const marrowfen = profile("marrowfen");
-    const clause = "Worked out from 2 of its 3 parts, 70 of 100 by weight.";
+    const clause = "Worked out from 3 of its 4 parts, 70 of 100 by weight.";
     const told = {
       ...marrowfen,
       facts: marrowfen.facts.map((fact) =>

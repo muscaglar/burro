@@ -2006,6 +2006,8 @@ MEASURED = (
     FeatureId.PARK_LARGE_PROXIMITY,
     FeatureId.PARK_PROXIMITY,
     FeatureId.ROAD_MAJOR_EXPOSURE,
+    # Quiet streets rests on main roads, traffic and transport noise here: 70 in 100.
+    FeatureId.ROAD_TRAFFIC_NEARBY,
 )
 # Shown, and ranked on alone in no search, as a first real build carries it.
 SHOWN_ONLY = FeatureId.ROAD_MAJOR_EXPOSURE
@@ -2015,7 +2017,7 @@ def a_preview() -> InMemoryRelease:
     """The committed release as a first real build would hold it. It is made up all the same.
 
     Its journeys, its places to reach, its stations and its costs are taken out,
-    and all but nine of its measures. Every vibe is worked out again from what is
+    and all but ten of its measures. Every vibe is worked out again from what is
     left, as a builder works it out, so an area has a band only where 60 in 100
     of a recipe is measured. Nothing is taken out by hand, and nothing stands in
     for what is missing.

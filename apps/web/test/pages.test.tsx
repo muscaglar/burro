@@ -151,7 +151,7 @@ describe("the pages built from the API", () => {
     for (const metric of data.features) {
       expect(screen.getByRole("heading", { name: metric.label })).toBeInTheDocument();
     }
-    expect(data.features).toHaveLength(109);
+    expect(data.features).toHaveLength(110);
   });
 
   test("test_the_vibes_page_holds_every_vibe_of_the_release_with_its_recipe", async () => {

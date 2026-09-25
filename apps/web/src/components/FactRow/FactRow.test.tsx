@@ -280,11 +280,11 @@ describe("a fact laid out in columns", () => {
     const whole = marrowfen.find((fact) => fact.kind === "tag" && fact.key === "leafy");
     if (!part || !whole) throw new Error("no recorded vibe");
 
-    // Marrowfen has no figure for transport noise, so Quiet streets is placed from two parts of three.
-    expect([part.template, part.slots.band, part.slots.known, part.slots.parts]).toEqual(["vibe", "2", "2", "3"]);
+    // Marrowfen has no figure for transport noise, so Quiet streets is placed from three parts of four.
+    expect([part.template, part.slots.band, part.slots.known, part.slots.parts]).toEqual(["vibe", "2", "3", "4"]);
     expect(Object.fromEntries(columnsOf(part))).toMatchObject({
-      "Parts with a figure in this release": "2",
-      "Parts in the recipe": "3",
+      "Parts with a figure in this release": "3",
+      "Parts in the recipe": "4",
     });
     // A band that rests on the whole of its recipe says no more than it did.
     expect([whole.slots.known, whole.slots.parts]).toEqual(["3", "3"]);
@@ -305,8 +305,8 @@ describe("a fact laid out in columns", () => {
     const told = columnsOf({ ...part, slots: { ...part.slots, share: "70" } });
 
     expect(Object.fromEntries(told)).toMatchObject({
-      "Parts with a figure in this release": "2",
-      "Parts in the recipe": "3",
+      "Parts with a figure in this release": "3",
+      "Parts in the recipe": "4",
       "Share of the recipe they carry, in hundredths": "70",
     });
     // Of a band that rests on the whole of its recipe nothing is said, whatever the fact holds.

@@ -126,7 +126,7 @@ describe("the methods page", () => {
 
   test("test_a_measure_that_counts_only_as_a_part_of_a_vibe_says_so_and_names_the_vibe", () => {
     // Seen in a browser: main roads "Shown, but not used in ranking in this release", though
-    // Quiet streets rests on it for 40 of the 70 shares it holds.
+    // Quiet streets rests on it for 20 of the 70 shares it holds.
     const preview: MetaData = recordedAnswer("get_meta", "preview/meta").body.data;
     render(<MethodsTables meta={preview} />);
     const roads = preview.features.find((one) => one.feature_id === "road_major_exposure");

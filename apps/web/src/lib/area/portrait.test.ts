@@ -170,8 +170,8 @@ describe("a band that rests on part of a recipe", () => {
 
     expect(quiet.placed?.band).toBe(2);
     expect(restsOn(quiet)).toMatchObject({
-      known: "2",
-      parts: "3",
+      known: "3",
+      parts: "4",
       missing: ["Share of residents exposed to 55 dB or more of transport noise"],
       notCarried: 0,
     });
@@ -236,9 +236,9 @@ describe("a band that rests on part of a recipe", () => {
     const bare = { ...quiet, fact: { ...quiet.fact, slots: counts } };
     expect(restsOn(bare)?.share).toBeNull();
     expect(restsOn(bare)?.partly).toBeNull();
-    const clause = "Worked out from 2 of its 3 parts, 70 of 100 by weight.";
+    const clause = "Worked out from 3 of its 4 parts, 70 of 100 by weight.";
     const told = { ...quiet, fact: { ...quiet.fact, slots: { ...quiet.fact.slots, share: "70", partly: clause } } };
-    expect(restsOn(told)).toMatchObject({ share: "70", partly: clause, known: "2", parts: "3" });
+    expect(restsOn(told)).toMatchObject({ share: "70", partly: clause, known: "3", parts: "4" });
   });
 
   test("test_a_band_that_rests_on_the_whole_of_its_recipe_says_nothing_though_its_fact_holds_a_share", () => {
