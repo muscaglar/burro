@@ -40,7 +40,7 @@ Work from a copy, so a build never collides with someone else's.
 BURRO_PORT=8300 BURRO_ALLOWED_ORIGINS=http://localhost:3300 uv run burro-api serve     # terminal 1
 cp -R apps/web /tmp/burro-web && cp -R contracts /tmp/contracts && cd /tmp/burro-web    # terminal 2
 NEXT_PUBLIC_BURRO_API_URL=http://localhost:8300 BURRO_SITE_URL=http://localhost:3300 npx next build
-NEXT_PUBLIC_BURRO_API_URL=http://localhost:8300 BURRO_SITE_URL=http://localhost:3300 npx next start -p 3300
+NEXT_PUBLIC_BURRO_API_URL=http://localhost:8300 BURRO_SITE_URL=http://localhost:3300 npx next start -H 127.0.0.1 -p 3300
 ```
 
 The API answers a browser only from the origins in `BURRO_ALLOWED_ORIGINS`, and the website's address of the API is fixed when it is built. Use `next build` and `next start`, not `next dev`, which rewrites `apps/web/AGENTS.md`.

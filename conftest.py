@@ -1,5 +1,5 @@
 """What every test shares: how often Python looks for what to throw away, how git is
-started, and two refusals.
+started, an environment that holds nothing of a hosted runner, and two refusals.
 
 The tests make millions of small records and let them go. Python stops to look for
 records that nothing holds any more each time a few hundred have been made. Here that
@@ -16,6 +16,13 @@ repository over, in a process it lets go of, and holds a lock in the repository 
 looks. A test that copied the repository meanwhile found the lock listed and then gone, in
 some runs and not in others. So git is started apart, by whatever starts it: it does no
 upkeep of its own, and it reads no settings but those of the repository it is run in.
+
+A hosted runner tells every step that it is a runner, which run it is, and where its own
+files are: what a step writes to one of those is shown on the page of the run, or handed
+to the next step. Some tools here write to one where one is named. A test that started
+such a tool wrote to the runner's own file, on a runner and nowhere else. So what a runner
+sets is taken out before any test runs, and a test behaves on a runner as it does
+anywhere. A test of what a tool does on a runner names a file under its own folder.
 
 No code under test is changed by this, but that `bind` is asked through a function here.
 """
@@ -72,6 +79,31 @@ def _start_git_apart(environment: MutableMapping[str, str]) -> None:
 
 
 _start_git_apart(os.environ)
+
+# How the name of a variable begins that a hosted runner sets: where its own files and
+# folders are, which run this is, and what it keeps for the actions it runs.
+_SET_BY_A_RUNNER = ("GITHUB_", "RUNNER_", "ACTIONS_")
+# The one a runner sets to say that it is one. pytest reads it too: see `_ON_A_RUNNER`.
+_IS_A_RUNNER = "CI"
+
+
+def _leave_the_runner(environment: MutableMapping[str, str]) -> str | None:
+    """Make the environment one that holds nothing a hosted runner set.
+
+    A program that a test starts is handed this environment, and a tool that a test runs
+    in its own process reads it. What said that this is a runner is given back.
+    """
+    said = environment.get(_IS_A_RUNNER)
+    for name in [name for name in environment if name.startswith(_SET_BY_A_RUNNER)]:
+        del environment[name]
+    environment.pop(_IS_A_RUNNER, None)
+    return said
+
+
+# Where pytest reads that it is on a runner, it says a failure in full. A line that names a
+# failure is what a hosted run says again where anyone can read it: see .github/run.sh. So
+# what the runner said is kept here, and is put back only while pytest sums up.
+_ON_A_RUNNER = _leave_the_runner(os.environ)
 
 # What a flag of `os.open` holds when the file is opened to be written.
 _TO_WRITE = os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND
@@ -210,6 +242,20 @@ def pytest_runtest_call(item: pytest.Item) -> Generator[None, object, object]:
         # The test failed of it where it happened, so it has been said.
         _Kept.strayed[:] = [each for each in _Kept.strayed if each != str(failed)]
         raise
+
+
+@pytest.hookimpl(wrapper=True, tryfirst=True)
+def pytest_terminal_summary() -> Generator[None, object, object]:
+    """Sum up on a runner as pytest does on one: each failure with what it said, in full.
+
+    Every test has run by then, and none is started after it.
+    """
+    if _ON_A_RUNNER is not None:
+        os.environ[_IS_A_RUNNER] = _ON_A_RUNNER
+    try:
+        return (yield)
+    finally:
+        os.environ.pop(_IS_A_RUNNER, None)
 
 
 @pytest.fixture(autouse=True)
