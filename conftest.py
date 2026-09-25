@@ -1,4 +1,5 @@
-"""What every test shares: how often Python looks for what to throw away, and two refusals.
+"""What every test shares: how often Python looks for what to throw away, how git is
+started, and two refusals.
 
 The tests make millions of small records and let them go. Python stops to look for
 records that nothing holds any more each time a few hundred have been made. Here that
@@ -10,6 +11,12 @@ path, fail only when they meet, which is in some runs and not in others. So a te
 binds a port of its own choosing, or opens a path of its own to write, is refused every
 time it runs. See docs/adr/0020. What a program started by a test does is not seen.
 
+Some tests start git, and so does some of the code they test. After a commit git looks the
+repository over, in a process it lets go of, and holds a lock in the repository while it
+looks. A test that copied the repository meanwhile found the lock listed and then gone, in
+some runs and not in others. So git is started apart, by whatever starts it: it does no
+upkeep of its own, and it reads no settings but those of the repository it is run in.
+
 No code under test is changed by this, but that `bind` is asked through a function here.
 """
 
@@ -18,12 +25,53 @@ import os
 import socket
 import sys
 import tempfile
-from collections.abc import Generator, Iterator
+from collections.abc import Generator, Iterator, MutableMapping
 from typing import Any, cast
 
 import pytest
 
 gc.set_threshold(200_000, 20, 20)
+
+# What git is told each time it is started, for that command alone: to collect nothing and
+# keep nothing up of its own accord, and to let go of no process. The last two are the
+# person's own files of what git passes over and of how it treats a file, which are read
+# wherever they usually are unless another is named.
+_GIT_IS_TOLD = {
+    "gc.auto": "0",
+    "gc.autoDetach": "false",
+    "maintenance.auto": "false",
+    "maintenance.autoDetach": "false",
+    "core.excludesFile": os.devnull,
+    "core.attributesFile": os.devnull,
+}
+# Where git looks for the settings of the machine and of the person: nowhere. It can write
+# to neither, and it asks nobody for a password.
+_GIT_LOOKS = {
+    "GIT_CONFIG_SYSTEM": os.devnull,
+    "GIT_CONFIG_GLOBAL": os.devnull,
+    "GIT_CONFIG_NOSYSTEM": "1",
+    "GIT_ATTR_NOSYSTEM": "1",
+    "GIT_TERMINAL_PROMPT": "0",
+}
+
+
+def _start_git_apart(environment: MutableMapping[str, str]) -> None:
+    """Make the environment one in which git keeps to the repository it is run in.
+
+    What the run was started with for git is dropped: another repository, its index, and
+    settings of the machine that are handed down this way. What git is told is said in the
+    environment, so that no file of settings is written, of a repository or of the machine.
+    """
+    for name in [name for name in environment if name.startswith("GIT_")]:
+        del environment[name]
+    environment.update(_GIT_LOOKS)
+    environment["GIT_CONFIG_COUNT"] = str(len(_GIT_IS_TOLD))
+    for at, (name, told) in enumerate(_GIT_IS_TOLD.items()):
+        environment[f"GIT_CONFIG_KEY_{at}"] = name
+        environment[f"GIT_CONFIG_VALUE_{at}"] = told
+
+
+_start_git_apart(os.environ)
 
 # What a flag of `os.open` holds when the file is opened to be written.
 _TO_WRITE = os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND
