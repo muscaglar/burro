@@ -384,14 +384,16 @@ def test_a_thing_simply_named_is_worth_a_half(step: str):
     # "Pubs" is a large step and "more pubs" a small one. On something with no
     # weight yet, the second counts for as much as the first.
     named = run(
-        RENTER, tag("nudge", "leafy", step=step), weight("nudge", "venue_evening", step=step)
+        RENTER,
+        tag("nudge", "leafy", step=step),
+        weight("nudge", "venue_evening_per_homes", step=step),
     )
     assert named.rejected == ()
     assert MENTION_WEIGHT == 0.5
     assert [(t.tag_id, t.weight, t.provenance) for t in named.spec.tags] == [
         ("leafy", 0.5, Provenance.STATED)
     ]
-    assert weights(named.spec)["venue_evening"] == 0.5
+    assert weights(named.spec)["venue_evening_per_homes"] == 0.5
     # A default is nobody's choice, so naming what has one is worth the same.
     park = run(RENTER, weight("nudge", "park_proximity", step=step)).spec
     assert weights(park)["park_proximity"] == 0.5
@@ -667,7 +669,7 @@ def test_switching_tenure_keeps_everything_the_person_set():
         budget(amount=1800, segment="bed_2", strictness="hard"),
         commute("add", 1, max_minutes=30),
         weight("set", "park_proximity", value=0.7),
-        weight("nudge", "venue_evening", step="up_large", direction="less"),
+        weight("nudge", "venue_evening_per_homes", step="up_large", direction="less"),
         weight("remove", "station_lines"),
         tag("nudge", "leafy", step="up_large", provenance="inferred"),
         area("exclude", 3),
@@ -678,7 +680,7 @@ def test_switching_tenure_keeps_everything_the_person_set():
 
     chosen = {w.feature_id.value: (w.weight, w.direction, w.provenance) for w in buyer.weights}
     assert chosen["park_proximity"] == (0.7, Direction.LESS, Provenance.STATED)
-    assert chosen["venue_evening"] == (0.5, Direction.LESS, Provenance.STATED)
+    assert chosen["venue_evening_per_homes"] == (0.5, Direction.LESS, Provenance.STATED)
     assert buyer.tags == renter.tags
     assert (buyer.commutes, buyer.areas) == (renter.commutes, renter.areas)
     assert (buyer.pt_basis, buyer.pt_basis_from) == ("just_missed", Provenance.UI_EDIT)
@@ -1160,10 +1162,10 @@ def test_taking_off_what_was_never_there_leaves_nothing_behind():
 
 
 def test_default_direction_leaves_the_direction_in_the_spec_alone():
-    fewer = run(RENTER, weight("set", "venue_evening", value=0.5, direction="less")).spec
-    assert fewer.weights[-1].feature_id is FeatureId.VENUE_EVENING
-    nudged = run(fewer, weight("nudge", "venue_evening", step="up_small")).spec
-    entry = next(w for w in nudged.weights if w.feature_id is FeatureId.VENUE_EVENING)
+    fewer = run(RENTER, weight("set", "venue_evening_per_homes", value=0.5, direction="less")).spec
+    assert fewer.weights[-1].feature_id is FeatureId.VENUE_EVENING_PER_HOMES
+    nudged = run(fewer, weight("nudge", "venue_evening_per_homes", step="up_small")).spec
+    entry = next(w for w in nudged.weights if w.feature_id is FeatureId.VENUE_EVENING_PER_HOMES)
     assert (entry.weight, entry.direction) == (0.6, Direction.LESS)
 
     # For a weight not yet in the spec it is what the polarity gives, and `more` for `either`.
@@ -1289,6 +1291,29 @@ REJECTIONS: list[tuple[Edit, RejectReason]] = [
     (tag("set", "leafy", value=0.5, toward="low"), RejectReason.DIRECTION_NOT_ALLOWED),
     (
         tag("nudge", "quiet_residential", step="up_small", toward="low"),
+        RejectReason.DIRECTION_NOT_ALLOWED,
+    ),
+    # A person may ask for more of who is counted, and never for fewer: by a measure, or
+    # by the low end of a vibe that holds one, which runs one way.
+    (
+        weight("set", "residents_aged_20_34", value=0.5, direction="less"),
+        RejectReason.DIRECTION_NOT_ALLOWED,
+    ),
+    (
+        weight("nudge", "residents_aged_65_over", step="up_large", direction="less"),
+        RejectReason.DIRECTION_NOT_ALLOWED,
+    ),
+    (
+        weight("set", "households_dependent_children", value=1.0, direction="less"),
+        RejectReason.DIRECTION_NOT_ALLOWED,
+    ),
+    (
+        weight("set", "households_one_person", value=0.5, direction="less"),
+        RejectReason.DIRECTION_NOT_ALLOWED,
+    ),
+    (tag("set", "family_area", value=0.5, toward="low"), RejectReason.DIRECTION_NOT_ALLOWED),
+    (
+        tag("nudge", "young_professionals", step="up_large", toward="low"),
         RejectReason.DIRECTION_NOT_ALLOWED,
     ),
     # A measure that no release carries yet.

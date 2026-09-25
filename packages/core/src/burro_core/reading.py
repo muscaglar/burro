@@ -27,6 +27,7 @@ from burro_core.lexicon import (
     DESCRIBES,
     EATS,
     GROUP,
+    NAMED_FOR_WHO_IS_COUNTED,
     NAMED_FOR_WHOSE_SHARE,
     NOT_A_NOUN,
     OF_A_PEOPLE,
@@ -57,9 +58,10 @@ _BEFORE = _BRACKETS_OPEN + _QUOTES + APOSTROPHE
 _AFTER = _BRACKETS_CLOSE + _QUOTES + APOSTROPHE + _LISTS + _ENDS
 # The marks that join two items of a list, and no other mark does.
 JOINING_MARKS = frozenset(",;")
-# A word, with nothing in it but letters, digits, and an apostrophe or a hyphen
-# between two of them.
-_A_WORD = re.compile(r"[a-z0-9]+(?:['-][a-z0-9]+)*")
+# A word, with nothing in it but letters, digits, and an apostrophe, a hyphen or an
+# ampersand between two of them. An ampersand is how the name of a chain is written,
+# "M&S", and is read as the "and" it stands for.
+_A_WORD = re.compile(r"[a-z0-9]+(?:['&-][a-z0-9]+)*")
 _AMOUNT = re.compile(r"(£)?([0-9][0-9,]*(?:\.[0-9]+)?)(k|m)?(pcm|pm)?")
 _GLUED = re.compile(
     r"([0-9]+|[a-z]+)-?(min|mins|minute|minutes|bed|beds|bedroom|bedrooms|bedroomed)"
@@ -96,13 +98,14 @@ class Token(NamedTuple):
 
     # As the vocabulary holds a word: lower case, no accents, its apostrophe as "'".
     word: str
-    # As the lexicon and the names hold one: with no apostrophe, and a hyphen as a space.
+    # As the lexicon and the names hold one: with no apostrophe, a hyphen as a space, and an
+    # ampersand as the word it stands for.
     bare: str
     start: int
     end: int
     # The marks that stand between it and the token before it in its sentence.
     marks: str
-    # It is written with a hyphen, so it is read whole or not at all.
+    # It is written with a hyphen or an ampersand, so it is read whole or not at all.
     joined: bool
     # It holds a mark the reader does not read, or stands in quotes.
     odd: bool
@@ -169,11 +172,11 @@ def lines_of(text: str) -> list[Line]:
             tokens.append(
                 Token(
                     word=word,
-                    bare=word.replace("'", "").replace("-", " "),
+                    bare=word.replace("'", "").replace("-", " ").replace("&", " and "),
                     start=chunk.start() + lead,
                     end=chunk.start() + tail,
                     marks=(trailing + before) if tokens else "",
-                    joined="-" in word,
+                    joined="-" in word or "&" in word,
                     odd=not shaped or quoted,
                 )
             )
@@ -252,13 +255,14 @@ def by_first_word(phrases: Iterable[str]) -> dict[str, list[tuple[str, ...]]]:
     return found
 
 
-# The labels that hold a comma or a number typed with a hyphen, by their first word.
+# The labels that hold a comma or a number typed with a hyphen, by their first word. A
+# short label may hold a hyphen too, "Mid-range grocers within reach", and is read the same.
 _LABELS: dict[str, list[tuple[str, tuple[str, ...]]]] = {}
 for _label in (*FEATURES.values(), *TAGS.values()):
-    _printed = prepare(_label.label)
-    _LABELS.setdefault(_printed.split()[0].rstrip(","), []).append(
-        (_printed, tuple(_printed.split()))
-    )
+    for _printed in dict.fromkeys((prepare(_label.label), prepare(_label.short_label))):
+        _LABELS.setdefault(_printed.split()[0].rstrip(","), []).append(
+            (_printed, tuple(_printed.split()))
+        )
 
 # What it costs to read a token one way and not another. The reading that leaves
 # the fewest tokens as words the grammar does not hold is taken, and of two that
@@ -443,10 +447,16 @@ def people_in(tokens: Sequence[Token]) -> dict[int, Is]:
         for index in sorted(set(owner[start:end])):
             found.setdefault(index, what)
 
-    named = [found.span() for found in NAMED_FOR_WHOSE_SHARE.finditer(line)]
+    named = [
+        found.span()
+        for whole in (NAMED_FOR_WHOSE_SHARE, NAMED_FOR_WHO_IS_COUNTED)
+        for found in whole.finditer(line)
+    ]
     for match in POLICY.finditer(line):
         if any(start <= match.start() and match.end() <= end for start, end in named):
-            continue  # the whole name of the one measure that says whose share it is
+            # The whole name of the one measure that says whose share it is, or the whole
+            # of a phrase that is offered for who it counts.
+            continue
         # The word before describes the people too: "quiet neighbours" asks
         # for a kind of neighbour, not for a quiet place.
         described = DESCRIBES.search(line, 0, match.start())

@@ -9,9 +9,10 @@ family counts the same.
 
 What it may never be counted on: a nuisance, recorded crime, anything that is
 weighed on request only, what a home costs, a journey, a vibe's own score,
-and the parts held out until an audit has passed them. Nothing here
-describes who lives somewhere, because no feature does (ADR 0006). A feature
-says for itself whether likeness may use it: `Feature.in_likeness`.
+and the parts held out until an audit has passed them. It is never counted
+on a feature that describes who lives somewhere: two areas are never said to
+be alike for who lives in them (ADR 0006). A feature says for itself whether
+likeness may use it: `Feature.in_likeness`.
 """
 
 from collections.abc import Mapping
@@ -52,6 +53,7 @@ def may_be_compared(feature: Feature) -> bool:
         feature.in_likeness
         and feature.kind in (FeatureKind.TASTE, FeatureKind.AMENITY)
         and feature.describes is not Describes.EVENTS
+        and feature.describes is not Describes.RESIDENTS
         and feature.family is not None
     )
 

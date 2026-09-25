@@ -43,12 +43,22 @@ from burro_core.interpret import (
     RuleInterpreter,
     sentences_of,
 )
-from burro_core.lexicon import lexicon_of, no_measure_of
+from burro_core.lexicon import POLICY, lexicon_of, no_measure_of, prepare
 from burro_core.ops import NO_OPERATIONS
 from burro_core.places import Names, normalise
 from burro_core.reducer import apply
 from burro_core.spec import PreferenceSpec, default_spec
-from burro_core.vocabulary import PLAIN, PLAIN_WORDS, WORDS_OF_DOUBT
+from burro_core.vocabulary import (
+    DREADS,
+    FOR_WHOM,
+    PLAIN,
+    PLAIN_WORDS,
+    STANDS_FOR,
+    WHO_ELSE,
+    WISH,
+    WISHES_OF_ANOTHER,
+    WORDS_OF_DOUBT,
+)
 
 from .sentences import (
     HELD_OUT,
@@ -71,7 +81,18 @@ UP = (Step.UP_SMALL, Step.UP_LARGE)
 THINGS = lexicon_of(fixture_release().manifest.gritty_variant)
 # Words that are known only inside a label of the catalogue, or a phrase for what
 # Burro has no measure of.
-IN_A_LABEL = ("away", "garden", "since", "small", "used", "what", "whose", "works")
+IN_A_LABEL = (
+    "away",
+    "garden",
+    "since",
+    "small",
+    "stop",
+    "table",
+    "used",
+    "what",
+    "whose",
+    "works",
+)
 IN_NO_MEASURE = ("cheap", "down", "fly", "kept", "run")
 
 
@@ -188,7 +209,10 @@ def test_the_words_that_are_not_known_are_many_and_none_is_in_the_vocabulary():
     assert len(UNKNOWN_WORDS) == len(set(UNKNOWN_WORDS)) >= 500
     # No word of a phrase of the grammar, and no word of who lives somewhere.
     assert not KNOWN_WORDS & set(UNKNOWN_WORDS)
-    assert not {word for phrase in POLICY_LEXICON for word in phrase.split()} & set(UNKNOWN_WORDS)
+    # A word for a plain area said of people asks about them, "down to earth locals", and
+    # "down" by itself is still a word the reader does not know.
+    of_people = {word for phrase in POLICY_LEXICON for word in phrase.split()}
+    assert of_people & set(UNKNOWN_WORDS) <= {"down"}
     assert not GENERIC_PLACES & set(UNKNOWN_WORDS)
     # A thing is known by the whole of a phrase. A label of the catalogue may hold
     # a word that is not known by itself, "Away from main roads", and the word
@@ -385,8 +409,13 @@ def held_to_the_promise(sentences: Iterator[str]) -> int:
         tried += 1
         result = read(text[:600])
         # It says that it did not read it. A campus in a sentence it did not
-        # read gets the notice as well (section 8.4).
-        if edits(result) or UnmetCategory.OTHER not in result.unmet:
+        # read gets the notice as well (section 8.4). Where a word is typed on
+        # to the front of "young professionals", what is left is a word for what
+        # people do for work: it is heard as a request about people, with the
+        # word that stands before it, and nothing is left unread.
+        heard = POLICY.fullmatch(prepare(text).partition(" ")[2]) is not None
+        about_people = heard and result.notice is Notice.NEUTRAL_PLACES
+        if edits(result) or not (UnmetCategory.OTHER in result.unmet or about_people):
             wrong.append(text)
     assert not wrong, f"{len(wrong)} of {tried} sentences, among them {wrong[:12]}"
     return tried
@@ -491,12 +520,12 @@ NOTHING: set[str] = set()
         # A turn governs the thing straight after it. "But", a wish of the speaker's
         # and a word of the thing's own begin a new wish.
         ("leafy, not near a station", {"station_walk"}, {"leafy"}),
-        ("no pubs, but a park nearby", {"venue_evening"}, {"park_proximity"}),
-        ("no pubs, I want parks", {"venue_evening"}, {"park_proximity"}),
-        ("no pubs, near a park", {"venue_evening"}, {"park_proximity"}),
-        ("no pubs and good schools", {"venue_evening"}, {"school_primary_attainment"}),
+        ("no pubs, but a park nearby", {"venue_evening_per_homes"}, {"park_proximity"}),
+        ("no pubs, I want parks", {"venue_evening_per_homes"}, {"park_proximity"}),
+        ("no pubs, near a park", {"venue_evening_per_homes"}, {"park_proximity"}),
+        ("no pubs and good schools", {"venue_evening_per_homes"}, {"school_primary_attainment"}),
         # And the things joined to that by "or".
-        ("no pubs or bars", {"venue_evening"}, NOTHING),
+        ("no pubs or bars", {"venue_evening_per_homes"}, NOTHING),
         (
             "no theatres or playgrounds",
             {"culture_venues_per_homes", "play_space_proximity"},
@@ -568,25 +597,35 @@ def test_what_is_said_after_the_last_thing_of_a_turned_list_never_begins_a_new_w
         # Joined by "or", the turn carries, whatever is said after the last thing.
         (
             "I don't want pubs or restaurants nearby",
-            {"venue_evening", "venue_food_drink_per_homes"},
+            {"venue_evening_per_homes", "venue_food_drink_per_homes"},
             (),
             (),
         ),
         (
             "no pubs or restaurants close by",
-            {"venue_evening", "venue_food_drink_per_homes"},
+            {"venue_evening_per_homes", "venue_food_drink_per_homes"},
             (),
             (),
         ),
         (
             "no pubs or lots of restaurants nearby",
-            {"venue_evening", "venue_food_drink_per_homes"},
+            {"venue_evening_per_homes", "venue_food_drink_per_homes"},
             (),
             (),
         ),
-        ("somewhere without parks or pubs nearby", {"venue_evening"}, {"park_proximity"}, ()),
-        ("no pubs or nightlife nearby", {"venue_evening"}, (), {"pace"}),
-        ("I don't want nightlife or pubs on my doorstep", {"venue_evening"}, (), {"pace"}),
+        (
+            "somewhere without parks or pubs nearby",
+            {"venue_evening_per_homes"},
+            {"park_proximity"},
+            (),
+        ),
+        ("no pubs or nightlife nearby", {"venue_evening_per_homes"}, (), {"pace"}),
+        (
+            "I don't want nightlife or pubs on my doorstep",
+            {"venue_evening_per_homes"},
+            (),
+            {"pace"},
+        ),
         (
             "without a park or a station within walking distance",
             (),
@@ -660,12 +699,15 @@ def test_a_turned_list_that_may_be_read_two_ways_is_not_plain(text: str):
         ("I have a job in Pellam Cross", {"journey:syn-p0012"}),
         (
             "I'm looking for somewhere leafy and fairly quiet, not too far from a decent pub",
-            {"leafy", "quiet_residential", "venue_evening"},
+            {"leafy", "quiet_residential", "venue_evening_per_homes"},
         ),
         (
             "I have a job at Cindermoor Works. Somewhere leafy and fairly quiet, not too far "
             "from a decent pub. I can spend about £1,600 a month on a one bed flat.",
-            {*("leafy", "quiet_residential", "venue_evening", "journey:syn-p0021"), "budget"},
+            {
+                *("leafy", "quiet_residential", "venue_evening_per_homes", "journey:syn-p0021"),
+                "budget",
+            },
         ),
     ],
 )
@@ -773,13 +815,17 @@ def test_a_token_is_never_split_at_a_mark_inside_it(text: str):
 
 def test_a_word_written_with_a_hyphen_is_read_whole_or_not_at_all():
     for text, asked in (
-        ("well-connected", "station_lines"),
+        ("well-connected", "well_connected"),
         ("tree-lined streets", "leafy"),
-        ("family-friendly", "family_amenities"),
         ("a 20-minute walk to Pellam Cross", "journey:syn-p0012"),
         ("a two-bed to rent", "budget"),
     ):
         assert asked in raised(read(text)), text
+    # Read whole, and offered as any other spelling of it is: it is never applied.
+    assert [found.target for found in read("family-friendly").suggestions] == [
+        "tag:family_area",
+        "tag:family_amenities",
+    ]
     for text in ("pub-free", "no-pubs", "park-less", "non-leafy", "anti-pub", "pubs-not"):
         assert read(text).operations == NO_OPERATIONS, text
 
@@ -1101,8 +1147,8 @@ def test_what_is_liked_beside_a_nuisance_is_offered_and_not_applied():
 @pytest.mark.parametrize(
     ("text", "asked"),
     [
-        ("good transport links", {"station_lines"}),
-        ("Good transport links are a must", {"station_lines"}),
+        ("good transport links", {"well_connected"}),
+        ("Good transport links are a must", {"well_connected"}),
         ("great food scene", {"foodie"}),
         ("Great food scene", {"foodie"}),
         ("good primary schools", {"school_primary_attainment"}),
@@ -1235,13 +1281,24 @@ def test_the_share_of_plain_wishes_that_is_read_does_not_fall_without_being_noti
     # 138 and 68. "A garden" and "safe" are offered now and never applied,
     # which cost none of these: the one sentence that holds "safe" names low
     # crime beside it.
+    # "Family friendly" and "good for kids" are offered now and never applied,
+    # as it was decided on 2026-09-24: each may ask for a place where families
+    # live, which counts who lives somewhere, and no word applies that. It
+    # cost two of these and one of the adversary's: it reads 136 and 67.
     # If this fails, a word was taken out of the grammar or a rule was
     # tightened: say what it cost in the change that does it, and move the floor.
     assert len(PLAINLY) == len({text for text, _ in PLAINLY}) >= 150
     read_in_full, declined = share_read(PLAINLY)
-    assert read_in_full >= 138, declined
+    assert read_in_full >= 136, declined
     theirs, _ = share_read(PLAINLY[:THEIRS])
-    assert theirs >= 68
+    assert theirs >= 67
+    offered = {text for text in declined if "family friendly" in text.lower()}
+    assert offered == {
+        "Family friendly with good primary schools",
+        "I'm looking for somewhere family friendly",
+    }
+    for text in offered:
+        assert "tag:family_amenities" in {found.target for found in read(text).suggestions}
 
 
 def test_the_share_of_sentences_the_vocabulary_was_not_settled_on_is_held_too():
@@ -1249,10 +1306,12 @@ def test_the_share_of_sentences_the_vocabulary_was_not_settled_on_is_held_too():
     # this is the fairer measure of the price: 55 of 60 before, 91.7%, 46 with
     # the closed vocabulary, 76.7%, and 45 with the grammar, 75.0%. Do not add a
     # word to make one of these pass without the place the grammar gives it, and
-    # the reason it can turn no wish round there.
+    # the reason it can turn no wish round there. It reads 43 since "family
+    # friendly" and "good for kids" came to be offered and never applied.
     assert len(HELD_OUT) == 60
     read_in_full, declined = share_read(HELD_OUT)
-    assert read_in_full >= 45, declined
+    assert read_in_full >= 43, declined
+    assert {"Family friendly area with playgrounds", "Good for kids"} <= set(declined)
 
 
 # --- What is still read, for every thing and every name ------------------------------------------
@@ -1284,6 +1343,10 @@ def test_a_plain_wish_for_each_thing_is_still_read():
         asked = {f.value for f in target.features} | {t.value for t in target.tags}
         for template in PLAIN_WISHES:
             text = template.format(thing=phrase)
+            if target.near_only:
+                # "Doctor" is a person too, so it is a wish only where near is said.
+                assert not asked & raised(read(text)), text
+                text = template.format(thing=f"{phrase} nearby")
             result = read(text)
             if target.direction is DirectionChoice.LESS:
                 # "Low density" says which way it is wanted, and is a wish all the same.
@@ -1445,3 +1508,32 @@ def test_the_written_list_of_doubt_is_heard_in_a_sentence_the_reader_does_not_re
         assert not any(s.doubt for s in sentences_of(text)), text
     # The words a caller is given to look for, beside its own reading.
     assert {"hate", "never", "no", "not", "without", "worry about"} <= SIGNS_OF_DOUBT
+
+
+def test_the_words_of_dread_and_of_somebody_elses_wish_are_signs_of_doubt_and_never_plain():
+    # They are listed for the guard on a model, which marks no guess where one stands
+    # about a thing: "a station, heaven forbid", "my mum is after a park".
+    assert {"heaven forbid", "god no", "hell", "hate", "awful", "worried"} <= DREADS
+    assert {"my mum", "my partner", "everyone", "they"} <= WHO_ELSE
+    assert DREADS <= SIGNS_OF_DOUBT
+    # Whose wish it is, is said of a wish and never of a journey: where a partner works
+    # is a place to reach. So it is no sign of doubt, which "add all" holds a journey to.
+    assert not {"my partner", "my mum", "wants", "needs"} & SIGNS_OF_DOUBT
+    for listed in (DREADS, WHO_ELSE, WISHES_OF_ANOTHER, STANDS_FOR):
+        assert not listed & PLAIN_WORDS
+        for phrase in listed:
+            assert phrase == phrase.lower().strip() and "  " not in phrase, phrase
+    # The third person of a wish is no wish of the speaker's: none is a word of `WISH`.
+    assert not WISHES_OF_ANOTHER & WISH.words
+    assert {f"{wish}s" for wish in ("want", "need", "like", "love")} <= WISHES_OF_ANOTHER
+    # Who is of the speaker's own household is no one else: "for my kids", "for the dog".
+    household = {whom.split()[-1] for whom in FOR_WHOM.words}
+    assert not {who.split()[-1] for who in WHO_ELSE} & household
+    # A prompt that holds one is not plain, so the rules apply nothing of it.
+    for text in (
+        "a station, heaven forbid",
+        "my mum is after a park",
+        "my partner wants a pub nearby",
+        "a pub on the corner would be hell",
+    ):
+        assert read(text).operations == NO_OPERATIONS, text

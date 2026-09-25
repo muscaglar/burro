@@ -9,11 +9,15 @@ The reader still never guesses. A part that is not plain is offered, and the
 person chooses.
 """
 
+import dataclasses
 from typing import Any
 
 import pytest
+from burro_core.catalogue import CHAINS, FEATURES, TAGS, direction_allowed
 from burro_core.ids import (
     AssumptionCode,
+    Direction,
+    FeatureId,
     GrittyVariant,
     InterpretStatus,
     OpsGroup,
@@ -382,7 +386,7 @@ def test_a_commute_that_is_over_or_is_kept_at_a_distance_adds_no_journey(text: s
         ("quiet, with access to parks", {"quiet_residential", "park_proximity"}),
         ("good access to a station", {"station_walk"}),
         ("some culture around it", {"culture_venues_per_homes"}),
-        ("somewhere with pubs around", {"venue_evening"}),
+        ("somewhere with pubs around", {"venue_evening_per_homes"}),
     ],
 )
 def test_access_to_a_thing_and_a_thing_that_is_around_are_wishes_to_be_near_it(
@@ -602,8 +606,8 @@ def test_a_name_that_is_asked_about_is_not_offered_a_second_time_as_an_area():
         ),
         ("leafy and with a park nearby", {"leafy", "park_proximity"}, set[str]()),
         ("leafy and also quiet", {"leafy", "quiet_residential"}, set[str]()),
-        ("no pubs but with a park nearby", {"park_proximity"}, {"venue_evening"}),
-        ("no pubs, but also near a station", {"station_walk"}, {"venue_evening"}),
+        ("no pubs but with a park nearby", {"park_proximity"}, {"venue_evening_per_homes"}),
+        ("no pubs, but also near a station", {"station_walk"}, {"venue_evening_per_homes"}),
     ],
 )
 def test_with_and_also_after_a_word_that_joins_add_nothing_to_it(
@@ -845,7 +849,7 @@ def test_a_home_that_is_turned_away_is_not_offered(text: str):
 
 # --- A smart area -------------------------------------------------------------------------
 
-PLACES_NOT_PEOPLE = "Burro measures places, not the people in them."
+PLACES_NOT_PEOPLE = "Burro reads this of the place, and not of the people who live there."
 COUNTS_CRIME = (
     "Gritty counts recorded criminal damage and arson, and recorded anti-social behaviour. "
     "Recorded crime depends on what is reported, and locations are approximate."
@@ -853,9 +857,16 @@ COUNTS_CRIME = (
 TOWARDS_POLISHED = "Towards Polished, counting recorded crime"
 TOWARDS_GRITTY = "Towards Gritty, counting recorded crime"
 LEAVE = "Leave it out"
-# The second reading of a word for a smart area: homes that sell for more than the middle.
+# The first reading of a word for a smart area: the chains of grocers, gyms and coffee
+# within reach, towards premium. The third: homes that sell for more than the middle.
+MIX = "feature:brand_mix"
+MORE_PREMIUM, LESS_PREMIUM = "More premium", "Less premium"
 PRICE = "feature:price_median"
 DEARER, CHEAPER = "Dearer", "Cheaper"
+# The third: homes in the higher council tax bands. It counts homes, and never people.
+BANDS = "feature:homes_higher_bands"
+MORE_IN_BANDS = "More homes in the higher council tax bands"
+FEWER_IN_BANDS = "Fewer homes in the higher council tax bands"
 
 
 @pytest.mark.parametrize(
@@ -905,16 +916,50 @@ def test_a_word_for_a_smart_area_is_offered_as_of_the_place_and_never_applied(
         *("upmarket", "a smart neighbourhood", "I want somewhere affluent"),
     ],
 )
-def test_a_word_for_a_smart_area_has_a_second_reading_which_is_what_homes_sell_for(text: str):
-    """Decided on 2026-09-24: two readings, both of the place, and the person chooses.
+def test_a_word_for_a_smart_area_has_four_readings_and_the_mix_of_brands_is_the_first(
+    text: str,
+):
+    """Decided on 2026-09-24: readings of the place, and the person chooses.
 
-    Neither is what people earn, and neither is who lives somewhere. The second is
-    the middle price that homes sold for, and it is offered one way: dearer.
+    None is what people earn, and none is who lives somewhere. The first is which
+    chains stand within reach, and it is offered one way: more premium.
     """
     result = read(text)
     assert (result.operations, result.notice) == (NO_OPERATIONS, "none")
-    assert [found.target for found in result.suggestions] == ["tag:street_character", PRICE]
-    polished, price = result.suggestions
+    offered = [found.target for found in result.suggestions]
+    assert offered == [MIX, "tag:street_character", PRICE, BANDS]
+    mix, polished, _, _ = result.suggestions
+    assert (mix.label, mix.note) == ("Mix of brands", PLACES_NOT_PEOPLE)
+    assert [(c.direction, c.label) for c in mix.choices] == [
+        ("more", MORE_PREMIUM),
+        ("ignore", LEAVE),
+    ]
+    assert mix.spans == polished.spans
+    # To press it weighs the one measure, towards premium, and no vibe.
+    pressed = apply(RENTER, mix.choices[0].operations, small_release())
+    assert pressed.rejected == ()
+    asked = [w for w in pressed.spec.weights if w.provenance is not Provenance.DEFAULT]
+    assert [(w.feature_id, w.direction, w.provenance) for w in asked] == [
+        ("brand_mix", "more", "ui_edit")
+    ]
+    assert pressed.spec.tags == ()
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        *("affluent", "slightly affluent", "somewhere posh", "a well-heeled area"),
+        *("upmarket", "a smart neighbourhood", "I want somewhere affluent"),
+    ],
+)
+def test_a_word_for_a_smart_area_has_a_reading_which_is_what_homes_sell_for(text: str):
+    """Decided on 2026-09-24: a reading of the place, and the person chooses.
+
+    It is the middle price that homes sold for, and it is offered one way: dearer.
+    """
+    result = read(text)
+    assert (result.operations, result.notice) == (NO_OPERATIONS, "none")
+    _, polished, price, _ = result.suggestions
     assert price.label == "What homes sell for"
     assert price.note == PLACES_NOT_PEOPLE
     assert [(c.direction, c.label) for c in price.choices] == [("more", DEARER), ("ignore", LEAVE)]
@@ -933,6 +978,41 @@ def test_a_word_for_a_smart_area_has_a_second_reading_which_is_what_homes_sell_f
     assert [t.tag_id for t in both.spec.tags] == ["street_character"]
 
 
+@pytest.mark.parametrize(
+    "text",
+    [
+        *("affluent", "slightly affluent", "somewhere posh", "a well-heeled area"),
+        *("upmarket", "a smart neighbourhood", "I want somewhere affluent"),
+    ],
+)
+def test_a_word_for_a_smart_area_has_a_third_reading_which_counts_homes_and_not_people(text: str):
+    """The homes of a place by their council tax band: the share in the higher bands.
+
+    It is a figure of the homes that stand in a place. It is offered one way,
+    beside what homes sell for, with the same note, and no word applies it.
+    """
+    result = read(text)
+    _, polished, price, bands = result.suggestions
+    assert (bands.target, bands.label) == (BANDS, "Homes in the higher council tax bands")
+    assert bands.note == PLACES_NOT_PEOPLE == price.note
+    assert [(c.direction, c.label) for c in bands.choices] == [
+        ("more", MORE_IN_BANDS),
+        ("ignore", LEAVE),
+    ]
+    assert bands.spans == price.spans == polished.spans
+    # To press it weighs the one measure, towards more, and no vibe and no price.
+    pressed = apply(RENTER, bands.choices[0].operations, small_release())
+    assert pressed.rejected == ()
+    asked = [w for w in pressed.spec.weights if w.provenance is not Provenance.DEFAULT]
+    assert [(w.feature_id, w.direction, w.provenance) for w in asked] == [
+        ("homes_higher_bands", "more", "ui_edit")
+    ]
+    assert pressed.spec.tags == ()
+    assert "homes_higher_bands" not in {e.feature_id for e in result.operations.weight_ops}
+    for tenure in Tenure:
+        assert "homes_higher_bands" not in {w.feature_id for w in default_spec(tenure).weights}
+
+
 def test_what_homes_sell_for_is_never_weighed_by_a_word_alone():
     """It is offered, and a person presses it. No sentence applies it, however plain."""
     for text in ("affluent", "posh, leafy and quiet", "upmarket and near a park"):
@@ -941,6 +1021,88 @@ def test_what_homes_sell_for_is_never_weighed_by_a_word_alone():
         assert PRICE in [found.target for found in result.suggestions]
     assert "price_median" not in {w.feature_id for w in RENTER.weights}
     assert "price_median" not in {w.feature_id for w in default_spec(Tenure.BUY).weights}
+
+
+def test_the_mix_of_brands_is_never_weighed_by_a_word_alone():
+    """It is offered, and a person presses it. Nothing weighs it by default."""
+    for text in ("affluent", "posh, leafy and quiet", "down to earth and near a park"):
+        result = read(text)
+        assert "brand_mix" not in {e.feature_id for e in result.operations.weight_ops}
+        assert MIX in [found.target for found in result.suggestions]
+    for tenure in Tenure:
+        assert "brand_mix" not in {w.feature_id for w in default_spec(tenure).weights}
+    assert not any(term.feature_id == "brand_mix" for tag in TAGS.values() for term in tag.terms)
+    assert not FEATURES[FeatureId.BRAND_MIX].in_likeness
+
+
+@pytest.mark.parametrize(
+    ("text", "words", "unread"),
+    [
+        ("cheap and cheerful", "cheap and cheerful", []),
+        ("unpretentious", "unpretentious", []),
+        ("down to earth", "down to earth", []),
+        ("somewhere down to earth", "down to earth", ["somewhere"]),
+        ("fairly unpretentious", "fairly unpretentious", []),
+        ("Leafy. Cheap and cheerful.", "Cheap and cheerful", []),
+    ],
+)
+def test_a_word_for_a_plain_area_is_offered_as_the_other_end_of_the_mix_and_nothing_else(
+    text: str, words: str, unread: list[str]
+):
+    """It is of the place: which chains stand there. It is no wish for recorded crime.
+
+    So it is not offered Gritty, which counts recorded crime, and it is not offered
+    cheaper homes: what is cheap is a verdict Burro does not give.
+    """
+    result = read(text)
+    assert result.notice == "none"
+    assert "brand_mix" not in {e.feature_id for e in result.operations.weight_ops}
+    (mix,) = (found for found in result.suggestions if found.target == MIX)
+    assert {found.target for found in result.suggestions} <= {MIX, "tag:leafy"}
+    assert (mix.label, mix.note) == ("Mix of brands", PLACES_NOT_PEOPLE)
+    assert [(c.direction, c.label) for c in mix.choices] == [
+        ("less", LESS_PREMIUM),
+        ("ignore", LEAVE),
+    ]
+    assert [text[s.start : s.end] for s in mix.spans] == [words]
+    assert [text[s.start : s.end] for s in result.unread] == unread
+    assert UnmetCategory.AFFORDABILITY_VERDICT not in result.unmet
+    pressed = apply(RENTER, mix.choices[0].operations, small_release())
+    assert pressed.rejected == ()
+    asked = [w for w in pressed.spec.weights if w.provenance is not Provenance.DEFAULT]
+    assert [(w.feature_id, w.direction, w.provenance) for w in asked] == [
+        ("brand_mix", "less", "ui_edit")
+    ]
+    assert pressed.spec.tags == ()
+
+
+@pytest.mark.parametrize(
+    "text", ["not unpretentious", "anything but down to earth", "is it cheap and cheerful"]
+)
+def test_a_plain_area_is_offered_with_both_ends_wherever_the_way_it_is_meant_is_not_plain(
+    text: str,
+):
+    result = read(text)
+    assert result.operations == NO_OPERATIONS
+    (mix,) = result.suggestions
+    assert [choice.label for choice in mix.choices] == [MORE_PREMIUM, LESS_PREMIUM, LEAVE]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        *("unpretentious people", "down to earth locals", "a down to earth crowd"),
+        *("cheap and cheerful families", "unpretentious neighbours"),
+    ],
+)
+def test_a_word_for_a_plain_area_said_of_people_is_a_request_about_them(text: str):
+    for variant in GrittyVariant:
+        result = read(text, variant=variant)
+        assert (result.operations, result.suggestions) == (NO_OPERATIONS, ())
+        assert (result.status, result.notice) == (
+            InterpretStatus.POLICY_REDIRECT,
+            "neutral_places",
+        )
 
 
 @pytest.mark.parametrize(
@@ -959,26 +1121,36 @@ def test_a_smart_area_is_offered_with_both_ends_wherever_the_way_it_is_meant_is_
 ):
     result = read(text)
     assert result.operations == NO_OPERATIONS
-    found, price = result.suggestions
+    mix, found, price, bands = result.suggestions
     assert [choice.label for choice in found.choices] == [TOWARDS_GRITTY, TOWARDS_POLISHED, LEAVE]
     assert found.note == f"{PLACES_NOT_PEOPLE} {COUNTS_CRIME}"
-    # So is what homes sell for: nobody can say there which way the word is meant.
+    # So are the mix of brands and what homes sell for: nobody can say there which way
+    # the word is meant.
+    assert mix.target == MIX and mix.note == PLACES_NOT_PEOPLE
+    assert [choice.label for choice in mix.choices] == [MORE_PREMIUM, LESS_PREMIUM, LEAVE]
     assert price.target == PRICE and price.note == PLACES_NOT_PEOPLE
+    # And so are the bands the homes are in.
+    assert bands.target == BANDS and bands.note == PLACES_NOT_PEOPLE
+    assert [choice.label for choice in bands.choices] == [MORE_IN_BANDS, FEWER_IN_BANDS, LEAVE]
     assert [choice.label for choice in price.choices] == [DEARER, CHEAPER, LEAVE]
 
 
 def test_a_thing_named_twice_is_offered_once_with_every_way_it_may_be_chosen():
-    found, price = read("somewhere posh but not too posh").suggestions
+    mix, found, price, bands = read("somewhere posh but not too posh").suggestions
     assert [choice.label for choice in found.choices] == [TOWARDS_GRITTY, TOWARDS_POLISHED, LEAVE]
     assert len(found.spans) == 2
+    assert [choice.label for choice in mix.choices] == [MORE_PREMIUM, LESS_PREMIUM, LEAVE]
     assert [choice.label for choice in price.choices] == [DEARER, CHEAPER, LEAVE]
-    assert len(price.spans) == 2
+    assert len(price.spans) == len(mix.spans) == 2
+    assert [choice.label for choice in bands.choices] == [MORE_IN_BANDS, FEWER_IN_BANDS, LEAVE]
+    assert len(bands.spans) == 2
     # And with all that is said of either word, whichever stands first.
     for text in ("not rough, not posh, I think", "not posh, not rough, I think"):
-        found, price = read(text).suggestions
+        offered = {one.target: one for one in read(text).suggestions}
+        assert set(offered) == {MIX, "tag:street_character", PRICE, BANDS}
+        found = offered["tag:street_character"]
         assert found.note == f"{PLACES_NOT_PEOPLE} {COUNTS_CRIME}"
         assert len(found.choices) == 3
-        assert price.target == PRICE
 
 
 @pytest.mark.parametrize(
@@ -1026,10 +1198,10 @@ def test_a_smart_word_or_a_word_for_character_said_of_people_is_a_request_about_
     ("text", "offered"),
     [
         # Said of the place, or of what stands in it, each is still of the place.
-        ("a posh area", ["tag:street_character", PRICE]),
-        ("posh shops", ["tag:street_character", PRICE, "feature:highstreet_access"]),
+        ("a posh area", [MIX, "tag:street_character", PRICE, BANDS]),
+        ("posh shops", [MIX, "tag:street_character", PRICE, BANDS, "feature:highstreet_access"]),
         ("a rough estate", ["tag:street_character"]),
-        ("rough pubs", ["tag:street_character", "feature:venue_evening"]),
+        ("rough pubs", ["tag:street_character", "feature:venue_evening_per_homes"]),
         ("a strong local identity", ["tag:village_feel", "tag:built_age", *HIGH_STREET]),
         ("a village character", ["tag:village_feel", "tag:built_age", *HIGH_STREET]),
     ],
@@ -1048,41 +1220,250 @@ def test_a_cuisine_that_holds_a_word_for_character_asks_nothing_about_people():
 
 
 @pytest.mark.parametrize("text", ["affluent", "posh", "upmarket", "well heeled"])
-def test_where_no_recorded_crime_is_held_a_word_for_a_smart_area_has_the_one_reading(text: str):
-    # The scale is not in such a release. What homes sell for is, and is offered alone.
+def test_where_no_recorded_crime_is_held_a_word_for_a_smart_area_is_read_as_of_its_shops_and_homes(
+    text: str,
+):
+    # The scale is not in such a release. The mix of brands is, and what homes sell for, and
+    # the bands they are in.
     result = read(text, variant=GrittyVariant.A)
     assert result.operations == NO_OPERATIONS
-    (price,) = result.suggestions
+    mix, price, bands = result.suggestions
+    assert (mix.target, mix.note) == (MIX, PLACES_NOT_PEOPLE)
+    assert [choice.label for choice in mix.choices] == [MORE_PREMIUM, LEAVE]
     assert (price.target, price.note) == (PRICE, PLACES_NOT_PEOPLE)
     assert [choice.label for choice in price.choices] == [DEARER, LEAVE]
+    assert (bands.target, bands.note) == (BANDS, PLACES_NOT_PEOPLE)
+    assert [choice.label for choice in bands.choices] == [MORE_IN_BANDS, LEAVE]
 
 
-# --- A rough area, and one that is up and coming -------------------------------------------
+# --- A chain that a person names -----------------------------------------------------------
 
-NO_CHANGE = (
-    "Burro cannot see how a place is changing. "
-    "The nearest it can say is where a place stands on this scale today."
+OF_A_CHAIN = (
+    "Burro finds a chain by the brand its file of places gives a shop. "
+    "The file misses some shops, and lists some that have closed."
 )
 
 
 @pytest.mark.parametrize(
-    ("text", "note", "unmet"),
+    ("text", "target", "label", "words"),
     [
-        ("rough", COUNTS_CRIME, ()),
-        ("a bit rough", COUNTS_CRIME, ()),
-        ("up and coming", f"{NO_CHANGE} {COUNTS_CRIME}", (UnmetCategory.CHANGE_OVER_TIME,)),
-        ("an up-and-coming area", f"{NO_CHANGE} {COUNTS_CRIME}", (UnmetCategory.CHANGE_OVER_TIME,)),
+        ("near a Waitrose", "brand_waitrose", "Nearer a Waitrose", "near a Waitrose"),
+        ("a Gail's nearby", "brand_gails", "Nearer a Gail's", "a Gail's nearby"),
+        ("near an M&S", "brand_mands", "Nearer an M&S", "near an M&S"),
+        ("marks and spencer", "brand_mands", "Nearer an M&S", "marks and spencer"),
+        ("close to a Sainsbury\N{RIGHT SINGLE QUOTATION MARK}s", "brand_sainsburys", None, None),
+        ("tesco", "brand_tesco", "Nearer a Tesco", "tesco"),
+        ("a co-op on my doorstep", "brand_coop", "Nearer a Co-op", "a co-op on my doorstep"),
+        ("near an Aldi", "brand_aldi", "Nearer an Aldi", "near an Aldi"),
+        ("pret a manger", "brand_pret", "Nearer a Pret", "pret a manger"),
+        ("caffè nero", "brand_nero", "Nearer a Nero", "caffè nero"),
+        ("near a PureGym", "brand_puregym", "Nearer a PureGym", "near a PureGym"),
+        ("the gym group", "brand_the_gym_group", "Nearer The Gym Group", None),
+        ("I want a Third Space nearby", "brand_third_space", "Nearer a Third Space", None),
+        ("ole & steen", "brand_ole_and_steen", "Nearer an Ole & Steen", "ole & steen"),
     ],
 )
-def test_a_rough_area_and_one_that_is_up_and_coming_are_offered_as_the_ends_of_the_scale(
-    text: str, note: str, unmet: tuple[UnmetCategory, ...]
+def test_a_chain_a_person_names_is_offered_as_the_distance_to_the_nearest_place_of_it(
+    text: str, target: str, label: str | None, words: str | None
 ):
+    """It is offered, one way, and never applied: a person presses it."""
+    result = read(text)
+    assert (result.operations, result.notice) == (NO_OPERATIONS, "none")
+    assert result.status is InterpretStatus.SUGGEST
+    (found,) = result.suggestions
+    assert found.target == f"feature:{target}" and found.note == OF_A_CHAIN
+    assert label is None or found.label == label
+    assert [(c.direction, c.label) for c in found.choices] == [
+        ("more", found.label),
+        ("ignore", LEAVE),
+    ]
+    assert words is None or [text[s.start : s.end] for s in found.spans] == [words]
+    pressed = apply(RENTER, found.choices[0].operations, small_release())
+    assert pressed.rejected == ()
+    asked = [w for w in pressed.spec.weights if w.provenance is not Provenance.DEFAULT]
+    assert [(w.feature_id, w.direction, w.provenance) for w in asked] == [
+        (target, "less", "ui_edit")
+    ]
+
+
+def test_every_chain_core_names_is_heard_by_its_name():
+    for feature_id, chain in CHAINS.items():
+        for text in (chain.name, f"near {chain.one}", f"{chain.one} nearby"):
+            result = read(text)
+            assert result.operations == NO_OPERATIONS, text
+            assert [found.target for found in result.suggestions] == [f"feature:{feature_id}"]
+
+
+def test_a_chain_is_offered_beside_what_else_was_said_and_nothing_is_applied():
+    result = read("leafy, quiet and near a Waitrose")
+    assert result.operations == NO_OPERATIONS
+    assert [found.target for found in result.suggestions] == [
+        "tag:leafy",
+        "tag:quiet_residential",
+        "feature:brand_waitrose",
+    ]
+
+
+@pytest.mark.parametrize("text", ["no Greggs", "not near a Tesco", "anything but a Costa"])
+def test_a_chain_that_is_turned_away_is_never_weighed_and_cannot_be_asked_to_be_far(text: str):
+    """A person may ask to be near a chain. No edit says far from one."""
     result = read(text)
     assert result.operations == NO_OPERATIONS
     (found,) = result.suggestions
-    assert (found.target, found.note) == ("tag:street_character", note)
+    assert [c.direction for c in found.choices] == ["more", "ignore"]
+    for choice in found.choices:
+        for edit in choice.operations.weight_ops:
+            assert edit.direction != "more"
+            assert not direction_allowed(edit.feature_id, Direction.MORE)
+
+
+def test_a_chain_the_release_holds_no_place_of_is_said_to_be_missing_and_is_not_offered():
+    """As the first build of London holds no place of two chains of the founder's table."""
+    carried = tuple(
+        metric
+        for metric in small_release().metrics
+        if metric.feature_id is not FeatureId.BRAND_THIRD_SPACE
+    )
+    rows = tuple(
+        row for row in small_release().features if row.feature_id is not FeatureId.BRAND_THIRD_SPACE
+    )
+    without = dataclasses.replace(small_release(), metrics=carried, features=rows)
+    request = InterpretRequest(text="near a Third Space", spec=RENTER, release=without)
+    result = RuleInterpreter().interpret(request)
+    assert (result.operations, result.suggestions) == (NO_OPERATIONS, ())
+    assert [(one.target, one.label) for one in result.not_in_release] == [
+        ("feature:brand_third_space", "Nearer a Third Space")
+    ]
+
+
+# --- A rough area, and one that is up and coming -------------------------------------------
+
+A_RISE_PROMISES_NOTHING = (
+    "Burro cannot see where a place is heading. It can count how far what homes sold for "
+    "has risen. A rise is of prices that were paid, and promises nothing."
+)
+A_RISE_OR_THE_SCALE = (
+    "Burro cannot see where a place is heading. It can count how far what homes sold for "
+    "has risen, and say where a place stands on Gritty today. A rise is of prices that were "
+    "paid, and promises nothing."
+)
+RISES = ["feature:price_rise_5y", "feature:price_rise_10y"]
+STEEPER, SMALLER = "A steeper rise", "A smaller rise"
+
+
+@pytest.mark.parametrize("text", ["rough", "a bit rough"])
+def test_a_rough_area_is_offered_as_the_ends_of_the_scale(text: str):
+    result = read(text)
+    assert result.operations == NO_OPERATIONS
+    (found,) = result.suggestions
+    assert (found.target, found.note) == ("tag:street_character", COUNTS_CRIME)
     assert [choice.label for choice in found.choices] == [TOWARDS_GRITTY, TOWARDS_POLISHED, LEAVE]
-    assert (result.unmet, result.unread) == (unmet, ())
+    assert (result.unmet, result.unread) == ((), ())
+
+
+@pytest.mark.parametrize("text", ["up and coming", "an up-and-coming area"])
+def test_a_place_that_is_up_and_coming_is_offered_as_a_rise_in_prices_and_as_the_scale(text: str):
+    """It was offered as the scale alone, with both its ends, before a rise was held.
+
+    It still is, and nobody can say which end is meant. Beside it stands how
+    far what homes sold for has risen, over five years and over ten.
+    """
+    result = read(text)
+    assert result.operations == NO_OPERATIONS
+    assert [found.target for found in result.suggestions] == [*RISES, "tag:street_character"]
+    five, ten, scale = result.suggestions
+    assert (five.label, ten.label) == ("Price rise over five years", "Price rise over ten years")
+    assert five.note == ten.note == A_RISE_OR_THE_SCALE
+    assert scale.note == f"{A_RISE_OR_THE_SCALE} {COUNTS_CRIME}"
+    assert [choice.label for choice in scale.choices] == [TOWARDS_GRITTY, TOWARDS_POLISHED, LEAVE]
+    for rise in (five, ten):
+        assert [choice.label for choice in rise.choices] == [STEEPER, SMALLER, LEAVE]
+    # Burro has a measure of it now, so nothing of it is said to be left out.
+    assert (result.unmet, result.unread) == ((), ())
+
+
+@pytest.mark.parametrize(
+    ("text", "words"),
+    [
+        ("on the up", "on the up"),
+        ("somewhere on the up", "on the up"),
+        ("rising", "rising"),
+        ("rising prices", "rising prices"),
+    ],
+)
+def test_a_place_on_the_rise_is_offered_as_how_far_what_homes_sold_for_has_risen(
+    text: str, words: str
+):
+    """Decided on 2026-09-24. It is offered one way, and no word applies it."""
+    for variant in GrittyVariant:
+        result = read(text, variant=variant)
+        assert (result.operations, result.notice) == (NO_OPERATIONS, "none")
+        assert [found.target for found in result.suggestions] == RISES
+        for rise in result.suggestions:
+            assert rise.note == A_RISE_PROMISES_NOTHING
+            assert [(c.direction, c.label) for c in rise.choices] == [
+                ("more", STEEPER),
+                ("ignore", LEAVE),
+            ]
+            assert [text[s.start : s.end] for s in rise.spans] == [words]
+        assert UnmetCategory.CHANGE_OVER_TIME not in result.unmet
+
+
+@pytest.mark.parametrize("text", ["where prices are rising", "not on the up", "is it rising"])
+def test_a_rise_is_offered_both_ways_wherever_the_way_it_is_meant_is_not_plain(text: str):
+    result = read(text)
+    assert result.operations == NO_OPERATIONS
+    assert [found.target for found in result.suggestions] == RISES
+    for rise in result.suggestions:
+        assert [choice.label for choice in rise.choices] == [STEEPER, SMALLER, LEAVE]
+        assert rise.note == A_RISE_PROMISES_NOTHING
+
+
+def test_where_no_recorded_crime_is_held_up_and_coming_is_a_rise_in_prices_alone():
+    result = read("up and coming", variant=GrittyVariant.A)
+    assert [found.target for found in result.suggestions] == RISES
+    assert {rise.note for rise in result.suggestions} == {A_RISE_PROMISES_NOTHING}
+    assert result.unmet == ()
+
+
+def test_to_press_a_rise_weighs_the_one_measure_and_nothing_else():
+    five, _ = read("on the up").suggestions
+    pressed = apply(RENTER, five.choices[0].operations, small_release())
+    assert pressed.rejected == ()
+    asked = [w for w in pressed.spec.weights if w.provenance is not Provenance.DEFAULT]
+    assert [(w.feature_id, w.direction, w.provenance) for w in asked] == [
+        ("price_rise_5y", "more", "ui_edit")
+    ]
+    assert pressed.spec.tags == ()
+    for tenure in Tenure:
+        held = {w.feature_id for w in default_spec(tenure).weights}
+        assert not held & {"price_rise_5y", "price_rise_10y"}
+
+
+def test_a_word_for_who_is_moving_in_is_still_no_measure():
+    """A rise is of prices that were paid. Who moves to a place is of people."""
+    for text in ("gentrifying", "gentrification"):
+        result = read(text)
+        assert (result.operations, result.suggestions) == (NO_OPERATIONS, ())
+        assert result.unmet == (UnmetCategory.CHANGE_OVER_TIME,)
+
+
+@pytest.mark.parametrize(
+    ("text", "unmet"),
+    [
+        ("rising damp", UnmetCategory.UPKEEP),
+        ("no rising damp", UnmetCategory.UPKEEP),
+        ("rising crime", UnmetCategory.CHANGE_OVER_TIME),
+        ("rising rents", UnmetCategory.CHANGE_OVER_TIME),
+    ],
+)
+def test_something_else_that_is_rising_is_not_read_as_a_rise_in_prices(
+    text: str, unmet: UnmetCategory
+):
+    result = read(text)
+    assert result.operations == NO_OPERATIONS
+    assert not [found for found in result.suggestions if found.target in RISES]
+    assert unmet in result.unmet
 
 
 def test_gritty_is_a_request_for_the_scale_by_name_and_is_applied_where_the_prompt_is_plain():
@@ -1283,7 +1664,7 @@ def test_not_too_is_a_softer_not_and_never_a_wish_for_the_thing():
         ("slightly quiet, somewhat leafy and a bit lively", {"quiet_residential", "leafy", "pace"}),
         (
             "fairly quiet with some pubs and a bit of culture",
-            {"quiet_residential", "venue_evening"},
+            {"quiet_residential", "venue_evening_per_homes"},
         ),
         ("some culture", {"culture_venues_per_homes"}),
         ("a bit of a buzz", set[str]()),

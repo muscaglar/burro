@@ -19,6 +19,7 @@ from burro_core.facts import Fact, facts_for
 from burro_core.ids import (
     COMMUTE,
     FactKind,
+    JourneyBand,
     SentenceOrigin,
     SentenceRole,
     TemplateId,
@@ -103,19 +104,31 @@ TEMPLATES: Mapping[TemplateId, str] = {
         "sold in {period}. The publisher gives no range, and does not say "
         "how many sales it rests on."
     ),
+    # A median that Burro worked out from the sales themselves. It says how many it rests
+    # on, and from which month to which.
+    TemplateId.COST_BUY_SOLD: (
+        "Price for a {segment}: £{median}. This is the middle price of the {sales} {homes} "
+        "of all sizes sold from {period}."
+    ),
     TemplateId.BUDGET_UNDER: "The upper end is £{margin} under your budget of £{amount}.",
     TemplateId.BUDGET_OVER: "The upper end is £{margin} over your budget of £{amount}.",
     TemplateId.BUDGET_UNDER_MEDIAN: (
         "The middle price of {homes} of all sizes is £{margin} under your budget of £{amount}."
     ),
+    # A median that is over a budget says what a median is: about half sold for less.
     TemplateId.BUDGET_OVER_MEDIAN: (
-        "The middle price of {homes} of all sizes is £{margin} over your budget of £{amount}."
+        "The middle price of {homes} of all sizes is £{margin} over your budget of £{amount}. "
+        "{half_sold}"
     ),
     TemplateId.TRAVEL_PT: f"{_BY_PT}.",
     TemplateId.TRAVEL_PT_OVER: f"{_BY_PT}{_OVER}",
     TemplateId.TRAVEL_OTHER: f"{_BY_OTHER}.",
     TemplateId.TRAVEL_OTHER_OVER: f"{_BY_OTHER}{_OVER}",
     TemplateId.TRAVEL_BEYOND: "{mode} to {place}: more than {cutoff} minutes.",
+    # A journey that was estimated from distance. It says a band against the limit the
+    # person set, never a number of minutes of its own, and says that it is an estimate.
+    TemplateId.TRAVEL_ESTIMATED: "{mode} to {place}: {said} the {limit} minutes you set. "
+    "{estimated}",
     TemplateId.STATION: f"Nearest station: {_STATION}",
     # The contract gives one station sentence. A station that is not the
     # nearest needs its own, or the template would say something untrue.
@@ -245,6 +258,7 @@ def _over_a_cap(area: RankedArea, spec: PreferenceSpec) -> bool:
     caps = {commute.place_id: commute.max_minutes for commute in spec.commutes}
     return any(
         leg.status is TravelStatus.BEYOND_CUTOFF
+        or leg.estimate is JourneyBand.LIKELY_BEYOND
         or (leg.minutes is not None and leg.minutes > caps[leg.place_id])
         for leg in area.legs
     )
@@ -292,9 +306,14 @@ def _within_every_cap(area: RankedArea, spec: PreferenceSpec) -> bool:
     """
     caps = {commute.place_id: commute.max_minutes for commute in spec.commutes}
     return all(
-        leg.status is TravelStatus.OK
-        and leg.minutes is not None
-        and leg.minutes <= caps[leg.place_id]
+        # A journey that is estimated is a reason only where it is likely within its
+        # limit. One that is borderline is neither a reason nor what the area gives up.
+        leg.estimate is JourneyBand.LIKELY_WITHIN
+        or (
+            leg.status is TravelStatus.OK
+            and leg.minutes is not None
+            and leg.minutes <= caps[leg.place_id]
+        )
         for leg in area.legs
     )
 

@@ -296,7 +296,7 @@ def test_an_area_with_no_figure_for_what_was_asked_of_a_place_is_listed_apart_an
     # station, and no figure for how leafy or quiet it is or for its pubs.
     # It came first, 14 points clear, for a newcomer who asked for all three.
     spec = chosen(
-        "commute", "tag:leafy", "tag:quiet_residential", "feature:venue_evening", "budget"
+        "commute", "tag:leafy", "tag:quiet_residential", "feature:venue_evening_per_homes", "budget"
     )
     result = rank(spec, release())
     assert "Otterby Fields" not in first_names(result, len(result.ranked))
@@ -304,7 +304,7 @@ def test_an_area_with_no_figure_for_what_was_asked_of_a_place_is_listed_apart_an
     # What is said of the place leads, so an area with no figure for any of it lacks more
     # than half of all that was asked, by weight, and is listed apart for that.
     assert apart["Otterby Fields"].reason is UnrankedReason.INSUFFICIENT_DATA
-    assert {"tag:leafy", "tag:quiet_residential", "feature:venue_evening"} <= set(
+    assert {"tag:leafy", "tag:quiet_residential", "feature:venue_evening_per_homes"} <= set(
         apart["Otterby Fields"].missing
     )
     # Whoever is ranked has a figure for half or more of the character asked for.
@@ -498,7 +498,7 @@ def test_every_comparison_said_of_the_release_is_literally_true():
     assert {area.rankable for area, _ in checked} == {True, False}
     carried = {metric.feature_id for metric in release().metrics}
     assert {fact.key for _, fact in checked} == {*carried, *(v.tag_id for v in release().vibes)}
-    assert len(carried) == 43 and len(release().vibes) == 11
+    assert len(carried) == 108 and len(release().vibes) == 14
     # Every way a vibe can be said is said of some area of the release.
     assert {fact.template for _, fact in checked if fact.kind is FactKind.TAG} == {
         TemplateId.VIBE,

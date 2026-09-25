@@ -359,6 +359,12 @@ CONTRACTIONS: frozenset[str] = frozenset(
 # What turns a wish away: the thing that follows is not wanted, or is wanted
 # less, or is wanted at a distance. In a prompt that is not plain, a choice
 # that has one direction is never offered for a thing that stands after one.
+# What a person cannot bear. Before a thing it turns the wish away, as the words beside
+# it do. After one it is said of the thing: "a playground by the house, I'd hate that".
+_CANNOT_BEAR = (
+    "hate hates hated hating dislike dislikes disliked disliking "
+    "loathe loathes detest detests despise despises "
+)
 _AWAY = (
     # What turns a wish round.
     "non none nope nah naw nae never neva nvr neither nor nothing nowt nowhere nobody "
@@ -368,17 +374,15 @@ _AWAY = (
     "lesser few least little minimal minimum moderation limited reduce reduced "
     "reducing than bottom lowest "
     "except excepting excluding exclude unless unlike regardless irrespective "
-    "avoids avoided hate hates hated hating dislike dislikes disliked disliking "
-    "loathe loathes detest detests despise despises skip ditch drop scrap rid stop stopped "
+    "avoids avoided " + _CANNOT_BEAR + "skip ditch drop scrap rid stop stopped "
     "cease quit ban banned "
     # What is kept at a distance.
     "far further farther furthest farthest away miles distance distant outside beyond "
 )
-_DOUBT = (
-    # What qualifies a wish.
-    "too enough against minus lack lacks lacking absence absent devoid free opposite wrong "
-    # What a person is not sure of.
-    "doubt doubts doubtful unsure unlikely unconvinced sceptical skeptical maybe perhaps "
+# What a person dreads or thinks little of. Said of a thing, before it or after, it is
+# no wish for the thing: "a pub on the corner would be hell", "a station, heaven forbid".
+# Of a nuisance it is the wish itself: to dread noise is to want less of it.
+_DREADED = (
     # What troubles a person.
     "worry worries worried worrying concern concerns concerned fear fears scared afraid "
     "nervous anxious "
@@ -386,9 +390,44 @@ _DOUBT = (
     "bad awful terrible horrible dreadful worst rubbish overrated pointless useless boring "
     "annoying nightmare allergic bored meh suck sucks unimportant unnecessary unwanted "
     "unneeded uninterested disinterested indifferent unbothered unfussed irrelevant optional "
-    # What is over, or is someone else's.
+    # What a person dreads.
+    "dread dreads dreaded dreading hell hellish ghastly grim horrid vile gross yuck ugh "
+    "eww ew disaster misery miserable unbearable insufferable torture "
+)
+_DREADED_IN_A_PHRASE = frozenset({"heaven forbid", "god forbid", "god no", "perish the thought"})
+DREADS: frozenset[str] = frozenset((_DREADED + _CANNOT_BEAR).split()) | _DREADED_IN_A_PHRASE
+# Whose wish it is, where the words say it is not the speaker's. A thing that stands
+# with one is offered, and which way it runs is for the person to say: "my mum is after
+# a park" may be why a park is wanted, and may be nothing of the person's at all. The
+# speaker's own household is not here: `FOR_WHOM` holds whom a thing may be wanted for.
+# It is said of a wish and never of a journey: where a partner works is a place to reach.
+# So who is known to the speaker and the third person of a wish are no signs of doubt.
+_AT_LARGE = "he she they people everyone everybody anyone anybody someone others "
+_KNOWN_TO_THE_SPEAKER = (
+    "mum mom mam mother dad father parents partner wife husband girlfriend boyfriend "
+    "brother sister friend friends mate mates flatmate housemate landlord boss ex"
+)
+WHO_ELSE: frozenset[str] = frozenset(_AT_LARGE.split()) | frozenset(
+    f"my {who}" for who in _KNOWN_TO_THE_SPEAKER.split()
+)
+# The third person of each word of `WISH`. It says whose wish it is only where somebody
+# stands straight before it: "Wants: a park" is the heading of a list.
+WISHES_OF_ANOTHER: frozenset[str] = frozenset(
+    {"wants", "needs", "likes", "loves", "prefers", "fancies", "cares about"}
+    | {"is after", "is looking for", "is looking to", "is keen on"}
+)
+# What stands for a thing that was named, and says nothing of its own: "that", of "a
+# station, I'd hate that".
+STANDS_FOR: frozenset[str] = frozenset({"it", "that", "this", "them", "those", "these", "one"})
+_DOUBT = (
+    # What qualifies a wish.
+    "too enough against minus lack lacks lacking absence absent devoid free opposite wrong "
+    # What a person is not sure of.
+    "doubt doubts doubtful unsure unlikely unconvinced sceptical skeptical maybe perhaps "
+    # What is over.
     "was were did had used once formerly wanted liked loved needed "
-    "he she they you people everyone everybody anyone anybody someone others "
+    # Whom a thing is said of at large, who is as often anybody as somebody else.
+    "you "
     # What asks.
     "who what why how should could"
 )
@@ -436,6 +475,7 @@ PHRASES_OF_DOUBT: frozenset[str] = frozenset(
         "apart from",
         "aside from",
         "no longer",
+        "no more",
         "any more",
         "at least",
         "more than",
@@ -443,6 +483,9 @@ PHRASES_OF_DOUBT: frozenset[str] = frozenset(
         "w o",
         "w out",
     }
+    | _DREADED_IN_A_PHRASE
 )
 WORDS_THAT_TURN_AWAY: frozenset[str] = frozenset(_AWAY.split()) | CONTRACTIONS
-WORDS_OF_DOUBT: frozenset[str] = frozenset(_DOUBT.split()) | WORDS_THAT_TURN_AWAY
+WORDS_OF_DOUBT: frozenset[str] = (
+    frozenset((_DOUBT + " " + _DREADED + _AT_LARGE).split()) | WORDS_THAT_TURN_AWAY
+)

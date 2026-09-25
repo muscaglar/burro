@@ -145,7 +145,7 @@ RULE_SOURCES = (
     "reducer.py",
 )
 # The most ways of choosing among what was offered that are tried for one case.
-MOST_CHOICES = 4_096
+MOST_CHOICES = 16_384
 
 # The groups, in the order they are reported. A file that is not listed is reported last.
 GROUPS = (

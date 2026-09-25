@@ -55,6 +55,7 @@ from burro_core.ids import (
     GrittyVariant,
     Method,
     Mode,
+    NameState,
     NativeResolution,
     Part,
     PlaceId,
@@ -87,6 +88,11 @@ PERCENT = "%"
 # point inside the area, in degrees either way. It is some tens of kilometres, which is
 # wider than any area: a point further off was drawn in the wrong place.
 REACH = 0.5
+# The fewest sales a median may rest on, where a row says how many it rests on. With fewer
+# there is no figure. It is the least the contract calls an observation of `medium`
+# confidence, and `MANY_SALES` is the least it calls `high` (section 2.5).
+FEWEST_SALES = 10
+MANY_SALES = 50
 
 MANIFEST = "manifest.json"
 NEIGHBOURHOODS = "neighbourhoods.json"
@@ -156,6 +162,9 @@ class Source(Record):
     attribution: Text
     url: str
     retrieved_on: str = Field(pattern=DATE_PATTERN)
+    # True where the publisher asks that its attribution stands wherever a figure made
+    # from its data is shown. Every fact that cites the source then carries it.
+    credit_beside_figures: StrictBool = False
 
 
 class FileEntry(Record):
@@ -205,6 +214,22 @@ class Hashes(Record):
     lock_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
 
 
+class Named(Record):
+    """What is known of the name an area bears, where it is not its publisher's label.
+
+    An area is drawn as its publisher draws it, and its publisher labels it
+    with a borough and a number. Where the area bears the name of a
+    neighbourhood, this says what the label was, who wrote the name, and
+    whether a person has checked it. A name is a draft until one has.
+    """
+
+    # The label of the area as its publisher gives it. It is shown beside the name.
+    label: Text
+    # Every source whose own record writes the name, letter for letter.
+    source_ids: SourceIds
+    state: NameState
+
+
 class Neighbourhood(Record):
     area_id: AreaId
     slug: str = Field(pattern=SLUG_PATTERN)
@@ -215,6 +240,13 @@ class Neighbourhood(Record):
     # The pipeline decides; core only reads.
     rankable: StrictBool
     neighbours: tuple[AreaId, ...]
+    # None where the area bears no name but its publisher's label.
+    named: Named | None = None
+    # Where the homes of the area are taken to stand: the middle of the centres of
+    # population of its small census areas. A journey is estimated from it where the
+    # release holds no journey time. `None` where a release does not say, and nothing is
+    # then estimated: the point inside the area is never put in its place.
+    homes_at: Point | None = None
 
 
 class Metric(Record):
@@ -268,10 +300,13 @@ class TagValue(Record):
 class CostEstimate(Record):
     """What a home of one kind costs in one area: a range, or one number where no range is known.
 
-    A row holds both quartiles or neither. A row with neither is a publisher's
-    own median of what was paid for the homes sold in the twelve months that
-    end with `as_of`. Nothing stands in for the range, and what the median
-    rests on is `unstated`: the publisher gives no count of the sales.
+    A row holds both quartiles or neither. A row with neither is a median of
+    what was paid for the homes that were sold, and is one of two things. A
+    publisher's own median is of the twelve months that end with `as_of`, and
+    what it rests on is `unstated`: the publisher gives no count of the sales.
+    A median worked out from the sales themselves says how many it rests on,
+    in `sales`, and the first month they were made in, in `since`. Nothing
+    stands in for the range of either.
     """
 
     area_id: AreaId
@@ -282,12 +317,21 @@ class CostEstimate(Record):
     upper_quartile: Pounds | None
     confidence: Confidence
     as_of: str = Field(pattern=MONTH_PATTERN)
+    # The first month of the sales a median rests on, where the row says how many they are.
+    since: Annotated[str, Field(pattern=MONTH_PATTERN)] | None = None
+    # How many sales the median rests on. `None` where no source says.
+    sales: Annotated[int, Field(ge=1)] | None = None
     source_ids: SourceIds
 
     @property
     def ranged(self) -> bool:
         """Whether the row holds a range: both of its quartiles."""
         return self.lower_quartile is not None and self.upper_quartile is not None
+
+    @property
+    def counted(self) -> bool:
+        """Whether the row says how many sales its median rests on."""
+        return self.sales is not None
 
 
 class Destination(Record):
@@ -305,6 +349,9 @@ class Travel(Record):
     def _minutes_only_when_ok(self) -> Self:
         if (self.status is TravelStatus.OK) != (self.minutes is not None):
             raise ValueError("minutes is set exactly when status is ok")
+        if self.status is TravelStatus.ESTIMATED:
+            # An estimate is worked out for a search. No release holds one.
+            raise ValueError("a release holds no estimate")
         return self
 
 
@@ -908,6 +955,11 @@ def ids_are_unique(files: _Files) -> Iterator[Finding]:
         for i, n in enumerate(areas)
     ]
     ordered += [
+        (NEIGHBOURHOODS, f"neighbourhoods[{i}].named.source_ids", n.named.source_ids)
+        for i, n in enumerate(areas)
+        if n.named is not None
+    ]
+    ordered += [
         (CATALOGUE, f"metrics[{i}].source_ids", m.source_ids)
         for i, m in enumerate(files.catalogue.metrics)
     ]
@@ -949,6 +1001,11 @@ def references_resolve(files: _Files) -> Iterator[Finding]:
         for position, neighbour in enumerate(area.neighbours):
             if neighbour not in areas or neighbour == area.area_id:
                 yield NEIGHBOURHOODS, f"neighbourhoods[{index}].neighbours[{position}]"
+        # Who wrote a name is among the sources of the file, so that the fact of the area
+        # cites them: a name is never written by a source the file does not state.
+        for position, source_id in enumerate(area.named.source_ids if area.named else ()):
+            if source_id not in files.neighbourhoods.source_ids:
+                yield NEIGHBOURHOODS, f"neighbourhoods[{index}].named.source_ids[{position}]"
     for index, feature in enumerate(files.geometry.features):
         if feature.id not in areas or feature.properties.area_id != feature.id:
             yield GEOMETRY, f"features[{index}]"
@@ -1050,7 +1107,10 @@ def rows_are_complete(files: _Files) -> Iterator[Finding]:
     destinations = {d.destination_id for d in files.destinations.destinations}
     if frozenset(files.travel.area_ids) != areas:
         yield TRAVEL, "area_ids"
-    if set(files.travel.destination_ids) != destinations:
+    routed = set(files.travel.destination_ids)
+    # A preview that has routed no journey holds no time, whatever ends its places name:
+    # a journey to one is estimated from distance, or is said to be missing.
+    if routed != destinations and (routed or not files.manifest.preview):
         yield TRAVEL, "destination_ids"
     for name, _, matrix in files.matrices():
         if len(matrix) != len(files.travel.area_ids):
@@ -1097,6 +1157,9 @@ def _areas_are_where_they_are_drawn(files: _Files) -> Iterator[Finding]:
         near = (inside[other] for other in area.neighbours if other in inside)
         if not all(_within_reach(point, area.centroid) for point in near):
             yield NEIGHBOURHOODS, f"neighbourhoods[{index}].centroid"
+        # Where its homes stand is held to the area as its outline is.
+        if area.homes_at is not None and not _within_reach(area.homes_at, area.centroid):
+            yield NEIGHBOURHOODS, f"neighbourhoods[{index}].homes_at"
     for index, feature in enumerate(files.geometry.features):
         if feature.id in inside and not all(
             _within_reach(point, inside[feature.id]) for point in _points_of(feature.geometry)
@@ -1104,19 +1167,38 @@ def _areas_are_where_they_are_drawn(files: _Files) -> Iterator[Finding]:
             yield GEOMETRY, f"features[{index}]"
 
 
+def confidence_of(sales: int) -> Confidence:
+    """What a median that rests on so many sales is said to rest on: `high` from 50 sales up."""
+    return Confidence.HIGH if sales >= MANY_SALES else Confidence.MEDIUM
+
+
 def _cost_holds_together(row: CostEstimate) -> bool:
     """Whether a cost is a range in order, or one number that says it is no more than that.
 
-    One quartile with no other is no range. A row with no range is a price,
-    and says that what it rests on is not stated: no source gives a rent as
-    one number, and no sentence says one. A row with a range says what it
-    rests on.
+    One quartile with no other is no range. A row with no range is a price:
+    no source gives a rent as one number, and no sentence says one. Where it
+    gives no count of the sales it rests on, it says that what it rests on is
+    not stated. Where it gives one, it gives the first month of the sales
+    too, the count is no fewer than `FEWEST_SALES`, and what it rests on is
+    what the count makes it. A row with a range says what it rests on, and
+    holds no count.
     """
     lower, upper = row.lower_quartile, row.upper_quartile
+    if (row.sales is None) is not (row.since is None):
+        return False
     if lower is None or upper is None:
-        unstated = row.confidence is Confidence.UNSTATED
-        return lower is upper and unstated and row.tenure is Tenure.BUY
-    return lower <= row.median <= upper and row.confidence is not Confidence.UNSTATED
+        if row.sales is None:
+            rests_on = Confidence.UNSTATED
+        elif row.sales < FEWEST_SALES or row.since is None or row.since > row.as_of:
+            return False
+        else:
+            rests_on = confidence_of(row.sales)
+        return lower is upper and row.confidence is rests_on and row.tenure is Tenure.BUY
+    return (
+        lower <= row.median <= upper
+        and row.confidence is not Confidence.UNSTATED
+        and row.sales is None
+    )
 
 
 def values_are_in_range(files: _Files) -> Iterator[Finding]:

@@ -2,18 +2,18 @@
 {"id": "double-002", "text": "I don't want to be far from a park", "tenure": "rent", "expect": {"rise": ["feature:park_proximity"]}, "why": "two negatives make a wish"}
 {"id": "double-003", "text": "not far from a station", "tenure": "rent", "expect": {"rise": ["feature:station_walk"], "not_fall": ["feature:station_lines"]}, "why": "the one double negative the contract names"}
 {"id": "double-004", "text": "never far from the high street", "tenure": "rent", "expect": {"rise": ["feature:highstreet_access"]}, "why": "two negatives make a wish"}
-{"id": "double-005", "text": "I wouldn't say no to a pub nearby", "tenure": "rent", "expect": {"not_fall": ["feature:venue_evening", "tag:pace"]}, "why": "a mild yes"}
+{"id": "double-005", "text": "I wouldn't say no to a pub nearby", "tenure": "rent", "expect": {"not_fall": ["feature:venue_evening_per_homes", "tag:pace"]}, "why": "a mild yes"}
 {"id": "double-006", "text": "a park wouldn't go amiss", "tenure": "rent", "expect": {"rise": ["feature:park_proximity"]}, "why": "a mild yes"}
-{"id": "double-007", "text": "you can't beat a good pub", "tenure": "rent", "expect": {"rise_any": [["feature:venue_evening", "tag:pace"]]}, "why": "an idiom of praise"}
-{"id": "double-008", "text": "no shortage of pubs", "tenure": "rent", "expect": {"rise_any": [["feature:venue_evening", "tag:pace"]]}, "why": "plenty, said with a negative"}
-{"id": "double-009", "text": "I don't dislike nightlife", "tenure": "rent", "expect": {"not_fall": ["tag:pace", "feature:venue_evening"]}, "why": "neither for nor against"}
+{"id": "double-007", "text": "you can't beat a good pub", "tenure": "rent", "expect": {"rise_any": [["feature:venue_evening_per_homes", "tag:pace"]]}, "why": "an idiom of praise"}
+{"id": "double-008", "text": "no shortage of pubs", "tenure": "rent", "expect": {"rise_any": [["feature:venue_evening_per_homes", "tag:pace"]]}, "why": "plenty, said with a negative"}
+{"id": "double-009", "text": "I don't dislike nightlife", "tenure": "rent", "expect": {"not_fall": ["tag:pace", "feature:venue_evening_per_homes"]}, "why": "neither for nor against"}
 {"id": "double-010", "text": "It's not that I don't want a park, I do", "tenure": "rent", "expect": {"rise": ["feature:park_proximity"]}, "why": "a denial of a denial, then said outright"}
 {"id": "double-011", "text": "I can't say I don't care about schools", "tenure": "rent", "expect": {"rise_any": [["feature:school_primary_attainment", "feature:school_secondary_attainment", "feature:school_primary_nearby", "tag:family_amenities"]]}, "why": "two negatives make a wish"}
 {"id": "double-012", "text": "not unhappy to be near a station", "tenure": "rent", "expect": {"not_fall": ["feature:station_walk", "feature:station_lines"]}, "why": "a mild yes"}
 {"id": "double-013", "text": "I don't want somewhere without a station", "tenure": "rent", "expect": {"rise_any": [["feature:station_walk", "feature:station_lines"]]}, "why": "two negatives make a wish"}
 {"id": "double-014", "text": "Nowhere without a park", "tenure": "rent", "expect": {"rise": ["feature:park_proximity"]}, "why": "two negatives make a wish"}
-{"id": "double-015", "text": "I wouldn't want to be without good transport", "tenure": "rent", "expect": {"rise_any": [["feature:station_lines", "feature:station_walk"]]}, "why": "two negatives make a wish"}
-{"id": "double-016", "text": "I'm not against pubs", "tenure": "rent", "expect": {"not_fall": ["feature:venue_evening", "tag:pace"]}, "why": "neither for nor against"}
+{"id": "double-015", "text": "I wouldn't want to be without good transport", "tenure": "rent", "expect": {"rise_any": [["feature:station_lines", "feature:station_walk", "tag:well_connected"]]}, "why": "two negatives make a wish"}
+{"id": "double-016", "text": "I'm not against pubs", "tenure": "rent", "expect": {"not_fall": ["feature:venue_evening_per_homes", "tag:pace"]}, "why": "neither for nor against"}
 {"id": "double-017", "text": "I don't mind a bit of noise", "tenure": "rent", "expect": {"not_rise": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "said of a nuisance: it matters less"}
 {"id": "double-018", "text": "I wouldn't mind a park", "tenure": "rent", "expect": {"not_fall": ["feature:park_proximity"]}, "why": "a mild yes"}
 {"id": "double-019", "text": "it doesn't have to be leafy", "tenure": "rent", "expect": {"not_rise": ["tag:leafy", "feature:green_cover"]}, "why": "a wish that is let go"}
@@ -25,8 +25,8 @@
 {"id": "double-025", "text": "I don't hate the idea of a lively high street", "tenure": "rent", "expect": {"not_fall": ["feature:highstreet_access", "tag:pace"]}, "why": "a mild yes"}
 {"id": "double-026", "text": "There's no way I'm giving up my local park", "tenure": "rent", "expect": {"rise": ["feature:park_proximity"]}, "why": "a negative that insists"}
 {"id": "double-027", "text": "Never again will I live somewhere without trees", "tenure": "rent", "expect": {"rise_any": [["tag:leafy", "feature:green_cover"]]}, "why": "two negatives make a wish"}
-{"id": "double-028", "text": "Not having a pub nearby would be a dealbreaker", "tenure": "rent", "expect": {"rise_any": [["feature:venue_evening", "tag:pace"]]}, "why": "the lack of it is what is refused"}
-{"id": "double-029", "text": "no noise is no good, I need a bit of life", "tenure": "rent", "expect": {"not_rise": ["tag:quiet_residential", "feature:noise_exposure"], "not_fall": ["tag:pace", "feature:venue_evening"]}, "why": "quiet is what is refused"}
+{"id": "double-028", "text": "Not having a pub nearby would be a dealbreaker", "tenure": "rent", "expect": {"rise_any": [["feature:venue_evening_per_homes", "tag:pace"]]}, "why": "the lack of it is what is refused"}
+{"id": "double-029", "text": "no noise is no good, I need a bit of life", "tenure": "rent", "expect": {"not_rise": ["tag:quiet_residential", "feature:noise_exposure"], "not_fall": ["tag:pace", "feature:venue_evening_per_homes"]}, "why": "quiet is what is refused"}
 {"id": "double-030", "text": "I won't consider anywhere that isn't near water", "tenure": "rent", "expect": {"rise": ["feature:water_access"]}, "why": "two negatives make a wish"}
 {"id": "double-031", "text": "It's impossible for me to be far from Pellam Infirmary", "tenure": "rent", "expect": {"journeys": {"add": [{"to": "Pellam Infirmary", "max_minutes": "any", "strictness": "any"}]}}, "why": "two negatives make a journey"}
 {"id": "double-032", "text": "can't be more than 30 minutes from Foxholt Market", "tenure": "rent", "expect": {"journeys": {"add": [{"to": "Foxholt Market", "max_minutes": 30, "strictness": "hard"}]}}, "why": "a contraction that makes a cap"}

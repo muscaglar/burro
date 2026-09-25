@@ -3,11 +3,11 @@
 import dataclasses
 
 import pytest
-from burro_core.catalogue import FAMILIES, FEATURES
+from burro_core.catalogue import COUNTS_RESIDENTS, FAMILIES, FEATURES
 from burro_core.explain import render
 from burro_core.facts import facts_for
 from burro_core.ids import Describes, FactKind, Family, FeatureId, FeatureKind, TemplateId
-from burro_core.likeness import Likeness, part_bands, parts_of, similar
+from burro_core.likeness import Likeness, may_be_compared, part_bands, parts_of, similar
 from burro_core.release import InMemoryRelease
 from burro_core.verify import verify
 
@@ -45,8 +45,8 @@ def test_likeness_is_never_counted_on_a_nuisance_crime_or_what_is_weighed_on_req
 ):
     feature = FEATURES[feature_id]
     barred = (
-        feature.kind in (FeatureKind.NUISANCE, FeatureKind.ON_REQUEST)
-        or feature.describes is Describes.EVENTS
+        feature.kind in (FeatureKind.NUISANCE, FeatureKind.ON_REQUEST, FeatureKind.RESIDENTS)
+        or feature.describes in (Describes.EVENTS, Describes.RESIDENTS)
         or feature.family is None
         or feature_id
         in (
@@ -70,6 +70,20 @@ def test_a_flag_on_a_feature_cannot_bring_a_nuisance_into_likeness():
         release, metrics=tuple(m.replace(in_likeness=True) for m in release.metrics)
     )
     assert parts_of(flagged) == parts_of(release)
+
+
+@pytest.mark.parametrize("feature_id", sorted(COUNTS_RESIDENTS))
+def test_likeness_is_never_counted_on_who_lives_somewhere_whatever_a_flag_says(
+    feature_id: FeatureId,
+):
+    # Two areas are never said to be alike for who lives in them.
+    feature = FEATURES[feature_id]
+    assert feature_id not in PARTS and not may_be_compared(feature)
+    # Not by a flag, and not by calling it a thing to be near.
+    forged = feature.replace(in_likeness=True, kind=FeatureKind.AMENITY)
+    assert not may_be_compared(forged)
+    places = forged.replace(describes=Describes.PLACE)
+    assert may_be_compared(places)
 
 
 def test_the_band_of_a_part_is_of_the_figure_itself_with_no_polarity_applied():

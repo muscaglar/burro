@@ -5,14 +5,14 @@
 {"id": "short-005", "text": "hi", "tenure": "rent", "expect": {"notice": "any"}, "why": "a greeting"}
 {"id": "short-006", "text": "?", "tenure": "rent", "expect": {"notice": "any"}, "why": "a mark and nothing else"}
 {"id": "short-007", "text": "no", "tenure": "rent", "expect": {}, "why": "a refusal of nothing"}
-{"id": "short-008", "text": "pubs!", "tenure": "rent", "expect": {"rise_any": [["feature:venue_evening", "tag:pace"]]}, "why": "one word, with feeling"}
-{"id": "short-009", "text": "pub", "tenure": "rent", "expect": {"rise_any": [["feature:venue_evening", "tag:pace"]]}, "why": "one word, in the singular"}
+{"id": "short-008", "text": "pubs!", "tenure": "rent", "expect": {"rise_any": [["feature:venue_evening_per_homes", "tag:pace"]]}, "why": "one word, with feeling"}
+{"id": "short-009", "text": "pub", "tenure": "rent", "expect": {"rise_any": [["feature:venue_evening_per_homes", "tag:pace"]]}, "why": "one word, in the singular"}
 {"id": "short-010", "text": "leafy.", "tenure": "rent", "expect": {"rise_any": [["tag:leafy", "feature:green_cover"]]}, "why": "one word and a full stop"}
 {"id": "short-011", "text": "£1500", "tenure": "rent", "expect": {"budget": {"amount": 1500}}, "why": "an amount and nothing else"}
 {"id": "short-012", "text": "help", "tenure": "rent", "expect": {"notice": "any"}, "why": "a call for help"}
 {"id": "short-013", "text": "london", "tenure": "rent", "expect": {"notice": "any"}, "why": "a city, not an area of the release"}
 {"id": "short-014", "text": "Wexmoor", "tenure": "rent", "expect": {"ask": "ok", "areas": {"may_only": ["Wexmoor"]}, "journeys": {"may_add": ["Wexmoor"]}}, "why": "a name with no cue: an area and a station share it"}
-{"id": "short-015", "text": "no pubs", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening", "tag:pace"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "two words"}
+{"id": "short-015", "text": "no pubs", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening_per_homes", "tag:pace"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "two words"}
 {"id": "short-016", "text": "avoid Foxholt", "tenure": "rent", "expect": {"areas": {"exclude": ["Foxholt"]}}, "why": "two words"}
 {"id": "short-017", "text": "station", "tenure": "rent", "expect": {"rise_any": [["feature:station_walk", "feature:station_lines"]]}, "why": "one word"}
 {"id": "short-018", "text": "safe", "tenure": "rent", "expect": {"still": ["feature:crime_violence_robbery", "feature:crime_burglary_theft"]}, "why": "'safe' is no explicit request about crime"}
@@ -27,7 +27,7 @@
 {"id": "short-027", "text": "studio", "tenure": "rent", "expect": {"budget": {"segment": "studio"}}, "why": "a size and nothing else"}
 {"id": "short-028", "text": "ok", "tenure": "rent", "expect": {"notice": "any"}, "why": "an answer to nothing"}
 {"id": "short-029", "text": "...", "tenure": "rent", "expect": {"notice": "any"}, "why": "marks and nothing else"}
-{"id": "short-030", "text": "nightlife", "tenure": "rent", "expect": {"rise_any": [["tag:pace", "feature:venue_evening"]]}, "why": "one word"}
+{"id": "short-030", "text": "nightlife", "tenure": "rent", "expect": {"rise_any": [["tag:pace", "feature:venue_evening_per_homes"]]}, "why": "one word"}
 {"id": "short-031", "text": "noise", "tenure": "rent", "expect": {"free": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "a nuisance that is only named: liked or disliked is not said"}
 {"id": "short-032", "text": "k", "tenure": "rent", "expect": {"notice": "any"}, "why": "one letter"}
 {"id": "short-033", "text": "quiet pls", "tenure": "rent", "expect": {"rise_any": [["tag:quiet_residential", "feature:noise_exposure"]]}, "why": "two words, one a short form"}
@@ -38,8 +38,8 @@
 {"id": "short-038", "text": "No.", "tenure": "rent", "expect": {"notice": "any"}, "why": "a refusal of nothing"}
 {"id": "short-039", "text": "green", "tenure": "rent", "expect": {"rise_any": [["tag:leafy", "feature:green_cover", "feature:park_proximity"]]}, "why": "one word"}
 {"id": "short-040", "text": "1500 2 bed", "tenure": "rent", "expect": {"budget": {"amount": 1500, "segment": "bed_2"}}, "why": "an amount and a size"}
-{"id": "short-041", "text": "not pubs", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening", "tag:pace"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "two words"}
+{"id": "short-041", "text": "not pubs", "tenure": "rent", "expect": {"fall_any": [["feature:venue_evening_per_homes", "tag:pace"]], "not_fall": ["tag:quiet_residential", "feature:noise_exposure"]}, "why": "two words"}
 {"id": "short-042", "text": "no noise", "tenure": "rent", "expect": {"rise_any": [["tag:quiet_residential", "feature:noise_exposure"]]}, "why": "none of a nuisance"}
 {"id": "short-043", "text": "uni", "tenure": "rent", "expect": {"free": ["feature:university_proximity"], "notice": "any"}, "why": "a short form, and what is wanted of it is not said"}
 {"id": "short-044", "text": "tube", "tenure": "rent", "expect": {"rise_any": [["feature:station_walk", "feature:station_lines"]]}, "why": "the station, in one word"}
-{"id": "short-045", "text": "cafes", "tenure": "rent", "expect": {"rise_any": [["feature:venue_food_drink_per_homes", "tag:foodie"]], "not_fall": ["feature:venue_independent"]}, "why": "one word"}
+{"id": "short-045", "text": "cafes", "tenure": "rent", "expect": {"rise_any": [["feature:venue_cafe_per_homes", "feature:venue_food_drink_per_homes", "tag:foodie"]], "not_fall": ["feature:venue_independent", "feature:independents_nearby"]}, "why": "one word"}

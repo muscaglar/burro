@@ -2,15 +2,28 @@ import re
 
 import pytest
 from burro_core.catalogue import (
+    CENSUS_SAID,
+    CHAINS,
     COMMON_CANNOT_SEE,
+    COUNTS_RESIDENTS,
+    DISTANCE,
     FAMILIES,
     FEATURES,
     GRITTY,
+    HOLDS_RESIDENTS,
+    KINDS_OF_CHAIN,
     MIXED_WORDS,
+    NEARBY,
+    NEAREST_WITHIN_M,
     NEVER_A_TRADE_OFF,
     NUISANCES,
+    PLACED_ONLY_WITH,
     RANKED_AS,
+    SHOWN_BESIDE_THE_MIX,
     TAGS,
+    TIERS,
+    WITHIN_M,
+    Chain,
     Tag,
     TagTerm,
     band_of,
@@ -18,6 +31,7 @@ from burro_core.catalogue import (
     checked_recipe,
     default_direction,
     direction_allowed,
+    of_a_tier,
     percentile_of,
     tag_raw,
     tags_of,
@@ -45,7 +59,9 @@ from pydantic import ValidationError
 
 from .support import documents, draws
 
-# Words for who lives somewhere. None may appear in anything a user can rank on.
+# Words for who lives somewhere. None may appear in anything a user can rank on, but for
+# the four measures of age and of households and the two vibes that hold one, which say
+# who is counted because they must (ADR 0006, as amended on 2026-09-24).
 RESIDENT_WORDS = (
     r"residents?|people|population|households?|famil(?:y|ies)|students?|tenure|tenants?|"
     r"owners?|ages?|aged|young|old|elderly|child(?:ren)?|kids?|ethnic\w*|rac(?:e|ial)|"
@@ -63,6 +79,31 @@ ALLOWED = ("per 1,000 residents a year", "family amenities", "built age", "age o
 # word less is refused as any other name is. Decided on 2026-09-24 (ADR 0006).
 NOISE_LABEL = "Share of residents exposed to 55 dB or more of transport noise"
 RESIDENTS = re.compile(rf"\b(?:{RESIDENT_WORDS})\b", re.IGNORECASE)
+# What was not decided on. It is every word of `RESIDENT_WORDS` that is no word for age or
+# for households, and seven more. No name that counts residents may hold one, so a vibe
+# that counts households can never be named for a faith, a nation or a class.
+NOT_DECIDED_ON = re.compile(
+    r"\b(?:ethnic\w*|rac(?:e|ial)|religio\w*|faith|born|birth|languages?|gender|sex\w*|"
+    r"disab\w*|health|incomes?|depriv\w*|poor|rich|wealth\w*|class|migrants?|immigra\w*|"
+    r"nationalit\w*|students?|tenure|tenants?|owners?|married|marriage|partnership|"
+    r"cohabiting|lone parents?|employed|qualifications?)\b",
+    re.IGNORECASE,
+)
+# The four measures that say who lived in an area, by id and by name, letter for letter.
+THE_FOUR = {
+    FeatureId.RESIDENTS_AGED_20_34: (
+        "Residents aged 20 to 34 as a share of all residents, Census 2021"
+    ),
+    FeatureId.RESIDENTS_AGED_65_OVER: (
+        "Residents aged 65 and over as a share of all residents, Census 2021"
+    ),
+    FeatureId.HOUSEHOLDS_DEPENDENT_CHILDREN: (
+        "Households with dependent children as a share of all households, Census 2021"
+    ),
+    FeatureId.HOUSEHOLDS_ONE_PERSON: (
+        "Households of one person as a share of all households, Census 2021"
+    ),
+}
 
 
 def names_residents(text: str) -> bool:
@@ -75,29 +116,85 @@ def names_residents(text: str) -> bool:
     return RESIDENTS.search(lowered) is not None
 
 
-def test_no_feature_or_tag_describes_residents():
+def test_nothing_describes_residents_but_the_four_measures_and_the_two_vibes_that_hold_one():
     definitions = [m["definition"] for m in documents()["catalogue.json"]["metrics"]]
+    places = [f for f in FEATURES.values() if f.feature_id not in COUNTS_RESIDENTS]
+    of_places = [t for t in TAGS.values() if t.tag_id not in HOLDS_RESIDENTS]
     texts = [
         # The name of a feature is held alone, so that the one name that is let through
         # is let through as the whole of a name and hides nothing that stands beside it.
-        *(f.label for f in FEATURES.values()),
-        *(
-            f"{f.feature_id} {f.short_label} {f.unit} {f.higher} {f.lower}"
-            for f in FEATURES.values()
-        ),
+        *(f.label for f in places),
+        *(f"{f.feature_id} {f.short_label} {f.unit} {f.higher} {f.lower}" for f in places),
         *(
             f"{t.tag_id} {t.label} {t.short_label} {t.meaning} {t.low_end} {t.high_end} "
             f"{t.shelf_word}"
-            for t in TAGS.values()
+            for t in of_places
         ),
-        *(line for t in TAGS.values() for line in t.cannot_see),
+        *(line for t in of_places for line in t.cannot_see),
         *MIXED_WORDS,
-        *(label for label in FAMILIES.values()),
+        *(label for family, label in FAMILIES.items() if family is not Family.WHO_LIVES_THERE),
         *definitions,
     ]
     assert [t for t in texts if names_residents(t)] == []
-    # No feature can say what it describes but a place, its buildings or what was recorded there.
-    assert {member.value for member in Describes} == {"place", "buildings", "events"}
+    # What is left out of the search is the four, the two vibes and the group they stand in.
+    assert set(THE_FOUR) == COUNTS_RESIDENTS
+    assert {TagId.FAMILY_AREA, TagId.YOUNG_PROFESSIONALS} == HOLDS_RESIDENTS
+    assert {member.value for member in Describes} == {"place", "buildings", "events", "residents"}
+
+
+def test_the_measures_that_say_who_lived_somewhere_are_these_four_and_each_says_so():
+    """Decided on 2026-09-24: age and what households are made of, and nothing else.
+
+    Each name says who is counted and in which census. Each is a share in 100, so that a
+    release holds no count of people. A person may ask for more of what one counts and
+    never for fewer, and two areas are never said to be alike for who lives in them.
+    """
+    found = {f: feature for f, feature in FEATURES.items() if f in COUNTS_RESIDENTS}
+    assert {f: feature.label for f, feature in found.items()} == THE_FOUR
+    assert {f for f, feature in FEATURES.items() if feature.describes == "residents"} == set(found)
+    for feature in found.values():
+        assert feature.label.endswith(f", {CENSUS_SAID}") and CENSUS_SAID == "Census 2021"
+        assert (feature.unit, feature.polarity) == ("%", Polarity.MORE)
+        assert (feature.kind, feature.dimension) == (FeatureKind.RESIDENTS, Dimension.RESIDENTS)
+        assert feature.family is Family.WHO_LIVES_THERE
+        assert feature.in_likeness is False
+        assert feature.short_label.startswith("More ")
+        assert feature.short_label in {
+            "More young adults",
+            "More older residents",
+            "More households with children",
+            "More households of one person",
+        }
+        assert (feature.higher, feature.lower) == ("more", "fewer")
+        assert direction_allowed(feature.feature_id, Direction.MORE)
+        assert not direction_allowed(feature.feature_id, Direction.LESS)
+    # No other feature is of that kind, and none of the four is weighed until it is asked for.
+    assert {f for f, feature in FEATURES.items() if feature.kind == "residents"} == set(found)
+    for tenure in Tenure:
+        assert not {weight.feature_id for weight in default_spec(tenure).weights} & set(found)
+
+
+def test_no_name_that_counts_residents_holds_a_word_for_what_was_not_decided_on():
+    said = [
+        *(
+            f"{f.feature_id} {f.label} {f.short_label}"
+            for f in FEATURES.values()
+            if f.feature_id in COUNTS_RESIDENTS
+        ),
+        *(
+            f"{t.tag_id} {t.label} {t.meaning} {t.shelf_word} {' '.join(t.cannot_see)}"
+            for t in TAGS.values()
+            if t.tag_id in HOLDS_RESIDENTS
+        ),
+        FAMILIES[Family.WHO_LIVES_THERE],
+    ]
+    # What a vibe cannot see may say so: "Who is a student" is what it does not count.
+    cannot_see = "Who is a student."
+    found = [text for text in said if NOT_DECIDED_ON.search(text.replace("_", " "))]
+    assert [NOT_DECIDED_ON.findall(text.replace(cannot_see, "")) for text in found] == [[]]
+    assert cannot_see in TAGS[TagId.YOUNG_PROFESSIONALS].cannot_see
+    for text in ("Muslim families", "Households by ethnic group", "Wealthy retirees"):
+        assert NOT_DECIDED_ON.search(text) or names_residents(text)
 
 
 @pytest.mark.parametrize(
@@ -108,10 +205,17 @@ def test_no_feature_or_tag_describes_residents():
         "Households with children",
         "median_age",
         "Share of the population exposed to transport noise",
+        # What was not decided on, said beside what was.
+        "Residents aged 20 to 34 by ethnic group",
+        "Households of lone parents",
+        "Residents born abroad",
+        "Students as a share of all residents",
     ],
 )
 def test_the_denylist_would_catch_a_feature_that_describes_residents(text: str):
     assert names_residents(text)
+    # None is a name of the four, so none is let through as one.
+    assert text not in THE_FOUR.values()
 
 
 @pytest.mark.parametrize(
@@ -150,16 +254,19 @@ def test_the_guard_lets_the_one_name_of_transport_noise_through_and_refuses_ever
     assert names_residents(NOISE_LABEL.upper()) and names_residents(f" {NOISE_LABEL}")
 
 
-def test_transport_noise_is_the_one_name_of_the_catalogue_that_says_residents():
+def test_transport_noise_is_the_one_name_of_a_measure_of_the_place_that_says_residents():
     who = re.compile(r"\bresidents?\b", re.IGNORECASE)
     said = [
         feature.feature_id
         for feature in FEATURES.values()
         if who.search(f"{feature.label} {feature.short_label}")
+        and feature.feature_id not in COUNTS_RESIDENTS
     ]
     assert said == [FeatureId.NOISE_EXPOSURE]
     assert not any(
-        who.search(f"{tag.label} {tag.short_label} {tag.meaning}") for tag in TAGS.values()
+        who.search(f"{tag.label} {tag.short_label} {tag.meaning}")
+        for tag in TAGS.values()
+        if tag.tag_id not in HOLDS_RESIDENTS
     )
     # Its short label, and the words that compare two areas, say nothing of who.
     noise = FEATURES[FeatureId.NOISE_EXPOSURE]
@@ -280,7 +387,14 @@ def test_cultural_venues_are_shown_as_a_count_and_ranked_on_for_each_1000_homes(
 
 def test_no_recipe_holds_a_measure_that_is_shown_and_never_ranked_on():
     """A vibe is ranked on what a wish is ranked on, so Food and drink holds the rate."""
-    assert set(RANKED_AS) == {FeatureId.VENUE_FOOD_DRINK, FeatureId.CULTURE_VENUES}
+    assert set(RANKED_AS) == {
+        FeatureId.VENUE_FOOD_DRINK,
+        FeatureId.CULTURE_VENUES,
+        FeatureId.VENUE_CAFE,
+        FeatureId.VENUE_GYM,
+        FeatureId.VENUE_EVENING,
+        FeatureId.BUS_STOPS_NEARBY,
+    }
     in_a_recipe = {term.feature_id for tag in TAGS.values() for term in tag.terms}
     assert not in_a_recipe & set(RANKED_AS)
     food = {term.feature_id: term.hundredths for term in TAGS[TagId.FOODIE].terms}
@@ -301,6 +415,7 @@ STRAIGHT_LINES = {
         "count",
     ),
     FeatureId.STATION_WALK: ("Straight-line distance to the nearest way in to a station", "m"),
+    FeatureId.GROCERY_WALK: ("Straight-line distance to the nearest food shop", "m"),
     FeatureId.HIGHSTREET_ACCESS: (
         "Straight-line distance to the nearest town centre boundary",
         "m",
@@ -384,6 +499,181 @@ def test_three_measures_keep_cores_names_until_the_founder_has_decided():
     )
 
 
+def test_village_feel_is_placed_only_where_something_of_a_town_centre_has_a_figure():
+    """Its other three parts are 60 in 100 of it, which would be enough for a band.
+
+    On a build of London they found inner London's old streets and no villages. It is
+    served only once a second try reads as villages, so it places no area that has no
+    figure for the size or the shape of its town centre, whatever else is known.
+    """
+    centre = {FeatureId.CENTRE_SMALL, FeatureId.CENTRE_COMPACT}
+    assert dict(PLACED_ONLY_WITH) == {TagId.VILLAGE_FEEL: centre}
+    rest = {
+        term.feature_id: 80.0
+        for term in TAGS[TagId.VILLAGE_FEEL].terms
+        if term.feature_id not in centre
+    }
+    assert set(rest) == {
+        FeatureId.INDEPENDENTS_NEARBY,
+        FeatureId.HOMES_PRE1919,
+        FeatureId.CONSERVATION_COVER,
+    }
+    without = tag_raw(TagId.VILLAGE_FEEL, rest)
+    # How much of the recipe is known is still said: it is what the sentence of the vibe says.
+    assert (without.raw, without.coverage) == (None, 0.6)
+    assert tag_raw(TagId.VILLAGE_FEEL, rest | dict.fromkeys(centre)).raw is None
+    for part in sorted(centre):
+        placed = tag_raw(TagId.VILLAGE_FEEL, rest | {part: 80.0})
+        assert (placed.raw, placed.coverage) == (0.8, 0.8)
+    # With something of a town centre it is held to 60 in 100 as any vibe is.
+    assert tag_raw(TagId.VILLAGE_FEEL, dict.fromkeys(centre, 80.0)).raw is None
+    # Every part that is named is a part of the recipe it is named for.
+    for tag_id, needed in PLACED_ONLY_WITH.items():
+        assert needed and needed <= {term.feature_id for term in TAGS[tag_id].terms}
+    # Food and drink holds independent places too, and is placed on them as it was.
+    food = {FeatureId.VENUE_FOOD_DRINK_PER_HOMES: 80.0, FeatureId.INDEPENDENTS_NEARBY: 80.0}
+    assert tag_raw(TagId.FOODIE, food).raw == 0.8
+
+
+# The chains of grocers, gyms and coffee, as the founder decided on 2026-09-24 (ADR 0026).
+FOUNDERS_CHAINS = (
+    *("Waitrose", "M&S", "Whole Foods", "Sainsbury's", "Tesco", "Co-op"),
+    *("Asda", "Aldi", "Lidl", "Iceland"),
+    *("Equinox", "Third Space", "Barry's", "Virgin Active", "Nuffield", "Gymbox"),
+    *("PureGym", "The Gym Group"),
+    *("Gail's", "Ole & Steen", "Pret", "Nero", "Starbucks", "Greggs"),
+)
+ADDED_CHAINS = ("Morrisons", "David Lloyd", "Anytime Fitness", "Costa", "Blank Street")
+
+
+def test_the_places_of_each_tier_are_counted_and_the_nearest_is_measured():
+    """Nine tiers: grocers, gyms and coffee, each premium, mid-range and value."""
+    assert len(SHOWN_BESIDE_THE_MIX) == 18
+    assert (WITHIN_M, NEAREST_WITHIN_M) == (800, 2_000)
+    for kind, (one, many) in KINDS_OF_CHAIN.items():
+        for tier, said in TIERS.items():
+            count = FEATURES[of_a_tier(kind, tier, NEARBY)]
+            far = FEATURES[of_a_tier(kind, tier, DISTANCE)]
+            assert count.label == (
+                f"{said.capitalize()} {many} within 800 m of home, in a straight line, by "
+                "Burro's table of tiers"
+            )
+            assert far.label == (
+                f"Straight-line distance to the nearest {said} {one} within 2,000 m of home, "
+                "by Burro's table of tiers"
+            )
+            assert (count.short_label, far.short_label) == (
+                f"{said.capitalize()} {many} within reach",
+                f"Nearer a {said} {one}",
+            )
+            assert (count.unit, count.polarity, count.kind) == (
+                "count",
+                Polarity.MORE,
+                FeatureKind.AMENITY,
+            )
+            assert (far.unit, far.polarity, far.kind) == ("m", Polarity.LESS, FeatureKind.AMENITY)
+            assert (far.higher, far.lower) == ("further", "closer")
+            for feature in (count, far):
+                assert feature.feature_id in SHOWN_BESIDE_THE_MIX
+                assert feature.dimension is Dimension.BRANDS
+                assert (feature.describes, feature.family) == (Describes.PLACE, Family.DAILY_LIFE)
+                assert feature.native_resolution is NativeResolution.POINT
+                assert "walk" not in f"{feature.label} {feature.short_label}".lower()
+    assert set(TIERS) == {"premium", "mid", "value"}
+    assert set(KINDS_OF_CHAIN) == {"grocer", "gym", "coffee"}
+
+
+def test_the_mix_of_brands_is_a_measure_of_the_place_that_stands_in_no_vibe():
+    """It is what a word for a smart area is first read as, and it is of which shops stand.
+
+    It is offered and never applied from a word, it stands in no vibe, no likeness is
+    counted on it, and nothing weighs it by default.
+    """
+    mix = FEATURES[FeatureId.BRAND_MIX]
+    assert mix.label == (
+        "Share of the chain grocers, gyms and coffee places within 800 m of home that are "
+        "premium, with a mid-range one counted as half, by Burro's table of tiers"
+    )
+    assert (mix.short_label, mix.unit) == ("Mix of brands", "%")
+    assert (mix.polarity, mix.kind) == (Polarity.EITHER, FeatureKind.TASTE)
+    assert (mix.higher, mix.lower) == ("more premium", "less premium")
+    assert (mix.describes, mix.dimension) == (Describes.PLACE, Dimension.BRANDS)
+    assert not mix.in_likeness and FeatureId.BRAND_MIX not in SHOWN_BESIDE_THE_MIX
+    assert FeatureId.BRAND_MIX not in {t.feature_id for tag in TAGS.values() for t in tag.terms}
+    for tenure in Tenure:
+        assert FeatureId.BRAND_MIX not in {w.feature_id for w in default_spec(tenure).weights}
+    assert not names_residents(f"{mix.label} {mix.short_label} {mix.higher} {mix.lower}")
+
+
+def test_no_likeness_is_counted_on_a_tier_a_chain_or_the_mix():
+    brands = {f for f, feature in FEATURES.items() if feature.dimension is Dimension.BRANDS}
+    assert brands == {*SHOWN_BESIDE_THE_MIX, FeatureId.BRAND_MIX, *CHAINS}
+    assert not any(FEATURES[feature_id].in_likeness for feature_id in brands)
+    assert not brands & {t.feature_id for tag in TAGS.values() for t in tag.terms}
+
+
+def test_a_chain_is_named_so_that_a_person_can_ask_to_be_near_one():
+    assert tuple(chain.name for chain in CHAINS.values()) == (
+        *FOUNDERS_CHAINS[:6],
+        "Morrisons",
+        *FOUNDERS_CHAINS[6:16],
+        "David Lloyd",
+        "Anytime Fitness",
+        *FOUNDERS_CHAINS[16:23],
+        "Costa",
+        "Blank Street",
+        "Greggs",
+    )
+    assert {chain.name for chain in CHAINS.values()} == {*FOUNDERS_CHAINS, *ADDED_CHAINS}
+    for feature_id, chain in CHAINS.items():
+        feature = FEATURES[feature_id]
+        assert feature_id.value.startswith("brand_") and chain.feature_id is feature_id
+        assert feature.label == (
+            f"Straight-line distance to the nearest {chain.nearest} within 2,000 m of home"
+        )
+        assert feature.short_label == f"Nearer {chain.one}"
+        assert chain.name in chain.one and chain.name in chain.nearest
+        assert (feature.unit, feature.polarity) == ("m", Polarity.LESS)
+        # It is weighed only where a person asks for the chain by name.
+        assert feature.kind is FeatureKind.ON_REQUEST
+        # A person may ask to be near a chain, and never to be far from one.
+        assert direction_allowed(feature_id, Direction.LESS)
+        assert not direction_allowed(feature_id, Direction.MORE)
+    assert FEATURES[FeatureId.BRAND_ALDI].short_label == "Nearer an Aldi"
+    assert FEATURES[FeatureId.BRAND_THE_GYM_GROUP].short_label == "Nearer The Gym Group"
+
+
+def test_core_names_a_tier_and_a_chain_and_never_says_which_chain_is_of_which_tier():
+    """The table of tiers is the founder's judgement, and is data of the pipeline's."""
+    assert set(Chain.model_fields) == {"feature_id", "name", "one", "nearest"}
+    tiers = {said for said in TIERS.values()} | set(TIERS)
+    for chain in CHAINS.values():
+        said = f"{chain.feature_id} {chain.name} {chain.one} {chain.nearest}".lower()
+        assert not any(tier in said.replace("-", " ").split() for tier in tiers)
+        feature = FEATURES[chain.feature_id]
+        assert "tier" not in feature.label and "premium" not in feature.label
+
+
+def test_independent_places_are_a_share_of_the_places_within_reach_in_a_straight_line():
+    """It is a part of Food and drink and of Village feel, and is named for what is measured."""
+    independent = FEATURES[FeatureId.INDEPENDENTS_NEARBY]
+    assert independent.label == (
+        "Share of the places to eat and drink within 800 m of home, in a straight line, that "
+        "belong to no chain"
+    )
+    assert (independent.short_label, independent.unit) == ("More independent places nearby", "%")
+    assert (independent.polarity, independent.kind) == (Polarity.MORE, FeatureKind.TASTE)
+    assert independent.native_resolution is NativeResolution.POINT
+    assert "walk" not in independent.label.lower()
+    held = {
+        tag.tag_id: term.hundredths
+        for tag in TAGS.values()
+        for term in tag.terms
+        if term.feature_id is FeatureId.INDEPENDENTS_NEARBY
+    }
+    assert held == {TagId.VILLAGE_FEEL: 25, TagId.FOODIE: 40}
+
+
 def test_what_is_shown_and_not_ranked_on_is_ranked_as_a_measure_of_the_same_kind():
     for shown, ranked in RANKED_AS.items():
         assert shown is not ranked and ranked not in RANKED_AS
@@ -399,9 +689,9 @@ def test_what_is_shown_and_not_ranked_on_is_ranked_as_a_measure_of_the_same_kind
 def test_the_catalogue_holds_every_feature_and_tag_once():
     assert set(FEATURES) == set(FeatureId)
     assert set(TAGS) == set(TagId)
-    assert len(FEATURES) == 47
-    # Ten vibes, and gritty in both its variants.
-    assert len(TAGS) == 12
+    assert len(FEATURES) == 112
+    # Thirteen vibes, and gritty in both its variants.
+    assert len(TAGS) == 15
 
 
 RETIRED = (
@@ -468,6 +758,106 @@ BROKEN_RECIPES = {
         term(50, FeatureId.CULTURE_VENUES),
     ),
 }
+
+
+def family_area(**changed: object) -> Tag:
+    return TAGS[TagId.FAMILY_AREA].replace(**changed)
+
+
+def with_children(hundredths: int, reading: TermReading, rest: int) -> tuple[TagTerm, ...]:
+    children = TagTerm(
+        feature_id=FeatureId.HOUSEHOLDS_DEPENDENT_CHILDREN, hundredths=hundredths, reading=reading
+    )
+    return (children, term(rest, FeatureId.SCHOOL_PRIMARY_NEARBY), term(20, FeatureId.GREEN_COVER))
+
+
+# A recipe that would rank towards fewer of a group of people, or be one census figure
+# under a vibe's name, or not say which census it counts. Each is refused by its own rule.
+BROKEN_WHERE_RESIDENTS_COUNT = {
+    "reads a part that counts residents from its high end": family_area(
+        terms=with_children(40, TermReading.LOW, 40)
+    ),
+    "holds no part that counts residents, being a scale": family_area(
+        shape=TagShape.SCALE, low_end="Few", high_end="Many"
+    ),
+    "holds no part of more than 40 hundredths where it counts residents": family_area(
+        terms=with_children(45, TermReading.HIGH, 35)
+    ),
+    "holds no part of more than 40 hundredths": family_area(
+        terms=with_children(35, TermReading.HIGH, 45)
+    ),
+    "names the census in its meaning where it counts residents": family_area(
+        meaning="Households with dependent children, with schools and a park nearby"
+    ),
+    "is on a result only where it was asked for, where it counts residents": family_area(
+        strip=True
+    ),
+}
+
+
+@pytest.mark.parametrize("rule", BROKEN_WHERE_RESIDENTS_COUNT)
+def test_a_recipe_that_counts_residents_is_read_high_runs_one_way_and_is_no_one_figure(rule: str):
+    with pytest.raises(ValueError, match=f"a recipe {rule}"):
+        checked_recipe(BROKEN_WHERE_RESIDENTS_COUNT[rule])
+    # The same recipe with no part that counts residents breaks none of these.
+    places = TAGS[TagId.FAMILY_AMENITIES]
+    assert checked_recipe(places) is places and TagId.FAMILY_AMENITIES not in HOLDS_RESIDENTS
+
+
+@pytest.mark.parametrize("tag_id", sorted(HOLDS_RESIDENTS))
+def test_a_vibe_that_counts_residents_holds_them_at_no_more_than_40_in_100(tag_id: TagId):
+    tag = TAGS[tag_id]
+    counted = [t for t in tag.terms if t.feature_id in COUNTS_RESIDENTS]
+    assert [t.reading for t in counted] == [TermReading.HIGH]
+    assert max(t.hundredths for t in tag.terms) == 40 == counted[0].hundredths
+    # What is there is six in ten of it: Burro measures places first.
+    assert sum(t.hundredths for t in tag.terms if t not in counted) == 60
+    assert (tag.shape, tag.family) == (TagShape.ONE_WAY, Family.WHO_LIVES_THERE)
+    assert CENSUS_SAID in tag.meaning and tag.shelf_word is None
+    assert any("21 March 2021" in line for line in tag.cannot_see)
+    # A map may be coloured by it and a comparison may hold it. No result shows it
+    # unless it was asked for.
+    assert (tag.lens, tag.table, tag.strip) == (True, True, False)
+
+
+def test_family_area_and_family_amenities_each_say_how_they_differ():
+    """Family area counts the households that hold children. Family amenities counts places.
+
+    They are two vibes and not one: on London's areas they find different places, and a
+    person can still ask for what is there without counting who lives there.
+    """
+    area, amenities = TAGS[TagId.FAMILY_AREA], TAGS[TagId.FAMILY_AMENITIES]
+    assert {t.feature_id: (t.hundredths, t.reading) for t in area.terms} == {
+        FeatureId.HOUSEHOLDS_DEPENDENT_CHILDREN: (40, TermReading.HIGH),
+        FeatureId.SCHOOL_PRIMARY_NEARBY: (25, TermReading.HIGH),
+        FeatureId.PLAY_SPACE_PROXIMITY: (20, TermReading.LOW),
+        FeatureId.PARK_PROXIMITY: (15, TermReading.LOW),
+    }
+    assert {t.feature_id: (t.hundredths, t.reading) for t in amenities.terms} == {
+        FeatureId.SCHOOL_PRIMARY_NEARBY: (40, TermReading.HIGH),
+        FeatureId.PLAY_SPACE_PROXIMITY: (35, TermReading.LOW),
+        FeatureId.PARK_PROXIMITY: (25, TermReading.LOW),
+    }
+    assert area.meaning.endswith("It counts who lived there beside what is there")
+    assert amenities.meaning.endswith("It counts places alone")
+    assert "Who lives there." in amenities.cannot_see
+
+
+def test_young_professionals_counts_age_and_what_is_near_and_says_it_counts_no_work():
+    young = TAGS[TagId.YOUNG_PROFESSIONALS]
+    assert {t.feature_id: (t.hundredths, t.reading) for t in young.terms} == {
+        FeatureId.RESIDENTS_AGED_20_34: (40, TermReading.HIGH),
+        FeatureId.STATION_WALK: (25, TermReading.LOW),
+        FeatureId.VENUE_FOOD_DRINK_PER_HOMES: (20, TermReading.HIGH),
+        FeatureId.CULTURE_VENUES_PER_HOMES: (15, TermReading.HIGH),
+    }
+    # The recipe that was proposed and not built held flats and homes per hectare, and
+    # found the areas that Houses or flats finds.
+    parts = {t.feature_id for t in young.terms}
+    assert not parts & {t.feature_id for t in TAGS[TagId.HOMES].terms}
+    assert "What anyone does for work: it counts residents by their age alone." in (
+        young.cannot_see
+    )
 
 
 @pytest.mark.parametrize("terms", BROKEN_RECIPES.values(), ids=list(BROKEN_RECIPES))
@@ -539,11 +929,12 @@ def test_what_homes_sell_for_is_a_measure_of_the_place_that_stands_in_no_vibe():
         assert FeatureId.PRICE_MEDIAN not in {w.feature_id for w in default_spec(tenure).weights}
 
 
-def test_going_out_is_places_to_eat_and_drink_high_streets_and_culture_and_no_pubs():
-    """Decided on 2026-09-24: what Going out is made of while the pubs are held back.
+def test_going_out_is_pubs_places_to_eat_and_drink_high_streets_and_culture():
+    """Pubs and bars are 35 in 100 of Going out, as they were before they were held back.
 
-    A check of the register found that pubs alone follow how a council fills it in as
-    much as they follow pubs. They join the recipe when a second source confirms them.
+    They were out while the food register was the one source of them, and the recipe was
+    45, 30 and 25. They are counted from the file of places, and the shares are as they
+    stood before.
     """
     going_out = TAGS[TagId.PACE]
     assert (going_out.label, going_out.low_end, going_out.high_end) == (
@@ -552,22 +943,91 @@ def test_going_out_is_places_to_eat_and_drink_high_streets_and_culture_and_no_pu
         "Buzzy",
     )
     assert {term.feature_id: (term.hundredths, term.reading) for term in going_out.terms} == {
-        FeatureId.VENUE_FOOD_DRINK_PER_HOMES: (45, TermReading.HIGH),
+        FeatureId.VENUE_EVENING_PER_HOMES: (35, TermReading.HIGH),
+        FeatureId.VENUE_FOOD_DRINK_PER_HOMES: (30, TermReading.HIGH),
         # A distance to a town centre, which is read from its near end.
-        FeatureId.HIGHSTREET_ACCESS: (30, TermReading.LOW),
-        FeatureId.CULTURE_VENUES_PER_HOMES: (25, TermReading.HIGH),
+        FeatureId.HIGHSTREET_ACCESS: (20, TermReading.LOW),
+        FeatureId.CULTURE_VENUES_PER_HOMES: (15, TermReading.HIGH),
     }
-    # The pubs are in no recipe while they are held back, and a vibe is ranked on what a
-    # wish is ranked on: the places for each 1,000 homes, and not the count.
+    # A vibe is ranked on what a wish is ranked on: the figure for each 1,000 homes, and
+    # never the count. And it no longer says that pubs are not counted.
     in_a_recipe = {term.feature_id for tag in TAGS.values() for term in tag.terms}
     assert FeatureId.VENUE_EVENING not in in_a_recipe
-    assert FeatureId.VENUE_FOOD_DRINK not in {term.feature_id for term in going_out.terms}
-    # Places to eat and drink alone give no band: two of the three parts do.
-    alone = tag_raw(TagId.PACE, {FeatureId.VENUE_FOOD_DRINK_PER_HOMES: 80.0})
-    assert (alone.coverage, alone.raw) == (0.45, None)
-    for second in (FeatureId.HIGHSTREET_ACCESS, FeatureId.CULTURE_VENUES_PER_HOMES):
-        two = tag_raw(TagId.PACE, {FeatureId.VENUE_FOOD_DRINK_PER_HOMES: 80.0, second: 40.0})
-        assert two.coverage >= 0.6 and two.raw is not None
+    assert FeatureId.VENUE_FOOD_DRINK not in in_a_recipe
+    assert not any("not counted" in line for line in going_out.cannot_see)
+    # No one part gives a band, and pubs with either kind of place to eat do.
+    alone = tag_raw(TagId.PACE, {FeatureId.VENUE_EVENING_PER_HOMES: 80.0})
+    assert (alone.coverage, alone.raw) == (0.35, None)
+    two = tag_raw(
+        TagId.PACE,
+        {FeatureId.VENUE_EVENING_PER_HOMES: 80.0, FeatureId.VENUE_FOOD_DRINK_PER_HOMES: 40.0},
+    )
+    assert two.coverage == 0.65 and two.raw is not None
+    # Without the pubs it still has one: the other three are 65 in 100.
+    without = tag_raw(
+        TagId.PACE,
+        {
+            FeatureId.VENUE_FOOD_DRINK_PER_HOMES: 80.0,
+            FeatureId.HIGHSTREET_ACCESS: 40.0,
+            FeatureId.CULTURE_VENUES_PER_HOMES: 40.0,
+        },
+    )
+    assert without.coverage == 0.65 and without.raw is not None
+
+
+def test_cafes_gyms_and_pubs_are_each_shown_as_a_count_and_ranked_on_for_each_1000_homes():
+    """The rule of the places to eat and drink, applied alike to the three."""
+    named = {
+        FeatureId.VENUE_CAFE: ("Cafes and coffee shops", "Cafes within reach", "More cafes nearby"),
+        FeatureId.VENUE_GYM: ("Gyms and fitness studios", "Gyms within reach", "More gyms nearby"),
+        FeatureId.VENUE_EVENING: ("Pubs and bars", "Pubs and bars within reach", "Pubs and bars"),
+    }
+    for shown, (what, short, wish) in named.items():
+        count, rate = FEATURES[shown], FEATURES[RANKED_AS[shown]]
+        assert rate.feature_id == f"{shown}_per_homes"
+        assert (count.label, count.unit) == (
+            f"{what} within 800 m of home, in a straight line",
+            "count",
+        )
+        assert (rate.label, rate.unit) == (
+            f"{what} for each 1,000 homes within 800 m, in a straight line",
+            "per 1,000 homes",
+        )
+        assert (count.short_label, rate.short_label) == (short, wish)
+        for feature in (count, rate):
+            assert "walk" not in feature.label and "km" not in feature.unit
+            assert (feature.dimension, feature.describes) == (
+                Dimension.VENUES_CULTURE,
+                Describes.PLACE,
+            )
+        # New, and no audit has passed it for likeness.
+        assert not rate.in_likeness
+    # A person may want fewer pubs, and never fewer cafes or gyms.
+    for shown in (FeatureId.VENUE_CAFE, FeatureId.VENUE_GYM):
+        for feature in (FEATURES[shown], FEATURES[RANKED_AS[shown]]):
+            assert (feature.polarity, feature.kind) == (Polarity.MORE, FeatureKind.AMENITY)
+            assert not feature.in_likeness
+    for feature_id in (FeatureId.VENUE_EVENING, FeatureId.VENUE_EVENING_PER_HOMES):
+        pubs = FEATURES[feature_id]
+        assert (pubs.polarity, pubs.kind) == (Polarity.EITHER, FeatureKind.TASTE)
+
+
+def test_the_homes_near_a_cluster_of_pubs_are_named_for_what_is_counted():
+    """The file of places cannot say how late a place is open, so no name says late."""
+    near = FEATURES[FeatureId.EVENING_CLUSTER_EXPOSURE]
+    assert near.label == (
+        "Share of homes with three or more pubs or bars within 150 m, in a straight line"
+    )
+    assert near.short_label == "Away from clusters of pubs and bars"
+    assert (near.unit, near.polarity, near.kind) == ("%", Polarity.LESS, FeatureKind.NUISANCE)
+    quiet = TAGS[TagId.QUIET_RESIDENTIAL]
+    assert {term.feature_id: (term.hundredths, term.reading) for term in quiet.terms} == {
+        FeatureId.ROAD_MAJOR_EXPOSURE: (40, TermReading.LOW),
+        FeatureId.EVENING_CLUSTER_EXPOSURE: (30, TermReading.LOW),
+        FeatureId.NOISE_EXPOSURE: (30, TermReading.LOW),
+    }
+    assert "late" not in quiet.meaning and "pubs and bars" in quiet.meaning
+    assert "How late a pub or a bar is open." in quiet.cannot_see
 
 
 def test_gritty_is_one_vibe_on_a_scale_that_counts_recorded_crime():
@@ -617,7 +1077,13 @@ def test_works_and_warehouses_is_a_part_of_gritty_and_is_not_served_beside_it():
     assert not crime(works)
     carried = [tag.tag_id for tag in tags_of(GrittyVariant.B)]
     assert TagId.WORKS_WAREHOUSES not in carried
-    assert carried[-1] is TagId.STREET_CHARACTER
+    # Gritty is the last of the vibes of the place. The two that count who lives there
+    # come after it.
+    assert carried[-3:] == [
+        TagId.STREET_CHARACTER,
+        TagId.FAMILY_AREA,
+        TagId.YOUNG_PROFESSIONALS,
+    ]
     gritty = {term.feature_id: term.hundredths for term in TAGS[TagId.STREET_CHARACTER].terms}
     assert (gritty[FeatureId.LAND_INDUSTRY], gritty[FeatureId.LAND_STORAGE]) == (15, 15)
 
@@ -656,29 +1122,37 @@ def test_a_one_way_vibe_reads_a_nuisance_from_its_low_end_only(tag: Tag):
 
 def test_no_recipe_holds_a_part_that_is_weighed_on_request_only():
     on_request = {f for f, feature in FEATURES.items() if feature.kind is FeatureKind.ON_REQUEST}
+    # A campus, the results of schools, and the nearest place of each chain a person may name.
     assert on_request == {
         FeatureId.UNIVERSITY_PROXIMITY,
         FeatureId.SCHOOL_PRIMARY_ATTAINMENT,
         FeatureId.SCHOOL_SECONDARY_ATTAINMENT,
+        *CHAINS,
     }
     assert not any(t.feature_id in on_request for tag in TAGS.values() for t in tag.terms)
 
 
-def test_a_release_carries_the_ten_vibes_and_the_one_that_gritty_is_read_as():
+def test_a_release_carries_the_thirteen_vibes_and_the_one_that_gritty_is_read_as():
     # What the word "gritty" is read as, by what a release carries.
     assert GRITTY == {
         GrittyVariant.A: TagId.WORKS_WAREHOUSES,
         GrittyVariant.B: TagId.STREET_CHARACTER,
     }
-    # The committed release and a build of London carry eleven: every vibe but Works and
-    # warehouses, which is a part of Gritty.
+    # The committed release and a build of London carry fourteen: every vibe but Works and
+    # warehouses, which is a part of Gritty. Gritty comes last of the vibes of the place, and
+    # the two that count who lives there come after it.
     carried = tags_of(GrittyVariant.B)
     assert {tag.tag_id for tag in carried} == set(TagId) - {TagId.WORKS_WAREHOUSES}
-    assert [tag.shelf_order for tag in carried] == [*range(1, 11), 12]
-    # A release that holds no recorded crime carries eleven: every vibe but Gritty.
+    assert [tag.shelf_order for tag in carried] == [*range(1, 11), 12, 13, 14, 15]
+    assert [tag.tag_id for tag in carried[-3:]] == [
+        TagId.STREET_CHARACTER,
+        TagId.FAMILY_AREA,
+        TagId.YOUNG_PROFESSIONALS,
+    ]
+    # A release that holds no recorded crime carries fourteen: every vibe but Gritty.
     without = tags_of(GrittyVariant.A)
     assert {tag.tag_id for tag in without} == set(TagId) - {TagId.STREET_CHARACTER}
-    assert [tag.shelf_order for tag in without] == list(range(1, 12))
+    assert [tag.shelf_order for tag in without] == [*range(1, 13), 14, 15]
     assert not any(crime(tag) for tag in without)
 
 
@@ -726,13 +1200,19 @@ def test_leafy_says_that_a_wood_that_is_a_public_park_is_counted_twice():
     )
 
 
-def test_the_families_are_four_in_the_order_of_the_settings():
+def test_the_families_are_five_in_the_order_of_the_settings():
+    # What counts who lives somewhere stands in a group of its own, last, apart from what
+    # counts places. Its name says the census.
     assert list(FAMILIES.items()) == [
         (Family.STREETS_HOMES, "Streets and homes"),
         (Family.PACE_FOOD, "Pace and food"),
         (Family.GREEN, "Green"),
         (Family.DAILY_LIFE, "Daily life"),
+        (Family.WHO_LIVES_THERE, "Who lives there, at the 2021 census"),
     ]
+    inside = {f for f, feature in FEATURES.items() if feature.family == "who_lives_there"}
+    assert inside == COUNTS_RESIDENTS
+    assert {t for t, tag in TAGS.items() if tag.family == "who_lives_there"} == HOLDS_RESIDENTS
 
 
 def test_the_nuisances_are_read_from_what_kind_of_thing_a_feature_is():
@@ -761,8 +1241,16 @@ def test_what_a_feature_describes_is_a_place_its_buildings_or_what_was_recorded_
         FeatureId.CONSERVATION_COVER,
         FeatureId.LISTED_BUILDINGS,
         FeatureId.PRIVATE_OUTDOOR_SPACE,
-        # What homes sold for is a figure of the homes of a place.
+        # What homes sold for is a figure of the homes of a place, and so is how far it
+        # has risen, and the council tax bands the homes are in.
         FeatureId.PRICE_MEDIAN,
+        FeatureId.PRICE_RISE_5Y,
+        FeatureId.PRICE_RISE_10Y,
+        FeatureId.HOMES_HIGHER_BANDS,
+    }
+    # Who lived there is said of the four measures of the census, and of nothing else.
+    assert {f for f, feature in FEATURES.items() if feature.describes == "residents"} == {
+        f for f, feature in FEATURES.items() if feature.dimension == "residents"
     }
 
 
@@ -823,7 +1311,7 @@ def test_a_short_label_is_short_and_holds_no_figure(feature_id: FeatureId):
 def test_a_short_label_says_the_wish_where_there_is_one_direction_and_the_measure_where_two():
     assert FEATURES[FeatureId.NOISE_EXPOSURE].short_label == "Less transport noise"
     assert FEATURES[FeatureId.PARK_PROXIMITY].short_label == "Nearer a park"
-    assert FEATURES[FeatureId.VENUE_EVENING].short_label == "Pubs and bars"
+    assert FEATURES[FeatureId.VENUE_EVENING_PER_HOMES].short_label == "Pubs and bars"
     shorts = [feature.short_label for feature in FEATURES.values()]
     shorts += [tag.short_label for tag in TAGS.values()]
     assert len(set(shorts)) == len(shorts)
@@ -858,6 +1346,7 @@ def test_only_features_of_buildings_venues_and_land_let_the_user_choose_the_dire
         FeatureId.VENUE_FOOD_DRINK,
         FeatureId.VENUE_FOOD_DRINK_PER_HOMES,
         FeatureId.VENUE_EVENING,
+        FeatureId.VENUE_EVENING_PER_HOMES,
         FeatureId.HOMES_FLATS,
         FeatureId.HOMES_PRE1919,
         FeatureId.HOMES_POST2000,
@@ -866,6 +1355,11 @@ def test_only_features_of_buildings_venues_and_land_let_the_user_choose_the_dire
         FeatureId.LAND_STORAGE,
         FeatureId.LAND_TRANSPORT_OTHER,
         FeatureId.PRICE_MEDIAN,
+        # Which chains stand in a place: a person may ask for more premium or for less.
+        FeatureId.BRAND_MIX,
+        FeatureId.PRICE_RISE_5Y,
+        FeatureId.PRICE_RISE_10Y,
+        FeatureId.HOMES_HIGHER_BANDS,
     }
     assert all(default_direction(f) is Direction.MORE for f in either)
     # Wanting less of one is a taste in places, so each is a taste.
@@ -1007,10 +1501,30 @@ def test_tag_coverage_of_exactly_sixty_hundredths_is_enough():
     assert found.raw == 0.5
 
 
+def test_everyday_on_foot_says_what_its_distances_cannot_see():
+    """Each part is a straight line to a place of which the file says little.
+
+    On London its order is mostly that of homes to the hectare. A person is told
+    so beside the band, first of what is the vibe's own.
+    """
+    said = TAGS[TagId.EVERYDAY_ON_FOOT].cannot_see
+    assert said == (
+        COMMON_CANNOT_SEE,
+        "It is mostly a map of how built up a place is.",
+        "How long the walk is: each distance is a straight line.",
+        "Which side of a railway a home is on.",
+        "How large a food shop is, and what it sells.",
+        "Whether a surgery takes new patients.",
+        "Opening hours.",
+        "Step-free access at every station.",
+    )
+    assert "straight line" in said[2] and "walk" not in TAGS[TagId.EVERYDAY_ON_FOOT].meaning
+
+
 def test_a_recipe_runs_short_where_a_release_holds_no_figure_for_a_part():
-    # Everyday on foot holds a GP and a pharmacy, which no release carries
-    # yet. It runs at 70 hundredths, which is enough to place an area. Each part
-    # is a walk or a distance, and is read from its near end.
+    # Everyday on foot holds a GP and a pharmacy, which the made-up release does
+    # not carry. It runs at 70 hundredths, which is enough to place an area. Each
+    # part is a distance, and is read from its near end.
     found = tag_raw(
         TagId.EVERYDAY_ON_FOOT,
         {
@@ -1028,17 +1542,17 @@ def test_every_walk_time_and_distance_has_a_figure_at_which_it_is_never_a_trade_
     # figure is in the catalogue, beside the measure, and in no rule of code.
     measured = {f for f, feature in FEATURES.items() if feature.unit in ("min", "m")}
     assert set(NEVER_A_TRADE_OFF) == measured
-    assert len(measured) == 9
+    # Twelve, the nearest place of each of nine tiers, and the nearest of each of 29 chains.
+    assert len(measured) == 12 + 9 + len(CHAINS) == 50
     for feature_id, figure in NEVER_A_TRADE_OFF.items():
         # Each is a measure of which less is better, so a short one is a good one.
         assert FEATURES[feature_id].polarity is Polarity.LESS, feature_id
         assert figure > 0
-    # Ten minutes on foot, and what a person walks in ten minutes and in twenty.
-    assert {NEVER_A_TRADE_OFF[f] for f in measured if FEATURES[f].unit == "min"} == {10}
-    assert {NEVER_A_TRADE_OFF[f] for f in measured if FEATURES[f].unit == "m"} == {800, 1600}
-    # The one walk that is left is the walk to a food shop. A station is a distance.
-    assert {f for f in measured if FEATURES[f].unit == "min"} == {FeatureId.GROCERY_WALK}
+    # What a person walks in ten minutes and in twenty. No walk is left: each is a distance.
+    assert {FEATURES[f].unit for f in measured} == {"m"}
+    assert {NEVER_A_TRADE_OFF[f] for f in measured} == {800, 1600}
     assert NEVER_A_TRADE_OFF[FeatureId.STATION_WALK] == 800
+    assert NEVER_A_TRADE_OFF[FeatureId.GROCERY_WALK] == 800
     with pytest.raises(ValueError, match="never a trade-off"):
         checked_floors({FeatureId.STATION_WALK: 800})
     with pytest.raises(ValueError, match="never a trade-off"):

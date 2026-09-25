@@ -17,8 +17,11 @@ never guesses a direction, so it never reads a wish backwards (ADR 0012).
 Every edit and every suggestion says which words of the text it rests on, by
 where they start and end. Nothing here keeps the words.
 
-Burro ranks places, never residents. A request about who lives somewhere gets
-one neutral sentence and no edit, because no id exists that could express it.
+Burro ranks places first. Of who lives somewhere it counts their age and their
+households, at Census 2021, and a phrase for either is offered, towards more
+of what is counted, and never applied. Any other request about who lives
+somewhere, and any wish for fewer of anyone, gets one neutral sentence and no
+edit: no id exists that could express the first, and nothing reads the second.
 """
 
 import dataclasses
@@ -28,7 +31,14 @@ from itertools import pairwise
 from typing import NamedTuple, Protocol
 
 from burro_core._record import Record
-from burro_core.catalogue import CRIME_CAVEAT, FEATURES, HOLDS_CRIME, TAGS
+from burro_core.catalogue import (
+    COUNTS_RESIDENTS,
+    CRIME_CAVEAT,
+    FEATURES,
+    HOLDS_CRIME,
+    HOLDS_RESIDENTS,
+    TAGS,
+)
 from burro_core.facts import SEGMENT_LABELS, money
 from burro_core.grammar import (
     A_HOME,
@@ -91,7 +101,15 @@ from burro_core.ids import (
     UnmetCategory,
     WeightAction,
 )
-from burro_core.lexicon import GENERIC_PLACES, LEXICON, POLICY_LEXICON, Target, prepare
+from burro_core.lexicon import (
+    COUNTED_AT_THE_CENSUS,
+    GENERIC_PLACES,
+    LEXICON,
+    POLICY_LEXICON,
+    Target,
+    counts_residents,
+    prepare,
+)
 from burro_core.ops import (
     NO_OPERATIONS,
     AreaEdit,
@@ -107,15 +125,21 @@ from burro_core.reducer import Rejected, apply, given_way_spec
 from burro_core.release import Release
 from burro_core.spec import LIMITS, PreferenceSpec
 from burro_core.vocabulary import (
+    ARTICLE,
     CAPS,
     FIRM_OF_MINUTES,
     FIRM_OF_MONEY,
+    GOOD,
     JOINS,
     NEAR_TO,
     PHRASES_OF_DOUBT,
     SPEAKER,
+    TAKES_OFF,
+    TAKES_OFF_AFTER,
     TO_DO,
     TROUBLES,
+    TURNS_DOWN,
+    TURNS_DOWN_AFTER,
     WISH,
     WORDS_OF_DOUBT,
     WORDS_THAT_TURN_AWAY,
@@ -144,6 +168,7 @@ __all__ = [
     "Suggestion",
     "Usage",
     "assumptions_for",
+    "may_ask_for_fewer",
     "not_in_release_of",
     "notice_text",
     "prepare",
@@ -152,9 +177,11 @@ __all__ = [
 
 MAX_TEXT = 600
 
+# What is said of every request about who lives somewhere that nothing is offered for: a
+# wish to find a group that Burro does not count, and a wish for fewer of anyone.
 _PLACES_NOT_PEOPLE = (
-    "Burro ranks places by what is there, such as schools, parks, venues and transport, "
-    "and never by who lives there."
+    "Burro ranks places by what is there. Of who lives in a place it counts only their age "
+    "and their households, at the census of 2021, and you cannot ask for fewer of anyone."
 )
 NOTICES: Mapping[Notice, str] = {
     Notice.NONE: "",
@@ -968,6 +995,11 @@ def _weigh(feature_id: FeatureId, direction: DirectionChoice) -> Operations:
 def _feature_choices(feature_id: FeatureId) -> tuple[Choice, ...]:
     feature = FEATURES[feature_id]
     more, less = SuggestionDirection.MORE, SuggestionDirection.LESS
+    if feature_id in COUNTS_RESIDENTS:
+        # More of what it counts, and no other choice but to leave it out. No choice of
+        # such a measure is ever sent as less, not even to take its weight off.
+        wished = _weigh(feature_id, DirectionChoice.MORE)
+        return (Choice(direction=more, label=feature.short_label, operations=wished),)
     if feature.polarity is Polarity.EITHER:
         # "More pubs and bars", "Fewer pubs and bars". A word of the feature's
         # own, "denser", stands by itself.
@@ -1014,9 +1046,16 @@ def _tag_edit(tag_id: TagId, toward: TowardChoice, action: WeightAction) -> Oper
     return NO_OPERATIONS.replace(tag_ops=(edit,))
 
 
-def _one_way(choices: tuple[Choice, ...]) -> tuple[Choice, ...]:
-    """The choices of a thing that is offered one way: more of it, and no other."""
-    return tuple(choice for choice in choices if choice.direction is SuggestionDirection.MORE)
+def _one_way(
+    choices: tuple[Choice, ...], direction: DirectionChoice = DirectionChoice.DEFAULT
+) -> tuple[Choice, ...]:
+    """The choices of a thing that is offered one way: more of it, and no other.
+
+    Where the phrase says that less is wanted, it is less of it, and no other.
+    """
+    less = direction is DirectionChoice.LESS
+    wanted = SuggestionDirection.LESS if less else SuggestionDirection.MORE
+    return tuple(choice for choice in choices if choice.direction is wanted)
 
 
 def _tag_choices(tag_id: TagId, only: Toward | None = None) -> tuple[Choice, ...]:
@@ -1026,6 +1065,9 @@ def _tag_choices(tag_id: TagId, only: Toward | None = None) -> tuple[Choice, ...
     nudge, remove = WeightAction.NUDGE, WeightAction.REMOVE
     # A choice says all that it sets counting, on its own face.
     crime = COUNTING_CRIME if tag_id in HOLDS_CRIME else ""
+    if tag_id in HOLDS_RESIDENTS:
+        # More of it, and no other choice but to leave it out.
+        only = Toward.HIGH
     if tag.shape is TagShape.SCALE:
         ends = (
             Choice(
@@ -1265,6 +1307,50 @@ _LEADS_IN = frozenset(
     for word in phrase.split()
 ) - {"not"}
 _FURTHEST_BACK = 8
+# What may say, in a prompt that is not plain, that a thing is wanted less or not at
+# all, or that it troubles a person, wherever it stands in the clause of the thing.
+_MAY_ASK_FOR_FEWER = (
+    _TURNS_AWAY
+    | TAKES_OFF
+    | TAKES_OFF_AFTER
+    | TURNS_DOWN
+    | TURNS_DOWN_AFTER
+    | TROUBLES
+    | PHRASES_OF_DOUBT
+    | frozenset({"too many", "too much"})
+)
+_BUT = frozenset({"but"})
+
+
+def _begins_anew(items: Sequence[Item], at: int) -> bool:
+    """Whether "but" stands here and begins something new, as it does not in "anything but"."""
+    if not _is_word(items[at], _BUT):
+        return False
+    return at == 0 or not _phrase_at(items, at - 1, _MAY_ASK_FOR_FEWER, longest=2)
+
+
+def may_ask_for_fewer(items: Sequence[Item], at: int) -> bool:
+    """Whether a word that turns stands in the clause of a thing, before it or after it.
+
+    It is asked of a thing that counts who lives somewhere: beside such a word
+    the person may be asking for fewer of a group of people. Before the thing,
+    a clause runs back as far as a mark or "but", because a turn may carry
+    over a word that joins: "no pubs or families". After it, a clause runs as
+    far as a mark or a word that joins, which begins something else: "young
+    people and no pubs".
+    """
+    first = at
+    while first > 0 and not items[first].apart and not _begins_anew(items, first - 1):
+        first -= 1
+    last = at + 1
+    while last < len(items) and not items[last].apart and not _is_word(items[last], JOINS.words):
+        last += 1
+    clause = items[first:last]
+    return any(
+        _phrase_at(clause, on, _MAY_ASK_FOR_FEWER, longest=4)
+        for on in range(len(clause))
+        if on != at - first
+    )
 
 
 def _turned_away(items: Sequence[Item], at: int) -> bool:
@@ -1388,10 +1474,16 @@ def _not_held(tenure: Tenure, home: _Home) -> str:
 class _Notices:
     """What is noticed in the sentences of a prompt, in the order it stands."""
 
-    def __init__(self, release: Release, grammar: Grammar, spec: PreferenceSpec) -> None:
+    def __init__(
+        self, release: Release, grammar: Grammar, spec: PreferenceSpec, about_people: bool = False
+    ) -> None:
         self.release = release
         self.grammar = grammar
         self.spec = spec
+        # The words draw the notice: they ask who lives somewhere in a way nothing is
+        # offered for, or may ask for fewer of a group of people. Nothing that counts
+        # who lives somewhere is then offered, whatever else the words name.
+        self.about_people = about_people
         # The tenures the words of the prompt name, which a home that is named is for.
         self.said: frozenset[Tenure] = frozenset()
         # Where a thing that is only offered stands, with what was said of it:
@@ -1521,18 +1613,25 @@ class _Notices:
         # sentence it stands in, and nothing turns it. In any other sentence
         # nobody can say which way it is meant, "anything but posh", and both
         # ways are offered. A word for character is offered one way whatever
-        # is said of it.
-        one_way = target.one_way and (target.whatever or item.span in self.whole)
+        # is said of it. So is a thing that counts who lives somewhere, of
+        # which nothing but more is ever offered.
+        of_people = counts_residents(target)
+        one_way = target.one_way and (target.whatever or of_people or item.span in self.whole)
         span = self.whole.get(item.span, item.span)
+        no_measure = COUNTS_RESIDENTS if self.about_people else frozenset[FeatureId]()
+        no_vibe = HOLDS_RESIDENTS if self.about_people else frozenset[TagId]()
         features = [
             _Noticed(
                 f"feature:{feature_id}",
                 FEATURES[feature_id].short_label,
                 span,
-                _one_way(_feature_choices(feature_id)) if one_way else _feature_choices(feature_id),
-                target.note,
+                _one_way(_feature_choices(feature_id), target.direction)
+                if one_way
+                else _feature_choices(feature_id),
+                _note_of(target, feature_id in COUNTS_RESIDENTS),
             )
             for feature_id in target.features
+            if feature_id not in no_measure
         ]
         tags = [
             _Noticed(
@@ -1542,14 +1641,24 @@ class _Notices:
                 _tag_choices(tag_id, target.toward if one_way else None),
                 " ".join(
                     said
-                    for said in (target.note, counts_crime(tag_id) if tag_id in HOLDS_CRIME else "")
+                    for said in (
+                        _note_of(target, tag_id in HOLDS_RESIDENTS),
+                        counts_crime(tag_id) if tag_id in HOLDS_CRIME else "",
+                    )
                     if said
                 ),
             )
             for tag_id in target.tags
+            if tag_id not in no_vibe
         ]
-        # Of what is only nearest, a vibe comes before the measures it is made of.
-        yield from (*tags, *features) if target.one_way else (*features, *tags)
+        # Of what is only nearest, a vibe comes before the measures it is made of, but
+        # for a measure that is the first reading of the word.
+        if not target.one_way:
+            yield from (*features, *tags)
+            return
+        leads = {f"feature:{feature_id}" for feature_id in target.leads}
+        first = [one for one in features if one.target in leads]
+        yield from (*first, *tags, *(one for one in features if one.target not in leads))
 
     def _name(self, items: Sequence[Item], at: int) -> Iterator[_Noticed]:
         item = items[at]
@@ -1645,6 +1754,20 @@ class _Notices:
         tenure = TenureChoice.RENT if rent else TenureChoice.BUY
         choice = _budget_choice(f"Set {label.lower()}", tenure)
         yield _Noticed("tenure", label, (said[0].start, said[-1].end), choice)
+
+
+def _note_of(target: Target, counts_who_lives_there: bool) -> str:
+    """What is said beside one thing a phrase is offered as.
+
+    What a phrase says of what it asks for is said of every thing it is
+    offered as, but for the line that a thing counts who lived somewhere at the
+    census, which is said of the things that do and of no other: "family
+    friendly" is offered as a vibe that counts households and as one that
+    counts places alone.
+    """
+    if counts_who_lives_there:
+        return target.note
+    return "" if target.note == COUNTED_AT_THE_CENSUS else target.note
 
 
 class _Offered(NamedTuple):
@@ -1855,6 +1978,37 @@ def _asks(line: Line, items: Sequence[Item]) -> bool:
     return line.asked or turned_about or opens
 
 
+# What says that a thing is wanted near, or is to be reached. "By" is not among
+# them here: in a sentence the grammar does not make it may say who did a thing.
+_NEAR_OR_REACHED = (NEAR_TO - {"by"}) | frozenset({"get to", "reach", "walk to"})
+# What may stand between such words and the thing: "close to a good doctor".
+_BEFORE_A_THING = ARTICLE.words | GOOD.words
+
+
+def _no_place(line: Line, items: Sequence[Item], grammar: Grammar) -> list[Item]:
+    """The items of a sentence the grammar does not make, less each person read as a place.
+
+    "Doctor" is a person too. In a sentence the grammar makes, it has held
+    the word to what says near. In any other, the word is a thing only where
+    the words straight beside it say that it is wanted near or is to be
+    reached, "she wants to be near a doctor", and is left a word anywhere
+    else: "I am a doctor" is offered no surgery.
+    """
+    found = list(items)
+    for at, item in enumerate(items):
+        if item.what is not Is.THING or not grammar.known.lexicon[item.text].near_only:
+            continue
+        back = at
+        while back > 0 and _is_word(items[back - 1], _BEFORE_A_THING) and not items[back].apart:
+            back -= 1
+        led = _after(items, back, _NEAR_OR_REACHED)
+        timed = _timed(items, back) and _minutes_before(items, back) > 0
+        if not (led or timed or grammar.nearby(items[at + 1 :])):
+            token = line.tokens[item.first]
+            found[at] = dataclasses.replace(item, what=Is.WORD, text=token.word, bare=token.bare)
+    return found
+
+
 def _sentences(text: str, grammar: Grammar) -> list[_Sentence]:
     found: list[_Sentence] = []
     for line in lines_of(text):
@@ -1864,6 +2018,8 @@ def _sentences(text: str, grammar: Grammar) -> list[_Sentence]:
             wishes = None if asked else grammar.sentence(line, items)
         except NotPlain:
             wishes = None
+        if wishes is None:
+            items = _no_place(line, items, grammar)
         found.append(_Sentence(line, items, wishes, asked=asked))
     _take_back(found)
     return found
@@ -1906,6 +2062,23 @@ def _names_no_place(items: Sequence[Item], at: int) -> bool:
     """Whether a thing stands where a place was expected, and names none: "I work at uni"."""
     generic = items[at].text.split()[-1] in GENERIC_PLACES
     return generic and _after(items, at, EXPECTS_A_NAME | GOES_TO)
+
+
+def _asks_for_fewer(sentences: Sequence[_Sentence], grammar: Grammar) -> bool:
+    """Whether the words name who lives somewhere and may ask for fewer of them.
+
+    A thing that counts who lives somewhere is offered towards more of what it
+    counts. Beside a word that turns, or in a sentence that the next takes
+    back, the words may ask for fewer of a group of people. Nothing reads
+    that: it is a request about people, and gets the notice and nothing else.
+    """
+    return any(
+        item.what is Is.THING
+        and counts_residents(grammar.known.lexicon[item.text])
+        and (sentence.taken_back or may_ask_for_fewer(sentence.items, at))
+        for sentence in sentences
+        for at, item in enumerate(sentence.items)
+    )
 
 
 def _names_a_campus(sentences: Sequence[_Sentence], grammar: Grammar) -> bool:
@@ -2092,7 +2265,14 @@ class RuleInterpreter:
         """
         journeys = _journeys_made(sentences)
         asked = self._applied(_Read(made=[j for j in journeys if j.options is not None]), request)
-        noticed = _Notices(request.release, grammar, request.spec).of(sentences, journeys)
+        items = [item for sentence in sentences for item in sentence.items]
+        about_people = (
+            any(item.what is Is.PEOPLE for item in items)
+            or _names_a_campus(sentences, grammar)
+            or _asks_for_fewer(sentences, grammar)
+        )
+        notices = _Notices(request.release, grammar, request.spec, about_people)
+        noticed = notices.of(sentences, journeys)
         suggestions, already, missing = _offered(noticed, request.spec, request.release)
         # What is offered, what is said to be missing and what is asked about were all heard.
         rested_on = [
@@ -2100,7 +2280,6 @@ class RuleInterpreter:
         ]
         rested_on += [(rests.start, rests.end) for rests in asked.rests_on]
         unread = _unread(sentences, [*rested_on, *already])
-        items = [item for sentence in sentences for item in sentence.items]
         unmet = {item.unmet for item in items if item.unmet is not None}
         # What Burro cannot say of a thing it offers what is nearest for.
         things = [grammar.known.lexicon[item.text] for item in items if item.what is Is.THING]
@@ -2109,9 +2288,6 @@ class RuleInterpreter:
             unmet.add(UnmetCategory.COMMUNITY_AMENITIES)
         if unread:
             unmet.add(UnmetCategory.OTHER)
-        about_people = any(item.what is Is.PEOPLE for item in items) or _names_a_campus(
-            sentences, grammar
-        )
         if about_people:
             status = InterpretStatus.POLICY_REDIRECT
         elif asked.clarify:

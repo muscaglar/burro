@@ -149,11 +149,19 @@ def test_no_price_is_scaled_to_a_size_of_home():
         assert fit.margin == 1_000_000 - paid
 
 
-def test_a_firm_budget_leaves_out_an_area_whose_median_is_over_it():
-    result = rank(buyer(Strictness.HARD), priced())
-    assert [(f.area_id, f.reason) for f in result.filtered] == [(THREE, FilterReason.OVER_BUDGET)]
-    # A median at the budget is not over it.
-    assert {ONE, TWO} <= set(by_area(result))
+def test_a_firm_budget_leaves_out_an_area_only_where_its_median_is_far_over_it():
+    """About half of the homes behind a median sold for less than it.
+
+    So an area whose median is over a firm budget by no more than the margin
+    is kept, and ranked lower. `test_a_firm_budget.py` holds the margin.
+    """
+    near = rank(buyer(Strictness.HARD), priced())
+    assert near.filtered == ()
+    assert {ONE, TWO, THREE} <= set(by_area(near))
+    # 437,500 is more than a quarter over 340,000, and 400,000 is not.
+    far = rank(buyer(Strictness.HARD, 340_000), priced())
+    assert [(f.area_id, f.reason) for f in far.filtered] == [(THREE, FilterReason.OVER_BUDGET)]
+    assert {ONE, TWO} <= set(by_area(far))
 
 
 def test_a_soft_budget_ranks_a_dearer_area_lower_and_leaves_none_out():
@@ -227,6 +235,7 @@ def test_a_price_with_no_range_is_said_as_the_middle_price_of_homes_of_all_sizes
         "as_of": "August 2026",
         "period": "the year ending August 2026",
         "confidence": "unstated",
+        "half_sold": "About half of the flats sold here went for under £437,500.",
     }
     assert set(fact.numbers) == {"£437500", "2026", "08", "8"}
     assert render(fact).text == (
@@ -262,7 +271,13 @@ def test_a_budget_fact_says_the_middle_price_and_never_the_upper_end():
     over = facts_of(THREE, buyer(Strictness.SOFT))[f"{THREE}/budget_fit/buy.flat"]
     assert (under.template, under.slots, under.numbers) == (
         TemplateId.BUDGET_UNDER_MEDIAN,
-        {"margin": "15,000", "amount": "400,000", "median": "385,000", "homes": "flats"},
+        {
+            "margin": "15,000",
+            "amount": "400,000",
+            "median": "385,000",
+            "homes": "flats",
+            "half_sold": "About half of the flats sold here went for under £385,000.",
+        },
         ("£400000", "£385000", "£15000"),
     )
     assert (over.template, over.numbers) == (
@@ -273,7 +288,8 @@ def test_a_budget_fact_says_the_middle_price_and_never_the_upper_end():
         "The middle price of flats of all sizes is £15,000 under your budget of £400,000."
     )
     assert render(over).text == (
-        "The middle price of flats of all sizes is £37,500 over your budget of £400,000."
+        "The middle price of flats of all sizes is £37,500 over your budget of £400,000. "
+        "About half of the flats sold here went for under £437,500."
     )
     assert "upper end" not in render(under).text + render(over).text
 
@@ -328,6 +344,7 @@ def test_an_explanation_gives_a_price_under_the_budget_as_a_reason_and_one_over_
     given_up = said[THREE].trade_off
     assert given_up is not None
     assert given_up.text == (
-        "The middle price of flats of all sizes is £37,500 over your budget of £400,000."
+        "The middle price of flats of all sizes is £37,500 over your budget of £400,000. "
+        "About half of the flats sold here went for under £437,500."
     )
     assert not any(s.replaced for s in (*said[ONE].reasons, given_up))

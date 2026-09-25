@@ -5,9 +5,9 @@ The text is used to look up an id and then dropped: nothing here keeps it,
 returns it or puts it in an error.
 
 Searching and resolving part ways. A search box is helped by the start of a
-word, so `search_places` offers every match. Resolving turns words into a
-commute or a filter with nobody looking, so it takes a name only when whole
-words of it were given: "far" begins Farrowmere and names nothing.
+word, so `search_places` and `search_areas` offer every match. Resolving turns
+words into a commute or a filter with nobody looking, so it takes a name only
+when whole words of it were given: "far" begins Farrowmere and names nothing.
 """
 
 import re
@@ -166,6 +166,10 @@ class Names:
     def search_places(self, text: str, limit: int) -> tuple[Match, ...]:
         return _matches(text, self._places)[: max(limit, 0)]
 
+    def search_areas(self, text: str, limit: int) -> tuple[Match, ...]:
+        """The areas that match, best first: every area that bears the name comes first."""
+        return _matches(text, self._areas)[: max(limit, 0)]
+
     def resolve_place(self, text: str) -> Resolution:
         return _resolve(_matches(text, self._places))
 
@@ -212,6 +216,17 @@ def search_places(text: str, release: Release, limit: int) -> tuple[Match, ...]:
     then id.
     """
     return Names(release).search_places(text, limit)
+
+
+def search_areas(text: str, release: Release, limit: int) -> tuple[Match, ...]:
+    """The areas that match, best first, cut to `limit`.
+
+    An area scores as a place does, by the best of its name and its other
+    names. Where several areas bear one name, each holds it among its other
+    names, so each scores 1.0 and none is taken for the others: a search
+    offers them all. Ties go by name, then id.
+    """
+    return Names(release).search_areas(text, limit)
 
 
 def resolve_place(text: str, release: Release) -> Resolution:

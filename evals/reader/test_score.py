@@ -87,7 +87,7 @@ def answer(
 def offer(label: str, **choices: Operations) -> Suggestion:
     """A thing that is offered, with the edits each direction would send."""
     return Suggestion(
-        target="feature:venue_evening",
+        target="feature:venue_evening_per_homes",
         label=label,
         spans=(Span(start=0, end=1),),
         choices=(
@@ -160,8 +160,10 @@ def outcome(text: str, result: InterpretResult) -> str:
     return score.score(BY_TEXT[text], Says(result), RELEASE, NAMES).outcome.value
 
 
-PUBS_UP = edits(weight_ops=(weight(FeatureId.VENUE_EVENING),))
-PUBS_FEWER = edits(weight_ops=(weight(FeatureId.VENUE_EVENING, direction=DirectionChoice.LESS),))
+PUBS_UP = edits(weight_ops=(weight(FeatureId.VENUE_EVENING_PER_HOMES),))
+PUBS_FEWER = edits(
+    weight_ops=(weight(FeatureId.VENUE_EVENING_PER_HOMES, direction=DirectionChoice.LESS),)
+)
 PARK_UP = edits(weight_ops=(weight(FeatureId.PARK_PROXIMITY),))
 
 
@@ -254,7 +256,9 @@ def test_a_thing_turned_to_fewer_has_fallen():
 
 
 def test_a_thing_taken_off_that_held_no_weight_has_still_fallen():
-    taken_off = edits(weight_ops=(weight(FeatureId.VENUE_EVENING, action=WeightAction.REMOVE),))
+    taken_off = edits(
+        weight_ops=(weight(FeatureId.VENUE_EVENING_PER_HOMES, action=WeightAction.REMOVE),)
+    )
     assert outcome("I don't want pubs nearby", answer(taken_off)) == "correct"
 
 
@@ -270,7 +274,9 @@ def test_a_thing_that_was_only_not_to_rise_may_be_left_alone_or_lowered():
 
 
 def test_a_thing_nobody_named_that_moves_is_unasked():
-    both = edits(weight_ops=(weight(FeatureId.PARK_PROXIMITY), weight(FeatureId.VENUE_EVENING)))
+    both = edits(
+        weight_ops=(weight(FeatureId.PARK_PROXIMITY), weight(FeatureId.VENUE_EVENING_PER_HOMES))
+    )
     assert outcome("parks", answer(PARK_UP)) == "correct"
     assert outcome("parks", answer(both)) == "unasked"
 
@@ -508,7 +514,7 @@ def way(direction: str, sent: Operations, **marks: bool) -> Way:
 
 
 def offering(
-    *ways: Way, target: str = "feature:venue_evening", on: tuple[int, int] = (0, 1)
+    *ways: Way, target: str = "feature:venue_evening_per_homes", on: tuple[int, int] = (0, 1)
 ) -> Suggestion:
     return Suggestion(
         target=target,
@@ -668,7 +674,7 @@ def test_what_the_person_did_not_type_is_never_to_be_offered(sent: Operations, w
     assert what in [finding.what for finding in scored.findings]
 
 
-PEOPLE = "Somewhere leafy with lots of young professionals like me"
+PEOPLE = "Somewhere leafy with lots of students like me"
 
 
 def test_an_offer_of_a_models_that_rests_on_a_wish_about_people_is_never_to_be_offered():

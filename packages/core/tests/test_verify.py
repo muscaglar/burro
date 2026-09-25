@@ -30,6 +30,7 @@ from .support import (
     area_id,
     build_worked_release,
     build_worked_spec,
+    estimated_release,
     place_id,
     small_release,
     with_figures,
@@ -485,11 +486,20 @@ def every_fact() -> list[Fact]:
         for area in worked.neighbourhoods
         for f in facts_for(worked, area.area_id, build_worked_spec())
     ]
-    # A price that is one number, under a budget and over one.
+    # A journey that was estimated from distance, in each of its three bands.
+    estimated = estimated_release()
     found += [
         f
+        for area in estimated.neighbourhoods
+        for f in facts_for(estimated, area.area_id, build_worked_spec())
+    ]
+    # A price that is one number, under a budget and over one: a publisher's median, and a
+    # median of sales that were counted.
+    found += [
+        f
+        for release in (no_range.priced(), no_range.sold())
         for area in no_range.FLATS
-        for f in facts_for(no_range.priced(), area, no_range.buyer(Strictness.SOFT))
+        for f in facts_for(release, area, no_range.buyer(Strictness.SOFT))
     ]
     return found
 

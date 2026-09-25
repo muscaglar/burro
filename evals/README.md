@@ -232,6 +232,19 @@ What it says:
 - **What is offered does not depend on what was sent.** No case of the 781 ends otherwise, for either stand-in.
 - **A stand-in cannot say whether a real model reads less well with the words alone.**
 
+Measured again on 2026-09-24, on the 820 cases the set now holds, before and after the guess was held to what is said about a thing (ADR 0012). By what a person would get who pressed every guess:
+
+| Reader | Right | In part | Not read | Unasked guess | BACKWARDS GUESS | Never to be offered | Applied with no press | Readings of the rules lost |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `right`, before | 401 | 48 | 126 | 1 | 0 | 0 | 0 | 3 |
+| `right`, after | 399 | 49 | 127 | 1 | 0 | 0 | 0 | 3 |
+| `backwards`, before | 221 | 51 | 175 | 46 | 89 | 0 | 0 | 4 |
+| `backwards`, after | 232 | 54 | 182 | 41 | 73 | 0 | 0 | 4 |
+
+- **What the two checks cost the careful stand-in.** Three cases lose their guess, each a wish of somebody of the speaker's own: `other-015`, `other-029` and `other-037`. The cases say a careful person would raise each, and the guard asks. `list-010` gains one.
+- **What they close for the careless one.** Sixteen backwards guesses and five that nobody asked for: a word of dread after the thing, "pubs, yuck", and a wish of somebody else's, "my mum is after a park". What is left is a turn in another sentence, in the heading of a list, or in words core does not list.
+- **A reading of the rules is lost on three cases, and on four for the careless stand-in**, before and after: `whole-001`, `whole-018` and `whole-035`, and `whole-008`. Each names a place the release does not hold, which the rules alone ask about. With a model on the question is asked only where the model reads the journey too. The cases were added after the first measurement of the stand-ins, and the loss is not of these checks' making.
+
 ## Read the answers on disk again
 
 ```
@@ -241,7 +254,7 @@ uv run python evals/reader/replay.py --look 1 --show
 
 One model, `gemini-3.5-flash-lite`, read 112 made-up sentences once each, as the service would ask it, and nine of them twice or four times more. What it answered is in `reader/answers/`, word for word, with the tokens each call used. 82 of the sentences are cases of this set, and 30 were written for the measurement and are in `reader/answers/cases/`. `replay.py` hands each answer back to the reader in a model's place, so that a change to the checks is measured on what a model has in fact answered, and nothing is paid for.
 
-On the first look of each sentence, on 2026-09-24: 77 calls would be made, and 35 sentences are read by the rules with no call. 84 are right, 11 in part and 13 not read. Three hold a guess at a fair reading the case does not name. One backwards reading is marked as the guess: "my mum is after a park". Nothing is applied, nothing is offered that is never to be offered, and no reading of the rules is lost. The rules alone read 61 of them rightly.
+On the first look of each sentence, on 2026-09-24: 77 calls would be made, and 35 sentences are read by the rules with no call. 84 are right, 11 in part and 14 not read. Three hold a guess at a fair reading the case does not name. No backwards reading is marked as the guess: "my mum is after a park" was, until the guard read whose wish it is. Nothing is applied, nothing is offered that is never to be offered, and no reading of the rules is lost. The rules alone read 61 of them rightly.
 
 That is a fit and not a measurement: the checks were chosen after reading these answers. `test_replay.py` holds the counts, so that a change that moves one is seen.
 
@@ -272,7 +285,7 @@ The first line reads the key without showing or recording it. Close the shell af
 
 The rule-based reader costs nothing, and nor does the stand-in.
 
-For a model, `docs/design/models.md`, section 3, has what each provider charged on the day its page was read, for 1,000 searches of 3,000 tokens in and 300 out. For Gemini that was 1.65 US dollars, so one run of this set, 820 cases, is about 1.35 dollars and three runs about 4.
+For a model, `docs/design/models.md`, section 3, has what each provider charged on the day its page was read, for 1,000 searches of 3,000 tokens in and 300 out. For Gemini that was 1.65 US dollars, so one run of this set, 871 cases, is about 1.4 dollars and three runs about 4.
 
 | Part of one call | Size | Tokens, about |
 |---|---|---|

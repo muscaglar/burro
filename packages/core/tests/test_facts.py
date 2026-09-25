@@ -10,6 +10,7 @@ from burro_core.ids import (
     FeatureId,
     GrittyVariant,
     Mode,
+    NameState,
     Polarity,
     Provenance,
     PtBasis,
@@ -20,7 +21,7 @@ from burro_core.ids import (
     Tenure,
 )
 from burro_core.rank import rank
-from burro_core.release import InMemoryRelease, Origin, ReleaseError
+from burro_core.release import InMemoryRelease, Named, Origin, ReleaseError
 from burro_core.spec import Commute, FeatureWeight, PreferenceSpec, SpecError, default_spec
 from burro_core.verify import normalise_number, verify
 
@@ -106,13 +107,42 @@ def test_every_fact_names_a_source_and_a_date():
                 assert fact.fact_id == f"{fact.area_id}/{fact.kind}/{fact.key}"
     # Every kind, journeys and stations included, and every way of saying each. No price
     # of these releases is without a range: `test_a_price_with_no_range.py` holds those.
-    no_range = {
+    # And no journey of them is estimated: `test_estimate.py` holds that fact to the same.
+    elsewhere = {
         TemplateId.COST_BUY_MEDIAN,
+        TemplateId.COST_BUY_SOLD,
         TemplateId.BUDGET_UNDER_MEDIAN,
         TemplateId.BUDGET_OVER_MEDIAN,
+        TemplateId.TRAVEL_ESTIMATED,
     }
     assert {fact.kind for fact in facts} == set(FactKind)
-    assert {fact.template for fact in facts} == set(TemplateId) - no_range
+    assert {fact.template for fact in facts} == set(TemplateId) - elsewhere
+
+
+def test_a_fact_carries_the_statement_of_a_source_whose_publisher_asks_to_see_it_by_a_figure():
+    """A publisher may ask that its statement of credit stands wherever a figure made from
+    its data is shown. The release says so of the source, and a fact that cites it carries
+    the statement. Any other source is credited by its name and its publisher."""
+    release = small_release()
+    assert not any(source.credit_beside_figures for source in release.manifest.sources)
+    for fact in every_fact(release, full_spec()):
+        assert [source.attribution for source in fact.sources] == [None] * len(fact.sources)
+    asked = dataclasses.replace(
+        release,
+        manifest=release.manifest.replace(
+            sources=tuple(
+                source.replace(credit_beside_figures=True) for source in release.manifest.sources
+            )
+        ),
+    )
+    stated = {source.source_id: source.attribution for source in asked.manifest.sources}
+    found = every_fact(asked, full_spec())
+    assert found
+    for fact in found:
+        assert [source.attribution for source in fact.sources] == [
+            stated[source.source_id] for source in fact.sources
+        ]
+        assert all(source.attribution for source in fact.sources)
 
 
 def test_each_kind_of_fact_takes_its_date_from_where_the_contract_says():
@@ -156,6 +186,50 @@ def test_without_a_spec_the_facts_are_those_of_a_profile_page():
     assert with_spec - kinds == {FactKind.TRAVEL, FactKind.BUDGET_FIT}
     # Which areas are like this one is for a profile page, and no ranking needs it.
     assert kinds - with_spec == {FactKind.LIKENESS}
+
+
+def bearing_a_name(state: NameState = NameState.DRAFT) -> InMemoryRelease:
+    """The small release, with its first area under a name that is not its publisher's label."""
+    release = small_release()
+    named = Named(label="Quillhaven 001", source_ids=("synthetic",), state=state)
+    first, *rest = release.neighbourhoods
+    return dataclasses.replace(release, neighbourhoods=(first.replace(named=named), *rest))
+
+
+def test_the_fact_of_an_area_says_who_wrote_its_name_and_whether_a_person_has_checked_it():
+    drafted = by_id(facts_for(bearing_a_name(), area_id(1), None))
+    fact = drafted[fact_id(area_id(1), FactKind.AREA, "name")]
+    assert fact.slots == {
+        "name": "Alderwick",
+        "borough": "Quillhaven",
+        "label": "Quillhaven 001",
+        "written_by": "Burro",
+        "state": "draft",
+    }
+    # The label is shown beside the name, so it is a name the fact may print.
+    assert fact.names == ("Alderwick", "Quillhaven", "Quillhaven 001")
+    assert [source.source_id for source in fact.sources] == ["synthetic"]
+    # What is said of the area is the sentence it always was, and holds no word of a draft.
+    assert render(fact).text == "Alderwick is in Quillhaven."
+    checked = by_id(facts_for(bearing_a_name(NameState.CHECKED), area_id(1), None))
+    assert checked[fact.fact_id].slots["state"] == "checked"
+
+
+def test_the_fact_of_an_area_that_bears_no_name_but_its_label_says_nothing_of_a_draft():
+    fact = by_id(facts_for(bearing_a_name(), area_id(2), None))[
+        fact_id(area_id(2), FactKind.AREA, "name")
+    ]
+    assert fact.slots == {"name": "Brackenhythe", "borough": "Ostrel Vale"}
+    assert fact.names == ("Brackenhythe", "Ostrel Vale")
+
+
+def test_a_name_written_by_a_source_the_release_does_not_hold_makes_no_fact():
+    release = bearing_a_name()
+    first, *rest = release.neighbourhoods
+    assert first.named is not None
+    unknown = first.replace(named=first.named.replace(source_ids=("os-names",)))
+    with pytest.raises(ReleaseError):
+        facts_for(dataclasses.replace(release, neighbourhoods=(unknown, *rest)), area_id(1), None)
 
 
 def test_an_area_the_release_lacks_has_no_facts():
@@ -416,12 +490,12 @@ def test_where_a_person_may_choose_the_direction_the_spec_decides_the_better_sid
         weights=(
             *spec.weights,
             *(
-                w.replace(feature_id=FeatureId.VENUE_EVENING, direction=Direction.LESS)
+                w.replace(feature_id=FeatureId.VENUE_EVENING_PER_HOMES, direction=Direction.LESS)
                 for w in spec.weights[:1]
             ),
         )
     )
-    key = f"{area_id(2)}/feature/venue_evening"
+    key = f"{area_id(2)}/feature/venue_evening_per_homes"
     asked = by_id(facts_for(release, area_id(2), fewer))[key]
     unasked = by_id(facts_for(release, area_id(2), spec))[key]
     profile = by_id(facts_for(release, area_id(2), None))[key]

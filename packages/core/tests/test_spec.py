@@ -356,6 +356,35 @@ def test_check_spec_refuses_the_low_end_of_a_one_way_vibe_and_a_vibe_the_release
     assert problems(spec) == [("tags[0].toward", SpecProblemKind.DIRECTION_NOT_ALLOWED)]
 
 
+RESIDENTS = (
+    FeatureId.RESIDENTS_AGED_20_34,
+    FeatureId.RESIDENTS_AGED_65_OVER,
+    FeatureId.HOUSEHOLDS_DEPENDENT_CHILDREN,
+    FeatureId.HOUSEHOLDS_ONE_PERSON,
+)
+
+
+@pytest.mark.parametrize("feature_id", RESIDENTS)
+def test_a_spec_may_ask_for_more_of_who_is_counted_and_never_for_fewer(feature_id: FeatureId):
+    more = default_spec(Tenure.RENT).replace(weights=(weight(feature_id, 0.5, Direction.MORE),))
+    assert problems(more) == []
+    ranked = rank(more, small_release())
+    assert ranked.ranked
+    fewer = more.replace(weights=(weight(feature_id, 0.5, Direction.LESS),))
+    assert problems(fewer) == [("weights[0].direction", SpecProblemKind.DIRECTION_NOT_ALLOWED)]
+    with pytest.raises(SpecError):
+        rank(fewer, small_release())
+
+
+@pytest.mark.parametrize("tag_id", [TagId.FAMILY_AREA, TagId.YOUNG_PROFESSIONALS])
+def test_a_vibe_that_counts_who_lives_somewhere_has_no_low_end_to_ask_for(tag_id: TagId):
+    assert problems(default_spec(Tenure.RENT).replace(tags=(vibe(tag_id),))) == []
+    turned = default_spec(Tenure.RENT).replace(tags=(vibe(tag_id, Toward.LOW),))
+    assert problems(turned) == [("tags[0].toward", SpecProblemKind.DIRECTION_NOT_ALLOWED)]
+    with pytest.raises(SpecError):
+        rank(turned, small_release())
+
+
 def test_a_problem_points_into_the_spec_as_it_is_kept_whatever_order_it_was_sent_in():
     # A spec keeps its commutes, weights and areas in id order, and that is the
     # order every response gives them back in. A path indexes that order. It

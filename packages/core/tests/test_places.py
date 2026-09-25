@@ -8,6 +8,7 @@ from burro_core.places import (
     normalise,
     resolve_area,
     resolve_place,
+    search_areas,
     search_places,
 )
 from burro_core.release import InMemoryRelease, Place
@@ -157,6 +158,50 @@ def test_an_area_is_resolved_by_its_name_or_an_alias():
         ),
     )
     assert resolve_area("the clinkers", aliased).resolved == area_id(3)
+
+
+def bearing(release: InMemoryRelease, names: dict[int, tuple[str, ...]]) -> InMemoryRelease:
+    """A release in which some areas bear these names, the first as its name."""
+    return dataclasses.replace(
+        release,
+        neighbourhoods=tuple(
+            n.replace(name=names[number][0], aliases=names[number][1:])
+            if (number := int(n.area_id[-4:])) in names
+            else n
+            for n in release.neighbourhoods
+        ),
+    )
+
+
+def test_a_search_by_name_finds_every_area_that_bears_it():
+    # Two areas of one borough bear one name, and each says which side of it it is.
+    release = bearing(
+        small_release(),
+        {1: ("Foxholt, north", "Foxholt"), 3: ("Foxholt, south", "Foxholt"), 5: ("Foxholt Vale",)},
+    )
+    found = search_areas("foxholt", release, 8)
+    assert [(match.id, match.name, match.score) for match in found] == [
+        (area_id(1), "Foxholt, north", 1.0),
+        (area_id(3), "Foxholt, south", 1.0),
+        (area_id(5), "Foxholt Vale", 0.9),
+    ]
+    assert {match.kind for match in found} == {OptionKind.AREA}
+    # Neither is taken for the other: a name that two areas bear names neither of them.
+    assert resolve_area("Foxholt", release).resolved is None
+    assert Names(release).whole_area("foxholt") is None
+    assert Names(release).whole_area("foxholt north") == area_id(1)
+
+
+def test_a_search_for_an_area_is_helped_by_the_start_of_a_word_and_finds_no_place():
+    release = small_release()
+    assert [match.name for match in search_areas("dul", release, 8)] == ["Dulcimer Green"]
+    assert [match.name for match in search_areas("green", release, 8)] == ["Dulcimer Green"]
+    assert search_areas("Pellam Cross", release, 8) == ()
+    assert search_areas("", release, 8) == ()
+    # The search is cut to what was asked for.
+    assert [match.name for match in search_areas("d", release, 8)] == ["Dulcimer Green"]
+    assert len(search_areas("green", bearing(release, {1: ("Foxholt Green",)}), 8)) == 2
+    assert len(search_areas("green", bearing(release, {1: ("Foxholt Green",)}), 1)) == 1
 
 
 def test_what_was_typed_is_in_nothing_that_comes_back():

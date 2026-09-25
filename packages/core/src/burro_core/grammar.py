@@ -43,7 +43,13 @@ from burro_core.ids import (
     Step,
     UnmetCategory,
 )
-from burro_core.lexicon import GENERIC_PLACES, Target, lexicon_of, no_measure_of
+from burro_core.lexicon import (
+    GENERIC_PLACES,
+    Target,
+    counts_residents,
+    lexicon_of,
+    no_measure_of,
+)
 from burro_core.places import MAX_OPTIONS, Match, Names
 from burro_core.reading import (
     COUNTED,
@@ -260,6 +266,8 @@ _BEFORE_A_NAME = frozenset({"the", "a", "an", "my", "our"})
 _OWN_WORDS = GOOD.words | frozenset(
     {"near", "close", "nearer", "cleaner", "higher", "lower", "fewer", "more", "less", "away"}
 )
+# The words that turn a thing and say near of it.
+_NOT_NEAR = frozenset({"not near", "not close to"})
 # What says that a thing counts, after the thing: "is important", "would be good".
 _IS = frozenset({"is", "are"})
 _WOULD_BE = frozenset({"would be"})
@@ -471,6 +479,13 @@ class Wish:
     turned_after: bool = False
     # It opens with words that say near: "not far from", "within 10 minutes of".
     led_by_near: bool = False
+    # Something says the thing is wanted near, before it, "close to a doctor", "not
+    # near a doctor", or after it: "a doctor nearby", "a doctor within a ten minute walk".
+    near_before: bool = False
+    near_after: bool = False
+    # The speaker opens it and says no wish, "I'm", "we are": what follows may say
+    # who the speaker is.
+    of_the_speaker: bool = False
     # It is said to count, and not to be liked: "I care about", "matters to me".
     # "Is essential" and "is a must" are not that: they may say it is wanted.
     counts: bool = False
@@ -680,7 +695,7 @@ class _Segment:
             self.at = start
             return None
         self.take(PLACE_NOUN.words)
-        nearby = self.take(NEARBY.words) or self._within_a_walk()
+        nearby = self.nearby()
         self.take(FOR_WHOM.words)
         counts = self._counts()
         if turn is not None and (small or essential or counts is not None):
@@ -695,6 +710,8 @@ class _Segment:
         own = target.wanted_low or target.direction is not DirectionChoice.DEFAULT
         own = own or thing.text.split()[0] in _OWN_WORDS
         led = bool(near or small or large or essential or good) or own
+        # The phrase says near itself: "near a park", "close to a station".
+        named_near = thing.text.startswith(("near ", "close to "))
         return Wish(
             kind=Kind.WISH,
             spans=[_span(self.items[start : self.at])],
@@ -709,8 +726,14 @@ class _Segment:
             counted_after=counts is not None,
             turned_after=after,
             counts=self.cares,
-            led_by_near=bool(timed) or thing.text.startswith(("near ", "close to ")),
+            led_by_near=bool(timed) or named_near,
+            near_before=bool(near) or named_near or (turn is not None and _said(turn) in _NOT_NEAR),
+            near_after=nearby is not None or thing.text.endswith(" nearby"),
         )
+
+    def nearby(self) -> list[Item] | None:
+        """What says near after a thing: "nearby", "within a ten minute walk"."""
+        return self.take(NEARBY.words) or self._within_a_walk()
 
     def _within_a_walk(self) -> list[Item] | None:
         """ "Within a ten minute walk", "in under ten minutes": near, said after the thing."""
@@ -1240,6 +1263,30 @@ def _is_at_a_distance(wish: Wish) -> bool:
     return near or wish.led_by_near
 
 
+def _goes_on(wish: Wish) -> bool:
+    """Whether a wish goes on the list of the thing before it."""
+    return wish.kind is Kind.WISH and wish.join in (Join.MARK, Join.AND, Join.OR) and not wish.own
+
+
+def _led_near(found: Sequence[Wish], at: int) -> bool:
+    """Whether a thing is listed after one that is led by near, with bare things between."""
+    while at > 0 and _goes_on(found[at]) and found[at].bare:
+        at -= 1
+        if found[at].kind is Kind.WISH and found[at].near_before:
+            return True
+    return False
+
+
+def _closed_near(found: Sequence[Wish], at: int) -> bool:
+    """Whether a thing listed after this one is said to be nearby."""
+    for wish in found[at + 1 :]:
+        if not _goes_on(wish):
+            return False
+        if wish.near_after:
+            return True
+    return False
+
+
 def about_a_campus(target: Target) -> bool:
     return FeatureId.UNIVERSITY_PROXIMITY in target.features
 
@@ -1283,6 +1330,10 @@ class Grammar:
     def items(self, line: Line) -> list[Item]:
         return items_of(line, self.names, self.known)
 
+    def nearby(self, items: Sequence[Item]) -> bool:
+        """Whether some items open with what says near after a thing: "nearby", "in 10 minutes"."""
+        return _Segment(items, self).nearby() is not None
+
     def sentence(self, line: Line, items: Sequence[Item]) -> list[Wish]:
         """The items of one sentence. Raises `NotPlain` if the grammar does not make it."""
         if line.asked or any(item.what is Is.ODD for item in items):
@@ -1317,11 +1368,31 @@ class Grammar:
                 continue
             for wish in self._item(segment, last):
                 wish.join, wish.own = join, own
+                wish.of_the_speaker = segment.spoke and not own
                 found.append(self._checked(wish))
         found = [self._checked(wish) for wish in self._one_turn_one_thing(found)]
         self._there(found)
         self._an_m_is_money(found)
+        self._a_person_is_no_place(found)
         return found
+
+    @staticmethod
+    def _a_person_is_no_place(found: Sequence[Wish]) -> None:
+        """Raises `NotPlain` for a word that is a person's too, where nothing says near.
+
+        "Doctor" is a surgery in "near a doctor" and in "a doctor nearby", and
+        who the speaker is in "I'm a doctor". What is said after a thing may be
+        said of every thing of its list, "a GP and a chemist nearby", and what
+        leads a thing leads the bare things listed after it: "near a park and
+        a doctor". Neither reaches a thing the speaker opens with no wish.
+        """
+        for at, wish in enumerate(found):
+            if wish.kind is not Kind.WISH or wish.target is None or not wish.target.near_only:
+                continue
+            if wish.near_before or wish.near_after:
+                continue
+            if wish.of_the_speaker or not (_led_near(found, at) or _closed_near(found, at)):
+                raise NotPlain
 
     @staticmethod
     def _an_m_is_money(found: Sequence[Wish]) -> None:
@@ -1355,6 +1426,17 @@ class Grammar:
         """
         target = wish.target
         if wish.kind is not Kind.WISH or target is None:
+            return wish
+        if counts_residents(target):
+            if wish.way is not Way.NONE:
+                # Whatever turns a thing that counts who lives somewhere, the words ask
+                # for fewer of a group of people, or to be kept from one. Nothing reads
+                # that: it is a request about people, and gets the notice.
+                return Wish(kind=Kind.PEOPLE, spans=wish.spans, join=wish.join, own=wish.own)
+            if wish.essential:
+                raise NotPlain
+            # No word applies it. It is offered, towards more of what it counts.
+            wish.offered = True
             return wish
         if target.no_end and wish.way not in (Way.OFF, Way.DOWN):
             # The name of a scale names no end, so the reader would have to

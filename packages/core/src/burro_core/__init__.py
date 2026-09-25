@@ -28,7 +28,7 @@ from burro_core.interpret import (
 )
 from burro_core.likeness import Likeness, similar
 from burro_core.ops import NO_OPERATIONS, Operations
-from burro_core.places import resolve_area, resolve_place, search_places
+from burro_core.places import resolve_area, resolve_place, search_areas, search_places
 from burro_core.portrait import Portrait, portrait
 from burro_core.rank import ENGINE_VERSION, RankResult, rank
 from burro_core.reducer import ReducerResult, apply
@@ -97,6 +97,7 @@ __all__ = [
     "rank",
     "resolve_area",
     "resolve_place",
+    "search_areas",
     "search_places",
     "similar",
     "spec_hash",

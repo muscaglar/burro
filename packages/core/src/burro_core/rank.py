@@ -1,8 +1,10 @@
 """Ranking: a pure function of a preference spec and a data release.
 
 The same inputs give the same output on every call. It does no IO and reads no
-clock. It ranks places by what is there, and nothing that reaches it describes
-who lives somewhere (ADR 0006). Missing data is never filled in: a component
+clock. It ranks places by what is there. Of who lives somewhere, what reaches it
+is their age and their households alone, as a share at Census 2021, and the
+spec it is handed can ask for more of either and never for fewer
+(ADR 0006). Missing data is never filled in: a component
 with no figure for an area is dropped for that area, the remaining weights are
 rebalanced, and the coverage is reported. An area with no figure for a thing
 that was asked for is ranked, and stands below every area that has one: it is
@@ -18,6 +20,7 @@ from pydantic import Field
 
 from burro_core._record import Record
 from burro_core.catalogue import HOLDS_CRIME, default_direction
+from burro_core.estimate import WORTH, estimate
 from burro_core.facts import (
     cost_key,
     fact_id,
@@ -35,6 +38,7 @@ from burro_core.ids import (
     Direction,
     FactKind,
     FilterReason,
+    JourneyBand,
     Mode,
     PlaceId,
     PtBasis,
@@ -79,8 +83,17 @@ from burro_core.spec import (
 # moves them, where they weighed 1.00 and 0.80. It moves no arithmetic, and a
 # search that holds its own weights, as a share does, is ranked as it was.
 # 1.12.0 puts an area with no figure for a thing that was asked for below every
-# area that has one. Its fit is worked out as it was.
-ENGINE_VERSION = "1.12.0"
+# area that has one. Its fit is worked out as it was. 1.13.0 estimates a journey
+# by public transport from distance where a release holds no time for it and
+# says where the homes of the area stand: it is said as a band against the
+# limit, a firm limit leaves out only what is likely beyond it, and a flexible
+# one counts the band. It moves no result of a release that holds its times.
+# In the same version a firm budget leaves an area out on a median only where
+# the median is over the budget by more than `FIRM_BUDGET_MARGIN_PERCENT`, and
+# it is said beside a median that is over the budget that about half of the
+# homes sold for less. It moves no result of a release whose costs all have a
+# range. 1.13.0 is one number for both.
+ENGINE_VERSION = "1.13.0"
 
 FULL_UNTIL_MIN = 15  # a journey this short is as good as any shorter
 FULL_UNTIL_SHARE = 0.5  # unless that is more than half the cap
@@ -91,6 +104,22 @@ ZERO_AT_SHARE = 1.5  # a journey half as long again as the cap is worth nothing
 # cost has no range it is tested against the median, as it is written: nothing
 # is put in the place of a quartile that no source gives.
 BUDGET_OVER_SHARE = 0.25
+# How far over a firm budget the median of an area may be, in hundredths of the budget,
+# before the budget leaves the area out. It is held against a cost that is one number, a
+# median of what sold, and against no range.
+#
+# Half of the homes behind a median sold for less than it. So an area whose median is a
+# little over a budget is one where many homes sold within it, and a firm budget that
+# left it out on the median left out places a person could buy in. How many sold within
+# it falls as the median rises: of the flats sold in London from 2023 to 2025, with a
+# budget of 400,000, about half sold within it where the median stood at the budget, about
+# a quarter where the median stood a quarter over it, and fewer beyond. A quarter over is
+# also where a flexible budget counts an area for nothing (`BUDGET_OVER_SHARE`), so a firm
+# budget leaves out what a flexible one would give no credit to, and no more. And a
+# person who names a size, as a flat of one bedroom, is held against homes of every size,
+# of which the smaller sold for less than the middle. It is a first figure, and the
+# founder's to change: this is the one place it is written.
+FIRM_BUDGET_MARGIN_PERCENT = 25
 # Below this share of the requested weight, an area is not scored. It is
 # compared in whole steps of weight, so that an area with exactly this share
 # present is scored however the weight is split between its components.
@@ -130,6 +159,10 @@ class CommuteLeg(Record):
     minutes_typical: int | None
     minutes_just_missed: int | None
     utility: float | None
+    # Where the journey stands against its limit, where its status is `estimated`: the
+    # release holds no time for it, and one was estimated from distance. It is never
+    # given in minutes. `None` for every other journey.
+    estimate: JourneyBand | None = None
 
 
 class BudgetFit(Record):
@@ -225,6 +258,20 @@ def budget_held_against(estimate: CostEstimate) -> int:
     return estimate.median if estimate.upper_quartile is None else estimate.upper_quartile
 
 
+def over_a_firm_budget(estimate: CostEstimate, amount: int) -> bool:
+    """Whether a firm budget leaves out an area whose home costs this.
+
+    A range is over the budget where its upper quartile is. A cost that is
+    one number, a median of what sold, is over it only where the median is
+    more than `FIRM_BUDGET_MARGIN_PERCENT` in 100 over: about half of the
+    homes behind a median sold for less than it. It is counted in whole
+    pounds, so that no float decides which side of the line an area falls.
+    """
+    if estimate.upper_quartile is not None:
+        return estimate.upper_quartile > amount
+    return 100 * estimate.median > (100 + FIRM_BUDGET_MARGIN_PERCENT) * amount
+
+
 def budget_utility(amount: int, upper_quartile: int) -> float:
     """1 when the upper quartile is within budget, falling to 0 at a quarter over.
 
@@ -266,6 +313,21 @@ def _leg(area_id: str, commute: Commute, spec: PreferenceSpec, release: Release)
     typical = release.travel(area_id, destination, commute.mode, PtBasis.TYPICAL)
     missed = release.travel(area_id, destination, commute.mode, PtBasis.JUST_MISSED)
     scored = missed if scored_on_just_missed(commute, spec) else typical
+    if scored.status is TravelStatus.MISSING:
+        # No time is held. Where one can be estimated from distance, it is, and is
+        # said as a band: a time that a release holds always takes its place.
+        band = estimate(release, area_id, commute.place_id, commute.mode, commute.max_minutes)
+        if band is not None:
+            return CommuteLeg(
+                place_id=commute.place_id,
+                mode=commute.mode,
+                status=TravelStatus.ESTIMATED,
+                minutes=None,
+                minutes_typical=None,
+                minutes_just_missed=None,
+                utility=WORTH[band] if spec.commute_requested else None,
+                estimate=band,
+            )
     if not spec.commute_requested or scored.status is TravelStatus.MISSING:
         utility = None
     elif scored.minutes is None:
@@ -313,7 +375,7 @@ def _filter(
     if spec.budget.strictness is Strictness.HARD and amount is not None:
         if estimate is None:
             untested.append(FilterReason.OVER_BUDGET)
-        elif budget_held_against(estimate) > amount:
+        elif over_a_firm_budget(estimate, amount):
             return FilterReason.OVER_BUDGET, ()
     hard = [
         leg
@@ -323,6 +385,10 @@ def _filter(
     caps = {commute.place_id: commute for commute in spec.commutes}
     if any(_over_cap(leg, caps[leg.place_id]) for leg in hard):
         return FilterReason.COMMUTE_CAP, ()
+    # A firm limit leaves out only what an estimate puts well beyond it. What is
+    # borderline stays: the estimate is too rough to leave an area out on.
+    if any(leg.estimate is JourneyBand.LIKELY_BEYOND for leg in hard):
+        return FilterReason.COMMUTE_LIKELY_BEYOND, ()
     if any(leg.status is TravelStatus.MISSING for leg in hard):
         untested.append(FilterReason.COMMUTE_CAP)
     return None, tuple(untested)

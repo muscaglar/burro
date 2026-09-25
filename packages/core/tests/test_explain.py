@@ -429,8 +429,10 @@ def test_explainer_input_holds_no_user_text():
         "synthetic",
         "source_id",
         "name",
-        # Who published a source, as the release names them.
+        # Who published a source, as the release names them, and the publisher's own
+        # statement of credit, where it asks to see it beside a figure.
         "publisher",
+        "attribution",
         # Contribution
         "component",
         "present",
@@ -649,11 +651,15 @@ Searched = tuple[PreferenceSpec, RankResult, tuple[Explanation, ...]]
 
 @cache
 def searches() -> tuple[Searched, ...]:
-    """Sixty searches of the small release, each ranked and explained. Made once for them all."""
+    """Eighty searches of the small release, each ranked and explained. Made once for them all.
+
+    What a search asks for is drawn from what the release carries, so the searches move
+    when it carries more. Eighty keep each thing the tests look for well above its floor.
+    """
     release = small_release()
-    draw = draws(62)
+    draw = draws(63)
     found: list[Searched] = []
-    for _ in range(60):
+    for _ in range(80):
         spec = random_spec(draw, release)
         result = rank(spec, release)
         areas = tuple(a.area_id for a in result.ranked)

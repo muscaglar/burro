@@ -34,6 +34,7 @@ THE_MODULES = {
     "ops",
     "reducer",
     "rank",
+    "estimate",
     "places",
     "likeness",
     "facts",
@@ -48,6 +49,9 @@ THE_MODULES = {
     "grammar",
     # The census of an area's page. Nothing above imports it: `test_census.py` holds that.
     "census",
+    # Household income, shown on an area's page as the census is. Nothing above imports
+    # it either: `test_income.py` holds that.
+    "income",
 }
 
 
@@ -85,6 +89,6 @@ def test_core_depends_on_pydantic_only():
 
 
 def test_the_engine_names_its_version():
-    assert burro_core.ENGINE_VERSION == "1.12.0"
-    assert burro_core.CATALOGUE_VERSION == 12
+    assert burro_core.ENGINE_VERSION == "1.13.0"
+    assert burro_core.CATALOGUE_VERSION == 13
     assert set(burro_core.__all__) <= set(dir(burro_core))

@@ -1,8 +1,11 @@
 """The vocabulary: every id and every enum the rest of Burro may use.
 
 `FeatureId` and `TagId` are the allowlist of ADR 0006. An edit, a spec, a model
-or a fact can name nothing that is not a member, so a feature describing who
-lives somewhere cannot be asked for: there is no id for it.
+or a fact can name nothing that is not a member. Four features describe who
+lives somewhere, and no other does: the residents aged 20 to 34 and aged 65 and
+over, and the households with dependent children and of one person, each as
+Census 2021 counted them (ADR 0006, as amended on 2026-09-24). Nothing else
+about who lives somewhere can be asked for: there is no id for it.
 """
 
 from enum import StrEnum
@@ -87,6 +90,91 @@ class FeatureId(StrEnum):
     PRICE_MEDIAN = "price_median"
     # What a wish for culture is ranked on. The count is shown.
     CULTURE_VENUES_PER_HOMES = "culture_venues_per_homes"
+    # Cafes, gyms and pubs. Of each the count within reach is shown, and a wish is ranked on
+    # the figure for each 1,000 homes. The count of pubs and bars is `venue_evening`.
+    VENUE_CAFE = "venue_cafe"
+    VENUE_CAFE_PER_HOMES = "venue_cafe_per_homes"
+    VENUE_GYM = "venue_gym"
+    VENUE_GYM_PER_HOMES = "venue_gym_per_homes"
+    VENUE_EVENING_PER_HOMES = "venue_evening_per_homes"
+    # The chains of grocers, gyms and coffee within reach, by the tier the table of tiers
+    # gives each chain. The table is a judgement, and is data of the pipeline's: core names
+    # a tier and never says which chain is of it. Each is a count of places of a chain, and
+    # says nothing of who shops anywhere.
+    GROCER_PREMIUM_NEARBY = "grocer_premium_nearby"
+    GROCER_MID_NEARBY = "grocer_mid_nearby"
+    GROCER_VALUE_NEARBY = "grocer_value_nearby"
+    GYM_PREMIUM_NEARBY = "gym_premium_nearby"
+    GYM_MID_NEARBY = "gym_mid_nearby"
+    GYM_VALUE_NEARBY = "gym_value_nearby"
+    COFFEE_PREMIUM_NEARBY = "coffee_premium_nearby"
+    COFFEE_MID_NEARBY = "coffee_mid_nearby"
+    COFFEE_VALUE_NEARBY = "coffee_value_nearby"
+    # The distance to the nearest place of each tier.
+    GROCER_PREMIUM_DISTANCE = "grocer_premium_distance"
+    GROCER_MID_DISTANCE = "grocer_mid_distance"
+    GROCER_VALUE_DISTANCE = "grocer_value_distance"
+    GYM_PREMIUM_DISTANCE = "gym_premium_distance"
+    GYM_MID_DISTANCE = "gym_mid_distance"
+    GYM_VALUE_DISTANCE = "gym_value_distance"
+    COFFEE_PREMIUM_DISTANCE = "coffee_premium_distance"
+    COFFEE_MID_DISTANCE = "coffee_mid_distance"
+    COFFEE_VALUE_DISTANCE = "coffee_value_distance"
+    # How far the chains within reach lean to premium or to value. It is what a word for a
+    # smart area is first read as, and the one measure of the tiers that is ranked on.
+    BRAND_MIX = "brand_mix"
+    # The distance to the nearest place of one chain, for a person who names the chain.
+    BRAND_WAITROSE = "brand_waitrose"
+    BRAND_MANDS = "brand_mands"
+    BRAND_WHOLE_FOODS = "brand_whole_foods"
+    BRAND_SAINSBURYS = "brand_sainsburys"
+    BRAND_TESCO = "brand_tesco"
+    BRAND_COOP = "brand_coop"
+    BRAND_MORRISONS = "brand_morrisons"
+    BRAND_ASDA = "brand_asda"
+    BRAND_ALDI = "brand_aldi"
+    BRAND_LIDL = "brand_lidl"
+    BRAND_ICELAND = "brand_iceland"
+    BRAND_EQUINOX = "brand_equinox"
+    BRAND_THIRD_SPACE = "brand_third_space"
+    BRAND_BARRYS = "brand_barrys"
+    BRAND_VIRGIN_ACTIVE = "brand_virgin_active"
+    BRAND_NUFFIELD = "brand_nuffield"
+    BRAND_GYMBOX = "brand_gymbox"
+    BRAND_DAVID_LLOYD = "brand_david_lloyd"
+    BRAND_ANYTIME_FITNESS = "brand_anytime_fitness"
+    BRAND_PUREGYM = "brand_puregym"
+    BRAND_THE_GYM_GROUP = "brand_the_gym_group"
+    BRAND_GAILS = "brand_gails"
+    BRAND_OLE_AND_STEEN = "brand_ole_and_steen"
+    BRAND_PRET = "brand_pret"
+    BRAND_NERO = "brand_nero"
+    BRAND_STARBUCKS = "brand_starbucks"
+    BRAND_COSTA = "brand_costa"
+    BRAND_BLANK_STREET = "brand_blank_street"
+    BRAND_GREGGS = "brand_greggs"
+    # The four parts of Well connected, and the stops of buses, which are shown and are
+    # ranked on as the routes that call at them. Each counts how near stops are, and
+    # nothing of how often anything runs from them.
+    UNDERGROUND_PROXIMITY = "underground_proximity"
+    OVERGROUND_PROXIMITY = "overground_proximity"
+    RAIL_PROXIMITY = "rail_proximity"
+    BUS_STOPS_NEARBY = "bus_stops_nearby"
+    BUS_ROUTES_NEARBY = "bus_routes_nearby"
+    # Who lived in an area at Census 2021: the age of residents, and what households were
+    # made of. These four, and no other figure of who lives somewhere (ADR 0006).
+    RESIDENTS_AGED_20_34 = "residents_aged_20_34"
+    RESIDENTS_AGED_65_OVER = "residents_aged_65_over"
+    HOUSEHOLDS_DEPENDENT_CHILDREN = "households_dependent_children"
+    HOUSEHOLDS_ONE_PERSON = "households_one_person"
+    # The homes of a place by their council tax band: the share in the higher four of the
+    # eight. It is a reading of a word for a smart area that counts homes, and never who
+    # lives in them or what they earn.
+    HOMES_HIGHER_BANDS = "homes_higher_bands"
+    # How far what homes sold for has risen, over five years and over ten. A rise is of
+    # prices that were paid, and promises nothing.
+    PRICE_RISE_5Y = "price_rise_5y"
+    PRICE_RISE_10Y = "price_rise_10y"
 
 
 class TagId(StrEnum):
@@ -108,6 +196,10 @@ class TagId(StrEnum):
     # id it had when it was called Street character. An id is never renamed.
     WORKS_WAREHOUSES = "works_warehouses"
     STREET_CHARACTER = "street_character"
+    WELL_CONNECTED = "well_connected"
+    # The two vibes that count who lived in an area, beside what is near for them.
+    FAMILY_AREA = "family_area"
+    YOUNG_PROFESSIONALS = "young_professionals"
 
 
 class Dimension(StrEnum):
@@ -119,6 +211,9 @@ class Dimension(StrEnum):
     HOMES = "homes"
     STATION_ACCESS = "station_access"
     SERVICES = "services"
+    # The chains of grocers, gyms and coffee. It is of the place: which shops stand there.
+    BRANDS = "brands"
+    RESIDENTS = "residents"
 
 
 class FeatureKind(StrEnum):
@@ -128,14 +223,19 @@ class FeatureKind(StrEnum):
     AMENITY = "amenity"  # more of it, or nearer
     NUISANCE = "nuisance"  # less of it only
     ON_REQUEST = "on_request"  # one direction, by a fairness rule. In no vibe
+    # More of it only, and never fewer: it counts who lives somewhere. It may stand in a
+    # vibe that runs one way, read from its high end, and in no scale.
+    RESIDENTS = "residents"
 
 
 class Describes(StrEnum):
-    """What a feature is a fact about. There is no value for who lives somewhere."""
+    """What a feature is a fact about."""
 
     PLACE = "place"
     BUILDINGS = "buildings"
     EVENTS = "events"
+    # Who lived there at the census: their age and their households, and nothing else.
+    RESIDENTS = "residents"
 
 
 class Family(StrEnum):
@@ -145,6 +245,8 @@ class Family(StrEnum):
     PACE_FOOD = "pace_food"
     GREEN = "green"
     DAILY_LIFE = "daily_life"
+    # Everything that counts who lives somewhere stands here, apart from what counts places.
+    WHO_LIVES_THERE = "who_lives_there"
 
 
 class Method(StrEnum):
@@ -223,7 +325,8 @@ class Confidence(StrEnum):
     MEDIUM = "medium"
     LOW = "low"
     # A publisher's own figure, given with no count of what stands behind it. It is said
-    # of a row that holds a median and no range, and of no other.
+    # of a row that holds a median and no range, and of no other. A median that says how
+    # many sales it rests on is `high` or `medium`, by how many they are.
     UNSTATED = "unstated"
 
 
@@ -269,6 +372,17 @@ class TravelStatus(StrEnum):
     OK = "ok"
     BEYOND_CUTOFF = "beyond_cutoff"  # no journey within the cutoff. This is data
     MISSING = "missing"  # not computed. This is missing data
+    # No time is held, and one was estimated from distance. It is said as a band, and
+    # never in minutes. No release holds it: it is what a journey of a search may be.
+    ESTIMATED = "estimated"
+
+
+class JourneyBand(StrEnum):
+    """Where an estimated journey stands against the limit a person gave. Never minutes."""
+
+    LIKELY_WITHIN = "likely_within"
+    BORDERLINE = "borderline"
+    LIKELY_BEYOND = "likely_beyond"
 
 
 class PlaceKind(StrEnum):
@@ -281,6 +395,15 @@ class PlaceKind(StrEnum):
     HOSPITAL = "hospital"
     SCHOOL = "school"
     LANDMARK = "landmark"
+
+
+class NameState(StrEnum):
+    """How far the name an area bears has been checked."""
+
+    # A method chose it from what publishers write, and no person has read it.
+    DRAFT = "draft"
+    # A person decided it at the review desk.
+    CHECKED = "checked"
 
 
 class Part(StrEnum):
@@ -445,6 +568,9 @@ class FilterReason(StrEnum):
     NOT_SELECTED = "not_selected"
     OVER_BUDGET = "over_budget"
     COMMUTE_CAP = "commute_cap"
+    # A firm limit, and a journey that is estimated to be well beyond it. It is an
+    # estimate from distance, and the reason says so by having a name of its own.
+    COMMUTE_LIKELY_BEYOND = "commute_likely_beyond"
 
 
 class UnrankedReason(StrEnum):
@@ -478,6 +604,7 @@ class TemplateId(StrEnum):
     COST_RENT = "cost_rent"
     COST_BUY = "cost_buy"
     COST_BUY_MEDIAN = "cost_buy_median"
+    COST_BUY_SOLD = "cost_buy_sold"
     BUDGET_UNDER = "budget_under"
     BUDGET_OVER = "budget_over"
     BUDGET_UNDER_MEDIAN = "budget_under_median"
@@ -487,6 +614,7 @@ class TemplateId(StrEnum):
     TRAVEL_OTHER = "travel_other"
     TRAVEL_OTHER_OVER = "travel_other_over"
     TRAVEL_BEYOND = "travel_beyond"
+    TRAVEL_ESTIMATED = "travel_estimated"
     STATION = "station"
     STATION_NEARBY = "station_nearby"
     MISSING = "missing"

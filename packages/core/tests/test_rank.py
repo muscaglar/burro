@@ -2,7 +2,7 @@ import dataclasses
 from itertools import pairwise
 
 import pytest
-from burro_core.catalogue import HOLDS_CRIME, TAGS
+from burro_core.catalogue import HOLDS_CRIME, HOLDS_RESIDENTS, TAGS
 from burro_core.ids import (
     AreaRuleKind,
     Combine,
@@ -147,7 +147,7 @@ def test_the_result_records_what_it_was_ranked_from():
     result = rank(spec, build_worked_release())
     assert result.spec_hash == spec_hash(spec)
     assert result.release_id == "syn-2026-09-23-01"
-    assert result.engine_version == ENGINE_VERSION == "1.12.0"
+    assert result.engine_version == ENGINE_VERSION == "1.13.0"
     assert result.synthetic is True
 
 
@@ -898,6 +898,31 @@ def test_a_vibe_that_holds_recorded_crime_is_on_a_result_only_where_it_was_asked
     gritty = TagWeight(tag_id=held, weight=0.5, provenance=Provenance.STATED)
     asked = rank(default_spec(Tenure.RENT).replace(tags=(gritty,)), release).ranked
     assert asked and all(area.strip[0].tag_id == held and area.strip[0].asked for area in asked)
+
+
+def test_a_vibe_that_counts_who_lives_somewhere_is_on_a_result_only_where_it_was_asked_for():
+    # Burro measures places first. What a result shows of itself is of the place.
+    release = small_release()
+    assert {TagId.FAMILY_AREA, TagId.YOUNG_PROFESSIONALS} == HOLDS_RESIDENTS
+    assert not [
+        vibe.tag_id for vibe in release.vibes if vibe.strip and vibe.tag_id in HOLDS_RESIDENTS
+    ]
+    for spec in (default_spec(Tenure.RENT), default_spec(Tenure.BUY)):
+        unasked = rank(spec, release).ranked
+        assert unasked
+        assert not [m for area in unasked for m in area.strip if m.tag_id in HOLDS_RESIDENTS]
+    # Asked for, it is shown as any vibe is, wherever the area sits on it.
+    for held in sorted(HOLDS_RESIDENTS):
+        wanted = TagWeight(tag_id=held, weight=0.5, provenance=Provenance.UI_EDIT)
+        asked = rank(default_spec(Tenure.RENT).replace(tags=(wanted,)), release).ranked
+        placed = [
+            area
+            for area in asked
+            if (row := release.tag(area.area_id, held)) is not None and row.band is not None
+        ]
+        assert placed and all(
+            area.strip[0].tag_id == held and area.strip[0].asked for area in placed
+        )
 
 
 def test_the_strip_holds_four_asked_vibes_at_most_and_leaves_out_what_cannot_be_placed():

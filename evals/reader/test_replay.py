@@ -5,9 +5,8 @@
 The floor is the contract's (section 8.2): nothing applied without a press,
 nothing offered that is never to be offered, no right reading of the rules
 lost, and no more than one backwards reading in a hundred marked as the
-guess. It is held on the first look of every sentence. What the counts were
-when the guard was built is held too, so that a change to the guard that
-moves one is seen.
+guess. It is held on the first look of every sentence. What the counts are
+is held too, so that a change to the guard that moves one is seen.
 """
 
 import importlib.util
@@ -76,20 +75,22 @@ def test_the_two_calls_that_failed_are_never_made_now_because_the_rules_read_bot
     ]
 
 
-def test_what_the_guard_made_of_the_answers_when_it_was_built():
+def test_what_the_guard_makes_of_the_answers_on_disk():
     # Of 112 sentences read once each. The rules alone read 61 of them rightly.
-    # One backwards reading is marked as the guess: a wish of somebody else's,
-    # in words core does not list.
+    # No backwards reading is marked as the guess. One was, a wish of somebody
+    # else's, until the guard read whose wish it is. "Lots of young families" was right
+    # when it drew the notice alone. It is offered a family area now, which no press has
+    # taken up.
     assert replay.counted(FIRST) == {
         "answers": 112,
         "calls the reader made": 77,
         "answered by the rules, with no call or in a model's place": 35,
         "right": 84,
         "in part": 11,
-        "not read": 13,
+        "not read": 14,
         "a guess nobody asked for": 3,
         "backwards, offered with no guess marked": 0,
-        "backwards, marked as the guess": 1,
+        "backwards, marked as the guess": 0,
         "backwards, applied": 0,
         "never to be offered, and offered": 0,
         "applied with no press": 0,

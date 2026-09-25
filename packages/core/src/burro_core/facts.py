@@ -35,6 +35,7 @@ from burro_core.catalogue import (
     band_of,
     default_direction,
 )
+from burro_core.estimate import ESTIMATED, SAID, VERDICT, estimate
 from burro_core.ids import (
     BUDGET,
     COMMUTE,
@@ -42,6 +43,7 @@ from burro_core.ids import (
     Direction,
     FactKind,
     FeatureId,
+    JourneyBand,
     Mode,
     Part,
     PtBasis,
@@ -61,6 +63,7 @@ from burro_core.release import (
     CostEstimate,
     Neighbourhood,
     Origin,
+    Place,
     Release,
     ReleaseError,
     TagValue,
@@ -75,6 +78,10 @@ class FactSource(Record):
     # Who published it, as the manifest says. A page names the publisher beside
     # the dataset, and has no need to look one up.
     publisher: str
+    # The publisher's own statement of credit, where it asks that the statement stands
+    # wherever a figure made from its data is shown. `None` for a source that is credited
+    # by its name and its publisher, with its statement on the page of attributions.
+    attribution: str | None = None
 
 
 class Fact(Record):
@@ -124,9 +131,18 @@ HOMES_LABELS: Mapping[Segment, str] = {
 }
 # The period of a cost that is a median of the sales of twelve months.
 YEAR_ENDING = "the year ending {month}"
+# The period of a cost that is a median of sales that were counted, from its first month to
+# its last.
+FROM_TO = "{since} to {as_of}"
+# What a median says of the homes that sold, in one sentence: about half went for less. It
+# stands beside a median wherever a budget may be held against it, so that a middle price
+# is not read as the least a home sold for.
+HALF_SOLD_FOR_LESS = "About half of the {homes} sold here went for under £{median}."
 COST_LABELS: Mapping[Tenure, str] = {Tenure.RENT: "Rent", Tenure.BUY: "Price"}
 # What the `missing` sentence calls a component that has no figure.
 MISSING_LABELS: Mapping[str, str] = {BUDGET: "cost"}
+# What joins the publishers that write one name, where more than one does.
+WRITTEN_BY = " and "
 # How the ends of a one-way vibe are said, which has no names for them.
 LEAST, MOST = "least", "most"
 # A mixed area is said as a range once the middle half of its homes span this many bands.
@@ -340,6 +356,10 @@ class _Builder:
         self.area = area
         self.names = {s.source_id: s.name for s in release.manifest.sources}
         self.publishers = {s.source_id: s.publisher for s in release.manifest.sources}
+        # The statement of each source whose publisher asks to see it beside every figure.
+        self.credits = {
+            s.source_id: s.attribution for s in release.manifest.sources if s.credit_beside_figures
+        }
         self.metrics = {m.feature_id: m for m in release.metrics}
 
     def standing(self, value: float, of: Callable[[str], float | None]) -> Standing:
@@ -397,7 +417,12 @@ class _Builder:
             numbers=tuple(dict.fromkeys(numbers)),
             names=names,
             sources=tuple(
-                FactSource(source_id=s, name=self.names[s], publisher=self.publishers[s])
+                FactSource(
+                    source_id=s,
+                    name=self.names[s],
+                    publisher=self.publishers[s],
+                    attribution=self.credits.get(s),
+                )
                 for s in sorted(set(source_ids))
             ),
             as_of=as_of,
@@ -424,14 +449,35 @@ class _Builder:
         )
 
     def area_fact(self) -> Fact:
+        """The name of the area and its borough, and what is known of the name.
+
+        Where the area bears a name that is not its publisher's label, the
+        fact holds the label, who wrote the name, and whether a person has
+        checked it. The sentence of the fact prints none of the three: a
+        client lays each out beside the name.
+        """
+        slots = {"name": self.area.name, "borough": self.area.borough}
+        names = (self.area.name, self.area.borough)
+        named = self.area.named
+        if named is not None:
+            if any(source_id not in self.publishers for source_id in named.source_ids):
+                # Never invent a publisher. `parse_release` refuses such a release.
+                raise ReleaseError(MANIFEST, "references_resolve")
+            written_by = dict.fromkeys(self.publishers[s] for s in named.source_ids)
+            slots |= {
+                "label": named.label,
+                "written_by": WRITTEN_BY.join(written_by),
+                "state": named.state.value,
+            }
+            names = (*names, named.label)
         return self.from_origin(
             self.release.origin(Part.NEIGHBOURHOODS),
             FactKind.AREA,
             "name",
             "Area",
             TemplateId.AREA,
-            {"name": self.area.name, "borough": self.area.borough},
-            names=(self.area.name, self.area.borough),
+            slots,
+            names=names,
         )
 
     def features(self, spec: PreferenceSpec | None) -> Iterator[Fact]:
@@ -608,25 +654,48 @@ class _Builder:
                     yield self._cost(row)
 
     def _median(self, row: CostEstimate) -> Fact:
-        """The fact of a price that is one number: a publisher's median, with no range."""
-        year, number = row.as_of.split("-")[:2]
+        """The fact of a price that is one number: a median of what sold, with no range.
+
+        A publisher's median is of the sales of twelve months, and says
+        nothing of how many they were. A median that was worked out from
+        the sales says how many it rests on, and from which month to which.
+        """
+        homes = HOMES_LABELS[row.segment]
+        slots = {
+            "segment": SEGMENT_LABELS[row.segment],
+            "homes": homes,
+            "median": money(row.median),
+            "as_of": month(row.as_of),
+            # The sales are those of twelve months, and the row gives the last of them.
+            "period": YEAR_ENDING.format(month=month(row.as_of)),
+            "confidence": row.confidence,
+            "half_sold": HALF_SOLD_FOR_LESS.format(homes=homes, median=money(row.median)),
+        }
+        template = TemplateId.COST_BUY_MEDIAN
+        dated = [row.as_of]
+        counted: tuple[str, ...] = ()
+        if row.sales is not None and row.since is not None:
+            template = TemplateId.COST_BUY_SOLD
+            slots |= {
+                "since": month(row.since),
+                "period": FROM_TO.format(since=month(row.since), as_of=month(row.as_of)),
+                "sales": f"{row.sales:,}",
+            }
+            dated.append(row.since)
+            counted = (str(row.sales),)
         return self.fact(
             FactKind.COST,
             cost_key(row.tenure, row.segment),
             COST_LABELS[row.tenure],
-            TemplateId.COST_BUY_MEDIAN,
-            {
-                "segment": SEGMENT_LABELS[row.segment],
-                "homes": HOMES_LABELS[row.segment],
-                "median": money(row.median),
-                "as_of": month(row.as_of),
-                # The sales are those of twelve months, and the row gives the last of them.
-                "period": YEAR_ENDING.format(month=month(row.as_of)),
-                "confidence": row.confidence,
-            },
+            template,
+            slots,
             row.source_ids,
             row.as_of,
-            numbers=(pounds(row.median), year, number, str(int(number))),
+            numbers=(
+                pounds(row.median),
+                *counted,
+                *(digits for day in dated for digits in _digits(day)),
+            ),
         )
 
     def _cost(self, row: CostEstimate) -> Fact:
@@ -667,7 +736,9 @@ class _Builder:
         # What the budget is held against, as the ranking holds it: the upper quartile of
         # a range, and the median of a cost that has none.
         if row.upper_quartile is None:
-            held, slot, slots = row.median, "median", {"homes": HOMES_LABELS[row.segment]}
+            homes = HOMES_LABELS[row.segment]
+            half = HALF_SOLD_FOR_LESS.format(homes=homes, median=money(row.median))
+            held, slot, slots = row.median, "median", {"homes": homes, "half_sold": half}
             under, over = TemplateId.BUDGET_UNDER_MEDIAN, TemplateId.BUDGET_OVER_MEDIAN
         else:
             held, slot, slots = row.upper_quartile, "upper", {}
@@ -694,12 +765,53 @@ class _Builder:
             self.release.travel(area_id, destination, commute.mode, PtBasis.JUST_MISSED),
         )
 
+    def band(self, commute: Commute) -> JourneyBand | None:
+        """The band of a journey that was estimated, as the ranking estimates it."""
+        area_id = self.area.area_id
+        return estimate(self.release, area_id, commute.place_id, commute.mode, commute.max_minutes)
+
+    def _estimated(self, commute: Commute, place: Place, band: JourneyBand) -> Fact:
+        """The fact of a journey that was estimated from distance. It holds no minutes.
+
+        It cites where the place is from and where the homes of the area are
+        from, and where the release holds how near the Underground is, that too.
+        """
+        homes = self.release.origin(Part.NEIGHBOURHOODS)
+        near = self.metrics.get(FeatureId.UNDERGROUND_PROXIMITY)
+        row = self.release.feature(self.area.area_id, FeatureId.UNDERGROUND_PROXIMITY)
+        used = near if near is not None and row is not None and row.value is not None else None
+        limit = str(commute.max_minutes)
+        return self.fact(
+            FactKind.TRAVEL,
+            travel_key(commute),
+            "Journey",
+            TemplateId.TRAVEL_ESTIMATED,
+            {
+                "mode": MODE_LABELS[commute.mode],
+                "place": place.name,
+                "limit": limit,
+                "band": band,
+                "said": SAID[band],
+                "verdict": VERDICT[band],
+                "estimated": ESTIMATED,
+            },
+            (place.source_id, *homes.source_ids, *(used.source_ids if used else ())),
+            _span([*([homes.as_of] if homes.as_of else []), *([used.vintage] if used else [])]),
+            numbers=(limit,),
+            names=(place.name,),
+        )
+
     def travel(self, spec: PreferenceSpec) -> Iterator[Fact]:
         for commute in spec.commutes:
             typical, missed = self.times(commute)
             scored = missed if scored_on_just_missed(commute, spec) else typical
             place = self.release.place(commute.place_id)
-            if scored.status is TravelStatus.MISSING or place is None:
+            if place is None:
+                continue
+            if scored.status is TravelStatus.MISSING:
+                band = self.band(commute)
+                if band is not None:
+                    yield self._estimated(commute, place, band)
                 continue
             # The limit the person set, so that a journey over it can say by how much.
             limit = str(commute.max_minutes)
@@ -778,8 +890,15 @@ class _Builder:
             place = self.release.place(commute.place_id)
             if scored.status is not TravelStatus.MISSING or place is None:
                 continue
+            if self.band(commute) is not None:
+                # It was estimated, and its own fact says so.
+                continue
+            routed = self.release.origin(Part.TRAVEL)
             yield self.from_origin(
-                self.release.origin(Part.TRAVEL),
+                # A release that has routed no journey states no source of one. The fact
+                # then says nothing but the names of the area and of the place, and cites
+                # where the area came from, as the fact of any other thing that is missing.
+                routed if routed.stated else self.release.origin(Part.NEIGHBOURHOODS),
                 FactKind.MISSING,
                 journey_key(commute),
                 "Journey",

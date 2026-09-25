@@ -1,10 +1,16 @@
-"""The catalogue: 47 features and the twelve vibes made of them, each describing a place.
+"""The catalogue: 112 features and the fifteen vibes made of them.
 
-A release carries eleven of the twelve: the ten, and the one that gritty is read as.
+A release carries fourteen of the fifteen: the thirteen, and the one that gritty is
+read as.
 
-None describes who lives there (ADR 0006). An id names the idea, not the method:
-distances and thresholds live in a release's `definition` and may change with
-`CATALOGUE_VERSION`. An id is never renamed, reused or given a new meaning.
+Forty-seven features describe a place, its buildings or what was recorded there. Four
+describe who lived there at Census 2021: the age of residents and what households were
+made of, and nothing else about them (ADR 0006, as amended on 2026-09-24). Each of the
+four says so in its name, is asked for towards more of what it counts and never
+towards fewer, stands in no scale, and counts towards no likeness. Two vibes hold one.
+An id names the idea, not the method: distances and thresholds live in a release's
+`definition` and may change with `CATALOGUE_VERSION`. An id is never renamed, reused or
+given a new meaning.
 
 On screen a tag is a vibe: a named, published recipe over measured parts. A
 part is a feature in a recipe. An area is placed in one of five bands among
@@ -60,13 +66,46 @@ from burro_core.ids import (
 # feature of their own, which a wish is ranked on, as it is for food. Food and drink is
 # made of the places for each 1,000 homes. A release that carries Gritty does not carry
 # Works and warehouses, which is a part of it.
-CATALOGUE_VERSION = 12
+# 13 holds cafes, gyms and pubs, each as a count that is shown and a figure for each 1,000
+# homes that a wish is ranked on. Pubs and bars are counted from the file of places, and are
+# 35 in 100 of Going out again. The homes near a cluster of pubs and bars are named for what
+# is counted: three or more within 150 m. It names the food shop as it is built: a straight
+# line in metres, to the nearest place its file gives as a grocer, a supermarket or a
+# convenience store. Everyday on foot says that each of its distances is a straight line,
+# what is not known of a shop, and that it is mostly a map of how built up a place is: on
+# London its order is mostly that of homes to the hectare. It holds the chains of grocers,
+# gyms and coffee: the places of each tier within reach and the distance to the nearest, the
+# mix of tiers, which is what is ranked on, and the distance to the nearest place of each
+# chain a person may name. Independent places are named for what is measured: a share of
+# the places to eat and drink within reach, in a straight line. With them Village feel holds
+# 60 in 100 of its recipe, and it places an area only where something of its town centre has
+# a figure. It holds Well connected, and the four measures it is made of: how far the
+# nearest station of the Underground or the DLR is, how far the nearest of the Overground or
+# the Elizabeth line, how far the nearest National Rail station or tram stop, and how many
+# routes of a bus stop within 400 m of home. Each counts how near stops are, and nothing of
+# how often anything runs from them. The stops of buses are a count that is shown, and a
+# wish for buses is ranked on the routes. It holds the four measures of who lived in an area
+# at Census 2021, and the two vibes that count one: Family area and Young professionals.
+# Family amenities says that it counts places alone. It holds three figures of the homes of
+# a place: the share of homes in the higher council tax bands, which is a reading of a word
+# for a smart area, and how far what homes sold for has risen over five years and over ten.
+# None stands in a vibe or in likeness. It names private outdoor space for what its file
+# counts: a share of addresses, by MSOA. Its publisher counts addresses and says nothing of
+# what it takes for a home. It is one number for what several streams of work each added
+# on 2026-09-24.
+CATALOGUE_VERSION = 13
 
 # Below this share of a tag's formula, by weight, the tag is unknown for the area.
 TAG_MIN_COVERAGE_HUNDREDTHS = 60
 # No part may decide a vibe alone: with the coverage rule, a part of this
 # many hundredths could place an area with nothing else known.
 PART_MAX_HUNDREDTHS = 59
+# In a vibe that counts who lives somewhere no part carries more than this, so that it is
+# never one census figure under a vibe's name.
+PART_MAX_WHERE_RESIDENTS_COUNT = 40
+# What the name of a measure that counts residents ends with, and what the meaning of a
+# vibe that holds one says: who was counted is who was counted at this census.
+CENSUS_SAID = "Census 2021"
 BANDS = 5
 
 # The groups of the settings, in the order they are shown.
@@ -76,6 +115,7 @@ FAMILIES: Mapping[Family, str] = MappingProxyType(
         Family.PACE_FOOD: "Pace and food",
         Family.GREEN: "Green",
         Family.DAILY_LIFE: "Daily life",
+        Family.WHO_LIVES_THERE: "Who lives there, at the 2021 census",
     }
 )
 # Words a person types that are part place and part judgement. Each is read as
@@ -164,6 +204,8 @@ _FAMILY_OF: Mapping[Dimension, Family | None] = {
     Dimension.SCHOOLS: Family.DAILY_LIFE,
     Dimension.STATION_ACCESS: Family.DAILY_LIFE,
     Dimension.SERVICES: Family.DAILY_LIFE,
+    Dimension.BRANDS: Family.DAILY_LIFE,
+    Dimension.RESIDENTS: Family.WHO_LIVES_THERE,
 }
 _BUILDINGS = frozenset(
     {
@@ -175,6 +217,9 @@ _BUILDINGS = frozenset(
         _F.LISTED_BUILDINGS,
         _F.PRIVATE_OUTDOOR_SPACE,
         _F.PRICE_MEDIAN,
+        _F.HOMES_HIGHER_BANDS,
+        _F.PRICE_RISE_5Y,
+        _F.PRICE_RISE_10Y,
     }
 )
 # Two nuisances are measured from where homes stand, so each is shown in a
@@ -183,6 +228,37 @@ _SHOWN_IN: Mapping[FeatureId, Family] = {
     _F.ROAD_MAJOR_EXPOSURE: Family.STREETS_HOMES,
     _F.EVENING_CLUSTER_EXPOSURE: Family.PACE_FOOD,
 }
+# The three kinds of place the table of tiers holds, as a label says one and many of each,
+# and the three tiers, as a label says each. A place of coffee is a coffee shop, a bakery
+# or a sandwich shop of a chain: what the founder's table puts under coffee.
+KINDS_OF_CHAIN: Mapping[str, tuple[str, str]] = MappingProxyType(
+    {
+        "grocer": ("grocer", "grocers"),
+        "gym": ("gym", "gyms"),
+        "coffee": ("coffee place", "coffee places"),
+    }
+)
+TIERS: Mapping[str, str] = MappingProxyType(
+    {"premium": "premium", "mid": "mid-range", "value": "value"}
+)
+# The two measures of each kind of place of each tier: how many are within reach, and how
+# far the nearest is.
+NEARBY, DISTANCE = "nearby", "distance"
+
+
+def of_a_tier(kind: str, tier: str, what: str) -> FeatureId:
+    """The measure of one kind of place of one tier: how many, or how far the nearest."""
+    return FeatureId(f"{kind}_{tier}_{what}")
+
+
+# The measures of the tiers, which are shown and which no release ranks an area on: the
+# mix is what is ranked on. A release switches each off, as it may any feature.
+SHOWN_BESIDE_THE_MIX: frozenset[FeatureId] = frozenset(
+    of_a_tier(kind, tier, what)
+    for kind in KINDS_OF_CHAIN
+    for tier in TIERS
+    for what in (NEARBY, DISTANCE)
+)
 # What likeness may never be counted on, whatever kind of thing it is, until
 # an audit has passed it (contract, section 7.6).
 _HELD_OUT_OF_LIKENESS = frozenset(
@@ -198,8 +274,36 @@ _HELD_OUT_OF_LIKENESS = frozenset(
         _F.VENUE_FOOD_DRINK_PER_HOMES,
         _F.CULTURE_VENUES_PER_HOMES,
         _F.PRICE_MEDIAN,
+        # New, and no audit has passed one of them.
+        _F.VENUE_CAFE,
+        _F.VENUE_CAFE_PER_HOMES,
+        _F.VENUE_GYM,
+        _F.VENUE_GYM_PER_HOMES,
+        _F.VENUE_EVENING_PER_HOMES,
+        # Which chains stand in a place may follow what homes there sell for, so no
+        # likeness is counted on a tier or on the mix.
+        _F.BRAND_MIX,
+        *SHOWN_BESIDE_THE_MIX,
+        # How near stops are follows how built up a place is. Held out until an audit
+        # has looked at them, as the count of lines is.
+        _F.UNDERGROUND_PROXIMITY,
+        _F.OVERGROUND_PROXIMITY,
+        _F.RAIL_PROXIMITY,
+        _F.BUS_STOPS_NEARBY,
+        _F.BUS_ROUTES_NEARBY,
+        _F.HOMES_HIGHER_BANDS,
+        _F.PRICE_RISE_5Y,
+        _F.PRICE_RISE_10Y,
     }
 )
+
+
+def _describes(feature_id: FeatureId, dimension: Dimension) -> Describes:
+    if dimension is Dimension.RESIDENTS:
+        return Describes.RESIDENTS
+    if dimension is Dimension.CRIME:
+        return Describes.EVENTS
+    return Describes.BUILDINGS if feature_id in _BUILDINGS else Describes.PLACE
 
 
 def _feature(
@@ -215,6 +319,8 @@ def _feature(
     kind: FeatureKind,
     method: Method = Method.MEASURED,
 ) -> Feature:
+    # Two areas are never said to be alike for who lives in them: what counts residents is
+    # of neither kind, so no likeness is counted on it.
     likeable = kind in (FeatureKind.TASTE, FeatureKind.AMENITY)
     return Feature(
         feature_id=feature_id,
@@ -227,17 +333,162 @@ def _feature(
         higher=higher,
         lower=lower,
         kind=kind,
-        describes=Describes.EVENTS
-        if dimension is Dimension.CRIME
-        else Describes.BUILDINGS
-        if feature_id in _BUILDINGS
-        else Describes.PLACE,
+        describes=_describes(feature_id, dimension),
         family=_SHOWN_IN.get(feature_id, _FAMILY_OF[dimension]),
         # A figure is said to be measured until a real build finds that it is not.
         method=method,
         in_likeness=likeable and feature_id not in _HELD_OUT_OF_LIKENESS,
     )
 
+
+# The chains of grocers, gyms and coffee. Decided by the founder on 2026-09-24 (ADR 0026).
+#
+# Which chain is of which tier is the founder's judgement, and a person adjusts it: so it
+# is data of the pipeline's, in one reviewed file, and core holds none of it. Core names a
+# tier, and the release says in the definition of each measure which chains were counted
+# in it. Core names a chain, so that a person can ask for one and a page can name it, and
+# says nothing of what tier it is of.
+#
+# How far a place may be to be counted, and how far the nearest is looked for. The first is
+# the reach of every measure of places. The second is as far as the part of the file that
+# is taken is known to hold every place round every home.
+WITHIN_M = 800
+NEAREST_WITHIN_M = 2_000
+
+
+class Chain(Record):
+    """A chain a person may name: its name, and how a label says the nearest place of it."""
+
+    feature_id: FeatureId
+    # As Burro says it, which is as the founder's table writes it.
+    name: str
+    # The name with its article, for the wish: "a Waitrose", "an Aldi". A name that
+    # holds its own article has no other.
+    one: str
+    # What the distance is to the nearest of, where the name alone would not read.
+    nearest: str
+
+
+def _chain(feature_id: FeatureId, name: str, one: str | None = None, nearest: str = "") -> Chain:
+    return Chain(
+        feature_id=feature_id,
+        name=name,
+        one=f"a {name}" if one is None else one,
+        nearest=nearest or name,
+    )
+
+
+# In the order of the founder's table: grocers, gyms and coffee, each from premium to value.
+_CHAINS = (
+    _chain(_F.BRAND_WAITROSE, "Waitrose"),
+    _chain(_F.BRAND_MANDS, "M&S", "an M&S"),
+    _chain(_F.BRAND_WHOLE_FOODS, "Whole Foods"),
+    _chain(_F.BRAND_SAINSBURYS, "Sainsbury's"),
+    _chain(_F.BRAND_TESCO, "Tesco"),
+    _chain(_F.BRAND_COOP, "Co-op"),
+    _chain(_F.BRAND_MORRISONS, "Morrisons"),
+    _chain(_F.BRAND_ASDA, "Asda", "an Asda"),
+    _chain(_F.BRAND_ALDI, "Aldi", "an Aldi"),
+    _chain(_F.BRAND_LIDL, "Lidl"),
+    _chain(_F.BRAND_ICELAND, "Iceland", "an Iceland"),
+    _chain(_F.BRAND_EQUINOX, "Equinox", "an Equinox"),
+    _chain(_F.BRAND_THIRD_SPACE, "Third Space"),
+    _chain(_F.BRAND_BARRYS, "Barry's"),
+    _chain(_F.BRAND_VIRGIN_ACTIVE, "Virgin Active"),
+    _chain(_F.BRAND_NUFFIELD, "Nuffield"),
+    _chain(_F.BRAND_GYMBOX, "Gymbox"),
+    _chain(_F.BRAND_DAVID_LLOYD, "David Lloyd"),
+    _chain(_F.BRAND_ANYTIME_FITNESS, "Anytime Fitness", "an Anytime Fitness"),
+    _chain(_F.BRAND_PUREGYM, "PureGym"),
+    _chain(_F.BRAND_THE_GYM_GROUP, "The Gym Group", "The Gym Group", "gym of The Gym Group"),
+    _chain(_F.BRAND_GAILS, "Gail's"),
+    _chain(_F.BRAND_OLE_AND_STEEN, "Ole & Steen", "an Ole & Steen"),
+    _chain(_F.BRAND_PRET, "Pret"),
+    _chain(_F.BRAND_NERO, "Nero"),
+    _chain(_F.BRAND_STARBUCKS, "Starbucks"),
+    _chain(_F.BRAND_COSTA, "Costa"),
+    _chain(_F.BRAND_BLANK_STREET, "Blank Street"),
+    _chain(_F.BRAND_GREGGS, "Greggs"),
+)
+CHAINS: Mapping[FeatureId, Chain] = MappingProxyType({c.feature_id: c for c in _CHAINS})
+
+_BY_THE_TABLE = "by Burro's table of tiers"
+
+
+def _tiered(kind: str, tier: str) -> tuple[Feature, Feature]:
+    """The two measures of one kind of place of one tier: how many, and how far the nearest."""
+    one, many = KINDS_OF_CHAIN[kind]
+    said = TIERS[tier]
+    return (
+        _feature(
+            of_a_tier(kind, tier, NEARBY),
+            _D.BRANDS,
+            f"{said.capitalize()} {many} within {WITHIN_M} m of home, in a straight line, "
+            f"{_BY_THE_TABLE}",
+            f"{said.capitalize()} {many} within reach",
+            "count",
+            _MORE,
+            _N.POINT,
+            "more",
+            "fewer",
+            _K.AMENITY,
+        ),
+        _feature(
+            of_a_tier(kind, tier, DISTANCE),
+            _D.BRANDS,
+            f"Straight-line distance to the nearest {said} {one} within "
+            f"{NEAREST_WITHIN_M:,} m of home, {_BY_THE_TABLE}",
+            f"Nearer a {said} {one}",
+            "m",
+            _LESS,
+            _N.POINT,
+            "further",
+            "closer",
+            _K.AMENITY,
+        ),
+    )
+
+
+_PAIRS = tuple(_tiered(kind, tier) for kind in KINDS_OF_CHAIN for tier in TIERS)
+_OF_THE_TIERS = (*(pair[0] for pair in _PAIRS), *(pair[1] for pair in _PAIRS))
+# The mix: of the places of a tier within reach, the share that are premium, with a
+# mid-range place counted as half. So it runs from 0, where every one is value, to 100,
+# where every one is premium. It is the first reading of a word for a smart area. It is a
+# figure of which shops stand in a place, and never of who lives there or of what they earn.
+# It is offered and never applied from a word, it stands in no vibe, no likeness is
+# counted on it, and nothing weighs it by default.
+_THE_MIX = _feature(
+    _F.BRAND_MIX,
+    _D.BRANDS,
+    f"Share of the chain grocers, gyms and coffee places within {WITHIN_M} m of home that "
+    f"are premium, with a mid-range one counted as half, {_BY_THE_TABLE}",
+    "Mix of brands",
+    "%",
+    _EITHER,
+    _N.POINT,
+    "more premium",
+    "less premium",
+    _K.TASTE,
+)
+# The distance to the nearest place of one chain. It is weighed only where a person asks
+# for the chain by its name, so it is in no vibe and no likeness, and it runs one way: a
+# person may ask to be near a chain, and never to be far from one.
+_OF_THE_CHAINS = tuple(
+    _feature(
+        chain.feature_id,
+        _D.BRANDS,
+        f"Straight-line distance to the nearest {chain.nearest} within "
+        f"{NEAREST_WITHIN_M:,} m of home",
+        f"Nearer {chain.one}",
+        "m",
+        _LESS,
+        _N.POINT,
+        "further",
+        "closer",
+        _K.ON_REQUEST,
+    )
+    for chain in _CHAINS
+)
 
 _FEATURES = (
     _feature(
@@ -418,9 +669,11 @@ _FEATURES = (
     _feature(
         _F.VENUE_EVENING,
         _D.VENUES_CULTURE,
-        "Pubs, bars and evening venues",
-        "Pubs and bars",
-        _PER_KM2,
+        # A count within reach of where homes are, from the file of places. It is shown
+        # and never ranked on: `RANKED_AS`. A nightclub is not counted.
+        "Pubs and bars within 800 m of home, in a straight line",
+        "Pubs and bars within reach",
+        "count",
         _EITHER,
         _N.POINT,
         "more",
@@ -543,11 +796,15 @@ _FEATURES = (
     _feature(
         _F.INDEPENDENTS_NEARBY,
         _D.VENUES_CULTURE,
-        "Independent places to eat and drink within a 10-minute walk",
+        # A share of the places within reach, and not a count of them: a count says how
+        # much is about, and the share says what kind of place it is. It is measured in a
+        # straight line, and a place is independent where its file names no chain for it.
+        "Share of the places to eat and drink within 800 m of home, in a straight line, "
+        "that belong to no chain",
         "More independent places nearby",
-        "count",
+        "%",
         _MORE,
-        _N.NETWORK,
+        _N.POINT,
         "more",
         "fewer",
         _K.TASTE,
@@ -615,8 +872,10 @@ _FEATURES = (
     _feature(
         _F.EVENING_CLUSTER_EXPOSURE,
         _D.AIR_NOISE,
-        "Share of homes within 150 m of a cluster of evening venues",
-        "Away from late venues",
+        # A cluster is three or more, and the file of places cannot say how late one is
+        # open. So the name says pubs and bars, and says how many.
+        "Share of homes with three or more pubs or bars within 150 m, in a straight line",
+        "Away from clusters of pubs and bars",
         "%",
         _LESS,
         _N.OA,
@@ -713,11 +972,14 @@ _FEATURES = (
     _feature(
         _F.GROCERY_WALK,
         _D.SERVICES,
-        "Walk to the nearest food shop",
+        # A straight line, as every distance is. A food shop is a place its file gives as
+        # a grocer, a supermarket or a convenience store: the definition of a release
+        # says which. The id says a walk, because an id is never renamed.
+        "Straight-line distance to the nearest food shop",
         "Nearer a food shop",
-        "min",
+        "m",
         _LESS,
-        _N.NETWORK,
+        _N.POINT,
         "further",
         "closer",
         _K.AMENITY,
@@ -750,11 +1012,11 @@ _FEATURES = (
     _feature(
         _F.PRIVATE_OUTDOOR_SPACE,
         _D.HOMES,
-        "Homes with private outdoor space",
-        "More homes with outdoor space",
+        "Addresses with private outdoor space",
+        "More addresses with outdoor space",
         "%",
         _MORE,
-        _N.LSOA,
+        _N.MSOA,
         "more",
         "fewer",
         _K.AMENITY,
@@ -842,6 +1104,245 @@ _FEATURES = (
         "fewer",
         _K.AMENITY,
     ),
+    # Cafes, gyms and pubs are counted from the file of places, as the cultural venues
+    # are, and held to the same rule: the count is shown, and a wish is ranked on the
+    # figure for each 1,000 homes.
+    _feature(
+        _F.VENUE_CAFE,
+        _D.VENUES_CULTURE,
+        "Cafes and coffee shops within 800 m of home, in a straight line",
+        "Cafes within reach",
+        "count",
+        _MORE,
+        _N.POINT,
+        "more",
+        "fewer",
+        _K.AMENITY,
+    ),
+    _feature(
+        _F.VENUE_CAFE_PER_HOMES,
+        _D.VENUES_CULTURE,
+        "Cafes and coffee shops for each 1,000 homes within 800 m, in a straight line",
+        "More cafes nearby",
+        _PER_1000_HOMES,
+        _MORE,
+        _N.POINT,
+        "more",
+        "fewer",
+        _K.AMENITY,
+    ),
+    _feature(
+        _F.VENUE_GYM,
+        _D.VENUES_CULTURE,
+        "Gyms and fitness studios within 800 m of home, in a straight line",
+        "Gyms within reach",
+        "count",
+        _MORE,
+        _N.POINT,
+        "more",
+        "fewer",
+        _K.AMENITY,
+    ),
+    _feature(
+        _F.VENUE_GYM_PER_HOMES,
+        _D.VENUES_CULTURE,
+        "Gyms and fitness studios for each 1,000 homes within 800 m, in a straight line",
+        "More gyms nearby",
+        _PER_1000_HOMES,
+        _MORE,
+        _N.POINT,
+        "more",
+        "fewer",
+        _K.AMENITY,
+    ),
+    _feature(
+        _F.VENUE_EVENING_PER_HOMES,
+        _D.VENUES_CULTURE,
+        # What a wish for pubs and bars is ranked on, and what Going out holds. A person
+        # may want fewer, so its plain name is the name of the thing.
+        "Pubs and bars for each 1,000 homes within 800 m, in a straight line",
+        "Pubs and bars",
+        _PER_1000_HOMES,
+        _EITHER,
+        _N.POINT,
+        "more",
+        "fewer",
+        _K.TASTE,
+    ),
+    *_OF_THE_TIERS,
+    _THE_MIX,
+    *_OF_THE_CHAINS,
+    # The four parts of Well connected. Each is a straight line from where homes are
+    # taken to stand, and says so. None says how often anything runs, where it goes or how
+    # long a journey takes: no timetable is held.
+    _feature(
+        _F.UNDERGROUND_PROXIMITY,
+        _D.STATION_ACCESS,
+        "Straight-line distance to the nearest Underground or DLR station",
+        "Nearer the Underground or DLR",
+        "m",
+        _LESS,
+        _N.POINT,
+        "further",
+        "closer",
+        _K.AMENITY,
+    ),
+    _feature(
+        _F.OVERGROUND_PROXIMITY,
+        _D.STATION_ACCESS,
+        # The national file of stops gives one kind of railway station, whoever runs its
+        # trains. Which of them the Overground or the Elizabeth line calls at is read from
+        # the file of Transport for London, which names the modes at each of its stations.
+        "Straight-line distance to the nearest Overground or Elizabeth line station",
+        "Nearer the Overground or Elizabeth line",
+        "m",
+        _LESS,
+        _N.POINT,
+        "further",
+        "closer",
+        _K.AMENITY,
+    ),
+    _feature(
+        _F.RAIL_PROXIMITY,
+        _D.STATION_ACCESS,
+        # A railway station at which no more than the Overground or the Elizabeth line
+        # calls is not one of these. A tram stop is counted with them.
+        "Straight-line distance to the nearest National Rail station or tram stop",
+        "Nearer National Rail or a tram stop",
+        "m",
+        _LESS,
+        _N.POINT,
+        "further",
+        "closer",
+        _K.AMENITY,
+    ),
+    _feature(
+        _F.BUS_STOPS_NEARBY,
+        _D.STATION_ACCESS,
+        # A stop on each side of a road is two stops, and a stop says nothing of how many
+        # buses call at it. So the count is shown and never ranked on: `RANKED_AS`.
+        "Bus stops within 400 m of home, in a straight line",
+        "Bus stops nearby",
+        "count",
+        _MORE,
+        _N.POINT,
+        "more",
+        "fewer",
+        _K.AMENITY,
+    ),
+    _feature(
+        _F.BUS_ROUTES_NEARBY,
+        _D.STATION_ACCESS,
+        # What a wish for buses is ranked on: how many different routes stop near home, and
+        # not how many stops there are.
+        "Bus routes that stop within 400 m of home, in a straight line",
+        "More bus routes nearby",
+        "count",
+        _MORE,
+        _N.POINT,
+        "more",
+        "fewer",
+        _K.AMENITY,
+    ),
+    # Who lived in an area at Census 2021. It was decided on 2026-09-24 that the age of
+    # residents and what households are made of may feed a vibe and a ranking, and that
+    # nothing else about residents may (ADR 0006). Each name says who is counted and in
+    # which census. Each is a share in 100: a release holds no count of people. A person may
+    # ask for more of what one counts and never for fewer, so each has the one direction.
+    # None is weighed until a person asks, and no word applies one: it is offered.
+    _feature(
+        _F.RESIDENTS_AGED_20_34,
+        _D.RESIDENTS,
+        f"Residents aged 20 to 34 as a share of all residents, {CENSUS_SAID}",
+        # A few words for a form hold no figure, so the ages are said in the name above.
+        "More young adults",
+        "%",
+        _MORE,
+        _N.OA,
+        "more",
+        "fewer",
+        _K.RESIDENTS,
+    ),
+    _feature(
+        _F.RESIDENTS_AGED_65_OVER,
+        _D.RESIDENTS,
+        f"Residents aged 65 and over as a share of all residents, {CENSUS_SAID}",
+        "More older residents",
+        "%",
+        _MORE,
+        _N.OA,
+        "more",
+        "fewer",
+        _K.RESIDENTS,
+    ),
+    _feature(
+        _F.HOUSEHOLDS_DEPENDENT_CHILDREN,
+        _D.RESIDENTS,
+        f"Households with dependent children as a share of all households, {CENSUS_SAID}",
+        "More households with children",
+        "%",
+        _MORE,
+        _N.OA,
+        "more",
+        "fewer",
+        _K.RESIDENTS,
+    ),
+    _feature(
+        _F.HOUSEHOLDS_ONE_PERSON,
+        _D.RESIDENTS,
+        f"Households of one person as a share of all households, {CENSUS_SAID}",
+        "More households of one person",
+        "%",
+        _MORE,
+        _N.OA,
+        "more",
+        "fewer",
+        _K.RESIDENTS,
+    ),
+    # The homes of a place by their council tax band. A band is what a home was taken to be
+    # worth in 1991, so the share says which homes stand in a place and nothing of what one
+    # would sell for today. It counts homes and not people: it is offered for a word for a
+    # smart area, and never applied, it stands in no vibe, and no likeness is counted on it.
+    _feature(
+        _F.HOMES_HIGHER_BANDS,
+        _D.HOMES,
+        "Homes in council tax bands E to H as a share of homes",
+        "Homes in the higher council tax bands",
+        "%",
+        _EITHER,
+        _N.MSOA,
+        "more",
+        "fewer",
+        _K.TASTE,
+    ),
+    # How far what homes sold for has risen. It is the middle price now for each £100 of the
+    # middle price then, so it is never below nought, and a fall reads under £100. It is
+    # offered for a word for a place on the rise, and never applied. It says what was paid,
+    # and promises nothing of what will be.
+    _feature(
+        _F.PRICE_RISE_5Y,
+        _D.HOMES,
+        "Median price paid for a home, for each £100 of the median five years before",
+        "Price rise over five years",
+        "£",
+        _EITHER,
+        _N.MSOA,
+        "a steeper rise",
+        "a smaller rise",
+        _K.TASTE,
+    ),
+    _feature(
+        _F.PRICE_RISE_10Y,
+        _D.HOMES,
+        "Median price paid for a home, for each £100 of the median ten years before",
+        "Price rise over ten years",
+        "£",
+        _EITHER,
+        _N.MSOA,
+        "a steeper rise",
+        "a smaller rise",
+        _K.TASTE,
+    ),
 )
 
 FEATURES: Mapping[FeatureId, Feature] = MappingProxyType({f.feature_id: f for f in _FEATURES})
@@ -854,10 +1355,8 @@ FEATURES: Mapping[FeatureId, Feature] = MappingProxyType({f.feature_id: f for f 
 # In metres it is what a person walks in ten minutes, at 80 m a minute. A
 # large park and a campus are fewer and are walked further to: twenty
 # minutes. Each is a first figure, chosen by judgement (contract, section 7.5).
-# Every distance but the one to a food shop is a straight line, so the walk is
-# longer than the figure: the floors were chosen for a walk, and are to be
-# looked at again.
-_A_WALK_MIN = 10
+# Every distance is a straight line, so the walk is longer than the figure: the
+# floors were chosen for a walk, and are to be looked at again.
 _A_WALK_M = 800
 _A_LONGER_WALK_M = 1_600
 
@@ -879,7 +1378,7 @@ def checked_floors(floors: Mapping[FeatureId, float]) -> Mapping[FeatureId, floa
 NEVER_A_TRADE_OFF: Mapping[FeatureId, float] = checked_floors(
     {
         _F.STATION_WALK: _A_WALK_M,
-        _F.GROCERY_WALK: _A_WALK_MIN,
+        _F.GROCERY_WALK: _A_WALK_M,
         _F.GP_WALK: _A_WALK_M,
         _F.PHARMACY_WALK: _A_WALK_M,
         _F.HIGHSTREET_ACCESS: _A_WALK_M,
@@ -887,6 +1386,12 @@ NEVER_A_TRADE_OFF: Mapping[FeatureId, float] = checked_floors(
         _F.PLAY_SPACE_PROXIMITY: _A_WALK_M,
         _F.PARK_LARGE_PROXIMITY: _A_LONGER_WALK_M,
         _F.UNIVERSITY_PROXIMITY: _A_LONGER_WALK_M,
+        # A shop, a gym or a coffee within what a person walks in ten minutes is near.
+        **{f.feature_id: _A_WALK_M for f in _OF_THE_TIERS if f.unit == "m"},
+        **dict.fromkeys(CHAINS, _A_WALK_M),
+        _F.UNDERGROUND_PROXIMITY: _A_WALK_M,
+        _F.OVERGROUND_PROXIMITY: _A_WALK_M,
+        _F.RAIL_PROXIMITY: _A_WALK_M,
     }
 )
 
@@ -895,11 +1400,17 @@ NEVER_A_TRADE_OFF: Mapping[FeatureId, float] = checked_floors(
 # its own it says little more than that an area is dense and central. So both figures are
 # shown, and a wish for the thing is ranked on the places for each 1,000 homes. A release
 # that says the count can be ranked on is refused, and a word that names the count is
-# read as a wish for what is ranked. The cultural venues are held to the same rule.
+# read as a wish for what is ranked. The cultural venues are held to the same rule, and so
+# are the cafes, the gyms and the pubs and bars.
 RANKED_AS: Mapping[FeatureId, FeatureId] = MappingProxyType(
     {
         _F.VENUE_FOOD_DRINK: _F.VENUE_FOOD_DRINK_PER_HOMES,
         _F.CULTURE_VENUES: _F.CULTURE_VENUES_PER_HOMES,
+        _F.VENUE_CAFE: _F.VENUE_CAFE_PER_HOMES,
+        _F.VENUE_GYM: _F.VENUE_GYM_PER_HOMES,
+        _F.VENUE_EVENING: _F.VENUE_EVENING_PER_HOMES,
+        # Asked for on 2026-09-24: the routes that stop near a home, and not the stops alone.
+        _F.BUS_STOPS_NEARBY: _F.BUS_ROUTES_NEARBY,
     }
 )
 
@@ -907,6 +1418,13 @@ RANKED_AS: Mapping[FeatureId, FeatureId] = MappingProxyType(
 # about it. Wanting less of anything else is a wish no weight may be raised for.
 NUISANCES: frozenset[FeatureId] = frozenset(
     feature_id for feature_id, feature in FEATURES.items() if feature.kind is FeatureKind.NUISANCE
+)
+# The features that count who lived somewhere. Each is read from its high end in a recipe,
+# stands in no scale, is offered and never applied from a word, and is offered one way.
+COUNTS_RESIDENTS: frozenset[FeatureId] = frozenset(
+    feature_id
+    for feature_id, feature in FEATURES.items()
+    if feature.describes is Describes.RESIDENTS
 )
 # The one vibe that may hold recorded crime, and the one scale that may hold a
 # nuisance: Gritty. A release of London carries it as a made-up release does:
@@ -935,12 +1453,20 @@ def checked_recipe(tag: Tag) -> Tag:
     recipe holds recorded crime and no scale
     holds a nuisance, but for the one vibe of `HOLDS_CRIME`. A one-way vibe
     reads a nuisance from its low end. A scale names both its ends.
+
+    A part that counts who lives somewhere is read from its high end, and
+    stands in no scale: either would rank towards fewer of a group of
+    people. In a recipe that holds one, no part carries more than 40
+    hundredths, and the meaning of the vibe names the census. Such a vibe
+    is put on no result by itself (`strip`): it is shown on one where a
+    person asked for it, and is never the first thing said of an area.
     """
     broken: str | None = None
     parts = [term.feature_id for term in tag.terms]
     features = [FEATURES[feature_id] for feature_id in parts if feature_id in FEATURES]
     scale = tag.shape is TagShape.SCALE
     exempt = tag.tag_id in HOLDS_CRIME
+    residents = [term for term in tag.terms if term.feature_id in COUNTS_RESIDENTS]
     if sum(term.hundredths for term in tag.terms) != 100:
         broken = "sums to 100 hundredths"
     elif len(tag.terms) < 2 or len(set(parts)) != len(parts):
@@ -962,6 +1488,16 @@ def checked_recipe(tag: Tag) -> Tag:
         for term in tag.terms
     ):
         broken = "reads a nuisance from its low end"
+    elif any(term.reading is not TermReading.HIGH for term in residents):
+        broken = "reads a part that counts residents from its high end"
+    elif residents and scale:
+        broken = "holds no part that counts residents, being a scale"
+    elif residents and any(t.hundredths > PART_MAX_WHERE_RESIDENTS_COUNT for t in tag.terms):
+        broken = "holds no part of more than 40 hundredths where it counts residents"
+    elif residents and CENSUS_SAID not in tag.meaning:
+        broken = "names the census in its meaning where it counts residents"
+    elif residents and tag.strip:
+        broken = "is on a result only where it was asked for, where it counts residents"
     if broken is not None:
         raise ValueError(f"the recipe of {tag.tag_id} breaks a rule: a recipe {broken}")
     ends = (tag.low_end, tag.high_end)
@@ -999,9 +1535,12 @@ def _tag(
                 *(f"{line.strip()}." for line in cannot_see.split(".") if line.strip()),
             ),
             # Every vibe holds every flag on made-up data, so that the controls
-            # can be judged. On real data a flag is earned (ADR 0013).
+            # can be judged. On real data a flag is earned (ADR 0013). But a vibe
+            # that counts who lives somewhere is put on no result by itself, and is
+            # in neither list of what an area has most and least of: Burro measures
+            # places first. It is shown on a result where a person asked for it.
             lens=True,
-            strip=True,
+            strip=not any(feature_id in COUNTS_RESIDENTS for _, feature_id, _ in terms),
             table=True,
             shelf_word=shelf,
             shelf_toward=Toward.HIGH if shelf else None,
@@ -1014,15 +1553,21 @@ def _tag(
     )
 
 
-_STREETS, _PACE, _GREEN, _DAILY = (
+_STREETS, _PACE, _GREEN, _DAILY, _WHO = (
     Family.STREETS_HOMES,
     Family.PACE_FOOD,
     Family.GREEN,
     Family.DAILY_LIFE,
+    Family.WHO_LIVES_THERE,
+)
+# What every vibe that counts residents cannot see: the census is of one day.
+_SINCE_THE_CENSUS = (
+    "Who has moved in or out since the census was taken, on 21 March 2021, during a lockdown"
 )
 _NOT_UPKEEP = "Whether streets are clean or run down. Empty shops. Graffiti"
 
-# In the order of the shelf, then of "more". Gritty comes last.
+# In the order of the shelf, then of "more". Gritty comes last of the vibes of the place,
+# and the two that count who lives there come after it.
 _TAGS = (
     _tag(
         TagId.LEAFY,
@@ -1051,24 +1596,23 @@ _TAGS = (
         (15, _F.CONSERVATION_COVER, _HIGH),
         shelf="villagey",
     ),
-    # Pubs and bars were 35 in 100 of it. A check of the register found that pubs alone
-    # follow how a council fills it in as much as they follow pubs, so they are held back,
-    # and the other three parts are the whole of the recipe in the shares they stood in,
-    # to the nearest five. The pubs join when a second source confirms them. The places
-    # to eat and drink are those for each 1,000 homes, which a wish for them is ranked on,
-    # and so are the cultural venues. A town centre is a distance, read from its near end.
+    # Pubs and bars are 35 in 100 of it, as they were before they were held back. They
+    # were held back while the food register was the one source of them, and are counted
+    # from the file of places since a check of the two found it the sounder. While they
+    # were out the recipe was 45, 30 and 25. Each count of venues is the figure for each
+    # 1,000 homes, which a wish is ranked on. A town centre is a distance, read from its
+    # near end.
     _tag(
         TagId.PACE,
         "Going out",
         _PACE,
         "How much there is to eat, drink and go out to within reach of homes",
-        # Four things, as before: the page of an area draws one line for each.
-        "How a weekday differs from a weekend. Who the venues serve. Opening hours and what "
-        "is on. Pubs and bars, which are not counted yet",
+        "How a weekday differs from a weekend. Who the venues serve. Opening hours. What is on",
         3,
-        (45, _F.VENUE_FOOD_DRINK_PER_HOMES, _HIGH),
-        (30, _F.HIGHSTREET_ACCESS, _LOW),
-        (25, _F.CULTURE_VENUES_PER_HOMES, _HIGH),
+        (35, _F.VENUE_EVENING_PER_HOMES, _HIGH),
+        (30, _F.VENUE_FOOD_DRINK_PER_HOMES, _HIGH),
+        (20, _F.HIGHSTREET_ACCESS, _LOW),
+        (15, _F.CULTURE_VENUES_PER_HOMES, _HIGH),
         ends=("Calm", "Buzzy"),
         shelf="lively",
     ),
@@ -1076,9 +1620,10 @@ _TAGS = (
         TagId.QUIET_RESIDENTIAL,
         "Quiet streets",
         _STREETS,
-        "Homes away from main roads and from clusters of late venues, with little transport noise",
+        "Homes away from main roads and from clusters of pubs and bars, with little transport "
+        "noise",
         "Noise from neighbours, venues or works. Which noise is from roads and which from "
-        "aircraft. How busy a road is",
+        "aircraft. How busy a road is. How late a pub or a bar is open",
         4,
         (40, _F.ROAD_MAJOR_EXPOSURE, _LOW),
         (30, _F.EVENING_CLUSTER_EXPOSURE, _LOW),
@@ -1106,8 +1651,10 @@ _TAGS = (
         "Everyday on foot",
         _DAILY,
         "A food shop, a town centre, a station, a GP and a pharmacy close to home",
-        "Whether a surgery takes new patients. Opening hours. Step-free access at every "
-        "station. Which side of a railway a home is on",
+        "It is mostly a map of how built up a place is. How long the walk is: each distance "
+        "is a straight line. Which side of a railway a home is on. How large a food shop is, "
+        "and what it sells. Whether a surgery takes new patients. Opening hours. Step-free "
+        "access at every station",
         6,
         (25, _F.GROCERY_WALK, _LOW),
         (25, _F.HIGHSTREET_ACCESS, _LOW),
@@ -1156,7 +1703,9 @@ _TAGS = (
         TagId.FAMILY_AMENITIES,
         "Family amenities",
         _DAILY,
-        "Primary schools, play space and parks nearby",
+        # It is a different thing from Family area, which counts the households that hold
+        # children too. This one counts what is there for them, and says so.
+        "Primary schools, play space and parks nearby. It counts places alone",
         "Catchments. School places. What childcare costs. Who lives there",
         10,
         (40, _F.SCHOOL_PRIMARY_NEARBY, _HIGH),
@@ -1174,6 +1723,26 @@ _TAGS = (
         (35, _F.LAND_STORAGE, _HIGH),
         (25, _F.LAND_TRANSPORT_OTHER, _HIGH),
     ),
+    # How near stops are, and no more. The Underground and the DLR count for most, the
+    # Overground and the Elizabeth line for less, National Rail and the trams for less
+    # again, as less well connected, and the routes of buses for a fifth: asked for on
+    # 2026-09-24, in place of journey times that no build holds. The weights are a first
+    # judgement, for a person to review.
+    _tag(
+        TagId.WELL_CONNECTED,
+        "Well connected",
+        _DAILY,
+        "An Underground or DLR station, an Overground or Elizabeth line station, a National "
+        "Rail station or tram stop, and bus routes close to home",
+        "How often anything runs, where it goes, or how long a journey takes: it counts how "
+        "near stops are, and nothing more. Which lines call at a station. Whether a station "
+        "has steps",
+        12,
+        (45, _F.UNDERGROUND_PROXIMITY, _LOW),
+        (20, _F.OVERGROUND_PROXIMITY, _LOW),
+        (15, _F.RAIL_PROXIMITY, _LOW),
+        (20, _F.BUS_ROUTES_NEARBY, _HIGH),
+    ),
     # Gritty is one vibe, and an opinion: works and warehouses and what is recorded are
     # six in ten of it. Homes per hectare and nitrogen dioxide were parts and were taken
     # out: each says central and built up, and between them they put a smart district at
@@ -1186,7 +1755,7 @@ _TAGS = (
         "Works and warehouses, main roads and transport noise, with recorded criminal "
         "damage and anti-social behaviour",
         f"{_NOT_UPKEEP}. Crime that was not reported. Who lives there",
-        12,
+        13,
         (30, _F.INCIDENT_CRIMINAL_DAMAGE, _HIGH),
         (15, _F.LAND_INDUSTRY, _HIGH),
         (15, _F.LAND_STORAGE, _HIGH),
@@ -1195,9 +1764,64 @@ _TAGS = (
         (10, _F.NOISE_EXPOSURE, _HIGH),
         ends=("Polished", "Gritty"),
     ),
+    # The two vibes that count who lived in an area. Each runs one way, reads its census
+    # figure from the high end, and holds no part of more than 40 in 100. What is there
+    # is six in ten of each: Burro measures places first. The weights are a first judgement,
+    # for a person to review.
+    #
+    # Family area is households with dependent children, and what Family amenities counts
+    # in the shares it counts them, to the nearest five. On London's areas it stands at
+    # 0.65 with Family amenities, and at nought with flats and with distance from the
+    # centre. Family amenities follows how close together homes stand.
+    _tag(
+        TagId.FAMILY_AREA,
+        "Family area",
+        _WHO,
+        f"Households with dependent children at {CENSUS_SAID}, with primary schools, play "
+        "space and a park nearby. It counts who lived there beside what is there",
+        f"{_SINCE_THE_CENSUS}. How many children there are, and how old. Catchments. School "
+        "places. What childcare costs",
+        14,
+        (40, _F.HOUSEHOLDS_DEPENDENT_CHILDREN, _HIGH),
+        (25, _F.SCHOOL_PRIMARY_NEARBY, _HIGH),
+        (20, _F.PLAY_SPACE_PROXIMITY, _LOW),
+        (15, _F.PARK_PROXIMITY, _LOW),
+    ),
+    # Young professionals is residents aged 20 to 34 with what is near for them: a station,
+    # places to eat and drink, and culture. It counts age and nothing of work, and says so.
+    # A recipe of residents, flats and homes per hectare was proposed and not built: it
+    # found the areas that Houses or flats finds.
+    _tag(
+        TagId.YOUNG_PROFESSIONALS,
+        "Young professionals",
+        _WHO,
+        f"Residents aged 20 to 34 at {CENSUS_SAID}, with a station, places to eat and drink "
+        "and culture nearby. It counts who lived there beside what is there",
+        f"What anyone does for work: it counts residents by their age alone. "
+        f"{_SINCE_THE_CENSUS}. Who is a student. Opening hours and what is on",
+        15,
+        (40, _F.RESIDENTS_AGED_20_34, _HIGH),
+        (25, _F.STATION_WALK, _LOW),
+        (20, _F.VENUE_FOOD_DRINK_PER_HOMES, _HIGH),
+        (15, _F.CULTURE_VENUES_PER_HOMES, _HIGH),
+    ),
 )
 
 TAGS: Mapping[TagId, Tag] = MappingProxyType({t.tag_id: t for t in _TAGS})
+# The vibes whose recipe holds a part that counts who lived somewhere.
+HOLDS_RESIDENTS: frozenset[TagId] = frozenset(
+    tag.tag_id for tag in _TAGS if any(term.feature_id in COUNTS_RESIDENTS for term in tag.terms)
+)
+
+# A vibe that places an area only where one of these parts of its recipe has a figure,
+# whatever else of it has. Village feel finds a village by the size and the shape of its
+# town centre. A build of London carries neither yet, and on the rest of its recipe, which
+# is 60 in 100 of it, Village feel found inner London's old streets and no villages. It
+# was decided on 2026-09-24 that it is served only once a second try reads as villages.
+# Take nothing out of this but in a change the founder has seen.
+PLACED_ONLY_WITH: Mapping[TagId, frozenset[FeatureId]] = MappingProxyType(
+    {TagId.VILLAGE_FEEL: frozenset({_F.CENTRE_SMALL, _F.CENTRE_COMPACT})}
+)
 
 # What the word "gritty" is read as, by what a release carries. Gritty was built two
 # ways so that both could be judged, and it was decided that it is one vibe: the scale
@@ -1214,7 +1838,7 @@ GRITTY: Mapping[GrittyVariant, TagId] = MappingProxyType(
 def tags_of(variant: GrittyVariant) -> tuple[Tag, ...]:
     """The vibes a release of this variant carries, in the order of the shelf and of "more".
 
-    It carries the ten, and the one that gritty is read as there. It never
+    It carries the twelve, and the one that gritty is read as there. It never
     carries both.
     """
     left_out = frozenset(GRITTY.values()) - {GRITTY[variant]}
@@ -1299,6 +1923,8 @@ def tag_raw(tag_id: TagId, percentiles: Mapping[FeatureId, float | None]) -> Tag
     A feature that is absent from `percentiles` counts as missing, as one whose
     percentile is `None` does. Nothing is filled in: the terms that are present
     are reweighted, and below 60 hundredths of the formula the tag is unknown.
+    So is a tag of `PLACED_ONLY_WITH` where none of the parts named for it has
+    a figure. How much of the formula is known is said either way.
     `raw` is rounded to the six decimals a release is written with, so that it
     is the same number before it is written and after it is read.
     """
@@ -1311,5 +1937,7 @@ def tag_raw(tag_id: TagId, percentiles: Mapping[FeatureId, float | None]) -> Tag
         share = percentile / 100
         total += term.hundredths * (share if term.reading is TermReading.HIGH else 1 - share)
         present += term.hundredths
-    raw = round(total / present, 6) if present >= TAG_MIN_COVERAGE_HUNDREDTHS else None
-    return TagRaw(raw=raw, coverage=present / 100)
+    needed = PLACED_ONLY_WITH.get(tag_id)
+    held = needed is None or any(percentiles.get(part) is not None for part in needed)
+    enough = held and present >= TAG_MIN_COVERAGE_HUNDREDTHS
+    return TagRaw(raw=round(total / present, 6) if enough else None, coverage=present / 100)

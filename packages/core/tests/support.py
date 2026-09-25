@@ -112,7 +112,7 @@ def destination_id(number: int) -> str:
     return f"syn-d{number:04d}"
 
 
-# The vibes the releases of the tests carry: the ten, and Gritty.
+# The vibes the releases of the tests carry: the twelve, and Gritty.
 VARIANT = GrittyVariant.B
 VIBES = tags_of(VARIANT)
 # The features no release carries yet, so that three recipes run short.
@@ -134,7 +134,7 @@ def manifest(
         release_id=RELEASE_ID,
         schema_version=2,
         built_at=BUILT_AT,
-        catalogue_version=12,
+        catalogue_version=13,
         gritty_variant=variant,
         synthetic=True,
         preview=False,
@@ -496,7 +496,7 @@ def build_documents(variant: GrittyVariant = VARIANT) -> dict[str, Any]:
             ],
         },
         "catalogue.json": {
-            "catalogue_version": 12,
+            "catalogue_version": 13,
             "metrics": [metric(feature_id).model_dump(mode="json") for feature_id in CARRIED],
             "vibes": [vibe.model_dump(mode="json") for vibe in tags_of(variant)],
         },
@@ -614,6 +614,18 @@ def with_figures(
     return dataclasses.replace(release, features=tuple(rows.values()), tags=tuple(tags))
 
 
+def carrying(release: InMemoryRelease, *feature_ids: FeatureId) -> InMemoryRelease:
+    """A release that carries some features more, each with a figure for every area.
+
+    It is what a build of London may hold that the releases of the tests do not: the
+    distance to a GP practice and to a pharmacy.
+    """
+    more = tuple(metric(feature_id) for feature_id in feature_ids)
+    held = dataclasses.replace(release, metrics=(*release.metrics, *more))
+    every = [float(100 * (n + 1)) for n in range(len(release.neighbourhoods))]
+    return with_figures(held, dict.fromkeys(feature_ids, every))
+
+
 def unplaced(release: InMemoryRelease, *tag_ids: TagId) -> InMemoryRelease:
     """A release that carries some vibes and places no area on them.
 
@@ -657,6 +669,45 @@ def preview_documents() -> dict[str, Any]:
 def preview_release() -> InMemoryRelease:
     """The small preview, once it has been through `parse_release`."""
     return parse_release(preview_documents())
+
+
+# How far a degree of longitude is on the ground where the made-up releases are drawn, at
+# the equator, in kilometres.
+KM_TO_A_DEGREE = 111.19508
+# How far the homes of each area of the release below stand from place 1, in kilometres, due
+# west of it. Against a limit of 40 minutes, at 12 minutes and 3 for each kilometre: the
+# first four are likely within, the last of them at 34.8 minutes, the next three are
+# borderline, the last of those at 49.8, and the last is likely beyond.
+HOMES_KM = (2.0, 5.0, 7.5, 7.6, 9.0, 12.5, 12.6, 20.0)
+
+
+def estimated_documents() -> dict[str, Any]:
+    """The small release as a build that has routed no journey, and names places to reach.
+
+    It holds no journey time, and says of each area where its homes stand. So a
+    journey by public transport is estimated from distance, as a build of
+    London estimates one. It is a preview, as any release with no journey is.
+    """
+    found = documents()
+    found["manifest.json"].update(preview=True)
+    east, north = place(1).centroid
+    for area, km in zip(found["neighbourhoods.json"]["neighbourhoods"], HOMES_KM, strict=True):
+        area["homes_at"] = [round(east - km / KM_TO_A_DEGREE, 9), north]
+    travel = found["travel.json"]
+    travel.update(source_ids=[], as_of=None, destination_ids=[])
+    for matrix in MATRICES:
+        travel[matrix] = [[] for _ in travel["area_ids"]]
+    return found
+
+
+@cache
+def estimated_release() -> InMemoryRelease:
+    """The small release whose journeys are estimated, once it has been through the parser.
+
+    No area of it is known to stand near the Underground: its figures of that
+    are taken out, and a test that wants one puts it in.
+    """
+    return with_figures(parse_release(estimated_documents()), {FeatureId.UNDERGROUND_PROXIMITY: ()})
 
 
 FIXTURES = Path(__file__).parents[3] / "data" / "fixtures" / "synthetic"

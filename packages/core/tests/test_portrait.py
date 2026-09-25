@@ -3,7 +3,7 @@
 import dataclasses
 from collections.abc import Mapping
 
-from burro_core.catalogue import TAGS, band_of, percentile_of
+from burro_core.catalogue import HOLDS_RESIDENTS, TAGS, band_of, percentile_of
 from burro_core.facts import facts_for
 from burro_core.ids import FactKind, FeatureId, GrittyVariant, TagId, TagShape
 from burro_core.portrait import SCALES, Portrait, PortraitMark, portrait
@@ -69,6 +69,18 @@ def test_a_scale_is_never_in_the_list_of_more_or_of_less():
         found = drawn(release, number)
         listed = [*found.more, *found.less, *found.others]
         assert not [m for m in listed if TAGS[m.tag_id].shape is TagShape.SCALE]
+
+
+def test_what_counts_who_lives_somewhere_is_never_what_an_area_has_most_or_least_of():
+    # Burro measures places first. A vibe that counts residents is on the portrait with
+    # its band, among the others, and is in neither list that says what an area is like.
+    release = small_release()
+    seen: set[TagId] = set()
+    for number in range(1, 9):
+        found = drawn(release, number)
+        assert not HOLDS_RESIDENTS & {m.tag_id for m in (*found.more, *found.less)}
+        seen |= HOLDS_RESIDENTS & {m.tag_id for m in (*found.others, *found.unplaced)}
+    assert seen == HOLDS_RESIDENTS
 
 
 def test_more_than_most_is_six_areas_in_ten_strictly_below_and_less_is_as_many_above():

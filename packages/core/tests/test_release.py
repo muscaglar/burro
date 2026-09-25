@@ -6,11 +6,22 @@ from typing import Any
 
 import pytest
 from burro_core import release as module
-from burro_core.catalogue import FEATURES, HOLDS_CRIME, TAGS, band_of, percentile_of, tags_of
+from burro_core.catalogue import (
+    COUNTS_RESIDENTS,
+    FEATURES,
+    HOLDS_CRIME,
+    HOLDS_RESIDENTS,
+    TAGS,
+    band_of,
+    percentile_of,
+    tags_of,
+)
 from burro_core.ids import (
+    Describes,
     FeatureId,
     GrittyVariant,
     Mode,
+    NameState,
     Part,
     PtBasis,
     Segment,
@@ -112,6 +123,11 @@ def holds_no_journey_and_no_station(found: Documents) -> None:
     for matrix in MATRICES:
         found["travel.json"][matrix] = [[] for _ in found["travel.json"]["area_ids"]]
     found["stations.json"]["rows"] = []
+
+
+def named_by(*source_ids: str) -> dict[str, Any]:
+    """What an area says of a name it bears, written by these sources and read by nobody."""
+    return {"label": "Quillhaven 001", "source_ids": list(source_ids), "state": "draft"}
 
 
 def then(*breaks: Break) -> Break:
@@ -310,10 +326,22 @@ BROKEN: list[tuple[str, str, Break]] = [
         "stations.json",
         set_in("stations.json", 0, lines=["Birch line", "Amber line"]),
     ),
+    # Who wrote a name is listed once, in order.
+    (
+        "ids_are_unique",
+        "neighbourhoods.json",
+        set_in("neighbourhoods.json", 0, named=named_by("synthetic", "synthetic")),
+    ),
     (
         "references_resolve",
         "neighbourhoods.json",
         set_in("neighbourhoods.json", 0, neighbours=[area_id(2), "syn-n0099"]),
+    ),
+    # A name is never written by a source the file of areas does not state.
+    (
+        "references_resolve",
+        "neighbourhoods.json",
+        set_in("neighbourhoods.json", 0, named=named_by("os-names")),
     ),
     ("references_resolve", "features.json", set_in("features.json", 0, area_id="syn-n0099")),
     ("references_resolve", "features.json", drop("catalogue.json", 0)),
@@ -337,7 +365,8 @@ BROKEN: list[tuple[str, str, Break]] = [
         set_in("catalogue.json", 0, feature_id="student_share"),
     ),
     ("catalogue_matches_core", "features.json", set_in("features.json", 0, feature_id="age")),
-    ("catalogue_matches_core", "tags.json", set_in("tags.json", 0, tag_id="young_professionals")),
+    # A vibe of who lives somewhere that is none of the two the catalogue holds.
+    ("catalogue_matches_core", "tags.json", set_in("tags.json", 0, tag_id="student_area")),
     # A tag of catalogue version 1 is retired, and its id names nothing.
     ("catalogue_matches_core", "tags.json", set_in("tags.json", 0, tag_id="buzzy")),
     ("catalogue_matches_core", "catalogue.json", set_in("catalogue.json", 3, short_label="Best")),
@@ -497,7 +526,7 @@ def test_the_small_release_is_valid_before_it_is_broken():
     found = parse_release(documents())
     assert len(found.neighbourhoods) == 8
     # Four features are in core and in no release yet.
-    assert len(found.metrics) == 43
+    assert len(found.metrics) == 108
     assert found.manifest.synthetic is True
     assert [vibe.tag_id for vibe in found.vibes] == [
         vibe.tag_id for vibe in tags_of(GrittyVariant.B)
@@ -511,13 +540,13 @@ def test_the_small_release_is_valid_before_it_is_broken():
         (GrittyVariant.B, TagId.STREET_CHARACTER, TagId.WORKS_WAREHOUSES),
     ],
 )
-def test_a_release_carries_the_ten_vibes_and_the_one_its_manifest_says_gritty_is(
+def test_a_release_carries_the_twelve_vibes_and_the_one_its_manifest_says_gritty_is(
     variant: GrittyVariant, gritty: TagId, not_carried: TagId
 ):
     found = parse_release(documents(variant))
     assert found.manifest.gritty_variant is variant
     assert found.vibes == tags_of(variant)
-    assert len(found.vibes) == 11
+    assert len(found.vibes) == 14
     carried = {vibe.tag_id for vibe in found.vibes}
     assert gritty in carried and not_carried not in carried
     assert {row.tag_id for row in found.tags} == carried
@@ -613,6 +642,45 @@ def test_every_rule_of_the_contract_has_a_release_that_breaks_it():
     }
     assert {getattr(rule, "__name__", "") for rule in RULES} == contract
     assert contract <= {rule for rule, _, _ in BROKEN}
+
+
+def test_an_area_may_bear_a_name_and_say_who_wrote_it_and_that_nobody_has_checked_it():
+    named = documents()
+    named["neighbourhoods.json"]["neighbourhoods"][0]["named"] = named_by("synthetic")
+    first, second, *_ = parse_release(named).neighbourhoods
+    assert first.named is not None
+    assert (first.named.label, first.named.source_ids) == ("Quillhaven 001", ("synthetic",))
+    assert first.named.state is NameState.DRAFT
+    # An area that says nothing of its name bears its publisher's label and no other.
+    assert second.named is None
+
+
+def test_a_release_written_before_an_area_could_bear_a_name_is_read_as_it_was():
+    older = documents()
+    for area in older["neighbourhoods.json"]["neighbourhoods"]:
+        del area["named"]
+    assert all(area.named is None for area in parse_release(older).neighbourhoods)
+
+
+@pytest.mark.parametrize(
+    ("said", "rule"),
+    [
+        ({"label": "Quillhaven 001", "source_ids": ["synthetic"]}, "shape_is_valid"),
+        ({"label": "", "source_ids": ["synthetic"], "state": "draft"}, "shape_is_valid"),
+        ({"label": "Quillhaven 001", "source_ids": [], "state": "draft"}, "sources_are_stated"),
+        (
+            {"label": "Quillhaven 001", "source_ids": ["synthetic"], "state": "approved"},
+            "shape_is_valid",
+        ),
+    ],
+)
+def test_a_name_that_does_not_say_all_of_what_is_known_of_it_is_refused(
+    said: dict[str, Any], rule: str
+):
+    # The label, who wrote the name and how far it was checked are said together or not at all.
+    broken = documents()
+    broken["neighbourhoods.json"]["neighbourhoods"][0]["named"] = said
+    assert rule_broken(broken) == ("neighbourhoods.json", rule)
 
 
 def test_a_refusal_does_not_repeat_the_name_of_a_field_that_should_not_be_there():
@@ -743,7 +811,7 @@ def test_a_release_says_how_much_of_each_recipe_it_holds_and_what_each_vibe_wait
     homes = held[TagId.HOMES]
     assert homes.held == 75
     assert [(part.label, part.hundredths) for part in homes.waits_on] == [
-        ("Homes with private outdoor space", 25)
+        ("Addresses with private outdoor space", 25)
     ]
     assert held[TagId.LEAFY].waits_on == ()
 
@@ -811,7 +879,7 @@ def test_a_release_may_carry_fewer_features_than_the_catalogue_holds():
         r for r in fewer["features.json"]["rows"] if r["feature_id"] != dropped
     ]
     found = parse_release(fewer)
-    assert len(found.metrics) == 42
+    assert len(found.metrics) == 107
     assert found.feature(area_id(1), FeatureId.SCHOOL_PRIMARY_ATTAINMENT) is None
 
 
@@ -923,7 +991,7 @@ def test_in_memory_release_is_a_release():
     release: Release = small_release()
     assert [n.area_id for n in release.neighbourhoods] == [area_id(n) for n in range(1, 9)]
     assert [m.feature_id for m in release.metrics] == sorted(CARRIED)
-    assert [v.shelf_order for v in release.vibes] == [*range(1, 11), 12]
+    assert [v.shelf_order for v in release.vibes] == [*range(1, 11), 12, 13, 14, 15]
     assert [p.place_id for p in release.places] == sorted(p.place_id for p in release.places)
     assert release.cutoff(Mode.PT) == 90
     assert release.cutoff(Mode.WALK) == 60
@@ -985,7 +1053,10 @@ def test_no_travel_time_is_ever_a_number_that_stands_for_unknown():
                 seen.add(found.status)
                 assert (found.minutes is None) == (found.status is not TravelStatus.OK)
                 assert found.minutes is None or 0 <= found.minutes <= release.cutoff(mode)
-    assert seen == set(TravelStatus)
+    # An estimate is worked out for a search, and is never a time of a release.
+    assert seen == set(TravelStatus) - {TravelStatus.ESTIMATED}
+    with pytest.raises(ValidationError):
+        Travel(status=TravelStatus.ESTIMATED, minutes=None)
     with pytest.raises(ValidationError):
         Travel(status=TravelStatus.MISSING, minutes=0)
     with pytest.raises(ValidationError):
@@ -994,13 +1065,28 @@ def test_no_travel_time_is_ever_a_number_that_stands_for_unknown():
 
 def test_the_release_holds_no_count_of_residents():
     # A count of residents that is not in the release cannot be ranked on or shown.
-    text = json.dumps(small_release().documents()).lower()
+    release = small_release()
+    # What says who lived somewhere is a share in 100, and never a count of people.
+    counted = {m.feature_id for m in release.metrics if m.describes is Describes.RESIDENTS}
+    assert counted == COUNTS_RESIDENTS
+    assert {m.unit for m in release.metrics if m.feature_id in counted} == {"%"}
+    shares = [row.value for row in release.features if row.feature_id in counted]
+    assert all(value is None or 0 <= value <= 100 for value in shares)
+    # With those four, and the two vibes that hold one, taken out, no word of the release
+    # says residents or population.
+    found: dict[str, Any] = dict(release.documents())
+    catalogue: dict[str, Any] = dict(found["catalogue.json"])
+    catalogue["metrics"] = [m for m in catalogue["metrics"] if m["feature_id"] not in counted]
+    catalogue["vibes"] = [v for v in catalogue["vibes"] if v["tag_id"] not in HOLDS_RESIDENTS]
+    found["catalogue.json"] = catalogue
+    text = json.dumps(found).lower()
     assert "population" not in text
-    # The unit of a rate of recorded crime says residents, and so does the one name that
-    # may: the share of them that transport noise reaches. Neither is a count of them.
+    # The unit of a rate of recorded crime says residents, and so does the one name of a
+    # measure of the place that may: the share of them that transport noise reaches.
+    # Neither is a count of them.
     noise = FEATURES[FeatureId.NOISE_EXPOSURE].label.lower()
     assert noise == "share of residents exposed to 55 db or more of transport noise"
-    for said in ("per 1,000 residents a year", noise):
+    for said in ("per 1,000 residents a year", noise, *(f'"{f.value}"' for f in counted)):
         text = text.replace(said, "")
     assert "residents" not in text
 
