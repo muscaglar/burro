@@ -120,7 +120,7 @@ jobs:
           BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
           RELEASE: ${{ inputs.release }}
           BUILT_AT: ${{ inputs.built_at }}
-        run: uv run --no-project python tools/public_log.py --step assemble -- uv run --no-sync python -m burro_pipeline preview --release-id="$RELEASE" --built-at="$BUILT_AT" --out "$RUNNER_TEMP/releases" --work "$RUNNER_TEMP/copies" --names "$RUNNER_TEMP/draft" --list m1 --list m10-health --list m10-land-use --list m11-age-and-households --list m11-high-streets --list m11-outdoor-space --list m12-household-income --list m12-public-transport --list m2-culture --list m2-living --list m2-places --list m2-stations --list m5-journeys --published-changes gazetteer/london/decisions/changes/r1.jsonl
+        run: uv run --no-project python tools/public_log.py --step assemble -- uv run --no-sync python -m burro_pipeline preview --release-id="$RELEASE" --built-at="$BUILT_AT" --out "$RUNNER_TEMP/releases" --work "$RUNNER_TEMP/copies" --names "$RUNNER_TEMP/draft" --list m1 --list m10-health --list m10-land-use --list m11-age-and-households --list m11-high-streets --list m11-outdoor-space --list m12-household-income --list m12-public-transport --list m13-road-traffic --list m2-culture --list m2-living --list m2-places --list m2-stations --list m5-journeys --published-changes gazetteer/london/decisions/changes/r1.jsonl
       # Against the receipts the repository holds. It reads no store, so it is given no key.
       - name: Check the release
         env:
@@ -179,7 +179,7 @@ jobs:
           BURRO_STORE_SECRET: ${{ secrets.BURRO_STORE_SECRET }}
           RELEASE: ${{ inputs.release }}
           BUILT_AT: ${{ inputs.built_at }}
-        run: uv run --no-project python tools/public_log.py --step assemble -- uv run --no-sync python -m burro_pipeline preview --release-id="$RELEASE" --built-at="$BUILT_AT" --out "$RUNNER_TEMP/releases" --work "$RUNNER_TEMP/copies" --names "$RUNNER_TEMP/draft" --list m1 --list m10-health --list m10-land-use --list m11-age-and-households --list m11-high-streets --list m11-outdoor-space --list m12-household-income --list m12-public-transport --list m2-culture --list m2-living --list m2-places --list m2-stations --list m5-journeys --published-changes gazetteer/london/decisions/changes/r1.jsonl
+        run: uv run --no-project python tools/public_log.py --step assemble -- uv run --no-sync python -m burro_pipeline preview --release-id="$RELEASE" --built-at="$BUILT_AT" --out "$RUNNER_TEMP/releases" --work "$RUNNER_TEMP/copies" --names "$RUNNER_TEMP/draft" --list m1 --list m10-health --list m10-land-use --list m11-age-and-households --list m11-high-streets --list m11-outdoor-space --list m12-household-income --list m12-public-transport --list m13-road-traffic --list m2-culture --list m2-living --list m2-places --list m2-stations --list m5-journeys --published-changes gazetteer/london/decisions/changes/r1.jsonl
       - name: Check the release
         env:
           RELEASE: ${{ inputs.release }}

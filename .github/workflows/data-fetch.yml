@@ -18,7 +18,7 @@ on:
       list:
         description: Which list of files to fetch
         type: choice
-        options: [m1, m10-health, m10-land-use, m11-age-and-households, m11-high-streets, m11-outdoor-space, m12-household-income, m12-public-transport, m2-culture, m2-living, m2-places, m2-stations, m5-journeys]
+        options: [m1, m10-health, m10-land-use, m11-age-and-households, m11-high-streets, m11-outdoor-space, m12-household-income, m12-public-transport, m13-road-traffic, m2-culture, m2-living, m2-places, m2-stations, m5-journeys]
         default: m1
       item:
         description: One item of the list, by its name. Leave it empty to fetch every file
