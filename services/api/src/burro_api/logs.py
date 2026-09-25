@@ -38,7 +38,8 @@ LOGGABLE = frozenset(
         # Which provider of a model, by its name in the closed list of four. Never a key.
         "provider",
         "model",
-        # Why a provider that was named is not used: a fixed word, and never what was set.
+        # Why a provider that was named is not used, or which of the two caps on calls
+        # to a model was reached: a fixed word, and never what was set.
         "reason",
         "interpret_status",
         "call_status",

@@ -80,6 +80,8 @@ class Refusal(StrEnum):
     TERMS_NOT_ACCEPTED = "terms_not_accepted"
     UNFIT_MODEL = "unfit_model"
     NOT_FOR_PEOPLE = "not_for_people"
+    # The service is set to make no call to a model: one of its two caps is nought.
+    CAPPED_AT_NOUGHT = "capped_at_nought"
 
 
 @dataclass(frozen=True)
@@ -196,6 +198,21 @@ def _decided(
         chosen = Choice(ADAPTERS[provider](key, send), model, told, with_settings=with_settings)
         return chosen, provider
     return by_rules(refusal), provider
+
+
+def never_called(choice: Choice, warn: Warn = _warn) -> Choice:
+    """The rules, where a provider was chosen and the service may make no call to a model.
+
+    The cap on calls is the service's, and nought means that the model is
+    never called (ADR 0032). Nothing is then sent anywhere, so people are told
+    that the rules read, and one line says which provider is not used and
+    why, as where any other thing does not hold.
+    """
+    if choice.client is None:
+        return choice
+    named = choice.told.provider
+    warn(Provider(named) if named in _NAMES else None, Refusal.CAPPED_AT_NOUGHT)
+    return by_rules(Refusal.CAPPED_AT_NOUGHT)
 
 
 def choose(

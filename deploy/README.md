@@ -20,7 +20,7 @@ Every figure about a host below was read from that host's own pages on 2026-09-2
 
 Three things the plan and the code already say, and a deployment must not undo.
 
-1. **Do not set the model key yet.** The API works without one: the rules read the prompt. The plan says no outside person reaches the model until the privacy notice, the ICO registration and the provider's data processing agreement are in place. The service also has no quota and no rate limit yet (`admit` in `services/api/src/burro_api/app.py` is empty), so a key on the open internet is an open bill. And the model-backed reader has never been run against the provider.
+1. **Do not set the model key yet.** The API works without one: the rules read the prompt. The plan says no outside person reaches the model until the privacy notice, the ICO registration and the provider's data processing agreement are in place. Those are the founder's to have in place. The service does cap its calls to a model, for everyone together ([ADR 0032](../docs/adr/0032-calls-to-a-model-are-capped-for-the-whole-service.md)), so a key on the open internet is no longer an open bill. And the model-backed reader has never been run against the provider. "Turning the model on" has the steps.
 2. **The release is synthetic.** Every answer says `synthetic: true`, the website shows a banner, and no page may be indexed. That stays so until you have approved a release of London and deployed it: "Serving a release of London". With nothing given, the image carries the made-up city.
 3. **One machine, no more.** A shared search is kept in the machine's memory. A second machine would not find a link the first one made. Every deploy and every restart forgets every link. This holds until shares have a store.
 
@@ -32,7 +32,7 @@ No price is given here. A price read on one day is soon out of date, and this gu
 
 | Item | Priced by | Notes |
 |---|---|---|
-| One `shared-cpu-1x` machine, 512 MB, London, always on | Fly.io | The plan allows for two machines |
+| One `shared-cpu-1x` machine, 1 GB, London, always on | Fly.io | The plan allows for two machines. It was 512 MB until London was measured: "What has not been checked" |
 | An address and a certificate | Fly.io | |
 | Data sent out | Fly.io | Small: an answer is a few kilobytes |
 | The website, one seat | Vercel | The free plan was used for the first deployment. Vercel's terms keep that plan to work that is not commercial, so a launch needs the paid one. Read the terms on Vercel's own page before you rely on this |
@@ -41,7 +41,7 @@ No price is given here. A price read on one day is soon out of date, and this gu
 | Object storage, later | Cloudflare | |
 | A database and sign-in, later | Supabase | |
 | Error reports, later | Sentry | |
-| The model, later | The provider, by use | The plan, section 12 |
+| The model, later | The provider, by use | The plan, section 12. The service makes no more than 2,000 calls a day unless it is set otherwise: "Turning the model on" |
 
 ## The steps, in order
 
@@ -86,7 +86,7 @@ If the deploy fails its health check, read `fly logs --app APP --no-tail`.
 
 | The log says | It means |
 |---|---|
-| `a setting in the environment is not in the form it needs` | `BURRO_ALLOWED_ORIGINS` still holds the placeholder, or has a path, a slash at the end, a capital letter or the port `443` in it |
+| `a setting in the environment is not in the form it needs` | `BURRO_ALLOWED_ORIGINS` still holds the placeholder, or has a path, a slash at the end, a capital letter or the port `443` in it. Or one of the two caps on calls to a model is set to what is no whole number, or to more than it may be: "Turning the model on" |
 | `the release could not be loaded`, with a file and a rule | The release folder in the image is not what its manifest says. With nothing given to the build, `RELEASE_ID` in the Dockerfile must be the name of a folder under `data/fixtures/synthetic/` |
 | `could not listen on` | The port is taken or not allowed. `BURRO_PORT` in the image and `internal_port` in `fly.toml` must both be 8080 |
 
@@ -157,7 +157,7 @@ The website was walked so after the second deploy, on 25 September 2026. A searc
 | When | What | Note |
 |---|---|---|
 | You have a domain | The names | "A domain, once there is one", below. Nothing above waits on it |
-| The privacy notice, the ICO registration and the provider's agreement are in place, quotas exist, and the evaluation set passes on it | The model | `fly secrets import --app APP`, then type the three that must agree, one on each line, then end the input: `BURRO_MODEL_PROVIDER=` and the provider, the provider's key in the variable [models.md](../docs/design/models.md) names for it, and `BURRO_MODEL_TERMS_ACCEPTED=` and the provider again. A key alone turns nothing on, and the service says in one line as it starts which of them is missing. It reads them from the keyboard, so the key is not kept in the shell's history. Set a spend limit on the provider's workspace first, and build the website again afterwards: its methods page is built from what the service says |
+| The privacy notice, the ICO registration and the provider's agreement are in place, and the evaluation set passes on it. The cap on calls exists | The model | "Turning the model on", below. Set a budget and an alert at the provider first, and build the website again afterwards: its methods page is built from what the service says |
 | You have approved a release of London | The release | "Serving a release of London", below. The image carries it, so the machine needs no bucket, no key and no network to start |
 | The map needs tiles | Cloudflare R2 | Choose where the bucket is kept when it is made. Which choices there are was not read |
 | Sign-in is built | Supabase | London, on a paid plan |
@@ -296,9 +296,79 @@ Read on 2026-09-25, on the host's own pages, through a reader that summarises. C
 - **The image has never been built with a release of London.** What its stage that holds a release to its lock does was walked with no builder: each thing it copies was copied to a folder, and what it runs was run there. It accepted the release its lock names and the made-up city, and refused a release with one byte changed, a release no lock names, and a folder that held a second release.
 - That the host's builder is handed `data/releases/served`. Git ignores the folder. The ignore file of the build lets it in, and whether the host sends what git ignores was not read.
 - That the builder gives a build argument to every stage that asks for it. The Dockerfile states both arguments before its first stage, and each stage that reads one asks for it by name.
-- **That the machine has the memory London needs.** Loaded with no socket, on a Mac, the service took 374 MB with London once it was loaded and 381 MB at its peak over sixteen requests, and 71 MB with the made-up city. The machine in `fly.toml` has 512 MB. If the health check fails after a deploy of London, read `fly logs` for a line that says the machine ran out of memory, and raise `memory` in `fly.toml`.
+- **That the machine has the memory London needs.** Loaded with no socket, on a Mac, the service took 374 MB with London once it was loaded and 381 MB at its peak over sixteen requests, and 71 MB with the made-up city. Over a socket, on 2026-09-26, with the traffic near homes in the release and eight rankings asked for at once, it held 393 MB once London was loaded and 498 MB at its most. So the machine in `fly.toml` was raised from 512 MB to 1 GB before London was first deployed. What the service holds on the host itself has not been measured. If the health check fails after a deploy of London, read `fly logs` for a line that says the machine ran out of memory, and raise `memory` in `fly.toml`.
 - How long a deploy takes with London. The image is about 90 MB larger than with the made-up city, of which 53 MB is the evidence.
 - That `read -rs` reads without showing what is typed in the shell you use. It does in `zsh` and in `bash`.
+
+## Turning the model on
+
+For the founder, and made by hand. **Not tried.** No key has been set on the host, no adapter has met a live provider, and the cap on calls has met a stand-in only. Written on 2026-09-25. It applies [ADR 0032](../docs/adr/0032-calls-to-a-model-are-capped-for-the-whole-service.md), and [models.md](../docs/design/models.md) has the whole of the settings.
+
+### What must be in place first
+
+| What | Whose | State |
+|---|---|---|
+| A limit, so that a key on the open internet is no open bill | The code's | **Built.** The whole service makes no more than so many calls to a model in a minute and in a day, and over that the rules read: the table below. That condition of the plan is met |
+| The privacy notice, published, and linked where a person types | The founder's | A draft: [privacy-notice.md](../docs/legal/privacy-notice.md). Task 6 of [the launch checklist](../docs/legal/data-protection-checklist.md) |
+| The registration with the regulator, the ICO | The founder's | Not done here. Task 2 of [the launch checklist](../docs/legal/data-protection-checklist.md) |
+| The provider's agreement on the processing of data, and the transfer out of the UK | The founder's | Not done here. Tasks 4, 5 and 15 of [the launch checklist](../docs/legal/data-protection-checklist.md) |
+| A measurement of the provider on the evaluation set, and the first real call | The founder's, on a machine of their own | Not done. [models.md](../docs/design/models.md), sections 7 and 9 |
+
+[The page of the legal drafts](../docs/legal/README.md) says what each draft is, and that nobody qualified has read any of them.
+
+### The cap on calls
+
+| Setting | What it caps | With nothing set | The most it may be |
+|---|---|---|---|
+| `BURRO_MODEL_CALLS_PER_MINUTE` | Calls to a model in the minute that is running, by everyone together | 30 | 600 |
+| `BURRO_MODEL_CALLS_PER_DAY` | Calls to a model in the day that is running, by the clock in UTC, by everyone together | 2,000 | 100,000 |
+
+| Matter | What is so |
+|---|---|
+| Where to set one | Under `[env]` in `deploy/api/fly.toml`, only to change it. Neither is a secret. Commit the change and deploy, as step 2 of "The steps, in order" |
+| Nought | The model is never called, whatever else is set. The website is told that the rules read. It is the way to turn the model off without taking the key away |
+| A value that is no whole number, or is over the most it may be | The service does not start, and `fly logs` says `a setting in the environment is not in the form it needs`. The value is not repeated |
+| Over a cap | The person is answered by the rules, as where the provider itself says that it is capped. Nobody is shown an error |
+| What `fly logs` shows | One line the first time a cap is reached in its minute or in its day: `"event":"model_capped"`, with `"reason":"calls_per_minute"` or `"reason":"calls_per_day"`. Each call that was turned away has `"call_status":"capped"` in its own `interpret` line |
+| A deploy or a restart | Starts both counts again. The counts are in the machine's memory |
+| What a day at the cap is | 2,000 calls. What one call costs is the provider's to say: read its own page of prices on the day, and section 3 of [models.md](../docs/design/models.md) for how many tokens a call was estimated to hold |
+
+**What the cap does not do.** It is for the whole service, so one heavy caller can use up the day for everyone, and everyone is then read by the rules until midnight in UTC. It limits nothing that does not reach a model. It is no check for a bot. "Blocking a client that abuses the service", below, says what stands against abuse.
+
+### The steps
+
+1. **Make a new key for the deployed service, and retire the one used in development.** A key that has been on a developer's machine is not the key to put on a host. Revoke the old one in the provider's console once the new one is set.
+2. **Make it under a project that has billing turned on.** Then read the provider's own terms for what they say of what is typed under a paid plan and under a free one: the two may differ, and what people are told rests on which applies. The address of each provider's terms is in section 6 of [models.md](../docs/design/models.md).
+3. **Set a budget and an alert at the provider's console, before the key is set.** The provider's own cap on spending is the outer guard. The cap above is the nearer one.
+4. **Set the three that must agree.** `fly secrets import --app APP`, then type the three that must agree, one on each line, then end the input: `BURRO_MODEL_PROVIDER=` and the provider, the provider's key in the variable [models.md](../docs/design/models.md) names for it, and `BURRO_MODEL_TERMS_ACCEPTED=` and the provider again. A key alone turns nothing on, and the service says in one line as it starts which of them is missing. It reads them from the keyboard, so the key is not kept in the shell's history.
+5. **Confirm who reads.**
+
+   ```
+   fly logs --app APP --no-tail | grep -E '"event":"(starting|model_not_used)"' | tail -2
+   # "event":"starting" with "interpreter":"model" and the provider's name.
+   # A line "model_not_used" says what is missing, in its "reason"
+
+   curl -sS https://APP.fly.dev/v1/meta | grep -o '"model_reads":[a-z]*'
+   # "model_reads":true
+   ```
+
+6. **Send a made-up sentence that a model is asked about, and look for it in the log.** A sentence that the rules read the whole of is never sent to a model, and is answered `"interpreter":"rule"` with a model on: the marker of step 4 of "The steps, in order" is one. This one begins with a word the rules make nothing of.
+
+   ```
+   curl -sS https://APP.fly.dev/v1/interpret -H 'content-type: application/json' \
+     -d '{"text": "Honestly, I work nights at Quillfeather Zebrano"}' | grep -o '"interpreter":"[a-z]*","degraded":[a-z]*'
+   # "interpreter":"model","degraded":false
+   # "interpreter":"rule","degraded":true says that the model was asked and the rules
+   # answered in its place. The line of the call says why, in "call_status"
+   fly logs --app APP --no-tail | grep -ci 'quillfeather'
+   # 0
+   fly logs --app APP --no-tail | grep '"event":"interpret"' | tail -1
+   # "call_status", "provider", "model", how many tokens went in and out, and no word of the sentence
+   ```
+
+7. **Build the website again**, with a new deployment at Vercel. Its methods page is built from what the service says of who reads.
+
+To turn the model off again, set `BURRO_MODEL_CALLS_PER_DAY = "0"` under `[env]` in `deploy/api/fly.toml`, and deploy. The host's command that takes a secret away was not read.
 
 ## Privacy settings, host by host
 
@@ -318,7 +388,7 @@ Two things follow for the privacy notice. Fly.io and Vercel are processors and m
 
 ## Blocking a client that abuses the service
 
-Burro builds nothing to block anyone: no accounts, nothing that follows a person, and no store of what was typed (ADR 0023). A client that abuses the service is blocked afterwards, by its address, at the host's edge. The sign of abuse is a run of `interpret` lines with `call_status` `refused` in `fly logs`, or a notice from the provider. Neither says who it was: Burro's log holds no address, so who it was is in the host's own record of requests. At Vercel, the project's Firewall blocks an address or a range of them for a host (IP Blocking), and limits how often one address may ask within a window of 10 seconds to 10 minutes (a rate limit rule, counted by IP). Both were read on <https://vercel.com/docs/vercel-firewall/vercel-waf/ip-blocking> and <https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting> on 2026-09-24. **That stands in front of the website and not in front of the API**, which the browser calls itself, at Fly.io. Fly.io's pages on `fly.toml` and on networking, read on the same day through a reader that summarises, name no block list and no limit by address: `concurrency` in `fly.toml` limits what one machine takes from everyone, not what one client sends. So as this guide stands, a client of the API can be blocked at an edge only once a host with a firewall stands in front of the API. That host would see the body of every request, which holds what a person typed. It is a new place for user text, and needs a decision first, as "A domain, once there is one" says of a proxy. Until then what limits the API is the spending cap on the provider's project and `hard_limit` in `fly.toml`.
+Burro builds nothing to block anyone: no accounts, nothing that follows a person, and no store of what was typed (ADR 0023). A client that abuses the service is blocked afterwards, by its address, at the host's edge. The sign of abuse is a run of `interpret` lines with `call_status` `refused` in `fly logs`, or a notice from the provider. Neither says who it was: Burro's log holds no address, so who it was is in the host's own record of requests. At Vercel, the project's Firewall blocks an address or a range of them for a host (IP Blocking), and limits how often one address may ask within a window of 10 seconds to 10 minutes (a rate limit rule, counted by IP). Both were read on <https://vercel.com/docs/vercel-firewall/vercel-waf/ip-blocking> and <https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting> on 2026-09-24. **That stands in front of the website and not in front of the API**, which the browser calls itself, at Fly.io. Fly.io's pages on `fly.toml` and on networking, read on the same day through a reader that summarises, name no block list and no limit by address: `concurrency` in `fly.toml` limits what one machine takes from everyone, not what one client sends. So as this guide stands, a client of the API can be blocked at an edge only once a host with a firewall stands in front of the API. That host would see the body of every request, which holds what a person typed. It is a new place for user text, and needs a decision first, as "A domain, once there is one" says of a proxy. Until then what limits the API is its own cap on calls to a model, which is for everyone together and tells nobody apart ([ADR 0032](../docs/adr/0032-calls-to-a-model-are-capped-for-the-whole-service.md)), the spending cap on the provider's project, and `hard_limit` in `fly.toml`.
 
 ## Rolling back
 
@@ -364,6 +434,6 @@ Until then two builds of the same commit can differ, and a build can break on a 
 - A rollback, at either host, and `fly scale count`.
 - A domain, a certificate and a DNS record: "A domain, once there is one".
 - A release of London: "Serving a release of London" lists what of it is untried.
-- A model. No key is set.
+- A model. No key is set, and the cap on calls to a model has met a stand-in only: "Turning the model on".
 - That the website's functions run in London. `vercel.json` is not read where it is, and whether the region was set by hand was not noted: [web/README.md](web/README.md).
 - The two retention figures were read on the hosts' pages on 2026-09-23, through a reader that summarises. No price was kept.

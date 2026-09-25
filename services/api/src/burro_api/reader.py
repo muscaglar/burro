@@ -20,6 +20,11 @@ nowhere else: not into a log, not into an error, not into the result. What is
 returned of them is where they stand in the text, as offsets. They go alone
 unless the service is set to send the search with them. The model is never
 sent a name of the release, and is never asked where a place is.
+
+It is the one place a model is called, so the cap on calls stands here
+(`cap.py`, ADR 0032). A call is counted as it is about to be made. Over the
+cap none is made, and the reader fails as it does where a provider says that
+it is capped.
 """
 
 import json
@@ -57,6 +62,7 @@ from burro_api.answer import (
     ModelStatus,
     parsed,
 )
+from burro_api.cap import Cap
 from burro_api.guard import Check, guarded
 from burro_api.merge import offers_of
 from burro_api.offers import Offer
@@ -363,6 +369,7 @@ class ModelInterpreter:
         max_tokens: int,
         timeout_s: float,
         with_settings: bool = False,
+        cap: Cap | None = None,
     ) -> None:
         self._client = client
         self._model = model
@@ -371,6 +378,10 @@ class ModelInterpreter:
         # Whether the search goes with the words. It is the service's to set,
         # and what people are told is made from the same setting.
         self._with_settings = with_settings
+        # How many calls may be made in a minute and in a day. The service
+        # always hands one. None is handed by the evaluation set, whose
+        # sentences are made up and whose every call is meant, and by a test.
+        self._cap = cap
         self._rules = RuleInterpreter()
         # The names and the words of the release last read, made ready once.
         # A release never changes.
@@ -405,6 +416,10 @@ class ModelInterpreter:
         read = self._rules.interpret(request)
         if not asks_a_model(read):
             return read
+        # Counted here, as the call is about to be made, so that one which
+        # fails or times out is counted. Over the cap nothing is sent.
+        if self._cap is not None and not self._cap.lets_in():
+            raise ModelCapped
         reply = self._client.complete(
             system=SYSTEM_WITH_SETTINGS if self._with_settings else SYSTEM,
             user=_user(request, self._with_settings),

@@ -103,6 +103,12 @@ def answer(
 
     Where the caller asked for the rules alone, the rules answer at once and
     no model is asked.
+
+    This is the one place a model is asked, and the edge for whatever goes
+    wrong there. A provider's error can hold what was sent to it, the
+    sentence and the key, so none is raised again and none is written down:
+    what is written is its type and where it happened. Nothing that a model's
+    path raises reaches the handler of `boundary.py`, or the server's own.
     """
     asked = deps.interpreter
     if isinstance(asked, RuleInterpreter) or not ask_model:
@@ -122,7 +128,10 @@ def answer(
     except ModelRefused:
         # Sent as it was typed, and not read. Nothing of it is written down.
         failed = CallStatus.REFUSED
-    except Exception as error:
+    except BaseException as error:
+        # Whatever its kind, and not an `Exception` alone. The call ran on a
+        # thread of its own, so what it raised is the call's and no signal to
+        # the service: an exit that a library asks for there stops nothing.
         failed = CallStatus.ERROR
         logs.log_failure(error, request_id=request_id)
     _note_a_rest(deps)

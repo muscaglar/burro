@@ -35,12 +35,19 @@ kill_timeout = 10
 
   # The release folder, the address and the port are set in the image.
   # BURRO_MODEL_ID, BURRO_MODEL_TIMEOUT_S and BURRO_MODEL_MAX_TOKENS have
-  # defaults in code. Set one here only to change it.
+  # defaults in code. So have the two caps on calls to a model, for everyone
+  # together: BURRO_MODEL_CALLS_PER_MINUTE, which is 30, and
+  # BURRO_MODEL_CALLS_PER_DAY, which is 2000. Nought means that the model is
+  # never called. Set one here only to change it.
 
 [[vm]]
   cpu_kind = "shared"
   cpus = 1
-  memory = "512mb"
+  # London asks for more than the made-up city. Over a socket, with eight
+  # rankings at once, the service held 393 MB once London was loaded and 498 MB
+  # at its most, measured on 2026-09-26 on a machine of a developer's own. With
+  # 512 MB the machine would have nothing to spare.
+  memory = "1gb"
 
 [[services]]
   # The port the image listens on, BURRO_PORT in deploy/api/Dockerfile.

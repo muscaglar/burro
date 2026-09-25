@@ -460,6 +460,7 @@ def test_why_is_a_fixed_word_and_never_a_thing_that_was_set():
         "terms_not_accepted",
         "unfit_model",
         "not_for_people",
+        "capped_at_nought",
     ]
 
     _, records = chosen(agreed(DEEPSEEK))

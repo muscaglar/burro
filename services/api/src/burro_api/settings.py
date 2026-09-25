@@ -3,7 +3,8 @@
 Nothing of a provider of a model is held here: not which provider, not its
 key, not whether its terms were accepted, and not its model. Those are read
 by `providers.choose`, which decides who reads what is typed. What is here
-of a model is how long it is waited for and how much it may answer.
+of a model is how long it is waited for, how much it may answer, and how many
+calls may be made to it in a minute and in a day.
 """
 
 import re
@@ -11,7 +12,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Annotated
 
-from pydantic import AfterValidator, Field
+from pydantic import AfterValidator, BeforeValidator, Field
 
 from burro_api.wire import Wire
 
@@ -33,6 +34,17 @@ SYNTHETIC_INCOME = (
 OFF = "off"
 DEFAULT_TIMEOUT_S = 6.0
 DEFAULT_MAX_TOKENS = 2048
+# The cap on calls to a model, for the whole service and not for each person (ADR 0032).
+# Each always applies: there is no way to set no cap. Nought means that the model is
+# never called.
+DEFAULT_CALLS_PER_MINUTE = 30
+DEFAULT_CALLS_PER_DAY = 2_000
+# The most each may be set to: twenty times the default a minute, and fifty times a day.
+# A digit too many, or a number meant for another setting, then stops the service as it
+# starts, and does not lift the cap out of sight. More than this is a decision, and a
+# change to this file.
+MOST_CALLS_PER_MINUTE = 600
+MOST_CALLS_PER_DAY = 100_000
 # The web app as it runs on a developer's machine. Whoever deploys the service
 # names the address the web app is served from.
 DEFAULT_ORIGINS = ("http://localhost:3000",)
@@ -50,6 +62,8 @@ UNSAID_PORT = {"http": "80", "https": "443"}
 
 _ORIGIN = re.compile(ORIGIN_PATTERN)
 _LABEL = re.compile(LABEL_PATTERN)
+# A whole number as it is set: digits, and nothing a reader of numbers would forgive.
+_WHOLE = re.compile(r"[0-9]{1,6}")
 
 
 def _as_a_browser_sends_it(origin: str) -> str:
@@ -68,6 +82,22 @@ def _as_a_browser_sends_it(origin: str) -> str:
 
 
 Origin = Annotated[str, AfterValidator(_as_a_browser_sends_it)]
+
+
+def _whole(value: object) -> object:
+    """What was set, if it is a whole number in digits. The error never repeats what was set.
+
+    Left to itself the validator reads "1_000" as a thousand and "30.0" as thirty. A cap
+    on spending is read as it is written, or not at all.
+    """
+    if not isinstance(value, str):
+        return value
+    if _WHOLE.fullmatch(value.strip()) is None:
+        raise ValueError("not a whole number")
+    return int(value.strip())
+
+
+Calls = Annotated[int, BeforeValidator(_whole)]
 
 
 def _origins(listed: str) -> tuple[str, ...]:
@@ -124,6 +154,11 @@ class Settings(Wire):
     income_named: bool = False
     model_timeout_s: float = Field(gt=0, le=60)
     model_max_tokens: int = Field(ge=256, le=16_000)
+    # How many calls to a model the whole service may make in a minute, and in a day.
+    model_calls_per_minute: Calls = Field(
+        default=DEFAULT_CALLS_PER_MINUTE, ge=0, le=MOST_CALLS_PER_MINUTE
+    )
+    model_calls_per_day: Calls = Field(default=DEFAULT_CALLS_PER_DAY, ge=0, le=MOST_CALLS_PER_DAY)
     host: str
     port: int = Field(ge=1, le=65_535)
     # The origins a browser may call from. A call from any other is answered,
@@ -141,6 +176,10 @@ class Settings(Wire):
                 "income_named": bool(env.get("BURRO_INCOME_DIR")),
                 "model_timeout_s": env.get("BURRO_MODEL_TIMEOUT_S") or DEFAULT_TIMEOUT_S,
                 "model_max_tokens": env.get("BURRO_MODEL_MAX_TOKENS") or DEFAULT_MAX_TOKENS,
+                "model_calls_per_minute": env.get("BURRO_MODEL_CALLS_PER_MINUTE")
+                or DEFAULT_CALLS_PER_MINUTE,
+                "model_calls_per_day": env.get("BURRO_MODEL_CALLS_PER_DAY")
+                or DEFAULT_CALLS_PER_DAY,
                 # The local machine only, unless whoever deploys it says otherwise.
                 "host": env.get("BURRO_HOST") or "127.0.0.1",
                 "port": env.get("BURRO_PORT") or 8000,

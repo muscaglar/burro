@@ -15,10 +15,11 @@ from starlette.exceptions import HTTPException
 
 from burro_api.boundary import ERROR_CODE, Boundary
 from burro_api.calls import InMemoryCallLog
-from burro_api.deps import Context, Deps, RandomIds, SystemClock, context_for
+from burro_api.cap import Cap
+from burro_api.deps import Clock, Context, Deps, RandomIds, SystemClock, context_for
 from burro_api.errors import ApiError, error_response, from_validation, spec_refused
 from burro_api.loading import load_census, load_income, load_release
-from burro_api.providers.choose import Choice, by_rules
+from burro_api.providers.choose import Choice, by_rules, never_called
 from burro_api.reader import ModelInterpreter
 from burro_api.routes import areas, census, income, interpret, meta, places, rank, shares
 from burro_api.routes.common import NotModified
@@ -60,7 +61,12 @@ def identify(request: Request) -> None:
 
 
 def admit(request: Request) -> None:
-    """The place for quotas and rate limits. Out of scope for this build: every call is let in.
+    """The place for a limit on what one caller may ask. None is built: every call is let in.
+
+    The one limit there is does not stand here. It is a cap on calls to a
+    model, for the whole service, and it stands where a model is called
+    (`cap.py`, ADR 0032): only there is it known that a call is about to be
+    made. It counts calls, and nothing of who made them.
 
     A call that is refused here must still be answered by the rule-based
     interpreter and the form. Never by a login wall.
@@ -144,8 +150,12 @@ def create_app(deps: Deps) -> FastAPI:
     return app
 
 
-def _reader(settings: Settings, choice: Choice) -> Interpreter:
-    """The model-backed reader if a provider was chosen, and otherwise the rules."""
+def _reader(settings: Settings, choice: Choice, clock: Clock) -> Interpreter:
+    """The model-backed reader if a provider was chosen, and otherwise the rules.
+
+    A reader that asks a model is handed the cap on its calls, always: the
+    settings hold a number for each, whether or not one was set.
+    """
     if choice.client is None:
         return RuleInterpreter()
     return ModelInterpreter(
@@ -154,7 +164,19 @@ def _reader(settings: Settings, choice: Choice) -> Interpreter:
         max_tokens=settings.model_max_tokens,
         timeout_s=settings.model_timeout_s,
         with_settings=choice.with_settings,
+        cap=Cap(settings.model_calls_per_minute, settings.model_calls_per_day, clock.now),
     )
+
+
+def _as_capped(settings: Settings, choice: Choice) -> Choice:
+    """`choice`, or the rules where either cap on calls to a model is nought.
+
+    A model that is never called reads nothing, so the service is then as it
+    is with no model set, and tells people so.
+    """
+    if settings.model_calls_per_minute and settings.model_calls_per_day:
+        return choice
+    return never_called(choice)
 
 
 def deps_from(settings: Settings, choice: Choice | None = None) -> Deps:
@@ -164,17 +186,18 @@ def deps_from(settings: Settings, choice: Choice | None = None) -> Deps:
     environment. The reader and what people are told are both taken from it,
     so the two cannot be at odds. With none given, the rules read.
     """
-    choice = by_rules() if choice is None else choice
+    choice = _as_capped(settings, by_rules() if choice is None else choice)
     release = load_release(settings.release_dir)
+    clock = SystemClock()
     return Deps(
         release=release,
         census=load_census(settings.census_dir, release, settings.census_named),
         income=load_income(settings.income_dir, release, settings.income_named),
-        interpreter=_reader(settings, choice),
+        interpreter=_reader(settings, choice, clock),
         explainer=TemplateExplainer(),
         shares=InMemoryShareStore(),
         calls=InMemoryCallLog(),
-        clock=SystemClock(),
+        clock=clock,
         ids=RandomIds(),
         told=choice.told,
         model_id=choice.model,
