@@ -715,6 +715,9 @@ NOT_FORESEEN = {
     *((command, "a_list") for command in ("hash", "compare", "show")),
     ("carried", "vanishes"),
 }
+# The two files of a run that the tool writes to, by the variable that names each to a
+# step. A test names both under its own folder, and is handed neither by whatever runs it.
+OF_THE_RUN = {"GITHUB_OUTPUT": "outputs", "GITHUB_STEP_SUMMARY": "summary"}
 
 
 def said_what_it_read(*_: object, **__: object) -> Any:
@@ -736,6 +739,9 @@ def gone_before_it_is_read(patch: Patch) -> None:
 def broken(command: str, fault: str, folder: Path, patch: Patch) -> list[str]:
     """A command as a run gives it, on a build that one thing has gone wrong with.
 
+    A run names the file of its outputs and the file of its summary to every step, so both
+    are named here, under the folder of the test.
+
     What goes wrong is of the file the command reads: the manifest of the release, or for
     the two commands that read a lock, the lock. A lock is committed and so is never gone:
     what vanishes is a file of the release, which `read` does not open.
@@ -743,6 +749,8 @@ def broken(command: str, fault: str, folder: Path, patch: Patch) -> list[str]:
     out = built(folder / "built")
     locks = approved(folder / "approved", built(folder / "as-approved"))
     patch.setenv("COPY_A", output_of(built(folder / "a")))
+    for variable, name in OF_THE_RUN.items():
+        patch.setenv(variable, str(folder / name))
     lock, manifest = locks / f"{RELEASE}.json", out / RELEASE / "manifest.json"
     of_the_release = {"hash", "compare", "show"}
     reads = manifest if command in of_the_release or fault == "a_folder" else lock
@@ -781,6 +789,12 @@ def holds_nothing_that_was_read(said: str, folder: Path) -> None:
         assert planted not in said, planted
 
 
+def written_for_the_run(folder: Path) -> str:
+    """What stands in the two files of the run, which a test named under its own folder."""
+    files = [folder / name for name in OF_THE_RUN.values()]
+    return "".join(file.read_text(encoding="utf-8") for file in files if file.is_file())
+
+
 def ended(said: str) -> dict[str, str]:
     """What the last line a command printed says, by name."""
     return dict(word.split("=", 1) for word in said.splitlines()[-1].split(" "))
@@ -797,6 +811,8 @@ def test_whatever_goes_wrong_a_command_ends_on_one_line_and_never_on_a_traceback
     out = capsys.readouterr()
     assert status != 0 and out.err == ""
     holds_nothing_that_was_read(out.out, tmp_path)
+    # A command that failed wrote nothing for the run to show, or to hand to another job.
+    assert written_for_the_run(tmp_path) == ""
     last = ended(out.out)
     assert last["step"] == STEP_OF[command] and last["status"] in STATUSES - {"ok", "skipped"}
     if (command, fault) in NOT_FORESEEN:
@@ -917,6 +933,7 @@ def test_run_as_a_workflow_runs_it_a_command_prints_no_traceback(
     )
     assert ran.returncode == FAULTED and ran.stderr == ""
     holds_nothing_that_was_read(ran.stdout, tmp_path)
+    assert written_for_the_run(tmp_path) == ""
     assert ran.stdout.startswith(f"step={STEP_OF[command]} status=failed why={FAULT} withheld=")
 
 

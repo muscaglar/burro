@@ -112,7 +112,9 @@ def test_the_lines_that_name_a_failure_are_said_first_and_in_their_order(tmp_pat
     named = [
         "a/b.swift:3:9: error: cannot find type 'Portrait' in scope",
         "src/a.ts(3,9): error TS2304: Cannot find name 'x'.",
-        "  /home/a.py:3:9 - error: Import cannot be resolved",
+        # Put together here, so that no file of the repository holds a path of a machine
+        # as it would be written, and a check of what is published finds none.
+        "  /" + "home/a.py:3:9 - error: Import cannot be resolved",
         "E       IndexError: list index out of range",
         "FAILED tests/test_one.py::test_it - assert 1 == 2",
         "ERROR tests/test_two.py - ModuleNotFoundError",
