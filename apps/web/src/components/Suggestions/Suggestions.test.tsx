@@ -10,7 +10,7 @@ import { recordedAnswer } from "@/lib/api/recorded";
 import type { Span, Suggestion } from "@/lib/api/schema";
 import { written } from "@/lib/search/spans";
 import type { Added } from "@/lib/search/state";
-import { addedWithOthers, setsAFirmBudget } from "@/lib/search/suggestion";
+import { SKIP, addedWithOthers, setsAFirmBudget } from "@/lib/search/suggestion";
 
 import { faultsIn } from "../../../test/support/axe";
 import { rulesOf } from "../../../test/support/css";
@@ -621,6 +621,232 @@ describe("once one press has added what it may", () => {
 
     expect(within(block()).getAllByRole("button").map((button) => button.textContent)).toEqual([SUGGEST.takeBack]);
     expect(SUGGEST.showLeft(1)).toBe("Show the one left to choose");
+  });
+});
+
+describe("an offer chosen from the open fold", () => {
+  // Seen in a browser: the fold was opened and one offer was added from it. The fold stayed
+  // open, with every offer that was left drawn whole, and the first result was 1,887 px
+  // down a desk's screen of 900.
+  const left = long.body.data.suggestions.filter((one) => one.add_all === "");
+  const needs = (...gone: (string | undefined)[]) =>
+    ["the journey can be made a firm limit", ...left.map((one) => one.needs)].filter((one) => !gone.includes(one));
+  /** One press, and then the fold is opened: the seven that are left are drawn whole. */
+  async function opened(more: Partial<Drawn> = {}) {
+    const shown = show(long.body.data.suggestions, { box: typedOf(long), ...more });
+    await shown.user.click(screen.getByRole("button", { name: SUGGEST.addThese(5) }));
+    await shown.user.click(screen.getByRole("button", { name: SUGGEST.showLeft(7) }));
+    return shown;
+  }
+  /** The button of a way of an offer that is drawn, by the id of the way. */
+  const wayOf = (one: HTMLElement, id: string) => one.querySelector<HTMLElement>(`button[data-way="${id}"]`) as HTMLElement;
+
+  test("test_what_is_left_folds_again_once_an_offer_is_added_from_the_open_fold", async () => {
+    const { told, user } = await opened();
+    expect(items()).toHaveLength(7);
+
+    await user.click(wayOf(item(0), "more"));
+
+    // The press is told to the page as any other is, and what is left is one line again.
+    expect(told.chosen).toEqual([[0, "more"]]);
+    expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+    expect(within(block()).getAllByRole("button").map((button) => button.textContent)).toEqual([
+      SUGGEST.takeBack,
+      SUGGEST.showLeft(6),
+    ]);
+    // What is said of pressing an offer is said where one can be pressed.
+    expect(block().textContent?.includes(SUGGEST.why)).toBe(false);
+  });
+
+  test("test_the_line_says_that_one_more_was_added_and_how_many_are_left", async () => {
+    const { user } = await opened();
+
+    await user.click(wayOf(item(0), "more"));
+
+    // The line says what one press added, and then what was added since. What was chosen
+    // of is no longer named as left for the person, and the fold says how many are left.
+    expect(left[0]?.needs).toBe("mix of brands");
+    expect(screen.getByRole("status").textContent).toBe(
+      `5 added. Then 1 more added. 7 need you: ${needs("mix of brands").join("; ")}.`,
+    );
+    expect(screen.getByRole("button", { name: SUGGEST.showLeft(6) })).toBeVisible();
+  });
+
+  test("test_the_line_says_that_one_was_skipped_and_how_many_are_left", async () => {
+    const { told, user } = await opened();
+
+    await user.click(wayOf(item(1), SKIP));
+
+    expect(told.chosen).toEqual([[1, SKIP]]);
+    expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+    expect(screen.getByRole("status").textContent).toBe(
+      `5 added. Then 1 skipped. 7 need you: ${needs(left[1]?.needs).join("; ")}.`,
+    );
+    expect(screen.getByRole("button", { name: SUGGEST.showLeft(6) })).toBeVisible();
+  });
+
+  test("test_the_line_counts_every_offer_that_was_added_or_skipped_since_one_press", async () => {
+    const { user } = await opened({ leftOut: 13 });
+
+    await user.click(wayOf(item(0), "more"));
+    await user.click(screen.getByRole("button", { name: SUGGEST.showLeft(6) }));
+    await user.click(wayOf(item(0), SKIP));
+    await user.click(screen.getByRole("button", { name: SUGGEST.showLeft(5) }));
+    await user.click(wayOf(item(0), "more"));
+
+    // How many areas the budget left out stands where it stood, after what was added.
+    expect(screen.getByRole("status").textContent).toBe(
+      "5 added. Then 2 more added, and 1 skipped. " +
+        "Your budget is a firm limit and left out 13 areas: the table of all areas lists each. " +
+        `5 need you: ${needs(left[0]?.needs, left[1]?.needs, left[2]?.needs).join("; ")}.`,
+    );
+    expect(screen.getByRole("button", { name: SUGGEST.showLeft(4) })).toBeVisible();
+    expect(SUGGEST.added(5, [], null, null, { added: 0, skipped: 0 })).toBe("5 added.");
+    expect(SUGGEST.added(5, [], null, null, { added: 0, skipped: 2 })).toBe("5 added. Then 2 skipped.");
+  });
+
+  test("test_the_focus_lands_on_the_line_that_opens_what_is_left_so_that_one_press_opens_it", async () => {
+    // A person who wants to choose several is not made to look for the fold: it is where
+    // the focus is, and one press opens it.
+    const { told, user } = await opened();
+
+    await user.click(wayOf(item(0), "more"));
+
+    expect(screen.getByRole("button", { name: SUGGEST.showLeft(6) })).toHaveFocus();
+    await user.keyboard("{Enter}");
+    expect(said()).toEqual(left.slice(1).map((one) => one.does));
+    await user.click(wayOf(item(0), "less"));
+    expect(screen.getByRole("button", { name: SUGGEST.showLeft(5) })).toHaveFocus();
+    // Each press added the offer it was made on, and no other.
+    expect(told).toMatchObject({ chosen: [[0, "more"], [0, "less"]], all: [[0, 1, 6, 10, 11]], back: [] });
+  });
+
+  test("test_the_focus_is_never_left_on_nothing_when_the_last_offer_of_the_fold_is_chosen", async () => {
+    const { user } = show(many.body.data.suggestions);
+    await user.click(screen.getByRole("button", { name: SUGGEST.addThese(3) }));
+    for (const count of [3, 2, 1]) {
+      await user.click(screen.getByRole("button", { name: SUGGEST.showLeft(count) }));
+      await user.click(wayOf(item(0), SKIP));
+      expect(document.body).not.toHaveFocus();
+    }
+
+    // Nothing is left to open, so the block holds the focus: it says what was done.
+    expect(screen.queryByRole("button", { name: /left to choose$/ })).toBeNull();
+    expect(block()).toHaveFocus();
+    expect(screen.getByRole("status").textContent).toBe("3 added. Then 3 skipped.");
+    expect(within(block()).getAllByRole("button").map((button) => button.textContent)).toEqual([SUGGEST.takeBack]);
+  });
+
+  test("test_what_was_added_is_said_once_where_a_screen_reader_hears_it", async () => {
+    const { user } = await opened();
+    const line = screen.getByRole("status");
+
+    await user.click(wayOf(item(0), "more"));
+
+    // One line of the block is read out when it changes, and it is the line that was there
+    // before the press. It says it once, and the line that opens what is left does not.
+    expect(within(block()).getAllByRole("status")).toHaveLength(1);
+    expect(within(block()).getByRole("status") === line).toBe(true);
+    expect(line.textContent?.split("more added")).toHaveLength(2);
+    expect(block().textContent?.split("more added")).toHaveLength(2);
+    expect(screen.getByRole("button", { name: SUGGEST.showLeft(6) }).textContent).toBe(SUGGEST.showLeft(6));
+    expect(block().querySelectorAll("[aria-live], [role='alert']")).toHaveLength(0);
+  });
+
+  test("test_to_fold_again_adds_nothing_and_loses_no_offer", async () => {
+    const { told, user } = await opened();
+
+    await user.click(wayOf(item(2), "more"));
+    await user.click(screen.getByRole("button", { name: SUGGEST.showLeft(6) }));
+
+    // Every offer but the one that was pressed is there, whole, in the order it stood in.
+    const still = left.filter((_, at) => at !== 2);
+    expect(said()).toEqual(still.map((one) => one.does));
+    items().forEach((one, at) => {
+      expect(buttonsOf(one).slice(0, still[at]?.choices.length)).toEqual(
+        still[at]?.choices.map((way) => (way.guess ? `${way.label} ${SUGGEST.guess}` : way.label)),
+      );
+    });
+    expect(told).toMatchObject({ chosen: [[2, "more"]], all: [[0, 1, 6, 10, 11]], back: [] });
+  });
+
+  test("test_a_journey_whose_place_is_chosen_in_the_open_fold_folds_what_is_left_again", async () => {
+    const found = recordedAnswer("search_places", "places-search").body.data.places;
+    const { told, user } = show([...long.body.data.suggestions, ...asksPlace.body.data.suggestions]);
+    await user.click(screen.getByRole("button", { name: SUGGEST.addThese(5) }));
+    await user.click(screen.getByRole("button", { name: SUGGEST.showLeft(8) }));
+
+    // It carries a guess, so it is drawn first, and it is the eighth of what is left. A way
+    // of it asks which place, and nothing folds while the person says which.
+    await user.click(wayOf(item(0), "guide"));
+    expect(told.chosen).toEqual([]);
+    expect(items()).toHaveLength(8);
+    await user.type(screen.getByRole("combobox", { name: SUGGEST.whichPlace }), "cin");
+    await user.click(await screen.findByRole("option", { name: new RegExp(found[0]?.name ?? "") }));
+
+    expect(told.chosen).toEqual([[7, "guide", found[0]?.place_id]]);
+    expect(screen.queryAllByRole("listitem")).toHaveLength(0);
+    expect(screen.getByRole("button", { name: SUGGEST.showLeft(7) })).toHaveFocus();
+    expect(screen.getByRole("status").textContent?.startsWith("5 added. Then 1 more added.")).toBe(true);
+  });
+
+  test("test_an_offer_that_is_in_sight_after_one_press_is_chosen_as_it_was_and_is_counted", async () => {
+    // A model may mark a guess after the press. What one press may add is then in sight, and a
+    // press on one of those gives the focus to the offer beside it, as before any press.
+    const offers = long.body.data.suggestions;
+    const added: Added = { count: 1, needs: [], firm: false, spec: long.body.data.spec, suggestions: offers, chosen: [] };
+    function AfterTheModelRead() {
+      const [held, setHeld] = useState(offers);
+      return (
+        <Suggestions
+          suggestions={held}
+          added={added}
+          onChoose={(at) => setHeld((before) => before.filter((_, index) => index !== at))}
+          onChooseAll={() => undefined}
+        />
+      );
+    }
+    render(<AfterTheModelRead />);
+    const user = userEvent.setup({ delay: null });
+
+    await user.click(wayOf(item(0), "more"));
+
+    expect(said()).toEqual([1, 6, 10, 11].map((at) => offers[at]?.does));
+    expect(within(item(0)).getAllByRole("button")[0]).toHaveFocus();
+    expect(screen.getByRole("status").textContent).toBe("1 added. Then 1 more added.");
+  });
+
+  test("test_before_any_press_a_choice_folds_nothing_and_says_nothing", async () => {
+    const { user } = show(long.body.data.suggestions);
+    await user.click(screen.getByRole("button", { name: SUGGEST.showAll(12) }));
+
+    await user.click(wayOf(item(5), "more"));
+
+    // What Burro asks comes before what it ranked without the answer: the offers stay in sight.
+    expect(items()).toHaveLength(11);
+    expect(screen.getByRole("status").textContent).toBe("");
+    expect(screen.queryByRole("button", { name: /left to choose$/ })).toBeNull();
+  });
+
+  test("test_what_was_chosen_since_is_forgotten_when_all_is_taken_back_or_added_again", async () => {
+    const { user } = await opened();
+    await user.click(wayOf(item(0), "more"));
+    expect(screen.getByRole("status").textContent?.includes("Then 1 more added.")).toBe(true);
+
+    await user.click(screen.getByRole("button", { name: SUGGEST.takeBack }));
+    expect(screen.getByRole("status").textContent).toBe("");
+    await user.click(screen.getByRole("button", { name: SUGGEST.addThese(5) }));
+
+    expect(screen.getByRole("status").textContent).toBe(`5 added. 8 need you: ${needs().join("; ")}.`);
+    expect(screen.getByRole("button", { name: SUGGEST.showLeft(7) })).toBeVisible();
+  });
+
+  test("test_the_block_has_no_accessibility_fault_once_it_has_folded_again", async () => {
+    const { container, user } = await opened();
+
+    await user.click(wayOf(item(0), "more"));
+
+    expect(await faultsIn(container)).toEqual([]);
   });
 });
 

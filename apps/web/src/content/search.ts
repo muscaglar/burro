@@ -170,16 +170,20 @@ export const SUGGEST = {
   /**
    * What one press did, in full: how many it added, how many areas a firm budget among them
    * left out, and what is left for the person, which the API names. `leftOut` is `null`
-   * where no firm budget was among them, and until the ranking that follows is in.
+   * where no firm budget was among them, and until the ranking that follows is in. `since`
+   * is what the person has chosen of since, offer by offer: it is said straight after what
+   * the press added, so that it is the first thing read when the line changes.
    */
   added: (
     count: number,
     needs: readonly string[],
     leftOut: number | null = null,
     heldAgainst: string | null = null,
+    since: { readonly added: number; readonly skipped: number } = { added: 0, skipped: 0 },
   ) =>
     [
       `${count} added.`,
+      SUGGEST.since(since.added, since.skipped),
       leftOut === null ? "" : SUGGEST.leftOut(leftOut, heldAgainst),
       needs.length === 0
         ? ""
@@ -197,6 +201,12 @@ export const SUGGEST = {
     if (count === 0) return `Your budget is a firm limit. It left no area out.${of}`;
     const [areas, which] = count === 1 ? ["1 area", "it"] : [`${count} areas`, "each"];
     return `Your budget is a firm limit and left out ${areas}: the table of all areas lists ${which}.${of}`;
+  },
+  /** How many offers were added and how many skipped since one press, each by its own button. */
+  since: (added: number, skipped: number): string => {
+    if (added > 0 && skipped > 0) return `Then ${added} more added, and ${skipped} skipped.`;
+    if (added > 0) return `Then ${added} more added.`;
+    return skipped > 0 ? `Then ${skipped} skipped.` : "";
   },
   takeBack: "Take it all back",
   takenBack: "Taken back. Nothing of it is added.",

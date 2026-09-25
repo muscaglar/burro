@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useRef, useState, type MouseEvent } from "react";
+import { useEffect, useId, useRef, useState, type MouseEvent } from "react";
 
 import { SUGGEST } from "@/content/search";
 import type { Answer } from "@/lib/api/client";
@@ -56,6 +56,28 @@ export function everyOffer(suggestions: readonly Suggestion[]): readonly number[
     suggestions,
     suggestions.map((_, at) => at),
   );
+}
+
+/**
+ * What a person has chosen of, offer by offer, since one press added what it may: how many
+ * they added, how many they skipped, and what the API calls each, which is then no longer
+ * left for them. It is counted here, where the presses are made, and goes when all is
+ * taken back.
+ */
+interface Since {
+  readonly added: number;
+  readonly skipped: number;
+  readonly settled: readonly string[];
+}
+
+const NOTHING_SINCE: Since = { added: 0, skipped: 0, settled: [] };
+
+/** What is left for the person, without what they have chosen of since: each name goes once. */
+function stillNeeded(needs: readonly string[], settled: readonly string[]): readonly string[] {
+  return settled.reduce((left, gone) => {
+    const at = left.indexOf(gone);
+    return at < 0 ? left : [...left.slice(0, at), ...left.slice(at + 1)];
+  }, needs);
 }
 
 interface Props {
@@ -147,6 +169,10 @@ function nameOf(choice: SuggestionChoice, suggestion: Suggestion): string | unde
  * Once that button is pressed the answer comes first: the offers that are left are folded
  * to one line, which says how many there are, under the line that names them. One press
  * opens them all, and nothing of them is lost or added by the fold.
+ *
+ * They fold again when one of them is chosen, so that the answer comes first again. The
+ * line above says that one more was added or skipped, and the line that opens them takes
+ * the focus, so that a person who wants to choose another opens them with one more press.
  */
 export function Suggestions({
   suggestions,
@@ -163,7 +189,17 @@ export function Suggestions({
 }: Props) {
   const id = useId();
   const block = useRef<HTMLElement>(null);
+  const fold = useRef<HTMLButtonElement>(null);
+  // True from a choice made in the open fold until the line that opens it has the focus.
+  const toTheFold = useRef(false);
   const [all, setAll] = useState(false);
+  const [since, setSince] = useState(NOTHING_SINCE);
+  // The line is drawn once what was chosen has gone. Until then the block holds the focus.
+  useEffect(() => {
+    if (!toTheFold.current) return;
+    toTheFold.current = false;
+    fold.current?.focus();
+  });
   // The offer a place is being chosen for, and the way of it that was pressed.
   const [placing, setPlacing] = useState<{ readonly key: string; readonly id: string } | null>(null);
   if (suggestions.length === 0 && added === null && !reading) return null;
@@ -181,19 +217,39 @@ export function Suggestions({
   const together = shown.flatMap(({ suggestion, at }) => (addedWithOthers(suggestion) === null ? [] : [at]));
   const every = together.length === shown.length;
 
+  /**
+   * What a choice does to the block once one press has added what it may: it is counted,
+   * and where it was made in the open fold, what is left folds again. True where it folds.
+   */
+  const chosen = (suggestion: Suggestion, way: string): boolean => {
+    if (added === null) return false;
+    setSince((before) => ({
+      added: before.added + (way === SKIP ? 0 : 1),
+      skipped: before.skipped + (way === SKIP ? 1 : 0),
+      settled: suggestion.needs === "" ? before.settled : [...before.settled, suggestion.needs],
+    }));
+    if (!all) return false;
+    // The offer goes with its button, and every other offer goes out of sight. The block
+    // holds the focus until the line that opens them is drawn, which then takes it.
+    block.current?.focus();
+    toTheFold.current = true;
+    setAll(false);
+    return true;
+  };
+
   const choose = (event: MouseEvent<HTMLButtonElement>, at: number, suggestion: Suggestion, way: string) => {
     // A journey whose place Burro does not know asks which place before it is added.
     if (suggestion.asks_place && way !== SKIP) {
       setPlacing({ key: keyOf(suggestion), id: way });
       return;
     }
-    (besideOf(event.currentTarget.closest("li")) ?? block.current)?.focus();
+    if (!chosen(suggestion, way)) (besideOf(event.currentTarget.closest("li")) ?? block.current)?.focus();
     onChoose(at, way);
   };
 
-  const place = (at: number, way: string, found: Pick<FoundPlace, "place_id">) => {
+  const place = (at: number, suggestion: Suggestion, way: string, found: Pick<FoundPlace, "place_id">) => {
     setPlacing(null);
-    block.current?.focus();
+    if (!chosen(suggestion, way)) block.current?.focus();
     onChoose(at, way, found.place_id);
   };
 
@@ -212,6 +268,7 @@ export function Suggestions({
     block.current?.focus();
     // What is left is folded, whatever was opened before: the answer comes first.
     setAll(false);
+    setSince(NOTHING_SINCE);
     onChooseAll?.(together);
   };
 
@@ -224,6 +281,7 @@ export function Suggestions({
   const takeBack = () => {
     // The button goes with what it took back, and the focus is not left on nothing.
     block.current?.focus();
+    setSince(NOTHING_SINCE);
     onTakeBack?.();
   };
 
@@ -240,7 +298,7 @@ export function Suggestions({
         {reading
           ? SUGGEST.reading
           : added !== null
-            ? SUGGEST.added(added.count, added.needs, leftOut, heldAgainst)
+            ? SUGGEST.added(added.count, stillNeeded(added.needs, since.settled), leftOut, heldAgainst, since)
             : ""}
       </p>
       {added !== null && onTakeBack ? (
@@ -327,7 +385,7 @@ export function Suggestions({
                           key={option.name}
                           type="button"
                           className={`${styles.choice} target`}
-                          onClick={() => place(at, asking.id, { place_id: option.id })}
+                          onClick={() => place(at, suggestion, asking.id, { place_id: option.id })}
                         >
                           {option.name}
                         </button>
@@ -337,7 +395,7 @@ export function Suggestions({
                   {searchPlaces ? (
                     <PlaceCombobox
                       search={searchPlaces}
-                      onPick={(found) => place(at, asking.id, found)}
+                      onPick={(found) => place(at, suggestion, asking.id, found)}
                       label={SUGGEST.whichPlace}
                     />
                   ) : null}
@@ -348,7 +406,7 @@ export function Suggestions({
         })}
       </ul>
       {more > 0 ? (
-        <button type="button" className={`${styles.all} target`} onClick={showAll}>
+        <button ref={fold} type="button" className={`${styles.all} target`} onClick={showAll}>
           {folded ? SUGGEST.showLeft(more) : SUGGEST.showAll(suggestions.length)}
         </button>
       ) : null}

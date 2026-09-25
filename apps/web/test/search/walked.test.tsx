@@ -630,6 +630,57 @@ describe("a natural sentence", () => {
     expect(within(block).getByRole("status").textContent?.startsWith("5 added.")).toBe(true);
   });
 
+  test("test_after_an_offer_is_added_from_the_open_fold_the_first_result_stands_directly_after_the_line_again", async () => {
+    // Seen in a browser, on a build of a real city: the fold was opened and one offer was
+    // added from it. The fold stayed open, with the seven that were left drawn whole, and the
+    // name of the first result was 1,925 px down a desk's screen of 900 and 2,569 px down a
+    // phone's of 844.
+    const { user, api } = await openSearch(reading());
+    await user.type(promptBox(), sentenceOf("interpret-by-model-long"));
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
+    await user.click(screen.getByRole("button", { name: SUGGEST.addThese(5) }));
+    await settled();
+    const block = screen.getByRole("region", { name: SUGGEST.title });
+    await user.click(within(block).getByRole("button", { name: SUGGEST.showLeft(7) }));
+    const left = recordedAnswer("interpret", "interpret-by-model-long").body.data.suggestions.filter(
+      (one) => one.add_all === "",
+    );
+    const offered = within(block).getAllByRole("listitem");
+    expect(offered.map((offer) => offer.querySelector("p")?.textContent)).toEqual(left.map((one) => one.does));
+
+    // The first way of the first of them is pressed.
+    await user.click(within(offered[0] as HTMLElement).getAllByRole("button")[0] as HTMLElement);
+    await settled();
+
+    // What was pressed is ranked, and nothing else: the edits the API gave with that way.
+    expect(api.callsTo("rank")).toHaveLength(2);
+    expect((api.lastCallTo("rank").body as { operations?: Operations }).operations).toEqual(
+      left[0]?.choices[0]?.operations,
+    );
+    // What is left is one line again, and the first result stands directly after it.
+    const [first] = results();
+    expect(block.querySelectorAll("li")).toHaveLength(0);
+    const between = [...document.querySelectorAll<HTMLElement>("main button, main input, main select, main a[href]")]
+      .filter((control) => comesBefore(chipsRegion(), control) && comesBefore(control, first as HTMLElement))
+      .filter((control) => !chipsRegion().contains(control))
+      .map((control) => control.textContent || control.getAttribute("aria-label"));
+    expect(between).toEqual([SUGGEST.takeBack, SUGGEST.showLeft(6)]);
+    // The line says what one press added, and that one more was added since. What was
+    // chosen of is no longer named as left for the person.
+    const line = within(block).getByRole("status").textContent ?? "";
+    expect(line.startsWith("5 added. Then 1 more added. Your budget is a firm limit and left out 13 areas")).toBe(true);
+    expect(line.includes("7 need you: the journey can be made a firm limit; recorded crime")).toBe(true);
+    expect(line.includes(left[0]?.needs ?? "no name")).toBe(false);
+    // The line that opens what is left has the focus: one more press opens it, and the
+    // press adds nothing.
+    const fold = within(block).getByRole("button", { name: SUGGEST.showLeft(6) });
+    expect(fold === document.activeElement).toBe(true);
+    await user.keyboard("{Enter}");
+    expect(within(block).getAllByRole("listitem")).toHaveLength(6);
+    expect(api.callsTo("rank")).toHaveLength(2);
+  });
+
   test("test_the_fold_never_hides_that_a_vibe_is_a_rough_guide", async () => {
     // A vibe that is a rough guide says so wherever it is shown, in sight: its label, and the
     // sentence that says why. One press never takes it, so it is among what one press leaves,
