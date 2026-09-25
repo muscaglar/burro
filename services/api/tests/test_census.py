@@ -8,7 +8,8 @@ figures from one area to another changes no other answer.
 
 import json
 import re
-from collections.abc import Iterator
+from collections.abc import Iterator, Sequence
+from functools import cache
 from pathlib import Path
 from typing import Any, cast
 
@@ -661,12 +662,31 @@ def answers(deps: Deps, specs: list[PreferenceSpec]) -> list[tuple[str, int, str
     return found
 
 
+Answers = Sequence[tuple[str, int, str]]
+
+
+@cache
+def as_it_is() -> Answers:
+    """What the service answers as it is, over the sample of searches.
+
+    It is asked once in each process, for every test that holds another service to what
+    it answers. A service that is made the same answers the same, and a test of any two
+    that differ fails if it does not.
+    """
+    return tuple(answers(make_deps(), a_sample_of_searches()))
+
+
+def differing(first: Answers, second: Answers, searches: int) -> list[str]:
+    """The routes that answer otherwise the second time, over the same searches."""
+    assert len(first) > 5 * searches and {status for _, status, _ in first} == {200}
+    return [path for (path, *one), (_, *two) in zip(first, second, strict=True) if one != two]
+
+
 def what_differs(specs: list[PreferenceSpec], census_of_the_second: Census | None) -> list[str]:
     """The routes that answer otherwise once the census is changed, over the same searches."""
-    first = answers(make_deps(), specs)
+    first = as_it_is() if specs == a_sample_of_searches() else answers(make_deps(), specs)
     second = answers(make_deps(census=census_of_the_second), specs)
-    assert len(first) > 5 * len(specs) and {status for _, status, _ in first} == {200}
-    return [path for (path, *one), (_, *two) in zip(first, second, strict=True) if one != two]
+    return differing(first, second, len(specs))
 
 
 def test_the_figures_that_are_moved_are_not_the_figures_that_were():

@@ -11,7 +11,9 @@ rule for an area, what runs two ways with no guess, a journey to a place that
 is yet to be chosen, or recorded crime.
 """
 
+import copy
 import dataclasses
+from functools import cache
 from typing import Any
 
 import pytest
@@ -70,7 +72,13 @@ def taken(found: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
-def every_answer() -> list[tuple[str, dict[str, Any]]]:
+@cache
+def _served_once() -> list[tuple[str, dict[str, Any]]]:
+    """Every answer on disk, as route 1 serves it. Served once, for the first test that asks.
+
+    Every process that runs tests imports this file, and one of them runs its tests.
+    Served as the file was imported, every answer was served again in every process.
+    """
     found: list[tuple[str, dict[str, Any]]] = []
     for (case, look), row in answers_on_disk().items():
         if "output" in row:
@@ -78,7 +86,22 @@ def every_answer() -> list[tuple[str, dict[str, Any]]]:
     return found
 
 
-EVERY_ANSWER = every_answer()
+def every_answer() -> list[tuple[str, dict[str, Any]]]:
+    """Every answer on disk, as route 1 serves it: a copy that is the test's own.
+
+    What is served once is handed to no test. A test that changes what it was handed
+    changes its copy, and nothing that the next test reads.
+    """
+    return copy.deepcopy(_served_once())
+
+
+def test_a_test_that_changes_what_it_was_handed_changes_nothing_the_next_reads():
+    handed = every_answer()
+    before = repr(handed)
+    handed[0][1]["suggestions"] = "changed by a test"
+    del handed[1:]
+
+    assert repr(every_answer()) == before and len(every_answer()) > 100
 
 
 # --- What it never adds --------------------------------------------------------------------
@@ -86,7 +109,7 @@ EVERY_ANSWER = every_answer()
 
 def test_add_all_never_adds_a_journey_as_a_firm_limit_or_a_rule_for_an_area():
     # A journey is estimated from distance, so one press leaves no area out on one.
-    for case, found in EVERY_ANSWER:
+    for case, found in every_answer():
         for way in taken(found):
             edits = way["operations"]
             assert not [e for e in edits["commute_ops"] if e["strictness"] == "hard"], case
@@ -95,7 +118,7 @@ def test_add_all_never_adds_a_journey_as_a_firm_limit_or_a_rule_for_an_area():
 
 def test_add_all_adds_a_firm_budget_only_where_it_is_the_guess():
     firm = 0
-    for case, found in EVERY_ANSWER:
+    for case, found in every_answer():
         for way in taken(found):
             if any(edit["strictness"] == "hard" for edit in way["operations"]["budget_ops"]):
                 assert way["guess"], case
@@ -104,7 +127,7 @@ def test_add_all_adds_a_firm_budget_only_where_it_is_the_guess():
 
 
 def test_add_all_never_adds_recorded_crime():
-    for case, found in EVERY_ANSWER:
+    for case, found in every_answer():
         for way in taken(found):
             for wish in way["operations"]["weight_ops"]:
                 assert FEATURES[FeatureId(wish["feature_id"])].dimension is not Dimension.CRIME
@@ -113,7 +136,7 @@ def test_add_all_never_adds_recorded_crime():
 
 
 def test_add_all_never_adds_a_thing_that_runs_two_ways_with_no_guess():
-    for case, found in EVERY_ANSWER:
+    for case, found in every_answer():
         for offer in found["suggestions"]:
             ways = [way for way in offer["choices"] if way["id"] != "ignore"]
             if offer["add_all"] and len(ways) > 1:
@@ -121,7 +144,7 @@ def test_add_all_never_adds_a_thing_that_runs_two_ways_with_no_guess():
 
 
 def test_add_all_never_adds_a_journey_to_a_place_that_is_yet_to_be_chosen():
-    for case, found in EVERY_ANSWER:
+    for case, found in every_answer():
         for offer in found["suggestions"]:
             assert not (offer["asks_place"] and offer["add_all"]), case
         for way in taken(found):
@@ -129,7 +152,7 @@ def test_add_all_never_adds_a_journey_to_a_place_that_is_yet_to_be_chosen():
 
 
 def test_add_all_never_sets_a_number_for_a_weight():
-    for case, found in EVERY_ANSWER:
+    for case, found in every_answer():
         for way in taken(found):
             wishes = (*way["operations"]["weight_ops"], *way["operations"]["tag_ops"])
             assert {wish["action"] for wish in wishes} <= {"nudge"}, case
@@ -986,7 +1009,7 @@ def test_add_all_adds_a_wish_a_vibe_the_tenure_a_budget_and_a_journey():
 
 
 def test_what_is_left_for_the_person_is_said_of_each_offer_that_is_not_added():
-    for case, found in EVERY_ANSWER:
+    for case, found in every_answer():
         for offer in found["suggestions"]:
             ways = [way for way in offer["choices"] if way["id"] != "ignore"]
             if ways and not offer["add_all"]:

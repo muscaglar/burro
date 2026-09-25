@@ -63,7 +63,7 @@ def test_the_service_says_how_a_journey_is_estimated_and_that_the_release_is_a_p
     answer = client.get("/v1/meta")
     body = answer.json()
     assert body["meta"]["preview"] is True and answer.headers["X-Burro-Preview"] == "true"
-    assert body["meta"]["engine_version"] == ENGINE_VERSION == "1.14.0"
+    assert body["meta"]["engine_version"] == ENGINE_VERSION == "1.15.0"
     assert body["data"]["holds"]["journeys"] is True
     assert body["data"]["journey_estimate"] == HOW.model_dump(mode="json")
     assert body["data"]["journey_estimate"]["said"] == ESTIMATED

@@ -10,6 +10,7 @@ other answer.
 import json
 import re
 from collections.abc import Iterator
+from functools import cache
 from pathlib import Path
 from typing import Any
 
@@ -17,7 +18,6 @@ import pytest
 from burro_api import loading
 from burro_api.app import deps_from
 from burro_api.cli import main
-from burro_api.deps import Deps
 from burro_api.loading import load_income
 from burro_api.logs import LOGGABLE
 from burro_api.settings import SYNTHETIC_FIXTURE, SYNTHETIC_INCOME, Settings
@@ -28,7 +28,15 @@ from burro_core.spec import PreferenceSpec
 from fastapi.testclient import TestClient
 
 from .support import client_for, income, make_deps, release, searching, watching, wire
-from .test_census import a_sample_of_searches, answers, references, searches
+from .test_census import (
+    Answers,
+    a_sample_of_searches,
+    answers,
+    as_it_is,
+    differing,
+    references,
+    searches,
+)
 
 ROUTE = "/v1/areas/{id_or_slug}/income"
 AREA = "foxholt"
@@ -71,6 +79,17 @@ def amounts(found: Income | None = None) -> list[int]:
     return sorted(held)
 
 
+@cache
+def any_of(forms: tuple[str, ...]) -> re.Pattern[str]:
+    """Any of some figures, where it stands as a figure of its own and as part of no other.
+
+    Every figure is looked for as the text is read once. A figure is digits and commas,
+    and none stands inside another: a letter, a digit, a comma or a hyphen on either side
+    of one makes it part of something else, and so does a point before it.
+    """
+    return re.compile(rf"(?<![0-9A-Za-z,.\-])(?:{'|'.join(forms)})(?![0-9A-Za-z,\-])")
+
+
 def holds_a_figure(text: str, found: Income | None = None) -> list[str]:
     """The figures of the estimates that an answer holds, as they are printed or as they are held.
 
@@ -78,12 +97,8 @@ def holds_a_figure(text: str, found: Income | None = None) -> list[str]:
     made-up estimate is given to the pound, so no price of the made-up
     release, which is given to the 500, is ever one.
     """
-    forms = [form for amount in amounts(found) for form in (f"{amount:,}", str(amount))]
-    return [
-        form
-        for form in sorted(set(forms))
-        if re.search(rf"(?<![0-9A-Za-z,.\-]){form}(?![0-9A-Za-z,\-])", text)
-    ]
+    forms = {form for amount in amounts(found) for form in (f"{amount:,}", str(amount))}
+    return sorted(set(any_of(tuple(sorted(forms))).findall(text)))
 
 
 def holds_a_printed_figure(text: str, found: Income | None = None) -> list[str]:
@@ -312,10 +327,38 @@ def what_differs(specs: list[PreferenceSpec], of_the_second: Income | None) -> l
     return [path for (path, *one), (_, *two) in zip(first, second, strict=True) if one != two]
 
 
-def answers_of(route: str, deps: Deps | None = None) -> list[str]:
-    """Every answer one route gave over a sample of searches, as it was sent."""
-    found = answers(deps or make_deps(), a_sample_of_searches())
+@cache
+def with_the_income_moved() -> Answers:
+    """What a service answers over the sample of searches with the estimates moved.
+
+    It is asked once in each process, as the service that is as it is: the tests of three
+    routes and of every route read what the same two services answered.
+    """
+    return tuple(answers(make_deps(income=moved(income())), a_sample_of_searches()))
+
+
+@cache
+def with_the_income_taken_away() -> Answers:
+    """The same, of a service that holds no estimates at all."""
+    return tuple(answers(make_deps(income=None), a_sample_of_searches()))
+
+
+def answers_of(route: str, found: Answers) -> list[str]:
+    """Every answer one route gave over the sample of searches, as it was sent."""
     return [text for path, status, text in found if path == route and status == 200]
+
+
+def test_what_a_service_answered_once_is_changed_by_no_test_that_reads_it():
+    """It is text and numbers in tuples, which nothing changes. What a test makes of it is
+    the test's own, and the next test reads what was answered."""
+    for found in (as_it_is(), with_the_income_moved(), with_the_income_taken_away()):
+        kinds: set[type] = {type(found), *(type(one) for one in found)}
+        parts: set[type] = {type(part) for one in found for part in one}
+        assert kinds == {tuple} and parts == {str, int}
+    mine = answers_of(RANKS, as_it_is())
+    held = list(mine)
+    mine.clear()
+    assert answers_of(RANKS, as_it_is()) == held != mine
 
 
 def test_the_figures_that_are_moved_are_not_the_figures_that_were():
@@ -332,21 +375,22 @@ def test_the_route_answers_the_same_whatever_the_income_of_an_area_is(route: str
     The estimates are moved from each area to the next, and then taken away.
     An answer that rested on one would change. None does.
     """
-    as_it_is = answers_of(route)
-    assert len(as_it_is) == len(a_sample_of_searches())
-    assert answers_of(route, make_deps(income=moved(income()))) == as_it_is
-    assert answers_of(route, make_deps(income=None)) == as_it_is
+    as_it_was = answers_of(route, as_it_is())
+    assert len(as_it_was) == len(a_sample_of_searches())
+    assert answers_of(route, with_the_income_moved()) == as_it_was
+    assert answers_of(route, with_the_income_taken_away()) == as_it_was
 
 
 @pytest.mark.parametrize("route", [RANKS, COMPARES, EXPLAINS])
 def test_no_answer_of_the_route_holds_a_figure_of_income_or_a_word_for_it(route: str):
-    for text in answers_of(route):
+    for text in answers_of(route, as_it_is()):
         assert not holds_a_figure(text), route
         assert not names_income(text), route
 
 
 def test_moving_the_income_between_areas_changes_no_other_answer():
-    assert what_differs(a_sample_of_searches(), moved(income())) == []
+    asked = len(a_sample_of_searches())
+    assert differing(as_it_is(), with_the_income_moved(), asked) == []
 
 
 @pytest.mark.full
@@ -355,7 +399,8 @@ def test_moving_the_income_between_areas_changes_no_answer_of_sixty_searches():
 
 
 def test_taking_the_income_away_changes_no_answer_but_the_offer_of_it():
-    assert what_differs(a_sample_of_searches(), None) == ["/v1/meta"]
+    asked = len(a_sample_of_searches())
+    assert differing(as_it_is(), with_the_income_taken_away(), asked) == ["/v1/meta"]
     with_it = data(client_for(make_deps()).get("/v1/meta"))
     without = data(client_for(make_deps(income=None)).get("/v1/meta"))
     assert with_it.pop("income")["available"] is True

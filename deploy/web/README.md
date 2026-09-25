@@ -1,6 +1,8 @@
 # The website on Vercel
 
-Never deployed. Written from Vercel's own pages as they read on 2026-09-23. The order of steps, the costs and the rollback are in [../README.md](../README.md).
+First deployed on 25 September 2026, on Vercel's free plan, with the made-up city. Written from Vercel's own pages as they read on 2026-09-23, and brought to what was done. The order of steps, the costs and the rollback are in [../README.md](../README.md).
+
+**The free plan is for now.** Vercel's terms keep it to work that is not commercial, so a launch needs the paid plan. Read the terms on Vercel's own page before you rely on this.
 
 ## Project settings
 
@@ -16,7 +18,7 @@ Import the repository in Vercel, then set these under Settings, Build and Deploy
 | Function Region | `lhr1`, London | A page is rebuilt, hourly at most, by a function that calls the API. It should run beside the API. The default is in the United States |
 | Node.js Version | See "Node" below | |
 
-[vercel.json](vercel.json) holds the same install command, build command, framework and region. **Vercel does not read it where it is.** It reads `vercel.json` only from the root directory, `apps/web`. Move it to `apps/web/vercel.json` and the four settings are then reviewed like any other change. Until it is moved, set them in the dashboard.
+[vercel.json](vercel.json) holds the same install command, build command, framework and region. **Vercel does not read it where it is.** It reads `vercel.json` only from the root directory, `apps/web`. Moved to `apps/web/vercel.json`, the four settings would be reviewed like any other change. It has not been moved, so set them in the dashboard: on the first deployment the root directory, the install command and the build command were set there by hand.
 
 ## The two environment variables
 
@@ -24,8 +26,8 @@ Neither is a secret. Set both for Production only.
 
 | Name | Value | Read by |
 |---|---|---|
-| `NEXT_PUBLIC_BURRO_API_URL` | `https://api.DOMAIN` | The browser's client, a build, and the content security policy |
-| `BURRO_SITE_URL` | `https://DOMAIN` | `src/lib/indexing.ts`, for what a search engine is told, and nothing else |
+| `NEXT_PUBLIC_BURRO_API_URL` | `https://APP.fly.dev`, the address Fly.io gives the app | The browser's client, a build, and the content security policy |
+| `BURRO_SITE_URL` | `https://PROJECT.vercel.app`, the address Vercel gives the project | `src/lib/indexing.ts`, for what a search engine is told, and nothing else |
 
 ```
 vercel link
@@ -34,15 +36,17 @@ vercel env add BURRO_SITE_URL production
 vercel env ls
 ```
 
+- **Set neither for the first deployment.** The website is then built from the recorded answers, and Vercel gives the project its address. Set both once the API is deployed, and deploy again: [../README.md](../README.md) gives the order.
+- Once there is a domain, the first is `https://api.DOMAIN` and the second `https://DOMAIN`.
 - Both are read when the website is built. The API's address is written into the pages and into the policy. A change does nothing until the next deployment.
-- `BURRO_SITE_URL` must be the same origin as `BURRO_ALLOWED_ORIGINS` in [../api/fly.toml](../api/fly.toml). If the website is served from `www.DOMAIN`, both say `https://www.DOMAIN`.
+- `BURRO_SITE_URL` must be the same origin as `BURRO_ALLOWED_ORIGINS` in [../api/fly.toml](../api/fly.toml). If the website is later served from `www.DOMAIN`, both say `https://www.DOMAIN`.
 - Each is an address with no name and password, no query and no fragment. `BURRO_SITE_URL` has no path either. One that is not in that form is treated as not set, and nothing says so.
 - Leave both unset for Preview. A preview is then built from the recorded answers in `test/recorded/`, and its search answers `not_configured`. A preview's address is not on the API's list of origins, and the list takes no pattern, so a preview could not read the API's answers in any case.
-- While the release is synthetic no page may be indexed, whatever `BURRO_SITE_URL` says.
+- While the release is synthetic no page may be indexed, whatever `BURRO_SITE_URL` says. Every page says so in its markup and in the header `X-Robots-Tag`, and the robots file lets a crawler in to read it: [../README.md](../README.md), step 4, says why.
 
-## The API must be up before a build
+## The API must be up before a build that names it
 
-With `NEXT_PUBLIC_BURRO_API_URL` set, a build calls routes 4, 5, 6 and 11 of the API. A read that timed out, or met a service too busy to answer, is asked for four times at most, each waited for longer than the last. A failure then stops the build, and the deployment before it stays live. Deploy the API first. After a new release reaches the API, the pages catch up within the hour, or at once with a new deployment.
+With no address of the API set, a build reads the recorded answers and calls nothing: the first deployment was built so. With `NEXT_PUBLIC_BURRO_API_URL` set, a build calls routes 4, 5, 6 and 11 of the API. A read that timed out, or met a service too busy to answer, is asked for four times at most, each waited for longer than the last. A failure then stops the build, and the deployment before it stays live. Deploy the API before you set its address. After a new release reaches the API, the pages catch up within the hour, or at once with a new deployment.
 
 ## The headers the website already sets
 
@@ -72,7 +76,7 @@ The website has no route handler, no server action and no middleware, so nothing
 | Git Fork Protection | On, as it comes | A pull request from a fork is not built until you allow it |
 | Deployment Protection | On for previews, as it comes | A preview is not for the public |
 
-What Vercel's own log holds for a request: the path, the query string, the status and the browser's name. For this website that is an area's slug, or the slugs of a comparison. It is kept for 1 hour on Hobby and 1 day on Pro.
+What Vercel's own log holds for a request: the path, the query string, the status and the browser's name. For this website that is an area's slug, or the slugs of a comparison. It is kept for 1 hour on Hobby, which is the free plan and the one in use, and 1 day on Pro.
 
 `vercel link` writes a `.vercel` folder that names the account and the project. It is not in `.gitignore` yet. Do not commit it.
 

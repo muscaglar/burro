@@ -2425,7 +2425,8 @@
           "homes_higher_bands",
           "price_rise_5y",
           "price_rise_10y",
-          "highstreet_conserved"
+          "highstreet_conserved",
+          "road_traffic_nearby"
         ],
         "title": "FeatureId",
         "type": "string"

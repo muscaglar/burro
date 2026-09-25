@@ -3,13 +3,16 @@
 # Deploy from the repository root. deploy/README.md has the steps.
 #
 #   fly deploy . --config deploy/api/fly.toml --dockerfile deploy/api/Dockerfile \
-#     --ignorefile deploy/api/Dockerfile.dockerignore --ha=false
+#     --ignorefile deploy/api/Dockerfile.dockerignore --ha=false --depot=false
+#
+# `--depot=false` builds the image on Fly.io's own builder. The builder Fly.io uses
+# by default built the image and was then refused as it stored it.
 #
 # No secret belongs in this file. The model key is set with `fly secrets`, and
 # not before the plan's conditions for it are met. deploy/README.md lists them.
 #
-# This file has never been deployed. It was written from Fly.io's reference as
-# it read on 2026-09-23.
+# First deployed on 2026-09-25. It was written from Fly.io's reference as it read
+# on 2026-09-23.
 
 # Names are shared by every Fly.io customer. Change it if this one is taken.
 app = "burro-api"

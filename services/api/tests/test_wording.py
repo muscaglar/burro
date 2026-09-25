@@ -6,8 +6,10 @@ website and the iPhone app show the same. The person's words are in none of
 them: a client cuts them from the text it holds, by where they stand.
 """
 
+import copy
 import json
 import re
+from functools import cache
 from typing import Any
 
 import pytest
@@ -150,8 +152,9 @@ def test_a_vibe_says_what_it_counts_and_what_it_cannot_see():
     assert quiet["does"] == "Add Quiet streets."
     assert wrote(quiet, text) == "Quiet but not dead"
     assert quiet["follows"] == (
-        "What it counts: homes away from main roads and from clusters of pubs and bars, with "
-        "little transport noise. It cannot see: one street or one home. An area is many streets."
+        "What it counts: homes away from main roads, from heavy traffic and from clusters of "
+        "pubs and bars, with little transport noise. It cannot see: one street or one home. An "
+        "area is many streets."
     )
     assert buttons(quiet) == ["Add", "Skip"]
 
@@ -248,8 +251,13 @@ def test_a_least_distance_is_answered_in_a_fixed_line_and_with_nothing_to_press(
 # --- Three rules of the wording --------------------------------------------------------------
 
 
-def every_offer() -> list[tuple[str, dict[str, Any]]]:
-    """Every offer that is served for an answer on disk, with the sentence it is of."""
+@cache
+def _served_once() -> list[tuple[str, dict[str, Any]]]:
+    """Every offer that is served for an answer on disk, with the sentence it is of.
+
+    They are served once, for the first test that asks, and not as this file is imported:
+    every process that runs tests imports it, and one of them runs its tests.
+    """
     found: list[tuple[str, dict[str, Any]]] = []
     for (case, look), row in answers_on_disk().items():
         if "output" in row:
@@ -258,11 +266,26 @@ def every_offer() -> list[tuple[str, dict[str, Any]]]:
     return found
 
 
-EVERY_OFFER = every_offer()
+def every_offer() -> list[tuple[str, dict[str, Any]]]:
+    """Every offer that is served for an answer on disk: a copy that is the test's own.
+
+    What is served once is handed to no test. A test that changes what it was handed
+    changes its copy, and nothing that the next test reads.
+    """
+    return copy.deepcopy(_served_once())
+
+
+def test_a_test_that_changes_what_it_was_handed_changes_nothing_the_next_reads():
+    handed = every_offer()
+    before = repr(handed)
+    handed[0][1]["choices"] = "changed by a test"
+    del handed[1:]
+
+    assert repr(every_offer()) == before and len(every_offer()) > 200
 
 
 def test_doing_nothing_is_skip_and_is_always_the_last_choice():
-    for _, offer in EVERY_OFFER:
+    for _, offer in every_offer():
         *ways, nothing = offer["choices"]
         assert (nothing["id"], nothing["direction"], nothing["label"]) == (
             "ignore",
@@ -275,14 +298,14 @@ def test_doing_nothing_is_skip_and_is_always_the_last_choice():
 
 
 def test_a_wish_against_a_thing_is_never_said_to_be_counted_less():
-    for _, offer in EVERY_OFFER:
+    for _, offer in every_offer():
         said = " ".join([offer["does"], offer["follows"], *offer["said"], *buttons(offer)])
         assert "counted less" not in said and "counted a little less" not in said
 
 
 def test_what_an_offer_would_do_begins_with_a_verb_or_is_a_question():
     verbs = ("Add", "Set", "Rank", "Stop", "Look", "Leave", "Take")
-    for _, offer in EVERY_OFFER:
+    for _, offer in every_offer():
         does = offer["does"]
         assert does.startswith(verbs) or does.endswith("?") or does == NO_JOURNEY, does
 
@@ -313,7 +336,7 @@ def test_a_way_of_travelling_that_was_named_and_not_taken_is_said_to_be_so(clien
 
 
 def test_every_way_is_unlike_every_other_of_its_offer():
-    for _, offer in EVERY_OFFER:
+    for _, offer in every_offer():
         ids = [way["id"] for way in offer["choices"]]
         assert len(set(ids)) == len(ids), offer["target"]
         assert len(set(buttons(offer))) == len(offer["choices"]), offer["target"]
@@ -321,7 +344,7 @@ def test_every_way_is_unlike_every_other_of_its_offer():
 
 
 def test_the_guess_is_what_the_offer_says_it_would_do():
-    for _, offer in EVERY_OFFER:
+    for _, offer in every_offer():
         guesses = [way for way in offer["choices"] if way["guess"]]
         for way in guesses:
             for wish in way["operations"]["weight_ops"]:
@@ -341,7 +364,7 @@ def _said_of(offer: dict[str, Any], way: dict[str, Any]) -> str:
 
 
 def test_every_part_of_every_edit_is_named_on_the_face_of_its_offer():
-    for _, offer in EVERY_OFFER:
+    for _, offer in every_offer():
         ways = [way for way in offer["choices"] if way["id"] != "ignore"]
         guessed = [way for way in ways if way["guess"]] or ways[:1]
         for way in ways:
@@ -425,7 +448,7 @@ def test_no_word_of_the_persons_is_in_any_part_of_an_offer():
 
 
 def test_the_words_an_offer_rests_on_lie_within_what_is_shown():
-    for text, offer in EVERY_OFFER:
+    for text, offer in every_offer():
         shown = offer["shown"]
         assert 0 <= shown["start"] < shown["end"] <= len(text)
         first = min(span["start"] for span in offer["spans"])

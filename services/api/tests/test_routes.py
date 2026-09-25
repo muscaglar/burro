@@ -2329,7 +2329,7 @@ def test_an_area_is_found_by_its_id_or_its_slug(client: TestClient):
     profile = by_id["data"]
     assert profile["area"]["name"] == "Dulcimer Green"
     # Every feature the release carries, and every vibe: the thirteen, and Gritty.
-    assert len(profile["features"]) == 109 and len(profile["tags"]) == 14
+    assert len(profile["features"]) == 110 and len(profile["tags"]) == 14
     assert {n["area_id"] for n in profile["neighbours"]} == set(profile["area"]["neighbours"])
     assert profile["stations"] and profile["cost"]
     assert [row["tag_id"] for row in profile["tags"]] == [v.tag_id.value for v in release().vibes]
@@ -2575,9 +2575,9 @@ def test_meta_gives_a_form_everything_it_needs(client: TestClient):
     # The features the release carries. Four of the catalogue's are in no release yet.
     carried = sorted(metric.feature_id for metric in release().metrics)
     assert [f["feature_id"] for f in found["features"]] == carried
-    assert len(carried) == 109 and set(carried) < set(FeatureId)
+    assert len(carried) == 110 and set(carried) < set(FeatureId)
     assert {t["tag_id"]: len(t["terms"]) for t in found["tags"]}["village_feel"] == 4
-    assert found["catalogue_version"] == 14 and found["preview"] is False
+    assert found["catalogue_version"] == 15 and found["preview"] is False
     assert found["limits"]["cutoff_minutes"] == {"pt": 90, "cycle": 60, "walk": 60}
     assert found["limits"]["rent"] == {"minimum": 300, "maximum": 20000, "unit": 25}
     assert found["limits"]["max_text"] == 600
@@ -2728,7 +2728,7 @@ def test_every_thing_a_form_shows_has_a_plain_name_of_a_few_words(client: TestCl
     found = data(client.get("/v1/meta"))
 
     named = [*found["features"], *found["tags"]]
-    assert len(named) == 123
+    assert len(named) == 124
     places = {area.name for area in release().neighbourhoods}
     for thing in named:
         short = thing["short_label"]
