@@ -68,7 +68,7 @@ All 23 features of today stay, with their ids, labels and units. 21 are added to
 | `grocery_walk` | Walk to the nearest food shop | min | less | amenity | `daily_life` | yes | street, less late, less offices |
 | `incident_criminal_damage` | Recorded criminal damage | per 1,000 residents a year | less | nuisance | none | no | late, central, works |
 | `incident_antisocial` | Recorded anti-social behaviour | per 1,000 residents a year | less | nuisance | none | no | late, central, works |
-| `private_outdoor_space` | Homes with private outdoor space | % | more | amenity | `streets_homes` | no | not in the release |
+| `private_outdoor_space` | Addresses with private outdoor space | % | more | amenity | `streets_homes` | no | not in the release |
 | `cuisine_variety` | Kinds of food nearby | count | more | taste | `pace_food` | no | not in the release |
 | `gp_walk` | Walk to the nearest GP surgery | min | less | amenity | `daily_life` | yes | not in the release |
 | `pharmacy_walk` | Walk to the nearest pharmacy | min | less | amenity | `daily_life` | yes | not in the release |

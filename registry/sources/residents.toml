@@ -32,7 +32,7 @@ conditions = [
 status = "approved"
 before_launch = [
     "A person opens each page under evidence_urls in a browser, saves a dated copy in registry/evidence, and confirms the licence, its version and the source line. Every page was read on 2026-09-24 through a reader that extracts, which is not the page.",
-    "Core refuses any name that holds a word for residents, and any release that holds the word. docs/design/residents-age-and-households.md says which of its rules and tests change, and how. Until they do, no release carries a measure from this entry.",
+    "The proxy audit has not run. docs/design/residents-age-and-households.md, section 12, holds its row for the four measures and the two vibes that hold one, and says what triggers a review. Core holds the four measures since catalogue version 13, and a build that names the list of the two tables carries them.",
 ]
 uses = ["scoring", "census_table"]
 cadence = "One-off. Census Day was 21 March 2021. Next census not before 2031."

@@ -542,3 +542,33 @@ The first three ask what the decision asks, and then more, so nothing is left fo
 | The owner of the plan for London | Its sections that ask for two publishers, and for the founder to read every name, say what was decided here |
 | The contract's owner | `review_state` may be `named_by_rule`. A page says of such a name who writes it, and that it stands by a rule and was read by nobody |
 
+
+## 20. The areas of a build bear the drafted names, 2026-09-24
+
+The founder asked for it: [ADR 0025](../adr/0025-an-area-bears-a-drafted-name-and-says-so.md) holds the decision and its reasons. A build of London ranks census areas, 1,002 of them, each under the statistics office's label. This design names about 490 neighbourhoods. Until the borders of the draft are read and a build works its measures out for them, the names of the draft are laid over the census areas, and each says that it is a draft. The code is `packages/pipeline/src/burro_pipeline/assemble/names.py`. No name was supplied by a person or a model.
+
+**The rule.** An area bears the name of the drafted neighbourhood that holds more of its output areas than any other. It is counted in output areas, which are drawn to hold much the same number of homes, because the licence registry gives no count of homes for naming a place. Of two neighbourhoods that hold as many, the one whose id sorts first gives the name. A neighbourhood gives a name only where a record of a publisher writes it letter for letter, or a person chose it at the desk. An area that lies in no such neighbourhood keeps its label.
+
+| Left open | What the build does | Counted on `lon-2026-09-24-96` |
+|---|---|---|
+| Which neighbourhoods give a name | Every one that has a name, whether it stands by the rule of section 19 or still waits at the desk | 741 areas bear a name that stands by the rule, and 261 one that waits |
+| A name the draft marks as perhaps a street or a building | It is borne as any other, and says it is a draft. The mark falls on names that are wrong and on names everybody uses, and turning a name down is for the person at the desk | 28 areas bear one of 15 such names |
+| A name that is a label of two names | Borne as the publisher writes it, with both names and the stroke between them | 4 areas bear one of 2 such names |
+| Two areas of one name | Each says its borough. Two of one borough each add the side of them they lie on, after a comma: the nearest of four points of the compass from the middle of those areas, and of eight where two would say the same | 312 of 458 names are borne by two areas or more. 806 areas say a side |
+| Two that still say the same | Left as they are. The label beside the name tells them apart | 16 areas, in 8 pairs |
+| A name borne in two boroughs | Borne as it is. A neighbourhood crosses a borough line, and the borough beside the name says which part | 37 names. 43 areas bear the name of a neighbourhood that lies mainly in another borough |
+| An area at the edge of a neighbourhood | It bears the name of whichever neighbourhood holds most of it, however little that is. The row of evidence says how much | 162 areas lie whole in the neighbourhood whose name they bear. 120 have under half of their output areas in it |
+| A neighbourhood smaller than a census area | It gives no area its name where another holds more of each area it lies in. It is found by no search until it is another name of an area | 25 of the 487 named neighbourhoods |
+| Another name of a neighbourhood | Not carried. An area says the name it bears, and the name alone where it says a side | |
+| Who wrote a name | Every source whose record writes it letter for letter | The Ordnance Survey alone writes the name of 647 areas, the Greater London Authority alone of 14, and both of 341 |
+| The id and the slug of an area | Made from the label, as before. Neither moves when a name is decided | |
+| What a person decided | The build reads the gazetteer the desk compiled in place of the draft. A name a person chose is served as they spelt it, and says `checked` | None yet |
+
+**What it does not do.** It draws no border: an area of a build is still a census area, and its figures are the census area's. It does not put a name where the design would: where a census area straddles two neighbourhoods, one name is borne and the other is not shown. And it reads no publisher's file again. It holds the draft to the lock by the hash of each of its files, and each name to the file of the build that the draft says writes it.
+
+| For the founder | The build assumes | What turns on it |
+|---|---|---|
+| May a name that still waits at the desk be shown as a draft | Yes | 261 areas. If not, each bears the name of the next neighbourhood that stands by the rule, or keeps its label |
+| Is a name that may be a street or a building shown | Yes, as a draft | 28 areas |
+| Do two areas that say the same side need telling apart in the name | No: the label beside the name does it | 16 areas |
+| Is the slug of an area made from its name once names are read | Not decided. A slug is an address that lasts | Every address of an area's page |

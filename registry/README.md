@@ -39,6 +39,7 @@ Internal uses are `prototyping_only`, `validation_only` and `audit_only`. They e
 | `share_alike` | yes | True for ODbL and CC BY-SA |
 | `attribution` | if approved | The publisher's exact required wording |
 | `attribution_verified` | no | True only when the wording was read from the page itself, in a browser or as raw text, and the publisher states it for this dataset. A summary of the page does not count |
+| `attribution_beside_figures` | no | True where the publisher asks that its statement stands wherever a figure made from the data is shown, and not on the page of attributions alone. A release says so of the source, and every fact that cites it carries the statement |
 | `conditions` | if conditional | Anything Burro must do or never do with this data |
 | `status`, `status_reason` | yes | A reason is required unless `approved` |
 | `before_launch` | no | For an approved source: what must be settled before the product is public. Ingest is allowed meanwhile |
@@ -113,7 +114,7 @@ So for a file of an entry to be fetched, the entry needs this and no more:
 
 Fetch refuses an address the entry does not name with `why=18`, and one on a host the entry names nowhere with `why=13`. A file saved by hand is held in the same way, by the address it was saved from. What arrived is held too. Where a publisher sends a request on, the address it ends at is held: on a host the entry names, it is an address the entry holds, and on any other host it is no address that another entry holds. If it is neither, the file is not kept. Nor is a file kept that arrived from an address that can be read more than one way, on any host: one with `..` or a doubled `/` in it, a login, or a sign encoded to hide one. An address is taken to be another entry's however a server may have read it, as it is written or decoded again.
 
-On a host that only the list names, under `may_redirect_to`, the rule holds this and no more: a file is refused if it came from an address that some entry names. An entry that names no address for its files keeps nothing off such a host, and on 2026-09-24 that is 86 of the 126 entries. The list names the hosts a request may be sent on to, and the registry entry does not. So read a change to `may_redirect_to` as closely as a change to an entry. Lists m1 and m2-places name four such hosts, as a fetch saw them, and the list m10-health names one more.
+On a host that only the list names, under `may_redirect_to`, the rule holds this and no more: a file is refused if it came from an address that some entry names. An entry that names no address for its files keeps nothing off such a host, and on 2026-09-24 that is 83 of the 128 entries. The list names the hosts a request may be sent on to, and the registry entry does not. So read a change to `may_redirect_to` as closely as a change to an entry. Lists m1 and m2-places name four such hosts, as a fetch saw them, and the list m10-health names one more.
 
 How the entries behind the lists stand on 2026-09-24:
 
@@ -128,13 +129,16 @@ How the entries behind the lists stand on 2026-09-24:
 | Food Standards Agency | `ratings.food.gov.uk/api/open-data-files/NAME`. One file for each authority | Each file, whole |
 | Greater London Authority | `data.london.gov.uk/download/DATASET/ID/NAME`. Each file has an id of its own | Each file, whole |
 | HM Land Registry, UK House Price Index | `publicdata.landregistry.gov.uk/market-trend-data/house-price-index-data/NAME`. The name holds the month | Each file, whole |
+| HM Land Registry, Price Paid Data | `price-paid-data.publicdata.landregistry.gov.uk/NAME`. The name holds the year, and the file of a year is replaced each month under it | Each file, whole |
+| Transport for London, its website | `tfl.gov.uk/NAME`, which may be sent on. The publisher's page links an example alone, which is named nowhere | Each address whole: the one its staff wrote, and the one it may be sent on to |
+| Transport for London, its store of bus data | `bus.data.tfl.gov.uk/stops-sequences/NAME`. The name holds the day, and the folder holds a folder of earlier days | Each file, whole |
 | NHS England, Organisation Data Service | `www.odsdatasearchandexport.nhs.uk/api/getReport`, with a parameter that names the report | Each file, whole, with its parameter |
 | NHS Business Services Authority | `opendata.nhsbsa.net/dataset/ID/resource/ID/download/NAME`. Each file has an id of its own | Each file, whole |
 | Geofabrik | `download.geofabrik.de/europe/united-kingdom/england/NAME`. The folder is England's, and the name is the part of it | Each file, whole |
 | Overture Maps Foundation | A file of a release of Places, by the address its own catalogue gives. The list takes a part of the one file that holds London | The one file, whole |
 | Planning Data platform | `files.planning.data.gov.uk/dataset/NAME`. One folder holds every dataset of the platform, each in four formats | Each file, whole |
 
-Three files of the list `m2-living` hold no address: the three of Price Paid Data. Their entry names no address for its files. To fetch one, name its address in the entry and in the list, in one change that a person reads.
+No file of a list is without an address, but for those a person saves. The three yearly files of Price Paid Data and the timetables of Transport for London had none until 2026-09-24, when the entry of each came to name one. To fetch a file that has none, name its address in the entry and in the list, in one change that a person reads.
 
 Four more are saved by a person: three from a form, and the postcode directory from the publisher's portal. The entry of each names the address it was saved from before `by-hand` takes the file. The address is the one the browser recorded on the file when it was saved, with no parameter: a browser may be given an address with a key in it. It is written whole, and never as a prefix, so it names the file that was saved and no other. All four were saved on 2026-09-24. Three of the four came from a host that is not the host of the publisher's pages, and no page that was read names any of the three: `docs/research/data/by-hand-files.md` says what stands behind each.
 

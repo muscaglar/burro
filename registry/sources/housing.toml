@@ -32,14 +32,21 @@ before_launch = [
     "HM Land Registry's written reply, or a decision record, on using the postcode field to aggregate sale prices to neighbourhoods and to build the flat-price ratio in the rent model.",
 ]
 uses = ["scoring", "display"]
-cadence = "Monthly, on the 20th working day. Latest month July 2026; page updated 28 August 2026."
+cadence = "Monthly, on the 20th working day. Latest month July 2026; page updated 28 August 2026. A yearly file is replaced each month under one address."
 verified_how = "primary_source"
-verified_on = 2026-09-23
+verified_on = 2026-09-24
 evidence_urls = [
     "https://www.gov.uk/government/statistical-data-sets/price-paid-data-downloads",
+    "https://www.gov.uk/government/statistical-data-sets/price-paid-data-yearly-file",
+    "https://www.gov.uk/guidance/about-the-price-paid-data",
     "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
 ]
-notes = "OGL v3.0 and the attribution wording were confirmed on the publisher's page on 2026-09-23. The use of postcode rests on the permitted purpose of providing residential property price information services."
+file_urls = [
+    "https://price-paid-data.publicdata.landregistry.gov.uk/pp-2023.csv",
+    "https://price-paid-data.publicdata.landregistry.gov.uk/pp-2024.csv",
+    "https://price-paid-data.publicdata.landregistry.gov.uk/pp-2025.csv",
+]
+notes = "OGL v3.0 and the attribution wording were confirmed on the publisher's page on 2026-09-23. The use of postcode rests on the permitted purpose of providing residential property price information services. Read again on 2026-09-24, through a reader that extracts the text of a page: the downloads page and the page of yearly files, each twice in different words, and the page about the data and the licence, each once. The downloads page gave the same words both times for what the conditions quote: what HM Land Registry permits under the OGL, that the OGL 'does not cover the use of third party rights, which we are not authorised to license', the eight fields of Address Data, the two uses Royal Mail and Ordnance Survey permit, 'If you want to use the Address Data in any other way, you must contact Royal Mail', the attribution, and 'separate licence conditions apply to your use of the UPRN Look Up Table dataset and the INSPIRE ID Look Up Table dataset'. It says 'We update the data on the 20th working day of each month', and of the newest month 'we would not recommend using it in isolation'. The downloads page holds no address of a file: it links to the page of yearly files, the second address under evidence_urls, which is where each address under file_urls was read. That page says it was published on 28 August 2026, and that 'The files include standard and additional price paid data transactions received at HM Land Registry in the period from 1 January to 31 December for each year'. The files are on price-paid-data.publicdata.landregistry.gov.uk, which is HM Land Registry's own and is no host of its pages, so the entry names it under file_urls alone: no address on it is evidence of the licence. Both readings of 2026-09-24 gave each address the same, letter for letter and written whole, as two readings of 2026-09-23 had. No fetch has tried one. Three yearly files are named, for 2023, 2024 and 2025, which are the three a list holds. The page lists a file for 2026 too, of 9.3MB, and files of earlier years: none is named here, and one is named in the change that lists it. What a sale is of is in the file: the page about the data gives the property type as 'D = Detached, S = Semi-Detached, T = Terraced, F = Flats/Maisonettes, O = Other', which is how a flat is priced apart from a house, and describes two categories of sale, A and B, and a column for whether a home is newly built. That page says it was last updated on 14 June 2016, and nothing of a licence. The licence was read on its own page: it lets a person 'exploit the Information commercially and non-commercially', and it covers neither personal data nor the rights of a third party. The attribution stays unverified: it was read through a reader, which is not the page."
 
 [[source]]
 id = "hmlr-uk-house-price-index"
@@ -101,7 +108,6 @@ conditions = [
 status = "approved"
 before_launch = [
     "The founder decides whether the workbook's line of rights is something 'otherwise stated'. The page states the Open Government Licence 'except where otherwise stated'. The workbook states '© Crown copyright and database rights 2020 OS 100019153', which names a licence number of Ordnance Survey and no licence of the table. No person has read the workbook: a program did.",
-    "The statistics office's lookup from the MSOAs of 2011 to those of 2021, ons-msoa11-msoa21-lad22-lookup, fetched and read, and each area that has a figure held to its mark of no change, before a figure of this table is carried.",
     "The row of the proxy audit for private outdoor space, as ADR 0006 and the design of the vibes ask.",
 ]
 uses = ["scoring", "display"]
@@ -404,6 +410,52 @@ file_urls = [
     "https://assets.publishing.service.gov.uk/media/6a0ad479f7c2e79c33db907d/CTSOP4.1.zip",
 ]
 notes = "How it was verified: verify-data-licences.md confirms CTSOP3.1 (property type) and CTSOP4.1 (build period) are published at LSOA level under OGL v3.0. The publisher page shows the OGL v3.0 footer and lists CTSOP1.1 for local authority and super output areas. Commercial use is allowed with attribution. Ingest can start. The attribution wording must be checked in the workbooks before launch. Checked 2026-09-23. No VOA-specific attribution statement is on the page, so the attribution is the default statement the OGL requires when the provider gives none. It is marked unverified because the workbooks were not opened. The housing report says the tables include number of bedrooms, but no bedroom table is listed on the 2025 page; use Census 2021 TS050 for bedrooms. CTSOP1.1 was confirmed on the publisher page by the reviewer, not in verify-data-licences.md. The VOA rating list is a different dataset and is banned: see voa-non-domestic-rating-list. The last three addresses under evidence_urls, on assets.publishing.service.gov.uk, are the three files themselves, as the publisher's page listed them on 2026-09-23. It was read through a reader that extracts, which was asked twice, in different words, and gave the same addresses both times. GOV.UK hands out files from that host, which has no pages of its own, so an entry can name it only by a file. They are there to name the host the files are on. Fetch holds a file to the addresses under file_urls. They are no evidence of the licence. No file was fetched. A file that is reissued is given a new address."
+
+[[source]]
+id = "ons-income-estimates-small-areas"
+name = "Income estimates for small areas, England and Wales: household income by Middle layer Super Output Area, financial year ending 2023"
+publisher = "Office for National Statistics"
+url = "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/smallareaincomeestimatesformiddlelayersuperoutputareasenglandandwales"
+dimension = "housing"
+licence = "OGL-3.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/"
+commercial_use = "yes"
+share_alike = false
+attribution = "Source: Office for National Statistics. Contains public sector information licensed under the Open Government Licence v3.0."
+attribution_verified = false
+conditions = [
+    "It describes residents: what the households of an area are estimated to have as income. So decision record 0006 applies. It never feeds a score, a tag, a vibe, a filter, a likeness, a map layer or the order of a list, and no word for how well off a place is is made from it.",
+    "The founder decided on 24 September 2026 that it is fetched, shown on an area's page, and used to check another measure, and that no area is ranked on it. Whether one ever is waits on the founder, who has not yet seen it beside the measure it checks. So this entry lists no scoring, and the gate refuses it for a feature, a tag or a cost. To rank on it takes a decision record first, and then a change to this entry that a person reads.",
+    "The check it is read for is whether the mix of brands of shops in an area follows how well off the area is. What a check works out joins no release.",
+    "Show a figure as the publisher's own estimate for the area, under the publisher's name for the kind of income, with its confidence interval beside it and the year it is of. Say that it is modelled: the publisher calls the estimates model-based. Never show it as what a household or a person of the area has.",
+    "A figure is a mean and never a median. The publisher says the model 'does not support the generation of other distributional measures including median incomes'.",
+    "A figure is of one MSOA and of nothing else. The publisher says the model 'does not support the disaggregation of incomes below MSOA level, nor the aggregation to any level (including to local authorities) apart from ITL1 region or nation'. So an area that is not one MSOA has no figure: never add up, average or share out.",
+    "Put no two areas in order by it, and mark none with a colour or a word. The publisher says 'To compare local areas, the confidence intervals associated with the estimates should be considered'.",
+    "Show no change over time. The publisher says 'caution should be applied when interpreting trends over time'. This entry covers the edition for the financial year ending 2023 alone. The page lists five earlier editions, and none is taken.",
+    "The workbook was opened on 2026-09-25, through its receipt and the gate. What it says of reuse and of credit is saved in registry/evidence/ons-income-estimates-small-areas-2026-09-25.md: it states no term that limits reuse. The step that reads it holds it to the sentences a page quotes of it, and stops at a workbook that lacks one. If a later edition states a term that limits reuse, stop and change this entry to gated.",
+    "Do not suggest the Office for National Statistics endorses Burro.",
+]
+status = "approved"
+before_launch = [
+    "The founder approves where on an area's page the figure stands and in what words. Decision record 0028 proposes both, and the contract holds the figure in sections 2.11 and 9.7.",
+    "A person opens the workbook and holds the credit to the words of its terms, which a step of the pipeline read as 'Source: Office for National Statistics'. Then set attribution_verified to true.",
+    "A person opens each page under evidence_urls in a browser and confirms the licence line and every quotation in the conditions. Each was read on 2026-09-24 through a reader that extracts, which is not the page.",
+]
+uses = ["display", "validation_only"]
+cadence = "About every two years. Latest edition released 10 December 2025, for the financial year ending 2023. Next release to be announced. None was made for the financial years ending 2021 and 2022."
+verified_how = "primary_source"
+verified_on = 2026-09-24
+evidence_urls = [
+    "https://www.ons.gov.uk/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/smallareaincomeestimatesformiddlelayersuperoutputareasenglandandwales",
+    "https://www.ons.gov.uk/peoplepopulationandcommunity/personalandhouseholdfinances/incomeandwealth/bulletins/smallareamodelbasedincomeestimates/financialyearending2023",
+    "https://www.ons.gov.uk/peoplepopulationandcommunity/personalandhouseholdfinances/incomeandwealth/methodologies/incomeestimatesforsmallareasqmi",
+    "https://www.ons.gov.uk/help/termsandconditions",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/",
+]
+file_urls = [
+    "https://www.ons.gov.uk/file?uri=/employmentandlabourmarket/peopleinwork/earningsandworkinghours/datasets/smallareaincomeestimatesformiddlelayersuperoutputareasenglandandwales/financialyearending2023/datasetfinal.xlsx",
+]
+notes = "Registered on 2026-09-24. Why it is here: the founder asked for the brands of shops as a sign of what a place is like, was offered the statistics office's estimates of household income to check that sign against, and answered yes: fetch it, show it on the area's page, and hold off ranking on it. That is as it was passed to whoever wrote this entry, who did not hear it from the founder. No decision record holds it yet. Decision record 0006 says that income never feeds a score, a tag or a vibe, and this entry changes nothing of that. Filed under housing, beside tenure, which describes households too and is shown and never ranked on. The heading residents holds census tables alone, for the one use of the census table, and this is an estimate from a model and no census table. How it was verified, on 2026-09-24, through a reader that extracts the text of a page: the dataset page was read twice, the bulletin three times and the page of quality and methodology twice, each time in different words, and the publisher's terms and the licence once each. The dataset page and the bulletin each carry 'All content is available under the Open Government Licence v3.0, except where otherwise stated', and nothing otherwise was read of this dataset. The terms say 'Most content on this website is subject to Crown copyright protection', name photographs, illustrations and videos as what the licence does not cover, and give no wording for a credit. The licence lets a person 'exploit the Information commercially and non-commercially', and gives the second sentence of the attribution above for a provider that states none. The dataset page describes the data as 'Estimates of annual household income for the four income types for Middle layer Super Output Areas, or local areas, in England and Wales'. It lists six editions, and the newest as 'Financial year ending 2023 edition of this dataset', an xlsx of 1.8 MB, released on 10 December 2025, with the next release 'To be announced'. Two readings gave the same path for the file, letter for letter. The page writes it as a path from the top of the site, so the address here is that path on the page's own host, as the other entries of this publisher write theirs. The period: the bulletin's chart is headed 'financial year ending March 2023', the page of quality says the dataset is 'for the financial year ending March 2023' and that the survey behind it is of the 'financial year 2022 to 2023'. No page that was read writes the first month, so April 2022 is worked out as the twelfth month before the last. The areas: the page of quality says 'While previous releases used the 2011 MSOAs, this release uses the 2021 MSOAs', which are the areas of a preview build. The four kinds of income, as that page names them: total annual household income, and disposable annual household income three ways, before housing costs as it is, before housing costs equivalised, and after housing costs equivalised. It says the dataset gives each 'along with their confidence intervals', and that the estimates 'are designated accredited official statistics'. The bulletin says the model joins the Family Resources Survey, the census of 2021 and administrative data. No page read names a sheet or a column of the workbook. No file of data was fetched or opened to write this entry."
 
 [[source]]
 id = "colouring-london-building-attributes"

@@ -71,16 +71,20 @@ before_launch = [
     "A written answer from TfL, or a decision record, on showing travel times computed from a timetable snapshot that is rebuilt quarterly, given the timing values TfL publishes for this feed.",
 ]
 uses = ["routing", "scoring", "display"]
-cadence = "TfL publishes a fresh copy every 1440 minutes (zip, 24.31 MB). TfL says 'The timetables are updated every 7 days.' Burro plans one snapshot per data release (quarterly, plus after major network changes), subject to the gate check."
+cadence = "TfL publishes a fresh copy every 1440 minutes. The zip its page links is an example of 24.31 MB, and the file fetched on 2026-09-24 is 143,161,603 bytes. TfL says 'The timetables are updated every 7 days.' Burro plans one snapshot per data release (quarterly, plus after major network changes), subject to the gate check."
 verified_how = "primary_source"
-verified_on = 2026-09-23
+verified_on = 2026-09-24
 evidence_urls = [
     "https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service",
     "https://tfl.gov.uk/info-for/open-data-users/our-open-data",
     "https://content.tfl.gov.uk/syndication-developer-guidelines.pdf",
     "https://tfl.gov.uk/info-for/open-data-users/design-and-branding",
 ]
-notes = "Licence confirmed: the Transport Data Service terms were read on tfl.gov.uk on 2026-09-23 and allow commercial use with attribution. No other source of Underground timetables is approved. Read again on 2026-09-24, through a reader that extracts, twice in different words: the terms, the open data page, the branding page and the front page of the portal. The three attribution statements, the limit of 500 calls a minute and 'shall apply from the date of registration' are as recorded. The terms grant 'a worldwide, royalty-free, perpetual, non-exclusive Licence', are 'governed by the laws of England and Wales', and hold no clause on storing the data or on how long a figure may be shown. The open data page names six modes for this feed and no other: 'London Underground, bus, DLR, tram, cable car and river services'. It names no address for the file that is kept up to date. It sends the reader to the portal, which says 'By registering to use our open data, you confirm that you accept our Open Data terms and conditions'. The portal names no charge and no wait. Two addresses of the file were read on TfL's own forum, techforum.tfl.gov.uk, and on no page this entry holds: https://tfl.gov.uk/tfl/syndication/feeds/journey-planner-timetables.zip in two posts of 2025 by people who use the file, and tfl.gov.uk/journey-planner-timetables.zip in a post of 3 September 2026 by TfL's staff. Neither is under file_urls. A person who has registered opens the file once in a browser and says which address it came from, and whether a key was asked for: the address is then named here and in the list m5-journeys, in one change. It is written with no key in it: if a key stands after the question mark, the question mark and all that follows are left out. In a post of 6 May 2025 TfL's staff call the weekly issue 'the weekly TransXChange drop'."
+file_urls = [
+    "https://tfl.gov.uk/journey-planner-timetables.zip",
+    "https://tfl.gov.uk/tfl/syndication/feeds/journey-planner-timetables.zip",
+]
+notes = "Licence confirmed: the Transport Data Service terms were read on tfl.gov.uk on 2026-09-23 and allow commercial use with attribution. No other source of Underground timetables is approved. Read again on 2026-09-24, through a reader that extracts, twice in different words: the terms, the open data page, the branding page and the front page of the portal. The three attribution statements, the limit of 500 calls a minute and 'shall apply from the date of registration' are as recorded. The terms grant 'a worldwide, royalty-free, perpetual, non-exclusive Licence', are 'governed by the laws of England and Wales', and hold no clause on storing the data or on how long a figure may be shown. The open data page names six modes for this feed and no other: 'London Underground, bus, DLR, tram, cable car and river services'. It names no address for the file that is kept up to date. It sends the reader to the portal, which says 'By registering to use our open data, you confirm that you accept our Open Data terms and conditions'. The portal names no charge and no wait. Two addresses of the file were read on TfL's own forum, techforum.tfl.gov.uk, and on no page this entry holds: https://tfl.gov.uk/tfl/syndication/feeds/journey-planner-timetables.zip in two posts of 2025 by people who use the file, and tfl.gov.uk/journey-planner-timetables.zip in a post of 3 September 2026 by TfL's staff. Until 2026-09-24 neither was under file_urls. In a post of 6 May 2025 TfL's staff call the weekly issue 'the weekly TransXChange drop'. What changed on 2026-09-24: the founder registered on the portal that day, as it was passed to whoever wrote this, so the licence runs from that day. The day was read in no record. And both addresses were named under file_urls, from what TfL's forum holds. The post of 3 September 2026 was read as the forum's own record of it, at https://techforum.tfl.gov.uk/t/transxchange-resolving-issues-with-routes-6-and-185/6341 : the forum marks its writer as staff, and the post reads 'We just issued an additional TransXChange dataset fixing issues with routes 6 and 185', with the address written as tfl.gov.uk/journey-planner-timetables.zip and linked with http and not https. The first address under file_urls is that address with https before it, which is what fetch asks for. It is the address the list m5-journeys holds, and a fetch took the file from it on 2026-09-24. In the same topic, on 8 September 2026, a member of staff whom the forum gives the title Digital Service Performance Manager wrote that 'the new versions of the files have been uploaded into journey-planner-timetables.zip. It may take an hour or so to refresh'. The second address under file_urls rests on less: it was given in a topic of June 2021, https://techforum.tfl.gov.uk/t/https-tfl-gov-uk-cdn-static-cms-documents-journey-planner-timetables-zip/1833 , by a person who uses the file and whom the forum does not mark as staff, in answer to one who had found the example alone. It is named because a request for the first may be sent on, and fetch keeps a file only where the address it arrived from is one this entry names. It is on the host of the first and has the same name. The zip the open data page links, at /cdn/static/cms/documents/ on the same host, is named nowhere here: the page says it 'is not updated and is for demonstration purposes only', so a file that arrives from that address is refused, which is meant. The file asks for no key: fetch sends none, and was given the file on 2026-09-24. If it comes to ask for one, fetch cannot take it, because an address in a list holds no key: a person saves the file and hands it over with by-hand, and writes the address with no key in it: if a key stands after the question mark, the question mark and all that follows are left out. In a post of 2 August 2023 a member of staff whom the forum gives the title Product Manager, TfL Digital, wrote that the file is held in a cache for 24 hours that all users share, so the file a request is given may be a day older than the newest. For this change the terms were read twice more that day and the open data page five times, in different words, and both stand as recorded: 'This Licence shall apply from the date of registration', the three statements of credit, 'Limit traffic requests up to a maximum of 500 calls per minute per data feed', and for this feed 1440 minutes, 10 minutes and 1440 minutes. The terms say they are 'based on version 2.0 of the Open Government Licence with specific amendments for Transport for London'. What the file holds was read on 2026-09-24 with describe, by a program and by no person, and the list m5-journeys states it: 826 timetables in six zips inside one, of the modes bus, underground, rail, ferry and tram, which run between 2026-09-19 and 2026-12-23. By the names of its files it holds the six kinds of service the open data page names and no timetable of the London Overground or of the Elizabeth line. It holds 46 timetables of replacement buses too, which the page does not name."
 
 [[source]]
 id = "tfl-step-free-station-topology"
@@ -94,6 +98,7 @@ commercial_use = "yes_with_conditions"
 share_alike = false
 attribution = "Powered by TfL Open Data\nContains OS data © Crown copyright and database rights 2016\nGeomni UK Map data © and database rights [2019]"
 attribution_verified = false
+attribution_beside_figures = true
 conditions = [
     "Files: https://api.tfl.gov.uk/stationdata/tfl-stationdata-gtfs.zip and https://api.tfl.gov.uk/stationdata/tfl-stationdata-detailed.zip.",
     "The data guide says: 'When using a TfL feed (or data service) you agree to follow the terms and conditions for TfL's free Transport Data Service, and the implementation rules within this user guide.' The guide sets no timing or display rules of its own. Save the guide (specification version 1.0, July 2021) with the licence evidence.",
@@ -109,6 +114,9 @@ uses = ["scoring", "display"]
 cadence = "TfL states no update frequency for the topology files. Burro snapshots one copy per data release. The live lift disruption feed is not covered by this entry."
 verified_how = "primary_source"
 verified_on = 2026-09-23
+file_urls = [
+    "https://api.tfl.gov.uk/stationdata/tfl-stationdata-detailed.zip",
+]
 evidence_urls = [
     "https://content.tfl.gov.uk/step-free-access-and-toilet-data-guide.pdf",
     "https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service",
@@ -154,6 +162,94 @@ evidence_urls = [
     "https://api-portal.tfl.gov.uk/",
 ]
 notes = "How it was verified: The TfL Transport Data Service terms were read directly on tfl.gov.uk on 2026-09-23 and allow commercial use with attribution. verify-routing-feasibility.md marks as confirmed that the Unified API is free, allows commercial use with attribution, and is limited to 500 requests per minute. Burro calls the API live and on demand, which is the use TfL describes for it, so the display-time question on the timetable feed does not arise here. Terms, open data page, Unified API page and branding page were read as page text on 2026-09-23. The attribution statements match the terms page exactly. TfL's Unified API page says the API 'is designed to allow you to query in realtime and on demand'. The figure of 50 requests per minute for anonymous use comes from the verification file; Burro always uses a key, so it does not matter in practice. The portal was read on 2026-09-24, through a reader that extracts. Its front page, read twice in different words, gives the steps: register, follow the link in the confirmation email, sign in, open Products and 'create a subscription for the 500 requests data plan', then read the keys under Profile. It says 'please append the `app_key` as a query parameter to your requests'. Whether the key may be sent in a header is not said there. A key in an address can be written down by whatever the request passes through, so no address that holds the key is ever logged or printed. The page of products, read once, gives 50 requests a minute for anonymous use. The page of questions, read once, says 'User accounts that haven't made a request in the last year will be automatically disabled and deleted'. No page names a charge or a wait. On TfL's forum a post of 17 September 2026 by TfL's staff says direct access to the older Journey Planner API is being retired, that three of its hosts may no longer answer from 26 October 2026, and that results stay available through the Unified API. So the attribution that the open data page asks of the older API may soon apply to nothing: read that page again before launch."
+
+[[source]]
+id = "tfl-ptal-2015"
+name = "Public Transport Accessibility Levels (PTAL), 2015, on London Datastore"
+publisher = "Transport for London (published on the Greater London Authority's London Datastore)"
+url = "https://data.london.gov.uk/dataset/public-transport-accessibility-levels-24rz6"
+dimension = "transport"
+licence = "OGL-2.0"
+licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Contains public sector information licensed under the Open Government Licence v2.0."
+attribution_verified = false
+conditions = [
+    "This entry covers the files of 2015 on the London Datastore and no other. The page of the dataset shows the licence 'Open Government Licence v2'. Never take PTAL data from Transport for London's own pages or from WebCAT: TfL's open data page says 'The use of this data, either through WebCAT or when downloaded from here, is subject to the WebCAT terms of use', and those terms, as they were read, grant no right to copy, publish or reuse.",
+    "TfL's open data page says of PTAL: 'Any data that was previously available is superseded by the data provided currently, and should no longer be used.' That is the owner's word on how good the older data is, and is no term of the licence the Datastore shows. So say beside every figure that it is of 2015, that it counts no service that began after it, of which the Elizabeth line is one, and that its publisher has since put out newer figures under terms that do not let Burro take them.",
+    "A figure is shown, and is read to check what Burro works out for itself from timetables. No area is ranked on it until the founder has said that a figure of 2015 may be: see before_launch. The research behind the plan says to build Burro's own index from current timetables.",
+    "Show a level as the publisher grades it, from 0 to 6b. Make no other grade from it, and do not call a level a journey time: the page says the measure does not consider 'The speed or utility of accessible services', crowding, or ease of interchange.",
+    "London Datastore site terms apply to every dataset: a reuser 'Should, if you extract and re-use any data from this site, explicitly state that the Greater London Authority cannot warrant the quality or accuracy of the data' and 'Must not in any way imply' GLA endorsement.",
+    "Name Transport for London as the source beside the statement of the licence. The page of the dataset states no credit of its own.",
+    "Do not suggest that Transport for London or the Greater London Authority endorses Burro. Use no roundel and no map of TfL's.",
+]
+status = "approved"
+before_launch = [
+    "The founder decides whether an area may be ranked on a figure of 2015, which its publisher says is superseded and should no longer be used, or whether it is shown alone with its year.",
+    "A person opens the page of the dataset in a browser, confirms the licence it shows, and saves a dated copy in registry/evidence. It was read on 2026-09-24 through a reader that extracts, which is not the page.",
+]
+uses = ["scoring", "display", "validation_only"]
+cadence = "None. The Datastore says the dataset was last updated over nine years ago, and holds the files of 2015 alone."
+verified_how = "primary_source"
+verified_on = 2026-09-24
+evidence_urls = [
+    "https://data.london.gov.uk/dataset/public-transport-accessibility-levels-24rz6",
+    "https://data.london.gov.uk/about/terms-and-conditions/",
+    "https://tfl.gov.uk/info-for/open-data-users/our-open-data",
+    "https://tfl.gov.uk/corporate/terms-and-conditions/webcat",
+    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/",
+]
+file_urls = [
+    "https://data.london.gov.uk/download/24rz6/514d2847-94a8-4b9d-8a70-fdded01719a0/2015%20%20PTALs%20Grid%20Values.zip",
+]
+notes = "Held until 2026-09-24, as not used in the first version. The founder approved the dataset that day, as it was passed to whoever wrote this entry, who did not hear it from the founder. How the licence was verified, on 2026-09-24, through a reader that extracts the text of a page: the page of the dataset was read four times in different words, and each reading that was asked gave the licence as 'Open Government Licence v2', linked to the second version of the licence on the National Archives' site. The licence was read once on its own page: it lets a person 'exploit the Information commercially and non-commercially', asks that the source be acknowledged 'by including any attribution statement specified by the Information Provider(s)', and gives the attribution above for a provider that states none. The page gives Transport for London as the author and a team of the Greater London Authority as the maintainer, and states no credit and no copyright line for the data. Is there a later edition than 2015: none was found. The page of the dataset holds nine files, a guide and eight files of 2015, says 'The 2015 files are available to download below' and 'Current PTAL values can be viewed on TfL's web site', and says it was last updated over nine years ago. Its field for the period reads January 2008 to December 2014 for every file, the guide among them, so it is taken to be of the record and not of the figures. TfL's open data page, read three times, says 'The available PTAL data is provided in three files, one for a recent base year and two others for future scenarios in 2021 and 2031', and names no year for the base. It sends the reader to WebCAT, which is now a map on another host and gave the reader no text. So what TfL gives today may be of 2015 too, or later: no page that was read says. Whatever it is, it is under the WebCAT terms. Those were read twice. Both readings gave 'Users are not permitted to change WebCAT outputs, or to present outputs of one query as if they were the outputs of a different query'. One gave that WebCAT is 'primarily intended for the use of specialised transport planners', and the other found the words licence, commercial, copy, publish, reproduce and redistribute nowhere on the page. The search of the Datastore could not be read: it answered that the page was gone. One file is named under file_urls, the grid: a zip of 8.59 MB that the page calls '2015 PTAL Grid Values.zip'. Two readings gave its address the same, letter for letter, with two spaces written as %20 between 2015 and PTALs. The page says the smallest geography is '100m Grid Squares'. The grid is taken because a point is placed in an output area of 2021 by where it stands. The other files give a mean for each area of the census of 2011 or of 2001, for wards and for boroughs, and an area of one census is never taken for an area of another. Nobody has opened the zip, so what it holds and how it names its columns is not known."
+
+[[source]]
+id = "tfl-bus-stops-and-routes"
+name = "TfL bus stop locations and routes (London Buses standard network data: the bus stops, and the sequence of stops of every route)"
+publisher = "Transport for London"
+url = "https://tfl.gov.uk/info-for/open-data-users/our-open-data"
+dimension = "transport"
+licence = "TfL-Open-Data"
+licence_url = "https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service"
+commercial_use = "yes_with_conditions"
+share_alike = false
+attribution = "Powered by TfL Open Data\nContains OS data © Crown copyright and database rights 2016\nGeomni UK Map data © and database rights [2019]"
+attribution_verified = false
+attribution_beside_figures = true
+conditions = [
+    "Register on the TfL API portal before the first download and keep the registration details accurate. The licence 'shall apply from the date of registration'. The two files the open data page links are examples: 'The example feeds below are not updated and for demonstration purposes only'. Never take either.",
+    "Open question for TfL: the open data page lists this feed with 'How often we publish a fresh copy of the feed: Weekly', 'Maximum time allowed between capturing and displaying the feed: 1 day' and 'Maximum time information can be displayed before being updated: 2 weeks'. The newest files TfL holds are of 3 October 2025, and Burro would show a figure worked out from one for months. The Transport Data Service terms hold no clause on storing the data or on how long a figure may be shown. See before_launch.",
+    "Show beside every figure the day its file is of, which is in the name of the file. TfL's guide to the data says 'London Buses suggests that if this data is presented to end users then the date of the data is also provided', and that 'The London Buses network changes frequently'.",
+    "Count no virtual bus stop as a stop, and show none. The guide says 'there is NO physical bus stop at these' and 'it is necessary to remove these bus stops in all customer facing applications'.",
+    "The files say where each route stops, and nothing of how often a bus runs or at what hours. No figure made from them says how good a service is.",
+    "Show all three attribution statements on the generated attributions page and credit TfL wherever a figure made from this data appears.",
+    "Follow TfL design and branding guidelines, as the entry of the timetables states them. The open data page says of this feed 'Use the buses roundel for bus stops': Burro draws no stop of its own and uses no roundel.",
+    "Do not use the data in a way that suggests official status or TfL endorsement.",
+    "Limit requests to 500 calls per minute per data feed. TfL may throttle or limit access.",
+    "Re-read the terms at every data release: TfL 'may at any time revise this Licence without notice'. If a condition is broken the licence ends automatically.",
+]
+status = "approved"
+before_launch = [
+    "A written answer from TfL, or a decision record, on showing figures worked out from a copy of this feed that is older than the two weeks the open data page gives for it.",
+    "A person opens the terms and the open data page in a browser, confirms the three statements of credit and the three timings, and saves a dated copy of each in registry/evidence. Each was read on 2026-09-24 through a reader that extracts, which is not the page.",
+]
+uses = ["scoring", "display"]
+cadence = "The open data page says weekly. TfL's forum says otherwise: no file has been put out on a schedule since September 2024, and the newest files are of 3 October 2025, put out by hand."
+verified_how = "primary_source"
+verified_on = 2026-09-24
+evidence_urls = [
+    "https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service",
+    "https://tfl.gov.uk/info-for/open-data-users/our-open-data",
+    "https://content.tfl.gov.uk/syndication-developer-guidelines-bus-stop-locations-routes.pdf",
+    "https://tfl.gov.uk/info-for/open-data-users/design-and-branding",
+]
+file_urls = [
+    "https://bus.data.tfl.gov.uk/stops-sequences/Data_3rdParties_bus-sequences-20251003.csv",
+    "https://bus.data.tfl.gov.uk/stops-sequences/Data_3rdParties_bus-stops-20251003.csv",
+]
+notes = "Registered on 2026-09-24, for a count of the bus routes that stop near a home. The founder approved the dataset and registered on TfL's portal that day, as it was passed to whoever wrote this entry: neither was heard from the founder, and the day of registration was read in no record. How the licence was verified, on 2026-09-24, through a reader that extracts the text of a page: the open data page was read five times and the terms twice, in different words. The open data page lists 'Bus stop locations and routes' under its heading for buses, and says 'Using our data is subject to our terms and conditions', linked to the Transport Data Service terms. The terms say they 'apply to TfL's free transport data service and are based on version 2.0 of the Open Government Licence with specific amendments for Transport for London', and that a person is free to 'Exploit the Information commercially and non-commercially'. They give the three statements under attribution, which are as the other entries of this publisher hold them. The wording is not marked as verified: it was read through a reader, which is not the page. The branding page was not read that day, and stands as the entry of the timetables records it. What the page says of the feed: 'This dataset describes the London Buses standard network information. The network information includes the location of all bus stops in London and the sequence of bus stops that every bus route in London stops at. As our stops and routes do change on a frequent basis, you will need to come back to us regularly for the updates.' It gives the format as CSV and the content provider as 'iBus, TfL Surface Transport', and links a guide and two example files and no file that is kept up to date: 'You need to register to gain access to the live feeds'. The guide is the third address under evidence_urls, 'London Buses Standard Network Data for 3rd Parties', version 04 of 11 October 2011. It was read whole, as its seven pages, and is fifteen years old: it names the columns of each file as they then were, and says 'The date is presented in the file name', as its year, its month and its day. Where the addresses under file_urls were read: on TfL's own forum, in the topic https://techforum.tfl.gov.uk/t/bus-sequences-csv/6040 , in a post of 3 October 2025 by a member of staff whom the forum gives the title Digital Service Performance Manager. The post was read as the forum's own record of it, which gives both addresses written whole and with https, under the words 'latest version of the file is now here'. The store the files are in lists itself, at https://s3-eu-west-1.amazonaws.com/bus.data.tfl.gov.uk/?list-type=2&prefix=stops-sequences/&delimiter=/ : read on 2026-09-24, it held those two files and no other beside a folder named Archived, the file of sequences at 5,188,509 bytes and the file of stops at 1,384,590 bytes, each last changed on 3 October 2025. So no newer file was there on 2026-09-24. The files are on bus.data.tfl.gov.uk, which is no host of TfL's pages, so the entry names it under file_urls alone: no address on it is evidence of the licence. No fetch has tried either address, and whether either asks for a key is not known. Why the files are a year old, as the forum has it: in a topic its staff opened on 2 September 2024 and last changed on 26 January 2026, https://techforum.tfl.gov.uk/t/updated-26-jan-2026-issues-with-data-feeds/3609 , 'Bus stop locations (bus-stops.csv) and bus routes (bus-sequences.csv)' are listed among the feeds that 'are not updating'. People who use the files wrote in 2025 that files came each day until then, and that the files of each day were since put in the folder Archived. A newer source may stand in its place: on 15 October 2025 TfL's staff announced 'iBus1 Static Data, which provides data about bus stops, routes, schedules and vehicles', which they say is 'Usually updated every two weeks', at https://ibus.data.tfl.gov.uk/ . Its terms were not read, no entry covers it, and no file of it is named here. The entry tfl-journey-planner-timetables holds the timetables of buses too, which its page says are updated every 7 days. The names of the columns of the files of 2025 are not known: nobody has opened one."
 
 [[source]]
 id = "network-rail-nwr-schedule"
@@ -313,38 +409,6 @@ evidence_urls = [
     "https://tfl.gov.uk/corporate/terms-and-conditions/transport-data-service",
     "https://data.london.gov.uk/dataset/cycling-infrastructure-database",
     "https://s3-eu-west-1.amazonaws.com/cycling.data.tfl.gov.uk/?list-type=2&prefix=CyclingInfrastructure/",
-]
-
-[[source]]
-id = "tfl-ptal-2015"
-name = "Public Transport Accessibility Levels (PTAL), 2015, on London Datastore"
-publisher = "Transport for London (published on the Greater London Authority's London Datastore)"
-url = "https://data.london.gov.uk/dataset/public-transport-accessibility-levels-24rz6"
-dimension = "transport"
-licence = "OGL-2.0"
-licence_url = "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/"
-commercial_use = "yes_with_conditions"
-share_alike = false
-attribution = "Contains public sector information licensed under the Open Government Licence v2.0."
-attribution_verified = false
-conditions = [
-    "Never a live ranking input. The data is from 2015 and predates the Elizabeth line.",
-    "TfL's own open data page says of PTAL: 'Any data that was previously available is superseded by the data provided currently, and should no longer be used', and that PTAL data from TfL is 'subject to the WebCAT terms of use'. The WebCAT terms are not an open licence. This entry covers only the 2015 files on London Datastore, which that page labels 'Open Government Licence v2'.",
-    "London Datastore site terms apply to every dataset: a reuser 'Should, if you extract and re-use any data from this site, explicitly state that the Greater London Authority cannot warrant the quality or accuracy of the data' and 'Must not in any way imply' GLA endorsement.",
-    "If used at all, use only to sanity-check Burro's own accessibility index on stations unchanged since 2015.",
-    "To clear: confirm on the dataset page whether TfL specifies its own attribution statement, and save the page.",
-]
-status = "held"
-status_reason = "Not used in v1. verify-routing-feasibility.md confirms the downloadable PTAL is 2015 data that predates the Elizabeth line, the research says to build Burro's own index from current timetables instead, and TfL itself says earlier PTAL data should no longer be used."
-uses = ["validation_only"]
-verified_how = "primary_source"
-verified_on = 2026-09-23
-evidence_urls = [
-    "https://data.london.gov.uk/dataset/public-transport-accessibility-levels-24rz6",
-    "https://data.london.gov.uk/about/terms-and-conditions/",
-    "https://tfl.gov.uk/info-for/open-data-users/our-open-data",
-    "https://tfl.gov.uk/corporate/terms-and-conditions/webcat",
-    "https://www.nationalarchives.gov.uk/doc/open-government-licence/version/2/",
 ]
 
 [[source]]

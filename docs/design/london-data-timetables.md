@@ -6,6 +6,10 @@ How to read it: **read** was read on a publisher's page on 2026-09-24, through a
 
 "Not read" means that a page was not read, and says nothing of the page or of its publisher.
 
+Amended later on 2026-09-24. The founder registered on Transport for London's portal that day, which is step 1 of section 5. The registry entry of the timetables now names two addresses for its file, from what the publisher's forum holds, and the list holds the first: sections 3, 7 and 9 say so. No fetch has tried either, so step 3 stands as it was.
+
+Amended again on 2026-09-24, after a fetch. The address the list holds answered, and asked for no key. The file was stored with no receipt, and what it holds was read with `describe`, by a program and by no person. Section 11 says what it holds, and where that differs from what is written above. The list now states its edition and its period. The file was fetched again that day, was the same file, and has its receipt. Sections 1 to 10 are as they were written, but for the rows that said that no fetch had tried the address and that nobody had opened the file.
+
 ## 0. In short
 
 | Question | Answer |
@@ -17,6 +21,7 @@ How to read it: **read** was read on a publisher's page on 2026-09-24, through a
 | What a train waits on | A subscription to Network Rail's schedule on the Rail Data Marketplace, and the agreement saved. The entry is gated (registry) |
 | What was settled by reading a page | The steps of Transport for London's portal. That the bus service asks for an account and a credit. Nothing that opens a gate |
 | What no page settles | Whether the timetable file asks for a key. Whether it holds the London Overground or the Elizabeth line. How long a rail subscription takes |
+| What the file settled, once it was fetched | It asks for no key. No timetable in it is named for the London Overground or for the Elizabeth line. Section 11 |
 
 ## 1. What a time by public transport is made of
 
@@ -35,8 +40,8 @@ A journey is a walk to a stop, a wait, one or more rides, and a walk to the door
 
 Three things the table cannot say:
 
-1. **Whether the timetable file holds the London Overground or the Elizabeth line.** The open data page names six modes, and neither is one (read). The page of the Unified API lists "Timetables" among its datasets and both lines among its modes (read). On the publisher's forum a person who uses the data wrote in October 2025 of "static timetables for the Elizabeth line". So the publisher may give both under its own terms, by the service and not by the file. Counting the lines in the file settles the first. The registry entry of the service covers the planner's answers alone, so a timetable taken from the service needs the entry widened first, in a change a person reads.
-2. **Whether the stops in the timetable file carry their own positions.** Nobody has opened the file. If they do not, every stop is placed from `dft-naptan`.
+1. **Whether the timetable file holds the London Overground or the Elizabeth line.** The open data page names six modes, and neither is one (read). The page of the Unified API lists "Timetables" among its datasets and both lines among its modes (read). On the publisher's forum a person who uses the data wrote in October 2025 of "static timetables for the Elizabeth line". So the publisher may give both under its own terms, by the service and not by the file. Counting the lines in the file settles the first. The registry entry of the service covers the planner's answers alone, so a timetable taken from the service needs the entry widened first, in a change a person reads. The file was read on 2026-09-24: no timetable in it is named for either line, and section 11 says what that rests on.
+2. **Whether the stops in the timetable file carry their own positions.** Nobody has read a stop in the file: `describe` reads none. If they do not, every stop is placed from `dft-naptan`.
 3. **The walk inside a station.** No source above holds the way from a street door to a platform. `tfl-step-free-station-topology` holds the step-free ways alone, and says so. The engine walks along streets to the point a stop is placed at. Section 8 says what a card tells a person of that.
 
 ## 2. What each publisher's pages said on 2026-09-24
@@ -104,14 +109,14 @@ Not read that day: every page of the service itself, so the terms shown at sign-
 | Entry | Status | What would settle it | Does reading a page settle it |
 |---|---|---|---|
 | `tfl-journey-planner-timetables` | approved. One thing before launch | A decision record on showing times worked out from a copy that is rebuilt each quarter, given the three timings the page publishes. Or the publisher's own statement that the timings are not meant for a time worked out from a timetable | No. The page still gives the three timings. The guidelines were not read again |
-| The same, its file | No address under `file_urls` | A person who has registered opens the file once in a browser, and says which address it came from and whether a key was asked for | No. No page the entry holds names the address |
+| The same, its file | Two addresses under `file_urls` since 2026-09-24: the one the publisher's staff wrote on its forum, which the list holds, and one that a request for it may be sent on to. A fetch took the file from the first on 2026-09-24, with no key | Settled by that fetch. The receipt says the file arrived from the address the list holds: the request was not sent on | No. No page the entry holds names the address: it was read on the publisher's forum |
 | `network-rail-nwr-schedule` | gated | Check 1: the founder registers, subscribes, and saves the agreement as executed, the terms of use and the platform agreement for data consumers. Check 2: what the executed agreement says of territory, and a decision record on a service run in the United Kingdom and read from abroad. Check 3: whether the executed agreement names a credit | No. Each rests on the agreement as executed, which only a subscriber sees |
 | The same, for a trial | Lists no internal use | `prototyping_only` added to its uses, in the change that saves the agreement. Until then not even a trial of the converter may open a file: [the travel design](london-data-travel.md), section 2 | It is a change to the registry, and the founder's to approve |
 | `dft-bods-london-gtfs` | held | Check 1: an account, and the terms shown at sign-up and on the download page, read and saved. Check 2: the routes and weekday trips of the London file counted by kind. Check 3: where its London content comes from, and whose credit it carries | Part of check 1 is settled: an account is needed, and a credit to the service is asked. The rest is not |
 | `traveline-tnds` | held | An account, and the terms sent with it, read and saved | No |
 | `rdg-timetable-feed`, `planarnetwork-gb-transit-rail-gtfs` | held | A licence in writing from the Rail Delivery Group that names use in a public product | No. The public licence is for research and analysis alone (registry) |
 
-Nothing was marked approved on 2026-09-24, and no status was changed.
+No entry of this table was marked approved on 2026-09-24, and the status of none was changed.
 
 ## 4. What can be had with nothing signed
 
@@ -168,7 +173,7 @@ The list `m5-journeys` is in `packages/pipeline/src/burro_pipeline/fetch/lists/`
 
 | File | List and item | Page | Address of the file | Size | Edition and period | Not sure of |
 |---|---|---|---|---|---|---|
-| Transport for London's timetables | `m5-journeys`, `tfl-timetables` | `https://tfl.gov.uk/info-for/open-data-users/our-open-data` | None on the page. Two were read on the publisher's forum, and are in the item's notes | Not known. The example on the page is 24.31 MB | None on the page. The file is replaced under one address. The period is the days its timetables say they run on | The address, the size, the edition, the period, whether a key is asked for, and which lines it holds |
+| Transport for London's timetables | `m5-journeys`, `tfl-timetables` | `https://tfl.gov.uk/info-for/open-data-users/our-open-data` | None on the page. `https://tfl.gov.uk/journey-planner-timetables.zip`, as the publisher's staff wrote it on its forum, with `https` before it. The item's notes say what it rests on | 143,161,603 bytes, as fetched on 2026-09-24. The example on the page is 24.31 MB | None on the page. The file is replaced under one address. The edition is 21092026, the day in the names of the zips it holds. The period is the days its timetables say they run on: 2026-09-19 to 2026-12-23 | Nothing the list names |
 | The streets | `m2-living`, `osm-greater-london` | `https://download.geofabrik.de/europe/united-kingdom/england/greater-london.html` | `https://download.geofabrik.de/europe/united-kingdom/england/greater-london-latest.osm.pbf` | 123 MB | The time its header says its data runs to, which fetch reads in the file | Whether it reaches a few kilometres past London's edge |
 | The stops and stations | `m2-living`, `naptan-london` | `https://beta-naptan.dft.gov.uk/` | None: a form, saved by a person | Under 96.9 MB | The day it was saved | Its format as it arrives |
 | Where a journey starts | `m2-places`, `lsoa-centres` | The record at data.gov.uk that the registry entry holds | On the portal of the statistics office, as the list gives it | About 4 MB | V4, December 2021 | The address, until a fetch has tried it |
@@ -241,12 +246,13 @@ The rules are the publishers' own (read), and the registry holds each as a condi
 
 | Where | Change | Why |
 |---|---|---|
-| Registry, `tfl-journey-planner-timetables` | The address of its file under `file_urls`, after step 3 | Fetch refuses an address the entry does not name |
-| The list `m5-journeys` | The same address under `url`, in the same change. Then the edition and the period, once a person has read them in the file | So that the first fetch can be made, and the second can write a receipt |
+| Registry, `tfl-journey-planner-timetables` | The address of its file under `file_urls`. Done on 2026-09-24, from the publisher's forum and before step 3. If a first fetch ends at another address, step 3 says which, and the entry names it | Fetch refuses an address the entry does not name |
+| The list `m5-journeys` | The same address under `url`, in the same change: done on 2026-09-24. Then the edition and the period, once a person has read them in the file: stated on 2026-09-24, as a program read them with `describe` | So that the first fetch can be made, and the second can write a receipt |
 | Registry, `network-rail-nwr-schedule` | `prototyping_only`, in the change that saves the executed agreement | [The travel design](london-data-travel.md), section 13 |
 | Registry, `tfl-unified-api-journey-planner` | A wider use, if timetables of the London Overground and the Elizabeth line are ever taken from the service | The entry covers the planner's answers alone |
 | Contract, section 7.3 | The sentence of section 8 that says what a time was worked out from, and the one that says what it cannot see | Neither is a template yet. Each holds names and dates, so each must pass the verifier |
-| Fetch | A way to send a key that is not a part of an address, if step 3 finds that the file asks for one | An address in a list holds no key |
+| Fetch | A way to send a key that is not a part of an address, if step 3 finds that the file asks for one. It asks for none, so nothing is asked of fetch | An address in a list holds no key |
+| The step that converts the timetables | To take the timetables that run on the day it models, and to be told whether it reads the zip of replacement buses | Section 11: the file holds timetables that begin after its issue, and buses that run in place of a train |
 | [The guide to data builds](../data-builds.md), section 4 | A row for each secret of section 6, on the day a workflow reads it | The guide names a secret only where a step reads it |
 
 ## 10. What was read, and what was not
@@ -279,10 +285,33 @@ Not known, and nothing here should be read as if it were:
 
 | Thing | What settles it |
 |---|---|
-| Whether the timetable file asks for a key | Step 3 |
-| Which address the timetable file is at | Step 3 |
-| Which lines the timetable file holds | Counting them in the file |
-| The size of the timetable file | The first fetch |
+| Whether a stop of the timetable file carries its own position | Reading a stop in the file |
+| What each code in the name of a timetable stands for | The publisher's own word. No file that was read says |
 | How long a rail subscription takes | Step 5 |
 | What the marketplace gives a subscriber to take a file with | Step 5 |
 | Whether the key of the portal may be sent in a header | The portal's pages for a person who has signed in |
+
+## 11. What the timetable file holds, as fetched on 2026-09-24
+
+Read on 2026-09-24 with `uv run python -m burro_pipeline describe FILE --inside`, by a program and by no person. `describe` gives the names and the sizes inside a zip, and of a timetable how many services it holds, the days they say they run from and to, and their modes. It reads no stop, no name of a line and no time. The item of the list holds every count below in its notes.
+
+| Asked | What was written above | What the file holds |
+|---|---|---|
+| Does the address answer | Nobody had seen it answer | It answered a request with no key, and did not send it on: the receipt holds the address the list holds as the one the file arrived from |
+| Its size | Not known. The example is 24.31 MB | 143,161,603 bytes. It unpacks to 4,700,885,609 bytes of XML |
+| Its layout | TransXChange XML in a zip | A zip of six zips, which hold 826 files of XML between them and nothing else. Each file is a timetable in TransXChange that holds one service |
+| The six zips | Not known | Four of buses, with 234, 182, 194 and 122 timetables. One of the Underground, the DLR, trams, the river and the cable car, with 48. One of replacement buses, with 46 |
+| Its edition | None on the page | The name of each of the six zips ends in 21092026, which reads as 21 September 2026 |
+| Its period | The days its timetables say they run on | From 2026-09-19 to 2026-12-23: the earliest day any service runs from, which 676 of the 826 state, and the latest day any runs to, which 675 state |
+| Whether every timetable runs on every day of the period | Not asked | No. 115 of the 826 begin after 21 September 2026, and on 24 September 2026 708 of them run |
+| The modes | Six kinds of service on the page: Underground, bus, DLR, tram, cable car and river | Five words of mode in the file: bus 778, underground 35, rail 6, ferry 4 and tram 3. By the names of their files, the six of rail are five of the DLR and one named CAB |
+| The London Overground and the Elizabeth line | Not known. The page names neither | No timetable of the fifth zip is named for either. Its names carry eleven codes under the mode underground, and DLR, TR, CAB, B6C, RB1, RB4 and WFF. What a code stands for is said in no file that was read |
+| Planned engineering works | The page says the timetables "do not take account of planned engineering works" | The sixth zip holds 46 timetables of replacement buses, which the page does not name. None runs before 12 October 2026 |
+| Whether a key is asked for | Not known | None is |
+
+What follows for the step that routes:
+
+1. It takes the timetables that run on the day it models, and never all 826. A timetable states the days it runs from and to, and two timetables of one line may follow one another.
+2. Whether it reads the zip of replacement buses is to be decided before it does. A bus that runs in place of a train is no service of a typical weekday.
+3. The file is replaced each week under one address. The edition and the period that the list states are of the file that was fetched on 2026-09-24. A fetch that is made after the next issue is given another file, so read that file with `describe --inside` and state both again before it. The line of a fetch reads `new=0` where the file is the one that was read.
+4. What a card gives as the date of the timetables, `{timetables_date}` in section 8, is for the travel design to say. The file gives an issue, 21092026, and a period, and the day a build models lies within the period. It is never the day of the fetch.

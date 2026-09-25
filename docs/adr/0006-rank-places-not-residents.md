@@ -35,7 +35,9 @@ Amended, 2026-09-24. No word for who lives somewhere stands in the name of anyth
 
 A neutral feature can still correlate with a protected group. Before the audit runs, each feature has written down: the aim it serves, why it is proportionate, the correlation that triggers a review, and what can be done (drop it, cap its weight, make it opt-in). Finding a correlation and doing nothing is worse than not looking.
 
-The first row is written: [recorded criminal damage and anti-social behaviour](../research/data/incidents.md), section 11. It says what the two measures were held against, and that nothing about residents could be. No audit has run.
+The first row is written: [recorded criminal damage and anti-social behaviour](../research/data/incidents.md), section 11. It says what the two measures were held against, and that nothing about residents could be. The second is written: [the age of residents and what their households are made of](../design/residents-age-and-households.md), section 12, for the four measures and the two vibes that hold one. It says what each was held against, and that nothing of what was not decided on could be. No audit has run.
+
+A second row is written: [what homes sell for, the council tax bands and the rise in prices](../research/data/prices.md), section 7. It is the first that was held against a figure of residents: the statistics office's estimate of household income, which the registry allows a check to read. Two of its measures stand at or over the line the row sets. [0028](0028-household-income-is-shown-and-never-ranked-on.md) says what was found and what is the founder's to decide.
 
 ## Amended, 2026-09-24
 
@@ -95,14 +97,14 @@ Country of birth is shown and never ranked on. Income, employment, health, quali
 ### What is left over
 
 - The title no longer says the whole of it. It is kept, because every other record names this one by it.
-- Age is itself a protected characteristic, and what households are made of follows age, sex and marriage. So the proxy audit now has inputs that are about residents by design. Its written rule must exist before a measure of either is in a release.
+- Age is itself a protected characteristic, and what households are made of follows age, sex and marriage. So the proxy audit now has inputs that are about residents by design. Its written rule must exist before a measure of either is in a release. It is written: [the design](../design/residents-age-and-households.md), section 12. The audit itself has not run.
 - A rate of recorded crime that a publisher has divided by a count of residents, or has smoothed by the kind of people who live in an area, brings residents into a measure that is said to be of the place. Whether such a rate may feed Gritty is for the founder to decide before a figure is shown.
-- Nothing of the age of residents or of their households is built. As the code stands no feature may describe residents, and no release may hold a count of them. Each of those is a test, and each changes in the same change as the code it holds. Gritty is built: [0013](0013-vibes-are-the-centre.md) says how.
+- The age of residents and their households are built, since 2026-09-24. Core holds four measures, each a share in 100 with the census in its name, and two vibes that hold one each at 40 in 100: Family area and Young professionals. A phrase for any of them is offered and never applied, towards more and no other way, and a wish for fewer of anyone draws the notice and nothing else. No release may hold a count of people, and nothing else may describe residents: each is a test. [The design](../design/residents-age-and-households.md), section 13, says what was built and what was chosen. Gritty is built: [0013](0013-vibes-are-the-centre.md) says how.
 - The equality regulator's own guidance for service providers has not been read.
 
 ## Consequences
 
-- "Lots of young families" cannot be asked for directly. "Good primary schools and playgrounds" can. **Since 2026-09-24** the first can be asked for too, once a measure of households with children is in a release. "Fewer families" cannot, and never will be.
+- "Lots of young families" cannot be asked for directly. "Good primary schools and playgrounds" can. **Since 2026-09-24** the first can be asked for too: it is offered as Family area, which a person adds by pressing it. "Fewer families" cannot, and never will be.
 - Some vibe signal is lost. What remains is defensible.
 
 ## What would change it

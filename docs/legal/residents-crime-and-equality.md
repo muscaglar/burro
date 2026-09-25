@@ -281,7 +281,7 @@ In the order of what each could cost. "Ships today" means what this draft's read
 
 ## 11. Words for the methods page
 
-The website's methods page is outside this draft. As it stands it says that nothing that describes who lives somewhere is used, which stops being true on the day a measure of age or of households is in a release. These are words that would be true then. Each figure and each name is the API's to give, as now.
+The website's methods page is outside this draft. It said that nothing that describes who lives somewhere is used, which stopped being true on 2026-09-24, when core came to hold four measures of age and of households. The page was changed that day to the words of the first two rows below, but for the year of the census, which the name of each measure gives. The fourth row is not written. These are the words as they were drafted. Each figure and each name is the API's to give, as now.
 
 | Where | Today | Once a release holds a measure of age or of households |
 |---|---|---|

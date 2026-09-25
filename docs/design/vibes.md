@@ -17,8 +17,8 @@ Written before the registry held the six entries that rest on a permission in wr
 | What is new on screen | Everyday words are shown before a search. The map can be coloured by one vibe. An area page opens with a portrait, and ends by saying where to go and look. Any area can start "more like this" |
 | What is new in the engine | A tag may be a scale. A spec may point a scale at either end, and may hold one "like this area". `rank()` stays a pure function of a spec and a release |
 | Gritty | The founder asked for one metric made of crime, socioeconomic factors and street cleanliness. No honest form of that metric exists (section 3.1). The person's word is kept and quoted. Burro reads it as Works and warehouses, a vibe with a literal name, and says what it cannot measure |
-| Who lives there | In no vibe, under any option. The founder chooses between three options for showing census figures (section 4). Until then ADR 0006 stands |
-| What can be felt in days | Eleven vibes, the lens, the portrait and "more like this", on the synthetic city (section 8) |
+| Who lives there | In no vibe, under any option. The founder chooses between three options for showing census figures (section 4). Until then ADR 0006 stands. Changed on 2026-09-24: the age of residents and what their households are made of may feed a vibe, and two vibes hold one. Nothing else about who lives there is in any |
+| What can be felt in days | Eleven vibes, the lens, the portrait and "more like this", on the synthetic city (section 8). Since 2026-09-24 there are thirteen: two count who lived in an area at the census, as [the design of those measures](residents-age-and-households.md) sets out |
 | What London can carry | Ten vibes rest on sources approved today. Four wait on a source or an answer: Works and warehouses, Leafy, Places to train and Places to meet |
 
 ## 1. What a vibe is

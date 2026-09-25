@@ -197,8 +197,8 @@ Each is outside `docs/legal/`, so none was changed for these drafts.
 
 | Where | What it says | What is so |
 |---|---|---|
-| `apps/web/src/content/methods.ts` | "Nothing that describes who lives somewhere is used", and of the features, "None describes who lives there" | True of the code today. It stops being true on the day a measure of age or of households is in a release. [residents-crime-and-equality.md](residents-crime-and-equality.md), section 11, has words for that day |
-| `apps/web/src/content/vibes.ts`, `apps/web/src/content/area.ts` | A vibe "is named for the place, never for who lives there". "Nothing about who lives in a place is compared" | The same |
+| `apps/web/src/content/methods.ts` | "Nothing that describes who lives somewhere is used", and of the features, "None describes who lives there" | Changed on 2026-09-24, when core came to hold four measures of age and of households. It says the words of [residents-crime-and-equality.md](residents-crime-and-equality.md), section 11, but for the year of the census, which is in the name of each measure. The part on what Burro holds about residents is not written |
+| `apps/web/src/content/vibes.ts`, `apps/web/src/content/area.ts` | A vibe "is named for the place, never for who lives there". "Nothing about who lives in a place is compared" | The first was changed the same day: a vibe that counts who lived in an area says so. The second stands, and is still so |
 | `packages/core/AGENTS.md` | The Gritty that holds recorded incidents "is refused in any release that is not synthetic. Do not loosen that rule: changing it is changing ADR 0006" | ADR 0006 was changed on 24 September 2026. The rule is still in the code |
 | `services/api/src/burro_api/providers/choose.py` | It holds all four providers alike | The founder decided that DeepSeek never reads what real people type. No code refuses it |
 | `apps/ios`, `SearchCopy.swift` and its tests | A provider "may keep it for up to 30 days" | It is true of two of the four, and Google comes first. [ADR 0019](../adr/0019-no-one-provider-and-a-key-alone-turns-nothing-on.md) says what the app needs |

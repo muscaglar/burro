@@ -4,6 +4,8 @@ Written 2026-09-24. For whoever changes core next. Not reviewed by a lawyer.
 
 This is the first time anything about who lives somewhere may feed a vibe. It is built narrowly. This page says what was built, what was proposed and not built, and what core, the reader and the website must change, file by file, before a release carries a figure.
 
+**It was built later the same day.** Section 13 says what was built and what was chosen where this page left a choice, and section 12 holds the row of the proxy audit, which was written first. Sections 5 to 11 are kept as they were written, before anything was built, so that what was proposed can be held against what was done.
+
 ## 1. What was decided, and its limits
 
 The founder decided on 24 September 2026. The record is [ADR 0006](../adr/0006-rank-places-not-residents.md), as amended that day.
@@ -32,11 +34,11 @@ Two rules follow, and everything below is held to them.
 | The gate of fetch, which refuses a file under that source that names any other table: in the list, in its address, or inside a zip | `packages/pipeline/src/burro_pipeline/fetch/gate.py` | Built and tested |
 | The registry entry `ons-census-2021-age-and-household-tables` | `registry/sources/residents.toml` | Approved for `scoring` and `census_table` |
 | The list of the two files | `packages/pipeline/src/burro_pipeline/fetch/lists/m11-age-and-households.toml` | Written. Both files were fetched on 2026-09-24, and each has a receipt |
-| Four measures | `packages/pipeline/src/burro_pipeline/derive/` | Built, tested on made-up tables, and worked out on the two tables as fetched. Each has a figure for each of London's 1,002 areas. None is in a build |
+| Four measures | `packages/pipeline/src/burro_pipeline/derive/` | Built, tested on made-up tables, and worked out on the two tables as fetched. Each has a figure for each of London's 1,002 areas. Core holds each since catalogue version 13, and each is on the table of measures, so a build that names the list carries it |
 | The decision record | `docs/adr/0006-rank-places-not-residents.md` | Amended |
-| A change to core, to a recipe, to the reader, to the website | Nowhere | Not made. Sections 5 to 9 say what each is |
+| A change to core, to a recipe, to the reader, to the website | `packages/core`, `services/api`, `apps/web`, `apps/ios` | Made. Section 13 says what each is |
 
-Nothing about residents is in any release, and no build carries one of the four measures. Core refuses the names, as section 9 sets out.
+No release that is served holds anything about residents. The committed release, which is made up, carries the four measures and the two vibes, with figures that were made up for it.
 
 ## 3. The registry
 
@@ -170,7 +172,7 @@ Each area was set against the middle figure of the areas that share a side with 
 
 ## 5. Where the measures enter the vibes
 
-Nothing here is built. No recipe was changed.
+This section is as it was written, when nothing of it was built and no recipe had been changed. Section 13 says what was built of it.
 
 ### Three rules for a part that counts residents
 
@@ -569,3 +571,85 @@ Nothing was built on any of these. Each is a question for the founder.
 | 14 | Is Young and busy built at all? | Little. On the parts held it stands at 0.93 with Homes, and 156 of its first 200 areas are the first 200 of Homes | A choice: drop it, or wait for the venues and measure it again. A smaller part for residents does not help while the venues are not held: what is left of the recipe is the two parts of Homes |
 | 15 | May a vibe that counts residents have a band while residents are most of what is held? | Family area has a band at 65 in 100 of its recipe, and households with children are 69 in 100 of that. It stands at 0.92 with that one measure | A rule in core: such a vibe has no band until its parts about the place are held, or residents are held to a share of what is held and not only of the recipe |
 | 16 | Is the note inside the zip of households to be opened? | The version of the table, which no page gives for the zip | To open one file of text that holds no count |
+
+## 12. The row of the proxy audit
+
+[Decision record 0006](../adr/0006-rank-places-not-residents.md) asks for this row before a measure is served. It covers the four measures, and the two vibes that hold one at 40 in 100 of their recipes: Family area, which holds households with dependent children, and Young professionals, which holds residents aged 20 to 34. It follows the row written for [recorded incidents](../research/data/incidents.md), section 11. It was written on 2026-09-24, before any of the six was in a release. Nobody has reviewed it, and no audit has run.
+
+| | |
+|---|---|
+| The aim it serves | To say where more residents of an age lived, and where more households of a kind were, for a person who asks for them: young adults, older residents, households with children, households of one person. In a vibe, to say at what stage of life an area was lived, beside what is there for it |
+| Why it is in proportion | It counts the age of residents and what their households are made of, from two census tables, and nothing else about who lives anywhere. Each figure is a share in 100, and no count of people is held. A person may ask for more of what a figure counts, and never for fewer: it has one direction, it stands in no scale and no filter, and no reading of any words asks for less of it. It counts only where a person asks: every phrase for it is offered and never applied, no button that adds several things adds it, no model may offer it, and no result shows it to a person who did not ask. It counts towards no likeness between two areas. Its name says who is counted and ends ", Census 2021", and each offer says that Burro counts who was living there at the census of 2021, and measures places first. In a vibe it is 40 in 100 at most, and what is there is the rest |
+| What it was measured against | Other measures of the place, across London's 1,002 areas, as rank correlations. The table below holds them |
+| What could not be measured | Whether any of the four, or either vibe, follows what was not decided on: ethnic group, religion, country of birth, income, health or qualifications |
+| Why it could not | No step that runs an audit is built. The census tables of ethnic group, religion and country of birth are held for the table on an area's page and for the audit, and the gate refuses each for anything else. The measure of deprivation is held for the audit alone. So no figure of any of them was read here, and no correlation with one is claimed |
+| What is known all the same | Each of the four follows how built up a place is, and how near the centre. Residents aged 20 to 34 stand at 0.80 with flats, and households of one person at 0.79. Inner and outer London differ in much that was not decided on, so a measure that tells inner from outer London may follow it. How far is not known. Family area does not tell inner from outer London: it stands at nought with flats and with distance from the centre. Young professionals does, as the measure it holds does. The census was taken on 21 March 2021, during a lockdown, and its publisher says that the pandemic may have affected where some people were counted, and names students and some urban areas: the young are the most likely to have been counted somewhere else |
+| What triggers a review | A rank correlation of 0.5 or more, either way, between any of the four measures or either vibe and any figure of ethnic group, religion, country of birth or income, across London's areas. It is the figure the row for recorded incidents gives, and the founder's to set |
+| What can then be done | Take the measure out of the vibe. Lower its share of the recipe below 40 in 100. Serve it as a measure a person may weigh and not as a vibe. Or take it out of the release |
+
+What each stands at with measures of the place, as rank correlations across London's 1,002 areas. The four measures are worked out from the two tables as fetched. Each vibe is worked out as core works a vibe out, from the four and from the measures of the place of a build of London made the same day.
+
+| | Flats | Homes per hectare | Distance from the centre | Houses or flats |
+|---|---|---|---|---|
+| Residents aged 20 to 34 | 0.80 | 0.78 | -0.74 | 0.84 |
+| Residents aged 65 and over | -0.59 | -0.63 | 0.51 | -0.65 |
+| Households with dependent children | -0.63 | -0.51 | 0.64 | -0.60 |
+| Households of one person | 0.79 | 0.57 | -0.64 | 0.73 |
+| Family area | 0.00 | 0.14 | -0.04 | 0.08 |
+| Young professionals | 0.82 | 0.75 | -0.74 | 0.84 |
+
+Family area stands at 0.65 with Family amenities and at 0.57 with households with dependent children alone. Young professionals stands at 0.83 with Going out and at 0.87 with residents aged 20 to 34 alone.
+
+## 13. What was built, and what was chosen
+
+Built on 2026-09-24, after the row of section 12 was written. Every rule of section 5 is a test. Where this page left a choice, this says which way it went, and each is the founder's to overturn.
+
+| What | Built as | Where this page left a choice |
+|---|---|---|
+| The four measures | Features of core, `COUNTS_RESIDENTS`, each of kind and of dimension `residents` and of the family "Who lives there, at the 2021 census". Polarity more, unit %, in no likeness. A person may weigh each on request | Their short labels hold no figure, as every short label does: "More young adults" is of residents aged 20 to 34, and "More older residents" of residents aged 65 and over. The label holds the ages |
+| Family area | One way: households with dependent children 40, primary schools within 800 m 25, the nearest play space 20, the nearest park 15 | The recipe of section 5 gave the households 45. No part is over 40 now, and the three parts of the place are in the order and near the shares that Family amenities gives them |
+| One family vibe or two, question 8 | Two. Family amenities stays a vibe of places, and says in its meaning that it counts places alone | A person can still ask for what is there without counting who lives there, which the decision record says they can. "Family friendly", "good for kids" and "good for families" are offered as both, and the person chooses. "Families" and "a family area" are offered as Family area |
+| Young professionals | One way: residents aged 20 to 34 at 40, the nearest station 25, places to eat and drink for each 1,000 homes 20, cultural venues for each 1,000 homes 15. It says it cannot see what anyone does for work | It is built in place of Young and busy, which held flats and homes per hectare and found the areas that Houses or flats finds. Section 14 says how it stands against Houses or flats on London's areas |
+| Settled, question 7 | Not built. "Retirees", "pensioners", "older people" and "elderly" are offered as More older residents, and "older and quieter" as that and Quiet streets | |
+| Words that name an age and also work, question 10 | "Young professionals", "retirees" and "pensioners" are offered for the age alone. "Professionals", "young couples", "singles" and "students" draw the notice | What people do for work, whether they study and whether they have a partner are counted by nothing |
+| "People my age" | Offered as both ages, under a note that begins "What age?" | |
+| A wish for fewer of anyone | The notice, and nothing else. A prompt that draws the notice is offered nothing that counts who lives somewhere, whichever of its words drew it | The notice was reworded, because it said that Burro never ranks by who lives there: "Burro ranks places by what is there. Of who lives in a place it counts only their age and their households, at the census of 2021, and you cannot ask for fewer of anyone." |
+| A word that was not decided on, beside those who are counted | The notice: "young white professionals", "muslim families", "wealthy families" | |
+| What a result shows | A vibe that counts residents holds no `strip`. It is on a result where it was asked for, and is among the others on the portrait of an area, never in the list of what the area has most or least of | Recorded crime is held the same way on a result |
+| A model | It is told of no measure and no vibe that counts residents, and an edit of its that names one is dropped | |
+| Whether a vibe waits for the audit to run, question 13 | It did not wait. The row is written, and no audit has run | The founder asked for it to work. No release of London is served |
+| A band while residents are most of what is held, question 15 | Core's rule stands: a vibe has a band where 60 in 100 of its recipe is measured | With every part held, residents are 40 in 100. Where one part of the place is missing they are more of what is held: half, where primary schools are missing from Family area |
+| The website | It draws each where it draws a measure or a vibe: the settings, the shelf, the page of vibes, the methods, the map, a comparison and the page of an area. An offer is drawn with its note, as the API sends it | The page of an area draws eight lines more at most before anything is opened, and its height was not measured again in a browser |
+| The iPhone app | Its generated files are made again, and it names the new group of measures. Its tests and its build were not run | |
+
+## 14. What a build of London shows
+
+London was built once with the four measures in it, on 2026-09-24, from every list that holds a receipt: `lon-2026-09-24-80`, a preview that is served to nobody. It carries 32 measures, and every fact of it has evidence behind it. Each of the four has a figure in each of the 1,002 areas. Every figure here is of London as a whole or of a borough. None is of a named place.
+
+| | Family area | Young professionals |
+|---|---|---|
+| Areas with a band | 1,002 of 1,002 | 994 of 1,002. Eight areas at the edge of London have a figure for the census part alone, which is 40 in 100 |
+| Rank correlation with Houses or flats | 0.08 | 0.84 |
+| With flats alone | 0.00 | 0.82 |
+| With homes per hectare | 0.14 | 0.75 |
+| With distance from the centre of London | -0.04 | -0.74 |
+| With the census figure it holds, alone | 0.57 | 0.87 |
+| With the vibe nearest to it | Family amenities, 0.65 | Going out, 0.83 |
+| Areas of its highest band that are in the highest band of Houses or flats | 26 of 200 | 133 of 198 |
+| Middle distance from the centre, highest band and lowest | 12.7 km and 14.3 km | 5.5 km and 17.2 km |
+| Boroughs with most areas in its highest band | Newham 29 of 40, Barking and Dagenham 16 of 22, Ealing 14 of 41, Enfield 14 of 36, Tower Hamlets 13 of 34, Redbridge 12 of 33 | Tower Hamlets 22 of 34, Camden 18 of 27, Hackney 17 of 30, Hammersmith and Fulham 16 of 25, Islington 16 of 23, Westminster 16 of 24 |
+| Boroughs with most areas in its lowest band | Bromley 19 of 39, Croydon 15 of 45, Havering 13 of 30, Kensington and Chelsea 12 of 21, Westminster 11 of 24, Camden 9 of 27 | Bromley 26 of 39, Bexley 18 of 28, Croydon 16 of 45, Havering 16 of 30, Barnet 14 of 42, Sutton 13 of 24 |
+| Boroughs with no area in its highest band | Bromley, Camden, Islington, and the City of London | Barking and Dagenham, Barnet, Bexley, Bromley, Enfield, Havering, Redbridge, Richmond upon Thames, Sutton |
+
+**Young professionals is served as a vibe, and it says little that Houses or flats and Going out do not.** It stands at 0.84 with Houses or flats, under the 0.9 at which it would have been served as a measure alone, and at 0.83 with Going out. Two of its parts are 70 in 100 of Going out's recipe, and the census figure it holds stands at 0.84 with Houses or flats by itself. A Londoner would know its map: the inner boroughs at its head, and Bromley, Bexley, Havering and Sutton at its foot. They would know the same map from Houses or flats. The made-up city holds every two vibes to 0.8 at most, and London does not hold these two to it.
+
+**Family area finds where households with children live close to schools, play space and parks, and that is not where a Londoner would look first.** It is no map of inner and outer London, and no map of flats: it stands at nought with both. It puts Newham, Barking and Dagenham, Enfield and Redbridge at its head, which a Londoner would know as places where many children live. It puts Tower Hamlets and Hackney there too, and puts Bromley, Havering and Kingston upon Thames low: 19 of Bromley's 39 areas are in its lowest band, and none is in its highest. The three parts of the place are counted in a straight line, within 800 metres or to the nearest, so each is nearer where homes stand closer together. An outer borough of houses and gardens has children and has fewer schools and play spaces within reach of each home. Family amenities shows the same lean more strongly: it puts Tower Hamlets, Southwark, Lambeth, Hackney and Islington first. Look at the map of each before either is served.
+
+Two searches were made of the build through the API, with every offer pressed. Nothing was applied from the words of either.
+
+| Typed | Offered | The first ten, by borough |
+|---|---|---|
+| "young professionals, lively, near a station" | Young professionals, with its note. Going out, towards Buzzy or towards Calm. Nearer a station | Camden, Westminster, Westminster, Lambeth, Camden, Camden, Westminster, Newham, Hammersmith and Fulham, Westminster. 994 areas are ranked. Of the first fifty, nine are in Westminster, seven in Camden and seven in Tower Hamlets |
+| "a family area with good parks" | Family area, with its note. Nearer a park. "With good" was not read, and the answer says so | Croydon, Newham, Greenwich, Merton, Haringey, Tower Hamlets, Barking and Dagenham, Sutton, Newham, Newham. 1,002 areas are ranked. Of the first fifty, nine are in Newham and five in Barking and Dagenham |
+
+The row of section 12 was written before the build, from the two tables and from the measures of the place of a build made earlier that day. The build gives every figure of it as it was written.

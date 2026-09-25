@@ -1,6 +1,6 @@
 # 0021. What a home sells for is shown as the publisher gives it: one number, with no range
 
-Status: accepted in part, 2026-09-24. That a price may be shown is the founder's decision of that day. How a release carries it changes the contract, so that part is proposed, and is the founder's to approve. Four points are left for the founder to decide. It follows [0002](0002-deterministic-core.md), [0006](0006-rank-places-not-residents.md) and [0014](0014-evidence-first-and-census-figures-shown.md).
+Status: accepted in part, 2026-09-24. That a price may be shown is the founder's decision of that day. How a release carries it changes the contract, so that part is proposed, and is the founder's to approve. **Amended the same day**, three times: a person may ask for homes that sell for more, a price is worked out from the sales themselves, with a margin on a firm budget, and two more figures of homes may be asked for. See the three amendments below. Two points are left for the founder to decide. It follows [0002](0002-deterministic-core.md), [0006](0006-rank-places-not-residents.md) and [0014](0014-evidence-first-and-census-figures-shown.md).
 
 ## Context
 
@@ -54,6 +54,30 @@ The sentence prints no word for a confidence. A figure for a one-bedroom flat wo
 
 **Amended, 2026-09-24: a person may ask for homes that sell for more.** The founder decided that a word for a smart area, "affluent", "posh", has two readings, both of the place: the polished end of Gritty, and homes that sell for more than the middle of the city. Neither is what people earn, and neither is who lives somewhere. So core's catalogue gains one feature for a price, `price_median`: the median price paid for a home of any kind, in pounds, as the publisher gives it for the area. It is held to four rules. It is offered and never applied from a word: a person presses "Dearer". It stands in no vibe, and a recipe that held it would be a new decision. No likeness is counted on it. Nothing weighs it by default. It is a measure like any other in every other way: it has a row of evidence, its source is credited, and a build leaves it out where the workbook was fetched to validate against and for nothing wider. The medians of the four kinds of home are costs as before, and a budget is held against them.
 
+**Amended, 2026-09-24: a price is worked out from the sales, and a firm budget has a margin.** The founder asked that a flat be priced apart from a house, from what sold, and that a firm budget do better than leave out every area whose median is over it. Three things follow.
+
+| | Decided |
+|---|---|
+| Where a price comes from | From every sale that HM Land Registry records, under `hmlr-price-paid`, over the three years 2023 to 2025: the median of what was paid for each kind of home in each area. A row of `cost.json` holds the median, how many sales it rests on, and the first month and the last of those sales. It holds no range. A build that holds no file of sales carries the publisher's own median, as the rest of this record says |
+| Which sales count | The ones the publisher calls standard: a home sold at its full market value to a private person. A repossession, a buy-to-let and a transfer to a company are not counted. The statistics office counts the same: held against its own medians for one year at a time, the figures worked out here were the same to the pound in more than 96 of 100 cases for 2023 and for 2024 |
+| How few sales give no figure | Fewer than 10, which is the least the contract calls an observation. The area then has no row, its row of evidence says how many sales there were, and nothing stands in for the figure |
+| What is read of a sale | The price, the day, the postcode, the kind of home, whether it was newly built, and whether the sale is standard. No line of an address is read. The postcode puts the sale in an area and is kept nowhere after that, as the licence registry asks |
+| A firm budget | An area is left out only where its median is over the budget by more than a quarter. `FIRM_BUDGET_MARGIN_PERCENT` in core's `rank.py` is the one place the margin is written. An area the margin keeps is ranked lower for its price, and says that about half of the homes sold for less than the median |
+
+Why a quarter. About half of the homes behind a median sold for less than it, and how many sold within a budget falls as the median rises above it. Of the flats sold in London in the three years, against £400,000: about half sold within it where an area's median stood at the budget, and about a quarter where it stood a quarter over. A quarter over is also where a flexible budget already counts an area for nothing. It is a first figure. Held against the median with no margin, a firm £400,000 for a flat left out 424 of the 984 areas with a figure. With the margin it leaves out 231.
+
+**Amended, 2026-09-24: two more figures of homes may be asked for.** The founder asked for two more readings, each of the homes of a place and of what was paid for them.
+
+| | Decided |
+|---|---|
+| The council tax bands | `homes_higher_bands`: the homes in bands E to H as a share of all homes, from the Valuation Office Agency's table. It is a third reading of a word for a smart area, offered beside what homes sell for, with the same note: "Burro measures places, not the people in them." A band is what a home would have sold for in 1991, so the share is never shown as a price |
+| Where prices have risen | `price_rise_5y` and `price_rise_10y`: the statistics office's median for a home of any kind in the last year, for each £100 of its median five and ten years before. It is offered for "up and coming", "on the up" and "rising". Its note says that a rise is of prices that were paid, and promises nothing |
+| How each is held | As `price_median` is: offered and never applied from a word, in no vibe, in no likeness, and weighed by nothing until a person asks |
+| Why pounds for each £100 | A rise in per cent is below nought where prices fell, and no figure of a release is below nought. £97 for each £100 says the same, and is a figure of what was paid |
+| "Up and coming" | Was offered as where a place stands on Gritty, with both its ends. It still is, beside the rise, where a release carries Gritty |
+
+Both follow household income, as [0028](0028-household-income-is-shown-and-never-ranked-on.md) measured: the bands at 0.71 in rank, and what homes of any kind sell for at 0.58. The rises do not: 0.04 and -0.13. What that means for the first two is the founder's to decide, and 0028 says what can be done.
+
 What was not taken:
 
 | Way | Why not |
@@ -80,9 +104,9 @@ Each is the founder's to decide.
 | A receipt gains a record of a later ask: the gate was asked again, on a day, for a wider use, and allowed it | A change to the record of a receipt and to the check. It keeps every receipt as it was written |
 | Wait for the next edition, in March 2027, and fetch that for `scoring` | No price is shown until then |
 
-**2. A firm budget against a median may leave out an area where homes sold within it.** Half of the homes behind a median sold for no more than it. With a firm budget of £400,000 for a flat, 397 of the 927 areas with a figure are left out, 530 are kept, and the 75 with no figure are kept with the cost not known. In an area that is left out, flats may still have sold within the budget, and the workbook does not say whether they did, or whether a one-bedroom flat is among the cheaper half. Two other ways are open. A firm budget could never leave an area out on a median, and rank it lower. Or it could be held against the lower quartile, the price a quarter of the homes sold for no more than, which the publisher gives for each area as a dataset of its own: it is registered as `ons-lower-quartile-price-paid-msoa` and listed to be fetched, and no step reads it. As built, firm means firm, and the median is what is held.
+**2. A firm budget against a median may leave out an area where homes sold within it.** Settled by the second amendment above: a firm budget has a margin of a quarter, and an area it keeps says that about half of the homes sold for less. The margin is a first figure, and is the founder's to change. One other way stays open: to hold a firm budget against how many homes sold within it, which the sales would give for any budget, and which a release does not hold.
 
-**3. How steady a median is.** A figure of 5 sales cannot be told from one of 500. The publisher gives the count of sales for each area and kind of home as a dataset of its own. It is registered as `ons-residential-property-sales-msoa` and listed to be fetched, and no step reads it. With it a row could say `high` or `medium` by the contract's own counts. The contract has no word for a figure of 5 to 9 sales, which is fewer than `medium` counts.
+**3. How steady a median is.** Settled by the second amendment above for a build that reads the sales: a row says how many sales it rests on, and no figure is given on fewer than 10. A publisher's own median still says nothing of it.
 
 **4. What HM Land Registry is due.** The cover of the workbook gives one sentence on HM Land Registry, which the credit repeats. Whether HM Land Registry asks for a statement of its own beside a figure that another publisher adapted from its data is not known.
 

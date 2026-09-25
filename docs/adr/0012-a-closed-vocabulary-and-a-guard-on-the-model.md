@@ -1,6 +1,6 @@
 # 0012. The reader applies a plain prompt and asks about any other, and a model proposes
 
-Status: accepted, 2026-09-23. Amended the same day: the reader now applies a prompt only when the whole of it is plain, which was the next step this record named. Amended 2026-09-24: the guard on the model went, and nothing a model reads is applied. The model proposes, the person confirms, code checks. Amended again that day: what makes a limit firm, which the foot of this record says. Builds on [0002](0002-deterministic-core.md) and [0005](0005-raw-prompts-are-never-stored.md). Three calls of the amendment are for the founder to confirm.
+Status: accepted, 2026-09-23. Amended the same day: the reader now applies a prompt only when the whole of it is plain, which was the next step this record named. Amended 2026-09-24: the guard on the model went, and nothing a model reads is applied. The model proposes, the person confirms, code checks. Amended again that day: what makes a limit firm, and then what is said about a thing, which the foot of this record says. Builds on [0002](0002-deterministic-core.md) and [0005](0005-raw-prompts-are-never-stored.md). Three calls of the amendment are for the founder to confirm.
 
 ## Context
 
@@ -190,3 +190,48 @@ Amended on 2026-09-24. The founder typed "max £400k" and "at most 35-40min". Re
 The lists are core's, `FIRM_OF_MONEY` and `FIRM_OF_MINUTES`. The rules read them in a plain prompt and in an offer. The guard on a model reads them where a model called a limit firm, and the scorer of the evaluation reads them too, so the three cannot disagree. A budget or a journey that is only noticed is offered as a firm limit where the words say so, and "add all" still adds nothing that leaves areas out.
 
 Each list was a call made for the founder, from their own sentence, and is theirs to overturn. Two things follow that they may not want. "Up to £1,700 a month" is a firm limit, and on the made-up city it leaves out sixteen of the twenty-four areas, so the example sentences of the website say "about" where they said "up to". And "maximum" and "tops" are not on the lists, so "maximum £400k" is a guide where "max £400k" is a limit.
+
+### What is said about a thing
+
+Amended on 2026-09-24, after the same model read the same 113 sentences a second time, through the guard as it then stood. Each was asked once, and ten of them three to five times more. The answers of the second measurement are held outside the repository, so the counts of it below cannot be made again from what is committed. Those of the first can, by `evals/reader/replay.py`, but for the founder's own sentence.
+
+The floor did not hold. Three sentences of 113 were offered backwards with the guess marked, where it allows one in a hundred: "my mum is after a park" as the person's own wish, "a station, heaven forbid" as a wish to be nearer one, and once in four looks a deposit as a budget. The guard fitted the answers it was built from better than fresh ones: on the first answers it marked one. And a model rested Village feel on "a real identity", which is the rules' to offer.
+
+**Decided.**
+
+1. **A guess is never marked where the words about the thing turn the wish round, or give it to someone else.** It is read where the thing stands in the sentence, across the marks either side, and never from what a model says it quoted: the words that turn a wish are the ones a model leaves out. The thing is still offered, as a question, with the whole of the sentence shown.
+2. **A guess on a scale takes the end the person named.** "Houses not flats" is Houses. An end that is turned away names the other, as the rules read it. Where a model named no end, the guess takes the end the words name only where they turned one away.
+3. **A model's guess is never marked on a reading the rules keep**, whatever words it rests it on: the readings of a word about identity, about wealth, about safety. The offer is served as the rules give it with no model.
+4. **The same readings make the same offers**, whatever order a model wrote its edits in.
+
+Core lists every word: what a person dreads, thinks little of or cannot bear, who else may wish, the third person of a wish, and the ends of a scale that a word for a home names. None is a word of the grammar, and the rules read as they did.
+
+**What it did**, on the first look of each sentence. "Before" is the guard as it stood on this branch, after core came to list the words about wealth and identity, which is why it reads 81 of the second measurement rightly where the measurement itself counted 82.
+
+| | The first answers, before | after | The second answers, before | after |
+|---|---:|---:|---:|---:|
+| Sentences | 113 | 113 | 113 | 113 |
+| Read rightly | 84 | 85 | 81 | 82 |
+| Offered backwards, with the guess marked | 1 | 0 | 3 | 1 |
+| Offered backwards by a way a model added, with no guess | 0 | 0 | 1 | 1 |
+| Applied without a press | 0 | 0 | 0 | 0 |
+
+A fifth of the sentences, 23, was held back by a hash of each id before any answer was looked at, and scored once the checks were written. All three sentences that were offered backwards fell in it. The report of the measurement had named them, so it was no blind test of those three. On it the guard marked a backwards guess on 3 of 23 of the second answers before and 1 after, and read 12 rightly before and 13 after.
+
+**One in a hundred holds on these answers, with nothing to spare**: 1 of 113 is 0.9 in 100, and a second would break it. It is still a fit and not a measurement.
+
+**What it cost.** With a stand-in that reads every case of the evaluation set rightly, 399 of 820 cases are right where 401 were. Three lost their guess, each a wish of somebody of the speaker's own: "My husband wants a pub nearby and I want a park", "My wife says parks, and what she says goes", "I'm asking for my brother: he wants pubs and a station". The cases say a careful person would raise each. The guard asks. One gained it: "To be avoided at all costs: nightlife". With a stand-in that raises whatever is named, 73 are marked backwards where 89 were.
+
+### What it still gets wrong, after the second measurement
+
+- **A number that is no budget.** "I have a 50k deposit" was a budget of £50,000, with the guess marked, in one look of four. Core lists no word for what an amount is of but money, minutes and bedrooms.
+- **A turn in another sentence, in the heading of a list, or in words core does not list.** "A park? No thanks.", "Dealbreakers: pubs", "a station would drive me up the wall". They are most of the 73.
+- **A way a model adds to a question.** "Everyone tells me to live near the station but the trains would drive me mad": in one look of four the model added more lines nearby, and it stands as a third way of the rules' question, with no guess.
+- **What a model reads differs from one asking to the next.** Of ten sentences asked four to six times, five came back one way and five did not, before and after. The founder's sentence came back three ways in six looks: with a guess at culture, without one, and once with the notice about who lives somewhere and no journey. The order of a model's edits no longer changes what is offered. What it reads, which words it quotes and whether it flags a sentence still do, and code cannot make those the same.
+- **The rules' question about a place is dropped where a model reads.** The rules alone ask which place "Chancery lane" is. With a model on, the question is asked only where the model reads the journey too. The scorer counts it as a reading of the rules lost, on the founder's sentence and on two cases like it. It was so before this amendment, and is not mended by it.
+
+### To confirm, of what is said about a thing
+
+1. **A wish of a partner's is asked, and not guessed.** The evaluation set says two people make one search. Either the cases change or the guard does.
+2. **A word for a home alone names no end.** "A flat" stays a question, and "houses not flats" is Houses.
+3. **Where a model names no end of a scale, the guess takes the end the words name only where they turned one away.** Let through for every end that is only named, a stand-in that raises whatever is named was marked backwards on eleven cases more.

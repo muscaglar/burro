@@ -2,7 +2,7 @@
 
 Written 2026-09-24. A dated snapshot, not a source of truth.
 
-**Since it was written.** The founder decided that the count and the places for each 1,000 homes are both shown, and that a wish for places to eat and drink is ranked on the second. Core says so, and a build carries both: rows 2 and 6 of section 11 are done. Going out is made of the second figure, a high street and culture venues, and counts no pub. The pubs are still held back. Where this page says that the two measures are held back, or that the second figure is not ranked on, it says what was so when it was written.
+**Since it was written.** The founder decided that the count and the places for each 1,000 homes are both shown, and that a wish for places to eat and drink is ranked on the second. Core says so, and a build carries both: rows 2 and 6 of section 11 are done. Going out was then made of the second figure, a high street and culture venues, and counted no pub. **The pubs have since been held to a second source,** the file of places, which did not confirm them: [what the file gave](cafes-gyms-and-pubs.md), section 4. Pubs and bars are counted from that file, and are in Going out again. The register's pubs alone are carried by no release. Where this page says that the two measures are held back, or that the second figure is not ranked on, it says what was so when it was written.
 
 **No person has checked anything here.** Every count was made by a program. The 33 files were first fetched on 2026-09-23, and fetched again on 2026-09-24 so that a receipt could be written for each: every receipt gives 2026-09-24 as the day its file was retrieved. They are extracts of 2026-09-09 to 2026-09-16.
 

@@ -13,7 +13,8 @@ It holds counts for London as a whole and for boroughs. It holds no postcode, no
 | | |
 |---|---|
 | What is built on the real file | The lookup: `packages/pipeline/src/burro_pipeline/cells/postcodes.py` |
-| What is built on made-up files with the real columns | The straight-line distance to the nearest GP practice and to the nearest pharmacy: `derive/gp_walk.py` and `derive/pharmacy_walk.py`. Both files have been fetched since. The report of practices has its receipt, and the step stops at it: see "What the first file of practices holds". The pharmacy list is stored with no receipt, because its period is not sure |
+| What is built on the real report | The straight-line distance to the nearest GP practice: `derive/gp_walk.py`. The report of practices has its receipt, and the step was put right on it: see "What the first file of practices holds" |
+| What is built on the real list | The straight-line distance to the nearest pharmacy: `derive/pharmacy_walk.py`. The pharmacy list has its receipt, and the step read it as it was written: see "What the first file of the pharmacy list holds" |
 | London's postcodes in use | 180,965 |
 | Of those, in an area of the build | 180,964. One stands in an output area that is outside London |
 | What the lookup would place today | 1,869 of the 1,918 places to eat and drink that the food register gives a postcode and no point |
@@ -200,7 +201,27 @@ The report was fetched on 2026-09-24 and has its receipt, `f-13acc2be00fb`, of 3
 | The prescribing setting, column 26 | `RO76` alone in 8,187 lines. Two roles with a bar between them in 27: `RO76` with another in 6, and two others in 21. Empty in one line |
 | Lines of the setting `RO76` alone | 6,558 active with no close date, 1,568 inactive, 61 dormant |
 
-So the step stops at the file, twice over: it names no `INACTIVE`, and it holds a cell to one role. Both are small to put right, and each is a choice. `INACTIVE` reads as what the specification calls closed. Whether a practice with a second role is counted is for whoever puts the step right to say, with the founder. Until then no figure is made from the file.
+The step stopped at the file, twice over: it named no `INACTIVE`, and it held a cell to one role. It was put right on 2026-09-24, the test first, and each mend is a choice.
+
+| The file | The step now | Whose it is to change |
+|---|---|---|
+| A status of `INACTIVE` | It is a fifth status, beside the four of the specification. A practice that is not active is left out, whatever else its status is, and `Report.left_out` counts each by its status: 1,568 inactive and 62 dormant | |
+| Two roles in one cell, with a bar between them | A cell is one role or several. A practice counts where one of its roles is `RO76`: such a place is a GP practice, whatever else it is. 6 lines hold `RO76` beside another, and 5 of them are active | The founder's. To leave them out is one line of `read` |
+
+So 8,193 lines are of a GP practice, and 6,563 count: active, with no close date. They are of England and Wales.
+
+### What the first file of the pharmacy list holds
+
+The list was fetched on 2026-09-24 and stored with no receipt, because its period was not sure. Its period was stated that day, it was fetched again, the publisher gave the file that was already stored, and that fetch wrote its receipt, `f-ffed833c1913`, of 2,574,037 bytes. It was read through the gate and its receipt, for the two columns the step holds it to. No name and no address was read.
+
+| Of the file | It holds |
+|---|---|
+| Lines | 10,507, under one row of names, which are the 25 fields the page lists, in their order |
+| The type of contract, `CONTRACT_TYPE` | `Community` in 10,385 lines, `DAC` in 112 and `LPS` in 10, written as the page writes them. No line holds any other |
+| The postcode, `POST_CODE` | Written with a space in every line, and empty in none |
+| A day | None. No field is a day, so the file states no day of its own |
+
+The step read the file to its end as it was written: nothing of it had to be put right. So 10,395 contractors count, which are every line but the 112 of an appliance contractor. They are of England.
 
 What was not known until a file was opened, and what still is not:
 
@@ -208,9 +229,9 @@ What was not known until a file was opened, and what still is not:
 |---|---|
 | The report of practices | How a status is spelled in full, and whether in capitals. The specification says "A (Active), C (Closed), D (Dormant) or P (Proposed)" were once letters, and that "the status name/description is provided in full" now. The step reads a status in any case, and stops at one that is none of the four. Known now: in capitals, as above |
 | The report of practices | How a date is written. The two reports of the same service that are in the store write one as 8 digits. Known now: as 8 digits |
-| The pharmacy list | How the file is encoded, and whether a contract type is written as the page writes it |
-| The pharmacy list | What day the list is as at. The page of the file gives the day it was made as 29 July 2026 |
-| Both | How many places are in London, and how many of their postcodes the lookup places |
+| The pharmacy list | Whether a contract type is written as the page writes it. Known now: it is, as `Community`, `LPS` and `DAC`, and no line holds any other. The file is UTF-8, of 10,507 rows under one row of names, which are the 25 fields the page lists |
+| The pharmacy list | What day the list is as at. No field of the file is a day, and no page says one. The page of the file gives the day it was made as 29 July 2026. The file's name ends `202606q1`, and its publisher's title is 2026-27 Quarter 1, so the list states the period as that quarter, from April to June 2026, and states no day |
+| Both | How many places are in London, and how many of their postcodes the lookup places. Known now of both: see "What is built, and on what" |
 
 Branch surgeries are not read. The publisher gives them in a report of their own. One reading of its specification said that the kind also marks vaccination sites run by primary care networks, and that the report has no column for a status. The registry entry does not cover it.
 
@@ -218,17 +239,22 @@ The pharmacy list has no field that says a pharmacy serves by post alone and tak
 
 ### What is built, and on what
 
-Both measures are built and tested on made-up files that are laid out as the publisher's pages say the real ones are. Nothing here is a figure of London. Each was worked out for no area of London, because no file of either was in the store. So none of the 1,002 areas has a figure, and nothing is put in its place.
+Both measures are built and tested on made-up files that are laid out as the publisher's pages say the real ones are. Each has been worked out on its real file since, on 2026-09-24.
 
 | | GP practice | Pharmacy |
 |---|---|---|
-| Built on | A made-up file with the real columns | A made-up file with the real columns |
-| Areas with a figure | None | None |
-| Lowest, middle and highest | Not known | Not known |
-| Rank correlation with homes per hectare | Not known | Not known |
-| Rank correlation with distance from the centre | Not known | Not known |
+| Built on | The real report, `f-13acc2be00fb`, as at 2026-09-24 | The real list, `f-ffed833c1913`, of the quarter from April to June 2026 |
+| Places that count | 6,563 in England and Wales | 10,395 in England |
+| Of those, placed in London | 1,145, one of them at a postcode that has ended. The other 5,418 stand at a postcode that is no row of London, and are placed nowhere | 1,723, four of them at a postcode that has ended. The other 8,672 stand at a postcode that is no row of London, and are placed nowhere |
+| Output areas with a distance | 26,011 of 26,369. The other 358 hold 46,456 homes, and have homes outside London nearer than the nearest practice found | 26,139 of 26,369. The other 230 hold 29,716 homes |
+| Areas with a figure | 994 of 1,002: 947 that rest on every home, and 47 that rest on fewer. 8 have none, in 5 boroughs | All 1,002: 951 that rest on every home, and 51 that rest on fewer |
+| Lowest, middle and highest | 200, 400 and 1,700 metres, on 15 steps of 100 | 100, 400 and 2,000 metres, on 14 steps of 100 |
+| Rank correlation with homes per hectare | -0.55: a practice is nearer where homes stand closer together | -0.63 |
+| Rank correlation with distance from the middle of London's homes | 0.43 | 0.53 |
 
-How a figure is made, once a file is there:
+`tests/derive/test_gp_walk_on_the_real_files.py` holds each count of the practices, and `tests/derive/test_pharmacy_walk_on_the_real_files.py` each count of the pharmacies. The correlations were worked out once, across the areas that have a figure, and no test holds them. The distance to a station stands at -0.48 and 0.48, and the distance to a town centre at -0.54 and 0.42.
+
+How a figure is made:
 
 1. Each place that counts is looked up by its postcode, and put at the point the directory gives.
 2. For each output area, the distance in a straight line from its centre to the nearest place.
@@ -239,9 +265,9 @@ It is a straight line, and not a walk. The name of each measure says so.
 
 ### What core needs
 
-Core names each measure a walk, in minutes, on a network of streets. What is built is a straight line, in metres, from a point. So the row of the catalogue that each measure writes is not core's. A build would leave the measure out by the rule `input_has_one_receipt` while its file has no receipt, and by `measure_is_as_core_says` after. Nothing in core was changed. For a build to carry either, core would say, in `packages/core/src/burro_core/catalogue.py`:
+Core named each measure a walk, in minutes, on a network of streets, when this page was first written. What is built is a straight line, in metres, from a point. Core has said so since catalogue version 12, as the last column has it, so the row of the catalogue that each measure writes is core's. A build leaves a measure out by the rule `input_has_one_receipt` while its file has no receipt.
 
-| Of | Core says now | It would say |
+| Of | Core said | Core says |
 |---|---|---|
 | `gp_walk`, the label | Walk to the nearest GP surgery | Straight-line distance to the nearest GP practice, placed by its postcode |
 | `pharmacy_walk`, the label | Walk to the nearest pharmacy | Straight-line distance to the nearest pharmacy, placed by its postcode |
@@ -251,7 +277,7 @@ Core names each measure a walk, in minutes, on a network of streets. What is bui
 
 The id of each feature keeps the word walk, as an id never moves.
 
-Neither measure is on the list of the measures of a build, `MEASURES` in `derive/measures.py`. A test of each makes the line that puts it there, and calls the measure as the list does.
+The distance to a GP practice and the distance to a pharmacy are on the list of the measures of a build, `MEASURES` in `derive/measures.py`, since 2026-09-24. A test of each calls the measure as the list does.
 
 ## A point for a postcode is not a door
 
@@ -335,8 +361,8 @@ What the counts cannot see: whether a point the directory gives is where a busin
 | # | What is to be decided or seen |
 |---|---|
 | 1 | Two registry entries were marked approved, on pages read through a reader that extracts. Each lists under `before_launch` what a person has still to see. Say whether each stands |
-| 2 | The plan, in section 4, lists GP access as out of the first version. The design of the London data recommends that the two walks come in. Say which stands |
-| 3 | An approved entry may be fetched under the approval of 23 September. Neither file was fetched. Say whether each is to be |
+| 2 | The plan, in section 4, lists GP access as out of the first version. The design of the London data recommends that the two walks come in. The distance to a GP practice and the distance to a pharmacy are on the table of the measures of a build since 2026-09-24, so that Everyday on foot rests on the whole of its recipe. Say whether the plan is to say so too |
+| 3 | An approved entry may be fetched under the approval of 23 September. Both files have been fetched since, and each has its receipt. The period of the pharmacy list is stated as the quarter its title names, by a program that read the layout of the file: no page and no column says what day the list is as at. It stands on reasoning the founder accepted of two other files on 2026-09-24. To put `data_period` back under `unsure` in the list is to say that it does not |
 | 4 | The registry keeps London's rows of the postcode directory alone. So a surgery or a pharmacy outside London is placed nowhere, and the homes near the edge of London have no distance. Say whether the rows of the districts that border London may be kept |
 | 5 | The reader of the food register never reads a postcode, because an address may be a home. Reading the postcode of a business that has no point would place 1,869 more places to eat and drink. Say whether it may |
 | 6 | Say whether a place at a postcode that has ended is counted. Here it is, and it is counted apart: 119 of the 1,869 |
@@ -349,5 +375,5 @@ What the counts cannot see: whether a point the directory gives is where a busin
 |---|---|
 | Postcode directory | Contains OS data © Crown copyright and database right 2026. Contains Royal Mail data © Royal Mail copyright and database right 2026. Source: Office for National Statistics licensed under the Open Government Licence v.3.0 |
 | Food hygiene register | Contains public sector information licensed under the Open Government Licence v3.0 |
-| GP practices, once fetched | Contains information from NHS England, licenced under the current version of the Open Government Licence |
-| Pharmacies, once fetched | Contains public sector information licensed under the Open Government Licence v3.0 |
+| GP practices | Contains information from NHS England, licenced under the current version of the Open Government Licence |
+| Pharmacies | Contains public sector information licensed under the Open Government Licence v3.0 |

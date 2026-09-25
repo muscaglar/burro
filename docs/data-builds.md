@@ -14,15 +14,15 @@ As of 2026-09-23, on the branch data-m0. Read this first. What follows under thi
 
 | What | How it stands on 2026-09-24 |
 |---|---|
-| A fetch | The step `fetch` was run outside a workflow, into a store that is a folder. It fetched files of nine lists, and four files were saved by a person. No hosted run has fetched a file, and no object store exists |
-| Receipts | 74 are in `data/receipts/`, each of a file of a list: the eleven of list m1, all 45 of m2-places, 12 of the 16 of m2-living, two of m11-age-and-households, and one each of m10-health, m10-land-use, m11-outdoor-space and m2-culture. 33 of them are of the food hygiene register, one for each authority, and four are of files a person saved. Eight files of the lists have none: the street extract, the three yearly files of sales, the pharmacy list, the high street boundaries, the lookup between the census areas of 2011 and of 2021, and the timetables |
+| A fetch | The step `fetch` was run outside a workflow, into a store that is a folder. It fetched files of twelve lists, and four files were saved by a person. No hosted run has fetched a file, and no object store exists |
+| Receipts | 86 are in `data/receipts/`, each of a file of a list: the eleven of list m1, all 45 of m2-places, 15 of the 18 of m2-living, all three of m12-public-transport, two of m10-health, two of m11-age-and-households, both of m11-outdoor-space, two of m2-culture, which takes one file of places twice, the second time with the brand of each place, and one each of m10-land-use, m12-household-income, m2-stations and m5-journeys. 33 of them are of the food hygiene register, one for each authority, and four are of files a person saved. Four files of the lists have none: the street extract, the workbooks of sales and of the lower quartile, and the high street boundaries. The workbook of median prices was fetched again on 2026-09-24, and its receipt is for the use the list names |
 | List m1 | It states the edition and the period of every file, and `plan` reads `ready=11`. A program read each file, and no person has. Section 7 asks that a person read a file before its receipt is written. Decide whether what a program read is enough, or put both names back under `unsure` and take the item out of `READ_IN_THE_FILE` |
-| Two more lists | `m2-places` and `m2-living`. `plan` reads `ready=45` of 45 files and `ready=15` of 18 |
-| Seven later lists | `m10-health`, `m10-land-use`, `m11-age-and-households`, `m11-high-streets`, `m11-outdoor-space`, `m2-culture` and `m5-journeys` hold ten files between them. `plan` reads seven of them ready: the pharmacy list is unsure of its period, the lookup between the census areas of 2011 and of 2021 is unsure of its edition and its period, and the timetables have no address |
+| Two more lists | `m2-places` and `m2-living`. `plan` reads `ready=45` of 45 files and `ready=18` of 18: the three yearly files of prices paid have their addresses since 2026-09-24, and each was fetched that day and has its receipt |
+| Ten later lists | `m10-health`, `m10-land-use`, `m11-age-and-households`, `m11-high-streets`, `m11-outdoor-space`, `m12-household-income`, `m12-public-transport`, `m2-culture`, `m2-stations` and `m5-journeys` hold sixteen files between them. `plan` reads all sixteen ready. The pharmacy list states its period since 2026-09-24, as the quarter its publisher's title names. It was fetched again that day, and has its receipt. The lookup between the census areas of 2011 and of 2021 and the timetables were each fetched on 2026-09-24 and kept with no receipt, until the list of each stated its edition and its period, and what `describe` gave of the file. Each was fetched again that day, was the same file, and has its receipt. The lookup states neither, so both are its record's. The timetables state both: the day in the names of the zips the file holds, and the days its services say they run on. They are replaced each week under one address: read the next issue with `describe --inside`, and state both again, before a fetch that would take it |
 | Files that state their own edition | 37 files of those two lists have no edition on their publisher's page, and were kept with no receipt. The lists now say where each file states its own, and fetch reads it in what arrives: section 7, "A file that states its own edition". All 37 read ready. The town centre boundaries give the day the file was last changed, and fetch takes no period from it: the list states the period as that day, because a boundary is as the file holds it, and its notes say what was read. A program read it, and no person has. 36 of the 37 have a receipt since they were fetched again, on 2026-09-24: the 33 files of the food hygiene register, two reports and the town centres. The street extract has none. Two more files state no edition and joined the list with an address on 2026-09-24: conservation areas and listed buildings. Each is dated by the day it was retrieved, and has its receipt |
 | A build that reads a file which states its own edition | `seal` and `preview` take one edition of such a file, by a rule, and the lock says which: section 7, "Which edition a build takes". The second preview now seals the 33 files of the register. No measure reads them yet |
-| The hosts a download is sent on to | Lists m1 and m2-places name four under `may_redirect_to`, as a fetch saw them. The list m10-health names one more, the store the pharmacy list is handed out from. That file has no receipt yet, so no receipt bears the host out |
-| The addresses of files | 40 of the 126 entries name them under `file_urls`: every entry behind a file of a list whose address the list holds, and the four behind a file a person saved |
+| The hosts a download is sent on to | Lists m1 and m2-places name four under `may_redirect_to`, as a fetch saw them. The list m10-health names one more, the store the pharmacy list is handed out from, and the receipt of that file bears it out |
+| The addresses of files | 45 of the 128 entries name them under `file_urls`: every entry behind a file of a list whose address the list holds, and the four behind a file a person saved |
 | Steps that read a real file | `cells`, the measures under `derive`, and `preview`. Two previews of London were built: sections 15 and 16 |
 | The draft of the areas | `python -m burro_pipeline.areas.draft_run --out FOLDER` makes the names and the borders of London's areas from the store, in one command. It is a draft: a method made it and nobody has checked it. Nothing of it is committed |
 | The review desk | `make desk` starts it. It is filled from a draft with `make desk-fill`. Names are decided before borders: `packages/pipeline/AGENTS.md` says why |
@@ -68,7 +68,7 @@ Each was found by reading the code and by trying it on made-up files. None stops
 | Known | What it means | Until it is mended |
 |---|---|---|
 | The list names the hosts a request may be sent on to, under `may_redirect_to`. The registry entry does not | A change to a list alone can widen where a file may come from | Read a change to `may_redirect_to` as closely as a change to an entry. Lists m1 and m2-places name four such hosts, and m10-health one |
-| On a host that only the list names, fetch refuses a file only if it came from an address that some entry names. 86 of the 126 entries name no address for their files | A file of one of those entries that is kept on such a host would not be told apart | The same. And name the addresses of an entry's files before a list names a host it shares |
+| On a host that only the list names, fetch refuses a file only if it came from an address that some entry names. 83 of the 128 entries name no address for their files | A file of one of those entries that is kept on such a host would not be told apart | The same. And name the addresses of an entry's files before a list names a host it shares |
 | `seal` puts a file in the lock for any use the gate allows, an internal use included | A file read to validate against is an input of the build | `check` names every row that rests on such a file, under `input_is_allowed`. No figure may rest on it |
 | `write_release` asks the gate about the sources a release names, and reads no evidence | A source that is named only in the evidence is not asked about when a release is written | `check` asks about it. Run `check` on every release, with its lock and the registry. Evidence inside a release is for the contract's next schema |
 | `check` asks a source behind a journey for `routing`, and one behind a name for `gazetteer` | The weights and the lookup behind a journey must be registered for `routing`, as ADR 0016 has them registered for `scoring`. No entry has been changed for it | The first real build carries no journey. Decide before the first that does |
@@ -568,6 +568,7 @@ Save the file in a browser, and hand it over with the step `by-hand`, on a machi
 - **What it prints is for your own machine, and never for a public log.** It takes the first row of a table for the names of its columns. Where a table has no header, that row is data: a name, a postcode, a price. So treat all it prints as if it held a row.
 - **No workflow runs it.** The rules check refuses a workflow that does. If it were run behind the public log, every line of it would be withheld.
 - **What a workbook says of itself.** Of an OpenDocument workbook, `--sheet NAME` gives the words of that one sheet as well: each row that holds words alone, with the column each cell stands in. That is its cover, its notes, the title over a table, the rows that name its columns and the notes under it. A row that holds a number is never given, so no figure is. A sheet of text alone, such as a list of names, is given row by row, up to 200 rows.
+- **What a timetable says of itself.** Of a timetable in TransXChange it gives how many services the file holds, the earliest day any of them runs from, the latest day any runs to, and the mode of each. It reads no stop, no name of a line and no time. With `--inside` it gives the same of every timetable in a zip, and in a zip inside a zip. It is how the period of a file of timetables is read before the file has a receipt: the period is the days the timetables say they run on, and never the day the file was fetched. On the timetables of Transport for London it takes about two minutes.
 - Paste what it prints nowhere that others can read: not in an issue, a pull request, a commit or a chat.
 
 ## 8. What a run prints
@@ -799,7 +800,7 @@ Nothing below could be tried before the repository was on GitHub. The rehearsal 
 | A way to give a build every edition of an earlier lock at once | A build is told an edition with `--edition ITEM=EDITION`, once for each file. The register is 33 files, so a build that repeats an earlier one is given 33 | Read `item` and `edition` of each input in the earlier `lock.json`, and give each: section 7, "Which edition a build takes" |
 | The step `seal` for more than one list | `seal` takes one list, and refuses a folder that holds a receipt of another. `preview` takes several, and seals as it starts | Build with `preview`, which writes the lock beside the release |
 | A record of a correction that a step reads | A receipt is put right by hand, and the record is the history of the repository. No step checks it | Section 7, "Put a receipt right" |
-| Routing London | The engine that routes a real timetable needs Java, and packages that no run may install yet. No timetable has been fetched, and none converted. [The travel design](design/london-data-travel.md), section 18, lists what stands in the way | The workflow `data-travel` routes the made-up town, with the router that is for tests |
+| Routing London | The engine that routes a real timetable needs Java, and packages that no run may install yet. The timetables of Transport for London were fetched on 2026-09-24 and have their receipt, and none has been converted. [The travel design](design/london-data-travel.md), section 18, lists what stands in the way | The workflow `data-travel` routes the made-up town, with the router that is for tests |
 | A workflow for research with a model | A later milestone | |
 | Showing the kind of error a step failed with | The rule is step names, counts and hashes only. The name of an error and the line of code it came from hold no data, and would make a failure far quicker to find. The fetch command already prints the kind of a fault, and a run withholds it | Yours to decide |
 
@@ -1050,3 +1051,308 @@ Eight of the eleven vibes have a band:
 - A search that asks for a measure by name puts an area with no figure for it below every area that has one. So the 32 areas with no figure for a station stand last for a person who asks to be near one, and stand where their fit puts them for a person who does not.
 - A budget and a journey are still listed as what this data cannot answer, and a word for a smart area is answered by Gritty alone: the release holds no price.
 - Everything sections 16 to 19 say before you look still stands, but for what they say is left out and which vibe has a band.
+
+## 21. A preview whose areas bear names
+
+Until now every area of a preview read as the statistics office labels it: a borough and a number. Given the draft of London's named areas, each area bears the name of the drafted neighbourhood that holds most of its output areas, with the label beside it, and says that the name is a draft. [ADR 0025](adr/0025-an-area-bears-a-drafted-name-and-says-so.md) holds the decision, and section 20 of [the areas design](design/london-data-areas.md) what was counted.
+
+Do everything as section 15 says, with these changes:
+
+| # of section 15 | Run this in its place |
+|---|---|
+| Before 4 | `uv run python -m burro_pipeline.areas.draft_run --out FOLDER`, in the terminal where step 3 named the store. It makes the draft of names from the store, in about four minutes. `FOLDER` is outside what git tracks |
+| 4 | `make preview ARGS="--release-id lon-2026-09-24-96 --built-at 2026-09-24T21:00:00Z --out data/releases --names FOLDER --list m1 --list m2-places --list m2-living --list m2-culture --list m10-health --list m10-land-use --list m11-age-and-households --list m11-high-streets --list m11-outdoor-space"` |
+| 5 | `uv run burro-release check data/releases/lon-2026-09-24-96 --receipts data/receipts` |
+| 6 | The same, with `lon-2026-09-24-96` where section 15 has `lon-2026-09-24-01` |
+
+Once names have been decided at the review desk, give `--names` the folder `gazetteer` that `python -m desk compile` wrote. A name a person chose is then served as they spelt it, and says that it was checked.
+
+What to know before you look:
+
+- A third line is printed after `step=cells`: `step=names status=ok release=lon-2026-09-24-96 areas=1002 named=1002 files=2`. It names no area. The first line reads `inputs=76`: the three files read of the draft are named in the lock beside the 73 files of publishers.
+- `names.csv` beside the release lists every area with its borough, its label, the name it bears, who wrote it and whether a person has checked it. It names places, so it is written where the build writes and is never committed. `build.json` holds the counts.
+- All 1,002 areas bear a name, under 458 names. 312 names are borne by two areas or more, and 806 areas say the side they lie on, as "north". 16 areas say what another area of their borough says: the label beside each tells them apart.
+- Every name is a draft. No person has read one. An area at the edge of a neighbourhood bears the name of the neighbourhood that holds most of it, and 120 areas have under half of their output areas in the neighbourhood whose name they bear. 28 areas bear a name that the draft marks as perhaps a street or a building: the mark falls on names that are wrong and on names everybody uses.
+- No figure moves. The files of a release that hold its figures are the same bytes with a draft of names and with none, so a search ranks the same areas in the same order.
+- A search by name finds the areas that bear it: the box beside the prompt lists them, each as a link to its page. In a sentence, a name that one area alone bears is read as the name of an area always was: "not in" before it leaves the area out. A name that several areas bear names none of them, so the reader makes nothing of it. Of the 819 sentences of the reader's cases, none is read otherwise for the names.
+- The build stops, and writes nothing, where the draft was made from a file of names that is no file of the build. Make the draft again from the store the build reads, and name the lists `m1` and `m2-places`, which hold the two files that write a name.
+- Everything section 20 says before you look still stands.
+
+## 22. A preview with 35 measures, once cafes, gyms and pubs were counted
+
+The catalogue is at version 13, and the engine is 1.12.0. Cafes, gyms and pubs are counted from the file of places, each as a count that is shown and a figure for each 1,000 homes that is ranked on. Homes near a cluster of pubs and bars are measured, so Quiet streets rests on its whole recipe. Pubs and bars are in Going out again. [What the file gave](research/data/cafes-gyms-and-pubs.md) says each, and why pubs are counted from the file of places and no longer from the food register.
+
+Do everything as section 15 says, with these changes:
+
+| # of section 15 | Run this in its place |
+|---|---|
+| 4 | `make preview ARGS="--release-id lon-2026-09-24-95 --built-at 2026-09-24T22:00:00Z --out data/releases --list m1 --list m2-places --list m2-living --list m2-culture --list m10-health --list m10-land-use --list m11-age-and-households --list m11-high-streets --list m11-outdoor-space"` |
+| 5 | `uv run burro-release check data/releases/lon-2026-09-24-95 --receipts data/receipts` |
+| 6 | The same, with `lon-2026-09-24-95` where section 15 has `lon-2026-09-24-01` |
+
+What to know before you look:
+
+- The first line reads `inputs=73 missing=10`, as in section 20. No file was fetched for this build: the cafes, the gyms and the pubs are in the part of the file of places that the cultural venues are counted from.
+- Step 4 prints 35 lines of `step=derive status=ok` and four of `step=derive status=skipped`. The size and the shape of a town centre and what there is to do in parks are left out by `measure_is_as_core_says`. What homes sell for is left out by `input_has_one_receipt`. No measure is held back.
+- Step 5 says `35 measures`, and the check counts 51,920 facts.
+- Every area has a figure for 21 of the 35. The six figures of cafes, gyms and pubs have one in 992 of the 1,002 areas, as places to eat and cultural venues do: an area at the edge of London has homes within reach outside it, and no figure. Homes near a cluster of pubs and bars have a figure in every area.
+
+The same eight of the eleven vibes have a band. No vibe gained one:
+
+| Vibe | It holds, in 100 | Areas with a band | What moved |
+|---|---|---|---|
+| Going out | 100 | 992 | Pubs and bars are 35 in 100 of it. 699 areas keep their band, 292 move by one and 1 by two. The order of the areas is the same at 0.97 |
+| Quiet streets | 100, where it held 70 | 1,002 | Homes near a cluster of pubs and bars are 30 in 100 of it. 704 areas keep their band, 296 move by one and 2 by two. The order of the areas is the same at 0.96 |
+| The other nine | As in section 20 | As in section 20 | Nothing |
+
+- A wish for cafes, for a gym or for pubs is applied, and ranks on the figure for each 1,000 homes. The ten areas with no figure are listed apart, with what they lack.
+- A rate takes few values: many areas tie on it, so a search that asks for cafes alone orders groups of areas, and the rest of the search orders the areas within a group.
+- Every figure of pubs says that the file holds fewer pubs toward the edge of London. Look at the map of Going out at the edge before it is served.
+- Everything sections 16 to 20 say before you look still stands, but for what they say is left out and what Going out and Quiet streets hold.
+
+## 23. A preview with 30 measures, once a food shop and a GP practice were measured
+
+It was built before the streams of 2026-09-24 were joined, from the measures of section 20. The catalogue is at version 13, and the engine is 1.12.0. Two measures joined the table of a build. The nearest food shop is read from the file of places that the list `m2-culture` takes, and the nearest GP practice from the report of practices of the list `m10-health`, each as a straight line in metres. So Everyday on foot holds 85 in 100 of its recipe, and has a band. [What core needs](design/what-core-needs.md) says each, and what is still left out.
+
+Do everything as section 15 says, with these changes:
+
+| # of section 15 | Run this in its place |
+|---|---|
+| 4 | `make preview ARGS="--release-id lon-2026-09-24-96 --built-at 2026-09-24T22:00:00Z --out data/releases --list m1 --list m2-places --list m2-living --list m2-culture --list m10-health --list m10-land-use --list m11-age-and-households --list m11-high-streets --list m11-outdoor-space"` |
+| 5 | `uv run burro-release check data/releases/lon-2026-09-24-96 --receipts data/receipts` |
+| 6 | The same, with `lon-2026-09-24-96` where section 15 has `lon-2026-09-24-01` |
+
+It names every list that holds a receipt, as section 20 does. Step 4 takes about eight minutes.
+
+What to know before you look:
+
+- The first line reads `inputs=73 missing=10`, as in section 20. The list of pharmacies is one of the ten: its period is stated in the list since, and it has no receipt until it is fetched again.
+- Step 4 prints 30 lines of `step=derive status=ok` and five of `step=derive status=skipped`, which are the five of section 20.
+- Step 5 says `30 measures`, and the check counts 46,962 facts.
+- The nearest food shop has a figure in every area. The nearest GP practice has one in 994 of the 1,002: a practice outside London is placed nowhere, so a home near the edge of London has no distance.
+- A sentence that says "walkable", "near a supermarket", "near a GP" or "shops nearby" is read and ranked on. "Near a pharmacy" is read, and listed as what this data cannot answer.
+
+Nine of the eleven vibes have a band. Eight are as section 20 has them, and the ninth is Everyday on foot:
+
+| Vibe | It holds, in 100 | Areas with a band | What is not held |
+|---|---|---|---|
+| Everyday on foot | 85 | 984 | The nearest pharmacy, 15 |
+
+- 957 areas rest on all four parts that are held. 27 rest on three of them, at 60 to 70 in 100, and 18 have no band: each is at the edge of London, where the nearest station, town centre or GP practice may stand outside it.
+- Everyday on foot is mostly a map of how built up a place is. It stands in the order of homes per hectare at 0.76 by rank, and of the distance from the middle of London's homes at -0.65. Of the 196 areas of its highest band, 14 are no denser than the middle area of London, and of the 197 of its lowest, 5 are denser. It finds much the same areas as Going out, at 0.81. Look at its map before it is served.
+- A food shop is a grocer, a supermarket or a convenience store, as the file of places gives it. Nothing says how large a shop is or what it sells, so a corner shop counts as a supermarket does.
+
+## 24. A preview with 31 measures, once a pharmacy was measured
+
+It was built before the streams of 2026-09-24 were joined, as section 23 was. The catalogue is at version 13, and the engine is 1.12.0. One measure joined the table of a build: the nearest pharmacy, read from the pharmacy list of the list `m10-health`, as a straight line in metres. So Everyday on foot rests on the whole of its recipe. No recipe moved for it: Everyday on foot says, first of what it cannot see, that it is mostly a map of how built up a place is. [What core needs](design/what-core-needs.md) says each, and what is still left out.
+
+Do everything as section 15 says, with these changes:
+
+| # of section 15 | Run this in its place |
+|---|---|
+| 4 | `make preview ARGS="--release-id lon-2026-09-25-51 --built-at 2026-09-24T22:30:00Z --out data/releases --list m1 --list m2-places --list m2-living --list m2-culture --list m10-health --list m10-land-use --list m11-age-and-households --list m11-high-streets --list m11-outdoor-space"` |
+| 5 | `uv run burro-release check data/releases/lon-2026-09-25-51 --receipts data/receipts` |
+| 6 | The same, with `lon-2026-09-25-51` where section 15 has `lon-2026-09-24-01` |
+
+It names every list that holds a receipt, as section 23 does. Step 4 takes about nine minutes.
+
+What to know before you look:
+
+- The first line reads `inputs=74 missing=9`. The list of pharmacies has its receipt, so nine files of the nine lists have none.
+- Step 4 prints 31 lines of `step=derive status=ok` and five of `step=derive status=skipped`, which are the five of section 20.
+- Step 5 says `31 measures`, and the check counts 47,964 facts.
+- The nearest pharmacy has a figure in every area. Its figure is of the list of a quarter, from April to June 2026, and says no day.
+- A sentence that says "near a pharmacy" or "a chemist nearby" is read and ranked on. A word for a doctor or for a chemist is heard only where the words beside it say near, so "I am a doctor" asks for nothing.
+
+Nine of the eleven vibes have a band, as in section 23. Everyday on foot is the one that moved:
+
+| Vibe | It holds, in 100 | Areas with a band | What is not held |
+|---|---|---|---|
+| Everyday on foot | 100 | 988 | Nothing |
+
+- 957 areas rest on all five parts. 31 rest on fewer, at 60 to 85 in 100, and 14 have no band: each is at the edge of London, where the nearest station, town centre or GP practice may stand outside it. Four areas gained a band with the pharmacy, and none lost one.
+- The pharmacy moved the bands little. Of the 984 areas that had a band before, 846 are in the band they were in, 72 are one band higher and 66 one band lower. None moved by two. The two orders agree at 0.99 by rank.
+- Everyday on foot is still mostly a map of how built up a place is, and says so beside its band. It stands in the order of homes per hectare at 0.77 by rank, and of the distance from the middle of London's homes at -0.66. Of the 197 areas of its highest band, 13 are no denser than the middle area of London, and of the 198 of its lowest, 5 are denser. It finds much the same areas as Houses or flats towards Flats, at 0.80, and as Going out, at 0.79.
+- A pharmacy that serves by post alone is counted as any other: the list has no column that says which they are.
+
+## 25. A preview with the brands, and with what homes sell for
+
+It was built before the streams of 2026-09-24 were joined, from the measures of section 20. The catalogue is at version 13. It holds the chains of grocers, gyms and coffee as measures ([decision record 0026](adr/0026-the-chains-in-a-place-are-measured-by-a-table-of-tiers.md)), and the list `m2-culture` takes the file of places a second time, with the brand of each place. The workbook of median prices has a receipt for scoring, so the build holds what homes sell for.
+
+Do everything as section 15 says, with these changes:
+
+| # of section 15 | Run this in its place |
+|---|---|
+| 4 | `make preview ARGS="--release-id lon-2026-09-24-96 --built-at 2026-09-24T22:30:00Z --out data/releases --list m1 --list m2-places --list m2-living --list m2-culture --list m10-health --list m10-land-use --list m11-age-and-households --list m11-high-streets --list m11-outdoor-space"` |
+| 5 | `uv run burro-release check data/releases/lon-2026-09-24-96 --receipts data/receipts` |
+| 6 | The same, with `lon-2026-09-24-96` where section 15 has `lon-2026-09-24-01` |
+
+What to know before you look:
+
+- The first line reads `inputs=75 missing=9`. The build takes about eleven minutes, of which the brands take under one.
+- Step 4 prints 76 lines of `step=derive status=ok` and six of `step=derive status=skipped`. The nearest Third Space and the nearest Gymbox are left out by `measure_has_a_figure`: the file of places holds no place of either. The size and the shape of a town centre and what there is to do in parks are left out by `measure_is_as_core_says`, and pubs and bars by `measure_is_not_held_back`, as before.
+- `step=cost` reads `status=ok` with 2,544 rows: what a home of each kind sells for, where the publisher gives it.
+- Step 5 says `76 measures`, and the check counts 78,733 facts.
+- The mix of brands has a figure in 990 areas and independent places in 992. The nearest place of a chain has one only where a place stands within 2,000 m of half an area's homes: 989 areas for the commonest chain and 21 for the rarest that the file holds.
+
+Ten of the eleven vibes have a band. Food and drink and Village feel are the two that had none:
+
+| Vibe | It holds, in 100 | Areas with a band | What is not held |
+|---|---|---|---|
+| Food and drink | 80 | 992 | Kinds of food, 20 |
+| Village feel | 60 | 969 | A small centre, 20, and a compact centre, 20 |
+| Everyday on foot | 45 | 0 | The walk to a food shop, 25, a GP, 15, and a pharmacy, 15 |
+
+The other eight are as section 20 has them.
+
+- **Village feel does not find villages, and the build that was made placed areas on it.** Since then core places it only where the size or the shape of a town centre has a figure, so a build made now places no area on it: [the contract](design/contract.md), section 3.2. It holds the least a band is given on, and nothing of a town centre. [The page on brands](research/data/brands.md), section 7, says what it finds. Look at its map before it is served.
+- A word for a smart area is answered three ways: the mix of brands, Gritty, and what homes sell for.
+- A budget is answered. A firm limit of 400,000 pounds for a flat leaves out 397 areas, and 75 more have no price for a flat and say so.
+- A journey is still listed as what this data cannot answer.
+
+## 26. A preview with 32 measures, once core held who lived somewhere
+
+The catalogue is at version 13, and the engine is 1.12.0. Core holds four measures of who lived in an area at the census of 2021, by their age or by what their households are made of, and two vibes that hold one each: Family area and Young professionals. [The design of those measures](design/residents-age-and-households.md) says what was decided, holds the row of the proxy audit, and says what this build shows of the two vibes.
+
+Do everything as section 15 says, with these changes:
+
+| # of section 15 | Run this in its place |
+|---|---|
+| 4 | `make preview ARGS="--release-id lon-2026-09-24-80 --built-at 2026-09-24T23:45:00Z --out data/releases --list m1 --list m10-health --list m10-land-use --list m11-age-and-households --list m11-high-streets --list m11-outdoor-space --list m2-culture --list m2-living --list m2-places"` |
+| 5 | `uv run burro-release check data/releases/lon-2026-09-24-80 --receipts data/receipts` |
+| 6 | The same, with `lon-2026-09-24-80` where section 15 has `lon-2026-09-24-01` |
+
+It names every list that holds a receipt, as section 20 does. The list of journeys holds none, and is left out.
+
+What to know before you look:
+
+- The first line reads `inputs=73 missing=10`, as in section 20.
+- Step 4 prints 32 lines of `step=derive status=ok` and five of `step=derive status=skipped`. The four that are new are of the source `ons-census-2021-age-and-household-tables`, and each has a figure in each of the 1,002 areas. What is left out is what section 20 leaves out, by the same rules.
+- Step 5 says `32 measures`, and the check counts 50,978 facts.
+- Each of the four is a share in 100, given to one decimal place, from the statistics office's own row for the area. The release and its evidence hold no count of people.
+
+Ten of the thirteen vibes have a band: the eight of section 20, as they were there, and the two that are new.
+
+| Vibe | It holds, in 100 | Areas with a band | What is not held |
+|---|---|---|---|
+| Family area | 100 | 1,002 | |
+| Young professionals | 100 | 994 | |
+
+- Neither is on a result unless it was asked for, and neither is in the list of what an area has most or least of. A map may be coloured by each, and a comparison holds each.
+- A phrase for either is offered and never applied: "young professionals, lively, near a station" applies nothing, and offers Young professionals, Going out and the nearest station. A wish for fewer of anyone is answered with the notice, and nothing is offered for it.
+- Young professionals stands at 0.84 with Houses or flats across London's areas, and Family area at 0.08. Look at the map of each before it is served: the design says what a Londoner would and would not know in each.
+- Everything sections 16 to 20 say before you look still stands, but for which measures are carried and which vibe has a band.
+
+## 27. A preview with prices from the sales, two more figures of homes, and household income beside it
+
+The catalogue is at version 13, and the engine is 1.13.0. What a home sells for is worked out from the sales of three years, for each kind of home, and a firm budget has a margin. The council tax bands and the rise in prices are measures. Household income is written to a folder of its own beside the release, to be shown and never ranked on. [The page of research](research/data/prices.md) holds the counts, and decision records [0021](adr/0021-a-price-is-shown-as-the-publisher-gives-it.md) and [0028](adr/0028-household-income-is-shown-and-never-ranked-on.md) what was decided.
+
+Do everything as section 15 says, with these changes:
+
+| # of section 15 | Run this in its place |
+|---|---|
+| 4 | `make preview ARGS="--release-id lon-2026-09-25-70 --built-at 2026-09-25T00:00:00Z --out data/releases --list m1 --list m2-places --list m2-living --list m2-culture --list m10-health --list m10-land-use --list m11-age-and-households --list m11-high-streets --list m11-outdoor-space --list m12-household-income --list m12-public-transport"` |
+| 5 | `uv run burro-release check data/releases/lon-2026-09-25-70 --receipts data/receipts --income data/releases/lon-2026-09-25-70-income` |
+| 6 | The same, with `lon-2026-09-25-70` where section 15 has `lon-2026-09-24-01`. The service finds the folder of income beside the release |
+
+It names every list that holds a receipt. The list of journeys holds none, and is left out. Step 4 takes about seven minutes: three files of sales hold 2.7 million rows.
+
+What to know before you look:
+
+- The first line reads `inputs=81 missing=6`. Six files of the eleven lists have no receipt, and are no part of the build: the workbooks of lower-quartile prices and of counts of sales, the list of pharmacies, the high street boundaries, the streets, and the lookup between the areas of two censuses.
+- Step 4 prints 32 lines of `step=derive status=ok` and four of `step=derive status=skipped`, which are the four that section 20 names. The council tax bands have a figure in 982 of the 1,002 areas, and each rise in all of them.
+- `step=cost` reads `status=ok source=hmlr-price-paid areas=1002 rows=2859 files=5`. A flat has a price in 984 areas, a terraced house in 940, a semi-detached house in 653 and a detached house in 282. Each row says how many sales it rests on, and none rests on fewer than 10.
+- `step=income` reads `status=ok source=ons-income-estimates-small-areas areas=1002 values=1002 files=1`. It is written after the release is checked, to the folder `lon-2026-09-25-70-income`. The release holds nothing of it: no measure, no fact and no row of evidence.
+- Step 5 says `32 measures`, and then `1002 areas, 1002 with an estimate, real` for the income. The check counts 51,813 facts.
+- **A budget is now answered.** A firm £400,000 for a flat leaves out 231 areas, where it left out 424 with no margin. Most of them are in nine boroughs of inner and west London. An area that is kept with its middle price over the budget says how far over, and that about half of the flats sold there went for less.
+- A price is of homes of every size. "A 1 bed flat" is read as a flat, and the offer says that Burro holds no price by the number of bedrooms.
+- A word for a smart area is offered three things: Gritty towards Polished, what homes sell for, and the council tax bands. A word for a place on the rise is offered the rise over five years and over ten. None is applied until it is pressed.
+- **A journey is still what this data cannot answer.** The release holds no place to reach, so "35 to 40 minutes from" a place is listed as not in this data, and the first areas of a search may lie far from it.
+- The page of an area offers household income under its own heading, after every figure of the place. It is asked for when it is opened. No census figures are offered: no build writes a real census yet.
+- Everything sections 16 to 20 say before you look still stands, but for what they say of a price and of a budget.
+
+## 28. A preview with private outdoor space worked out, and held back
+
+The catalogue is at version 13, and the engine is 1.12.0. Core names private outdoor space as it is built: addresses with private outdoor space, by MSOA. The measure is on the table of measures and is held back from every release, until its row of the proxy audit has passed. So this preview carries what the preview of section 20 carried, and works one more measure out.
+
+Do everything as section 15 says, with these changes:
+
+| # of section 15 | Run this in its place |
+|---|---|
+| 4 | `make preview ARGS="--release-id lon-2026-09-25-51 --built-at 2026-09-25T00:00:00Z --out data/releases --list m1 --list m2-places --list m2-living --list m2-culture --list m10-health --list m10-land-use --list m11-age-and-households --list m11-high-streets --list m11-outdoor-space"` |
+| 5 | `uv run burro-release check data/releases/lon-2026-09-25-51 --receipts data/receipts` |
+| 6 | The same, with `lon-2026-09-25-51` where section 15 has `lon-2026-09-24-01` |
+
+It names the nine lists that section 20 names. Step 4 takes about ten minutes.
+
+What to know before you look:
+
+- The first line reads `inputs=77 missing=6`. Six files of the nine lists have no receipt, and are no part of the build: the workbooks of median prices, of sales and of the lower quartile, the list of pharmacies, the high street boundaries and the streets. The lookup between the areas of two censuses and the three yearly files of prices paid have theirs since 2026-09-24.
+- Step 4 prints 28 lines of `step=derive status=ok` and six of `step=derive status=skipped`. Five are those of section 20. The sixth is private outdoor space, by `measure_is_not_held_back`: it is worked out, and it is left out whatever core says of it.
+- Step 5 says `28 measures`, and the check counts 44,966 facts, as in section 20. The table of vibes of section 20 stands: each vibe holds as much of its recipe as it did, and has a band in as many areas. Houses or flats rests on 75 in 100 of its recipe in all 1,002 areas.
+
+What was worked out of private outdoor space, and is in no release:
+
+| | |
+|---|---|
+| Areas with a figure | 963 of 1,002. Each is an area that the statistics office's lookup marks as unchanged since 2011, and the workbook holds a row for every one |
+| Areas with none | 39. 38 are parts of the 18 areas of 2011 that were split, 16 into two and two into three. One was made by joining two areas of 2011. They lie in 14 boroughs |
+| Were a split carried | 1,001 areas would have a figure. No build carries one: `CARRIED` in `derive/areas_of_2011.py` holds the mark of no change alone, and to add the mark of a split is the founder's to decide |
+| The figure | Addresses with private outdoor space, in 100 of the addresses of the area, as at April 2020. The lowest is 7.2, a quarter of the areas are under 77.0, the middle is 86.1, a quarter are over 91.5, and the highest is 99.6 |
+| What it follows | Flats as a share of homes, at -0.77 as a rank correlation: where more homes are flats, fewer addresses have outdoor space. Homes per hectare at -0.46, homes built since 2000 at -0.58, transport noise at -0.56, and gardens as a share of land at 0.47 |
+
+What Houses or flats would be if the measure joined its recipe, at 25 in 100 and read from its low end. It was worked out beside the build, by the functions a build works a vibe out with, and nothing of it is served. `packages/pipeline/tests/derive/test_private_outdoor_space_on_the_real_files.py` holds each count.
+
+| | |
+|---|---|
+| What the vibe would rest on | Its whole recipe in 963 areas, and 75 in 100 in the 39 with no figure. Every area would still have a band |
+| Areas that would keep their band | 800 of 1,002 |
+| Areas that would move | 101 by one band towards Flats, and 101 by one band towards Houses. None by two |
+| The order of the areas | 0.98 the same, as a rank correlation. Where an area stands among the areas, in 100, would move by 3.9 in the middle area, by under 10.3 in nine areas in ten, and by 16.9 at most |
+| The ends | Of the 201 areas in the band nearest Houses, 179 would stay in it. Of the 200 in the band nearest Flats, 177 would |
+| The 39 areas with no figure | 38 would keep their band, and one would move one band towards Flats as the areas round it moved. 22 of them would stand in the band nearest Flats and 10 in the next |
+
+- The measure says much of what flats as a share of homes already says, so the vibe moves little. What it adds is the fifth of the areas that would change band.
+- An area with no figure is not an area with no outdoor space. Most of the 39 stand towards the end of flats, so a recipe that holds the measure rests on less in the areas where it says most.
+- Before the measure joins, its row of the proxy audit is written and passes: the design of the vibes asks that it is under 0.3 on every table of the audit. No audit can be run yet. The tables it is run on are gated in the licence registry until a store the product cannot read exists, with its check in CI, and until the rule of the audit is written. Each is the founder's.
+- Everything sections 16 to 20 say before you look still stands.
+
+## 29. A preview from every list that holds a receipt, once the work of 2026-09-24 and 2026-09-25 was joined
+
+The catalogue is at version 13, and the engine is 1.13.0. This is the one build that holds what sections 21 to 28 each built apart: the names, the cafes, the gyms and the pubs, the food shop, the GP practice and the pharmacy, the brands, how near stops are and the stations as places to reach, who lived somewhere, what each kind of home sold for with the bands and the rises, and household income beside it.
+
+Do everything as section 15 says, with these changes:
+
+| # of section 15 | Run this in its place |
+|---|---|
+| Before 4 | `uv run python -m burro_pipeline.areas.draft_run --out FOLDER`, as section 21 says |
+| 4 | `make preview ARGS="--release-id lon-2026-09-25-01 --built-at 2026-09-25T02:00:00Z --out data/releases --names FOLDER --list m1 --list m2-places --list m2-living --list m2-culture --list m2-stations --list m5-journeys --list m10-health --list m10-land-use --list m11-age-and-households --list m11-outdoor-space --list m12-household-income --list m12-public-transport"` |
+| 5 | `uv run burro-release check data/releases/lon-2026-09-25-01 --receipts data/receipts --income data/releases/lon-2026-09-25-01-income` |
+| 6 | The same, with `lon-2026-09-25-01` where section 15 has `lon-2026-09-24-01`. The service finds the folder of income beside the release |
+
+It names the twelve lists that hold a receipt. The draft of names takes about two minutes, and step 4 about eight.
+
+What to know before you look:
+
+- The first line reads `inputs=89 missing=3`. Three files of the lists have no receipt, and are no part of the build: the street extract, and the workbooks of sales and of the lower quartile. The three files read of the draft of names are among the 89.
+- Step 4 prints 98 lines of `step=derive status=ok` and six of `step=derive status=skipped`. The nearest place of two chains, Gymbox and Third Space, has a figure for no area. The size and the shape of a town centre and what there is to do in parks keep core's names. Private outdoor space is held back.
+- `step=names` reads `named=1002`. `step=cost` reads `rows=2859`: what each kind of home sold for, from the sales of three years. `step=places` reads `rows=641`: the stations, each a place to reach. `step=income` reads `values=1002`.
+- Step 5 says `98 measures, 641 destinations, 641 places`, and then that the folder of income holds 1,002 areas with an estimate. The check counts 104,010 facts.
+- Of the 98 measures, 73 can be ranked on. The 25 that are shown and never ranked on are the five counts of places and the stops of buses, the 18 measures of the tiers, and the main roads.
+- It holds no journey time and no rent. A journey by public transport to a station is estimated for a search, from distance, and is said to be an estimate.
+
+Thirteen of the fourteen vibes place an area:
+
+| Vibe | Of its recipe, in 100 | Areas with a band | What it waits on |
+|---|---|---|---|
+| Leafy, Quiet streets, Family amenities, Well connected, Gritty, Family area | 100 | 1,002 | |
+| Age of buildings | 100 | 1,001 | |
+| Young professionals | 100 | 994 | |
+| Going out | 100 | 992 | |
+| Everyday on foot | 100 | 988 | |
+| Food and drink | 80 | 992 | Kinds of food nearby |
+| Houses or flats | 75 | 1,002 | Private outdoor space, which is held back |
+| Parks close by | 70 | 1,002 | What there is to do in parks |
+| Village feel | 60 | None | The size and the shape of a town centre |
+
+Village feel holds 60 in 100 of its recipe in 969 areas, which would be enough for a band. It places none: core places it only where the size or the shape of a town centre has a figure ([the contract](design/contract.md), section 3.2).
