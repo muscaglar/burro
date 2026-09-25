@@ -32,6 +32,8 @@ _TO_WRITE = os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC | os.O_APPEND
 # of thousands in a run, and asks the system about a path only when it is about to refuse.
 _TEMPORARY = os.path.abspath(tempfile.gettempdir())  # noqa: PTH100
 _DEVICES = os.path.dirname(os.path.abspath(os.devnull)) + os.sep  # noqa: PTH100, PTH120
+# Python keeps what it compiled beside a module, in a folder it makes the first time it
+# imports one. In a working copy that is new, that is inside whichever test imports it.
 _BYTECODE = f"{os.sep}__pycache__{os.sep}"
 
 
@@ -64,8 +66,9 @@ def _within(path: str) -> bool:
 
 
 def _may_be_written(path: str) -> bool:
-    if path == _TEMPORARY or path.startswith(_DEVICES) or _BYTECODE in path:
-        # `TemporaryFile` opens the folder itself, and names the file as it does.
+    if path == _TEMPORARY or path.startswith(_DEVICES) or _BYTECODE in path + os.sep:
+        # `TemporaryFile` opens the folder itself, and names the file as it does. With a
+        # separator after it, the folder of bytecode is found as what is in it is.
         return True
     return _within(path) or _within(os.path.realpath(path))
 

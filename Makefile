@@ -38,7 +38,8 @@ registry-check: ## Fail if a data source breaks a licence rule. ARGS=--strict be
 	uv run burro-registry check $(ARGS)
 
 fixture: ## Rebuild the synthetic release. Generated and committed, never edited by hand
-	uv run burro-release build-synthetic --out data/fixtures/synthetic --census-out data/fixtures/residents
+	uv run burro-release build-synthetic --out data/fixtures/synthetic --census-out data/fixtures/residents \
+		--income-out data/fixtures/income
 	uv run python -m burro_pipeline coverage data/fixtures/synthetic/syn-2026-09-23-01 \
 		--made-up --out packages/pipeline/tests/evidence/fixtures/coverage-syn-2026-09-23-01.md
 
