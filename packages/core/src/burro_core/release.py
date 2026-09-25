@@ -11,6 +11,10 @@ to each other. It reads none of the evidence. It is what keeps a release that
 was changed after it was built, or that has no evidence at all, from being
 served.
 
+A release that was built under another catalogue is never served. It is read
+by its own catalogue, by `open_built`, where two builds are held against each
+other to say what moved between them, and nowhere else.
+
 **A release may be written by hand, and so may the file of changes it was built
 with.** So what a person may adjust is held here, and nowhere a hand can get
 round: what a recipe and a name may be, that a vibe core holds off is placed by
@@ -930,6 +934,18 @@ def versions_match(files: _Files) -> Iterator[Finding]:
         yield CATALOGUE, "catalogue_version"
 
 
+def versions_are_its_own(files: _Files) -> Iterator[Finding]:
+    """What is asked of the versions of a release that is read by its own catalogue.
+
+    Its schema is the one this code reads, and its manifest and its catalogue say one
+    version of the catalogue. Which version that is, is the release's to say.
+    """
+    if files.manifest.schema_version != SCHEMA_VERSION:
+        yield MANIFEST, "schema_version"
+    if files.catalogue.catalogue_version != files.manifest.catalogue_version:
+        yield CATALOGUE, "catalogue_version"
+
+
 def synthetic_is_consistent(files: _Files) -> Iterator[Finding]:
     synthetic = files.manifest.synthetic
     if files.manifest.release_id.startswith(SYNTHETIC_PREFIX) != synthetic:
@@ -1840,6 +1856,27 @@ RULES: tuple[Rule, ...] = (
     raw_matches_recipe,
     scores_match_raw,
 )
+# The rules that hold a release to the catalogue as core holds it today: its version, what
+# each measure and each vibe is, what a person may have adjusted of one, and which vibes
+# are held off. A release that was built under another catalogue breaks them by being what
+# it was built as. `open_built` passes them over, and nothing that serves a release does.
+# The band of a vibe is still held to its raw value, and the score too: what is passed
+# over is that the raw value is what the recipe makes today, because a vibe that an older
+# catalogue held off has none, and the code of today would give it one.
+OF_CORES_CATALOGUE: tuple[Rule, ...] = (
+    versions_match,
+    catalogue_matches_core,
+    vibes_match_core,
+    names_name_no_place,
+    held_off_stays_held_off,
+    changes_are_named,
+    raw_matches_recipe,
+)
+# What a release is held to where it is read by its own catalogue: to itself.
+RULES_OF_ITS_OWN: tuple[Rule, ...] = (
+    versions_are_its_own,
+    *(rule for rule in RULES if rule not in OF_CORES_CATALOGUE),
+)
 
 _RANGE_ERRORS = frozenset(
     {"greater_than", "greater_than_equal", "less_than", "less_than_equal", "finite_number"}
@@ -1886,6 +1923,10 @@ def parse_release(documents: Mapping[str, object]) -> InMemoryRelease:
 
     The only parser. It refuses the release at the first rule that is broken.
     """
+    return _parse(documents, RULES)
+
+
+def _parse(documents: Mapping[str, object], rules: Sequence[Rule]) -> InMemoryRelease:
     for name in _SHAPES:
         if name not in documents:
             raise ReleaseError(name, "files_are_expected")
@@ -1907,7 +1948,7 @@ def parse_release(documents: Mapping[str, object]) -> InMemoryRelease:
         stations=cast(_StationsFile, shaped[STATIONS]),
         places=cast(_PlacesFile, shaped[PLACES]),
     )
-    for rule in RULES:
+    for rule in rules:
         for file, row in rule(files):
             raise ReleaseError(file, getattr(rule, "__name__", "rule"), row)
 
@@ -1951,6 +1992,10 @@ def open_release(folder_name: str, files: Mapping[str, bytes]) -> InMemoryReleas
     A release never changes once written, so a file that does not match the
     checksum the manifest holds for it is refused.
     """
+    return _open(folder_name, files, RULES)
+
+
+def _open(folder_name: str, files: Mapping[str, bytes], rules: Sequence[Rule]) -> InMemoryRelease:
     if MANIFEST not in files:
         raise ReleaseError(MANIFEST, "files_match_manifest")
     manifest_document = _parsed(MANIFEST, files[MANIFEST])
@@ -1969,7 +2014,7 @@ def open_release(folder_name: str, files: Mapping[str, bytes]) -> InMemoryReleas
         if len(content) != entry.bytes or hashlib.sha256(content).hexdigest() != entry.sha256:
             raise ReleaseError(name, "files_match_manifest")
         documents[name] = _parsed(name, content)
-    return parse_release(documents)
+    return _parse(documents, rules)
 
 
 def _hashes(beside: Mapping[str, bytes]) -> Hashes:
@@ -2047,7 +2092,38 @@ def open_served(
     tell it from another. What can is the record of the builds that were
     approved, which is committed, and which nothing reads yet.
     """
-    release = open_release(folder_name, files)
+    return _with_its_build(open_release(folder_name, files), files, beside)
+
+
+def open_built(
+    folder_name: str, files: Mapping[str, bytes], beside: Mapping[str, bytes] | None
+) -> InMemoryRelease:
+    """The release as it was built, read by its own catalogue, to be held against another.
+
+    A release says what it measures and how each vibe is made, in its own
+    catalogue, so that it can be read alone. This reads it so. It is
+    `open_served` but for the rules of `OF_CORES_CATALOGUE`, which hold a
+    release to the catalogue as core holds it today: a release that was built
+    under another version breaks those by being what it was built as.
+    Everything else is held as it is of what is served: every file to the
+    manifest, the release to itself, and the release to the hashes, the
+    evidence and the lock of its build.
+
+    **What this opens is never served.** It may carry a recipe, a name or a
+    vibe that core no longer holds, or that no person may give one. Only
+    `open_served` opens what a person is shown.
+
+    A release is read with the records this code has. One that holds a field
+    or an id they do not know cannot be read at all, and is refused as any
+    release of that shape is.
+    """
+    return _with_its_build(_open(folder_name, files, RULES_OF_ITS_OWN), files, beside)
+
+
+def _with_its_build(
+    release: InMemoryRelease, files: Mapping[str, bytes], beside: Mapping[str, bytes] | None
+) -> InMemoryRelease:
+    """A release that was opened, held to what it was built with."""
     if release.manifest.synthetic:
         _held_to_its_changes(release, (beside or {}).get(LOCK))
         return release
