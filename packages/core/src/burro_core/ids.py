@@ -175,6 +175,9 @@ class FeatureId(StrEnum):
     # prices that were paid, and promises nothing.
     PRICE_RISE_5Y = "price_rise_5y"
     PRICE_RISE_10Y = "price_rise_10y"
+    # How much of the high street nearest a home lies in a conservation area. It is the
+    # heaviest part of Village feel, and counts towards no likeness.
+    HIGHSTREET_CONSERVED = "highstreet_conserved"
 
 
 class TagId(StrEnum):
@@ -260,6 +263,19 @@ class TagShape(StrEnum):
     ONE_WAY = "one_way"  # one direction, and a person may ask for more of it
 
 
+class Sureness(StrEnum):
+    """Whether a vibe is as sure as the rest, or a rough guide. It says so of itself.
+
+    It has these two values and no other. It is no number, and no word of praise or
+    blame: it says how far a vibe is to be trusted, and nothing of any place. No client
+    works it out. A vibe that does not say is as sure as the rest.
+    """
+
+    AS_THE_REST = "as_the_rest"
+    # It is served all the same, and says wherever it is shown that it is less sure.
+    ROUGH_GUIDE = "rough_guide"
+
+
 class Toward(StrEnum):
     """Which end of a vibe is asked for. A one-way vibe has the high end alone."""
 
@@ -326,8 +342,21 @@ class Confidence(StrEnum):
     LOW = "low"
     # A publisher's own figure, given with no count of what stands behind it. It is said
     # of a row that holds a median and no range, and of no other. A median that says how
-    # many sales it rests on is `high` or `medium`, by how many they are.
+    # many sales it rests on is `high` or `medium`, by how many they are, and so is a rent
+    # that says how many rents were recorded.
     UNSTATED = "unstated"
+
+
+class CostOfKind(StrEnum):
+    """The kind of place a cost is of, where it is of a wider place than the area.
+
+    No publisher gives a rent for an area. One gives the rents that were
+    recorded in a postcode district and in a borough, and an area is given the
+    figure of the place it lies in.
+    """
+
+    POSTCODE_DISTRICT = "postcode_district"
+    BOROUGH = "borough"
 
 
 class Mode(StrEnum):
@@ -605,10 +634,16 @@ class TemplateId(StrEnum):
     COST_BUY = "cost_buy"
     COST_BUY_MEDIAN = "cost_buy_median"
     COST_BUY_SOLD = "cost_buy_sold"
+    COST_RENT_RECORDED = "cost_rent_recorded"
     BUDGET_UNDER = "budget_under"
     BUDGET_OVER = "budget_over"
+    BUDGET_AT = "budget_at"
     BUDGET_UNDER_MEDIAN = "budget_under_median"
     BUDGET_OVER_MEDIAN = "budget_over_median"
+    BUDGET_AT_MEDIAN = "budget_at_median"
+    BUDGET_UNDER_RECORDED = "budget_under_recorded"
+    BUDGET_OVER_RECORDED = "budget_over_recorded"
+    BUDGET_AT_RECORDED = "budget_at_recorded"
     TRAVEL_PT = "travel_pt"
     TRAVEL_PT_OVER = "travel_pt_over"
     TRAVEL_OTHER = "travel_other"

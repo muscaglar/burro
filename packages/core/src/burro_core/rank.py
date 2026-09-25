@@ -92,21 +92,35 @@ from burro_core.spec import (
 # the median is over the budget by more than `FIRM_BUDGET_MARGIN_PERCENT`, and
 # it is said beside a median that is over the budget that about half of the
 # homes sold for less. It moves no result of a release whose costs all have a
-# range. 1.13.0 is one number for both.
-ENGINE_VERSION = "1.13.0"
+# range. 1.13.0 is one number for both. 1.14.0 holds a budget to rent against the
+# middle rent of the place a rent is of, where a release says that a rent is of a
+# postcode district or a borough: a firm budget has the same margin there, and the
+# sentence says the place. It moves no result of a release whose rents are each of
+# the area alone. In the same version an estimated journey is called likely within
+# its limit only where the estimate is 10 minutes or more under it, where it was 5:
+# the founder decided so on 2026-09-25, once the estimate had been held against
+# timetables. What is likely beyond a limit is what it was, so a firm limit leaves
+# out no more than it did. It moves no result of a release that holds its times.
+# In the same version a cost is said to be at a budget, and a journey at its limit,
+# where the difference is nothing: no fact gives a difference of nothing as a
+# figure. It moves no result. 1.14.0 is one number for the three: nothing past
+# 1.13.0 had been served when they were joined.
+ENGINE_VERSION = "1.14.0"
 
 FULL_UNTIL_MIN = 15  # a journey this short is as good as any shorter
 FULL_UNTIL_SHARE = 0.5  # unless that is more than half the cap
 UTILITY_AT_CAP = 0.5  # a journey exactly at the cap is half as good as a short one
 ZERO_AT_SHARE = 1.5  # a journey half as long again as the cap is worth nothing
-# A home a quarter over budget is worth nothing. Tested against the upper
-# quartile, because published rents understate what a new tenant pays. Where a
-# cost has no range it is tested against the median, as it is written: nothing
-# is put in the place of a quartile that no source gives.
+# A home a quarter over budget is worth nothing. A range that Burro worked out is
+# tested against its upper quartile. Where a cost has no range it is tested against the
+# median, as it is written: nothing is put in the place of a quartile that no source
+# gives. A rent that is of a wider place is tested against its median too: it is the
+# middle of the rents that were recorded there, and about half were let for less.
 BUDGET_OVER_SHARE = 0.25
 # How far over a firm budget the median of an area may be, in hundredths of the budget,
 # before the budget leaves the area out. It is held against a cost that is one number, a
-# median of what sold, and against no range.
+# median of what sold, and against the median of a rent that is of a wider place. It is
+# held against no range that is of the area alone.
 #
 # Half of the homes behind a median sold for less than it. So an area whose median is a
 # little over a budget is one where many homes sold within it, and a firm budget that
@@ -166,7 +180,8 @@ class CommuteLeg(Record):
 
 
 class BudgetFit(Record):
-    # None where the cost has no range. The margin is then to the median.
+    # None where the budget was held against the median: the cost has no range, or is of
+    # a wider place than the area. The margin is then to the median.
     upper_quartile: int | None
     margin: int
     utility: float
@@ -248,28 +263,44 @@ def commute_utility(minutes: int, max_minutes: int) -> float:
     return 0.0
 
 
+def held_on_the_median(estimate: CostEstimate) -> bool:
+    """Whether a budget is held against the median of a cost, and not against an upper end.
+
+    It is of a cost that is one number, which has no upper end, and of a rent
+    that is of a wider place. Such a rent is the middle of the rents that were
+    recorded in a postcode district or a borough: about half were let for
+    less, and its upper end says how widely the rents of the place spread and
+    nothing of the area.
+    """
+    return estimate.upper_quartile is None or estimate.of_a_wider_place
+
+
 def budget_held_against(estimate: CostEstimate) -> int:
     """The figure of a cost that a budget is held against.
 
-    The upper quartile of a range. Where a cost has no range it is the
-    median, to the pound: it is never raised to stand for a quartile, and
-    never scaled to a size of home that the source gives no figure for.
+    The upper quartile of a range that is of the area alone. Where a cost has
+    no range, or is of a wider place, it is the median, to the pound: it is
+    never raised to stand for a quartile, and never scaled to a size of home
+    that the source gives no figure for.
     """
-    return estimate.median if estimate.upper_quartile is None else estimate.upper_quartile
+    if held_on_the_median(estimate) or estimate.upper_quartile is None:
+        return estimate.median
+    return estimate.upper_quartile
 
 
 def over_a_firm_budget(estimate: CostEstimate, amount: int) -> bool:
     """Whether a firm budget leaves out an area whose home costs this.
 
-    A range is over the budget where its upper quartile is. A cost that is
-    one number, a median of what sold, is over it only where the median is
-    more than `FIRM_BUDGET_MARGIN_PERCENT` in 100 over: about half of the
-    homes behind a median sold for less than it. It is counted in whole
-    pounds, so that no float decides which side of the line an area falls.
+    A range that is of the area alone is over the budget where its upper
+    quartile is. A median is over it only where it is more than
+    `FIRM_BUDGET_MARGIN_PERCENT` in 100 over, whether it is of what sold or
+    of the rents of a wider place: about half of the homes behind a median
+    went for less than it. It is counted in whole pounds, so that no float
+    decides which side of the line an area falls.
     """
-    if estimate.upper_quartile is not None:
-        return estimate.upper_quartile > amount
-    return 100 * estimate.median > (100 + FIRM_BUDGET_MARGIN_PERCENT) * amount
+    if held_on_the_median(estimate) or estimate.upper_quartile is None:
+        return 100 * estimate.median > (100 + FIRM_BUDGET_MARGIN_PERCENT) * amount
+    return estimate.upper_quartile > amount
 
 
 def budget_utility(amount: int, upper_quartile: int) -> float:
@@ -525,7 +556,7 @@ def _fit(spec: PreferenceSpec, estimate: CostEstimate | None) -> BudgetFit | Non
         return None
     held = budget_held_against(estimate)
     return BudgetFit(
-        upper_quartile=estimate.upper_quartile,
+        upper_quartile=None if held_on_the_median(estimate) else estimate.upper_quartile,
         margin=spec.budget.amount - held,
         utility=budget_utility(spec.budget.amount, held),
         # Reported, and changes no arithmetic.

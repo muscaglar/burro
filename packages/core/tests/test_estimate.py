@@ -94,16 +94,18 @@ def fact_of(release: InMemoryRelease, area: int, spec: PreferenceSpec) -> Fact:
 # The numbers
 
 
-def test_the_numbers_of_an_estimate_are_named_in_one_place_and_are_the_first_guesses():
+def test_the_numbers_of_an_estimate_are_named_in_one_place():
+    """Each is a first guess but one: the founder widened `WITHIN_BY` from 5 to 10 on
+    2026-09-25, once the estimate had been held against the timetables."""
     assert (how.FIXED_MINUTES, how.MINUTES_A_KM) == (12, 3)
     assert (how.MINUTES_A_KM_NEAR_THE_UNDERGROUND, how.NEAR_THE_UNDERGROUND_M) == (2.5, 800)
-    assert (how.WITHIN_BY, how.BEYOND_BY) == (5, 10)
+    assert (how.WITHIN_BY, how.BEYOND_BY) == (10, 10)
     assert HOW.model_dump() == {
         "fixed_minutes": 12,
         "minutes_a_km": 3,
         "minutes_a_km_near_the_underground": 2.5,
         "near_the_underground_m": 800,
-        "within_by": 5,
+        "within_by": 10,
         "beyond_by": 10,
         "said": "Estimated from distance, not from a timetable.",
     }
@@ -125,18 +127,18 @@ def test_an_estimate_is_a_fixed_part_and_a_part_for_each_kilometre():
 
 
 def test_near_the_underground_each_kilometre_takes_less():
-    """The homes of area 5 stand 9 kilometres off: 39 minutes, and 34.5 near the Underground."""
+    """The homes of area 5 stand 7 kilometres off: 33 minutes, and 29.5 near the Underground."""
     near = with_figures(
         estimated_release(), {FeatureId.UNDERGROUND_PROXIMITY: (None, None, None, None, 800)}
     )
-    assert estimated_minutes(near, area_id(5), place(1)) == pytest.approx(12 + 2.5 * 9)
+    assert estimated_minutes(near, area_id(5), place(1)) == pytest.approx(12 + 2.5 * 7)
     assert legs(rank(searching(), near))[area_id(5)].estimate is WITHIN
     # A metre further than 800, and an area with no figure, are not known to be near.
     far = with_figures(
         estimated_release(), {FeatureId.UNDERGROUND_PROXIMITY: (None, None, None, None, 801)}
     )
     for release in (far, estimated_release()):
-        assert estimated_minutes(release, area_id(5), place(1)) == pytest.approx(12 + 3 * 9)
+        assert estimated_minutes(release, area_id(5), place(1)) == pytest.approx(12 + 3 * 7)
         assert legs(rank(searching(), release))[area_id(5)].estimate is BORDERLINE
 
 
@@ -147,8 +149,9 @@ def test_near_the_underground_each_kilometre_takes_less():
     ("minutes", "band"),
     [
         (12, WITHIN),
-        (35, WITHIN),  # exactly 5 under is at least 5 under
-        (35.01, BORDERLINE),
+        (30, WITHIN),  # exactly 10 under is at least 10 under
+        (30.01, BORDERLINE),
+        (35, BORDERLINE),  # 5 under was likely within until 2026-09-25
         (40, BORDERLINE),
         (50, BORDERLINE),  # exactly 10 over is not more than 10 over
         (50.01, BEYOND),
@@ -159,11 +162,26 @@ def test_a_band_is_likely_within_borderline_or_likely_beyond(minutes: float, ban
     assert band_against(minutes, 40) is band
 
 
+def test_to_promise_less_leaves_out_nothing_more():
+    """`WITHIN_BY` was widened from 5 to 10 on 2026-09-25, and nothing else was moved.
+
+    What a firm limit leaves out is what is likely beyond, which rests on
+    `BEYOND_BY` alone: it is what it was. What was called likely within at 5
+    to 10 minutes under the limit is borderline now, and is never left out.
+    """
+    for limit in (20, 30, 40, 45, 60, 90):
+        for tenths in range(1300):
+            minutes = tenths / 10
+            assert (band_against(minutes, limit) is BEYOND) == (minutes > limit + 10)
+            if limit - 10 < minutes <= limit - 5:
+                assert band_against(minutes, limit) is BORDERLINE
+
+
 def test_a_journey_is_said_as_a_band_against_the_limit_a_person_gave():
     release = estimated_release()
     found = legs(rank(searching(40), release))
     assert [found[area_id(n)].estimate for n in range(1, 8)] == list(AGAINST_40[:7])
-    # Against 30 minutes the same homes stand otherwise: 12 + 3 x 5 is 27, which is not 5 under.
+    # Against 30 minutes the same homes stand otherwise: 12 + 3 x 5 is 27, which is not 10 under.
     against_30 = legs(rank(searching(30), release))
     assert [against_30[area_id(n)].estimate for n in (1, 2, 3)] == [WITHIN, BORDERLINE, BORDERLINE]
 

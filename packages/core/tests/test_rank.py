@@ -147,7 +147,7 @@ def test_the_result_records_what_it_was_ranked_from():
     result = rank(spec, build_worked_release())
     assert result.spec_hash == spec_hash(spec)
     assert result.release_id == "syn-2026-09-23-01"
-    assert result.engine_version == ENGINE_VERSION == "1.13.0"
+    assert result.engine_version == ENGINE_VERSION == "1.14.0"
     assert result.synthetic is True
 
 

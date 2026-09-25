@@ -146,8 +146,12 @@ def test_being_over_budget_is_never_given_as_a_reason():
     assert brackenhythe.trade_off is not None
     assert brackenhythe.trade_off.fact_ids == (f"{BRACKENHYTHE}/budget_fit/rent.bed_1",)
     assert brackenhythe.trade_off.text == "The upper end is £150 over your budget of £1,800."
-    # Within budget by a pound, or by nothing, it is a reason.
-    for amount in (1950, 1951):
+    # Within budget by a pound, or by nothing, it is a reason. By nothing it is at the
+    # budget, and no sentence gives a difference of nothing.
+    for amount, said in (
+        (1950, "The upper end is at your budget of £1,950."),
+        (1951, "The upper end is £1 under your budget of £1,951."),
+    ):
         spec = build_worked_spec().replace(
             budget=build_worked_spec().budget.replace(amount=amount), commutes=()
         )
@@ -156,7 +160,7 @@ def test_being_over_budget_is_never_given_as_a_reason():
             rank(spec, release), release, spec, (BRACKENHYTHE,), TemplateExplainer()
         )
         assert within.reasons[0].fact_ids == (f"{BRACKENHYTHE}/budget_fit/rent.bed_1",)
-        assert "under your budget" in within.reasons[0].text
+        assert within.reasons[0].text == said
 
 
 def test_a_journey_over_its_cap_is_never_given_as_a_reason():
@@ -430,9 +434,12 @@ def test_explainer_input_holds_no_user_text():
         "source_id",
         "name",
         # Who published a source, as the release names them, and the publisher's own
-        # statement of credit, where it asks to see it beside a figure.
+        # statement of credit, where it asks to see it beside a figure. With it goes what
+        # its terms ask to be said wherever the credit is shown: the licence registry's
+        # words, as the release holds them.
         "publisher",
         "attribution",
+        "said_with_attribution",
         # Contribution
         "component",
         "present",

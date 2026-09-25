@@ -9,6 +9,7 @@ from burro_core.catalogue import (
     HOLDS_RESIDENTS,
     NUISANCES,
     RANKED_AS,
+    ROUGH_GUIDES,
     TAGS,
     Tag,
     tags_of,
@@ -647,7 +648,8 @@ def test_every_feature_and_vibe_is_recognised_by_its_label_and_its_short_label()
             continue  # the name of a scale names no end
         for name in {vibe.label, vibe.short_label}:
             result = read(f"somewhere with {name.lower()} please")
-            if vibe.tag_id in HOLDS_RESIDENTS:
+            if vibe.tag_id in HOLDS_RESIDENTS | ROUGH_GUIDES:
+                # Its own name is offered, and never applied.
                 assert result.operations == NO_OPERATIONS, name
                 assert [s.target for s in result.suggestions] == [f"tag:{vibe.tag_id}"], name
                 continue
@@ -1497,28 +1499,33 @@ def test_in_doubt_the_reader_makes_no_edit_and_says_so(text: str, spec: Preferen
     assert reduced(result, spec).spec == spec
 
 
-# A place that is turned away by what stands before it.
-AWAY_FROM_A_PLACE = [
+# A place that the words ask to be kept away from, by a word for far or by a least. It
+# is heard, and nothing of it can be chosen: Burro cannot rank on being far from a place.
+FAR_FROM_A_PLACE = [
     "not near Pellam Cross",
     "nowhere near Pellam Cross",
-    "I don't want to be near Foxholt Works",
-    "I don't work at Foxholt Works",
-    "I wouldn't want to be 30 minutes to Pellam Infirmary",
     "anywhere but near Foxholt Works",
     "far from Pellam Cross",
     "a long way from Pellam Cross Station",
     "at least 45 minutes from Foxholt Works",
+    # By what stands after it, too.
+    "30 minutes to Pellam Cross is too far",
+]
+# A place that is turned away by what stands before it.
+AWAY_FROM_A_PLACE = [
+    "I don't want to be near Foxholt Works",
+    "I don't work at Foxholt Works",
+    "I wouldn't want to be 30 minutes to Pellam Infirmary",
 ]
 # And one that is put in doubt by what stands after it.
 NOT_TO_A_PLACE = [
     "I work at Foxholt Works, not really",
     "near Foxholt Works? No.",
-    "30 minutes to Pellam Cross is too far",
     "maybe near Foxholt Works",
 ]
 
 
-@pytest.mark.parametrize("text", [*AWAY_FROM_A_PLACE, *NOT_TO_A_PLACE])
+@pytest.mark.parametrize("text", [*FAR_FROM_A_PLACE, *AWAY_FROM_A_PLACE, *NOT_TO_A_PLACE])
 def test_a_place_named_in_a_doubtful_clause_adds_no_journey(text: str):
     # "Nowhere near Pellam Cross" added a journey to it, and put its area first.
     result = read(text)
@@ -1526,7 +1533,12 @@ def test_a_place_named_in_a_doubtful_clause_adds_no_journey(text: str):
     assert result.unmet == (UnmetCategory.OTHER,)
     assert reduced(result).spec.commutes == ()
     journeys = [found for found in result.suggestions if found.target == "commute"]
-    if text in AWAY_FROM_A_PLACE:
+    if text in FAR_FROM_A_PLACE:
+        # It is said to have been heard, with nothing to choose but to leave it out.
+        (heard,) = journeys
+        assert [c.direction for c in heard.choices] == ["ignore"]
+        assert heard.note == "Burro cannot rank on being far from a place."
+    elif text in AWAY_FROM_A_PLACE:
         # To add the journey would be the opposite of what was said, so it is not offered.
         assert (result.status, journeys) == (InterpretStatus.OK, [])
     else:
@@ -1709,7 +1721,9 @@ def test_a_budget_is_offered_as_its_amount_and_the_size_of_home_as_a_choice_of_i
     rested = [[text[s.start : s.end] for s in found.spans] for found in result.suggestions]
     assert rested == [["£2,000 a month"], ["a two bed flat"]]
     unread = [text[span.start : span.end] for span in result.unread]
-    assert unread == ["My budget is about", "for", "I think"]
+    assert unread == ["My budget is about", "I think"]
+    # What stands between the amount and the home asks for nothing, and is not called unread.
+    assert [text[span.start : span.end] for span in result.asks_nothing] == ["for"]
 
 
 def test_words_that_say_what_the_search_already_holds_are_not_called_unread():
@@ -1738,7 +1752,8 @@ def test_a_home_is_offered_whether_or_not_the_search_already_holds_it():
         ("budget", "A 1-bedroom home"),
     ]
     unread = [text[span.start : span.end] for span in result.unread]
-    assert unread == ["I have never lived there. I can spend about", "on"]
+    assert unread == ["I have never lived there. I can spend about"]
+    assert [text[span.start : span.end] for span in result.asks_nothing] == ["on"]
     other = read(text.replace("one bed", "two bed"))
     assert [found.label for found in other.suggestions][1:] == ["A 2-bedroom home"]
     # A terraced house is no kind of home to rent. Nobody has chosen to rent
@@ -1871,9 +1886,12 @@ NO_POOLS = (
     "Burro cannot tell a swimming pool or a leisure centre from any other place to train. "
     "The nearest it can count is gyms and fitness studios."
 )
+# What is nearest is Village feel, which is a rough guide, and its offer says so.
 NO_NEIGHBOURS = (
     "Burro cannot measure whether neighbours know each other. The nearest it can count is "
-    "a small centre of its own, with old streets and independent places."
+    "a village feel: a high street in a conservation area, homes that stand apart and "
+    "period homes. Rough guide. Of the areas it puts highest, about half read as villages "
+    "to people, and it takes some busy main roads and some grand inner streets for villages."
 )
 NOT_ONE_HOME = (
     "Burro cannot see whether one home has a garden. "
@@ -2030,7 +2048,7 @@ def test_what_burro_cannot_answer_is_reported_by_category(text: str, unmet: list
     assert list(result.unmet) == unmet
     assert result.status is InterpretStatus.OK
     # `other` is there exactly when some stretch of the text was made nothing of.
-    assert (UnmetCategory.OTHER in result.unmet) == bool(result.unread)
+    assert (UnmetCategory.OTHER in result.unmet) == bool(result.unread or result.asks_nothing)
 
 
 def test_what_is_heard_rests_on_the_words_said_of_it_and_the_rest_is_offered():
@@ -2490,7 +2508,9 @@ SAID_OF_NO_PLACE = [
     ("I'm a doctor, close to a station", "doctor"),
     ("I'm a chemist, station nearby", "chemist"),
     ("I'm a GP and I want a park nearby", "GP"),
-    # The word alone says nothing of where, and nor does a good word for one.
+    # The word alone says nothing of where, and nor does a good word for one. Nor does
+    # a list that says near of nothing. The founder decided on 2026-09-25 that a bare
+    # "doctor" in a list stays unheard.
     ("doctor", "doctor"),
     ("a good GP", "GP"),
     ("parks and a doctor", "doctor"),

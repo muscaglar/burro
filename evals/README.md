@@ -61,7 +61,7 @@ The scorer prints counts, case ids and sentences from the cases. It never prints
 
 ### What was offered
 
-Nothing a model reads is applied: it is offered, and the way Burro reads a thing is marked as its guess (contract, section 8.2). So a reader that marks a guess is judged a second time, by what a person would get who pressed every guess. The rules mark none, and their score is as it was.
+Nothing a model reads is applied: it is offered, and the way Burro reads a thing is marked as its guess (contract, section 8.2). So a reader that marks a guess is judged a second time, by what a person would get who pressed every guess. The rules mark none, and their score is as it was. Since 2026-09-25 the service marks a guess on what the rules read plainly: what a person said of the home they look for, which is that they rent or buy, a budget with its amount, and a kind of home, and a journey to one place with one time. It is marked by the API and not by the rules, so the scorer of the rules does not see it. A test of the API holds it to every case of this set, by the scorer's own judgement: `test_to_press_every_guess_of_the_rules_does_the_opposite_of_no_case_that_is_held`.
 
 | Outcome | What happened |
 |---|---|

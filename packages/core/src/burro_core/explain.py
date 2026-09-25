@@ -110,8 +110,25 @@ TEMPLATES: Mapping[TemplateId, str] = {
         "Price for a {segment}: £{median}. This is the middle price of the {sales} {homes} "
         "of all sizes sold from {period}."
     ),
+    # A rent that is of a wider place than the area: a postcode district, or a borough. It
+    # says the place it is of, that it is not of the area alone, the months and how many
+    # rents it rests on. No word stands for how sure it is: the count does.
+    TemplateId.COST_RENT_RECORDED: (
+        "Rent for a {segment}: £{lower} to £{upper} a month, middle £{median}. {is_of} "
+        "It rests on about {rents} rents recorded there from {period}."
+    ),
     TemplateId.BUDGET_UNDER: "The upper end is £{margin} under your budget of £{amount}.",
     TemplateId.BUDGET_OVER: "The upper end is £{margin} over your budget of £{amount}.",
+    # A difference of nothing is no difference to give: "£0 under your budget" was read as
+    # a fault. Where what the budget is held against is the budget to the pound, it is said
+    # to be at it, in each of the three ways a budget is held.
+    TemplateId.BUDGET_AT: "The upper end is at your budget of £{amount}.",
+    TemplateId.BUDGET_AT_MEDIAN: (
+        "The middle price of {homes} of all sizes is at your budget of £{amount}."
+    ),
+    TemplateId.BUDGET_AT_RECORDED: (
+        "The middle rent for a {segment} in {of} is at your budget of £{amount} a month."
+    ),
     TemplateId.BUDGET_UNDER_MEDIAN: (
         "The middle price of {homes} of all sizes is £{margin} under your budget of £{amount}."
     ),
@@ -119,6 +136,15 @@ TEMPLATES: Mapping[TemplateId, str] = {
     TemplateId.BUDGET_OVER_MEDIAN: (
         "The middle price of {homes} of all sizes is £{margin} over your budget of £{amount}. "
         "{half_sold}"
+    ),
+    # A budget to rent, held against the middle rent of the place the rent is of.
+    TemplateId.BUDGET_UNDER_RECORDED: (
+        "The middle rent for a {segment} in {of} is £{margin} under your budget of "
+        "£{amount} a month."
+    ),
+    TemplateId.BUDGET_OVER_RECORDED: (
+        "The middle rent for a {segment} in {of} is £{margin} over your budget of "
+        "£{amount} a month. {half_let}"
     ),
     TemplateId.TRAVEL_PT: f"{_BY_PT}.",
     TemplateId.TRAVEL_PT_OVER: f"{_BY_PT}{_OVER}",

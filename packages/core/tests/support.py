@@ -134,7 +134,7 @@ def manifest(
         release_id=RELEASE_ID,
         schema_version=2,
         built_at=BUILT_AT,
-        catalogue_version=13,
+        catalogue_version=14,
         gritty_variant=variant,
         synthetic=True,
         preview=False,
@@ -496,7 +496,7 @@ def build_documents(variant: GrittyVariant = VARIANT) -> dict[str, Any]:
             ],
         },
         "catalogue.json": {
-            "catalogue_version": 13,
+            "catalogue_version": 14,
             "metrics": [metric(feature_id).model_dump(mode="json") for feature_id in CARRIED],
             "vibes": [vibe.model_dump(mode="json") for vibe in tags_of(variant)],
         },
@@ -676,9 +676,9 @@ def preview_release() -> InMemoryRelease:
 KM_TO_A_DEGREE = 111.19508
 # How far the homes of each area of the release below stand from place 1, in kilometres, due
 # west of it. Against a limit of 40 minutes, at 12 minutes and 3 for each kilometre: the
-# first four are likely within, the last of them at 34.8 minutes, the next three are
+# first four are likely within, the last of them at 29.7 minutes, the next three are
 # borderline, the last of those at 49.8, and the last is likely beyond.
-HOMES_KM = (2.0, 5.0, 7.5, 7.6, 9.0, 12.5, 12.6, 20.0)
+HOMES_KM = (2.0, 5.0, 5.5, 5.9, 7.0, 12.5, 12.6, 20.0)
 
 
 def estimated_documents() -> dict[str, Any]:

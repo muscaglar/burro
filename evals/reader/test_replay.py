@@ -59,7 +59,10 @@ def test_no_call_is_made_for_a_prompt_the_rules_read_the_whole_of():
     assert calls["own-021"] == 1
     # A journey and a budget that are all that was typed are plain too.
     assert (calls["own-003"], calls["own-004"], calls["budget-016"]) == (0, 0, 0)
-    assert sum(calls.values()) == 77
+    # A prompt that holds a word for Village feel is no longer read whole: it is a rough
+    # guide since 2026-09-25, and is taken by a press of its own. Two such were plain.
+    assert (calls["own-011"], calls["own-023"]) == (1, 1)
+    assert sum(calls.values()) == 79
 
 
 def test_the_two_calls_that_failed_are_never_made_now_because_the_rules_read_both():
@@ -80,13 +83,15 @@ def test_what_the_guard_makes_of_the_answers_on_disk():
     # No backwards reading is marked as the guess. One was, a wish of somebody
     # else's, until the guard read whose wish it is. "Lots of young families" was right
     # when it drew the notice alone. It is offered a family area now, which no press has
-    # taken up.
+    # taken up. Two sentences that ask for a village feel were right while the rules
+    # applied it. It is a rough guide since 2026-09-25: it is offered with no guess, so
+    # to press every guess takes the rest of each and leaves it for a press of its own.
     assert replay.counted(FIRST) == {
         "answers": 112,
-        "calls the reader made": 77,
-        "answered by the rules, with no call or in a model's place": 35,
-        "right": 84,
-        "in part": 11,
+        "calls the reader made": 79,
+        "answered by the rules, with no call or in a model's place": 33,
+        "right": 82,
+        "in part": 13,
         "not read": 14,
         "a guess nobody asked for": 3,
         "backwards, offered with no guess marked": 0,

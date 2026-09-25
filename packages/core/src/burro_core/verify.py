@@ -388,6 +388,18 @@ def _passes_a_verdict(words: list[str], ends: frozenset[str]) -> bool:
     )
 
 
+def passes_a_verdict(text: str) -> bool:
+    """Whether words a person gave as a name hold a word that no sentence may say.
+
+    A name a release gives a vibe or a measure is said in every sentence about
+    it, and the name of a vibe is excused as a name where a sentence cites its
+    fact. So a name is read here as a sentence is, before it can be one: it may
+    hold no word that calls a place safe or unsafe, and no praise or blame.
+    """
+    read = list(_words(_read_as(text)))
+    return any(word in BANNED_WORDS for word in read) or _passes_a_verdict(read, frozenset())
+
+
 def _within(run: tuple[str, ...], allowed: Iterable[tuple[str, ...]]) -> bool:
     size = len(run)
     return any(

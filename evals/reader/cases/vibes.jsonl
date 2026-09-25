@@ -4,7 +4,7 @@
 {"id": "vibe-004", "text": "period houses", "tenure": "rent", "plain": true, "expect": {"rise": ["tag:built_age"]}, "why": "a sentence for built age"}
 {"id": "vibe-005", "text": "somewhere with history", "tenure": "rent", "expect": {"rise": ["tag:built_age"]}, "why": "a sentence for built age"}
 {"id": "vibe-006", "text": "a newer area with modern flats", "tenure": "rent", "expect": {"fall": ["tag:built_age"]}, "why": "a sentence for built age"}
-{"id": "vibe-007", "text": "villagey", "tenure": "rent", "plain": true, "expect": {"rise": ["tag:village_feel"]}, "why": "a sentence for village feel"}
+{"id": "vibe-007", "text": "villagey", "tenure": "rent", "plain": false, "expect": {"rise": ["tag:village_feel"]}, "why": "a sentence for village feel, which is a rough guide: it is offered, and taken by a press of its own"}
 {"id": "vibe-008", "text": "a little centre with its own shops", "tenure": "rent", "expect": {"rise_any": [["tag:village_feel", "feature:centre_small", "feature:highstreet_access"]]}, "why": "a sentence for village feel"}
 {"id": "vibe-009", "text": "a small-town feel", "tenure": "rent", "expect": {"rise": ["tag:village_feel"]}, "why": "a sentence for village feel"}
 {"id": "vibe-010", "text": "quiet streets", "tenure": "rent", "plain": true, "expect": {"rise": ["tag:quiet_residential"]}, "why": "a sentence for quiet residential"}

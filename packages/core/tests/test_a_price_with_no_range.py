@@ -298,9 +298,11 @@ def test_every_fact_of_a_price_with_no_range_names_a_source_and_a_date():
     spec = buyer(Strictness.SOFT)
     found = [fact for area in FLATS for fact in facts_of(area, spec).values()]
     ours = [fact for fact in found if fact.kind in (FactKind.COST, FactKind.BUDGET_FIT)]
+    # The second of the flats sold for the budget to the pound, so it is at the budget.
     assert {fact.template for fact in ours if fact.key == "buy.flat"} == {
         TemplateId.COST_BUY_MEDIAN,
         TemplateId.BUDGET_UNDER_MEDIAN,
+        TemplateId.BUDGET_AT_MEDIAN,
         TemplateId.BUDGET_OVER_MEDIAN,
     }
     for fact in ours:

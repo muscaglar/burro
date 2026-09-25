@@ -23,9 +23,10 @@ from burro_core._record import Record
 from burro_core.ids import FeatureId, JourneyBand, Mode
 from burro_core.release import Place, Point, Release
 
-# How an estimate is made. Each number is a first guess, for the founder to adjust: none
-# was fitted to a journey that was timed. Change one here and nowhere else, and bump
-# `ENGINE_VERSION` with it.
+# How an estimate is made. Each number is the founder's to adjust, and none was fitted to
+# a journey that was timed. Each is a first guess but `WITHIN_BY`, which the founder
+# widened on 2026-09-25, once the estimate had been held against timetables (decision
+# record 0027). Change one here and nowhere else, and bump `ENGINE_VERSION` with it.
 #
 # A fixed part, in minutes: the walk to a stop, the wait, and the walk at the far end.
 FIXED_MINUTES = 12.0
@@ -36,8 +37,11 @@ MINUTES_A_KM = 3.0
 MINUTES_A_KM_NEAR_THE_UNDERGROUND = 2.5
 # How near that is, in metres in a straight line.
 NEAR_THE_UNDERGROUND_M = 800
-# Likely within: the estimate is at least this many minutes under the limit.
-WITHIN_BY = 5
+# Likely within: the estimate is at least this many minutes under the limit. It was 5.
+# Held against the timetables of the Underground and the DLR, 19 in 100 of the journeys
+# it called likely within 40 minutes were timed beyond them, so less is promised. What
+# is left out by a firm limit rests on `BEYOND_BY` alone, and did not move.
+WITHIN_BY = 10
 # Likely beyond: the estimate is more than this many minutes over the limit. What lies
 # between the two is borderline.
 BEYOND_BY = 10

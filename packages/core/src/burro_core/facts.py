@@ -39,6 +39,7 @@ from burro_core.estimate import ESTIMATED, SAID, VERDICT, estimate
 from burro_core.ids import (
     BUDGET,
     COMMUTE,
+    CostOfKind,
     Dimension,
     Direction,
     FactKind,
@@ -61,6 +62,7 @@ from burro_core.release import (
     MANIFEST,
     TAGS_FILE,
     CostEstimate,
+    CostOf,
     Neighbourhood,
     Origin,
     Place,
@@ -82,6 +84,10 @@ class FactSource(Record):
     # wherever a figure made from its data is shown. `None` for a source that is credited
     # by its name and its publisher, with its statement on the page of attributions.
     attribution: str | None = None
+    # What the terms of the publisher ask to be said wherever its credit is shown. It goes
+    # with the credit: `None` where the fact carries no credit of the source, and where
+    # nothing is asked to be said with it.
+    said_with_attribution: str | None = None
 
 
 class Fact(Record):
@@ -138,7 +144,71 @@ FROM_TO = "{since} to {as_of}"
 # stands beside a median wherever a budget may be held against it, so that a middle price
 # is not read as the least a home sold for.
 HALF_SOLD_FOR_LESS = "About half of the {homes} sold here went for under £{median}."
+# What a rent of a wider place says of the rents behind it, in one sentence: about half
+# were let for less. It stands beside the middle rent wherever a budget may be held
+# against it, so that a middle rent is not read as the least a home lets for.
+HALF_LET_FOR_LESS = "About half of the rents recorded there were under £{median}."
+# How a difference of nothing is said where it stands alone, in a table or beside the
+# figures: a cost that is the budget to the pound, and a journey that takes the minutes of
+# its limit. No fact gives a difference of nothing as a figure.
+AT_THE_BUDGET = "At your budget"
+AT_THE_LIMIT = "At your limit"
+# How the place a cost is of is said, by its kind: as a sentence names the place, and as a
+# page names the kind beside the name.
+COST_OF: Mapping[CostOfKind, str] = {
+    CostOfKind.POSTCODE_DISTRICT: "postcode district {name}",
+    CostOfKind.BOROUGH: "the whole borough of {name}",
+}
+COST_OF_KINDS: Mapping[CostOfKind, str] = {
+    CostOfKind.POSTCODE_DISTRICT: "postcode district",
+    CostOfKind.BOROUGH: "borough",
+}
+# What is said of the place, in one sentence, wherever a figure of a wider place is shown
+# beside an area: which place it is of, and that it is not of the area alone.
+IS_OF = "This is of {of}, and not of {name} alone."
+# What stands, once, wherever a person reads a rent that is of a wider place: beside a
+# rent on an area's page, in the offer of a budget to rent, and on the methods page. The
+# publisher collects the rents from the agents and landlords who are willing to give
+# them, and says that the figures should not be compared between areas. It is said in
+# plain words, and quotes no figure.
+RENT_CAUTION = (
+    "These rents are a sample that was not drawn at random. Their publisher advises "
+    "against comparing one area with another on them. Burro uses them as a rough guide "
+    "to what a home lets for."
+)
+# What is said of where such a rent is of, where no one area is spoken of: in the offer of
+# a budget to rent, and beside the count of the areas a firm budget left out.
+RENT_IS_OF_A_PLACE = (
+    "Each rent is of a postcode district or of a whole borough, and not of one area alone."
+)
 COST_LABELS: Mapping[Tenure, str] = {Tenure.RENT: "Rent", Tenure.BUY: "Price"}
+
+
+class RentsSaid(Record):
+    """What is said of the rents of a release, where each is of a wider place than an area.
+
+    It holds words and no figure. A client shows them where no one area is
+    spoken of: the first beside the count of the areas a firm budget to rent
+    left out, and the second on the page of methods.
+    """
+
+    of_a_place: str
+    caution: str
+
+
+RENTS_SAID = RentsSaid(of_a_place=RENT_IS_OF_A_PLACE, caution=RENT_CAUTION)
+
+
+def rents_are_of_places(release: Release) -> bool:
+    """Whether a release holds a rent that is of a postcode district or of a borough."""
+    return any(
+        held is not None and held.of_a_wider_place
+        for area in release.neighbourhoods
+        for segment in segments_for(Tenure.RENT)
+        for held in (release.cost(area.area_id, Tenure.RENT, segment),)
+    )
+
+
 # What the `missing` sentence calls a component that has no figure.
 MISSING_LABELS: Mapping[str, str] = {BUDGET: "cost"}
 # What joins the publishers that write one name, where more than one does.
@@ -360,7 +430,14 @@ class _Builder:
         self.credits = {
             s.source_id: s.attribution for s in release.manifest.sources if s.credit_beside_figures
         }
+        # What is said with each of those statements, where the release holds something.
+        self.said_with = {
+            s.source_id: s.said_with_attribution
+            for s in release.manifest.sources
+            if s.credit_beside_figures
+        }
         self.metrics = {m.feature_id: m for m in release.metrics}
+        self.vibes = {vibe.tag_id: vibe for vibe in release.vibes}
 
     def standing(self, value: float, of: Callable[[str], float | None]) -> Standing:
         """Where this area's figure sits among the rankable areas that have one.
@@ -422,6 +499,7 @@ class _Builder:
                     name=self.names[s],
                     publisher=self.publishers[s],
                     attribution=self.credits.get(s),
+                    said_with_attribution=self.said_with.get(s),
                 )
                 for s in sorted(set(source_ids))
             ),
@@ -495,12 +573,14 @@ class _Builder:
             slots, numbers = said(found, f"{feature.higher} than", f"{feature.lower} than", better)
             band = self._band(metric.feature_id)
             crime = feature.dimension is Dimension.CRIME
+            # A measure is said under the label the release gives it, which is core's
+            # unless a person gave it another (ADR 0029).
             yield self.fact(
                 FactKind.FEATURE,
                 metric.feature_id,
-                feature.label,
+                metric.label,
                 TemplateId.FEATURE_CRIME if crime else TemplateId.FEATURE,
-                {"label": feature.label, "value": text, "band": str(band)} | slots,
+                {"label": metric.label, "value": text, "band": str(band)} | slots,
                 metric.source_ids,
                 metric.vintage,
                 # No sentence prints the band of a figure, so it is no number of the fact.
@@ -698,9 +778,64 @@ class _Builder:
             ),
         )
 
+    def _of_a_place(self, row: CostEstimate, of: CostOf, rents: int, since: str) -> dict[str, str]:
+        """What is said of a rent of a wider place wherever it, or a budget held against
+        it, is shown: the place, the months and the count, and the caution of its publisher.
+
+        No figure of such a rent is shown without them.
+        """
+        said = COST_OF[of.kind].format(name=of.name)
+        return {
+            "of_kind": COST_OF_KINDS[of.kind],
+            "of_name": of.name,
+            "of": said,
+            "name": self.area.name,
+            "is_of": IS_OF.format(of=said, name=self.area.name),
+            "since": month(since),
+            "as_of": month(row.as_of),
+            "period": FROM_TO.format(since=month(since), as_of=month(row.as_of)),
+            "rents": f"{rents:,}",
+            "half_let": HALF_LET_FOR_LESS.format(median=money(row.median)),
+            "caution": RENT_CAUTION,
+        }
+
+    def _recorded(
+        self, row: CostEstimate, lower: int, upper: int, of: CostOf, rents: int, since: str
+    ) -> Fact:
+        """The fact of a rent that is of a wider place: the range as its publisher gives it,
+        the place it is of, the months and how many rents it rests on."""
+        return self.fact(
+            FactKind.COST,
+            cost_key(row.tenure, row.segment),
+            COST_LABELS[row.tenure],
+            TemplateId.COST_RENT_RECORDED,
+            {
+                "segment": SEGMENT_LABELS[row.segment],
+                "lower": money(lower),
+                "median": money(row.median),
+                "upper": money(upper),
+                "confidence": row.confidence,
+            }
+            | self._of_a_place(row, of, rents, since),
+            row.source_ids,
+            row.as_of,
+            numbers=(
+                pounds(lower),
+                pounds(row.median),
+                pounds(upper),
+                str(rents),
+                *(digits for day in (since, row.as_of) for digits in _digits(day)),
+            ),
+            names=(of.name, self.area.name),
+        )
+
     def _cost(self, row: CostEstimate) -> Fact:
         if row.lower_quartile is None or row.upper_quartile is None:
             return self._median(row)
+        if row.of is not None and row.rents is not None and row.since is not None:
+            return self._recorded(
+                row, row.lower_quartile, row.upper_quartile, row.of, row.rents, row.since
+            )
         year, number = row.as_of.split("-")[:2]
         rent = row.tenure is Tenure.RENT
         return self.fact(
@@ -734,25 +869,46 @@ class _Builder:
         if amount is None or row is None:
             return
         # What the budget is held against, as the ranking holds it: the upper quartile of
-        # a range, and the median of a cost that has none.
-        if row.upper_quartile is None:
+        # a range that is of the area alone, and the median of any other cost.
+        counted: tuple[str, ...] = ()
+        names: tuple[str, ...] = ()
+        if row.of is not None and row.rents is not None and row.since is not None:
+            # A rent of a wider place. The budget is held against its middle, and the
+            # sentence says the place the rent is of.
+            held, slot = row.median, "median"
+            slots = {"segment": SEGMENT_LABELS[row.segment]}
+            slots |= self._of_a_place(row, row.of, row.rents, row.since)
+            under, over = TemplateId.BUDGET_UNDER_RECORDED, TemplateId.BUDGET_OVER_RECORDED
+            at = TemplateId.BUDGET_AT_RECORDED
+            dated = (digits for day in (row.since, row.as_of) for digits in _digits(day))
+            counted, names = (str(row.rents), *dated), (row.of.name, self.area.name)
+        elif row.upper_quartile is None:
             homes = HOMES_LABELS[row.segment]
             half = HALF_SOLD_FOR_LESS.format(homes=homes, median=money(row.median))
             held, slot, slots = row.median, "median", {"homes": homes, "half_sold": half}
             under, over = TemplateId.BUDGET_UNDER_MEDIAN, TemplateId.BUDGET_OVER_MEDIAN
+            at = TemplateId.BUDGET_AT_MEDIAN
         else:
             held, slot, slots = row.upper_quartile, "upper", {}
-            under, over = TemplateId.BUDGET_UNDER, TemplateId.BUDGET_OVER
+            under, over, at = TemplateId.BUDGET_UNDER, TemplateId.BUDGET_OVER, TemplateId.BUDGET_AT
         margin = amount - held
+        # A difference of nothing is said in words, and is no figure of the fact.
+        against = {"margin": money(abs(margin))} if margin else {"verdict": AT_THE_BUDGET}
         yield self.fact(
             FactKind.BUDGET_FIT,
             cost_key(spec.tenure, spec.budget.segment),
             "Budget",
-            under if margin >= 0 else over,
-            {"margin": money(abs(margin)), "amount": money(amount), slot: money(held)} | slots,
+            at if margin == 0 else under if margin > 0 else over,
+            against | {"amount": money(amount), slot: money(held)} | slots,
             row.source_ids,
             row.as_of,
-            numbers=(pounds(amount), pounds(held), pounds(abs(margin))),
+            numbers=(
+                pounds(amount),
+                pounds(held),
+                *((pounds(abs(margin)),) if margin else ()),
+                *counted,
+            ),
+            names=names,
         )
 
     def times(self, commute: Commute) -> tuple[Travel, Travel]:
@@ -821,8 +977,13 @@ class _Builder:
             over = scored.minutes is not None and scored.minutes > commute.max_minutes
             if scored.minutes is not None:
                 margin = abs(scored.minutes - commute.max_minutes)
-                slots |= {"margin": str(margin), "margin_unit": _minutes(margin)}
-                numbers.append(slots["margin"])
+                if margin == 0:
+                    # A journey that takes the minutes of its limit is at it, and under it
+                    # by nothing.
+                    slots["verdict"] = AT_THE_LIMIT
+                else:
+                    slots |= {"margin": str(margin), "margin_unit": _minutes(margin)}
+                    numbers.append(slots["margin"])
             if scored.minutes is None:
                 template = TemplateId.TRAVEL_BEYOND
                 cutoff = str(self.release.cutoff(commute.mode))
@@ -916,11 +1077,13 @@ class _Builder:
         for weight in spec.active_weights:
             row = self.release.feature(area_id, weight.feature_id)
             if row is None or row.percentile is None:
-                yield component_for_feature(weight.feature_id), FEATURES[weight.feature_id].label
+                held = self.metrics.get(weight.feature_id) or FEATURES[weight.feature_id]
+                yield component_for_feature(weight.feature_id), held.label
         for tag in spec.active_tags:
             score = self.release.tag(area_id, tag.tag_id)
             if score is None or score.score is None:
-                yield component_for_tag(tag.tag_id), TAGS[tag.tag_id].label
+                named = self.vibes.get(tag.tag_id) or TAGS[tag.tag_id]
+                yield component_for_tag(tag.tag_id), named.label
 
 
 def _minutes(count: int) -> str:

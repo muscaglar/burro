@@ -43,17 +43,26 @@ from burro_core.interpret import (
     RuleInterpreter,
     sentences_of,
 )
-from burro_core.lexicon import POLICY, lexicon_of, no_measure_of, prepare
+from burro_core.lexicon import POLICY, is_a_rough_guide, lexicon_of, no_measure_of, prepare
 from burro_core.ops import NO_OPERATIONS
 from burro_core.places import Names, normalise
 from burro_core.reducer import apply
 from burro_core.spec import PreferenceSpec, default_spec
 from burro_core.vocabulary import (
+    AT_LEAST,
     DREADS,
     FOR_WHOM,
+    LEFT_BEHIND,
+    LIVES_THERE,
+    NEAR_TO,
+    NOT_FAR,
+    OF_THE_HOUSEHOLD,
     PLAIN,
     PLAIN_WORDS,
+    SOMEBODY_ELSE,
     STANDS_FOR,
+    STAYS_AWAY,
+    TURNS_ROUND,
     WHO_ELSE,
     WISH,
     WISHES_OF_ANOTHER,
@@ -438,7 +447,7 @@ def test_every_word_that_is_not_known_in_every_place_makes_the_sentence_unread()
 
 def test_a_sentence_with_an_unknown_word_reports_one_unmet_request_of_kind_other():
     for text, unread in (
-        ("a park for the zebra", ["a", "for the zebra"]),
+        ("a park for the zebra", ["for the zebra"]),
         ("leafy, quiet, zebra", ["zebra"]),
         ("zebra near Pellam Cross", ["zebra near"]),
     ):
@@ -881,7 +890,7 @@ def test_a_question_makes_no_edit(text: str):
     assert all(said.asked and not said.known for said in sentences_of(text, NAMES))
     # What it names is offered, and what is left of it is said not to be read.
     assert result.suggestions or result.unmet == (UnmetCategory.OTHER,)
-    assert (UnmetCategory.OTHER in result.unmet) == bool(result.unread)
+    assert (UnmetCategory.OTHER in result.unmet) == bool(result.unread or result.asks_nothing)
 
 
 @pytest.mark.parametrize(
@@ -1104,7 +1113,7 @@ def test_a_nuisance_that_is_liked_or_only_named_makes_no_edit(text: str):
     for found in result.suggestions:
         if found.label.startswith(("Less", "Cleaner", "Away")):
             assert [choice.direction for choice in found.choices] == ["less", "ignore"]
-    assert (UnmetCategory.OTHER in result.unmet) == bool(result.unread)
+    assert (UnmetCategory.OTHER in result.unmet) == bool(result.unread or result.asks_nothing)
 
 
 @pytest.mark.parametrize(
@@ -1285,13 +1294,28 @@ def test_the_share_of_plain_wishes_that_is_read_does_not_fall_without_being_noti
     # as it was decided on 2026-09-24: each may ask for a place where families
     # live, which counts who lives somewhere, and no word applies that. It
     # cost two of these and one of the adversary's: it reads 136 and 67.
+    # A budget to buy a house of no kind was asked about for some hours of
+    # 2026-09-25, which cost one of these, "a house to buy for about 500k". It
+    # is applied again, held against a terraced house and said to be assumed,
+    # and the floor is back where it stood: it reads 136 and 67.
+    # Village feel is a rough guide since 2026-09-25, as the founder decided: it
+    # is offered with its label and its sentence, and no word applies it, its own
+    # name among them. It cost three of these, one of them the adversary's: it
+    # reads 133 and 66.
     # If this fails, a word was taken out of the grammar or a rule was
     # tightened: say what it cost in the change that does it, and move the floor.
     assert len(PLAINLY) == len({text for text, _ in PLAINLY}) >= 150
     read_in_full, declined = share_read(PLAINLY)
-    assert read_in_full >= 136, declined
+    assert read_in_full >= 133, declined
     theirs, _ = share_read(PLAINLY[:THEIRS])
-    assert theirs >= 67
+    assert theirs >= 66
+    a_rough_guide = {text for text in declined if "village" in text.lower()}
+    assert a_rough_guide == {"Somewhere with a village feel", "a village feel", "I like villages"}
+    for text in a_rough_guide:
+        assert "tag:village_feel" in {found.target for found in read(text).suggestions}
+    a_house = read("a house to buy for about 500k")
+    assert [edit.segment for edit in a_house.operations.budget_ops if edit.amount] == ["terraced"]
+    assert "segment" in [assumed.code for assumed in a_house.assumptions]
     offered = {text for text in declined if "family friendly" in text.lower()}
     assert offered == {
         "Family friendly with good primary schools",
@@ -1307,11 +1331,17 @@ def test_the_share_of_sentences_the_vocabulary_was_not_settled_on_is_held_too():
     # the closed vocabulary, 76.7%, and 45 with the grammar, 75.0%. Do not add a
     # word to make one of these pass without the place the grammar gives it, and
     # the reason it can turn no wish round there. It reads 43 since "family
-    # friendly" and "good for kids" came to be offered and never applied.
+    # friendly" and "good for kids" came to be offered and never applied. It reads
+    # 42 since Village feel, which is a rough guide, came to be offered and never
+    # applied: "a village vibe" was read until then.
     assert len(HELD_OUT) == 60
     read_in_full, declined = share_read(HELD_OUT)
-    assert read_in_full >= 43, declined
+    assert read_in_full >= 42, declined
     assert {"Family friendly area with playgrounds", "Good for kids"} <= set(declined)
+    assert {
+        "We're hoping for a village feel with good schools",
+        "An area with a village vibe",
+    } <= set(declined)
 
 
 # --- What is still read, for every thing and every name ------------------------------------------
@@ -1340,6 +1370,8 @@ def test_a_plain_wish_for_each_thing_is_still_read():
             continue  # crime counts only when it is asked for by name, so it is offered
         if target.note:
             continue  # Burro has no measure of it, so what is nearest is offered
+        if is_a_rough_guide(target):
+            continue  # it is taken by a press of its own, so it is offered and not applied
         asked = {f.value for f in target.features} | {t.value for t in target.tags}
         for template in PLAIN_WISHES:
             text = template.format(thing=phrase)
@@ -1508,6 +1540,38 @@ def test_the_written_list_of_doubt_is_heard_in_a_sentence_the_reader_does_not_re
         assert not any(s.doubt for s in sentences_of(text)), text
     # The words a caller is given to look for, beside its own reading.
     assert {"hate", "never", "no", "not", "without", "worry about"} <= SIGNS_OF_DOUBT
+
+
+def test_what_keeps_a_place_away_is_made_of_words_core_lists_for_doubt_and_is_never_plain():
+    # Each is listed for whoever offers a journey: a place that is named with one is
+    # never offered as a journey to it.
+    assert {"far", "away", "not near", "nowhere near", "avoid"} <= STAYS_AWAY
+    assert {"at least", "no less than", "more than", "over"} <= AT_LEAST
+    for phrase in STAYS_AWAY:
+        assert phrase in SIGNS_OF_DOUBT or set(phrase.split()) & SIGNS_OF_DOUBT, phrase
+    # What says near is no wish to stay away, though it holds a word for far.
+    assert all("far" in phrase.split() for phrase in NOT_FAR)
+    assert not STAYS_AWAY & (NEAR_TO | NOT_FAR)
+    # Who is of the household is somebody the speaker knows, and where they go is no
+    # word of the speaker's own for a journey.
+    assert {"my partner", "my wife", "my kids", "our daughter"} <= OF_THE_HOUSEHOLD
+    assert {"my ex", "my boss", "my mum", "his", "her", "their"} <= SOMEBODY_ELSE
+    assert not {"my ex", "my boss", "my mum", "my landlord"} & OF_THE_HOUSEHOLD
+    assert {"lives", "living", "stays"} <= LIVES_THERE
+    # What turns a word for far round is what turns any wish, and a word that joins two.
+    assert {"not", "never", "neither", "can't", "don't"} <= TURNS_ROUND
+    listed = (STAYS_AWAY, NOT_FAR, AT_LEAST, SOMEBODY_ELSE, OF_THE_HOUSEHOLD, LIVES_THERE)
+    for phrases in (*listed, LEFT_BEHIND):
+        for phrase in phrases:
+            assert phrase == phrase.lower().strip() and "  " not in phrase, phrase
+    # None is read through by the grammar: a prompt that holds one is not plain.
+    for text in (
+        "far from Pellam Infirmary",
+        "at least 30 minutes from Pellam Infirmary",
+        "my ex lives at Pellam Infirmary",
+        "we moved from Pellam Infirmary",
+    ):
+        assert read(text).operations == NO_OPERATIONS, text
 
 
 def test_the_words_of_dread_and_of_somebody_elses_wish_are_signs_of_doubt_and_never_plain():

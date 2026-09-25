@@ -10,10 +10,19 @@ evidence, its lock, and the hashes of the build. `open_served` holds the three
 to each other. It reads none of the evidence. It is what keeps a release that
 was changed after it was built, or that has no evidence at all, from being
 served.
+
+**A release may be written by hand, and so may the file of changes it was built
+with.** So what a person may adjust is held here, and nowhere a hand can get
+round: what a recipe and a name may be, that a vibe core holds off is placed by
+no change to its shares, that a name a person gave holds no name of a place the
+release holds, and that a release which was built with a file of changes says
+which, and is served beside a lock that names that very file (ADR 0029).
 """
 
 import hashlib
 import json
+import re
+import unicodedata
 from collections.abc import Callable, Hashable, Iterable, Iterator, Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Annotated, Any, Literal, Protocol, Self, cast
@@ -24,12 +33,15 @@ from burro_core._record import Record
 from burro_core.catalogue import (
     BANDS,
     CATALOGUE_VERSION,
+    COUNTS_RESIDENTS,
     FEATURES,
     RANKED_AS,
     TAG_MIN_COVERAGE_HUNDREDTHS,
     TAGS,
     Tag,
+    TagTerm,
     band_of,
+    checked_recipe,
     percentile_of,
     tag_raw,
     tags_of,
@@ -45,6 +57,7 @@ from burro_core.ids import (
     AreaId,
     City,
     Confidence,
+    CostOfKind,
     Describes,
     DestinationId,
     Dimension,
@@ -93,6 +106,9 @@ REACH = 0.5
 # confidence, and `MANY_SALES` is the least it calls `high` (section 2.5).
 FEWEST_SALES = 10
 MANY_SALES = 50
+# A postcode district, as its publisher writes one: what stands before the space of a
+# postcode. It is the shape alone, and says nothing of whether a district exists.
+DISTRICT_PATTERN = r"^[A-Z]{1,2}[0-9][0-9A-Z]?$"
 
 MANIFEST = "manifest.json"
 NEIGHBOURHOODS = "neighbourhoods.json"
@@ -165,6 +181,11 @@ class Source(Record):
     # True where the publisher asks that its attribution stands wherever a figure made
     # from its data is shown. Every fact that cites the source then carries it.
     credit_beside_figures: StrictBool = False
+    # What the terms of the publisher ask to be said wherever its credit is shown, in plain
+    # words. It is no part of the credit, which stays as the publisher worded it, and it is
+    # served and drawn wherever the credit is. The licence registry holds it. A source of
+    # which nothing is asked does not say the field at all.
+    said_with_attribution: Text | None = None
 
 
 class FileEntry(Record):
@@ -198,6 +219,22 @@ class Manifest(Record):
     sources: tuple[Source, ...]
     files: tuple[FileEntry, ...]
     counts: Counts
+    # The hash of the file of changes the release was built with, where it was built with
+    # one: what a person decided at the panel of the review desk (ADR 0029). A release that
+    # was built with none does not say the field at all, and is byte for byte what it was.
+    changes_sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
+
+    def as_written(self) -> dict[str, Any]:
+        """The manifest as it is written: with no word of a file of changes where the
+        release was built with none, and none of what is said with a credit where
+        nothing is. So a release that holds neither is byte for byte what it was."""
+        held = self.model_dump(mode="json")
+        if self.changes_sha256 is None:
+            del held["changes_sha256"]
+        for source in held["sources"]:
+            if source["said_with_attribution"] is None:
+                del source["said_with_attribution"]
+        return held
 
 
 class Hashes(Record):
@@ -297,6 +334,18 @@ class TagValue(Record):
     spread_high: Band | None
 
 
+class CostOf(Record):
+    """The place a cost is of, where it is of a wider place than the area.
+
+    A postcode district the area lies in, by what stands before the space of
+    its postcodes, or the borough the area is in, by its name. A cost that is
+    of the area alone holds none.
+    """
+
+    kind: CostOfKind
+    name: str = Field(min_length=1, max_length=80)
+
+
 class CostEstimate(Record):
     """What a home of one kind costs in one area: a range, or one number where no range is known.
 
@@ -307,6 +356,12 @@ class CostEstimate(Record):
     A median worked out from the sales themselves says how many it rests on,
     in `sales`, and the first month they were made in, in `since`. Nothing
     stands in for the range of either.
+
+    A rent may be of a wider place than the area: no publisher gives one for
+    an area. It is then a range as its publisher gives it for the place, and
+    says the place in `of`, how many rents were recorded there in `rents`,
+    and the first month of them in `since`. Every area of the place that
+    takes its figure holds the same row.
     """
 
     area_id: AreaId
@@ -317,10 +372,16 @@ class CostEstimate(Record):
     upper_quartile: Pounds | None
     confidence: Confidence
     as_of: str = Field(pattern=MONTH_PATTERN)
-    # The first month of the sales a median rests on, where the row says how many they are.
+    # The first month of the sales a median rests on, where the row says how many they are,
+    # or of the rents that were recorded, where the row is of a wider place.
     since: Annotated[str, Field(pattern=MONTH_PATTERN)] | None = None
     # How many sales the median rests on. `None` where no source says.
     sales: Annotated[int, Field(ge=1)] | None = None
+    # How many rents were recorded in the place the row is of, as its publisher counts
+    # them. `None` of a cost that is of the area alone.
+    rents: Annotated[int, Field(ge=1)] | None = None
+    # The place the figure is of, where it is not of the area alone.
+    of: CostOf | None = None
     source_ids: SourceIds
 
     @property
@@ -332,6 +393,11 @@ class CostEstimate(Record):
     def counted(self) -> bool:
         """Whether the row says how many sales its median rests on."""
         return self.sales is not None
+
+    @property
+    def of_a_wider_place(self) -> bool:
+        """Whether the figure is of a postcode district or a borough, and not of the area."""
+        return self.of is not None
 
 
 class Destination(Record):
@@ -1046,7 +1112,8 @@ def references_resolve(files: _Files) -> Iterator[Finding]:
             yield file, row
 
 
-# What core decides of a feature. A release repeats it so that it can be read alone.
+# What core decides of a feature. A release repeats it so that it can be read alone, and a
+# step of a build that names or measures a feature otherwise is left out of a release.
 DECIDED_BY_CORE = (
     "label",
     "short_label",
@@ -1059,35 +1126,330 @@ DECIDED_BY_CORE = (
     "method",
     "in_likeness",
 )
+# What a person may adjust at the panel, and a release may so carry otherwise than core
+# (ADR 0029): the label of a measure, and of a vibe its name, the names of its ends, what it
+# cannot see after the line every vibe says first, and the hundredths of its parts. Which
+# parts a recipe holds, and the end each is read from, are core's and no release's.
+A_MEASURE_MAY_DIFFER_IN = ("label", "short_label")
+A_VIBE_MAY_DIFFER_IN = frozenset(
+    {"label", "short_label", "low_end", "high_end", "cannot_see", "terms"}
+)
+# How long a name may be, and a label or a line of what a vibe cannot see.
+NAME_LIMIT = 40
+LINE_LIMIT = 200
+# How many lines a vibe may say of what it cannot see.
+LINES_LIMIT = 12
+# What a name may not hold, by the category Unicode gives a character: a control, a mark
+# that is not seen, and the end of a line or of a paragraph.
+_NOT_PLAIN = frozenset({"Cc", "Cf", "Zl", "Zp"})
+# A line of what a vibe cannot see that core's own holds and a release must go on holding:
+# what is counted was counted on one day, and what is recorded depends on what is reported.
+_KEPT_WHERE_IT_SAYS = ("census", "crime")
+
+
+def name_is_plain(text: str, limit: int = NAME_LIMIT, figures: bool = False) -> bool:
+    """Whether words a person gave may stand as a name, a label or a line.
+
+    They are one line of plain words, of `limit` characters at most, with no
+    space round them. They hold no word that no sentence may say: none that
+    calls a place safe or unsafe, no praise or blame, and no word for a group
+    of people. A name holds no figure. A label may, with `figures`: a measure
+    says the distance it counts within.
+    """
+    # The words of the reader and of the verifier are read where they are needed: each
+    # of those modules reads this one.
+    from burro_core.lexicon import GROUP, POLICY, prepare
+    from burro_core.verify import passes_a_verdict
+
+    if not (0 < len(text) <= limit) or text != text.strip():
+        return False
+    if any(unicodedata.category(each) in _NOT_PLAIN for each in text):
+        return False
+    if not figures and any(each.isnumeric() for each in text):
+        return False
+    prepared = prepare(text)
+    of_people = POLICY.search(prepared) is not None or GROUP.search(prepared) is not None
+    return not of_people and not passes_a_verdict(text)
+
+
+_A_FIGURE = re.compile(r"\d(?:[\d.,]*\d)?")
+
+
+def figures_of(text: str) -> frozenset[str]:
+    """Every figure a text holds, as it is written: a run of digits, with the marks inside
+    it, and any other character that stands for a number, by itself."""
+    plain = "".join(each if each.isascii() else " " for each in text)
+    others = {each for each in text if each.isnumeric() and not each.isascii()}
+    return frozenset(_A_FIGURE.findall(plain)) | frozenset(others)
+
+
+def _says_no_figure_of_its_own(given: str, core: str) -> bool:
+    """Whether every figure in words a person gave is one core's own words say.
+
+    The label of a measure says the distance it counts within, and the day a
+    census was taken. A label a person gives may say it again. It may say no
+    other: the figure would be of nobody's measuring.
+    """
+    return figures_of(given) <= figures_of(core)
+
+
+def _named_as(given: str | None, core: str | None, **how: Any) -> bool:
+    """Whether a name is core's own, or one a person may give in its place."""
+    if given == core:
+        return True
+    if given is None or core is None:
+        return False
+    return name_is_plain(given, **how) and _says_no_figure_of_its_own(given, core)
+
+
+_A_WORD = re.compile(r"\w+")
+
+
+def _words_of(text: str) -> tuple[str, ...]:
+    return tuple(_A_WORD.findall(text.casefold()))
+
+
+def _said_by_core() -> frozenset[str]:
+    """Every word core's own names and labels say. An area may bear the name of a thing:
+    a park, a station. A word core says is a word, and no name of a place."""
+    held: set[str] = set()
+    for feature in FEATURES.values():
+        held.update(_words_of(f"{feature.label} {feature.short_label}"))
+    for tag in TAGS.values():
+        ends = f"{tag.low_end or ''} {tag.high_end or ''}"
+        held.update(_words_of(" ".join((tag.label, ends, tag.meaning, *tag.cannot_see))))
+    return frozenset(held)
+
+
+_SAID_BY_CORE = _said_by_core()
+
+
+def holds_the_name_of_a_place(text: str, names: Iterable[str]) -> bool:
+    """Whether words hold the name of a place, whole, in whatever case.
+
+    A name is found as a whole name: a part of a word is no name, and a part
+    of a name is none. An area that is named with a part of the compass after
+    a comma is found by what stands before the comma. A name of one word that
+    core's own labels say is a word and no name.
+
+    **It finds the names it is handed and no other.** Core holds no list of
+    the places of the world. A release holds the names of its own areas,
+    boroughs and places, and those are what a name a person gave is held to.
+    """
+    said = f" {' '.join(_words_of(text))} "
+    for name in names:
+        words = _words_of(name.split(",")[0])
+        if not words or (len(words) == 1 and words[0] in _SAID_BY_CORE):
+            continue
+        if f" {' '.join(words)} " in said:
+            return True
+    return False
+
+
+def what_a_vibe_breaks(vibe: Tag) -> str | None:
+    """The rule a vibe of a release breaks, held against core's own. None where it breaks none.
+
+    A vibe of a release is core's but for what a person may adjust. Its recipe
+    is held to every rule core's own are held to, by `checked_recipe`. So no
+    part is added, taken out or turned round by a release, and none can come to
+    read from its low end a part that counts who lived somewhere.
+    """
+    core = TAGS.get(vibe.tag_id)
+    fixed = [name for name in type(vibe).model_fields if name not in A_VIBE_MAY_DIFFER_IN]
+    if core is None or any(getattr(vibe, name) != getattr(core, name) for name in fixed):
+        return "vibe_is_cores"
+    parts = [(term.feature_id, term.reading) for term in vibe.terms]
+    if parts != [(term.feature_id, term.reading) for term in core.terms]:
+        return "recipe_holds_cores_parts"
+    try:
+        checked_recipe(vibe)
+    except ValueError:
+        return "recipe_keeps_its_rules"
+    ends = ((vibe.low_end, core.low_end), (vibe.high_end, core.high_end))
+    if vibe.short_label != vibe.label or not _named_as(vibe.label, core.label):
+        return "name_is_plain"
+    if not all(_named_as(given, held) for given, held in ends):
+        return "name_is_plain"
+    kept = [
+        line for line in core.cannot_see if any(w in line.casefold() for w in _KEPT_WHERE_IT_SAYS)
+    ]
+    of_core = " ".join(core.cannot_see)
+    said = all(
+        line in core.cannot_see
+        or (
+            name_is_plain(line, limit=LINE_LIMIT, figures=True)
+            and _says_no_figure_of_its_own(line, of_core)
+        )
+        for line in vibe.cannot_see
+    )
+    if (
+        not said
+        or len(vibe.cannot_see) > LINES_LIMIT
+        or any(line not in vibe.cannot_see for line in kept)
+    ):
+        return "says_what_it_cannot_see"
+    return None
+
+
+def what_a_measure_breaks(metric: "Metric") -> str | None:
+    """The rule a measure of a release breaks, held against core's own. None where it breaks none.
+
+    A release may label a measure otherwise than core. A measure that counts who
+    lived somewhere is named by core and by no release: its label says who was
+    counted, and ends with the census they were counted at.
+    """
+    core = FEATURES[metric.feature_id]
+    fixed = [name for name in DECIDED_BY_CORE if name not in A_MEASURE_MAY_DIFFER_IN]
+    if any(getattr(metric, name) != getattr(core, name) for name in fixed):
+        return "measure_is_cores"
+    return what_labels_break(metric.feature_id, metric.label, metric.short_label)
+
+
+def what_labels_break(feature_id: FeatureId, label: str, short_label: str) -> str | None:
+    """The rule the two labels of a measure break, held against core's own. None where
+    they break none.
+
+    A label a person gave is plain, and says no figure that the label of core
+    does not: a measure says the distance it counts within, and a label that
+    said another would be of nobody's measuring.
+    """
+    core = FEATURES[feature_id]
+    same = (label, short_label) == (core.label, core.short_label)
+    if feature_id in COUNTS_RESIDENTS and not same:
+        return "who_is_counted_is_named_by_core"
+    if not _named_as(label, core.label, limit=LINE_LIMIT, figures=True):
+        return "name_is_plain"
+    if not _named_as(short_label, core.short_label):
+        return "name_is_plain"
+    return None
 
 
 def catalogue_matches_core(files: _Files) -> Iterator[Finding]:
-    """A release names and measures each feature as core does, and ranks on none core shows only.
+    """A release measures each feature as core does, and ranks on none core shows only.
 
     A release may switch a feature off for ranking. It may not switch on one
-    that core says is shown and never ranked on.
+    that core says is shown and never ranked on. It may label a measure
+    otherwise than core, in plain words: `what_a_measure_breaks` holds the rule.
     """
     for index, metric in enumerate(files.catalogue.metrics):
-        core = FEATURES[metric.feature_id]
-        as_core = all(getattr(metric, name) == getattr(core, name) for name in DECIDED_BY_CORE)
         shown_only = metric.feature_id in RANKED_AS
-        if not as_core or (shown_only and metric.rankable):
+        if what_a_measure_breaks(metric) is not None or (shown_only and metric.rankable):
             yield CATALOGUE, f"metrics[{index}]"
 
 
 def vibes_match_core(files: _Files) -> Iterator[Finding]:
-    """A release carries the vibes its manifest says it does, each as core has it.
+    """A release carries the vibes its manifest says it does, each core's but for what a
+    person may adjust.
 
-    The manifest says whether Gritty is among them. A recipe that differs
-    from core's by a hundredth is refused, because the scores in the release
-    were worked out with core's.
+    The manifest says whether Gritty is among them. The hundredths of a recipe,
+    a name and what a vibe cannot see may be a release's own, held to the rules
+    of `what_a_vibe_breaks`. Nothing else of a vibe may differ from core's. That
+    every band was worked out with the recipe the release carries is held by
+    `raw_matches_recipe`.
     """
     for index, vibe in enumerate(files.catalogue.vibes):
-        if vibe != TAGS[vibe.tag_id]:
+        if what_a_vibe_breaks(vibe) is not None:
             yield CATALOGUE, f"vibes[{index}]"
     expected = {tag.tag_id for tag in tags_of(files.manifest.gritty_variant)}
     if {vibe.tag_id for vibe in files.catalogue.vibes} != expected:
         yield CATALOGUE, "vibes"
+
+
+def _given(files: _Files) -> Iterator[tuple[str, str]]:
+    """Every name, label and line of a release that is not core's own, with where it is."""
+    for index, metric in enumerate(files.catalogue.metrics):
+        core = FEATURES[metric.feature_id]
+        for name in A_MEASURE_MAY_DIFFER_IN:
+            if getattr(metric, name) != getattr(core, name):
+                yield f"metrics[{index}].{name}", getattr(metric, name)
+    for index, vibe in enumerate(files.catalogue.vibes):
+        held = TAGS.get(vibe.tag_id)
+        if held is None:
+            continue
+        for name in ("label", "short_label", "low_end", "high_end"):
+            given = getattr(vibe, name)
+            if given is not None and given != getattr(held, name):
+                yield f"vibes[{index}].{name}", given
+        for line in vibe.cannot_see:
+            if line not in held.cannot_see:
+                yield f"vibes[{index}].cannot_see", line
+
+
+def names_name_no_place(files: _Files) -> Iterator[Finding]:
+    """A name, a label and a line that a person gave hold no name of a place of the release.
+
+    A vibe and a measure are of every area alike. One that is named for a
+    place says something of that place that no figure stands behind. The names
+    are the release's own: of its areas, of their boroughs and of its places.
+    What core names is held to no list: it was read by a person when it was
+    written.
+    """
+    areas = files.neighbourhoods.neighbourhoods
+    names = {
+        *(area.name for area in areas),
+        *(area.borough for area in areas),
+        *(alias for area in areas for alias in area.aliases),
+        *(place.name for place in files.places.places),
+        *(alias for place in files.places.places for alias in place.aliases),
+    }
+    for where, given in _given(files):
+        if holds_the_name_of_a_place(given, names):
+            yield CATALOGUE, where.rsplit(".", 1)[0]
+
+
+def _places_an_area(files: _Files, tag_id: TagId, recipe: Sequence[TagTerm]) -> bool:
+    """Whether a recipe places any area of the release on a vibe, by the release's figures."""
+    percentiles = {
+        (row.area_id, row.feature_id): row.percentile
+        for row in files.features.rows
+        if row.feature_id in {term.feature_id for term in recipe}
+    }
+    return any(
+        tag_raw(
+            tag_id,
+            {term.feature_id: percentiles.get((area.area_id, term.feature_id)) for term in recipe},
+            recipe,
+        ).raw
+        is not None
+        for area in files.neighbourhoods.neighbourhoods
+    )
+
+
+def held_off_stays_held_off(files: _Files) -> Iterator[Finding]:
+    """A vibe that core's own recipe places no area on is placed on none by a release's.
+
+    A vibe is held off where too little of its recipe has a figure, or where
+    the part it is placed only with has none. To move its shares to the parts
+    that are there would place it on what is left of it, which is another
+    vibe under its name. So where core's recipe places no area of the release,
+    the recipe the release carries places none. A vibe that core places may
+    have its shares moved, and an area may then gain a band or lose one.
+    """
+    for index, vibe in enumerate(files.catalogue.vibes):
+        core = TAGS.get(vibe.tag_id)
+        if core is None or vibe.terms == core.terms:
+            continue
+        if _places_an_area(files, vibe.tag_id, vibe.terms) and not _places_an_area(
+            files, vibe.tag_id, core.terms
+        ):
+            yield CATALOGUE, f"vibes[{index}]"
+
+
+def carries_what_is_not_cores(files: _Files) -> bool:
+    """Whether a release carries a recipe, a name, a label or a line that is not core's."""
+    vibes = any(vibe != TAGS.get(vibe.tag_id) for vibe in files.catalogue.vibes)
+    return vibes or next(_given(files), None) is not None
+
+
+def changes_are_named(files: _Files) -> Iterator[Finding]:
+    """A release that carries what is not core's says which file of changes made it so.
+
+    Its manifest holds the hash of the file. `open_served` holds the lock of
+    the build to it, so that what is served can be traced to what a person
+    decided, line by line.
+    """
+    if files.manifest.changes_sha256 is None and carries_what_is_not_cores(files):
+        yield MANIFEST, "changes_sha256"
 
 
 def rows_are_complete(files: _Files) -> Iterator[Finding]:
@@ -1172,6 +1534,47 @@ def confidence_of(sales: int) -> Confidence:
     return Confidence.HIGH if sales >= MANY_SALES else Confidence.MEDIUM
 
 
+def _rent_of_a_place_holds_together(row: CostEstimate) -> bool:
+    """Whether a rent that is of a wider place says all that such a rent says.
+
+    It is a rent, and a range in order: a publisher's median with no quartile
+    is not carried. It says the place it is of, how many rents were recorded
+    there and no fewer than `FEWEST_SALES`, and the first month of them. What
+    it rests on is what the count makes it. It holds no count of sales.
+    """
+    lower, upper = row.lower_quartile, row.upper_quartile
+    if row.tenure is not Tenure.RENT or row.of is None or row.rents is None:
+        return False
+    if lower is None or upper is None or not lower <= row.median <= upper:
+        return False
+    if row.since is None or row.since > row.as_of or row.sales is not None:
+        return False
+    if row.of.kind is CostOfKind.POSTCODE_DISTRICT and not re.fullmatch(
+        DISTRICT_PATTERN, row.of.name
+    ):
+        return False
+    return row.rents >= FEWEST_SALES and row.confidence is confidence_of(row.rents)
+
+
+def _is_of_its_place(
+    row: CostEstimate,
+    boroughs: Mapping[str, str],
+    seen: dict[tuple[CostOfKind, str, Tenure, Segment], CostEstimate],
+) -> bool:
+    """Whether a cost of a wider place is of a place the area lies in, and is that place's.
+
+    A borough is the one the area is in. A figure is of the place, so every
+    area that takes it holds the same figure, the same months and the same
+    count: `seen` holds the first row of each place and kind of home.
+    """
+    if row.of is None:
+        return True
+    if row.of.kind is CostOfKind.BOROUGH and boroughs.get(row.area_id) != row.of.name:
+        return False
+    first = seen.setdefault((row.of.kind, row.of.name, row.tenure, row.segment), row)
+    return first.replace(area_id=row.area_id) == row
+
+
 def _cost_holds_together(row: CostEstimate) -> bool:
     """Whether a cost is a range in order, or one number that says it is no more than that.
 
@@ -1181,9 +1584,12 @@ def _cost_holds_together(row: CostEstimate) -> bool:
     not stated. Where it gives one, it gives the first month of the sales
     too, the count is no fewer than `FEWEST_SALES`, and what it rests on is
     what the count makes it. A row with a range says what it rests on, and
-    holds no count.
+    holds no count, unless it is a rent of a wider place: that says how many
+    rents were recorded there, and is held by `_rent_of_a_place_holds_together`.
     """
     lower, upper = row.lower_quartile, row.upper_quartile
+    if row.of is not None or row.rents is not None:
+        return _rent_of_a_place_holds_together(row)
     if (row.sales is None) is not (row.since is None):
         return False
     if lower is None or upper is None:
@@ -1204,8 +1610,14 @@ def _cost_holds_together(row: CostEstimate) -> bool:
 def values_are_in_range(files: _Files) -> Iterator[Finding]:
     yield from _figures_are_in_range(files)
     yield from _areas_are_where_they_are_drawn(files)
+    boroughs = {area.area_id: area.borough for area in files.neighbourhoods.neighbourhoods}
+    seen: dict[tuple[CostOfKind, str, Tenure, Segment], CostEstimate] = {}
     for index, row in enumerate(files.cost.rows):
-        if not _cost_holds_together(row) or row.segment not in segments_for(row.tenure):
+        if (
+            not _cost_holds_together(row)
+            or row.segment not in segments_for(row.tenure)
+            or not _is_of_its_place(row, boroughs, seen)
+        ):
             yield COST, f"rows[{index}]"
     for name, mode, matrix in files.matrices():
         cutoff = files.travel.cutoff_minutes.of(mode)
@@ -1281,9 +1693,10 @@ def sources_are_stated(files: _Files) -> Iterator[Finding]:
     source and no date, or a date and no source, is refused whatever it holds.
     """
     valued = {(r.area_id, r.feature_id) for r in files.features.rows if r.value is not None}
+    recipes = _recipes(files)
     for index, row in enumerate(files.tags.rows):
         if row.score is not None and not any(
-            (row.area_id, term.feature_id) in valued for term in TAGS[row.tag_id].terms
+            (row.area_id, term.feature_id) in valued for term in recipes[row.tag_id]
         ):
             yield TAGS_FILE, f"rows[{index}]"
     parts = (
@@ -1368,19 +1781,29 @@ def percentiles_match_values(files: _Files) -> Iterator[Finding]:
         yield from _percentiles_part(FEATURES_FILE, held, files)
 
 
+def _recipes(files: _Files) -> dict[TagId, Sequence[TagTerm]]:
+    """The recipe of each vibe, as the release carries it. Of a vibe it does not carry, core's:
+    a row of such a vibe is refused by another rule."""
+    held: dict[TagId, Sequence[TagTerm]] = {tag_id: tag.terms for tag_id, tag in TAGS.items()}
+    return held | {vibe.tag_id: vibe.terms for vibe in files.catalogue.vibes}
+
+
 def raw_matches_recipe(files: _Files) -> Iterator[Finding]:
-    """A vibe's raw value and coverage are what `tag_raw` makes of the release's own features.
+    """A vibe's raw value and coverage are what `tag_raw` makes of the release's own features,
+    by the recipe the release carries.
 
     So an area can never be placed on a vibe by figures that are not its own,
-    and the share of the recipe a band rests on is the share that was there.
+    the share of the recipe a band rests on is the share that was there, and a
+    recipe a page shows is the recipe its bands were worked out with.
     """
     percentiles = {(row.area_id, row.feature_id): row.percentile for row in files.features.rows}
+    recipes = _recipes(files)
     for index, row in enumerate(files.tags.rows):
+        recipe = recipes[row.tag_id]
         parts = {
-            term.feature_id: percentiles.get((row.area_id, term.feature_id))
-            for term in TAGS[row.tag_id].terms
+            term.feature_id: percentiles.get((row.area_id, term.feature_id)) for term in recipe
         }
-        worked_out = tag_raw(row.tag_id, parts)
+        worked_out = tag_raw(row.tag_id, parts, recipe)
         if not (_same(row.raw, worked_out.raw) and _same(row.coverage, worked_out.coverage)):
             yield TAGS_FILE, f"rows[{index}]"
 
@@ -1403,6 +1826,9 @@ RULES: tuple[Rule, ...] = (
     references_resolve,
     catalogue_matches_core,
     vibes_match_core,
+    names_name_no_place,
+    held_off_stays_held_off,
+    changes_are_named,
     rows_are_complete,
     values_are_in_range,
     null_means_null,
@@ -1554,6 +1980,50 @@ def _hashes(beside: Mapping[str, bytes]) -> Hashes:
         raise ReleaseError(HASHES, "shape_is_valid") from None
 
 
+# How a lock names the file of changes a build was given: by its name, after this.
+CHANGES_IN_A_LOCK = "changes/"
+CHANGES_ARE_LOCKED = "changes_are_locked"
+
+
+def _changes_locked(lock: bytes) -> tuple[str, ...]:
+    """The hash of every file of changes a lock names. It reads nothing else of the lock."""
+    try:
+        held = cast(object, json.loads(lock.decode("utf-8"), parse_constant=_refuse_constant))
+        inputs = cast(dict[str, object], held)["inputs"] if isinstance(held, dict) else None
+        if not isinstance(inputs, list):
+            raise TypeError
+        found: list[str] = []
+        for one in cast(list[object], inputs):
+            if not isinstance(one, dict):
+                raise TypeError
+            name = cast(dict[str, object], one).get("name")
+            sha256 = cast(dict[str, object], one).get("sha256")
+            if not isinstance(name, str) or not isinstance(sha256, str):
+                raise TypeError
+            if name.startswith(CHANGES_IN_A_LOCK):
+                found.append(sha256)
+    except (ValueError, KeyError, TypeError, RecursionError):
+        # Only that it cannot be read. Nothing it holds is repeated.
+        raise ReleaseError(LOCK, CHANGES_ARE_LOCKED) from None
+    return tuple(found)
+
+
+def _held_to_its_changes(release: InMemoryRelease, lock: bytes | None) -> None:
+    """Refuse a release whose lock does not name the file of changes its manifest names.
+
+    A release that was built with a file of changes says its hash, and the lock
+    of its build names that file and no other. A release that was built with
+    none has a lock that names none.
+    """
+    named = release.manifest.changes_sha256
+    if lock is None:
+        if named is not None:
+            raise ReleaseError(LOCK, CHANGES_ARE_LOCKED)
+        return
+    if _changes_locked(lock) != (() if named is None else (named,)):
+        raise ReleaseError(LOCK, CHANGES_ARE_LOCKED)
+
+
 def open_served(
     folder_name: str, files: Mapping[str, bytes], beside: Mapping[str, bytes] | None
 ) -> InMemoryRelease:
@@ -1561,18 +2031,25 @@ def open_served(
 
     `beside` is the bytes of the hashes of the build, of its evidence and of
     its lock, by file name, as they stand in the folder beside the release. A
-    made-up release is built from no file, so nothing is asked of it. A
-    release that is not made up is refused unless all three are there, the
-    hashes are of this release, and each of the manifest, the evidence and the
-    lock still has the hash it had when it was built.
+    made-up release is built from no file, so nothing is asked of it, unless
+    it says that it was built with a file of changes: then its lock is asked
+    for. A release that is not made up is refused unless all three are there,
+    the hashes are of this release, and each of the manifest, the evidence and
+    the lock still has the hash it had when it was built.
 
     Nothing here reads the evidence. That it stands behind every fact is
     checked when the release is built, and by `burro-release check`. What is
     held here is that the release and the evidence are the ones that were
-    checked.
+    checked. Of the lock it reads one thing: which file of changes it names.
+
+    **None of the three is signed.** Whoever can write the manifest, the hashes
+    and the lock together has made a build of their own, and nothing here can
+    tell it from another. What can is the record of the builds that were
+    approved, which is committed, and which nothing reads yet.
     """
     release = open_release(folder_name, files)
     if release.manifest.synthetic:
+        _held_to_its_changes(release, (beside or {}).get(LOCK))
         return release
     held = beside or {}
     for name in (HASHES, EVIDENCE, LOCK):
@@ -1589,4 +2066,5 @@ def open_served(
     for name, content, sha256 in expected:
         if hashlib.sha256(content).hexdigest() != sha256:
             raise ReleaseError(name, "build_is_as_it_was_written")
+    _held_to_its_changes(release, held[LOCK])
     return release

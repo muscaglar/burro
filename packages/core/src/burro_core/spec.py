@@ -71,6 +71,11 @@ class Limits(Record):
 LIMITS = Limits()
 
 DEFAULT_SEGMENT = {Tenure.RENT: Segment.BED_1, Tenure.BUY: Segment.FLAT}
+# The kind of house a budget is held against where a person names a house and no kind of
+# house. Decided on 2026-09-25, and the founder's to overturn: a house is no flat, a price is
+# held by the kind of house, and a terraced house is the least dear kind in most areas of the
+# first build of London. It is said to be assumed wherever it is taken.
+DEFAULT_HOUSE = Segment.TERRACED
 DEFAULT_COMMUTE_MODE = Mode.PT
 DEFAULT_COMMUTE_MINUTES = 45
 DEFAULT_STRICTNESS = Strictness.SOFT

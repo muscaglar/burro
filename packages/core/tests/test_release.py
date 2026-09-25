@@ -196,11 +196,62 @@ def vibe(found: Documents, tag_id: str) -> dict[str, Any]:
     return next(v for v in found["catalogue.json"]["vibes"] if v["tag_id"] == tag_id)
 
 
+# The hash of a file of changes: any will do, because core reads no such file.
+OF_A_FILE = "5" * 64
+
+
+def test_a_manifest_is_written_with_what_is_said_with_a_credit_only_where_something_is():
+    """So a release of which nothing is asked is byte for byte what it was."""
+    manifest = fixture_release().manifest
+    written = manifest.as_written()["sources"]
+    assert written and all("said_with_attribution" not in source for source in written)
+
+    asked = "The publisher cannot warrant the quality or accuracy of the data."
+    saying_so = manifest.replace(
+        sources=tuple(source.replace(said_with_attribution=asked) for source in manifest.sources)
+    )
+
+    written = saying_so.as_written()
+    assert [source["said_with_attribution"] for source in written["sources"]] == [asked] * len(
+        manifest.sources
+    )
+    # The credit is as it was, and what was written is read as it was written.
+    assert [source["attribution"] for source in written["sources"]] == [
+        source.attribution for source in manifest.sources
+    ]
+    assert type(manifest).model_validate(written) == saying_so
+    with pytest.raises(ValidationError):
+        manifest.sources[0].replace(said_with_attribution="")
+
+
 def a_hundredth_moved(found: Documents) -> None:
-    # The scores in the release were worked out with core's recipe, not this one.
+    # The scores in the release were worked out with core's recipe, and it carries another.
+    found["manifest.json"]["changes_sha256"] = OF_A_FILE
     terms = vibe(found, "leafy")["terms"]
     terms[0]["hundredths"] += 1
     terms[1]["hundredths"] -= 1
+
+
+def a_hundredth_moved_by_no_file(found: Documents) -> None:
+    a_hundredth_moved(found)
+    found["manifest.json"]["changes_sha256"] = None
+
+
+def named_for_an_area(found: Documents) -> None:
+    found["manifest.json"]["changes_sha256"] = OF_A_FILE
+    name = found["neighbourhoods.json"]["neighbourhoods"][0]["name"]
+    vibe(found, "leafy").update(label=f"Like {name}", short_label=f"Like {name}")
+
+
+def placed_by_the_parts_that_are_left(found: Documents) -> None:
+    """Two parts of a vibe have no figure, so core places no area on it. Its shares are
+    moved to the two that are left, and every row says the band they give."""
+    from .test_adjusted import shares
+    from .test_written_by_hand import without_figures
+
+    found["manifest.json"]["changes_sha256"] = OF_A_FILE
+    without_figures(found, "venue_evening_per_homes", "venue_food_drink_per_homes")
+    shares(found, "pace", 1, 1, 58, 40)
 
 
 def the_count_ranked_on(found: Documents) -> None:
@@ -377,17 +428,20 @@ BROKEN: list[tuple[str, str, Break]] = [
     ("catalogue_matches_core", "catalogue.json", set_in("catalogue.json", 0, method="modelled")),
     # What core shows and never ranks on is said to be ranked on.
     ("catalogue_matches_core", "catalogue.json", the_count_ranked_on),
-    ("vibes_match_core", "catalogue.json", a_hundredth_moved),
     ("vibes_match_core", "catalogue.json", a_vibe_left_out),
     ("vibes_match_core", "catalogue.json", works_and_warehouses_beside_gritty),
+    # A release may name an end otherwise than core, and never by a word of praise.
     (
         "vibes_match_core",
         "catalogue.json",
-        lambda found: vibe(found, "pace").update(high_end="Lively"),
+        lambda found: vibe(found, "pace").update(high_end="Vibrant"),
     ),
     ("vibes_match_core", "catalogue.json", lambda found: vibe(found, "leafy").update(lens=False)),
     # The manifest says the release holds no recorded crime, and it carries Gritty.
     ("vibes_match_core", "catalogue.json", set_in("manifest.json", None, gritty_variant="a")),
+    ("names_name_no_place", "catalogue.json", named_for_an_area),
+    ("held_off_stays_held_off", "catalogue.json", placed_by_the_parts_that_are_left),
+    ("changes_are_named", "manifest.json", a_hundredth_moved_by_no_file),
     # A row for a vibe the release does not carry.
     ("references_resolve", "tags.json", a_row_of_gritty_where_no_recorded_crime_is_held),
     ("bands_match_raw", "tags.json", a_band_one_higher),
@@ -508,6 +562,8 @@ BROKEN: list[tuple[str, str, Break]] = [
     ),
     ("percentiles_match_values", "features.json", a_percentile_of_its_own),
     ("raw_matches_recipe", "tags.json", two_areas_in_each_others_place),
+    # A release may carry shares that are not core's, and its bands are worked out with them.
+    ("raw_matches_recipe", "tags.json", a_hundredth_moved),
     ("raw_matches_recipe", "tags.json", a_part_that_says_more_than_was_there),
     ("scores_match_raw", "tags.json", a_score_of_its_own),
     ("shape_is_valid", "features.json", set_in("features.json", 0, note="looks fine to me")),
@@ -526,7 +582,7 @@ def test_the_small_release_is_valid_before_it_is_broken():
     found = parse_release(documents())
     assert len(found.neighbourhoods) == 8
     # Four features are in core and in no release yet.
-    assert len(found.metrics) == 108
+    assert len(found.metrics) == 109
     assert found.manifest.synthetic is True
     assert [vibe.tag_id for vibe in found.vibes] == [
         vibe.tag_id for vibe in tags_of(GrittyVariant.B)
@@ -629,6 +685,9 @@ def test_every_rule_of_the_contract_has_a_release_that_breaks_it():
         "references_resolve",
         "catalogue_matches_core",
         "vibes_match_core",
+        "names_name_no_place",
+        "held_off_stays_held_off",
+        "changes_are_named",
         "rows_are_complete",
         "values_are_in_range",
         "null_means_null",
@@ -879,7 +938,7 @@ def test_a_release_may_carry_fewer_features_than_the_catalogue_holds():
         r for r in fewer["features.json"]["rows"] if r["feature_id"] != dropped
     ]
     found = parse_release(fewer)
-    assert len(found.metrics) == 107
+    assert len(found.metrics) == 108
     assert found.feature(area_id(1), FeatureId.SCHOOL_PRIMARY_ATTAINMENT) is None
 
 

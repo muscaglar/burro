@@ -107,12 +107,18 @@ def test_every_fact_names_a_source_and_a_date():
                 assert fact.fact_id == f"{fact.area_id}/{fact.kind}/{fact.key}"
     # Every kind, journeys and stations included, and every way of saying each. No price
     # of these releases is without a range: `test_a_price_with_no_range.py` holds those.
+    # No rent of them is of a wider place: `test_a_rent_of_a_wider_place.py` holds those.
     # And no journey of them is estimated: `test_estimate.py` holds that fact to the same.
     elsewhere = {
         TemplateId.COST_BUY_MEDIAN,
         TemplateId.COST_BUY_SOLD,
+        TemplateId.COST_RENT_RECORDED,
         TemplateId.BUDGET_UNDER_MEDIAN,
         TemplateId.BUDGET_OVER_MEDIAN,
+        TemplateId.BUDGET_AT_MEDIAN,
+        TemplateId.BUDGET_UNDER_RECORDED,
+        TemplateId.BUDGET_OVER_RECORDED,
+        TemplateId.BUDGET_AT_RECORDED,
         TemplateId.TRAVEL_ESTIMATED,
     }
     assert {fact.kind for fact in facts} == set(FactKind)
@@ -143,6 +149,45 @@ def test_a_fact_carries_the_statement_of_a_source_whose_publisher_asks_to_see_it
             stated[source.source_id] for source in fact.sources
         ]
         assert all(source.attribution for source in fact.sources)
+
+
+def test_what_is_said_with_a_credit_goes_wherever_the_credit_goes_and_nowhere_else():
+    """The terms of a publisher may ask that something is said wherever its credit is
+    shown. The release holds it with the source, and a fact carries it with the credit.
+    A source that is credited by its name and its publisher brings neither."""
+    asked = "The publisher cannot warrant the quality or accuracy of the data."
+    release = small_release()
+    assert not any(source.said_with_attribution for source in release.manifest.sources)
+
+    def saying_so(*, beside_figures: bool) -> InMemoryRelease:
+        sources = tuple(
+            source.replace(said_with_attribution=asked, credit_beside_figures=beside_figures)
+            for source in release.manifest.sources
+        )
+        return dataclasses.replace(release, manifest=release.manifest.replace(sources=sources))
+
+    for fact in every_fact(saying_so(beside_figures=False), full_spec()):
+        for source in fact.sources:
+            assert (source.attribution, source.said_with_attribution) == (None, None)
+    found = every_fact(saying_so(beside_figures=True), full_spec())
+    assert found
+    for fact in found:
+        for source in fact.sources:
+            assert source.attribution and source.said_with_attribution == asked
+    # Where the credit stands beside a figure and nothing is asked to be said with it,
+    # nothing is.
+    credited = dataclasses.replace(
+        release,
+        manifest=release.manifest.replace(
+            sources=tuple(
+                source.replace(credit_beside_figures=True) for source in release.manifest.sources
+            )
+        ),
+    )
+    for fact in every_fact(credited, full_spec()):
+        assert [source.said_with_attribution for source in fact.sources] == [None] * len(
+            fact.sources
+        )
 
 
 def test_each_kind_of_fact_takes_its_date_from_where_the_contract_says():
@@ -721,8 +766,8 @@ def test_a_vibe_is_said_as_a_band_among_the_areas_compared_and_never_as_a_percen
 
 
 def test_a_band_that_rests_on_part_of_a_recipe_says_how_much_of_it():
-    # No release carries private outdoor space, so Homes rests on two of its
-    # three parts, which are 75 of its 100. It was said as any other band.
+    # The release of the tests carries no private outdoor space, so Homes rests on two
+    # of its three parts, which are 75 of its 100. It was said as any other band.
     release = small_release()
     facts = by_id(facts_for(release, area_id(1), None))
     homes, pace = facts[f"{area_id(1)}/tag/homes"], facts[f"{area_id(1)}/tag/pace"]

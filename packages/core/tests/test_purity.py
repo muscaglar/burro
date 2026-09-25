@@ -89,6 +89,6 @@ def test_core_depends_on_pydantic_only():
 
 
 def test_the_engine_names_its_version():
-    assert burro_core.ENGINE_VERSION == "1.13.0"
-    assert burro_core.CATALOGUE_VERSION == 13
+    assert burro_core.ENGINE_VERSION == "1.14.0"
+    assert burro_core.CATALOGUE_VERSION == 14
     assert set(burro_core.__all__) <= set(dir(burro_core))

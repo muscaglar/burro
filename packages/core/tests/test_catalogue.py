@@ -13,17 +13,23 @@ from burro_core.catalogue import (
     HOLDS_RESIDENTS,
     KINDS_OF_CHAIN,
     MIXED_WORDS,
+    NEAR_A_STATION,
     NEARBY,
     NEAREST_WITHIN_M,
     NEVER_A_TRADE_OFF,
     NUISANCES,
+    ON_CONSERVATION_AREAS,
     PLACED_ONLY_WITH,
     RANKED_AS,
+    ROUGH_GUIDE,
+    ROUGH_GUIDES,
     SHOWN_BESIDE_THE_MIX,
     TAGS,
     TIERS,
+    WHY_A_ROUGH_GUIDE,
     WITHIN_M,
     Chain,
+    RoughGuide,
     Tag,
     TagTerm,
     band_of,
@@ -33,6 +39,8 @@ from burro_core.catalogue import (
     direction_allowed,
     of_a_tier,
     percentile_of,
+    rough_guides,
+    says_rough,
     tag_raw,
     tags_of,
 )
@@ -47,6 +55,7 @@ from burro_core.ids import (
     Method,
     NativeResolution,
     Polarity,
+    Sureness,
     TagId,
     TagShape,
     Tenure,
@@ -353,7 +362,7 @@ def test_places_to_eat_and_drink_are_shown_as_a_count_and_ranked_on_for_each_100
     assert rate.short_label == "Places to eat and drink"
     assert count.short_label == "Places to eat and drink within reach"
     assert RANKED_AS[FeatureId.VENUE_FOOD_DRINK] is FeatureId.VENUE_FOOD_DRINK_PER_HOMES
-    # It is new, and no audit has passed it for likeness.
+    # It is new, and the catalogue holds it out of likeness.
     assert not rate.in_likeness
 
 
@@ -487,7 +496,8 @@ def test_two_measures_take_the_name_that_says_what_the_figure_is():
 
 
 def test_three_measures_keep_cores_names_until_the_founder_has_decided():
-    """Parks close by stays short of its recipe, and Village feel stays off the map."""
+    """Parks close by stays short of its recipe. The size and the shape of a town centre
+    are parts of no recipe since 2026-09-25, and keep their ids and their names."""
     assert FEATURES[FeatureId.PARK_FACILITIES].label == (
         "Kinds of thing to do in parks within a 15-minute walk"
     )
@@ -499,40 +509,182 @@ def test_three_measures_keep_cores_names_until_the_founder_has_decided():
     )
 
 
-def test_village_feel_is_placed_only_where_something_of_a_town_centre_has_a_figure():
-    """Its other three parts are 60 in 100 of it, which would be enough for a band.
+def test_village_feel_is_the_recipe_the_founder_chose_to_serve():
+    """The second try's recipe, as it was counted. Decided on 2026-09-25 (ADR 0013)."""
+    village = TAGS[TagId.VILLAGE_FEEL]
+    assert [(term.hundredths, term.feature_id, term.reading) for term in village.terms] == [
+        (45, FeatureId.HIGHSTREET_CONSERVED, TermReading.HIGH),
+        (30, FeatureId.HOMES_DENSITY, TermReading.LOW),
+        (15, FeatureId.HOMES_PRE1919, TermReading.HIGH),
+        (10, FeatureId.CONSERVATION_COVER, TermReading.HIGH),
+    ]
+    assert (village.label, village.shape, village.family) == (
+        "Village feel",
+        TagShape.ONE_WAY,
+        Family.STREETS_HOMES,
+    )
+    # It holds no part for a small or a compact centre, or for independent places: each
+    # was tried, and did not help.
+    tried = {FeatureId.CENTRE_SMALL, FeatureId.CENTRE_COMPACT, FeatureId.INDEPENDENTS_NEARBY}
+    assert not tried & {term.feature_id for term in village.terms}
+    assert not any(
+        term.feature_id in (FeatureId.CENTRE_SMALL, FeatureId.CENTRE_COMPACT)
+        for tag in TAGS.values()
+        for term in tag.terms
+    )
+    # Its meaning says what it is made of, and what it cannot see what it gets wrong.
+    assert village.meaning == (
+        "A high street in a conservation area, homes that stand apart, period homes and "
+        "protected streets"
+    )
+    assert village.cannot_see == (
+        COMMON_CANNOT_SEE,
+        "How much traffic runs along a high street.",
+        "Whether the high street nearest a home is the centre of a village.",
+        "Whether a park makes the homes beside it read as standing apart.",
+        "Whether neighbours know each other.",
+    )
 
-    On a build of London they found inner London's old streets and no villages. It is
-    served only once a second try reads as villages, so it places no area that has no
-    figure for the size or the shape of its town centre, whatever else is known.
-    """
-    centre = {FeatureId.CENTRE_SMALL, FeatureId.CENTRE_COMPACT}
-    assert dict(PLACED_ONLY_WITH) == {TagId.VILLAGE_FEEL: centre}
+
+def test_the_high_street_in_a_conservation_area_is_a_measure_of_the_place():
+    street = FEATURES[FeatureId.HIGHSTREET_CONSERVED]
+    assert street.label == "Share of the nearest high street that lies in a conservation area"
+    assert street.short_label == "A high street in a conservation area"
+    assert (street.unit, street.polarity, street.kind) == ("%", Polarity.MORE, FeatureKind.TASTE)
+    assert (street.dimension, street.family) == (Dimension.HOMES, Family.STREETS_HOMES)
+    assert (street.native_resolution, street.method) == (
+        NativeResolution.POLYGON,
+        Method.MEASURED,
+    )
+    assert street.describes is Describes.BUILDINGS
+    # It is the heaviest part of a rough guide, so no likeness between areas counts it.
+    assert street.in_likeness is False
+    assert FeatureId.HIGHSTREET_CONSERVED not in RANKED_AS
+    # It stands in one recipe and no other.
+    holding = [
+        tag.tag_id
+        for tag in TAGS.values()
+        if any(term.feature_id is FeatureId.HIGHSTREET_CONSERVED for term in tag.terms)
+    ]
+    assert holding == [TagId.VILLAGE_FEEL]
+
+
+def test_village_feel_places_no_area_without_its_high_street():
+    """Its other three parts are 55 in 100 of it, which is under what a band needs."""
     rest = {
-        term.feature_id: 80.0
-        for term in TAGS[TagId.VILLAGE_FEEL].terms
-        if term.feature_id not in centre
-    }
-    assert set(rest) == {
-        FeatureId.INDEPENDENTS_NEARBY,
-        FeatureId.HOMES_PRE1919,
-        FeatureId.CONSERVATION_COVER,
+        FeatureId.HOMES_DENSITY: 20.0,
+        FeatureId.HOMES_PRE1919: 80.0,
+        FeatureId.CONSERVATION_COVER: 80.0,
     }
     without = tag_raw(TagId.VILLAGE_FEEL, rest)
+    assert (without.raw, without.coverage) == (None, 0.55)
+    # With its high street and one part more it has a band, as any vibe has at 60 in 100.
+    street = {FeatureId.HIGHSTREET_CONSERVED: 80.0}
+    assert tag_raw(TagId.VILLAGE_FEEL, street).raw is None
+    assert tag_raw(TagId.VILLAGE_FEEL, street | {FeatureId.CONSERVATION_COVER: 80.0}).raw is None
+    placed = tag_raw(TagId.VILLAGE_FEEL, street | {FeatureId.HOMES_PRE1919: 80.0})
+    assert (placed.raw, placed.coverage) == (0.8, 0.6)
+    # Homes per hectare are read from the low end: homes that stand apart count for more.
+    whole = tag_raw(TagId.VILLAGE_FEEL, street | rest)
+    assert whole.coverage == 1.0
+    assert whole.raw == round((45 * 0.8 + 30 * 0.8 + 15 * 0.8 + 10 * 0.8) / 100, 6)
+    crowded = tag_raw(TagId.VILLAGE_FEEL, street | rest | {FeatureId.HOMES_DENSITY: 90.0})
+    assert crowded.raw is not None and whole.raw is not None and crowded.raw < whole.raw
+
+
+def test_no_vibe_is_held_off_today_and_the_rule_stands_for_one_that_is(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """Village feel was held off until the founder chose to serve it, on 2026-09-25.
+
+    Nothing is named in `PLACED_ONLY_WITH` today. What it does is kept, for a vibe that
+    is held off in future: a vibe that is named there places an area only where one of
+    the parts named for it has a figure, whatever else of its recipe has.
+    """
+    from burro_core import catalogue
+
+    assert dict(PLACED_ONLY_WITH) == {}
+    parts = {FeatureId.LAND_GARDENS: 80.0, FeatureId.GREEN_COVER: 80.0}
+    assert tag_raw(TagId.LEAFY, parts).raw == 0.8
+    held_off = {TagId.LEAFY: frozenset({FeatureId.LAND_WOODLAND})}
+    monkeypatch.setattr(catalogue, "PLACED_ONLY_WITH", held_off)
+    without = tag_raw(TagId.LEAFY, parts)
     # How much of the recipe is known is still said: it is what the sentence of the vibe says.
-    assert (without.raw, without.coverage) == (None, 0.6)
-    assert tag_raw(TagId.VILLAGE_FEEL, rest | dict.fromkeys(centre)).raw is None
-    for part in sorted(centre):
-        placed = tag_raw(TagId.VILLAGE_FEEL, rest | {part: 80.0})
-        assert (placed.raw, placed.coverage) == (0.8, 0.8)
-    # With something of a town centre it is held to 60 in 100 as any vibe is.
-    assert tag_raw(TagId.VILLAGE_FEEL, dict.fromkeys(centre, 80.0)).raw is None
-    # Every part that is named is a part of the recipe it is named for.
-    for tag_id, needed in PLACED_ONLY_WITH.items():
-        assert needed and needed <= {term.feature_id for term in TAGS[tag_id].terms}
-    # Food and drink holds independent places too, and is placed on them as it was.
+    assert (without.raw, without.coverage) == (None, 0.7)
+    with_it = tag_raw(TagId.LEAFY, parts | {FeatureId.LAND_WOODLAND: 80.0})
+    assert (with_it.raw, with_it.coverage) == (0.8, 1.0)
+    # And it is held to 60 in 100 as any vibe is.
+    assert tag_raw(TagId.LEAFY, {FeatureId.LAND_WOODLAND: 80.0}).raw is None
+    # Any other vibe is placed as it was.
     food = {FeatureId.VENUE_FOOD_DRINK_PER_HOMES: 80.0, FeatureId.INDEPENDENTS_NEARBY: 80.0}
     assert tag_raw(TagId.FOODIE, food).raw == 0.8
+
+
+# A vibe that says it is less sure than the rest
+
+
+def test_a_vibe_says_whether_it_is_a_rough_guide_in_one_field_of_two_values():
+    assert [member.value for member in Sureness] == ["as_the_rest", "rough_guide"]
+    # A vibe that says nothing is as sure as the rest, which is what a client assumes.
+    assert Tag.model_fields["sureness"].default is Sureness.AS_THE_REST
+    said = {tag.tag_id: tag.sureness for tag in TAGS.values()}
+    assert {tag_id for tag_id, sure in said.items() if sure is Sureness.ROUGH_GUIDE} == {
+        TagId.VILLAGE_FEEL
+    }
+    assert set(ROUGH_GUIDES) == {TagId.VILLAGE_FEEL}
+    assert all(
+        sure is Sureness.AS_THE_REST for tag_id, sure in said.items() if tag_id not in ROUGH_GUIDES
+    )
+
+
+def test_a_rough_guide_has_one_short_label_and_one_sentence_that_says_why():
+    assert ROUGH_GUIDE == "Rough guide"
+    assert set(WHY_A_ROUGH_GUIDE) == ROUGH_GUIDES
+    why = WHY_A_ROUGH_GUIDE[TagId.VILLAGE_FEEL]
+    assert why == (
+        "Of the areas it puts highest, about half read as villages to people, and it "
+        "takes some busy main roads and some grand inner streets for villages."
+    )
+    assert says_rough(TagId.VILLAGE_FEEL) == f"Rough guide. {why}"
+    for sentence in WHY_A_ROUGH_GUIDE.values():
+        # One sentence, which gives no figure that a build could make false.
+        assert sentence.endswith(".") and sentence.count(".") == 1
+        assert not any(character.isdigit() for character in sentence)
+        assert not re.search(r"\b(?:one|two|three|four|five|six|seven|eight|nine|ten)\b", sentence)
+        assert "about half" in sentence
+
+
+def test_what_a_rough_guide_says_is_served_for_each_vibe_that_is_one():
+    assert rough_guides(TAGS.values()) == (
+        RoughGuide(
+            tag_id=TagId.VILLAGE_FEEL,
+            label="Rough guide",
+            why=WHY_A_ROUGH_GUIDE[TagId.VILLAGE_FEEL],
+        ),
+    )
+    others = [tag for tag in TAGS.values() if tag.tag_id is not TagId.VILLAGE_FEEL]
+    assert rough_guides(others) == ()
+
+
+def test_a_rough_guide_is_on_a_result_only_where_it_was_asked_for():
+    """It is put on no result by itself, and leads no portrait: `strip`."""
+    village = TAGS[TagId.VILLAGE_FEEL]
+    assert village.strip is False and village.lens and village.table
+    with pytest.raises(ValueError, match="where it is a rough guide"):
+        checked_recipe(village.replace(strip=True))
+    # Every vibe that is as sure as the rest, and counts nobody, may be put on a result.
+    assert {tag.tag_id for tag in TAGS.values() if not tag.strip} == (
+        ROUGH_GUIDES | HOLDS_RESIDENTS
+    )
+
+
+def test_a_rough_guide_says_why_and_a_vibe_that_is_as_sure_as_the_rest_does_not():
+    leafy = TAGS[TagId.LEAFY]
+    with pytest.raises(ValueError, match="says why it is a rough guide"):
+        checked_recipe(leafy.replace(sureness=Sureness.ROUGH_GUIDE, strip=False))
+    village = TAGS[TagId.VILLAGE_FEEL]
+    with pytest.raises(ValueError, match="says why it is a rough guide"):
+        checked_recipe(village.replace(sureness=Sureness.AS_THE_REST))
 
 
 # The chains of grocers, gyms and coffee, as the founder decided on 2026-09-24 (ADR 0026).
@@ -655,7 +807,8 @@ def test_core_names_a_tier_and_a_chain_and_never_says_which_chain_is_of_which_ti
 
 
 def test_independent_places_are_a_share_of_the_places_within_reach_in_a_straight_line():
-    """It is a part of Food and drink and of Village feel, and is named for what is measured."""
+    """It is a part of Food and drink, and is named for what is measured. It was a part of
+    Village feel until 2026-09-25."""
     independent = FEATURES[FeatureId.INDEPENDENTS_NEARBY]
     assert independent.label == (
         "Share of the places to eat and drink within 800 m of home, in a straight line, that "
@@ -671,7 +824,7 @@ def test_independent_places_are_a_share_of_the_places_within_reach_in_a_straight
         for term in tag.terms
         if term.feature_id is FeatureId.INDEPENDENTS_NEARBY
     }
-    assert held == {TagId.VILLAGE_FEEL: 25, TagId.FOODIE: 40}
+    assert held == {TagId.FOODIE: 40}
 
 
 def test_what_is_shown_and_not_ranked_on_is_ranked_as_a_measure_of_the_same_kind():
@@ -689,7 +842,7 @@ def test_what_is_shown_and_not_ranked_on_is_ranked_as_a_measure_of_the_same_kind
 def test_the_catalogue_holds_every_feature_and_tag_once():
     assert set(FEATURES) == set(FeatureId)
     assert set(TAGS) == set(TagId)
-    assert len(FEATURES) == 112
+    assert len(FEATURES) == 113
     # Thirteen vibes, and gritty in both its variants.
     assert len(TAGS) == 15
 
@@ -1000,7 +1153,7 @@ def test_cafes_gyms_and_pubs_are_each_shown_as_a_count_and_ranked_on_for_each_10
                 Dimension.VENUES_CULTURE,
                 Describes.PLACE,
             )
-        # New, and no audit has passed it for likeness.
+        # New, and the catalogue holds it out of likeness.
         assert not rate.in_likeness
     # A person may want fewer pubs, and never fewer cafes or gyms.
     for shown in (FeatureId.VENUE_CAFE, FeatureId.VENUE_GYM):
@@ -1247,6 +1400,8 @@ def test_what_a_feature_describes_is_a_place_its_buildings_or_what_was_recorded_
         FeatureId.PRICE_RISE_5Y,
         FeatureId.PRICE_RISE_10Y,
         FeatureId.HOMES_HIGHER_BANDS,
+        # How much of a high street lies in a conservation area, as conservation cover is.
+        FeatureId.HIGHSTREET_CONSERVED,
     }
     # Who lived there is said of the four measures of the census, and of nothing else.
     assert {f for f, feature in FEATURES.items() if feature.describes == "residents"} == {
@@ -1283,6 +1438,8 @@ def test_the_measures_likeness_may_use_are_these_and_none_is_a_nuisance_or_an_ev
         FeatureId.SCHOOL_PRIMARY_NEARBY,
         FeatureId.SCHOOL_PRIMARY_ATTAINMENT,
         FeatureId.SCHOOL_SECONDARY_ATTAINMENT,
+        # The heaviest part of a rough guide: no likeness between areas counts it.
+        FeatureId.HIGHSTREET_CONSERVED,
     )
     assert not likeness & set(never)
     for feature_id in likeness:
@@ -1324,12 +1481,35 @@ def test_the_words_with_two_meanings_are_few_and_written_in_one_place():
 
 @pytest.mark.parametrize("tag", TAGS.values(), ids=[str(t) for t in TAGS])
 def test_conservation_areas_never_decide_a_tag_alone(tag: Tag):
-    # A condition of the source. With the coverage rule, a tag that has only
-    # its conservation term present is below 60 hundredths and so is unknown.
-    carried = sum(t.hundredths for t in tag.terms if t.feature_id is FeatureId.CONSERVATION_COVER)
+    # A condition of the source. With the coverage rule, a tag that has only the parts
+    # that rest on conservation areas present is below 60 hundredths and so is unknown.
+    # Two measures rest on them: the cover of an area, and of its nearest high street.
+    assert set(ON_CONSERVATION_AREAS) == {
+        FeatureId.CONSERVATION_COVER,
+        FeatureId.HIGHSTREET_CONSERVED,
+    }
+    carried = sum(t.hundredths for t in tag.terms if t.feature_id in ON_CONSERVATION_AREAS)
     assert carried < 60
     if carried:
-        assert tag_raw(tag.tag_id, {FeatureId.CONSERVATION_COVER: 90.0}).raw is None
+        alone = dict.fromkeys(ON_CONSERVATION_AREAS, 90.0)
+        assert tag_raw(tag.tag_id, alone).raw is None
+
+
+def test_a_recipe_whose_parts_on_conservation_areas_come_to_sixty_is_refused():
+    """A person may move the shares of a recipe at the panel. Moved so, one source would
+    place an area alone, which its licence registry entry forbids."""
+    village = TAGS[TagId.VILLAGE_FEEL]
+    moved = tuple(
+        term.replace(hundredths=share)
+        for term, share in zip(village.terms, (50, 25, 15, 10), strict=True)
+    )
+    with pytest.raises(ValueError, match="rest on conservation areas"):
+        checked_recipe(village.replace(terms=moved))
+    kept = tuple(
+        term.replace(hundredths=share)
+        for term, share in zip(village.terms, (49, 26, 15, 10), strict=True)
+    )
+    assert checked_recipe(village.replace(terms=kept)).terms == kept
 
 
 def test_crime_has_a_fixed_direction_and_university_cannot_be_asked_to_be_far():
@@ -1490,11 +1670,11 @@ def test_a_missing_term_is_dropped_and_the_rest_reweighted():
 def test_tag_coverage_of_exactly_sixty_hundredths_is_enough():
     # 0.25 + 0.20 + 0.15. As floats these need not sum to 0.6; as hundredths they do.
     found = tag_raw(
-        TagId.VILLAGE_FEEL,
+        TagId.EVERYDAY_ON_FOOT,
         {
-            FeatureId.INDEPENDENTS_NEARBY: 50.0,
-            FeatureId.CENTRE_SMALL: 50.0,
-            FeatureId.CONSERVATION_COVER: 50.0,
+            FeatureId.GROCERY_WALK: 50.0,
+            FeatureId.STATION_WALK: 50.0,
+            FeatureId.GP_WALK: 50.0,
         },
     )
     assert found.coverage == 0.6
@@ -1557,3 +1737,22 @@ def test_every_walk_time_and_distance_has_a_figure_at_which_it_is_never_a_trade_
         checked_floors({FeatureId.STATION_WALK: 800})
     with pytest.raises(ValueError, match="never a trade-off"):
         checked_floors({**NEVER_A_TRADE_OFF, FeatureId.GREEN_COVER: 5})
+
+
+def test_near_a_station_is_said_as_the_figure_core_holds_and_the_figure_is_no_walk():
+    """Decided on 2026-09-25: near a station is about a 10 to 15 minute walk.
+
+    A straight line of 800 m is a walk of about that, so the figure at or under which
+    the distance to a station is never a trade-off is what near means. The words say
+    that figure, whatever it is. The measure is named a straight line, in metres, and
+    no word of its own says a walk or a minute.
+    """
+    floor = NEVER_A_TRADE_OFF[FeatureId.STATION_WALK]
+    assert floor == 800
+    assert NEAR_A_STATION == "Within 800 m in a straight line is about a 10 to 15 minute walk."
+    assert NEAR_A_STATION.startswith(f"Within {floor} m in a straight line ")
+    station = FEATURES[FeatureId.STATION_WALK]
+    assert station.label == "Straight-line distance to the nearest way in to a station"
+    assert (station.unit, station.polarity) == ("m", Polarity.LESS)
+    for words in (station.label, station.short_label, station.higher, station.lower):
+        assert "walk" not in words.lower() and "minute" not in words.lower()

@@ -1,10 +1,10 @@
-"""The catalogue: 112 features and the fifteen vibes made of them.
+"""The catalogue: 113 features and the fifteen vibes made of them.
 
 A release carries fourteen of the fifteen: the thirteen, and the one that gritty is
 read as.
 
-Forty-seven features describe a place, its buildings or what was recorded there. Four
-describe who lived there at Census 2021: the age of residents and what households were
+Every feature describes a place, its buildings or what was recorded there, but for four,
+which describe who lived there at Census 2021: the age of residents and what households were
 made of, and nothing else about them (ADR 0006, as amended on 2026-09-24). Each of the
 four says so in its name, is asked for towards more of what it counts and never
 towards fewer, stands in no scale, and counts towards no likeness. Two vibes hold one.
@@ -20,7 +20,7 @@ a rule stops the program before it can place anything.
 """
 
 from bisect import bisect_left, bisect_right
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from types import MappingProxyType
 
 from pydantic import Field
@@ -37,6 +37,7 @@ from burro_core.ids import (
     Method,
     NativeResolution,
     Polarity,
+    Sureness,
     TagId,
     TagShape,
     TermReading,
@@ -93,7 +94,15 @@ from burro_core.ids import (
 # counts: a share of addresses, by MSOA. Its publisher counts addresses and says nothing of
 # what it takes for a home. It is one number for what several streams of work each added
 # on 2026-09-24.
-CATALOGUE_VERSION = 13
+# 14 is the catalogue of Village feel as the founder chose to serve it, on 2026-09-25. It
+# holds the measure of how much of the high street nearest a home lies in a conservation
+# area, which a build of London works out and no likeness counts. Village feel is made of
+# it, of homes per hectare read from the low end, of homes built before 1919 and of
+# conservation cover, and of no part for the size or the shape of a town centre or for
+# independent places. A vibe says whether it is as sure as the rest or a rough guide, and
+# Village feel is the one rough guide: it is on a result only where it was asked for. No
+# vibe is held off.
+CATALOGUE_VERSION = 14
 
 # Below this share of a tag's formula, by weight, the tag is unknown for the area.
 TAG_MIN_COVERAGE_HUNDREDTHS = 60
@@ -176,6 +185,9 @@ class Tag(Record):
     shelf_toward: Toward | None
     shelf_order: int | None
     terms: tuple[TagTerm, ...]
+    # Whether the vibe is as sure as the rest, or a rough guide. A vibe that does not say
+    # is as sure as the rest. A rough guide says so wherever it is shown, with why.
+    sureness: Sureness = Sureness.AS_THE_REST
 
 
 class TagRaw(Record):
@@ -220,6 +232,7 @@ _BUILDINGS = frozenset(
         _F.HOMES_HIGHER_BANDS,
         _F.PRICE_RISE_5Y,
         _F.PRICE_RISE_10Y,
+        _F.HIGHSTREET_CONSERVED,
     }
 )
 # Two nuisances are measured from where homes stand, so each is shown in a
@@ -259,8 +272,10 @@ SHOWN_BESIDE_THE_MIX: frozenset[FeatureId] = frozenset(
     for tier in TIERS
     for what in (NEARBY, DISTANCE)
 )
-# What likeness may never be counted on, whatever kind of thing it is, until
-# an audit has passed it (contract, section 7.6).
+# What likeness is not counted on, whatever kind of thing it is (contract,
+# section 7.6). Each was held out until an audit had passed it. No audit is run
+# since 2026-09-25, when the proxy audit was dropped (ADR 0006), and each stays
+# out: whether one joins is the founder's to decide.
 _HELD_OUT_OF_LIKENESS = frozenset(
     {
         _F.HOMES_FLATS,
@@ -274,7 +289,7 @@ _HELD_OUT_OF_LIKENESS = frozenset(
         _F.VENUE_FOOD_DRINK_PER_HOMES,
         _F.CULTURE_VENUES_PER_HOMES,
         _F.PRICE_MEDIAN,
-        # New, and no audit has passed one of them.
+        # New, and held out as the others are.
         _F.VENUE_CAFE,
         _F.VENUE_CAFE_PER_HOMES,
         _F.VENUE_GYM,
@@ -284,8 +299,8 @@ _HELD_OUT_OF_LIKENESS = frozenset(
         # likeness is counted on a tier or on the mix.
         _F.BRAND_MIX,
         *SHOWN_BESIDE_THE_MIX,
-        # How near stops are follows how built up a place is. Held out until an audit
-        # has looked at them, as the count of lines is.
+        # How near stops are follows how built up a place is. Held out, as the count
+        # of lines is.
         _F.UNDERGROUND_PROXIMITY,
         _F.OVERGROUND_PROXIMITY,
         _F.RAIL_PROXIMITY,
@@ -294,6 +309,9 @@ _HELD_OUT_OF_LIKENESS = frozenset(
         _F.HOMES_HIGHER_BANDS,
         _F.PRICE_RISE_5Y,
         _F.PRICE_RISE_10Y,
+        # The heaviest part of Village feel, which is a rough guide. What a rough guide
+        # rests on is used to work out nothing else: decided on 2026-09-25.
+        _F.HIGHSTREET_CONSERVED,
     }
 )
 
@@ -1343,6 +1361,22 @@ _FEATURES = (
         "a smaller rise",
         _K.TASTE,
     ),
+    # How much of the high street nearest a home lies inside a conservation area, as the
+    # mean over an area's homes. It counts land inside a line a planning authority drew,
+    # so it cannot tell a village street from a main road through old streets. It was
+    # measured for Village feel, and is the heaviest part of it.
+    _feature(
+        _F.HIGHSTREET_CONSERVED,
+        _D.HOMES,
+        "Share of the nearest high street that lies in a conservation area",
+        "A high street in a conservation area",
+        "%",
+        _MORE,
+        _N.POLYGON,
+        "more",
+        "less",
+        _K.TASTE,
+    ),
 )
 
 FEATURES: Mapping[FeatureId, Feature] = MappingProxyType({f.feature_id: f for f in _FEATURES})
@@ -1356,7 +1390,8 @@ FEATURES: Mapping[FeatureId, Feature] = MappingProxyType({f.feature_id: f for f 
 # large park and a campus are fewer and are walked further to: twenty
 # minutes. Each is a first figure, chosen by judgement (contract, section 7.5).
 # Every distance is a straight line, so the walk is longer than the figure: the
-# floors were chosen for a walk, and are to be looked at again.
+# floors were chosen for a walk, and are to be looked at again. The floor of a station
+# was looked at on 2026-09-25, and stands: `NEAR_A_STATION`, below.
 _A_WALK_M = 800
 _A_LONGER_WALK_M = 1_600
 
@@ -1395,6 +1430,17 @@ NEVER_A_TRADE_OFF: Mapping[FeatureId, float] = checked_floors(
     }
 )
 
+# What near means of a station. The founder decided on 2026-09-25 that near a station
+# is about a 10 to 15 minute walk. The measure is a straight line, and a straight line
+# of 800 m is a walk of about that. So the figure at or under which the distance is
+# never a trade-off is what near means, and no figure moved: an offer of the measure
+# says so, after what is counted. The measure itself is named a straight line, in
+# metres, and never a walk. It is said of a station and of no other distance.
+NEAR_A_STATION = (
+    f"Within {NEVER_A_TRADE_OFF[_F.STATION_WALK]:.0f} m in a straight line is about "
+    "a 10 to 15 minute walk."
+)
+
 # What is shown and never ranked on, and the measure that is ranked on in its place.
 # Decided on 2026-09-24 of the places to eat and drink: the count is a true count, and on
 # its own it says little more than that an area is dense and central. So both figures are
@@ -1426,6 +1472,12 @@ COUNTS_RESIDENTS: frozenset[FeatureId] = frozenset(
     for feature_id, feature in FEATURES.items()
     if feature.describes is Describes.RESIDENTS
 )
+# The measures that rest on the conservation areas. Their publisher asks that its data
+# never decides a vibe alone, so the parts of a recipe that rest on it come to under 60
+# in 100 together: with nothing else known of an area, no vibe places it.
+ON_CONSERVATION_AREAS: frozenset[FeatureId] = frozenset(
+    {_F.CONSERVATION_COVER, _F.HIGHSTREET_CONSERVED}
+)
 # The one vibe that may hold recorded crime, and the one scale that may hold a
 # nuisance: Gritty. A release of London carries it as a made-up release does:
 # decided on 2026-09-24 (ADR 0013, as amended).
@@ -1439,6 +1491,21 @@ COMMON_CANNOT_SEE = "One street or one home. An area is many streets."
 # no publisher appears to have placed an area.
 JUDGEMENT = "The recipe is Burro's own. The weights are a judgement."
 MADE_FROM = "Burro's recipe. Made from data published by:"
+# What a vibe that is a rough guide says of itself wherever it is shown: one short label,
+# and one sentence that says why. The founder decided on 2026-09-25 that Village feel is
+# served though it did not reach the bar they had set, and that it must say it is less
+# sure than the other vibes (ADR 0013, as amended). Every surface says both, word for
+# word, in sight and not behind a press. The sentence gives no figure that a build could
+# make false, and names no place.
+ROUGH_GUIDE = "Rough guide"
+WHY_A_ROUGH_GUIDE: Mapping[TagId, str] = MappingProxyType(
+    {
+        TagId.VILLAGE_FEEL: (
+            "Of the areas it puts highest, about half read as villages to people, and it "
+            "takes some busy main roads and some grand inner streets for villages."
+        )
+    }
+)
 
 _HIGH, _LOW = TermReading.HIGH, TermReading.LOW
 _Term = tuple[int, FeatureId, TermReading]
@@ -1460,6 +1527,11 @@ def checked_recipe(tag: Tag) -> Tag:
     hundredths, and the meaning of the vibe names the census. Such a vibe
     is put on no result by itself (`strip`): it is shown on one where a
     person asked for it, and is never the first thing said of an area.
+
+    The parts that rest on conservation areas come to under 60 hundredths
+    together, so that their one source places no area alone. A vibe that is
+    a rough guide has a sentence that says why, and no other vibe has one.
+    It is put on no result by itself either.
     """
     broken: str | None = None
     parts = [term.feature_id for term in tag.terms]
@@ -1498,6 +1570,15 @@ def checked_recipe(tag: Tag) -> Tag:
         broken = "names the census in its meaning where it counts residents"
     elif residents and tag.strip:
         broken = "is on a result only where it was asked for, where it counts residents"
+    elif (
+        sum(term.hundredths for term in tag.terms if term.feature_id in ON_CONSERVATION_AREAS)
+        > PART_MAX_HUNDREDTHS
+    ):
+        broken = "holds under 60 hundredths of parts that rest on conservation areas"
+    elif (tag.sureness is Sureness.ROUGH_GUIDE) is not (tag.tag_id in WHY_A_ROUGH_GUIDE):
+        broken = "says why it is a rough guide, and says so of no other"
+    elif tag.sureness is Sureness.ROUGH_GUIDE and tag.strip:
+        broken = "is on a result only where it was asked for, where it is a rough guide"
     if broken is not None:
         raise ValueError(f"the recipe of {tag.tag_id} breaks a rule: a recipe {broken}")
     ends = (tag.low_end, tag.high_end)
@@ -1519,6 +1600,7 @@ def _tag(
     *terms: _Term,
     ends: tuple[str, str] | None = None,
     shelf: str | None = None,
+    rough: bool = False,
 ) -> Tag:
     return checked_recipe(
         Tag(
@@ -1538,9 +1620,11 @@ def _tag(
             # can be judged. On real data a flag is earned (ADR 0013). But a vibe
             # that counts who lives somewhere is put on no result by itself, and is
             # in neither list of what an area has most and least of: Burro measures
-            # places first. It is shown on a result where a person asked for it.
+            # places first. It is shown on a result where a person asked for it. So is
+            # a vibe that is a rough guide: what is less sure is never said unasked.
             lens=True,
-            strip=not any(feature_id in COUNTS_RESIDENTS for _, feature_id, _ in terms),
+            strip=not rough
+            and not any(feature_id in COUNTS_RESIDENTS for _, feature_id, _ in terms),
             table=True,
             shelf_word=shelf,
             shelf_toward=Toward.HIGH if shelf else None,
@@ -1549,6 +1633,7 @@ def _tag(
                 TagTerm(feature_id=feature_id, hundredths=hundredths, reading=reading)
                 for hundredths, feature_id, reading in terms
             ),
+            sureness=Sureness.ROUGH_GUIDE if rough else Sureness.AS_THE_REST,
         )
     )
 
@@ -1582,19 +1667,31 @@ _TAGS = (
         (30, _F.GREEN_COVER, _HIGH),
         shelf="leafy",
     ),
+    # Village feel is a rough guide. It was tried three times against the bar the founder
+    # set, and did not reach it. The founder chose on 2026-09-25 to serve it all the same,
+    # and that it says it is less sure than the other vibes (ADR 0013, as amended). This
+    # is the second try's recipe, as it was counted: no part for a small or a compact
+    # centre, for independent places, for traffic or for homes per hectare of land that
+    # is no park, each of which was tried and did not help. Change no share but with the
+    # founder. Homes per hectare are read from the low end: in a village homes stand
+    # apart. The high street is 45 in 100, so no area is placed without one, and the two
+    # parts that rest on conservation areas are 55, so they place no area alone.
     _tag(
         TagId.VILLAGE_FEEL,
         "Village feel",
         _STREETS,
-        "A small, compact centre of its own, historic streets, independent places",
-        "Whether neighbours know each other. Which shops there are. Empty units",
+        "A high street in a conservation area, homes that stand apart, period homes and "
+        "protected streets",
+        "How much traffic runs along a high street. Whether the high street nearest a home "
+        "is the centre of a village. Whether a park makes the homes beside it read as "
+        "standing apart. Whether neighbours know each other",
         2,
-        (25, _F.INDEPENDENTS_NEARBY, _HIGH),
-        (20, _F.CENTRE_SMALL, _HIGH),
-        (20, _F.CENTRE_COMPACT, _HIGH),
-        (20, _F.HOMES_PRE1919, _HIGH),
-        (15, _F.CONSERVATION_COVER, _HIGH),
+        (45, _F.HIGHSTREET_CONSERVED, _HIGH),
+        (30, _F.HOMES_DENSITY, _LOW),
+        (15, _F.HOMES_PRE1919, _HIGH),
+        (10, _F.CONSERVATION_COVER, _HIGH),
         shelf="villagey",
+        rough=True,
     ),
     # Pubs and bars are 35 in 100 of it, as they were before they were held back. They
     # were held back while the food register was the one source of them, and are counted
@@ -1812,16 +1909,52 @@ TAGS: Mapping[TagId, Tag] = MappingProxyType({t.tag_id: t for t in _TAGS})
 HOLDS_RESIDENTS: frozenset[TagId] = frozenset(
     tag.tag_id for tag in _TAGS if any(term.feature_id in COUNTS_RESIDENTS for term in tag.terms)
 )
+# The vibes that are a rough guide. Each is offered with its label and its sentence, is
+# never applied from a word and never taken with others at one press, and is on a result
+# only where a person asked for it.
+ROUGH_GUIDES: frozenset[TagId] = frozenset(
+    tag.tag_id for tag in _TAGS if tag.sureness is Sureness.ROUGH_GUIDE
+)
+
+
+class RoughGuide(Record):
+    """What stands beside a vibe that is a rough guide, wherever the vibe is shown."""
+
+    tag_id: TagId
+    # One short label, the same for every vibe that is one.
+    label: str
+    # One sentence that says why the vibe is less sure than the rest.
+    why: str
+
+
+def says_rough(tag_id: TagId) -> str:
+    """What a rough guide says of itself wherever it is offered: its label, and why."""
+    return f"{ROUGH_GUIDE}. {WHY_A_ROUGH_GUIDE[tag_id]}"
+
+
+def rough_guides(vibes: Iterable[Tag]) -> tuple[RoughGuide, ...]:
+    """What each vibe that is a rough guide says of itself, in the order the vibes stand in.
+
+    It is read from the vibes that are handed over, which are a release's own,
+    so a release that carries no rough guide is told of none.
+    """
+    return tuple(
+        RoughGuide(tag_id=vibe.tag_id, label=ROUGH_GUIDE, why=WHY_A_ROUGH_GUIDE[vibe.tag_id])
+        for vibe in vibes
+        if vibe.sureness is Sureness.ROUGH_GUIDE
+    )
+
 
 # A vibe that places an area only where one of these parts of its recipe has a figure,
-# whatever else of it has. Village feel finds a village by the size and the shape of its
-# town centre. A build of London carries neither yet, and on the rest of its recipe, which
-# is 60 in 100 of it, Village feel found inner London's old streets and no villages. It
-# was decided on 2026-09-24 that it is served only once a second try reads as villages.
-# Take nothing out of this but in a change the founder has seen.
-PLACED_ONLY_WITH: Mapping[TagId, frozenset[FeatureId]] = MappingProxyType(
-    {TagId.VILLAGE_FEEL: frozenset({_F.CENTRE_SMALL, _F.CENTRE_COMPACT})}
-)
+# whatever else of it has. It is how a vibe is held off: its recipe may come to 60 in 100
+# on what a build holds, and still find the wrong places without the part that tells them
+# apart. No vibe is named here today. Village feel was, from 2026-09-24, for the size and
+# the shape of a town centre, which no build carries: the founder chose on 2026-09-25 to
+# serve it on another recipe, as a rough guide. `tag_raw()` holds the rule for any vibe
+# that is named here in future, and core refuses a release that places such a vibe by
+# moving its shares (`held_off_stays_held_off`). Name a vibe here, and take one out, only
+# in a change the founder has seen.
+PLACED_ONLY_WITH: Mapping[TagId, frozenset[FeatureId]] = MappingProxyType({})
 
 # What the word "gritty" is read as, by what a release carries. Gritty was built two
 # ways so that both could be judged, and it was decided that it is one vibe: the scale
@@ -1917,7 +2050,11 @@ def band_of(values: Sequence[float | None], rankable: Sequence[bool]) -> tuple[i
     return tuple(one(v) for v in values)
 
 
-def tag_raw(tag_id: TagId, percentiles: Mapping[FeatureId, float | None]) -> TagRaw:
+def tag_raw(
+    tag_id: TagId,
+    percentiles: Mapping[FeatureId, float | None],
+    recipe: Sequence[TagTerm] | None = None,
+) -> TagRaw:
     """One area's raw value for a tag, from that area's feature percentiles.
 
     A feature that is absent from `percentiles` counts as missing, as one whose
@@ -1927,10 +2064,15 @@ def tag_raw(tag_id: TagId, percentiles: Mapping[FeatureId, float | None]) -> Tag
     a figure. How much of the formula is known is said either way.
     `raw` is rounded to the six decimals a release is written with, so that it
     is the same number before it is written and after it is read.
+
+    `recipe` is the recipe a release carries, where a person has adjusted its
+    shares (ADR 0029). With none it is core's own. Which parts a recipe holds,
+    and which end each is read from, is core's either way: a release that
+    carries any other is refused before a band is worked out.
     """
     present = 0
     total = 0.0
-    for term in TAGS[tag_id].terms:
+    for term in TAGS[tag_id].terms if recipe is None else recipe:
         percentile = percentiles.get(term.feature_id)
         if percentile is None:
             continue

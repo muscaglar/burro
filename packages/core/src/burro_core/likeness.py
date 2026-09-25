@@ -9,7 +9,7 @@ family counts the same.
 
 What it may never be counted on: a nuisance, recorded crime, anything that is
 weighed on request only, what a home costs, a journey, a vibe's own score,
-and the parts held out until an audit has passed them. It is never counted
+and the parts the catalogue holds out of it. It is never counted
 on a feature that describes who lives somewhere: two areas are never said to
 be alike for who lives in them (ADR 0006). A feature says for itself whether
 likeness may use it: `Feature.in_likeness`.

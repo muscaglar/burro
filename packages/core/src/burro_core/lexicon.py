@@ -27,7 +27,7 @@ neutral sentence (ADR 0006).
 
 import re
 import unicodedata
-from collections.abc import Mapping
+from collections.abc import Collection, Mapping
 from types import MappingProxyType
 from typing import NamedTuple
 
@@ -41,6 +41,8 @@ from burro_core.catalogue import (
     MIXED_WORDS,
     NUISANCES,
     RANKED_AS,
+    ROUGH_GUIDE,
+    ROUGH_GUIDES,
     TAGS,
     tags_of,
 )
@@ -168,7 +170,8 @@ NO_POOLS = (
 )
 NO_NEIGHBOURS = (
     "Burro cannot measure whether neighbours know each other. The nearest it can count is "
-    "a small centre of its own, with old streets and independent places."
+    "a village feel: a high street in a conservation area, homes that stand apart and "
+    "period homes."
 )
 NOT_ONE_HOME = (
     "Burro cannot see whether one home has a garden. "
@@ -177,10 +180,37 @@ NOT_ONE_HOME = (
 # A word for a smart area is read as of the place, and never of who lives there:
 # not of what they earn, and not of who they are (ADR 0006).
 PLACES_NOT_PEOPLE = "Burro reads this of the place, and not of the people who live there."
-NO_IDENTITY = (
-    "Burro cannot measure the character of a place. The nearest it can count are a village "
-    "feel, the age of the buildings and a town centre nearby. Choose any that fit what you mean."
+# What a word for character is offered as, each as the note names it, in the order the note
+# names them. The note names what is offered and nothing else: a release that places no
+# area on Village feel offers none, and a note that named one would promise a person what
+# no press can give. Village feel is a rough guide, and is named with its label.
+NEAREST_TO_CHARACTER: Mapping[str, str] = MappingProxyType(
+    {
+        f"tag:{TagId.VILLAGE_FEEL}": f"a village feel ({ROUGH_GUIDE.lower()})",
+        f"tag:{TagId.BUILT_AGE}": "the age of the buildings",
+        f"feature:{FeatureId.HIGHSTREET_ACCESS}": "a town centre nearby",
+    }
 )
+
+
+def no_identity(offered: Collection[str]) -> str:
+    """What is said beside a word for character, of the things that are offered for it.
+
+    `offered` holds the target of each. A vibe that is a rough guide is named
+    with its label.
+    """
+    cannot = "Burro cannot measure the character of a place."
+    named = [words for target, words in NEAREST_TO_CHARACTER.items() if target in offered]
+    if not named:
+        return cannot
+    if len(named) == 1:
+        return f"{cannot} The nearest it can count is {named[0]}."
+    listed = f"{', '.join(named[:-1])} and {named[-1]}"
+    choose = "Choose either or both." if len(named) == 2 else "Choose any that fit what you mean."
+    return f"{cannot} The nearest it can count are {listed}. {choose}"
+
+
+NO_IDENTITY = no_identity(NEAREST_TO_CHARACTER)
 # A word for a place on the rise is read as of what homes sold for: not of who is moving
 # in, and not of what a home will be worth. Where a release carries Gritty, "up and coming"
 # is offered as where a place stands on that scale too, as it was before a rise was held.
@@ -218,6 +248,16 @@ def counts_residents(target: Target) -> bool:
     a group of people, which nothing reads (ADR 0006).
     """
     return bool(COUNTS_RESIDENTS & set(target.features) or HOLDS_RESIDENTS & set(target.tags))
+
+
+def is_a_rough_guide(target: Target) -> bool:
+    """Whether a phrase asks for a vibe that is a rough guide.
+
+    Such a vibe is never taken without a press of its own: no word applies it.
+    It is offered, with its label and the sentence that says why it is less
+    sure than the rest (ADR 0013, as amended on 2026-09-25).
+    """
+    return bool(ROUGH_GUIDES & set(target.tags))
 
 
 def _who(

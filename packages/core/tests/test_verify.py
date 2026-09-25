@@ -25,7 +25,7 @@ from burro_core.verify import (
     verify,
 )
 
-from . import no_range
+from . import no_range, recorded
 from .support import (
     area_id,
     build_worked_release,
@@ -500,6 +500,21 @@ def every_fact() -> list[Fact]:
         for release in (no_range.priced(), no_range.sold())
         for area in no_range.FLATS
         for f in facts_for(release, area, no_range.buyer(Strictness.SOFT))
+    ]
+    # A rent that is of a wider place, of a district and of a borough, under a budget and
+    # over one.
+    let = recorded.recorded()
+    found += [
+        f
+        for row in let.costs
+        for f in facts_for(let, row.area_id, recorded.renter(Strictness.SOFT))
+    ]
+    # And a budget that is the middle rent to the pound, which is said to be at it. The
+    # releases above hold a range and a price that are their budgets to the pound.
+    found += [
+        f
+        for row in let.costs
+        for f in facts_for(let, row.area_id, recorded.renter(Strictness.SOFT, row.median))
     ]
     return found
 

@@ -37,12 +37,16 @@ from burro_core.catalogue import (
     FEATURES,
     HOLDS_CRIME,
     HOLDS_RESIDENTS,
+    ROUGH_GUIDES,
     TAGS,
+    says_rough,
 )
 from burro_core.facts import SEGMENT_LABELS, money
 from burro_core.grammar import (
     A_HOME,
+    A_HOUSE,
     A_JOURNEY,
+    ASKS_NOTHING,
     AT_WORK,
     BEDROOMS,
     BUY_SEGMENTS,
@@ -105,9 +109,11 @@ from burro_core.lexicon import (
     COUNTED_AT_THE_CENSUS,
     GENERIC_PLACES,
     LEXICON,
+    NO_IDENTITY,
     POLICY_LEXICON,
     Target,
     counts_residents,
+    no_identity,
     prepare,
 )
 from burro_core.ops import (
@@ -120,27 +126,42 @@ from burro_core.ops import (
     WeightEdit,
 )
 from burro_core.places import Match, Names
-from burro_core.reading import MINUTES, Is, Item, Line, lines_of
+from burro_core.reading import MINUTES, Is, Item, Line, Token, by_first_word, lines_of
 from burro_core.reducer import Rejected, apply, given_way_spec
 from burro_core.release import Release
-from burro_core.spec import LIMITS, PreferenceSpec
+from burro_core.spec import DEFAULT_HOUSE, LIMITS, PreferenceSpec
 from burro_core.vocabulary import (
     ARTICLE,
+    AT_LEAST,
     CAPS,
+    CAPS_FIRMLY,
+    ESSENTIAL,
     FIRM_OF_MINUTES,
     FIRM_OF_MONEY,
     GOOD,
     JOINS,
+    LARGE_STEP,
+    LEFT_BEHIND,
+    LIVES_THERE,
     NEAR_TO,
+    NEARBY,
+    NOT_FAR,
+    OF_THE_HOUSEHOLD,
     PHRASES_OF_DOUBT,
+    SMALL_STEP,
+    SOMEBODY_ELSE,
     SPEAKER,
+    STAYS_AWAY,
     TAKES_OFF,
     TAKES_OFF_AFTER,
     TO_DO,
     TROUBLES,
     TURNS_DOWN,
     TURNS_DOWN_AFTER,
+    TURNS_ROUND,
     WISH,
+    WISH_ALONE,
+    WISHES_OF_ANOTHER,
     WORDS_OF_DOUBT,
     WORDS_THAT_TURN_AWAY,
 )
@@ -167,6 +188,7 @@ __all__ = [
     "Span",
     "Suggestion",
     "Usage",
+    "asks_for_nothing",
     "assumptions_for",
     "may_ask_for_fewer",
     "not_in_release_of",
@@ -338,9 +360,14 @@ class InterpretResult(Record):
     # What was noticed in a prompt that is not plain, in the order it stands.
     # Empty for a plain prompt.
     suggestions: tuple[Suggestion, ...] = ()
-    # Each stretch of the text that nothing was made of, in order. `unmet`
-    # holds `other` exactly when this is not empty.
+    # Each stretch of the text that nothing was made of and that may have asked for
+    # something, in order. It is what is said to be unread.
     unread: tuple[Span, ...] = ()
+    # Each stretch that nothing was made of and that asks for nothing: how a wish is
+    # led in to, and what joins two. It is not said to be unread. `unmet` holds
+    # `other` exactly when this or `unread` is not empty, which is where the reader
+    # made nothing of some word, and a model is asked exactly then.
+    asks_nothing: tuple[Span, ...] = ()
     # What was noticed in a prompt that is not plain and is not offered, because
     # the release holds it for no area. What an edit asks for and the release
     # lacks is the reducer's to say: `not_in_release_of` names both.
@@ -397,6 +424,8 @@ class _Made:
     # The minutes of a journey were given as a range, of which the longer was taken.
     # This is the shorter, and nothing where they were no range.
     at_least: int = 0
+    # The kind of home it holds is one Burro took: a house of no kind was named.
+    kind_assumed: bool = False
 
 
 def _is_word(item: Item | None, among: frozenset[str]) -> bool:
@@ -656,6 +685,28 @@ def _budget(home: Home, spec: PreferenceSpec) -> tuple[BudgetEdit, list[_Span]] 
         )
         return edit, [span]
     return None
+
+
+def _for_a_house_of_no_kind(home: Home, spec: PreferenceSpec) -> bool:
+    """Whether a prompt gives an amount to buy a house, and names no kind of house.
+
+    Decided on 2026-09-25: a house is no flat. A price is held by the kind of
+    home, and a search to buy holds a flat until a kind is said, so the
+    amount was held against what flats sold for. It is held against what
+    terraced houses sold for, `DEFAULT_HOUSE`, and the kind is said to be
+    assumed. Where a release holds no price for a terraced house the kind is
+    the person's to say: the prompt is not plain, and the budget is offered
+    for each kind of house that has a price. A rent is held by the number of
+    bedrooms, whatever kind of home it is for, and a house with no amount
+    holds a budget against nothing.
+    """
+    made = _budget(home, spec) if home.houses else None
+    if made is None:
+        return False
+    edit = made[0]
+    tenure = spec.tenure if edit.tenure is TenureChoice.UNCHANGED else Tenure(edit.tenure.value)
+    unsaid = edit.segment is SegmentChoice.UNCHANGED
+    return bool(edit.amount) and unsaid and tenure is Tenure.BUY
 
 
 def _as_can_be_tested(
@@ -1143,6 +1194,13 @@ def _journey_choice(
     )
 
 
+# What is said of a place that a person asks to be far from. It is offered with nothing
+# to choose but to leave it out, so that they are told it was heard.
+NO_STAYING_AWAY = "Burro cannot rank on being far from a place."
+# What is said of a place that may be somebody else's, or one that was left.
+MAY_BE_ANOTHERS = "Burro cannot tell whether you must reach this place. Add it if you must."
+
+
 def longer_was_taken(at_least: int, minutes: int) -> str:
     """What an offer says of a range of minutes, so that the person sees which was taken."""
     return f"You gave {at_least} to {minutes} minutes. Burro has taken the longer."
@@ -1262,6 +1320,55 @@ def _budget_choice(
     )
 
 
+def _for_a_house(
+    label: str,
+    tenure: TenureChoice,
+    amount: int,
+    kind: SegmentChoice,
+    *,
+    firm: bool,
+    assumed: bool,
+) -> Choice:
+    """An amount for one kind of house: the kind, and then the amount as it was worded.
+
+    The kind stands in an edit of its own, which says whose it is. The one
+    Burro took is inferred, so that whoever shows the search can mark it as
+    assumed. One that a person presses is theirs.
+    """
+    of_the_kind = BudgetEdit(
+        action=BudgetAction.SET,
+        tenure=tenure,
+        amount=0,
+        segment=kind,
+        strictness=StrictnessChoice.UNCHANGED,
+        step=Step.NONE,
+        provenance=_INFERRED if assumed else _UI,
+    )
+    (worded,) = _budget_choice(label, tenure, amount=amount, firm=firm)
+    return worded.replace(
+        operations=NO_OPERATIONS.replace(budget_ops=(of_the_kind, *worded.operations.budget_ops))
+    )
+
+
+def _a_terraced_house(release: Release) -> str:
+    """What is said where a terraced house is taken, of the release that is served.
+
+    A terraced house is said to be the least dear kind of house in most areas
+    only where it is: in more than half of the areas that hold a price for
+    any kind of house.
+    """
+    priced = least = 0
+    for area in release.neighbourhoods:
+        rows = (
+            release.cost(area.area_id, Tenure.BUY, Segment(kind.value)) for kind in KINDS_OF_HOUSE
+        )
+        held = {row.segment: row.median for row in rows if row is not None}
+        priced += bool(held)
+        least += DEFAULT_HOUSE in held and held[DEFAULT_HOUSE] == min(held.values())
+    why = THE_LEAST_DEAR if 2 * least > priced else ""
+    return f"{A_TERRACED_HOUSE}{why}{ONE_PRESS_AWAY}"
+
+
 # What may stand between a word that caps and its number: "up to about £1,500".
 _OR_SO = frozenset({"about", "around"})
 
@@ -1371,6 +1478,124 @@ def _turned_away(items: Sequence[Item], at: int) -> bool:
     return _after(items, at, _TURNS_AWAY)
 
 
+# What says near, or says the most a number may be, and is no wish to stay away though it
+# holds a word for far or for more: "not far from", "within walking distance", "no more than".
+_NO_WISH_TO_STAY_AWAY = NEAR_TO | NEARBY.words | NOT_FAR | CAPS_FIRMLY
+# The speaker's own words for a journey, which say whose it is whoever else is named:
+# "my boss and I work at".
+_OWN_JOURNEY = EXPECTS_A_NAME | GOES_TO | REACHES | AT_WORK
+
+
+def _turned_round(items: Sequence[Item], at: int) -> bool:
+    """Whether a word that turns stands before the words at `at`, anywhere in their clause.
+
+    "Can't be more than 45 minutes" is the most a journey may take, and "I
+    don't want to move far" is a wish to stay near. Where it is read too
+    widely, "I don't like pubs and want to be far from", nothing is lost: a
+    place that stands after a word for far is still turned away by it, and
+    no journey to it is offered.
+    """
+    while at > 0 and not items[at].apart:
+        at -= 1
+        if _is_word(items[at], TURNS_ROUND):
+            return True
+    return False
+
+
+def _is_minutes(items: Sequence[Item], at: int) -> bool:
+    """Whether a number is one of minutes: by how it is typed, or by the word after it."""
+    item = items[at]
+    if item.what is not Is.NUMBER or item.money or item.unit in ("bed", "month"):
+        return False
+    after = items[at + 1] if at + 1 < len(items) else None
+    return item.unit == "min" or _is_word(after, MINUTES)
+
+
+def _a_least(items: Sequence[Item], at: int, size: int) -> bool:
+    """Whether the words of a least, which stand at `at`, stand against a number of minutes.
+
+    Straight before the number, "at least 30 minutes", or straight after
+    what it is a number of, "30 minutes or more". And where they end their
+    clause, after a number of minutes that it holds: "30 minutes from Pellam
+    Exchange at least".
+    """
+    after = at + size
+    if after < len(items) and _is_minutes(items, after):
+        return True
+    before = at - 1
+    if before >= 0 and _is_word(items[before], MINUTES):
+        before -= 1
+    if before >= 0 and _is_minutes(items, before):
+        return True
+    ends = after == len(items) or items[after].apart
+    first = at
+    while first > 0 and not items[first].apart:
+        first -= 1
+    return ends and any(_is_minutes(items, on) for on in range(first, at))
+
+
+def _stays_away(items: Sequence[Item]) -> bool:
+    """Whether the words of a sentence ask to be kept away from a place that it names.
+
+    By a word for far, wherever it stands: "far from", "30 minutes away",
+    "and nowhere near it". And by a least, against a number of minutes: "at
+    least 30 minutes from". What says near is passed over, whatever word it
+    holds: "not far from", "no more than 30 minutes". So is a word for far
+    or for a least that is turned round: "can't be more than 45 minutes" is
+    the most a journey may take. Burro cannot rank on being far from a
+    place, so a journey to it is never offered from such a sentence: it
+    would rank the person by how near they are.
+    """
+    at = 0
+    while at < len(items):
+        near = _phrase_at(items, at, _NO_WISH_TO_STAY_AWAY, longest=4)
+        if near:
+            at += len(near)
+            continue
+        least = _phrase_at(items, at, AT_LEAST)
+        far = _phrase_at(items, at, STAYS_AWAY)
+        if not far and not (least and _a_least(items, at, len(least))):
+            at += 1
+        elif not _turned_round(items, at):
+            return True
+        else:
+            # What is turned round is turned with the words for far that run on from it:
+            # "can't be far away from" says near.
+            at += len(far or least)
+            while at < len(items) and not items[at].apart and _phrase_at(items, at, STAYS_AWAY):
+                at += 1
+    return False
+
+
+def _may_be_anothers(items: Sequence[Item], at: int) -> bool:
+    """Whether a place is named as somebody else's, or as one that was left.
+
+    "My ex lives at", "his mother is in", "we moved from". It is somebody
+    else's where the words before it name somebody who is not the speaker.
+    Two things make it a place to reach all the same. The speaker's own words
+    for a journey, straight before the name: "my boss and I work at". And one
+    of the household, where no word says that they live there: "my partner
+    works at", "I work at one place and my partner at another". Where one of
+    the household lives, "my partner lives at", is no place that the words say
+    must be reached. "She" and "he" are nobody the words name, so "she's at"
+    is offered and not taken. A place that nobody is named with is read as it
+    was.
+    """
+    if _after(items, at, _OWN_JOURNEY):
+        return False
+    first = at
+    while first > 0 and not items[first].apart:
+        first -= 1
+    before = items[first:at]
+
+    def holds(phrases: frozenset[str]) -> bool:
+        return any(_phrase_at(before, on, phrases) for on in range(len(before)))
+
+    if holds(LEFT_BEHIND):
+        return True
+    return holds(SOMEBODY_ELSE) and (not holds(OF_THE_HOUSEHOLD) or holds(LIVES_THERE))
+
+
 # The words that say a journey, whatever place is named after them. They are
 # listened for only where the release names no place, so that a person is told
 # that it holds no journey: where it names places, a journey is noticed by
@@ -1401,6 +1626,14 @@ def _phrase_at(
 BY_KIND = "Burro holds what homes sell for by kind of home, and not by the number of bedrooms."
 BY_BEDROOMS = "Burro holds rents by the number of bedrooms, and not by kind of home."
 TO_RENT_ALONE = "Burro holds what a studio or a room costs to rent, and not to buy."
+BY_KIND_OF_HOUSE = "Burro holds what houses sold for by kind of house, so it asks which kind."
+# What is said where a house of no kind is taken as a terraced house. That it is the least
+# dear kind in most areas is said only of a release of which it is true.
+A_TERRACED_HOUSE = "You named no kind of house, so Burro has taken a terraced house"
+THE_LEAST_DEAR = ", the least dear kind in most areas"
+ONE_PRESS_AWAY = ". Semi-detached and detached are one press away."
+# The kinds of house a price is held by, in the order they are offered.
+KINDS_OF_HOUSE = (SegmentChoice.TERRACED, SegmentChoice.SEMI_DETACHED, SegmentChoice.DETACHED)
 # A kind of home that says little of one to rent: most homes that are let are flats.
 _A_FLAT = frozenset(word for word, kind in BUY_SEGMENTS.items() if kind is SegmentChoice.FLAT)
 _THE = frozenset({"a", "an", "the"})
@@ -1471,6 +1704,48 @@ def _not_held(tenure: Tenure, home: _Home) -> str:
     return BY_BEDROOMS if apart else ""
 
 
+def _houses_of_no_kind(sentences: Sequence["_Sentence"]) -> list[_Span]:
+    """Where a prompt names a house, where it names no kind of home that a price is held by.
+
+    "A house", "a two bed house". A house share is a room, and a house that
+    is turned away, "not a house", is none. Beside a kind that is named, "a
+    terraced house", "a house or a flat", the kind is what was said.
+    """
+    houses: list[_Span] = []
+    for sentence in sentences:
+        items = sentence.items
+        for at, item in enumerate(items):
+            if item.what is not Is.WORD or _turned_away(items, at):
+                continue
+            if _phrase_at(items, at, frozenset(BUY_SEGMENTS)):
+                return []
+            shared = _phrase_at(items, at, frozenset(RENT_SEGMENTS))
+            if _is_word(item, A_HOUSE) and not shared:
+                # And the article before it, so that "a house" is read whole.
+                led = at > 0 and _is_word(items[at - 1], _THE) and not item.apart
+                houses.append((items[at - 1].start if led else item.start, item.end))
+    return houses
+
+
+_ENDS_A_SENTENCE = frozenset(".?!")
+
+
+def _kept_away(sentences: Sequence["_Sentence"]) -> list[bool]:
+    """Of each sentence, whether its words ask to be kept away from a place it names.
+
+    A sentence that asks wishes nothing: "how far is the station from".
+    Lines that no mark ends are read together, so that "far from", typed on
+    a line of its own above the name of a place, is said of that place.
+    """
+    away = [not sentence.asked and _stays_away(sentence.items) for sentence in sentences]
+    run_on = [not set(sentence.line.closed_by) & _ENDS_A_SENTENCE for sentence in sentences]
+    for at in range(1, len(sentences)):
+        away[at] = away[at] or (away[at - 1] and run_on[at - 1])
+    for at in range(len(sentences) - 2, -1, -1):
+        away[at] = away[at] or (away[at + 1] and run_on[at])
+    return away
+
+
 class _Notices:
     """What is noticed in the sentences of a prompt, in the order it stands."""
 
@@ -1486,6 +1761,8 @@ class _Notices:
         self.about_people = about_people
         # The tenures the words of the prompt name, which a home that is named is for.
         self.said: frozenset[Tenure] = frozenset()
+        # Where the prompt names a house, and no kind of home that a price is held by.
+        self.houses: list[_Span] = []
         # Where a thing that is only offered stands, with what was said of it:
         # "slightly affluent", "a bit of character". By where the thing stands.
         self.whole: dict[_Span, _Span] = {}
@@ -1504,8 +1781,10 @@ class _Notices:
         self.said = frozenset(
             tenure for sentence in sentences for tenure in self._tenures(sentence.items)
         )
+        self.houses = _houses_of_no_kind(sentences)
         self.whole = dict(_said_of_what_is_offered(sentences))
-        for sentence in sentences:
+        away = _kept_away(sentences)
+        for sentence, kept_away in zip(sentences, away, strict=True):
             items = sentence.items
             skip = 0
             for at, item in enumerate(items):
@@ -1515,7 +1794,7 @@ class _Notices:
                     found += self._thing(items, at)
                 elif item.what is Is.NAME:
                     if not any(start <= item.start and item.end <= end for start, end in read):
-                        found += self._name(items, at)
+                        found += self._name(items, at, kept_away)
                 elif item.what is Is.NUMBER:
                     found += self._money(items, at)
                     if (home := _home_at(items, at)) is not None:
@@ -1660,7 +1939,7 @@ class _Notices:
         first = [one for one in features if one.target in leads]
         yield from (*first, *tags, *(one for one in features if one.target not in leads))
 
-    def _name(self, items: Sequence[Item], at: int) -> Iterator[_Noticed]:
+    def _name(self, items: Sequence[Item], at: int, kept_away: bool = False) -> Iterator[_Noticed]:
         item = items[at]
         place = self.release.place(item.place) if item.place else None
         area = self.release.neighbourhood(item.area) if item.area else None
@@ -1670,7 +1949,12 @@ class _Notices:
         # A name that is an area's and a place's is a journey after words that
         # expect a place, and an area anywhere else.
         if place is not None and (area is None or _cued(items, at)):
-            if not turned_away:
+            if kept_away:
+                # Nothing of it can be chosen, and it is said to have been heard.
+                yield _Noticed(
+                    COMMUTE_TARGET, place.name, item.span, (), NO_STAYING_AWAY, always=True
+                )
+            elif not turned_away:
                 minutes = _minutes_before(items, at)
                 # It rests on the minutes too, where it holds them.
                 start = _where_minutes_start(items, at) if minutes else item.start
@@ -1687,6 +1971,9 @@ class _Notices:
                 firm = bool(shorter) or firmly is not None
                 choices = _journey_choice(place.name, place.place_id, minutes, firm)
                 note = longer_was_taken(shorter, minutes) if shorter else ""
+                if _may_be_anothers(items, at):
+                    # It is offered, and no press takes it with others.
+                    note = MAY_BE_ANOTHERS
                 yield _Noticed("commute", place.name, (start, item.end), choices, note)
         elif area is not None:
             choices = _area_choice(area.name, area.area_id, turned_away)
@@ -1741,6 +2028,30 @@ class _Notices:
             # It rests on the words that make it a limit too: "max £400k".
             span = (min(span[0], firmly[0]), max(span[1], firmly[1]))
         most = f"A budget of no more than £{money(item.value)}{' a month' if by_month else ''}"
+        named = next(iter(self.said)) if len(self.said) == 1 else None
+        unsaid = tenure is TenureChoice.UNCHANGED
+        held = (named or self.spec.tenure) if unsaid else Tenure(tenure.value)
+        if self.houses and held is Tenure.BUY:
+            # A house is no flat. It is taken as a terraced house, with every other kind of
+            # house one press away, and where that has no price the person is asked which.
+            moved = TenureChoice.UNCHANGED if self.spec.tenure is Tenure.BUY else TenureChoice.BUY
+            took = self.release.costed(Tenure.BUY, DEFAULT_HOUSE)
+            kinds = tuple(
+                _for_a_house(
+                    f"Set {_lower_first(most if firmly else label)} for a "
+                    f"{SEGMENT_LABELS[Segment(kind.value)]}{_TO.get(moved, '')}",
+                    moved,
+                    item.value,
+                    kind,
+                    firm=firmly is not None,
+                    assumed=took and kind.value == DEFAULT_HOUSE.value,
+                )
+                for kind in KINDS_OF_HOUSE
+            )
+            note = _a_terraced_house(self.release) if took else BY_KIND_OF_HOUSE
+            for where in (span, *self.houses):
+                yield _Noticed("budget", label, where, kinds, note)
+            return
         said = f"Set {_lower_first(most if firmly else label)}{_TO.get(tenure, '')}"
         choice = _budget_choice(said, tenure, amount=item.value, firm=firmly is not None)
         yield _Noticed("budget", label, span, choice)
@@ -1799,6 +2110,10 @@ def _offered(noticed: Sequence[_Noticed], spec: PreferenceSpec, release: Release
     be set it is offered with what is said of it, and with nothing to choose
     but to leave it out. Where the release holds no cost of it for any area,
     it is said to be missing, as any other thing is.
+
+    What is said beside a word for character names the things it is offered
+    as. So it names those that are offered and no other: a release that
+    places no area on one of them offers the rest, and says so.
     """
     found: dict[tuple[str, str], tuple[list[_Span], tuple[Choice, ...], str]] = {}
     always: set[tuple[str, str]] = set()
@@ -1850,11 +2165,30 @@ def _offered(noticed: Sequence[_Noticed], spec: PreferenceSpec, release: Release
             already += spans
         elif any(changes is RejectReason.NOT_IN_RELEASE for _, changes in outcomes):
             missing.append(NotInRelease(target=target, label=label, spans=stood))
+    # A word for character is offered as what the release carries of three things. Its
+    # note names the three, so it is said again of those that are offered.
+    nearest = [found.target for found in suggestions if found.note == NO_IDENTITY]
+    suggestions = [
+        found.replace(note=no_identity(nearest)) if found.note == NO_IDENTITY else found
+        for found in suggestions
+    ]
+    # A vibe that is a rough guide says so in every offer of it, after whatever else is
+    # said: its label, and the sentence that says why.
+    suggestions = [_with_how_sure(found) for found in suggestions]
     return _Offered(
         tuple(sorted(suggestions, key=lambda suggestion: suggestion.spans[0].start)),
         already,
         tuple(sorted(missing, key=lambda thing: thing.spans[0].start)),
     )
+
+
+def _with_how_sure(found: Suggestion) -> Suggestion:
+    """An offer, which says that it is of a rough guide where it is of one."""
+    kind, _, named = found.target.partition(":")
+    if kind != "tag" or named not in ROUGH_GUIDES:
+        return found
+    said = " ".join(part for part in (found.note, says_rough(TagId(named))) if part)
+    return found.replace(note=said)
 
 
 def _named(edit: object) -> tuple[str, str] | None:
@@ -1935,9 +2269,79 @@ def _heard(sentence: "_Sentence") -> set[int]:
     return heard
 
 
-def _unread(sentences: Sequence["_Sentence"], rested_on: Sequence[_Span]) -> tuple[Span, ...]:
-    """Each stretch of the text that nothing rests on. Two that touch are one."""
-    found: list[list[int]] = []
+_ASKS_NOTHING = by_first_word(ASKS_NOTHING)
+_WISHES = by_first_word(WISH.words)
+_WISHES_ALONE = by_first_word(WISH_ALONE)
+_SPEAKS = by_first_word(SPEAKER.words)
+# What says something though each of its words asks for nothing: how much a thing is
+# wanted, "a lot", and whose wish it is, "is looking for". Where the words spell one of
+# these, it is what they say.
+_SAYS_MORE = by_first_word(
+    frozenset(
+        {
+            *(SMALL_STEP | LARGE_STEP | ESSENTIAL | WISHES_OF_ANOTHER | PHRASES_OF_DOUBT),
+            *(TURNS | TAKES_OFF | TAKES_OFF_AFTER | TURNS_DOWN | TURNS_DOWN_AFTER | TROUBLES),
+            *CAPS_FIRMLY,
+        }
+    )
+)
+
+
+def _spelt(tokens: Sequence[Token], at: int, phrases: Mapping[str, list[tuple[str, ...]]]) -> int:
+    """How many tokens the longest of some phrases takes that the tokens spell from `at`.
+
+    Nothing where they spell none. A phrase is never put together across a mark.
+    """
+    for words in phrases.get(tokens[at].word, ()):
+        run = tokens[at : at + len(words)]
+        if tuple(token.word for token in run) == words and not any(t.apart for t in run[1:]):
+            return len(words)
+    return 0
+
+
+def _asks_nothing(tokens: Sequence[Token]) -> bool:
+    """Whether some words that stand side by side ask for nothing, every one of them.
+
+    They do where each is a phrase of `ASKS_NOTHING`, or a wish that stands
+    where the grammar places one: straight after the speaker, "I want", or
+    alone where a search is typed, "looking for". A wish that stands anywhere
+    else may compare or be another's, and asks for nothing no longer.
+    """
+    at = 0
+    spoke = False
+    while at < len(tokens):
+        if tokens[at].odd:
+            return False
+        wished = _spelt(tokens, at, _WISHES if spoke else _WISHES_ALONE)
+        size = wished or _spelt(tokens, at, _ASKS_NOTHING)
+        if size == 0 or _spelt(tokens, at, _SAYS_MORE) >= size:
+            return False
+        spoke = not wished and _spelt(tokens, at, _SPEAKS) == size
+        at += size
+    return True
+
+
+def asks_for_nothing(words: str) -> bool:
+    """Whether some words of a text ask for nothing, every one of them: "I want to live somewhere".
+
+    It is for a caller that holds stretches of the text the reader left
+    unread, less the words another reading rests on. What is then left of a
+    stretch may ask for nothing, and is not said to be unread.
+    """
+    lines = lines_of(words)
+    return all(_asks_nothing(line.tokens) for line in lines)
+
+
+def _unread(
+    sentences: Sequence["_Sentence"], rested_on: Sequence[_Span]
+) -> tuple[tuple[Span, ...], tuple[Span, ...]]:
+    """Each stretch of the text that nothing rests on. Two that touch are one.
+
+    Those that may have asked for something come first, and are what is said
+    to be unread. Those that hold nothing but words that ask for nothing come
+    second, and are not.
+    """
+    runs: list[list[list[Token]]] = []
     open_run = False
     for sentence in sentences:
         heard = _heard(sentence)
@@ -1947,12 +2351,19 @@ def _unread(sentences: Sequence["_Sentence"], rested_on: Sequence[_Span]) -> tup
             )
             if read:
                 open_run = False
+            elif open_run and index > 0:
+                runs[-1][-1].append(token)
             elif open_run:
-                found[-1][1] = token.end
+                # A stretch may go on into the next sentence. No phrase does.
+                runs[-1].append([token])
             else:
-                found.append([token.start, token.end])
+                runs.append([[token]])
                 open_run = True
-    return tuple(Span(start=start, end=end) for start, end in found)
+    found: tuple[list[Span], list[Span]] = ([], [])
+    for run in runs:
+        nothing = all(_asks_nothing(part) for part in run)
+        found[nothing].append(Span(start=run[0][0].start, end=run[-1][-1].end))
+    return tuple(found[False]), tuple(found[True])
 
 
 # --- The reader ---------------------------------------------------------------------
@@ -2125,7 +2536,13 @@ class RuleInterpreter:
         sentences = _sentences(request.text, grammar)
         if all(sentence.plain for sentence in sentences):
             read = _read([wish for sentence in sentences for wish in sentence.wishes or ()])
-            if not _said_both_ways(read) and not _left_to_choose(read):
+            # A house of no kind is a terraced house. Where that has no price, which
+            # kind it is is asked.
+            asked = _left_to_choose(read) or (
+                _for_a_house_of_no_kind(read.home, request.spec)
+                and not request.release.costed(Tenure.BUY, DEFAULT_HOUSE)
+            )
+            if not _said_both_ways(read) and not asked:
                 return self._applied(read, request)
         return self._suggested(sentences, grammar, request)
 
@@ -2161,6 +2578,7 @@ class RuleInterpreter:
             notice=Notice.NEUTRAL_PLACES if about_people else Notice.NONE,
             unmet=tuple(category for category in UnmetCategory if category in unmet),
             unread=heard.unread,
+            asks_nothing=heard.asks_nothing,
         )
 
     def _applied(self, read: _Read, request: InterpretRequest) -> InterpretResult:
@@ -2171,10 +2589,16 @@ class RuleInterpreter:
         made.sort(key=lambda m: getattr(m.edit, "provenance", _STATED) is _INFERRED)
         groups: dict[OpsGroup, list[_Made]] = {group: [] for group in OpsGroup}
         budget = _budget(read.home, request.spec)
+        # The kind of house that Burro took, where a house of no kind was named.
+        took = _for_a_house_of_no_kind(read.home, request.spec)
+        if budget is not None and took:
+            edit, spans = budget
+            kind = SegmentChoice(DEFAULT_HOUSE.value)
+            budget = edit.replace(segment=kind), sorted({*spans, *read.home.houses})
         if budget is not None:
             where = read.home.amounts[0][2] if read.home.amounts else None
             groups[OpsGroup.BUDGET] += [
-                _Made(OpsGroup.BUDGET, edit, spans)
+                _Made(OpsGroup.BUDGET, edit, spans, kind_assumed=took and bool(edit.amount))
                 for edit, spans in _as_can_be_tested(*budget, where, request)
             ]
         # A home of which no edit can be made, "a two bed house" typed by a
@@ -2228,6 +2652,13 @@ class RuleInterpreter:
             for group, index, found in indexed
             if found.at_least
         )
+        # Of a house of no kind a terraced house was taken. The person named no kind,
+        # so it is said to be assumed.
+        housed = tuple(
+            Assumption(code=AssumptionCode.SEGMENT, group=group, index=index)
+            for group, index, found in indexed
+            if found.kind_assumed
+        )
         if read.about_people:
             status = InterpretStatus.POLICY_REDIRECT
         elif clarify:
@@ -2237,7 +2668,7 @@ class RuleInterpreter:
         return InterpretResult(
             status=status,
             operations=operations,
-            assumptions=(*assumptions_for(operations, request.spec), *ranged, *quoted),
+            assumptions=(*assumptions_for(operations, request.spec), *ranged, *housed, *quoted),
             # In the order the categories are listed, whatever order they were heard in.
             unmet=tuple(category for category in UnmetCategory if category in unmet),
             clarify=clarify,
@@ -2279,14 +2710,14 @@ class RuleInterpreter:
             (span.start, span.end) for found in (*suggestions, *missing) for span in found.spans
         ]
         rested_on += [(rests.start, rests.end) for rests in asked.rests_on]
-        unread = _unread(sentences, [*rested_on, *already])
+        unread, asks_nothing = _unread(sentences, [*rested_on, *already])
         unmet = {item.unmet for item in items if item.unmet is not None}
         # What Burro cannot say of a thing it offers what is nearest for.
         things = [grammar.known.lexicon[item.text] for item in items if item.what is Is.THING]
         unmet |= {thing.unmet for thing in things if thing.note and thing.unmet is not None}
         if any(item.what is Is.AMENITY for item in items):
             unmet.add(UnmetCategory.COMMUNITY_AMENITIES)
-        if unread:
+        if unread or asks_nothing:
             unmet.add(UnmetCategory.OTHER)
         if about_people:
             status = InterpretStatus.POLICY_REDIRECT
@@ -2309,6 +2740,7 @@ class RuleInterpreter:
             rests_on=asked.rests_on,
             suggestions=suggestions,
             unread=unread,
+            asks_nothing=asks_nothing,
             not_in_release=missing,
         )
 

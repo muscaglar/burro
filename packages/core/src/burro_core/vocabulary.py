@@ -416,6 +416,40 @@ WISHES_OF_ANOTHER: frozenset[str] = frozenset(
     {"wants", "needs", "likes", "loves", "prefers", "fancies", "cares about"}
     | {"is after", "is looking for", "is looking to", "is keen on"}
 )
+# What leads in to a clause and says which case it is said of: "if I'm buying, max £400k".
+# It is no word of the grammar, so a prompt that holds it is not plain and nothing of it is
+# applied. It is no doubt about the home either: whoever says which of renting and buying
+# they mean has said it, and the clause is read as it would be without the word. Where it
+# sets one case against another, "if I rent ..., if I buy ...", the words name both tenures,
+# and which is meant is the person's to say. Decided on 2026-09-25.
+IN_CASE: frozenset[str] = frozenset({"if"})
+# --- What asks for nothing ---------------------------------------------------------
+#
+# The reader says where the words stand that it made nothing of, so that a person sees
+# what was missed. In a prompt that is not plain most of them are how a wish is said,
+# and no wish: "I want to live somewhere", "with access to", "but with some", "around
+# it", "if I'm", "for". Said to be unread, they were taken for something Burro had
+# missed. So a stretch that holds nothing but such words is not said to be unread.
+#
+# Each list is one the grammar holds already, and none holds a word that turns, takes
+# off, caps, compares, weakens or says how much. No meaning is guessed at: a word that
+# is on none of them is unread wherever nothing was made of it, and so is the whole of
+# every stretch that holds one. A word that wishes is not among them by itself. It asks
+# for nothing only where the grammar places it, straight after the speaker, "I want":
+# anywhere else it may compare, or be another's, "pubs like I need noise", "some want
+# pubs". `grammar.py` adds the words that stand between the parts of a home.
+LEADS_IN: tuple[Words, ...] = (
+    SPEAKER,
+    ASKS_BURRO,
+    TO_DO,
+    SOMEWHERE,
+    SOMEWHERE_THAT,
+    ARTICLE,
+    WHOSE,
+    NEARBY,
+    JOINS,
+    COURTESY,
+)
 # What stands for a thing that was named, and says nothing of its own: "that", of "a
 # station, I'd hate that".
 STANDS_FOR: frozenset[str] = frozenset({"it", "that", "this", "them", "those", "these", "one"})
@@ -486,6 +520,68 @@ PHRASES_OF_DOUBT: frozenset[str] = frozenset(
     | _DREADED_IN_A_PHRASE
 )
 WORDS_THAT_TURN_AWAY: frozenset[str] = frozenset(_AWAY.split()) | CONTRACTIONS
+
+# --- A place that is no place to reach -------------------------------------------------
+#
+# The reader reads none of these either. In a prompt that is not plain, a place that is
+# named is offered as a journey to it, and one press may take a journey. So what says
+# that a place is to be kept away from, or is somebody else's, is written down here, for
+# whoever offers a journey. Decided on 2026-09-25: a person who asks to live far from
+# somebody is never ranked by how near they are to them.
+
+# What keeps a place at a distance, wherever it stands in the sentence of the place: "far
+# from", "well away from", "as far as possible from", "nowhere near". Every one is a word
+# or a phrase that is listed above as one that turns a wish away or puts it in doubt.
+STAYS_AWAY: frozenset[str] = frozenset(
+    {
+        *("far", "further", "farther", "furthest", "farthest", "away"),
+        *("not near", "not close to", "nowhere near", "avoid", "avoiding", "anywhere but"),
+        *("a long way", "steer clear", "stay clear", "keep clear"),
+    }
+)
+# What says near with a word for far, and is no wish to stay away: "not far from".
+NOT_FAR: frozenset[str] = frozenset(
+    {"not far", "not too far", "not that far", "not so far", "not very far"}
+)
+# What turns a word for far or for a least round, wherever it stands before it in its
+# clause, so that the words say near or say the most: "neither of us is more than 40
+# minutes", "I don't want to move far", "it's impossible for me to be far from".
+TURNS_ROUND: frozenset[str] = (
+    frozenset({"no", "not", "never", "cannot", "neither", "nor", "impossible", "unable"})
+    | CONTRACTIONS
+)
+# What says a number is the least it may be, straight before the number or straight after
+# what it is a number of: "at least 30 minutes", "30 minutes or more". A number that is a
+# least is never read as the most. "Over" is one only against a number.
+AT_LEAST: frozenset[str] = frozenset(
+    {
+        *("at least", "at the least", "no less than", "not less than", "more than"),
+        *("over", "minimum", "a minimum of", "minimum of", "or more", "upwards of"),
+    }
+)
+# Whose place it is, where the words name somebody who is not the speaker: "my ex lives
+# at", "his mother is in". `WHO_ELSE` is said of a wish. Of a place it is said with whose
+# it is in the third person too.
+SOMEBODY_ELSE: frozenset[str] = WHO_ELSE | frozenset(
+    {"his", "her", "their", "he's", "she's", "they're"}
+)
+# Who shares the speaker's home, so that where they work or learn is a place the household
+# must reach: "my partner works at", "and my partner at".
+OF_THE_HOUSEHOLD: frozenset[str] = frozenset(
+    f"{whose} {who}"
+    for whose in ("my", "our")
+    for who in (
+        *("partner", "wife", "husband", "girlfriend", "boyfriend", "fiance", "fiancee"),
+        *("kid", "kids", "child", "children", "son", "sons", "daughter", "daughters"),
+    )
+)
+# What says where somebody lives, which is no place that they go to: "my partner lives
+# at". Of one of the household it is no place the words say must be reached.
+LIVES_THERE: frozenset[str] = frozenset(
+    {"lives", "live", "living", "stays", "stay", "staying", "resides", "is from", "are from"}
+)
+# A place that was left: "we moved from".
+LEFT_BEHIND: frozenset[str] = frozenset({"moved from", "moving from", "move from"})
 WORDS_OF_DOUBT: frozenset[str] = (
     frozenset((_DOUBT + " " + _DREADED + _AT_LARGE).split()) | WORDS_THAT_TURN_AWAY
 )

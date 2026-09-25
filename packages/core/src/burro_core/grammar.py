@@ -47,6 +47,7 @@ from burro_core.lexicon import (
     GENERIC_PLACES,
     Target,
     counts_residents,
+    is_a_rough_guide,
     lexicon_of,
     no_measure_of,
 )
@@ -77,8 +78,10 @@ from burro_core.vocabulary import (
     FOR_WHOM,
     GOOD,
     IMPORTANT,
+    IN_CASE,
     JOINS,
     LARGE_STEP,
+    LEADS_IN,
     NEAR_TO,
     NEARBY,
     NOT_IN,
@@ -239,6 +242,9 @@ A_HOME = frozenset(
         *("flats", "houses", "homes", "apartments", "properties"),
     }
 )
+# A house, where no kind of house is named beside it. It is no flat, and a price is held
+# by the kind of house: terraced, semi-detached or detached.
+A_HOUSE = frozenset({"house", "houses"})
 # What is said before a thing to give it more weight, and says nothing else.
 WEIGHT_ON = frozenset({"weight on", "emphasis on"})
 _AT_THE_HEAD = frozenset({"need", "want"})
@@ -341,6 +347,13 @@ VOCABULARY: frozenset[str] = frozenset(
 # Every single word that some phrase of the grammar holds. A word that is none
 # of these, after words that expect a name, is what the person calls a place.
 KNOWN_WORDS: frozenset[str] = frozenset(word for phrase in VOCABULARY for word in phrase.split())
+# Every phrase that asks for nothing wherever it stands: how a wish is led in to, what
+# joins two, what says a thing is wanted near, what leads a clause in, and what stands
+# between the parts of a home. A stretch of the text that holds nothing but these, and a
+# wish straight after the speaker, is not said to be unread (`vocabulary.py`).
+ASKS_NOTHING: frozenset[str] = frozenset(
+    {*(word for group in LEADS_IN for word in group.words), *NEAR_TO, *IN_CASE, *_GLUE, *_IS}
+)
 
 
 class Join(Enum):
@@ -407,6 +420,9 @@ class Home:
     amounts: list[tuple[int, bool, Span]] = field(default_factory=list[tuple[int, bool, Span]])
     bedrooms: list[tuple[int, Span]] = field(default_factory=list[tuple[int, Span]])
     segments: list[tuple[str, Span]] = field(default_factory=list[tuple[str, Span]])
+    # Where a house is named with no kind of house beside it: "a house", "a two bed house".
+    # It says nothing by itself, and says of an amount to buy that it is for no flat.
+    houses: list[Span] = field(default_factory=list[Span])
     # Cheaper or dearer, by a little or a lot.
     steps: list[tuple[bool, bool, Span]] = field(default_factory=list[tuple[bool, bool, Span]])
     # The tenure that is said not to be wanted: "to buy, not rent". It is read
@@ -443,6 +459,7 @@ class Home:
         self.by_an_m.extend(other.by_an_m)
         self.not_rents.extend(other.not_rents)
         self.not_buys.extend(other.not_buys)
+        self.houses.extend(other.houses)
 
 
 @dataclass
@@ -814,7 +831,12 @@ class _Segment:
                 pass
             elif self.take(PAYS) is not None:
                 led = True
-            elif self.take(_GLUE) is None and self.take(A_HOME) is None:
+            elif self.take(_GLUE) is not None:
+                pass
+            elif (called := self.take(A_HOME)) is not None:
+                if _said(called) in A_HOUSE:
+                    found.houses.append(_span(called))
+            else:
                 break
         if not self.done or not found.said:
             self.at = start
@@ -855,6 +877,8 @@ class _Segment:
                 kind = self.take(A_HOME)
                 if kind is not None and _said(kind) in BUY_SEGMENTS:
                     found.segments.append((_said(kind), _span(kind)))
+                elif kind is not None and _said(kind) in A_HOUSE:
+                    found.houses.append(_span(kind))
                 return True
         self.at = start
         for kinds in (RENT_SEGMENTS, BUY_SEGMENTS):
@@ -1452,6 +1476,15 @@ class Grammar:
             # what Burro has no measure of is offered what is nearest. Under
             # a word that turns, nobody can say what is meant.
             if wish.way is not Way.NONE or wish.essential:
+                raise NotPlain
+            wish.offered = True
+            return wish
+        if is_a_rough_guide(target) and wish.way is Way.NONE:
+            # A vibe that is a rough guide is taken by a press of its own. No word
+            # adds it, its own name among them: it is offered, and says that it is
+            # less sure than the rest. To turn it away, or to take it off, is no
+            # wish for it, and is read as it is of any vibe.
+            if wish.essential:
                 raise NotPlain
             wish.offered = True
             return wish
