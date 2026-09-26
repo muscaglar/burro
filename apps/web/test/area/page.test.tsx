@@ -11,7 +11,7 @@ import { act, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
 
-import AreaPage, { generateStaticParams } from "@/app/[city]/[area]/page";
+import AreaPage, { dynamicParams, generateStaticParams } from "@/app/[city]/[area]/page";
 import { AreaProfile } from "@/components/AreaProfile/AreaProfile";
 import { columnsOf } from "@/components/FactRow/FactRow";
 import { SearchApp } from "@/components/SearchApp/SearchApp";
@@ -98,6 +98,11 @@ describe("which areas have a page", () => {
 
     expect(pages).toHaveLength(24);
     expect(pages).toEqual(areas.map((area) => ({ city: "synthetic", area: area.slug })));
+  });
+
+  test("test_an_area_whose_page_was_not_built_ahead_has_its_page_made_when_it_is_asked_for", () => {
+    // A build makes the first few pages. With this off, every other area would be a page not found.
+    expect(dynamicParams).toBe(true);
   });
 
   test.each([

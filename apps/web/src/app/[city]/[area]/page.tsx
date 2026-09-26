@@ -4,6 +4,7 @@ import { cache } from "react";
 
 import { AreaProfile } from "@/components/AreaProfile/AreaProfile";
 import { loadArea, loadAreas, loadGeometry, loadMeta } from "@/lib/api/server";
+import { builtAhead } from "@/lib/area/ahead";
 import { asScriptText, metadataFor, structuredDataFor } from "@/lib/area/describe";
 import { cityOf, isCity } from "@/lib/city";
 import { bandsToDraw } from "@/lib/holds";
@@ -16,10 +17,16 @@ interface Props {
   readonly params: Promise<{ readonly city: string; readonly area: string }>;
 }
 
-/** One page for each area of the release, from route 4. */
+/**
+ * An area whose page was not built ahead of time has its page made the first time it is
+ * asked for. Every area of the release has a page, and a build makes only the first few.
+ */
+export const dynamicParams = true;
+
+/** The pages a build makes, from route 4: the first areas of the release, and no more. */
 export async function generateStaticParams() {
   const { data } = await loadAreas();
-  return data.areas.flatMap((area) => {
+  return builtAhead(data.areas).flatMap((area) => {
     const city = cityOf(area.area_id);
     return city === null ? [] : [{ city, area: area.slug }];
   });
