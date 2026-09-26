@@ -568,6 +568,8 @@ class Release(Protocol):
     def cutoff(self, mode: Mode) -> int: ...
     def placed(self, tag_id: TagId) -> bool: ...
     def costed(self, tenure: Tenure, segment: Segment) -> bool: ...
+    def population(self, feature_id: FeatureId) -> tuple[float, ...]: ...
+    def band(self, area_id: str, feature_id: FeatureId) -> int | None: ...
 
 
 class WaitsOn(Record):
@@ -663,6 +665,12 @@ class InMemoryRelease:
     _costs: Mapping[tuple[str, Tenure, Segment], CostEstimate] = field(
         init=False, repr=False, compare=False
     )
+    _populations: Mapping[FeatureId, tuple[float, ...]] = field(
+        init=False, repr=False, compare=False
+    )
+    _bands: Mapping[tuple[str, FeatureId], int | None] = field(
+        init=False, repr=False, compare=False
+    )
     _places: Mapping[str, Place] = field(init=False, repr=False, compare=False)
     _stations: Mapping[str, tuple[StationAccess, ...]] = field(
         init=False, repr=False, compare=False
@@ -692,6 +700,25 @@ class InMemoryRelease:
         put(self, "_areas", {n.area_id: n for n in self.neighbourhoods})
         put(self, "_geometries", {g.area_id: g.geometry for g in self.geometries})
         put(self, "_features", {(f.area_id, f.feature_id): f for f in self.features})
+        # Where every area stands on every measure, worked out once as the release is
+        # made. The facts of one area ask for the band and the standing of each of its
+        # figures, and each was worked out over every area again, for every figure of
+        # every area that was asked about: a page of reasons took seconds on London.
+        rankable = [n.rankable for n in self.neighbourhoods]
+        populations: dict[FeatureId, tuple[float, ...]] = {}
+        bands: dict[tuple[str, FeatureId], int | None] = {}
+        for feature_id in sorted({f.feature_id for f in self.features}):
+            values = [
+                None if (row := self._features.get((n.area_id, feature_id))) is None else row.value
+                for n in self.neighbourhoods
+            ]
+            populations[feature_id] = tuple(
+                sorted(v for v, r in zip(values, rankable, strict=True) if r and v is not None)
+            )
+            for area, band in zip(self.neighbourhoods, band_of(values, rankable), strict=True):
+                bands[(area.area_id, feature_id)] = band
+        put(self, "_populations", populations)
+        put(self, "_bands", bands)
         put(self, "_tags", {(t.area_id, t.tag_id): t for t in self.tags})
         put(self, "_costs", {(c.area_id, c.tenure, c.segment): c for c in self.costs})
         put(self, "_places", {p.place_id: p for p in self.places})
@@ -715,6 +742,14 @@ class InMemoryRelease:
 
     def tag(self, area_id: str, tag_id: TagId) -> TagValue | None:
         return self._tags.get((area_id, tag_id))
+
+    def population(self, feature_id: FeatureId) -> tuple[float, ...]:
+        """The figures of a measure among the rankable areas that have one, from the least."""
+        return self._populations.get(feature_id, ())
+
+    def band(self, area_id: str, feature_id: FeatureId) -> int | None:
+        """The band of an area's figure, among the rankable areas that have one."""
+        return self._bands.get((area_id, feature_id))
 
     def cost(self, area_id: str, tenure: Tenure, segment: Segment) -> CostEstimate | None:
         return self._costs.get((area_id, tenure, segment))

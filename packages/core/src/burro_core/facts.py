@@ -18,7 +18,7 @@ no percentage is ever printed for one.
 """
 
 from bisect import bisect_left, bisect_right
-from collections.abc import Callable, Iterator, Mapping
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from typing import NamedTuple
 
 from pydantic import Field
@@ -33,7 +33,6 @@ from burro_core.catalogue import (
     MOTOR_VEHICLES_A_DAY,
     TAGS,
     Tag,
-    band_of,
     default_direction,
 )
 from burro_core.estimate import ESTIMATED, SAID, VERDICT, estimate
@@ -346,7 +345,7 @@ class Standing(NamedTuple):
         return 100 * beyond // self.compared if self.compared else 0
 
 
-def standing(value: float, population: list[float], among: bool) -> Standing:
+def standing(value: float, population: Sequence[float], among: bool) -> Standing:
     """Where `value` sits in `population`, which is sorted. `among` if it is one of them."""
     below = bisect_left(population, value)
     equal = bisect_right(population, value) - below
@@ -467,11 +466,7 @@ class _Builder:
 
     def _band(self, feature_id: FeatureId) -> int | None:
         """The band of this area's figure, among the rankable areas that have one."""
-        areas = self.release.neighbourhoods
-        of = self._feature_value(feature_id)
-        bands = band_of([of(area.area_id) for area in areas], [area.rankable for area in areas])
-        mine = self.area.area_id
-        return next(band for area, band in zip(areas, bands, strict=True) if area.area_id == mine)
+        return self.release.band(self.area.area_id, feature_id)
 
     def fact(
         self,
@@ -574,7 +569,9 @@ class _Builder:
                 continue
             feature = FEATURES[metric.feature_id]
             text, number = _value(row.value, feature.unit)
-            found = self.standing(row.value, self._feature_value(metric.feature_id))
+            found = standing(
+                row.value, self.release.population(metric.feature_id), among=self.area.rankable
+            )
             better = chosen.get(metric.feature_id, default_direction(metric.feature_id))
             slots, numbers = said(found, f"{feature.higher} than", f"{feature.lower} than", better)
             band = self._band(metric.feature_id)
