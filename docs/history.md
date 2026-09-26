@@ -21,6 +21,8 @@ For a reader a year from now. Written on 25 September 2026, the evening Burro wa
 | 19:07 | Push. **Every hosted job passed, for the first time** |
 | 19:26 | The first hosted build of London was started. Its first build passed in 27 minutes, at the first try |
 | About 19:45 | The website was deployed to Vercel and the API to Fly.io, with the made-up city. The website calls the API and no other host |
+| 22:48 | The build of London with the traffic near homes was started. It passed whole in 54 minutes, and the release was approved and deployed an hour later |
+| 26 September, 00:04 | The website's first build on London asked the API for the page of every area. After about ninety the API's machine fell behind, the host answered 503 for three minutes, and the build failed. The website stayed on the build before. A build now makes the first 24 pages of areas, and any other is made when it is first asked for |
 
 In the runs of 13:54 and 18:16 the test was at fault each time, and no code that is shipped was changed.
 
