@@ -302,7 +302,7 @@ Read on 2026-09-25, on the host's own pages, through a reader that summarises. C
 
 ## Turning the model on
 
-For the founder, and made by hand. **Not tried.** No key has been set on the host, no adapter has met a live provider, and the cap on calls has met a stand-in only. Written on 2026-09-25. It applies [ADR 0032](../docs/adr/0032-calls-to-a-model-are-capped-for-the-whole-service.md), and [models.md](../docs/design/models.md) has the whole of the settings.
+For the founder, and made by hand. **Done once, on 2026-09-26**: a key of Gemini was set on the host as the steps below say, the service said at once that a model reads, and two sentences sent to it were each read by the model, in about two seconds, with nothing fallen back on. The cap on calls has still met a stand-in only: no day on the host has reached it. Written on 2026-09-25. It applies [ADR 0032](../docs/adr/0032-calls-to-a-model-are-capped-for-the-whole-service.md), and [models.md](../docs/design/models.md) has the whole of the settings.
 
 ### What must be in place first
 
@@ -436,6 +436,6 @@ Until then two builds of the same commit can differ, and a build can break on a 
 - A rollback, at either host, and `fly scale count`.
 - A domain, a certificate and a DNS record: "A domain, once there is one".
 - A release of London: "Serving a release of London" lists what of it is untried.
-- A model. No key is set, and the cap on calls to a model has met a stand-in only: "Turning the model on".
+- The cap on calls to a model, on the host. A model is on, and the cap has met a stand-in only: "Turning the model on". What the service writes to the host's log with a model on was not read for a marker.
 - That the website's functions run in London. `vercel.json` is not read where it is, and whether the region was set by hand was not noted: [web/README.md](web/README.md).
 - The two retention figures were read on the hosts' pages on 2026-09-23, through a reader that summarises. No price was kept.
