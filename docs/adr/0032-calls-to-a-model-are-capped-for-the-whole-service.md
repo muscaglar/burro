@@ -45,7 +45,8 @@ Why the cap is for the whole service, and not for each person:
 - It does not bound what one call costs. `BURRO_MODEL_MAX_TOKENS` and the 600 characters a person may type do.
 - It does not outlive the process. A deploy or a restart starts the minute and the day again, so a day with a restart in it can hold more than a day's calls.
 - It does not count what the evaluation set sends. `providers/measure.py` makes a reader with no cap, for made-up sentences that a person chose to send.
-- It is not what stands against abuse. For a preview at addresses nobody was given, that is the host's own protections and blocking after the fact ([0023](0023-what-is-typed-goes-as-typed-and-people-are-told.md)). The provider's own cap on spending is the outer guard.
+- It is not what stands against abuse. That is the host's own protections and blocking after the fact ([0023](0023-what-is-typed-goes-as-typed-and-people-are-told.md)). The provider's own cap on spending is the outer guard.
+- **It does not say who may reach the model.** The address of the service is public. An address a host gives an app can be found by anyone: a certificate for it is written to public logs the day it is issued. That nobody was given the address keeps nobody out. With a model on, whatever anyone sends to the reader is sent on to the provider, whether they came by the website, which tells them so before they type, or called the service themselves, which does not. The cap bounds what that costs, and nothing of who is heard.
 
 ## Consequences
 
