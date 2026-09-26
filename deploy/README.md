@@ -335,6 +335,8 @@ For the founder, and made by hand. **Not tried.** No key has been set on the hos
 
 **What the cap does not do.** It is for the whole service, so one heavy caller can use up the day for everyone, and everyone is then read by the rules until midnight in UTC. It limits nothing that does not reach a model. It is no check for a bot. "Blocking a client that abuses the service", below, says what stands against abuse.
 
+**The address of the service is public, whoever it was given to.** An address a host gives an app can be found by anyone: a certificate for it is written to public logs the day it is issued. So from the moment a model is on, what any person types into the website, and what anyone sends to the service itself, is sent on to the provider. The website tells a person so before they type. The cap bounds the bill, and nothing of who is heard. That is why the three conditions above are met **before** a model is turned on here, and not after. To try a model before they are met, try it on a machine of your own, where the service listens on the loopback address and nobody else can reach it: `make api` with the three settings in the environment of that one command.
+
 ### The steps
 
 1. **Make a new key for the deployed service, and retire the one used in development.** A key that has been on a developer's machine is not the key to put on a host. Revoke the old one in the provider's console once the new one is set.
