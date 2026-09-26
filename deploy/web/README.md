@@ -46,7 +46,7 @@ vercel env ls
 
 ## The API must be up before a build that names it
 
-With no address of the API set, a build reads the recorded answers and calls nothing: the first deployment was built so. With `NEXT_PUBLIC_BURRO_API_URL` set, a build calls routes 4, 5, 6 and 11 of the API. A read that timed out, or met a service too busy to answer, is asked for four times at most, each waited for longer than the last. A failure then stops the build, and the deployment before it stays live. Deploy the API before you set its address. After a new release reaches the API, the pages catch up within the hour, or at once with a new deployment.
+With no address of the API set, a build reads the recorded answers and calls nothing: the first deployment was built so. With `NEXT_PUBLIC_BURRO_API_URL` set, a build calls routes 4, 5, 6 and 11 of the API. **A build makes the page of the first 24 areas of the release, and no more**: `src/lib/area/ahead.ts`. The page of any other area is made the first time it is asked for, and kept for an hour as a built page is. The first build on London, on 2026-09-26, made a page for every area, a thousand of them: after about ninety the machine of the API, which shares its processor, fell so far behind that the host answered 503 for three minutes, and the build failed. A build now asks the API some thirty times. A read that timed out, or met a service too busy to answer, is asked for four times at most, each waited for longer than the last. A failure then stops the build, and the deployment before it stays live. Deploy the API before you set its address. After a new release reaches the API, the pages catch up within the hour, or at once with a new deployment.
 
 ## The headers the website already sets
 
