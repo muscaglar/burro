@@ -677,3 +677,55 @@ What counts recorded crime and what counts who lived somewhere wait as they did,
 1. **Words beyond a comma that the rules do not know are passed over, and the wish beside them is read.** To leave such a wish with no way is one line. Read, 397 of 514 count and the client is right in 752. Left, 394 and 750. Either way 31 are read backwards, 33 unasked, and 15 of 269 count that must not. The decision above holds a thing turned the wrong way to be the greater fault, and by that the second way is the safer.
 2. **Two cases of the evaluation set were changed**, in a commit of their own. `long-007` may now have the supermarket rise that its sentence asks for, "a supermarket within walking distance", and `long-010` the main roads count for less, "Please no busy main roads". Both were written before Burro measured either. By the cases as they were, a client that asks nothing is unasked in 35, over its ceiling of 33.
 3. **What was given up stays given up**, until a rule is found that tells a wish from its opposite where a word between them is not known.
+
+**The way of a journey was built both ways, and stands on the guide.** On 2026-09-27 what the website makes of a journey whose words make its limit firm was built both ways, and one line chooses: `A_LIMIT_THE_WORDS_MAKE_FIRM` in `apps/web/src/lib/search/takes.ts`. It is on `guide`, which is the founder's decision of 2026-09-25, the third point of "What one press may take": the journey is taken as a guide, and a person makes it firm with a press of its own, which is in its chip. On `as_worded` the website takes the way the service marks as its guess, which is the firm limit where the words make it one. Nothing of the service moved for it.
+
+What each way does to the founder's own sentence on the made-up city, where the place is Cindermoor Works. Measured in a browser on 2026-09-27, at 1440 by 900 and at 390 by 844, with the same figures at both:
+
+| | `guide`, which the website is on | `as_worded` |
+|---|---|---|
+| The chip of the journey | "Cindermoor Works, public transport assumed, 40 minutes, flexible assumed" | "Cindermoor Works, public transport assumed, 40 minutes, firm limit" |
+| Areas ranked, of 24 | 5. Gorsebeck is the fourth, and its result says "63 minutes over" | 4 |
+| Left out for the journey | None | 1: Gorsebeck, of which the table of all areas says "A journey is longer than a firm limit" |
+| Left out for the budget, which is a firm limit either way | 16 | 16 |
+| Once a person makes the journey firm, in its chip | The chip says "firm limit", and the line "4 areas are ranked now, which is 1 fewer than before." | |
+
+The journeys of this search are times that the made-up release holds, so nothing of it is left out on an estimate: Gorsebeck is held to be 63 minutes away. On the first build of London a journey is an estimate, and by the decision a firm limit of 40 minutes to Chancery Lane leaves out 422 of 1,002 areas there. That is what the guide keeps from happening without a press. The line reaches a journey that is offered, and no other: one that the service asks about, to a name that several places bear, is sent as the service worded it, and [the design of the website](../design/web.md), section 3, says what was measured of it.
+
+### Amended once the mended build had been driven: a limit is as firm after its place, and what is said of the words alone changes nothing
+
+**What was found.** The build of the amendment above was driven in a browser, and two things were read wrongly in sentences a person would plainly type.
+
+- **A limit of minutes was kept where it stood before its place, and not where it stood after.** "Within 40 minutes of Cindermoor Works" was applied as a firm limit. "Cindermoor Works within 40 minutes", "Foxholt Market within 30 minutes" and "Cindermoor Works, 40 minutes max" were offered as a firm limit and as a guide, with neither marked. The website took the guide, and ranked an area that is 63 minutes away.
+- **A word that is read several ways was offered every way beside a word that says nothing.** "Somewhere posh" offers each of its four readings the one way the word gives, and 21 areas are ranked. "Somewhere posh, honestly" offered each both ways, so the website took neither, and showed the person no areas.
+
+**Decision.** What makes a limit firm is as "What makes a limit firm" has it, and no list moved.
+
+| Matter | What stood | What stands now |
+|---|---|---|
+| A journey with its place first | Not plain, unless words that reach a place led it in: offered, and never applied | The grammar reads it as it reads one with its time first, and a plain list that holds one is applied: "Cindermoor Works within 40 minutes", "Pellam Infirmary at most 35 minutes by bike" |
+| The name of a place with nothing to lead it in | Not plain | A journey only with the time of it: after it in its own part, or as the item straight before it or straight after it, said apart from any place and parted from the name by a mark, "Cindermoor Works, 40 minutes max". A name alone is offered as it was. So is one whose time stands further off, or before it and after a thing that is some way off, "a park, 10 minutes max, Cindermoor Works"; one of two such names; and a name that is an area's too where the time stands apart from it, "Foxholt, 30 minutes max" |
+| The guess of a journey that is offered | The way the words give, where the rules would apply its clause: never where the place stood first, or either side of a mark from its time | The same rule, which now holds wherever the place stands, and a place and a time that stand either side of a mark are read together. So of "Honestly, Cindermoor Works within 40 minutes" the firm limit is the guess |
+| "Under" and "in under" before minutes | A guide, by "What makes a limit firm" | The same. "Cindermoor Works in under 40 minutes" is a journey of 40 minutes, as a guide |
+| A journey that the words beside it turn away: "within 40 minutes of Cindermoor Works, no thanks", and one the sentence after it takes back | The firm limit was the guess | No guess, wherever the place stands. It is offered both ways, as it was |
+| A word that core only offers, one way, beside what is said of the words alone | Every way, since the sentence was one the grammar does not make | As the rules offer it of the same words with what is said of the words alone left out, wherever it stands: one way only where the grammar makes the whole of what is left of its sentence. No way is the guess |
+| What may turn such a word, put it in doubt or give it to somebody else: "not posh", "posh? no thanks", "somewhere posh, bleh", "posh but not stuffy", "my sister wants somewhere posh" | Every way | The same, and the last waits |
+| What a person says of their own words, in a part of a sentence of its own: "somewhere cheap, I think" | Said to be unread | Left out of what is said to be unread, as the words that lead a wish in are. The prompt is no more plain, `unmet` holds `other` as it did, and a model is asked as it was |
+
+What counts recorded crime and what counts who lived somewhere wait as they did, and so do Gritty and the higher council tax bands where the words do not name them: the two things an offer says of itself are as they were. [The contract](../design/contract.md), sections 8.1 and 8.2, has each rule and how it is worked out. The engine stays at 1.19.0: no arithmetic, no rule of the reducer and no sentence of an explanation moved.
+
+**What it did.** The service was driven through its own routes, as a client that takes what is offered and asks nothing, by the rule the website holds. The website itself was not driven. Of "Cindermoor Works within 40 minutes" 17 areas are ranked and 4 are left out, where 21 were ranked and 4 of them were known to be over the limit. Of "somewhere posh, honestly" such a client takes the mix of brands, as it does of "somewhere posh", and 21 areas are ranked. The evaluation set holds 35 sentences more, and is 1,097. Of the 25 sentences that say what is left behind and then what is wanted, everything wanted counts in 25, as before. Of the 514 things that must rise 397 count, and of the 269 that must not, 15 do: neither moved. A client that asks nothing, which takes a journey as a guide as the website does, reads 31 sentences backwards and 33 unasked, as it did, and is right in 783 of 1,097. `make eval-reader` finds none read backwards and none unasked.
+
+**What it still gets wrong.**
+
+- **"Somewhere cheap" ranks nothing, by itself or beside "I think".** "Cheap" is heard as a verdict on what a person can afford, which Burro does not give, and is no word for the mix of brands as "cheap and cheerful" is. Nothing is offered of it.
+- **A journey that is turned away is still offered**, and a client that asks nothing takes the guide of it: of "Cindermoor Works within 40 minutes, no thanks" a journey of 40 minutes is added as a guide. It leaves no area out.
+- **A word that is read several ways is offered every way beside a sentence the rules do not know**, which may be said of it: "Moving next month. Somewhere posh." It was so before, with no word said of the words alone in it.
+- **A time that stands apart is still given to the journey of a cue whatever stands between them**: "a park, 10 minutes max, I work at Cindermoor Works" is applied as a firm limit of 10 minutes. The name of a place alone is held tighter than that.
+
+**To confirm.** Each was decided for the founder, and is theirs to overturn.
+
+1. **"Under" makes no minutes firm, after a place as before it.** A person who types "in under 40 minutes" has an area ranked that is 63 minutes away, lower than the rest. To make it firm is one word in `FIRM_OF_MINUTES`.
+2. **Three cases of the evaluation set say that they are plain, where they said that they were not**: `journey-069`, `journey-070` and `journey-080`. What each expects of its journey is as it was. The grammar makes their sentences now, and a case that says it is not plain holds any edit to be unasked.
+3. **What is said of the words alone is left out wherever it stands, where what is offered of a word is read**: "somewhere posh I think" is offered as "somewhere posh" is, with no mark between. Where what is said to be unread is worked out it is left out only in a part of a sentence of its own, as core's list has it.
+4. **The test of a client that asks nothing takes a journey as a guide**, as the website does, by the founder's decision of 2026-09-25. Were it to take the firm limit that the service marks as its guess, it would be right in 788 of 1,097, where it is right in 783.
