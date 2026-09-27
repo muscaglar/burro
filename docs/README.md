@@ -19,6 +19,7 @@ The way in to every guide. Find what you want to do, and open the one guide besi
 | Set the project up at Vercel | [The website on Vercel](../deploy/web/README.md) |
 | Serve a release of London, or go back to the one before | [The same guide, "Serving a release of London"](../deploy/README.md#serving-a-release-of-london) |
 | Turn accounts on, change a secret of them, or put their file back | [The same guide, "Turning accounts on"](../deploy/README.md#turning-accounts-on) |
+| Follow what is left to do before a person can sign in, step by step, with the names that were chosen | [Accounts: what is left to do](accounts-todo.md) |
 | Turn a model on, or change how many calls it may be sent | [The same guide, "Turning the model on"](../deploy/README.md#turning-the-model-on) |
 | Know what must be done before the service is deployed from this code | [Data builds, "Before the service is deployed again"](data-builds.md#before-the-service-is-deployed-again): London is built again, since the catalogue moved |
 | Know when the website is deployed again | [The website on Vercel, "When the website is deployed again"](../deploy/web/README.md#when-the-website-is-deployed-again) |

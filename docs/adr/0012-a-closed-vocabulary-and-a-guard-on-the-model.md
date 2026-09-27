@@ -640,3 +640,40 @@ Each was decided for the founder, and is theirs to overturn.
 3. **One reading of a word that is read several ways is taken.** It overturns the sixth of what the amendments of 26 September left to confirm, which had every reading taken. None is one line.
 4. **A thing the words turn away is counted no longer, where the service reads the turn.** It is the one case in which the website takes a thing off that a person did not take off themselves. One line leaves it counting.
 
+
+### Amended later that day: a turn leads up to the thing it is said of, and a wish is read by itself
+
+**What was found.** The build was driven that morning by one who changed nothing, and two things were found of the amendment above.
+
+- **A wish that stands after what a person is leaving was read as turned away.** Of "I'm tired of the city and want somewhere leafy and quiet" the service offered no way to count Leafy or Quiet streets, and said of each "Burro read your words as saying that you do not want this". With a comma after "city" both were offered. A word that turns was held to lead up to every thing after it until a mark, though "and want", "so I need" or "but I love" stood between. Of 25 such sentences everything that was wanted counted in 25 on the evening of 26 September, and in 4 that morning. None of the 1,026 sentences of the evaluation set had this shape, so no count saw it. A heading on a line of its own did the same to its list: under "Must haves:" a person was told that they did not want the park they listed.
+- **More of what was asked for was left out than the evening before.** By the evaluation set's own word for what must rise, 514 things, a client that takes what is offered and asks nothing had 374 of them count, where 434 did on the evening of 26 September. Of 269 that must not rise, 15 counted where 105 had, which is what the amendment was for. The guess was marked only where the rules would apply the whole sentence a thing stands in, so one word they do not know, anywhere in it, left every wish of the sentence with no way.
+
+**Decision.**
+
+| Matter | What stood that morning | What stands now |
+|---|---|---|
+| How far a word that turns reaches | To every thing after it, until a mark | To the thing it is said of, and no further. What is said next begins after "because" and after "but", at a wish of the speaker's own, as "so I need", and at a wish that "and", "but", "so", "plus" or "also" leads in, as "and want" and "and would like". A turn still carries over a word that joins two things: "I hate pubs and bars" turns both |
+| A wish after "or" | Read as a wish | Read as no wish of its own, because "or" carries a turn: "I don't want pubs or need a station" asks for neither. It is one plain prompt that is read otherwise than it was: the station was raised, and is now offered and not applied |
+| A heading on a line of its own | It turned its list wherever a word of it turns | It turns its list only where it does not say that the list is wanted |
+| What the guess is held to | The whole sentence a thing stands in: the rules must apply all of it | What is said of the thing by itself, from where it begins to where what is said next begins, with "honestly", "I think", "Short version:" and the like left out wherever they stand. Where the rules would apply those words, were they all that was typed, the way they give is the guess |
+| Where a wish is not read by itself | | Wherever something beside it may be said of it: the sentence asks, holds a face or a quoted word, or holds a word about who lives somewhere; a sentence beside it takes it back; or what stands beyond a comma holds a listed sign of doubt, "it" or "them", or another speaker. "Pubs are so noisy" still marks no way |
+| Words beyond a comma that the rules do not know | | The wish is read, and they are passed over: "lively, lots going on in the evening" is a wish for a lively place. It was built a second way, which leaves such a wish with no way: one line chooses, `WHERE_WORDS_BEYOND_A_MARK_ARE_NOT_KNOWN` in `services/api/src/burro_api/guard.py` |
+| Whose wish it is | | By the same rule. After "I hate my landlord and want" the wish is the speaker's own. After "My husband hates pubs and would like a park" it is his, and waits |
+
+What counts recorded crime and what counts who lived somewhere wait as they did, whatever the words are, and the two things an offer says of itself are as they were. [The contract](../design/contract.md), section 8.2, has each rule and how it is worked out. The engine stays at 1.19.0: no arithmetic, no rule of the reducer and no sentence of an explanation moved.
+
+**What it did.** Of the 25 sentences, everything that was wanted counts in 25, and a person is told that they do not want a thing they asked for in none. The five sentences the amendment above was for are read as it left them: "I hate pubs", "I never use the station", "I hate culture", "Honestly, no station" and "not buzzy". The 25, the sentence that reached back and ten that must stay turned are 36 new cases of the evaluation set, which is now 1,062 sentences. Of the 514 things that must rise, 397 count. Of the 269 that must not, 15 do, as before. A client that asks nothing reads 31 sentences backwards and 33 unasked, as it did, and is right in 752 of 1,062, which is 716 of the first 1,026 where it was 704. `make eval-reader` finds none read backwards and none unasked.
+
+**What it still gets wrong.**
+
+- **It does not win back what the evening took: 397 of 514 count, where 434 did.** The evening took more of whatever was offered, which is also how it took 105 of what must not rise. No rule was found that takes the rest without taking their opposites. Of what is left, 44 things counted on the evening and do not now, and a test names each with its reason, and fails on the day one is read.
+- **One word the rules do not know, inside what is said of a thing, still leaves its way unsaid**: "A good local pub within stumbling distance", "an area known for its pubs", "late bars". It was kept so: "a pub on the corner would ruin it for me" has the same shape, and no list tells the two apart. Eleven of the 44 are of this kind.
+- **A turn that stands after a thing, beyond a comma, in words core does not list, is marked as a wish**: "pubs, bleh", and "I want pubs, I'm joking". It is a way of being wrong that the amendment above did not have. Three tests hold it, each expected to fail until it is mended.
+- **Three sentences are still told that a thing they want is not wanted**: "i cant live with out a park", where two words that turn are typed as one; a sentence in Spanish, where "un" is listed as a turn; and "the little parade" of shops, where "little" is a word for less.
+- **A sentence that means the opposite of its words is read by its words**: "you can't beat a good pub", "no shortage of pubs".
+
+**To confirm.** Each was decided for the founder, and is theirs to overturn.
+
+1. **Words beyond a comma that the rules do not know are passed over, and the wish beside them is read.** To leave such a wish with no way is one line. Read, 397 of 514 count and the client is right in 752. Left, 394 and 750. Either way 31 are read backwards, 33 unasked, and 15 of 269 count that must not. The decision above holds a thing turned the wrong way to be the greater fault, and by that the second way is the safer.
+2. **Two cases of the evaluation set were changed**, in a commit of their own. `long-007` may now have the supermarket rise that its sentence asks for, "a supermarket within walking distance", and `long-010` the main roads count for less, "Please no busy main roads". Both were written before Burro measured either. By the cases as they were, a client that asks nothing is unasked in 35, over its ceiling of 33.
+3. **What was given up stays given up**, until a rule is found that tells a wish from its opposite where a word between them is not known.
