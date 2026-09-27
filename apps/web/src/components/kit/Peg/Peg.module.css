@@ -1,0 +1,131 @@
+/*
+ * Where a place sits on a vibe, as Town Map draws a band: five steps, and a peg on one.
+ * Never a bar that fills. A step is nine art pixels by six, of page with a rule of ink, and
+ * the steps stand one art pixel apart. The peg is a drawing: its foot stands two art pixels
+ * into its step, and the rest of it over the line of steps.
+ *
+ * How much a thing counts is a gauge that fills, in another colour, and is never drawn here.
+ */
+.peg {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: calc(var(--px) * 1) calc(var(--px) * 5);
+  max-width: 100%;
+  color: var(--ink);
+  font: 400 var(--size-body) / 1.3 var(--font-say);
+}
+
+.picture {
+  display: inline-grid;
+  flex: none;
+  gap: calc(var(--px) * 1);
+}
+
+/*
+ * The line of steps. The room over it is the peg's, and is there whether a peg is or not,
+ * so that a line with a peg and a line with none are of one height. The art pixel at either
+ * side is the room of the ends of a rail.
+ */
+.steps {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(5, calc(var(--px) * 9));
+  gap: var(--px);
+  padding: calc(var(--px) * (var(--h) - 3)) var(--px) 0;
+}
+
+.step {
+  height: calc(var(--px) * 6);
+  border: var(--px) solid var(--ink);
+  background: var(--page);
+}
+
+/* The step the place sits on is ink. */
+.step[data-here="true"] {
+  background: var(--ink);
+}
+
+/* On part of its recipe: the step is chequered, in squares two art pixels wide. */
+.peg[data-part="true"] .step[data-here="true"] {
+  background: repeating-conic-gradient(var(--ink) 0 25%, var(--page) 0 50%) 0 0 / calc(var(--px) * 4)
+    calc(var(--px) * 4);
+}
+
+/* The peg, in the middle of its step. */
+.mark {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: calc(var(--px) * (2 + 10 * var(--at) + (7 - var(--w)) / 2));
+  width: calc(var(--px) * var(--w));
+  height: calc(var(--px) * var(--h));
+  background: var(--art) 0 0 / calc(var(--px) * var(--w)) calc(var(--px) * var(--h)) no-repeat;
+  image-rendering: pixelated;
+}
+
+/* A mixed place: the steps it spans are sand, a rail joins them, and there is no peg. */
+.peg[data-mixed="true"] .step[data-here="true"] {
+  background: var(--sand);
+}
+
+.rail {
+  position: absolute;
+  inset-block-end: calc(var(--px) * 6);
+  inset-inline-start: calc(var(--px) * 10 * var(--at));
+  width: calc(var(--px) * (10 * var(--over) + 1));
+  height: calc(var(--px) * 4);
+  border: calc(var(--px) * 2) solid var(--ink);
+  border-block-end: 0;
+}
+
+/*
+ * A place that cannot be placed has five steps like any, each with its whole edge, and no
+ * step of ink and no peg: it holds nothing, and is neither the middle nor nought. So no
+ * rule here is of that state. The words beside the steps say that it cannot be placed.
+ * Its steps were drawn in dashes, which a person who walked the website did not understand.
+ *
+ * The names of the two ends of a scale stand under its two ends.
+ */
+.ends {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(var(--px) * 2);
+  padding-inline: var(--px);
+  font-size: var(--size-small);
+  line-height: 1.1;
+}
+
+.words {
+  min-width: 0;
+}
+
+.asked {
+  font-size: var(--size-small);
+  font-style: italic;
+  white-space: nowrap;
+}
+
+/* What the band rests on is a sentence, on a line of its own, with the chequer of its step before it. */
+.part {
+  flex-basis: 100%;
+  font-size: var(--size-small);
+}
+
+.part::before {
+  content: "";
+  display: inline-block;
+  width: calc(var(--px) * 6);
+  height: calc(var(--px) * 4);
+  margin-inline-end: calc(var(--px) * 3);
+  background: repeating-conic-gradient(var(--ink) 0 25%, var(--page) 0 50%) 0 0 / calc(var(--px) * 4)
+    calc(var(--px) * 4);
+}
+
+@media (forced-colors: active) {
+  .step,
+  .mark,
+  .rail,
+  .part::before {
+    forced-color-adjust: none;
+  }
+}

@@ -1,0 +1,61 @@
+/*
+ * A thing of a search, drawn. It is as large as its drawing and no larger: the mark of its
+ * state is laid on it or round it, and takes no room of its own.
+ */
+.said {
+  display: inline-block;
+  flex: none;
+  vertical-align: bottom;
+}
+
+.thing {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  vertical-align: bottom;
+}
+
+.drawing {
+  display: block;
+  width: calc(var(--px) * var(--w));
+  height: calc(var(--px) * var(--h));
+  background: var(--art) 0 0 / calc(var(--px) * var(--w)) calc(var(--px) * var(--h)) no-repeat;
+  image-rendering: pixelated;
+}
+
+/*
+ * What counts for nothing is drawn in outline, by the drawing of its outline. A thing that
+ * has no such drawing has its outline cut from its own: the edge of the drawing, and
+ * nothing inside it. It is the drawing less the same drawing moved one art pixel each way,
+ * so what is left is one art pixel wide. Where a browser cannot take one from the other,
+ * the whole shape is drawn in the one colour.
+ */
+.drawing[data-cut="true"] {
+  background: var(--shade);
+  mask-image: var(--art), var(--art), var(--art), var(--art), var(--art);
+  mask-size: calc(var(--px) * var(--w)) calc(var(--px) * var(--h));
+  mask-repeat: no-repeat;
+  mask-position:
+    0 0,
+    calc(var(--px) * -1) 0,
+    var(--px) 0,
+    0 calc(var(--px) * -1),
+    0 var(--px);
+  mask-composite: subtract, intersect, intersect, intersect, add;
+}
+
+/*
+ * What nobody said, where it stands alone: a solid edge of ink round it, which takes no room.
+ * What says that it was assumed is the name of the picture, in words. In a chip it has no
+ * edge: the words of the chip say it.
+ */
+.thing[data-state="assumed"][data-edged="true"] {
+  outline: var(--px) solid var(--ink);
+  outline-offset: var(--px);
+}
+
+@media (forced-colors: active) {
+  .drawing {
+    forced-color-adjust: none;
+  }
+}

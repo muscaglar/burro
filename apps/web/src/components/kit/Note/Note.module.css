@@ -1,0 +1,79 @@
+/*
+ * The key of a source, as Town Map draws it: a key, the word, and a rule of ink under both.
+ * Open, or in hand, it stands on amber. What it opens stands under it, in place, on cream
+ * within a solid edge of ink.
+ */
+.note {
+  display: inline-block;
+  min-width: 0;
+  max-width: 100%;
+  vertical-align: baseline;
+}
+
+.key {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  padding: 0 calc(var(--px) * 1) 0 0;
+  border: 0;
+  border-block-end: var(--px) solid var(--ink);
+  border-radius: 0;
+  background: none;
+  color: var(--ink);
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+  cursor: pointer;
+}
+
+.drawn {
+  display: block;
+  flex: none;
+  width: calc(var(--px) * var(--w));
+  height: calc(var(--px) * var(--h));
+  background: var(--art) 0 0 / calc(var(--px) * var(--w)) calc(var(--px) * var(--h)) no-repeat;
+  image-rendering: pixelated;
+}
+
+/* In hand, or open: it stands on amber. Nothing of it moves or changes size. */
+.key:hover,
+.key:focus-visible {
+  background-color: var(--amber);
+}
+
+.key[aria-expanded="true"] {
+  background-color: var(--amber);
+}
+
+/*
+ * What it opens. A source and a date are read, and every word of them is set in the reading
+ * face, on cream: a sentence and a figure are read on cream, and the name of a source is a
+ * link, which is never read on sand. Its edge of ink tells it from the card it stands in,
+ * and is as wide as it was in dashes, so what it holds stands where it stood.
+ */
+.opened {
+  margin-block-start: calc(var(--px) * 3);
+  padding: calc(var(--px) * 3) calc(var(--px) * 4);
+  border: var(--px) solid var(--ink);
+  background: var(--page);
+  color: var(--ink);
+  font: 400 var(--size-small) / 1.4 var(--font-say);
+}
+
+.opened[hidden] {
+  display: none;
+}
+
+@media (forced-colors: active) {
+  .key {
+    border-block-end-color: LinkText;
+  }
+
+  .drawn {
+    forced-color-adjust: none;
+  }
+
+  .opened {
+    border: var(--px) solid CanvasText;
+    background: Canvas;
+  }
+}

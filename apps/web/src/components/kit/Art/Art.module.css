@@ -1,0 +1,13 @@
+/*
+ * One drawing. Its size is its own, in art pixels, times the art pixel: 2 px on a phone and
+ * 3 px on a desk. A pixel of the drawing is a whole square of the screen, with a hard edge.
+ */
+.art {
+  display: inline-block;
+  flex: none;
+  width: calc(var(--px) * var(--w));
+  height: calc(var(--px) * var(--h));
+  background: var(--art) 0 0 / calc(var(--px) * var(--w)) calc(var(--px) * var(--h)) no-repeat;
+  image-rendering: pixelated;
+  vertical-align: bottom;
+}

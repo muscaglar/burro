@@ -1,0 +1,28 @@
+/*
+ * The two ends of a scale. Each is its picture with its name under it, and what runs
+ * between them stands on the line the names stand on.
+ */
+.ends {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: calc(var(--px) * 3);
+  max-width: 100%;
+  color: var(--ink);
+  vertical-align: bottom;
+}
+
+.end {
+  display: grid;
+  flex: none;
+  justify-items: center;
+  gap: calc(var(--px) * 1);
+}
+
+/* The name of an end is read: it is set in the reading face. */
+.name {
+  font: 400 var(--size-small) / 1.1 var(--font-say);
+}
+
+.between {
+  min-width: 0;
+}

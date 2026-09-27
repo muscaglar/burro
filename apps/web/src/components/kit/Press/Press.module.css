@@ -1,0 +1,144 @@
+/*
+ * A button, as Town Map draws one: one rule of ink with a notch at each corner, lit from
+ * the top left and shaded at the right and the foot, and under it a second rule of ink,
+ * which is its hard shadow.
+ *
+ * THE BUTTON AND ITS FACE ARE TWO THINGS. The button is the native element: it is what
+ * takes the press, it is of one size, and nothing ever moves it. Its face is inside it, and
+ * is what is drawn: a picture cut in nine, three art pixels at the top and the sides and
+ * four at the foot, where its shadow lies. So the room of the shadow is the button's own,
+ * from the start.
+ *
+ * Under a press the picture gives way to the picture of the button pressed, which is drawn
+ * on the same canvas and cut in the same place: in it the face has stepped one art pixel
+ * down and one to the right, into the place of its shadow. That is a change of what is
+ * drawn, in one step, and is no movement over time: so the face steps for a person who
+ * asked for less movement as it does for any other. Where movement is welcome the words
+ * step with it.
+ *
+ * One art pixel is two pixels of a phone's screen and three of a desk's.
+ */
+.press {
+  position: relative;
+  display: inline-flex;
+  /* The face is as high as the button, whatever the button is. */
+  align-items: stretch;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--ink);
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/*
+ * The face. Its picture is the whole of it: the rule of ink, the light, the shade, the
+ * shadow, and the colour of its middle, which is laid again and again and never stretched.
+ *
+ * Under the picture are a rule of ink and a flat ground, laid inside the rule so that it
+ * does not show through a notch. They are what is seen of a button whose picture has not
+ * come.
+ */
+.face {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 0 calc(var(--px) * 5);
+  border-style: solid;
+  border-width: calc(var(--px) * 3) calc(var(--px) * 3) calc(var(--px) * 4);
+  border-color: var(--ink);
+  border-image: var(--art) 3 3 4 3 fill / calc(var(--px) * 3) calc(var(--px) * 3) calc(var(--px) * 4) repeat;
+  background-color: var(--page);
+  background-clip: padding-box;
+  /*
+   * The picture of the button pressed is asked for with the page, and not at the first
+   * press: until it had come, a button under its first press was drawn with no edge at
+   * all. It is laid as a ground of no size, which is never seen.
+   */
+  background-image: var(--art-down);
+  background-size: 0 0;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+/* The one that matters most in sight is cobalt, and its words are page. */
+.face[data-kind="go"] {
+  background-color: var(--cobalt);
+  color: var(--page);
+}
+
+/* What is on, or chosen, is amber, whatever its kind. It says so too, to whoever hears the page. */
+.face[data-kind="on"] {
+  background-color: var(--amber);
+}
+
+/* What the button says. */
+.says {
+  display: block;
+  min-width: 0;
+}
+
+/* Words that hold a figure, or run to a sentence, are read: they are set in the reading face. */
+.says[data-reads="true"] {
+  font: 700 var(--size-body) / 1.25 var(--font-say);
+}
+
+/*
+ * Under a press, and while it is off: the picture of the button pressed. Nothing is set on
+ * the button, and nothing that moves its face or changes the room its face takes: the two
+ * pictures are of one size and are cut alike.
+ */
+.press:active > .face,
+.press[aria-disabled="true"] > .face {
+  border-image-source: var(--art-down);
+}
+
+/*
+ * A button that is off is down already, as far as a press would take it, and is not pointed
+ * at as one to press. It keeps the colours of its kind: nothing is dimmed. It says that it
+ * is off to whoever hears the page. Its words stand on its face, where its face is.
+ */
+.press[aria-disabled="true"] {
+  color: var(--ink);
+  cursor: default;
+}
+
+.press[aria-disabled="true"] > .face > .says {
+  transform: translate(var(--px), var(--px));
+}
+
+/* Where movement is welcome the words step with the face, in the one step the face takes. */
+@media (prefers-reduced-motion: no-preference) {
+  .press:active > .face > .says {
+    transform: translate(var(--px), var(--px));
+  }
+}
+
+/*
+ * With forced colours the system's own colours carry the edge, and no picture is drawn
+ * over them. The edge keeps its width, so a button is of one size whatever draws it.
+ */
+@media (forced-colors: active) {
+  .face {
+    border-image-source: none;
+    border-color: ButtonText;
+    background-color: ButtonFace;
+    color: ButtonText;
+  }
+
+  .face[data-kind="on"] {
+    border-color: Highlight;
+  }
+
+  .press:active > .face,
+  .press[aria-disabled="true"] > .face {
+    border-image-source: none;
+  }
+}

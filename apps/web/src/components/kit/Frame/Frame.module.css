@@ -1,0 +1,121 @@
+/*
+ * A box, as Town Map draws one: page, a double rule of ink, a notch at each corner, and a
+ * hard shadow that falls down and to the right.
+ *
+ * The rule is a picture cut in nine, and the shadow is the shadow of the look: tokens name
+ * both, and say where the picture is cut and how wide it is drawn. Under the picture is a
+ * plain edge of ink. So with `--frame-box` and `--box-shadow` set to `none` a box is that
+ * plain edge, and holds what it held where it held it. No picture is named here.
+ *
+ * What is drawn lies behind what the box holds, on a layer of its own. The box itself is
+ * the room. Its own edge is clear, and as wide as the picture is drawn: the width of the
+ * rule all round, and at the right and the foot the width of the shadow as well. So the
+ * shadow is inside the box, and a box at the edge of a screen makes no page wider than
+ * its window.
+ */
+.frame {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  /* A frame is a box and no sentence: it is as wide as what holds it, whatever element it is. */
+  max-width: none;
+  color: var(--ink);
+}
+
+.box,
+.box-on {
+  border-style: solid;
+  border-color: transparent;
+  border-width: var(--frame-box-wide);
+}
+
+.box::before,
+.box-on::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  /* As far out as the rule is wide. At the right and the foot that leaves the room of the shadow. */
+  inset: calc(var(--px) * -4);
+  border: var(--edge) solid var(--border);
+  border-image: var(--frame-box) var(--frame-box-cut) fill / var(--frame-box-wide) / var(--frame-box-out) repeat;
+  /* The ground is laid inside the ink, and not under it, so that it does not show through a notch. */
+  background-color: var(--page);
+  background-clip: padding-box;
+  /*
+   * The picture of a box in hand is asked for with the page, and not at the first press in
+   * a box: until it had come, the box was drawn with no edge at all. It is laid as a ground
+   * of no size, which is never seen.
+   */
+  background-image: var(--frame-box-on);
+  background-size: 0 0;
+  background-repeat: no-repeat;
+  box-shadow: var(--box-shadow);
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.box-on::before {
+  border-image-source: var(--frame-box-on);
+}
+
+/* An ink edge and nothing else: no second rule, no notch, no shadow. */
+.plain {
+  border: var(--edge) solid var(--border);
+  background: var(--page);
+}
+
+/*
+ * A box keeps the room of its shadow inside itself, so its edge of ink stands two art
+ * pixels short of its far side. A plain frame that stands on the grass, among boxes,
+ * stands as far short: its edge ends where theirs ends. One that stands in a box, or in
+ * another frame, is as wide as what holds it.
+ *
+ * It weighs what a class weighs. Whatever lays a plain frame out where the room is kept
+ * already, or sets all of its margin, weighs more or sets the one side it means to.
+ */
+.plain:not(:where(.frame *)) {
+  margin-inline-end: calc(var(--px) * 2);
+}
+
+/*
+ * What a frame holds is kept clear of its edge. A frame that is told what it holds brings
+ * its own room has none of this, and whatever lays it out may give it any.
+ */
+.roomy {
+  padding: var(--space-3) var(--space-4);
+}
+
+/*
+ * With forced colours the system's colours carry the edge, and no picture is drawn over
+ * them and no shadow under them. A picture is taken away by its source: said as the whole
+ * of `border-image`, the build makes nothing of it, and the picture stays.
+ *
+ * The room of the rule and of the shadow is an edge of the box's own, which is clear. A
+ * browser that forces colours draws a clear edge in the colour of words, and every box
+ * had a band of ink at its right and its foot. So that edge is the colour of the ground
+ * there: the room stays, and nothing is drawn in it.
+ */
+@media (forced-colors: active) {
+  .box,
+  .box-on {
+    border-color: Canvas;
+  }
+
+  .box::before {
+    border-image-source: none;
+    border-color: CanvasText;
+    background-color: Canvas;
+    box-shadow: none;
+  }
+
+  .box-on::before {
+    border-image-source: none;
+    border-color: Highlight;
+    background-color: Canvas;
+    box-shadow: none;
+  }
+
+  .plain {
+    border-color: CanvasText;
+  }
+}

@@ -1,0 +1,392 @@
+/*
+ * Burro. His box is 24 art pixels by 30, whatever he does, at the art pixel of every
+ * drawing or at the larger one of the stage.
+ *
+ * He has four clocks where he rests: one for his nose, one for his eye, one for his ears
+ * and one for what he does now and then. Each is so many rounds of his hop, so each is
+ * nought where the length of his hop is nought, and nothing of him moves there.
+ *
+ * A round of his hop is a second and a quarter, so the four come round in 9.7 seconds,
+ * 11.3, 13.1 and 40.9. They did so while a round was a second, and each was more rounds
+ * than it is: he hops more slowly than he did, and stirs as he stirred. In tenths of a
+ * second they are 97, 113, 131 and 409, which share no factor: the four come round
+ * together once in six hundred and eighty days. So what he does next is not what he did
+ * at this point the last time, and he is not seen to be a strip played round and round.
+ *
+ * No part of him moves to a beat. A round of a part holds four movements or more, with no
+ * two waits of one length between them, and comes round in no less than nine seconds: a
+ * nose that lifted every three seconds was seen to be a clock.
+ */
+.burro {
+  --size: var(--px);
+  /* One frame of a strip of him is as wide as his box: a strip is moved to the left by whole frames. */
+  --frame: calc(var(--size) * -24);
+  --clock-nose: calc(var(--motion-hop) * 7.76);
+  --clock-eye: calc(var(--motion-hop) * 9.04);
+  --clock-ears: calc(var(--motion-hop) * 10.48);
+  --clock-now: calc(var(--motion-hop) * 32.72);
+
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: calc(var(--size) * 24);
+  height: calc(var(--size) * 30);
+  vertical-align: bottom;
+}
+
+.burro[data-stage="true"] {
+  --size: var(--px-stage);
+}
+
+/*
+ * Seen from behind a rule he is drawn from his back up: his box ends 19 art pixels down,
+ * and what is under that is cut off with whatever else would lie outside his box.
+ */
+.burro[data-peeps="true"] {
+  height: calc(var(--size) * 19);
+}
+
+/* What is drawn of him lies inside his box, and is cut off where it would lie outside it. */
+.drawn {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.still,
+.waits,
+.hops,
+.soil,
+.stirs,
+.rests,
+.body,
+.ears,
+.eye,
+.nose,
+.now {
+  position: absolute;
+  inset: 0;
+}
+
+.still,
+.waits,
+.hops,
+.soil,
+.body,
+.ears,
+.eye,
+.nose,
+.now {
+  background: var(--art) 0 0 / calc(var(--size) * var(--strip)) calc(var(--size) * 30) no-repeat;
+  image-rendering: pixelated;
+}
+
+/*
+ * He hops: the strip is moved on by one frame at a time, round and round, and one round
+ * takes the length of a hop. A frame is held, and never blended into the next.
+ *
+ * Two drawings lie in his box, and one of them is seen. At rest it is the one in which he
+ * waits. While a hop runs, that one is hidden and the strip is seen. A hop whose length is
+ * nought never runs: so where the token is `0ms` nothing moves, and he waits.
+ */
+.hops {
+  visibility: hidden;
+  animation:
+    burro-hops var(--motion-hop) steps(var(--frames)) infinite,
+    burro-seen var(--motion-hop) step-end infinite;
+}
+
+.waits {
+  animation: burro-unseen var(--motion-hop) step-end infinite;
+}
+
+@keyframes burro-hops {
+  to {
+    background-position: calc(var(--size) * var(--strip) * -1) 0;
+  }
+}
+
+/*
+ * Soil flicks up from his hole as he goes down it, and as he comes up. It is a strip of
+ * its own, which holds a frame for each frame of his hop, and lies inside that strip and
+ * over it. It has no movement of its own: it lies where the strip it lies in lies, moment
+ * by moment, and is seen while that strip is seen. So the soil is never out of step with
+ * him, and where he does not move there is none.
+ */
+.soil {
+  background-position: inherit;
+}
+
+@keyframes burro-seen {
+  from,
+  to {
+    visibility: visible;
+  }
+}
+
+@keyframes burro-unseen {
+  from,
+  to {
+    visibility: hidden;
+  }
+}
+
+/*
+ * He stirs, where nothing is asked of him. As where he hops, two drawings lie in his box:
+ * him drawn still, which is seen at rest, and the strip of what he does, which is seen
+ * while a movement runs.
+ *
+ * The strip is no one movement. Its first frame is him with what moves taken out of him.
+ * His ears, his eye and the tip of his nose each lie over that in a layer of their own,
+ * which is a window on the frames of that part and has a clock of its own. What he does
+ * now and then is the whole of him: while it is seen, what rests of him is not.
+ *
+ * Each run of frames says at which moment of its round a frame begins, and the frame is
+ * held until the next begins. Every stop is written once, with all that it sets. A round
+ * begins and ends at rest, and nothing begins with it: so as the page opens he is as he
+ * is drawn still, and his four clocks do not begin together.
+ */
+.stirs {
+  visibility: hidden;
+  animation: burro-seen var(--motion-hop) step-end infinite;
+}
+
+.rests {
+  animation: burro-rests var(--clock-now) step-end infinite;
+}
+
+.ears {
+  background-position: calc(var(--frame) * 1) 0;
+  animation: burro-ears var(--clock-ears) step-end infinite;
+}
+
+.eye {
+  background-position: calc(var(--frame) * 4) 0;
+  animation: burro-eye var(--clock-eye) step-end infinite;
+}
+
+.nose {
+  background-position: calc(var(--frame) * 6) 0;
+  animation: burro-nose var(--clock-nose) step-end infinite;
+}
+
+.now {
+  visibility: hidden;
+  animation: burro-now var(--clock-now) step-end infinite;
+}
+
+/*
+ * His nose goes, quick and small, in a round of nine seconds and seven tenths. It is up
+ * for a tenth and down for a tenth: three times at seven tenths of a second, once at
+ * twenty-nine, twice at forty-three, once at sixty-one and three times at seventy-four.
+ * The waits between are of seventeen tenths, thirteen, fifteen, twelve and twenty-five.
+ */
+@keyframes burro-nose {
+  from,
+  8.247%,
+  10.309%,
+  12.371%,
+  30.928%,
+  45.361%,
+  47.423%,
+  63.918%,
+  77.32%,
+  79.381%,
+  81.443%,
+  to {
+    background-position: calc(var(--frame) * 6) 0;
+  }
+
+  7.216%,
+  9.278%,
+  11.34%,
+  29.897%,
+  44.33%,
+  46.392%,
+  62.887%,
+  76.289%,
+  78.351%,
+  80.412% {
+    background-position: calc(var(--frame) * 7) 0;
+  }
+}
+
+/*
+ * He blinks, in a round of eleven seconds and three tenths: once at nineteen tenths of a
+ * second, twice together at forty-three, once at sixty-eight and once at ninety-nine.
+ */
+@keyframes burro-eye {
+  from,
+  18.142%,
+  39.115%,
+  41.416%,
+  61.504%,
+  88.938%,
+  to {
+    background-position: calc(var(--frame) * 4) 0;
+  }
+
+  16.814%,
+  38.053%,
+  40.354%,
+  60.177%,
+  87.611% {
+    background-position: calc(var(--frame) * 5) 0;
+  }
+}
+
+/*
+ * An ear twitches, in a round of thirteen seconds and a tenth. His far ear tips forward
+ * twice at thirty-three tenths of a second, and once at eighty-two and at a hundred and
+ * nineteen. His near ear flicks back at fifty-nine, and at a hundred and four.
+ */
+@keyframes burro-ears {
+  from,
+  26.107%,
+  27.786%,
+  46.412%,
+  63.664%,
+  80.763%,
+  91.756%,
+  to {
+    background-position: calc(var(--frame) * 1) 0;
+  }
+
+  25.191%,
+  26.87%,
+  62.595%,
+  90.84% {
+    background-position: calc(var(--frame) * 2) 0;
+  }
+
+  45.038%,
+  79.389% {
+    background-position: calc(var(--frame) * 3) 0;
+  }
+}
+
+/*
+ * What he does now and then, in a round of forty-one seconds less a tenth. At five
+ * seconds he shifts his weight, and again at twenty-eight: back, down, and back. At
+ * twelve and a half he looks round, behind him, and an ear turns as he does: and at
+ * thirty-five he looks round again, for less long. At twenty he sits up and washes an
+ * ear, four strokes of his paws, and sits as he sat. No two of the waits between them
+ * are of one length.
+ */
+@keyframes burro-now {
+  from,
+  14.425%,
+  34.474%,
+  53.667%,
+  70.66%,
+  88.02%,
+  to {
+    visibility: hidden;
+  }
+
+  12.714%,
+  69.193% {
+    visibility: visible;
+    background-position: calc(var(--frame) * 8) 0;
+  }
+
+  13.325%,
+  69.682% {
+    background-position: calc(var(--frame) * 9) 0;
+  }
+
+  14.059%,
+  70.293% {
+    background-position: calc(var(--frame) * 8) 0;
+  }
+
+  30.807%,
+  85.819% {
+    visibility: visible;
+    background-position: calc(var(--frame) * 10) 0;
+  }
+
+  32.274% {
+    background-position: calc(var(--frame) * 11) 0;
+  }
+
+  32.885% {
+    background-position: calc(var(--frame) * 10) 0;
+  }
+
+  48.411% {
+    visibility: visible;
+    background-position: calc(var(--frame) * 12) 0;
+  }
+
+  49.144%,
+  50.122%,
+  51.1%,
+  52.078% {
+    background-position: calc(var(--frame) * 13) 0;
+  }
+
+  49.633%,
+  50.611%,
+  51.589%,
+  52.567% {
+    background-position: calc(var(--frame) * 14) 0;
+  }
+
+  53.056% {
+    background-position: calc(var(--frame) * 12) 0;
+  }
+}
+
+/* What rests of him is not drawn while he does what he does now and then, and is drawn again as that ends. */
+@keyframes burro-rests {
+  from,
+  14.425%,
+  34.474%,
+  53.667%,
+  70.66%,
+  88.02%,
+  to {
+    visibility: visible;
+  }
+
+  12.714%,
+  30.807%,
+  48.411%,
+  69.193%,
+  85.819% {
+    visibility: hidden;
+  }
+}
+
+/*
+ * A person who asked for less movement is shown none, whatever length a hop is given: not
+ * the first frame of it, for the moment a browser gives a movement it has been told to end.
+ * It is the one thing that stills him: the page has no control of its own that does.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .hops,
+  .waits,
+  .stirs,
+  .rests,
+  .ears,
+  .eye,
+  .nose,
+  .now {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .still,
+  .waits,
+  .hops,
+  .soil,
+  .body,
+  .ears,
+  .eye,
+  .nose,
+  .now {
+    forced-color-adjust: none;
+  }
+}

@@ -1,0 +1,43 @@
+/*
+ * The rank of a result: a pennant, shown at its own size, and the number set on the face
+ * the drawing leaves bare for it.
+ */
+.pennant {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: calc(var(--px) * var(--w));
+  height: calc(var(--px) * var(--h));
+  background: var(--art) 0 0 / calc(var(--px) * var(--w)) calc(var(--px) * var(--h)) no-repeat;
+  image-rendering: pixelated;
+  vertical-align: bottom;
+}
+
+/*
+ * The number is a figure, and it is read: it is set in the reading face. It is sized as the
+ * drawing is, and not by the type of the browser, so that larger type does not push it off
+ * its pennant. The rank is said in words beside it, in type that does grow.
+ *
+ * It is as high as the face lets it be, and no wider than the face. A heavy figure of the
+ * reading face is 0.663 of its size wide, measured in a browser, and is given two thirds
+ * of it: so a rank of three figures is set smaller than one of two, and stays on its pennant.
+ */
+.figure {
+  position: absolute;
+  inset-block-start: calc(var(--px) * var(--top));
+  inset-inline-start: calc(var(--px) * var(--left));
+  display: grid;
+  place-items: center;
+  width: calc(var(--px) * var(--wide));
+  height: calc(var(--px) * var(--high));
+  color: var(--ink);
+  font: 700 calc(var(--px) * min(var(--high) * 0.9, var(--wide) * 1.5 / var(--figures))) / 1 var(--font-say);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (forced-colors: active) {
+  .pennant {
+    forced-color-adjust: none;
+  }
+}

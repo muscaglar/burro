@@ -1,0 +1,227 @@
+/*
+ * A chip, as Town Map draws one: page, one solid rule of ink, a hard shadow, its thing at the
+ * left and at the right a cross 44 px square. It is at least as high as a main control, and
+ * as high as its words run to: they wrap, and none is cut.
+ *
+ * THE BOX OF A CHIP AND THE CHIP ARE TWO THINGS. The box is the room: it is of one size,
+ * with the room of the shadow at its right and its foot, and it is there before the chip
+ * is. The chip is what is drawn in it. So a chip that arrives moves inside its own box, and
+ * nothing beside it moves. The shadow is the shadow of the look, and goes when it does.
+ */
+.label {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 calc(var(--px) * 2) calc(var(--px) * 2) 0;
+  color: var(--ink);
+  vertical-align: top;
+}
+
+/* What throws the shadow: it lies where the chip is, and is nothing but its shadow. */
+.label::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0 calc(var(--px) * 2) calc(var(--px) * 2) 0;
+  box-shadow: var(--box-shadow);
+  pointer-events: none;
+}
+
+.chip {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: stretch;
+  min-width: 0;
+  min-height: var(--target);
+  border: var(--px) solid var(--ink);
+  background: var(--page);
+}
+
+/*
+ * What nobody said has the edge every chip has, and is said in the words of the chip. Where
+ * the look says so it stands on sand as well, so that the eye tells it from what was said
+ * before the word is read. Its edge, its size and its place are those of any chip.
+ */
+.label[data-state="assumed"][data-ground="sand"] .chip {
+  background: var(--sand);
+}
+
+/*
+ * What the chip holds: its thing, and its words beside it. It keeps two art pixels over
+ * and under them, unless what lays the chip out says less: a row of chips that stands over
+ * the first result of a phone does, where each pixel is taken from the answer.
+ */
+.holds {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  min-width: 0;
+  padding: var(--label-room, calc(var(--px) * 2)) calc(var(--px) * 4) var(--label-room, calc(var(--px) * 2))
+    calc(var(--px) * 3);
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+}
+
+.opens {
+  cursor: pointer;
+}
+
+/* In hand, it is lit. The ring of the focus is the one every control has. */
+.opens:hover,
+.opens:focus-visible {
+  background-color: var(--sand);
+}
+
+/* While what it opens is open it is amber, as what is on is. It says so too. */
+.opens[aria-expanded="true"] {
+  background-color: var(--amber);
+}
+
+/*
+ * On sand a chip in hand is lit the other way, with page: sand is what it stands on. Open,
+ * it is amber as any chip is, in hand or not, which is said again here because what lights
+ * it on sand weighs more than what is said of every chip.
+ */
+.label[data-state="assumed"][data-ground="sand"] .opens:hover,
+.label[data-state="assumed"][data-ground="sand"] .opens:focus-visible {
+  background-color: var(--page);
+}
+
+.label[data-state="assumed"][data-ground="sand"] .opens[aria-expanded="true"] {
+  background-color: var(--amber);
+}
+
+.words {
+  display: block;
+  min-width: 0;
+}
+
+/* What it holds is read: it is set in the reading face. */
+.says {
+  font-family: var(--font-say);
+  font-size: var(--size-body);
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+/* Its state, which is read too: in ink, as every word is, and told from what it holds by its slant. */
+.state {
+  font-family: var(--font-say);
+  font-size: var(--size-small);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+/* The cross that takes the thing off: a square as large as a main control, on sand. */
+.off {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--target);
+  padding: 0;
+  border: 0;
+  border-inline-start: var(--px) solid var(--ink);
+  border-radius: 0;
+  background: var(--sand);
+  cursor: pointer;
+}
+
+.off:hover,
+.off:focus-visible {
+  background-color: var(--amber);
+}
+
+.cross {
+  display: block;
+  width: calc(var(--px) * var(--w));
+  height: calc(var(--px) * var(--h));
+  background: var(--art) 0 0 / calc(var(--px) * var(--w)) calc(var(--px) * var(--h)) no-repeat;
+  image-rendering: pixelated;
+}
+
+/*
+ * A chip that arrives drops into its place in four steps: out of sight above its box, half
+ * in, one step past, and settled. It is cut off at the edge of its own box while it drops,
+ * so nothing of it is ever drawn outside. It runs once, in the length the token gives: at
+ * nought the chip is there.
+ *
+ * At the first step the chip and what throws its shadow go up by their own height and by
+ * as much as the shadow falls, two art pixels: up by their height alone, a strip of shadow
+ * stood at the top of the box with no chip over it.
+ */
+.label[data-arrives="true"] {
+  animation: label-holds var(--motion-drop) step-end 1;
+}
+
+.label[data-arrives="true"] .chip,
+.label[data-arrives="true"]::before {
+  animation: label-drops var(--motion-drop) step-end 1;
+}
+
+@keyframes label-holds {
+  from,
+  to {
+    clip-path: inset(0);
+  }
+}
+
+@keyframes label-drops {
+  0% {
+    transform: translateY(calc(-100% - var(--px) * 2));
+  }
+
+  25% {
+    transform: translateY(-50%);
+  }
+
+  50% {
+    transform: translateY(calc(var(--px) * 2));
+  }
+
+  75%,
+  100% {
+    transform: translateY(0);
+  }
+}
+
+/*
+ * A person who asked for less movement is shown none, whatever length the drop is given:
+ * the chip is there, from the first moment it is drawn.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .label[data-arrives="true"],
+  .label[data-arrives="true"] .chip,
+  .label[data-arrives="true"]::before {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .label::before {
+    box-shadow: none;
+  }
+
+  .chip,
+  .label[data-state="assumed"][data-ground="sand"] .chip {
+    border-color: CanvasText;
+    background: Canvas;
+  }
+
+  .off {
+    border-inline-start-color: CanvasText;
+    background: ButtonFace;
+  }
+
+  .cross {
+    forced-color-adjust: none;
+  }
+}

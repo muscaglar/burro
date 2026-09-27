@@ -1,0 +1,55 @@
+/*
+ * What is said beside a figure that is not whole, and beside the name of a thing that is
+ * not known: a mark, and two words after it. The mark is as large as one step of a band,
+ * nine art pixels by six, and is drawn at the art pixel of whatever holds it.
+ *
+ * The words are read, and are set in the reading face, in ink. Nothing of it warns: it is
+ * drawn in ink on cream, as a step is.
+ */
+.approx {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--px) * 2);
+  min-width: 0;
+  max-width: 100%;
+  vertical-align: bottom;
+}
+
+/* The mark of what is not whole is a drawing, shown at its own size with a hard edge. */
+.mark {
+  display: block;
+  flex: none;
+  width: calc(var(--px) * var(--w));
+  height: calc(var(--px) * var(--h));
+  background: var(--art) 0 0 / calc(var(--px) * var(--w)) calc(var(--px) * var(--h)) no-repeat;
+  image-rendering: pixelated;
+}
+
+/* A step that holds nothing: the edge of a step, and cream inside it. */
+.blank {
+  display: block;
+  flex: none;
+  box-sizing: border-box;
+  width: calc(var(--px) * 9);
+  height: calc(var(--px) * 6);
+  border: var(--px) solid var(--ink);
+  background: var(--page);
+}
+
+.said {
+  min-width: 0;
+  color: var(--ink);
+  font: 400 var(--size-small) / 1.3 var(--font-say);
+}
+
+/* With forced colours the mark is a picture, and stays as it is drawn. */
+@media (forced-colors: active) {
+  .mark {
+    forced-color-adjust: none;
+  }
+
+  .blank {
+    border-color: CanvasText;
+    background: Canvas;
+  }
+}
