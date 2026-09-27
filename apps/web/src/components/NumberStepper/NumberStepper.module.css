@@ -1,30 +1,97 @@
+/*
+ * A number with a minus and a plus, as Town Map draws a step: two buttons, each one
+ * drawing shown whole, and between them the field the number is typed in.
+ *
+ * It is laid out by the width of its own box. Where the three do not stand in one line,
+ * what follows goes under, in the order it is read in.
+ */
 .stepper {
   display: grid;
-  gap: var(--space-1);
+  gap: calc(var(--px) * 3);
+  min-width: 0;
+  color: var(--ink);
 }
 
+/* What the number is of. It is a short label, and is set in the face of names. */
 .label {
-  font-weight: 600;
+  font: 400 var(--name-1) / 1.1 var(--font-name);
+  font-synthesis: none;
 }
 
+/* A label that holds a figure is read: it is set in the reading face. */
+.label[data-reads="true"] {
+  font: 700 var(--size-body) / 1.2 var(--font-say);
+}
+
+/* The field is as high as the buttons beside it, whatever a pixel of their drawing is. */
 .row {
-  display: grid;
-  grid-template-columns: auto minmax(5rem, 12rem) auto;
-  align-items: center;
-  justify-content: start;
-  gap: var(--target-gap);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: calc(var(--px) * 3);
+  min-width: 0;
 }
 
+/*
+ * A button of a step: a button as Town Map draws one, its sign on it and its shadow under
+ * it. The ground is what is seen of a button whose drawing has not come.
+ *
+ * The drawing of the button pressed is asked for with the page, and not at the first
+ * press: until it had come, a button under its first press was drawn with nothing on it.
+ * It is laid under the drawing at rest, at no size, and is never seen there.
+ */
 .step {
+  flex: none;
+  width: calc(var(--px) * var(--w));
+  height: calc(var(--px) * var(--h));
   padding: 0;
-  font-size: var(--size-lead);
-  line-height: 1;
+  border: 0;
+  border-radius: 0;
+  background:
+    var(--art) 0 0 / calc(var(--px) * var(--w)) calc(var(--px) * var(--h)) no-repeat,
+    var(--art-down) 0 0 / 0 0 no-repeat var(--page);
+  image-rendering: pixelated;
+  cursor: pointer;
 }
 
-.field {
-  width: 100%;
-  text-align: right;
+/*
+ * Under a press, and where there is nothing to step to or from: the drawing of the button
+ * pressed, which is of the same size. The drawing changes, and the button keeps its size
+ * and its place. Nothing is dimmed: a button that is off is down already.
+ */
+.step:active,
+.step:disabled,
+.step[aria-disabled="true"] {
+  background: var(--page) var(--art-down) 0 0 / calc(var(--px) * var(--w)) calc(var(--px) * var(--h)) no-repeat;
+}
+
+.step:disabled,
+.step[aria-disabled="true"] {
+  cursor: default;
+}
+
+/*
+ * The field. A number is read exactly: it is set in the reading face, heavy, with every
+ * digit as wide as the next. It is sunk into the page: a shade lies along its top and its
+ * left, inside its edge.
+ *
+ * It is named by what holds it as well, so that it weighs more than what the page says of
+ * every field: which of two style sheets is read last is not the website's to decide.
+ */
+.row > .field {
+  flex: 1 1 5rem;
+  width: 5rem;
+  min-width: 0;
+  max-width: 12rem;
+  padding: 0 calc(var(--px) * 4);
+  border: var(--px) solid var(--border);
+  border-radius: 0;
+  background: var(--page);
+  box-shadow: inset var(--px) var(--px) 0 var(--sand);
+  color: var(--ink);
+  font: 700 var(--size-lead) / 1.2 var(--font-say);
   font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .hint {
@@ -33,7 +100,20 @@
   font-size: var(--size-small);
 }
 
+/* Why a number was not taken: said in ink, beside an edge of poppy. */
 .problem {
   margin: 0;
+  padding-inline-start: calc(var(--px) * 4);
+  border-inline-start: calc(var(--px) * 2) solid var(--error-edge);
   color: var(--error);
+}
+
+@media (forced-colors: active) {
+  .step {
+    forced-color-adjust: none;
+  }
+
+  .row > .field {
+    box-shadow: none;
+  }
 }

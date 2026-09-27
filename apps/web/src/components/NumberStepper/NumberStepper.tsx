@@ -2,7 +2,9 @@
 
 import { useId, useState, type KeyboardEvent } from "react";
 
+import { holdsAFigure } from "../kit/reads";
 import styles from "./NumberStepper.module.css";
+import { StepButton } from "./StepButton";
 
 interface Props {
   readonly label: string;
@@ -35,7 +37,8 @@ interface Sent {
 }
 
 /**
- * A field for a whole number, with a minus and a plus button beside it.
+ * A field for a whole number, with a minus and a plus button beside it, each drawn as
+ * Town Map draws the button of a step.
  *
  * A typed number is sent when the field is left, or on Enter, and never key
  * by key: half a number is not a number. A button sends a step, and the
@@ -115,19 +118,11 @@ export function NumberStepper({
 
   return (
     <div className={styles.stepper}>
-      <label className={styles.label} htmlFor={`${id}-field`}>
+      <label className={styles.label} htmlFor={`${id}-field`} data-reads={holdsAFigure(label)}>
         {label}
       </label>
       <div className={styles.row}>
-        <button
-          type="button"
-          className={`${styles.step} target`}
-          aria-label={less}
-          disabled={!canStep}
-          onClick={() => step("down_small")}
-        >
-          <span aria-hidden="true">−</span>
-        </button>
+        <StepButton way="less" name={less} disabled={!canStep} onPress={() => step("down_small")} />
         <input
           id={`${id}-field`}
           className={`${styles.field} target`}
@@ -144,15 +139,7 @@ export function NumberStepper({
           onBlur={commit}
           onKeyDown={onKeyDown}
         />
-        <button
-          type="button"
-          className={`${styles.step} target`}
-          aria-label={more}
-          disabled={!canStep}
-          onClick={() => step("up_small")}
-        >
-          <span aria-hidden="true">+</span>
-        </button>
+        <StepButton way="more" name={more} disabled={!canStep} onPress={() => step("up_small")} />
       </div>
       {hint ? (
         <p id={`${id}-hint`} className={styles.hint}>

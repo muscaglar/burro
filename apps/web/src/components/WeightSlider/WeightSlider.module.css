@@ -1,58 +1,306 @@
+/*
+ * How much a thing counts, as Town Map draws a weight: its name in the face of names, a
+ * minus, a gauge of steps that fill with a weight standing on them, a plus, and the figure.
+ *
+ * THE GAUGE AND THE SLIDER ARE TWO THINGS. The gauge is drawn, and says nothing. The
+ * slider is the browser's own range input, which lies over the gauge and is as large: it
+ * is what takes the pointer, the keys and the focus. Nothing of the input is drawn but
+ * the ring of its focus, so what is seen is the gauge. Its thumb is as wide as the weight
+ * of the gauge, and the gauge is as wide as the travel of such a thumb: so the weight
+ * stands where the thumb is, at every count.
+ *
+ * It is laid out by the width of its own box, and never by that of the screen. What does
+ * not stand in one line goes under, in the order it is read in.
+ */
 .slider {
   display: grid;
-  gap: var(--space-1);
-  min-width: 0;
+  gap: calc(var(--px) * 3);
+  /* It is as wide as what holds it, whatever that is, so that it can ask how wide it is. */
+  min-width: min(100%, 12rem);
+  color: var(--ink);
+  container: slider / inline-size;
 }
 
-.label,
+/* What is weighed: a name, in the face of names, with its thing beside it where it has one. */
+.label {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  min-width: 0;
+  margin: 0;
+  font: 400 var(--name-1) / 1.1 var(--font-name);
+  font-synthesis: none;
+}
+
+.name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* A name that holds a figure is read: it is set in the reading face. */
+.name[data-reads="true"] {
+  font: 700 var(--size-body) / 1.2 var(--font-say);
+}
+
+/* What the scale means. It is a sentence, and is set as one. */
 .scale {
   margin: 0;
-  font-size: var(--size-small);
   color: var(--muted);
+  font-size: var(--size-small);
 }
 
 .row {
-  display: grid;
-  /* Narrow enough for a screen 320 pixels wide, inside a card inside the page. */
-  grid-template-columns: auto minmax(3rem, 1fr) auto 3.5rem;
+  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--target-gap);
+  gap: calc(var(--px) * 3) var(--px);
+  min-width: 0;
 }
 
-.step {
-  padding: 0;
-  font-size: var(--size-lead);
-  line-height: 1;
+/* What holds the gauge and the slider over it. It is as large as the gauge, which is drawn at its own size. */
+.gauge {
+  position: relative;
+  display: grid;
+  flex: none;
 }
 
 /*
- * One slider with two named ends. Each end is a button that moves the slider towards it,
- * and where the slider stands is said in words under it.
+ * The slider itself. It keeps what a range input does, and gives up what one is drawn as:
+ * its groove and its thumb are clear, so that the gauge under them is what is seen.
  */
-.row[data-ends="true"] {
-  grid-template-columns: auto minmax(3rem, 1fr) auto;
+.range {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
 }
 
-.row[data-ends="true"] .step {
-  padding: 0 var(--space-2);
-  font-size: var(--size-small);
-  font-weight: 600;
+/*
+ * The groove and the thumb, as each browser names them. A rule that names both is thrown
+ * away whole by a browser that knows one, so each is said by itself. Each is as high as
+ * the gauge, in pixels of the drawing: a share of the height of an input is not a height
+ * that every browser gives what is inside one.
+ */
+.range::-webkit-slider-runnable-track {
+  height: calc(var(--px) * var(--high));
+  border: 0;
+  background: transparent;
+}
+
+.range::-webkit-slider-thumb {
+  width: calc(var(--px) * var(--thumb));
+  height: calc(var(--px) * var(--high));
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.range::-moz-range-track {
+  height: calc(var(--px) * var(--high));
+  border: 0;
+  background: transparent;
+}
+
+.range::-moz-range-thumb {
+  width: calc(var(--px) * var(--thumb));
+  height: calc(var(--px) * var(--high));
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+/*
+ * The figure. It is read exactly: it is set in the reading face, heavy, with every digit
+ * as wide as the next. It is sunk into the page, as the field of a step is.
+ *
+ * It is named by what holds it as well, so that it weighs more than what the page says of
+ * every field: which of two style sheets is read last is not the website's to decide.
+ */
+.row > .number {
+  flex: none;
+  /* As high as the buttons beside it, whatever a pixel of their drawing is. */
+  align-self: stretch;
+  width: 3.5rem;
+  margin-inline-start: calc(var(--px) * 2);
+  padding: 0 calc(var(--px) * 3);
+  border: var(--px) solid var(--border);
+  border-radius: 0;
+  background: var(--page);
+  box-shadow: inset var(--px) var(--px) 0 var(--sand);
+  color: var(--ink);
+  font: 700 var(--size-lead) / 1.2 var(--font-say);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/*
+ * A slider at rest, of a thing that is switched off. Its words are quieter: they are in
+ * the colour a button that does nothing just now has its words in, which is a colour of
+ * the look, and nothing is dimmed.
+ */
+.slider[data-rests] {
+  color: var(--muted);
+}
+
+/*
+ * The figure of a slider at rest, which is a drawing and no field: nothing is typed in it.
+ * It stands as the field stands, as wide and as high, with its nought where a figure is.
+ */
+.row > .rests {
+  display: grid;
+  align-content: center;
+  min-block-size: var(--target);
+  color: inherit;
+}
+
+/*
+ * The button at an end of the slider of a vibe, which moves the slider towards that end:
+ * the one picture of the end, in a button as Town Map draws one. An end of a scale has its
+ * name under its picture, and where the slider stands is said in words under it. An end of
+ * a vibe that runs one way has no name, and its picture stands alone.
+ */
+.end {
+  display: inline-flex;
+  flex: none;
+  align-items: stretch;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+/*
+ * The face of the button, which is what is drawn: a picture cut in nine, with the shadow
+ * of the face in it. Under it are a rule of ink and a flat ground, which are what is seen
+ * of a button whose picture has not come.
+ */
+.face {
+  display: grid;
+  flex: 1 1 auto;
+  justify-items: center;
+  gap: var(--px);
+  padding: 0 0 var(--px);
+  border-style: solid;
+  border-width: calc(var(--px) * var(--cut-top)) calc(var(--px) * var(--cut-right)) calc(var(--px) * var(--cut-foot))
+    calc(var(--px) * var(--cut-left));
+  border-color: var(--ink);
+  border-image: var(--art) var(--cut-top) var(--cut-right) var(--cut-foot) var(--cut-left) fill /
+    calc(var(--px) * var(--cut-top)) calc(var(--px) * var(--cut-right)) calc(var(--px) * var(--cut-foot))
+    calc(var(--px) * var(--cut-left)) repeat;
+  background-color: var(--page);
+  background-clip: padding-box;
+  /*
+   * The picture of the button pressed is asked for with the page, and not at the first
+   * press: until it had come, a button under its first press was drawn with no edge at
+   * all. It is laid as a ground of no size, which is never seen.
+   */
+  background-image: var(--art-down);
+  background-size: 0 0;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+
+/* The name of an end is read: it is set in the reading face. */
+.named {
+  font: 700 var(--size-small) / 1.1 var(--font-say);
+}
+
+/*
+ * Under a press, and at the end it leads to: the picture of the button pressed, which is
+ * of the same size and is cut alike. The button keeps its size and its place.
+ */
+.end:active > .face,
+.end[aria-disabled="true"] > .face {
+  border-image-source: var(--art-down);
+}
+
+/*
+ * It keeps its ink: nothing is dimmed. What stands on its face stands as it stood, for a
+ * word that is moved is drawn softer by a browser, and reads as dimmed. It says that it is
+ * off to whoever hears the page.
+ */
+.end[aria-disabled="true"] {
+  color: var(--ink);
+  cursor: default;
+}
+
+/* Where movement is welcome, what stands on the face steps with it, in the one step it takes. */
+@media (prefers-reduced-motion: no-preference) {
+  .end:active > .face > * {
+    transform: translate(var(--px), var(--px));
+  }
 }
 
 .stands {
-  grid-column: 1 / -1;
-  font-size: var(--size-small);
+  flex-basis: 100%;
+  font: 700 var(--size-small) / 1.3 var(--font-say);
 }
 
-.range {
-  width: 100%;
-  min-width: 0;
-  margin: 0;
-  accent-color: var(--accent);
+.row[data-ends="true"] {
+  column-gap: calc(var(--px) * 1);
 }
 
-.number {
-  width: 100%;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
+/*
+ * In a narrow box the two ends of a scale stand over its gauge, side by side and each as
+ * wide as the other, and the gauge stands under them, in the middle. They are read in the
+ * order they were: the low end, the slider, the high end.
+ *
+ * A box is narrow where the two buttons and the gauge between them do not stand in one
+ * line. They are as wide as their drawings, where one pixel of a drawing is two of the
+ * screen: 164 pixels for the gauge and the edges of the two buttons, and for each button
+ * the 32 of its picture. The name of an end is wider than its picture, and the button is
+ * as wide as its name, which is wider where the text has been made larger.
+ */
+@container slider (max-width: calc(164px + 2 * max(32px, 4.1rem))) {
+  .row[data-ends="true"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: calc(var(--px) * 3) calc(var(--px) * 2);
+    max-width: 16rem;
+  }
+
+  .row[data-ends="true"] > .gauge {
+    grid-row: 2;
+    grid-column: 1 / -1;
+    justify-self: center;
+  }
+
+  .row[data-ends="true"] > .stands {
+    grid-row: 3;
+    grid-column: 1 / -1;
+  }
+}
+
+/*
+ * With forced colours the system's own colours carry the edge of a button, and no picture
+ * is drawn over them. The edge keeps its width, so a button is of one size whatever draws it.
+ */
+@media (forced-colors: active) {
+  .face {
+    border-image-source: none;
+    border-color: ButtonText;
+    background-color: ButtonFace;
+    color: ButtonText;
+  }
+
+  .end:active > .face,
+  .end[aria-disabled="true"] > .face {
+    border-image-source: none;
+  }
+
+  .row > .number {
+    box-shadow: none;
+  }
 }

@@ -1,14 +1,92 @@
+/*
+ * The settings, as Town Map draws a panel: one box of cream, and in it one stack of bars:
+ * a group for the money, one for the journeys and one for each family of vibes, each
+ * under its name in the face of names with the drawing of its thing before it. A bar
+ * opens what it holds under itself, and closes it again.
+ *
+ * THE SETTINGS ARE LAID OUT BY THE WIDTH OF THEIR OWN BOX, and never by that of the
+ * screen. They stand in a column of their own on a wide screen, where their box is as
+ * narrow as a phone is, and are one press away on a narrow one. What holds them says how
+ * wide it is, and what is in them asks it.
+ *
+ * The controls they hold are drawn by the chips too, which open one in place. So every
+ * control stands by itself: it counts on nothing the panel gives it.
+ */
 .settings {
   min-width: 0;
 }
 
+/*
+ * Standing open, the settings are the box themselves. What holds them is the column the
+ * page gives them, and the page has it say how wide it is. The page gives them the focus,
+ * and no keyboard stops on them: so they take no ring.
+ */
+.standing:focus {
+  outline: none;
+}
+
+/* One press away: what the button opens holds the box, and says how wide it is. */
+.holds {
+  min-width: 0;
+  container-type: inline-size;
+}
+
+/* The box. The frame draws it: what is here is the room inside it, and how what it holds is laid out. */
 .panel {
+  --within: var(--space-3);
+
   display: grid;
-  gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
+  gap: var(--space-3);
+  padding: var(--space-3) var(--within);
+}
+
+/*
+ * ONE PIXEL OF A DRAWING IS TWO OF THE SCREEN IN EVERY CONTROL, as it is on a phone,
+ * whatever the screen is. A control is then of one size wherever it is drawn: in the
+ * settings, which on a wide screen stand in a box as narrow as a phone, and under a chip
+ * beside them. A gauge, its two buttons and the two ends of a scale stand in one line in
+ * a box 300 pixels wide, and a pixel of a name set at 20 is a pixel of the drawing beside it.
+ *
+ * It is said of what the box holds and not of the box, and of each control that is drawn
+ * outside the box. So the box keeps the pixel of the page, and its rule is as wide as
+ * that of the box beside it. To draw every control at the pixel of the page, take this
+ * rule out.
+ */
+.panel > *,
+.thing,
+.weight,
+.radios {
+  --px: var(--px-small);
+}
+
+/*
+ * In a narrow box what is held stands nearer the rule of the box, so that a gauge and its
+ * two buttons stand in one line: they are 218 pixels wide, and a box of 17rem has 234 to
+ * give them, or 219 where the bar it scrolls by takes room of its own.
+ */
+@container (max-width: 20rem) {
+  .panel {
+    --within: var(--space-2);
+  }
+}
+
+@container (max-width: 18rem) {
+  .panel {
+    --within: var(--space-1);
+  }
+}
+
+/*
+ * The name of the settings, where they stand open: a band of ink at the head of the box,
+ * from one side of it to the other, with the name on it in the face of names.
+ */
+.title {
+  margin: calc(var(--space-3) * -1) calc(var(--within) * -1) 0;
+  padding: calc(var(--px) * 3) var(--space-2) calc(var(--px) * 4);
+  background: var(--ink);
+  color: var(--page);
+  font: 400 var(--name-2) / 1 var(--font-name);
+  font-synthesis: none;
 }
 
 .lead,
@@ -18,20 +96,68 @@
   font-size: var(--size-small);
 }
 
-/* One group of the settings: a button, and what it opens under it. */
+/*
+ * The groups, as one stack: each is a bar from one side of the box to the other, as the
+ * name of the settings is at its head, and what a bar opens stands under it. The fold
+ * draws the bar, its arrow and the rule between two bars. What is here is where the stack
+ * stands, and how far what it holds stands in from the side of the box.
+ */
+.stack {
+  min-width: 0;
+  margin-inline: calc(var(--within) * -1);
+  /*
+   * The stack says how wide it is, so that what a group holds can ask. What holds the
+   * settings says so too, but is not always there to be asked: on a wide screen the fold
+   * that holds them once a search is open is no box of its own, and says nothing.
+   */
+  container-type: inline-size;
+}
+
 .group {
   min-width: 0;
 }
 
+/*
+ * What a bar says begins where what stands under it begins. It weighs more than what the
+ * fold says of its own bar: which sheet loads last is not ours to decide.
+ */
+.group > button {
+  padding-inline-start: var(--within);
+}
+
+/* The name of a group, on its bar, in the face of names. */
+.name {
+  min-width: 0;
+  font: 400 var(--name-2) / 1 var(--font-name);
+  font-synthesis: none;
+  overflow-wrap: anywhere;
+}
+
+/* A name that holds a figure is read: it is set in the reading face. */
+.name[data-reads="true"] {
+  font: 700 var(--size-lead) / 1.2 var(--font-say);
+}
+
+/* In a narrow box a name is set smaller, so that it stands in one line beside its drawing. */
+@container (max-width: 22rem) {
+  .name {
+    font-size: var(--name-1);
+  }
+
+  .name[data-reads="true"] {
+    font-size: var(--size-body);
+  }
+}
+
+/* What a group holds, under its bar: it stands in from the sides of the box as far as the rest does. */
 .inside {
   display: grid;
   gap: var(--space-4);
-  padding: var(--space-2) 0 var(--space-4);
+  padding: var(--space-3) var(--within) var(--space-4);
 }
 
-.dimension,
-.radios,
-.inside fieldset {
+/* One thing of a search, with all that is set of it: a budget, a journey, how the journeys count. */
+.thing {
   display: grid;
   gap: var(--space-3);
   min-width: 0;
@@ -40,49 +166,363 @@
   border: 0;
 }
 
-.groupLegend {
+.dimension,
+.radios,
+.inside fieldset:not(.thing) {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  margin: 0;
   padding: 0;
-  font-size: var(--size-lead);
-  font-weight: 650;
+  border: 0;
+}
+
+/* The name of a thing: a tag of ink with its words in page, and the drawing of the thing before it. */
+.groupLegend {
+  max-width: 100%;
+  margin-block-end: var(--space-2);
+  padding: 0;
+}
+
+/* What stands in one line: a drawing, and the words it is for. */
+.line {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.tag {
+  min-width: 0;
+  padding: var(--px) calc(var(--px) * 3) calc(var(--px) * 2);
+  background: var(--ink);
+  color: var(--page);
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+  overflow-wrap: anywhere;
+}
+
+.tag[data-reads="true"] {
+  font: 700 var(--size-body) / 1.2 var(--font-say);
+}
+
+/* What is asked, over its choices, and the name of a field: a short label, in the face of names. */
+.legend,
+.label {
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  font: 400 var(--name-1) / 1.1 var(--font-name);
+  font-synthesis: none;
 }
 
 .legend {
-  padding: 0;
-  font-weight: 600;
+  margin-block-end: calc(var(--px) * 3);
 }
 
-.label {
-  font-weight: 600;
+.legend[data-reads="true"],
+.label[data-reads="true"] {
+  font: 700 var(--size-body) / 1.2 var(--font-say);
 }
 
 .field {
   display: grid;
-  gap: var(--space-1);
+  gap: calc(var(--px) * 3);
   justify-items: start;
+  min-width: 0;
 }
 
+/*
+ * A list to choose from. It is the browser's own, drawn as a field is: sunk into the
+ * page, its words in the reading face, and at its end the arrow of the look, which is
+ * laid over it and takes no press.
+ */
+.select {
+  position: relative;
+  display: inline-grid;
+  max-width: 100%;
+}
+
+.select > select {
+  max-width: 100%;
+  padding: 0 calc(var(--px) * (var(--w) + 8)) 0 calc(var(--px) * 4);
+  border: var(--px) solid var(--border);
+  border-radius: 0;
+  background: var(--page);
+  box-shadow: inset var(--px) var(--px) 0 var(--sand);
+  color: var(--ink);
+  font: 700 var(--size-body) / 1.2 var(--font-say);
+  text-overflow: ellipsis;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.select::after {
+  content: "";
+  position: absolute;
+  inset-block-start: calc(50% - var(--px) * var(--h) / 2);
+  inset-inline-end: calc(var(--px) * 4);
+  width: calc(var(--px) * var(--w));
+  height: calc(var(--px) * var(--h));
+  background: var(--art) 0 0 / calc(var(--px) * var(--w)) calc(var(--px) * var(--h)) no-repeat;
+  image-rendering: pixelated;
+  /* The arrow is drawn pointing up. Turned half way round it points down, and every pixel of it is whole. */
+  transform: rotate(180deg);
+  pointer-events: none;
+}
+
+/*
+ * A choice of one among a few, as Town Map draws renting or buying: each is a button, and
+ * the one that is chosen is amber. It is the browser's own radio button all the same: the
+ * button is laid over the whole of its face and is clear, so that it takes the press, the
+ * keys and the ring of the focus, and says what it says to whoever hears the page.
+ */
 .options {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1) var(--space-4);
+  gap: calc(var(--px) * 3);
+  min-width: 0;
 }
 
-.option {
+/*
+ * Side by side and each as wide as the next, as Town Map draws renting and buying: none
+ * is the first of them by its size. They are no wider together than they are read well.
+ *
+ * As many stand in a row as have the room of their words, and what has no room goes
+ * under, as wide as the rest. Renting, buying and visiting are three: told to stand in one
+ * row however narrow, each was 96 px in a box 300 wide, and a word was broken in two.
+ */
+.options[data-even="true"] {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6.25rem, 1fr));
+  max-width: 22rem;
+}
+
+.choice {
+  position: relative;
   display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
+  align-items: stretch;
+  max-width: 100%;
+  cursor: pointer;
 }
 
-.option input {
-  width: 1.25rem;
-  height: 1.25rem;
+.choice > input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   margin: 0;
-  accent-color: var(--accent);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
 }
 
+/* The face of a choice: the picture of a button, cut in nine, over a rule of ink and a flat ground. */
+.face {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  min-width: 0;
+  padding: var(--px) calc(var(--px) * 4) var(--px) calc(var(--px) * 3);
+  border-style: solid;
+  border-width: calc(var(--px) * var(--cut-top)) calc(var(--px) * var(--cut-right)) calc(var(--px) * var(--cut-foot))
+    calc(var(--px) * var(--cut-left));
+  border-color: var(--ink);
+  border-image: var(--art) var(--cut-top) var(--cut-right) var(--cut-foot) var(--cut-left) fill /
+    calc(var(--px) * var(--cut-top)) calc(var(--px) * var(--cut-right)) calc(var(--px) * var(--cut-foot))
+    calc(var(--px) * var(--cut-left)) repeat;
+  background-color: var(--page);
+  background-clip: padding-box;
+  color: var(--ink);
+  /* What a choice says is a short label, in the face of names. */
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+  image-rendering: pixelated;
+  overflow-wrap: anywhere;
+}
+
+/* Words that run to a sentence, or hold a figure, are read: they are set in the reading face. */
+.face[data-reads="true"] {
+  font: 700 var(--size-body) / 1.25 var(--font-say);
+}
+
+/* What is chosen is amber. Amber is not told from page by everyone, so its lamp is lit as well. */
+.choice > input:checked + .face {
+  border-image-source: var(--art-on);
+  background-color: var(--chosen);
+  color: var(--on-chosen);
+}
+
+/* Under a press: the picture of the button pressed, which is of the same size. */
+.choice > input:active + .face {
+  border-image-source: var(--art-down);
+}
+
+.choice > input:checked:active + .face {
+  border-image-source: var(--art-on-down);
+}
+
+/*
+ * The lamp of a choice: a square of ink, clear inside while the choice is not made and
+ * lit with a square of ink while it is. It says by its shape what amber says by its colour.
+ */
+.face::before {
+  content: "";
+  flex: none;
+  width: calc(var(--px) * 7);
+  height: calc(var(--px) * 7);
+  border: var(--px) solid var(--ink);
+  background: var(--page);
+}
+
+.choice > input:checked + .face::before {
+  background: linear-gradient(var(--ink), var(--ink)) center / calc(var(--px) * 3) calc(var(--px) * 3) no-repeat
+    var(--page);
+}
+
+/*
+ * A choice at rest, where there is nothing to choose of yet: what holds it is switched
+ * off whole, and it is drawn pressed, as a button that is off is. Its words are quieter,
+ * in the colour a button that does nothing just now has its words in, which is a colour
+ * of the look: nothing is dimmed. It is of the size it has while a choice can be made.
+ */
+.choice > input:disabled {
+  cursor: default;
+}
+
+.choice > input:disabled + .face {
+  border-image-source: var(--art-down);
+  color: var(--muted);
+  cursor: default;
+}
+
+/* What is asked over them is quieter too, in the colour a button that does nothing just now has its words in. */
+.radios[data-rests] {
+  color: var(--muted);
+}
+
+/*
+ * A thing that is so or not, and a thing that is on or off. Each is the browser's own
+ * box, drawn by the look: a square that is ticked, and a switch. What it is of stands
+ * beside it, and is read.
+ */
 .check {
   display: grid;
-  gap: 0;
+  gap: calc(var(--px) * 1);
+  min-width: 0;
+}
+
+.tick {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--px) * 4);
+  min-width: 0;
+  cursor: pointer;
+}
+
+.ticked {
+  min-width: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.tick > input {
+  /* What the tick is drawn in. */
+  --dot: linear-gradient(var(--ink), var(--ink));
+
+  flex: none;
+  width: calc(var(--px) * 11);
+  height: calc(var(--px) * 11);
+  margin: 0;
+  border: var(--px) solid var(--ink);
+  border-radius: 0;
+  background: var(--page);
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+/* Ticked: amber, and on it a tick of ink, drawn a pixel at a time. */
+.tick > input:checked {
+  background:
+    var(--dot) calc(var(--px) * 7) calc(var(--px) * 1) / calc(var(--px) * 1) calc(var(--px) * 1) no-repeat,
+    var(--dot) calc(var(--px) * 6) calc(var(--px) * 2) / calc(var(--px) * 2) calc(var(--px) * 1) no-repeat,
+    var(--dot) calc(var(--px) * 1) calc(var(--px) * 3) / calc(var(--px) * 1) calc(var(--px) * 1) no-repeat,
+    var(--dot) calc(var(--px) * 5) calc(var(--px) * 3) / calc(var(--px) * 2) calc(var(--px) * 1) no-repeat,
+    var(--dot) calc(var(--px) * 1) calc(var(--px) * 4) / calc(var(--px) * 2) calc(var(--px) * 1) no-repeat,
+    var(--dot) calc(var(--px) * 4) calc(var(--px) * 4) / calc(var(--px) * 2) calc(var(--px) * 1) no-repeat,
+    var(--dot) calc(var(--px) * 2) calc(var(--px) * 5) / calc(var(--px) * 3) calc(var(--px) * 1) no-repeat,
+    var(--dot) calc(var(--px) * 3) calc(var(--px) * 6) / calc(var(--px) * 1) calc(var(--px) * 1) no-repeat,
+    var(--chosen);
+}
+
+/*
+ * A SWITCH SAYS WHICH IT IS IN A WORD. It was a lever, which stood at one side on sand and
+ * at the other on amber, and it was not plain which side was on. It is drawn as a button
+ * of the look, as a choice is: its lamp, and the word "On" or "Off". Off, it is cream and
+ * its lamp is clear. On, it is amber and its lamp is lit, as what is on is everywhere in
+ * the look. So it is told by its word, by its lamp and by its colour.
+ *
+ * It is the browser's own checkbox all the same, which says that it is a switch: the box
+ * is laid over the whole of the face and is clear, so that it takes the press, the keys
+ * and the ring of the focus. It is as wide as its face and no wider, whatever room the
+ * name beside it is given, and no smaller than a main control.
+ */
+.lever {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: stretch;
+  min-block-size: var(--target);
+}
+
+.lever > input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+/*
+ * Its word has the room of the longer of the two, so that the switch is of one size on
+ * or off: as wide as its word, it grew by a letter as it was turned off, and the name
+ * beside it went that far to the right.
+ */
+.says {
+  min-inline-size: 3ch;
+}
+
+.lever > input:checked + .face {
+  border-image-source: var(--art-on);
+  background-color: var(--chosen);
+  color: var(--on-chosen);
+}
+
+/* Under a press: the picture of the button pressed, which is of the same size. */
+.lever > input:active + .face {
+  border-image-source: var(--art-down);
+}
+
+.lever > input:checked:active + .face {
+  border-image-source: var(--art-on-down);
+}
+
+.lever > input:checked + .face::before {
+  background: linear-gradient(var(--ink), var(--ink)) center / calc(var(--px) * 3) calc(var(--px) * 3) no-repeat
+    var(--page);
 }
 
 .list {
@@ -97,34 +537,143 @@
   max-width: none;
 }
 
-/* A vibe: its slider, and under it the button that opens what it is made of. */
+/* A vibe: its slider, and under it the button that opens what it is made of. Each stands under a rule of sand. */
 .vibe {
   display: grid;
-  gap: var(--space-1);
+  gap: calc(var(--px) * 3);
+  padding-block-start: var(--space-3);
+  border-block-start: var(--px) solid var(--sand);
 }
 
 .weight {
   display: grid;
-  gap: var(--space-1);
+  gap: calc(var(--px) * 3);
+  min-width: 0;
 }
 
-/* What belongs to a switch is set in from it, under an edge. */
+/* What belongs to a switch is set in from it a little, beside a rule of sand. */
 .inner {
   display: grid;
   gap: var(--space-2);
-  margin-inline-start: var(--space-3);
-  padding-inline-start: var(--space-4);
-  border-inline-start: 2px solid var(--border);
+  min-width: 0;
+  padding-inline-start: calc(var(--px) * 4);
+  border-inline-start: var(--px) solid var(--sand);
 }
 
+/*
+ * In a box that is wide the slider of a thing stands beside its switch and its name, at
+ * the far side of the row, with its two ways under it there: one under the other, so that
+ * the far side is as wide as a slider is. Every slider of a group then stands in one
+ * column. The room of a slider is kept while its thing is off, and with each under its
+ * thing a group of seven was 1,440 px high on a desk.
+ *
+ * It is asked of the box and not of the screen: in a narrow box, as on a phone, each
+ * stands under its thing. Nothing is put in another order to be laid out.
+ */
+@container (min-width: 34rem) {
+  /*
+   * The far side is as wide as a slider and its figure are, and is said in so many words:
+   * a slider says how wide it is, to lay itself out, and what says so asks for no room.
+   */
+  .weight[data-slider="beside"] {
+    grid-template-columns: minmax(0, 1fr) 19rem;
+    column-gap: var(--space-4);
+    align-items: start;
+  }
+
+  .weight[data-slider="beside"] > .inner {
+    grid-column: 2;
+  }
+
+  .weight[data-slider="beside"] > .problem {
+    grid-column: 1 / -1;
+  }
+
+  .weight[data-slider="beside"] .options {
+    flex-direction: column;
+  }
+}
+
+/* What a group says of itself, before its controls. It is a sentence, and is set as one. */
+.told {
+  margin: 0;
+}
+
+/*
+ * What a vibe says of what it counts, beside its slider, and the caveat that goes with
+ * recorded crime: the rule of a notice, with its band of amber. Each is a sentence, in ink.
+ */
+.counts,
+.caveat {
+  margin: 0;
+  padding-inline-start: calc(var(--px) * 5);
+  border-inline-start: var(--px) solid var(--notice-edge);
+  box-shadow: inset calc(var(--px) * 2) 0 0 var(--notice-mark);
+  color: var(--notice-text);
+}
+
+.counts {
+  font-size: var(--size-small);
+}
+
+/* Why a change was not taken: said in ink, beside an edge of poppy. */
 .problem {
   margin: 0;
+  padding-inline-start: calc(var(--px) * 4);
+  border-inline-start: calc(var(--px) * 2) solid var(--error-edge);
   color: var(--error);
 }
 
-.rank {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--on-accent);
-  font-weight: 650;
+/* Where a button stands: at the start of its line, as wide as its words. */
+.press {
+  justify-self: start;
+}
+
+/*
+ * With forced colours the system's own colours carry every edge, and no picture is drawn
+ * over them. A box that is ticked and a lever are the browser's own again.
+ */
+@media (forced-colors: active) {
+  .face {
+    border-image-source: none;
+    border-color: ButtonText;
+    background-color: ButtonFace;
+    color: ButtonText;
+  }
+
+  .choice > input:checked + .face {
+    border-image-source: none;
+    border-color: Highlight;
+  }
+
+  .choice > input:active + .face,
+  .choice > input:checked:active + .face,
+  .choice > input:disabled + .face {
+    border-image-source: none;
+  }
+
+  .lever > input:checked + .face {
+    border-image-source: none;
+    border-color: Highlight;
+  }
+
+  .lever > input:active + .face,
+  .lever > input:checked:active + .face {
+    border-image-source: none;
+  }
+
+  .face::before,
+  .select::after {
+    forced-color-adjust: none;
+  }
+
+  .tick > input {
+    background: none;
+    -webkit-appearance: auto;
+    appearance: auto;
+  }
+
+  .select > select {
+    box-shadow: none;
+  }
 }

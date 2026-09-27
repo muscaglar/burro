@@ -14,6 +14,9 @@ import type {
 import { useDraft } from "@/lib/search/draft";
 import { edits } from "@/lib/search/edits";
 
+import { Press } from "../kit/Press/Press";
+import { holdsAFigure } from "../kit/reads";
+import { Drawn } from "../kit/Thing/Thing";
 import { NumberStepper } from "../NumberStepper/NumberStepper";
 import { WeightSlider } from "../WeightSlider/WeightSlider";
 import { Check, Radios } from "./fields";
@@ -42,8 +45,17 @@ export function CommuteControl({ commute, name, limits, onEdit, version, problem
   const most = Math.min(limits.minutes_max, limits.cutoff_minutes[mode]);
 
   return (
-    <fieldset className={styles.group}>
-      <legend className={styles.groupLegend}>{JOURNEY.place(name)}</legend>
+    // It says that it is a journey, and what removes it that it does, to the settings: what is
+    // removed hands the focus to the journey beside it. Neither says which journey.
+    <fieldset className={styles.thing} data-journey="">
+      <legend className={styles.groupLegend}>
+        <span className={styles.line}>
+          <Drawn thing={{ kind: "place" }} state="said" />
+          <span className={styles.tag} data-reads={holdsAFigure(JOURNEY.place(name))}>
+            {JOURNEY.place(name)}
+          </span>
+        </span>
+      </legend>
       <Radios
         legend={JOURNEY.how}
         options={MODES.map((value) => ({ value, label: MODE[value] }))}
@@ -75,11 +87,9 @@ export function CommuteControl({ commute, name, limits, onEdit, version, problem
           onEdit(edits.placeStrictness(placeId, checked ? "hard" : "soft"));
         }}
       />
-      <div>
-        <button type="button" className="target" onClick={() => onEdit(edits.placeRemove(placeId))}>
-          {JOURNEY.remove(name)}
-        </button>
-      </div>
+      <Press kind="stop" className={styles.press} data-removes="" onPress={() => onEdit(edits.placeRemove(placeId))}>
+        {JOURNEY.remove(name)}
+      </Press>
     </fieldset>
   );
 }
@@ -89,19 +99,27 @@ interface SettingsProps {
   readonly limits: ServedLimits;
   readonly onEdit: (operations: Operations) => void;
   readonly version: number;
+  /** Why what was last set of them is not in the results, in words. */
+  readonly problem?: string | null;
 }
 
 /** How the journeys count: which one, which time, and how much. */
-export function JourneySettings({ spec, limits, onEdit, version }: SettingsProps) {
+export function JourneySettings({ spec, limits, onEdit, version, problem = null }: SettingsProps) {
   const [combine, showCombine] = useDraft(spec.commute_combine, version);
   const [basis, showBasis] = useDraft(spec.pt_basis, version);
   return (
-    <fieldset className={styles.group}>
-      <legend className={styles.groupLegend}>{JOURNEY.settingsLegend}</legend>
+    <fieldset className={styles.thing}>
+      <legend className={styles.groupLegend}>
+        <span className={styles.line}>
+          <Drawn thing={{ kind: "place" }} state="said" />
+          <span className={styles.tag}>{JOURNEY.settingsLegend}</span>
+        </span>
+      </legend>
       <Radios
         legend={JOURNEY.combine}
         options={COMBINES.map((value) => ({ value, label: COMBINE[value] }))}
         value={combine}
+        reads
         onChange={(chosen) => {
           showCombine(chosen);
           onEdit(edits.journeyCombine(chosen));
@@ -111,6 +129,7 @@ export function JourneySettings({ spec, limits, onEdit, version }: SettingsProps
         legend={JOURNEY.basis}
         options={BASES.map((value) => ({ value, label: PT_BASIS[value] }))}
         value={basis}
+        reads
         onChange={(chosen) => {
           showBasis(chosen);
           onEdit(edits.journeyBasis(chosen));
@@ -123,6 +142,11 @@ export function JourneySettings({ spec, limits, onEdit, version }: SettingsProps
         onCommit={(value) => onEdit(edits.journeyWeight(value))}
         version={version}
       />
+      {problem ? (
+        <p className={styles.problem} role="alert">
+          {problem}
+        </p>
+      ) : null}
     </fieldset>
   );
 }

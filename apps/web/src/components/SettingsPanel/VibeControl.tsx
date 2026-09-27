@@ -1,6 +1,5 @@
 "use client";
 
-import type { Told } from "@/content/rough";
 import { NOT_IN_DATA, SHELF } from "@/content/search";
 import { FEATURES } from "@/content/settings";
 import type {
@@ -16,7 +15,9 @@ import { counts } from "@/lib/search/counts";
 import { edits } from "@/lib/search/edits";
 
 import { Disclosure } from "../Disclosure/Disclosure";
-import { RoughNote } from "../RoughGuide/RoughGuide";
+import { holdsAFigure } from "../kit/reads";
+import type { ThingOf } from "../kit/Thing/drawn";
+import { Drawn } from "../kit/Thing/Thing";
 import { WeightSlider } from "../WeightSlider/WeightSlider";
 import styles from "./SettingsPanel.module.css";
 import { WeightControl } from "./WeightControl";
@@ -41,11 +42,6 @@ interface Props {
    * the slider of such a vibe is to ask for recorded crime, so the line stands beside it.
    */
   readonly crime?: string | null;
-  /**
-   * What the vibe says of itself where it is a rough guide: its label, and the sentence
-   * that says why. It stands beside the slider, in sight, before the slider is moved.
-   */
-  readonly rough?: Told | null;
 }
 
 /** Where a vibe stands on its slider: from -1 at its low end, through 0, to 1 at its high end. */
@@ -60,6 +56,10 @@ export function standingOf(weight: TagWeight | undefined): number {
  * either end. A vibe that runs one way has a slider from nothing to as much
  * as anything can count.
  *
+ * The small drawing of the vibe stands with its name, and the one picture of
+ * each of its ends on the button at that end of its slider: each is chosen by
+ * the id the API gives the vibe.
+ *
  * Every move is one edit. At nothing the vibe is taken out of the search.
  */
 export function VibeControl({
@@ -72,17 +72,23 @@ export function VibeControl({
   problem = null,
   scale,
   crime = null,
-  rough = null,
 }: Props) {
   const { tag_id: tagId, label } = tag;
+  // The drawing of a vibe is chosen by the id the API gives it, then by its family, and falls to the plain one.
+  const thing: ThingOf = { kind: "tag", id: tagId, family: tag.family };
   const ends = tag.shape === "scale" && tag.low_end !== null && tag.high_end !== null
     ? ([tag.low_end, tag.high_end] as const)
     : undefined;
   if (held?.placed === false) {
     return (
       <div className={styles.weight} role="group" aria-label={label}>
-        <p className={styles.label}>{label}</p>
-        <RoughNote told={rough} />
+        <p className={styles.label} data-reads={holdsAFigure(label)}>
+          <span className={styles.line}>
+            {/* It cannot be made to count, and is drawn as what counts for nothing is. */}
+            <Drawn thing={thing} state="off" />
+            <span>{label}</span>
+          </span>
+        </p>
         <p className={styles.hint}>
           {NOT_IN_DATA.why.vibe} {SHELF.held(held.held, held.needed)}
         </p>
@@ -105,9 +111,10 @@ export function VibeControl({
         }
         version={version}
         scale={ends === undefined ? scale : undefined}
+        thing={thing}
+        vibe={tagId}
       />
-      <RoughNote told={rough} />
-      {crime === null ? null : <p className={styles.hint}>{crime}</p>}
+      {crime === null ? null : <p className={styles.counts}>{crime}</p>}
       {problem ? (
         <p className={styles.problem} role="alert">
           {problem}
@@ -126,6 +133,14 @@ interface MadeOfProps {
   readonly onEdit: (operations: Operations) => void;
   readonly version: number;
   readonly problemOf: (featureId: string) => string | null;
+  /** Whether it is open, where what holds it decides. Left out, it keeps its own, and is closed at first. */
+  readonly open?: boolean;
+  readonly onToggle?: (open: boolean) => void;
+  /**
+   * The id of the line that says what the scale of a slider means, where the group draws
+   * it once. Left out, the slider of a part says it under itself.
+   */
+  readonly scale?: string;
 }
 
 /**
@@ -133,13 +148,19 @@ interface MadeOfProps {
  * slider that make that part count by itself. A part the release does not
  * carry cannot be made to count, and is said to be missing.
  */
-export function MadeOf({ tag, features, weights, limits, onEdit, version, problemOf }: MadeOfProps) {
+export function MadeOf({ tag, features, weights, limits, onEdit, version, problemOf, open, onToggle, scale }: MadeOfProps) {
   const parts = tag.terms.flatMap((term) =>
     features.filter((metric) => metric.feature_id === term.feature_id && metric.rankable),
   );
   const missing = tag.terms.length - parts.length;
   return (
-    <Disclosure label={FEATURES.madeOf} name={FEATURES.madeOfName(tag.label)} size="small">
+    <Disclosure
+      label={FEATURES.madeOf}
+      name={FEATURES.madeOfName(tag.label)}
+      size="small"
+      open={open}
+      onToggle={onToggle}
+    >
       <p className={styles.hint}>{FEATURES.madeOfHint}</p>
       <ul className={styles.list}>
         {parts.map((metric) => (
@@ -151,6 +172,7 @@ export function MadeOf({ tag, features, weights, limits, onEdit, version, proble
               onEdit={onEdit}
               version={version}
               problem={problemOf(metric.feature_id)}
+              scale={scale}
             />
           </li>
         ))}

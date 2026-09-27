@@ -3,14 +3,17 @@
 import { useId } from "react";
 
 import { SEGMENT } from "@/content/labels";
-import { BUDGET, SEGMENTS } from "@/content/settings";
+import { BUDGET, SEGMENTS, type ForAHome } from "@/content/settings";
 import type { Budget, Operations, ServedLimits, Tenure } from "@/lib/api/schema";
 import { grouped } from "@/lib/format";
 import { useDraft } from "@/lib/search/draft";
 import { edits } from "@/lib/search/edits";
 
+import { Press } from "../kit/Press/Press";
+import { Drawn } from "../kit/Thing/Thing";
 import { NumberStepper } from "../NumberStepper/NumberStepper";
 import { WeightSlider } from "../WeightSlider/WeightSlider";
+import { ofTheArrow } from "./drawn";
 import { Check } from "./fields";
 import styles from "./SettingsPanel.module.css";
 
@@ -30,7 +33,12 @@ interface Props {
   readonly costs?: boolean;
 }
 
-/** What a person can pay, for what kind of home, and how much that counts. */
+/**
+ * What a person can pay, for what kind of home, and how much that counts.
+ *
+ * Of a visit it draws nothing, wherever it is asked for: a visit holds no budget, no number
+ * of bedrooms and no kind of home.
+ */
 export function BudgetControl({
   budget,
   tenure,
@@ -41,39 +49,50 @@ export function BudgetControl({
   costs = true,
 }: Props) {
   const id = useId();
-  const money = limits[tenure];
   const [segment, showSegment] = useDraft(budget.segment, version);
   const [firm, showFirm] = useDraft(budget.strictness === "hard", version);
+  if (tenure === "visit") return null;
+  const money = limits[tenure];
   const kinds = SEGMENTS[tenure];
 
   return (
-    <fieldset className={styles.group}>
-      <legend className={styles.groupLegend}>{BUDGET.legend}</legend>
+    <fieldset className={styles.thing}>
+      <legend className={styles.groupLegend}>
+        <span className={styles.line}>
+          <Drawn thing={{ kind: "budget" }} state={costs && budget.amount !== null ? "said" : "off"} />
+          <span className={styles.tag}>{BUDGET.legend}</span>
+        </span>
+      </legend>
       {costs ? null : <p className={styles.hint}>{BUDGET.notInData}</p>}
       {costs ? (
         <Amount budget={budget} tenure={tenure} money={money} problem={problem} onEdit={onEdit} version={version} />
       ) : null}
       <div className={styles.field}>
         <label className={styles.label} htmlFor={`${id}-segment`}>
-          {BUDGET.segment}
+          <span className={styles.line}>
+            <Drawn thing={{ kind: "home" }} state="said" />
+            <span>{BUDGET.segment}</span>
+          </span>
         </label>
-        <select
-          id={`${id}-segment`}
-          className="target"
-          value={kinds.includes(segment) ? segment : ""}
-          onChange={(event) => {
-            const chosen = kinds.find((kind) => kind === event.currentTarget.value);
-            if (chosen === undefined) return;
-            showSegment(chosen);
-            onEdit(edits.budgetSegment(chosen));
-          }}
-        >
-          {kinds.map((kind) => (
-            <option key={kind} value={kind}>
-              {SEGMENT[kind]}
-            </option>
-          ))}
-        </select>
+        <span className={styles.select} style={ofTheArrow()}>
+          <select
+            id={`${id}-segment`}
+            className="target"
+            value={kinds.includes(segment) ? segment : ""}
+            onChange={(event) => {
+              const chosen = kinds.find((kind) => kind === event.currentTarget.value);
+              if (chosen === undefined) return;
+              showSegment(chosen);
+              onEdit(edits.budgetSegment(chosen));
+            }}
+          >
+            {kinds.map((kind) => (
+              <option key={kind} value={kind}>
+                {SEGMENT[kind]}
+              </option>
+            ))}
+          </select>
+        </span>
       </div>
       {costs ? (
         <>
@@ -99,8 +118,9 @@ export function BudgetControl({
   );
 }
 
-interface AmountProps extends Pick<Props, "budget" | "tenure" | "onEdit" | "version" | "problem"> {
-  readonly money: ServedLimits[Tenure];
+interface AmountProps extends Pick<Props, "budget" | "onEdit" | "version" | "problem"> {
+  readonly tenure: ForAHome;
+  readonly money: ServedLimits[ForAHome];
 }
 
 /** The amount, the steps either side of it, and the button that takes it off. */
@@ -120,20 +140,16 @@ function Amount({ budget, tenure, money, problem = null, onEdit, version }: Amou
         onStep={(step) => onEdit(edits.budgetStep(step))}
         version={version}
       />
-      <div>
-        <button
-          type="button"
-          className="target"
-          // Said to be off, and not switched off: pressed, it takes the budget off and is then
-          // off itself, and a button switched off while it has the focus leaves the focus on nothing.
-          aria-disabled={budget.amount === null ? true : undefined}
-          onClick={() => {
-            if (budget.amount !== null) onEdit(edits.budgetClear());
-          }}
-        >
-          {BUDGET.clear}
-        </button>
-      </div>
+      {/* Said to be off, and not switched off: pressed, it takes the budget off and is then
+          off itself, and a button switched off while it has the focus leaves the focus on nothing. */}
+      <Press
+        kind="stop"
+        className={styles.press}
+        off={budget.amount === null}
+        onPress={() => onEdit(edits.budgetClear())}
+      >
+        {BUDGET.clear}
+      </Press>
     </>
   );
 }
