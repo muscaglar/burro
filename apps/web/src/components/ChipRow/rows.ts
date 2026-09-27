@@ -54,15 +54,17 @@ export const NARROW_REM = 26;
 
 /**
  * How many rows of chips stand over the answer on a narrow row. Up to `most` of them, every
- * chip is in sight: measured on a phone 390 wide, a plain search is six chips in four
- * rows, and its first result is whole on the first screen. With more, the chips fold to
- * `folded` rows and a line that opens the rest and says how many it holds: a search of
- * seven things stood in six rows, and its first result began at 590 of 844.
+ * chip is in sight. With more, the chips fold to `folded` rows and a line that opens the
+ * rest and says how many it holds: a search of seven things stood in six rows, and its
+ * first result began at 590 of 844.
  *
- * These two figures choose. With `most` at 3 a plain search folds as well: three of its
- * six chips stand in sight, and its first result begins 40 px higher.
+ * These two figures choose. `most` was 4 until a chip came to say every part that was
+ * taken: the chip of a journey then took three lines, a plain search stood in four rows
+ * that were higher than before, and its first result ended 9 px under the first screen of
+ * a phone 390 by 844. With `most` at 3 a plain search folds: three of its five chips stand
+ * in sight, and its first result stands from 394 to 777, whole. Measured on 2026-09-27.
  */
-export const NARROW_ROWS = { most: 4, folded: 2 } as const;
+export const NARROW_ROWS = { most: 3, folded: 2 } as const;
 
 /** What a chip takes beside its words, in letters: its edge, its thing and the room round them. And each button. */
 const ROOM = { chip: 8, button: 6, between: 1 } as const;

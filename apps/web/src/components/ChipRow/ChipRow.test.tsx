@@ -21,7 +21,7 @@ import { pictureOf } from "../kit/drawings";
 import { drawingOf, outlineOf } from "../kit/Thing/drawn";
 import { ChipRow, SHOWN_AT_FIRST } from "./ChipRow";
 import { ON_A_WIDE_SCREEN, stateOf, thingOf } from "./drawn";
-import { WIDE_ROWS } from "./rows";
+import { NARROW_ROW, roomOf, WIDE_ROWS } from "./rows";
 
 const meta = recordedAnswer("get_meta", "meta").body.data;
 const areas = recordedAnswer("list_areas", "areas").body.data.areas;
@@ -1357,15 +1357,76 @@ describe("a search of many things on a narrow row", () => {
     expect(chips().find((chip) => chip.getAttribute("data-open") === "true")).toHaveTextContent(/^Quiet streets/);
   });
 
-  test("test_a_search_whose_chips_stand_in_four_rows_is_all_in_sight_as_it_was", () => {
-    // Measured on a phone 390 wide: the five chips of a plain search stand in four rows, and
-    // its first result is whole on the first screen, from 454 to 828 of 844.
+  test("test_a_search_whose_chips_stand_in_three_rows_is_all_in_sight_and_one_of_four_folds", () => {
+    // Measured on a phone 390 wide on 2026-09-27: the five chips of a plain search stood in
+    // four rows, every one in sight, and its first result ended 9 px under the first
+    // screen, from 470 to 853 of 844.
     asWideAs(PHONE);
+    // The same search with no journey: its two vibes share a row, and its budget and its
+    // tenure have one each.
+    const three = show({ ...first.spec, commutes: [] }, { inARow: true });
+
+    expect(chips().map((chip) => chip.getAttribute("data-lies"))).toEqual(["keeps", "gives", "alone", "alone"]);
+    expect(screen.queryByRole("button", { name: /more$/ })).toBeNull();
+    three.unmount();
+
     show(first.spec, { inARow: true });
 
-    expect(chips()).toHaveLength(5);
-    expect(chips().map((chip) => chip.getAttribute("data-lies"))).toEqual(["keeps", "gives", "alone", "alone", "alone"]);
-    expect(screen.queryByRole("button", { name: /more$/ })).toBeNull();
+    expect(chips().map((chip) => chip.getAttribute("data-lies"))).toEqual(["keeps", "gives", "alone"]);
+    expect(screen.getByRole("button", { name: CHIPS.rest(2) })).toHaveAttribute("aria-expanded", "false");
+  });
+
+  test("test_a_plain_search_stands_over_the_answer_as_it_was_measured_by_what_each_chip_says_and_the_lines_that_takes", async () => {
+    // Measured on a phone 390 wide on 2026-09-27, after "Renting a 1 bed for about £1,700 a
+    // month, leafy and quiet, 35 minutes to Cindermoor Works". A chip whose words take one
+    // line or two is 44 px high with what parts it from the next, and each line more is
+    // 18 px more: the chip of the journey came to say every part of itself, which is three
+    // lines and 62 px, and nothing measured the first result with it. So what the chips
+    // of this search say is held here, with the lines that takes. Where this fails, a chip
+    // says something else than was measured: measure the first result in a browser again,
+    // at 390 by 844, before what is held here is brought to what the chip now says.
+    asWideAs(PHONE);
+    const { user } = show(first.spec, { inARow: true });
+    /**
+     * How many lines the words of a chip take where it has a narrow row to itself, by the
+     * count of letters the row is laid out by: what a row holds from edge to edge, less
+     * what the chip takes beside its words. No word is broken.
+     */
+    const linesOf = (chip: HTMLElement) => {
+      const words = wordsOf(chip);
+      const beside = chip.querySelectorAll("button:not([data-main])").length;
+      const line = NARROW_ROW - (roomOf({ words, cross: beside > 0, turn: beside > 1 }) - words.length);
+      return words.split(" ").reduce(
+        (set, word) => (set.held > 0 && set.held + 1 + word.length > line ? { lines: set.lines + 1, held: word.length } : { lines: set.lines, held: set.held === 0 ? word.length : set.held + 1 + word.length }),
+        { lines: 1, held: 0 },
+      ).lines;
+    };
+
+    // Two rows stand over the answer: the two vibes in one, and the journey in the next.
+    expect(chips().map(wordsOf)).toEqual([
+      "Leafy",
+      "Quiet streets",
+      "Cindermoor Works, public transport assumed, 35 minutes, flexible assumed",
+    ]);
+    expect(chips().map((chip) => chip.getAttribute("data-lies"))).toEqual(["keeps", "gives", "alone"]);
+    expect(linesOf(chips()[2] as HTMLElement)).toBe(3);
+    // The button says how many it holds, and is the one button of the row that does.
+    const rest = screen.getByRole("button", { name: CHIPS.rest(2) });
+    expect(screen.getAllByRole("button", { name: /more$/ })).toEqual([rest]);
+
+    await user.click(rest);
+
+    // What was folded is one press away, and says what it said: the budget on two lines.
+    expect(chips().map(wordsOf).slice(3)).toEqual(["£1,700 a month, one bedroom, flexible assumed", "Renting"]);
+    expect(chips().slice(2).map(linesOf)).toEqual([3, 2, 1]);
+    expect(rest).toHaveFocus();
+    expect(rest).toHaveAccessibleName(CHIPS.showFewer);
+
+    await user.click(rest);
+
+    expect(chips()).toHaveLength(3);
+    expect(rest).toHaveFocus();
+    expect(rest).toHaveAccessibleName(CHIPS.rest(2));
   });
 
   test("test_it_is_narrow_by_its_own_width_and_a_row_that_is_wider_holds_six_as_it_did", () => {

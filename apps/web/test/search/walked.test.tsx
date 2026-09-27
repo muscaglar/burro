@@ -37,13 +37,13 @@ import {
   UNMET,
   FIND_AREA,
 } from "@/content/search";
-import { SETTINGS } from "@/content/settings";
+import { JOURNEY, SETTINGS } from "@/content/settings";
 import { SHARE } from "@/content/share";
 import { WAIT } from "@/content/wait";
 import { REFINE, UNREAD, WAYS } from "@/content/ways";
 import { recordedAnswer, responseFrom } from "@/lib/api/recorded";
 import type { InterpretData, Operations } from "@/lib/api/schema";
-import { merged, NO_EDITS } from "@/lib/search/edits";
+import { edits, merged, NO_EDITS } from "@/lib/search/edits";
 import { takenOfAll as madeOfAll } from "@/lib/search/takes";
 
 import { reasonsFor, setOnline, withTheSpecSent, type Responder } from "../support/api";
@@ -1210,6 +1210,89 @@ describe("when Burro cannot be reached", () => {
 
     expect(status()).not.toContain(NOTICE.degraded);
     expect(screen.queryByRole("button", { name: PROMPT.tryAgain })).toBeNull();
+  });
+});
+
+describe("a journey that was taken as a guide", () => {
+  // A journey is taken as a guide, though its words make its limit firm: it is an estimate
+  // on a build of a real city, and no area is left out on an estimate without a press. The
+  // press is a person's own, and it is in the chip of the journey.
+  /** The control of a journey, where the chip of the journey has opened it in place. */
+  const controlIn = (chip: HTMLElement, place: string) =>
+    within(chip.closest("li") as HTMLElement).getByRole("group", { name: JOURNEY.place(place) });
+
+  test("test_the_press_that_makes_a_journey_firm_is_in_its_chip_and_sends_that_one_edit", async () => {
+    // Seen in a browser, of the founder's sentence: the chip said "flexible assumed", and
+    // opened to the control of the journey, where whether the limit is firm is one press.
+    const api = firstSearch();
+    const { user } = await openSearch(
+      api
+        .inTurn("interpret", "interpret-rules-at-once", api.never)
+        .on("rank", "rank-one-press")
+        .on("explain_top", "explanations-one-press"),
+    );
+    await user.type(promptBox(), sentenceOf("interpret-by-model-long"));
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
+    await everyChip(user);
+    const chip = within(chipsRegion()).getByRole("button", { name: /^Pellam Exchange/ });
+    expect(chip.textContent).toBe(
+      `Pellam Exchange, public transport ${CHIPS.assumed}, 40 minutes, ${CHIPS.flexible} ${CHIPS.assumed}`,
+    );
+
+    await user.click(chip);
+    const firm = within(controlIn(chip, "Pellam Exchange")).getByRole("checkbox", { name: JOURNEY.firm });
+    expect(firm).not.toBeChecked();
+    await user.click(firm);
+    await settled();
+
+    // One edit, of that journey alone, with the search as the service last returned it.
+    expect(api.callsTo("rank")).toHaveLength(2);
+    expect(api.lastCallTo("rank").body).toEqual({
+      spec: recordedAnswer("rank", "rank-one-press").body.data.spec,
+      operations: edits.placeStrictness("syn-p0017", "hard"),
+      limit: 20,
+    });
+  });
+
+  test("test_once_a_person_has_made_a_journey_firm_the_chip_the_line_and_the_table_say_what_that_left_out", async () => {
+    // A sentence that gives the minutes of a journey and no word that makes them firm: the
+    // service applies the journey as a guide, and says that the guide was assumed.
+    const ranked = recordedAnswer("rank", "rank-first").body.data;
+    const refined = recordedAnswer("rank", "rank-refined").body.data;
+    const api = firstSearch();
+    const { user } = await openSearch(api);
+    await search(user, sentenceOf("interpret-first"));
+    const chip = () => within(chipsRegion()).getByRole("button", { name: /^Cindermoor Works/ });
+    expect(chip().textContent).toBe(
+      `Cindermoor Works, public transport ${CHIPS.assumed}, 35 minutes, ${CHIPS.flexible} ${CHIPS.assumed}`,
+    );
+    expect(ranked.filtered).toEqual([]);
+
+    // The ranking that answers is the one recorded of that journey as a firm limit.
+    api.on("rank", "rank-refined").on("explain_top", "explanations-refined");
+    await user.click(chip());
+    await user.click(within(controlIn(chip(), "Cindermoor Works")).getByRole("checkbox", { name: JOURNEY.firm }));
+    await settled();
+
+    expect(api.lastCallTo("rank").body).toEqual({
+      spec: ranked.spec,
+      operations: edits.placeStrictness("syn-p0021", "hard"),
+      limit: 20,
+    });
+    // The chip says that the limit is firm, and no longer that it was assumed: the person chose it.
+    expect(refined.spec.commutes.map((journey) => journey.strictness)).toEqual(["hard"]);
+    expect(chip().textContent).toMatch(new RegExp(`, ${CHIPS.firm}$`));
+    expect(chip().textContent).not.toContain(CHIPS.flexible);
+    expect(within(controlIn(chip(), "Cindermoor Works")).getByRole("checkbox", { name: JOURNEY.firm })).toBeChecked();
+    // The line counts the areas that are ranked now, and how many fewer that is.
+    expect(refined.areas_ranked).toBeLessThan(ranked.areas_ranked);
+    expect(status().join(" ")).toContain(STATUS.rankedNow(refined.areas_ranked, refined.areas_ranked - ranked.areas_ranked));
+    // The table of all areas names each area the limit left out, with why.
+    const rows = within(await theTable(user)).getAllByRole("row");
+    expect(refined.filtered.map((area) => area.reason)).toEqual(refined.filtered.map(() => "commute_cap"));
+    expect(refined.filtered.length).toBe(ranked.areas_ranked - refined.areas_ranked);
+    expect(rows.filter((row) => row.textContent?.includes(FILTERED.commute_cap))).toHaveLength(refined.filtered.length);
   });
 });
 

@@ -134,17 +134,22 @@ describe("how many chips stand in sight on a narrow row", () => {
     expect(rowsOf([])).toEqual([]);
   });
 
-  test("test_a_search_whose_chips_stand_in_four_rows_is_all_in_sight", () => {
-    // Measured on a phone 390 wide, on a plain search: six chips in four rows, 202 px, and
-    // the first result whole on the first screen, from 454 to 828 of 844.
-    const plain = [chip("Short"), chip("Tiny"), long("A place"), long("A sum"), chip("Choice", { cross: false }), chip("A few settings: 6 assumed", { cross: false })];
+  test("test_a_search_whose_chips_stand_in_three_rows_is_all_in_sight_and_one_of_four_folds", () => {
+    // Measured on a phone 390 wide on 2026-09-27, on a plain search: five chips in four
+    // rows, every one in sight, and the first result from 470 to 853 of 844, which is 9 px
+    // under the first screen. With the first two rows in sight it is whole.
+    const three = [chip("Short"), chip("Tiny"), long("A sum"), chip("Choice", { cross: false })];
+    const plain = [chip("Short"), chip("Tiny"), long("A place"), long("A sum"), chip("Choice", { cross: false })];
 
-    expect(NARROW_ROWS).toEqual({ most: 4, folded: 2 });
-    expect(rowsOf(plain).at(-1)).toBe(4);
-    expect(inSight(lying(plain))).toBe(plain.length);
+    expect(NARROW_ROWS).toEqual({ most: 3, folded: 2 });
+    expect(rowsOf(three)).toEqual([1, 1, 2, 3]);
+    expect(inSight(lying(three))).toBe(three.length);
+    expect(rowsOf(plain)).toEqual([1, 1, 2, 3, 4]);
+    // The two that share the first row, and the one that has the second.
+    expect(inSight(lying(plain))).toBe(3);
   });
 
-  test("test_with_more_rows_than_four_the_chips_fold_to_two_rows_whatever_the_number_of_things", () => {
+  test("test_with_more_rows_than_three_the_chips_fold_to_two_rows_whatever_the_number_of_things", () => {
     // Measured on a phone 390 wide, on a search of seven things: seven chips in six rows,
     // 338 px, and the first result from 590 to 1,118 of 844. What stands over the answer
     // is said in short, and what is long is one press away.

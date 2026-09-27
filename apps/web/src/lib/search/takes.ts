@@ -25,6 +25,12 @@
  * its words make it, where the service marks that way as its guess
  * (`A_LIMIT_THE_WORDS_MAKE_FIRM`).
  *
+ * It is so of a journey that is offered. One that the service asks about, to a name that
+ * several places bear, is no offer: it stands in the service's own edits, as it was worded,
+ * and `settledOf` puts the first of the places into that edit and changes nothing else of
+ * it. So such a journey is a firm limit where its words make it one, whichever way the line
+ * is on.
+ *
  * A rule for an area, which looks only there or leaves it out, is taken by the third of
  * these alone. Whichever way it is taken, areas are left out, so neither way is the
  * gentler, and that a way stands first or may be added at a press is no reading of the
