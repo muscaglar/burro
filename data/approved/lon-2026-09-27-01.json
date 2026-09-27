@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "release_id": "lon-2026-09-27-01",
+  "built_at": "2026-09-27T09:19:00Z",
+  "commit": "263ebd01665118c0968a4411fc3e22dd3e6a555c",
+  "development": true,
+  "preview": true,
+  "holds": {
+    "areas": 1002,
+    "rankable": 1002,
+    "measures": 101,
+    "vibes": 14,
+    "destinations": 641,
+    "places": 641,
+    "stations": 0
+  },
+  "left_out": [
+    {
+      "feature": "brand_gymbox",
+      "rule": "measure_has_a_figure"
+    },
+    {
+      "feature": "brand_third_space",
+      "rule": "measure_has_a_figure"
+    },
+    {
+      "feature": "centre_compact",
+      "rule": "measure_is_as_core_says"
+    },
+    {
+      "feature": "centre_small",
+      "rule": "measure_is_as_core_says"
+    },
+    {
+      "feature": "park_facilities",
+      "rule": "measure_is_as_core_says"
+    }
+  ],
+  "files": [
+    {
+      "name": "lon-2026-09-27-01-build/build.json",
+      "sha256": "7712f7f027ea156098b9e9bfeca677b84b58d46eb6adaa606a64e5dc7ee333f9",
+      "bytes": 151603
+    },
+    {
+      "name": "lon-2026-09-27-01-build/coverage.json",
+      "sha256": "a1cc422a91be55b5f3fdc7354b3d62a55be3ca065462e0170d68d12b99dfa657",
+      "bytes": 17292245
+    },
+    {
+      "name": "lon-2026-09-27-01-build/coverage.md",
+      "sha256": "9b08f8a9e6aad422152f86e108dc35cda9c23aa46595d95a15b14e0b44d0aba0",
+      "bytes": 2716100
+    },
+    {
+      "name": "lon-2026-09-27-01-build/evidence.json",
+      "sha256": "2286df0e2e165742841fdfc9e57b13a86deaaf88fcdaf30220c64b2cfe521a2b",
+      "bytes": 54694110
+    },
+    {
+      "name": "lon-2026-09-27-01-build/hashes.json",
+      "sha256": "2b86bab9f29ba76245203ebae2699f68e08ba016771435bf0e09881361f1ed2c",
+      "bytes": 286
+    },
+    {
+      "name": "lon-2026-09-27-01-build/homes.json",
+      "sha256": "e423a1a0a33d671fa4e0429157ffa51fd64b9c4eebbcb282c00512c5f24796a7",
+      "bytes": 22046
+    },
+    {
+      "name": "lon-2026-09-27-01-build/lock.json",
+      "sha256": "fec70475909e2b59113ce4f5624104d0c4b6f70d8590aa46d724d6fb2c3d4132",
+      "bytes": 19100
+    },
+    {
+      "name": "lon-2026-09-27-01-build/names.csv",
+      "sha256": "73188a738057b3d5460fea004d5b940b270964bae580999b15b37facd4594be8",
+      "bytes": 134151
+    },
+    {
+      "name": "lon-2026-09-27-01-income/income.json",
+      "sha256": "0027595205bbeec90d9f368e52d5b59594615d9a71120a4b1a36f9fbe3381789",
+      "bytes": 75131
+    },
+    {
+      "name": "lon-2026-09-27-01-income/manifest.json",
+      "sha256": "78bfc968b2be13e60ea3c560bf5d26daf6d7c03b4e769fbb1a81cb66d4ab63c0",
+      "bytes": 762
+    },
+    {
+      "name": "lon-2026-09-27-01/catalogue.json",
+      "sha256": "f861d60aeb3a0475c95236c3f7583e8b549af796b3dc22dcd4ccc38dba40d331",
+      "bytes": 143127
+    },
+    {
+      "name": "lon-2026-09-27-01/cost.json",
+      "sha256": "e2531b3794304e653ee5dd9fde624d44e6721dc4736893f0a6049044afaea0a6",
+      "bytes": 3310577
+    },
+    {
+      "name": "lon-2026-09-27-01/destinations.json",
+      "sha256": "0cbb5f076e80a56eb3b420c3aa41597687d86c3c878eca174216018541684c41",
+      "bytes": 45711
+    },
+    {
+      "name": "lon-2026-09-27-01/features.json",
+      "sha256": "2596e308538e1b4d1140c9dc84bdbb59597320bdd9cd20e4ed17856b26c3891b",
+      "bytes": 10916444
+    },
+    {
+      "name": "lon-2026-09-27-01/geometry.json",
+      "sha256": "db8161929b311d82850041c995361262ec98db87b6b597192af0ac86c92a938b",
+      "bytes": 1724927
+    },
+    {
+      "name": "lon-2026-09-27-01/manifest.json",
+      "sha256": "7e1bcf3371d621b00b299f437efc0ae84570a0183101bd1224291524dd26eee8",
+      "bytes": 17746
+    },
+    {
+      "name": "lon-2026-09-27-01/neighbourhoods.json",
+      "sha256": "fa7eb18187c853c0960f5a8e78de8d3158354cf9a127618793c49b0400eea76a",
+      "bytes": 407532
+    },
+    {
+      "name": "lon-2026-09-27-01/places.json",
+      "sha256": "df0b58a2da4a2f8bda15ee54839c28d5e0a9631677abeb685b9085e530009cdd",
+      "bytes": 155958
+    },
+    {
+      "name": "lon-2026-09-27-01/stations.json",
+      "sha256": "60a00ac30e7b08b604ec06ad828180eb977013700f96e8d9607c7c1ea7622b94",
+      "bytes": 41
+    },
+    {
+      "name": "lon-2026-09-27-01/tags.json",
+      "sha256": "c1447ac3ceffc31f88836252ca47050632039937d4727f8dcab8530d120b6822",
+      "bytes": 1880924
+    },
+    {
+      "name": "lon-2026-09-27-01/travel.json",
+      "sha256": "c5ef0e2c463ddd622f2058638e7cc6e98d0d1a31748c98bea79603a93964b541",
+      "bytes": 29224
+    }
+  ]
+}
