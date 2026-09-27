@@ -1,0 +1,342 @@
+/*
+ * The key to the drawings. It stands in one box of the look, which is the kit's. What is
+ * said here is how its parts stand in the box, and how the few things are drawn that the
+ * kit has no part for: a piece of the map, and its pin. Each is drawn as the map draws
+ * it, from the same tokens and the same picture.
+ *
+ * A drawing is laid out here and is never sized here. Its size is its own, in art pixels,
+ * times the pixel it is met at.
+ */
+.groups {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+  min-width: 0;
+}
+
+.lead {
+  max-width: var(--measure);
+  margin: 0;
+  font-size: var(--size-lead);
+}
+
+/*
+ * The parts of the key, at its head: a list of links, each the name of a part with a
+ * drawing or two of what the part holds before it. One under the other on a narrow
+ * screen, and side by side where each has the room of its name.
+ *
+ * The drawings stand in a room of one width, which is that of the widest of them, so that
+ * the names begin on one line down the list. A link is as high as a main control, and as
+ * high as its drawings where they are higher.
+ */
+.toParts {
+  --shown: 7.5rem;
+
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.toParts > p {
+  max-width: var(--measure);
+  margin: 0;
+}
+
+.parts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: var(--space-1) var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style-type: "";
+}
+
+.parts > li {
+  min-width: 0;
+  max-width: none;
+}
+
+.parts a {
+  display: grid;
+  grid-template-columns: var(--shown) minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  padding-block: var(--space-1);
+}
+
+/* What is shown of a part: its drawings side by side, each at its own size, from the start of their room. */
+.shown {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  min-width: 0;
+}
+
+.named {
+  min-width: 0;
+}
+
+/* The room of a drawing among the things of a search: as wide as the gauge of a scale, which is the widest of them. */
+.ofThings {
+  --drawn-wide: 10rem;
+}
+
+/*
+ * The drawing of each thing, with its name beside it: as many to a line as have room for a
+ * name of two words, which is two on a phone. Each name of a vibe is a small target, so two
+ * lines of them are as far apart as two small targets must be.
+ */
+.things {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr));
+  gap: var(--target-gap) var(--space-4);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style-type: "";
+}
+
+/* What else can be asked for is said in a few words, and has the room of a line. */
+.things[data-things="others"] {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+}
+
+/* What a group is called may be a few words: each has the room of a name of four. */
+.things[data-things="groups"] {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+}
+
+.things > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: 0;
+  max-width: none;
+}
+
+.things a,
+.thing {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  min-width: 0;
+}
+
+.things a > span:last-child,
+.thing > span:last-child {
+  min-width: 0;
+}
+
+/* The settings draw a gauge at the small pixel on every screen, and so does the key. */
+.key [data-key^="gauge"] > [data-drawn-here] {
+  --px: var(--px-small);
+}
+
+/* The drawing of the arrow points up. It is turned to point down, as the arrow of a fold that is closed is. */
+.key [data-key="arrow"] > [data-drawn-here] > * {
+  transform: rotate(180deg);
+}
+
+/*
+ * A note and a fault, as the website draws each: cream inside a rule of ink, with a band
+ * inside the rule at its start, of amber for a note and of poppy for a fault. It is the
+ * edge of one, as high as a line of words, and holds none: the colour is a mark, and is
+ * never the colour of words.
+ */
+.noteEdge {
+  display: inline-block;
+  flex: none;
+  width: calc(var(--px) * 16);
+  height: calc(var(--px) * 10);
+  border: var(--edge) solid var(--notice-edge);
+  background-color: var(--notice-bg);
+}
+
+.noteEdge[data-edge="notice"] {
+  box-shadow: inset calc(var(--px) * 2) 0 0 var(--notice-mark);
+}
+
+.noteEdge[data-edge="fault"] {
+  box-shadow: inset calc(var(--px) * 2) 0 0 var(--error-edge);
+}
+
+/*
+ * A piece of the map, twelve of its pixels square with its edge, drawn as the map draws
+ * it: land with no match is sand, and each band of green has one tuft of its grain, in the
+ * colour the map draws the grain of that band in. It is drawn by this sheet, a square of a
+ * gradient for each pixel.
+ */
+.swatch {
+  --px-map: var(--px-ground);
+  --grain: var(--map-3);
+  --tuft: linear-gradient(var(--grain), var(--grain));
+
+  display: inline-block;
+  flex: none;
+  width: calc(var(--px-map) * 12);
+  height: calc(var(--px-map) * 12);
+  border: var(--px-map) solid var(--map-line);
+  background-color: var(--map-land);
+  background-image: var(--tuft), var(--tuft), var(--tuft);
+  background-position:
+    calc(var(--px-map) * 3) calc(var(--px-map) * 4),
+    calc(var(--px-map) * 5) calc(var(--px-map) * 4),
+    calc(var(--px-map) * 4) calc(var(--px-map) * 5);
+  background-size: var(--px-map) var(--px-map);
+  background-repeat: no-repeat;
+}
+
+.swatch[data-band="0"] {
+  background-image: none;
+}
+
+.swatch[data-band="1"] {
+  --grain: var(--map-2);
+
+  background-color: var(--map-1);
+}
+
+.swatch[data-band="2"] {
+  --grain: var(--map-3);
+
+  background-color: var(--map-2);
+}
+
+.swatch[data-band="3"] {
+  --grain: var(--map-4);
+
+  background-color: var(--map-3);
+}
+
+.swatch[data-band="4"] {
+  --grain: var(--map-5);
+
+  background-color: var(--map-4);
+}
+
+.swatch[data-band="5"] {
+  --grain: var(--map-4);
+
+  background-color: var(--map-5);
+}
+
+/* The five shades side by side, from the palest to the darkest, each against the next. */
+.shades {
+  display: inline-flex;
+  flex: none;
+  gap: var(--px-ground);
+}
+
+/*
+ * A pattern, as it lies on land that has no match. It is laid again and again in tiles, as
+ * the map lays it: a pixel of it is one corner of a tile, filled, and the tile is set
+ * where the pixel is to stand.
+ */
+.swatch[data-pattern] {
+  --dot: conic-gradient(from 270deg at var(--px-map) var(--px-map), var(--map-line) 90deg, transparent 0);
+
+  background-repeat: repeat;
+}
+
+/* Lines that run up to the right, in tiles of eight pixels of the map each way. */
+.swatch[data-pattern="filtered"] {
+  background-image: var(--dot), var(--dot), var(--dot), var(--dot), var(--dot), var(--dot), var(--dot), var(--dot);
+  background-position:
+    0 0,
+    calc(var(--px-map) * 7) var(--px-map),
+    calc(var(--px-map) * 6) calc(var(--px-map) * 2),
+    calc(var(--px-map) * 5) calc(var(--px-map) * 3),
+    calc(var(--px-map) * 4) calc(var(--px-map) * 4),
+    calc(var(--px-map) * 3) calc(var(--px-map) * 5),
+    calc(var(--px-map) * 2) calc(var(--px-map) * 6),
+    var(--px-map) calc(var(--px-map) * 7);
+  background-size: calc(var(--px-map) * 8) calc(var(--px-map) * 8);
+}
+
+/* Dots, in tiles of six. */
+.swatch[data-pattern="unranked"] {
+  background-image: var(--dot), var(--dot);
+  background-position:
+    var(--px-map) var(--px-map),
+    calc(var(--px-map) * 4) calc(var(--px-map) * 4);
+  background-size: calc(var(--px-map) * 6) calc(var(--px-map) * 6);
+}
+
+/* Water, with the glint of its tile, as every map of the website draws it. */
+.swatch[data-water] {
+  --glint: conic-gradient(from 270deg at calc(var(--px-map) * 3) var(--px-map), var(--map-glint) 90deg, transparent 0);
+
+  background-color: var(--map-water);
+  background-image: var(--glint), var(--glint);
+  background-position:
+    calc(var(--px-map) * 2) calc(var(--px-map) * 2),
+    calc(var(--px-map) * 7) calc(var(--px-map) * 7);
+  background-size: calc(var(--px-map) * 16) calc(var(--px-map) * 16);
+  background-repeat: no-repeat;
+}
+
+/*
+ * The pin, as it is drawn on the map, with the number of the first on it. The number is a
+ * figure, and is set in the reading face, heavy, on the face the drawing leaves bare for
+ * it: sized as the drawing is, as the map sizes it.
+ */
+.drawnPin {
+  --px-map: var(--px-ground);
+
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: calc(var(--px-map) * var(--w));
+  height: calc(var(--px-map) * var(--h));
+  background: var(--art) 0 0 / calc(var(--px-map) * var(--w)) calc(var(--px-map) * var(--h)) no-repeat;
+  image-rendering: pixelated;
+}
+
+.drawnFigure {
+  position: absolute;
+  inset-block-start: calc(var(--px-map) * var(--top));
+  inset-inline-start: calc(var(--px-map) * var(--left));
+  display: grid;
+  place-items: center;
+  width: calc(var(--px-map) * var(--wide));
+  height: calc(var(--px-map) * var(--high));
+  color: var(--ink);
+  font: 700 calc(var(--px-map) * min(var(--high), var(--wide) / 1.28)) / 1 var(--font-say);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* On a wide screen a drawing is half as large again, and so is the room the drawings of a part stand in. */
+@media (min-width: 60rem) {
+  .toParts {
+    --shown: 11rem;
+  }
+}
+
+/* With more room a name stands on one line beside its drawing. */
+@media (min-width: 40rem) {
+  .things {
+    grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
+  }
+
+  .things[data-things="others"] {
+    grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  }
+}
+
+@media (forced-colors: active) {
+  .swatch,
+  .noteEdge {
+    forced-color-adjust: none;
+  }
+
+  /* The drawing is taken away, and the system's colours carry the pin: its edge, its ground and its number. */
+  .drawnPin {
+    border: var(--px-map) solid ButtonText;
+    background: ButtonFace;
+  }
+
+  .drawnFigure {
+    color: ButtonText;
+  }
+}

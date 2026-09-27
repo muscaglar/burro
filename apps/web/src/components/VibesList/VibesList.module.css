@@ -1,85 +1,82 @@
-/* Each link is a small target, so two rows of them are as far apart as two small targets must be. */
-.contents ul {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--target-gap) var(--space-4);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
 /*
- * Every vibe at a glance: the same city coloured by each in turn, three to a row on a narrow
- * screen and six on a wide one, so that one is seen against the next without scrolling.
+ * The vibes, as the look draws them. Each vibe is a box of the kit on the meadow, which
+ * brings its ground, its rule and its shadow. What is said here is the room it keeps, and
+ * how what it holds is set.
+ *
+ * A vibe is short: the drawing of its thing, its name, what it means, and the small map of
+ * the city coloured by it. How Burro works it out is one fold under it.
+ *
+ * Every sentence and every figure is in the reading face, in ink, on cream. The face of
+ * names is for the name of a vibe and for the short label of a part.
  */
-.contents[data-maps="true"] ul {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-3);
-}
+.vibe {
+  /* The room a box keeps between its rule and what is read in it. */
+  --room: var(--space-3);
 
-.contents[data-maps="true"] li {
-  display: grid;
-  gap: 0;
-  align-content: start;
   min-width: 0;
-  max-width: none;
+  padding: var(--room) var(--room) calc(var(--room) + var(--space-1));
 }
 
-.glanceLead {
-  margin: 0 0 var(--space-2);
-  max-width: none;
-  color: var(--muted);
-  font-size: var(--size-small);
-}
-
-.glanceEnds {
-  color: var(--muted);
-  font-size: var(--size-small);
-}
-
-.how h2 {
-  margin-block-start: var(--space-6);
+@media (min-width: 40rem) {
+  .vibe {
+    --room: var(--space-4);
+  }
 }
 
 /*
  * Every vibe is laid out as the next is, so that one is read against the other. On a wide
- * screen two stand side by side, and each part of one stands level with the same part of
- * the other.
+ * screen two stand side by side, and each begins on the line the other begins on.
  */
 .vibes {
   display: grid;
-  gap: var(--space-5);
-  grid-template-columns: minmax(0, 1fr);
-  min-width: 0;
-  margin-block-start: var(--space-5);
-}
-
-.vibe {
-  display: grid;
   gap: var(--space-3);
   grid-template-columns: minmax(0, 1fr);
-  align-content: start;
   min-width: 0;
-  padding: var(--space-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
 }
 
-.vibe h2,
+/*
+ * The parts of a vibe are parted by room of their own and not by the rows they stand in, so
+ * that a part that holds nothing takes no room: what a vibe says of itself is said by few.
+ */
+.vibe {
+  display: grid;
+  gap: 0 var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+}
+
+.vibe > .figure,
+.vibe > .works {
+  margin-block-start: var(--space-3);
+}
+
+/* What a vibe says of itself, across its box. */
+.said {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.vibe > .said:not(:empty) {
+  margin-block-start: var(--space-3);
+}
+
 .vibe h3,
+.vibe h4,
 .vibe p,
 .vibe dl,
 .vibe figure {
   margin: 0;
 }
 
-.vibe h2 {
-  font-size: var(--size-h3);
-}
-
+/* The name of a vibe is a name, and is set in the face of names. */
 .vibe h3 {
-  font-size: var(--size-body);
+  min-width: 0;
+  font: 400 var(--name-2) / 1.1 var(--font-name);
+  font-synthesis: none;
+  /* Reached by a link of the key, a vibe is brought into sight with the head of its box over it. */
+  scroll-margin-top: calc(var(--room) + var(--px) * 6);
 }
 
 .vibe p,
@@ -88,81 +85,108 @@
   max-width: none;
 }
 
+/* What is said of the vibe: its name, what it means, and what it says of itself. */
 .named {
   display: grid;
-  gap: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  align-content: start;
+  min-width: 0;
 }
 
-/* The name of a vibe, with what it says of itself beside it where it is a rough guide. */
+/* The drawing of its thing, and the name of the vibe. */
 .nameLine {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
-}
-
-/* The room for the case for other names. It takes no height until a name is set down. */
-.room {
+  align-items: center;
+  gap: var(--space-1) calc(var(--px) * 4);
   min-width: 0;
 }
 
-.weighed {
-  display: grid;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-3);
-  background: var(--surface);
-  border-inline-start: 4px solid var(--border);
-  border-radius: var(--radius);
-}
-
-.weighed dl {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.weighed dt {
-  color: var(--text);
-  font-size: var(--size-body);
-  font-weight: 600;
-}
-
-.weighed dd {
-  margin: 0;
-  color: var(--muted);
-  font-size: var(--size-small);
-}
-
+/* What the vibe means is what is read of it: it is set as a sentence that leads is. */
 .meaning {
+  max-width: var(--measure);
   font-size: var(--size-lead);
 }
 
-/* The map of a vibe is as wide as it needs to be read, and no wider: the page is long on a phone. */
+/*
+ * The two ends of a vibe whose map is not drawn, each with its picture over its name. They
+ * are small on every screen, as the gauge under a map is.
+ */
+.ends {
+  --px: var(--px-ground);
+
+  color: var(--text);
+  font-size: var(--size-small);
+}
+
+/* The word between the two ends is one word, on one line. */
+.between {
+  white-space: nowrap;
+}
+
+/*
+ * In a window with no room for it between the two pictures, as with the text of a phone
+ * made twice as large, the word is kept for whoever hears the page and is not drawn.
+ */
+@media (max-width: 18rem) {
+  .between {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+}
+
+/* The map of a vibe is small: what is said of the vibe is what is read. */
 .figure {
   display: grid;
-  gap: var(--space-1);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
   align-content: start;
   min-width: 0;
-  max-width: 14rem;
+  max-width: 13rem;
 }
 
 .figure figcaption {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-1);
+  justify-items: start;
   color: var(--muted);
   font-size: var(--size-small);
 }
 
-/* Five swatches from the low end to the high, between the names of the two. */
+/*
+ * The gauge of the vibe, which is the legend of its map: five swatches from the low end to
+ * the high, between its two ends, each end with its one picture over its name. They are
+ * small on every screen, as on a phone, so that the five and both ends stand on one line
+ * under the map.
+ */
 .legend {
+  --px: var(--px-ground);
+
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-1) calc(var(--px) * 3);
+  color: var(--text);
 }
 
+.swatches {
+  display: inline-flex;
+  flex: none;
+  gap: var(--px);
+}
+
+/* A swatch is a step of the map's own colour, with the line of the map for its edge. */
 .swatch {
-  width: 1rem;
-  height: 0.75rem;
-  border: 1px solid var(--map-line);
+  flex: none;
+  width: calc(var(--px) * 8);
+  height: calc(var(--px) * 6);
+  border: var(--px) solid var(--map-line);
 }
 
 .swatch[data-band="1"] {
@@ -185,17 +209,56 @@
   background: var(--map-5);
 }
 
+/*
+ * A vibe that counts recorded crime says so on its face, with when recorded crime counts.
+ * It is a notice, and is drawn as one: cream, its words in ink, a rule of ink and a band of
+ * amber inside the rule. It is no fault, and bears no colour of one.
+ */
+.crime {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + var(--px) * 2);
+  border: var(--edge) solid var(--notice-edge);
+  background: var(--notice-bg);
+  box-shadow: inset calc(var(--px) * 2) 0 0 var(--notice-mark);
+  color: var(--notice-text);
+  font-size: var(--size-small);
+}
+
+/* What the fold of a vibe opens: each part of it under its label, one under the other. */
+.worked {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+  min-width: 0;
+}
+
 .found,
 .recipe,
 .cannotSee {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-2);
   align-content: start;
   min-width: 0;
 }
 
+/* The label of a part stands at the head of it, with no room over it: the part has its own. */
+.found > h4,
+.recipe > h4,
+.cannotSee > h4 {
+  margin: 0;
+}
+
+/* How much of a recipe the data holds, under what the recipe is. */
+.held {
+  margin: 0;
+}
+
 .end {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
   min-width: 0;
 }
@@ -203,6 +266,7 @@
 .endName {
   color: var(--muted);
   font-size: var(--size-small);
+  font-weight: 700;
 }
 
 .noArea {
@@ -210,8 +274,7 @@
 }
 
 /* The areas, one after the other on as few lines as they take. Each is a small target. */
-.areas,
-.inline {
+.areas {
   display: flex;
   flex-wrap: wrap;
   gap: var(--target-gap) var(--space-3);
@@ -222,102 +285,24 @@
 
 .every {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-2);
   padding-block: var(--space-2);
 }
 
-/* The recipe in short: the share of each part, its name, and how it is read. */
-.parts {
-  display: grid;
-  gap: var(--space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.parts > li {
-  display: grid;
-  grid-template-columns: 4.5rem minmax(0, 1fr);
-  gap: 0 var(--space-3);
-  align-items: baseline;
-}
-
-.share {
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.part {
-  display: grid;
-  gap: 0;
-  min-width: 0;
-}
-
-/* Under the name of a part: how it is read, and the other recipes that hold it. */
-.also {
-  display: block;
-  color: var(--muted);
-  font-size: var(--size-small);
-  font-weight: 400;
-}
-
-/* A vibe that counts recorded crime says so on its face, with when recorded crime counts. */
-.crime {
-  display: grid;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-3);
-  background: var(--surface);
-  border-inline-start: 4px solid var(--tradeoff);
-  border-radius: var(--radius);
-  font-size: var(--size-small);
-}
-
+/* What a vibe cannot see, a line to each, marked by a square of ink as the look marks a line. */
 .cannot {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0 var(--space-2);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  color: var(--muted);
-}
-
-/* What opens: the browser's own element, with a mark that points right when closed and down when open. */
-.opens > summary {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--accent);
-  font-size: var(--size-small);
-  list-style: none;
-  cursor: pointer;
-}
-
-.opens > summary::-webkit-details-marker {
-  display: none;
-}
-
-.opens > summary::before {
-  content: "";
-  flex: none;
-  width: 0.5em;
-  height: 0.5em;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: rotate(-45deg);
-  transition: transform var(--motion-fast);
-}
-
-.opens[open] > summary::before {
-  transform: rotate(45deg);
-}
-
-.detail {
   display: grid;
-  gap: var(--space-3);
-  padding-block-start: var(--space-2);
-  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+  list-style: square;
+  font-size: var(--size-small);
+}
+
+.cannot > li::marker {
+  color: var(--ink);
 }
 
 .facts {
@@ -331,8 +316,43 @@
   margin: 0;
 }
 
+/* The room for the case for other names. It is drawn only where a name is set down. */
+.weighed {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: var(--edge) solid var(--border);
+  background: var(--page);
+}
+
+.weighed dl {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+}
+
+.weighed dt {
+  color: var(--text);
+  font-size: var(--size-body);
+  font-weight: 700;
+}
+
+.weighed dd {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+/* The table of a recipe, inside a plain edge of ink. */
 .table {
   margin: 0;
+  border: var(--edge) solid var(--border);
+}
+
+.table caption {
+  padding: var(--space-2) var(--space-3);
+  border-block-end: var(--edge) solid var(--border);
 }
 
 .number {
@@ -345,6 +365,14 @@
   display: none;
   color: var(--muted);
   font-size: var(--size-small);
+}
+
+/* After the name of a part the data does not carry: that it waits. It is said on a line of its own. */
+.waits {
+  display: block;
+  color: var(--muted);
+  font-size: var(--size-small);
+  font-weight: 400;
 }
 
 /*
@@ -372,9 +400,14 @@
   white-space: nowrap;
 }
 
+/* A part of the recipe stands on a rule of sand, and the last on the edge of the table itself. */
 .row {
-  padding: var(--space-2) 0;
-  border-block-end: 1px solid var(--border);
+  padding: var(--space-2) var(--space-3);
+  border-block-end: var(--edge) solid var(--sand);
+}
+
+.row:last-child {
+  border-block-end: 0;
 }
 
 .table th,
@@ -398,50 +431,56 @@
   display: inline;
 }
 
-/* With room for it, the map stands beside the areas at each end. */
+/* With room for it, the map stands beside what is said of the vibe, and the fold under both. */
 @media (min-width: 40rem) {
   .vibe {
-    grid-template-columns: minmax(0, 13rem) minmax(0, 1fr);
-    column-gap: var(--space-4);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 13rem);
   }
 
   .vibe > * {
     grid-column: 1 / -1;
   }
 
-  .vibe > .figure {
+  .vibe > .named {
     grid-column: 1;
   }
 
-  .vibe > .found {
+  /* Beside what is said of the vibe, the map begins where that begins. */
+  .vibe > .figure {
     grid-column: 2;
+    margin-block-start: 0;
   }
 }
 
-/* A wide screen: two vibes side by side, each part of one level with the same part of the other. */
+/*
+ * A wide screen: two vibes side by side. Each is as high as what it holds, and each part of
+ * it stands directly under the part before it, whatever the vibe beside it holds.
+ *
+ * They shared their rows, so that each part of one stood level with the same part of the
+ * other, and gave the rows up when a fold of either was opened: the bar that was pressed
+ * went up by as much as the vibe beside it had more to say, and the bar beside it went up
+ * too. Nothing moves under a press. So no vibe takes its rows from the one beside it, and
+ * nothing here asks whether a fold is open.
+ */
 @media (min-width: 60rem) {
-  .contents[data-maps="true"] ul {
-    grid-template-columns: repeat(6, minmax(0, 1fr));
-  }
-
   .vibes {
+    gap: var(--space-4);
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @supports (grid-template-rows: subgrid) {
-    .vibe {
-      grid-row: span 8;
-      grid-template-rows: subgrid;
-    }
+    align-items: start;
   }
 }
 
 @media (forced-colors: active) {
-  .vibe,
   .row,
+  .table,
+  .table caption,
   .weighed,
   .crime {
     border-color: CanvasText;
+  }
+
+  .crime {
+    box-shadow: none;
   }
 
   .swatch {
@@ -449,10 +488,4 @@
     border-color: CanvasText;
     background: Canvas;
   }
-}
-
-/* How much of a recipe the data holds, under what the vibe means. */
-.held {
-  margin: 0;
-  color: var(--muted);
 }

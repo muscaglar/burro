@@ -77,6 +77,10 @@ describe("whether a search engine may index the website", () => {
     expect(keepOutHeaders(true)).toEqual([
       { source: "/compare", headers: [KEEP_OUT_HEADER] },
       { source: "/s", headers: [KEEP_OUT_HEADER] },
+      // The pages of accounts, and what the website passes on for them.
+      { source: "/sign-in/:path*", headers: [KEEP_OUT_HEADER] },
+      { source: "/account", headers: [KEEP_OUT_HEADER] },
+      { source: "/v1/:path*", headers: [KEEP_OUT_HEADER] },
     ]);
   });
 });

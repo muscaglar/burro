@@ -1,108 +1,145 @@
 /**
- * Site copy for the page of vibes. It says how a vibe is worked out, in words
- * that stay true whatever release is loaded. Every vibe, its meaning, its
- * recipe, its sources and what it cannot see come from the API, so the page
- * can never disagree with the engine.
+ * Site copy for the page of vibes. It says what a vibe is and how one is worked
+ * out, in words that stay true whatever release is loaded. Every vibe, its
+ * meaning, what goes into it, its sources and what it cannot see come from the
+ * API, so the page can never disagree with the engine.
+ *
+ * It is written for somebody who is choosing where to live and has never seen
+ * Burro: in whole sentences that say what follows from what. What is said of
+ * each vibe in sight is short. How Burro works a vibe out is one press away,
+ * under the vibe, and nothing of it is lost.
  *
  * The one number written here is a rule of the method that no route serves:
- * how much of a recipe an area must have a figure for. A test holds it to the
- * contract.
+ * how much of what goes into a vibe an area must have a figure for. A test
+ * holds it to the contract.
+ *
+ * One thing has one name here and on every other page. What a vibe is worked out
+ * from is "what goes into it", and what it cannot tell is "what it cannot see".
+ * Where Burro has too few figures it "could not work out" the vibe for an area:
+ * it is never said to place an area, which is a word of the design.
  */
+
+const WORKED_OUT =
+  "Burro works each one out from measurements of the area, which means you can always see what went into it and what it leaves out.";
+
+/** What opens all that is said of how a vibe is worked out. The page names it where it says what it opens. */
+const WORKS = "How Burro works this out";
 
 export const VIBES = {
   title: "Vibes",
-  lead: "A vibe is a published recipe over measured parts, and it says what it cannot see. A vibe that counts who lived in an area says so, and counts their age or their households and nothing else.",
+  /**
+   * What the page is for. It names two vibes as examples, by the names the API gives
+   * them, so that it names none the data does not hold.
+   */
+  lead: (examples: readonly string[] = []): string => {
+    const [first, second] = examples;
+    return first === undefined || second === undefined
+      ? `A vibe is a way of describing what an area feels like. ${WORKED_OUT}`
+      : `A vibe is a way of describing what an area feels like, such as ${first} or ${second}. ${WORKED_OUT}`;
+  },
+  /** The same with the founder's own two examples, which are written here and not read from the data. */
+  leadAsWritten: `A vibe is a way of describing what an area feels like, such as leafy or well connected. ${WORKED_OUT}`,
+  /** After it: how the page is laid out, so that the key is found and the vibes after it. */
+  order: "This page begins with a key to the drawings you will meet across Burro. After the key, each vibe is described in turn.",
+
+  /** Over the vibes, after the key. */
+  each: {
+    title: "The vibes, one by one",
+    lead: "Each vibe has a short description and a small map of the city coloured by it. On every map a darker green means more of the vibe, and where a vibe runs between two opposites, a darker green means nearer to the second of them. An area drawn with dots is one that Burro could not work the vibe out for.",
+    residents:
+      "Most vibes describe the area itself. A vibe that also counts who lived in an area says so in its description, and it counts their age or their households and nothing else.",
+    more: `If you would like to know what goes into a vibe and what it cannot see, open "${WORKS}" under it.`,
+  },
+
+  /** It is said of which vibe to whoever hears the page. */
+  works: WORKS,
 
   how: {
-    title: "How an area is placed on a vibe",
+    title: "How Burro works out a vibe for an area",
     points: [
-      "Each part of a recipe is read from its high end or its low end, and the parts are weighed by their shares. The shares of a recipe add up to 100.",
-      "An area's band says where it sits among the areas compared, in fifths. Band 1 is the fifth nearest the low end, and band 5 the fifth nearest the high end. Areas that are level share a band.",
-      "An area is placed only when it has a figure for parts that carry 60 of the 100 shares. With fewer, Burro says it cannot place the area, and never puts it in the middle.",
-      "Where the homes of one area span three bands or more, the area is said to vary within itself, and is drawn as a range.",
-      "A vibe is never shown as a percentage, a score or a rank. Five bands is as fine as its parts allow.",
-      "The recipe is Burro's own, and the weights are a judgement. No language model writes or scores a vibe.",
+      "Each vibe is worked out from several measurements, and each measurement has a share that says how much it counts. The shares of a vibe add up to 100. For some measurements a higher figure counts towards the vibe, and for others a lower one does.",
+      "Burro then sorts the areas into five bands, which the key draws as five steps. An area's band says where it sits among the areas compared, in fifths: band 1 is the fifth nearest the low end, and band 5 is the fifth nearest the high end. Areas that are level share a band.",
+      "Burro gives an area a band only when the area has a figure for measurements that carry 60 of the 100 shares. With fewer, Burro says that it could not work the vibe out for the area, and never puts it in the middle as a guess.",
+      "Where the homes of one area span three bands or more, the area is said to vary within itself, and it is drawn as a bar across those steps.",
+      "A vibe is never shown as a percentage, a score or a rank, because five bands is as fine as its measurements allow.",
+      "Burro chose which measurements go into each vibe and how much each one counts, and that choice is a judgement. No language model writes or scores a vibe.",
     ],
   },
 
-  contents: "The vibes of this data",
-  /** Over the small maps at the head of the page: the same city, coloured by each vibe in turn. */
-  glance: {
-    lead: "The same city, coloured by each vibe in five bands. The darker an area, the nearer it is to the high end.",
-    ends: (low: string, high: string) => `${low} to ${high}`,
-  },
-  scale: (low: string, high: string) => `A scale, counted from ${low} to ${high}.`,
-  oneWay: "It runs one way, counted from least to most.",
+  /**
+   * The two ends of a vibe that runs between two, under what it means: "Calm to Buzzy", each
+   * name under its picture. What the two are is said first to whoever hears the page, and is
+   * read from the layout by whoever sees it.
+   */
+  between: "It runs from",
+  to: "to",
   facts: {
-    family: "In the settings under",
-    word: "Everyday word",
+    family: "Where to find it under Space requirements",
+    word: "The everyday word for it",
   },
-  /** Under the name of a vibe: the other names that were weighed for it, where any are set down. */
+  /** In the fold of a vibe: the other names that were weighed for it, where any are set down. */
   names: {
     title: "Other names weighed for it",
   },
   /** The city coloured by the vibe. The name of the vibe and of each end are the API's. */
   map: {
     title: (vibe: string, low: string, high: string) =>
-      `The areas of this data coloured by ${vibe}, in five bands from ${low} to ${high}`,
-    /** Under the map: which way the colours run. */
-    runs: (low: string, high: string) => `Lightest is ${low}, darkest is ${high}.`,
-    notPlaced: "Dotted where Burro cannot place the area.",
-    none: "This data has no map of this vibe.",
+      `A map of the city coloured by ${vibe}, in five shades of green from ${low} to ${high}`,
+    none: "There is no map of this vibe to show.",
     /** In place of the map of a vibe that no area can be placed on. It would be a map of dots. */
-    notYet: "No area can be placed on it yet, so there is no map of it.",
+    notYet: "Burro cannot work this vibe out for any area yet, so there is no map of it to show.",
   },
-  /** Beside a vibe at the head of the page that no area can be placed on. */
-  notYet: "Not in this data yet",
-  /** How much of a recipe the data holds, as one number, and how much an area needs. Both are the API's. */
+  /** How much of what goes into a vibe Burro has, as one number, and how much an area needs. Both are the API's. */
   held: (held: number, needed: number) =>
     held === 0
-      ? `This data holds none of its recipe. An area needs ${needed} of 100 to be placed.`
+      ? `Burro has none of these measurements yet, so it cannot work this vibe out for any area. It can do so once it has measurements that carry ${needed} of the 100 shares.`
       : held >= needed
-        ? `A band rests on ${held} of 100 of its recipe, which is what this data holds.`
-        : `This data holds ${held} of 100 of its recipe. An area needs ${needed} of 100 to be placed.`,
-  whole: "This data holds the whole of its recipe.",
+        ? `Burro does not have all of these measurements yet. The ones it has carry ${held} of the 100 shares, which is enough to work the vibe out, so Burro works out every band from them alone.`
+        : `Burro has only some of these measurements so far, and they carry ${held} of the 100 shares. It needs measurements that carry ${needed} of them, so it cannot work this vibe out for any area yet.`,
+  whole: "Burro has every one of these measurements, so nothing is missing from this vibe.",
   /** The areas at each end of the vibe, by name, from the bands the API gives. */
   found: {
-    title: "Where it is found in this data",
+    title: "Where it is found",
+    lead: "Burro sorts the areas into five bands, which the key draws as five steps. Band 5 holds the areas with the most of the vibe, or the ones nearest its second end.",
     /** Over the areas in the highest band and in the lowest. The name of an end is the API's. */
-    end: (end: string) => `At the ${end} end`,
-    most: "Most",
-    least: "Least",
-    none: "No area of this data",
-    unplaced: "Burro cannot place",
+    end: (end: string) => `The areas at the ${end} end`,
+    most: "The areas with the most of it",
+    least: "The areas with the least of it",
+    none: "No area",
+    unplaced: "The areas Burro could not work it out for",
     /** In place of the names of an end, where there are too many to read: how many, and where they are named. */
-    many: (count: number) => `${count} areas. Each is named below, band by band.`,
+    many: (count: number) => `${count} areas, which is too many to name here. Each of them is named below, band by band.`,
     /** What opens every area, band by band. */
     every: "Every area, band by band",
     band: (band: number) => `Band ${band}`,
   },
-  /** What opens the period and the source of each part of the recipe. */
-  detail: "The period and the source of each part",
   recipe: {
-    title: "Recipe",
-    /** In the short recipe: how much of the recipe a part carries, of the hundred it adds up to. */
+    title: "What goes into it",
+    lead: "Burro works this vibe out from the measurements below. The share of each one says how much it counts, and the shares add up to 100.",
+    /** How much of the vibe a measurement carries, of the hundred its shares add up to. */
     share: (hundredths: number) => `${hundredths} of 100`,
-    /** What a table of a recipe is a table of. It is filled with the vibe's name. */
-    caption: (vibe: string) => `What ${vibe} is made of`,
+    /** What the table is a table of. It is filled with the vibe's name. */
+    caption: (vibe: string) => `What goes into ${vibe}`,
     columns: {
-      part: "Part",
-      reading: "How it is read",
-      share: "Share of the recipe",
+      part: "Measurement",
+      reading: "How it counts",
+      share: "Share",
       period: "Period",
       sources: "Source",
     },
-    shareOf: "of 100",
-    /** In place of the name of a part that this data does not carry, where the API names none. */
-    notCarried: "A part this data does not carry",
-    /** After the name of a part that this data does not carry. Its share is still part of the recipe. */
-    waits: "Not in this data yet",
-    noPeriod: "Not in this data",
-    /** Under a part that other recipes hold too. The names are the API's. */
-    alsoIn: (vibes: string) => `Also a part of ${vibes}.`,
+    /** In place of the name of a measurement that Burro does not have, where the API names none. */
+    notCarried: "A measurement Burro does not have yet",
+    /** After the name of a measurement that Burro does not have. Its share still goes into the vibe. */
+    waits: "Burro does not have it yet",
+    noPeriod: "Burro does not have it yet",
+    /** Under a measurement that goes into other vibes too. The names are the API's. */
+    alsoIn: (vibes: string) => `It also goes into ${vibes}.`,
   },
-  sources: "Sources",
-  noSources: "No part of it is in this data.",
-  cannotSee: "What it cannot see",
-  methods: "How the ranking works, and what each part measures",
+  sources: "Where its measurements come from",
+  noSources: "Burro has none of its measurements yet, so there is no source to show.",
+  cannotSee: {
+    title: "What it cannot see",
+    lead: "No set of measurements can see everything. These are the things this vibe cannot tell you.",
+  },
+  methods: "Read how the ranking works, in the methods",
 } as const;

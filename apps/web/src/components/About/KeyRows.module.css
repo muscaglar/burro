@@ -1,0 +1,144 @@
+/*
+ * The rows of the key to the drawings: each a drawing, at the size it is met, and what it
+ * means beside it. Every sentence is in the reading face, in ink, on the cream of the box
+ * the key stands in. What is drawn is laid out here, and is never sized here: the size of
+ * a drawing is its own.
+ */
+/*
+ * How wide the room of a drawing is: of a small one, and of a wide one where it stands
+ * beside its sentence. It weighs nothing, so that what draws a group says how wide its own
+ * widest drawing is, whichever sheet is read last.
+ */
+:where(.group) {
+  --drawn-small: 3.5rem;
+  --drawn-wide: 15.5rem;
+}
+
+.group {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* The label of a group stands at the head of it: the room over it is the key's to give. */
+.group > h3 {
+  margin: 0;
+}
+
+.lead > p {
+  max-width: var(--measure);
+  margin: 0;
+}
+
+.lead > p + p {
+  margin-block-start: var(--space-2);
+}
+
+/* One row under the other, and two side by side where each has the room of a line that reads well. */
+.rows {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 28rem), 1fr));
+  gap: 0 var(--space-7);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* One row to a line, for drawings that are wide and sentences that are long. */
+.group[data-lay="lines"] > .rows {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* A row stands on a rule of sand, which is there for the eye to run along and says nothing. */
+.row {
+  display: grid;
+  gap: var(--space-2) var(--space-3);
+  align-items: center;
+  max-width: none;
+  padding-block: var(--space-3);
+  border-block-start: var(--edge) solid var(--sand);
+}
+
+/*
+ * What is said comes first for whoever hears the page. For the eye the drawing stands
+ * before it: at its start where the two stand side by side, and over it where they do not.
+ */
+.says {
+  grid-row: 2;
+  min-width: 0;
+}
+
+.drawn {
+  display: flex;
+  flex-wrap: wrap;
+  grid-row: 1;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  min-width: 0;
+}
+
+.says > p {
+  max-width: var(--measure);
+  margin: 0;
+}
+
+.says > p + p {
+  margin-block-start: var(--space-1);
+}
+
+/* A small drawing stands beside its sentence on every screen, in a room of one width. */
+.row[data-drawn="small"] {
+  grid-template-columns: var(--drawn-small) minmax(0, 1fr);
+}
+
+.row[data-drawn="small"] > .says {
+  grid-row: 1;
+  grid-column: 2;
+}
+
+.row[data-drawn="small"] > .drawn {
+  grid-column: 1;
+  justify-content: center;
+}
+
+/* A wide drawing stands over its sentence on a narrow screen. */
+.row[data-drawn="wide"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Many drawings stand under what is said of them, across the whole of the group. */
+.row[data-drawn="many"] {
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.row[data-drawn="many"] > .says {
+  grid-row: 1;
+}
+
+.row[data-drawn="many"] > .drawn {
+  grid-row: 2;
+}
+
+/* With room for it, a wide drawing stands beside its sentence too. */
+@media (min-width: 40rem) {
+  .row[data-drawn="wide"] {
+    grid-template-columns: var(--drawn-wide) minmax(0, 1fr);
+  }
+
+  .row[data-drawn="wide"] > .says {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  .row[data-drawn="wide"] > .drawn {
+    grid-column: 1;
+  }
+}
+
+@media (forced-colors: active) {
+  .row {
+    border-block-start-color: CanvasText;
+  }
+}

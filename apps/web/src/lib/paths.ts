@@ -30,11 +30,19 @@ function slugOr(value: string, what: string): string {
   return value;
 }
 
-/** The parts of the methods page that another page leads to. */
-export type MethodsPart = "confidence" | "journeys" | "names" | "rents" | "words";
+/** The parts of the methods page that another page leads to, each by the id of its heading. */
+export const METHODS_PARTS = ["confidence", "journeys", "names", "rents", "words"] as const;
+
+export type MethodsPart = (typeof METHODS_PARTS)[number];
 
 /** The parts of an area's page that another page leads to. */
 export type AreaPart = "alike";
+
+/**
+ * The page that opens a share, as its address reads while it stands: the share's id is in
+ * the fragment, which is no part of what a page is known by.
+ */
+export const SHARED = "/s";
 
 export const paths = {
   home: () => "/",
@@ -46,7 +54,6 @@ export const paths = {
     if (!TAG_ID.test(tagId)) throw new Error("Not the id of a vibe.");
     return `/vibes#${tagId}`;
   },
-  accessibility: () => "/accessibility",
   /** The sources page, or one source on it. */
   sources: (sourceId?: string) =>
     sourceId === undefined ? "/sources" : `/sources#${slugOr(sourceId, "a source id")}`,
@@ -62,6 +69,6 @@ export const paths = {
   /** An opened share. */
   share: (shareId: string) => {
     if (!SHARE_ID.test(shareId)) throw new Error("Not a share id.");
-    return `/s#${shareId}`;
+    return `${SHARED}#${shareId}`;
   },
 } as const;

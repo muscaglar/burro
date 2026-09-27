@@ -1,0 +1,240 @@
+/*
+ * A page that explains. It stands on the meadow as boxes of cream, one over the other,
+ * with grass between them: its heading in the first, and each of its parts in a box of
+ * its own. Every box is the kit's, and brings its ground, its rule and its shadow. What is
+ * said here is where a box stands, how much room it keeps, and how what it holds is set.
+ *
+ * The page is read more than it is used. Nothing of it moves, nothing of it changes under
+ * the pointer, and nothing that holds words has a height of its own, so that the words can
+ * be made larger.
+ */
+.page {
+  /*
+   * The room a box keeps between its rule and what is read in it. A part that is drawn
+   * where no page gives it keeps the least of it.
+   */
+  --room: var(--space-3);
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+@media (min-width: 40rem) {
+  .page {
+    --room: var(--space-4);
+
+    gap: var(--space-4);
+  }
+}
+
+@media (min-width: 60rem) {
+  .page {
+    --room: var(--space-5);
+  }
+}
+
+/* The heading of the page, and under it what the page is for. */
+.head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  padding: var(--room, var(--space-3)) var(--room, var(--space-3)) calc(var(--room, var(--space-3)) + var(--space-1));
+}
+
+/*
+ * A drawing stands beside the heading, at its own size. It keeps its place beside the
+ * heading where the heading takes a second line, and is never left on a line of its own.
+ */
+.titled {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.titled[data-drawn="true"] {
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
+.title {
+  min-width: 0;
+  margin: 0;
+}
+
+.lead {
+  max-width: var(--measure);
+  margin: 0;
+  font-size: var(--size-lead);
+}
+
+/*
+ * A part: its heading, and what is read under it. On a wide screen the heading of a part
+ * that is read stands beside it, so that a line is as wide as a line reads well and the
+ * box is as wide as every other. What is wide, as a table is, keeps its heading over it.
+ */
+.part,
+.boxed {
+  min-width: 0;
+  padding: var(--room, var(--space-3)) var(--room, var(--space-3)) calc(var(--room, var(--space-3)) + var(--space-1));
+}
+
+.part {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+}
+
+/* Reached by a link, a heading is brought into sight with the head of its box over it. */
+.heading {
+  min-width: 0;
+  margin: 0;
+  scroll-margin-top: calc(var(--room, var(--space-3)) + var(--px) * 6);
+}
+
+.holds {
+  min-width: 0;
+}
+
+/* What a box holds begins where its room begins and ends where it ends. */
+.holds > :first-child,
+.boxed > :first-child > :first-child {
+  margin-block-start: 0;
+}
+
+.holds > :last-child,
+.boxed > :last-child {
+  margin-block-end: 0;
+}
+
+@media (min-width: 60rem) {
+  .part[data-lay="beside"] {
+    grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+    gap: var(--space-3) var(--space-6);
+  }
+}
+
+/* The points of a part. The mark of a line is a square of ink, as the look marks a line. */
+.points {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  padding-inline-start: var(--space-5);
+  list-style: square;
+}
+
+.points > li::marker {
+  color: var(--ink);
+}
+
+/*
+ * A small heading, as the look draws the label of a part: a board of ink with its words in
+ * the colour that is read on, in the face of names. It is as wide as its words.
+ */
+.board {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: var(--space-5) 0 var(--space-3);
+  padding: 0 calc(var(--px) * 3) var(--px);
+  border: var(--edge) solid var(--ink);
+  background: var(--ink);
+  color: var(--page);
+  font: 400 var(--name-1) / 1.1 var(--font-name);
+  font-synthesis: none;
+}
+
+/*
+ * The sources of a thing: the key of a source, at its own size, and after it each source
+ * by its name. Each name is a small target, so two of them are as far apart as two small
+ * targets must be. The key keeps its place before the first where the names take a second line.
+ */
+.sourced {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--px) * 3);
+  min-width: 0;
+}
+
+/* The key stands half way up the first line of names, which is as high as a small target. */
+.sourced > :first-child {
+  margin-block-start: calc((var(--target-min) - var(--px) * var(--key-h)) / 2);
+}
+
+.sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--target-gap) var(--space-3);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sources > li {
+  max-width: none;
+}
+
+/*
+ * A table, inside a plain edge of ink. Its rows stand on their rules of sand, as every
+ * table's do, and what a cell says is kept clear of the edge. The last row stands on the
+ * edge itself.
+ */
+.edged {
+  min-width: 0;
+}
+
+.edged table {
+  margin: 0;
+}
+
+.edged th,
+.edged td {
+  padding-inline: var(--space-3);
+}
+
+.edged tbody > tr:last-child > th,
+.edged tbody > tr:last-child > td {
+  border-bottom: 0;
+}
+
+/* A line that belongs to no part. */
+.slip {
+  min-width: 0;
+  padding: var(--space-2) var(--room, var(--space-3));
+}
+
+.slip > p {
+  margin: 0;
+}
+
+/*
+ * What another hand draws. It is given no ground here: only a sentence that it leaves
+ * loose is given cream to be read on, by a rule that weighs nothing, so that whatever the
+ * sentence says of its own ground is what is drawn.
+ */
+.loose {
+  min-width: 0;
+}
+
+:where(.loose) > :where(p) {
+  margin: 0;
+  padding: var(--space-2) var(--room, var(--space-3));
+  border: var(--edge) solid var(--border);
+  background: var(--page);
+}
+
+/* With forced colours the system's own colours carry every edge. */
+@media (forced-colors: active) {
+  .board {
+    border-color: CanvasText;
+  }
+
+  :where(.loose) > :where(p) {
+    border-color: CanvasText;
+  }
+}

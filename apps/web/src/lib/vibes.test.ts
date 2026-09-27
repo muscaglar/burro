@@ -20,13 +20,11 @@ const scale = { low_end: "Calm", high_end: "Buzzy" };
 
 describe("a band, in words a person would use", () => {
   test("test_a_vibe_that_runs_one_way_is_said_from_least_to_most", () => {
-    expect(VIBE_BANDS.map((band) => plainly(oneWay, at(band)))).toEqual([
-      "among the least here",
-      "on the low side here",
-      "around the middle here",
-      "on the high side here",
-      "among the most here",
-    ]);
+    const said = VIBE_BANDS.map((band) => plainly(oneWay, at(band)));
+
+    expect(said).toEqual(["among the least", "on the low side", "around the middle", "on the high side", "among the most"]);
+    // Each is said of an area among the areas compared. "Here" was read as the area itself.
+    for (const words of said) expect(/\bhere\b/i.test(words ?? "")).toBe(false);
   });
 
   test("test_a_scale_is_said_by_the_names_the_api_gives_its_ends", () => {

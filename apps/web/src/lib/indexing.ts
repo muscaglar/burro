@@ -55,8 +55,11 @@ export const KEEP_OUT = { index: false, follow: false } as const;
  */
 export const KEEP_OUT_HEADER = { key: "X-Robots-Tag", value: "noindex, nofollow" } as const;
 
-/** The pages that are one person's, and are left out whatever the rule says. */
-export const ONE_PERSONS = ["/compare", "/s"] as const;
+/**
+ * The pages that are one person's, and are left out whatever the rule says. The last two
+ * are the pages of accounts, and what the website passes on for them.
+ */
+export const ONE_PERSONS = ["/compare", "/s", "/sign-in/:path*", "/account", "/v1/:path*"] as const;
 
 /**
  * Which answers carry the header, as Next reads them: every one while

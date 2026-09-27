@@ -1,0 +1,158 @@
+/*
+ * How a band is drawn, in the key: what stands in the room of a drawing, for each state. A
+ * gauge is drawn as it is wherever it is met: the picture of its low end, five steps with
+ * a peg on one, and the picture of its high end, with where the area sits in words beside
+ * it. How a row of the key is laid out is said with the rows.
+ *
+ * A list here has no mark of its own, and is a list all the same to whoever hears the
+ * page: its mark is an empty one, and not none.
+ */
+
+/*
+ * The room of a drawing: as wide as a gauge with the picture of each of its ends and the
+ * words beside it. A gauge is 87 art pixels, and a pixel of a drawing is three of a wide
+ * screen.
+ */
+.steps {
+  --drawn-wide: 27rem;
+}
+
+/* The five bands, one under the other, so that the peg is seen to step along. */
+.five {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style-type: "";
+}
+
+.five > li {
+  max-width: none;
+}
+
+/*
+ * What is drawn of a vibe: its name, and under it its gauges. It takes the whole of the
+ * room of a drawing, so that each gauge in it is as wide as that room.
+ */
+.drawn {
+  display: grid;
+  flex: 1 1 100%;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/*
+ * The name of a vibe is the API's, and is read: it is set in the reading face, heavy. The
+ * small drawing of the vibe stands before it, on its line.
+ */
+.vibe {
+  display: inline-flex;
+  gap: calc(var(--px) * 3);
+  align-items: center;
+  justify-self: start;
+  min-width: 0;
+  font-weight: 700;
+}
+
+/*
+ * One gauge, and beside it where the area sits in words: side by side, and the words under
+ * the gauge where the two have not the room of one line. It says how wide it is, so that
+ * its gauge is drawn with steps it has the room of: so it is as wide as the room it is
+ * given, and never as wide as what it holds, which it could not then ask.
+ */
+.sits {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  align-items: center;
+  min-width: 0;
+  container-type: inline-size;
+}
+
+/* The picture of the low end, the five steps, and the picture of the high end, on the line the steps stand on. */
+.gauge {
+  display: inline-flex;
+  flex: none;
+  gap: calc(var(--px) * 3);
+  align-items: flex-end;
+}
+
+/* An end of a gauge: its one picture, and under it its name where it is named. */
+.end {
+  display: grid;
+  flex: none;
+  gap: var(--px);
+  justify-items: center;
+}
+
+/* The name of an end is read: it is set in the reading face, in ink. */
+.endName {
+  color: var(--ink);
+  font: 400 var(--size-small) / 1.1 var(--font-say);
+}
+
+.words {
+  min-width: 0;
+}
+
+/*
+ * A gauge is never made smaller and never cut. In a room narrower than it is, as with the
+ * text of a phone made twice as large, its steps are narrower: and where it has not the
+ * room of its two pictures they are not drawn, and its ends are told by their names. The
+ * widths are asked in pixels of the screen, which is what a drawing is laid in: 174 px
+ * with steps of nine at the pixel of a phone, 154 with steps of seven and 134 with five.
+ */
+@container (max-width: 175px) {
+  .gauge {
+    --track-step: 7;
+  }
+}
+
+@container (max-width: 155px) {
+  .gauge {
+    --track-step: 5;
+  }
+}
+
+@container (max-width: 135px) {
+  .end > :not(.endName) {
+    display: none;
+  }
+}
+
+/*
+ * The two pictures of every vibe, each pair beside the name of its vibe: as many to a line
+ * as have the room of a name and its two pictures, which is one on a phone.
+ */
+.pairs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 17rem), 1fr));
+  gap: var(--space-3) var(--space-5);
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style-type: "";
+}
+
+.pairs > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: center;
+  min-width: 0;
+  max-width: none;
+}
+
+/* The two ends of a vibe, side by side, the low end first: each its picture over its name. */
+.pair {
+  display: inline-flex;
+  gap: var(--space-3);
+  align-items: flex-end;
+}
+
+.ofPair {
+  display: inline-flex;
+}

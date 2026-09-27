@@ -1,0 +1,54 @@
+/*
+ * A fold of a page that explains: what is long, closed until it is pressed. It is the
+ * browser's own element, and its bar is the bar of every fold of the website, which the
+ * fold itself draws. Nothing of how a bar is drawn is said here.
+ *
+ * What is said here is where what a fold opens stands, and where what its bar says begins.
+ */
+.fold {
+  min-width: 0;
+}
+
+/* What a bar opened stands clear of it, and as wide as what holds the bar. */
+.fold[data-fold="bar"] > .opened {
+  padding-block-start: var(--space-3);
+}
+
+/* What a small fold opened, inside what another opened. */
+.fold[data-fold="line"] > .opened {
+  padding-block-start: var(--space-2);
+}
+
+/*
+ * A fold that stands on the grass. Its bar is a box of the kit, and what it says begins
+ * where the words of a box of the page begin: the room such a box keeps at its sides.
+ */
+.fold[data-fold="ground"] {
+  --bar-begins: var(--space-3);
+}
+
+/* What it opens stands boxes of its own on the grass, as far apart as the boxes of the page are. */
+.fold[data-fold="ground"] > .opened {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  min-width: 0;
+  padding-block-start: var(--space-3);
+}
+
+@media (min-width: 40rem) {
+  .fold[data-fold="ground"] {
+    --bar-begins: var(--space-4);
+  }
+
+  .fold[data-fold="ground"] > .opened {
+    gap: var(--space-4);
+    padding-block-start: var(--space-4);
+  }
+}
+
+@media (min-width: 60rem) {
+  .fold[data-fold="ground"] {
+    --bar-begins: var(--space-5);
+  }
+}

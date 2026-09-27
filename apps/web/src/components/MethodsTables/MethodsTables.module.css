@@ -1,46 +1,222 @@
-.features {
+/*
+ * The methods, as the look draws them. Each part is a box of the kit on the meadow, and
+ * what is said here is what stands in one: the measures, the tables, and the facts of the
+ * release. A table and a measure have a plain edge of ink and no shadow: there are many of
+ * them, and a shadow under each would be noise.
+ *
+ * Every sentence and every figure is in the reading face, in ink, on cream.
+ */
+
+/*
+ * The account: how Burro finds areas for a person, in short. It is what the page is read
+ * for, so it is set as a sentence that leads is, and each line is as wide as a line reads
+ * well. The two ways on stand at its foot, one under the other.
+ */
+.account {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
-  gap: var(--space-4);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--room, var(--space-3)) var(--room, var(--space-3)) calc(var(--room, var(--space-3)) + var(--space-1));
+}
+
+.account > p {
+  max-width: var(--measure);
+  margin: 0;
+  font-size: var(--size-lead);
+}
+
+.ways {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--target-gap);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.feature {
+.ways > li {
   max-width: none;
-  padding: var(--space-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
+}
+
+/*
+ * On a wide screen the account is read in two columns, down the first and then down the
+ * second, so that all of it is in sight at once and no half of its box is bare. A
+ * paragraph is read whole in its column, and the two ways on stand under both.
+ */
+@media (min-width: 60rem) {
+  .account {
+    display: block;
+    columns: 2;
+    column-gap: var(--space-7);
+  }
+
+  .account > p {
+    max-width: none;
+    margin-block-end: var(--space-3);
+    break-inside: avoid;
+  }
+
+  .ways {
+    column-span: all;
+  }
+}
+
+/* What is measured: what it is, and then a box for each group of measures, with the grass between. */
+.measured {
+  /* The room a box keeps between its rule and what is read in it. */
+  --room: var(--space-3);
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+@media (min-width: 40rem) {
+  .measured {
+    --room: var(--space-4);
+
+    gap: var(--space-4);
+  }
+}
+
+@media (min-width: 60rem) {
+  .measured {
+    --room: var(--space-5);
+  }
+}
+
+/* A group of measures: its name on a board, and its measures side by side where there is room. */
+.group {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--room) var(--room) calc(var(--room) + var(--space-1));
+}
+
+/* The label of a part stands at the head of it, with no room over it: the part has its own. */
+.group > h3,
+.tenure > h3 {
+  margin: 0;
+}
+
+.group > p {
+  margin: 0;
+}
+
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * A measure. What is drawn in it is small on every screen, as it is on a phone: the
+ * drawing of its family and the key of its sources. A page of a hundred measures is no
+ * place for a large drawing, and a card is as narrow on a desk as on a phone.
+ */
+.feature {
+  --px: var(--px-ground);
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  align-content: start;
+  min-width: 0;
+  padding: var(--space-3);
+}
+
+.feature > p {
+  max-width: none;
+  margin: 0;
+}
+
+/* The name of a measure, and before it the drawing of its family. */
+.featureHead {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--px) * 4);
+  min-width: 0;
 }
 
 .featureName {
-  margin-block-start: 0;
+  min-width: 0;
+  margin: 0;
 }
 
+/* What is said of a measure: two to a row where the card has room, and one where it has not. */
 .facts {
   display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr));
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+}
+
+.facts dd,
+.release dd {
+  max-width: none;
+  margin: 0;
+}
+
+/* What the release says of itself. */
+.release {
+  display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 12rem), 1fr));
-  gap: var(--space-2) var(--space-5);
+  gap: var(--space-3) var(--space-5);
   margin: 0;
 }
 
-.facts dd {
+/*
+ * When recorded crime counts, and the caveat of every figure of it. It is a notice, and is
+ * drawn as one: cream, its words in ink, a rule of ink and a band of amber inside the rule.
+ * It is no fault, and bears no colour of one.
+ */
+.notice {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
+  max-width: calc(var(--measure) + var(--space-5));
+  padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + var(--px) * 2);
+  border: var(--edge) solid var(--notice-edge);
+  background: var(--notice-bg);
+  box-shadow: inset calc(var(--px) * 2) 0 0 var(--notice-mark);
+  color: var(--notice-text);
+}
+
+.notice > p {
   margin: 0;
 }
 
-.inline {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
+/* Where a search starts: a table for a renter and one for a buyer, side by side where there is room. */
 .tables {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 26rem), 1fr));
-  gap: var(--space-5) var(--space-6);
+  gap: var(--space-5) var(--space-5);
   align-items: start;
+}
+
+/* A table is laid out by the width of its own box, and not of the screen: two stand side by side on a wide one. */
+.tenure {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  align-content: start;
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.limits {
+  min-width: 0;
+  container-type: inline-size;
+}
+
+.tenure > p {
+  margin: 0;
 }
 
 .table {
@@ -50,4 +226,79 @@
 .number {
   text-align: right;
   white-space: nowrap;
+}
+
+/* What a cell is of. Shown only where the rows are stacked. */
+.cellName {
+  display: none;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+/*
+ * In a narrow box a table has no room for the name of a setting or of a limit, which runs
+ * to a line. So each is stacked: its name comes first, then each thing said of it under
+ * the name of its column. The headings of the columns are kept for a screen reader and
+ * not drawn, because each cell says what it is.
+ */
+@container (max-width: 30rem) {
+  table.stacks,
+  table.stacks tbody,
+  table.stacks tr,
+  table.stacks th,
+  table.stacks td {
+    display: block;
+  }
+
+  table.stacks .head {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* A setting stands on a rule of sand, and the last on the edge of the table itself. */
+  table.stacks .row {
+    padding: var(--space-2) var(--space-3);
+    border-block-end: var(--edge) solid var(--sand);
+  }
+
+  table.stacks .row:last-child {
+    border-block-end: 0;
+  }
+
+  table.stacks tbody th,
+  table.stacks tbody td {
+    padding: 0;
+    border: 0;
+  }
+
+  table.stacks tbody td {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 var(--space-2);
+  }
+
+  table.stacks .number {
+    text-align: left;
+  }
+
+  table.stacks .cellName {
+    display: inline;
+  }
+}
+
+@media (forced-colors: active) {
+  .notice {
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .row {
+    border-block-end-color: CanvasText;
+  }
 }

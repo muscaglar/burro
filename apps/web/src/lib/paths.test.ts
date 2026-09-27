@@ -1,7 +1,7 @@
 /** @jest-environment node */
 import { cityOf, isCity } from "./city";
 import { readableDate } from "./format";
-import { paths } from "./paths";
+import { METHODS_PARTS, paths, SHARED } from "./paths";
 
 describe("the addresses the website links to", () => {
   test("test_an_areas_address_is_its_city_and_its_slug", () => {
@@ -15,6 +15,8 @@ describe("the addresses the website links to", () => {
     const address = new URL(paths.share("N6BkBdeSvd7xEk0NJVZNzw"), "https://burro.example");
 
     expect(address.pathname).toBe("/s");
+    // The page is known by its address without the id, to what asks which page stands.
+    expect(SHARED).toBe(address.pathname);
     expect(address.search).toBe("");
     expect(address.hash).toBe("#N6BkBdeSvd7xEk0NJVZNzw");
   });
@@ -73,12 +75,26 @@ describe("the addresses the website links to", () => {
   });
 });
 
+describe("the pages an address is built for", () => {
+  test("test_an_address_is_built_for_the_search_the_three_pages_about_the_website_an_area_a_comparison_and_a_share", () => {
+    // A statement of accessibility was one of them. The page is gone, and its address with it:
+    // no part of the website can lead to a page that is not there.
+    expect(Object.keys(paths).sort()).toEqual(["area", "compare", "home", "methods", "share", "sources", "vibes"]);
+    expect([paths.home(), paths.vibes(), paths.methods(), paths.sources()]).toEqual(["/", "/vibes", "/methods", "/sources"]);
+  });
+});
+
 describe("a part of the methods page", () => {
   test("test_a_part_of_the_methods_page_is_the_page_and_the_name_of_the_part", () => {
     expect(paths.methods()).toBe("/methods");
     expect(paths.methods("confidence")).toBe("/methods#confidence");
     expect(paths.methods("journeys")).toBe("/methods#journeys");
     expect(paths.methods("words")).toBe("/methods#words");
+  });
+
+  test("test_the_parts_another_page_leads_to_are_named_once_and_an_address_is_built_for_each", () => {
+    expect([...METHODS_PARTS]).toEqual(["confidence", "journeys", "names", "rents", "words"]);
+    expect(METHODS_PARTS.map((part) => paths.methods(part))).toEqual(METHODS_PARTS.map((part) => `/methods#${part}`));
   });
 });
 
