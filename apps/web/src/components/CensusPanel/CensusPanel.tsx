@@ -22,6 +22,8 @@ import type {
 import { paths } from "@/lib/paths";
 
 import profile from "../AreaProfile/AreaProfile.module.css";
+import { Folded } from "../Disclosure/Folded";
+import { Summary } from "../Disclosure/Summary";
 import { wordsFor } from "../ErrorBlock/ErrorBlock";
 import styles from "./CensusPanel.module.css";
 import { CENSUS_PART } from "./part";
@@ -99,7 +101,7 @@ interface CellProps {
 function Cell({ name, says, children }: CellProps) {
   return (
     // eslint-disable-next-line jsx-a11y/no-interactive-element-to-noninteractive-role
-    <td role="cell" className={styles.cell}>
+    <td role="cell">
       <span className={styles.cellName}>{name} </span>
       <span className={styles.figure}>
         <span className={styles.said}>{says}</span>
@@ -137,7 +139,8 @@ function Under({ table }: { readonly table: CensusPanelTable }) {
  * One table of the census. It is closed until it is pressed, under its own
  * name, so that what is opened is what a person chose to read: five tables
  * open at once are thirteen screens of a phone. It is the browser's own
- * element, and nothing is asked for when it opens.
+ * element, and nothing is asked for when it opens. Its bar is the bar of
+ * every fold of the website, and says nothing of what the table holds.
  *
  * A table that is left out for the area says so, and holds nothing to open.
  */
@@ -151,14 +154,12 @@ function Table({ table }: { readonly table: CensusPanelTable }) {
     );
   }
   return (
-    <details
-      className={`${profile.closed} ${styles.table}`}
+    <Folded
+      className={profile.closed}
       aria-label={table.title}
       data-table={table.table_code}
+      bar={<Summary label={table.title} heading={3} handed />}
     >
-      <summary className="target">
-        <h3 className={profile.opensTo}>{table.title}</h3>
-      </summary>
       <div className={styles.opened}>
         <table role="table" className={styles.figures}>
           <caption>{table.caption}</caption>
@@ -206,7 +207,7 @@ function Table({ table }: { readonly table: CensusPanelTable }) {
         </table>
         <Under table={table} />
       </div>
-    </details>
+    </Folded>
   );
 }
 
@@ -294,13 +295,25 @@ export function CensusPanel({ offer, area, client = api }: Props) {
     if (event.currentTarget.open && state.kind === "closed") void ask();
   };
 
+  const again = () => {
+    // The button goes with the failure it stands in, and the focus must not go with it: the
+    // bar of the part takes it, whether the figures then come or fail again. The page is not
+    // moved for it.
+    part.current?.querySelector("summary")?.focus({ preventScroll: true });
+    void ask();
+  };
+
   if (!offer.available) return null;
   return (
     // A search engine is asked to quote nothing of it.
-    <details ref={part} id={CENSUS_PART} className={profile.closed} onToggle={onToggle} data-nosnippet="">
-      <summary className="target">
-        <h2 className={profile.opensTo}>{offer.heading}</h2>
-      </summary>
+    <Folded
+      ref={part}
+      id={CENSUS_PART}
+      className={profile.closed}
+      onToggle={onToggle}
+      data-nosnippet=""
+      bar={<Summary label={offer.heading} heading={2} handed />}
+    >
       <div className={profile.part}>
         <p className={profile.lead}>{offer.intro}</p>
         <noscript>
@@ -312,14 +325,15 @@ export function CensusPanel({ offer, area, client = api }: Props) {
           </p>
         ) : null}
         {state.kind === "failed" ? (
-          <div role="alert" className={styles.state}>
+          <div role="alert" className={`${profile.fault} ${styles.state}`}>
             <p>{wordsFor(state.failure)}</p>
             {servesNone(state.failure) ? null : (
               // Where the service serves no census, asking again would bring the same answer.
               <>
                 <p>{CENSUS.failed}</p>
-                <button type="button" className="target" onClick={() => void ask()}>
-                  {CENSUS.again}
+                <button type="button" className={`${profile.again} target`} onClick={again}>
+                  {/* What is said stands on the face of the button, which is what steps under a press. */}
+                  <span>{CENSUS.again}</span>
                 </button>
               </>
             )}
@@ -327,6 +341,6 @@ export function CensusPanel({ offer, area, client = api }: Props) {
         ) : null}
         {state.kind === "shown" ? <Figures data={state.data} /> : null}
       </div>
-    </details>
+    </Folded>
   );
 }

@@ -442,6 +442,36 @@ describe("when it cannot be read", () => {
     expect(panel().querySelector("[role='alert']")).toBeNull();
   });
 
+  test("test_trying_again_hands_the_focus_to_the_bar_of_the_part_and_never_leaves_it_on_nothing", async () => {
+    // Walked by keyboard: the button goes as it is pressed, whether the figures then come or
+    // fail again, and the focus went with it to the body of the page.
+    const api = standInApi().unreachable("get_census");
+    const { user } = await opened(api);
+    const again = () => within(panel()).getByRole("button", { name: CENSUS.again });
+    const pressed = again();
+
+    act(() => pressed.focus());
+    await user.keyboard("{Enter}");
+
+    // It failed again. The button that stands there now is another, and the bar has the focus.
+    await waitFor(() => expect(api.calls).toHaveLength(2));
+    await waitFor(() => expect(within(panel()).getByRole("alert")).toBeInTheDocument());
+    expect(again()).not.toBe(pressed);
+    expect(opener()).toHaveFocus();
+    expect(panel().open).toBe(true);
+
+    api.on("get_census", "census");
+    act(() => again().focus());
+    await user.keyboard("{Enter}");
+
+    // The figures came, and the focus is where it was handed: the next stop is the first table.
+    await waitFor(() => expect(tables()).toHaveLength(served.tables.length));
+    expect(opener()).toHaveFocus();
+    expect(panel().open).toBe(true);
+    await user.tab();
+    expect(document.activeElement).toBe(tables()[0]?.querySelector("summary"));
+  });
+
   test("test_a_service_that_serves_no_census_is_said_in_the_apis_words", async () => {
     const off = recordedError("census-off");
     await opened(standInApi().on("get_census", "census-off"));
@@ -464,5 +494,36 @@ describe("when it cannot be read", () => {
 
     expect(within(panel()).getByRole("alert")).toHaveTextContent(FAILURE.unreadable);
     expect(panel().textContent?.includes("99%")).toBe(false);
+  });
+});
+
+describe("the look of the part, which is the page's", () => {
+  test("test_it_is_the_browsers_own_fold_and_its_bar_is_the_bar_of_every_fold_with_its_heading_on_it", () => {
+    show();
+
+    // It is one of the stack of parts of the page, by the name the page lends it, and folds with scripts off.
+    expect(panel().tagName).toBe("DETAILS");
+    expect(panel()).toHaveClass("closed", "fold", "stacked");
+    // Its bar is drawn as every bar that folds is: its arrow, which says nothing, and its heading.
+    expect(opener()).toHaveClass("button", "bar", "target");
+    expect([...opener().children].map((child) => child.tagName)).toEqual(["SPAN", "H2"]);
+    expect(opener().firstElementChild).toHaveAttribute("aria-hidden", "true");
+    expect(opener().firstElementChild).toBeEmptyDOMElement();
+    expect(opener().querySelector(":scope > h2")?.textContent).toBe(offer.heading);
+    // Nothing of it is handed a drawing or a style of its own: the page hands the arrow to all it holds.
+    expect(panel().querySelectorAll("[style], [data-kind]").length).toBe(0);
+  });
+
+  test("test_a_failure_is_drawn_as_a_failure_is_and_its_one_button_as_a_button_of_the_look", async () => {
+    await opened(standInApi().unreachable("get_census"));
+    const alert = within(panel()).getByRole("alert");
+    const again = within(alert).getByRole("button", { name: CENSUS.again });
+
+    expect(alert).toHaveClass("fault");
+    // It is the native button it was, as large as a main control, and says what it is for.
+    expect(again).toHaveClass("again", "target");
+    expect(again).toHaveAttribute("type", "button");
+    // What it says stands on its face, which is what steps under a press: the button does not move.
+    expect([...again.children].map((child) => [child.tagName, child.textContent])).toEqual([["SPAN", CENSUS.again]]);
   });
 });

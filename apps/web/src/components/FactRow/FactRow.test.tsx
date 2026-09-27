@@ -52,6 +52,12 @@ const byTemplate = (template: TemplateId) => all.find((fact) => fact.template ==
 /** The slot that holds what a budget is held against: the upper end of a range, or a middle. */
 const heldIn = (fact: Fact) => (fact.slots.upper === undefined ? "median" : "upper");
 
+const COLUMN = FACT_COLUMNS;
+/** Where a journey stands against the limit that was set: said only of a search that sets one. */
+const AGAINST_A_LIMIT: readonly string[] = [COLUMN.limit, COLUMN.underLimit, COLUMN.overLimit, COLUMN.estimate];
+/** How much of a vibe a band rests on: said only of a band that rests on part of it. */
+const RESTS_ON_PART: readonly string[] = [COLUMN.partsKnown, COLUMN.parts, COLUMN.share];
+
 describe("a fact laid out in columns", () => {
   test("test_there_is_a_recorded_fact_of_nearly_every_template_to_test_with", () => {
     const seen = new Set(all.map((fact) => fact.template));
@@ -76,62 +82,67 @@ describe("a fact laid out in columns", () => {
     }
   });
 
+  // A column is named by its key. What each name says is held beside the names, in
+  // `content/facts.test.ts`: a name may be written again, and which columns a template has may not.
   test.each([
-    ["feature", ["Figure", "Where it sits"]],
-    ["feature_crime", ["Figure", "Where it sits"]],
-    ["vibe", ["Band, of five", "Counted from", "Areas compared in this release", "Parts dated"]],
-    ["vibe_range", ["Varies within this area, across bands", "Counted from", "Parts dated"]],
-    ["vibe_unknown", ["Parts with a figure in this release", "Parts in the recipe"]],
-    ["cost_rent", ["Kind of home", "Range", "Middle", "As of", "Confidence"]],
-    ["cost_buy", ["Kind of home", "Range", "Middle", "As of", "Confidence"]],
-    ["cost_buy_median", ["Kind of home", "Middle price, homes of all sizes", "Homes sold in"]],
-    ["cost_buy_sold", ["Kind of home", "Middle price, homes of all sizes", "Homes sold in", "Sales it rests on"]],
-    ["budget_under", ["Upper end of the range", "Your budget", "Under your budget by"]],
-    ["budget_over", ["Upper end of the range", "Your budget", "Over your budget by"]],
-    ["budget_under_median", ["Middle price, homes of all sizes", "Your budget", "Under your budget by"]],
-    ["budget_over_median", ["Middle price, homes of all sizes", "Your budget", "Over your budget by"]],
-    ["budget_at", ["Upper end of the range", "Your budget", "Against your budget"]],
-    ["budget_at_median", ["Middle price, homes of all sizes", "Your budget", "Against your budget"]],
+    ["feature", [COLUMN.value, COLUMN.standing]],
+    ["feature_crime", [COLUMN.value, COLUMN.standing]],
+    ["vibe", [COLUMN.band, COLUMN.ends, COLUMN.compared, COLUMN.partsDated]],
+    ["vibe_range", [COLUMN.bands, COLUMN.ends, COLUMN.partsDated]],
+    ["vibe_unknown", [COLUMN.partsKnown, COLUMN.parts]],
+    ["cost_rent", [COLUMN.segment, COLUMN.range, COLUMN.median, COLUMN.asOf, COLUMN.confidence]],
+    ["cost_buy", [COLUMN.segment, COLUMN.range, COLUMN.median, COLUMN.asOf, COLUMN.confidence]],
+    ["cost_buy_median", [COLUMN.segment, COLUMN.middleOfAll, COLUMN.soldIn]],
+    ["cost_buy_sold", [COLUMN.segment, COLUMN.middleOfAll, COLUMN.soldIn, COLUMN.sales]],
+    ["budget_under", [COLUMN.upper, COLUMN.amount, COLUMN.under]],
+    ["budget_over", [COLUMN.upper, COLUMN.amount, COLUMN.over]],
+    ["budget_under_median", [COLUMN.middleOfAll, COLUMN.amount, COLUMN.under]],
+    ["budget_over_median", [COLUMN.middleOfAll, COLUMN.amount, COLUMN.over]],
+    ["budget_at", [COLUMN.upper, COLUMN.amount, COLUMN.againstBudget]],
+    ["budget_at_median", [COLUMN.middleOfAll, COLUMN.amount, COLUMN.againstBudget]],
     [
       "budget_at_recorded",
-      ["Middle rent", "A figure of", "Rents recorded in", "Rents it rests on, to the nearest ten", "Your budget", "Against your budget"],
+      [COLUMN.middleRent, COLUMN.figureOf, COLUMN.recordedIn, COLUMN.rents, COLUMN.amount, COLUMN.againstBudget],
     ],
-    ["travel_pt", ["To", "How", "Typical minutes", "Minutes if you just miss one"]],
-    ["travel_other", ["To", "How", "Minutes"]],
-    ["travel_estimated", ["To", "How", "How this is known"]],
-    ["likeness", ["Alike", "Measures in the same band", "Measures compared", "Least alike in"]],
-    ["missing_journey", ["Name", "To"]],
-    ["station", ["Station", "Minutes on foot", "Lines"]],
-    ["station_nearby", ["Station", "Minutes on foot", "Lines"]],
-    ["area", ["Name", "Borough"]],
-    ["missing", ["Name"]],
+    ["travel_pt", [COLUMN.place, COLUMN.mode, COLUMN.typical, COLUMN.missed]],
+    ["travel_other", [COLUMN.place, COLUMN.mode, COLUMN.minutes]],
+    ["travel_estimated", [COLUMN.place, COLUMN.mode, COLUMN.howKnown]],
+    ["likeness", [COLUMN.other, COLUMN.same, COLUMN.measures, COLUMN.leastAlike]],
+    ["missing_journey", [COLUMN.name, COLUMN.place]],
+    ["station", [COLUMN.station, COLUMN.walk, COLUMN.lines]],
+    ["station_nearby", [COLUMN.station, COLUMN.walk, COLUMN.lines]],
+    ["area", [COLUMN.name, COLUMN.borough]],
+    ["missing", [COLUMN.name]],
   ] as const)("test_the_columns_are_chosen_by_the_template: %s", (template, columns) => {
     const fact = byTemplate(template);
     if (!fact) throw new Error(`no recorded fact of template ${template}`);
 
     // A journey of a search that sets a limit says where it stands against it as well. So
-    // does a vibe say how many parts it rests on, where that is not all of them.
+    // does a vibe say how many measurements it rests on, where that is not all of them.
     const shown = columnsOf(fact).map(([column]) => column);
     const whole = fact.kind !== "tag" || fact.template === "vibe_unknown";
     expect(
       shown
-        .filter((column) => !/your limit/i.test(column))
-        .filter((column) => whole || !/^Parts (with a figure|in the recipe)/.test(column)),
+        .filter((column) => !AGAINST_A_LIMIT.includes(column))
+        .filter((column) => whole || !RESTS_ON_PART.includes(column)),
     ).toEqual(columns);
   });
 
   test.each([
-    ["travel_pt", "Under your limit by, in minutes"],
-    ["travel_pt_over", "Over your limit by, in minutes"],
-    ["travel_other_over", "Over your limit by, in minutes"],
+    ["travel_pt", COLUMN.underLimit],
+    ["travel_pt_over", COLUMN.overLimit],
+    ["travel_other_over", COLUMN.overLimit],
   ] as const)("test_a_journey_says_where_it_stands_against_the_limit_that_was_set: %s", (template, column) => {
     const fact = all.find((one) => one.template === template && one.slots.limit !== undefined);
     if (!fact) throw new Error(`no recorded journey of template ${template} with a limit`);
 
     expect(Object.fromEntries(columnsOf(fact))).toMatchObject({
-      "Your limit, in minutes": fact.slots.limit,
+      [COLUMN.limit]: fact.slots.limit,
       [column]: fact.slots.margin,
     });
+    // Under is never said of a journey that is over, nor over of one that is under.
+    expect(COLUMN.underLimit).toMatch(/^Under your limit\b/);
+    expect(COLUMN.overLimit).toMatch(/^Over your limit\b/);
   });
 
   test("test_a_cost_that_is_the_budget_to_the_pound_is_said_to_be_at_it_and_no_difference_is_drawn", () => {
@@ -211,6 +222,8 @@ describe("a fact laid out in columns", () => {
 
   test("test_a_journey_that_was_estimated_says_its_band_and_that_it_is_an_estimate_and_gives_no_minutes", () => {
     const bands = all.filter((fact) => fact.template === "travel_estimated");
+    const saidOfAnEstimate = recordedAnswer("get_meta", "estimate/meta").body.data.journey_estimate?.said;
+    expect(saidOfAnEstimate).toMatch(/\bestimate\b.*\bnot a time from a timetable\b/);
 
     // One of each band is recorded: likely within, borderline and likely beyond.
     expect(new Set(bands.map((fact) => fact.slots.band))).toEqual(
@@ -218,15 +231,16 @@ describe("a fact laid out in columns", () => {
     );
     for (const fact of bands) {
       expect(Object.fromEntries(columnsOf(fact))).toEqual({
-        To: fact.slots.place,
-        How: fact.slots.mode,
-        "Your limit, in minutes": fact.slots.limit,
-        "Against your limit": fact.slots.verdict,
-        "How this is known": fact.slots.estimated,
+        [COLUMN.place]: fact.slots.place,
+        [COLUMN.mode]: fact.slots.mode,
+        [COLUMN.limit]: fact.slots.limit,
+        [COLUMN.estimate]: fact.slots.verdict,
+        [COLUMN.howKnown]: fact.slots.estimated,
       });
-      // The words the website says a band in, and the line under it, are the API's own.
+      // The words the website says a band in are the API's own, and the line under it is
+      // the one the service says of every estimate, word for word.
       expect(fact.slots.verdict).toBe(JOURNEYS.estimated[fact.slots.band as JourneyBand]);
-      expect(fact.slots.estimated).toBe(JOURNEYS.estimatedFrom);
+      expect(fact.slots.estimated).toBe(saidOfAnEstimate);
       // An estimate is never given in minutes: the one number of the fact is the limit.
       expect(fact.numbers).toEqual([fact.slots.limit]);
       for (const slot of ["minutes", "typical", "missed", "margin"]) expect(fact.slots[slot]).toBeUndefined();
@@ -240,13 +254,13 @@ describe("a fact laid out in columns", () => {
     const row = screen.getByRole("group", { name: price.slots.segment });
 
     expect(Object.fromEntries(columnsOf(price))).toEqual({
-      "Kind of home": price.slots.segment,
-      "Middle price, homes of all sizes": `£${price.slots.median}`,
-      "Homes sold in": price.slots.period,
+      [COLUMN.segment]: price.slots.segment,
+      [COLUMN.middleOfAll]: `£${price.slots.median}`,
+      [COLUMN.soldIn]: price.slots.period,
     });
     // No range, and no word for how sure it is: neither is known, and the row says so.
-    expect(columnsOf(price).map(([column]) => column)).not.toContain("Range");
-    expect(columnsOf(price).map(([column]) => column)).not.toContain("Confidence");
+    expect(columnsOf(price).map(([column]) => column)).not.toContain(COLUMN.range);
+    expect(columnsOf(price).map(([column]) => column)).not.toContain(COLUMN.confidence);
     expect(row).toHaveTextContent(ONE_NUMBER);
     expect(row.textContent?.includes("unstated")).toBe(false);
   });
@@ -266,11 +280,17 @@ describe("a fact laid out in columns", () => {
     const row = screen.getByRole("group", { name: "Going out" });
 
     expect(Object.fromEntries(columnsOf(pace))).toMatchObject({
-      "Band, of five": pace.slots.band,
-      "Counted from": "Calm to Buzzy",
+      [COLUMN.band]: pace.slots.band,
+      [COLUMN.ends]: "Calm to Buzzy",
     });
+    // A band is one of five, and the name of its column says of how many.
+    expect(pace.slots.band).toMatch(/^[1-5]$/);
+    expect(COLUMN.band).toMatch(/\bfive\b/);
     // What every sentence about a vibe ends in, word for word.
-    expect(row).toHaveTextContent("The recipe is Burro's own. The weights are a judgement.");
+    expect(pace.slots.judgement).toBe(
+      "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+    );
+    expect(row).toHaveTextContent(pace.slots.judgement ?? "no judgement");
     expect(row.textContent?.includes("%")).toBe(false);
   });
 
@@ -283,16 +303,16 @@ describe("a fact laid out in columns", () => {
     // Marrowfen has no figure for transport noise, so Quiet streets is placed from three parts of four.
     expect([part.template, part.slots.band, part.slots.known, part.slots.parts]).toEqual(["vibe", "2", "3", "4"]);
     expect(Object.fromEntries(columnsOf(part))).toMatchObject({
-      "Parts with a figure in this release": "3",
-      "Parts in the recipe": "4",
+      [COLUMN.partsKnown]: "3",
+      [COLUMN.parts]: "4",
     });
     // A band that rests on the whole of its recipe says no more than it did.
     expect([whole.slots.known, whole.slots.parts]).toEqual(["3", "3"]);
     expect(columnsOf(whole).map(([column]) => column)).toEqual([
-      "Band, of five",
-      "Counted from",
-      "Areas compared in this release",
-      "Parts dated",
+      COLUMN.band,
+      COLUMN.ends,
+      COLUMN.compared,
+      COLUMN.partsDated,
     ]);
   });
 
@@ -305,13 +325,15 @@ describe("a fact laid out in columns", () => {
     const told = columnsOf({ ...part, slots: { ...part.slots, share: "70" } });
 
     expect(Object.fromEntries(told)).toMatchObject({
-      "Parts with a figure in this release": "3",
-      "Parts in the recipe": "4",
-      "Share of the recipe they carry, in hundredths": "70",
+      [COLUMN.partsKnown]: "3",
+      [COLUMN.parts]: "4",
+      [COLUMN.share]: "70",
     });
     // Of a band that rests on the whole of its recipe nothing is said, whatever the fact holds.
+    // The date of its measurements is said of it as of any band.
     const shown = columnsOf({ ...whole, slots: { ...whole.slots, share: "100" } }).map(([column]) => column);
-    expect(shown.filter((column) => /^(Parts|Share)/.test(column))).toEqual(["Parts dated"]);
+    expect(shown.filter((column) => RESTS_ON_PART.includes(column))).toEqual([]);
+    expect(shown).toContain(COLUMN.partsDated);
   });
 
   test("test_a_mixed_area_that_rests_on_part_of_a_recipe_says_so_too", () => {
@@ -321,8 +343,8 @@ describe("a fact laid out in columns", () => {
     const columns = columnsOf({ ...mixed, slots: { ...mixed.slots, known: "3", parts: "4" } });
 
     expect(Object.fromEntries(columns)).toMatchObject({
-      "Parts with a figure in this release": "3",
-      "Parts in the recipe": "4",
+      [COLUMN.partsKnown]: "3",
+      [COLUMN.parts]: "4",
     });
   });
 
@@ -330,10 +352,10 @@ describe("a fact laid out in columns", () => {
     const mixed = byTemplate("vibe_range");
     if (!mixed) throw new Error("no recorded mixed area");
 
-    expect(Object.fromEntries(columnsOf(mixed))["Varies within this area, across bands"]).toBe(
+    expect(Object.fromEntries(columnsOf(mixed))[COLUMN.bands]).toBe(
       `${mixed.slots.spread_low} to ${mixed.slots.spread_high}`,
     );
-    expect(columnsOf(mixed).map(([column]) => column)).not.toContain("Band, of five");
+    expect(columnsOf(mixed).map(([column]) => column)).not.toContain(COLUMN.band);
   });
 
   test("test_an_area_a_vibe_cannot_place_says_so_and_shows_no_band", () => {
@@ -342,7 +364,8 @@ describe("a fact laid out in columns", () => {
     render(<FactRow fact={unknown} />);
 
     expect(screen.getByRole("group")).toHaveTextContent(CANNOT_PLACE);
-    expect(columnsOf(unknown).map(([column]) => column)).not.toContain("Band, of five");
+    expect(columnsOf(unknown).map(([column]) => column)).not.toContain(COLUMN.band);
+    expect(columnsOf(unknown).map(([column]) => column)).not.toContain(COLUMN.bands);
   });
 
   test("test_a_fact_of_a_template_the_website_was_not_built_with_is_named_and_shows_no_column", () => {
@@ -364,10 +387,12 @@ describe("a fact laid out in columns", () => {
 
     expect(beyond.slots).toMatchObject({ mode: "On foot", place: "Cindermoor Works", cutoff: "60" });
     expect(columnsOf(beyond)).toEqual([
-      ["To", "Cindermoor Works"],
-      ["How", "On foot"],
-      ["More than, in minutes", "60"],
+      [COLUMN.place, "Cindermoor Works"],
+      [COLUMN.mode, "On foot"],
+      [COLUMN.moreThan, "60"],
     ]);
+    // The one figure of the row is no time of the journey, and its column says so: more than.
+    expect(COLUMN.moreThan).toMatch(/\bmore than\b.*\bminutes\b/i);
     // No time is given, because none is known.
     expect(Object.keys(beyond.slots).filter((slot) => /minutes|typical|missed/.test(slot))).toEqual([]);
   });
@@ -377,9 +402,9 @@ describe("a fact laid out in columns", () => {
     if (!cost) throw new Error("no recorded cost");
 
     expect(Object.fromEntries(columnsOf(cost))).toMatchObject({
-      Range: "£975 to £1,300",
-      Middle: "£1,125",
-      "As of": "August 2026",
+      [COLUMN.range]: "£975 to £1,300",
+      [COLUMN.median]: "£1,125",
+      [COLUMN.asOf]: "August 2026",
     });
   });
 
@@ -472,17 +497,17 @@ describe("a fact on a page that must read with scripts off", () => {
 
     // The kind of home is the row's name, so it is not said again as its first column.
     expect(named.getAllByRole("term").map((term) => term.textContent)).toEqual([
-      "Range",
-      "Middle",
-      "As of",
-      "Confidence",
+      COLUMN.range,
+      COLUMN.median,
+      COLUMN.asOf,
+      COLUMN.confidence,
     ]);
     expect(named.getAllByText(cost.slots.segment ?? "no kind")).toHaveLength(1);
     unmount();
 
     // Named by its label, the row still says what kind of home it is of.
     render(<FactRow fact={cost} source="line" />);
-    expect(within(screen.getByRole("group")).getAllByRole("term")[0]).toHaveTextContent("Kind of home");
+    expect(within(screen.getByRole("group")).getAllByRole("term")[0]).toHaveTextContent(COLUMN.segment);
   });
 
   test("test_a_row_with_its_source_written_out_has_no_accessibility_fault", async () => {
@@ -528,7 +553,7 @@ describe("a rent that is of a wider place than the area", () => {
     for (const fact of [rent, over, under]) {
       const { unmount } = render(<FactRow fact={fact} source="line" />);
 
-      expect(fact.slots.is_of).toMatch(/^This is of .+, and not of .+ alone\.$/);
+      expect(fact.slots.is_of).toMatch(/^These rents are for .+, and not for .+ alone\.$/);
       expect(screen.getByText(fact.slots.is_of ?? "no sentence")).toBeInTheDocument();
       unmount();
     }

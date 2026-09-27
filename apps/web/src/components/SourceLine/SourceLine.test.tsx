@@ -128,8 +128,8 @@ describe("the source of a figure, written out", () => {
   test("test_the_sources_of_a_vibe_are_said_to_be_what_its_recipe_is_made_from", () => {
     render(<SourceLine facts={[vibe]} />);
 
-    // The words are the API's: a vibe is Burro's own recipe, and the sources are of its parts.
-    expect(vibe.slots.made_from).toBe("Burro's recipe. Made from data published by:");
+    // The words are the API's: a vibe is worked out by Burro, and the sources are of what it is worked out from.
+    expect(vibe.slots.made_from).toBe("Burro worked this out from data published by:");
     expect(screen.getByRole("link").closest("p")).toHaveTextContent(
       `${vibe.slots.made_from} ${named(vibe)}. ${SOURCE.dataFrom} ${vibe.as_of}. ${SOURCE.madeUp}`,
     );
@@ -200,5 +200,22 @@ describe("the source of a figure, written out", () => {
     const { container } = render(<SourceLine facts={[cost, real]} />);
 
     expect(await faultsIn(container)).toEqual([]);
+  });
+
+  test("test_the_key_of_a_source_stands_before_the_line_and_is_drawn_by_the_style_sheet", () => {
+    const { container } = render(<SourceLine facts={[cost]} />);
+    const line = container.querySelector("p") as HTMLElement;
+
+    // The line is handed the key by name, with its size in art pixels, and lays it itself.
+    expect(line.style.getPropertyValue("--key")).toBe('url("/art/ui-key.png")');
+    expect([line.style.getPropertyValue("--key-w"), line.style.getPropertyValue("--key-h")].map((size) => /^[1-9]\d*$/.test(size))).toEqual([
+      true,
+      true,
+    ]);
+    // It is no element, so the line is heard as it was and nothing of it is kept from anyone.
+    expect(container.querySelectorAll("img, svg, [role='img'], [aria-hidden]").length).toBe(0);
+    expect(line.textContent?.startsWith(`${SOURCE_LINE.source}: `)).toBe(true);
+    // A line of no fact draws no key: there is no line.
+    expect(renderToStaticMarkup(<SourceLine facts={[]} />)).toBe("");
   });
 });

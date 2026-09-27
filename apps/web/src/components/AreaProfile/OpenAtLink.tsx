@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, type ReactNode } from "react";
 
+import { Folded } from "../Disclosure/Folded";
+
 interface Props {
   /** The id a link names to come here. It names a part of the page, never a place. */
   readonly id: string;
-  /** What the part is opened by: its name, which may be a heading. */
-  readonly summary: ReactNode;
+  /** What the part is opened by: its bar, which is one of a stack. */
+  readonly bar: ReactNode;
   readonly className?: string;
   readonly children: ReactNode;
 }
@@ -15,9 +17,10 @@ interface Props {
  * A part of a page that is closed until it is pressed, and is open when a
  * link brought the person to it. It is the browser's own element, so it
  * opens and closes with scripts off, and what it holds is on the page either
- * way. The script does one thing: it opens the part that was asked for.
+ * way. The script does one thing more than any fold does: it opens the part
+ * that was asked for.
  */
-export function OpenAtLink({ id, summary, className, children }: Props) {
+export function OpenAtLink({ id, bar, className, children }: Props) {
   const part = useRef<HTMLDetailsElement>(null);
 
   useEffect(() => {
@@ -30,9 +33,8 @@ export function OpenAtLink({ id, summary, className, children }: Props) {
   }, [id]);
 
   return (
-    <details ref={part} id={id} className={className}>
-      <summary className="target">{summary}</summary>
+    <Folded ref={part} id={id} className={className} bar={bar}>
       {children}
-    </details>
+    </Folded>
   );
 }

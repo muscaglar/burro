@@ -10,11 +10,12 @@
 
 export const INCOME = {
   /** While the figure is asked for. */
-  loading: "Loading the figure.",
+  loading: "Burro is loading the figure.",
   /** Where the figure could not be read. What went wrong is said in the API's words above it. */
-  failed: "The figure could not be loaded.",
+  failed: "Burro could not load the figure this time.",
   again: "Try again",
   /** With scripts off: the figure is not in the page, so that nothing keeps it. */
-  noScript: "The figure is loaded when you ask for it, which needs scripts to be on.",
+  noScript:
+    "Burro loads this figure only when you open this section, and it needs JavaScript to do that. To see the figure, switch JavaScript on in your browser and open the section again.",
   notes: "About this figure",
 } as const;

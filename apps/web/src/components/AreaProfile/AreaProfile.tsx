@@ -19,18 +19,27 @@ import {
 } from "@/lib/area/profile";
 import { sourcesOf } from "@/lib/facts";
 import { paths, type AreaPart } from "@/lib/paths";
+import { heldBy } from "@/lib/town/release";
 
 import { CensusPanel } from "../CensusPanel/CensusPanel";
 import { CENSUS_PART } from "../CensusPanel/part";
 import { CompareButton } from "../CompareTray/CompareButton";
 import { CompareTray } from "../CompareTray/CompareTray";
+import { ofATown } from "../CompareTray/town";
+import { Folded } from "../Disclosure/Folded";
+import { Summary } from "../Disclosure/Summary";
 import { FactRow } from "../FactRow/FactRow";
 import { IncomePanel } from "../IncomePanel/IncomePanel";
 import { INCOME_PART } from "../IncomePanel/part";
+import { Frame } from "../kit/Frame/Frame";
+import { Press } from "../kit/Press/Press";
 import { LocatorMap } from "../LocatorMap/LocatorMap";
 import { Portrait } from "../Portrait/Portrait";
 import { SourceLine } from "../SourceLine/SourceLine";
+import { Town } from "../Town/Town";
 import styles from "./AreaProfile.module.css";
+import { drawnWith } from "./drawn";
+import { TOWN_DRAWN, TOWN_STANDS, type TownDrawn, type TownStands } from "./look";
 import { OpenAtLink } from "./OpenAtLink";
 import { SearchForThis } from "./SearchForThis";
 import { YourJourneys } from "./YourJourneys";
@@ -50,6 +59,10 @@ interface Props {
   readonly areas: readonly Pick<AreaSummary, "area_id" | "slug" | "name">[];
   /** The band of every area on every vibe, from route 4: what this area shares with one that is like it. */
   readonly bands?: readonly VibeBands[];
+  /** How large the town at the head is drawn. Left out, as the page leaves it, it is what `look.ts` chooses. */
+  readonly townDrawn?: TownDrawn;
+  /** Where the town stands in the head, for the eye. Left out, it is what `look.ts` chooses. */
+  readonly townStands?: TownStands;
 }
 
 const LIST = new Intl.ListFormat("en-GB", { style: "long", type: "conjunction" });
@@ -127,10 +140,13 @@ interface ClosedProps {
  * A part of the page that is closed until it is pressed, under a heading of
  * its own. It is the browser's own element, so it opens with scripts off, and
  * what it holds is in the page either way. A link that names it opens it.
+ *
+ * Its bar is the bar of every fold of the website, one of a stack, and its
+ * name is the heading of the part. The page hands the arrow to all it holds.
  */
 function Closed({ id, title, children }: ClosedProps) {
   return (
-    <OpenAtLink id={id} className={styles.closed} summary={<h2 className={styles.opensTo}>{title}</h2>}>
+    <OpenAtLink id={id} className={styles.closed} bar={<Summary label={title} heading={2} handed />}>
       <div className={styles.part}>{children}</div>
     </OpenAtLink>
   );
@@ -150,8 +166,25 @@ function Closed({ id, title, children }: ClosedProps) {
  * need a script are the buttons that put the area among those to compare and
  * that start a search from it, and the census figures, which are asked for
  * when their part is opened.
+ *
+ * It stands on the meadow, each part in a box of its own: the head, the portrait, the list
+ * of what follows, the parts that open, and where to go and look. At its head, after the
+ * name, is the town of the area: a small drawing made by rule from four of its vibes, with
+ * the line that says it is no picture of the place. By the town stands the way to compare
+ * the area with others. Burro is not drawn on this page.
+ *
+ * What folds is drawn as every fold of the website is: the parts that open are one stack
+ * of bars, and the groups inside a part are a stack of their own under what the part says.
  */
-export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) {
+export function AreaProfile({
+  data,
+  meta,
+  geometry,
+  areas,
+  bands = [],
+  townDrawn = TOWN_DRAWN,
+  townStands = TOWN_STANDS,
+}: Props) {
   const { area } = data;
   const named = areaFact(data);
   // The name and the borough are the fact's, where there is one: it carries their source.
@@ -178,8 +211,10 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
   const income = meta.income?.available === true ? meta.income : null;
 
   return (
-    <article className={styles.profile} aria-labelledby="area-name">
-      <header className={styles.head}>
+    // The page says that it is dressed, so that the shell draws no box round it: every
+    // sentence, figure and link below stands in a box of its own.
+    <article className={styles.profile} aria-labelledby="area-name" data-dressed style={drawnWith()}>
+      <Frame kind="box" as="header" className={styles.head} data-town={townStands}>
         <div className={styles.named}>
           <h1 id="area-name">{name}</h1>
           <div className={styles.under}>
@@ -211,12 +246,19 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
             {named ? <SourceLine facts={[named]} /> : null}
           </div>
         </div>
+        {/* The town of the area, drawn from where it sits on four vibes. It is handed the
+            name to say and not to draw, and no rank and no fit. Its line stands with it. */}
+        <Town marks={data.tags} meta={meta} of={name} large={townDrawn === "screen"} className={styles.town} />
         <div className={styles.compare} role="group" aria-label={AREA.compare}>
-          {/* Only what the button needs is handed to the browser. The tray is at the foot of the screen. */}
-          <CompareButton area={here} />
+          {/* The way to compare stands at the head of the page, by the town, as plain as on a
+              result: the same button, which says the same. Beside it is said what comparing
+              is, since no list stands over this page to say so. Only what the button needs
+              is handed to the browser: the area, and the little its town is drawn from, so
+              that the bar at the foot of the screen draws the town that stands here. */}
+          <CompareButton area={here} town={{ release: ofATown(meta), marks: heldBy(data.tags, meta) }} invites />
         </div>
         {area.rankable ? null : <p className={styles.notRanked}>{AREA.notRanked}</p>}
-      </header>
+      </Frame>
 
       <Portrait
         data={data}
@@ -267,7 +309,7 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
       />
 
       {/* The portrait comes first. What else the page holds is listed under it. */}
-      <nav className={styles.contents} aria-label={AREA.contents}>
+      <Frame kind="plain" as="nav" className={styles.contents} aria-label={AREA.contents}>
         <ul>
           {(
             [
@@ -287,9 +329,10 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
             </li>
           ))}
         </ul>
-      </nav>
+      </Frame>
 
-      <div className={styles.closedParts}>
+      {/* One box holds the parts that open, each under its own heading from edge to edge. */}
+      <Frame kind="box" bare className={styles.closedParts}>
         {/* Closed until it is pressed, or come to by a link: "More like this" on a result leads here. */}
         <Closed id={ALIKE} title={AREA.alike.open}>
           <h3 className={styles.small}>{AREA.alike.title}</h3>
@@ -374,26 +417,29 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
           {/* A release holds a hundred measures, and a person came for a few of them. Each
               group is closed under its own name, in the browser's own element, so that the
               part opens to the names of its groups and not to every row of them all. */}
-          {groups.map((group) => (
-            <details key={group.dimension} className={styles.group}>
-              <summary className="target">
-                <h3>{DIMENSION[group.dimension]}</h3>
-              </summary>
-              {/* When recorded crime counts, as every page says it. */}
-              {group.dimension === "crime" ? <p className={styles.lead}>{ruleIn(meta)}</p> : null}
-              <ul className={styles.rows}>
-                {group.rows.map(({ metric, fact }) => (
-                  <li key={metric.feature_id}>
-                    {fact ? (
-                      <FactRow fact={fact} source="line" />
-                    ) : (
-                      <NoFigure name={metric.label} says={AREA.features.noFigure} />
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </details>
-          ))}
+          <div className={styles.groups}>
+            {groups.map((group) => (
+              <Folded
+                key={group.dimension}
+                className={styles.group}
+                bar={<Summary label={DIMENSION[group.dimension]} heading={3} handed />}
+              >
+                {/* When recorded crime counts, as every page says it. */}
+                {group.dimension === "crime" ? <p className={styles.lead}>{ruleIn(meta)}</p> : null}
+                <ul className={styles.rows}>
+                  {group.rows.map(({ metric, fact }) => (
+                    <li key={metric.feature_id}>
+                      {fact ? (
+                        <FactRow fact={fact} source="line" />
+                      ) : (
+                        <NoFigure name={metric.label} says={AREA.features.noFigure} />
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </Folded>
+            ))}
+          </div>
         </Closed>
 
         <Closed id={SECTION.sources} title={AREA.sources.title}>
@@ -425,9 +471,9 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
           does and is asked for as it is: the figure is not in the page, and is handed to nothing.
         */}
         {income === null ? null : <IncomePanel offer={income} area={{ slug: area.slug }} />}
-      </div>
+      </Frame>
 
-      <section className={styles.part} aria-labelledby={SECTION.look}>
+      <Frame kind="box" as="section" className={`${styles.part} ${styles.go}`} aria-labelledby={SECTION.look}>
         <h2 id={SECTION.look}>{LOOK.title}</h2>
         <p className={styles.lead}>{LOOK.lead}</p>
         <div className={styles.look}>
@@ -448,8 +494,7 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
               ))}
               {/* A release holds fourteen vibes, and each cannot see four things or five. The
                   list is one press away, in the browser's own element. */}
-              <details className={styles.group}>
-                <summary className="target">{LOOK.cannotSeeEach}</summary>
+              <Folded className={styles.group} bar={<Summary label={LOOK.cannotSeeEach} handed />}>
                 <dl className={styles.unseen}>
                   {unseen.own.map(({ tag, lines }) => (
                     <div key={tag.tag_id}>
@@ -469,16 +514,17 @@ export function AreaProfile({ data, meta, geometry, areas, bands = [] }: Props) 
                     {LOOK.vibes}
                   </Link>
                 </p>
-              </details>
+              </Folded>
             </div>
           ) : null}
         </div>
-      </section>
+      </Frame>
 
+      {/* The way back is a button of the look, which brings the ground it is read on. */}
       <p className={styles.back}>
-        <Link className="target" href={paths.home()}>
+        <Press kind="go" href={paths.home()}>
           {AREA.search}
-        </Link>
+        </Press>
       </p>
 
       {/* It takes no room until an area is chosen, and then stays at the foot of the screen. */}

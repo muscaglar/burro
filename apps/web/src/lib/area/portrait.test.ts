@@ -6,6 +6,7 @@ import { isRough } from "@/content/rough";
 import { readRecorded, recordedAnswer, recordedFolder } from "@/lib/api/recorded";
 import type { AreaData, MetaData } from "@/lib/api/schema";
 
+import { ROUGH, sayingSo } from "../../../test/support/rough";
 import {
   cannotSee,
   GROUPS,
@@ -186,8 +187,8 @@ describe("a band that rests on part of a recipe", () => {
       parts: "5",
       missing: [],
       waiting: [
-        "Straight-line distance to the nearest GP practice, placed by its postcode",
-        "Straight-line distance to the nearest pharmacy, placed by its postcode",
+        "Distance to the nearest GP practice, in a straight line, with each practice placed by its postcode",
+        "Distance to the nearest pharmacy, in a straight line, with each pharmacy placed by its postcode",
       ],
       notCarried: 0,
     });
@@ -359,19 +360,30 @@ describe("what an area is like, in short", () => {
     expect(short("thrushcombe").map((mark) => mark.placed?.band)).toEqual([5, 5, 5, 1, 5]);
   });
 
-  test("test_a_vibe_that_is_a_rough_guide_is_in_no_line_of_it_wherever_the_area_sits", () => {
+  test("test_a_vibe_the_service_says_is_less_sure_is_in_no_line_of_it_wherever_the_area_sits", () => {
     // Thrushcombe is a made-up village, in the highest band of Village feel.
     const village = shownOn(portraitOf(profile("thrushcombe"), meta)).find((mark) => isRough(mark.tag));
     expect(village?.tag.tag_id).toBe("village_feel");
     expect(village?.placed?.band).toBe(5);
-    expect(village?.rough).toEqual(meta.rough_guides.find((one) => one.tag_id === "village_feel"));
     for (const data of profiles) {
       expect(inShort(portraitOf(data, meta), meta.features).filter((mark) => isRough(mark.tag))).toEqual([]);
     }
-    // A vibe that does not say is as sure as the rest, and nothing is said of it.
-    const sure = shownOn(portraitOf(profile("thrushcombe"), meta)).filter((mark) => !isRough(mark.tag));
-    expect(sure.length).toBeGreaterThan(0);
-    for (const mark of sure) expect(mark.rough).toBeNull();
+  });
+
+  test("test_no_vibe_of_the_portrait_holds_what_a_rough_guide_says_of_itself", () => {
+    // The founder: "remove the concept of rough guide, we don't want to pass this on to a user".
+    // What a page is handed of a vibe holds no label and no sentence to draw, though the
+    // release it is made of says both, as a service gave it that said them.
+    const told = sayingSo(meta);
+    expect(told.rough_guides).toEqual([ROUGH]);
+    for (const data of profiles) {
+      const portrait = portraitOf(data, told);
+      for (const mark of GROUPS.flatMap((group) => portrait[group])) {
+        expect(Object.keys(mark).sort()).toEqual(["fact", "figure", "held", "parts", "pictured", "placed", "tag"]);
+      }
+      const held = JSON.stringify(portrait);
+      expect([data.area.slug, held.includes(ROUGH.label), held.includes(ROUGH.why)]).toEqual([data.area.slug, false, false]);
+    }
   });
 
   test("test_it_says_what_an_area_has_least_of_as_well_as_what_it_has_most_of", () => {
@@ -428,7 +440,7 @@ describe("what a vibe cannot see", () => {
   test("test_what_every_vibe_cannot_see_is_said_once_and_the_rest_is_each_vibes_own", () => {
     const { common, own } = cannotSee(meta.tags, meta.tags);
 
-    expect(common).toEqual(["One street or one home. An area is many streets."]);
+    expect(common).toEqual(["What one street or one home is like, because an area is made up of many streets."]);
     expect(own.map((one) => one.tag.tag_id)).toEqual(meta.tags.map((tag) => tag.tag_id));
     for (const { tag, lines } of own) {
       // Every line is the API's, word for word, and in its order.

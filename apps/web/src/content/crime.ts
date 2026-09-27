@@ -8,27 +8,34 @@
  * No vibe is written here. Which vibe holds recorded crime, and which parts
  * of its recipe are of crime, is read from route 11, and named as the API
  * names it.
+ *
+ * It is said in words a person follows who has never seen Burro: a vibe "includes"
+ * recorded crime, where the design says that its recipe holds it. What it says is what it
+ * said: only when it is asked for, the three ways of asking, and that to ask for such a
+ * vibe is to ask for recorded crime by name. It calls no place safe or unsafe. It names the
+ * settings as they name themselves, which is how a person finds them.
  */
 
 import type { MetaData, Metric, Tag } from "@/lib/api/schema";
 
 /** The rule, word for word wherever it is said. */
 export const CRIME_RULE =
-  "Recorded crime counts only when you ask for it by name, switch it on in the settings, or ask for a vibe whose recipe holds it.";
+  "Burro counts recorded crime in a search only when you ask for it. You can ask for it by name, switch it on under Space requirements, or ask for a vibe that includes it.";
 
 export const CRIME_ACCOUNT = {
   rule: CRIME_RULE,
   /** Where no vibe of the release holds recorded crime. */
-  noVibe: "In this data no vibe holds it.",
+  noVibe: "At the moment, none of the vibes on offer includes recorded crime.",
   /** Before the vibes that do. Each is then named, with the parts of its recipe that are of crime. */
-  vibes: "In this data the vibes that hold it are these, each with what it counts.",
+  vibes: "These are the vibes that include recorded crime, each with the kinds of recorded crime it counts.",
   /** On the card of such a vibe, before the parts of its recipe that are of crime. */
   counts: "This vibe counts recorded crime",
   /** On the chip of such a vibe, after its name, so that a search that holds it says so in the row. */
   chip: "counts recorded crime",
   /** After them: what asking for the vibe is. A scale counts it towards whichever end is asked for. */
-  asking: "To ask for it, towards either end, is to ask for recorded crime by name.",
-  askingOneWay: "To ask for it is to ask for recorded crime by name.",
+  asking:
+    "If you ask for this vibe, at either end of it, you are asking for recorded crime by name, so Burro will count it.",
+  askingOneWay: "If you ask for this vibe, you are asking for recorded crime by name, so Burro will count it.",
 } as const;
 
 /** What asking for a vibe that holds recorded crime is, by whether the vibe is a scale. */

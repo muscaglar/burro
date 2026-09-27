@@ -1,17 +1,22 @@
 /**
  * Site copy for a fact laid out in columns: the name of each column.
  *
- * A fact from an area's profile has no sentence of its own, so its slots are
+ * A fact from an area's page has no sentence of its own, so its slots are
  * laid out under these names. The values are the API's, already formatted,
  * and are shown as they came. A money slot gets its pound sign and nothing
  * else is added.
+ *
+ * A name says what the figure under it is a figure of, and in what it is counted where the
+ * figure is a bare number: minutes, out of five, out of a hundred. It is written for
+ * somebody who has never seen Burro, so it says "measurements" where the design says the
+ * parts of a recipe. It holds no figure and passes no judgement.
  */
 
 import type { TemplateId } from "@/lib/api/schema";
 
 export const FACT_COLUMNS = {
   value: "Figure",
-  standing: "Where it sits",
+  standing: "Compared with other areas",
   segment: "Kind of home",
   range: "Range",
   median: "Middle",
@@ -22,13 +27,13 @@ export const FACT_COLUMNS = {
   middleOfAll: "Middle price, homes of all sizes",
   soldIn: "Homes sold in",
   // A price counted from sales says how many it rests on. The count is a slot of the fact.
-  sales: "Sales it rests on",
+  sales: "Number of sales it is based on",
   // A rent that is of a wider place than the area: the place it is of, the months the rents
   // were recorded in, and how many they were. Each value is a slot of the fact.
   middleRent: "Middle rent",
-  figureOf: "A figure of",
+  figureOf: "This figure is for",
   recordedIn: "Rents recorded in",
-  rents: "Rents it rests on, to the nearest ten",
+  rents: "Number of rents it is based on, to the nearest ten",
   amount: "Your budget",
   under: "Under your budget by",
   over: "Over your budget by",
@@ -36,10 +41,10 @@ export const FACT_COLUMNS = {
   againstBudget: "Against your budget",
   place: "To",
   mode: "How",
-  typical: "Typical minutes",
-  missed: "Minutes if you just miss one",
+  typical: "Minutes on a typical weekday morning",
+  missed: "Minutes if you just miss a service",
   minutes: "Minutes",
-  moreThan: "More than, in minutes",
+  moreThan: "Takes more than, in minutes",
   name: "Name",
   borough: "Borough",
   station: "Station",
@@ -55,34 +60,35 @@ export const FACT_COLUMNS = {
   howKnown: "How this is known",
   underLimit: "Under your limit by, in minutes",
   overLimit: "Over your limit by, in minutes",
-  band: "Band, of five",
-  bands: "Varies within this area, across bands",
-  ends: "Counted from",
-  compared: "Areas compared in this release",
-  partsDated: "Parts dated",
-  partsKnown: "Parts with a figure in this release",
-  parts: "Parts in the recipe",
+  band: "Band, out of five",
+  bands: "Varies within this area, between bands",
+  ends: "The bands run from",
+  compared: "Number of areas compared",
+  partsDated: "Date of the measurements",
+  partsKnown: "Measurements Burro has for this area",
+  parts: "Measurements this vibe uses",
   // No figure stands in the name of a column: every figure on a page is a slot of a fact.
-  share: "Share of the recipe they carry, in hundredths",
-  other: "Alike",
+  share: "How much of the vibe they account for, out of a hundred",
+  other: "Compared with",
   same: "Measures in the same band",
   measures: "Measures compared",
   leastAlike: "Least alike in",
 } as const;
 
 /** Said of an area a vibe cannot place, in place of a band. It names a state and no figure. */
-export const CANNOT_PLACE = "Burro cannot place this area on it";
+export const CANNOT_PLACE = "Burro could not work out this vibe for this area.";
 
 /**
  * Said of a price that is one number, where a range would stand its two ends. It is of the
  * kind of figure and of no place: a publisher's own middle price holds no more than this.
  */
-export const ONE_NUMBER = "The publisher gives no range, and does not say how many sales this figure rests on.";
+export const ONE_NUMBER =
+  "The publisher gives this one figure with no range, and does not say how many sales it is based on.";
 
 /** What each kind of row is called when nothing else names it. */
 export const FACT_KIND: Readonly<Record<TemplateId, string>> = {
   area: "Area",
-  feature: "Feature",
+  feature: "Measurement",
   feature_crime: "Recorded crime",
   vibe: "Vibe",
   vibe_range: "Vibe",
@@ -111,6 +117,6 @@ export const FACT_KIND: Readonly<Record<TemplateId, string>> = {
   station_nearby: "Station within a short walk",
   missing: "No figure",
   missing_journey: "No journey time",
-  likeness: "Likeness",
-  likeness_same: "Likeness",
+  likeness: "Similar area",
+  likeness_same: "Similar area",
 };

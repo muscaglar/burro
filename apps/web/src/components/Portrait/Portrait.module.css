@@ -1,10 +1,20 @@
 /*
- * The portrait: one line for each vibe. On a wide screen the heading of each list stands
- * to the left of its vibes, so that a heading costs no line of its own and the whole
- * portrait is on the first screen.
+ * The portrait, as the look draws it: what the area is like in short and where it is, and
+ * then every vibe on its line, under the name of the list the service puts it in.
+ *
+ * It stands in a box of cream on the meadow. It is one box, as Town Map drew the vibes of
+ * an area, or a box for each of its parts with grass between them: `look.ts` chooses. The
+ * box is the kit's, and brings its ground and its shadow.
+ *
+ * A vibe is one line: its name, the five steps with their peg between its two ends, where
+ * the area sits in words, and its band. Every vibe has the one small picture of each of its
+ * ends. The name of a vibe and the name of a list are short labels, and are set in the face
+ * of names. Everything else is read, and is set in the reading face, in ink or in the
+ * quieter colour, on cream.
  */
 .portrait {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
   min-width: 0;
 }
@@ -13,10 +23,28 @@
   margin: 0;
 }
 
+/*
+ * What opens the portrait is laid out by its own width, and not by that of the screen: it
+ * is as wide as what holds it, whatever it holds.
+ */
+.opening {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  min-width: 0;
+  container-type: inline-size;
+}
+
+/*
+ * What is said of the lists that follow. It stands at the foot of what opens the portrait,
+ * under a solid rule of ink, as what a box says next does, and leads to the lists under it.
+ */
 .lead {
   margin: 0;
   max-width: none;
-  color: var(--muted);
+  padding-block-start: var(--space-3);
+  border-block-start: var(--edge) solid var(--border);
+  color: var(--ink);
 }
 
 /*
@@ -35,15 +63,43 @@
   display: grid;
   gap: var(--space-2);
   min-width: 0;
-  padding: var(--space-3) var(--space-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
 }
 
-.short h3 {
+/* The name of a part of the portrait, as Town Map draws a label: page on a plate of ink. */
+.short h3,
+.heading h3 {
+  justify-self: start;
   margin: 0;
-  font-size: var(--size-lead);
+  padding: calc(var(--px) * 1) calc(var(--px) * 3);
+  background: var(--ink);
+  color: var(--page);
+  font: 400 var(--name-1) / 1.2 var(--font-name);
+  font-synthesis: none;
+}
+
+/*
+ * Where what opens the portrait is as narrow as a phone, the label of what the area is
+ * like stands on the line of the heading, at its far end and on its foot, and the five
+ * lines directly under both: the heading and a label under it took 73 px before a word
+ * was said of the area. The label is pulled up by its own height and the room over it,
+ * and keeps its size: nothing is taken out of the page and laid over it. The lines then
+ * stand as far under the heading as the label stood.
+ *
+ * Where the two have not the room of one line, as with text twice as large, the label
+ * stands under the heading as it does on a wider screen.
+ */
+@container (min-width: 18rem) and (max-width: 39.99rem) {
+  .short > h3 {
+    --plate: calc(var(--name-1) * 1.2 + var(--px) * 2);
+
+    align-self: start;
+    justify-self: end;
+    margin-block-start: calc((var(--plate) + var(--space-3)) * -1);
+  }
+
+  .short > h3 + .shortLines {
+    margin-block-start: calc(var(--space-2) * -1);
+  }
 }
 
 .shortLead,
@@ -62,13 +118,20 @@
   align-items: center;
 }
 
-/* The sources and the dates of the lines: closed under them, and drawn as the source line is. */
+/*
+ * The sources and the dates of the lines: closed under them, behind the key of a source,
+ * as Town Map draws one: a key, the words, and a rule of ink under both. While it is open,
+ * and in hand, it stands on amber.
+ */
 .shortSources > summary {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  color: var(--muted);
-  font-size: var(--size-small);
+  gap: calc(var(--px) * 3);
+  padding-inline-end: var(--px);
+  border-block-end: var(--edge) solid var(--ink);
+  color: var(--ink);
+  font: 400 var(--name-1) / 1.2 var(--font-name);
+  font-synthesis: none;
   list-style: none;
   cursor: pointer;
 }
@@ -80,27 +143,31 @@
 .shortSources > summary::before {
   content: "";
   flex: none;
-  width: 0.5em;
-  height: 0.5em;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: rotate(-45deg);
-  transition: transform var(--motion-fast);
+  width: calc(var(--px) * var(--key-w));
+  height: calc(var(--px) * var(--key-h));
+  background: var(--key) 0 0 / calc(var(--px) * var(--key-w)) calc(var(--px) * var(--key-h)) no-repeat;
+  image-rendering: pixelated;
 }
 
-.shortSources[open] > summary::before {
-  transform: rotate(45deg);
+.shortSources[open] > summary,
+.shortSources > summary:focus-visible {
+  background-color: var(--chosen);
+  color: var(--on-chosen);
+}
+
+.shortSources[open] > summary {
+  margin-block-end: var(--space-2);
 }
 
 /* One line for each vibe: its name, where the area sits in words, and a figure to picture it by. */
 .shortLines {
   display: grid;
-  gap: var(--space-2);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/* A line stands on a rule of sand, which is there for the eye to run along and says nothing. */
 .shortLines > li {
   display: flex;
   flex-wrap: wrap;
@@ -108,10 +175,12 @@
   gap: 0 var(--space-3);
   max-width: none;
   min-width: 0;
+  padding-block: calc(var(--px) * 2);
+  border-block-start: var(--edge) solid var(--sand);
 }
 
 .shortName {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .shortFigure {
@@ -125,17 +194,21 @@
   color: var(--muted);
 }
 
+/* A list of vibes, under the name of the list. */
 .group {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-1);
   min-width: 0;
-  padding-block-start: var(--space-2);
-  border-block-start: 1px solid var(--border);
 }
 
-.heading h3 {
-  margin: 0;
-  font-size: var(--size-body);
+/* In one box a list stands clear of the list before it, so that its plate is seen to head it. */
+.portrait[data-lists="together"] > .group + .group {
+  margin-block-start: var(--space-3);
+}
+
+.heading {
+  display: grid;
 }
 
 .why {
@@ -158,13 +231,33 @@
   min-width: 0;
 }
 
-/* The whole line opens the parts. It shows no marker of the browser's: "Made of" says what it opens. */
+/* The line of one vibe stands on a rule of sand, and the first of a list under its plate. */
+.marks > li + li {
+  border-block-start: var(--edge) solid var(--sand);
+}
+
+/*
+ * A line is laid out by the width of its list, and not of the screen: seen in a browser
+ * at 1024 wide, and with text twice as large on a desk, a line that took the width of the
+ * screen for its own left its words a column one word wide. The width is asked in the
+ * size of the text, so that larger text is given the narrower way to stand.
+ */
+.marks {
+  container-type: inline-size;
+}
+
+/*
+ * The whole line opens the parts. It shows no marker of the browser's: "Made of" says what
+ * it opens. In a narrow list the name and what it opens share the first line, and the
+ * rest follows: the picture, where the area sits in words, and the figure. The line is one
+ * control, so the order it is drawn in changes nothing for a keyboard.
+ */
 .line {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 0 var(--space-3);
-  padding-block: var(--space-1);
+  gap: calc(var(--px) * 1) var(--space-3);
+  padding-block: calc(var(--px) * 3);
   list-style: none;
   cursor: pointer;
 }
@@ -173,35 +266,76 @@
   display: none;
 }
 
+/*
+ * The name of a vibe is a short label, in the face of names. Before it, where the look
+ * draws one, is the small drawing of the vibe, at its own size.
+ */
 .name {
-  flex: 1 1 8rem;
-  font-weight: 600;
+  display: flex;
+  grid-column: 1 / span 2;
+  grid-row: 1;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  min-width: 0;
+  font: 400 var(--name-1) / 1.1 var(--font-name);
+  font-synthesis: none;
 }
 
 /*
- * The two ends and the five cells between them. The low end is set against the cells, and
- * takes as much room in every line, so that the cells of one line stand under the next.
+ * The two ends and the five steps between them: the picture of the low end, the steps, and
+ * the picture of the high end. The steps stand on the line the pictures stand on, and the
+ * name of each end is under its picture.
  */
 .picture {
   display: inline-grid;
-  grid-template-columns: 4.5rem auto minmax(3rem, max-content);
-  align-items: center;
-  gap: var(--space-2);
+  grid-column: 1 / -1;
+  grid-row: 2;
+  grid-template-columns: auto auto auto;
+  align-items: end;
+  justify-items: center;
+  justify-self: start;
+  gap: var(--px) calc(var(--px) * 3);
+  max-width: 100%;
 }
 
+/* An end is no box of its own: its picture and its name are each set where the line puts them. */
 .end {
-  color: var(--muted);
+  display: contents;
+}
+
+.end > :not(.endName) {
+  grid-row: 1;
+}
+
+.end[data-at="low"] > * {
+  grid-column: 1;
+}
+
+.picture > :not(.end) {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.end[data-at="high"] > * {
+  grid-column: 3;
+}
+
+/* The name of an end is read: it is set in the reading face, in ink, as the name of the other is. */
+.endName {
+  grid-row: 2;
+  min-width: 0;
+  color: var(--ink);
   font-size: var(--size-small);
+  line-height: 1.1;
+  text-align: center;
+  /* The name of an end is the API's, and may be long: it is broken before it runs out of its room. */
+  overflow-wrap: anywhere;
 }
 
-.end:first-child {
-  text-align: end;
-}
-
-/* Where the area sits, in words a person would use, and under them the band itself. */
+/* Where the area sits, in words a person would use, and the band itself. */
 .words {
-  display: grid;
-  flex: 1 1 6rem;
+  grid-column: 1 / -1;
+  grid-row: 3;
   min-width: 0;
 }
 
@@ -210,65 +344,134 @@
   font-size: var(--size-small);
 }
 
-/*
- * The comma between where the area sits and its band. It is read by a screen reader, and is
- * not drawn where the one stands over the other. On a narrow screen the two run on, and it is.
- */
-.then {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
+/* A band is said whole: it is not broken between the word and its figures. */
+.band {
   white-space: nowrap;
 }
 
+/*
+ * What says that an area varies, and between which bands, is a sentence, and is broken as
+ * one. Set on one line it was 384 px wide: wider than the list of a phone, so that the page
+ * scrolled sideways, and on a wide screen it ran under what the line opens.
+ */
+.band[data-varies="true"] {
+  white-space: normal;
+}
+
+/*
+ * What says that a band is not whole stands after the band, in the line of its words, and
+ * in a line of what an area is like: the mark and its two words, which are kept together.
+ * It stands clear of the words before it by the width of its mark.
+ */
+.approx {
+  margin-inline-start: calc(var(--px) * 3);
+  white-space: nowrap;
+}
+
+/*
+ * What the band rests on is a sentence, and has a line of its own under the two words, in
+ * the quieter colour: run on after them, it began at the end of their line and was read
+ * as part of them.
+ */
+.restsOn {
+  display: block;
+}
+
+/*
+ * In a list as narrow as a phone a line has the room of the two words, and not of a
+ * sentence after them: what the band rests on is one press away, where the line opens.
+ */
+@container (max-width: 45.99rem) {
+  .restsOn {
+    display: none;
+  }
+}
+
 .figure {
-  flex: 1 1 100%;
+  grid-column: 1 / -1;
+  grid-row: 4;
+  min-width: 0;
   color: var(--muted);
   font-size: var(--size-small);
 }
 
 .value {
   color: var(--text);
-  font-weight: 600;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
-/* What the line opens, said at its end, with a mark that points right when closed and down when open. */
+/*
+ * What the line opens, said at its end, as a small fold of the look is drawn: its words on
+ * a rule of ink, with the head of the arrow after them, which points down while the line
+ * is closed and up while it is open, as the arrow of every fold does. While it is open it
+ * stands on amber.
+ */
 .opens {
   display: inline-flex;
+  grid-column: 3;
+  grid-row: 1;
   align-items: center;
-  gap: var(--space-2);
-  color: var(--accent);
-  font-size: var(--size-small);
+  justify-self: end;
+  gap: calc(var(--px) * 2);
+  padding-inline-end: var(--px);
+  border-block-end: var(--edge) solid var(--ink);
+  color: var(--ink);
+  font: 400 var(--name-1) / 1.2 var(--font-name);
+  font-synthesis: none;
+  white-space: nowrap;
 }
 
+/*
+ * The head of the arrow: three rows of ink, each one art pixel high, in a room five art
+ * pixels square. It is a mark of the style sheet, laid after the words it stands with. It
+ * is drawn pointing up: it is turned to point down at what is closed, and stands as it is
+ * drawn once that is open. It is turned in its room, which is as wide as it is high: so
+ * nothing moves as it turns.
+ */
 .opens::before {
   content: "";
   flex: none;
-  width: 0.5em;
-  height: 0.5em;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: rotate(-45deg);
-  transition: transform var(--motion-fast);
+  order: 1;
+  width: calc(var(--px) * 5);
+  height: calc(var(--px) * 5);
+  background:
+    linear-gradient(var(--ink), var(--ink)) calc(var(--px) * 2) var(--px) / var(--px) var(--px) no-repeat,
+    linear-gradient(var(--ink), var(--ink)) var(--px) calc(var(--px) * 2) / calc(var(--px) * 3) var(--px) no-repeat,
+    linear-gradient(var(--ink), var(--ink)) 0 calc(var(--px) * 3) / calc(var(--px) * 5) var(--px) no-repeat;
+  transform: rotate(180deg);
 }
 
 .mark[open] > .line .opens::before {
-  transform: rotate(45deg);
+  transform: none;
 }
 
-/* What a vibe opens to: a box of its own, so that it reads apart from the line under it. */
+.mark[open] > .line .opens,
+.line:focus-visible .opens {
+  background-color: var(--chosen);
+  color: var(--on-chosen);
+}
+
+/* Under a pointer that can stand over a thing without pressing it, as a finger cannot. */
+@media (hover: hover) {
+  .line:hover .opens,
+  .shortSources > summary:hover {
+    background-color: var(--chosen);
+    color: var(--on-chosen);
+  }
+}
+
+/*
+ * What a vibe opens to: a panel of its own under its line, within a plain edge of ink, so
+ * that it reads apart from the line under it.
+ */
 .made {
   display: grid;
   gap: var(--space-3);
   margin-block: var(--space-1) var(--space-3);
   padding: var(--space-3) var(--space-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
+  background: var(--page);
+  border: var(--edge) solid var(--border);
 }
 
 .meaning,
@@ -276,13 +479,25 @@
   margin: 0;
 }
 
+/* Over the parts of a recipe: a short label, on a plate of ink as the name of a list is. */
 .small {
+  justify-self: start;
   margin: 0;
-  font-size: var(--size-body);
+  padding: calc(var(--px) * 1) calc(var(--px) * 3);
+  background: var(--ink);
+  color: var(--page);
+  font: 400 var(--name-1) / 1.2 var(--font-name);
+  font-synthesis: none;
 }
 
 .parts {
-  gap: var(--space-3);
+  gap: 0;
+}
+
+/* A part of a recipe stands on a rule of sand. */
+.parts > li {
+  padding-block: var(--space-3);
+  border-block-start: var(--edge) solid var(--sand);
 }
 
 .noFigure {
@@ -296,7 +511,7 @@
 }
 
 .partName {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .says {
@@ -314,8 +529,10 @@
   margin: 0;
 }
 
+/* What starts a search from the list stands under it, under a solid rule of ink. */
 .under {
-  padding-block: var(--space-1);
+  padding-block: var(--space-2) var(--space-1);
+  border-block-start: var(--edge) solid var(--border);
 }
 
 /* What Burro cannot place: every vibe named in one line, why, and one thing to press. */
@@ -328,7 +545,7 @@
 .names {
   margin: 0;
   max-width: none;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .unplaced .why {
@@ -336,12 +553,15 @@
   max-width: none;
 }
 
+/* What opens what is known of each has the line to itself, and begins where the line does. */
 .unplaced .line {
-  justify-content: flex-start;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
 }
 
 .unplaced .opens {
-  margin-inline-start: 0;
+  grid-column: 1;
+  justify-self: start;
 }
 
 .rests {
@@ -349,125 +569,197 @@
   gap: var(--space-1);
 }
 
+/* Over the vibes of each kind that cannot place the area, where there are both. */
+.kind {
+  margin: 0;
+  font-weight: 700;
+}
+
 /*
- * A narrow screen: the name and what it opens share the first line, and the rest follows.
- * The line is one control, so the order it is drawn in changes nothing for a keyboard.
+ * A vibe that runs one way, in a list too narrow for a line to stand in one row: the
+ * pictures of its two ends say little of the thing and much of it, and their names are not
+ * drawn. It runs from least to most in every line, and the words under the steps say where
+ * the area sits.
  */
-@media (max-width: 59.99rem) {
-  .name {
-    order: -2;
-    flex-basis: calc(100% - 7rem);
-  }
-
-  .opens {
-    order: -1;
-    margin-inline-start: auto;
-  }
-
-  /* The picture takes the room its words need and no more, and the words beside it take the rest. */
-  .picture {
-    grid-template-columns: auto auto auto;
-  }
-
-  /*
-   * A vibe that runs one way runs from least to most in every line, and the words beside the
-   * cells say where the area sits. So the two ends are not drawn, and the words have the room.
-   */
-  .mark[data-shape="one_way"] .end {
+@container (max-width: 69.99rem) {
+  .mark[data-shape="one_way"] .endName {
     display: none;
-  }
-
-  /* Where the area sits and its band run on, on as few lines as they take. */
-  .words {
-    display: block;
-    flex: 1 1 9rem;
-  }
-
-  .then {
-    position: static;
-    width: auto;
-    height: auto;
-    margin: 0;
-    overflow: visible;
-    clip-path: none;
-    white-space: normal;
   }
 }
 
 /*
- * A wide screen: the heading of a list to the left, its vibes to the right, and each vibe
- * on one line. The columns are as wide in every list, so that the marks line up.
+ * A list with room for the words of a line beside its picture and not for the whole line
+ * in one row: the pictures of the two ends and the steps between them, and beside them
+ * where the area sits in words.
  */
+@container (min-width: 46rem) and (max-width: 69.99rem) {
+  .picture {
+    grid-column: 1;
+    grid-row: 2 / span 2;
+  }
+
+  .words {
+    grid-column: 2 / -1;
+    grid-row: 2;
+    align-self: end;
+  }
+
+  .figure {
+    grid-column: 2 / -1;
+    grid-row: 3;
+    align-self: start;
+  }
+
+  .words:nth-last-child(2) {
+    grid-row: 2 / span 2;
+    align-self: center;
+  }
+}
+
+/*
+ * A list with room for a line in one row: the name, the picture, and then where the area
+ * sits in words with its figure under them. What the line opens stands at its far end. In
+ * a list the columns are as wide in every line, so that the steps line up.
+ */
+@container (min-width: 70rem) {
+  .line {
+    grid-template-columns: 10rem auto minmax(0, 1fr) auto;
+    gap: 0 var(--space-5);
+    padding-block: calc(var(--px) * 2);
+  }
+
+  /* A name with its drawing before it has the room of the drawing as well. */
+  .portrait[data-things="beside"] .line {
+    grid-template-columns: calc(10rem + var(--px) * 19) auto minmax(0, 1fr) auto;
+  }
+
+  .name {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+
+  /*
+   * The ends of a vibe, as Town Map draws them in its key: the name of the low end, its
+   * picture, the steps, the picture of the high end, and its name, all on the line the
+   * steps stand on. The ends of a vibe that runs one way are two short words, and have
+   * the room of them.
+   */
+  .picture {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    grid-template-columns: 3.5rem auto auto auto 3.5rem;
+  }
+
+  .mark[data-shape="scale"] .picture {
+    grid-template-columns: 4.5rem auto auto auto 4.5rem;
+  }
+
+  .endName {
+    grid-row: 1;
+    padding-block-end: var(--px);
+  }
+
+  .end[data-at="low"] > .endName {
+    grid-column: 1;
+    justify-self: end;
+    text-align: end;
+  }
+
+  .end[data-at="low"] > :not(.endName) {
+    grid-column: 2;
+  }
+
+  .picture > :not(.end) {
+    grid-column: 3;
+  }
+
+  .end[data-at="high"] > :not(.endName) {
+    grid-column: 4;
+  }
+
+  .end[data-at="high"] > .endName {
+    grid-column: 5;
+    justify-self: start;
+    text-align: start;
+  }
+
+  .mark[data-shape="one_way"] .endName {
+    display: block;
+    color: var(--muted);
+  }
+
+  .words {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: end;
+  }
+
+  .figure {
+    grid-column: 3;
+    grid-row: 2;
+    align-self: start;
+  }
+
+  /* A line with no figure under its words has them in the middle of the line. */
+  .words:nth-last-child(2) {
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+
+  .opens {
+    grid-column: 4;
+    grid-row: 1 / span 2;
+  }
+}
+
+/* A wide screen: what it is like to the left, and where it is to the right. */
 @media (min-width: 60rem) {
-  /* What it is like to the left, and where it is to the right. */
+  .portrait {
+    gap: var(--space-4);
+  }
+
   .top {
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
-    gap: var(--space-5);
+    gap: var(--space-6);
   }
 
   .shortLines > li {
     display: grid;
-    grid-template-columns: 10rem minmax(0, 1fr);
+    grid-template-columns: 11rem minmax(0, 1fr);
     gap: 0 var(--space-3);
   }
 
   .shortFigure {
     grid-column: 2;
   }
-
-  .group {
-    grid-template-columns: 12rem minmax(0, 1fr);
-    gap: 0 var(--space-5);
-    align-items: start;
-  }
-
-  .heading {
-    padding-block-start: var(--space-1);
-  }
-
-  .under {
-    grid-column: 2;
-  }
-
-  .line {
-    flex-wrap: nowrap;
-  }
-
-  .name {
-    flex: 0 0 10rem;
-  }
-
-  .picture {
-    flex: 0 0 auto;
-    grid-template-columns: 4.5rem auto 4.5rem;
-  }
-
-  /* Where it sits takes as much room in every line, so that the figures beside it line up. */
-  .words {
-    flex: 0 0 15rem;
-  }
-
-  .figure {
-    flex: 1 1 0;
-    min-width: 0;
-  }
-
-  .opens {
-    flex: none;
-    margin-inline-start: auto;
-  }
 }
 
 @media (forced-colors: active) {
-  .group,
   .made,
-  .short {
+  .shortSources > summary,
+  .opens,
+  .under,
+  .shortLines > li,
+  .marks > li + li,
+  .parts > li,
+  .lead {
     border-color: CanvasText;
   }
-}
 
-/* Over the vibes of each kind that cannot place the area, where there are both. */
-.kind {
-  margin: 0;
-  font-weight: 600;
+  .short h3,
+  .heading h3,
+  .small {
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .shortSources > summary::before {
+    forced-color-adjust: none;
+  }
+
+  /* With forced colours the head is cut out of one colour of the system, pointing up as it is drawn. */
+  .opens::before {
+    background: CanvasText;
+    clip-path: polygon(50% 20%, 100% 80%, 0 80%);
+  }
 }

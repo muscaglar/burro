@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 
 import { SOURCE_LINE } from "@/content/area";
 import { SOURCE } from "@/content/search";
@@ -7,6 +8,7 @@ import { citedBy, creditOf } from "@/lib/facts";
 import { readableDate } from "@/lib/format";
 import { paths } from "@/lib/paths";
 
+import { pictureOf, sizeOf, type Drawing } from "../kit/drawings";
 import styles from "./SourceLine.module.css";
 
 interface Props {
@@ -15,6 +17,15 @@ interface Props {
 }
 
 const LIST = new Intl.ListFormat("en-GB", { style: "long", type: "conjunction" });
+
+/** The key of a source, as the look draws one. Here it opens nothing: it marks the line as a source. */
+const KEY: Drawing = "ui-key";
+
+/** What the style sheet needs of the key to lay it before the line: its picture, and its size in art pixels. */
+function ofTheKey(): CSSProperties {
+  const { width, height } = sizeOf(KEY);
+  return { "--key": `url("${pictureOf(KEY)}")`, "--key-w": width, "--key-h": height } as CSSProperties;
+}
 
 /**
  * What the line begins with. A vibe is Burro's own recipe, and its sources are
@@ -37,12 +48,16 @@ function leadOf(facts: readonly Fact[]): string {
  *
  * It says what the "Source" button says, without the button, so that a page
  * built ahead of time says where every figure came from with scripts off.
+ *
+ * Before it is the key of the look, which is what a source is known by wherever one is
+ * shown. The key is drawn by the style sheet and is no element: it says nothing, and the
+ * line is heard as it was.
  */
 export function SourceLine({ facts }: Props) {
   const { sources, dates, synthetic } = citedBy(facts);
   if (sources.length === 0) return null;
   return (
-    <p className={styles.line}>
+    <p className={styles.line} style={ofTheKey()}>
       {leadOf(facts)}{" "}
       {sources.map((source, at) => (
         <span key={source.source_id}>

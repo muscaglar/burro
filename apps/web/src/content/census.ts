@@ -10,17 +10,18 @@
 
 export const CENSUS = {
   /** While the figures are asked for. */
-  loading: "Loading the figures.",
+  loading: "Burro is loading the figures.",
   /** Where the figures could not be read. What went wrong is said in the API's words above it. */
-  failed: "The figures could not be loaded.",
+  failed: "Burro could not load the figures this time.",
   again: "Try again",
   /** With scripts off: the figures are not in the page, so that nothing keeps them. */
-  noScript: "The figures are loaded when you ask for them, which needs scripts to be on.",
+  noScript:
+    "Burro loads these figures only when you open this section, and it needs JavaScript to do that. To see them, switch JavaScript on in your browser and open the section again.",
   /** In the place of a count that is not given. The share beside it says why, in the API's words. */
   noCount: "Not given",
   /** What the picture beside a share is. Both names are the API's. */
   picture: (area: string, city: string) =>
-    `Beside each share is the same share, drawn. The bar is ${area}. The mark is ${city}.`,
+    `Beside each share there is a small picture of it. The bar shows the share in ${area}, and the upright line shows the share in ${city}, so that you can see the two together.`,
   /** The way to where the figures came from, on the page of sources. */
   source: "Where these figures came from",
   notes: "About these figures",

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { ComponentProps, ElementType, ReactNode } from "react";
 
 import { PORTRAIT } from "@/content/area";
 import { RESTS_ON, restsOnWords } from "@/content/bands";
@@ -23,9 +23,15 @@ import { paths } from "@/lib/paths";
 import { endsOf, inWords, isRange, plainly, readingOf } from "@/lib/vibes";
 
 import { FactRow } from "../FactRow/FactRow";
-import { RoughLabel, RoughNote } from "../RoughGuide/RoughGuide";
+import { Approx } from "../kit/Approx/Approx";
+import { Art } from "../kit/Art/Art";
+import { pictureAtEnd, type End as WhichEnd } from "../kit/Ends/picture";
+import { Frame } from "../kit/Frame/Frame";
+import { Thing } from "../kit/Thing/Thing";
 import { SourceLine } from "../SourceLine/SourceLine";
 import { Track } from "../Track/Track";
+import { drawnWith } from "./drawn";
+import { LISTS_STAND, THINGS_STAND, type ListsStand, type ThingsStand } from "./look";
 import styles from "./Portrait.module.css";
 
 interface Props {
@@ -37,6 +43,16 @@ interface Props {
   readonly besideShort?: ReactNode;
   /** What stands under the vibes the area has more of than most, where there is anything to. */
   readonly underMore?: ReactNode;
+  /**
+   * How the lists of vibes stand: each in a box of its own, or all in the one box of the
+   * portrait. Left out, as a page leaves it, it is what `look.ts` chooses.
+   */
+  readonly lists?: ListsStand;
+  /**
+   * Whether the small drawing of a vibe stands before its name on its line. Left out, as a
+   * page leaves it, it is what `look.ts` chooses.
+   */
+  readonly things?: ThingsStand;
 }
 
 /** The id of the portrait's heading, which the list of contents links to. */
@@ -171,13 +187,89 @@ function MadeOf({ mark }: { readonly mark: MarkRow }) {
   );
 }
 
+interface EndProps {
+  /** The id the API gives the vibe, by which the picture of each of its ends is chosen. */
+  readonly vibe: string;
+  /** The name the API gives the end, or the word for the end of a vibe that runs one way. */
+  readonly name: string;
+  /** Which end it is: the low one stands before the steps, and the high one after them. */
+  readonly at: WhichEnd;
+}
+
+/**
+ * One end of a vibe: its one small picture, and its name. The picture says what the end
+ * is: what the end of a scale is called, and little of the thing or much of it where a vibe
+ * runs one way. It is chosen by the id the service gives the vibe, and a vibe whose ends
+ * nobody has drawn takes the blank one at both. Neither end is the good one, and the two
+ * are drawn alike.
+ */
+function End({ vibe, name, at }: EndProps) {
+  return (
+    <span className={styles.end} data-at={at}>
+      <Art name={pictureAtEnd(vibe, at)} alt="" />
+      <span className={styles.endName}>{name}</span>
+    </span>
+  );
+}
+
+type BoxProps<Element extends ElementType> = {
+  /** True where it is a box of the look. Left out, it is the plain element, in the box that holds it. */
+  readonly boxed: boolean;
+  /** `plain` is a slip of cream within an edge of ink, for a sentence that stands alone. */
+  readonly kind?: "box" | "plain";
+  readonly as?: Element;
+  readonly className?: string;
+  readonly children?: ReactNode;
+} & Omit<ComponentProps<Element>, "as" | "className" | "children">;
+
+/**
+ * A part of the portrait, which is a box of the look where the look stands it in one, and
+ * the plain element where it stands in the box of the portrait. It is the element it was
+ * either way, with what it said of itself to a screen reader.
+ */
+function Box<Element extends ElementType = "div">({
+  boxed,
+  kind = "box",
+  as,
+  className,
+  children,
+  ...rest
+}: BoxProps<Element>) {
+  if (boxed) {
+    return (
+      <Frame kind={kind} as={as as ElementType} className={className} {...rest}>
+        {children}
+      </Frame>
+    );
+  }
+  const Plain: ElementType = as ?? "div";
+  return (
+    <Plain className={className} {...rest}>
+      {children}
+    </Plain>
+  );
+}
+
+interface MarkProps {
+  readonly mark: MarkRow;
+  readonly withFigure: boolean;
+  /** True where the small drawing of the vibe stands before its name. */
+  readonly withThing: boolean;
+}
+
 /**
  * One vibe: its name, the line it is marked on between its two ends, where it
  * sits in words a person would use, and the band. The whole line is what
  * opens its parts, and it is the browser's own element, so it opens with
  * scripts off.
+ *
+ * Every vibe has the one small picture of each of its ends at either side of its steps,
+ * and the two are opposites. A band that rests on part of what goes into it says so as a
+ * result does, in the two words after the mark of what is not whole, and the step its peg
+ * stands on is chequered as the mark is. The page of an area has the room to say what the
+ * band rests on as well, and says it after the two words.
  */
-function Mark({ mark, withFigure }: { readonly mark: MarkRow; readonly withFigure: boolean }) {
+function Mark({ mark, withFigure, withThing }: MarkProps) {
   const [low, high] = endsOf(mark.tag);
   const { placed, pictured } = mark;
   if (placed === null) return null;
@@ -186,51 +278,66 @@ function Mark({ mark, withFigure }: { readonly mark: MarkRow; readonly withFigur
   const rests = restsOn(mark);
   // The API's own clause is a sentence, and ends in a full stop of its own.
   const stopped = rests !== null && rests.partly !== null;
+  // What is said of a band that is not whole ends in a full stop, whichever words say it.
+  const ended = rests !== null;
   return (
     <>
       <details className={styles.mark} data-vibe={mark.tag.tag_id} data-shape={mark.tag.shape}>
         <summary className={`${styles.line} target-min`}>
-          <span className={styles.name}>{mark.tag.label}</span>
+          <span className={styles.name}>
+            {/* The drawing of the vibe is dress, and says nothing: its name is beside it. */}
+            {withThing ? <Thing kind="tag" id={mark.tag.tag_id} family={mark.tag.family} /> : null}
+            {mark.tag.label}
+          </span>
           {/* The picture is for the eye. The words beside it say the same, and more. */}
           <span className={styles.picture} aria-hidden="true">
-            <span className={styles.end}>{low}</span>
-            <Track placed={placed} />
-            <span className={styles.end}>{high}</span>
+            <End vibe={mark.tag.tag_id} name={low} at="low" />
+            <Track placed={placed} part={rests !== null} narrow />
+            <End vibe={mark.tag.tag_id} name={high} at="high" />
           </span>
           <span className={styles.words}>
             {plain === null ? null : (
               <>
-                <span className={styles.plain}>{plain}</span>
-                {/* Where the words stand over the band, the comma between them is for a screen reader. */}
-                <span className={styles.then}>, </span>
+                <span>{plain}</span>
+                {/* The words and the band run on at every width, with the comma between them drawn. */}
+                <span>, </span>
               </>
             )}
             {/* The band is said in full, in words that are drawn: it is never told by the picture alone. */}
             <small className={styles.detail}>
-              <span className={styles.band}>{inWords(placed)}</span>
+              <span className={styles.band} data-varies={isRange(placed)}>
+                {inWords(placed)}
+              </span>
               <span className="visually-hidden">, {STRIP.from(low, high)}</span>
-              {rests === null ? null : (
-                <>
-                  {stopped ? ". " : ", "}
-                  <span className={styles.part}>{restsOnWords(rests, "short")}</span>
-                </>
-              )}
             </small>
-            {/* Beside the band: what is less sure says so where it says where the area sits. */}
-            <RoughLabel told={mark.rough} />
+            {rests === null ? null : (
+              <>
+                {/*
+                  The two words are a sentence of their own to whoever hears the page, and the
+                  mark and the colour of what follows part them for the eye. Their full stop
+                  is theirs, and not that of what follows: what the band rests on is drawn
+                  where the list has the room for it, and the line reads whole without it.
+                */}
+                <span className="visually-hidden">. </span>
+                <Approx className={styles.approx} />
+                <span className="visually-hidden">. </span>
+                <small className={`${styles.detail} ${styles.restsOn}`}>
+                  <span className={styles.part}>{restsOnWords(rests, "short")}</span>
+                  {stopped ? null : <span className="visually-hidden">.</span>}
+                </small>
+              </>
+            )}
           </span>
           {withFigure && pictured !== null ? (
-            <Figure fact={pictured} className={styles.figure} afterStop={stopped} />
+            <Figure fact={pictured} className={styles.figure} afterStop={ended} />
           ) : null}
           <span className={styles.opens}>
-            <span className="visually-hidden">{stopped && !(withFigure && pictured !== null) ? " " : ". "}</span>
+            <span className="visually-hidden">{ended && !(withFigure && pictured !== null) ? " " : ". "}</span>
             {PORTRAIT.opens}
           </span>
         </summary>
         <MadeOf mark={mark} />
       </details>
-      {/* Beside its band and under its line, in sight: it is never left for a press. */}
-      <RoughNote told={mark.rough} labelled />
     </>
   );
 }
@@ -248,6 +355,10 @@ interface ShortProps {
  * name, where the area sits on it in words a person would use, and a figure
  * of one of its parts that a person can picture. Every one is a fact of the
  * API's, and the line under them gives their source and their date.
+ *
+ * The lines come first, directly under their label: they are what a person
+ * came for. What explains them stands after them: what a vibe is, what could
+ * not be worked out, and the sources.
  */
 function InShort({ lines, unplaced, vibes }: ShortProps) {
   const id = `${PORTRAIT_ID}-short`;
@@ -259,7 +370,6 @@ function InShort({ lines, unplaced, vibes }: ShortProps) {
         <p className={styles.shortLead}>{PORTRAIT.short.none}</p>
       ) : (
         <>
-          <p className={styles.shortLead}>{PORTRAIT.short.lead}</p>
           <ul className={styles.shortLines}>
             {lines.map((mark) => {
               const rests = restsOn(mark);
@@ -267,11 +377,13 @@ function InShort({ lines, unplaced, vibes }: ShortProps) {
                 <li key={mark.tag.tag_id}>
                   <span className={styles.shortName}>{mark.tag.label}</span>
                   <span className="visually-hidden">: </span>
-                  <span className={styles.shortWords}>
+                  <span>
                     {mark.placed === null ? null : plainly(mark.tag, mark.placed)}
                     {rests === null ? null : (
+                      // What the band rests on is said on the line of the vibe, under these lines.
                       <>
-                        , <span className={styles.part}>{RESTS_ON.short(rests.known, rests.parts)}</span>
+                        <span className="visually-hidden">. </span>
+                        <Approx className={styles.approx} />
                       </>
                     )}
                   </span>
@@ -280,6 +392,7 @@ function InShort({ lines, unplaced, vibes }: ShortProps) {
               );
             })}
           </ul>
+          <p className={styles.shortLead}>{PORTRAIT.short.lead}</p>
         </>
       )}
       {unplaced > 0 ? (
@@ -363,24 +476,51 @@ function Unplaced({ marks }: { readonly marks: readonly MarkRow[] }) {
  * source and its date. It is built with no search, so it is the same for
  * everyone.
  */
-export function Portrait({ data, meta, besideShort, underMore }: Props) {
+export function Portrait({
+  data,
+  meta,
+  besideShort,
+  underMore,
+  lists = LISTS_STAND,
+  things = THINGS_STAND,
+}: Props) {
   const portrait = portraitOf(data, meta);
   const placed = shownOn(portrait);
+  // Together, the portrait is one box and its parts stand in it. Apart, each part is a box
+  // of its own on the meadow. It is the same section either way, and holds the same parts.
+  const apart = lists === "apart";
   return (
-    <section className={styles.portrait} aria-labelledby={PORTRAIT_ID}>
-      <h2 id={PORTRAIT_ID}>{PORTRAIT.title}</h2>
-      <div className={styles.top}>
-        <InShort
-          lines={inShort(portrait, meta.features)}
-          unplaced={portrait.unplaced.length}
-          vibes={placed.length + portrait.unplaced.length}
-        />
-        {besideShort}
-      </div>
-      {placed.length === 0 ? null : <p className={styles.lead}>{PORTRAIT.lead}</p>}
+    <Box
+      boxed={!apart}
+      as="section"
+      className={styles.portrait}
+      data-lists={lists}
+      data-things={things}
+      aria-labelledby={PORTRAIT_ID}
+      style={drawnWith()}
+    >
+      <Box boxed={apart} className={styles.opening}>
+        <h2 id={PORTRAIT_ID}>{PORTRAIT.title}</h2>
+        <div className={styles.top}>
+          <InShort
+            lines={inShort(portrait, meta.features)}
+            unplaced={portrait.unplaced.length}
+            vibes={placed.length + portrait.unplaced.length}
+          />
+          {besideShort}
+        </div>
+        {/* What is said of the lists stands at the foot of what opens the portrait, and leads to them. */}
+        {placed.length === 0 ? null : <p className={styles.lead}>{PORTRAIT.lead}</p>}
+      </Box>
       {GROUPS.map((group) =>
         portrait[group].length === 0 ? null : (
-          <div key={group} className={styles.group} role="group" aria-labelledby={`${PORTRAIT_ID}-${group}`}>
+          <Box
+            boxed={apart}
+            key={group}
+            className={styles.group}
+            role="group"
+            aria-labelledby={`${PORTRAIT_ID}-${group}`}
+          >
             <div className={styles.heading}>
               <h3 id={`${PORTRAIT_ID}-${group}`}>{PORTRAIT.groups[group]}</h3>
             </div>
@@ -390,15 +530,15 @@ export function Portrait({ data, meta, besideShort, underMore }: Props) {
               <ul className={styles.marks}>
                 {portrait[group].map((mark) => (
                   <li key={mark.tag.tag_id}>
-                    <Mark mark={mark} withFigure={WITH_FIGURE.includes(group)} />
+                    <Mark mark={mark} withFigure={WITH_FIGURE.includes(group)} withThing={things === "beside"} />
                   </li>
                 ))}
               </ul>
             )}
             {group === "more" && underMore !== undefined ? <div className={styles.under}>{underMore}</div> : null}
-          </div>
+          </Box>
         ),
       )}
-    </section>
+    </Box>
   );
 }

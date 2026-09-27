@@ -1,3 +1,11 @@
+/*
+ * The source and the date of a figure, written out under it. It is read, and is set in the
+ * reading face, in the quieter colour, on cream.
+ *
+ * Before it is the key of a source, as Town Map draws one, at its own size. It is a mark
+ * and no control: on a page that is built ahead of time the source is written out, and
+ * nothing has to be pressed to read it.
+ */
 .line {
   margin: 0;
   max-width: none;
@@ -5,19 +13,45 @@
   font-size: var(--size-small);
 }
 
+.line::before {
+  content: "";
+  display: inline-block;
+  width: calc(var(--px) * var(--key-w));
+  height: calc(var(--px) * var(--key-h));
+  margin-inline-end: calc(var(--px) * 3);
+  background: var(--key) 0 0 / calc(var(--px) * var(--key-w)) calc(var(--px) * var(--key-h)) no-repeat;
+  image-rendering: pixelated;
+  vertical-align: middle;
+}
+
 .link {
   display: inline-flex;
   align-items: center;
 }
 
+/* That the data is made up, as a notice is drawn: cream, its words in ink, a rule of ink and a band of amber. */
 .madeUp {
-  padding: 0 var(--space-1);
-  color: var(--notice-text);
+  display: inline-block;
+  padding: 0 var(--space-2) 0 calc(var(--space-2) + var(--px) * 2);
+  border: var(--edge) solid var(--notice-edge);
   background: var(--notice-bg);
-  border-radius: var(--radius);
+  box-shadow: inset calc(var(--px) * 2) 0 0 var(--notice-mark);
+  color: var(--notice-text);
+  font-weight: 700;
 }
 
 /* The date of the data, which is not broken from the words before it where it fits on a line. */
 .dated {
   display: inline-block;
+}
+
+@media (forced-colors: active) {
+  .line::before {
+    forced-color-adjust: none;
+  }
+
+  .madeUp {
+    border-color: CanvasText;
+    box-shadow: none;
+  }
 }

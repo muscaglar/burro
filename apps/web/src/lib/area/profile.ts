@@ -146,8 +146,8 @@ export function alikeRows(
  * neither, and nor is one on which either is mixed, which sits at no one point.
  *
  * A vibe whose recipe holds recorded crime is never among them: likeness is never counted on
- * recorded crime, and nobody asked for it here. Nor is a vibe that is a rough guide: it is
- * used to work out nothing else, and what two areas share is worked out.
+ * recorded crime, and nobody asked for it here. Nor is a vibe the service says is less
+ * sure: it is used to work out nothing else, and what two areas share is worked out.
  */
 export function sharedVibes(
   areaId: string,

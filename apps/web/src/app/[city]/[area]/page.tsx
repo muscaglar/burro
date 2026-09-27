@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { cache } from "react";
 
 import { AreaProfile } from "@/components/AreaProfile/AreaProfile";
+import { NOT_FOUND } from "@/content/site";
 import { loadArea, loadAreas, loadGeometry, loadMeta } from "@/lib/api/server";
 import { builtAhead } from "@/lib/area/ahead";
 import { asScriptText, metadataFor, structuredDataFor } from "@/lib/area/describe";
@@ -47,9 +48,14 @@ async function areaAt({ params }: Props) {
   return areaOf(city, area);
 }
 
+/**
+ * What the page says of itself. An address the release has no area at is a page that is
+ * not found, and has the title of one: told nothing, it took the title of the website,
+ * which is the title of the search.
+ */
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const loaded = await areaAt(props);
-  return loaded === null ? {} : metadataFor(loaded.data, loaded.meta);
+  return loaded === null ? { title: NOT_FOUND.title } : metadataFor(loaded.data, loaded.meta);
 }
 
 /**

@@ -1,6 +1,21 @@
+/*
+ * The sources of a release, plainly, as a list. The list stands in one box of the look,
+ * which is the kit's and brings its ground and its shadow. The name of a source is set in
+ * the face of names, with the key of a source before it. Everything else is read, and is
+ * set in the reading face: the credit as its publisher worded it, and what is known of it.
+ */
+.holder {
+  /* The room the box keeps between its rule and what is read in it, as every box of the page does. */
+  --room: var(--space-3);
+
+  min-width: 0;
+  padding: var(--room) var(--room) calc(var(--room) + var(--space-1));
+}
+
 .sources {
   display: grid;
-  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -8,26 +23,55 @@
 
 .source {
   max-width: none;
-  padding: var(--space-5);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
 }
 
+/* One source is parted from the next by a rule of sand, which is there for the eye to run along. */
+.source + .source {
+  padding-block-start: var(--space-4);
+  border-block-start: var(--edge) solid var(--sand);
+}
+
+/*
+ * Where the release names no source, the sentence that says so brings the cream it is read
+ * on. It is a plain frame of the kit, which keeps the room of a shadow at its far side where
+ * it stands on the grass: so what is set here is its room over and under, and no other.
+ */
+.none {
+  margin-block: 0;
+}
+
+/* The name, and before it the key, at its own size. */
 .name {
-  margin-block-start: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) calc(var(--px) * 4);
+  margin-block: 0 var(--space-2);
   font-size: var(--size-h3);
+  scroll-margin-top: var(--space-5);
 }
 
+.name::before {
+  content: "";
+  flex: none;
+  width: calc(var(--px) * var(--key-w));
+  height: calc(var(--px) * var(--key-h));
+  background: var(--key) 0 0 / calc(var(--px) * var(--key-w)) calc(var(--px) * var(--key-h)) no-repeat;
+  image-rendering: pixelated;
+}
+
+/* The credit, word for word. It is what the licence asks for, and is read first. */
 .attribution {
+  margin-block: 0 var(--space-2);
   font-size: var(--size-lead);
 }
 
+/* Who published it, under which licence, and its link: side by side where there is room. */
 .facts {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
   gap: var(--space-2) var(--space-5);
-  margin: 0 0 var(--space-4);
+  margin: var(--space-3) 0;
 }
 
 .facts dd {
@@ -38,23 +82,60 @@
   overflow-wrap: anywhere;
 }
 
-.usedFor {
-  margin-block-start: var(--space-4);
-  font-size: var(--size-body);
-}
-
 .features {
   columns: 18rem;
   column-gap: var(--space-6);
   margin: 0;
+  list-style-type: square;
 }
 
-/* Under a credit that holds a gap: it is said, and nothing is written into the gap. */
+/* A name that takes two lines is kept whole in its column: it was begun in one and ended in the next. */
+.features > li {
+  break-inside: avoid;
+}
+
+/* Under a credit that holds a gap: it is said as a notice is, and nothing is written into the gap. */
 .unfinished {
-  margin: 0;
-  padding: var(--space-1) var(--space-2);
-  color: var(--notice-text);
+  margin: 0 0 var(--space-2);
+  padding: var(--space-1) var(--space-2) var(--space-1) calc(var(--space-2) + var(--px) * 2);
+  border: var(--edge) solid var(--notice-edge);
   background: var(--notice-bg);
-  border-radius: var(--radius);
+  box-shadow: inset calc(var(--px) * 2) 0 0 var(--notice-mark);
+  color: var(--notice-text);
   font-size: var(--size-small);
+}
+
+@media (min-width: 40rem) {
+  .holder {
+    --room: var(--space-4);
+  }
+
+  .sources {
+    gap: var(--space-5);
+  }
+
+  .source + .source {
+    padding-block-start: var(--space-5);
+  }
+}
+
+@media (min-width: 60rem) {
+  .holder {
+    --room: var(--space-5);
+  }
+}
+
+@media (forced-colors: active) {
+  .source + .source,
+  .unfinished {
+    border-color: CanvasText;
+  }
+
+  .unfinished {
+    box-shadow: none;
+  }
+
+  .name::before {
+    forced-color-adjust: none;
+  }
 }

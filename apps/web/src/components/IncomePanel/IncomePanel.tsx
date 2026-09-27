@@ -7,6 +7,8 @@ import { api, type Client, type Failure } from "@/lib/api/client";
 import type { IncomeOffer, IncomeShown as Served } from "@/lib/api/schema";
 
 import profile from "../AreaProfile/AreaProfile.module.css";
+import { Folded } from "../Disclosure/Folded";
+import { Summary } from "../Disclosure/Summary";
 import { wordsFor } from "../ErrorBlock/ErrorBlock";
 import styles from "./IncomePanel.module.css";
 import { INCOME_PART } from "./part";
@@ -140,13 +142,25 @@ export function IncomePanel({ offer, area, client = api }: Props) {
     if (event.currentTarget.open && state.kind === "closed") void ask();
   };
 
+  const again = () => {
+    // The button goes with the failure it stands in, and the focus must not go with it: the
+    // bar of the part takes it, whether the figure then comes or fails again. The page is not
+    // moved for it.
+    part.current?.querySelector("summary")?.focus({ preventScroll: true });
+    void ask();
+  };
+
   if (!offer.available) return null;
   return (
     // A search engine is asked to quote nothing of it.
-    <details ref={part} id={INCOME_PART} className={profile.closed} onToggle={onToggle} data-nosnippet="">
-      <summary className="target">
-        <h2 className={profile.opensTo}>{offer.heading}</h2>
-      </summary>
+    <Folded
+      ref={part}
+      id={INCOME_PART}
+      className={profile.closed}
+      onToggle={onToggle}
+      data-nosnippet=""
+      bar={<Summary label={offer.heading} heading={2} handed />}
+    >
       <div className={profile.part}>
         <p className={profile.lead}>{offer.intro}</p>
         <noscript>
@@ -158,14 +172,15 @@ export function IncomePanel({ offer, area, client = api }: Props) {
           </p>
         ) : null}
         {state.kind === "failed" ? (
-          <div role="alert" className={styles.state}>
+          <div role="alert" className={`${profile.fault} ${styles.state}`}>
             <p>{wordsFor(state.failure)}</p>
             {servesNone(state.failure) ? null : (
               // Where the service serves none, asking again would bring the same answer.
               <>
                 <p>{INCOME.failed}</p>
-                <button type="button" className="target" onClick={() => void ask()}>
-                  {INCOME.again}
+                <button type="button" className={`${profile.again} target`} onClick={again}>
+                  {/* What is said stands on the face of the button, which is what steps under a press. */}
+                  <span>{INCOME.again}</span>
                 </button>
               </>
             )}
@@ -173,6 +188,6 @@ export function IncomePanel({ offer, area, client = api }: Props) {
         ) : null}
         {state.kind === "shown" ? <Figure data={state.data} /> : null}
       </div>
-    </details>
+    </Folded>
   );
 }

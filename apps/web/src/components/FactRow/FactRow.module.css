@@ -1,11 +1,19 @@
+/*
+ * One fact, laid out in columns: its name, each column under its own name, what is said
+ * of it, and then its source. Every word of it is read, and is set in the reading face:
+ * the name heavy, the name of a column in the quieter colour, and the figure in ink.
+ */
 .row {
   display: grid;
+  /* One column, never wider than what holds it: a name of one long word is broken, and pushes nothing out. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-1);
 }
 
 .name {
   margin: 0;
-  font-weight: 600;
+  max-width: none;
+  font-weight: 700;
 }
 
 .columns {
@@ -16,8 +24,14 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* A column is never wider than the row, and what it holds is broken where it must be: a name is the service's, and may be one long word. */
+.columns > div {
+  min-width: 0;
+}
+
 .columns dd {
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .caveat {

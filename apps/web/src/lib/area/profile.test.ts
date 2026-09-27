@@ -240,7 +240,7 @@ describe("what two areas share", () => {
     }
   });
 
-  test("test_a_vibe_that_is_a_rough_guide_is_never_among_what_two_areas_share", () => {
+  test("test_a_vibe_the_service_says_is_less_sure_is_never_among_what_two_areas_share", () => {
     // Thrushcombe and Wickerford are the two made-up villages, and sit in one band of it.
     const marks = bands.find((one) => one.tag_id === "village_feel")?.marks ?? [];
     const [one, other] = ["thrushcombe", "wickerford"].map((slug) => marks.find((mark) => mark.area_id === idOf(slug)));

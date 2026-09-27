@@ -24,7 +24,8 @@ describe("when recorded crime counts", () => {
     // The search, where an edit is refused. The settings. The methods.
     expect(REJECTED.crime_needs_explicit_request).toBe(CRIME_RULE);
     expect(CRIME.lead.startsWith(CRIME_RULE)).toBe(true);
-    expect(METHODS.ranking.points).toContain(CRIME_RULE);
+    // Among the points of the ranking it stands in the one that says what is never taken for a person.
+    expect(METHODS.ranking.points.filter((point) => point.includes(CRIME_RULE))).toHaveLength(1);
     expect(CRIME_ACCOUNT.rule).toBe(CRIME_RULE);
   });
 
@@ -43,12 +44,22 @@ describe("when recorded crime counts", () => {
 
   test("test_the_rule_says_what_the_contract_says", () => {
     expect(contract).toContain("Crime is weighted only when the user asks for it or moves its control.");
-    for (const way of ["ask for it by name", "switch it on in the settings", "ask for a vibe whose recipe holds it"]) {
+    // Only when it is asked for, and the three ways of asking, each in words a person follows.
+    expect(CRIME_RULE).toMatch(/\bonly when you ask for it\b/);
+    for (const way of ["ask for it by name", "switch it on under Space requirements", "ask for a vibe that includes it"]) {
       expect(CRIME_RULE).toContain(way);
     }
     // It names no vibe, so that it is true of either way gritty is built.
     for (const tag of [...meta.tags, ...variantA.tags]) expect(CRIME_RULE.includes(tag.label)).toBe(false);
     expect(/\b(safe|unsafe|dangerous)\b/i.test(Object.values(CRIME_ACCOUNT).join(" "))).toBe(false);
+  });
+
+  test("test_the_rule_is_said_of_what_was_recorded_and_in_no_word_of_the_design", () => {
+    const said = Object.values(CRIME_ACCOUNT).join(" ");
+
+    // What is counted is what was recorded, and every line that names it says "recorded".
+    expect(said.match(/\bcrime\b/g)?.length).toBe(said.match(/\brecorded crime\b/gi)?.length);
+    expect(/\b(recipe|this data|release)\b/i.test(said)).toBe(false);
   });
 
   test("test_where_no_vibe_holds_recorded_crime_the_rule_is_followed_by_a_line_that_says_so", () => {
@@ -79,7 +90,17 @@ describe("when recorded crime counts", () => {
   test("test_what_asking_for_such_a_vibe_is_speaks_of_two_ends_only_where_the_vibe_has_two", () => {
     expect(askingFor({ low_end: "Polished", high_end: "Gritty" })).toBe(CRIME_ACCOUNT.asking);
     expect(askingFor({ low_end: null, high_end: null })).toBe(CRIME_ACCOUNT.askingOneWay);
+    expect(CRIME_ACCOUNT.asking).toMatch(/\beither end\b/);
     expect(CRIME_ACCOUNT.askingOneWay.includes("end")).toBe(false);
+  });
+
+  test("test_to_ask_for_such_a_vibe_is_to_ask_for_recorded_crime_by_name_and_both_lines_say_so", () => {
+    // ADR 0013: to ask for the vibe is to ask for recorded crime by name, and then it counts.
+    for (const said of [CRIME_ACCOUNT.asking, CRIME_ACCOUNT.askingOneWay]) {
+      expect(said).toMatch(/\bask for this vibe\b/);
+      expect(said).toMatch(/\basking for recorded crime by name\b/);
+      expect(said).toMatch(/\bcount\b/);
+    }
   });
 
   test("test_the_parts_of_crime_are_those_the_release_files_under_crime_and_no_other", () => {

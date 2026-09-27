@@ -1,22 +1,37 @@
+/*
+ * The page of an area, as the look draws it. It stands on the meadow, and every part of it
+ * is a box of cream with grass between it and the next: the head, the portrait, the list of
+ * what follows, the parts that open, and where to go and look. Nothing is read on the grass.
+ *
+ * It is read more than it is used, so it is the calmest page of the website. A name and a
+ * heading are set in the face of names. Every sentence, figure, source and date is set in
+ * the reading face, in ink or in the quieter colour, on cream.
+ *
+ * The box is the kit's, and brings its ground and its shadow. What is said here is where
+ * each part stands, and how what it holds is laid out.
+ */
 .profile {
   display: grid;
-  gap: var(--space-4);
-  padding-block-end: var(--space-7);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  padding-block-end: var(--space-5);
   min-width: 0;
 }
 
-/* The name and the borough, with the button that compares the area beside them where there is room. */
+/*
+ * The head: the name, with what stands beside it under it, then the town of the area, then
+ * the button that compares. On a narrow screen one stands under the other.
+ */
 .head {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  justify-content: space-between;
-  gap: var(--space-2) var(--space-5);
+  gap: var(--space-3) var(--space-5);
 }
 
 .named {
   display: grid;
-  gap: var(--space-1);
+  gap: var(--space-2);
   min-width: 0;
 }
 
@@ -24,15 +39,16 @@
   margin: 0;
 }
 
-/* The borough and the source of the name, on one line where there is room. */
+/* The borough, the label and what is known of the name, and then their source. */
 .under {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 var(--space-4);
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
 }
 
 .borough {
+  display: grid;
+  gap: 0 var(--space-5);
   margin: 0;
 }
 
@@ -45,20 +61,45 @@
 
 .borough dd {
   margin: 0;
+  max-width: none;
   font-size: var(--size-lead);
 }
 
-.notRanked {
-  flex-basis: 100%;
-  margin: 0;
-  padding: var(--space-3) var(--space-4);
-  max-width: none;
-  background: var(--surface);
-  border-inline-start: 4px solid var(--border);
-  border-radius: var(--radius);
+/*
+ * The town is a drawing beside the name, and is never the larger of the two: it is as wide
+ * as its drawing and the line that says what it is, and no wider.
+ */
+.town {
+  max-width: 24rem;
 }
 
-/* Each link is a small target, so two rows of them are as far apart as two small targets must be. */
+.compare {
+  display: flex;
+  align-items: center;
+}
+
+/* A notice: cream, its words in ink, a rule of ink and a band of amber beside the rule. */
+.notRanked {
+  margin: 0;
+  padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + var(--px) * 2);
+  max-width: none;
+  border: var(--edge) solid var(--notice-edge);
+  background: var(--notice-bg);
+  box-shadow: inset calc(var(--px) * 2) 0 0 var(--notice-mark);
+  color: var(--notice-text);
+}
+
+/*
+ * What follows the portrait, as a list of links in a slip of cream. Each link is a small
+ * target, so two rows of them are as far apart as two small targets must be.
+ *
+ * A slip has no shadow, and a box has its shadow inside the room it takes. So a slip ends
+ * where the edge of a box does, short of where its shadow falls: two art pixels.
+ */
+.contents {
+  margin-inline-end: calc(var(--px) * 2);
+}
+
 .contents ul {
   display: flex;
   flex-wrap: wrap;
@@ -68,13 +109,12 @@
   list-style: none;
 }
 
-.contents a {
-  display: inline-flex;
-  align-items: center;
+.contents li {
+  max-width: none;
 }
 
-.compare {
-  display: flex;
+.contents a {
+  display: inline-flex;
   align-items: center;
 }
 
@@ -102,6 +142,20 @@
 }
 
 /*
+ * The name of what a part holds, as Town Map draws a label: page on a plate of ink. It is
+ * a short label, in the face of names.
+ */
+.part > h3,
+h3.small {
+  justify-self: start;
+  padding: calc(var(--px) * 1) calc(var(--px) * 3);
+  background: var(--ink);
+  color: var(--page);
+  font: 400 var(--name-1) / 1.2 var(--font-name);
+  font-synthesis: none;
+}
+
+/*
  * Where the area is, beside what it is like: the picture, what is next to it, the nearest
  * station, and how long it takes to the places of the search that is open.
  */
@@ -117,8 +171,14 @@
   margin: 0;
 }
 
+/* The name of a part of the portrait, as Town Map draws a label: page on a plate of ink. */
 .whereShort h3 {
-  font-size: var(--size-lead);
+  justify-self: start;
+  padding: calc(var(--px) * 1) calc(var(--px) * 3);
+  background: var(--ink);
+  color: var(--page);
+  font: 400 var(--name-1) / 1.2 var(--font-name);
+  font-synthesis: none;
 }
 
 .whereShort p {
@@ -126,16 +186,26 @@
   max-width: none;
 }
 
-/* The picture beside the list that says what it shows, at every width: both are small. */
+/*
+ * The picture beside the list that says what it shows, at every width: both are small.
+ * Where text is made so large that the two have no room side by side, the list goes under
+ * the picture: seen in a browser, with text twice as large, it ran out of the page.
+ */
 .where {
-  display: grid;
-  gap: var(--space-3);
-  grid-template-columns: minmax(0, 7.5rem) minmax(0, 1fr);
+  display: flex;
+  flex-wrap: wrap;
   align-items: start;
+  gap: var(--space-3);
+}
+
+.where > :first-child {
+  flex: 0 1 7.5rem;
+  min-width: 0;
 }
 
 .whereSaid {
   display: grid;
+  flex: 1 1 8rem;
   gap: var(--space-1);
   min-width: 0;
 }
@@ -156,19 +226,23 @@
 }
 
 .neighbours li {
-  max-width: none;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .station {
   display: grid;
-  gap: 0;
+  /* One column, never wider than what holds it: a name of one long word is broken, and pushes nothing out. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
 }
 
+/* The journeys of the search that is open stand under a rule of sand, as a row of the page does. */
 .journeys {
   display: grid;
   gap: var(--space-1);
   padding-block-start: var(--space-2);
-  border-block-start: 1px solid var(--border);
+  border-block-start: var(--edge) solid var(--sand);
 }
 
 .journeys .small {
@@ -194,26 +268,30 @@
 /* The areas most like this one: each a name, a sentence, what the two share, and the way on. */
 .alike {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   margin: 0;
   padding: 0;
   list-style: none;
   counter-reset: alike;
 }
 
+/* A row stands on a rule of sand, which is there for the eye to run along and says nothing. */
 .alike > li {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-1);
   max-width: none;
   padding-block: var(--space-3);
-  border-block-end: 1px solid var(--border);
-}
-
-.alike > li:first-child {
-  border-block-start: 1px solid var(--border);
+  border-block-start: var(--edge) solid var(--sand);
 }
 
 .alike p {
   margin: 0;
+}
+
+/* The name of an area is a link that is laid out as a box, which is as wide as a word it may not break. */
+.alike a {
+  overflow-wrap: anywhere;
 }
 
 .sources {
@@ -221,16 +299,16 @@
   gap: var(--space-1);
   margin: 0;
   padding-inline-start: var(--space-5);
+  list-style-type: square;
 }
 
 .neighbours a,
-.sources a,
-.back a {
+.sources a {
   display: inline-flex;
   align-items: center;
 }
 
-/* One fact a row, with a rule between one and the next. */
+/* One fact a row, each on a rule of sand. */
 .rows {
   display: grid;
   margin: 0;
@@ -241,11 +319,7 @@
 .rows > li {
   max-width: none;
   padding-block: var(--space-3);
-  border-block-end: 1px solid var(--border);
-}
-
-.rows > li:first-child {
-  border-block-start: 1px solid var(--border);
+  border-block-start: var(--edge) solid var(--sand);
 }
 
 .noFigure {
@@ -258,88 +332,176 @@
 }
 
 .name {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .says {
   color: var(--muted);
 }
 
+/* The way back stands on the grass, and is a button, which brings its own ground. */
 .back {
   margin: 0;
+  max-width: none;
 }
 
 /* Under a row: the way on from it. */
 .beside {
-  margin: var(--space-2) 0 0;
+  margin: var(--space-1) 0 0;
 }
 
 /*
- * The parts that are closed until they are pressed, one under the other. Each is opened by
- * its own heading, and shows a mark that points right when closed and down when open.
+ * The parts that are closed until they are pressed, one under the other in one box, as
+ * Town Map draws the parts of an area. Each is opened by its own heading, which is a bar
+ * from edge to edge of the box: the bar of every fold of the website, which the fold
+ * draws. Nothing of how a bar is drawn is said here.
+ *
+ * What is said here is where a fold stands, where what its bar says begins, and the
+ * room round what it opens. What opens is the browser's own element, so it opens with
+ * scripts off.
  */
 .closedParts {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   min-width: 0;
-  border-block-start: 1px solid var(--border);
 }
 
 .closed {
   min-width: 0;
-  border-block-end: 1px solid var(--border);
 }
 
-/* A group of what a part holds, closed under its own name inside the part. */
-.group {
+/*
+ * What the bar of a part says begins where what the part holds begins: as far from the
+ * side of the box as what a part opened to stands. It is said of the parts of the stack,
+ * and of no fold inside one.
+ */
+.closedParts > .closed {
+  --bar-begins: var(--space-4);
+}
+
+/*
+ * The stack fills its box, whose own rule stands over its first bar and under its last:
+ * a second rule there, of the stack's, would stand directly against it. It weighs more
+ * than what the fold says of its own stack: which sheet loads last is not ours to decide.
+ */
+.closedParts > .closed:first-child {
+  border-block-start: 0;
+}
+
+.closedParts > .closed:last-child {
+  border-block-end: 0;
+}
+
+/*
+ * The groups of what a part holds, each closed under its own name inside the part: a
+ * stack of their own, under what the part says of them. A bar of it says its name as any
+ * bar does, at the size of a short label.
+ */
+.groups {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   min-width: 0;
 }
 
-.group[open] > summary {
-  margin-block-end: var(--space-3);
+.group {
+  --bar-begins: var(--space-2);
+
+  min-width: 0;
+}
+
+/*
+ * What a group holds stands in from the ends of its bar as far as what the bar says, and
+ * clear of what follows the group. Its first row stands under the rule of what was
+ * opened, and has no rule of its own against it.
+ */
+.group > :not(summary) {
+  padding-inline: var(--space-2);
+}
+
+.group > .lead,
+.group > .unseen {
+  padding-block-start: var(--space-3);
 }
 
 .group > .lead {
-  margin-block: 0 var(--space-3);
-}
-
-.closed > summary,
-.group > summary {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  list-style: none;
-  cursor: pointer;
-}
-
-.closed > summary::-webkit-details-marker,
-.group > summary::-webkit-details-marker {
-  display: none;
-}
-
-.closed > summary::before,
-.group > summary::before {
-  content: "";
-  flex: none;
-  width: 0.5em;
-  height: 0.5em;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: rotate(-45deg);
-  transition: transform var(--motion-fast);
-}
-
-.closed[open] > summary::before,
-.group[open] > summary::before {
-  transform: rotate(45deg);
-}
-
-.opensTo {
   margin: 0;
-  font-size: var(--size-lead);
 }
 
-.closed[open] > .part {
-  padding-block-end: var(--space-4);
+.group > .rows > li:first-child {
+  border-block-start: 0;
+}
+
+.group > p:last-child {
+  margin: 0;
+  padding-block: var(--space-2) var(--space-3);
+}
+
+/* What a part opened to stands clear of the edge of the box, as what a box holds does. */
+.closed > .part {
+  padding: var(--space-3) var(--space-4) var(--space-4);
+}
+
+/*
+ * Where to go and look. Its heading stands on a board of hedge, as Town Map draws the
+ * last part of an area: it is the one part of the page that sends a person out of it.
+ */
+.go > h2 {
+  justify-self: start;
+  padding: calc(var(--px) * 1) calc(var(--px) * 4) calc(var(--px) * 2);
+  background: var(--hedge);
+  color: var(--page);
+}
+
+/*
+ * A part that could not be read says so as a failure is drawn: cream, inside a rule of
+ * ink, with a band of poppy at its start, and every word in ink. The census and the
+ * household income say it so, by this name.
+ */
+.fault {
+  --band: calc(var(--px) * 3);
+
+  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + var(--band));
+  border: var(--edge) solid var(--border);
+  background: var(--bg);
+  box-shadow: inset var(--band) 0 0 var(--error-edge);
+  color: var(--text);
+}
+
+/*
+ * The one button of such a part, which asks again: a plain button of the look. The button
+ * is what takes the press, and nothing moves it. Its picture gives way to the picture of
+ * the button pressed, which is of its size, and where movement is welcome its words step
+ * with its face, one art pixel down and one to the right.
+ */
+.again {
+  padding: 0 calc(var(--px) * 5);
+  border-style: solid;
+  border-width: calc(var(--px) * var(--button-top)) calc(var(--px) * var(--button-right))
+    calc(var(--px) * var(--button-foot)) calc(var(--px) * var(--button-left));
+  border-color: var(--ink);
+  border-image: var(--button) var(--button-top) var(--button-right) var(--button-foot) var(--button-left) fill /
+    calc(var(--px) * var(--button-top)) calc(var(--px) * var(--button-right)) calc(var(--px) * var(--button-foot))
+    calc(var(--px) * var(--button-left)) repeat;
+  border-radius: 0;
+  background: var(--page) padding-box;
+  color: var(--ink);
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+  image-rendering: pixelated;
+}
+
+.again > span {
+  display: block;
+}
+
+.again:active {
+  border-image-source: var(--button-down);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .again:active > span {
+    transform: translate(var(--px), var(--px));
+  }
 }
 
 /* Where to start, and what no figure can say, side by side where there is room. */
@@ -360,7 +522,7 @@
 .unseen dt {
   color: var(--text);
   font-size: var(--size-body);
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .unseen dd {
@@ -382,6 +544,7 @@
   max-width: none;
 }
 
+/* What starts a search from the area: a button of the look, and beside it what it adds. */
 .searchFor {
   display: flex;
   flex-wrap: wrap;
@@ -389,14 +552,6 @@
   gap: var(--space-1) var(--space-3);
   margin: 0;
   max-width: none;
-}
-
-.searchForLink {
-  padding: var(--space-1) var(--space-3);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  font-weight: 600;
-  text-decoration: none;
 }
 
 .searchForHint {
@@ -411,9 +566,82 @@
     gap: 0 var(--space-3);
     align-items: baseline;
   }
+
+  /* The borough, the label and what is known of the name, on as few lines as they take. */
+  .borough {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+  }
 }
 
 @media (min-width: 60rem) {
+  .profile {
+    gap: var(--space-4);
+  }
+
+  /*
+   * A wide screen: the name at the near end of the box, and at the far end the town, with
+   * the button that compares under it. So the head is as high as the name and what stands
+   * beside it, and no higher: a page of an area is long, and its head is not what is read.
+   */
+  .head {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 24rem);
+    grid-template-rows: auto 1fr;
+  }
+
+  .named {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+
+  .town {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .compare {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .notRanked {
+    grid-column: 1 / -1;
+  }
+
+  /*
+   * The other way: the town before the name, as Town Map drew a town beside its area. Its
+   * line stands under its drawing, and the button that compares under the name.
+   */
+  .head[data-town="before"] {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+  }
+
+  .head[data-town="before"] > .named {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .head[data-town="before"] > .compare {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .head[data-town="before"] > .town {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    max-width: 12rem;
+  }
+
+  .closedParts > .closed {
+    --bar-begins: var(--space-5);
+  }
+
+  .closed > .part {
+    padding: var(--space-4) var(--space-5) var(--space-5);
+  }
+
   .look {
     grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   }
@@ -424,13 +652,42 @@
   }
 }
 
+/*
+ * With forced colours the system's own colours carry every edge, and no ground is laid.
+ * The arrow is drawn in ink, which may be the colour of the system's ground: so there it
+ * is cut from the colour of the system's words, in the shape of the drawing.
+ */
 @media (forced-colors: active) {
   .rows > li,
   .alike > li,
   .journeys,
-  .closedParts,
-  .closed,
-  .searchForLink {
+  .notRanked {
     border-color: CanvasText;
+  }
+
+  .notRanked {
+    box-shadow: none;
+  }
+
+  .go > h2,
+  .part > h3,
+  h3.small,
+  .whereShort h3 {
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .fault {
+    border-color: CanvasText;
+    border-inline-start-width: var(--band);
+    box-shadow: none;
+  }
+
+  .again,
+  .again:active {
+    border-image-source: none;
+    border-color: ButtonText;
+    background-color: ButtonFace;
+    color: ButtonText;
   }
 }
