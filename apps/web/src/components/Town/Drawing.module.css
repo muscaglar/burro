@@ -1,0 +1,44 @@
+/*
+ * The drawing of a town: a canvas of one size, in art pixels, times one pixel of the
+ * drawing. Each piece lies on it at its own size, where the rule put it. None is stretched,
+ * none is shown at a percentage, and a pixel of each is a whole square of the screen with a
+ * hard edge. Nothing of it moves, and nothing of it can be pressed.
+ *
+ * A pixel of the drawing is the pixel of the ground: two pixels of the screen, on every
+ * screen. So a town is of one size beside the name of every result, and is never larger
+ * than the name it stands beside.
+ */
+.drawing {
+  --size: var(--px-ground);
+
+  position: relative;
+  display: block;
+  flex: none;
+  overflow: hidden;
+  width: calc(var(--size) * var(--across));
+  height: calc(var(--size) * var(--down));
+}
+
+/* Beside the title of a page, which is set larger, it is drawn at the art pixel of the screen. */
+.drawing[data-size="large"] {
+  --size: var(--px);
+}
+
+/* One frame of a strip, shown through a window of its own size. */
+.piece {
+  position: absolute;
+  left: calc(var(--size) * var(--x));
+  top: calc(var(--size) * var(--y));
+  width: calc(var(--size) * var(--w));
+  height: calc(var(--size) * var(--h));
+  background: var(--art) calc(var(--size) * var(--w) * var(--frame) * -1) 0 / calc(var(--size) * var(--w) * var(--frames))
+    calc(var(--size) * var(--h)) no-repeat;
+  image-rendering: pixelated;
+}
+
+/* With forced colours the drawing keeps its own: it is a picture, and says its parts in words. */
+@media (forced-colors: active) {
+  .piece {
+    forced-color-adjust: none;
+  }
+}

@@ -1,0 +1,28 @@
+/*
+ * What a town is built of, in the key: what stands in the room of a drawing, for each part.
+ * A town at each end of the part, with the name of the end under each. How a row of the
+ * key is laid out is said with the rows.
+ */
+
+/* The room of a drawing: as wide as two towns side by side, each 56 art pixels at the pixel of the ground. */
+.towns {
+  --drawn-wide: 15.5rem;
+}
+
+/* A town, and under it the name of the end it is drawn at. */
+.end {
+  display: grid;
+  flex: none;
+  justify-items: start;
+  gap: var(--space-1);
+}
+
+/* The name of an end is read: it is set in the reading face. */
+.name {
+  font: 400 var(--size-small) / 1.35 var(--font-say);
+}
+
+/* The name of a vibe is the service's, and is read: it is heavier than what is said of it. */
+.vibe {
+  font-weight: 700;
+}
