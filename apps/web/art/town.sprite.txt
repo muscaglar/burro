@@ -1,0 +1,184 @@
+# The little town of an area: a few buildings and trees on a plot of meadow, built by rule
+# from where the area sits on four vibes. One vibe is its trees, one the height of its
+# buildings, one its lit windows and one its roofs. src/lib/town/ holds the rule, and says
+# which piece is drawn where.
+#
+# It is a drawing made from four figures and is no picture of a place. So it holds nothing
+# the four do not: no church, no river, no landmark, no shop, no car and nobody at all.
+#
+# The pieces are Town Map's, drawn again so that each part of a town holds one vibe and no
+# other: a wall is the same wall under any roof, and is lit the same whatever its roof. Town
+# Map's brown is turned to shade, since brown is the rabbit's.
+#
+# What is not known is left blank. Where a tree would stand, and where a building would, the
+# place is marked out on the meadow by one line of shade, whole: a ring, and a rectangle. A
+# wall whose roof is not known has none, and is closed by one line of shade from corner to
+# corner. Windows of which nothing is known are dark, in ink. None of these is the least of
+# its scale, which is always drawn: one tree, a house, one window lit.
+#
+# No mark is drawn in dots or in dashes. They were, as Town Map drew them, and a person who
+# walked the website did not know what an edge in pieces was for.
+#
+# A drawing of several frames is a strip: its frames stand side by side, and each has a clear
+# column at either hand, so that nothing of one frame shows at the edge of the next.
+#
+# The text is the drawing, one character a pixel. Change it here, then run `npm run gen:art`.
+
+palette
+. transparent
+# k Ink, w Page
+k #2a2140
+w #f7f1de
+# g Meadow, G Verge, p Hedge
+g #a8d85e
+G #63b34a
+p #2b7a5a
+# a Shallows, c Cobalt
+a #86dde2
+c #3453d1
+# y Amber, r Poppy
+y #f6b426
+r #db533b
+# D Shade, l Slate
+D #65566a
+l #6d7fa6
+
+== town-plot
+# 56 x 32. The plot a town stands on: a sod of meadow, seen from a little above, with
+# its front face in hedge. It lies in the lower part of the canvas, and what is built
+# stands up from it into the clear. Its tufts are a grain, and say nothing.
+........................................................
+........................................................
+........................................................
+........................................................
+........................................................
+........................................................
+........................................................
+........................................................
+........................................................
+........................................................
+........................................................
+........................................................
+........................................................
+........................................................
+........................................................
+........................................................
+........................................................
+........................................................
+...kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk...
+.kkggggggggggggggggggggggggggggggggggggggggggggggggggkk.
+kggggggggggggggggggggggggggggggggggggggggggggggggggggggk
+kggggggggggggggggggggggggggggggggggggggggggggggggggggggk
+kggggggggggggggggggggggggggggggggggggggggggggggggggggggk
+kggggggggggggggggggggggggggggggggggggggggggggggggggggggk
+kggggggggggggggggggggggggggggggggggggggggggggggggGgGgggk
+kggggGgGggggggggggggggggggggggggggggggggggggggggggGggggk
+kgggggGggggggggggggggggggggggggggggggGgGgggggggggggggggk
+kgggggggggggggggGgGgggggggggggggggggggGggggggggggggggggk
+kggggggggggggggggGgggggggggggggggggggggggggGgGgggggggggk
+kGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGk
+.kkppppppppppppppppppppppppppppppppppppppppppppppppppkk.
+...kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk...
+
+== town-lot
+# 9 x 5. Where a building would stand, marked out on the meadow and not built on: what
+# is drawn where the height of the buildings is not known. Town Map's plot, laid flat, its
+# dots joined into one whole line.
+DDDDDDDDD
+D.......D
+D.......D
+D.......D
+DDDDDDDDD
+
+== town-low
+# 56 x 7, 4 frames of 14. A house: a floor over its door. A wall and no roof, with the
+# shade it throws on the meadow, down and to the right. The first frame is the wall where
+# nothing is known of its windows: they are dark. Then the wall with none of its 2
+# windows lit, with one, and so on until all are. A window is lit in amber, and is shade
+# where it is not. It is lit in the same order in every frame: one that is lit stays lit.
+# @frames 4
+.kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak...
+.kwkkwwkkak....kwDDwwDDak....kwyywwDDak....kwyywwyyak...
+.kwkkwwkkak....kwDDwwDDak....kwyywwDDak....kwyywwyyak...
+.kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG..
+.kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG..
+.kkkkkkkkkkG...kkkkkkkkkkG...kkkkkkkkkkG...kkkkkkkkkkG..
+...GGGGGGGGG.....GGGGGGGGG.....GGGGGGGGG.....GGGGGGGGG..
+
+== town-mid
+# 84 x 11, 6 frames of 14. A terrace: two floors over its door. A wall and no roof, with the
+# shade it throws on the meadow, down and to the right. The first frame is the wall where
+# nothing is known of its windows: they are dark. Then the wall with none of its 4
+# windows lit, with one, and so on until all are. A window is lit in amber, and is shade
+# where it is not. It is lit in the same order in every frame: one that is lit stays lit.
+# @frames 6
+.kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak...
+.kwkkwwkkak....kwDDwwDDak....kwyywwDDak....kwyywwDDak....kwyywwyyak....kwyywwyyak...
+.kwkkwwkkak....kwDDwwDDak....kwyywwDDak....kwyywwDDak....kwyywwyyak....kwyywwyyak...
+.kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak...
+.kwkkwwkkak....kwDDwwDDak....kwDDwwDDak....kwDDwwyyak....kwDDwwyyak....kwyywwyyak...
+.kwkkwwkkak....kwDDwwDDak....kwDDwwDDak....kwDDwwyyak....kwDDwwyyak....kwyywwyyak...
+.klllllllak....klllllllak....klllllllak....klllllllak....klllllllak....klllllllak...
+.kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG..
+.kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG..
+.kkkkkkkkkkG...kkkkkkkkkkG...kkkkkkkkkkG...kkkkkkkkkkG...kkkkkkkkkkG...kkkkkkkkkkG..
+...GGGGGGGGG.....GGGGGGGGG.....GGGGGGGGG.....GGGGGGGGG.....GGGGGGGGG.....GGGGGGGGG..
+
+== town-tall
+# 140 x 17, 10 frames of 14. A block: four floors over its door. A wall and no roof, with the
+# shade it throws on the meadow, down and to the right. The first frame is the wall where
+# nothing is known of its windows: they are dark. Then the wall with none of its 8
+# windows lit, with one, and so on until all are. A window is lit in amber, and is shade
+# where it is not. It is lit in the same order in every frame: one that is lit stays lit.
+# @frames 10
+.kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak...
+.kwkkwwkkak....kwDDwwDDak....kwyywwDDak....kwyywwDDak....kwyywwDDak....kwyywwDDak....kwyywwyyak....kwyywwyyak....kwyywwyyak....kwyywwyyak...
+.kwkkwwkkak....kwDDwwDDak....kwyywwDDak....kwyywwDDak....kwyywwDDak....kwyywwDDak....kwyywwyyak....kwyywwyyak....kwyywwyyak....kwyywwyyak...
+.kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak...
+.kwkkwwkkak....kwDDwwDDak....kwDDwwDDak....kwDDwwyyak....kwDDwwyyak....kwDDwwyyak....kwDDwwyyak....kwyywwyyak....kwyywwyyak....kwyywwyyak...
+.kwkkwwkkak....kwDDwwDDak....kwDDwwDDak....kwDDwwyyak....kwDDwwyyak....kwDDwwyyak....kwDDwwyyak....kwyywwyyak....kwyywwyyak....kwyywwyyak...
+.kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak...
+.kwkkwwkkak....kwDDwwDDak....kwDDwwDDak....kwDDwwDDak....kwyywwDDak....kwyywwDDak....kwyywwDDak....kwyywwDDak....kwyywwyyak....kwyywwyyak...
+.kwkkwwkkak....kwDDwwDDak....kwDDwwDDak....kwDDwwDDak....kwyywwDDak....kwyywwDDak....kwyywwDDak....kwyywwDDak....kwyywwyyak....kwyywwyyak...
+.kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak....kwwwwwwwak...
+.kwkkwwkkak....kwDDwwDDak....kwDDwwDDak....kwDDwwDDak....kwDDwwDDak....kwDDwwyyak....kwDDwwyyak....kwDDwwyyak....kwDDwwyyak....kwyywwyyak...
+.kwkkwwkkak....kwDDwwDDak....kwDDwwDDak....kwDDwwDDak....kwDDwwDDak....kwDDwwyyak....kwDDwwyyak....kwDDwwyyak....kwDDwwyyak....kwyywwyyak...
+.klllllllak....klllllllak....klllllllak....klllllllak....klllllllak....klllllllak....klllllllak....klllllllak....klllllllak....klllllllak...
+.kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG..
+.kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG...kwwwccwwakG..
+.kkkkkkkkkkG...kkkkkkkkkkG...kkkkkkkkkkG...kkkkkkkkkkG...kkkkkkkkkkG...kkkkkkkkkkG...kkkkkkkkkkG...kkkkkkkkkkG...kkkkkkkkkkG...kkkkkkkkkkG..
+...GGGGGGGGG.....GGGGGGGGG.....GGGGGGGGG.....GGGGGGGGG.....GGGGGGGGG.....GGGGGGGGG.....GGGGGGGGG.....GGGGGGGGG.....GGGGGGGGG.....GGGGGGGGG..
+
+== town-roofs
+# 70 x 6, 5 frames of 14. A roof, which stands on any wall and one art pixel past it at
+# either hand. The first frame is no roof: the wall is closed by one whole line of shade,
+# from corner to corner, and nothing is drawn over it. Then two newer roofs, in slate: one
+# flat, and one of a single pitch. Then two older, pitched and in poppy: one with its
+# chimney, and one hipped. A town has both of a kind, by where a building stands, so that a
+# row of them is no row of one stamp.
+# @frames 5
+..................................................kkk........kkkk.....
+.............................kkkkk...........kkkkkkDk......kkrrrrkk...
+...............kkkkkkkkkkkk..kwlllkkkk......krrrrrrrrk...kkrrrrrrrrkk.
+...............kwllllllllDk..klllllllkkkk..krrrrrrrrrrk..krrrrrrrrrrk.
+...............kllllllllDDk..klllllllllDk..kDDDDDDDDDDk..kDDDDDDDDDDk.
+..kDDDDDDDDk...kkkkkkkkkkkk..kkkkkkkkkkkk..kkkkkkkkkkkk..kkkkkkkkkkkk.
+
+== town-trees
+# 39 x 11, 3 frames of 13. What stands in front of the buildings. The first frame is
+# the ring on the meadow that marks where a tree would stand, where nothing is known of
+# trees: one whole line of shade. Then two trees, each with the shade it throws. Town
+# Map's small tree, and a smaller drawn in its manner. A town has both, by where a tree
+# stands.
+# @frames 3
+.................pppp..................
+................pggGGp.................
+...............pgggGGGp.......pppp.....
+...............pggGGGGpp.....pgGGGp....
+..............pgGGGGGGpp....pggGGGGp...
+..............pGGGGGpGpp....pgGGGGpp...
+...............pGGpppppp....pGGGpGpp...
+...DDDDDDD......pppDDpp......pppDDp....
+..D.......D.......kDk..........kDk.....
+...DDDDDDD......GkkkkkGGG....GkkkkkGG..
+.................GGGGGGG......GGGGGG...

@@ -1,0 +1,402 @@
+# The box, the button and the marks of the look, as Town Map drew them.
+#
+# A frame is cut in nine and shown as a border image. It says its cut as border-image-slice is
+# written: from the top, the right, the foot, the left. The light is from the top left, so a
+# shadow falls down and to the right and nowhere else.
+#
+# A button pressed is drawn on the canvas of the button up, with its cut. The button itself,
+# which is what takes the press, never moves and never changes size: only its face steps, one
+# art pixel down and one to the right, into the place of its shadow. It is named for the button
+# up, with -down after it.
+#
+# Town Map held its brown as the shade of amber and of poppy. Brown is the rabbit's and his
+# burrow's, and nothing else holds it: so that shade is poppy under amber, and shade under poppy.
+# The text is the drawing, one character a pixel. Change it here, then run `npm run gen:art`.
+
+palette
+. transparent
+# k Ink, w Page, e Lea, s Sand
+k #2a2140
+w #f7f1de
+e #dbe8b1
+s #e9cf94
+# g Meadow, G Verge, p Hedge
+g #a8d85e
+G #63b34a
+p #2b7a5a
+# a Shallows, b Haven, c Cobalt
+a #86dde2
+b #2f9fd0
+c #3453d1
+# y Amber, r Poppy, h Heath
+y #f6b426
+r #db533b
+h #b87bc6
+# d Fur, D Shade, l Slate, n Earth
+d #9b8a7f
+D #65566a
+l #6d7fa6
+n #a9683d
+
+== ui-box
+# 18 x 18. The box, which is the one frame of the look: page, a double rule of ink, a notch of
+# one pixel at each corner, and a hard shadow down and to the right. It is cut at 4 from the top
+# and the left, and at 6 from the right and the foot, where its shadow is. Town Map's, as it was
+# drawn.
+# @cut 4 6 6 4
+.kkkkkkkkkkkkkk...
+kwwwwwwwwwwwwwwk..
+kwwkkkkkkkkkkwwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwwkkkkkkkkkkwwkDD
+kwwwwwwwwwwwwwwkDD
+.kkkkkkkkkkkkkkDDD
+..DDDDDDDDDDDDDDD.
+..DDDDDDDDDDDDDD..
+
+== ui-box-on
+# 18 x 18. The box that is chosen, or in hand: between its two rules it is amber. Town Map's, as
+# it was drawn.
+# @cut 4 6 6 4
+.kkkkkkkkkkkkkk...
+kyyyyyyyyyyyyyyk..
+kyykkkkkkkkkkyykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kyykkkkkkkkkkyykDD
+kyyyyyyyyyyyyyykDD
+.kkkkkkkkkkkkkkDDD
+..DDDDDDDDDDDDDDD.
+..DDDDDDDDDDDDDD..
+
+== frame-box
+# 18 x 18. The box again, under the name the style sheet gives it: the token --frame-box names
+# this picture. It is ui-box, point for point.
+# @cut 4 6 6 4
+.kkkkkkkkkkkkkk...
+kwwwwwwwwwwwwwwk..
+kwwkkkkkkkkkkwwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwkwwwwwwwwwwkwkDD
+kwwkkkkkkkkkkwwkDD
+kwwwwwwwwwwwwwwkDD
+.kkkkkkkkkkkkkkDDD
+..DDDDDDDDDDDDDDD.
+..DDDDDDDDDDDDDD..
+
+== frame-box-on
+# 18 x 18. The box that is chosen again, under the name of the token --frame-box-on. It is
+# ui-box-on, point for point.
+# @cut 4 6 6 4
+.kkkkkkkkkkkkkk...
+kyyyyyyyyyyyyyyk..
+kyykkkkkkkkkkyykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kykwwwwwwwwwwkykDD
+kyykkkkkkkkkkyykDD
+kyyyyyyyyyyyyyykDD
+.kkkkkkkkkkkkkkDDD
+..DDDDDDDDDDDDDDD.
+..DDDDDDDDDDDDDD..
+
+== ui-button
+# 12 x 10. A button, plain: page, lit from the top left, its shade in sand, and under it a
+# second row of ink, which is its hard shadow. It is cut at 3 all round and at 4 at the foot.
+# Town Map's, as it was drawn.
+# @cut 3 3 4 3
+.kkkkkkkkkk.
+kwwwwwwwwwwk
+kwwwwwwwwwsk
+kwwwwwwwwwsk
+kwwwwwwwwwsk
+kwwwwwwwwwsk
+kwwwwwwwwwsk
+kwsssssssssk
+kkkkkkkkkkkk
+.kkkkkkkkkk.
+
+== ui-button-down
+# 12 x 10. The plain button pressed: its face has stepped one art pixel down and one to the
+# right, into its shadow. The canvas and the cut are those of the button up, so the button does
+# not move: its first row and its first column are clear. A button pressed has no glint: the
+# light pixel of the button up would stand in the middle of the picture, which is stretched.
+# @cut 3 3 4 3
+............
+..kkkkkkkkk.
+.kwwwwwwwwwk
+.kwwwwwwwwsk
+.kwwwwwwwwsk
+.kwwwwwwwwsk
+.kwwwwwwwwsk
+.kwwwwwwwwsk
+.kwssssssssk
+..kkkkkkkkk.
+
+== ui-button-go
+# 12 x 10. The button that matters most in sight: cobalt, its lit edge in haven. Words on it are
+# page. Town Map drew its own in amber, which here is kept for what is on.
+# @cut 3 3 4 3
+.kkkkkkkkkk.
+kbbbbbbbbbck
+kbwcccccccck
+kbccccccccck
+kbccccccccck
+kbccccccccck
+kbccccccccck
+kcccccccccck
+kkkkkkkkkkkk
+.kkkkkkkkkk.
+
+== ui-button-go-down
+# 12 x 10. The cobalt button pressed, its face stepped into its shadow.
+# @cut 3 3 4 3
+............
+..kkkkkkkkk.
+.kbbbbbbbbck
+.kbcccccccck
+.kbcccccccck
+.kbcccccccck
+.kbcccccccck
+.kbcccccccck
+.kccccccccck
+..kkkkkkkkk.
+
+== ui-button-on
+# 12 x 10. The button of what is on, or chosen: amber. It is the button Town Map drew for what
+# goes, its shade turned from brown to poppy.
+# @cut 3 3 4 3
+.kkkkkkkkkk.
+kyyyyyyyyyyk
+kywyyyyyyyrk
+kyyyyyyyyyrk
+kyyyyyyyyyrk
+kyyyyyyyyyrk
+kyyyyyyyyyrk
+kyrrrrrrrrrk
+kkkkkkkkkkkk
+.kkkkkkkkkk.
+
+== ui-button-on-down
+# 12 x 10. The amber button pressed, its face stepped into its shadow.
+# @cut 3 3 4 3
+............
+..kkkkkkkkk.
+.kyyyyyyyyyk
+.kyyyyyyyyrk
+.kyyyyyyyyrk
+.kyyyyyyyyrk
+.kyyyyyyyyrk
+.kyyyyyyyyrk
+.kyrrrrrrrrk
+..kkkkkkkkk.
+
+== ui-button-stop
+# 12 x 10. The button that stops: page, with an edge of poppy inside its outline. Its words are
+# ink: poppy is an edge, and never small words.
+# @cut 3 3 4 3
+.kkkkkkkkkk.
+krrrrrrrrrrk
+krwwwwwwwwrk
+krwwwwwwwwrk
+krwwwwwwwwrk
+krwwwwwwwwrk
+krwwwwwwwwrk
+krrrrrrrrrrk
+kkkkkkkkkkkk
+.kkkkkkkkkk.
+
+== ui-button-stop-down
+# 12 x 10. The button that stops, pressed, its face stepped into its shadow.
+# @cut 3 3 4 3
+............
+..kkkkkkkkk.
+.krrrrrrrrrk
+.krwwwwwwwrk
+.krwwwwwwwrk
+.krwwwwwwwrk
+.krwwwwwwwrk
+.krwwwwwwwrk
+.krrrrrrrrrk
+..kkkkkkkkk.
+
+== ui-carrot
+# 16 x 9. The pointer of a menu: a carrot, which lies beside the choice in hand and points at
+# it. Town Map's, its two marks turned from brown to poppy.
+.G..............
+..G...kkkkk.....
+...Gpkywyyykk...
+GGGGpkyyyyyyykk.
+...ppkyryyryyyyk
+GGGGpkyyyyyyykk.
+...Gpkyyyyykk...
+..G...kkkkk.....
+.G..............
+
+== ui-key
+# 16 x 7. The key of a source: it stands before the word Source, which opens in place. Town
+# Map's, as it was drawn.
+..kkkk..........
+.kyyyyk.........
+kyykkyykkkkkkkkk
+kyk..kyyyyyyyyyk
+kyykkyykkkykkykk
+.kyyyyk..kyk.kk.
+..kkkk....k.....
+
+== ui-flag
+# 17 x 18. The pennant of a rank: a pole, and a flag of page on which the number is set in type,
+# in ink. The pennant of the first is the pennant of the tenth. Town Map drew it with the style
+# sheet, and it is drawn here as it stood there.
+# @face 3 2 12 10
+kk...............
+kkkkkkkkkkkkkkkk.
+kkkwwwwwwwwwwwwkD
+kkkwwwwwwwwwwwwkD
+kkkwwwwwwwwwwwwkD
+kkkwwwwwwwwwwwwkD
+kkkwwwwwwwwwwwwkD
+kkkwwwwwwwwwwwwkD
+kkkwwwwwwwwwwwwkD
+kkkwwwwwwwwwwwwkD
+kkkwwwwwwwwwwwwkD
+kkkwwwwwwwwwwwwkD
+kkkkkkkkkkkkkkkkD
+kk.DDDDDDDDDDDDDD
+kk...............
+kk...............
+kk...............
+kk...............
+
+== ui-peg
+# 7 x 10. The peg of a band: it stands over the one cell of five where an area sits. Town Map's,
+# its shade turned from brown to shade.
+.kkkkk.
+krrwrrk
+krwrrDk
+krrrrDk
+krrDDDk
+.kkkkk.
+..kDk..
+..kDk..
+..kDk..
+...k...
+
+== ui-cross
+# 7 x 7. The cross that takes a chip off. Town Map's, as it was drawn.
+kk...kk
+kkk.kkk
+.kkkkk.
+..kkk..
+.kkkkk.
+kkk.kkk
+kk...kk
+
+== ui-arrow
+# 10 x 8. An arrow. It is drawn pointing up, and is turned by the style sheet for the other
+# three ways. Town Map's, as it was drawn.
+....kk....
+...kkkk...
+..kkkkkk..
+.kkkkkkkk.
+kkkkkkkkkk
+...kkkk...
+...kkkk...
+...kkkk...
+
+== ui-weight
+# 12 x 10. The mark of how much a thing counts: a weight. Town Map's, as it was drawn.
+....kkkk....
+...kk..kk...
+...kk..kk...
+..kkkkkkkk..
+.kllllllllk.
+.klwllllDlk.
+klwllllllDDk
+kllllllllDDk
+klllllllDDDk
+kkkkkkkkkkkk
+
+== ui-tradeoff
+# 16 x 16. A trade-off: a pair of scales, on which one thing is weighed against another. The
+# two pans hang level: what was given is weighed against what was got, and neither is the
+# worse. Nothing of it is poppy.
+.......kk.......
+......kyyk......
+.kkkkkkyykkkkkk.
+.kyyyyyyyyyyyyk.
+.kkkkkkyykkkkkk.
+..k...kyyk...k..
+..k...kyyk...k..
+kkkkk.kyyk.kkkkk
+kssDk.kyyk.kssDk
+.kkk..kyyk..kkk.
+......kyyk......
+......kyyk......
+......kyyk......
+....kkkyykkk....
+...kyyyyyyyyk...
+...kkkkkkkkkk...
+
+== ui-tradeoff-b
+# 16 x 16. A trade-off, a second way: two arrows, one each way, as one thing is handed over for
+# another. Nothing of it is poppy.
+.........kk.....
+.........kyk....
+kkkkkkkkkkyyk...
+kyyyyyyyyyyyyk..
+kyyyyyyyyyyyyk..
+kkkkkkkkkkyyk...
+.........kyk....
+.........kk.....
+.....kk.........
+....kck.........
+...kcckkkkkkkkkk
+..kcccccccccccck
+..kcccccccccccck
+...kcckkkkkkkkkk
+....kck.........
+.....kk.........
+
+== ui-approx
+# 9 x 6. The mark of what is not whole: one step of a band, chequered in squares two art pixels
+# wide, as the step is that a peg stands on where a band rests on part of what it needs. It
+# stands alone, beside the two words that say so.
+kkkkkkkkk
+kwwkkwwkk
+kwwkkwwkk
+kkkwwkkwk
+kkkwwkkwk
+kkkkkkkkk

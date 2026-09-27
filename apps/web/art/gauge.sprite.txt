@@ -1,0 +1,169 @@
+# How much a thing counts, and the two buttons that change it by a step.
+#
+# A gauge is never to be taken for the band of five that says where an area sits. A step of a
+# gauge is taller than it is wide, there are ten or twenty of them, they fill, and what fills
+# them is amber. A cell of the band is wider than it is tall, there are five, none fills, and
+# a peg of poppy stands over one.
+# The text is the drawing, one character a pixel. Change it here, then run `npm run gen:art`.
+
+palette
+. transparent
+# k Ink, w Page, e Lea, s Sand
+k #2a2140
+w #f7f1de
+e #dbe8b1
+s #e9cf94
+# g Meadow, G Verge, p Hedge
+g #a8d85e
+G #63b34a
+p #2b7a5a
+# a Shallows, b Haven, c Cobalt
+a #86dde2
+b #2f9fd0
+c #3453d1
+# y Amber, r Poppy, h Heath
+y #f6b426
+r #db533b
+h #b87bc6
+# d Fur, D Shade, l Slate, n Earth
+d #9b8a7f
+D #65566a
+l #6d7fa6
+n #a9683d
+
+== gauge-cell
+# 6 x 14. One step of a gauge, empty: sand, in its socket. A gauge is a row of these, which fill
+# from the left as a thing counts for more. Each lies one art pixel over the one before it, so
+# that two steps share one outline: twenty are 101 art pixels wide.
+.kkkk.
+kDDDDk
+kDsssk
+kDsssk
+kDsssk
+kDsssk
+kDsssk
+kDsssk
+kDsssk
+kDsssk
+kDsssk
+kDsssk
+kkkkkk
+.kkkk.
+
+== gauge-cell-full
+# 6 x 14. One step of a gauge, filled: amber, which is what is on.
+.kkkk.
+kyyyyk
+kywyrk
+kyyyrk
+kyyyrk
+kyyyrk
+kyyyrk
+kyyyrk
+kyyyrk
+kyyyrk
+kyyyrk
+kyrrrk
+kkkkkk
+.kkkk.
+
+== btn-less
+# 22 x 22. The button for less, of a step: a button as Town Map draws one, with its sign in ink.
+# It is shown whole, 22 square, which is 44 px on a phone.
+.kkkkkkkkkkkkkkkkkkkk.
+kwwwwwwwwwwwwwwwwwwwwk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwkkkkkkkkwwwwwsk
+kwwwwwwkkkkkkkkwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwsssssssssssssssssssk
+kkkkkkkkkkkkkkkkkkkkkk
+.kkkkkkkkkkkkkkkkkkkk.
+
+== btn-less-down
+# 22 x 22. The button for less, pressed: its face and its sign have stepped into its shadow.
+......................
+..kkkkkkkkkkkkkkkkkkk.
+.kwwwwwwwwwwwwwwwwwwwk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwkkkkkkkkwwwwsk
+.kwwwwwwkkkkkkkkwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwssssssssssssssssssk
+..kkkkkkkkkkkkkkkkkkk.
+
+== btn-more
+# 22 x 22. The button for more, of a step. It is shown whole, 22 square.
+.kkkkkkkkkkkkkkkkkkkk.
+kwwwwwwwwwwwwwwwwwwwwk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwkkwwwwwwwwsk
+kwwwwwwwwwkkwwwwwwwwsk
+kwwwwwwwwwkkwwwwwwwwsk
+kwwwwwwkkkkkkkkwwwwwsk
+kwwwwwwkkkkkkkkwwwwwsk
+kwwwwwwwwwkkwwwwwwwwsk
+kwwwwwwwwwkkwwwwwwwwsk
+kwwwwwwwwwkkwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwwwwwwwwwwwwwwwwwwwsk
+kwsssssssssssssssssssk
+kkkkkkkkkkkkkkkkkkkkkk
+.kkkkkkkkkkkkkkkkkkkk.
+
+== btn-more-down
+# 22 x 22. The button for more, pressed: its face and its sign have stepped into its shadow.
+......................
+..kkkkkkkkkkkkkkkkkkk.
+.kwwwwwwwwwwwwwwwwwwwk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwkkwwwwwwwsk
+.kwwwwwwwwwkkwwwwwwwsk
+.kwwwwwwwwwkkwwwwwwwsk
+.kwwwwwwkkkkkkkkwwwwsk
+.kwwwwwwkkkkkkkkwwwwsk
+.kwwwwwwwwwkkwwwwwwwsk
+.kwwwwwwwwwkkwwwwwwwsk
+.kwwwwwwwwwkkwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwwwwwwwwwwwwwwwwwwsk
+.kwssssssssssssssssssk
+..kkkkkkkkkkkkkkkkkkk.

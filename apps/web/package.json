@@ -9,6 +9,8 @@
   "scripts": {
     "gen:api": "node scripts/gen-api.mjs",
     "check:api": "node scripts/gen-api.mjs --check",
+    "gen:art": "node scripts/gen-art.mjs",
+    "check:art": "node scripts/gen-art.mjs --check",
     "typecheck": "NEXT_TELEMETRY_DISABLED=1 next typegen && tsc --noEmit",
     "lint": "eslint . --max-warnings 0",
     "test": "NEXT_TELEMETRY_DISABLED=1 jest",
@@ -16,7 +18,7 @@
     "dev": "NEXT_TELEMETRY_DISABLED=1 next dev",
     "start": "NEXT_TELEMETRY_DISABLED=1 next start",
     "check:pages": "node scripts/check-pages.mjs",
-    "check": "npm run check:api && npm run typecheck && npm run lint && npm run test && npm run build && npm run check:pages"
+    "check": "npm run check:api && npm run check:art && npm run typecheck && npm run lint && npm run test && npm run build && npm run check:pages"
   },
   "dependencies": {
     "maplibre-gl": "~5.24.0",

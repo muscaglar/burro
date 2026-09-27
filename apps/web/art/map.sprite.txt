@@ -1,0 +1,49 @@
+# What is drawn on the map. The map itself is the real border of every area, green land on blue
+# water, and no hill, boat or building is drawn on it.
+# The text is the drawing, one character a pixel. Change it here, then run `npm run gen:art`.
+
+palette
+. transparent
+# k Ink, w Page, e Lea, s Sand
+k #2a2140
+w #f7f1de
+e #dbe8b1
+s #e9cf94
+# g Meadow, G Verge, p Hedge
+g #a8d85e
+G #63b34a
+p #2b7a5a
+# a Shallows, b Haven, c Cobalt
+a #86dde2
+b #2f9fd0
+c #3453d1
+# y Amber, r Poppy, h Heath
+y #f6b426
+r #db533b
+h #b87bc6
+# d Fur, D Shade, l Slate, n Earth
+d #9b8a7f
+D #65566a
+l #6d7fa6
+n #a9683d
+
+== pin
+# 13 x 16. The pin of the map: a head of page on which a number is set in type, in ink, and a
+# point under it. The point is the middle of its last row, and is where the place is.
+# @face 2 2 9 7
+...kkkkkkk...
+..kwwwwwwwk..
+.kwwwwwwwwwk.
+kwwwwwwwwwwwk
+kwwwwwwwwwwwk
+kwwwwwwwwwwwk
+kwwwwwwwwwwwk
+kwwwwwwwwwwwk
+kwwwwwwwwwwsk
+kwwwwwwwwwssk
+.kwwwwwwwssk.
+..kwwwwsssk..
+...kkwsskk...
+.....kwk.....
+.....ksk.....
+......k......

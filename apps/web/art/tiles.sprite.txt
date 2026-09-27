@@ -1,0 +1,145 @@
+# The tiles of Town Map's map that the website takes: the four of meadow, of which the ground of
+# every page is made, and the two of water. Each is 16 square and lies edge to edge with any
+# other: nothing drawn on a tile touches its edge.
+#
+# A grain on the land or on the water is a grain. It says nothing of the place it lies on.
+# The text is the drawing, one character a pixel. Change it here, then run `npm run gen:art`.
+
+palette
+. transparent
+# k Ink, w Page, e Lea, s Sand
+k #2a2140
+w #f7f1de
+e #dbe8b1
+s #e9cf94
+# g Meadow, G Verge, p Hedge
+g #a8d85e
+G #63b34a
+p #2b7a5a
+# a Shallows, b Haven, c Cobalt
+a #86dde2
+b #2f9fd0
+c #3453d1
+# y Amber, r Poppy, h Heath
+y #f6b426
+r #db533b
+h #b87bc6
+# d Fur, D Shade, l Slate, n Earth
+d #9b8a7f
+D #65566a
+l #6d7fa6
+n #a9683d
+
+== tile-grass-a
+# 16 x 16. Meadow, with three tufts. Town Map's, as it was drawn.
+gggggggggggggggg
+gggggggggggggggg
+ggGgGggggggggggg
+gggGgggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggGgGgg
+ggggggggggggGggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+ggggGgGggggggggg
+gggggGgggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+
+== tile-grass-b
+# 16 x 16. Meadow, with two daisies and two tufts. Town Map's, as it was drawn.
+gggggggggggggggg
+gggggggggGgGgggg
+ggggggggggGggggg
+gggggggggggggggg
+gggggggggggggggg
+gggwgggggggggggg
+ggwywggggggggggg
+gggwgggggggggggg
+gggggggggggggggg
+gggggggggggggwgg
+ggggggggggggwywg
+gggggggggggggwgg
+gggggggggggggggg
+gggGgGgggggggggg
+ggggGggggggggggg
+gggggggggggggggg
+
+== tile-grass-c
+# 16 x 16. Meadow, with one tuft. Town Map's, as it was drawn.
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggGgGgggg
+ggggggggggGggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+
+== tile-grass-d
+# 16 x 16. Meadow, plain. Town Map's, as it was drawn.
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+gggggggggggggggg
+
+== tile-water-1
+# 16 x 16. The grain of water, for the map. Town Map's, as it was drawn.
+bbbbbbbbbbbbbbbb
+bbbbbbbbbbbbbbbb
+bbaaabbbbbbbbbbb
+bbbbbbbbbbbbbbbb
+bbbbbbbbbbbbbbbb
+bbbbbbbbbbaaabbb
+bbbbbbbbbbbbbbbb
+bbbbbbbbbbbbbbbb
+bbbbbbbbbbbbbbbb
+bbbbaaabbbbbbbbb
+bbbbbbbbbbbbbbbb
+bbbbbbbbbbbbbbbb
+bbbbbbbbbbbbaaab
+bbbbbbbbbbbbbbbb
+bbbbbbbbbbbbbbbb
+bbbbbbbbbbbbbbbb
+
+== tile-water-2
+# 16 x 16. The grain of water again, its glints a step on. Town Map's, as it was drawn.
+bbbbbbbbbbbbbbbb
+bbbbbbbbbbbbbbbb
+bbbbaabbbbbbbbbb
+bbbbbbbbbbbbbbbb
+bbbbbbbbbbbbbbbb
+bbbbbbbbbbbbaabb
+bbbbbbbbbbbbbbbb
+bbbbbbbbbbbbbbbb
+bbbbbbbbbbbbbbbb
+bbbbbbaabbbbbbbb
+bbbbbbbbbbbbbbbb
+bbbbbbbbbbbbbbbb
+aabbbbbbbbbbbbba
+bbbbbbbbbbbbbbbb
+bbbbbbbbbbbbbbbb
+bbbbbbbbbbbbbbbb
