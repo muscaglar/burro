@@ -1,6 +1,6 @@
 # The launch checklist
 
-**Draft. Not legal advice.** Written on 23 September 2026 from the public guidance of the Information Commissioner's Office (ICO), GOV.UK and legislation.gov.uk, and brought up to 24 September 2026. Nobody qualified has read it.
+**Draft. Not legal advice.** Written on 23 September 2026 from the public guidance of the Information Commissioner's Office (ICO), GOV.UK and legislation.gov.uk, and brought up to 24 September 2026. Nobody qualified has read it. **Brought up to 26 September 2026 for accounts**, which are built and are off until they are turned on: "Before accounts are turned on", near the end, has what the founder must do first.
 
 This is what the founder must do before launch that a document cannot do for them. It is in the order of what blocks a public launch. The plan says no outside person reaches a language model until the privacy notice, the ICO registration and the provider's agreement are in place ([PLAN.md](../PLAN.md), section 11). This list is how to get there.
 
@@ -84,8 +84,8 @@ The hours of tasks 4 and 5 include one provider.
 
 | Stage | Built | Not built |
 |---|---|---|
-| 1 | No cookie, no storage, no analytics, nothing from another origin. Typed text in the body of a request only. A log that holds a fixed list of fields | A page for the notice and a page for the terms. A link to the notice beside the box. A way to delete one shared link. A limit on requests. An address on the accessibility page for a report |
-| 2 | A key alone turns nothing on. The notice beside the box is the service's own, is shown before anything is typed, and no sentence is sent before it. No provider's library | A step that asks before a sentence is sent. Code that refuses DeepSeek on a release that is not made up. That nothing a model reads is applied until the person chooses it |
+| 1 | No cookie, no storage, no analytics, nothing from another origin. Typed text in the body of a request only. A log that holds a fixed list of fields | A page for the notice and a page for the terms. A link to the notice beside the box: one stood there until 26 September 2026, to how words are handled, and the founder asked for it to go. A way to delete one shared link. A limit on requests. An address for a report, and a page to say it on: the statement of accessibility went on 26 September 2026 |
+| 2 | A key alone turns nothing on. The notice of who reads is the service's own, and no sentence is sent before the service has said who reads. Since 26 September 2026 the notice is shown on the page of methods, and no longer beside the box before anything is typed. No provider's library | A step that asks before a sentence is sent. Code that refuses DeepSeek on a release that is not made up. That nothing a model reads is applied until the person chooses it was here until 26 September 2026, when the founder decided the other way |
 | 3 | Nothing can search, sort or filter by who lives somewhere. A release of a real place is refused if it holds a count of residents, or a Gritty that counts recorded incidents | The census table, with its floor of 1,000 people. The measures of age and of households. The one Gritty. The words of the methods page. The written rule of the proxy audit stood here until 25 September 2026, when the audit was dropped |
 
 ---
@@ -184,8 +184,8 @@ Only the companies in use need doing. With Fly.io, Vercel and one provider, plan
 |---|---|
 | The rule | Privacy information must be given "at the time when personal data are obtained", in an "easily accessible form". Posting it on a website is not enough by itself. Read, at <https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/individual-rights/the-right-to-be-informed/when-should-we-provide-privacy-information/> |
 | What is needed | A page for the notice. A page for the terms. A link to the notice beside the box. Links to both in the footer. On the page of the notice, the service's own notice of who reads what is typed, shown as it is served |
-| What is built | The notice beside the box, which the service serves and the website shows before anything is typed. The methods page shows it too, with the pages each sentence was read on |
-| What is not | A page for the privacy notice and a page for the terms. The website has pages for methods, sources, vibes and accessibility |
+| What is built | The notice the service serves, on the page of methods, under "How your words are handled". The foot of every page leads there. **Until 26 September 2026 the website showed the notice beside the box, before anything was typed, and the founder asked for it to go from there.** So what is built gives the information on a page of the website, and not at the time a person types: the rule above says that posting it on a website is not enough by itself |
+| What is not | A page for the privacy notice and a page for the terms. A notice, or a link to one, where a person types. The website has pages for methods, sources and vibes |
 | Before publishing | Take every mark out of the two drafts: fill each `[FOUNDER]`, check each `[SETTING]` at the host, and publish no sentence marked `[NOT BUILT]` |
 | Hours | 1, to read the pages once they are built |
 
@@ -254,7 +254,7 @@ What to do when one arrives:
 | 4 | If they give a shared link, send what is stored under it, and delete it if they ask. `[NOT BUILT: deleting one link. Nor is there a way to read what is stored under a link but to open it, and opening it does not show the time it was made]` |
 | 5 | If they wrote to Burro before, send them their messages and your replies |
 | 6 | If nothing is held, say so, and say why: Burro keeps no words, no searches and no record of who visited. Point to section 14 of the notice |
-| 7 | If they ask about what a model's provider holds, say which provider was in use, what the notice beside the box said of it, and that Burro cannot tell it which text was theirs |
+| 7 | If they ask about what a model's provider holds, say which provider was in use, what the notice of the service said of it, and that Burro cannot tell it which text was theirs |
 | 8 | If they ask what Burro holds about them as someone who lives in an area, say that it holds published counts for areas and nothing about any person. Point to section 18 of the notice |
 | 9 | Keep a note of the request, the date and the answer |
 
@@ -319,7 +319,8 @@ Hours: 0.5, once the accounts exist.
 | The rule | The Children's code applies to online services "likely to be accessed by children". A child is "a person under 18". Likely means "more probable than not". Read, at <https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/childrens-information/childrens-code-guidance-and-resources/age-appropriate-design-a-code-of-practice-for-online-services/services-covered-by-this-code/> |
 | If you think it does not apply | "document and support your reasons for your decision" |
 | Google's rule | A product on the Gemini API must not be "directed towards or ... likely to be accessed by individuals under the age of 18". Read twice. Google comes first, so this rule is Burro's too |
-| What to write | One page. Burro is for people choosing where to rent or buy. It asks about budgets and journeys to work. Nothing in it is made for children. Say what would change your mind |
+| What to write | One page. Burro is for people choosing where to rent or buy. It asks about budgets and journeys to work. Nothing in it is made for children. Say what would change your mind. Since 26 September 2026 a search may also be a visit, and a visitor may be of any age: the page says so |
+| Where it stands | The page is drafted: [access-by-children.md](access-by-children.md), written on 26 September 2026. It waits for the founder to read it, to decide whether its conclusion is theirs, and to do what it lists. It was written after a look was chosen for the website that is on the ICO's own list of what appeals to children, and it says so |
 | Children's data typed by adults | A parent may name a child's school. That is data about a child. Burro keeps none of it. A provider may. OpenAI asks for zero retention before a child's data is processed. Read in the report |
 | Hours | 1 |
 
@@ -347,7 +348,7 @@ What was decided on 24 September 2026:
 |---|---|
 | Google keeps what is typed for 55 days, the period cannot be shortened, and its staff may read what it flags | Accepted |
 | DeepSeek | Never for what real people type. Do not name it, and do not accept its terms, on a service that real people use. `[NOT BUILT: code that refuses it on a release that is not made up]` |
-| What a model may apply | Nothing by itself. The model proposes, the person confirms, code checks |
+| What a model may apply | Until 26 September 2026: nothing by itself. The model proposes, the person confirms, code checks. Since then the website applies what a model read, once code has checked it, and asks nothing: [ADR 0012](../adr/0012-a-closed-vocabulary-and-a-guard-on-the-model.md), as amended |
 
 The settings at the provider. Each is from a report. None was tested.
 
@@ -378,7 +379,7 @@ Hours: 1.5. One to check the sentences, half to set the account.
 | Why it applies | People type their health, their religion and their family into a box that asks how they want to live. [ADR 0005](../adr/0005-raw-prompts-are-never-stored.md) says so |
 | The condition this draft proposes | Explicit consent. Which condition fits is a legal question, and nobody qualified has answered it. The ICO says explicit consent "must be confirmed in a clear statement (whether oral or written), rather than by any other type of affirmative action", must "specify the nature of the special category data", and "should be separate from any other consents". Read, at <https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/lawful-basis/special-category-data/what-are-the-conditions-for-processing/> |
 | What that needs | A step on the website, before the first sentence of a visit is sent. It is not built. The privacy notice, section 11, has words for it |
-| What is built in its place | The notice beside the box, shown before anything is typed. Where a model reads, it ends with the advice to leave out health, religion and anything else a person would not want kept. It informs. It does not ask |
+| What is built in its place | Nothing where a person types, since 26 September 2026. Until then the notice stood beside the box, shown before anything was typed, and informed without asking. The same notice is on the page of methods. Where a model reads, it ends with the advice to leave out health, religion and anything else a person would not want kept. A person who types may not have read it |
 | The other view | An earlier report in this repository held that no condition is needed if Burro never infers or uses such data. It marked that as its own reading, not confirmed. [README.md](README.md), risk 1 |
 | A policy document | The page read names no need for one where the condition is explicit consent |
 | Hours | 1 to decide. The step is built by whoever builds the website |
@@ -438,7 +439,7 @@ Hours: 2, for rows 2, 8 and 9, and for row 7 before it was dropped.
 
 | What | Why |
 |---|---|
-| Each provider's terms and retention page, and the day in `checked_on` | Anthropic's and OpenAI's terms can change 30 days after a notice. Read in the reports. A sentence of the notice beside the box can go out of date, and the service holds a provider back where its entry was read after it was checked |
+| Each provider's terms and retention page, and the day in `checked_on` | Anthropic's and OpenAI's terms can change 30 days after a notice. Read in the reports. A sentence of the notice the service serves can go out of date, and the service holds a provider back where its entry was read after it was checked |
 | Each ICO page named here | Most say they are under review |
 | The Data Privacy Framework list | A company can leave it |
 | Appendix B of the notice, against the code | A change to the code can make a sentence false |
@@ -446,31 +447,123 @@ Hours: 2, for rows 2, 8 and 9, and for row 7 before it was dropped.
 | What people say of the census table and of Gritty | [ADR 0014](../adr/0014-evidence-first-and-census-figures-shown.md) names a complaint, and evidence that people use the table to avoid areas, as things that would change the decision |
 | The ICO fee | It renews each year |
 
-## What changes when accounts arrive
+## Before accounts are turned on
 
-Accounts are in the plan and not built. Today Burro can say it does not know who anyone is. With accounts it cannot.
+Accounts were built on 26 September 2026, at the founder's asking, and are **off until they are turned on** ([ADR 0043](../adr/0043-burro-has-accounts-and-a-person-signs-in-by-a-link-sent-by-email.md)). Until that day this section said what would change when accounts arrived, as an expectation. It now says what did, and what the founder must do before anybody can make one.
 
-Every "must" in this table is this draft's expectation of what will be asked. None was read at a source for this draft. Read the ICO's pages again when accounts are designed.
+Nothing here blocks a launch with accounts off: the four stages above stand as they are. Each step below blocks turning accounts on, and [the guide to deployment](../../deploy/README.md#turning-accounts-on) will not have them turned on before the notice is published. The steps are lettered and not numbered, because the tasks above are counted and cited by their numbers.
 
-| Today | With accounts |
+Every "must" below is this draft's reading of the pages named in the task it points to, or of a page read on 26 September 2026, which [the privacy notice](privacy-notice.md) lists at its end. None is advice.
+
+| Step | What | Must it be done | Hours | Cost | Waits on someone else |
+|---|---|---|---|---|---|
+| A | Decide what is the founder's: how long each thing is kept, whether the last searches are kept from the start, and what is done for a person who has lost their mailbox | Yes. The notice cannot be published with a blank in it | 1 | 0 | No |
+| B | Choose the company that sends email, and have its agreement | Yes, by the rule of task 4 | 2 | Most charge past an allowance | The company, while the domain is proved to be Burro's |
+| C | Cover the transfer, if that company keeps an email outside the UK | Yes, by the rule of task 5 | 0.5 to 2 | 0 | No |
+| D | Choose the lawful basis for an account and for what it keeps, and write it down | Yes, by the rule of task 3 | 1.5 | 0 | No |
+| E | Decide whether the cookie that keeps a person signed in is set without asking | This draft's reading says it may be. It is a reading | 0.5 | 0 | An answer from the ICO, if the question is put |
+| F | Take every mark out of section 20 of the notice and of section 14 of the terms, publish both, and link the notice where a person asks for a link to sign in | Yes, by the rule of task 6 | 1, and the build | 0 | The build |
+| G | Add accounts to the record of processing | Yes, as task 9 | 0.5 | 0 | No |
+| H | Be ready for a request about an account | Yes, as task 10 | 1 | 0 | No |
+| I | Add accounts to the plan for a breach | Treat it as yes, as task 12 | 1 | 0 | No |
+| J | Write the impact assessment again | Treat it as yes. Task 17 names accounts and a database among what asks for it to be redone | 4 | 0 | No |
+| K | Hold the settings of accounts at each host and at the sender | Yes, to keep the notice true, as task 13 | 0.5 | 0 | No |
+| L | Read what accounts add to the page on children, and decide whether its conclusion is still yours | Should, as task 14 | 0.5 | 0 | No |
+
+Hours: about 15, as was expected. The impact assessment and the agreement are the most of it.
+
+### A. Decide what is the founder's
+
+[README.md](README.md), under "What accounts changed", lists eight choices, lettered A to H there, each with what it costs. Every one is a blank in section 20 of the notice. Four of them are how long a thing is kept, and the ICO says of that: "The UK GDPR does not dictate how long you should keep personal data. It is up to you to justify this, based on your purposes for processing", and "You need a policy setting standard retention periods wherever possible". Read on 26 September 2026.
+
+### B and C. The company that sends email
+
+| | |
 |---|---|
-| Burro holds no identifier | It holds an email address, or an id from Apple or Google |
-| It can answer most requests with "we hold nothing we can tie to you" | It must find and send what it holds about an account |
-| Nothing to delete | Deleting an account must delete everything under it |
-| No cookie and nothing in the browser | A signed-in session needs one or the other. The notice must say so. Whether it needs consent depends on what it is for |
-| Two hosts and perhaps a provider | A database and a sign-in service as well, and a company that sends email. An agreement and a transfer check for each |
-| A shortlist is not kept | A shortlist says where a named person hopes to live |
-| A search is not kept | A saved search would tie a workplace to a named person. [ADR 0011](../adr/0011-nothing-is-kept-for-a-search.md) asks for a new decision first |
-| A setting about a place of worship is a wish about a place | Kept under an account, it is a fact about a named person. The reading that it is no special category data would have to be made again |
-| A log line cannot say whose it is | It must still not. No account id in a log line or a call record |
-| Consent cannot be recorded against a person | It can, and then it must be |
-| Age is stated and not checked | Sign-up can ask a person to confirm it |
-| A breach exposes settings and codes | A breach exposes people |
-| The impact assessment covers a box and a model | It must be written again |
-| No marketing | Any email that is not about the account needs consent first |
-| The fee | The same tier |
+| What it handles | Every email address that asks for a link, whether or not an account comes of it, and the email, which holds the link |
+| What to have | Its agreement on data processing, saved with the date. Where it keeps an email, what it keeps of one and for how long. Whether it can be set to keep no text of an email |
+| What to set | Its following of links off, and its counting of who opened an email off. With either on, the company puts an address of its own in the place of the link, and then holds the code of every link in its record of who pressed |
+| What to say | Its name, in sections 9, 13 and 20 of the notice. Tasks 4 and 5 have the rule for the agreement and for the transfer |
 
-Hours, when the time comes: about 15, most of it the impact assessment and the agreements.
+### D. The lawful basis
+
+| Use | What the draft proposes | Note |
+|---|---|---|
+| An account, signing in and staying signed in | Contract | The ICO: "you need to process their personal data to do what they ask". The right to object does not apply to it, and the right to a copy that other programs read does |
+| A search that a person pressed to keep | Contract | [README.md](README.md), risk 18, has the doubt over what a kept search can hold |
+| The last ten searches | It follows the founder's choice | Kept from the start: legitimate interests, with a written assessment. Turned on by the person: contract |
+| The limits on asking for a link, and what has happened to an account | Legitimate interests | Write a short assessment for each, as task 3 says |
+
+### G. The record of processing
+
+Rows to add to the record of task 9. Every row is from section 20 of the notice.
+
+| Activity | Whose data | What data | Why | Lawful basis | Who receives it | Leaves the UK | Kept for |
+|---|---|---|---|---|---|---|---|
+| Sending a link to sign in | People who ask for one, whether or not an account comes of it | An email address. The link, as a scrambled form that cannot be turned back | To sign a person in | Contract | Fly.io, Vercel, and the company that sends email | `[FOUNDER: where the company keeps an email]` | A day, as built, at Burro. The link works for 15 minutes. At the company: `[FOUNDER]` |
+| Keeping a person signed in | People with an account | A cookie that holds a random value, and its scrambled form. The kind of browser | To spare a person an email at every visit | Contract | Fly.io, Vercel | Yes | 30 days from the last use, 90 at the most. The record of a sign-in that has ended: 30 days more, as built |
+| Keeping a search | People with an account | The settings of a search: the places to reach, the budget, what matters. May say where a person works, or that they look for a place of worship | Because the person asked | Contract | Fly.io, Vercel | Yes | `[FOUNDER]` |
+| Keeping the last ten searches | People with an account who let Burro keep them, as built | The same | To show them again | `[FOUNDER: contract as built. Legitimate interests, if they are kept from the start]` | Fly.io, Vercel | Yes | Until an eleventh, or the person turns it off, or the account goes |
+| Limiting how often a link is asked for | Anybody who asks | The email address, in the record of each link that was asked for. The internet address, in a scrambled form, in the memory of the service and nowhere else | To keep Burro from being made to send a great deal of email | Legitimate interests | Fly.io | Yes | The record of a link: a day, as built. The internet address: a quarter of an hour, and never written down |
+| What has happened to an account | People with an account | Two fixed words and a time, for a link that was used and for a sign-in that was made or ended | So that a person can see whether somebody else has signed in to their account | Legitimate interests | Fly.io | Yes | 90 days, and 200 at the most, as built |
+| The daily copies of the disk | People with an account | Everything of an account, as it was that day | To put the file back after a failure | Legitimate interests | Fly.io | `[FOUNDER: where the host keeps a copy was not read]` | 5 days, unless it is set otherwise |
+
+### H. A request about an account
+
+| Rule | Why |
+|---|---|
+| **Nothing of an account is ever sent to an address that is not the account's own** | Somebody else can write as if they were the person. Whoever can read the account's address can sign in, and take the copy themselves |
+| **No account is deleted because an email asks** | For the same reason. The person deletes it, signed in. What is done for a person who has lost their mailbox is step A |
+| A request for a copy is answered with where the copy is | The page of the account gives everything Burro holds of it, as one file. The month of task 10 still runs, and the answer still says what Burro holds and why |
+| A request to delete is answered with where that is done, and with what is left | Section 20 of the notice says what a daily copy of the disk holds, and for how long |
+| A request from a person with no account is answered as before | Task 10, steps 3 to 8 |
+
+### I. A breach, with accounts
+
+Task 12 has the rule. With accounts a breach exposes people, and Burro can write to them, which it could not before: it holds their addresses. Whether an email to every account is then sent through the company that sends the links is the founder's to decide, and nothing that sends one is built.
+
+| What happens | What is exposed | First thing to do |
+|---|---|---|
+| Somebody copies the file that holds accounts, or a daily copy of its disk | Every email address, and every search that was kept, with the places each person must reach. No sign-in and no link: those are held in a scrambled form | Treat it as a breach that is likely to be a high risk to people. The 72 hours of task 12 run from when you know. Tell every account. A copy of the file opens no account, so nobody need be signed out for it. Nothing signs everybody out at once: [the guide to deployment](../../deploy/README.md#turning-accounts-on) says what can be done |
+| The secret between the website and the service is lost | No account. Whoever holds it can make Burro send email past its limits | Set another at both hosts. [The guide to deployment](../../deploy/README.md#turning-accounts-on) says how |
+| The key of the company that sends email is lost | Whoever holds it can send email as Burro, and may be able to read at that company who was written to | Revoke it at the company and make another. Ask the company what was read |
+| A person says that somebody else has been in their account | That person's searches | Tell them how to sign out everywhere, which they do themselves. What has happened to their account is in their copy |
+| A daily copy of the disk is put back | Nothing to anybody outside. But every account that was deleted since the copy was made is held again | Write down the day of the copy. [README.md](README.md), risk 21 |
+| A change makes the service write an email address or a link to its log | Addresses, in the host's log for 7 days | Roll back. The tests of accounts exist to stop this |
+
+### K. The settings of accounts
+
+Each keeps a sentence of the notice true. None is held by code. [The guide to deployment](../../deploy/README.md#turning-accounts-on) says where each is set.
+
+| Where | Setting | The sentence it keeps true |
+|---|---|---|
+| The service, and the website | Accounts off, until every step above is done | "There are no accounts" |
+| The company that sends email | No following of links. No counting of who opened an email | "It sends the link as Burro wrote it" |
+| Fly.io | The disk made with encryption, which is how one is made unless it is said otherwise. How long a daily copy is kept | "On a disk that the company encrypts". "For 5 days" |
+| Vercel | The secret set for the deployed website alone, and for no preview. The settings of task 13, as before | That nothing but the website can ask the routes of accounts |
+| The domain's records | No proxy in front of the website or the service, as task 13 says | A proxy would read every email address and every sign-in |
+
+## What accounts changed
+
+What this section expected on 23 September 2026, and what is so as accounts were built.
+
+| Before accounts | With accounts, as built |
+|---|---|
+| Burro holds no identifier | It holds an email address. It holds no id from another company: a person signs in by a link, and through nobody else |
+| It can answer most requests with "we hold nothing we can tie to you" | It can for a person with no account. A person with one sees what is held, signed in |
+| Nothing to delete | Deleting an account deletes everything under it, in one step. A daily copy of the disk holds it for some days more |
+| No cookie and nothing in the browser | Two cookies, for a person who asks for a link and for nobody else. Nothing in the browser's storage, as before. Whether the second needs asking for is step E |
+| Two hosts and perhaps a provider | One company more, which sends email. No database at another company, and no sign-in service: the file is on the machine that runs the service |
+| A shortlist is not kept | None is built |
+| A search is not kept | A person who has signed in may keep one. What is kept is the settings, and never what was typed. [ADR 0011](../adr/0011-nothing-is-kept-for-a-search.md) was amended, and [ADR 0044](../adr/0044-a-person-who-has-signed-in-may-keep-a-search-and-what-is-kept-is-the-spec-and-never-the-words.md) is the decision it asked for |
+| A setting about a place of worship is a wish about a place | Kept under an account it stands beside an email address. The reading was made again, and is marked as one: [README.md](README.md), risk 18 |
+| A log line cannot say whose it is | It still cannot. No line holds an email address, a link, a sign-in, the id of an account or an internet address, and a test looks for anything in the shape of one |
+| Consent cannot be recorded against a person | It could be now. Nothing records any: no sentence that is typed is tied to an account |
+| Age is stated and not checked | A person confirms that they are 18 or over when an account is made, and the time is kept. Nothing checks it |
+| A breach exposes settings and codes | A breach of the file exposes people: step I |
+| The impact assessment covers a box and a model | It is written again: step J |
+| No marketing | None. Burro sends one kind of email, which holds a link to sign in |
+| The fee | The same tier |
 
 ## What was not read
 

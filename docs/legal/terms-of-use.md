@@ -1,10 +1,12 @@
 # Terms of use
 
-**Draft. Not published. Not legal advice.** Written on 23 September 2026 from public sources and from the code in this repository, and brought up to 24 September 2026. Nobody qualified has read it. [README.md](README.md) says how it was written, what was put right on the second day, and which sentences carry the most risk.
+**Draft. Not published. Not legal advice.** Written on 23 September 2026 from public sources and from the code in this repository, and brought up to 24 September 2026. **Brought to the website again on 26 September 2026**, in three things alone: a search may be a visit, the website applies what it read of a sentence without asking, and nothing beside the box says who reads what is typed. Sections 1 and 5 say each, with what they said before. **It is behind the code in what is built since of the census and of recorded crime**, and no mark of it was changed for them: [README.md](README.md#what-the-drafts-are-behind-in-as-the-code-was-read-on-27-september-2026) lists each. Nobody qualified has read it. [README.md](README.md) says how it was written, what was put right on the second day, and which sentences carry the most risk.
 
 `[FOUNDER: ...]` is a blank only the founder can fill. `[FOUNDER NAME]`, `[FOUNDER CONTACT]`, `[COMPANY NAME]` and `[COMPANY NUMBER]` are the name and the contact, as in the privacy notice. `[NOT BUILT: ...]` marks a sentence that is not true of the code yet. `[SOLICITOR]` marks a sentence where this draft's reading of the law decides what is said, and a qualified reading could change it.
 
 Nothing here is advice. Where a sentence says what the law is, Appendix A gives what was read, or says that nothing was.
+
+**Brought up to 26 September 2026 for accounts**, which are built and are off until they are turned on. Section 14 is new, and sections 1 and 6 say what changed. `[SETTING: ...]` marks a sentence that is true only while a setting holds, as in the privacy notice.
 
 ## Before this is published
 
@@ -21,6 +23,7 @@ Nothing here is advice. Where a sentence says what the law is, Appendix A gives 
 | 9 | The equality regulator's guidance for service providers, read by a person. Section 7 rests on the Act as printed and not on the guidance | Founder | 7 |
 | 10 | The measures of age and of households, the census table, and the one vibe that counts recorded crime. Section 2 says what each does, and none is built | Not built | 2 |
 | 11 | A line beside the census table that says what it may not be used for, with a link to section 7 | Not built | 7 |
+| 12 | What Burro does with an account that is used against these terms, and how long before accounts are withdrawn a person is told, so that they can take a copy of what they kept | Founder | 14 |
 
 ---
 
@@ -38,10 +41,10 @@ These are the terms for using Burro. They are short on purpose. If you do not ag
 
 | | |
 |---|---|
-| What it does | Burro helps you decide where in London to live. You describe the life you want and name the places you need to reach. Burro ranks named neighbourhoods on a map and shows its working. These terms call a named neighbourhood an area |
+| What it does | Burro helps you find an area of London, to rent in, to buy in or to visit. You say what is important to you and name the places you need to reach. Burro ranks named neighbourhoods on a map and shows its working. These terms call a named neighbourhood an area. `[FOUNDER: until 26 September 2026 this row said that Burro helps you decide where in London to live. A search may be a visit since that day, which holds no budget and no home: ADR 0041. A visitor may be of any age, which bears on section 6]` |
 | How it ranks | By arithmetic over published data. The same search on the same data gives the same answer |
 | What it costs | Nothing |
-| What you need | No account |
+| What you need | No account. `[SETTING: accounts are turned on]` You can make one if you want Burro to keep a search for you, and section 14 says what is asked of you then. Nothing else that Burro does asks for one |
 
 ## 2. What Burro is not
 
@@ -83,14 +86,16 @@ Burro can show three kinds of data. Every page says which.
 
 | | |
 |---|---|
-| What reads them | Burro's own rules, or a language model run by another company. The notice beside the box says which, before you type |
-| It can misread you | The page shows what was understood, directly under the box. Check it, and change any setting that is wrong |
-| What is applied without asking you | Only words that are a plain list of what you want. Of any other words Burro applies nothing: it shows what it noticed, and you choose. `[NOT BUILT: nothing a language model reads is applied until you choose it]` |
+| What reads them | Burro's own rules, or a language model run by another company. The page that says how your words are handled says which, and the foot of every page leads to it. `[FOUNDER: until 26 September 2026 a notice beside the box said which, before you typed. You asked for it to go from there]` |
+| It can misread you | The page shows what was understood, directly under the box, and marks as "assumed" what you did not say in so many words. Check it, and take off or change any setting that is wrong: Burro has applied it already |
+| What is applied without asking you | What Burro read in your words, whoever read them. Where your words may set a firm limit or a guide, Burro takes the guide, which leaves no area out. Recorded crime is applied only where your own words ask for it by name, as "gritty" or "low crime" do, or where you choose it yourself: a word that only hints at it, such as "safe" or "posh", applies none. Anything that counts who lives somewhere is applied only when you choose it yourself. So is a wish that your words do not say is your own, as where you write what somebody else would like. Two more are left for you where your words do not say how you mean them: whether to look in one area alone or to leave it out, and a thing that can count either way, such as more pubs or fewer. Burro names what it left in a line under the box. `[FOUNDER: since 27 September 2026 recorded crime is applied where a person's own words name it, which is what section 2 says, and a wish that may be somebody else's is left. Until then recorded crime was applied only when a person chose it, whatever they had typed. ADR 0012, as amended that day, says why]` `[FOUNDER: until 26 September 2026 this row said that only a plain list is applied, that of any other words Burro shows what it noticed and you choose, and that nothing a language model reads is applied until you choose it, which was marked as not built. You decided that day that Burro asks nothing. That night the last two were added to what is left for a person, once the website had been driven: it had ranked one area of 22 on a guess, for a person who wrote "near" and its name, and counted more pubs for one who wrote that pubs are noisy. ADR 0012, as amended, says what each risks and gives up]` |
 | What it never does | It never ranks a place, scores one, or describes one from its own knowledge |
 
 ## 6. Who may use Burro
 
 `[FOUNDER: You must be 18 or over.]` Burro does not ask your age and does not check it.
+
+`[SETTING: accounts are turned on]` There is one place where Burro asks. When you make an account it asks you to confirm that you are 18 or over, and it makes no account until you have. It checks nothing, so what you confirm must be true.
 
 ## 7. What you agree not to do
 
@@ -179,6 +184,23 @@ In plain words:
 | Email | `[FOUNDER CONTACT]` |
 | VAT number | `[FOUNDER: if registered for VAT]` |
 
+## 14. If you make an account
+
+`[SETTING: accounts are turned on. While they are off nobody can make an account, and nothing in this section applies.]`
+
+You do not need an account to use Burro. An account keeps a search for you, so that you can come back to it. The [privacy notice](privacy-notice.md), section 20, says what an account holds, who else receives it, and how you see it, take a copy of it and delete it.
+
+| | |
+|---|---|
+| Who may make one | A person aged 18 or over, who confirms that they are: section 6 |
+| The email address | Use an address that is yours, and that only you read. Burro signs you in by sending a link to it, and there is no password. This means that anybody who can read the email of that address can sign in to your account |
+| A link to sign in | It is for you alone, so please do not send it on to anybody. If somebody sends you a link to sign in to Burro, do not use it, because it would sign you in to their account and whatever you kept there would be theirs to read. The page a link opens shows the address it is about to sign you in with, so check that the address is yours before you confirm |
+| Asking for a link | Ask for one only for an address of your own. Asking for many, or for other people's addresses, is one of the things section 7 asks you not to do, and Burro limits how many it sends |
+| A shared computer | Sign out when you have finished. While a browser is signed in, anybody who uses it can see what you kept |
+| What an account does not change | What Burro shows you. The ranking is worked out from the search alone, and is the same for everybody who makes the same search, with an account or without one |
+| Ending it | You can delete your account at any time, and everything in it goes with it. `[FOUNDER: whether Burro may close an account that is used against these terms, and whether it says so to the account's address first]` |
+| If accounts are withdrawn | Burro may stop offering accounts, as it may change or stop anything: section 11. `[FOUNDER: how long before that a person is told, by an email to the account's address, so that they can take a copy of what they kept]` |
+
 ---
 
 The terms end here.
@@ -237,9 +259,25 @@ A row that names only a decision record, a plan or a page of the website's own w
 | Every answer says whether the data is made up, and whether it is a preview | `services/api/tests/test_routes.py`, `test_every_response_says_whether_it_is_synthetic_and_whether_it_is_a_preview` | Code and test |
 | The page shows what was understood, under the box | `apps/web/AGENTS.md`. `apps/web/src/components/PromptBox/PromptBox.tsx` draws it under the box | Code |
 | A model never ranks, scores or describes a place | ADR 0002, ADR 0014. The one call to a model is `_user` and `SYSTEM` in `services/api/src/burro_api/reader.py`, which asks for settings and nothing else | Code. What a model is asked when a release is built is not written yet |
-| Words that are not a plain list are applied to nothing | `services/api/tests/test_routes.py`, `test_a_prompt_that_is_not_plain_applies_nothing_and_offers_what_was_noticed` | Code and test |
-| Nothing a model reads is applied until the person chooses it | [ADR 0012](../adr/0012-a-closed-vocabulary-and-a-guard-on-the-model.md) lists what a model's reading may apply today | Not built |
+| The service applies nothing of words that are not a plain list | `services/api/tests/test_routes.py`, `test_a_prompt_that_is_not_plain_applies_nothing_and_offers_what_was_noticed`. Since 26 September 2026 the website takes what the service offers of them, without asking | Code and test, of the service |
+| What a model reads is checked by Burro's code, and then applied without asking | [ADR 0012](../adr/0012-a-closed-vocabulary-and-a-guard-on-the-model.md), as amended on 26 September 2026. Until that day this row said that nothing a model reads is applied until the person chooses it | Code, of the checks. A promise, of what the website takes |
 | Burro shows no home and links to none | [PLAN.md](../PLAN.md), section 15 | A promise |
 | No limit on requests is built | `admit` in `services/api/src/burro_api/app.py` is empty | Not built |
 | A link may stop working | `services/api/src/burro_api/stores.py`. `apps/web/src/content/share.ts` | Code |
 | The repository holds no licence file | None was found at its root | |
+
+### For accounts
+
+Read on 26 September 2026 in the code of accounts. Each test is named as it stood that day: [the design of accounts](../design/accounts.md), section 12, says where each is.
+
+| Claim | Where it is kept true | Held by |
+|---|---|---|
+| Nobody needs an account to search, to compare areas or to share a search | `test_a_search_knows_nobody_with_accounts_on_as_with_them_off`, `test_with_accounts_off_the_service_is_what_it_was` | Code and test |
+| There is no password, and a link signs a person in | [ADR 0043](../adr/0043-burro-has-accounts-and-a-person-signs-in-by-a-link-sent-by-email.md). `test_asking_for_a_link_sends_one_to_the_address_made_regular` | Code and test |
+| The page a link opens shows the address it is about to sign a person in with | `test_the_page_says_whose_link_it_is_and_signs_nobody_in_until_the_button_is_pressed`, `test_the_page_says_to_check_the_address_and_what_follows_if_it_is_somebody_elses` | Code and test |
+| Burro limits how many links it sends | `test_three_links_to_an_address_in_a_quarter_of_an_hour_and_no_more`, `test_ten_requests_from_one_client_in_a_quarter_of_an_hour_and_no_more`, `test_the_whole_service_sends_so_many_links_in_an_hour_and_no_more` | Code and test |
+| An account is made only once a person has said that they are 18 or over | `test_the_first_sign_in_makes_the_account_once_the_person_says_they_are_an_adult` | Code and test. Nothing checks that it is so |
+| An account changes nothing of what Burro shows | `test_a_search_knows_nobody_with_accounts_on_as_with_them_off` | Code and test |
+| A person can delete their account at any time, and everything in it goes with it | `test_an_account_is_deleted_with_everything_of_it_in_the_file_and_beside_it` | Code and test |
+| Burro closes an account that is used against these terms | Nothing. No route closes an account but the person's own | Not built |
+| A person is told by email before accounts are withdrawn | Nothing. The one email Burro sends is a link to sign in | Not built |

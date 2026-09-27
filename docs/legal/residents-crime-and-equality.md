@@ -44,7 +44,7 @@ The founder decided these on 24 September 2026. [ADR 0006](../adr/0006-rank-plac
 | Stop and search | Never read, whatever the rule on residents says | The registry's condition on `police-uk-street-level-crime` forbids it. No code reads the police file yet |
 | The police file as saved | The crime files alone are read. The outcomes and the stop and search files are never opened | The same |
 | The religious character of a school | It is no amenity. Schools are counted without regard to faith, and the column is never read | The registry's condition |
-| Income, employment, health, qualifications | The founder was not asked. They stay out of ranking | Code and test: `test_no_feature_or_tag_describes_residents` |
+| Income, employment, health, qualifications | The founder was not asked. They stay out of ranking | Code and test: `test_nothing_describes_residents_but_the_four_measures_and_the_two_vibes_that_hold_one` |
 | A word for how well off an area is, such as "affluent" | It is offered as a wish about the place, in two readings: towards the polished end of Gritty, or homes that sell for more than London's middle. Never income, and never who lives there | `[NOT BUILT: as the code stands such a word is answered as a wish about who lives somewhere, and makes no setting]` |
 | Recorded crime in Gritty | One vibe, Gritty, counts recorded criminal damage and recorded anti-social behaviour, with works and warehouses, main roads, noise and density. To type "gritty" is to ask for recorded crime by name | `[NOT BUILT: a release that is not made up is refused if its Gritty holds recorded incidents. The rule is gritty_b_is_synthetic]` |
 
@@ -139,7 +139,8 @@ This is this draft's reading of the pages above. No page says it of a product li
 | What is held | A count or a rate for an area, by category. Never an event, and never a point |
 | What counts in Gritty | Recorded criminal damage and recorded anti-social behaviour, as two of its parts |
 | When it counts | When a person asks for Gritty by name, towards either end. Recorded crime counts nowhere else unless a person asks for it by name or switches it on |
-| What Burro says | The count, its category, its period and its source. Never "safe" or "unsafe". `test_site_copy_never_calls_a_place_safe_or_unsafe` |
+| What Burro says | The count, its category, its period and its source. Never "safe" or "unsafe". `test_site_copy_never_calls_a_place_safe_or_unsafe`. Since 27 September 2026 a result of the website, as it is first shown, gives a figure of recorded crime only where that is what the area gives up, in the sentence of its trade-off. The key of its source stands under "Show the working", and opens to the period and the source as it did: they are two presses from the result, where they were one. What the publisher asks to be said with its figures stands there with them: [ADR 0046](../adr/0046-a-result-shows-what-was-asked-for-as-a-name-and-a-gauge-and-the-source-of-every-figure-stands-under-its-working.md) |
+| How it is drawn | Since 27 September 2026 recorded crime has a drawing: a sheet on its board with a tally on it, which is a count that was written down. It is never drawn as a warning or as a thing to fear, and nothing of it is red: [ADR 0033](../adr/0033-the-website-looks-like-the-map-of-a-gentle-game.md), as amended |
 | What the page of a vibe says | That the vibe counts recorded crime, and which parts of it do. The words are the website's, in `apps/web/src/content/crime.ts` |
 | Is it about a person | This draft reads a count for an area as about nobody who can be identified. The ICO's page says a crime against "an identifiable victim" is the victim's personal data. The police site moves each event to a point that stands for at least eight addresses or none, and speaks of "protecting the privacy of victims". Read twice. `[SOLICITOR]` |
 | What a rate is divided by | A rate that a publisher has divided by a count of residents, or has smoothed by the kind of people who live in an area, leans on who lives there. Which file feeds Gritty, and whether such a rate may, is the founder's to decide before a figure is shown. The publisher's method was not read for this draft |
@@ -226,7 +227,7 @@ The Explanatory Notes give two examples for section 33: "A landlord refuses to l
 
 | What | Held by |
 |---|---|
-| Nothing can search, sort, filter or colour a map by ethnic group, religion or country of birth | [ADR 0014](../adr/0014-evidence-first-and-census-figures-shown.md). `test_no_feature_or_tag_describes_residents` |
+| Nothing can search, sort, filter or colour a map by ethnic group, religion or country of birth | [ADR 0014](../adr/0014-evidence-first-and-census-figures-shown.md). `test_nothing_describes_residents_but_the_four_measures_and_the_two_vibes_that_hold_one` |
 | The census table is the office's own figures, in its own words and order, with no sentence of Burro's, no "main" group, no comparison and no colour | ADR 0014. `[NOT BUILT: no page shows the table]` |
 | The table is on an area's page and nowhere else: not in a result, a reason, a comparison, a likeness or a shared link | ADR 0014. `[NOT BUILT]` |
 | Nothing reads a wish for fewer of any group. A person who asks is told so in one sentence, and the rest of what they asked is answered | `test_a_request_about_who_lives_somewhere_makes_no_edit_at_all` |
@@ -281,7 +282,7 @@ In the order of what each could cost. "Ships today" means what this draft's read
 
 ## 11. Words for the methods page
 
-The website's methods page is outside this draft. It said that nothing that describes who lives somewhere is used, which stopped being true on 2026-09-24, when core came to hold four measures of age and of households. The page was changed that day to the words of the first two rows below, but for the year of the census, which the name of each measure gives. The fourth row is not written. These are the words as they were drafted. Each figure and each name is the API's to give, as now.
+The website's methods page is outside this draft. It said that nothing that describes who lives somewhere is used, which stopped being true on 2026-09-24, when core came to hold four measures of age and of households. The page was changed that day to the words of the first two rows below, but for the year of the census, which the name of each measure gives. The fourth row is not written. These are the words as they were drafted. Each figure and each name is the API's to give, as now. On 2026-09-26 the words of the website were written again, for a person who has never seen Burro ([ADR 0038](../adr/0038-the-words-of-the-website-are-written-for-a-person-who-has-never-seen-burro.md)): what the rows below say is said there still, in other words, and `apps/web/src/content/methods.ts` and `crime.ts` have them as they are. When recorded crime counts is said in one text still, on every page that speaks of it.
 
 | Where | Today | Once a release holds a measure of age or of households |
 |---|---|---|
