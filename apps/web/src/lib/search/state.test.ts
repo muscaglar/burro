@@ -4,11 +4,17 @@ import type { BudgetEdit, Operations } from "@/lib/api/schema";
 
 import { edits, merged, NO_EDITS } from "./edits";
 import { refusals, refusedByPart } from "./refusals";
+import { leftOutOf } from "./said";
+import { NO_BOX, type Change } from "./mark";
 import {
+  changedTheSearch,
   failureOfTheCards,
   gaveWayBetween,
   initialState,
+  isBeforeASearch,
   movedBetween,
+  nothingCameOf,
+  readApart,
   reasonsAreIn,
   reasonsFailure,
   reduce,
@@ -16,6 +22,7 @@ import {
   type SearchState,
 } from "./state";
 import { createStore } from "./store";
+import { restsOn, settledOf, takenOfAll, thingOf } from "./takes";
 
 const meta = recordedAnswer("get_meta", "meta").body.data;
 const areas = recordedAnswer("list_areas", "areas").body.data.areas;
@@ -66,6 +73,9 @@ describe("the state of a search", () => {
     const events: SearchEvent[] = [
       { type: "tenure_swapped", tenure: "buy" },
       { type: "queued", operations: edits.tagOn("leafy") },
+      { type: "queued", operations: edits.tagOn("leafy"), gathers: true },
+      { type: "gather_started" },
+      { type: "gathered", data: refined, sent: NO_EDITS, meta: A },
       { type: "read_started", seq: 1 },
       { type: "read_answered", data: read, meta: A },
       { type: "rank_started", seq: 2 },
@@ -75,8 +85,12 @@ describe("the state of a search", () => {
       { type: "settled" },
       { type: "failed", step: "rank", failure: timeout },
       { type: "stopped" },
-      { type: "suggestion_chosen", at: 0 },
+      // What Burro takes of what it noticed waits to be sent, as the edits of a control do.
+      { type: "offers_taken", taken: [{ at: 0, operations: edits.tagOn("leafy"), marks: [], thing: "tag:leafy" }], left: [] },
+      { type: "questions_settled", settled: [] },
       { type: "box_changed" },
+      { type: "box_edited", change: { at: 0, out: 0, into: 5, holds: 5 } },
+      { type: "box_found", holds: 0 },
       { type: "online_changed", online: false },
       { type: "settings_opened", open: true },
       { type: "geometry_failed" },
@@ -87,13 +101,15 @@ describe("the state of a search", () => {
     for (const event of events) {
       const second = recordedAnswer("interpret", "interpret-second-sentence").body.data;
       const before = after({ type: "read_answered", data: second, meta: A });
-      const next = reduce({ ...before, untouched: event.type === "tenure_swapped" }, event);
+      // An answer to what was gathered is taken while the second way in gathers, and at no other time.
+      const held = { ...before, untouched: event.type === "tenure_swapped", gathering: event.type === "gathered" };
+      const next = reduce(held, event);
       if (next.spec !== before.spec) changing.add(event.type);
     }
 
     // A default the API served is swapped in before anything is asked for, and on starting again.
     expect([...changing].sort()).toEqual(
-      ["rank_answered", "read_answered", "share_answered", "started_again", "tenure_swapped"].sort(),
+      ["gathered", "rank_answered", "read_answered", "share_answered", "started_again", "tenure_swapped"].sort(),
     );
   });
 
@@ -237,6 +253,103 @@ describe("the state of a search", () => {
     expect(explained.spec_hash).toBe(ranked.spec_hash);
     expect(state.explainedHash).toBe(explained.spec_hash);
     expect(reasonsAreIn(state)).toBe(true);
+  });
+});
+
+describe("what the second way in gathers", () => {
+  const place = edits.placeAdd("syn-p0021");
+  const gathers: SearchEvent = { type: "queued", operations: place, gathers: true };
+  const gathered: SearchEvent = { type: "gathered", data: ranked, sent: place, meta: A };
+
+  test("test_what_is_chosen_there_is_gathered_while_no_search_is_open_and_at_no_other_time", () => {
+    expect(opened().gathering).toBe(false);
+    expect(after(gathers).gathering).toBe(true);
+    expect(after(gathers, gathered, gathers).gathering).toBe(true);
+    // Renting or buying was chosen first, which swaps a default in and sends nothing.
+    expect(after({ type: "tenure_swapped", tenure: "buy" }, gathers).gathering).toBe(true);
+
+    const searched = after({ type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A });
+    expect(reduce(searched, gathers).gathering).toBe(false);
+    const asked = after({ type: "read_started", seq: 1 }, { type: "read_answered", data: read, meta: A });
+    expect(reduce(asked, gathers).gathering).toBe(false);
+    const waited = after({ type: "rank_started", seq: 1 });
+    expect(reduce(waited, gathers).gathering).toBe(false);
+  });
+
+  test("test_the_answer_brings_the_spec_and_the_names_of_its_places_and_no_ranking", () => {
+    const state = after(gathers, gathered);
+
+    expect(state.spec).toBe(ranked.spec);
+    expect(state.specHash).toBe(ranked.spec_hash);
+    expect(state.placeNames).toEqual({ "syn-p0021": "Cindermoor Works" });
+    expect(state.pending).toEqual(NO_EDITS);
+    expect([state.ranking, state.rankedHash, state.rankedBy, state.read]).toEqual([null, null, null, null]);
+    expect(state.phase).toBe("empty");
+    expect(state.untouched).toBe(false);
+    expect(state.answers).toBe(opened().answers + 1);
+    expect(isBeforeASearch(state)).toBe(true);
+  });
+
+  test("test_an_answer_that_comes_once_a_search_was_made_changes_nothing", () => {
+    // A sentence was sent while what was chosen was on its way: its answer is what stands.
+    const made = after(gathers, { type: "read_started", seq: 1 });
+
+    expect(reduce(made, gathered)).toBe(made);
+  });
+
+  test("test_whatever_makes_a_search_ends_it", () => {
+    const held = after(gathers, gathered);
+    const ends: SearchEvent[] = [
+      { type: "read_started", seq: 1 },
+      { type: "rank_started", seq: 1 },
+      { type: "queued", operations: edits.tagOn("parks_close_by") },
+      { type: "share_answered", id: SHARE_ID, data: shared, meta: A },
+      { type: "started_again" },
+    ];
+
+    expect(held.gathering).toBe(true);
+    for (const event of ends) expect([event.type, reduce(held, event).gathering]).toEqual([event.type, false]);
+    // What is chosen on the map, and whether the settings are open, make no search.
+    const not: SearchEvent[] = [
+      { type: "selected", areaId: "syn-n0006" },
+      { type: "settings_opened", open: true },
+      { type: "online_changed", online: false },
+      { type: "failed", step: "rank", failure: timeout },
+    ];
+    for (const event of not) expect([event.type, reduce(held, event).gathering]).toEqual([event.type, true]);
+  });
+
+  test("test_what_is_refused_is_kept_with_the_edits_it_points_into", () => {
+    const low = edits.budgetAmount(1);
+    const refusing = recordedAnswer("rank", "rank-rejected-edit").body.data;
+    const state = after({ type: "queued", operations: low, gathers: true }, { type: "gathered", data: refusing, sent: low, meta: A });
+
+    expect(state.refused).toEqual({ operations: low, rejected: refusing.rejected });
+    expect(state.ranking).toBeNull();
+  });
+
+  test("test_a_failure_to_send_it_is_said_and_goes_when_it_is_sent_again", () => {
+    const failed = after(gathers, { type: "failed", step: "rank", failure: timeout });
+
+    expect(failed.failure).toBe(timeout);
+    expect(failed.pending).toEqual(place);
+    expect(failed.phase).toBe("empty");
+    const again = reduce(failed, { type: "gather_started" });
+    expect([again.failure, again.failedStep]).toEqual([null, null]);
+    expect(again.pending).toEqual(place);
+    // Where nothing failed, sending changes nothing.
+    const held = after(gathers);
+    expect(reduce(held, { type: "gather_started" })).toBe(held);
+  });
+
+  test("test_before_a_search_is_said_of_a_default_and_of_what_was_gathered_and_of_nothing_else", () => {
+    expect(isBeforeASearch(opened())).toBe(true);
+    expect(isBeforeASearch(after({ type: "tenure_swapped", tenure: "buy" }))).toBe(true);
+    expect(isBeforeASearch(after(gathers, gathered))).toBe(true);
+    expect(isBeforeASearch(after({ type: "read_started", seq: 1 }))).toBe(false);
+    expect(isBeforeASearch(after({ type: "rank_started", seq: 1 }))).toBe(false);
+    expect(isBeforeASearch(after({ type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A }))).toBe(false);
+    expect(isBeforeASearch(after(gathers, gathered, { type: "rank_started", seq: 1 }))).toBe(false);
   });
 });
 
@@ -837,7 +950,7 @@ describe("a service that cannot be reached", () => {
 
   test("test_words_that_never_reached_burro_are_not_said_to_be_unreadable", () => {
     // Seen in a browser, with the API stopped: "Your words could not be read just now. The
-    // settings below do the same job." The settings could not work either.
+    // settings do the same job." The settings could not work either.
     for (const failure of [network, notSet]) {
       const state = after({ type: "read_started", seq: 1 }, { type: "failed", step: "read", failure });
 
@@ -982,30 +1095,223 @@ describe("what the reader noticed and did not apply", () => {
     expect(after({ type: "read_answered", data: nothing, meta: A }).settingsOpen).toBe(true);
   });
 
-  test("test_a_suggestion_goes_when_the_person_has_chosen_of_it", () => {
-    const state = reduce(offered(), { type: "suggestion_chosen", at: 0 });
+  /** What the flow makes of every offer of a reading, as it hands it to the store. */
+  const takingAll = (data: typeof noticed): SearchEvent => {
+    const all = takenOfAll(data.suggestions, meta);
+    const made = data.suggestions.flatMap((offer, at) => {
+      const one = all[at];
+      return one === undefined ? [] : [{ at, offer, made: one }];
+    });
+    return {
+      type: "offers_taken",
+      taken: made.flatMap(({ at, offer, made: one }) =>
+        one.way === null
+          ? []
+          : [{ at, operations: one.operations, marks: one.marks, thing: thingOf(offer, one.operations), words: restsOn(offer) }],
+      ),
+      left: made.flatMap(({ at, made: one }) => (one.way === null ? [{ at, why: one.why }] : [])),
+    };
+  };
 
-    expect(state.read?.suggestions).toEqual(noticed.suggestions.slice(1));
-    // One that is not there changes nothing.
-    expect(reduce(state, { type: "suggestion_chosen", at: 5 })).toBe(state);
+  /** The same, where the service marks one way of the first thing as its guess. */
+  const guessing = (way: string): typeof noticed => ({
+    ...noticed,
+    suggestions: noticed.suggestions.map((offer, at) =>
+      at === 0 ? { ...offer, choices: offer.choices.map((one) => ({ ...one, guess: one.id === way })) } : offer,
+    ),
   });
 
-  test("test_once_a_choice_has_changed_the_search_it_is_no_longer_said_that_nothing_has", () => {
-    // Seen in a browser: a thing was chosen, the areas were ranked, and directly under the
-    // new ranking the page still read "Nothing you typed has changed your search."
+  /** The same again, where nothing of the second thing waits for a person: it is said of the person's own home. */
+  const wanted = (data: typeof noticed): typeof noticed => ({
+    ...data,
+    suggestions: data.suggestions.map((offer, at) => (at === 1 ? { ...offer, only_by_choice: false, note: "" } : offer)),
+  });
+
+  test("test_what_burro_takes_goes_from_what_was_noticed_and_its_edits_wait_to_be_sent", () => {
+    const [pubs, noise] = wanted(guessing("less")).suggestions;
+    const read = after({ type: "read_started", seq: 1 }, { type: "read_answered", data: wanted(guessing("less")), meta: A });
+    const state = reduce(read, takingAll(wanted(guessing("less"))));
+
+    expect(state.read?.suggestions).toEqual([]);
+    expect(state.read?.took).toBe(2);
+    expect(state.read?.left).toEqual([]);
+    expect(state.read?.things).toEqual(["feature:venue_evening_per_homes", "feature:noise_exposure"]);
+    // The edits are the ones the service gave with the way that was taken, in the order
+    // the things were noticed. The spec is as the service last returned it.
+    const fewer = pubs?.choices.find((way) => way.id === "less")?.operations ?? NO_EDITS;
+    const less = noise?.choices.find((way) => way.id === "less")?.operations ?? NO_EDITS;
+    expect(state.pending).toEqual(merged(fewer, less));
+    expect(state.spec).toBe(offered().spec);
+    // The reading itself changed nothing. What Burro took of it changes the search.
+    expect(state.read?.changed).toBe(false);
+    expect(changedTheSearch(state.read ?? { changed: false, took: 0 })).toBe(true);
+    expect(nothingCameOf(state.read ?? offered().read!)).toBe(false);
+    // An offer that is not there changes nothing.
+    const again = reduce(state, { type: "offers_taken", taken: [], left: [{ at: 5, why: "no_way" }] });
+    expect(again).toBe(state);
+  });
+
+  test("test_a_thing_that_runs_two_ways_where_the_words_give_neither_is_left_and_what_stands_beside_it_waits_to_be_sent", () => {
+    const [pubs, noise] = wanted(noticed).suggestions;
+    const state = reduce(
+      after({ type: "read_started", seq: 1 }, { type: "read_answered", data: wanted(noticed), meta: A }),
+      takingAll(wanted(noticed)),
+    );
+
+    expect(state.read?.suggestions).toEqual([]);
+    expect(state.read?.took).toBe(1);
+    expect(state.read?.left.map((one) => [one.label, one.why])).toEqual([[pubs?.label, "two_ways"]]);
+    expect(state.read?.things).toEqual(["feature:noise_exposure"]);
+    expect(state.pending).toEqual(noise?.choices.find((way) => way.id === "less")?.operations);
+    // Nothing of pubs is assumed, since nothing of them was taken. Less noise is what the
+    // person said: the words name it, and it runs the one way.
+    expect(state.assumed).toEqual({ "feature:noise_exposure": ["weight"] });
+  });
+
+  test("test_where_the_one_waits_for_the_person_and_the_words_give_no_way_of_the_other_nothing_waits_to_be_sent", () => {
+    // "Pubs are so noisy", as the service answers it: that it is noisy is said of the pubs.
+    const [pubs, noise] = noticed.suggestions;
+    const state = reduce(offered(), takingAll(noticed));
+
+    expect(state.read?.suggestions).toEqual([]);
+    expect(state.read?.took).toBe(0);
+    expect(state.read?.left.map((one) => [one.label, one.why])).toEqual([
+      [pubs?.label, "two_ways"],
+      [noise?.label, "by_choice"],
+    ]);
+    expect(state.read?.things).toEqual([]);
+    expect(state.pending).toEqual(NO_EDITS);
+    expect(state.assumed).toEqual({});
+    // Something came of the words, which the line names, and the search is as it was.
+    expect(nothingCameOf(state.read ?? offered().read!)).toBe(false);
+    expect(changedTheSearch(state.read ?? { changed: false, took: 0 })).toBe(false);
+  });
+
+  test("test_what_burro_chose_for_the_person_is_assumed_and_what_they_said_is_not", () => {
+    // Read into words that name neither thing, as a word is that is read into a measure.
+    const readIn: typeof noticed = {
+      ...wanted(guessing("less")),
+      suggestions: wanted(guessing("less")).suggestions.map((offer) => ({ ...offer, by_name: false })),
+    };
+    const read = after({ type: "read_started", seq: 1 }, { type: "read_answered", data: readIn, meta: A });
+    const state = reduce(read, takingAll(readIn));
+
+    // Pubs run two ways, and the way is the service's guess: the thing and the way are
+    // Burro's. Less noise runs one way, and that it counts at all is Burro's.
+    expect(state.assumed).toEqual({
+      "feature:venue_evening_per_homes": ["weight", "direction"],
+      "feature:noise_exposure": ["weight"],
+    });
+    // Where the words name the thing and give its way, it is what the person said.
+    const said = wanted(guessing("less"));
+    const named = reduce(
+      after({ type: "read_started", seq: 1 }, { type: "read_answered", data: said, meta: A }),
+      takingAll(said),
+    );
+    expect(named.assumed["feature:venue_evening_per_homes"]).toBeUndefined();
+    // A person who then sets the way themselves has chosen it: it is assumed no longer.
+    const set = reduce(state, {
+      type: "queued",
+      operations: edits.featureDirection("venue_evening_per_homes", 0.5, "less"),
+    });
+    expect(set.assumed["feature:venue_evening_per_homes"]).toBeUndefined();
+    expect(set.assumed["feature:noise_exposure"]).toEqual(["weight"]);
+  });
+
+  test("test_what_one_press_would_have_taken_as_it_was_said_is_marked_as_the_press_marked_it", () => {
+    const long = recordedAnswer("interpret", "interpret-by-model-long").body.data;
+    const read = after({ type: "read_started", seq: 1 }, { type: "read_answered", data: long, meta: A });
+    const state = reduce(read, takingAll(long));
+
+    // Quiet streets, the park and the culture were said, and nothing of them is assumed.
+    expect(state.assumed["tag:quiet_residential"]).toBeUndefined();
+    expect(state.assumed["feature:park_proximity"]).toBeUndefined();
+    expect(state.assumed["feature:culture_venues_per_homes"]).toBeUndefined();
+    // The budget was taken as it was worded, a firm limit for a home of one bedroom.
+    expect(state.assumed.budget).toBeUndefined();
+    // Nobody said how to travel. And the words gave a firm limit where a guide was taken.
+    expect(state.assumed["place:syn-p0017"]).toEqual(["mode", "strictness"]);
+    // What Burro read into two words is its own reading, and says so. A word counts once:
+    // of what is read into the same words one thing is taken, and nothing is assumed of
+    // what was left.
+    for (const key of ["feature:brand_mix", "tag:village_feel"]) {
+      expect([key, state.assumed[key]]).toEqual([key, ["weight"]]);
+    }
+    for (const key of ["feature:price_median", "feature:homes_higher_bands", "tag:built_age", "feature:highstreet_access"]) {
+      expect([key, state.assumed[key]]).toEqual([key, undefined]);
+    }
+  });
+
+  test("test_what_burro_took_nothing_of_is_kept_with_why_in_the_services_own_words", () => {
+    const long = recordedAnswer("interpret", "interpret-by-model-long").body.data;
+    const read = after({ type: "read_started", seq: 1 }, { type: "read_answered", data: long, meta: A });
+    const state = reduce(read, takingAll(long));
+    const gritty = long.suggestions.find((one) => one.label === "Gritty");
+
+    expect(state.read?.suggestions).toEqual([]);
+    expect((state.read?.took ?? 0) + (state.read?.left.length ?? 0)).toBe(long.suggestions.length);
+    expect(state.read?.left[0]).toEqual({
+      why: "crime",
+      target: gritty?.target,
+      label: "Gritty",
+      does: gritty?.does,
+      follows: gritty?.follows,
+      note: gritty?.note,
+    });
+    // No edit of it waits to be sent: recorded crime is not set counting.
+    expect(state.pending.tag_ops.map((edit) => edit.tag_id)).not.toContain("street_character");
+    expect(state.assumed["tag:street_character"]).toBeUndefined();
+    // It is named among what was left out, and is no edit that the service turned away.
+    // With it stand the readings of words that were taken another way, each with why.
+    expect(leftOutOf(state.read).map((thing) => [thing.name, thing.why])).toEqual([
+      ["Gritty", "crime"],
+      ["What homes sell for", "otherwise"],
+      ["Homes in the higher council tax bands", "by_choice"],
+      ["Age of buildings", "otherwise"],
+      ["Nearer a town centre", "otherwise"],
+    ]);
+    expect(refusals(state.read, null)).toEqual([]);
+  });
+
+  test("test_what_was_taken_of_a_thing_as_the_rules_read_it_is_not_taken_again_as_a_model_did", () => {
+    const atOnce = recordedAnswer("interpret", "interpret-rules-at-once").body.data;
+    const long = recordedAnswer("interpret", "interpret-by-model-long").body.data;
+    const byTheRules = reduce(
+      after({ type: "read_started", seq: 1 }, { type: "read_answered", data: atOnce, meta: A }),
+      takingAll(atOnce),
+    );
+    expect(byTheRules.read?.more).toBe(true);
+    const waiting = byTheRules.pending;
+
+    const byAModel = reduce(byTheRules, { type: "read_more_answered", data: long });
+
+    // What a model read joins what the rules read. Of what was taken or left already, by
+    // the same name and the same words, nothing is held to be made anything of again.
+    expect(byAModel.read?.more).toBe(false);
+    expect(byAModel.read?.suggestions.map((one) => one.label)).toEqual(["A budget of £1,900"]);
+    expect(byAModel.read?.took).toBe(byTheRules.read?.took);
+    expect(byAModel.pending).toBe(waiting);
+    // The budget is one thing, whichever named it: the offer goes, and no edit is made of it.
+    const [budget] = byAModel.read?.suggestions ?? [];
+    expect(byTheRules.read?.things).toContain(budget?.target);
+    const gone = reduce(byAModel, { type: "offers_taken", taken: [], left: [], again: [0] });
+    expect(gone.read?.suggestions).toEqual([]);
+    expect(gone.read?.took).toBe(byTheRules.read?.took);
+    expect(gone.pending).toBe(waiting);
+    expect(gone.assumed).toBe(byAModel.assumed);
+  });
+
+  test("test_the_notice_is_kept_as_it_came_whatever_burro_takes", () => {
+    // The notice is the service's. What the page shows of it is the page's to say, and
+    // nothing of it is changed where it is kept.
     const beside = recordedAnswer("interpret", "interpret-suggest-notice").body.data;
     const told = after({ type: "read_started", seq: 1 }, { type: "read_answered", data: beside, meta: A });
-    expect(told.read?.notice_text).toMatch(/Nothing you typed has changed your search\.$/);
+    const state = reduce(told, takingAll(beside));
 
-    // Leaving a thing out changes nothing, so what was said still holds.
-    const left = reduce(told, { type: "suggestion_chosen", at: 0 });
-    expect(left.read?.notice_text).toBe(beside.notice_text);
-    // A choice that holds edits changes the search. The notice is the API's, and is never
-    // cut or reworded: it goes whole.
-    const chosen = reduce(told, { type: "suggestion_chosen", at: 0, changes: true });
-    expect(chosen.read?.notice).toBe("none");
-    expect(chosen.read?.notice_text).toBe("");
-    expect(chosen.read?.suggestions).toEqual(beside.suggestions.slice(1));
+    // Leafy is taken. That a street is noisy is not said to be what the person wants less of.
+    expect(state.read?.took).toBe(1);
+    expect(state.read?.notice).toBe("neutral_places");
+    expect(state.read?.notice_text).toBe(beside.notice_text);
   });
 
   test("test_every_suggestion_goes_when_the_box_changes", () => {
@@ -1140,6 +1446,73 @@ describe("what was not applied", () => {
     expect(asked.rejected).toEqual([{ group: "commute_ops", index: 0, reason: "unknown_place" }]);
     expect(refusals(readOf(asked), null)).toEqual([]);
   });
+});
+
+describe("a question that is settled with no person asked", () => {
+  const asked = recordedAnswer("interpret", "interpret-clarify").body.data;
+  const notFound = recordedAnswer("interpret", "interpret-clarify-no-options").body.data;
+  /** What the flow makes of every question of a reading, as it hands it to the store. */
+  const settling = (data: typeof asked): SearchEvent => ({
+    type: "questions_settled",
+    settled: data.clarify.map((question) => {
+      const made = settledOf(data.operations, question);
+      return { question, id: made.option?.id ?? null, operations: made.operations };
+    }),
+  });
+  const readOf = (data: typeof asked) => after({ type: "read_started", seq: 1 }, { type: "read_answered", data, meta: A });
+
+  test("test_a_name_that_several_places_bear_is_the_first_the_service_gave_and_its_edit_waits_to_be_sent", () => {
+    const [first] = asked.clarify[0]?.options ?? [];
+    const state = reduce(readOf(asked), settling(asked));
+
+    expect(asked.clarify[0]?.options.length).toBeGreaterThan(1);
+    expect(state.read?.clarify).toEqual([]);
+    // The refusal the question stood for goes with it: the place is known now.
+    expect(state.read?.rejected).toEqual([]);
+    expect(refusals(state.read, null)).toEqual([]);
+    expect(state.pending).toEqual({
+      ...NO_EDITS,
+      commute_ops: [{ ...asked.operations.commute_ops[0], place_id: first?.id }],
+    });
+    // What was assumed of the journey asked about is assumed of the place that was taken,
+    // and so is the place itself: nobody chose it.
+    expect(state.assumed[`place:${first?.id}`]).toEqual(["mode", "strictness", "place"]);
+    expect(state.assumed["place:"]).toBeUndefined();
+  });
+
+  test("test_a_place_the_person_then_sets_a_part_of_is_still_one_that_burro_took", () => {
+    const [first] = asked.clarify[0]?.options ?? [];
+    const settled = reduce(readOf(asked), settling(asked));
+
+    const set = reduce(settled, { type: "queued", operations: edits.placeMode(first?.id ?? "", "cycle") });
+
+    expect(set.assumed[`place:${first?.id}`]).toEqual(["strictness", "place"]);
+    // Taken out, it leaves nothing assumed behind it.
+    const out = reduce(set, { type: "queued", operations: edits.placeRemove(first?.id ?? "") });
+    expect(out.assumed[`place:${first?.id}`]).toBeUndefined();
+  });
+
+  test("test_where_the_service_gives_no_place_nothing_is_taken_and_the_refusal_is_what_is_said", () => {
+    const state = reduce(readOf(notFound), settling(notFound));
+
+    expect(notFound.clarify[0]?.options).toEqual([]);
+    expect(state.read?.clarify).toEqual([]);
+    expect(state.pending).toEqual(NO_EDITS);
+    expect(state.read?.rejected).toEqual(notFound.rejected);
+    expect(refusals(state.read, null)).toEqual([{ key: "place:", reason: "unknown_place" }]);
+  });
+
+  test("test_a_question_that_is_settled_already_and_one_of_no_reading_change_nothing", () => {
+    const settled = reduce(readOf(notFound), settling(notFound));
+
+    expect(reduce(settled, settling(notFound))).toBe(settled);
+    expect(reduce(opened(), settling(asked))).toEqual(opened());
+  });
+});
+
+describe("what was not applied, of what a control sent", () => {
+  const cheaper = recordedAnswer("interpret", "interpret-rejected").body.data;
+  const readOf = (data: typeof cheaper) => after({ type: "read_answered", data, meta: A }).read;
 
   test("test_what_a_control_sent_is_said_at_the_control_and_what_words_made_is_not", () => {
     const refused = {
@@ -1150,6 +1523,284 @@ describe("what was not applied", () => {
     expect([...refusedByPart(refused)]).toEqual([["budget", "out_of_range"]]);
     expect([...refusedByPart(null)]).toEqual([]);
     expect(refusals(readOf(cheaper), refused)).toHaveLength(2);
+  });
+});
+
+describe("how far into the box the search has read", () => {
+  const second = recordedAnswer("interpret", "interpret-second-sentence").body.data;
+  const unread = recordedAnswer("interpret", "interpret-nothing-read").body.data;
+  const noticed = recordedAnswer("interpret", "interpret-suggest").body.data;
+  // A string found nowhere else, planted in what a person types.
+  const CANARY = "zqxcanary7431";
+
+  /** What the box tells of letters typed at its end: how many, and how many it then holds. */
+  const typed = (letters: number, held: number): SearchEvent => ({
+    type: "box_edited",
+    change: { at: held, out: 0, into: letters, holds: held + letters },
+  });
+  const changedAt = (change: Change): SearchEvent => ({ type: "box_edited", change });
+  /** So many letters are sent to be read: all that stands in the box after what was read. */
+  const sent = (letters: number, seq: number): SearchEvent => ({ type: "read_started", seq, letters });
+  /** A first sentence of 15 letters, typed, sent, read and ranked. */
+  const first: SearchEvent[] = [
+    typed(15, 0),
+    sent(15, 1),
+    { type: "read_answered", data: read, meta: A },
+    { type: "rank_answered", data: ranked, sent: NO_EDITS, meta: A },
+  ];
+  /** Then 12 letters more typed after it, and sent. */
+  const more: SearchEvent[] = [typed(12, 15), sent(12, 2)];
+
+  test("test_a_search_that_opens_has_read_nothing_of_the_box", () => {
+    expect(opened().box).toEqual(NO_BOX);
+    expect(opened().box.read).toEqual({ to: 0, changed: false });
+  });
+
+  test("test_the_search_has_read_what_was_sent_once_something_came_of_it", () => {
+    const sending = after(typed(15, 0), sent(15, 1));
+    expect(sending.box.read.to).toBe(0);
+
+    // Read in full, read into things to choose from, and read into a question and no more.
+    const asked = recordedAnswer("interpret", "visit/09-place").body.data;
+    expect([asked.applied.filter((edit) => edit.changed), asked.clarify.length]).toEqual([[], 1]);
+    for (const data of [read, noticed, asked]) {
+      const state = reduce(sending, { type: "read_answered", data, meta: A });
+      expect(state.box.read).toEqual({ to: 15, changed: false });
+    }
+    // An edit that was read and turned away came of the words too, and was said.
+    const refused = recordedAnswer("interpret", "interpret-rejected").body.data;
+    expect(refused.rejected.length).toBeGreaterThan(0);
+    expect(reduce(sending, { type: "read_answered", data: refused, meta: A }).box.read.to).toBe(15);
+  });
+
+  test("test_words_that_nothing_came_of_are_still_to_be_read", () => {
+    // The page says that nothing could be read, and to say it another way. Said another way
+    // where it stands, or with words put before it, all of it is sent.
+    const state = after(...first, ...more, { type: "read_answered", data: unread, meta: A }, { type: "settled" });
+
+    expect([unread.applied, unread.suggestions, unread.clarify]).toEqual([[], [], []]);
+    expect(state.box.read).toEqual({ to: 15, changed: false });
+    expect(state.box.sending).toBeNull();
+    // Where they stand is known, so that they can be shown in the box.
+    expect(state.box.shown).toBe(15);
+    // A change among them is no change to words that were read.
+    expect(reduce(state, changedAt({ at: 17, out: 2, into: 6, holds: 31 })).box.read).toEqual({ to: 15, changed: false });
+  });
+
+  test("test_words_that_a_model_goes_on_reading_are_read_once_it_makes_something_of_them", () => {
+    const pending = { ...unread, model_pending: true };
+    const reading = after(...first, ...more, { type: "read_answered", data: pending, meta: A }, { type: "settled" });
+
+    expect(reading.box.read.to).toBe(15);
+    expect(reduce(reading, { type: "read_more_answered", data: noticed }).box.read.to).toBe(27);
+    // It made nothing of them either, could not be asked, or was stopped by a change to the box.
+    expect(reduce(reading, { type: "read_more_answered", data: unread }).box).toMatchObject({ read: { to: 15 }, sending: null });
+    expect(reduce(reading, { type: "read_more_failed" }).box).toMatchObject({ read: { to: 15 }, sending: null });
+  });
+
+  test("test_what_is_added_is_read_from_where_the_search_had_read_to", () => {
+    const state = after(...first, ...more, { type: "read_answered", data: second, meta: A });
+
+    expect(state.box.read).toEqual({ to: 27, changed: false });
+    // The service counts where words stand from the start of what it was sent.
+    expect(state.box.shown).toBe(15);
+  });
+
+  test("test_typing_what_is_added_tells_nobody_anything", () => {
+    // A person types after what was read, letter by letter. The store is as it was, so
+    // nothing of the page is drawn again for it.
+    const state = after(...first, typed(1, 15));
+
+    expect(reduce(state, typed(1, 16))).toBe(state);
+    expect(reduce(state, changedAt({ at: 15, out: 2, into: 0, holds: 15 }))).toBe(state);
+    expect(reduce(opened(), typed(1, 0))).toEqual(opened());
+  });
+
+  test("test_words_that_could_not_be_read_are_still_to_be_read", () => {
+    const state = after(...first, ...more, { type: "failed", step: "read", failure: timeout });
+
+    expect(state.box.read).toEqual({ to: 15, changed: false });
+    expect(state.box.sending).toBeNull();
+    // So trying again sends them, with whatever was typed after them since.
+    const again = after(...first, ...more, { type: "failed", step: "read", failure: timeout }, typed(4, 27), sent(16, 3));
+    expect(again.box.sending).toEqual({ to: 31, changed: false });
+    expect(reduce(again, { type: "read_answered", data: second, meta: A }).box.read.to).toBe(31);
+  });
+
+  test("test_words_that_were_read_and_not_ranked_were_read_all_the_same", () => {
+    const state = after(...first, ...more, { type: "read_answered", data: second, meta: A }, {
+      type: "failed",
+      step: "rank",
+      failure: timeout,
+    });
+
+    // The search holds what they said, so they are not sent again.
+    expect(state.spec).toBe(second.spec);
+    expect(state.box.read.to).toBe(27);
+  });
+
+  test("test_stop_puts_back_how_far_the_search_had_read_with_the_search", () => {
+    const stopped = after(...first, ...more, { type: "read_answered", data: second, meta: A }, { type: "stopped" });
+
+    expect(stopped.spec).toBe(ranked.spec);
+    expect(stopped.box.read).toEqual({ to: 15, changed: false });
+    expect(stopped.box.shown).toBeNull();
+    // Stopped before the words were read, it had read no further.
+    expect(after(...first, ...more, { type: "stopped" }).box.read.to).toBe(15);
+    // Once the ranking of the words is in there is nothing to put back.
+    const ranking = after(...first, ...more, { type: "read_answered", data: second, meta: A }, {
+      type: "rank_answered",
+      data: refined,
+      sent: NO_EDITS,
+      meta: A,
+    });
+    expect(reduce(ranking, { type: "stopped" }).box.read.to).toBe(27);
+  });
+
+  test("test_a_search_that_begins_again_has_read_nothing_of_a_box_that_still_holds_words", () => {
+    // "Start again" beside a failure leaves the box as it is. What it holds was read by the
+    // search before, and not by this one.
+    expect(after(...first).box.read.to).toBe(15);
+    expect(after(...first, { type: "started_again" }).box).toEqual(NO_BOX);
+    expect(after(...first, { type: "share_answered", id: SHARE_ID, data: shared, meta: A }).box).toEqual(NO_BOX);
+  });
+
+  test("test_a_box_that_is_emptied_or_typed_over_whole_has_nothing_in_it_that_was_read", () => {
+    const emptied = after(...first, changedAt({ at: 0, out: 15, into: 0, holds: 0 }));
+    const typedOver = after(...first, changedAt({ at: 0, out: 15, into: 1, holds: 1 }));
+
+    expect(emptied.box.read).toEqual({ to: 0, changed: false });
+    expect(typedOver.box.read).toEqual({ to: 0, changed: false });
+    // The search is as it was: what is typed next is added to it.
+    expect(emptied.spec).toBe(ranked.spec);
+    expect(emptied.ranking).not.toBeNull();
+  });
+
+  test("test_a_change_among_the_words_that_were_read_is_known_and_the_words_are_not", () => {
+    const state = after(...first, changedAt({ at: 6, out: 3, into: 2, holds: 14 }));
+
+    expect(state.box.read).toEqual({ to: 14, changed: true });
+    // Once what was added after them is read, it is not said again.
+    const added = after(...first, changedAt({ at: 6, out: 3, into: 2, holds: 14 }), typed(12, 14), sent(12, 2));
+    expect(added.box.read.changed).toBe(true);
+    expect(reduce(added, { type: "read_answered", data: second, meta: A }).box.read).toEqual({ to: 26, changed: false });
+  });
+
+  test("test_a_box_that_is_drawn_again_is_empty_and_the_search_is_as_it_was", () => {
+    const back = after(...first, { type: "box_found", holds: 0 });
+
+    expect(back.box).toEqual(NO_BOX);
+    expect(back.spec).toBe(ranked.spec);
+    // A box that is found as the search knows it tells nobody anything.
+    const state = after(...first);
+    expect(reduce(state, { type: "box_found", holds: 15 })).toBe(state);
+  });
+
+  test("test_where_the_words_stand_is_known_until_the_box_changes", () => {
+    const state = after(...first);
+
+    expect(state.box.shown).toBe(0);
+    expect(reduce(state, typed(1, 15)).box.shown).toBeNull();
+  });
+
+  test("test_words_that_were_read_are_read_still_when_the_keys_that_undo_put_them_back", () => {
+    // Seen in a browser: the whole of the box was typed over by accident and put back, and
+    // the sentence was sent again, onto a search that had been set by hand.
+    const typedOver = after(...first, changedAt({ at: 0, out: 15, into: 1, holds: 1 }));
+    expect(typedOver.box.read.to).toBe(0);
+
+    // The keys that undo take the letter out and leave the sentence selected.
+    const back = reduce(typedOver, changedAt({ at: 0, out: 1, into: 15, holds: 15, how: "undone" }));
+
+    expect(back.box.read).toEqual({ to: 15, changed: false });
+    expect([back.box.gone, back.box.back]).toEqual([0, []]);
+    // The keys that do again put the letter back, of which nothing was read, and the keys that undo the sentence.
+    const again = reduce(back, changedAt({ at: 1, out: 14, into: 0, holds: 1, how: "redone" }));
+    expect(again.box.read.to).toBe(0);
+    expect(reduce(again, changedAt({ at: 0, out: 1, into: 15, holds: 15, how: "undone" })).box.read).toEqual({ to: 15, changed: false });
+    // Where a browser leaves no more than a caret, the sentence is taken as read, and that is said.
+    const unsure = reduce(typedOver, changedAt({ at: 1, out: 0, into: 14, holds: 15, how: "undone" }));
+    expect(unsure.box.read).toEqual({ to: 15, changed: true });
+    // Put back after more was done to the box, it is taken as read, and that is said.
+    const later = after(
+      ...first,
+      changedAt({ at: 9, out: 6, into: 0, holds: 9 }),
+      typed(4, 9),
+      changedAt({ at: 9, out: 4, into: 0, holds: 9, how: "undone" }),
+      changedAt({ at: 9, out: 0, into: 6, holds: 15, how: "undone" }),
+    );
+    expect(later.box.read).toEqual({ to: 15, changed: true });
+    // The search is as it was all the while.
+    expect([back.spec, again.spec, unsure.spec, later.spec]).toEqual([ranked.spec, ranked.spec, ranked.spec, ranked.spec]);
+  });
+
+  test("test_a_search_that_begins_again_keeps_nothing_of_what_was_taken_out_of_the_box", () => {
+    const out = after(...first, changedAt({ at: 9, out: 6, into: 0, holds: 9 }));
+    expect([out.box.gone, out.box.back.map((was) => was.held)]).toEqual([6, [15]]);
+
+    expect(reduce(out, { type: "started_again" }).box).toEqual(NO_BOX);
+    expect(reduce(out, { type: "share_answered", id: SHARE_ID, data: shared, meta: A }).box).toEqual(NO_BOX);
+    expect(reduce(out, { type: "box_found", holds: 0 }).box).toEqual(NO_BOX);
+    // What the search knew before is let go once words are sent. What was taken out may be put back yet.
+    const sending = reduce(reduce(out, typed(4, 9)), sent(4, 2));
+    expect([sending.box.gone, sending.box.back, sending.box.again]).toEqual([6, [], []]);
+    expect(reduce(sending, { type: "read_answered", data: second, meta: A }).box.gone).toBe(6);
+  });
+
+  test("test_a_sentence_that_says_nothing_of_how_much_was_sent_moves_nothing", () => {
+    const state = after({ type: "read_started", seq: 1 }, { type: "read_answered", data: read, meta: A });
+
+    expect(state.box.read).toEqual({ to: 0, changed: false });
+  });
+
+  test("test_what_the_store_holds_of_the_box_is_counts_and_whether_a_thing_is_so", () => {
+    const leaves = (value: unknown): unknown[] =>
+      value !== null && typeof value === "object" ? Object.values(value).flatMap(leaves) : [value];
+    const sentence = `leafy and quiet ${CANARY}`;
+    const states = [
+      after(typed(sentence.length, 0), sent(sentence.length, 1)),
+      after(typed(sentence.length, 0), sent(sentence.length, 1), { type: "read_answered", data: read, meta: A }),
+      after(...first, changedAt({ at: 6, out: 3, into: 2, holds: 14 })),
+      after(...first, ...more, { type: "read_answered", data: second, meta: A }, { type: "stopped" }),
+    ];
+
+    for (const state of states) {
+      const held = leaves(state.box);
+      expect(held.length).toBeGreaterThan(3);
+      expect(held.filter((leaf) => leaf !== null && typeof leaf !== "number" && typeof leaf !== "boolean")).toEqual([]);
+      expect(JSON.stringify(state.box).includes(CANARY)).toBe(false);
+    }
+  });
+
+  test("test_that_what_was_added_was_read_by_itself_is_said_only_where_words_of_it_were_not_read", () => {
+    // A reading that asks for no new ranking ends where it is answered.
+    const added = (data: typeof read) =>
+      after(...first, ...more, { type: "read_answered", data, meta: A }, { type: "settled" });
+
+    // Nothing of what was added could be read, or a part of it could not.
+    expect(unread.unread.length).toBeGreaterThan(0);
+    expect(readApart(added(unread))).toBe(true);
+    expect(noticed.unread.length).toBeGreaterThan(0);
+    expect(readApart(added(noticed))).toBe(true);
+    // All of it was read: there is nothing to explain.
+    expect(second.unread).toEqual([]);
+    expect(readApart(added(second))).toBe(false);
+  });
+
+  test("test_it_is_not_said_of_a_first_sentence_nor_once_the_box_has_changed_nor_while_words_are_read", () => {
+    const answered = (data: typeof read): SearchEvent[] => [{ type: "read_answered", data, meta: A }, { type: "settled" }];
+    const alone = after(typed(15, 0), sent(15, 1), ...answered(unread));
+    const added = after(...first, ...more, ...answered(unread));
+
+    // Nothing stood before a first sentence.
+    expect(readApart(alone)).toBe(false);
+    expect(readApart(added)).toBe(true);
+    expect(readApart(reduce(added, typed(1, 27)))).toBe(false);
+    expect(readApart(after(...first, ...more))).toBe(false);
+    // Nor while a model still reads what the rules left unread.
+    const pending = { ...unread, model_pending: true };
+    expect(readApart(after(...first, ...more, ...answered(pending)))).toBe(false);
+    expect(readApart(opened())).toBe(false);
   });
 });
 

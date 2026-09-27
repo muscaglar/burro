@@ -7,8 +7,7 @@
  * another unit. So an offset is carried over before the box selects by it.
  *
  * Nothing here keeps a word. It takes the text from the box, where it already
- * is, and gives back offsets into it, for the box to select, or the words of
- * one stretch, for the page to draw beside an offer while the box holds them.
+ * is, and gives back offsets into it, for the box to select.
  */
 
 import type { Span } from "@/lib/api/schema";
@@ -35,17 +34,4 @@ export function inTheBox(box: string, spans: readonly Span[]): Span[] {
     if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end > last || end <= start) return [];
     return [{ start: (units[start] ?? 0) + lead, end: (units[end] ?? 0) + lead }];
   });
-}
-
-/**
- * The words of one stretch, cut from the box as it stands, or `null` where
- * the stretch is not in it. They are cut and never retyped: what is shown is
- * what the person wrote. Whoever calls this must know that the box still
- * holds what was sent, and must keep the words nowhere.
- */
-export function written(box: string, span: Span): string | null {
-  const [found] = inTheBox(box, [span]);
-  if (found === undefined) return null;
-  const words = box.slice(found.start, found.end).trim();
-  return words === "" ? null : words;
 }

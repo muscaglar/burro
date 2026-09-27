@@ -1,6 +1,134 @@
-/* One line high whether it says anything or not, so nothing under it moves. */
+/*
+ * The line that says what happened, directly under the box: a frame of its own, as low as
+ * one line can stand in, so that the answer stays on the first screen of a phone. Its
+ * words are read in ink, in the face of a sentence, at the size the page sets them.
+ *
+ * It is as high whether it says anything or not, so nothing under it moves. What it is
+ * made of is counted here, in art pixels and in lines, and nothing of it is a fixed height:
+ * a line that runs to two is two lines high.
+ */
 .status {
-  min-height: calc(var(--leading-text) * 1em);
+  /* What is read is kept three art pixels clear of the edge, above and below. */
+  --room: calc(var(--px) * 3);
+  /* Its two edges, at the top and the foot, and how far its shadow falls past it. */
+  --edges: calc(var(--px) * 2);
+  --shadow: calc(var(--px) * 2);
+
+  min-height: calc(var(--leading-text) * 1em + 2 * var(--room) + var(--edges));
   margin: 0;
-  color: var(--muted);
+  padding: var(--room) calc(var(--px) * 4);
+  color: var(--ink);
+}
+
+/*
+ * A slip: a plain edge of ink, and the hard shadow of the look. The shadow falls inside
+ * the room the slip takes, as the shadow of a box does: it is not cut off at the edge of a
+ * phone's screen, and does not lie on what follows.
+ */
+.status[data-kind="plain"] {
+  --edges: calc(var(--px) * 2);
+  --shadow: calc(var(--px) * 2);
+
+  margin-block-end: var(--shadow);
+  margin-inline-end: var(--shadow);
+  box-shadow: var(--box-shadow);
+}
+
+/* A box: four art pixels of rule at the top and six at the foot, its shadow among them. */
+.status[data-kind="box"] {
+  --edges: calc(var(--px) * 10);
+  --shadow: 0px;
+}
+
+/*
+ * No frame of its own: the line stands in the box of the search, which is a box already,
+ * as it does on a narrow screen. It has no edge, no shadow and no room round its words,
+ * and is as high as its words are: one line where it has one to say, which it keeps the
+ * room of while it says nothing. The frame of the kit brings the cream it is read on.
+ *
+ * It comes after what is said of each kind of frame, and weighs as much, so that it holds.
+ */
+.status[data-frame="none"] {
+  --room: 0px;
+  --edges: 0px;
+  --shadow: 0px;
+
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  box-shadow: none;
+}
+
+/* What happened is said first, and is set heavier than what follows it. */
+.happened {
+  font-weight: 700;
+}
+
+/*
+ * While it says nothing it is no box: nothing is drawn round nothing. It keeps the room of
+ * one, so that nothing under it moves when it next says something. Before a search the
+ * page gives it no room at all.
+ *
+ * These weigh more than what draws the frame, so that they hold whichever sheet is read last.
+ */
+.status:empty {
+  min-height: calc(var(--leading-text) * 1em + 2 * var(--room) + var(--edges) + var(--shadow));
+  margin: 0;
+  padding: 0;
+  border-width: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.status:empty::before {
+  content: none;
+}
+
+/*
+ * Where the look gives the room up, the line takes none while it says nothing. What stands
+ * under it then moves as an answer brings the line something to say, or takes it away.
+ */
+.status[data-room="given"]:empty {
+  min-height: 0;
+}
+
+/*
+ * A narrow screen: the line stands in no frame of its own. It is in the search box, which
+ * is a box already, and on a phone it runs to two lines: in a box of its own it was 77 px
+ * high, and the first result ended under the foot of the first screen. What stands over
+ * the answer gives way, and the room between two boxes is the first to.
+ *
+ * It brings the cream it is read on, as it does in a frame. Its lines are set as close as
+ * the reading face sets them where a sentence is short. It keeps the room of two of them,
+ * whatever it says and while it says nothing: on a phone what it says of a ranking is two
+ * lines and what it says while a search is read is one, and what stood under it went up
+ * by a line as Burro came, and down again as the results took his place.
+ *
+ * These weigh more than what draws the frame, and come after what is said of each kind of
+ * frame, so that they hold whichever sheet is read last.
+ */
+@media (max-width: 40rem) {
+  .status[data-kind] {
+    --room: 0px;
+    --edges: 0px;
+    --shadow: 0px;
+    --leading-text: 1.35;
+
+    min-height: calc(2 * var(--leading-text) * 1em);
+    margin: 0;
+    padding: 0;
+    border-width: 0;
+    background: var(--page);
+    box-shadow: none;
+    line-height: var(--leading-text);
+  }
+
+  .status[data-kind]::before {
+    content: none;
+  }
+
+  /* Where the look gives the room up it takes none while it says nothing, as on a wide screen. */
+  .status[data-kind][data-room="given"]:empty {
+    min-height: 0;
+  }
 }

@@ -1,0 +1,94 @@
+/*
+ * The wait: a box where the results will stand, in which Burro hops while a search is read.
+ *
+ * It is as high as what stood in the place of the first result when the sentence was sent,
+ * which the page measures and hands over. Where nothing stood there it is as high as a
+ * first result is. Measured on the whole page, with every part dressed, on the made-up
+ * city at 390 by 844: 374 px. It is never lower than what it holds, and grows with its words.
+ *
+ * On a first search what Burro understood comes with the answer, and stands over the first
+ * result. Where the page asks it, the box holds the room of that too: 206 px on a phone,
+ * measured on a sentence that names a budget, a journey and two vibes. The first result
+ * then ends where the box ended, and what stands under it does not move.
+ *
+ * From 60rem a first result is higher than the window has room for under the box: 639 px
+ * of 900, with its pictures at the ends of a scale. On a first search nothing stands under
+ * his box there, so nothing moves whatever it measures, and it is as high as leaves him in
+ * sight: lower than a result.
+ */
+.wait {
+  --first-result: 23.375rem;
+  --understood: 12.875rem;
+
+  display: grid;
+  min-width: 0;
+  min-height: var(--held, var(--first-result));
+}
+
+.wait[data-room="answer"] {
+  min-height: var(--held, calc(var(--understood) + var(--first-result)));
+}
+
+@media (min-width: 60rem) {
+  .wait {
+    --first-result: 16rem;
+  }
+}
+
+/*
+ * His stage takes what room the box has, and his words stand under it. The box keeps what
+ * it holds close, so that it is no higher than a result that is a few lines.
+ */
+.stage {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: var(--space-1);
+  justify-items: center;
+  padding: var(--space-2) var(--space-3);
+}
+
+/*
+ * The grass he hops on: a window on the meadow, with an edge of ink, in which he stands
+ * centre stage with grass under his hole. It is the ground of the page, by its token, laid
+ * as the page lays it. With the ground turned off it is the flat ground.
+ */
+.meadow {
+  display: grid;
+  align-content: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--px-stage) var(--space-3) calc(var(--px-stage) * 2);
+  border: var(--edge) solid var(--border);
+  background: var(--lea) var(--ground) 0 0 / calc(var(--px-ground) * 192) calc(var(--px-ground) * 192);
+  image-rendering: pixelated;
+}
+
+/*
+ * He stands centre stage in his box. Where the box is higher than the window has room for,
+ * as the place of a first result is on a desk, its middle is under the foot of the window:
+ * so he stands as high in it as keeps him in sight, and never outside his grass. Nothing
+ * of it moves him: he lies where he lies until the page is scrolled.
+ *
+ * It weighs more than what the kit says of where he lies, whichever sheet is read last.
+ */
+.meadow > [data-pose] {
+  position: sticky;
+  inset-block: var(--space-5);
+}
+
+/* What happens, as the line under the box says it: a short label, in the face of names. */
+.says {
+  color: var(--ink);
+  font: 400 var(--name-2) / 1.1 var(--font-name);
+  font-synthesis: none;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+/* Where the system draws in colours of its own the grass keeps its own, as he keeps his. */
+@media (forced-colors: active) {
+  .meadow {
+    border-color: CanvasText;
+    forced-color-adjust: none;
+  }
+}

@@ -1,21 +1,76 @@
 /*
  * The search page. After a search the answer comes first: docs/design/web.md, section 1,
  * gives the heights this is held to, and test/search/budget.test.tsx holds them.
+ *
+ * The page stands on the meadow. Every part of it is a box of cream, or a slip of cream,
+ * with grass between it and the next: nothing is read on the grass.
  */
 .search {
+  /*
+   * Which screen there is, in one word, for the page to ask: `narrow`, one column as narrow
+   * as a phone; `middle`, one column and wider; `wide`, two columns. The page puts its parts
+   * in the order this sheet draws them in, so that the order of the page is the order it
+   * is drawn in, and asks the browser for no width of its own. The three are parted where
+   * this sheet parts them: at 40rem and at 60rem.
+   */
+  --screen: middle;
+
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-3);
   padding-block-end: var(--space-5);
 }
 
-/* Once a search is open the title gives way to the answer, and takes no room. */
+@media (max-width: 40rem) {
+  .search {
+    --screen: narrow;
+  }
+}
+
+@media (min-width: 60rem) {
+  .search {
+    --screen: wide;
+  }
+}
+
+/*
+ * The heading of the page, in a box, with Burro sitting beside it before a search: he is
+ * at its left, and sits on the line the heading stands on. What the page is for is under
+ * both, as wide as the box. Once a search is open the title gives way to the answer, and
+ * takes no room.
+ */
+.head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: end;
+  gap: var(--space-2) var(--space-3);
+}
+
 .title {
   margin: 0;
 }
 
+/* Where Burro is not drawn the heading begins where the box does. */
+.title:first-child {
+  grid-column: 1 / -1;
+}
+
 .lead {
+  grid-column: 1 / -1;
   margin: 0;
+  max-width: none;
   color: var(--muted);
+}
+
+/*
+ * On a narrow screen the heading says who Burro is for, and leaves how a search is made to
+ * the two ways in under it, which say it: the map stands between them, and the box is on
+ * the first screen with it. Measured at 390 by 844: the sentence that is left out took
+ * three lines of the six, 72 px.
+ */
+@media (max-width: 40rem) {
+  .how {
+    display: none;
+  }
 }
 
 /*
@@ -30,8 +85,8 @@
   justify-self: start;
   padding: var(--space-2) var(--space-3);
   background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: var(--edge) solid var(--border);
+  box-shadow: var(--box-shadow);
   /* Off the screen until a keyboard reaches it. It stays in the reading order. */
   transform: translateY(-9999px);
 }
@@ -41,9 +96,70 @@
 }
 
 /*
- * A narrow screen: one column, in the order of the page. The form, then the first result,
- * whole on the first screen, then the ways to the settings and to sharing, then the map as
- * a strip, then the rest of the results.
+ * What says that a search came from a link, and the tray of areas to compare, are each
+ * held by a part that is no box of its own. What it holds is laid out as the page's own,
+ * and has a name by which the page can say where it stands.
+ */
+.shared,
+.tray {
+  display: contents;
+}
+
+/*
+ * A slip of cream: what the page lays under a part that another component draws and that
+ * stands loose, so that no word of it is read on the grass. It is a plain edge of ink and
+ * no more, and is as light as a rule can be: it weighs nothing, so whatever a part says of
+ * its own ground, its own edge or its own room is what is drawn.
+ */
+:where(.slip),
+:where(.shared, .first, .rest, .noticed) > :where(*) {
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--page);
+  border: var(--edge) solid var(--border);
+}
+
+/*
+ * A list of results has none: each result brings its own ground, and the grass shows
+ * between one and the next. Nor has a part that is a box of the kit, which brings its own
+ * ground too: a part that is dressed as a box stands on the grass as one, and is not boxed
+ * twice. This weighs nothing either, and comes after the rule it takes back.
+ */
+:where(.shared, .first, .rest, .noticed) > :where(ol, ul, [data-kind], [data-wait]) {
+  padding: 0;
+  background: none;
+  border: 0;
+}
+
+/* A slip that holds nothing but boxes of the kit is no slip: they stand on the grass. */
+:where(.slip):not(:has(> :not([data-kind]))) {
+  padding: 0;
+  background: none;
+  border: 0;
+}
+
+/*
+ * Nor is a part that holds a box of the kit and nothing else, as the place of a result is
+ * before any ranking has come: the box stood in a second edge, with its shadow on cream.
+ * It must hold a box: a part that holds words alone keeps the slip they are read on.
+ */
+:where(.shared, .first, .rest, .noticed) > :where(*):has(> [data-kind]):not(:has(> :not([data-kind]))) {
+  padding: 0;
+  background: none;
+  border: 0;
+}
+
+/*
+ * A screen of one column: every part in the order of the page, which is the order the
+ * page puts them in for the screen there is. Before a search the map stands over the two
+ * ways in, low, so that it is in sight whichever is chosen. Once a search is open the box,
+ * then the first result, whole on the first screen of a phone, then the part that refines
+ * the search and the way to sharing, then the map, then the rest of the results.
+ *
+ * No rule draws a part out of the order of the page. One did, on a narrow screen: the part
+ * that refines stood after the first result and came before it in the page, so the keys
+ * went down the page and back up, and a browser held the page by what stood under a
+ * result as the result grew, and threw it.
  */
 .columns {
   display: grid;
@@ -52,9 +168,11 @@
   align-items: start;
 }
 
-.form,
+.panel,
+.refine,
 .map,
 .results,
+.first,
 .rest {
   display: grid;
   gap: var(--space-3);
@@ -62,22 +180,266 @@
   min-width: 0;
 }
 
+/*
+ * What holds the tabs and the first way in. Nothing parts the tabs from the box under
+ * them: the chosen tab is laid over the rule of the box, and the two are one.
+ */
+.form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  min-width: 0;
+}
+
+/*
+ * A way in that is not chosen is on the page and is not drawn, so that what it holds is
+ * as it was left. What stood in the place of the first result is kept while Burro hops
+ * there, and is not drawn either.
+ */
+.panel[hidden],
+.refine[hidden],
+.first[hidden] {
+  display: none;
+}
+
+/*
+ * While a first sentence is read there is nothing to refine, and the part holds nothing:
+ * it then takes no place among the parts, and holds no space between the box and Burro.
+ */
+.refine:empty {
+  display: none;
+}
+
+/*
+ * The second way in is a part of its own, which stands after what holds the tabs. The
+ * tabs are laid over the rule of its first box as they are over the box of the first way:
+ * so what parts two parts of the page does not part these two.
+ */
+.refine[role="tabpanel"] {
+  margin-block-start: calc(-1 * var(--space-3));
+}
+
+/*
+ * The settings are one part in one place, before a search and after it: a fold, which the
+ * page holds open while they stand in the second way in. Nothing opens or closes them
+ * there, so what would is not drawn, and what it opens stands directly under what the way
+ * asks first. Once a search is open the fold is drawn as every fold is.
+ */
+.refine[data-standing="true"] > .fold > [aria-expanded][aria-controls],
+.refine[data-standing="true"] > .fold > :has(> [aria-expanded][aria-controls]) {
+  display: none;
+}
+
+.refine[data-standing="true"] > .fold > [id] {
+  margin-block-start: 0;
+}
+
+/* What the fold opens is laid out by the width of its own box, and never by that of the screen. */
+.fold {
+  min-width: 0;
+  container-type: inline-size;
+}
+
+/*
+ * Once a search is open the part that refines it is one line over the results: what opens
+ * the settings, and beside it what says that areas can be compared. What the fold opens
+ * stands under both, from edge to edge.
+ *
+ * The part says how wide it is, under a name of its own, and is as wide as a result is: so
+ * what says that areas can be compared stands beside the fold where a result has room for
+ * a town, and nowhere else. Where a result has none the list says it, under its first
+ * result. Neither goes by the width of the screen.
+ *
+ * Measured at 1440 by 900 after a plain search: in a slip of its own over the list, with
+ * what a town is, it was 92 px high and stood the first result 100 px lower. Beside the
+ * fold it is 73 px high, where the fold is 47, and stands the first result 26 px lower.
+ */
+.refine[data-standing="false"] {
+  container: refines / inline-size;
+  grid-template-columns: auto minmax(0, 1fr);
+  row-gap: var(--space-2);
+}
+
+/* Where a result has no room for a town the fold has the line from edge to edge, as it had. */
+@container refines (max-width: 36rem) {
+  .refine[data-standing="false"] > .fold {
+    grid-column: 1 / -1;
+  }
+}
+
+/*
+ * What says that areas can be compared: a slip of cream within an edge of ink, as what is
+ * said of a list of results is. Its edge ends where the edge of ink of the card under it
+ * ends: a card is a box, which keeps the room of its shadow inside itself.
+ */
+.compares {
+  display: none;
+  max-width: none;
+  margin: 0;
+  margin-inline-end: calc(var(--px) * 2);
+  padding: var(--space-1) var(--space-3);
+  border: var(--edge) solid var(--border);
+  background: var(--page);
+  font-size: var(--size-small);
+  line-height: 1.3;
+}
+
+@container refines (width > 36rem) {
+  /*
+   * The fold is no box of its own there: what opens it and what it opens are each laid out
+   * by the part, which then says how wide what the fold opens may be.
+   */
+  .refine[data-standing="false"] > .fold {
+    display: contents;
+  }
+
+  /*
+   * The two stand on one line from their tops: what opens the fold is brought to the top
+   * of the window as it is pressed, and what stands beside it is then in sight from its
+   * top as well.
+   */
+  .refine[data-standing="false"] > .fold > [aria-expanded][aria-controls] {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: start;
+    justify-self: start;
+  }
+
+  /* What it opens has the line under both, from edge to edge: in a column of its own it took the width from what stands beside the fold. */
+  .refine[data-standing="false"] > .fold > [id] {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    margin-block-start: 0;
+  }
+
+  .refine[data-standing="false"] > .compares {
+    display: flow-root;
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+  }
+}
+
+/*
+ * With scripts off no tab can be pressed. Both ways in stand in the page, one under the
+ * other, each under its name: a name of the look, as large as the label of the box.
+ */
+.unscripted {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.named {
+  margin: 0;
+  padding: var(--space-1) var(--space-3);
+  background: var(--page);
+  border: var(--edge) solid var(--border);
+  font-size: var(--name-2);
+}
+
 .map:focus,
 .results:focus {
   outline: none;
 }
 
-.beside {
+/*
+ * What the second way in opens with: a sentence that says what it is, and what makes the
+ * search. It asks nothing of its own, since the settings under it are its questions.
+ */
+.asks {
   display: grid;
   gap: var(--space-3);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
-  align-items: start;
+}
+
+.deep {
+  margin: 0;
+  max-width: none;
+  color: var(--muted);
+}
+
+/* The button that ranks by the settings stands under them, at the near side, as wide as its words. */
+.ranks {
+  justify-self: start;
 }
 
 /*
- * What Burro says of the search: what happened, a notice, a question, a failure, what was
- * understood, and what was noticed and not applied. It stands directly under the box,
- * where it is seen when Search is pressed.
+ * The same button, held at the foot of the window for as long as its own place is under
+ * it, and at rest in that place once the page is scrolled to it. It stood under ten groups
+ * of the space requirements, 2,213 px down a desk's window of 900 and 2,641 px down a
+ * phone's of 844. Over it stands what Burro says of what could not be sent.
+ *
+ * It is a slip of cream within an edge of ink, so that what it holds is read on cream
+ * over whatever stands under it, and it comes later on the page than the groups it is
+ * laid over. Its edge ends where the edge of ink of the boxes over it ends: a box keeps
+ * the room of its shadow inside itself. Nothing of it moves with the pointer or the focus.
+ */
+.held {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 1;
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+  margin-inline-end: calc(var(--px) * 2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--page);
+  border: var(--edge) solid var(--border);
+}
+
+/*
+ * The bar of areas to compare is held at the foot of the window too, once an area is
+ * chosen. The button stands clear of it, by the room the page clears for it.
+ */
+.search:has(.tray > [data-closed="false"]) .held {
+  inset-block-end: calc(2 * var(--space-8) + var(--space-7));
+}
+
+/*
+ * What takes the focus among the space requirements is not left under the button that is
+ * held over them. A browser brings what takes the focus clear of the foot of the window by
+ * the room the page keeps there, and knows nothing of the bar of the button: so each is
+ * brought clear of that bar as well, by as much as the bar is high and a little to spare.
+ *
+ * The page says how high the bar is, which grows with what Burro says in it. Until it has,
+ * the bar is as high as it was measured with nothing said in it: 74 px at 1440 by 900 and
+ * 72 at 390 by 844. With a search that could not be sent said in it, it was 216 and 236.
+ *
+ * Held alone, the bar stands in the room the page keeps: what takes the focus is brought
+ * further by what the bar is higher than that room, which is nothing until Burro says
+ * something in it. Over the bar of areas it stands where that room ends, and what takes
+ * the focus is brought further by the whole of it. Seen in a browser before this was
+ * written, with both held: of 21 things that take the focus by the keyboard, 5 stood under
+ * the button at 1440 by 900 and 9 at 390 by 844.
+ */
+.refine[data-standing="true"] {
+  --bar-high: calc(var(--space-8) + var(--space-3));
+  --bar-clear: calc(var(--bar-high) + var(--space-3));
+}
+
+.refine[data-standing="true"] > .fold :is(a, button, input, select, textarea, summary, [tabindex]) {
+  scroll-margin-block-end: max(0px, calc(var(--bar-clear) - 2 * var(--space-8) - var(--space-7)));
+}
+
+.search:has(.tray > [data-closed="false"]) .refine[data-standing="true"] > .fold :is(a, button, input, select, textarea, summary, [tabindex]) {
+  scroll-margin-block-end: var(--bar-clear);
+}
+
+/*
+ * The field that finds an area by its name, at the foot of the second way in. The areas
+ * that bear the name are listed under the field, in the flow of the page. It is a box that
+ * comes later on the page than the settings, and is drawn over what comes before it.
+ */
+.finds {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/*
+ * What Burro says of the search: what happened, a notice, a question, a failure and what
+ * was understood. It stands in the box, directly under the field, where it is seen when
+ * Search is pressed.
  */
 .says {
   display: grid;
@@ -85,11 +447,65 @@
   min-width: 0;
 }
 
-/* A narrow screen: what happened is said small, so that it is one line. */
+/*
+ * Where what stands over the answer gives way further, the parts of an open search stand
+ * closer on a screen that is wider than a narrow one too, as they do on a narrow one
+ * whatever the search: a question stands over the answer, and each pixel it is given is
+ * taken from the first result. The grass still shows between two boxes.
+ */
+@media (min-width: 40rem) {
+  .search[data-closer="true"] .columns,
+  .search[data-closer="true"] .form {
+    gap: var(--space-2);
+  }
+
+  .search[data-closer="true"] .says {
+    gap: var(--space-1);
+  }
+}
+
+/* A narrow screen: what happened is said small, so that it is one line where it can be. */
 @media (max-width: 40rem) {
   .says > [role="status"][aria-live] {
     font-size: var(--size-small);
   }
+
+  /*
+   * Once a search is open its parts stand closer there, so that the answer comes first:
+   * on a phone the first result is whole on the first screen. Measured with every part
+   * dressed, it ended 150 px under the foot of it. What stands over the answer gives way,
+   * and the room between two boxes is the first to. The grass still shows between them.
+   */
+  .search[data-open="true"] .columns,
+  .search[data-open="true"] .form {
+    gap: var(--space-2);
+  }
+
+  .search[data-open="true"] .says {
+    gap: var(--space-1);
+  }
+
+}
+
+/*
+ * While the second way in is chosen what Burro says stands at the head of it, on a slip of
+ * cream: a failure, or that the person is offline. Until it says something it has no slip
+ * and takes no place among the parts of the way, so that nothing parts the tabs from what
+ * the way asks first: seen in a browser, the chosen tab stood 12 px clear of its box. It is
+ * on the page all the same: what is not drawn is not heard when it first speaks.
+ */
+.told {
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  background: var(--page);
+  border: var(--edge) solid var(--border);
+}
+
+.told:not(:has(.says > :not(:empty))) {
+  position: absolute;
+  padding: 0;
+  background: none;
+  border: 0;
 }
 
 /*
@@ -98,6 +514,28 @@
  */
 .says[data-open="false"] > [role="status"]:empty {
   min-height: 0;
+}
+
+/*
+ * Until it says something it holds no space between what is over it and the foot of the box
+ * either. It is drawn all the same: what is not drawn is not heard when it first speaks.
+ */
+.says[data-open="false"]:not(:has(> :not(:empty))) {
+  margin-block-start: calc(-1 * var(--space-2));
+}
+
+/*
+ * The words that were not read, and that Burro is reading still: under the box, each part
+ * of it on cream, with grass between. Where there is nothing of it, it takes no room.
+ */
+.noticed {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.noticed:empty {
+  display: none;
 }
 
 .degraded,
@@ -112,31 +550,19 @@
   flex: 1 1 16rem;
 }
 
-/* That a part was not read changes what the ranking means, so it is drawn as the notice is. */
-.part {
-  padding: var(--space-3) var(--space-4);
-  background: var(--notice-bg);
-  color: var(--notice-text);
-  border-inline-start: 4px solid var(--notice-edge);
-  border-radius: var(--radius);
-}
-
-.part p,
 .unread p,
+.still,
 .shown {
   margin: 0;
 }
 
+/*
+ * Beside its line stands a small button of the look, which is higher than the words in a
+ * plain edge were: so the slip keeps what it holds closer, and is no higher for it.
+ */
 .unread {
+  padding-block: var(--space-1);
   font-size: var(--size-small);
-}
-
-/* Beside its line the button is as small as a button may be, so that the two are one line. */
-.unread > button {
-  min-height: var(--target-min);
-  padding: 0 var(--space-2);
-  font-size: var(--size-small);
-  color: var(--accent);
 }
 
 /*
@@ -149,15 +575,21 @@
   font-size: var(--size-small);
 }
 
-/* While it says nothing it does not hold the space between two lines either. */
+/*
+ * While it says nothing it has no slip and holds no space between two parts. It is on the
+ * page all the same: what is not drawn is not heard when it first speaks.
+ */
 .shown:empty {
   margin-block-start: calc(-1 * var(--space-2));
+  padding: 0;
+  background: none;
+  border: 0;
 }
 
 /*
- * What is one press away, side by side: the settings and sharing. What either opens to
- * goes under both, as wide as the form. They stand under the form before a search, and
- * under the first result after one.
+ * What is one press away, after the first result: sharing. What it opens to goes under
+ * it, as wide as the form. It is a button on the grass, as a helper is, and what it
+ * opens brings its own cream.
  */
 .tools {
   display: flex;
@@ -177,36 +609,156 @@
   min-width: 0;
 }
 
-/* In a row of their own the buttons are no higher than they need be. */
-.tools > div > button {
-  min-height: 2.25rem;
-  padding-block: var(--space-1);
-}
-
 /*
- * A wide screen: the form and the results in one column, and the map beside them. The map
- * comes after the first result in the page and first in the second column, and stays in
- * sight as the list scrolls.
+ * A wide screen: two columns. The answer is in the first, and the map is in the second,
+ * beside it: before a search beside the heading and the two ways in, whichever is chosen,
+ * and after one beside the box and the results. The map comes after the first result in
+ * the page. It stays in sight as the answer scrolls, and scrolls in a box of its own
+ * where it is higher than the window.
+ *
+ * How wide the two are is a token: `--columns`. The page stands boxes of its own on the
+ * grass, so it is as wide as the page may be, 75rem.
+ *
+ * The columns are the page's own, and every part has the row it stands in by name, so
+ * that none is placed by what else is drawn, and nothing moves when a part comes or goes.
+ * The rows are as high as what stands in them, and the last of the answer takes what is
+ * left over where the map is the taller: no row is made higher for the map, so nothing
+ * comes between the tabs and the way in that is chosen, or between the box and the first
+ * result. What is between two rows is set on the part above, because a row with nothing
+ * in it would still hold the space before the next.
  */
 @media (min-width: 60rem) {
-  .columns {
-    grid-template-columns: minmax(0, 8fr) minmax(0, 5fr);
-    gap: var(--space-3) var(--space-5);
+  .search {
+    grid-template-columns: var(--columns);
+    grid-template-rows: repeat(6, auto) 1fr auto;
+    align-items: start;
+    gap: 0 var(--space-5);
   }
 
+  .columns {
+    display: contents;
+  }
+
+  .head,
+  .shared > *,
   .form,
+  .refine,
+  .columns > noscript,
   .results,
   .tools,
   .rest {
     grid-column: 1;
+    min-width: 0;
+  }
+
+  .head {
+    grid-row: 1;
+  }
+
+  .shared > * {
+    grid-row: 2;
+  }
+
+  .form {
+    grid-row: 3;
+  }
+
+  .refine,
+  .columns > noscript {
+    grid-row: 4;
+  }
+
+  .results {
+    grid-row: 5;
+  }
+
+  .tools {
+    grid-row: 6;
+  }
+
+  .rest {
+    grid-row: 7;
+  }
+
+  .head,
+  .shared > *,
+  .form,
+  .refine,
+  .results,
+  .tools {
+    margin-block-end: var(--space-3);
   }
 
   .map {
     grid-column: 2;
-    grid-row: 1 / span 4;
+    grid-row: 1 / 8;
     position: sticky;
     inset-block-start: var(--space-4);
     max-height: calc(100vh - 2 * var(--space-4));
     overflow-y: auto;
+  }
+
+  .map,
+  .rest {
+    margin-block-end: var(--space-2);
+  }
+
+  /* What parts two rows is set on the part above. Where it gives way, what stands over the answer stands closer. */
+  .search[data-closer="true"] :is(.form, .refine) {
+    margin-block-end: var(--space-2);
+  }
+
+  /* The tray is as wide as the page, under both columns. */
+  .tray > * {
+    grid-column: 1 / -1;
+    grid-row: 8;
+  }
+
+  /*
+   * Once an area is chosen the tray stays at the foot of the screen, over the foot of the
+   * map, which stays in sight. So the map, which scrolls in its own box, clears the room
+   * the page clears: what stands at its foot can be scrolled clear of the tray, and what
+   * takes the focus in it is brought clear of it.
+   */
+  .search:has(.tray > [data-closed="false"]) .map {
+    padding-block-end: calc(2 * var(--space-8) + var(--space-7));
+    scroll-padding-block-end: calc(2 * var(--space-8) + var(--space-7));
+  }
+}
+
+/*
+ * A window that is wide and not high, as that of a laptop is. Measured at 1280 by 720,
+ * before a search: the helpers stood at the very foot of the first screen and under it,
+ * so that the ways to start that need no typing were not seen to be there. What stands
+ * over them gives way, in the order the look gives way in: the room between two boxes
+ * first, and last the size of the drawing beside the heading, which is drawn as on a
+ * phone. The heading keeps its size, and the field its height.
+ *
+ * It is said of the page before a search alone. Once one is open the heading is gone, and
+ * the parts of the page stand as the answer needs them to.
+ */
+@media (min-width: 60rem) and (max-height: 47.99rem) {
+  .search[data-open="false"] .panel {
+    gap: var(--space-2);
+  }
+
+  .search[data-open="false"] .head {
+    row-gap: var(--space-1);
+    margin-block-end: var(--space-2);
+    padding-block: var(--space-2);
+  }
+
+  .search[data-open="false"] .head > [data-pose] {
+    --px: var(--px-small);
+  }
+}
+
+@media (forced-colors: active) {
+  .skip {
+    box-shadow: none;
+  }
+
+  .compares {
+    border-color: CanvasText;
   }
 }

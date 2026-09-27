@@ -1,11 +1,17 @@
+/*
+ * The field that finds a place or an area by name, and its list. It stands in whatever box
+ * holds it: on the first screen, in the settings, in a question and in an offer. So it is
+ * laid out by nothing but itself, and asks the width of no screen.
+ */
 .combobox {
   position: relative;
   display: grid;
   gap: var(--space-1);
 }
 
+/* The label of the field is read, and may run to a line: it is set in the face of sentences, heavy. */
 .label {
-  font-weight: 650;
+  font-weight: 700;
 }
 
 .hint,
@@ -21,11 +27,28 @@
   min-height: calc(var(--leading-text) * 1em);
 }
 
-.field {
+/*
+ * The field is cream within a solid edge, which is quieter than ink until the field is in
+ * hand. What is typed in it is read, and is set in ink. It is named with what holds it, so
+ * that it weighs more than what the page says of every field.
+ */
+.combobox .field {
   width: 100%;
+  background: var(--page);
+  border: var(--edge) solid var(--muted);
+  color: var(--ink);
+  caret-color: var(--poppy);
 }
 
-/* The list is laid over what is under it, so that opening it moves nothing. */
+/* While its list is open the field is in hand, and its edge is ink. The edge is as wide as it was. */
+.combobox .field[aria-expanded="true"] {
+  border-color: var(--border);
+}
+
+/*
+ * The list is laid over what is under it, so that opening it moves nothing. It is cream
+ * with a rule of ink and the hard shadow of the look, as a menu that opens over a map is.
+ */
 .list {
   position: absolute;
   z-index: 2;
@@ -33,48 +56,83 @@
   top: calc(100% - var(--leading-text) * 1em);
   max-height: 18rem;
   margin: 0;
-  padding: 0;
+  padding: var(--px);
   overflow-y: auto;
   list-style: none;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: var(--page);
+  border: var(--edge) solid var(--border);
+  box-shadow: var(--box-shadow);
 }
 
 .list[hidden] {
   display: none;
 }
 
+/* A place: its name and what kind of place it is. The room of the carrot stands before every one. */
 .option {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-1) var(--space-3);
+  gap: 0 var(--space-3);
   max-width: none;
-  padding: var(--space-2) var(--space-3);
+  padding: calc(var(--px) * 3) calc(var(--px) * 4) calc(var(--px) * 3) calc(var(--px) * (var(--carrot-w) + 6));
+  color: var(--ink);
   cursor: pointer;
 }
 
-/* The option the keys are on is marked by an edge and a ground, and says so to a screen reader. */
+/* The carrot lies in its room, out of the flow, half way up the first line of the name. */
+.option::before {
+  content: "";
+  position: absolute;
+  inset-block-start: calc(var(--px) * 3 + (var(--leading-text) * 1em - var(--px) * var(--carrot-h)) / 2);
+  inset-inline-start: calc(var(--px) * 3);
+  width: calc(var(--px) * var(--carrot-w));
+  height: calc(var(--px) * var(--carrot-h));
+  image-rendering: pixelated;
+}
+
+/*
+ * The place the keys are on, or a pointer of the hand is over: ink, its words in page, and
+ * the carrot beside it. Which one the keys are on is said to a screen reader as well.
+ */
 .option[aria-selected="true"] {
-  background: var(--surface);
-  box-shadow: inset 4px 0 0 var(--accent);
+  background: var(--ink);
+  color: var(--page);
+}
+
+.option[aria-selected="true"]::before {
+  background: var(--carrot) 0 0 / calc(var(--px) * var(--carrot-w)) calc(var(--px) * var(--carrot-h)) no-repeat;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .option:hover {
+    background: var(--ink);
+    color: var(--page);
+  }
+
+  .option:hover::before {
+    background: var(--carrot) 0 0 / calc(var(--px) * var(--carrot-w)) calc(var(--px) * var(--carrot-h)) no-repeat;
+  }
 }
 
 .name {
-  font-weight: 600;
+  font-weight: 700;
 }
 
 /* The areas that bear the name, under the field. Each is a link, with its label beside it. */
 .areas {
   display: grid;
   gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
+  border: var(--edge) solid var(--border);
 }
 
 .areasTitle {
   margin: 0;
   color: var(--muted);
   font-size: var(--size-small);
+  font-weight: 700;
 }
 
 .areasList {
@@ -96,14 +154,43 @@
   margin: 0;
 }
 
+/* What kind of place it is, beside its name: quieter where it stands on cream, and in the colour of its name where it is in hand. */
 .kind {
   color: var(--muted);
   font-size: var(--size-small);
 }
 
+.option[aria-selected="true"] .kind {
+  color: inherit;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .option:hover .kind {
+    color: inherit;
+  }
+}
+
 @media (forced-colors: active) {
+  .combobox .field,
+  .combobox .field[aria-expanded="true"] {
+    border-color: FieldText;
+  }
+
+  .list {
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
   .option[aria-selected="true"] {
     outline: 2px solid Highlight;
     outline-offset: -2px;
+  }
+
+  .option::before {
+    forced-color-adjust: none;
+  }
+
+  .areas {
+    border-color: CanvasText;
   }
 }

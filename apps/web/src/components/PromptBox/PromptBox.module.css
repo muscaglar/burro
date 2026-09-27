@@ -1,78 +1,173 @@
+/*
+ * The box, as Town Map draws it at rest and in hand. The frame is the kit's: cream, a double
+ * rule of ink, a notch at each corner and a hard shadow, and in hand the inner rule in
+ * amber. What is here is what stands in it: the label, the field, the buttons, and under
+ * them what Burro says.
+ */
 .prompt {
+  /*
+   * A box of the look is a layer of its own. What Burro says may hold a list that is laid
+   * over what is under it, as the places of a question are: so the box stands over what
+   * follows it on the page, and the list with it.
+   */
+  z-index: 1;
   display: grid;
   gap: var(--space-2);
-  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+}
+
+/*
+ * Once a search is open the box keeps what it holds close, so that the answer comes first:
+ * on a phone the first result is whole on the first screen. What is read stands clear of
+ * the rule, which lies outside the room of the box.
+ */
+.prompt[data-open="true"] {
+  padding: var(--space-2) var(--space-3);
+}
+
+/*
+ * On a narrow screen it keeps it closer still, so that the first result is whole on the
+ * first screen of a phone.
+ */
+@media (max-width: 40rem) {
+  .prompt[data-open="true"] {
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-2);
+  }
+}
+
+/*
+ * In a window that is wide and not high the helpers under the box stood at the very foot
+ * of the first screen, and under it: measured at 1280 by 720. Before a search the box keeps
+ * what it holds closer there, as it does once a search is open. The field is as high as it was.
+ */
+@media (min-width: 60rem) and (max-height: 47.99rem) {
+  .prompt[data-open="false"] {
+    padding-block: var(--space-2);
+  }
 }
 
 .form {
   display: grid;
   gap: var(--space-1);
+  /*
+   * The box is the box in hand while it is typed in, and the picture of that box is asked
+   * for with the page, and not at the first press in the box: until it had come, the box
+   * was drawn with no edge at all. It is laid as a ground of no size, which is never
+   * seen, under what stands in the box: the box itself is given no ground.
+   */
+  background-image: var(--frame-box-on);
+  background-size: 0 0;
+  background-repeat: no-repeat;
 }
 
+/*
+ * The label is a short label, and is set in the face of names. Before a search it is what
+ * the page asks, so it is as large as a name. Once a search is open the answer comes first.
+ */
 .label {
-  font-size: var(--size-lead);
-  font-weight: 650;
+  color: var(--ink);
+  font: 400 var(--name-2) / 1.1 var(--font-name);
+  font-synthesis: none;
 }
 
 .prompt[data-open="true"] .label {
-  font-size: var(--size-body);
+  font-size: var(--name-1);
 }
 
-/* The label, and beside it, once a search is open, the link to how words are handled. */
+/*
+ * The label, and at the far end of its line how many characters are left. What is between
+ * them is set on the count, so that it holds no space while it says nothing.
+ */
 .over {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 0 var(--space-3);
 }
 
-/* How many characters are left stands at the far end of the label's line. */
+/* How many characters are left stands at the far end of the label's line. It is a figure, and is read. */
 .count {
   margin-inline-start: auto;
+  padding-inline-start: var(--space-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.count:empty {
+  padding-inline-start: 0;
 }
 
 .hint,
-.words,
-.count,
-.wordsLink {
+.count {
   margin: 0;
   color: var(--muted);
   font-size: var(--size-small);
 }
 
-.wordsLink {
-  color: var(--accent);
+/*
+ * What a useful sentence holds, and the example after it: a few sentences, which are read
+ * before anything is typed. Each stands on lines of its own, close to the one before it.
+ */
+.hint {
+  display: grid;
+  gap: var(--space-1);
 }
 
-/* How words are handled: Burro's own line, what the service says of who else reads, and the way to Methods. */
-.words p {
+.hint p {
   margin: 0;
 }
 
-.words p + p {
-  margin-top: var(--space-1);
+/* The example is a sentence a person might type: it is set apart by its marks, and is in ink. */
+.hint q {
+  color: var(--ink);
 }
 
 /*
- * The box, and its buttons beside it. Once a search is open the box is one line high, so
- * that the answer comes first.
+ * On a narrow screen they stand under the field, and under what the box says of what it
+ * sent, so that the field is in sight on the first screen of a phone. The page is built
+ * with no screen to ask, with the sentences over the field: drawn here from the first,
+ * nothing moves when the page has asked and puts them after the field.
+ */
+@media (max-width: 40rem) {
+  .prompt[data-help="under"] .hint {
+    order: 1;
+  }
+}
+
+/*
+ * Once the page has asked, they stand after what Burro says of the search, which stands
+ * directly under the field: they are then a part of the box, and no part of its form.
+ * They stand as close to what is over them as they did inside the form.
+ */
+.prompt > .hint {
+  margin-block-start: calc(var(--space-1) - var(--space-2));
+}
+
+/*
+ * The field, and its buttons beside it. Once a search is open the field is one line high,
+ * so that the answer comes first.
  */
 .line {
   display: grid;
-  grid-template-columns: minmax(7rem, 1fr) auto;
+  grid-template-columns: minmax(6rem, 1fr) auto;
   align-items: start;
   gap: var(--space-2);
 }
 
-/* On one line with the box, a button is no wider than its words. */
-.buttons :global(.target) {
-  min-width: 0;
-  padding-inline: var(--space-3);
-}
-
+/*
+ * The field has a whole edge of ink in the box, at rest and in hand: it is the one thing
+ * of the page to type in, and is seen to be. What says that it is in hand is the frame
+ * of the box, whose inner rule is amber. What is typed is read, and is set in the face
+ * of sentences, in ink.
+ */
 .box {
   width: 100%;
   min-height: calc(2 * var(--leading-text) * 1em + 2 * var(--space-2));
+  padding: var(--space-2);
+  background: var(--page);
+  border: var(--edge) solid var(--border);
+  color: var(--ink);
+  font-size: var(--size-lead);
+  caret-color: var(--poppy);
   resize: vertical;
 }
 
@@ -105,36 +200,69 @@
   gap: var(--space-2);
 }
 
-/* Named with its size class, so that it does not depend on the order of two style sheets. */
-.submit:global(.target) {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--on-accent);
-  font-weight: 650;
+/*
+ * A screen too narrow for the field and two buttons side by side, or text made so large
+ * that it is: once a search is open the buttons stand under the field, each as wide as its
+ * share of the line. Seen at 390 px with text twice as large: the line was 448 px wide, and
+ * the page scrolled sideways.
+ *
+ * It is by the width of the screen and never by which buttons are drawn. While a sentence
+ * is read the two buttons are narrower, and a line that wrapped by what it holds would
+ * bring them up beside the field under the press that sent it.
+ */
+@media (max-width: 23rem) {
+  .prompt[data-open="true"] .line {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .prompt[data-open="true"] .buttons > * {
+    flex: 1 1 auto;
+  }
 }
 
-.submit[aria-disabled="true"] {
-  cursor: default;
+/* Narrower still, or the page made twice as large on a phone: before a search too, where Search is the one button. */
+@media (max-width: 16rem) {
+  .line {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .buttons > * {
+    flex: 1 1 auto;
+  }
 }
 
+/* What the box says of what it did not send: in ink, as every sentence is, with a mark of poppy before it. */
 .problem {
   margin: 0;
+  padding-inline-start: var(--space-2);
+  border-inline-start: calc(var(--px) * 2) solid var(--error-edge);
   color: var(--error);
 }
 
+/* What is said of words that were sent: that they were read without the words before them. */
+.note {
+  margin: 0;
+  font-size: var(--size-small);
+}
+
+/*
+ * The examples: a box, and in it a menu of sentences. The carrot lies beside the one in
+ * hand. Its room stands before every sentence from the start, so nothing moves when it
+ * comes or goes.
+ */
 .examples {
   display: grid;
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 .examplesTitle {
   margin: 0;
-  font-size: var(--size-body);
+  font-size: var(--name-2);
 }
 
 .list {
   display: grid;
-  gap: var(--space-1);
+  gap: var(--px);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -144,16 +272,66 @@
   max-width: none;
 }
 
+/* A sentence is read before it is chosen: it is set in the face of sentences. */
 .example {
+  position: relative;
+  display: block;
   width: 100%;
-  padding-block: var(--space-1);
-  text-align: left;
-  background: var(--surface);
-  font-size: var(--size-small);
+  padding: calc(var(--px) * 4) calc(var(--px) * 4) calc(var(--px) * 4) calc(var(--px) * (var(--carrot-w) + 6));
+  background: none;
+  border: 0;
+  color: var(--ink);
+  font: 700 var(--size-body) / 1.3 var(--font-say);
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+/* The carrot lies in its room, out of the flow, half way up the first line of the sentence. */
+.example::before {
+  content: "";
+  position: absolute;
+  inset-block-start: calc(var(--px) * 4 + (var(--size-body) * 1.3 - var(--px) * var(--carrot-h)) / 2);
+  inset-inline-start: calc(var(--px) * 3);
+  width: calc(var(--px) * var(--carrot-w));
+  height: calc(var(--px) * var(--carrot-h));
+  image-rendering: pixelated;
+}
+
+/* In hand by the keyboard: ink, the words in page, and the carrot. */
+.example:focus-visible {
+  background-color: var(--ink);
+  color: var(--page);
+}
+
+.example:focus-visible::before {
+  background: var(--carrot) 0 0 / calc(var(--px) * var(--carrot-w)) calc(var(--px) * var(--carrot-h)) no-repeat;
+}
+
+/*
+ * In hand by a pointer of the hand, which can stand over a thing without pressing it. A
+ * finger cannot, and where it has pressed the carrot does not stay behind.
+ */
+@media (hover: hover) and (pointer: fine) {
+  .example:hover {
+    background-color: var(--ink);
+    color: var(--page);
+  }
+
+  .example:hover::before {
+    background: var(--carrot) 0 0 / calc(var(--px) * var(--carrot-w)) calc(var(--px) * var(--carrot-h)) no-repeat;
+  }
 }
 
 @media (forced-colors: active) {
-  .submit {
-    border-color: ButtonText;
+  .box {
+    border-color: FieldText;
+  }
+
+  .problem {
+    border-inline-start-color: CanvasText;
+  }
+
+  .example::before {
+    forced-color-adjust: none;
   }
 }

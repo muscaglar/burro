@@ -1,0 +1,133 @@
+/*
+ * What Burro left out of a search: one line, which names each thing, and opens to why.
+ *
+ * It stands in no box. It is in the box of the search, which is a box already, and what
+ * stands over the answer gives way: a rule of ink round one line, and the room inside it,
+ * were 16 px of a phone's first screen, and a line that ran to two and three was 40 more
+ * and 64. It is read on the cream of the box it stands in, in ink.
+ *
+ * It is a note, and a band of amber marks it as one, at its start, from its head to its
+ * foot: so what it opens to is seen to be of it. Amber is a mark here and never the colour
+ * of a word.
+ */
+.left {
+  min-width: 0;
+  color: var(--notice-text);
+  box-shadow: inset calc(var(--px) * 2) 0 0 var(--notice-mark);
+}
+
+.left p {
+  margin: 0;
+}
+
+/*
+ * What opens: the browser's own element. Its mark is the arrow of the look, which points
+ * at the line while it is closed and down at what it opened. The whole line takes the
+ * press, and is as high as the least a control is high: it keeps no room over or under
+ * its words. What is read stands clear of the band, by three art pixels.
+ */
+.opens > summary {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  padding-inline-start: calc(var(--px) * 5);
+  list-style: none;
+  cursor: pointer;
+}
+
+.opens > summary::-webkit-details-marker {
+  display: none;
+}
+
+/*
+ * The arrow is drawn pointing up, and is longer than it is high. It is turned inside a
+ * square as wide as it is long, so that it takes the same room whichever way it points.
+ * It keeps its size where the line has little room: the line gives way, and not its mark.
+ */
+.mark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: calc(var(--px) * 10);
+  height: calc(var(--px) * 10);
+}
+
+.opens > summary > .mark {
+  transform: rotate(90deg);
+}
+
+.opens[open] > summary > .mark {
+  transform: rotate(180deg);
+}
+
+/*
+ * What the line says: what it is, and each thing by its name. It is one line while it is
+ * closed, however much it names, and what it has no room for is cut at its end. Nothing
+ * of it is lost: it is said whole to whoever hears the page, and one press opens it.
+ */
+.names {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Opened, it says all that it names, on as many lines as that takes. Its first line stays where it was. */
+.opens[open] > summary {
+  align-items: start;
+}
+
+.opens[open] > summary > .names {
+  white-space: normal;
+}
+
+/* A short label, in the face of names. The names after it are read. */
+.title {
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+}
+
+/* Why, under the line, as far from the band as the words of the line are. */
+.why {
+  display: grid;
+  gap: var(--space-2);
+  padding-block: var(--space-1) var(--space-2);
+  padding-inline-start: calc(var(--px) * 5);
+}
+
+/*
+ * Each thing, by its name and why. The list has no mark of its own and is a list all the
+ * same to whoever hears the page: its mark is an empty one, and not none.
+ */
+.things {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style-type: "";
+}
+
+.things > li {
+  max-width: none;
+}
+
+/*
+ * The way to see the words that were not read stands under what is said of them, on a
+ * line of its own, with what it did beside it once it is pressed.
+ */
+.way {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  margin-block-start: var(--space-1);
+  font-size: var(--size-small);
+}
+
+/* With forced colours a shadow is not drawn: the band is an edge, in the system's own colour. */
+@media (forced-colors: active) {
+  .left {
+    border-inline-start: calc(var(--px) * 2) solid CanvasText;
+    box-shadow: none;
+  }
+}

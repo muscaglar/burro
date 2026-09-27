@@ -225,10 +225,18 @@ export type ChipKey =
   | `tag:${string}`
   | `area:${string}`;
 
+/**
+ * What may be assumed of a part of the search. A code of the API's, or one of the page's
+ * own. `place`: the place itself was taken for the person, as the first of those that
+ * bear the name they gave. `rule`: a rule for an area, to look only there or to leave it
+ * out, was taken on the guess of the service.
+ */
+export type AssumedCode = AssumptionCode | "place" | "rule";
+
 export interface Said {
   readonly key: ChipKey;
   /** What the edit itself states of that part, so that it is no longer an assumption. */
-  readonly states: readonly AssumptionCode[];
+  readonly states: readonly AssumedCode[];
 }
 
 function budgetSaid(edit: BudgetEdit): Said[] {
@@ -283,7 +291,9 @@ export function saidBy(operations: Operations, group: OpsGroup, index: number): 
     }
     case "area_ops": {
       const edit = operations.area_ops[index];
-      return edit ? [{ key: `area:${edit.area_id}`, states: [] }] : [];
+      // A rule that an edit sets is said by the edit: what Burro took on a guess is laid
+      // on it after, by what took it.
+      return edit ? [{ key: `area:${edit.area_id}`, states: ["rule"] }] : [];
     }
     case "setting_ops": {
       const edit = operations.setting_ops[index];
@@ -291,6 +301,17 @@ export function saidBy(operations: Operations, group: OpsGroup, index: number): 
       return [{ key: edit.setting === "budget_weight" ? "budget" : "journeys", states: [] }];
     }
   }
+}
+
+/** Every part of the search that these edits are about, each once, as the controls name their parts. */
+export function partsOf(operations: Operations): ReadonlySet<ChipKey> {
+  const parts = new Set<ChipKey>();
+  for (const group of GROUPS) {
+    operations[group].forEach((_, index) => {
+      for (const { key } of saidBy(operations, group, index)) parts.add(key);
+    });
+  }
+  return parts;
 }
 
 /** The part an assumption of this code belongs to, for the edit it was made about. */

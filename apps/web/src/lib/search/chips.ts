@@ -8,12 +8,10 @@
  */
 
 import { CRIME_ACCOUNT, crimeParts } from "@/content/crime";
-import { roughOf, type Guides } from "@/content/rough";
 import { CHIPS, PLACE } from "@/content/search";
 import { MODE, SEGMENT, TENURE } from "@/content/labels";
 import type {
   AreaSummary,
-  AssumptionCode,
   MetaData,
   Operations,
   PreferenceSpec,
@@ -24,13 +22,22 @@ import type {
 import { grouped } from "@/lib/format";
 
 import { counts } from "./counts";
-import { edits } from "./edits";
+import { edits, type AssumedCode } from "./edits";
 import type { Assumed } from "./state";
 
 /** The kinds of house that what houses sold for is held by. */
 const OF_A_HOUSE: ReadonlySet<string> = new Set(["terraced", "semi_detached", "detached"]);
 
-export type ChipKind = "tenure" | "budget" | "place" | "feature" | "tag" | "area" | "usual";
+export type ChipKind = "tenure" | "budget" | "place" | "feature" | "tag" | "area";
+
+/**
+ * A label of the website's own as it stands in the line of a chip, where it follows a
+ * comma. How a journey is made and the kind of a home are written to begin a line, as they
+ * do where they are chosen: in a chip a capital stood in the middle of the line, as in
+ * "£1,700 a month, One bedroom". A code the website has no word for has none here either.
+ */
+const afterAComma = (label: string | undefined): string =>
+  label === undefined ? "" : `${label.charAt(0).toLowerCase()}${label.slice(1)}`;
 
 export interface ChipPart {
   readonly text: string;
@@ -53,6 +60,12 @@ export interface Chip {
   readonly parts: readonly ChipPart[];
   /** True when the chip as a whole was assumed, or any part of it was. */
   readonly assumed: boolean;
+  /**
+   * True where the thing itself was taken for the person, whatever is said of its parts:
+   * a place that is the first of those that bear the name they gave. The word "assumed"
+   * then stands after its name.
+   */
+  readonly taken?: boolean;
   /** The edit that takes it out, where it can be taken out. */
   readonly removal: Operations | null;
   /** The edit that asks for the other end of a scale, where the chip is of one. */
@@ -100,13 +113,13 @@ export interface Beside {
 
 export function chipsOf(
   spec: PreferenceSpec,
-  meta: Pick<MetaData, "features" | "tags"> & Guides,
+  meta: Pick<MetaData, "features" | "tags">,
   areas: readonly AreaSummary[],
   placeNames: Readonly<Record<string, string>>,
   assumed: Assumed,
   beside: Beside = {},
 ): Chip[] {
-  const has = (key: string, code: AssumptionCode) => assumed[key]?.includes(code) ?? false;
+  const has = (key: string, code: AssumedCode) => assumed[key]?.includes(code) ?? false;
   const chip = (
     made: Omit<Chip, "assumed" | "parts" | "turn"> & { parts?: ChipPart[]; assumed?: boolean; turn?: Operations },
   ): Chip => {
@@ -115,7 +128,7 @@ export function chipsOf(
     return {
       ...made,
       parts,
-      assumed: (made.assumed ?? false) || parts.some((part) => part.assumed),
+      assumed: (made.assumed ?? false) || made.taken === true || parts.some((part) => part.assumed),
       turn: made.turn ?? null,
     };
   };
@@ -139,8 +152,6 @@ export function chipsOf(
     // Recorded crime counts only when a person asks for it. A vibe whose recipe holds it
     // says so on its chip, in the row, so that no search counts it unseen.
     const crime = tag !== undefined && crimeParts(tag, meta.features).length > 0;
-    // A vibe that is a rough guide says so on its chip, in the row, in the API's own word.
-    const rough = tag === undefined ? null : roughOf(tag, meta);
     chips.push(
       chip({
         key,
@@ -150,7 +161,6 @@ export function chipsOf(
         label: end === null || !on ? name : CHIPS.towards(name, end),
         parts: on
           ? [
-              ...(rough === null ? [] : [{ text: rough.label, assumed: false, always: true }]),
               ...(crime ? [{ text: CRIME_ACCOUNT.chip, assumed: false, always: true }] : []),
               ...(word === undefined ? [] : [{ text: CHIPS.readFrom(word), assumed: true, always: true }]),
             ]
@@ -201,8 +211,10 @@ export function chipsOf(
         kind: "place",
         id: commute.place_id,
         label: names.get(commute.place_id) ?? "",
+        // A name that several places bear was taken as the first of them: nobody chose it.
+        taken: has(key, "place"),
         parts: [
-          { text: MODE[commute.mode], assumed: has(key, "mode") },
+          { text: afterAComma(MODE[commute.mode]), assumed: has(key, "mode") },
           { text: CHIPS.within(commute.max_minutes), assumed: has(key, "max_minutes") },
           {
             text: commute.strictness === "hard" ? CHIPS.firm : CHIPS.flexible,
@@ -214,7 +226,8 @@ export function chipsOf(
     );
   }
 
-  if (spec.budget.amount !== null) {
+  // A visit holds no budget and no kind of home, so no chip of either is drawn for one.
+  if (spec.budget.amount !== null && spec.tenure !== "visit") {
     chips.push(
       chip({
         key: "budget",
@@ -223,7 +236,7 @@ export function chipsOf(
         label: budgetText(spec.budget.amount, spec.tenure),
         parts: [
           {
-            text: SEGMENT[spec.budget.segment],
+            text: afterAComma(SEGMENT[spec.budget.segment]),
             assumed: has("budget", "segment"),
             // A kind of house that Burro took is named in the row, and never folded into
             // "rest assumed": it is what the budget is held against, and nobody said it.
@@ -240,20 +253,30 @@ export function chipsOf(
   }
 
   for (const rule of spec.areas) {
+    const key = `area:${rule.area_id}`;
     chips.push(
       chip({
-        key: `area:${rule.area_id}`,
+        key,
         kind: "area",
         id: rule.area_id,
         label: areas.find((area) => area.area_id === rule.area_id)?.name ?? rule.area_id,
-        parts: [{ text: rule.rule === "exclude" ? CHIPS.hidden : CHIPS.only, assumed: false }],
+        // A rule that Burro took on a guess leaves areas out that nobody asked to have left
+        // out, and says so: it is named in the row, and never folded into what was assumed.
+        parts: [
+          {
+            text: rule.rule === "exclude" ? CHIPS.hidden : CHIPS.only,
+            assumed: has(key, "rule"),
+            always: has(key, "rule"),
+          },
+        ],
         removal: edits.areaClear(rule.area_id),
       }),
     );
   }
 
-  // Renting or buying is said of every search, and is most often what nobody said. It comes
-  // after everything that was, and before the settings nobody chose, which come last.
+  // Renting, buying or visiting is said of every search, and is most often what nobody said.
+  // It comes after everything that was, and is last. The settings nobody chose have no chip:
+  // each stands with its value where the search is refined.
   chips.push(
     chip({
       key: "tenure",
@@ -264,20 +287,6 @@ export function chipsOf(
       removal: null,
     }),
   );
-
-  const usual = spec.weights.filter((weight) => weight.provenance === "default").length;
-  if (usual > 0) {
-    chips.push(
-      chip({
-        key: "usual",
-        kind: "usual",
-        id: null,
-        label: CHIPS.usual(usual),
-        assumed: true,
-        removal: null,
-      }),
-    );
-  }
 
   return chips;
 }

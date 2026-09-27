@@ -24,7 +24,8 @@ function refusalsOf(operations: Operations, rejected: readonly Rejected[]): Refu
 /**
  * Every edit that was not applied: the ones a sentence made, and the ones a
  * control made since. An edit that a question is being asked about is left
- * out, because the question stands for it.
+ * out, because the question stands for it. What Burro noticed and left out of
+ * the search is no edit: the page names it in a line of its own (`leftOutOf`).
  */
 export function refusals(read: Read | null, refused: Refused | null): readonly Refusal[] {
   const fromWords =

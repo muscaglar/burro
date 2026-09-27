@@ -1,13 +1,19 @@
 /**
- * What may be done with an offer: a thing Burro read in the words and did not apply.
+ * An offer, read as the service gave it: a thing that was noticed in the words and that
+ * the service did not apply, with the ways it may be taken.
  *
- * Nothing is applied until a person presses it. Where Burro reads a thing one
- * way, that way is marked as its guess, and the mark applies nothing. Which
- * way one press may add with others is the API's to say, in `add_all`: a
- * budget as the person worded it, which may be a firm limit, and a journey as
- * a guide. It never names a journey as a firm limit, a thing with two ways
- * and no guess, a journey to a place that is yet to be chosen, or recorded
- * crime. docs/design/contract.md, 8.2.
+ * The page asks nothing. It takes one way of every offer as soon as the reading is in,
+ * and `takes.ts` says which. What it chooses by is read here. Where the service reads a
+ * thing one way, that way is marked as its guess. Which way one press may add with
+ * others is the API's to say, in `add_all`: a budget as the person worded it, which may
+ * be a firm limit, and a journey as a guide. It never names a journey as a firm limit, a
+ * thing with two ways and no guess, a rule for an area, a journey to a place that is yet
+ * to be chosen, or recorded crime. docs/design/contract.md, 8.2.
+ *
+ * An offer says two things of itself, for a page that asks nothing: whether the person's
+ * own words name what it counts (`by_name`), and whether it waits for a person to choose
+ * it (`only_by_choice`). A service that says neither is read as one that says the more
+ * careful of each: that the words name nothing, and that nothing is known to wait.
  */
 
 import type { Operations, Suggestion, SuggestionChoice } from "@/lib/api/schema";
@@ -20,39 +26,34 @@ export function waysOf(suggestion: Pick<Suggestion, "choices">): readonly Sugges
   return suggestion.choices.filter((choice) => choice.id !== SKIP);
 }
 
-/** The way Burro reads the words, where it reads them one way. It is a mark, and applies nothing. */
+/** The way the service reads the words, where it reads them one way. It is a mark on a way, and what is made of it is `takes.ts`'s to say. */
 export function guessOf(suggestion: Pick<Suggestion, "choices">): SuggestionChoice | null {
   return waysOf(suggestion).find((choice) => choice.guess) ?? null;
 }
 
 /**
- * What a person should know before they choose, in the API's words, or `null`
- * where the suggestion carries nothing. It is read from the answer as it
- * came, so an answer from a service that sends no note is read as well.
+ * True where the service says that the person's own words name what the offer counts:
+ * "gritty" names the vibe it is offered as, and "posh" names nothing, though the same
+ * vibe is read into it. It is read from the answer as it came: a service that does not
+ * say has not said that they do.
  */
-export function noteOf(suggestion: object): string | null {
-  const note: unknown = "note" in suggestion ? suggestion.note : null;
-  return typeof note === "string" && note.trim() !== "" ? note : null;
+export function namedByThePerson(suggestion: object): boolean {
+  return "by_name" in suggestion && suggestion.by_name === true;
 }
 
 /**
- * Some offers of a list, by where each stands in it, with those that carry Burro's guess
- * first. Each part keeps the order of the list, which is the order the words stand in.
+ * True where the service says that what is offered waits for a person to choose it: what
+ * counts who lived somewhere, what counts recorded crime where the words do not name it,
+ * and a measure that a decision holds to be offered and never applied. Which thing is of
+ * which kind is the service's to say, and no name of one is written here.
  */
-export function guessFirst(
-  suggestions: readonly Pick<Suggestion, "choices">[],
-  ats: readonly number[],
-): readonly number[] {
-  const guessed = (at: number) => {
-    const suggestion = suggestions[at];
-    return suggestion !== undefined && guessOf(suggestion) !== null;
-  };
-  return [...ats.filter(guessed), ...ats.filter((at) => !guessed(at))];
+export function waitsForAPerson(suggestion: object): boolean {
+  return "only_by_choice" in suggestion && suggestion.only_by_choice === true;
 }
 
-/** Whether some edits set a budget as a firm limit, which leaves areas out. */
-export function setsAFirmBudget(operations: Pick<Operations, "budget_ops">): boolean {
-  return operations.budget_ops.some((edit) => edit.amount > 0 && edit.strictness === "hard");
+/** True of an offer of a measure or of a vibe: a wish, and no limit, journey, home or area. */
+export function isAWish(suggestion: Pick<Suggestion, "target">): boolean {
+  return suggestion.target.startsWith("feature:") || suggestion.target.startsWith("tag:");
 }
 
 /** The way of a thing that one press may add with others, or `null` where the API names none. */
@@ -62,9 +63,9 @@ export function addedWithOthers(suggestion: Pick<Suggestion, "choices" | "add_al
 }
 
 /**
- * The edits of a way, with the place a person chose put into each journey
- * that holds none. A journey to a place the release does not hold is offered
- * with no place: the person says which.
+ * The edits of a way, with a place put into each journey that holds none. A
+ * journey to a place the release does not hold is offered with no place, and
+ * with the places whose names are like it: `takes.ts` says which is taken.
  */
 export function withPlace(operations: Operations, placeId: string): Operations {
   return {
@@ -73,11 +74,6 @@ export function withPlace(operations: Operations, placeId: string): Operations {
       edit.place_id === "" ? { ...edit, place_id: placeId } : edit,
     ),
   };
-}
-
-/** Whether every journey of these edits says where it leads. One that does not cannot be sent. */
-export function namesItsPlaces(operations: Operations): boolean {
-  return operations.commute_ops.every((edit) => edit.place_id !== "");
 }
 
 /**

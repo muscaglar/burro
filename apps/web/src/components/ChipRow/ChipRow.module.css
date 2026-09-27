@@ -1,54 +1,110 @@
+/*
+ * What Burro understood: a plate that says what the chips are, and under it the chips,
+ * each drawn as the look draws a chip that can be taken off.
+ *
+ * The row has no box of its own. Each part of it brings the ground it is read on: the
+ * plate, every chip, the button that shows the rest, and what explains the chips. So the
+ * row reads on the grass as it does in a box, and no edge and no room of a box stands
+ * between the search and the first result.
+ *
+ * It is laid out by its own width, and not by that of the screen: it may stand in a
+ * column.
+ */
 .row {
   display: grid;
-  gap: var(--space-1);
   min-width: 0;
+  container-type: inline-size;
 }
 
 .row:focus {
   outline: none;
 }
 
-/* The heading says what the chips are, and who read the words. It is small, and it is there to be read. */
-.heading {
-  margin: 0;
-  color: var(--muted);
-  font-size: var(--size-small);
-}
-
-.title {
-  font-weight: 600;
+/*
+ * The line of the heading: the plate that says what the chips are, and at its far end the
+ * button that opens the rest of them, where some are folded. The plate stands on the chips,
+ * at the foot of the line. Where both do not fit on one line the button takes the next.
+ */
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-1) var(--space-2);
+  min-width: 0;
 }
 
 /*
- * The chips, and after them the button that shows the rest. They wrap: a chip that does
- * not fit on a line goes onto the next, whole. Nothing is put on one line that scrolls, and
- * nothing is cut off, so what Burro took from the words is all in sight. The line is one
- * chip high before it has any, so nothing moves when they come.
+ * The plate: what the chips are, as the label of a drawing. It is small, and it is there
+ * to be read. A name too long for the row takes a second line, inside the plate.
+ */
+.heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-self: start;
+  max-width: 100%;
+  margin: 0;
+  border: var(--edge) solid var(--border);
+  background: var(--page);
+  color: var(--text);
+  font-size: var(--size-small);
+  line-height: 1.3;
+}
+
+/* A short label, in the face of names, page on ink. */
+.title {
+  padding: 0 calc(var(--px) * 3);
+  background: var(--ink);
+  color: var(--page);
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+}
+
+/*
+ * The chips. They wrap: a chip that does not fit on a line goes onto the next, whole.
+ * Nothing is put on one line that scrolls, and nothing is cut off, so what Burro took from
+ * the words is all in sight. The line is one chip high before it has any: a chip, and
+ * under it the room of its shadow.
  */
 .line {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: stretch;
   gap: var(--space-1) var(--space-2);
   min-width: 0;
-  min-height: 2.25rem;
+  min-height: calc(var(--target) + var(--px) * 2);
+  margin-top: var(--space-1);
 }
 
 /*
- * A chip is as high as the buttons beside the settings are, and no higher: there may be
- * seven of them above the answer. Named with the size class, so that it does not depend
- * on the order of two style sheets.
+ * While a first sentence is read the row holds the place of its chips: one line, as high
+ * as a chip with the room of its shadow, on a row of any width. What holds the place gives
+ * way where the row is narrow, and says nothing.
  */
-.main:global(.target),
-.turn:global(.target),
-.remove:global(.target),
-.rest:global(.target),
-.plain {
-  min-height: 2.25rem;
-  padding-block: 0;
+.holding {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
+  min-height: calc(var(--target) + var(--px) * 2);
+  margin-top: var(--space-1);
 }
 
-/* The chips are laid out with the button that follows them, as one run of things that wrap. */
+.holding > * {
+  min-width: 0;
+}
+
+/*
+ * What holds the place of one chip: sand within a solid rule of ink, as high as a chip. It
+ * says nothing, and nothing of it moves.
+ */
+.held {
+  flex: 0 1 8rem;
+  min-height: var(--target);
+  border: var(--edge) solid var(--border);
+}
+
+/* The chips are laid out by the line that holds their list, as one run of things that wrap. */
 .chips {
   display: contents;
   flex-wrap: wrap;
@@ -57,10 +113,13 @@
   list-style: none;
 }
 
-/* A chip is never wider than the row. A name too long for one line takes a second inside it. */
+/*
+ * A chip is never wider than the row. A name too long for one line takes a second inside
+ * it. Under the chip, once it is open, stands the control it opens.
+ */
 .chip {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-1);
   min-width: 0;
   max-width: 100%;
 }
@@ -70,90 +129,126 @@
   flex-basis: 100%;
 }
 
+/*
+ * What holds the chip itself, which is drawn by the part of the kit. It is as wide as
+ * what the chip says, and as high as the tallest chip of its line.
+ */
 .head {
-  display: inline-flex;
-  align-items: stretch;
+  display: grid;
   justify-self: start;
+  min-width: 0;
   max-width: 100%;
-  min-width: 0;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
+  font-size: var(--size-body);
+  line-height: 1.3;
 }
 
-/* Assumed is said in words. The dashed edge repeats it for the eye. */
-.chip[data-assumed="true"] .head {
-  border-style: dashed;
+/*
+ * The words of a chip, as one block that is set from its top. Where they run to a second
+ * line the two are set as close as the reading face sets its own lines, so that a chip of
+ * two lines is as high as a chip of one, which is as high as a main control: on a phone
+ * three chips of a plain search say more than one line holds, and each pixel they took
+ * was taken from the first result.
+ */
+.words {
+  display: inline-block;
+  line-height: 1.2;
+  vertical-align: top;
 }
 
-.main {
-  display: inline-flex;
-  align-items: center;
-  min-width: 0;
-  padding: var(--space-1) var(--space-3);
-  border: 0;
-  background: transparent;
-  text-align: left;
-}
-
+/*
+ * What the thing is, is heavy. What is said of it is not, and what nobody said is told
+ * from the rest by its slant: every word is ink, on page, on sand and on amber alike.
+ */
 .label {
-  font-weight: 600;
+  font-weight: 700;
+}
+
+.part {
+  font-weight: 400;
 }
 
 .assumed {
-  color: var(--muted);
   font-style: italic;
   font-weight: 400;
 }
 
-/* The words of a chip give way where there is little room. What is pressed beside them does not. */
-.turn,
-.remove {
-  flex: none;
-  padding: 0 var(--space-2);
-  border: 0;
-  border-inline-start: 1px solid var(--border);
-  border-radius: 0;
-  background: transparent;
-}
-
+/*
+ * "Turn", which asks for the other end of a scale. It stands in the chip as the cross
+ * does, on sand, and keeps its width: the words of a chip give way where there is little
+ * room, and what is pressed beside them does not.
+ */
 .turn {
-  color: var(--accent);
-  font-size: var(--size-small);
-  font-weight: 600;
+  flex: none;
+  padding: 0 calc(var(--px) * 3);
+  border: 0;
+  border-inline-start: var(--px) solid var(--ink);
+  border-radius: 0;
+  background: var(--sand);
+  color: var(--ink);
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
 }
 
-.remove {
-  font-size: var(--size-lead);
-  line-height: 1;
+.turn:hover,
+.turn:focus-visible {
+  background-color: var(--amber);
 }
 
-.head > :last-child {
-  border-radius: 0 var(--radius) var(--radius) 0;
-}
-
+/*
+ * The button that opens the rest of the chips, and folds them again. It keeps its own
+ * size, at the far end of the line of the heading, over the chips: so nothing that it
+ * opens stands over it, and it is where it was once it is pressed.
+ */
 .rest {
   flex: none;
-  font-weight: 600;
+  margin-inline-start: auto;
 }
 
+/*
+ * What it says: how many more there are, or that it shows fewer. Both stand in one place,
+ * and the one that is not said keeps its room, so that the button is of one size
+ * whichever it says. What is not said is not drawn, and is kept from a screen reader.
+ */
+.says {
+  display: inline-grid;
+  justify-items: center;
+}
+
+.said {
+  grid-area: 1 / 1;
+}
+
+.said[data-said="false"] {
+  visibility: hidden;
+}
+
+/* The control a chip opens: the box in hand, under the chip that is lit. */
 .editor {
-  padding: var(--space-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
+  min-width: 0;
 }
 
 .editor[hidden] {
   display: none;
 }
 
-/* What explains the chips: what "assumed" means, and what the usual settings are. */
+/*
+ * What explains the chips, once the row is opened out: what "assumed" means, and what
+ * counts for most. Sentences, in ink, on page.
+ */
+.notes {
+  display: grid;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: var(--edge) solid var(--border);
+  background: var(--page);
+  color: var(--text);
+  font-size: var(--size-small);
+}
+
 .hints {
   display: grid;
   gap: var(--space-1);
-  color: var(--muted);
-  font-size: var(--size-small);
 }
 
 .hints p {
@@ -161,43 +256,118 @@
 }
 
 /*
- * A narrow screen: a chip is lower and its words smaller, so that what was understood takes
- * few lines and the first result is whole on the first screen. Each is still as high as
- * the smallest thing that may be pressed, and more.
+ * A wide screen draws at three pixels to one of a drawing. A chip may be drawn there at
+ * two, as on a phone: the row says which, and the control a chip opens is drawn as every
+ * control of the screen is.
  */
-@media (max-width: 40rem) {
+@media (min-width: 60rem) {
+  .row[data-art="small"] .head {
+    --px: var(--px-small);
+  }
+}
+
+/*
+ * A narrow row, as on a phone. A chip has its thing at one end and a cross 44 px square at
+ * the other, so few stand side by side: left to wrap as they fall, the chips of a plain
+ * search took six rows, and the first result left the first screen.
+ *
+ * So the row says how each chip lies, which it knows by their words. A chip that is alone
+ * has the row from edge to edge. Two that share a row are each as wide as their words ask,
+ * and what is left over is theirs. Where they fit only with the words of one on two lines,
+ * that one gives way: it is never narrower than its two lines and its buttons, and the
+ * other keeps its width. None is ever made narrower than its words, so no word is broken
+ * to make a pair: two that do not fit after all stand on a row each.
+ *
+ * A row is as high as its tallest chip, and the room of a shadow is all that parts one row
+ * from the next.
+ *
+ * A chip is lower here than anywhere else. Measured on a phone with every part of the page
+ * dressed, a chip was 48 px with its edge, four rows of them were 208, and the first result
+ * ended under the foot of the first screen. So a chip is as high as two lines of its words
+ * and its edge, and keeps no room over or under them: 40 px. What is pressed in it is 36
+ * px high and wide, which is lower than a main control and higher than a small one.
+ *
+ * With more rows than the answer leaves room for, the row draws the first two, and the
+ * button that opens the rest stands on the line of the heading, as high as what is
+ * pressed in a chip: on a line of its own under the chips it took a third row.
+ */
+@container (max-width: 26rem) {
+  /*
+   * How high and how wide what is pressed in a chip is here, and how high the button that
+   * opens the rest. It is said once, of each part of the row, so that the line of the
+   * heading reads what the line of the chips reads.
+   */
+  .row > * {
+    --press: calc(var(--target) - var(--px) * 4);
+  }
+
   .line {
-    gap: var(--space-1) var(--space-2);
-    min-height: 2rem;
+    gap: 0 var(--space-1);
+    min-height: var(--target);
+    margin-top: var(--px);
   }
 
-  .main:global(.target),
-  .turn:global(.target),
-  .remove:global(.target),
-  .rest:global(.target),
-  .plain {
-    min-height: 2rem;
-    font-size: var(--size-small);
+  .chip {
+    flex: 1 1 100%;
   }
 
-  .main:global(.target),
-  .plain {
-    padding-inline: var(--space-2);
+  .rest {
+    --target: var(--press);
   }
 
-  .turn:global(.target),
-  .remove:global(.target) {
-    min-width: 2rem;
-    padding-inline: var(--space-1);
+  .chip[data-lies="fills"] {
+    flex: 1 0 auto;
   }
 
-  .remove:global(.target) {
-    font-size: var(--size-body);
+  .chip[data-lies="keeps"] {
+    flex: 0 0 auto;
+  }
+
+  /*
+   * What it is never narrower than: the edge, the thing and the room of a chip, which are
+   * thirty art pixels. Its buttons, each as wide as what is pressed here and its rule. And its
+   * words on two lines, the longer of them, at a little over half the size of type a letter.
+   */
+  .chip[data-lies="gives"] {
+    flex: 1 0 calc(var(--px) * 30 + var(--beside) * (var(--press) + var(--px)) + var(--letters) * 0.52 * var(--size-small));
+  }
+
+  /*
+   * The words of a chip are the size of a small sentence here, which is what the part of
+   * the kit then sets them at, and what is pressed in it is as high as two lines of them.
+   * It is said of the chip and not of the row: the control a chip opens is set as every
+   * control is.
+   */
+  .head {
+    --size-body: var(--size-small);
+    --target: var(--press);
+    --label-room: 0px;
+
+    justify-self: stretch;
+  }
+
+  .holding {
+    min-height: var(--target);
+    margin-top: var(--px);
   }
 }
 
 @media (forced-colors: active) {
-  .head {
-    border-color: ButtonText;
+  .heading,
+  .notes,
+  .held {
+    border-color: CanvasText;
+  }
+
+  .title {
+    background: CanvasText;
+    color: Canvas;
+    forced-color-adjust: none;
+  }
+
+  .turn {
+    border-inline-start-color: CanvasText;
+    background: ButtonFace;
+    color: ButtonText;
   }
 }

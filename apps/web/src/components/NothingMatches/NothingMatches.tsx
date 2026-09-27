@@ -14,6 +14,8 @@ import type {
 import { namesOfPlaces } from "@/lib/search/chips";
 import { edits } from "@/lib/search/edits";
 
+import { Frame } from "../kit/Frame/Frame";
+import { Press } from "../kit/Press/Press";
 import styles from "./NothingMatches.module.css";
 
 interface Props {
@@ -105,6 +107,10 @@ export function waysOut(
  * Said when the ranking came back with nobody in it: why, as a count for
  * each reason, and one button for each firm limit, which sends the one edit
  * that loosens it.
+ *
+ * It stands in a box of the look, where the first result would stand. Each count is drawn
+ * on a chip of sand before its reason, and is said after it. No way out matters more than
+ * another, so each is a button in cream, and each is set to be read.
  */
 export function NothingMatches({ filtered, unranked, spec, areas, placeNames, meta, onEdit }: Props) {
   const counts = [
@@ -128,7 +134,7 @@ export function NothingMatches({ filtered, unranked, spec, areas, placeNames, me
   const lacks = lacksOf(unranked, meta);
 
   return (
-    <section className={styles.nothing} aria-labelledby="nothing-matches">
+    <Frame kind="box" as="section" className={styles.nothing} aria-labelledby="nothing-matches">
       <h2 id="nothing-matches" className={styles.title}>
         {limited ? NOTHING_MATCHES.title : NOTHING_MATCHES.noData}
       </h2>
@@ -161,13 +167,14 @@ export function NothingMatches({ filtered, unranked, spec, areas, placeNames, me
         <ul className={styles.ways} aria-label={NOTHING_MATCHES.loosen}>
           {ways.map(({ key, label, operations }) => (
             <li key={key}>
-              <button type="button" className="target" onClick={() => onEdit(operations)}>
+              {/* A way out names what it loosens, in words that may be the service's and long: it is read. */}
+              <Press reads onPress={() => onEdit(operations)}>
                 {label}
-              </button>
+              </Press>
             </li>
           ))}
         </ul>
       ) : null}
-    </section>
+    </Frame>
   );
 }

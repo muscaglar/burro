@@ -1,66 +1,125 @@
-/* The shelf: two rows of words at most, and the card of the word that is open under them. */
+/*
+ * The shelf: a box, in it two rows of words at most, and under them the card of the word
+ * that is open. The frame of each is the kit's. What is here is what stands in them.
+ */
 .shelf {
   display: grid;
-  gap: var(--space-2);
-  min-width: 0;
+  gap: var(--space-3);
 }
 
 .title {
   margin: 0;
-  font-size: var(--size-body);
+  font-size: var(--name-2);
+}
+
+/* What a word of the shelf is, said as wide as the box and quieter than the words. */
+.lead {
+  margin: 0;
+  max-width: none;
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+/*
+ * What holds every word of the shelf, those that stand apart among them: one part, which
+ * the card of a word stands under or over. Its words are parted as the parts of the shelf are.
+ */
+.all {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
 }
 
 .words {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1);
+  gap: var(--space-2);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.word,
-.more {
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--size-small);
+/* A word, and what stands beside it. The room of the shadow of the word is the item's own. */
+.words li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  max-width: none;
+  padding: 0 calc(var(--px) * 2) calc(var(--px) * 2) 0;
 }
 
+/*
+ * A word of the shelf, as Town Map draws one: a chip of cream with one rule of ink and a
+ * hard shadow, the small drawing of its vibe at the left and the word beside it. The word
+ * is read before it is pressed, and is set in the face of sentences.
+ */
 .word {
-  background: var(--surface);
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  padding: calc(var(--px) * 2) calc(var(--px) * 4) calc(var(--px) * 2) calc(var(--px) * 3);
+  background: var(--page);
+  border: var(--edge) solid var(--border);
+  box-shadow: var(--box-shadow);
+  color: var(--ink);
+  text-align: start;
 }
 
-/* The word that is open says so to a screen reader. The heavy edge repeats it for the eye. */
+.says {
+  font: 700 var(--size-body) / 1.3 var(--font-say);
+  overflow-wrap: anywhere;
+}
+
+/* In hand it is lit. The ring of the focus is the one every control has, over its shadow. */
+.word:hover {
+  background-color: var(--sand);
+}
+
+.word:focus-visible {
+  background-color: var(--sand);
+  box-shadow:
+    0 0 0 var(--focus-band) var(--bg),
+    0 0 0 calc(var(--focus-band) * 2 + var(--focus-ring)) var(--bg),
+    var(--box-shadow);
+}
+
+/* The word that is open is amber, as what is on is, and says so to a screen reader. */
 .word[aria-expanded="true"] {
-  border-width: 2px;
-  border-color: var(--text);
+  background-color: var(--chosen);
+  color: var(--on-chosen);
 }
 
-.more {
-  border-style: dashed;
-}
-
-/* The words that cannot be added yet, under what they are. */
+/* The words that cannot be added yet, under what they are, over a whole rule of sand. */
 .apart {
   display: grid;
-  gap: var(--space-1);
+  gap: var(--space-2);
+  padding-block-start: var(--space-2);
+  border-block-start: var(--edge) solid var(--sand);
 }
 
+/* A small heading, set in the face of a sentence, heavy, whatever its level is. */
 .waiting {
+  max-width: none;
   margin: 0;
   font-size: var(--size-small);
-  font-weight: 400;
+  font-weight: 700;
+  line-height: var(--leading-heading);
   color: var(--muted);
 }
 
-/* In the card of such a word: that it cannot be added, where the button would be. */
-.waits {
+/*
+ * In the card of a word, what must be read before anything is pressed: that the vibe cannot
+ * be added, or that it counts recorded crime. Each is drawn as a notice is: cream, its
+ * words in ink, a rule of ink and a band of amber inside it.
+ */
+.waits,
+.crime {
   margin: 0;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + var(--px) * 2);
   background: var(--info-bg);
   color: var(--info-text);
-  border-inline-start: 4px solid var(--info-text);
-  border-radius: var(--radius);
+  border: var(--edge) solid var(--notice-edge);
+  box-shadow: inset calc(var(--px) * 2) 0 0 var(--notice-mark);
 }
 
 .held {
@@ -68,34 +127,25 @@
   font-size: var(--size-small);
 }
 
-/* In the card of a vibe that counts recorded crime: that it does, above what adds it. */
-.crime {
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
-  background: var(--info-bg);
-  color: var(--info-text);
-  border-inline-start: 4px solid var(--info-text);
-  border-radius: var(--radius);
-}
-
+/* The card of a word: the box in hand. */
 .card {
   display: grid;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
 }
 
+/* The name of the vibe is a name, and is set in the face of names. */
 .name {
   margin: 0;
-  font-size: var(--size-lead);
+  font: 400 var(--name-2) / 1.1 var(--font-name);
+  font-synthesis: none;
 }
 
+/* A small heading is set in the face of a sentence, heavy: it is never lighter than what it heads. */
 .small {
-  margin: 0;
-  font-size: var(--size-small);
-  color: var(--muted);
+  margin: var(--space-1) 0 0;
+  padding-block-start: var(--space-2);
+  border-block-start: var(--edge) solid var(--sand);
+  font-size: var(--size-body);
 }
 
 .meaning,
@@ -104,11 +154,45 @@
   margin: 0;
 }
 
-.ends,
 .note,
 .reading {
   color: var(--muted);
   font-size: var(--size-small);
+}
+
+/*
+ * The two ends of a scale: the sentence that names them, and the small picture of each at
+ * either hand of it. Where the three are wider than the card, as on a phone, the sentence
+ * runs on between the two pictures: the picture of the high end once went under that of the
+ * low end, on a line of its own.
+ */
+.ends {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: var(--space-2) calc(var(--px) * 3);
+  max-width: none;
+  font-size: var(--size-small);
+}
+
+/* The sentence is what gives. A picture is a drawing, and is shown at its own size. */
+.between {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+/*
+ * A fold of the card: a bar of the website, from edge to edge of what the card holds, with
+ * what it opens under it. What the bar says begins where the words of the card begin.
+ */
+.folded {
+  --bar-begins: 0px;
+
+  min-width: 0;
+}
+
+.unfolded {
+  padding-block: var(--space-2);
 }
 
 .recipe,
@@ -116,17 +200,32 @@
   display: grid;
   gap: var(--space-1);
   margin: 0;
-  padding-inline-start: var(--space-5);
+  padding: 0;
+  list-style: none;
   font-size: var(--size-small);
 }
 
 .recipe li,
 .cannot li {
+  position: relative;
   max-width: none;
+  padding-inline-start: calc(var(--px) * 6);
+}
+
+/* The mark of a line of a list: a square of ink, three art pixels each way. */
+.recipe li::before,
+.cannot li::before {
+  content: "";
+  position: absolute;
+  inset-block-start: calc((var(--leading-text) * 1em - var(--px) * 3) / 2);
+  inset-inline-start: 0;
+  width: calc(var(--px) * 3);
+  height: calc(var(--px) * 3);
+  background: var(--ink);
 }
 
 .share {
-  font-weight: 600;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 
@@ -177,10 +276,10 @@
 /* Every colour is a token of the map, so that a band is one colour wherever it is drawn. */
 .swatch {
   flex: none;
-  width: 1rem;
-  height: 1rem;
+  width: calc(var(--px) * 8);
+  height: calc(var(--px) * 8);
   background: var(--map-land);
-  border: 1px solid var(--map-line);
+  border: var(--edge) solid var(--map-line);
 }
 
 .swatch[data-band="1"] {
@@ -209,24 +308,37 @@
     var(--map-land);
 }
 
-/* Named with its size class, so that it does not depend on the order of two style sheets. */
-.add:global(.target) {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--on-accent);
-  font-weight: 650;
-}
-
 @media (forced-colors: active) {
   .swatch {
     forced-color-adjust: none;
+  }
+
+  .word {
+    border-color: ButtonText;
+    box-shadow: none;
   }
 
   .word[aria-expanded="true"] {
     border-color: Highlight;
   }
 
-  .add {
-    border-color: ButtonText;
+  .word:focus-visible {
+    box-shadow: none;
+  }
+
+  .apart,
+  .small {
+    border-block-start-color: CanvasText;
+  }
+
+  .waits,
+  .crime {
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .recipe li::before,
+  .cannot li::before {
+    background: CanvasText;
   }
 }

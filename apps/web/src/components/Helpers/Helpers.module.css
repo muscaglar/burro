@@ -1,0 +1,173 @@
+/*
+ * The helpers: one line of buttons, and under the whole line what the open one holds. So
+ * opening one moves nothing that stands above it, and no button of the line moves.
+ *
+ * The buttons stand on the grass, as the buttons of a game do. What one opens stands under
+ * the line in a box of its own, which whatever is opened brings.
+ */
+.helpers {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* The line wraps where the screen is narrow. A helper is never cut, and never on a line that scrolls. */
+.line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/*
+ * A helper, as Town Map draws a button. THE BUTTON AND ITS FACE ARE TWO THINGS, as they are
+ * of the button of the kit. The button is the native element: it takes the press, is of one
+ * size, and nothing moves it. Its face is inside it and is what is drawn: a picture cut in
+ * nine, with the shadow of the face at its foot, so that the room of the shadow is the
+ * button's own from the start.
+ */
+.helper {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--ink);
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+  text-align: start;
+  cursor: pointer;
+}
+
+/*
+ * The face. Under its picture are a rule of ink and a flat ground, laid inside the rule so
+ * that it does not show through a notch: they are what is seen of a helper whose picture
+ * has not come.
+ */
+.face {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  min-width: 0;
+  padding: 0 calc(var(--px) * 3);
+  border-style: solid;
+  border-width: calc(var(--px) * 3) calc(var(--px) * 3) calc(var(--px) * 4);
+  border-color: var(--ink);
+  border-image: var(--face) 3 3 4 3 fill / calc(var(--px) * 3) calc(var(--px) * 3) calc(var(--px) * 4) repeat;
+  background-color: var(--page);
+  background-clip: padding-box;
+  image-rendering: pixelated;
+}
+
+/* The one that is open is amber, as what is on is. It says so too, to whoever hears the page. */
+.face[data-open="true"] {
+  background-color: var(--chosen);
+  color: var(--on-chosen);
+}
+
+/* What a helper says: its words, and its arrow after them. */
+.says {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  min-width: 0;
+}
+
+/*
+ * The arrow of what opens in place, at the far end of the helper, where the arrow of every
+ * fold stands: it points down while the helper is closed, at what would open under it, and
+ * up while it is open. It is one drawing, which points up as it is drawn, turned half way
+ * round. It is turned at once: nothing of it moves. Its room is of one size whichever way
+ * the arrow points, and lower than a line of words, so that a helper is no higher for it:
+ * the drawing stands in the middle of the room and a pixel over it.
+ */
+.mark {
+  position: relative;
+  flex: none;
+  width: calc(var(--px) * var(--arrow-w));
+  height: calc(var(--px) * (var(--arrow-h) - 2));
+}
+
+.mark::before {
+  content: "";
+  position: absolute;
+  inset-block-start: calc(var(--px) * -1);
+  inset-inline-start: 0;
+  width: calc(var(--px) * var(--arrow-w));
+  height: calc(var(--px) * var(--arrow-h));
+  background: var(--arrow) 0 0 / calc(var(--px) * var(--arrow-w)) calc(var(--px) * var(--arrow-h)) no-repeat;
+  image-rendering: pixelated;
+  rotate: 180deg;
+}
+
+.helper[aria-expanded="true"] .mark::before {
+  rotate: none;
+}
+
+/*
+ * Under a press: the picture of the button pressed. Nothing is set on the button, and
+ * nothing that moves its face or changes the room its face takes: the two pictures are of
+ * one size and are cut alike.
+ */
+.helper:active > .face {
+  border-image-source: var(--face-down);
+}
+
+/* Where movement is welcome what it says steps with the face, in the one step the face takes. */
+@media (prefers-reduced-motion: no-preference) {
+  .helper:active > .face > .says {
+    transform: translate(var(--px), var(--px));
+  }
+}
+
+.opened {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.opened[hidden] {
+  display: none;
+}
+
+/* With scripts off: everything the helpers hold, one part under the other. */
+.unscripted {
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+/* A button that needs a script is not drawn where the browser says it runs none. */
+@media (scripting: none) {
+  .line {
+    display: none;
+  }
+}
+
+/*
+ * With forced colours the system's own colours carry the edge, and no picture is drawn
+ * over them. The edge keeps its width, so a helper is of one size whatever draws it.
+ */
+@media (forced-colors: active) {
+  .face {
+    border-image-source: none;
+    border-color: ButtonText;
+    background-color: ButtonFace;
+    color: ButtonText;
+  }
+
+  .face[data-open="true"] {
+    border-color: Highlight;
+  }
+
+  .helper:active > .face {
+    border-image-source: none;
+  }
+
+  .mark::before {
+    forced-color-adjust: none;
+  }
+}

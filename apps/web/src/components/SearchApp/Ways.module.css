@@ -1,0 +1,139 @@
+/*
+ * The ways into a search, as the tabs of the look: drawn in pixels, with a rule of ink and a
+ * notch at each corner of the head, as a box has.
+ *
+ * The tabs stand on the box of the way that is chosen, and are laid over its rule, as deep
+ * as its two rules of ink and the cream between them: three pixels of a drawing. The chosen
+ * tab is cream to its foot and covers them, so that it and the box are one. The other ends
+ * where the rule of the box begins, and the rule runs on under it.
+ *
+ * The box is a layer of its own, so the tabs are one too, and over it.
+ */
+.ways {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: stretch;
+  gap: calc(var(--px) * 2);
+  min-width: 0;
+  /* The first tab stands clear of the corner of the box, where its two rules turn. */
+  padding-inline: calc(var(--px) * 6) calc(var(--px) * 8);
+  margin-block-end: calc(var(--px) * -3);
+}
+
+/*
+ * A tab. THE BUTTON AND ITS FACE ARE TWO THINGS, as they are of every button of the look. The
+ * button is the native element: it takes the press, and is of one size whichever tab is
+ * chosen. Its face is inside it and is what is drawn.
+ */
+.way {
+  display: inline-flex;
+  flex: 0 1 auto;
+  align-items: stretch;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--ink);
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+  text-align: start;
+  cursor: pointer;
+}
+
+/*
+ * The face of a tab that is not chosen: it stands back. It is on sand, lower than the
+ * chosen one by two pixels of a drawing, and ends on the rule of the box.
+ *
+ * Its shape is cut: a notch of one pixel at each corner of its head, and at its right the
+ * room of its shadow, which falls down and to the right as every shadow of the look does
+ * and ends where the tab does. A shadow that fell under its foot would lie on the box.
+ */
+.face {
+  --foot: 0px;
+
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  min-width: 0;
+  margin-block-start: calc(var(--px) * 2);
+  margin-block-end: calc(var(--px) * 3);
+  margin-inline-end: calc(var(--px) * 2);
+  padding: calc(var(--px) * 2) calc(var(--px) * 6);
+  border: var(--edge) solid var(--border);
+  border-block-end: 0;
+  background-color: var(--sand);
+  box-shadow: var(--box-shadow);
+  clip-path: polygon(
+    var(--px) 0,
+    calc(100% - var(--px)) 0,
+    calc(100% - var(--px)) var(--px),
+    100% var(--px),
+    100% calc(var(--px) * 2),
+    calc(100% + var(--px) * 2) calc(var(--px) * 2),
+    calc(100% + var(--px) * 2) calc(100% - var(--foot)),
+    100% calc(100% - var(--foot)),
+    100% 100%,
+    0 100%,
+    0 var(--px),
+    var(--px) var(--px)
+  );
+}
+
+/*
+ * The face of the chosen tab: it stands forward. It is as high as its button, of the cream
+ * of the box, and laid over the rule of the box to the foot of it. At its head it bears a
+ * band of amber, as what is on does. Its shadow ends where the box begins.
+ */
+.way[aria-selected="true"] > .face {
+  --foot: calc(var(--px) * 3);
+
+  margin-block-start: 0;
+  margin-block-end: 0;
+  /* What it gives up of the room about it, it has inside: so its words stand where they stood. */
+  padding-block: calc(var(--px) * 4) calc(var(--px) * 5);
+  background-color: var(--page);
+  background-image: linear-gradient(var(--chosen), var(--chosen));
+  background-position: 0 0;
+  background-size: 100% calc(var(--px) * 2);
+  background-repeat: no-repeat;
+}
+
+/*
+ * Under a pointer that can stand over a thing without pressing it, the tab that is not
+ * chosen is lit: its face takes the cream of the chosen one, and nothing of it moves. A
+ * finger cannot: on a touch screen what was last pressed is held to be under the pointer.
+ */
+@media (hover: hover) {
+  .way[aria-selected="false"]:hover > .face {
+    background-color: var(--page);
+  }
+}
+
+/* A tab needs a script. Where the browser says it runs none, no tab is drawn. */
+@media (scripting: none) {
+  .ways {
+    display: none;
+  }
+}
+
+/*
+ * With forced colours the system's own colours carry the tab, and no band is laid at its
+ * head: the chosen one is told by its edge, and says that it is chosen.
+ */
+@media (forced-colors: active) {
+  .face {
+    border-color: ButtonText;
+    background-color: ButtonFace;
+    color: ButtonText;
+    box-shadow: none;
+  }
+
+  .way[aria-selected="true"] > .face {
+    border-color: Highlight;
+    background-color: Canvas;
+    background-image: none;
+    color: CanvasText;
+  }
+}

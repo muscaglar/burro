@@ -2,7 +2,7 @@ import { recordedAnswer } from "@/lib/api/recorded";
 import type { Operations } from "@/lib/api/schema";
 
 import { problemsWith } from "../../../test/support/contract";
-import { answered, chipOf, countOf, edits, GROUPS, isEmpty, merged, NO_EDITS, saidBy } from "./edits";
+import { answered, chipOf, countOf, edits, GROUPS, isEmpty, merged, NO_EDITS, partsOf, saidBy } from "./edits";
 
 const EVERY_EDIT: readonly (readonly [string, Operations])[] = [
   ["tenure", edits.tenure("buy")],
@@ -204,8 +204,37 @@ describe("which part of the search an edit is about", () => {
     expect(saidBy(edits.budgetWeight(0.5), "setting_ops", 0)).toEqual([
       { key: "budget", states: [] },
     ]);
+    // A rule that an edit sets is said by the edit: it is no longer one that was taken on a guess.
     expect(saidBy(edits.areaHide("syn-n0006"), "area_ops", 0)).toEqual([
-      { key: "area:syn-n0006", states: [] },
+      { key: "area:syn-n0006", states: ["rule"] },
     ]);
+  });
+});
+
+describe("the parts of a search that edits are about", () => {
+  test("test_every_edit_that_waits_names_its_part_as_the_control_that_made_it_is_named", () => {
+    const waiting = [
+      edits.tenure("buy"),
+      edits.budgetAmount(1500),
+      edits.budgetWeight(0.4),
+      edits.placeMinutes("syn-p0021", 40),
+      edits.journeyCombine("slowest"),
+      edits.featureWeight("air_no2", 0.3),
+      edits.featureWeight("air_no2", 0.4),
+      edits.tagWeight("leafy", 0.6),
+      edits.areaHide("syn-n0006"),
+    ].reduce(merged, NO_EDITS);
+
+    // Each part once, however many edits of it wait.
+    expect([...partsOf(waiting)].sort()).toEqual([
+      "area:syn-n0006",
+      "budget",
+      "feature:air_no2",
+      "journeys",
+      "place:syn-p0021",
+      "tag:leafy",
+      "tenure",
+    ]);
+    expect([...partsOf(NO_EDITS)]).toEqual([]);
   });
 });

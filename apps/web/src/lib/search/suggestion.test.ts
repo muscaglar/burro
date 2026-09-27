@@ -2,12 +2,8 @@ import { recordedAnswer } from "@/lib/api/recorded";
 
 import {
   addedWithOthers,
-  guessFirst,
   guessOf,
   keyOf,
-  namesItsPlaces,
-  noteOf,
-  setsAFirmBudget,
   waysOf,
   withPlace,
 } from "./suggestion";
@@ -36,22 +32,18 @@ describe("what may be done with an offer", () => {
     expect(guessOf(parks)?.id).toBe("more");
     expect(guessOf(pubs)).toBeNull();
     expect(guessOf(noise)).toBeNull();
-    // The rules guess at what was plainly said of the journey and of the home, and at no wish.
+    // The rules guess at what was plainly said of the journey and of the home, and at each
+    // wish whose way the words give. Of a word that is read several ways they guess at none.
     expect(guessOf(renting)?.id).toBe("more");
     expect(atOnce.filter((one) => guessOf(one) !== null).map((one) => one.target)).toEqual([
+      "tag:quiet_residential",
+      "feature:park_proximity",
+      "feature:culture_venues_per_homes",
       "commute",
       "tenure",
       "budget",
       "budget",
     ]);
-  });
-
-  test("test_a_note_is_read_as_it_came_and_an_empty_one_is_no_note", () => {
-    expect(noteOf(noise)).toBeNull();
-    expect(noteOf({ ...noise, note: "" })).toBeNull();
-    expect(noteOf({ ...noise, note: "  " })).toBeNull();
-    expect(noteOf({ ...noise, note: 3 })).toBeNull();
-    expect(noteOf({ ...noise, note: "Counts only when asked for by name." })).toBe("Counts only when asked for by name.");
   });
 
   test("test_what_one_press_may_add_is_the_apis_to_say_and_never_the_pages", () => {
@@ -75,37 +67,18 @@ describe("what may be done with an offer", () => {
     expect(addedWithOthers({ ...quiet, add_all: "ignore" })).toBeNull();
   });
 
-  test("test_a_journey_with_no_place_is_not_sent_until_the_person_has_chosen_one", () => {
+  test("test_a_journey_with_no_place_is_given_one_and_a_journey_that_names_its_place_keeps_it", () => {
     const [firm] = waysOf(asks);
     if (!firm) throw new Error("the offer holds no way");
 
-    expect(namesItsPlaces(firm.operations)).toBe(false);
+    expect(firm.operations.commute_ops.map((edit) => edit.place_id)).toEqual([""]);
     const placed = withPlace(firm.operations, "syn-p0021");
-    expect(namesItsPlaces(placed)).toBe(true);
     expect(placed.commute_ops.map((edit) => [edit.place_id, edit.max_minutes, edit.strictness])).toEqual([
       ["syn-p0021", 40, "hard"],
     ]);
     // A journey that names its place keeps it.
     const [named] = waysOf(journey);
     expect(withPlace(named?.operations ?? firm.operations, "syn-p0021")).toEqual(named?.operations);
-  });
-
-  test("test_a_firm_budget_is_known_by_the_edits_the_api_gave", () => {
-    const edits = (one: typeof budget) => addedWithOthers(one)?.operations ?? { budget_ops: [] };
-
-    expect(setsAFirmBudget(edits(budget))).toBe(true);
-    // A journey as a guide, a wish, and the tenure, which holds no amount.
-    expect([journey, quiet, renting].map((one) => setsAFirmBudget(edits(one)))).toEqual([false, false, false]);
-  });
-
-  test("test_the_offers_that_carry_a_guess_come_first_and_each_part_keeps_its_order", () => {
-    const every = long.map((_, at) => at);
-
-    expect(guessFirst(long, every)).toEqual([0, 1, 6, 10, 11, 2, 3, 4, 5, 7, 8, 9]);
-    expect(guessFirst(long, [3, 10, 2, 0])).toEqual([10, 0, 3, 2]);
-    // Where nothing carries a guess, nothing moves.
-    expect(guessFirst([pubs, noise], [0, 1])).toEqual([0, 1]);
-    expect(guessFirst(long, [])).toEqual([]);
   });
 
   test("test_an_offer_is_told_from_every_other_of_its_answer", () => {

@@ -2,24 +2,32 @@
  * What was asked for and is not in the data: a notice, directly under the box. It is one
  * line, which names each thing, so that the answer stands on the first screen. Why is one
  * press away.
+ *
+ * A notice is cream with its words in ink. Its edge is a band of amber inside a rule of
+ * ink: amber is not told from cream by everyone, and ink is. It is flat, and throws no
+ * shadow. The frame of the kit brings the cream and the rule.
  */
 .missing {
-  padding: var(--space-3) var(--space-4);
-  background: var(--info-bg);
-  color: var(--info-text);
-  border-inline-start: 4px solid var(--info-text);
-  border-radius: var(--radius);
+  color: var(--notice-text);
+  box-shadow: inset calc(var(--px) * 2) 0 0 var(--notice-mark);
 }
 
 .missing p {
   margin: 0;
 }
 
-/* What opens: the browser's own element, with a mark that points right when closed and down when open. */
+/*
+ * What opens: the browser's own element. Its mark is the arrow of the look, which points
+ * at the line while it is closed and down at what it opened. What is read stands clear of
+ * the band, by three art pixels.
+ */
 .opens > summary {
   display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
+  align-items: start;
+  gap: calc(var(--px) * 3);
+  padding-block: calc(var(--px) * 3);
+  padding-inline-start: calc(var(--px) * 5);
+  padding-inline-end: calc(var(--px) * 4);
   list-style: none;
   cursor: pointer;
 }
@@ -28,33 +36,60 @@
   display: none;
 }
 
-.opens > summary::before {
-  content: "";
+/*
+ * The arrow is drawn pointing up, and is longer than it is high. It is turned inside a
+ * square as wide as it is long, so that it takes the same room whichever way it points.
+ */
+.mark {
+  display: grid;
   flex: none;
-  width: 0.5em;
-  height: 0.5em;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: translateY(-0.15em) rotate(-45deg);
+  place-items: center;
+  width: calc(var(--px) * 10);
+  height: calc(var(--px) * 10);
+  /* It stands half way up the first line of the words, however many lines they run to. */
+  margin-block-start: calc((var(--leading-text) * 1em - var(--px) * 10) / 2);
 }
 
-.opens[open] > summary::before {
-  transform: translateY(-0.25em) rotate(45deg);
+.opens > summary > .mark {
+  transform: rotate(90deg);
 }
 
+.opens[open] > summary > .mark {
+  transform: rotate(180deg);
+}
+
+/* A short label, in the face of names. The names after it are read. */
+.title {
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+}
+
+/* Why, under a solid rule of ink, which parts what the notice says next from what it said first. */
 .why {
   display: grid;
   gap: var(--space-2);
-  padding-block-start: var(--space-2);
+  padding-block: var(--space-2) var(--space-3);
+  padding-inline-start: calc(var(--px) * 5);
+  padding-inline-end: calc(var(--px) * 4);
+  border-block-start: var(--edge) solid var(--border);
 }
 
-.title {
-  font-weight: 600;
-}
-
+/*
+ * Each thing, with its drawing for a mark. The list has no mark of its own and is a list
+ * all the same to whoever hears the page: its mark is an empty one, and not none.
+ */
 .things {
   display: grid;
-  gap: var(--space-1);
+  gap: var(--space-2);
   margin: 0;
-  padding-inline-start: var(--space-5);
+  padding: 0;
+  list-style-type: "";
+}
+
+.things > li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
+  max-width: none;
 }

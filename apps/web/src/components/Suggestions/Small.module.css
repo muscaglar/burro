@@ -1,0 +1,78 @@
+/*
+ * A small button of the look: lit from the top left, with a hard shadow at its foot, as
+ * Town Map draws a button, at two pixels of the screen to one of the drawing on every screen.
+ *
+ * THE BUTTON AND ITS FACE ARE TWO THINGS, as they are of the button of the kit. The button
+ * is the native element: it takes the press, and nothing moves it or changes its size. It
+ * may be larger than its face, as where it stands at the end of a line that is higher
+ * than it: the whole of its place then takes the press. Its face is inside it and is what
+ * is drawn: a picture cut in nine, which gives way under a press to the picture of the
+ * button pressed, of the same size and cut alike.
+ */
+.small {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--target-min);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--ink);
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+}
+
+/*
+ * The face. Under its picture are a rule of ink and a flat ground, laid inside the rule so
+ * that it does not show through a notch: they are what is seen until the picture has come.
+ */
+.face {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 0 calc(var(--px-small) * 3);
+  border-style: solid;
+  border-width: calc(var(--px-small) * 3) calc(var(--px-small) * 3) calc(var(--px-small) * 4);
+  border-color: var(--ink);
+  border-image: var(--art) 3 3 4 3 fill / calc(var(--px-small) * 3) calc(var(--px-small) * 3) calc(var(--px-small) * 4) repeat;
+  background-color: var(--page);
+  background-clip: padding-box;
+  image-rendering: pixelated;
+}
+
+.says {
+  display: block;
+  min-width: 0;
+}
+
+/* Under a press the picture gives way to the picture of the button pressed, which is of its size. */
+.small:active > .face {
+  border-image-source: var(--art-down);
+}
+
+/* Where movement is welcome the words step with the face, in the one step the face takes. */
+@media (prefers-reduced-motion: no-preference) {
+  .small:active > .face > .says {
+    transform: translate(var(--px-small), var(--px-small));
+  }
+}
+
+/*
+ * With forced colours the system's own colours carry the edge, and no picture is drawn
+ * over them. The edge keeps its width, so the button is of one size whatever draws it.
+ */
+@media (forced-colors: active) {
+  .face {
+    border-image-source: none;
+    border-color: ButtonText;
+    background-color: ButtonFace;
+    color: ButtonText;
+  }
+
+  .small:active > .face {
+    border-image-source: none;
+  }
+}

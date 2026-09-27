@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -8,12 +11,18 @@ import { edits } from "@/lib/search/edits";
 
 import { faultsIn } from "../../../test/support/axe";
 import { problemsWith } from "../../../test/support/contract";
+import { rulesOf } from "../../../test/support/css";
 import { NothingMatches, waysOut } from "./NothingMatches";
 
 const areas = recordedAnswer("list_areas", "areas").body.data.areas;
 const nothing = recordedAnswer("rank", "rank-nothing-matches").body.data;
 const meta = recordedAnswer("get_meta", "meta").body.data;
 const NAMES = { "syn-p0021": "Cindermoor Works" };
+
+const ALL = rulesOf(readFileSync(path.join(__dirname, "NothingMatches.module.css"), "utf8"));
+const STYLES = ALL.filter((rule) => rule.under === null);
+const setsOf = (selector: string, rules = STYLES) =>
+  new Map(rules.filter((rule) => rule.selector === selector).flatMap((rule) => [...rule.sets]));
 
 function show(spec: PreferenceSpec = nothing.spec) {
   const sent: Operations[] = [];
@@ -97,7 +106,8 @@ describe("when no area passes every limit", () => {
     const counts = block.getAllByRole("term").map((term) => [term.textContent, term.nextElementSibling?.textContent]);
     expect(new Set(firm.filtered.map((one) => one.reason))).toEqual(new Set(["commute_likely_beyond"]));
     expect(counts).toEqual([[FILTERED.commute_likely_beyond, NOTHING_MATCHES.count(firm.filtered.length)]]);
-    expect(FILTERED.commute_likely_beyond).toContain("Estimated from distance, not from a timetable.");
+    // It ends in the line the service says of an estimate, as it was recorded.
+    expect(FILTERED.commute_likely_beyond).toContain(recordedAnswer("get_meta", "estimate/meta").body.data.journey_estimate?.said ?? "no line");
     // The way out is the one for any firm limit on a journey: make it flexible.
     expect(screen.getAllByRole("button").map((button) => button.textContent)).toEqual([
       NOTHING_MATCHES.journeyFlexible("Cindermoor Works"),
@@ -185,5 +195,119 @@ describe("when no area passes every limit", () => {
     const { container } = show();
 
     expect(await faultsIn(container)).toEqual([]);
+  });
+});
+
+describe("what is said when no area passes, as it is drawn", () => {
+  test("test_it_stands_in_the_box_of_the_look_and_is_the_region_it_was", () => {
+    show();
+    const block = screen.getByRole("region", { name: NOTHING_MATCHES.title });
+
+    expect(block.tagName).toBe("SECTION");
+    expect(block).toHaveClass("frame", "box", "nothing");
+    // The frame brings the cream it is read on. The block lays no ground of its own under it.
+    expect(setsOf(".nothing").has("background")).toBe(false);
+  });
+
+  test("test_it_says_what_it_said_in_the_order_it_said_it", () => {
+    show();
+    const block = screen.getByRole("region", { name: NOTHING_MATCHES.title });
+
+    expect([...block.children].map((part) => part.tagName)).toEqual(["H2", "P", "DL", "UL"]);
+    expect(within(block).getByRole("heading", { level: 2 }).textContent).toBe(NOTHING_MATCHES.title);
+    expect(block.querySelector("p")?.textContent).toBe(NOTHING_MATCHES.lead);
+    expect(within(block).getByRole("list", { name: NOTHING_MATCHES.loosen })).toBe(block.lastElementChild);
+  });
+
+  test("test_its_heading_is_set_in_the_face_of_names_at_a_size_a_name_is_read_at", () => {
+    expect(setsOf(".title").get("font")).toBe("400 var(--name-2) / 1.1 var(--font-name)");
+    expect(setsOf(".title").get("font-synthesis")).toBe("none");
+    // Every sentence and every figure of it is set in the reading face, which the page gives.
+    const faces = STYLES.filter((rule) => rule.selector !== ".title" && [...rule.sets.keys()].some((property) => /^font(-family)?$/.test(property)));
+    expect(faces.map((rule) => rule.selector)).toEqual([]);
+  });
+
+  test("test_a_count_is_said_after_its_reason_and_is_drawn_before_it_on_a_chip_of_sand_in_ink", () => {
+    show();
+    const block = within(screen.getByRole("region", { name: NOTHING_MATCHES.title }));
+
+    // A reason is a term and its count is what is said of it, as they were.
+    for (const term of block.getAllByRole("term")) {
+      expect(term.parentElement?.tagName).toBe("DIV");
+      expect([...(term.parentElement?.children ?? [])].map((part) => part.tagName)).toEqual(["DT", "DD"]);
+    }
+    // The count is drawn first in its line, and the reason beside it.
+    expect([setsOf(".counts dd").get("grid-column"), setsOf(".counts dt").get("grid-column")]).toEqual(["1", "2"]);
+    expect([setsOf(".counts dd").get("grid-row"), setsOf(".counts dt").get("grid-row")]).toEqual(["1", "1"]);
+    // Of the colours words are set in, ink alone is read on sand. The chip has an edge of ink.
+    const chip = setsOf(".counts dd");
+    expect([chip.get("background"), chip.get("color"), chip.get("border")]).toEqual([
+      "var(--sand)",
+      "var(--ink)",
+      "var(--edge) solid var(--ink)",
+    ]);
+    expect(STYLES.filter((rule) => rule.sets.get("background") === "var(--sand)").map((rule) => rule.selector)).toEqual([
+      ".counts dd",
+    ]);
+    // A reason is a sentence, and is read in ink at the size of one.
+    expect([setsOf(".counts dt").get("color"), setsOf(".counts dt").get("font-size")]).toEqual(["var(--ink)", "var(--size-body)"]);
+    // Figures stand under figures.
+    expect(chip.get("font-variant-numeric")).toBe("tabular-nums");
+  });
+
+  test("test_each_way_out_is_a_button_of_the_look_in_cream_and_none_is_the_one_that_matters_most", () => {
+    show();
+    const ways = within(screen.getByRole("list", { name: NOTHING_MATCHES.loosen })).getAllByRole("button");
+
+    expect(ways.length).toBeGreaterThan(1);
+    for (const way of ways) {
+      expect(way.tagName).toBe("BUTTON");
+      expect(way).toHaveAttribute("type", "button");
+      expect(way).toHaveClass("press", "target");
+      // Search is the one cobalt button in sight, and two ways out are each as good as the other.
+      expect(way.firstElementChild).toHaveAttribute("data-kind", "plain");
+      expect(way).not.toHaveAttribute("aria-pressed");
+    }
+  });
+
+  test("test_every_way_out_is_read_so_that_one_that_names_a_place_is_set_as_the_one_beside_it", () => {
+    // Seen in a look: a way out that named an area with a figure in its name was set in the
+    // reading face, as the kit sets every figure, and the way out beside it in the face of
+    // names. A way out names what it loosens, and the name is the service's and may be long.
+    const ruled: PreferenceSpec = {
+      ...nothing.spec,
+      areas: [{ area_id: areas[0]?.area_id ?? "", rule: "exclude", provenance: "ui_edit" }],
+    };
+    show(ruled);
+    const ways = within(screen.getByRole("list", { name: NOTHING_MATCHES.loosen })).getAllByRole("button");
+
+    expect(ways).toHaveLength(3);
+    for (const way of ways) {
+      expect([way.textContent, way.querySelector("[data-reads]")?.getAttribute("data-reads")]).toEqual([way.textContent, "true"]);
+    }
+  });
+
+  test("test_the_keyboard_goes_from_one_way_out_to_the_next_and_a_key_sends_its_edit", async () => {
+    const { user, sent } = show();
+    const [first, second] = within(screen.getByRole("list", { name: NOTHING_MATCHES.loosen })).getAllByRole("button");
+
+    await user.tab();
+    expect(first).toHaveFocus();
+    await user.keyboard("{Enter}");
+    await user.tab();
+    expect(second).toHaveFocus();
+    await user.keyboard(" ");
+
+    const [place = ""] = Object.keys(NAMES);
+    expect(sent).toEqual([edits.budgetStrictness("soft"), edits.placeStrictness(place, "soft")]);
+  });
+
+  test("test_nothing_of_it_moves_and_nothing_of_it_is_keyed_on_the_pointer_or_the_focus", () => {
+    expect(ALL.filter((rule) => [...rule.sets.keys()].some((property) => /^(animation|transition|transform)/.test(property)))).toEqual([]);
+    expect(ALL.filter((rule) => /:(hover|focus|active)/.test(rule.selector))).toEqual([]);
+  });
+
+  test("test_nothing_that_holds_words_has_a_height_of_its_own", () => {
+    expect(ALL.filter((rule) => rule.sets.has("height") || rule.sets.has("max-height")).map((rule) => rule.selector)).toEqual([]);
   });
 });

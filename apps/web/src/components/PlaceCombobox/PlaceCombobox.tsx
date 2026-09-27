@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 
 import { FIND_AREA, PLACE, PLACE_KIND } from "@/content/search";
 import type { Answer } from "@/lib/api/client";
@@ -10,7 +10,18 @@ import { paths } from "@/lib/paths";
 import { PLACE_QUERY } from "@/lib/search/flow";
 
 import { BesideName } from "../BesideName/BesideName";
+import { pictureOf, sizeOf } from "../kit/drawings";
 import styles from "./PlaceCombobox.module.css";
+
+/**
+ * The carrot that lies beside the place in hand, as the style sheet needs it: where it is
+ * served from, and its size in art pixels. It is the pointer of every menu of the look.
+ */
+const CARROT = {
+  "--carrot": `url("${pictureOf("ui-carrot")}")`,
+  "--carrot-w": sizeOf("ui-carrot").width,
+  "--carrot-h": sizeOf("ui-carrot").height,
+} as CSSProperties;
 
 /** How long after the last key the search is sent. */
 export const WAIT_MS = 250;
@@ -37,6 +48,12 @@ interface Props {
    * is no option of the list and is never handed to `onPick`.
    */
   readonly areas?: boolean;
+  /**
+   * False where the field stands directly under a button that says what it is, in the same
+   * words, as it does once such a button has opened it. Its label is then kept for whoever
+   * hears the page, since it is what names the field, and is not drawn a second time.
+   */
+  readonly labelDrawn?: boolean;
 }
 
 /**
@@ -44,9 +61,18 @@ interface Props {
  * the focus stays in the field, the arrow keys move through the options,
  * Enter picks one and Escape closes the list.
  *
+ * Where it finds areas alone it is a plain field, and says nothing of a list:
+ * an area is a link under the field, and no option of one. Said to be a
+ * combobox there, it promised a list that was hidden and empty whatever was
+ * typed.
+ *
  * What is typed is held by the field and by nothing else. The field has no
  * name and asks the browser not to keep it. An option is known by its place
  * in the list, so no id of a place is written into the page's markup.
+ *
+ * The list is a menu, as the look draws one: the place the keys are on is in
+ * ink with its words in page, and the carrot lies beside it. It says that it
+ * is the one in hand to a screen reader too.
  */
 export function PlaceCombobox({
   search,
@@ -56,11 +82,15 @@ export function PlaceCombobox({
   full = null,
   noPlaces = false,
   areas = false,
+  labelDrawn = true,
 }: Props) {
   const id = useId();
   const named = label ?? (areas ? (noPlaces ? FIND_AREA.labelAlone : FIND_AREA.label) : PLACE.label);
   const hinted = hint ?? (areas ? (noPlaces ? FIND_AREA.hintAlone : FIND_AREA.hint) : PLACE.hint);
+  // It finds areas alone: it offers no place, so it has no list to open.
+  const alone = noPlaces && areas;
   const field = useRef<HTMLInputElement>(null);
+  const list = useRef<HTMLUListElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inFlight = useRef<AbortController | null>(null);
   const [options, setOptions] = useState<readonly FoundPlace[]>([]);
@@ -77,6 +107,24 @@ export function PlaceCombobox({
   };
 
   useEffect(() => halt, []);
+
+  // The focus stays in the field, so a browser brings no place of the list into sight by
+  // itself. Once the list is drawn the place in hand is brought into sight in it, by no more
+  // than it must be, and a list with none in hand, as one is when an answer comes, is read
+  // from its top. The list alone is moved, and never the page under it: asked to bring a
+  // place into sight, a browser moves the page as well.
+  useEffect(() => {
+    const box = list.current;
+    if (!open || box === null) return;
+    const one = active < 0 ? null : document.getElementById(`${id}-option-${active}`);
+    if (one === null) {
+      box.scrollTop = 0;
+      return;
+    }
+    const foot = one.offsetTop + one.offsetHeight;
+    if (one.offsetTop < box.scrollTop) box.scrollTop = one.offsetTop;
+    else if (foot > box.scrollTop + box.clientHeight) box.scrollTop = foot - box.clientHeight;
+  }, [open, active, options, id]);
 
   const close = () => {
     setOpen(false);
@@ -125,6 +173,14 @@ export function PlaceCombobox({
     }, WAIT_MS);
   };
 
+  /** Looks again for what the field holds, at once: nothing more was typed to wait for. */
+  const again = () => {
+    const text = (field.current?.value ?? "").trim();
+    if (text.length < PLACE_QUERY.least) return;
+    halt();
+    void look(text);
+  };
+
   const pick = (place: FoundPlace | undefined) => {
     if (!place) return;
     halt();
@@ -159,9 +215,11 @@ export function PlaceCombobox({
         setActive(event.key === "Home" ? 0 : last);
         return;
       case "Enter":
-        // Enter never sends a form from here: it picks, or it does nothing.
+        // Enter never sends a form from here: it picks, or it looks again where the last
+        // search failed, which is what the line under the field asks a person to do.
         event.preventDefault();
         if (open && active >= 0) pick(options[active]);
+        else if (status === "failed") again();
         return;
       case "Escape":
         if (!open) return;
@@ -205,7 +263,7 @@ export function PlaceCombobox({
 
   return (
     <div className={styles.combobox}>
-      <label className={styles.label} htmlFor={`${id}-field`}>
+      <label className={labelDrawn ? styles.label : "visually-hidden"} htmlFor={`${id}-field`}>
         {named}
       </label>
       <p id={`${id}-hint`} className={styles.hint}>
@@ -216,16 +274,20 @@ export function PlaceCombobox({
         id={`${id}-field`}
         className={`${styles.field} target`}
         type="text"
-        role="combobox"
         autoComplete="off"
         autoCorrect="off"
         autoCapitalize="off"
         spellCheck={false}
         maxLength={PLACE_QUERY.most}
-        aria-expanded={open}
-        aria-controls={`${id}-list`}
-        aria-autocomplete="list"
-        aria-activedescendant={open && active >= 0 ? `${id}-option-${active}` : undefined}
+        {...(alone
+          ? {}
+          : {
+              role: "combobox",
+              "aria-expanded": open,
+              "aria-controls": `${id}-list`,
+              "aria-autocomplete": "list",
+              "aria-activedescendant": open && active >= 0 ? `${id}-option-${active}` : undefined,
+            })}
         aria-describedby={`${id}-hint`}
         onInput={onInput}
         onKeyDown={onKeyDown}
@@ -251,34 +313,38 @@ export function PlaceCombobox({
           </ul>
         </div>
       ) : null}
-      <ul
-        id={`${id}-list`}
-        className={styles.list}
-        role="listbox"
-        aria-label={PLACE.options}
-        hidden={!open}
-      >
-        {options.map((place, at) => (
-          // The keys are heard by the field, where the focus stays: the arrows move, Enter picks.
-          // eslint-disable-next-line jsx-a11y/click-events-have-key-events
-          <li
-            key={place.place_id}
-            id={`${id}-option-${at}`}
-            className={`${styles.option} target`}
-            role="option"
-            aria-selected={at === active}
-            // The focus stays in the field, so pressing an option must not take it.
-            onMouseDown={(event) => event.preventDefault()}
-            onClick={() => pick(place)}
-          >
-            <span className={styles.name}>{place.name}</span>
-            <span className={styles.kind}>
-              {PLACE_KIND[place.kind]}
-              {place.coarse_name !== place.name ? `, ${PLACE.within} ${place.coarse_name}` : null}
-            </span>
-          </li>
-        ))}
-      </ul>
+      {alone ? null : (
+        <ul
+          ref={list}
+          id={`${id}-list`}
+          className={styles.list}
+          style={CARROT}
+          role="listbox"
+          aria-label={PLACE.options}
+          hidden={!open}
+        >
+          {options.map((place, at) => (
+            // The keys are heard by the field, where the focus stays: the arrows move, Enter picks.
+            // eslint-disable-next-line jsx-a11y/click-events-have-key-events
+            <li
+              key={place.place_id}
+              id={`${id}-option-${at}`}
+              className={`${styles.option} target`}
+              role="option"
+              aria-selected={at === active}
+              // The focus stays in the field, so pressing an option must not take it.
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => pick(place)}
+            >
+              <span className={styles.name}>{place.name}</span>
+              <span className={styles.kind}>
+                {PLACE_KIND[place.kind]}
+                {place.coarse_name !== place.name ? `, ${PLACE.within} ${place.coarse_name}` : null}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
       <p className={styles.status} role="status">
         {said}
       </p>
