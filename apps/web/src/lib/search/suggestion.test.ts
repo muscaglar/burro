@@ -1,9 +1,16 @@
-import { recordedAnswer } from "@/lib/api/recorded";
+import { readdirSync } from "node:fs";
+import path from "node:path";
+
+import { readRecorded, recordedAnswer, recordedFolder } from "@/lib/api/recorded";
+import type { InterpretData } from "@/lib/api/schema";
 
 import {
   addedWithOthers,
   guessOf,
   keyOf,
+  NOT_SAID_TO_BE_WANTED,
+  saysItMayBeAnothers,
+  waitsForAPerson,
   waysOf,
   withPlace,
 } from "./suggestion";
@@ -83,5 +90,41 @@ describe("what may be done with an offer", () => {
 
   test("test_an_offer_is_told_from_every_other_of_its_answer", () => {
     expect(new Set(long.map(keyOf)).size).toBe(long.length);
+  });
+});
+
+describe("why an offer waits for a person", () => {
+  /** Every offer of every answer that was recorded. */
+  const everyOffer = readdirSync(recordedFolder(), { recursive: true, encoding: "utf8" })
+    .filter((file) => file.endsWith(".json"))
+    .flatMap((file) => {
+      const recorded = readRecorded(file.replace(/\.json$/, "").split(path.sep).join("/"));
+      return (recorded.body as { data?: Partial<InterpretData> } | null)?.data?.suggestions ?? [];
+    });
+
+  test("test_the_service_says_in_the_note_of_an_offer_where_the_words_do_not_say_that_the_wish_is_the_persons_own", () => {
+    // "Pubs are so noisy": the noise is said of the pubs, and may be no wish of the person's.
+    expect(noise.note).toBe(NOT_SAID_TO_BE_WANTED);
+    expect(saysItMayBeAnothers(noise)).toBe(true);
+    // It stands after whatever else the service has a person know of the thing.
+    expect(saysItMayBeAnothers({ note: `Something of the thing. ${NOT_SAID_TO_BE_WANTED}` })).toBe(true);
+    expect(saysItMayBeAnothers({ note: "" })).toBe(false);
+    expect(saysItMayBeAnothers(pubs)).toBe(false);
+    // The sentence is the service's, and is held to every answer that was recorded: what
+    // says so waits, and the words of it are met in more answers than one.
+    const said = everyOffer.filter(saysItMayBeAnothers);
+    expect(said.length).toBeGreaterThan(3);
+    expect(said.filter((offer) => !waitsForAPerson(offer))).toEqual([]);
+    // No other note of an offer that waits is of a wish of another's in other words.
+    const others = everyOffer.filter((offer) => waitsForAPerson(offer) && !saysItMayBeAnothers(offer));
+    expect(others.length).toBeGreaterThan(3);
+    expect(others.filter((offer) => /whether you want this|want this yourself/i.test(offer.note))).toEqual([]);
+  });
+
+  test("test_a_measure_that_waits_by_a_decision_says_no_such_thing", () => {
+    // "Posh" is read into a measure that the service offers and never applies.
+    const held = atOnce.filter((one) => waitsForAPerson(one) && one.target.startsWith("feature:"));
+    expect(held).toHaveLength(1);
+    expect(held.map(saysItMayBeAnothers)).toEqual([false]);
   });
 });

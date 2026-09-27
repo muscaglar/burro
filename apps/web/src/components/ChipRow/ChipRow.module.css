@@ -156,6 +156,28 @@
 }
 
 /*
+ * The words of a chip that turns lie in one place with what it says once it is turned,
+ * which is laid out and not drawn: the chip is as wide as the wider of the two. What is
+ * not drawn is written by the style sheet, in the faces the chip sets its words in, so
+ * that it is in no text of the page.
+ */
+.words[data-turns] {
+  display: inline-grid;
+}
+
+.words[data-turns] > * {
+  grid-area: 1 / 1;
+}
+
+.then {
+  visibility: hidden;
+}
+
+.then [data-says]::before {
+  content: attr(data-says);
+}
+
+/*
  * What the thing is, is heavy. What is said of it is not, and what nobody said is told
  * from the rest by its slant: every word is ink, on page, on sand and on amber alike.
  */

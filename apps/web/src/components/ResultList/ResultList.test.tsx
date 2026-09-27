@@ -59,11 +59,16 @@ import { Key } from "../VibesList/Key";
 import { TRADE_OFF_SHOWN } from "../VibesList/look";
 import { columnOf } from "./lines";
 import {
+  A_MEASURE_RUNS,
+  LETTERS_ON_A_LINE_OF_A_NAME,
   ENDS_ON_A_RESULT,
   ENDS_ON_A_RESULT_MAY_BE,
   FIT_MAY_BE_SAID,
   LINE_STANDS,
   LINE_STANDS_AT,
+  LINES_MAY_STAND_OVER_THE_FOLD,
+  LINES_OVER_THE_FOLD,
+  LINES_WITH_NO_FOLD,
   ON_A_NARROW_RESULT,
   ON_A_NARROW_RESULT_A_BUTTON_IS,
   OTHERS_MAY_STAND,
@@ -78,6 +83,7 @@ import {
   WHAT_A_FIT_IS_BASED_ON_IS_SAID_IN_THE,
   type EndsOnAResult,
   type FitSaid,
+  type LinesOverTheFold,
   type LineStands,
   type OnANarrowResult,
   type OnANarrowResultAButtonIs,
@@ -159,6 +165,7 @@ interface Shown {
   tradeOff?: TradeOffDrawn;
   others?: OthersStand;
   fitSaid?: FitSaid;
+  linesOver?: LinesOverTheFold;
   /**
    * What is opened once the list is drawn: the working of every result that is on
    * screen, which is what most of these tests are of. `false` leaves the list as a
@@ -192,6 +199,7 @@ function listOf({
   tradeOff,
   others,
   fitSaid,
+  linesOver,
 }: Shown) {
   const details: Record<string, AreaData> = {};
   if (withDetails) {
@@ -237,6 +245,7 @@ function listOf({
       tradeOff={tradeOff}
       others={others}
       fitSaid={fitSaid}
+      linesOver={linesOver}
       {...told}
     />
   );
@@ -264,6 +273,37 @@ const two = {
 };
 const cards = () => screen.getAllByRole("article");
 const card = (at: number) => within(cards()[at] as HTMLElement);
+/** A search that asks for nothing: no vibe, no measure, no journey and no budget. */
+const nothing = { ranking: recordedAnswer("rank", "rank-default-rent").body.data, explanations: [], facts: [] };
+/**
+ * The lines of a result, in the order they stand in: of what was asked for, of which a
+ * narrow result folds all but the first, and then of the vibes nobody asked for. Every
+ * list of them is named for the area and for what it holds.
+ */
+function linesOf(at: number, name: string): HTMLElement[] {
+  const lists = [...(cards()[at]?.firstElementChild as HTMLElement).querySelectorAll<HTMLElement>("div[data-ends] > ul")];
+  const named = [STRIP.askedOf(name), STRIP.restOf(name), STRIP.othersOf(name), STRIP.label(name)];
+  for (const list of lists) expect(named).toContain(list.getAttribute("aria-label"));
+  return lists.flatMap((list) => within(list).getAllByRole("listitem"));
+}
+/** What each line of a result is of, by the name that stands on it. */
+const namesOn = (at: number, name: string) => linesOf(at, name).map((line) => said(line.querySelector("[class*='name']")));
+/** What a result says was asked for and has no figure, line by line, before anything is opened. */
+const lackedIn = (at: number) =>
+  [...(cards()[at]?.firstElementChild as HTMLElement).querySelectorAll("li:has([data-known='none'])")].map((line) => line.textContent);
+/** The name of each place of a search, as the answer that brought the search gave it. */
+const placesOf = (ranking: RankData) => new Map(ranking.places.map((place) => [place.place_id, place.name]));
+/** The name a line gives a measure, which is the short one the API gives it, by its id. */
+const shortOf = (featureId: string) => meta.data.features.find((feature) => feature.feature_id === featureId)?.short_label ?? "";
+/** The names that stand on the lines of what else was asked for, of a search: each measure, each place, and the budget. */
+function askedOf(ranking: RankData): string[] {
+  const { spec } = ranking;
+  return [
+    ...spec.weights.filter((weight) => weight.provenance !== "default" && weight.weight > 0).map((weight) => shortOf(weight.feature_id)),
+    ...spec.commutes.map((commute) => placesOf(ranking).get(commute.place_id) ?? ""),
+    ...(spec.budget.amount === null || spec.tenure === "visit" ? [] : [BREAKDOWN.budget]),
+  ];
+}
 /** A search whose third result has no figure for one of the things that count. */
 const money = {
   ranking: recordedAnswer("rank", "rank-money-and-work").body.data,
@@ -482,24 +522,36 @@ describe("a result, in short", () => {
         expect([at, within(result).queryByRole("heading", { name: RESULTS.reasonsTitle })]).toEqual([at, null]);
         // Four things to press: the name, the way to compare, the working, and more like this.
         expect([at, within(result).getAllByRole("link").length + within(result).getAllByRole("button").length]).toEqual([at, 4]);
-        // Its pictures are its gauges and the town of its area.
+        // Its pictures are its gauges and the town of its area: a figure is said, and has none.
         const lines = within(result).getAllByRole("listitem");
-        expect([at, within(result).getAllByRole("img").length]).toEqual([at, lines.length + 1]);
+        const gauges = lines.filter((line) => line.querySelector("[class*='track']") !== null);
+        expect([at, lines.length, gauges.length]).toEqual([at, 4, 2]);
+        expect([at, within(result).getAllByRole("img").length]).toEqual([at, gauges.length + 1]);
       });
 
     const farrowmere = cards()[FARROWMERE] as HTMLElement;
-    // Rank, name, the label beside it and fit. A line for each of the two vibes that were
-    // asked for. The trade-off.
+    const [leg] = first.ranking.ranked[FARROWMERE]?.legs ?? [];
+    const cost = first.facts.find((fact) => fact.fact_id === "syn-n0006/budget_fit/rent.bed_1");
+    // Rank, name, the label beside it and fit. A line for each thing that was asked for:
+    // two vibes, a journey and a budget. The trade-off.
     expect(within(farrowmere).getByRole("heading", { level: 3, name: "Farrowmere" })).toBeInTheDocument();
     expect(within(farrowmere).getByText("Quillhaven 006")).toBeInTheDocument();
     expect(within(farrowmere).getByText("71 of 100")).toBeInTheDocument();
-    expect(within(within(farrowmere).getByRole("list", { name: STRIP.label("Farrowmere") })).getAllByRole("listitem")).toHaveLength(2);
+    expect(within(within(farrowmere).getByRole("list", { name: STRIP.askedOf("Farrowmere") })).getAllByRole("listitem")).toHaveLength(4);
     expect(within(farrowmere).getByText(given?.trade_off?.text ?? "no trade-off")).toBeInTheDocument();
-    // Under its heading it says the name of each thing that was asked for, the sentence of
-    // its trade-off under its word, and the names of its two buttons, and no word more.
+    // Under its heading it says the name of each thing that was asked for, with the figure
+    // of what has no gauge and the side it falls on, the sentence of its trade-off under
+    // its word, and the names of its two buttons, and no word more.
     const [, lines, gives, ways] = [...(farrowmere.firstElementChild as HTMLElement).children];
+    const [place] = first.ranking.places;
+    expect([leg?.minutes, cost?.slots.upper]).toEqual([21, "1,300"]);
     expect([lines?.textContent, said(gives), ways?.textContent]).toEqual([
-      "LeafyQuiet streets",
+      [
+        "Leafy",
+        "Quiet streets",
+        `${place?.name}${JOURNEYS.minutes(21)}${CARD.side.within}`,
+        `${BREAKDOWN.budget}${CARD.cost("1,300", true)}${CARD.side.within}`,
+      ].join(""),
       `${RESULTS.tradeOffTitle}${given?.trade_off?.text}`,
       `${RESULTS.showWorking}${RESULTS.moreLike}`,
     ]);
@@ -534,14 +586,26 @@ describe("a result, in short", () => {
       const name = nameOf(area.area_id);
       const given = first.explanations.find((one) => one.area_id === area.area_id);
       const sources = within(working(at)).getAllByRole("button", { name: /^Source/ }).map((key) => key.getAttribute("aria-label"));
-      // Of what stands on the result: the band of each gauge, and the figure of the trade-off.
-      const onTheResult = within(cards()[at]?.firstElementChild as HTMLElement).getAllByRole("listitem").map((line) => said(line.querySelector("[class*='name']")));
-      expect(onTheResult.length).toBeGreaterThan(0);
+      // Of what stands on the result: the band of each gauge, how long the journey takes,
+      // what a home costs, and the figure of the trade-off.
+      const onTheResult = namesOn(at, name);
+      const gauges = area.strip.filter((mark) => mark.asked).map((mark) => meta.data.tags.find((tag) => tag.tag_id === mark.tag_id)?.label);
+      expect(onTheResult).toEqual([...gauges, ...askedOf(first.ranking)]);
       const ofTheTradeOff = first.facts.find((fact) => fact.fact_id === given?.trade_off?.fact_ids[0]);
-      for (const vibe of onTheResult) {
+      for (const vibe of gauges) {
         // A vibe that the trade-off is about has its source under the trade-off.
-        expect([at, vibe, sources.includes(SOURCE.buttonFor(vibe)) || ofTheTradeOff?.label === vibe]).toEqual([at, vibe, true]);
+        expect([at, vibe, sources.includes(SOURCE.buttonFor(vibe ?? "")) || ofTheTradeOff?.label === vibe]).toEqual([at, vibe, true]);
       }
+      // The source of a journey is named for its place, among the journeys.
+      for (const place of first.ranking.places) {
+        const journeys = within(working(at)).getByRole("heading", { name: JOURNEYS.title }).parentElement as HTMLElement;
+        expect([at, within(journeys).getAllByRole("button", { name: SOURCE.buttonFor(place.name) }).length]).toEqual([at, 1]);
+      }
+      // And the source of what a home costs is with the cost, which the line gives the upper end of.
+      const costs = within(working(at)).getByRole("heading", { name: COST.title }).parentElement as HTMLElement;
+      const shown = said(linesOf(at, name).at(-1)?.querySelector("[class*='figure']"));
+      expect([at, within(costs).getAllByRole("button", { name: /^Source/ }).length]).toEqual([at, 1]);
+      expect([at, shown.startsWith("£"), costs.textContent?.includes(shown.replace(/ a month$/, ""))]).toEqual([at, true, true]);
       expect([at, sources.includes(SOURCE.buttonFor(RESULTS.sourceOfTradeOff(name)))]).toEqual([at, given?.trade_off !== null]);
       // And of every reason, which a result no longer says.
       (given?.reasons ?? []).forEach((_, nth) => {
@@ -680,13 +744,14 @@ describe("a result, in short", () => {
     expect(open(1)).toHaveAttribute("aria-expanded", "false");
   });
 
-  test("test_the_lines_of_a_result_are_the_vibes_that_were_asked_for_in_the_order_the_api_gave_them", () => {
+  test("test_the_lines_of_a_result_are_what_was_asked_for_the_vibes_first_in_the_order_the_api_gave_them", () => {
     show({ ...first, opened: false });
 
     first.ranking.ranked.slice(0, 10).forEach((area, at) => {
       const name = areas.find((one) => one.area_id === area.area_id)?.name ?? "";
       const asked = area.strip.filter((mark) => mark.asked);
-      const marks = within(card(at).getByRole("list", { name: STRIP.label(name) })).getAllByRole("listitem");
+      const lines = linesOf(at, name);
+      const marks = lines.slice(0, asked.length);
       // The picture of each mark says its band in words.
       expect(marks.map((mark) => within(mark).getByRole("img").getAttribute("aria-label")?.split(",")[0])).toEqual(
         asked.map((mark) => inWords(mark)),
@@ -694,11 +759,16 @@ describe("a result, in short", () => {
       expect(marks.map((mark) => said(mark.querySelector("[class*='name']")))).toEqual(
         asked.map((mark) => meta.data.tags.find((tag) => tag.tag_id === mark.tag_id)?.label),
       );
+      // After them what else was asked for, in the order the search holds it, in the one list.
+      expect([at, lines.slice(asked.length).map((line) => said(line.querySelector("[class*='name']")))]).toEqual([at, askedOf(first.ranking)]);
+      expect([at, card(at).getAllByRole("list").map((list) => list.getAttribute("aria-label"))]).toEqual([at, [STRIP.askedOf(name)]]);
       // Each is drawn once, whatever the trade-off is about. The one picture more is the
       // town of the area, which stands in the heading.
       expect(card(at).getAllByRole("img")).toHaveLength(asked.length + 1);
       expect(marks.flatMap((mark) => within(mark).queryAllByRole("img", { name: new RegExp(`^${TOWN.name}`) }))).toEqual([]);
     });
+    // Recorded: two vibes, one journey and a budget were asked for, and no measure.
+    expect(askedOf(first.ranking)).toEqual([first.ranking.places[0]?.name, BREAKDOWN.budget]);
     // Recorded: the first result has a band on the two vibes asked for, and on two others.
     expect(first.ranking.ranked[FARROWMERE]?.strip.map((mark) => mark.asked)).toEqual([true, true, false, false]);
     expect(first.ranking.ranked[FARROWMERE]?.strip.map((mark) => mark.tag_id)).toEqual([
@@ -709,52 +779,67 @@ describe("a result, in short", () => {
     ]);
   });
 
-  test("test_the_vibes_nobody_asked_for_stand_on_a_result_only_where_no_vibe_was_asked_for_and_are_in_the_working_of_every_card", () => {
+  test("test_the_vibes_nobody_asked_for_stand_on_a_result_only_where_nothing_at_all_was_asked_for_and_are_in_the_working_of_every_card", () => {
     // A result holds a line for each thing that was asked for. The service gives two more
     // vibes at the most with every result, those its area sits at an end of: on a phone
     // they gave way to what was asked for, and on a desk they stood under it. They give
     // way at every width, so that a phone and a desk draw one result of one answer.
     const { unmount } = show({ ...first, opened: false });
-    const drawn = (at: number, name: string) =>
-      within(card(at).getByRole("list", { name: STRIP.label(name) }))
-        .getAllByRole("listitem")
-        .map((line) => said(line.querySelector("[class*='name']")));
     const labelOf = (tagId: string) => meta.data.tags.find((tag) => tag.tag_id === tagId)?.label ?? "";
 
     expect(OTHERS_STAND).toBe("alone");
     expect(OTHERS_MAY_STAND).toEqual(["alone", "beside", "never"]);
-    expect(drawn(FARROWMERE, "Farrowmere")).toEqual(["Leafy", "Quiet streets"]);
+    expect(namesOn(FARROWMERE, "Farrowmere")).toEqual(["Leafy", "Quiet streets", ...askedOf(first.ranking)]);
     // No word tells one kind of line from another, since a result holds one kind.
     expect(cards().some((one) => one.textContent?.includes(STRIP.group.asked) || one.textContent?.includes(STRIP.group.also))).toBe(false);
     unmount();
 
-    // Where no vibe was asked for a result holds the vibes the service chose, so that it is never without a gauge.
+    // Where a journey and a budget were asked for, and no vibe, a result shows those: seen
+    // in a browser, a search for one journey drew two vibes that nobody asked for, and
+    // nothing of the journey.
     const none = show({ ...money, opened: false });
-    expect(money.ranking.spec.tags).toEqual([]);
+    expect([money.ranking.spec.tags, askedOf(money.ranking)]).toEqual([[], [money.ranking.places[0]?.name, BREAKDOWN.budget]]);
     money.ranking.ranked.slice(0, SHOWN_AT_FIRST).forEach((area, at) => {
-      expect([at, drawn(at, nameOf(area.area_id))]).toEqual([at, area.strip.map((mark) => labelOf(mark.tag_id))]);
+      expect([at, namesOn(at, nameOf(area.area_id))]).toEqual([at, askedOf(money.ranking)]);
       expect([at, area.strip.length > 0]).toEqual([at, true]);
+      expect([at, cards()[at]?.firstElementChild?.querySelectorAll("[class*='track']").length]).toEqual([at, 0]);
     });
     expect(cards().some((one) => one.textContent?.includes(STRIP.group.also))).toBe(false);
     none.unmount();
 
+    // Where nothing at all was asked for a result holds the vibes the service chose, so that it is never without a line.
+    const bare = show({ ...nothing, opened: false });
+    expect(askedOf(nothing.ranking)).toEqual([]);
+    nothing.ranking.ranked.slice(0, SHOWN_AT_FIRST).forEach((area, at) => {
+      const name = nameOf(area.area_id);
+      expect([at, namesOn(at, name)]).toEqual([at, area.strip.map((mark) => labelOf(mark.tag_id))]);
+      expect([at, area.strip.length > 0]).toEqual([at, true]);
+      // The list is named for what it holds: the vibes of the area, and nothing that was asked for.
+      expect([at, card(at).getAllByRole("list").map((list) => list.getAttribute("aria-label"))]).toEqual([at, [STRIP.label(name)]]);
+    });
+    bare.unmount();
+
     // One line of the look has them stand beside what was asked for, each run under its word, as a desk drew them.
     const beside = show({ ...first, opened: false, others: "beside" });
-    expect(drawn(FARROWMERE, "Farrowmere")).toEqual(["Leafy", "Quiet streets", "Age of buildings", "Houses or flats"]);
+    expect(namesOn(FARROWMERE, "Farrowmere")).toEqual(["Leafy", "Quiet streets", ...askedOf(first.ranking), "Age of buildings", "Houses or flats"]);
+    expect(card(FARROWMERE).getAllByRole("list").map((list) => list.getAttribute("aria-label"))).toEqual([
+      STRIP.askedOf("Farrowmere"),
+      STRIP.othersOf("Farrowmere"),
+    ]);
     expect(within(cards()[FARROWMERE] as HTMLElement).getByText(STRIP.group.asked)).toHaveAttribute("aria-hidden", "true");
     expect(within(cards()[FARROWMERE] as HTMLElement).getByText(STRIP.group.also)).toHaveAttribute("aria-hidden", "true");
     beside.unmount();
 
     // Another has them stand on no result: a result then holds what was asked for and no
-    // other line, and none at all where no vibe was asked for.
+    // other line, and none at all where nothing was asked for.
     const never = show({ ...first, opened: false, others: "never" });
-    expect(drawn(FARROWMERE, "Farrowmere")).toEqual(["Leafy", "Quiet streets"]);
+    expect(namesOn(FARROWMERE, "Farrowmere")).toEqual(["Leafy", "Quiet streets", ...askedOf(first.ranking)]);
     never.unmount();
-    const bare = show({ ...money, opened: false, others: "never" });
+    const without = show({ ...nothing, opened: false, others: "never" });
     expect(cards().flatMap((one) => within(one).queryAllByRole("list"))).toEqual([]);
     expect(cards().flatMap((one) => within(one).queryAllByRole("img").filter((picture) => picture.closest("figure") === null))).toEqual([]);
-    expect(columnOf(money.ranking.ranked, meta.data, money.ranking.spec, "never", "working")).toEqual([]);
-    bare.unmount();
+    expect(columnOf(nothing.ranking.ranked, meta.data, nothing.ranking.spec, placesOf(nothing.ranking), { others: "never", fitSaid: "working" })).toEqual([]);
+    without.unmount();
 
     // Whichever is chosen, each of them is in the working of a card, with its source.
     show(first);
@@ -767,9 +852,9 @@ describe("a result, in short", () => {
 
   test("test_no_line_of_a_result_opens_and_the_fact_of_each_is_in_the_working_of_a_card_with_its_source", async () => {
     const { user } = show({ ...first, opened: false });
-    const strip = (at: number, name: string) => within(card(at).getByRole("list", { name: STRIP.label(name) }));
+    const strip = (at: number, name: string) => within(card(at).getByRole("list", { name: STRIP.askedOf(name) }));
 
-    // A line is its name and its gauge, and is pressed by nobody: a card as a row.
+    // A line is its name and its gauge or its figure, and is pressed by nobody: a card as a row.
     expect(strip(FARROWMERE, "Farrowmere").queryAllByRole("button")).toEqual([]);
     expect(strip(5, "Dulcimer Green").queryAllByRole("button")).toEqual([]);
     // The API sends the fact of every mark of the first five, with the reasons.
@@ -797,8 +882,8 @@ describe("a result, in short", () => {
       const area = first.ranking.ranked[at] as RankedArea;
       const name = nameOf(area.area_id);
       const figures = within(working(at)).getByRole("heading", { name: CARD.vibes }).parentElement as HTMLElement;
-      const onTheRow = within(card(at).getByRole("list", { name: STRIP.label(name) }))
-        .getAllByRole("listitem")
+      const onTheRow = linesOf(at, name)
+        .filter((line) => line.querySelector("[class*='track']") !== null)
         .map((line) => said(line.querySelector("[class*='name']")));
       const named = within(figures).getAllByRole("group").map((group) => group.getAttribute("aria-label"));
 
@@ -831,6 +916,36 @@ describe("a result, in short", () => {
       expect(within(figures).queryAllByRole("button")).toEqual([]);
     }
     expect(CARD.sourcesOn("Somewhere")).toBe("See the source and the date of each figure on the page for Somewhere");
+    expect(CARD.vibes).toBe("The figures behind each gauge");
+  });
+
+  test("test_a_row_that_says_what_a_home_costs_leads_to_the_page_that_holds_its_source_whatever_is_held_of_its_gauges", async () => {
+    // A row says what a home costs, as the ranking gives it, and holds no cost with its
+    // source: the page asks for the profile of the first five results alone. The page of
+    // the area holds it. A row of a search with no budget shows no such figure.
+    const every = areas.flatMap((area) => profile(area.slug).facts);
+    const { user, unmount } = show({ ...first, facts: every, opened: false });
+    const area = first.ranking.ranked[5] as RankedArea;
+    const shown = linesOf(5, nameOf(area.area_id)).at(-1);
+    await user.click(card(5).getByRole("button", { name: /^Show the working: / }));
+
+    expect([area.budget?.upper_quartile, first.ranking.spec.budget.amount]).toEqual([1725, 1700]);
+    expect(shown?.textContent).toBe(`${BREAKDOWN.budget}${CARD.cost("1,725", true)}${CARD.side.over}`);
+    const way = within(within(working(5)).getByRole("heading", { name: CARD.vibes }).parentElement as HTMLElement).getByRole("link");
+    expect(way).toHaveAccessibleName(CARD.sourcesOn(nameOf(area.area_id)));
+    expect(way).toHaveAttribute("href", `/synthetic/${slugOf(area.area_id)}`);
+    expect(way).toHaveAttribute("data-prefetch", "false");
+    // The page it leads to holds the figure, with its source.
+    const onThePage = profile(slugOf(area.area_id)).facts.find((fact) => fact.kind === "cost" && fact.key === "rent.bed_1");
+    expect([onThePage?.slots.upper, onThePage?.sources.length]).toEqual(["1,725", 1]);
+    unmount();
+
+    // A row whose gauges each have their fact, in a search with no budget: nothing leads away.
+    const plain = { ranking: recordedAnswer("rank", "rank-shelf").body.data, explanations: [], facts: every };
+    show({ ...plain, opened: false });
+    fireEvent.click(card(5).getByRole("button", { name: /^Show the working: / }));
+    expect(plain.ranking.spec.budget.amount).toBeNull();
+    expect(within(working(5)).queryAllByRole("link", { name: /^See the source/ })).toEqual([]);
   });
 
   test("test_the_working_of_a_row_gives_the_key_of_a_source_in_place_wherever_the_fact_of_a_gauge_is_in_hand", async () => {
@@ -845,8 +960,10 @@ describe("a result, in short", () => {
       const fact = every.find((one) => one.fact_id === mark.fact_id);
       expect(within(figures).getByRole("button", { name: SOURCE.buttonFor(fact?.label ?? "none") })).toBeInTheDocument();
     }
-    // Nothing leads away where every source opens in place.
-    expect(within(figures).queryAllByRole("link")).toEqual([]);
+    // What leads away leads to the source of what a home costs, which a row holds none of:
+    // no gauge of the row is without its key.
+    expect(within(figures).getAllByRole("group")).toHaveLength(area.strip.length);
+    expect(within(figures).getAllByRole("button", { name: /^Source/ })).toHaveLength(area.strip.length);
   });
 
   test("test_a_card_whose_facts_did_not_come_names_its_gauges_all_the_same_and_waits_for_those_that_may_yet_come", () => {
@@ -1133,7 +1250,7 @@ describe("a result card", () => {
     expect(within(working(0)).queryByRole("heading", { name: RESULTS.reasonsTitle })).toBeNull();
     expect(cards()[0]?.querySelectorAll(".skeleton")).toHaveLength(0);
     // Its lines and its ways on are there, and so is the rest of its working.
-    expect(within(cards()[0] as HTMLElement).getByRole("list", { name: STRIP.label("Farrowmere") })).toBeInTheDocument();
+    expect(within(cards()[0] as HTMLElement).getByRole("list", { name: STRIP.askedOf("Farrowmere") })).toBeInTheDocument();
     expect(within(working(0)).getByRole("heading", { name: COST.title })).toBeInTheDocument();
     // The result beside it, which the service wrote of, has both.
     expect(within(cards()[1] as HTMLElement).getByRole("heading", { name: RESULTS.tradeOffTitle })).toBeInTheDocument();
@@ -1562,7 +1679,8 @@ describe("a vibe that a sentence is about", () => {
   };
   /** The part of the working of a card under a heading of its own. */
   const part = (at: number, name: string) => within(working(at)).getByRole("heading", { name }).parentElement as HTMLElement;
-  const strip = (at: number, name: string) => card(at).queryByRole("list", { name: STRIP.label(name) });
+  /** The lines of the vibes of a result: those of its lines that hold the gauge of a vibe. */
+  const vibesOn = (at: number, name: string) => linesOf(at, name).filter((line) => within(line).queryByRole("img", { name: /^(band|varies)/ }) !== null);
   const factsOf = (shown: typeof leafy) => ({ facts: shown.facts });
 
   test("test_a_vibe_that_a_reason_is_about_is_drawn_once_on_its_line_and_no_picture_stands_beside_a_sentence", () => {
@@ -1573,7 +1691,8 @@ describe("a vibe that a sentence is about", () => {
     if (top === undefined || mark === undefined) throw new Error("the first reason of the recording is no vibe of its strip");
 
     // Its line is on the result, and says the band and which way the bands run.
-    const lines = within(strip(0, nameOf(top.area_id)) as HTMLElement).getAllByRole("listitem");
+    const lines = vibesOn(0, nameOf(top.area_id));
+    expect(linesOf(0, nameOf(top.area_id))).toEqual(lines);
     expect(lines.map((line) => within(line).getByRole("img").getAttribute("aria-label"))).toEqual([
       `${STRIP.band(mark.band)}, ${STRIP.from(STRIP.least, STRIP.most)}, ${STRIP.asked}`,
     ]);
@@ -1626,7 +1745,7 @@ describe("a vibe that a sentence is about", () => {
     // It was asked for, so it has its line among what was asked for.
     const asked = area.strip.filter((mark) => mark.asked);
     expect(asked.some((mark) => mark.fact_id === about.fact_id)).toBe(true);
-    expect(within(strip(at, nameOf(area.area_id)) as HTMLElement).getAllByRole("listitem")).toHaveLength(asked.length);
+    expect(vibesOn(at, nameOf(area.area_id))).toHaveLength(asked.length);
     // In the working its source stands once, under the trade-off, and its figures are not
     // laid out a second time among those of the other vibes.
     expect(within(part(at, CARD.sourceOfTheTradeOff)).getByText(about.label)).toBeInTheDocument();
@@ -1644,10 +1763,13 @@ describe("a vibe that a sentence is about", () => {
 
     expect(first.explanations[at]?.reasons[0]?.fact_ids[0]).toBe("syn-n0003/travel/syn-p0021.pt");
     expect(asked).toBeGreaterThan(0);
-    expect(within(strip(at, "Cindermoor") as HTMLElement).getAllByRole("listitem")).toHaveLength(asked);
+    const whole = namesOn(at, "Cindermoor");
+    expect(vibesOn(at, "Cindermoor")).toHaveLength(asked);
+    expect(whole).toHaveLength(asked + askedOf(first.ranking).length);
     unmount();
     show({ ...first, explanations: [], explained: false, opened: false });
-    expect(within(strip(at, "Cindermoor") as HTMLElement).getAllByRole("listitem")).toHaveLength(asked);
+    expect(vibesOn(at, "Cindermoor")).toHaveLength(asked);
+    expect(namesOn(at, "Cindermoor")).toEqual(whole);
   });
 
   test("test_a_short_sentence_is_laid_out_as_a_long_one_is_word_for_word", () => {
@@ -1671,6 +1793,259 @@ describe("a vibe that a sentence is about", () => {
   });
 });
 
+describe("a line for each thing that was asked for", () => {
+  // The founder, of a result: "ideally for the break down, we need the info to be title of
+  // what was asked for, the visual gauge, and where relevent, the approx data call out". A
+  // result drew a line for each vibe that was asked for and for nothing else that was:
+  // the founder's own sentence had seven things taken, and two lines.
+  const family = {
+    ranking: recordedAnswer("rank", "rank-buyer-family").body.data,
+    ...recordedAnswer("explain_top", "explanations-buyer-family").body.data,
+  };
+  const estimated = { ranking: recordedAnswer("rank", "estimate/rank").body.data, explanations: [], facts: [] };
+  /** The measures that were asked for in the search of a family, by the ids the service gives them. */
+  const MEASURES = family.ranking.spec.weights.filter((weight) => weight.provenance !== "default").map((weight) => weight.feature_id);
+  const factOf = (areaId: string, featureId: string) => profile(slugOf(areaId)).facts.find((fact) => fact.fact_id === `${areaId}/feature/${featureId}`);
+  /** The step the peg of a gauge stands on, counted from its low end. `0` where it stands on none. */
+  const stepOf = (line: HTMLElement | undefined) => [...(line?.querySelectorAll("[data-on]") ?? [])].findIndex((step) => step.getAttribute("data-on") === "true") + 1;
+  const answer = (at: number) => cards()[at]?.firstElementChild as HTMLElement;
+
+  test("test_a_measure_that_was_asked_for_is_a_gauge_of_five_steps_on_a_card_by_the_band_its_fact_holds", () => {
+    show({ ...family, opened: false });
+
+    expect(MEASURES).toEqual(["park_proximity", "school_primary_attainment"]);
+    family.ranking.ranked.slice(0, 5).forEach((area, at) => {
+      const [park, school] = linesOf(at, nameOf(area.area_id));
+      const [ofThePark, ofTheSchool] = MEASURES.map((id) => factOf(area.area_id, id));
+      // Each is named as its chip names it, and is five steps with a peg and a picture at each end.
+      expect([at, said(park?.querySelector("[class*='name']")), said(school?.querySelector("[class*='name']"))]).toEqual([at, ...MEASURES.map(shortOf)]);
+      for (const line of [park, school]) {
+        expect([at, line?.querySelectorAll("[data-on]").length, line?.querySelectorAll("[class*='end'] > [aria-hidden='true']").length]).toEqual([at, 5, 2]);
+        // No word and no figure stands beside it.
+        expect([at, line?.textContent]).toEqual([at, said(line?.querySelector("[class*='name']"))]);
+      }
+      // The peg stands on the band the service gives the figure. A measure that is a wish
+      // for less of its figure runs the other way, so that nearer is never drawn as further.
+      expect([at, stepOf(school)]).toEqual([at, Number(ofTheSchool?.slots.band)]);
+      expect([at, stepOf(park)]).toEqual([at, A_MEASURE_RUNS === "name" ? 6 - Number(ofThePark?.slots.band) : Number(ofThePark?.slots.band)]);
+      // Whoever hears the page is told the figure and where it stands, in the words of the service.
+      expect([at, within(park as HTMLElement).getByRole("img").getAttribute("aria-label")]).toEqual([at, `${ofThePark?.slots.value}, ${ofThePark?.slots.standing}`]);
+    });
+    expect(A_MEASURE_RUNS).toBe("name");
+  });
+
+  test("test_the_fact_behind_the_gauge_of_a_measure_is_in_the_working_of_its_card_with_its_source", async () => {
+    const { user } = show({ ...family, opened: false });
+    for (const opens of screen.getAllByRole("button", { name: /^Show the working: / })) await user.click(opens);
+
+    family.ranking.ranked.slice(0, 5).forEach((area, at) => {
+      const given = family.explanations.find((one) => one.area_id === area.area_id);
+      const figures = within(working(at)).getByRole("heading", { name: CARD.vibes }).parentElement as HTMLElement;
+      for (const id of MEASURES) {
+        const fact = factOf(area.area_id, id);
+        // What the trade-off is about has its source under the trade-off, and is said once.
+        const ofTheTradeOff = given?.trade_off?.fact_ids.includes(fact?.fact_id ?? "") === true;
+        const row = within(figures).queryByRole("group", { name: fact?.label ?? "none" });
+        expect([at, id, row !== null]).toEqual([at, id, !ofTheTradeOff]);
+        if (row === null) continue;
+        expect([at, id, row.textContent?.includes(fact?.slots.value ?? "none"), row.textContent?.includes(fact?.slots.standing ?? "none")]).toEqual([at, id, true, true]);
+        expect(within(row).getAllByRole("button", { name: SOURCE.buttonFor(fact?.label ?? "none") })).toHaveLength(1);
+      }
+    });
+  });
+
+  test("test_while_the_facts_of_a_card_are_on_their_way_a_measure_has_its_line_and_its_place_in_the_working_is_held", () => {
+    const waiting = show({ ...family, explanations: [], facts: [], explained: false, withDetails: false });
+    const [top] = family.ranking.ranked;
+    const name = nameOf(top?.area_id ?? "");
+
+    // Its line is there from the first, by its name, and draws nothing that is not known yet.
+    expect(namesOn(0, name).slice(0, 2)).toEqual(MEASURES.map(shortOf));
+    for (const line of linesOf(0, name).slice(0, 2)) expect(line.querySelector("[class*='track'], [class*='told'], [data-known='none']")).toBeNull();
+    const figures = within(working(0)).getByRole("heading", { name: CARD.vibes }).parentElement as HTMLElement;
+    expect(figures.querySelectorAll(".skeleton")).toHaveLength((top?.strip.length ?? 0) + MEASURES.length);
+    waiting.unmount();
+
+    // Where they failed to come, the line says its name still, and no figure is owed a source.
+    const failed = family.ranking.ranked.slice(0, 5).map((area) => area.area_id);
+    show({ ...family, explanations: [], facts: [], explained: false, explainFailed: true, withDetails: false, detailsFailed: failed });
+    expect(namesOn(0, name).slice(0, 2)).toEqual(MEASURES.map(shortOf));
+    expect(within(working(0)).getByRole("heading", { name: CARD.vibes }).parentElement?.querySelectorAll(".skeleton")).toHaveLength(0);
+    // The cost did not come either: what a home costs stands on the line as the ranking
+    // gave it, and the way to the page that holds its source is drawn.
+    expect(said(linesOf(0, name).at(-1)?.querySelector("[class*='figure']"))).toBe(CARD.cost("415,000", false));
+    expect(within(working(0)).getByRole("link", { name: CARD.sourcesOn(name) })).toBeInTheDocument();
+  });
+
+  test("test_a_row_holds_the_lines_a_card_holds_as_far_as_the_ranking_gives_what_they_need", () => {
+    // The ranking gives how long a journey takes and what a home costs. Where an area
+    // stands on a measure is in the fact of the measure, which the page holds of the first
+    // five results alone: so a row says the name of a measure, and the same whatever
+    // facts another search left.
+    const every = areas.flatMap((area) => profile(area.slug).facts);
+    const ROWS = [5, 6, 9];
+    /** The lines of a row as they are drawn, part for part, but for what names the press and what it shows to each other. */
+    const drawn = () => ROWS.map((at) => (cards()[at]?.querySelector("div[data-ends]")?.innerHTML ?? "").replace(/ (id|aria-controls)="[^"]*"/g, ""));
+    const bare = show({ ...family, opened: false, facts: [] });
+    const without = drawn();
+
+    for (const at of ROWS) {
+      const area = family.ranking.ranked[at] as RankedArea;
+      const name = nameOf(area.area_id);
+      const lines = linesOf(at, name);
+      expect([at, namesOn(at, name)]).toEqual([at, askedOf(family.ranking)]);
+      expect([at, namesOn(at, name)]).toEqual([at, namesOn(0, nameOf(family.ranking.ranked[0]?.area_id ?? ""))]);
+      // Of a measure its name, and nothing that the ranking does not give.
+      for (const line of lines.slice(0, 2)) expect([at, line.textContent]).toEqual([at, said(line.querySelector("[class*='name']"))]);
+      expect([at, lines.slice(0, 2).flatMap((line) => [...line.querySelectorAll("[role='img'], [class*='track'], [data-known='none']")])]).toEqual([at, []]);
+      // Of the journey how long it takes, and of the budget what a home costs, with the side each falls on.
+      const [leg] = area.legs;
+      const over = (area.budget?.margin ?? 0) < 0;
+      expect([at, lines[2]?.textContent]).toEqual([
+        at,
+        `${family.ranking.places[0]?.name}${JOURNEYS.minutes(leg?.minutes ?? -1)}${(leg?.minutes ?? 0) <= 40 ? CARD.side.within : CARD.side.over}`,
+      ]);
+      expect([at, lines[3]?.textContent]).toEqual([
+        at,
+        `${BREAKDOWN.budget}${CARD.cost(new Intl.NumberFormat("en-GB").format(area.budget?.upper_quartile ?? -1), false)}${over ? CARD.side.over : CARD.side.within}`,
+      ]);
+    }
+    bare.unmount();
+    show({ ...family, opened: false, facts: every });
+    expect(without.every((lines) => lines.length > 0)).toBe(true);
+    expect(drawn().map((lines, at) => lines === without[at])).toEqual(ROWS.map(() => true));
+    // A card draws the gauge, once it has the fact.
+    expect(answer(0).querySelectorAll("[class*='track']")).toHaveLength(MEASURES.length);
+  });
+
+  test("test_a_journey_that_was_estimated_says_its_band_and_approx_data_on_a_card_and_on_a_row", () => {
+    show({ ...estimated, opened: false });
+
+    [0, 1, 5, 8].forEach((at) => {
+      const area = estimated.ranking.ranked[at] as RankedArea;
+      const [line] = linesOf(at, nameOf(area.area_id));
+      const band = area.legs[0]?.estimate;
+      if (band === null || band === undefined) throw new Error("the recording holds no estimate");
+
+      expect([at, line?.textContent]).toEqual([at, `${estimated.ranking.places[0]?.name}${JOURNEYS.estimated[band]}${KNOWN.some}`]);
+      expect([at, /\d/.test(line?.textContent ?? "")]).toEqual([at, false]);
+      expect([at, line?.querySelector("[style*='ui-approx']") !== null]).toEqual([at, true]);
+    });
+  });
+
+  test("test_a_result_of_more_than_four_lines_has_one_press_that_shows_the_rest_and_the_press_is_held_where_it_stood", async () => {
+    // Measured at 390 by 844 after a sentence of seven things: with a line for each, the
+    // first result ended under the foot of the first screen.
+    const asked = (mark: RankedArea["strip"][number]) => ({ ...mark, asked: true, toward: "high" as const });
+    // Five things, each of a name that takes one line: a third vibe is asked for beside the two.
+    const ranking = { ...first.ranking, ranked: first.ranking.ranked.map((area) => ({ ...area, strip: area.strip.slice(0, 3).map(asked) })) };
+    const { user } = show({ ...first, ranking, opened: false });
+    const name = nameOf(ranking.ranked[0]?.area_id ?? "");
+
+    expect([LINES_OVER_THE_FOLD, LINES_MAY_STAND_OVER_THE_FOLD, LINES_WITH_NO_FOLD]).toEqual([3, [3, 4], 4]);
+    expect(linesOf(0, name)).toHaveLength(5);
+    expect(namesOn(0, name).filter((one) => one.length > LETTERS_ON_A_LINE_OF_A_NAME)).toEqual([]);
+    const press = card(0).getByRole("button", { name: CARD.moreOf(CARD.more(2), name) });
+    expect(within(card(0).getByRole("list", { name: STRIP.askedOf(name) })).getAllByRole("listitem")).toHaveLength(3);
+    expect(press).toHaveAttribute("aria-expanded", "false");
+    // It is one of what opens in place in a result, which the list holds where it stood.
+    expect(press.matches("button[aria-expanded]")).toBe(true);
+    await user.click(press);
+    expect(press).toHaveAttribute("aria-expanded", "true");
+    expect(card(0).getByRole("list", { name: STRIP.restOf(name) })).toHaveAttribute("data-folded", "false");
+    // A row folds as a card does, and a result of four lines has no press.
+    expect(card(5).getByRole("button", { name: CARD.moreOf(CARD.more(2), nameOf(ranking.ranked[5]?.area_id ?? "")) })).toBeInTheDocument();
+    cleanup();
+    show({ ...first, opened: false });
+    expect(screen.queryAllByRole("button", { name: /^\+\d+ more/ })).toEqual([]);
+    // The other way, which one line chooses: four lines over the press.
+    cleanup();
+    show({ ...first, ranking, opened: false, linesOver: 4 });
+    expect(within(card(0).getByRole("list", { name: STRIP.askedOf(name) })).getAllByRole("listitem")).toHaveLength(4);
+    expect(card(0).getByRole("button", { name: CARD.moreOf(CARD.more(1), name) })).toBeInTheDocument();
+  });
+
+  test("test_a_result_whose_lines_are_of_long_names_folds_sooner_since_a_long_name_takes_more_lines_than_one", () => {
+    // Measured at 390 by 844 after "leafy and low crime": a result of three lines, two of
+    // them of measures whose names take two lines and three, ended 17 px under the foot of
+    // the first screen. A line is counted as the rows its name takes.
+    show({ ...family, opened: false });
+    const name = nameOf(family.ranking.ranked[0]?.area_id ?? "");
+    const rows = askedOf(family.ranking).map((one) => Math.ceil(one.length / LETTERS_ON_A_LINE_OF_A_NAME));
+
+    expect(LETTERS_ON_A_LINE_OF_A_NAME).toBe(16);
+    // Four lines, of which two are of names that take two lines, and count for a row and a
+    // half each: five rows, where four have room.
+    expect(rows).toEqual([1, 2, 2, 1]);
+    expect(within(card(0).getByRole("list", { name: STRIP.askedOf(name) })).getAllByRole("listitem").map((line) => said(line.querySelector("[class*='name']")))).toEqual(
+      askedOf(family.ranking).slice(0, 2),
+    );
+    expect(card(0).getByRole("button", { name: CARD.moreOf(CARD.more(2), name) })).toHaveAttribute("aria-expanded", "false");
+    expect(namesOn(0, name)).toEqual(askedOf(family.ranking));
+  });
+});
+
+describe("an area that stands lower for what it lacks", () => {
+  // Seen in a browser, after the founder's own sentence: the fits of the five results ran
+  // 54, 44, 35, 53 and 34. An area with no figure for a thing that was asked for stands
+  // below every area that has one. The line of the thing said "no data", and nothing said
+  // that this is why a fit of 53 stands under one of 35.
+  const under = (at: number) => cards()[at]?.querySelector("header")?.nextElementSibling ?? null;
+
+  test("test_a_result_whose_area_lacks_a_figure_that_was_asked_for_says_under_its_fit_that_it_is_listed_lower_for_it", () => {
+    show({ ...two, opened: false });
+
+    expect(two.ranking.ranked[0]?.contributions.filter((part) => !part.present).map((part) => part.component)).toEqual(["budget"]);
+    // Directly under the heading, which ends in the fit, in sight and with nothing pressed.
+    expect(under(0)?.tagName).toBe("P");
+    expect(under(0)?.textContent).toBe(CARD.listedLower);
+    expect(under(0)?.closest("[aria-hidden='true'], [hidden], .visually-hidden")).toBeNull();
+    expect(card(0).getByRole("button", { name: /^Show the working: / })).toHaveAttribute("aria-expanded", "false");
+    // It is one sentence, and says what follows and why, in the two words of the line that names what is lacked.
+    expect(CARD.listedLower).toBe("This area is listed lower because it has no data for something you asked for.");
+    expect(CARD.listedLower).toContain(KNOWN.none);
+    // It is read: in ink, at the size of a small sentence, and nothing of it warns.
+    const rules = STYLES.filter((rule) => isFor(rule.selector, "lower"));
+    expect(rules.map((rule) => [rule.sets.get("color"), rule.sets.get("font-size")])).toEqual([["var(--ink)", "var(--size-small)"]]);
+    expect(under(0)?.querySelector("[aria-hidden='true']")).toBeNull();
+  });
+
+  test("test_a_row_says_it_as_a_card_does", () => {
+    const lacking = (area: RankedArea) => ({
+      ...area,
+      contributions: area.contributions.map((part) =>
+        part.component === "tag:leafy" ? { ...part, present: false, utility: null, contribution: 0, fact_ids: [] } : part,
+      ),
+      strip: area.strip.filter((mark) => mark.tag_id !== "leafy"),
+    });
+    const ranking = { ...first.ranking, ranked: first.ranking.ranked.map((area, at) => (at === 7 ? lacking(area) : area)) };
+    show({ ...first, ranking, opened: false });
+
+    expect(cards()[7]?.parentElement).toHaveAttribute("data-kind", "row");
+    expect(under(7)?.textContent).toBe(CARD.listedLower);
+    expect(lackedIn(7)).toEqual([`Leafy${KNOWN.none}`]);
+  });
+
+  test("test_nothing_is_said_of_an_area_that_lacks_only_what_nobody_chose_or_lacks_nothing", () => {
+    show({ ...money, opened: false });
+
+    // Recorded: the third area has no figure for a measure that counts in every search.
+    expect(money.ranking.ranked[MARROWFEN]?.contributions.filter((part) => !part.present).map((part) => part.component)).toEqual(["feature:noise_exposure"]);
+    money.ranking.ranked.slice(0, SHOWN_AT_FIRST).forEach((area, at) => {
+      expect([at, cards()[at]?.textContent?.includes(CARD.listedLower)]).toEqual([at, false]);
+    });
+    // Its fit is not whole all the same, and says so.
+    expect(within(cards()[MARROWFEN]?.querySelector("header") as HTMLElement).getByText(KNOWN.some)).toBeInTheDocument();
+  });
+
+  test("test_where_what_a_fit_is_based_on_is_said_in_sentences_on_the_result_the_sentence_names_what_is_lacked", () => {
+    show({ ...two, opened: false, fitSaid: "result" });
+
+    expect(cards()[0]?.textContent?.includes(CARD.listedLower)).toBe(false);
+    expect(cards()[0]?.textContent?.includes(UNTESTED.over_budget)).toBe(true);
+  });
+});
+
 describe("how complete the data is", () => {
   /** What a result says in full of what its fit is based on: it is in its working. */
   const completeness = (at: number) => cards()[at]?.querySelector("[class*='completeness']") as HTMLElement;
@@ -1678,9 +2053,8 @@ describe("how complete the data is", () => {
   const answer = (at: number) => cards()[at]?.firstElementChild as HTMLElement;
   /** What a result says was asked for and has no figure, line by line. */
   const lacked = (at: number, name: string) =>
-    within(answer(at))
-      .queryAllByRole("list", { name: CARD.lacked(name) })
-      .flatMap((list) => within(list).getAllByRole("listitem"))
+    linesOf(at, name)
+      .filter((line) => line.querySelector("[data-known='none']") !== null)
       .map((line) => line.textContent);
 
   test("test_a_card_whose_fit_rests_on_everything_says_no_more_of_it", () => {
@@ -1841,9 +2215,11 @@ describe("how complete the data is", () => {
     expect(within(answer(0).querySelector("header") as HTMLElement).getByText(KNOWN.some)).toBeInTheDocument();
     expect(lacked(0, "Ostrel Vale")).toEqual([`${BREAKDOWN.budget}${KNOWN.none}`]);
     expect(within(answer(0)).getByText(KNOWN.none).closest("[aria-hidden='true'], [hidden], .visually-hidden")).toBeNull();
-    // What is not known is never drawn as nought or as the middle: its line has no gauge.
-    const line = within(answer(0)).getByRole("list", { name: CARD.lacked("Ostrel Vale") });
-    expect(line.querySelector("[role='img'], [class*='track']")).toBeNull();
+    // It stands where the budget stands among what was asked for: after the journeys, and last.
+    expect(namesOn(0, "Ostrel Vale")).toEqual(askedOf(two.ranking));
+    // What is not known is never drawn as nought or as the middle: its line has no gauge and no figure.
+    const line = linesOf(0, "Ostrel Vale").at(-1) as HTMLElement;
+    expect(line.querySelector("[role='img'], [class*='track'], [class*='figure']")).toBeNull();
     // The sentence is one press away.
     expect(answer(0).textContent?.includes(UNTESTED.over_budget)).toBe(false);
     fireEvent.click(card(0).getByRole("button", { name: /^Show the working: / }));
@@ -1893,10 +2269,10 @@ describe("how complete the data is", () => {
       ),
     }));
     show({ ...first, ranking: lacking, opened: false });
-    const lines = within(within(answer(0)).getByRole("list", { name: STRIP.label("Farrowmere") })).getAllByRole("listitem");
+    const lines = linesOf(0, "Farrowmere").slice(0, 2);
 
     expect(lacking.ranked[0]?.contributions.some((part) => part.component === "tag:leafy")).toBe(true);
-    // What has a figure comes first, and then what has none.
+    // Of the vibes, what has a figure comes first, and then what has none.
     expect(lines.map((line) => line.textContent)).toEqual(["Quiet streets", `Leafy${KNOWN.none}`]);
     expect(lines[1]?.querySelectorAll("[data-on]")).toHaveLength(0);
     expect(lines[1]?.querySelector("[class*='peg']")).toBeNull();
@@ -2285,9 +2661,10 @@ describe("the journeys", () => {
   test("test_journeys_that_do_not_count_because_none_has_a_time_are_said_on_the_result_to_be_not_known_and_in_its_working_why", () => {
     show({ ...two, ranking: noneKnown(two.ranking) });
 
-    // On the result: the fit is not whole, and the journey is named as what has no figure.
+    // On the result: the fit is not whole, and each journey is named as what has no figure, by its place.
     expect(within(answer(0).querySelector("header") as HTMLElement).getByText(KNOWN.some)).toBeInTheDocument();
-    expect(lacked(0)).toContain(`${BREAKDOWN.journey}${KNOWN.none}`);
+    expect(lacked(0).slice(0, 2)).toEqual(two.ranking.places.map((place) => `${place.name}${KNOWN.none}`));
+    expect(two.ranking.places).toHaveLength(2);
     expect(answer(0).textContent?.includes(JOURNEYS.notCounted(2))).toBe(false);
     // In its working, said heavier: it says how far to trust the fit.
     const line = within(working(0)).getByText(JOURNEYS.notCounted(2));
@@ -2310,7 +2687,7 @@ describe("the journeys", () => {
   test("test_a_card_whose_journeys_count_says_nothing_of_journeys_that_do_not", () => {
     show(two);
 
-    expect(lacked(0)).not.toContain(`${BREAKDOWN.journey}${KNOWN.none}`);
+    for (const place of two.ranking.places) expect(lacked(0)).not.toContain(`${place.name}${KNOWN.none}`);
     for (const said of [JOURNEYS.notCounted(2), JOURNEYS.notCounted(1)]) expect(cards()[0]?.textContent?.includes(said)).toBe(false);
     expect(cards()[0]?.textContent ?? "").not.toMatch(/\bdo(es)? not count towards this fit\b/);
   });
@@ -2318,7 +2695,7 @@ describe("the journeys", () => {
   test("test_one_journey_with_no_time_says_that_it_does_not_count", () => {
     show({ ...first, ranking: noneKnown(first.ranking) });
 
-    expect(lacked(0)).toEqual([`${BREAKDOWN.journey}${KNOWN.none}`]);
+    expect(lacked(0)).toEqual([`${first.ranking.places[0]?.name}${KNOWN.none}`]);
     expect(within(working(0)).getByText(JOURNEYS.notCounted(1))).toBeInTheDocument();
   });
 
@@ -4401,19 +4778,19 @@ describe("the steps of every result stand in one column", () => {
   const strips = () => cards().flatMap((one) => [...one.querySelectorAll<HTMLElement>("div[data-ends]")]);
 
   test("test_every_result_of_a_list_is_handed_the_names_of_one_column", () => {
-    // A search that asks for no vibe: every result draws the vibes the service chose for it.
-    show({ ...money, opened: false });
-    const drawn = namesOf(money.ranking.ranked.map((area) => area.strip), meta.data.tags);
+    // A search that asks for nothing: every result draws the vibes the service chose for it.
+    show({ ...nothing, opened: false });
+    const drawn = namesOf(nothing.ranking.ranked.map((area) => area.strip), meta.data.tags);
 
     // The recorded search ranks more results than are cards, and its results draw many vibes.
-    expect(money.ranking.ranked.length).toBeGreaterThan(SHOWN_AT_FIRST);
+    expect(nothing.ranking.ranked.length).toBeGreaterThan(SHOWN_AT_FIRST);
     expect(drawn.length).toBeGreaterThan(4);
-    expect(columnOf(money.ranking.ranked, meta.data, money.ranking.spec, "alone", "working")).toEqual(drawn);
+    expect(columnOf(nothing.ranking.ranked, meta.data, nothing.ranking.spec, placesOf(nothing.ranking), { others: "alone", fitSaid: "working" })).toEqual(drawn);
     // Every result is handed the same names, whichever vibes it draws itself: of every
     // result of the ranking, of those that are one press away as well.
     expect(strips().length).toBe(SHOWN_AT_FIRST);
     expect([...new Set(strips().map((strip) => strip.style.getPropertyValue("--names")))]).toEqual([asLines(drawn)]);
-    const own = new Set(money.ranking.ranked.slice(0, SHOWN_AT_FIRST).map((area) => asLines(namesOf([area.strip], meta.data.tags))));
+    const own = new Set(nothing.ranking.ranked.slice(0, SHOWN_AT_FIRST).map((area) => asLines(namesOf([area.strip], meta.data.tags))));
     expect(own.size).toBeGreaterThan(1);
     expect(own.has(asLines(drawn))).toBe(false);
     // With the names every line is told of the two words that may stand under a name, so
@@ -4438,30 +4815,35 @@ describe("the steps of every result stand in one column", () => {
 
     expect(many.ranking.spec.tags.map((tag) => tag.tag_id)).toEqual(["built_age"]);
     expect(every.length).toBeGreaterThan(4);
-    expect([...new Set(strips().map((strip) => strip.style.getPropertyValue("--names")))]).toEqual([asLines(["Age of buildings"])]);
+    // Of the vibe that was asked for, and of what else was: a measure and a place.
+    const asked = ["Age of buildings", ...askedOf(many.ranking)];
+    expect(askedOf(many.ranking)).toEqual([shortOf("water_access"), many.ranking.places[0]?.name]);
+    expect([...new Set(strips().map((strip) => strip.style.getPropertyValue("--names")))]).toEqual([asLines(asked)]);
     unmount();
-    // Where the look has the others stand beside what was asked for, the names of all of them.
+    // Where the look has the others stand beside what was asked for, the names of all of
+    // them, after the names of what was asked for.
     const beside = show({ ...many, opened: false, others: "beside" });
-    expect([...new Set(strips().map((strip) => strip.style.getPropertyValue("--names")))]).toEqual([asLines(every)]);
+    expect([...new Set(strips().map((strip) => strip.style.getPropertyValue("--names")))]).toEqual([
+      asLines([...asked, ...every.filter((name) => !asked.includes(name))]),
+    ]);
     beside.unmount();
     // What was asked for and has no figure stands in the column by its name too.
     show({ ...two, opened: false });
-    expect(columnOf(two.ranking.ranked, meta.data, two.ranking.spec, "alone", "working")).toEqual([
-      ...namesOf(two.ranking.ranked.map((area) => area.strip), meta.data.tags),
-      BREAKDOWN.budget,
-    ]);
+    const look = { others: "alone", fitSaid: "working" } as const;
+    expect(two.ranking.ranked.map((area) => area.budget)).toEqual([null]);
+    expect(columnOf(two.ranking.ranked, meta.data, two.ranking.spec, placesOf(two.ranking), look)).toEqual(askedOf(two.ranking));
     // And not where what a fit is based on is said in full on the result, which names it in a sentence.
-    expect(columnOf(two.ranking.ranked, meta.data, two.ranking.spec, "alone", "result")).toEqual(
-      namesOf(two.ranking.ranked.map((area) => area.strip), meta.data.tags),
+    expect(columnOf(two.ranking.ranked, meta.data, two.ranking.spec, placesOf(two.ranking), { ...look, fitSaid: "result" })).toEqual(
+      askedOf(two.ranking).filter((name) => name !== BREAKDOWN.budget),
     );
   });
 
   test("test_the_column_is_as_wide_once_more_results_are_shown_as_it_was_before", async () => {
-    const { user } = show({ ...money, opened: false });
+    const { user } = show({ ...nothing, opened: false });
     const before = strips().map((strip) => strip.style.getPropertyValue("--names"));
     // Among the names are those of vibes that only a result that is yet to be shown draws.
-    const shown = namesOf(money.ranking.ranked.slice(0, SHOWN_AT_FIRST).map((area) => area.strip), meta.data.tags);
-    expect(before[0]).toBe(asLines(namesOf(money.ranking.ranked.map((area) => area.strip), meta.data.tags)));
+    const shown = namesOf(nothing.ranking.ranked.slice(0, SHOWN_AT_FIRST).map((area) => area.strip), meta.data.tags);
+    expect(before[0]).toBe(asLines(namesOf(nothing.ranking.ranked.map((area) => area.strip), meta.data.tags)));
     expect(before[0] === asLines(shown)).toBe(false);
 
     await user.click(screen.getByRole("button", { name: /^Show \d+ more$/ }));

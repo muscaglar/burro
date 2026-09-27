@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 
 import { STATUS } from "@/content/search";
 import { WAIT } from "@/content/wait";
@@ -27,6 +27,101 @@ const nothing = { phase: "empty" as const, ranking: null, areas, moved: null, ga
 /** How many areas the recorded ranking ranks, and the name the service gives the first of them. */
 const COUNT = first.scores.length;
 const FIRST = areas.find((area) => area.area_id === first.ranked[0]?.area_id)?.name ?? "";
+
+describe("the room the line keeps, so that what stands under it is where it was pressed", () => {
+  /** How wide the line is laid out, and how many letters of it stand in one line. */
+  let laid = { wide: 580, letters: 60 };
+  /**
+   * Stands the line as a browser lays it out: what is drawn of it in so many lines of 24 px,
+   * in 24 px of room and edges, and never lower than the least it is told to be. jsdom
+   * lays nothing out.
+   */
+  const asLaidOut = () =>
+    jest.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+      const drawn = [...this.children].filter((part) => !part.classList.contains("visually-hidden"));
+      const said = drawn.map((part) => part.textContent ?? "").join("");
+      const lines = Math.max(1, Math.ceil(said.length / laid.letters));
+      const height = Math.max(24 * lines + 24, Number.parseFloat(this.style.minHeight) || 0);
+      return { top: 0, bottom: height, left: 0, right: laid.wide, x: 0, y: 0, width: laid.wide, height, toJSON: () => ({}) };
+    });
+  const edited = { ...ranked, open: true, moved: 14, was: first.scores.length, gaveWay: false };
+  let measure: jest.SpyInstance;
+
+  beforeEach(() => {
+    laid = { wide: 580, letters: 60 };
+    measure = asLaidOut();
+  });
+  afterEach(() => measure.mockRestore());
+
+  test("test_once_it_has_said_something_in_two_lines_it_keeps_the_room_of_two_while_it_says_less", () => {
+    // Measured at 1440 by 900: what the line says of a first ranking is two lines, and what
+    // it says once a chip is turned or taken off is one. The chips under it went up by 24
+    // px, from under the press that turned one.
+    const { rerender } = render(<StatusLine {...ranked} open />);
+    const line = screen.getByRole("status");
+    expect(statusOf(ranked).length).toBeGreaterThan(60);
+    expect(line.style.minHeight).toBe("72px");
+
+    rerender(<StatusLine {...edited} answers={2} />);
+
+    expect(line.textContent).toBe(STATUS.moved(14));
+    expect(line.style.minHeight).toBe("72px");
+    expect(line.getBoundingClientRect().height).toBe(72);
+    // And while the next ranking is worked out, and once it is in.
+    rerender(<StatusLine {...edited} phase="refining" answers={2} />);
+    rerender(<StatusLine {...edited} moved={3} answers={3} />);
+    expect(line.style.minHeight).toBe("72px");
+  });
+
+  test("test_what_takes_more_room_than_it_kept_is_given_it_and_keeps_it_from_then", () => {
+    const { rerender } = render(<StatusLine {...edited} />);
+    const line = screen.getByRole("status");
+    expect(line.style.minHeight).toBe("48px");
+
+    rerender(<StatusLine {...edited} budgetWent answers={2} />);
+    const high = line.style.minHeight;
+    expect(Number.parseFloat(high)).toBeGreaterThan(72);
+
+    rerender(<StatusLine {...edited} answers={3} />);
+    expect(line.style.minHeight).toBe(high);
+  });
+
+  test("test_before_a_search_it_keeps_no_room_and_a_search_that_begins_again_keeps_none_of_the_last", () => {
+    const { rerender } = render(<StatusLine {...nothing} />);
+    const line = screen.getByRole("status");
+    expect(line.style.minHeight).toBe("");
+
+    rerender(<StatusLine {...ranked} open budgetWent />);
+    expect(Number.parseFloat(line.style.minHeight)).toBeGreaterThan(72);
+
+    // Start again: the page is as it is before a search, and the line takes no room.
+    rerender(<StatusLine {...nothing} />);
+    expect(line.style.minHeight).toBe("");
+    rerender(<StatusLine {...edited} />);
+    expect(line.style.minHeight).toBe("48px");
+  });
+
+  test("test_the_room_it_keeps_is_of_the_width_it_was_measured_at", () => {
+    // A window that is made wider sets the words in fewer lines, and the room of the lines
+    // they stood in at another width is no room the line has taken at this one.
+    const { rerender } = render(<StatusLine {...ranked} open />);
+    const line = screen.getByRole("status");
+    expect(line.style.minHeight).toBe("72px");
+
+    laid = { wide: 900, letters: 100 };
+    rerender(<StatusLine {...ranked} open answers={2} />);
+
+    expect(line.style.minHeight).toBe("48px");
+  });
+
+  test("test_where_nothing_is_laid_out_it_keeps_no_room", () => {
+    laid = { wide: 0, letters: 60 };
+    render(<StatusLine {...ranked} open />);
+
+    expect(screen.getByRole("status").style.minHeight).toBe("");
+    act(() => undefined);
+  });
+});
 
 describe("the line that says what happened, as it is drawn", () => {
   test("test_it_is_one_paragraph_that_is_on_the_page_before_it_says_anything_and_says_the_next_thing_itself", () => {
@@ -169,6 +264,34 @@ describe("the line that says what happened, as it is drawn", () => {
     expect(statusOf({ ...open, phase: "interpreting" })).toBe(STATUS.reading);
     expect(statusOf({ ...open, phase: "refining" })).toBe(WAIT.ranking);
     expect(statusOf({ ...ranked, open: true })).toBe(statusOf(ranked));
+  });
+
+  test("test_once_a_search_is_stopped_the_line_says_so_and_what_became_of_the_words", () => {
+    // Seen in a browser: "Reading your search", and after Stop nothing at all. Before a
+    // search the line was empty, and over a search that was open it said what it had said
+    // of the ranking, as though nothing had been pressed.
+    const stopped = { ...nothing, stopped: true };
+    const { rerender } = render(<StatusLine {...stopped} />);
+    const line = screen.getByRole("status");
+
+    expect(statusOf(stopped)).toBe(STATUS.stopped);
+    expect(line.textContent).toBe(STATUS.stopped);
+    expect(line.firstElementChild).toHaveClass("happened");
+    expect(STATUS.stopped).toMatch(/^Burro stopped, as you asked\./);
+    expect(STATUS.stopped).toMatch(/your words are still in the box/);
+    // Over a search that is open it says that the search is as it was, and no more of the ranking.
+    rerender(<StatusLine {...ranked} open stopped />);
+    expect(screen.getByRole("status")).toBe(line);
+    expect(line.textContent).toBe(STATUS.stoppedOpen);
+    expect(STATUS.stoppedOpen).toMatch(/^Burro stopped, as you asked\./);
+    expect(STATUS.stoppedOpen).toMatch(/Your search is as it was/);
+    // While the next search is read it says that, and then what came of it.
+    expect(statusOf({ ...ranked, open: true, stopped: true, phase: "interpreting" })).toBe(STATUS.reading);
+    expect(statusOf({ ...ranked, open: true, stopped: false })).toBe(statusOf(ranked));
+    // Each is two lines of a phone and no more, as what the line says of a ranking is.
+    for (const said of [STATUS.stopped, STATUS.stoppedOpen]) expect([said, said.length <= 89]).toEqual([said, true]);
+    // It blames nobody, and asks nothing.
+    for (const said of [STATUS.stopped, STATUS.stoppedOpen]) expect(said).not.toMatch(/\?|sorry|fail|could not/i);
   });
 
   test("test_the_name_of_the_first_result_is_said_to_a_screen_reader_and_not_drawn", () => {

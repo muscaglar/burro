@@ -14,17 +14,39 @@ export const CARD = {
    */
   workingOf: (area: string) => `The working for ${area}`,
   /**
-   * The name of the list of what was asked for and has no figure, to whoever hears the
-   * page. The name of the area is the API's.
+   * On the line of a budget: what a home of the kind that is looked for costs in the area.
+   * The amount is the API's, and a rent is by the month.
    */
-  lacked: (area: string) => `What you asked for that Burro has no figure for in ${area}`,
-  /** In the working, over the figures behind each gauge of the result, each with its source. */
-  vibes: "The figures behind each vibe",
+  cost: (pounds: string, rented: boolean) => (rented ? `£${pounds} a month` : `£${pounds}`),
   /**
-   * In the working, under the figures behind each vibe, where the search page does not hold
-   * the source of every one of them: the whole of a link, which leads to the page of the
-   * area, where each figure stands with its source and its date. The name of the area is
-   * the API's.
+   * After the figure of a journey or of a budget: on which side of what the person set the
+   * figure falls. It is one word, and the working says it of every journey in the same two.
+   */
+  side: { within: "within", over: "over" },
+  /**
+   * On the press that stands under the first lines of a narrow result which holds more of
+   * them than it has room for: how many more there are, and what puts them away again.
+   */
+  more: (count: number) => `+${count} more`,
+  fewer: "Show fewer",
+  /**
+   * The whole name of that press, of which what is seen is the start: whose lines they
+   * are, as every short button of a result says it. The name of the area is the API's.
+   */
+  moreOf: (seen: string, area: string) => `${seen}: ${area}`,
+  /**
+   * Under the fit of a result whose area has no figure for a thing that was asked for. Such
+   * an area stands below every area that has one, so a higher fit may stand under a lower:
+   * the line of the thing says "no data", and this says what follows from it.
+   */
+  listedLower: "This area is listed lower because it has no data for something you asked for.",
+  /** In the working, over the figures behind each gauge of the result, each with its source. */
+  vibes: "The figures behind each gauge",
+  /**
+   * In the working, under the figures behind each gauge, where the search page does not hold
+   * the source of every figure the result shows: the whole of a link, which leads to the
+   * page of the area, where each figure stands with its source and its date. The name of
+   * the area is the API's.
    */
   sourcesOn: (area: string) => `See the source and the date of each figure on the page for ${area}`,
   /**

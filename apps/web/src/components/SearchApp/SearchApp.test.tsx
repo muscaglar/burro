@@ -1086,7 +1086,7 @@ describe("what is said of words that were not read", () => {
     expect(theLineOf(leftOut()).textContent).toBe(
       `${LEFT_OUT.title}: ${many.body.data.suggestions.map((offer) => offer.label).join("; ")}`,
     );
-    expect(whyOf(leftOut())).toEqual(many.body.data.suggestions.map((offer) => `${offer.label}. ${LEFT_OUT.why.by_choice}`));
+    expect(whyOf(leftOut())).toEqual(many.body.data.suggestions.map((offer) => `${offer.label}. ${LEFT_OUT.why.not_said}`));
     expect(thePage().querySelectorAll("[data-way], [data-guess]")).toHaveLength(0);
   });
 
@@ -1102,7 +1102,7 @@ describe("what is said of words that were not read", () => {
     expect(theLineOf(leftOut()).textContent).toBe(`${LEFT_OUT.title}: Pubs and bars; Less transport noise`);
     expect(whyOf(leftOut())).toEqual([
       `Pubs and bars. ${LEFT_OUT.why.two_ways}`,
-      `Less transport noise. ${LEFT_OUT.why.by_choice}`,
+      `Less transport noise. ${LEFT_OUT.why.not_said}`,
     ]);
   });
 

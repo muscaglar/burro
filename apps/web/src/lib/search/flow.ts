@@ -62,6 +62,7 @@ import {
 } from "./state";
 import { isAWish } from "./suggestion";
 import {
+  A_LIMIT_THE_WORDS_MAKE_FIRM,
   OF_A_WORD_READ_SEVERAL_WAYS,
   restsOn,
   settledOf,
@@ -72,6 +73,7 @@ import {
   type Doubt,
   type Readings,
   type Turned,
+  type Worded,
 } from "./takes";
 
 /** How many results the list holds, and how many of them the API gives reasons for. */
@@ -106,6 +108,8 @@ export interface FlowDeps {
   readonly readings?: Readings;
   /** What is made of a thing the words turn away. Left out, as the look has chosen. */
   readonly turned?: Turned;
+  /** What is made of a journey whose words make its limit firm. Left out, as the look has chosen. */
+  readonly worded?: Worded;
 }
 
 export interface Flow {
@@ -187,6 +191,7 @@ export function createFlow({
   doubt = WHERE_BURRO_CANNOT_TELL,
   readings = OF_A_WORD_READ_SEVERAL_WAYS,
   turned = WHAT_THE_WORDS_TURN_AWAY,
+  worded = A_LIMIT_THE_WORDS_MAKE_FIRM,
 }: FlowDeps): Flow {
   let current = 0;
   let readingRun: number | null = null;
@@ -266,7 +271,7 @@ export function createFlow({
     const again: number[] = [];
     // Words that are read more ways than one count as the look has them count, whoever
     // read them: what the rules took of some words, a model's reading does not take again.
-    const made = takenOfAll(read.suggestions, meta, doubt, readings, read.words, turned);
+    const made = takenOfAll(read.suggestions, meta, doubt, readings, read.words, turned, worded);
     read.suggestions.forEach((offer, at) => {
       const one = made[at];
       if (one === undefined) return;

@@ -343,7 +343,8 @@
  * what it holds says what it is.
  *
  * The page clears 176 px at the foot of the screen for the bar. Measured on a screen 390
- * wide: 111 px with one area chosen, 116 with two, and 160 with three and with four.
+ * wide, with what takes every area out drawn in it: 108 px with one area chosen, 116 with
+ * two, 160 with three and 176 with four.
  */
 @media (max-width: 40rem) {
   .tray[data-closed="false"] {
@@ -362,12 +363,18 @@
   }
 
   /*
-   * What takes every area out at once is not drawn there: the bar has no line to spare for
-   * it. Measured on a screen 390 wide, as its word alone in the line of what the bar says:
-   * the bar was 179 px high with four areas chosen, where it is 160, and the page clears
-   * 176 for it. Each area is taken out by its own cross, which is as near.
+   * What takes every area out at once stands in the line of what the bar says, there as on
+   * a wide screen. Measured on a screen 390 wide with the line as it is set elsewhere: the
+   * bar was 179 px high with four areas chosen, and the page clears 176 for it. So the
+   * lines of what the bar says are set closer there, as close as the reading face sets a
+   * short sentence, and the bar is then 176 px high with four.
    */
-  .says > .clear {
+  .tray[data-clear-narrow="true"] .says {
+    line-height: 1.2;
+  }
+
+  /* Where one line of the look leaves it off a narrow screen, as it was, it is not drawn. */
+  .tray[data-clear-narrow="false"] .says > .clear {
     display: none;
   }
 
@@ -548,11 +555,20 @@
  * towns, and the sentence. It is drawn in a line, and what holds it lays it out and gives
  * it the cream it is read on.
  *
- * The drawing stands at the start, and what is read runs beside it: the two towns are as
- * high as two lines are.
+ * The drawing stands at the start, and what is read stands beside it, in lines of its own:
+ * the two towns are as high as two lines are, and a sentence of more lines than that ran
+ * round them, and left its last word alone under them.
  */
 .invite {
+  display: flex;
+  gap: var(--space-3);
+  align-items: flex-start;
   color: var(--text);
+}
+
+/* What is read gives way where there is little room, and the towns do not. */
+.invite > :last-child {
+  min-width: 0;
 }
 
 /*
@@ -564,10 +580,9 @@
   --px: var(--px-ground);
 
   display: inline-flex;
-  float: inline-start;
+  flex: none;
   gap: calc(var(--px-ground) * 2);
   align-items: flex-end;
-  margin-inline-end: var(--space-3);
 }
 
 /*

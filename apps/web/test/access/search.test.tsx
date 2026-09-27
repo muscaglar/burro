@@ -33,6 +33,8 @@ import {
   STATUS,
   SUGGEST,
   TENURE_CHOICE,
+  UNMET,
+  UNMET_LABEL,
   UNRANKED,
 } from "@/content/search";
 import { BUDGET, FEATURES, JOURNEY, SETTINGS, SLIDER } from "@/content/settings";
@@ -1036,12 +1038,13 @@ describe("colour is never the only signal", () => {
     expect(within(card as HTMLElement).getByText(RESULTS.rank(1))).toBeInTheDocument();
     expect(within(card as HTMLElement).getByText(`${RESULTS.fitOf(71)}`)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: MAP.pin(1, "Farrowmere", RESULTS.fitOf(71)) })).toBeInTheDocument();
-    // Within and over: words.
-    expect(within(card as HTMLElement).getByText(JOURNEYS.within)).toBeInTheDocument();
-    // Assumed, and flexible or firm: words. In the row a chip says that the rest was assumed,
-    // and opened it says which part.
+    // Within and over: words, on the line of a journey and of a budget, and in the working of the result.
+    const sides = within(card as HTMLElement).getAllByText(JOURNEYS.within);
+    expect(sides.length).toBeGreaterThanOrEqual(2);
+    for (const side of sides) expect(side.closest("[aria-hidden='true'], [hidden]")).toBeNull();
+    // Assumed, and flexible or firm: words, in the row and in the chip that is opened.
     const chips = screen.getByRole("region", { name: CHIPS.label });
-    expect(chips).toHaveTextContent(CHIPS.restAssumed);
+    expect(chips).toHaveTextContent(`${CHIPS.flexible} ${CHIPS.assumed}`);
     await user.click(within(chips).getByRole("button", { name: /^Cindermoor Works/ }));
     expect(chips).toHaveTextContent(`${CHIPS.flexible} ${CHIPS.assumed}`);
     await user.click(within(chips).getByRole("button", { name: /^Cindermoor Works/ }));
@@ -1216,6 +1219,71 @@ describe("what is said, and when", () => {
     await removeChip(user, "Leafy");
     expect(await screen.findAllByRole("alert")).toHaveLength(1);
   });
+
+  test("test_what_burro_could_not_answer_is_heard_as_it_comes", async () => {
+    // Seen in a browser, of "near a mosque": what Burro has no data on stood in a part of
+    // the page that says nothing as it changes, while the line that is heard said only
+    // that no areas are ranked yet. What is to be heard is on the page before it says
+    // anything: a part that comes with its words is told to nobody.
+    const { user } = await openSearch(firstSearch().on("interpret", "interpret-unmet"));
+    const before = [...document.querySelectorAll("[aria-live='polite'], [role='status']")];
+    // Until it says something it holds nothing, and what holds nothing is told to nobody.
+    const held = before.map((one) => one.textContent ?? "");
+    expect(screen.queryByRole("region", { name: UNMET_LABEL })).toBeNull();
+
+    await search(user);
+
+    const unmet = screen.getByRole("region", { name: UNMET_LABEL });
+    const heard = unmet.closest("[aria-live='polite'], [role='status']");
+    expect(heard).not.toBeNull();
+    expect(before).toContain(heard);
+    expect(held[before.indexOf(heard as Element)]).toBe("");
+    // It is said when there is a pause, as what happened is, and breaks into nothing.
+    expect(heard?.getAttribute("aria-live") ?? "polite").toBe("polite");
+    // It holds what Burro could not answer and nothing else, so that nothing else is said with it.
+    expect(heard?.textContent).toBe(unmet.textContent);
+    expect(within(unmet).getAllByRole("listitem").map((line) => line.textContent)).toContain(UNMET.community_amenities);
+  });
+
+  test("test_stop_is_said_in_the_line_that_is_heard_and_the_next_search_says_what_came_of_it", async () => {
+    // Seen in a browser: after Stop the line under the box held nothing, and nothing was
+    // heard of the press.
+    const heard = () => screen.getAllByRole("status").filter((line) => line.getAttribute("aria-live") === "polite");
+    const api = firstSearch();
+    const reading = api.hold("interpret", "interpret-first");
+    const { user } = await openSearch(api);
+    const [line] = heard();
+    await user.type(promptBox(), "leafy and quiet");
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    expect(line).toHaveTextContent(STATUS.reading);
+
+    await user.click(screen.getByRole("button", { name: PROMPT.stop }));
+
+    // The line that said the search was read is the line that says it was stopped.
+    expect(heard()[0]).toBe(line);
+    expect(line?.textContent).toBe(STATUS.stopped);
+    reading.release();
+    await settled();
+    expect(line?.textContent).toBe(STATUS.stopped);
+
+    // The next search says what came of it, and nothing of the one that was stopped.
+    api.on("interpret", "interpret-first");
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await settled();
+    expect(results().length).toBeGreaterThan(0);
+    expect(heard()[0]?.textContent?.includes(STATUS.stopped)).toBe(false);
+
+    // Over a search that is open, the line says that the search is as it was.
+    const more = api.hold("interpret", "interpret-second-sentence");
+    await user.type(promptBox(), ", a bit more green space");
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await user.click(screen.getByRole("button", { name: PROMPT.stop }));
+    expect(heard()[0]?.textContent).toBe(STATUS.stoppedOpen);
+    more.release();
+    await settled();
+    expect(heard()[0]?.textContent).toBe(STATUS.stoppedOpen);
+    expect(results().length).toBeGreaterThan(0);
+  });
 });
 
 describe("automated checks of each state with everything open", () => {
@@ -1354,7 +1422,7 @@ describe("automated checks of each state with everything open", () => {
     await search(noisy.user, "Pubs are so noisy");
     const open = screen.getByRole("status", { name: LEFT_OUT.title });
     expect(open).toHaveTextContent(LEFT_OUT.why.two_ways);
-    expect(open).toHaveTextContent(LEFT_OUT.why.by_choice);
+    expect(open).toHaveTextContent(LEFT_OUT.why.not_said);
     expect(await faultsIn(noisy.container, { wholePage: true })).toEqual([]);
     noisy.unmount();
 

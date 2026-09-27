@@ -525,6 +525,20 @@
 }
 
 /*
+ * What Burro could not answer is heard as it comes, so what holds it is on the page before
+ * it says anything. Until it does it is no part of what is laid out: it takes no place
+ * among what Burro says, and no room between two parts of it. It is drawn all the same:
+ * what is not drawn is not heard when it first speaks.
+ */
+.heard {
+  min-width: 0;
+}
+
+.heard:empty {
+  position: absolute;
+}
+
+/*
  * The words that were not read, and that Burro is reading still: under the box, each part
  * of it on cream, with grass between. Where there is nothing of it, it takes no room.
  */

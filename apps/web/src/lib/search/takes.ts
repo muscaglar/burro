@@ -16,6 +16,15 @@
  * 3. The way the service marks as Burro's guess.
  * 4. Of a thing that runs one way, that way: more of what the name of the thing says.
  *
+ * So a journey is taken as a guide whatever its words, though they make its limit firm as
+ * "at most 40 minutes" does, and its chip says that the guide was assumed. On a build of
+ * London a journey is an estimate, worked out from distance with no timetable behind it,
+ * and no area is left out on an estimate without a press: a person makes a journey firm
+ * with a press of its own, in its chip. The founder decided it (ADR 0012, "What one press
+ * may take"). One line has such a journey taken, before any of the four, as the firm limit
+ * its words make it, where the service marks that way as its guess
+ * (`A_LIMIT_THE_WORDS_MAKE_FIRM`).
+ *
  * A rule for an area, which looks only there or leaves it out, is taken by the third of
  * these alone. Whichever way it is taken, areas are left out, so neither way is the
  * gentler, and that a way stands first or may be added at a press is no reading of the
@@ -50,6 +59,10 @@
  *   reads them, a measure that a decision holds to be offered and never applied, and a
  *   wish or a journey that may be somebody else's.
  *
+ * Each kind waits for a reason of its own, and the page says the reason that is so: a
+ * wish that may be somebody else's is told from a measure that waits by a decision by
+ * what the service says in the note of the offer.
+ *
  * Which thing counts what is the service's to say, of every measure and of the recipe of
  * every vibe (route 11), and no name of one is written here.
  *
@@ -78,6 +91,7 @@ import {
   guessOf,
   isAWish,
   namedByThePerson,
+  saysItMayBeAnothers,
   waitsForAPerson,
   waysOf,
   withPlace,
@@ -94,9 +108,10 @@ export interface Mark {
 /**
  * Why nothing was taken of an offer. `crime`: it counts recorded crime, and the service
  * does not say that the person asked for that by name. `residents`: it counts who lived
- * somewhere. `by_choice`: the service says that it waits for a person to choose it, and
- * it counts neither of those: a measure that a decision holds to be offered and never
- * applied, or a wish that the words do not say is the person's own. `journey`: it is a
+ * somewhere. `by_choice`: the service says that it waits for a person to choose it, it
+ * counts neither of those, and the service says no more of why: a measure that a decision
+ * holds to be offered and never applied. `not_said`: it is a wish that the service says
+ * the words do not say is the person's own. `journey`: it is a
  * journey that the service says waits for a person, to a place that may be somebody
  * else's. `place`: it is a journey to a place Burro does not know. `no_way`: the service
  * gave no way to take it, and says why in its own words. `area`: it is a rule for an
@@ -110,6 +125,7 @@ export type WhyLeft =
   | "crime"
   | "residents"
   | "by_choice"
+  | "not_said"
   | "journey"
   | "place"
   | "no_way"
@@ -119,7 +135,7 @@ export type WhyLeft =
   | "several";
 
 /** The kinds that a person alone may add: the service says of each that it waits for a person. */
-export const ONLY_BY_CHOICE: readonly WhyLeft[] = ["crime", "residents", "by_choice", "journey"];
+export const ONLY_BY_CHOICE: readonly WhyLeft[] = ["crime", "residents", "by_choice", "not_said", "journey"];
 
 /**
  * What is made of a thing that runs two ways, where the service marks neither as its
@@ -184,6 +200,34 @@ export const READINGS: readonly Readings[] = ["every", "first", "none"];
 /** This is the one line that chooses. */
 export const OF_A_WORD_READ_SEVERAL_WAYS: Readings = "first";
 
+/**
+ * What is made of a journey whose words make its limit firm. "At most", "max", "no more
+ * than" and "within" make minutes firm, and a range of minutes is firm at its longer end.
+ * In a sentence that is no plain list the service offers such a journey both ways, marks
+ * the firm limit as its guess, and has one press add the guide. The founder chose, on
+ * 2026-09-25 (ADR 0012, "What one press may take"), and it is theirs to overturn.
+ *
+ * `guide`: it is a guide whatever the words, so that no area is left out for a journey, and
+ * its chip says that the guide was assumed. A person who wrote "at most 40 minutes" then
+ * has an area ranked that is an hour away, until they make the journey firm with a press
+ * of its own, in its chip. `as_worded`: it is a firm limit, as the words make it and as
+ * the service applies it of a plain list, and an area that is known to be further away is
+ * left out before anybody has pressed.
+ *
+ * Where the service marks no way of a journey, the guide is taken whichever is chosen.
+ */
+export type Worded = "as_worded" | "guide";
+
+export const LIMITS: readonly Worded[] = ["as_worded", "guide"];
+
+/**
+ * This is the one line that chooses, and it is on the guide. On a build of London a journey
+ * is an estimate, worked out from distance with no timetable behind it (ADR 0027), and no
+ * area is left out on an estimate without a press. The other way takes the journey as the
+ * firm limit its words make it, and leaves out every area that is known to be further away.
+ */
+export const A_LIMIT_THE_WORDS_MAKE_FIRM: Worded = "guide";
+
 /** What is made of one offer: the way that is taken, with its edits and what was assumed, or why none is. */
 export type Taken =
   | {
@@ -240,6 +284,17 @@ function setsALimit(way: SuggestionChoice): boolean {
   return [...budgets, ...journeys].some((edit) => edit.strictness !== "unchanged");
 }
 
+/** True of a way that sets the limit of a journey: it says whether the journey is a firm limit. */
+function limitsAJourney(way: SuggestionChoice): boolean {
+  return way.operations.commute_ops.some((edit) => edit.strictness !== "unchanged");
+}
+
+/** True of a journey that is offered both ways: as a firm limit, and as a guide. */
+function mayBeFirmOrAGuide(ways: readonly SuggestionChoice[]): boolean {
+  const limits = ways.filter(limitsAJourney);
+  return limits.some(isFirm) && limits.some((way) => !isFirm(way));
+}
+
 /**
  * Whether some edit sets recorded crime counting, by a measure or inside a vibe. A measure
  * of recorded crime is one the service files under crime.
@@ -267,18 +322,22 @@ function runsTwoWays(ways: readonly SuggestionChoice[]): boolean {
 }
 
 /** The way of an offer that is taken, before anything is asked of what it counts, or why none is. */
-function wayOf(suggestion: Suggestion, doubt: Doubt, turned: Turned): SuggestionChoice | WhyLeft {
+function wayOf(suggestion: Suggestion, doubt: Doubt, turned: Turned, worded: Worded): SuggestionChoice | WhyLeft {
   const ways = takenWaysOf(suggestion);
   const guessed = guessOf({ choices: ways });
   // A rule for an area leaves areas out whichever way it is taken, so it is taken by the
   // way the service marks as its guess, and by no other.
   if (ways.some(rulesAnArea)) return guessed ?? "area";
+  // The other way of a journey: the way the service marks as its guess, which is the firm
+  // limit where the words make it one, and not the guide that one press adds in its place.
+  if (worded === "as_worded" && guessed !== null && limitsAJourney(guessed)) return guessed;
   const said = addedWithOthers(suggestion);
   if (said !== null) return said;
   // The words turn the thing away, and the service reads them so.
   const stops = turned === "stopped" ? guessOf(suggestion) : null;
   if (stops !== null && takesOff(stops)) return stops;
-  // A limit that may be firm or a guide is a guide, whichever the words give.
+  // A limit that may be firm or a guide is a guide, whichever the words give. By the other
+  // way of a journey, only one whose way the service does not mark comes as far as this.
   const guide = ways.filter(setsALimit).find((way) => !isFirm(way));
   if (guide !== undefined) return guide;
   if (guessed !== null) return guessed;
@@ -296,6 +355,15 @@ function assumedIn(way: SuggestionChoice, operations: Operations, suggestion: Su
   );
   const said = addedWithOthers(suggestion);
   const guessed = guessOf(suggestion);
+  // A journey that was offered as a firm limit and as a guide was named with its minutes,
+  // so the place is the person's own. Which of the two it is, is theirs as well where the
+  // way taken is the one the service marks as the way their words give. Where it marks
+  // none, or the other, that was Burro's to choose.
+  if (mayBeFirmOrAGuide(takenWaysOf(suggestion))) {
+    if (guessed?.id === way.id) return rules;
+    const limits = operations.commute_ops.filter((edit) => edit.strictness !== "unchanged");
+    return [...rules, ...limits.map((edit): Mark => ({ key: `place:${edit.place_id}`, code: "strictness" }))];
+  }
   // One press took it as it was said, and it is the way the words give, or the one way there is.
   if (said !== null && (guessed === null || guessed.id === said.id)) return rules;
   // One press took a way, and the words give another: what parts the two is assumed.
@@ -331,14 +399,17 @@ function assumedIn(way: SuggestionChoice, operations: Operations, suggestion: Su
  * Why an offer that the service says waits for a person does: by what its ways would set
  * counting, where that is one of the two the page has an account of, and by whether they
  * would rule an area or add a journey, which count no measure and are each said of in
- * words of their own.
+ * words of their own. Of any other wish, by what the service says in its note: that the
+ * words do not say the wish is the person's own, or nothing of why, where the thing
+ * waits by a decision and whoever asks.
  */
 function whyItWaits(suggestion: Suggestion, form: Form): WhyLeft {
   const ways = takenWaysOf(suggestion);
   if (ways.some((way) => countsResidents(way.operations, form))) return "residents";
   if (ways.some((way) => countsCrime(way.operations, form))) return "crime";
   if (ways.some(rulesAnArea)) return "area";
-  return ways.some((way) => way.operations.commute_ops.length > 0) ? "journey" : "by_choice";
+  if (ways.some((way) => way.operations.commute_ops.length > 0)) return "journey";
+  return saysItMayBeAnothers(suggestion) ? "not_said" : "by_choice";
 }
 
 /**
@@ -350,11 +421,12 @@ export function takenOf(
   form: Form,
   doubt: Doubt = WHERE_BURRO_CANNOT_TELL,
   turned: Turned = WHAT_THE_WORDS_TURN_AWAY,
+  worded: Worded = A_LIMIT_THE_WORDS_MAKE_FIRM,
 ): Taken {
   // What waits for a person is taken by no way, and says which kind of thing it is: not
   // that Burro could not tell which way was meant, where it runs two.
   if (waitsForAPerson(suggestion)) return { way: null, why: whyItWaits(suggestion, form) };
-  const way = wayOf(suggestion, doubt, turned);
+  const way = wayOf(suggestion, doubt, turned, worded);
   if (typeof way === "string") return { way: null, why: way };
   // Whatever the service says of it or of its ways: never for a person.
   if (countsResidents(way.operations, form)) return { way: null, why: "residents" };
@@ -416,8 +488,9 @@ export function takenOfAll(
   readings: Readings = OF_A_WORD_READ_SEVERAL_WAYS,
   before: readonly string[] = [],
   turned: Turned = WHAT_THE_WORDS_TURN_AWAY,
+  worded: Worded = A_LIMIT_THE_WORDS_MAKE_FIRM,
 ): readonly Taken[] {
-  const made = suggestions.map((offer) => takenOf(offer, form, doubt, turned));
+  const made = suggestions.map((offer) => takenOf(offer, form, doubt, turned, worded));
   if (readings === "every") return made;
   const mayBeTaken = (at: number) => made[at]?.way != null;
   const several = new Set(readSeveralWays(suggestions).values());

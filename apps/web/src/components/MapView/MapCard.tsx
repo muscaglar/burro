@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { KeyboardEvent, Ref } from "react";
+import type { FocusEvent, KeyboardEvent, Ref } from "react";
 
 import { MAP_CARD } from "@/content/map";
 import { FILTERED, RESULTS, UNRANKED } from "@/content/search";
@@ -35,6 +35,18 @@ interface Props {
   readonly ref?: Ref<HTMLElement>;
   /** Hears the keys from inside the card: Escape closes it. */
   readonly onKeyDown?: (event: KeyboardEvent<HTMLElement>) => void;
+  /** Hears the focus as it comes to the card, or to what it holds. */
+  readonly onFocus?: (event: FocusEvent<HTMLElement>) => void;
+}
+
+/**
+ * The box of the area that is chosen, which the map draws under itself. It is found as a
+ * person finds it, by what it is and by its name. `null` where the map is not drawn, or no
+ * area is chosen.
+ */
+export function cardOfTheMap(): HTMLElement | null {
+  const boxes = [...document.querySelectorAll<HTMLElement>("section[aria-label]")];
+  return boxes.find((one) => one.getAttribute("aria-label") === MAP_CARD.label) ?? null;
 }
 
 /**
@@ -69,6 +81,7 @@ export function MapCard({
   id,
   ref,
   onKeyDown,
+  onFocus,
 }: Props) {
   const at = scores.findIndex((score) => score.area_id === summary.area_id);
   const score = scores[at];
@@ -93,6 +106,7 @@ export function MapCard({
       aria-describedby={said}
       tabIndex={-1}
       onKeyDown={onKeyDown}
+      onFocus={onFocus}
     >
       <div>
         <p id={id === undefined ? undefined : `${id}-name`} className={styles.cardName}>

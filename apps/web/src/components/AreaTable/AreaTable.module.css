@@ -19,6 +19,20 @@
   margin: 0;
 }
 
+/*
+ * What a press in a row did, over the table. Until it says something it is no part of
+ * what is laid out, and takes no room between two parts: it is drawn all the same, since
+ * what is not drawn is not heard when it first speaks.
+ */
+.did {
+  max-width: none;
+  margin: 0;
+}
+
+.did:empty {
+  position: absolute;
+}
+
 /* What a column is of is a short label, and is set in the face of names. */
 .head th {
   color: var(--muted);

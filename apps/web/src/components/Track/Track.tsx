@@ -41,6 +41,17 @@ interface Props {
  */
 export const STEP_OF_THE_LINES_HELD = "--track-step";
 
+/** How much of the peg stands in its step, and how high a step is, in art pixels: what the style sheet lays a line of steps out by. */
+const IN_ITS_STEP = 3;
+const RISE = 6;
+
+/**
+ * How high a line of steps is, in art pixels: the peg over its step, and the step. A line
+ * that holds no steps, as the line of a journey is, is told it, so that it is as high as
+ * the line of a gauge that stands over it.
+ */
+export const HIGH = sizeOf("ui-peg").height - IN_ITS_STEP + RISE;
+
 /** What the style sheet needs of the peg to stand it on a step: its picture and its size, in art pixels. */
 function ofThePeg(): CSSProperties {
   const { width, height } = sizeOf("ui-peg");

@@ -2,26 +2,28 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 import { BAND_ON_A_SCALE, BAND_ONE_WAY, BAND_VARIES, RESTS_ON } from "@/content/bands";
 import { CARD } from "@/content/card";
 import { KNOWN, PEG } from "@/content/kit";
-import { STRIP } from "@/content/search";
+import { BREAKDOWN, JOURNEYS, STRIP } from "@/content/search";
 import { recordedAnswer } from "@/lib/api/recorded";
 import type { Fact, StripMark, Tag } from "@/lib/api/schema";
 
 import { faultsIn } from "../../../test/support/axe";
 import { rowOf, setAt } from "../../../test/support/cascade";
-import { rulesOf } from "../../../test/support/css";
+import { heavier, rulesOf, weightOf } from "../../../test/support/css";
 import { figuresNotFrom } from "../../../test/support/figures";
 import { ROUGH } from "../../../test/support/rough";
 import { endsOf, inWords } from "@/lib/vibes";
 
 import { sizeOf } from "../kit/drawings";
+import { HIGH } from "../Track/Track";
 import { picturesAtEnds } from "../kit/Ends/picture";
 import { drawingOf } from "../kit/Thing/drawn";
 import { asLines, namesOf } from "./column";
-import { BEFORE_THE_TWO_WORDS, isFromPart, Picture, Strip, UNDER_A_NAME } from "./Strip";
+import { BEFORE_THE_TWO_WORDS, isFromPart, Picture, picturesOfAMeasure, Strip, UNDER_A_NAME, type Asked } from "./Strip";
 
 /** Whose strip it is, to name it. No test here is about a place, so none is named. */
 const OF = "an area";
@@ -52,8 +54,19 @@ const [AT_320, AT_360] = [19, 21.5];
 const tagOf = (tagId: string) => meta.tags.find((tag) => tag.tag_id === tagId) as Tag;
 const markOf = (tagId: string, marks: readonly StripMark[] = first.strip) =>
   marks.find((mark) => mark.tag_id === tagId) as StripMark;
-/** The lines of the vibes of a strip. */
-const lines = (of: string = OF) => within(screen.getByRole("list", { name: STRIP.label(of) })).getAllByRole("listitem");
+/** What a list of a strip may be named, of an area: each says what it holds. */
+const listsOf = (of: string) => [STRIP.askedOf(of), STRIP.restOf(of), STRIP.othersOf(of), STRIP.label(of)];
+/**
+ * The lines of a strip, in the order they stand in: of what was asked for, and then of the
+ * vibes nobody asked for. Every list of the strip is named for the area and for what it holds.
+ */
+const lines = (of: string = OF) =>
+  screen.getAllByRole("list").flatMap((list) => {
+    expect(listsOf(of)).toContain(list.getAttribute("aria-label"));
+    return within(list).getAllByRole("listitem");
+  });
+/** What holds every list of a strip, and is told what stands in the column of names. */
+const holds = () => screen.getAllByRole("list")[0]?.parentElement as HTMLElement;
 /** What the picture of a mark says in words, to someone who cannot see it. */
 const pictureIn = (mark: HTMLElement | undefined) =>
   within(mark as HTMLElement).getByRole("img").getAttribute("aria-label") ?? "";
@@ -80,6 +93,35 @@ const withFact = (factId: string, slots: Record<string, string>): Record<string,
   return { ...facts, [factId]: { ...fact, slots: { ...fact.slots, ...slots } } };
 };
 const clause = "Worked out from 3 of its 5 parts, 70 of 100 by weight.";
+
+/** A measure of the release, by the id the service gives it. */
+const metricOf = (featureId: string) => {
+  const metric = meta.features.find((one) => one.feature_id === featureId);
+  if (metric === undefined) throw new Error("The recorded release holds no such measure.");
+  return metric;
+};
+/** What a measure is drawn by: the family the service puts it in. */
+const thingOf = (featureId: string) => ({ kind: "feature", id: featureId, family: metricOf(featureId).family }) as const;
+/** A place of the release, as an answer names it. No test here is about a place, so none is written down. */
+const [PLACE] = recordedAnswer("rank", "rank-first").body.data.places.map((place) => place.name);
+if (PLACE === undefined) throw new Error("The recording names no place.");
+/** Where an area stands on a measure, in the words a fact of the service says it in. */
+const stood = recordedAnswer("get_area", "area").body.data.facts.find((fact) => fact.kind === "feature" && fact.slots.standing !== undefined);
+if (stood === undefined) throw new Error("The recorded profile holds no fact of a measure.");
+const STANDS = `${stood.slots.value}, ${stood.slots.standing}`;
+/** A line of each kind that is no vibe: a measure with its gauge, a journey, an estimate of one, and a budget. */
+const MEASURED: Asked = {
+  key: "measure",
+  name: metricOf("park_proximity").short_label,
+  thing: thingOf("park_proximity"),
+  known: "whole",
+  gauge: { placed: { band: 4, spread_low: 4, spread_high: 4 }, says: STANDS },
+};
+const JOURNEY: Asked = { key: "journey 0", name: PLACE, thing: { kind: "place" }, known: "whole", figure: JOURNEYS.minutes(21), side: CARD.side.within };
+const ESTIMATED: Asked = { key: "journey 1", name: PLACE, thing: { kind: "place" }, known: "some", figure: JOURNEYS.estimated.borderline };
+const BUDGET: Asked = { key: "budget", name: BREAKDOWN.budget, thing: { kind: "budget" }, known: "whole", figure: CARD.cost("1,300", true), side: CARD.side.over };
+const UNKNOWN: Asked = { key: "journey 2", name: PLACE, thing: { kind: "place" }, known: "none" };
+const EVERY_KIND: readonly Asked[] = [MEASURED, JOURNEY, ESTIMATED, BUDGET, UNKNOWN];
 
 describe("a vibe the service calls a rough guide, on a result", () => {
   // The founder, who had walked the website twice: "remove the concept of rough guide, we
@@ -325,7 +367,15 @@ describe("the lines of a result", () => {
 
     expect(four.map((mark) => mark.asked)).toEqual([true, true, false, false]);
     expect(lines("Farrowmere").map((item) => item.getAttribute("data-asked"))).toEqual(["true", "true", "false", "false"]);
-    expect(RULES.filter((rule) => rule.sets.get("display") === "none").map((rule) => rule.selector)).toEqual([]);
+    // Nothing is taken off a result by its width but what one press of the result shows
+    // again: the lines that a narrow result folds, and on a wide one the press itself.
+    expect(RULES.filter((rule) => rule.sets.get("display") === "none").map((rule) => [rule.under, rule.selector])).toEqual([
+      [null, ".fold"],
+      [NARROW, '.lines[data-folded="true"]'],
+    ]);
+    expect(at(".fold", NARROW).get("display")).toBe("block");
+    // No line that a vibe nobody asked for stands on is ever folded, and none that was is told from one that was not.
+    expect(RULES.filter((rule) => /data-asked/.test(rule.selector) && rule.sets.has("display"))).toEqual([]);
     expect(RULES.filter((rule) => /^@media/.test(rule.under ?? "") && !/forced-colors/.test(rule.under ?? ""))).toEqual([]);
   });
 
@@ -372,7 +422,8 @@ describe("the lines of a result", () => {
         tags={meta.tags}
         facts={withFact(first.strip[0]?.fact_id ?? "", { known: "3", parts: "5" })}
         unplaced={["leafy"]}
-        lacked={[{ name: "Journey", thing: { kind: "place" } }]}
+        asked={EVERY_KIND}
+        fold={{ over: 3, most: 4 }}
         of={OF}
       />,
     );
@@ -461,13 +512,13 @@ describe("a picture at each end of every gauge, and the drawing of the vibe with
   test("test_one_line_of_the_look_names_the_two_ends_under_the_gauge_and_the_picture_says_what_it_said", () => {
     const { unmount } = render(<Strip marks={first.strip} tags={meta.tags} of={OF} />);
     const pictured = lines().map((mark) => [endsIn(mark), pictureIn(mark)]);
-    expect(screen.getByRole("list").parentElement).toHaveAttribute("data-ends", "pictured");
+    expect(holds()).toHaveAttribute("data-ends", "pictured");
     expect(document.querySelectorAll("[class*='ofEnd'], [class*='named']")).toHaveLength(0);
     unmount();
     render(<Strip marks={first.strip} tags={meta.tags} of={OF} ends="named" />);
     const marks = lines();
 
-    expect(screen.getByRole("list").parentElement).toHaveAttribute("data-ends", "named");
+    expect(holds()).toHaveAttribute("data-ends", "named");
     // Each end has its picture as it had, and the picture says what it said.
     expect(marks.map((mark) => [endsIn(mark), pictureIn(mark)])).toEqual(pictured);
     first.strip.forEach((mark, at) => {
@@ -507,7 +558,7 @@ describe("a picture at each end of every gauge, and the drawing of the vibe with
     expect(lines().map((mark) => [mark.textContent, pictureIn(mark), endsIn(mark)])).toEqual(onACard);
     // Small steps, and a cap on the one the area sits on.
     expect(container.querySelectorAll("[data-small='true']")).toHaveLength(first.strip.length);
-    expect(screen.getByRole("list").parentElement).toHaveAttribute("data-short", "true");
+    expect(holds()).toHaveAttribute("data-short", "true");
   });
 
   test("test_no_vibe_and_no_end_of_a_scale_is_written_into_the_strip", () => {
@@ -614,38 +665,375 @@ describe("what is not whole, and what is not known", () => {
     expect(screen.queryByText(KNOWN.none)).toBeNull();
   });
 
-  test("test_what_else_was_asked_for_and_has_no_figure_is_named_in_a_list_of_its_own_and_said_to_be_not_known", () => {
-    const { container } = render(
-      <Strip
-        marks={[mark]}
-        tags={meta.tags}
-        lacked={[
-          { name: "Journey", thing: { kind: "place" } },
-          { name: "Budget", thing: { kind: "budget" } },
-        ]}
-        of={OF}
-      />,
-    );
-    const lacked = within(screen.getByRole("list", { name: CARD.lacked(OF) })).getAllByRole("listitem");
+  test("test_what_else_was_asked_for_and_has_no_figure_has_its_line_after_the_vibes_and_is_said_to_be_not_known", () => {
+    const lacked: readonly Asked[] = [UNKNOWN, { key: "budget", name: BREAKDOWN.budget, thing: { kind: "budget" }, known: "none" }];
+    const { container } = render(<Strip marks={[mark]} tags={meta.tags} asked={lacked} of={OF} />);
+    const [vibe, ...others] = within(screen.getByRole("list", { name: STRIP.askedOf(OF) })).getAllByRole("listitem");
 
-    // It is no vibe, and stands in no list of vibes.
-    expect(lines()).toHaveLength(1);
-    expect(lacked.map((line) => line.textContent)).toEqual([`Journey${KNOWN.none}`, `Budget${KNOWN.none}`]);
-    // It has the drawing of its kind before its name, and no gauge: nothing is drawn of a
-    // figure that is not known.
-    expect(lacked.map((line) => line.querySelector<HTMLElement>("[class*='title'] [aria-hidden='true'] > span")?.style.getPropertyValue("--art"))).toEqual([
+    // It was asked for as the vibe was, and stands in the one list of what was, after the vibes.
+    expect(screen.getAllByRole("list")).toHaveLength(1);
+    expect(vibe?.textContent).toBe(tagOf(mark.tag_id).label);
+    expect(others.map((line) => line.textContent)).toEqual([`${PLACE}${KNOWN.none}`, `${BREAKDOWN.budget}${KNOWN.none}`]);
+    // It has the drawing of its kind before its name, and no gauge and no figure: nothing
+    // is drawn of a figure that is not known.
+    expect(others.map((line) => line.querySelector<HTMLElement>("[class*='title'] [aria-hidden='true'] > span")?.style.getPropertyValue("--art"))).toEqual([
       served(drawingOf({ kind: "place" })),
       served(drawingOf({ kind: "budget" })),
     ]);
-    for (const line of lacked) {
-      expect(line.querySelector("[role='img'], [class*='track']")).toBeNull();
+    for (const line of others) {
+      expect(line.querySelector("[role='img'], [class*='track'], [class*='told']")).toBeNull();
       expect(line.firstElementChild).toHaveAttribute("data-known", "none");
+      expect(within(line).getByText(KNOWN.none).closest("[aria-hidden='true'], [hidden]")).toBeNull();
     }
     expect(container.querySelectorAll("button, a")).toHaveLength(0);
-    // With nothing else to draw, the list stands alone.
-    render(<Strip marks={[]} tags={meta.tags} lacked={[{ name: "Journey", thing: { kind: "place" } }]} of="Elsewhere" />);
+    // With nothing else to draw, the list stands alone, and is named for what it holds.
+    render(<Strip marks={[]} tags={meta.tags} asked={[UNKNOWN]} of="Elsewhere" />);
     expect(screen.queryByRole("list", { name: STRIP.label("Elsewhere") })).toBeNull();
-    expect(screen.getByRole("list", { name: CARD.lacked("Elsewhere") })).toBeInTheDocument();
+    expect(within(screen.getByRole("list", { name: STRIP.askedOf("Elsewhere") })).getAllByRole("listitem")).toHaveLength(1);
+  });
+});
+
+describe("a line for each thing that was asked for", () => {
+  // The founder, of a result: "ideally for the break down, we need the info to be title of
+  // what was asked for, the visual gauge, and where relevent, the approx data call out". A
+  // result drew a line for each vibe that was asked for, and for nothing else that was.
+  const [mark] = first.strip;
+  if (mark === undefined) throw new Error("The recording holds no mark.");
+  const drawingIn = (line: HTMLElement | undefined) =>
+    line?.querySelector<HTMLElement>("[class*='title'] [aria-hidden='true'] > span")?.style.getPropertyValue("--art");
+
+  test("test_the_lines_stand_in_one_list_in_the_order_they_are_handed_after_the_vibes_that_were_asked_for", () => {
+    const asked = first.strip.filter((one) => one.asked);
+    render(<Strip marks={asked} tags={meta.tags} asked={[MEASURED, JOURNEY, BUDGET]} of={OF} />);
+    const drawn = within(screen.getByRole("list", { name: STRIP.askedOf(OF) })).getAllByRole("listitem");
+
+    expect(asked.length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("list")).toHaveLength(1);
+    expect(drawn.map((line) => line.querySelector("[class*='name']")?.textContent)).toEqual([
+      ...asked.map((one) => tagOf(one.tag_id).label),
+      MEASURED.name,
+      JOURNEY.name,
+      BUDGET.name,
+    ]);
+    // Each has the small drawing of what it is before its name.
+    expect(drawn.slice(asked.length).map(drawingIn)).toEqual([MEASURED, JOURNEY, BUDGET].map((one) => served(drawingOf(one.thing))));
+    expect(drawn.map((line) => line.getAttribute("data-asked"))).toEqual(drawn.map(() => "true"));
+  });
+
+  test("test_a_measure_is_a_gauge_of_five_steps_as_a_vibe_is_and_its_picture_says_the_figure_in_the_words_of_the_service", () => {
+    const { container } = render(<Strip marks={[mark]} tags={meta.tags} asked={[MEASURED]} of={OF} />);
+    const [ofAVibe, ofAMeasure] = lines();
+    const gauge = within(ofAMeasure as HTMLElement).getByRole("img");
+
+    // Its steps, its peg and the pictures at its ends are those of any gauge, part for part.
+    const partsOf = (line: HTMLElement | undefined) => [...(line?.querySelector("[role='img']") as HTMLElement).querySelectorAll("*")].map((part) => part.className);
+    expect(partsOf(ofAMeasure)).toEqual(partsOf(ofAVibe));
+    expect(gauge.querySelectorAll("[data-on]")).toHaveLength(5);
+    expect([...gauge.querySelectorAll("[data-on]")].map((step) => step.getAttribute("data-on"))).toEqual(["false", "false", "false", "true", "false"]);
+    expect(gauge.querySelectorAll("[class*='peg']")).toHaveLength(1);
+    // No word stands beside it: what is written on the line is what the line is of.
+    expect(ofAMeasure?.textContent).toBe(MEASURED.name);
+    expect(container.querySelector("[class*='told']")).toBeNull();
+    // Whoever hears the page is told the figure and where it stands, as the service says both.
+    expect(gauge).toHaveAccessibleName(STANDS);
+    expect(heardIn(ofAMeasure)).toBe(`${MEASURED.name} ${STANDS}`);
+    expect(gauge.querySelector("[data-on]")?.parentElement).toHaveAttribute("aria-hidden", "true");
+  });
+
+  test("test_a_gauge_of_a_measure_has_the_blank_picture_at_both_ends_until_the_kit_draws_one_for_the_measure_or_for_its_family", () => {
+    render(<Strip marks={[]} tags={meta.tags} asked={[MEASURED]} of={OF} />);
+
+    expect(endsIn(screen.getByRole("listitem"))).toEqual([served("end-blank"), served("end-blank")]);
+    // Of every measure of the release, and of every family and dimension a measure is drawn by.
+    const things = meta.features.map((metric) => ({ id: metric.feature_id, family: metric.family ?? metric.dimension }));
+    expect(things.length).toBeGreaterThan(100);
+    expect([...new Set(things.flatMap((thing) => picturesOfAMeasure(thing)))]).toEqual(["end-blank"]);
+    // A measure is never drawn by the pictures of a vibe, whatever the service calls it.
+    for (const tag of meta.tags) {
+      expect([tag.tag_id, picturesAtEnds(tag.tag_id).includes("end-blank")]).toEqual([tag.tag_id, false]);
+      expect([tag.tag_id, picturesOfAMeasure({ id: tag.tag_id, family: tag.tag_id })]).toEqual([tag.tag_id, ["end-blank", "end-blank"]]);
+    }
+    expect(picturesOfAMeasure({})).toEqual(["end-blank", "end-blank"]);
+  });
+
+  test("test_a_journey_and_a_budget_say_a_figure_and_the_side_it_falls_on_in_a_word_and_no_sentence", () => {
+    render(<Strip marks={[]} tags={meta.tags} asked={[JOURNEY, BUDGET]} of={OF} />);
+    const [journey, budget] = lines();
+
+    expect(journey?.textContent).toBe(`${PLACE}${JOURNEYS.minutes(21)}${CARD.side.within}`);
+    expect(budget?.textContent).toBe(`${BREAKDOWN.budget}${CARD.cost("1,300", true)}${CARD.side.over}`);
+    for (const line of [journey, budget]) {
+      // No gauge is drawn of a figure that is said, and nothing is kept for a screen reader alone.
+      expect(line?.querySelector("[role='img'], [class*='track']")).toBeNull();
+      expect(line?.querySelectorAll(".visually-hidden")).toHaveLength(0);
+      const told = line?.querySelector("[class*='told']") as HTMLElement;
+      expect([...told.children].map((part) => part.className)).toEqual(["figure", "side"]);
+      expect(told.closest("[aria-hidden='true']")).toBeNull();
+      expect(line?.firstElementChild).toHaveAttribute("data-known", "whole");
+    }
+    // The side is one word, and neither is drawn as the better: both are ink, the heavier of the line.
+    for (const word of Object.values(CARD.side)) expect(word.split(/\s+/)).toHaveLength(1);
+    expect(at(".side").get("font-weight")).toBe("700");
+    expect([...at(".side").keys()]).toEqual(["font-weight"]);
+    expect(at(".told").get("color")).toBe("var(--ink)");
+    expect(SHEET).not.toMatch(/poppy|tradeoff|--error|--good|opacity/);
+  });
+
+  test("test_a_journey_that_was_estimated_says_approx_data_after_its_mark_and_no_minutes", () => {
+    render(<Strip marks={[]} tags={meta.tags} asked={[ESTIMATED]} of={OF} />);
+    const line = screen.getByRole("listitem");
+    const said = within(line).getByText(KNOWN.some);
+
+    expect(line.textContent).toBe(`${PLACE}${JOURNEYS.estimated.borderline}${KNOWN.some}`);
+    expect(/\d/.test(line.textContent ?? "")).toBe(false);
+    expect((said.previousElementSibling as HTMLElement).style.getPropertyValue("--art")).toBe(served("ui-approx"));
+    expect(said.closest("[role='img'], [aria-hidden='true'], [hidden]")).toBeNull();
+    expect(line.firstElementChild).toHaveAttribute("data-known", "some");
+  });
+
+  test("test_what_an_area_has_of_a_thing_stands_where_a_gauge_stands_so_that_the_eye_runs_down_one_column", () => {
+    // A figure begins where the gauge of the line over it begins, at every width.
+    expect([at(".told").get("grid-row"), at(".told").get("grid-column")]).toEqual([at(".picture").get("grid-row"), at(".picture").get("grid-column")]);
+    expect([at(".mark > .told", NO_ROOM).get("grid-row"), at(".mark > .told", NO_ROOM).get("grid-column")]).toEqual([
+      at(".mark > .picture", NO_ROOM).get("grid-row"),
+      at(".mark > .picture", NO_ROOM).get("grid-column"),
+    ]);
+    expect(at(".mark > .told", NO_ROOM).get("margin-inline-start")).toBe(at(".mark > .picture", NO_ROOM).get("margin-inline-start"));
+    const moved = RULES.filter((rule) => /\.told$/.test(rule.selector) && (rule.sets.has("grid-row") || rule.sets.has("grid-column")));
+    expect(moved.map((rule) => [rule.under, rule.selector])).toEqual([
+      [null, ".told"],
+      [NO_ROOM, ".mark > .told"],
+    ]);
+    // It is read, and is set in the reading face at the size of a small sentence, its figures in columns.
+    expect([at(".told").get("font"), at(".told").get("font-variant-numeric")]).toEqual(["400 var(--size-small) / 1.3 var(--font-say)", "tabular-nums"]);
+    // A long figure breaks onto a second line, and none is cut.
+    expect([at(".told").get("flex-wrap"), at(".told").get("min-width"), at(".told").get("white-space")]).toEqual(["wrap", "0", undefined]);
+  });
+
+  test("test_every_line_is_as_high_as_the_line_of_a_gauge_whatever_it_holds", () => {
+    // Seen in a browser: the line of a journey stood 12 px lower than the line of a vibe
+    // over it, and the line of a measure grew as its gauge came.
+    const TRACK = rulesOf(readFileSync(path.join(__dirname, "../Track/Track.module.css"), "utf8"));
+    const track = new Map(TRACK.filter((rule) => rule.selector === ".track" && rule.under === null).flatMap((rule) => [...rule.sets]));
+    render(<Strip marks={[mark]} tags={meta.tags} asked={[JOURNEY]} of={OF} />);
+
+    // A gauge is as high as the picture at its end, or as its steps with their peg.
+    expect(at(".mark").get("min-block-size")).toBe("max(var(--room), calc(var(--px) * var(--steps-high, 0)))");
+    expect(at(".strip").get("--room")).toBe(`calc(var(--px-ground) * ${sizeOf("end-blank").height})`);
+    // How high the steps are with their peg is told to the sheet by what draws them.
+    expect([track.get("--rise"), track.get("--room")]).toEqual(["6", "calc(var(--h) - 3)"]);
+    expect(HIGH).toBe(sizeOf("ui-peg").height - 3 + 6);
+    expect(holds().style.getPropertyValue("--steps-high")).toBe(String(HIGH));
+    // The steps of a list of many small things are lower than the picture at an end.
+    expect(at('.strip[data-short="true"] .mark').get("min-block-size")).toBe("var(--room)");
+  });
+});
+
+describe("a result with no room for every line folds the rest behind one press", () => {
+  // Measured at 390 by 844: a line of a result is 38 px high there, and after a sentence of
+  // seven things the first result ended under the foot of the first screen.
+  const many: readonly Asked[] = [MEASURED, JOURNEY, ESTIMATED, BUDGET, { ...JOURNEY, key: "journey 3" }];
+  const FOLD = { over: 3, most: 4 };
+  const press = () => screen.getByRole("button");
+  const shown = () => within(screen.getByRole("list", { name: STRIP.askedOf(OF) })).getAllByRole("listitem");
+  const rest = () => within(screen.getByRole("list", { name: STRIP.restOf(OF) })).getAllByRole("listitem");
+
+  test("test_a_result_of_four_lines_or_fewer_shows_them_all_and_has_no_press", () => {
+    for (const count of [1, 2, 3, 4]) {
+      const { unmount } = render(<Strip marks={[]} tags={meta.tags} asked={many.slice(0, count)} fold={FOLD} of={OF} />);
+      expect([count, shown().length, screen.queryAllByRole("button").length, screen.getAllByRole("list").length]).toEqual([count, count, 0, 1]);
+      unmount();
+    }
+    // Nor has any result that is told of no fold.
+    render(<Strip marks={[]} tags={meta.tags} asked={many} of={OF} />);
+    expect([shown().length, screen.queryAllByRole("button").length]).toEqual([many.length, 0]);
+  });
+
+  test("test_of_more_lines_the_first_stand_over_one_press_that_says_how_many_more_there_are", () => {
+    render(<Strip marks={[]} tags={meta.tags} asked={many} fold={FOLD} of={OF} />);
+
+    expect(shown().map((line) => line.querySelector("[class*='name']")?.textContent)).toEqual(many.slice(0, 3).map((one) => one.name));
+    expect(rest().map((line) => line.querySelector("[class*='name']")?.textContent)).toEqual(many.slice(3).map((one) => one.name));
+    // The press is a native button of the kit. What is seen on it is the start of its name.
+    expect(press().tagName).toBe("BUTTON");
+    expect(press()).toHaveAccessibleName(CARD.moreOf(CARD.more(2), OF));
+    expect(CARD.moreOf(CARD.more(2), OF).startsWith(CARD.more(2))).toBe(true);
+    expect(CARD.more(2)).toBe("+2 more");
+    // It says that what it shows is put away, and names what it shows.
+    expect(press()).toHaveAttribute("aria-expanded", "false");
+    expect(press().getAttribute("aria-controls")).toBe(screen.getByRole("list", { name: STRIP.restOf(OF) }).id);
+    expect(screen.getByRole("list", { name: STRIP.restOf(OF) })).toHaveAttribute("data-folded", "true");
+    // It stands between the lines it follows and the lines it shows, in the order of the page.
+    const parts = [...holds().children].map((part) => part.tagName);
+    expect(parts).toEqual(["UL", "P", "UL"]);
+  });
+
+  test("test_the_lines_over_the_press_may_be_four_and_the_press_then_has_a_row_of_its_own", () => {
+    render(<Strip marks={[]} tags={meta.tags} asked={many} fold={{ over: 4, most: 4 }} of={OF} />);
+
+    expect([shown().length, rest().length]).toEqual([4, 1]);
+    expect(press()).toHaveAccessibleName(CARD.moreOf(CARD.more(1), OF));
+  });
+
+  test("test_the_vibes_that_were_asked_for_are_counted_with_the_rest_and_stand_first", () => {
+    const asked = first.strip.filter((one) => one.asked);
+    render(<Strip marks={asked} tags={meta.tags} unplaced={["leafy"]} asked={many} fold={FOLD} of={OF} />);
+
+    expect(asked.map((one) => one.tag_id)).toEqual(["pace"]);
+    expect(shown().map((line) => line.querySelector("[class*='name']")?.textContent)).toEqual([tagOf("pace").label, tagOf("leafy").label, MEASURED.name]);
+    expect(rest()).toHaveLength(many.length - 1);
+  });
+
+  test("test_a_press_shows_the_rest_under_itself_and_a_second_puts_them_away_and_the_press_is_of_one_size", async () => {
+    const user = userEvent.setup({ delay: null });
+    render(<Strip marks={[]} tags={meta.tags} asked={many} fold={FOLD} of={OF} />);
+    const button = press();
+
+    await user.click(button);
+    expect(button).toHaveAttribute("aria-expanded", "true");
+    expect(screen.getByRole("list", { name: STRIP.restOf(OF) })).toHaveAttribute("data-folded", "false");
+    expect(button).toHaveAccessibleName(CARD.moreOf(CARD.fewer, OF));
+    // The press is where it was: what it shows stands under it, and what stood over it stands there still.
+    expect(press()).toBe(button);
+    expect([...holds().children].map((part) => part.tagName)).toEqual(["UL", "P", "UL"]);
+    expect(shown()).toHaveLength(3);
+    // It holds the room of both of the things it says, and draws the one: so it is as wide
+    // saying the one as the other, and nothing of it changes size under the press.
+    const said = [...button.querySelectorAll<HTMLElement>("[data-said]")];
+    expect(said.map((one) => [one.textContent, one.getAttribute("data-said"), one.getAttribute("aria-hidden")])).toEqual([
+      [CARD.more(2), "false", "true"],
+      [CARD.fewer, "true", null],
+    ]);
+    expect([at(".saying").get("grid-row"), at(".saying").get("grid-column"), at(".says").get("display")]).toEqual(["1", "1", "grid"]);
+    expect(at('.saying[data-said="false"]').get("visibility")).toBe("hidden");
+
+    await user.click(button);
+    expect(button).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByRole("list", { name: STRIP.restOf(OF) })).toHaveAttribute("data-folded", "true");
+    expect(document.activeElement).toBe(button);
+  });
+
+  test("test_only_a_result_as_narrow_as_a_phone_folds_its_lines_and_a_wider_one_draws_no_press", () => {
+    // The press is drawn, and what it shows is put away, by the width of the result and
+    // never of the screen: in the narrow column of a wide screen a result folds as on a phone.
+    expect(at(".fold").get("display")).toBe("none");
+    expect(at(".fold", NARROW).get("display")).toBe("block");
+    expect(at('.lines[data-folded="true"]', NARROW).get("display")).toBe("none");
+    expect(RULES.filter((rule) => /data-folded/.test(rule.selector)).map((rule) => [rule.under, rule.selector])).toEqual([
+      [NARROW, '.lines[data-folded="true"]'],
+    ]);
+    // It stands on a rule of sand, as a line does, and is as high as a small button of the look.
+    expect(at(".fold").get("border-block-start")).toBe(at(".item").get("border-block-start"));
+    expect(at(".fold > button").get("min-height")).toBe("var(--target-min)");
+    expect(heavier(weightOf(".fold > button"), weightOf(".press"))).toBe(true);
+  });
+
+  test("test_a_line_that_says_no_data_is_never_folded_so_that_what_an_area_lacks_is_in_sight_with_nothing_pressed", () => {
+    // Seen on a phone: a result said under its fit that its area is listed lower for what
+    // it lacks, and the line that names what it lacks stood behind the press.
+    const last = [MEASURED, JOURNEY, ESTIMATED, BUDGET, UNKNOWN];
+    const { unmount } = render(<Strip marks={[]} tags={meta.tags} asked={last} fold={FOLD} of={OF} />);
+    const namesOf = (held: HTMLElement[]) => held.map((line) => line.textContent);
+
+    expect(last.map((one) => one.known)).toEqual(["whole", "whole", "some", "whole", "none"]);
+    // It stands over the press with the first of the rest, each in the order of the search.
+    expect(namesOf(shown())).toEqual([MEASURED.name, `${JOURNEY.name}${JOURNEY.figure}${JOURNEY.side}`, `${UNKNOWN.name}${KNOWN.none}`]);
+    expect(rest().map((line) => line.querySelector("[data-known]")?.getAttribute("data-known"))).toEqual(["some", "whole"]);
+    expect(press()).toHaveAccessibleName(CARD.moreOf(CARD.more(2), OF));
+    unmount();
+
+    // So does a vibe that was asked for and could not be worked out, which stands after the vibes that could.
+    const vibes = render(<Strip marks={first.strip.filter((one) => one.asked)} tags={meta.tags} unplaced={["leafy"]} asked={[MEASURED, JOURNEY, BUDGET, UNKNOWN]} fold={FOLD} of={OF} />);
+    expect(shown().map((line) => line.querySelector("[class*='name']")?.textContent)).toEqual([tagOf("pace").label, tagOf("leafy").label, UNKNOWN.name]);
+    expect(rest()).toHaveLength(3);
+    vibes.unmount();
+
+    // Where an area lacks more than the lines that stand over the press, every one of them stands there.
+    const none: readonly Asked[] = [1, 2, 3, 4].map((at) => ({ ...UNKNOWN, key: `journey ${at}` }));
+    render(<Strip marks={[]} tags={meta.tags} asked={[MEASURED, ...none, BUDGET]} fold={FOLD} of={OF} />);
+    expect(shown().map((line) => line.querySelector("[data-known]")?.getAttribute("data-known"))).toEqual(["none", "none", "none", "none"]);
+    expect(rest()).toHaveLength(2);
+  });
+
+  test("test_a_line_counts_for_half_a_row_more_for_each_line_more_that_its_name_takes_so_that_long_names_fold_sooner", () => {
+    // Measured at 390 by 844: the column of names has the room of sixteen letters on a
+    // line, and a line is 38 px high, 46 where its name takes two lines and 66 where it
+    // takes three. A long name takes room over the result as well, in its chip. After
+    // "leafy and low crime" a result held three lines, two of them of measures whose names
+    // take two lines and three: it showed them all, as a result of three lines does, and
+    // ended 17 px under the foot of the first screen.
+    const byLength = [...meta.features].sort((one, other) => other.short_label.length - one.short_label.length);
+    const ofLines = (lines: number) => byLength.filter((metric) => Math.ceil(metric.short_label.length / 16) === lines);
+    const [three, two, one] = [ofLines(3), ofLines(2), ofLines(1)];
+    const lineOf = (metric: (typeof byLength)[number] | undefined): Asked => {
+      if (metric === undefined) throw new Error("The recorded release holds no measure of such a name.");
+      return { key: `measure ${metric.feature_id}`, name: metric.short_label, thing: { kind: "feature", id: metric.feature_id, family: metric.family }, known: "whole" };
+    };
+    const LETTERS = { ...FOLD, letters: 16 };
+    const drawn = (lines: readonly Asked[]) => render(<Strip marks={[]} tags={meta.tags} asked={lines} fold={LETTERS} of={OF} />);
+    const names = (held: HTMLElement[]) => held.map((line) => line.textContent);
+
+    expect([three.length > 1, two.length > 1, one.length > 3]).toEqual([true, true, true]);
+    // Names of one line, two and three: a row, a row and a half, and two. Four and a half rows, where four have room.
+    const tight = [lineOf(one[0]), lineOf(two[0]), lineOf(three[0])];
+    const folded = drawn(tight);
+    expect(names(shown())).toEqual(tight.slice(0, 2).map((line) => line.name));
+    expect(names(rest())).toEqual(tight.slice(2).map((line) => line.name));
+    expect(press()).toHaveAccessibleName(CARD.moreOf(CARD.more(1), OF));
+    folded.unmount();
+    // Two lines of long names are three rows and a half, and both stand.
+    const both = drawn([lineOf(two[0]), lineOf(three[0])]);
+    expect([shown().length, screen.queryAllByRole("button").length]).toEqual([2, 0]);
+    both.unmount();
+    // Four lines of short names have the room of four rows, and none is folded.
+    const four = drawn(one.slice(0, 4).map(lineOf));
+    expect([shown().length, screen.queryAllByRole("button").length]).toEqual([4, 0]);
+    four.unmount();
+    // A line is never left out for the length of its name alone: the first stands, however long.
+    const long = { ...lineOf(three[0]), name: [three[0], three[1], two[0]].map((metric) => metric?.short_label).join(" ") };
+    const alone = drawn([long, lineOf(three[1]), lineOf(one[0])]);
+    expect(Math.ceil(long.name.length / 16)).toBeGreaterThan(5);
+    expect(names(shown())).toEqual([long.name]);
+    expect(rest()).toHaveLength(2);
+    alone.unmount();
+    // Told of no letters, every line counts for one row.
+    render(<Strip marks={[]} tags={meta.tags} asked={tight} fold={FOLD} of={OF} />);
+    expect([shown().length, screen.queryAllByRole("button").length]).toEqual([3, 0]);
+  });
+
+  test("test_the_vibes_nobody_asked_for_are_never_folded", () => {
+    render(<Strip marks={first.strip} tags={meta.tags} asked={many} fold={FOLD} of={OF} />);
+    const others = within(screen.getByRole("list", { name: STRIP.othersOf(OF) })).getAllByRole("listitem");
+
+    expect(others).toHaveLength(first.strip.filter((one) => !one.asked).length);
+    expect(others.length).toBeGreaterThan(0);
+    expect(screen.getByRole("list", { name: STRIP.othersOf(OF) })).not.toHaveAttribute("data-folded");
+    expect([...holds().children].map((part) => part.tagName)).toEqual(["UL", "P", "UL", "UL"]);
+  });
+});
+
+describe("each list says what it holds", () => {
+  test("test_a_list_is_named_for_what_was_asked_for_or_for_the_vibes_that_were_not", () => {
+    const [asked, others] = [first.strip.filter((one) => one.asked), first.strip.filter((one) => !one.asked)];
+    expect([asked.length > 0, others.length > 0]).toEqual([true, true]);
+
+    // What was asked for, of the area. It was named "Vibes of" the area whatever it held.
+    const wanted = render(<Strip marks={asked} tags={meta.tags} asked={[JOURNEY]} of={OF} />);
+    expect(screen.getAllByRole("list").map((list) => list.getAttribute("aria-label"))).toEqual([STRIP.askedOf(OF)]);
+    wanted.unmount();
+    // The vibes of the area, where nothing was asked for.
+    const none = render(<Strip marks={others} tags={meta.tags} of={OF} />);
+    expect(screen.getAllByRole("list").map((list) => list.getAttribute("aria-label"))).toEqual([STRIP.label(OF)]);
+    none.unmount();
+    // Both, where the look has the vibes nobody asked for stand under what was.
+    render(<Strip marks={first.strip} tags={meta.tags} asked={[JOURNEY]} of={OF} />);
+    expect(screen.getAllByRole("list").map((list) => list.getAttribute("aria-label"))).toEqual([STRIP.askedOf(OF), STRIP.othersOf(OF)]);
+    expect([STRIP.askedOf(OF), STRIP.restOf(OF), STRIP.label(OF), STRIP.othersOf(OF)]).toEqual([
+      `What you asked for in ${OF}`,
+      `More of what you asked for in ${OF}`,
+      `Vibes of ${OF}`,
+      `Other vibes of ${OF}`,
+    ]);
   });
 });
 
@@ -725,15 +1113,15 @@ describe("the steps of every line stand in one column", () => {
     // A style sheet cannot be told how wide a name is. It is told the names, and lays them
     // in the column of every line, where none is drawn: the column is then as wide in one
     // line as in the next.
-    const { unmount } = render(
-      <Strip marks={first.strip} tags={meta.tags} unplaced={["leafy"]} lacked={[{ name: "Journey", thing: { kind: "place" } }]} of={OF} />,
-    );
+    const { unmount } = render(<Strip marks={first.strip} tags={meta.tags} unplaced={["leafy"]} asked={[JOURNEY, BUDGET]} of={OF} />);
     const own = first.strip.map((mark) => named(mark.tag_id));
-    const held = () => screen.getAllByRole("list")[0]?.parentElement as HTMLElement;
+    const [asked, others] = [true, false].map((kept) => first.strip.filter((mark) => mark.asked === kept).map((mark) => named(mark.tag_id)));
+    const held = holds;
 
     expect(own.length).toBeGreaterThan(2);
-    // Of the vibes it draws, of the vibe it could not work out, and of what else it names.
-    expect(held().style.getPropertyValue("--names")).toBe(asLines([...own, named("leafy"), "Journey"]));
+    // Of the lines it draws, in the order they stand in: the vibes that were asked for, the
+    // vibe it could not work out, what else was asked for, and the vibes that were not.
+    expect(held().style.getPropertyValue("--names")).toBe(asLines([...(asked ?? []), named("leafy"), JOURNEY.name, BUDGET.name, ...(others ?? [])]));
     expect(held().style.getPropertyValue("--groups")).toBe(asLines([STRIP.group.asked, STRIP.group.also]));
     unmount();
     // A list of results has a column of one width from one result to the next: it hands
@@ -762,14 +1150,14 @@ describe("the steps of every line stand in one column", () => {
     render(<Strip marks={asked} tags={meta.tags} of={OF} />);
 
     expect(asked.length).toBeGreaterThan(0);
-    expect(screen.getByRole("list").parentElement?.style.getPropertyValue("--groups")).toBe(asLines([]));
+    expect(holds().style.getPropertyValue("--groups")).toBe(asLines([]));
   });
 
   test("test_the_two_words_that_may_stand_under_a_name_are_laid_in_the_column_of_every_line_so_that_no_line_is_wider_for_them", () => {
     // Measured on a phone: a line that said "approx data" under its name had a wider column
     // than the line over it, and its steps began 13 px further along.
     render(<Strip marks={first.strip} tags={meta.tags} of={OF} />);
-    const held = screen.getByRole("list").parentElement as HTMLElement;
+    const held = holds();
     const APPROX = rulesOf(readFileSync(path.join(__dirname, "../kit/Approx/Approx.module.css"), "utf8"));
     const ofTheWords = (selector: string) => new Map(APPROX.filter((rule) => rule.selector === selector && rule.under === null).flatMap((rule) => [...rule.sets]));
 
@@ -841,11 +1229,12 @@ describe("the steps of every line stand in one column", () => {
     ]);
     expect(at('.mark[data-known="some"] > .first').get("grid-row")).toBe("1");
     expect(at('.mark[data-known="none"] > .first').get("grid-row")).toBe("1");
-    const after = at(".mark[data-known]:has(> .picture) > .said", WIDE);
+    // After a gauge, and after a figure, which stands where a gauge stands.
+    const after = at(".mark[data-known]:has(> .picture, > .told) > .said", WIDE);
     expect([after.get("grid-row"), after.get("grid-column"), after.get("padding-inline-start")]).toEqual(["1 / span 2", "3", "0"]);
     expect(at(".mark[data-known] > .first", WIDE).get("grid-row")).toBe("1 / span 2");
-    // A line with no gauge says them where a gauge begins, at every width.
-    const alone = at(".mark:not(:has(> .picture)) > .said");
+    // A line with neither says them where a gauge begins, at every width.
+    const alone = at(".mark:not(:has(> .picture, > .told)) > .said");
     expect([alone.get("grid-row"), alone.get("grid-column")]).toEqual(["1 / span 2", "2 / -1"]);
     // The gauge stands beside the name and the two words, and is never moved for them: it
     // has a line of its own only where a result has not the room of a name and a gauge.
@@ -862,15 +1251,15 @@ describe("the steps of every line stand in one column", () => {
     // and a gauge is 154 px with its two pictures. Side by side the two wanted 303 px of a
     // line of 268: the gauge ran 35 px past its result, its far picture was cut by the edge
     // of the box, and the page scrolled sideways.
-    const lacking = [{ name: "Budget", thing: { kind: "budget" } as const }];
     const { container } = render(
-      <Strip marks={first.strip} tags={meta.tags} facts={withFact(first.strip[0]?.fact_id ?? "", { known: "2", parts: "3" })} of={OF} lacked={lacking} />,
+      <Strip marks={first.strip} tags={meta.tags} facts={withFact(first.strip[0]?.fact_id ?? "", { known: "2", parts: "3" })} of={OF} asked={EVERY_KIND} />,
     );
     const marks = [...container.querySelectorAll<HTMLElement>("li > span")];
     const withAGauge = marks.filter((mark) => mark.querySelector(".picture") !== null);
     const notWhole = withAGauge.find((mark) => mark.dataset.known === "some") as HTMLElement;
-    const withNone = marks.find((mark) => mark.querySelector(".picture") === null) as HTMLElement;
-    expect([withAGauge.length > 1, notWhole !== undefined, withNone.dataset.known]).toEqual([true, true, "none"]);
+    const withAFigure = marks.filter((mark) => mark.querySelector(".told") !== null);
+    const withNone = marks.find((mark) => mark.querySelector(".picture, .told") === null) as HTMLElement;
+    expect([withAGauge.length > 1, notWhole !== undefined, withAFigure.length, withNone.dataset.known]).toEqual([true, true, 3, "none"]);
 
     for (let rem = 12; rem <= 21; rem += 0.5) {
       for (const mark of marks) {
@@ -882,6 +1271,11 @@ describe("the steps of every line stand in one column", () => {
           // The gauge under the name, as far in as the name stands.
           expect([rem, rowOf(of(".picture")), of(".picture").get("grid-column")]).toEqual([rem, 2, "1"]);
           expect([rem, of(".picture").get("justify-self"), of(".picture").get("margin-inline-start")]).toEqual([rem, "start", "var(--marker)"]);
+        }
+        if (mark.querySelector(".told") !== null) {
+          // A figure under the name, as a gauge is, and as far in.
+          expect([rem, rowOf(of(".told")), of(".told").get("grid-column")]).toEqual([rem, 2, "1"]);
+          expect([rem, of(".told").get("justify-self"), of(".told").get("margin-inline-start")]).toEqual([rem, "start", "var(--marker)"]);
         }
         if (mark.dataset.known !== "whole") {
           // The two words under both, as far in: of a line that has a gauge, and of one that has none.

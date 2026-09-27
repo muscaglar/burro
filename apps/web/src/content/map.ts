@@ -65,7 +65,12 @@ export const MAP_CARD = {
 export const TABLE = {
   /** The button that opens the table, which says everything the map does. */
   title: "Table of all areas",
-  caption: "Every area, in order of fit and then by name",
+  /**
+   * The table is in the order of the ranking, which is not the order of the fit from top to
+   * foot: an area with no figure for a thing that was asked for stands below every area
+   * that has one, whatever its fit. The list of results names its order in the same words.
+   */
+  caption: "Every area, in the order Burro ranked them and then by name",
   captionEmpty: "Every area, by name",
   columns: { rank: "Rank", area: "Area", borough: "Borough", fit: "Fit", status: "Status" },
   /** In the column of the vibe the map is coloured by, for an area Burro could not work the vibe out for. */

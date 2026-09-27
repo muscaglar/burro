@@ -42,11 +42,8 @@ export const TWO_TOWNS: readonly [Drawing, Drawing] = ["key-houses", "key-flats"
  * two areas or more are chosen: the drawing of a cross and the word, in the line of what
  * the bar says, so that the bar still has one button of the size of a main control, which
  * is the way to the comparison. It was in the bar as the founder walked the website, and
- * nobody asked for it to go. It is not drawn on a narrow screen, where the bar has no line
- * to spare: measured at 390 by 844 with it, the bar was 179 px high with four areas
- * chosen, where it is 160, and the page clears 176 for it. `none`: no such way on any
- * screen. Each area is taken out by its own cross, and "Start again" empties the bar with
- * the search.
+ * nobody asked for it to go. `none`: no such way on any screen. Each area is taken out by
+ * its own cross, and "Start again" empties the bar with the search.
  */
 export type ClearStands = "small" | "none";
 
@@ -54,6 +51,22 @@ export const CLEAR_MAY_STAND: readonly ClearStands[] = ["small", "none"];
 
 /** This is the one line that chooses. */
 export const CLEAR_STANDS: ClearStands = "small";
+
+/**
+ * Whether "Clear" is drawn on a narrow screen, where the look has it in the bar. `drawn`:
+ * there too, in the line of what the bar says, so that the bar has on a phone what it has
+ * on a wide screen. The lines of what the bar says are set closer there. Measured at 390
+ * by 844: the bar is 116 px high with two areas chosen and 160 with three, as it was, and
+ * 176 with four, which is what the page clears for it. `not`: not there, as it was, where
+ * the bar has no line to spare, and is 160 px high with four: each area is taken out by
+ * its own cross, which is as near.
+ */
+export type ClearOnANarrowScreen = "drawn" | "not";
+
+export const CLEAR_ON_A_NARROW_SCREEN_MAY_BE: readonly ClearOnANarrowScreen[] = ["drawn", "not"];
+
+/** This is the one line that chooses. */
+export const CLEAR_ON_A_NARROW_SCREEN: ClearOnANarrowScreen = "drawn";
 
 /**
  * What the bar says of its towns, where it draws any. `nothing`: nothing. The founder, who

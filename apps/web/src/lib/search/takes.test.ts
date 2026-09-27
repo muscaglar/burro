@@ -7,9 +7,11 @@ import type { InterpretData, Suggestion } from "@/lib/api/schema";
 import { NO_EDITS } from "./edits";
 import { SKIP, addedWithOthers, guessOf, namedByThePerson, waitsForAPerson, waysOf } from "./suggestion";
 import {
+  A_LIMIT_THE_WORDS_MAKE_FIRM,
   countsCrime,
   countsResidents,
   DOUBTS,
+  LIMITS,
   OF_A_WORD_READ_SEVERAL_WAYS,
   ONLY_BY_CHOICE,
   READINGS,
@@ -23,6 +25,7 @@ import {
   WHERE_BURRO_CANNOT_TELL,
   type Readings,
   type Taken,
+  type Worded,
 } from "./takes";
 
 const meta = recordedAnswer("get_meta", "meta").body.data;
@@ -106,6 +109,14 @@ const bare = (offer: Suggestion): Suggestion => ({
 });
 
 const take = (suggestion: Suggestion, doubt = WHERE_BURRO_CANNOT_TELL) => takenOf(suggestion, meta, doubt);
+/**
+ * What is made of an offer by one way of a journey whose words make its limit firm, by the
+ * name of the way: it is so whichever way the line of the look is on.
+ */
+const takeAs = (suggestion: Suggestion, worded: Worded) =>
+  takenOf(suggestion, meta, WHERE_BURRO_CANNOT_TELL, WHAT_THE_WORDS_TURN_AWAY, worded);
+/** The place a journey leads to, by the edits the service gives with its ways. */
+const placeOf = (journey: Suggestion) => waysOf(journey).flatMap((way) => way.operations.commute_ops)[0]?.place_id;
 /** The way that was taken, by its id, or why none was. */
 const taken = (made: Taken) => (made.way === null ? `left: ${made.why}` : made.way.id);
 const marksOf = (made: Taken) => (made.way === null ? null : made.marks.map((mark) => `${mark.key} ${mark.code}`));
@@ -139,14 +150,110 @@ describe("what Burro takes of what it noticed", () => {
 
   test("test_a_journey_is_taken_as_a_guide_though_the_words_give_a_firm_limit_and_the_guide_is_said_to_be_assumed", () => {
     // A journey is estimated from distance, so no area is left out on one without a press.
+    // "At most" makes minutes firm: the service offers the journey firm and as a guide, marks
+    // the firm limit as its guess, and has one press add the guide.
     const journey = of(long, "commute");
-    const made = take(journey);
+    expect([guessOf(journey)?.id, addedWithOthers(journey)?.id]).toEqual(["firm", "guide"]);
 
-    expect(guessOf(journey)?.id).toBe("firm");
-    expect(taken(made)).toBe("guide");
-    expect(made.way === null ? [] : made.operations.commute_ops.map((edit) => edit.strictness)).toEqual(["soft"]);
-    // The person wrote "at most". That the limit is flexible is Burro's, and the chip says so.
-    expect(marksOf(made)).toEqual(["place:syn-p0017 strictness"]);
+    // As the line of the look has it, and by the name of the way.
+    for (const made of [take(journey), takeAs(journey, "guide")]) {
+      expect(taken(made)).toBe("guide");
+      // The edits are the service's own, and nothing of them is changed.
+      expect(made.way === null ? null : made.operations).toBe(addedWithOthers(journey)?.operations);
+      expect(made.way === null ? [] : made.operations.commute_ops.map((edit) => edit.strictness)).toEqual(["soft"]);
+      // The person wrote "at most". That the limit is flexible is Burro's, and the chip says so.
+      expect(marksOf(made)).toEqual(["place:syn-p0017 strictness"]);
+    }
+    // So it is as the rules read the same sentence, and as they read a shorter one.
+    for (const offers of [atOnce, recordedAnswer("interpret", "interpret-by-model").body.data.suggestions]) {
+      const read = of(offers, "commute");
+      expect(guessOf(read)?.id).toBe("firm");
+      for (const made of [take(read), takeAs(read, "guide")]) {
+        expect(taken(made)).toBe("guide");
+        expect(made.way === null ? [] : made.operations.commute_ops.map((edit) => edit.strictness)).toEqual(["soft"]);
+        expect(marksOf(made)).toEqual([`place:${placeOf(read)} strictness`]);
+      }
+    }
+  });
+
+  test("test_by_the_other_way_a_journey_whose_words_make_its_limit_firm_is_taken_as_a_firm_limit_and_nothing_of_it_is_assumed", () => {
+    // The other way it was built. "At most" makes minutes firm, and the service marks the
+    // firm limit as its guess: that one press adds the guide is no reading of the words.
+    // Taken as a guide, an area 63 minutes off is ranked for "at most 35-40min".
+    const journey = of(long, "commute");
+    const made = takeAs(journey, "as_worded");
+
+    expect([guessOf(journey)?.id, addedWithOthers(journey)?.id]).toEqual(["firm", "guide"]);
+    expect(taken(made)).toBe("firm");
+    // The edits are the service's own, and nothing of them is changed.
+    expect(made.way === null ? null : made.operations).toBe(guessOf(journey)?.operations);
+    expect(made.way === null ? [] : made.operations.commute_ops.map((edit) => edit.strictness)).toEqual(["hard"]);
+    // The person wrote "at most": that the limit is firm is what they said.
+    expect(marksOf(made)).toEqual([]);
+    // So it is as the rules read the same sentence, and as they read a shorter one.
+    for (const offers of [atOnce, recordedAnswer("interpret", "interpret-by-model").body.data.suggestions]) {
+      expect(taken(takeAs(of(offers, "commute"), "as_worded"))).toBe("firm");
+      expect(marksOf(takeAs(of(offers, "commute"), "as_worded"))).toEqual([]);
+    }
+  });
+
+  test("test_a_journey_whose_words_give_a_guide_is_taken_as_one_and_nothing_of_it_is_assumed", () => {
+    // "About 40 minutes" makes no limit firm: the service marks the guide as its guess.
+    const journey = guessing(of(long, "commute"), "guide");
+
+    // Whichever way the line of the look is on.
+    for (const made of [take(journey), ...LIMITS.map((worded) => takeAs(journey, worded))]) {
+      expect(taken(made)).toBe("guide");
+      expect(made.way === null ? [] : made.operations.commute_ops.map((edit) => edit.strictness)).toEqual(["soft"]);
+      expect(marksOf(made)).toEqual([]);
+    }
+  });
+
+  test("test_where_the_service_marks_no_way_of_a_journey_the_guide_is_taken_and_is_said_to_be_assumed", () => {
+    // A journey that was not plainly said is offered both ways with no guess, and no press
+    // adds it with others. The guide is the gentler of the two, since it leaves no area
+    // out, and that the limit is flexible is Burro's: the chip says so.
+    const journey = { ...guessing(of(long, "commute"), ""), add_all: "" };
+    expect([guessOf(journey), addedWithOthers(journey)]).toEqual([null, null]);
+    // So it is where one press may add the guide: that names no way the words give.
+    const named = guessing(of(long, "commute"), "");
+    expect(addedWithOthers(named)?.id).toBe("guide");
+    // And whichever of the two ways the service gives first.
+    const turned = { ...journey, choices: [...journey.choices].reverse() };
+
+    // Whichever way the line of the look is on.
+    for (const taking of [take, ...LIMITS.map((worded) => (offer: Suggestion) => takeAs(offer, worded))]) {
+      expect(taken(taking(journey))).toBe("guide");
+      // The person named the place and gave its minutes: the place is theirs, and is not said to be assumed.
+      expect(marksOf(taking(journey))).toEqual(["place:syn-p0017 strictness"]);
+      expect(taken(taking(named))).toBe("guide");
+      expect(marksOf(taking(named))).toEqual(["place:syn-p0017 strictness"]);
+      expect(taken(taking(turned))).toBe("guide");
+    }
+  });
+
+  test("test_one_line_of_the_look_has_a_journey_taken_as_the_firm_limit_its_words_make_it_and_nothing_else_is_changed_by_it", () => {
+    expect(LIMITS).toEqual(["as_worded", "guide"]);
+    // A journey is a guide whatever its words: no area is left out on an estimate without a press.
+    expect(A_LIMIT_THE_WORDS_MAKE_FIRM).toBe("guide");
+
+    // Where no way is named, the way the line is on is the way that is taken.
+    const journey = of(long, "commute");
+    const every = (worded: Worded) =>
+      takenOfAll(long, meta, WHERE_BURRO_CANNOT_TELL, OF_A_WORD_READ_SEVERAL_WAYS, [], WHAT_THE_WORDS_TURN_AWAY, worded);
+    expect(take(journey)).toEqual(takeAs(journey, "guide"));
+    expect(takenOfAll(long, meta)).toEqual(every("guide"));
+    expect(every("guide")[long.indexOf(journey)]).toEqual(takeAs(journey, "guide"));
+    // The other way it was built: the firm limit, as the words make it, and nothing of it
+    // is said to be assumed, since the person wrote "at most".
+    const made = takeAs(journey, "as_worded");
+    expect(taken(made)).toBe("firm");
+    expect(marksOf(made)).toEqual([]);
+    expect(every("as_worded")[long.indexOf(journey)]).toEqual(made);
+    // Nothing else is changed by it: a budget is taken as it was worded either way.
+    for (const offer of [...long, ...atOnce, ...house].filter((one) => one.target !== "commute")) {
+      for (const worded of LIMITS) expect(takeAs(offer, worded)).toEqual(take(offer));
+    }
   });
 
   test("test_an_offer_that_needs_a_choice_is_taken_as_burros_guess_where_the_service_marks_one", () => {
@@ -186,7 +293,37 @@ describe("what Burro takes of what it noticed", () => {
     // "Pubs are so noisy" names a nuisance, and does not say that the person wants less of
     // it for themselves: it is said of the pubs. The service says that it waits.
     expect([namedByThePerson(noise), waitsForAPerson(noise), guessOf(noise)]).toEqual([true, true, null]);
-    expect(take(noise)).toEqual({ way: null, why: "by_choice" });
+    expect(take(noise)).toEqual({ way: null, why: "not_said" });
+    // Whether or not the words name the thing: "my mum is after somewhere green".
+    expect(take(saying(noise, { by_name: false }))).toEqual({ way: null, why: "not_said" });
+  });
+
+  test("test_a_thing_that_waits_says_why_by_what_the_service_says_of_the_offer_and_never_the_reason_of_another_kind", () => {
+    // Seen in a browser, of "somewhere posh": the share of homes in the higher council tax
+    // bands was said to be left because Burro "could not be sure that you want it
+    // counted". That is why a wish waits that may be somebody else's. The measure waits
+    // because a decision holds it to be offered and never applied, whoever asks.
+    const bands = named(atOnce, "Homes in the higher council tax bands");
+    expect([waitsForAPerson(bands), namedByThePerson(bands), bands.note.includes(noise.note)]).toEqual([true, false, false]);
+    expect(take(bands)).toEqual({ way: null, why: "by_choice" });
+    // The same measure in words that do not say the wish is the person's own, as the
+    // service answers "my mum is after somewhere posh": it waits by the decision still,
+    // and its note says nothing of whose wish it is.
+    expect(take({ ...bands, does: "Do you want more, or fewer?" })).toEqual({ way: null, why: "by_choice" });
+    // A wish of any other thing, in such words, says that of itself: the note is the service's.
+    const park = { ...named(long, "Nearer a park"), only_by_choice: true };
+    expect(take({ ...park, note: noise.note })).toEqual({ way: null, why: "not_said" });
+    expect(take({ ...park, note: `${bands.note} ${noise.note}` })).toEqual({ way: null, why: "not_said" });
+    // Where the service says that a thing waits and no more, the page says no more than that.
+    expect(take({ ...park, note: "" })).toEqual({ way: null, why: "by_choice" });
+    // Of everything that was recorded, each thing that waits says one of the reasons that
+    // are said of what a person alone may add, or that it is a rule for an area.
+    for (const { offer } of EVERY_OFFER.filter((one) => waitsForAPerson(one.offer))) {
+      const made = take(offer);
+      expect([offer.label, made.way === null && [...ONLY_BY_CHOICE, "area"].includes(made.why)]).toEqual([offer.label, true]);
+      const wish = made.way === null && (made.why === "by_choice" || made.why === "not_said");
+      if (wish) expect([offer.label, made.why]).toEqual([offer.label, offer.note.includes(noise.note) ? "not_said" : "by_choice"]);
+    }
   });
 
   test("test_where_the_words_give_neither_way_of_a_thing_that_runs_two_ways_burro_takes_neither", () => {
@@ -344,8 +481,8 @@ describe("what Burro takes of what it noticed", () => {
     // A rule for an area that waits says what is said of every rule for an area that was left.
     expect(take(saying(anArea, { only_by_choice: true }))).toEqual({ way: null, why: "area" });
     expect(take(saying(guessing(anArea, "more"), { only_by_choice: true }))).toEqual({ way: null, why: "area" });
-    // Each of the four is a thing that a person alone may add.
-    expect(ONLY_BY_CHOICE).toEqual(["crime", "residents", "by_choice", "journey"]);
+    // Each of the five is a thing that a person alone may add.
+    expect(ONLY_BY_CHOICE).toEqual(["crime", "residents", "by_choice", "not_said", "journey"]);
   });
 
   test("test_what_counts_who_lived_somewhere_is_never_taken_and_is_said_to_be_left", () => {
@@ -422,15 +559,34 @@ describe("what Burro takes of what it noticed", () => {
   test("test_a_name_that_several_places_bear_is_taken_as_the_first_the_service_gives_as_a_guide_and_says_so", () => {
     const [first, second] = asked.clarify[0]?.options ?? [];
     if (!first || !second) throw new Error("the recording holds too few places");
-    const made = take({ ...unknown, options: [first, second] });
-
-    // The words give a firm limit. Two guesses are not laid one on the other: it is a guide.
+    const borne = { ...unknown, options: [first, second] };
     expect(guessOf(unknown)?.id).toBe("firm");
-    expect(taken(made)).toBe("guide");
-    expect(made.way === null ? [] : made.operations.commute_ops).toMatchObject([
-      { action: "add", place_id: first.id, max_minutes: 40, strictness: "soft" },
+
+    // The words give a firm limit. Two guesses are not laid one on the other: it is a
+    // guide, as the line of the look has it and by the name of the way.
+    for (const made of [take(borne), takeAs(borne, "guide")]) {
+      expect(taken(made)).toBe("guide");
+      expect(made.way === null ? [] : made.operations.commute_ops).toMatchObject([
+        { action: "add", place_id: first.id, max_minutes: 40, strictness: "soft" },
+      ]);
+      // Which place it is and that the limit is flexible were Burro's to choose, and the chip says both.
+      expect(marksOf(made)).toEqual([`place:${first.id} place`, `place:${first.id} strictness`]);
+    }
+    // The other way it was built: the limit is taken as the words give it, firm. So it is
+    // where the service asks which place was meant of a sentence it applies, and the first
+    // is taken. Which place it is was Burro's to choose, and the chip of the place says so.
+    const firm = takeAs(borne, "as_worded");
+    expect(taken(firm)).toBe("firm");
+    expect(firm.way === null ? [] : firm.operations.commute_ops).toMatchObject([
+      { action: "add", place_id: first.id, max_minutes: 40, strictness: "hard" },
     ]);
-    expect(marksOf(made)).toEqual([`place:${first.id} place`, `place:${first.id} strictness`]);
+    expect(marksOf(firm)).toEqual([`place:${first.id} place`]);
+    // Where the service marks no way, the guide is taken whichever is chosen, and both are said to be assumed.
+    for (const worded of LIMITS) {
+      const noWay = takeAs({ ...guessing(unknown, ""), options: [first, second] }, worded);
+      expect(taken(noWay)).toBe("guide");
+      expect(marksOf(noWay)).toEqual([`place:${first.id} place`, `place:${first.id} strictness`]);
+    }
     // The edits the service gave are as they were: the place is put into a copy of them.
     expect(waysOf(unknown).flatMap((way) => way.operations.commute_ops.map((edit) => edit.place_id))).toEqual(["", ""]);
   });
@@ -522,13 +678,54 @@ describe("what Burro takes of what it noticed", () => {
   });
 
   test("test_no_limit_leaves_an_area_out_unless_the_service_says_one_press_may_set_it", () => {
+    // A firm limit is never the page's own choice. Of everything that was recorded, the
+    // one limit that is taken firm is a budget, which one press may set as it was worded.
+    // No journey is: it is an estimate, and no area is left out on one without a press. It
+    // is so as the line of the look has it, and by the name of the way.
+    for (const taking of [take, (offer: Suggestion) => takeAs(offer, "guide")]) {
+      let firm = 0;
+      for (const { offer } of EVERY_OFFER) {
+        const made = taking(offer);
+        if (made.way === null) continue;
+        const limits = [...made.operations.budget_ops, ...made.operations.commute_ops];
+        if (!limits.some((edit) => edit.strictness === "hard")) continue;
+        expect([offer.target, made.way.id]).toEqual(["budget", addedWithOthers(offer)?.id]);
+        firm += 1;
+      }
+      expect(firm).toBeGreaterThan(0);
+    }
+    // The other way it was built: a journey is firm as well, and only where the service
+    // marks that as the way the words give. A budget is firm where it was.
+    let journeys = 0;
+    let budgets = 0;
     for (const { offer } of EVERY_OFFER) {
-      const made = take(offer);
+      const made = takeAs(offer, "as_worded");
       if (made.way === null) continue;
-      const firm = [...made.operations.budget_ops, ...made.operations.commute_ops].some(
-        (edit) => edit.strictness === "hard",
-      );
-      if (firm) expect([offer.target, made.way.id]).toEqual(["budget", addedWithOthers(offer)?.id]);
+      const journey = made.operations.commute_ops.some((edit) => edit.strictness === "hard");
+      const budget = made.operations.budget_ops.some((edit) => edit.strictness === "hard");
+      if (journey) expect([offer.label, made.way.guess]).toEqual([offer.label, true]);
+      if (budget) expect([offer.target, made.way.id]).toEqual(["budget", addedWithOthers(offer)?.id]);
+      if (journey) journeys += 1;
+      if (budget) budgets += 1;
+    }
+    expect(journeys).toBeGreaterThan(0);
+    expect(budgets).toBeGreaterThan(0);
+    // Whichever is chosen: where the service marks no way of a limit that may be firm or a
+    // guide, the guide is taken.
+    for (const worded of LIMITS) {
+      let either = 0;
+      for (const { offer } of EVERY_OFFER) {
+        const limits = waysOf(offer).map((way) =>
+          [...way.operations.budget_ops, ...way.operations.commute_ops].map((edit) => edit.strictness),
+        );
+        if (!limits.some((of) => of.includes("hard")) || !limits.some((of) => of.includes("soft"))) continue;
+        either += 1;
+        const unmarked = { ...guessing(offer, ""), add_all: "", options: asked.clarify[0]?.options ?? [] };
+        const made = takeAs(unmarked, worded);
+        const set = made.way === null ? [] : [...made.operations.budget_ops, ...made.operations.commute_ops];
+        expect([offer.label, set.map((edit) => edit.strictness)]).toEqual([offer.label, ["soft"]]);
+      }
+      expect(either).toBeGreaterThan(0);
     }
   });
 });

@@ -54,6 +54,17 @@ jest.mock("next/navigation", () => ({ usePathname: () => "/" }));
 const CONTROLS = "a[href], button, input, select, textarea";
 const controlsIn = (part: Element) => [...part.querySelectorAll<HTMLElement>(CONTROLS)];
 /**
+ * The press that shows the rest of the lines of a result, where the result holds more
+ * than it has room for on a phone. It is drawn on a result as narrow as a phone and on no
+ * other, by the width of the result: a test lays no style sheet, so it is on the page of
+ * a test wherever the lines of a result fold. It names the list it shows.
+ */
+const foldsIn = (part: Element) =>
+  controlsIn(part).filter((control) => {
+    const shows = document.getElementById(control.getAttribute("aria-controls") ?? "");
+    return shows?.tagName === "UL" && shows.closest("div[data-ends]") !== null && control.closest("article") !== null;
+  });
+/**
  * The same, of what is drawn. The way in that is not chosen is kept on the page as it was
  * left, and is not drawn: nothing of it is seen, and no key comes to it.
  */
@@ -270,15 +281,30 @@ describe("a results page, before anything is opened", () => {
           expect.any(String),
           RESULTS.tradeOffTitle,
         ]);
-        // A line for each vibe that was asked for. Where none was, a line for each of the
-        // vibes the API chose, which are two at the most. And for each thing that was
-        // asked for and has no figure, a line that says so.
+        // A line for each thing that was asked for: a vibe, a measure, a journey and the
+        // budget. Where nothing was, a line for each of the vibes the API chose, which are
+        // two at the most. A thing that was asked for and has no figure says so on its line.
+        const { spec } = ranking;
+        const counts = (one: { readonly weight: number }) => one.weight > 0;
+        const things =
+          spec.tags.filter(counts).length +
+          spec.weights.filter((weight) => weight.provenance !== "default" && counts(weight)).length +
+          spec.commutes.length +
+          (spec.budget.amount === null || spec.tenure === "visit" ? 0 : 1);
         const asked = area?.strip.filter((mark) => mark.asked).length ?? 0;
         const lines = within(card).queryAllByRole("listitem");
         const lacked = lines.filter((line) => line.querySelector("[data-known='none']") !== null);
-        expect(lines.length - lacked.length).toBe(asked > 0 ? asked : (area?.strip.length ?? 0));
-        expect(lacked.length).toBeLessThanOrEqual(area?.contributions.filter((part) => !part.present).length ?? 0);
+        expect(things).toBeGreaterThan(0);
+        expect(lines.length).toBe(things);
+        expect(lacked.length).toBeLessThanOrEqual(
+          (area?.contributions.filter((part) => !part.present).length ?? 0) + (area?.legs.filter((leg) => leg.status === "missing").length ?? 0),
+        );
         expect(area?.strip.length ?? 0).toBeLessThanOrEqual(asked + 2);
+        // Where its lines take more rows than a narrow result has room for, one press
+        // shows the rest of them, and no result holds two.
+        const folds = foldsIn(card);
+        expect(folds.length).toBeLessThanOrEqual(1);
+        for (const fold of folds) expect(fold).toHaveAttribute("aria-expanded", "false");
         // Its pictures are the gauges of its lines, and one more: the town of its area,
         // which stands in its heading and says whose it is.
         const pictures = within(card).queryAllByRole("img");
@@ -298,7 +324,7 @@ describe("a results page, before anything is opened", () => {
         expect(controlsIn(card).filter((control) => /^Source/.test(control.getAttribute("aria-label") ?? control.textContent ?? ""))).toEqual([]);
         expect(controlsIn(card).filter((control) => control.closest("h3") !== null).length).toBe(1);
         expect(within(card).queryAllByRole("list").flatMap((list) => controlsIn(list))).toEqual([]);
-        expect(controlsIn(card).length).toBe(4);
+        expect(controlsIn(card).length).toBe(4 + folds.length);
       });
   });
 
@@ -307,17 +333,22 @@ describe("a results page, before anything is opened", () => {
     const ranking = recordedAnswer("rank", `rank-${scenario}`).body.data;
 
     for (const [at, row] of results().slice(5).entries()) {
+      const folds = foldsIn(row);
       expect(within(row).getAllByRole("heading").length).toBe(1);
       // The name, the way to compare in its heading, and the two ways on at its foot: the
-      // tenth result can be compared as the first can.
-      expect(controlsIn(row).length).toBe(4);
+      // tenth result can be compared as the first can. And the press that shows the rest
+      // of its lines, where a narrow result has no room for all of them.
+      expect(folds.length).toBeLessThanOrEqual(1);
+      expect(controlsIn(row).length).toBe(4 + folds.length);
       expect(controlsIn(row)[0]?.closest("h3")).not.toBeNull();
       expect(waysOnOf(row, nameOf(ranking.ranked[at + 5]?.area_id))).toEqual(WAYS_ON);
       // The rank, what stands beside the name, and the fit, with the two words that say it
       // is not whole where it is not. A row holds no other paragraph: what its fit is
       // based on is in its working.
       expect(row.querySelectorAll("header p")).toHaveLength(3);
-      expect(row.querySelectorAll("p")).toHaveLength(3);
+      // What holds the press is the one paragraph more, and holds no sentence.
+      const beside = [...row.querySelectorAll("p")].filter((one) => one.closest("header") === null);
+      expect(beside.map((one) => controlsIn(one))).toEqual(folds.map((fold) => [fold]));
     }
   });
 
@@ -369,8 +400,12 @@ describe("a results page, before anything is opened", () => {
     // was asked for came to be drawn, where three were: 86 was the most the recorded
     // searches held. A result holds four controls since, a card as a row: no line of it
     // opens, and no key of a source stands on it.
-    expect(controlsIn(main()).length).toBeLessThanOrEqual(MOST_ON_A_PAGE);
-    expect(results().flatMap((result) => controlsIn(result))).toHaveLength(results().length * 4);
+    // The press that shows the rest of the lines of a result is drawn on a narrow result
+    // alone, and is counted apart: a desk draws none, and a phone one to a result at the most.
+    const folds = foldsIn(main());
+    expect(folds.length).toBeLessThanOrEqual(results().length);
+    expect(controlsIn(main()).length - folds.length).toBeLessThanOrEqual(MOST_ON_A_PAGE);
+    expect(results().flatMap((result) => controlsIn(result))).toHaveLength(results().length * 4 + folds.length);
   });
 
   test.each(SEARCHES)("test_the_settings_open_with_a_couple_of_groups_open_and_every_other_closed: %s", async (scenario) => {

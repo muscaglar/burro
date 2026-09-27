@@ -10,7 +10,7 @@ import { refusals } from "./refusals";
 import { leftOutOf } from "./said";
 import { failureOfTheCards, initialState, reasonsAreIn, reasonsFailure, type SearchState } from "./state";
 import { createStore } from "./store";
-import { takenOf, takenOfAll as madeOfAll } from "./takes";
+import { LIMITS, takenOf, takenOfAll as madeOfAll } from "./takes";
 
 // A string found nowhere else, planted in what a person types.
 const CANARY = "zqxcanary7431";
@@ -30,7 +30,7 @@ const first = {
 function open(
   api: StandIn,
   reader: SearchState["reader"] = meta.reader,
-  with_: Partial<Pick<FlowDeps, "rests" | "doubt" | "readings" | "turned">> = {},
+  with_: Partial<Pick<FlowDeps, "rests" | "doubt" | "readings" | "turned" | "worded">> = {},
 ) {
   const store = createStore(initialState(meta, areas, null, reader));
   const seen: SearchState[] = [store.getState()];
@@ -2160,7 +2160,7 @@ describe("a prompt that is not plain", () => {
     expect(state().read?.took).toBe(0);
     expect(state().read?.left.map((one) => [one.label, one.why])).toEqual([
       ["Pubs and bars", "two_ways"],
-      ["Less transport noise", "by_choice"],
+      ["Less transport noise", "not_said"],
     ]);
     expect(api.unexpected).toEqual([]);
   });
@@ -2197,24 +2197,79 @@ describe("a prompt that is not plain", () => {
       for (const edit of way.operations.budget_ops) expect(first?.operations?.budget_ops).toContainEqual(edit);
       for (const edit of way.operations.commute_ops) expect(first?.operations?.commute_ops).toContainEqual(edit);
     }
+    // The journey among it: as the guide that one press adds, and nothing else of a journey.
+    const journey = atOnce.suggestions.find((one) => one.target === "commute");
+    expect(journey?.add_all).toBe("guide");
+    expect(first?.operations?.commute_ops).toEqual(
+      journey?.choices.find((way) => way.id === journey.add_all)?.operations.commute_ops,
+    );
     expect(state().read?.suggestions).toEqual([]);
   });
 
   test("test_a_journey_is_taken_as_a_guide_though_the_words_give_a_firm_limit_and_a_budget_as_it_was_worded", async () => {
     const api = reading();
-    const { flow } = open(api);
+    const { flow, state } = open(api);
     const journey = atOnce.suggestions.find((one) => one.target === "commute");
     expect(journey?.choices.find((way) => way.guess)?.id).toBe("firm");
+    expect(journey?.add_all).toBe("guide");
 
     await flow.submitText(typedOf(long));
 
     // A journey is estimated from distance, so no area is left out on one without a press.
+    expect(sentTo(api).length).toBeGreaterThan(0);
     for (const sent of sentTo(api)) {
       expect(sent.operations?.commute_ops.map((edit) => edit.strictness)).toEqual(["soft"]);
       expect(sent.operations?.area_ops).toEqual([]);
     }
+    // The person wrote "at most": that the limit is flexible was Burro's to choose, and the search says so.
+    expect(state().assumed["place:syn-p0017"]).toContain("strictness");
     // "Max" makes the budget a firm limit, and it is taken as it was worded.
     expect(sentTo(api)[0]?.operations?.budget_ops.map((edit) => edit.strictness)).toContain("hard");
+  });
+
+  test("test_one_line_of_the_look_has_a_journey_sent_as_the_firm_limit_its_words_make_it_and_a_budget_as_it_was_worded", async () => {
+    // The other way it was built, by its name.
+    const api = reading();
+    const { flow, state } = open(api, meta.reader, { worded: "as_worded" });
+
+    await flow.submitText(typedOf(long));
+
+    // "At most" makes the minutes firm, and the journey is sent as the words make it.
+    expect(sentTo(api).length).toBeGreaterThan(0);
+    for (const sent of sentTo(api)) {
+      expect(sent.operations?.commute_ops.map((edit) => edit.strictness)).toEqual(["hard"]);
+      expect(sent.operations?.area_ops).toEqual([]);
+    }
+    expect(sentTo(api)[0]?.operations?.commute_ops).toEqual(
+      atOnce.suggestions.find((one) => one.target === "commute")?.choices.find((way) => way.guess)?.operations.commute_ops,
+    );
+    // That the limit is firm is what the person said, and nothing says that it was assumed.
+    expect(state().assumed["place:syn-p0017"] ?? []).not.toContain("strictness");
+    // "Max" makes the budget a firm limit, and it is taken as it was worded either way.
+    expect(sentTo(api)[0]?.operations?.budget_ops.map((edit) => edit.strictness)).toContain("hard");
+  });
+
+  test("test_a_journey_whose_words_give_no_way_is_sent_as_a_guide_so_that_no_area_is_left_out_on_a_guess", async () => {
+    // The same sentence, as a service answers that could not tell which way the journey was meant.
+    const recorded = recordedAnswer("interpret", "interpret-rules-at-once");
+    const suggestions = atOnce.suggestions.map((one) =>
+      one.target === "commute"
+        ? { ...one, add_all: "", choices: one.choices.map((way) => ({ ...way, guess: false })) }
+        : one,
+    );
+    const unmarked = { ...recorded, body: { ...recorded.body, data: { ...atOnce, suggestions } } };
+
+    // Whichever way the line of the look has a journey taken whose words make its limit firm.
+    for (const with_ of [{}, ...LIMITS.map((worded) => ({ worded }))]) {
+      const api = reading().inTurn("interpret", () => unmarked, "interpret-by-model-long");
+      const { flow, state } = open(api, meta.reader, with_);
+
+      await flow.submitText(typedOf(long));
+
+      expect(sentTo(api)[0]?.operations?.commute_ops.map((edit) => edit.strictness)).toEqual(["soft"]);
+      // That the limit is flexible was Burro's to choose, and the search says so.
+      expect(state().assumed["place:syn-p0017"]).toContain("strictness");
+    }
   });
 
   test("test_what_counts_recorded_crime_is_never_sent_and_is_named_among_what_was_left_out", async () => {
@@ -2509,7 +2564,7 @@ describe("a prompt that is not plain", () => {
     const more = pubs?.choices.find((way) => way.id === "more")?.operations ?? NO_EDITS;
     expect(sentTo(api)).toEqual([{ spec: noticed.spec, limit: 20, operations: merged(NO_EDITS, more) }]);
     // What waits for a person waits whichever way that line is set.
-    expect(state().read?.left.map((one) => [one.label, one.why])).toEqual([["Less transport noise", "by_choice"]]);
+    expect(state().read?.left.map((one) => [one.label, one.why])).toEqual([["Less transport noise", "not_said"]]);
     expect(state().read?.took).toBe(1);
   });
 

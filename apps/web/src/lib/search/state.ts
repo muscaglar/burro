@@ -276,6 +276,12 @@ export interface SearchState {
   readonly answers: number;
   readonly failure: Failure | null;
   readonly failedStep: Step | null;
+  /**
+   * The search as it stood once a person last stopped it: the run that was stopped, and
+   * the count of its answers. `null` until one is stopped. The page says that the search
+   * was stopped until the search next moves: `wasStopped` says whether it has.
+   */
+  readonly stopped: { readonly seq: number; readonly answers: number } | null;
   readonly online: boolean;
   /** True when the words could not be read, so the settings are the way in. */
   readonly degraded: boolean;
@@ -460,6 +466,7 @@ export function initialState(
     answers: 0,
     failure: null,
     failedStep: null,
+    stopped: null,
     online: true,
     degraded: false,
     settingsOpen: false,
@@ -931,6 +938,22 @@ export function servedTheRanking(state: Pick<SearchState, "rankedBy" | "meta">):
   return state.rankedBy ?? servedBy(state.meta);
 }
 
+/**
+ * True from the press that stops a search until the search next moves: until another is
+ * read or ranked, an answer comes, or one fails. What changes nothing of the search, as
+ * an area that is chosen on the map does, leaves it so. The page says that the search
+ * was stopped for as long: nothing was said of it, and whoever could not see the page
+ * could not tell that the press had landed.
+ */
+export function wasStopped(
+  state: Pick<SearchState, "stopped" | "seq" | "answers" | "phase" | "failure">,
+): boolean {
+  const { stopped, phase } = state;
+  if (stopped === null || state.failure !== null) return false;
+  if (phase === "interpreting" || phase === "refining") return false;
+  return stopped.seq === state.seq && stopped.answers === state.answers;
+}
+
 export function reduce(state: SearchState, event: SearchEvent): SearchState {
   switch (event.type) {
     case "tenure_swapped":
@@ -1239,11 +1262,14 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
 
     case "stopped": {
       const { kept } = state;
-      if (state.phase !== "interpreting" || kept === null) return { ...state, phase: state.before };
+      if (state.phase !== "interpreting" || kept === null) {
+        return { ...state, phase: state.before, stopped: { seq: state.seq, answers: state.answers } };
+      }
       // The words may have been read already, and the chips drawn from them, over the
       // ranking of the search before. The search is put back as it was when the sentence
       // was sent. An edit made meanwhile still waits, and is sent with the spec put back.
       const waits = !isEmpty(state.pending);
+      const answers = waits || state.spec === kept.spec ? state.answers : state.answers + 1;
       return {
         ...state,
         ...kept,
@@ -1255,7 +1281,8 @@ export function reduce(state: SearchState, event: SearchEvent): SearchState {
         // Reasons that came for the ranking that was stopped are let go with it.
         ...(reasonsAreIn(state) ? {} : { explanations: [], explainedHash: null, explainedBy: null }),
         explanationsAhead: null,
-        answers: waits || state.spec === kept.spec ? state.answers : state.answers + 1,
+        answers,
+        stopped: { seq: state.seq, answers },
       };
     }
 

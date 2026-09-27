@@ -888,6 +888,27 @@ const picturesBeside = (sentence: HTMLElement) =>
   );
 
 describe("the shelf, as the look draws it", () => {
+  test("test_the_place_of_the_card_takes_no_room_until_a_card_stands_in_it_so_that_a_word_goes_by_as_much_as_the_shelf_grows", async () => {
+    // Measured at 1440 by 900, with the page scrolled to its foot: the place of the card was
+    // a row of the shelf while it held nothing, with the room that parts two rows over it.
+    // A card that opened over the words put them down by itself and that room, and the
+    // shelf grew by the card alone: the page went on as far as it could, and the word that
+    // was pressed stood 12 px under where it was pressed.
+    const { user } = show();
+    const place = () => document.getElementById(word(wordOf(FIRST)).getAttribute("aria-controls") ?? "") as HTMLElement;
+
+    expect(place()).toBeEmptyDOMElement();
+    expect(place()).toHaveClass("place");
+    expect(setsOf(".place:empty").get("position")).toBe("absolute");
+    // It is on the page all the same: the words name it as what they open.
+    expect(place().isConnected).toBe(true);
+
+    await user.click(word(wordOf(FIRST)));
+
+    expect(place()).not.toBeEmptyDOMElement();
+    expect([...setsOf(".place").keys()]).toEqual(["min-width"]);
+  });
+
   test("test_the_shelf_is_a_box_and_the_card_of_a_word_is_the_box_in_hand", async () => {
     const { user } = show();
     expect(screen.getByRole("region", { name: SHELF.title })).toHaveAttribute("data-kind", "box");

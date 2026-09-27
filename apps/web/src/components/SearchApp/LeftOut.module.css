@@ -61,24 +61,20 @@
 }
 
 /*
- * What the line says: what it is, and each thing by its name. It is one line while it is
- * closed, however much it names, and what it has no room for is cut at its end. Nothing
- * of it is lost: it is said whole to whoever hears the page, and one press opens it.
+ * What the line says: what it is, and each thing by its name. It is one line, however
+ * much it names, and what it has no room for is cut at its end. Nothing of it is lost: it
+ * is said whole to whoever hears the page, and one press opens it to each thing by its
+ * name, with why.
+ *
+ * It is one line while it is open too. The line is what takes the press, and nothing
+ * changes size under a press: said on as many lines as its names took, it grew under the
+ * hand as it opened.
  */
 .names {
   min-width: 0;
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-}
-
-/* Opened, it says all that it names, on as many lines as that takes. Its first line stays where it was. */
-.opens[open] > summary {
-  align-items: start;
-}
-
-.opens[open] > summary > .names {
-  white-space: normal;
 }
 
 /* A short label, in the face of names. The names after it are read. */

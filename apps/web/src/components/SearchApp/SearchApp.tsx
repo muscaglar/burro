@@ -39,6 +39,7 @@ import {
   reasonsAreIn,
   reasonsFailure,
   servedTheRanking,
+  wasStopped,
   type SearchState,
 } from "@/lib/search/state";
 import { SearchProvider, useSearch } from "@/lib/search/store";
@@ -1175,6 +1176,8 @@ export function SearchView({
         open={open}
         // An answer that is said in the words of the last is said again.
         answers={state.answers}
+        // That a search was stopped is said until the search next moves.
+        stopped={wasStopped(state)}
       />
 
       {shows === "offline" ? (
@@ -1254,26 +1257,29 @@ export function SearchView({
       {nothingSaid !== null ? <StateLine>{nothingSaid}</StateLine> : null}
 
       {understood ? (
-        <>
-          <ChipRow
-            id={UNDERSTOOD}
-            spec={spec}
-            assumed={state.assumed}
-            quoted={state.quoted}
-            tenurePicked={state.tenurePicked}
-            placeNames={state.placeNames}
-            meta={meta}
-            areas={areas}
-            version={state.answers}
-            refused={refusedAt}
-            readBy={read?.interpreter ?? null}
-            onEdit={edit}
-            onTenure={(tenure) => void flow.setTenure(tenure)}
-          />
-          {read !== null && !reading ? <UnmetList unmet={unmet} /> : null}
-          <RejectedList refusals={notApplied} nameOf={nameOfPart} meta={meta} />
-        </>
+        <ChipRow
+          id={UNDERSTOOD}
+          spec={spec}
+          assumed={state.assumed}
+          quoted={state.quoted}
+          tenurePicked={state.tenurePicked}
+          placeNames={state.placeNames}
+          meta={meta}
+          areas={areas}
+          version={state.answers}
+          refused={refusedAt}
+          readBy={read?.interpreter ?? null}
+          onEdit={edit}
+          onTenure={(tenure) => void flow.setTenure(tenure)}
+        />
       ) : null}
+      {/* What Burro could not answer is heard as it comes. What holds it is on the page
+          before it says anything: a part that comes with its words is told to nobody, and
+          the line that is heard said only that no areas are ranked yet. */}
+      <div className={styles.heard} aria-live="polite">
+        {understood && read !== null && !reading ? <UnmetList unmet={unmet} /> : null}
+      </div>
+      {understood ? <RejectedList refusals={notApplied} nameOf={nameOfPart} meta={meta} /> : null}
     </div>
   );
 

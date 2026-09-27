@@ -18,11 +18,22 @@ import {
   reasonsAreIn,
   reasonsFailure,
   reduce,
+  wasStopped,
   type SearchEvent,
   type SearchState,
 } from "./state";
 import { createStore } from "./store";
-import { restsOn, settledOf, takenOfAll, thingOf } from "./takes";
+import {
+  A_LIMIT_THE_WORDS_MAKE_FIRM,
+  OF_A_WORD_READ_SEVERAL_WAYS,
+  restsOn,
+  settledOf,
+  takenOfAll,
+  thingOf,
+  WHAT_THE_WORDS_TURN_AWAY,
+  WHERE_BURRO_CANNOT_TELL,
+  type Worded,
+} from "./takes";
 
 const meta = recordedAnswer("get_meta", "meta").body.data;
 const areas = recordedAnswer("list_areas", "areas").body.data.areas;
@@ -680,6 +691,49 @@ describe("stopping after the words were read", () => {
     expect(state.assumed).toEqual({});
   });
 
+  test("test_a_search_that_was_stopped_says_so_until_it_next_moves", () => {
+    // Seen in a browser: after Stop the line under the box said nothing, and nothing was
+    // heard. A person who cannot see the page could not tell whether the press had landed.
+    const before = searched();
+    expect(wasStopped(before)).toBe(false);
+    expect(wasStopped(readAgain(before))).toBe(false);
+
+    const state = reduce(readAgain(before), { type: "stopped" });
+    expect(wasStopped(state)).toBe(true);
+    // What changes nothing of the search leaves it said.
+    const still = [
+      { type: "selected", areaId: "syn-n0006" },
+      { type: "hovered", areaId: "syn-n0006" },
+      { type: "box_changed" },
+      { type: "settings_opened", open: true },
+    ].reduce((held, event) => reduce(held, event as SearchEvent), state);
+    expect(wasStopped(still)).toBe(true);
+    // The next sentence is read, and the line says that: and then what came of it.
+    const reading = reduce(state, { type: "read_started", seq: 3 });
+    expect(wasStopped(reading)).toBe(false);
+    expect(wasStopped(reduce(reading, { type: "read_answered", data: second, meta: A }))).toBe(false);
+    // A control is moved, and its ranking is asked for and comes.
+    const moved = reduce(reduce(state, { type: "queued", operations: edits.tagOn("leafy") }), { type: "rank_started", seq: 3 });
+    expect(wasStopped(moved)).toBe(false);
+    expect(wasStopped(reduce(moved, { type: "rank_answered", data: refined, sent: NO_EDITS, meta: A }))).toBe(false);
+    // A search that fails says that, and one that begins again has never been stopped.
+    expect(wasStopped(reduce(reading, { type: "failed", step: "read", failure: timeout }))).toBe(false);
+    expect(wasStopped(reduce(state, { type: "started_again" }))).toBe(false);
+  });
+
+  test("test_a_first_search_that_was_stopped_says_so_though_nothing_of_it_is_left", () => {
+    const reading = after({ type: "read_started", seq: 1 });
+    const state = reduce(reading, { type: "stopped" });
+
+    expect([state.phase, state.read, state.ranking]).toEqual(["empty", null, null]);
+    expect(wasStopped(state)).toBe(true);
+    // And where the words had been read, and their ranking was on its way.
+    const read_ = after({ type: "read_started", seq: 1 }, { type: "read_answered", data: read, meta: A }, { type: "rank_started", seq: 1 });
+    expect(wasStopped(reduce(read_, { type: "stopped" }))).toBe(true);
+    // The other kind of search is chosen: the search has moved.
+    expect(wasStopped(reduce(state, { type: "tenure_swapped", tenure: "buy" }))).toBe(false);
+  });
+
   test("test_stop_while_the_words_are_still_being_read_changes_nothing_of_the_search", () => {
     const before = searched();
     const state = reduce(reduce(before, { type: "read_started", seq: 2 }), { type: "stopped" });
@@ -1095,9 +1149,21 @@ describe("what the reader noticed and did not apply", () => {
     expect(after({ type: "read_answered", data: nothing, meta: A }).settingsOpen).toBe(true);
   });
 
-  /** What the flow makes of every offer of a reading, as it hands it to the store. */
-  const takingAll = (data: typeof noticed): SearchEvent => {
-    const all = takenOfAll(data.suggestions, meta);
+  /**
+   * What the flow makes of every offer of a reading, as it hands it to the store. `worded`
+   * is the way of a journey whose words make its limit firm, by its name: left out, it is
+   * as the look has chosen.
+   */
+  const takingAll = (data: typeof noticed, worded: Worded = A_LIMIT_THE_WORDS_MAKE_FIRM): SearchEvent => {
+    const all = takenOfAll(
+      data.suggestions,
+      meta,
+      WHERE_BURRO_CANNOT_TELL,
+      OF_A_WORD_READ_SEVERAL_WAYS,
+      [],
+      WHAT_THE_WORDS_TURN_AWAY,
+      worded,
+    );
     const made = data.suggestions.flatMap((offer, at) => {
       const one = all[at];
       return one === undefined ? [] : [{ at, offer, made: one }];
@@ -1177,7 +1243,7 @@ describe("what the reader noticed and did not apply", () => {
     expect(state.read?.took).toBe(0);
     expect(state.read?.left.map((one) => [one.label, one.why])).toEqual([
       [pubs?.label, "two_ways"],
-      [noise?.label, "by_choice"],
+      [noise?.label, "not_said"],
     ]);
     expect(state.read?.things).toEqual([]);
     expect(state.pending).toEqual(NO_EDITS);
@@ -1221,24 +1287,36 @@ describe("what the reader noticed and did not apply", () => {
   test("test_what_one_press_would_have_taken_as_it_was_said_is_marked_as_the_press_marked_it", () => {
     const long = recordedAnswer("interpret", "interpret-by-model-long").body.data;
     const read = after({ type: "read_started", seq: 1 }, { type: "read_answered", data: long, meta: A });
-    const state = reduce(read, takingAll(long));
 
-    // Quiet streets, the park and the culture were said, and nothing of them is assumed.
-    expect(state.assumed["tag:quiet_residential"]).toBeUndefined();
-    expect(state.assumed["feature:park_proximity"]).toBeUndefined();
-    expect(state.assumed["feature:culture_venues_per_homes"]).toBeUndefined();
-    // The budget was taken as it was worded, a firm limit for a home of one bedroom.
-    expect(state.assumed.budget).toBeUndefined();
-    // Nobody said how to travel. And the words gave a firm limit where a guide was taken.
-    expect(state.assumed["place:syn-p0017"]).toEqual(["mode", "strictness"]);
-    // What Burro read into two words is its own reading, and says so. A word counts once:
-    // of what is read into the same words one thing is taken, and nothing is assumed of
-    // what was left.
-    for (const key of ["feature:brand_mix", "tag:village_feel"]) {
-      expect([key, state.assumed[key]]).toEqual([key, ["weight"]]);
-    }
-    for (const key of ["feature:price_median", "feature:homes_higher_bands", "tag:built_age", "feature:highstreet_access"]) {
-      expect([key, state.assumed[key]]).toEqual([key, undefined]);
+    // As the look has chosen, and by the name of each way of a journey.
+    const ways: readonly (readonly [Worded | undefined, string, readonly string[]])[] = [
+      // Nobody said how to travel. And the words gave a firm limit where a guide was taken.
+      [undefined, "soft", ["mode", "strictness"]],
+      ["guide", "soft", ["mode", "strictness"]],
+      // The other way it was built: the words make the limit firm, and it is taken as they
+      // make it. That it is firm is then what the person said.
+      ["as_worded", "hard", ["mode"]],
+    ];
+    for (const [worded, limit, assumed] of ways) {
+      const state = reduce(read, takingAll(long, worded));
+
+      // Quiet streets, the park and the culture were said, and nothing of them is assumed.
+      expect(state.assumed["tag:quiet_residential"]).toBeUndefined();
+      expect(state.assumed["feature:park_proximity"]).toBeUndefined();
+      expect(state.assumed["feature:culture_venues_per_homes"]).toBeUndefined();
+      // The budget was taken as it was worded, a firm limit for a home of one bedroom.
+      expect(state.assumed.budget).toBeUndefined();
+      expect([worded, state.pending.commute_ops.map((edit) => edit.strictness)]).toEqual([worded, [limit]]);
+      expect([worded, state.assumed["place:syn-p0017"]]).toEqual([worded, assumed]);
+      // What Burro read into two words is its own reading, and says so. A word counts once:
+      // of what is read into the same words one thing is taken, and nothing is assumed of
+      // what was left.
+      for (const key of ["feature:brand_mix", "tag:village_feel"]) {
+        expect([key, state.assumed[key]]).toEqual([key, ["weight"]]);
+      }
+      for (const key of ["feature:price_median", "feature:homes_higher_bands", "tag:built_age", "feature:highstreet_access"]) {
+        expect([key, state.assumed[key]]).toEqual([key, undefined]);
+      }
     }
   });
 

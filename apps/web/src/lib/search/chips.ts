@@ -45,7 +45,8 @@ export interface ChipPart {
   readonly assumed: boolean;
   /**
    * True when the part is said in the row as well as in full, though it was assumed: a
-   * word that has two meanings, and the one it was read as. It is never left for a press.
+   * word that has two meanings, and the one it was read as, and whether a limit is firm,
+   * which decides which areas are left out. It is never left for a press.
    */
   readonly always?: boolean;
 }
@@ -219,6 +220,7 @@ export function chipsOf(
           {
             text: commute.strictness === "hard" ? CHIPS.firm : CHIPS.flexible,
             assumed: has(key, "strictness"),
+            always: true,
           },
         ],
         removal: edits.placeRemove(commute.place_id),
@@ -245,6 +247,7 @@ export function chipsOf(
           {
             text: spec.budget.strictness === "hard" ? CHIPS.firm : CHIPS.flexible,
             assumed: has("budget", "strictness"),
+            always: true,
           },
         ],
         removal: edits.budgetClear(),

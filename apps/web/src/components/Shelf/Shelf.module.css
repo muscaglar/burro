@@ -127,6 +127,20 @@
   font-size: var(--size-small);
 }
 
+/*
+ * The place of the card, which the words name as what they open. Until a card stands in it
+ * it is no row of the shelf, and takes no room and parts nothing: so a card that opens
+ * over the words puts them down by as much as the shelf grows, and the page can go on by
+ * as much wherever it stands. It is on the page all the same.
+ */
+.place {
+  min-width: 0;
+}
+
+.place:empty {
+  position: absolute;
+}
+
 /* The card of a word: the box in hand. */
 .card {
   display: grid;

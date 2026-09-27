@@ -1317,14 +1317,14 @@ describe("what is marked as assumed", () => {
     await user.click(within(panelOf("deep")).getByRole("button", { name: SETTINGS.rank }));
     await settled();
 
-    // In the row the chip says the name, and that the rest was assumed. Opened, it says
-    // every part. The person picked the place: nothing says that the place was assumed.
+    // In the row the chip says the name and every part, and which of them was assumed.
+    // Opened, it says the same. The person picked the place: nothing says that the place
+    // was assumed.
     const chip = within(chipsRegion()).getByRole("button", { name: new RegExp(`^${place.name}`) });
-    expect(chip.textContent).toBe(`${place.name}, ${CHIPS.restAssumed}`);
+    const said = `${place.name}, public transport ${CHIPS.assumed}, 45 minutes ${CHIPS.assumed}, flexible ${CHIPS.assumed}`;
+    expect(chip.textContent).toBe(said);
     await user.click(chip);
-    expect(chip.textContent).toBe(
-      `${place.name}, public transport ${CHIPS.assumed}, 45 minutes ${CHIPS.assumed}, flexible ${CHIPS.assumed}`,
-    );
+    expect(chip.textContent).toBe(said);
   });
 });
 

@@ -433,14 +433,15 @@ describe("results: the ranking came back", () => {
     // What was asked for by way of character comes first. The settings nobody chose have no
     // chip: one that is not chosen moves no area, and "Usual settings: 6 assumed" told a
     // person nothing. Each stands with its value where the search is refined.
+    // Each chip says every part of itself, and which of them nobody said.
     expect(said()).toEqual([
       "Leafy",
       "Quiet streets",
-      `Cindermoor Works, 35 minutes, ${CHIPS.restAssumed}`,
+      "Cindermoor Works, public transport assumed, 35 minutes, flexible assumed",
       "£1,700 a month, one bedroom, flexible assumed",
       "Renting",
     ]);
-    // A chip that is opened opens the row out, and each chip then says every part of itself.
+    // A chip that is opened opens the row out, and each chip says the same there.
     await chipInFull(user, /^Cindermoor Works/);
     expect(said()).toEqual([
       "Leafy",

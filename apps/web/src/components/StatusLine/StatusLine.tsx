@@ -1,3 +1,7 @@
+"use client";
+
+import { useLayoutEffect, useRef } from "react";
+
 import { STATUS } from "@/content/search";
 import { WAIT } from "@/content/wait";
 import type { AreaSummary, PreferenceSpec } from "@/lib/api/schema";
@@ -80,6 +84,11 @@ interface Said {
   readonly open?: boolean;
   /** How what the order means is said. Left out, as the look has chosen. */
   readonly means?: OrderSaid;
+  /**
+   * True from the press that stops a search until the search next moves. The line then
+   * says that Burro stopped, and what became of the words: it said nothing of it.
+   */
+  readonly stopped?: boolean;
 }
 
 interface Props extends Said {
@@ -118,9 +127,13 @@ export function saidOf({
   spec,
   open = false,
   means = MEANS,
+  stopped = false,
 }: Said): readonly Part[] {
   const drawn = (text: string): Part => ({ text, drawn: true });
   if (phase === "interpreting") return [drawn(STATUS.reading)];
+  // A person stopped the search. That is what happened last, and what the line said of
+  // the ranking before is of a press before it.
+  if (stopped) return [drawn(open ? STATUS.stoppedOpen : STATUS.stopped)];
   if (ranking === null) {
     // A control asked for a first ranking, and it is on its way. Nothing is read, so the
     // line does not say that a search is: it says what is worked out.
@@ -172,6 +185,68 @@ export function statusOf(props: Said): string {
     .join(" ");
 }
 
+/** The room the line keeps: as high as it has stood, at the width it stood at. */
+interface Kept {
+  readonly wide: number;
+  readonly high: number;
+}
+
+/**
+ * Has the line keep the most room it has taken since the search opened. What the line
+ * says of a first ranking stands in two lines where the answer stands beside the map, and
+ * what it says once a chip is turned or taken off stands in one: measured at 1440 by 900,
+ * everything under the line went up by 24 px, from under the press. So the line is never
+ * lower than it has been. It is measured as it is laid out, before the page is drawn, and
+ * told the least it may be as high as: the page draws it no other way.
+ *
+ * The room is of the width it was measured at, and is measured anew where the line is
+ * made wider or narrower. Before a search the line keeps none, and nor does it where a
+ * browser lays nothing out.
+ */
+function useRoomKept(open: boolean) {
+  const line = useRef<HTMLParagraphElement>(null);
+  const kept = useRef<Kept | null>(null);
+
+  // After every drawing of it, and before the page is drawn: what it says may have changed.
+  useLayoutEffect(() => {
+    const held = line.current;
+    if (held === null) return;
+    const keep = () => {
+      const wide = Math.round(held.getBoundingClientRect().width);
+      if (!open || wide === 0) {
+        kept.current = null;
+        held.style.minHeight = "";
+        return;
+      }
+      // At another width the words stand in other lines: it is measured with no room kept.
+      if (kept.current === null || kept.current.wide !== wide) {
+        kept.current = { wide, high: 0 };
+        held.style.minHeight = "";
+      }
+      const high = held.getBoundingClientRect().height;
+      if (high > kept.current.high) kept.current = { wide, high };
+      held.style.minHeight = kept.current.high > 0 ? `${kept.current.high}px` : "";
+    };
+    keep();
+    if (typeof ResizeObserver !== "function") return;
+    // Made wider or narrower, it is measured in the next frame: what watches a size is not
+    // to change it as it is told of it.
+    let next = 0;
+    const watched = new ResizeObserver(() => {
+      if (Math.round(held.getBoundingClientRect().width) === kept.current?.wide) return;
+      cancelAnimationFrame(next);
+      next = requestAnimationFrame(keep);
+    });
+    watched.observe(held);
+    return () => {
+      cancelAnimationFrame(next);
+      watched.disconnect();
+    };
+  });
+
+  return line;
+}
+
 /**
  * Says what has just happened, to everyone: it is on the page, and it is a
  * polite live region, so a screen reader says it when it changes.
@@ -188,10 +263,15 @@ export function statusOf(props: Said): string {
  *
  * Once a search is open it always says something, so that the room it keeps is no hole in
  * the box: what happened, what is read or worked out, what is asked, or that nothing is
- * ranked yet.
+ * ranked yet. Once a search is stopped it says so, before a search too: a press that is
+ * answered by nothing is a press that may not have landed.
+ *
+ * It keeps the room of the most it has said since the search opened, so that what stands
+ * under it is where it was when a press changes what the line says.
  */
 export function StatusLine({ frame = FRAME, room = ROOM, answers = 0, ...state }: Props) {
   const said = saidOf(state);
+  const line = useRoomKept(state.open === true);
   // That a search is read, or that nothing is ranked yet, is said once: the count moves
   // while a sentence is read, and the line would say twice that it is.
   const turn = state.ranking === null || state.phase === "interpreting" ? 0 : answers;
@@ -202,6 +282,7 @@ export function StatusLine({ frame = FRAME, room = ROOM, answers = 0, ...state }
       // The room inside it is the line's own: it is lower than a box that holds a paragraph.
       bare
       className={styles.status}
+      ref={line}
       role="status"
       aria-live="polite"
       data-room={room}

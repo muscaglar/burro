@@ -18,9 +18,11 @@ import { useDrawnFrom } from "./drawnFrom";
 import {
   BAR_SAYS,
   BAR_SAYS_OF_ITS_TOWNS,
+  CLEAR_ON_A_NARROW_SCREEN,
   CLEAR_STANDS,
   WAY_TO_COMPARE,
   type BarSaysOfItsTowns,
+  type ClearOnANarrowScreen,
   type ClearStands,
 } from "./look";
 import { marksIn } from "./town";
@@ -28,6 +30,8 @@ import { marksIn } from "./town";
 interface Props {
   /** Whether the bar has the way to take every area out at once. Left out, it is what `look.ts` chooses. */
   readonly clears?: ClearStands;
+  /** Whether that way is drawn on a narrow screen too. Left out, it is what `look.ts` chooses. */
+  readonly narrow?: ClearOnANarrowScreen;
   /** What the bar says of its towns. Left out, it is what `look.ts` chooses, which is nothing. */
   readonly says?: BarSaysOfItsTowns;
 }
@@ -88,8 +92,10 @@ function crossBeside(item: HTMLElement | null): HTMLElement | null {
  * areas or more: the drawing of a cross and the word, on the line of what the bar says, as
  * the way that takes an area out of a comparison is drawn. It is small and quiet, so that
  * the bar has one button of the size of a main control, and it stands in the line so that
- * the bar is no higher for it. On a narrow screen the bar has no line to spare, and it is
- * not drawn: the style sheet says so. One line of the look takes it away everywhere.
+ * the bar is no higher for it. It is drawn on a narrow screen too, where the lines of what
+ * the bar says are set closer, so that the bar is no higher than the page clears for it:
+ * one line of the look leaves it off a narrow screen, as it was, and another takes it away
+ * everywhere.
  *
  * The town of an area is drawn from what the button that chose it handed over, or the list
  * of results it stood in. Of an area nothing was handed of no town is drawn: a town that
@@ -106,7 +112,11 @@ function crossBeside(item: HTMLElement | null): HTMLElement | null {
  * for as long as a browser may count it so, it lands on nothing of the bar. A press of its
  * own lands at once, and so does a key.
  */
-export function CompareTray({ clears = CLEAR_STANDS, says = BAR_SAYS_OF_ITS_TOWNS }: Props = {}) {
+export function CompareTray({
+  clears = CLEAR_STANDS,
+  narrow = CLEAR_ON_A_NARROW_SCREEN,
+  says = BAR_SAYS_OF_ITS_TOWNS,
+}: Props = {}) {
   const id = useId();
   const tray = useRef<HTMLElement>(null);
   const { chosen, enough, full, toggle, clear } = useCompare();
@@ -141,6 +151,8 @@ export function CompareTray({ clears = CLEAR_STANDS, says = BAR_SAYS_OF_ITS_TOWN
       className={styles.tray}
       data-closed={closed}
       data-towns={drawsATown}
+      // Whether what takes every area out is drawn on a narrow screen: the style sheet draws it, or does not.
+      data-clear-narrow={narrow === "drawn"}
       // It holds a heading once it holds an area. Until then it is named without one: a
       // heading with nothing under it leads a person who goes by headings to nothing, and the
       // bar still says what it is as it takes the focus from the last area that goes.

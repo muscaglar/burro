@@ -17,7 +17,6 @@ import userEvent from "@testing-library/user-event";
 
 import { SearchApp } from "@/components/SearchApp/SearchApp";
 import { Shell } from "@/components/Shell/Shell";
-import { CARD } from "@/content/card";
 import { KNOWN } from "@/content/kit";
 import { HELPERS } from "@/content/helpers";
 import { WAYS } from "@/content/ways";
@@ -34,6 +33,7 @@ import {
   RESULTS,
   SEARCH,
   SHELF,
+  STRIP,
   FIND_AREA,
 } from "@/content/search";
 import { BUDGET, JOURNEY, SETTINGS } from "@/content/settings";
@@ -487,12 +487,14 @@ describe("an area that is named for its borough", () => {
 });
 
 describe("a result that has no figure for what was asked for", () => {
-  /** What a result says was asked for and has no figure, line by line, before anything is opened. */
-  const lackedOn = (card: HTMLElement, name: string) =>
-    within(card)
-      .queryAllByRole("list", { name: CARD.lacked(name) })
+  /** The lines of a result that say a thing was asked for and has no figure, before anything is opened. */
+  const linesLacked = (card: HTMLElement, name: string) =>
+    [STRIP.askedOf(name), STRIP.restOf(name)]
+      .flatMap((list) => within(card).queryAllByRole("list", { name: list }))
       .flatMap((list) => within(list).getAllByRole("listitem"))
-      .map((line) => line.textContent);
+      .filter((line) => line.querySelector("[data-known='none']") !== null);
+  /** What they say, line by line. */
+  const lackedOn = (card: HTMLElement, name: string) => linesLacked(card, name).map((line) => line.textContent);
   /** The two words that say a fit is not whole, where a result says them with its fit. */
   const withTheFit = (card: HTMLElement) => within(card.querySelector("header") as HTMLElement).queryByText(KNOWN.some);
   /** Opens the working of a result, and gives what it holds. */
@@ -532,9 +534,9 @@ describe("a result that has no figure for what was asked for", () => {
     expect(within(card).getByText(KNOWN.none).closest("[aria-hidden='true'], [hidden], .visually-hidden")).toBeNull();
     expect(withTheFit(card)).not.toBeNull();
     // Nothing is drawn of the figure that is not known: no gauge, no step and no nought.
-    const line = within(card).getByRole("list", { name: CARD.lacked(name) });
-    expect(line.querySelector("[role='img'], [data-on], [data-placed]")).toBeNull();
-    expect(/\d/.test(line.textContent ?? "")).toBe(false);
+    const [line] = linesLacked(card, name);
+    expect(line?.querySelector("[role='img'], [data-on], [data-placed]")).toBeNull();
+    expect(/\d/.test(line?.textContent ?? "")).toBe(false);
     // A result that has a figure for everything says nothing of it.
     const whole = results()[0] as HTMLElement;
     expect(whole.textContent?.includes(KNOWN.none)).toBe(false);

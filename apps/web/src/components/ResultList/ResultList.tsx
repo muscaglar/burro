@@ -34,6 +34,7 @@ import { bringBeside, hold, pressedIn } from "./held";
 import {
   ENDS_ON_A_RESULT,
   LINE_STANDS,
+  LINES_OVER_THE_FOLD,
   ON_A_NARROW_RESULT,
   ON_A_NARROW_RESULT_A_BUTTON_IS,
   OTHERS_STAND,
@@ -43,6 +44,7 @@ import {
   WHAT_A_FIT_IS_BASED_ON_IS_SAID_IN_THE,
   type EndsOnAResult,
   type FitSaid,
+  type LinesOverTheFold,
   type LineStands,
   type OnANarrowResult,
   type OnANarrowResultAButtonIs,
@@ -126,6 +128,8 @@ interface Props {
   readonly others?: OthersStand | undefined;
   /** Where what a fit is based on is said. Left out, it is what `look.ts` chooses. */
   readonly fitSaid?: FitSaid | undefined;
+  /** How many lines of a narrow result stand over the press that shows the rest. Left out, it is what `look.ts` chooses. */
+  readonly linesOver?: LinesOverTheFold | undefined;
   readonly onSelect: (areaId: string) => void;
   readonly onHover: (areaId: string | null) => void;
   readonly onEdit: (operations: Operations) => void;
@@ -175,11 +179,13 @@ function reducedMotion(): boolean {
  * scrolls. Where the map goes with the page, as on a narrow screen, the page
  * is left where it is. The focus stays where it was.
  *
- * In every result each thing is a line: what it is, and where the area sits on
- * it, drawn as five steps with a picture at each end. The steps of every line
- * stand in one column, in every result of the list, so that the eye runs down
- * them: the list says which names stand in the column before them, and every
- * result lays its lines out by all of them.
+ * In every result each thing that was asked for is a line: what it is, and
+ * what the area has of it. Of a vibe and of a measure that is where the area
+ * sits, drawn as five steps with a picture at each end, and of a journey and
+ * of a budget a figure. What the area has stands in one column, in every
+ * result of the list, so that the eye runs down it: the list says which names
+ * stand in the column before it, and every result lays its lines out by all
+ * of them.
  *
  * What is pressed in a result stays under the hand: whatever a press opens
  * or closes in place, the page is held where it stood.
@@ -219,6 +225,7 @@ export function ResultList({
   tradeOff = TRADE_OFF_DRAWN,
   others = OTHERS_STAND,
   fitSaid = WHAT_A_FIT_IS_BASED_ON_IS_SAID_IN_THE,
+  linesOver = LINES_OVER_THE_FOLD,
   onSelect,
   onHover,
   onEdit,
@@ -253,8 +260,8 @@ export function ResultList({
   // So the column is as wide in the first result as in the twentieth, and is no wider
   // once more results are shown.
   const columnOf = useMemo(
-    () => namesInTheColumn(ranked ?? [], meta, spec, others, fitSaid),
-    [ranked, meta, spec, others, fitSaid],
+    () => namesInTheColumn(ranked ?? [], meta, spec, names, { others, fitSaid }),
+    [ranked, meta, spec, names, others, fitSaid],
   );
 
   // What a town reads of the release, and no more: the vibes it is drawn from. Nothing the
@@ -308,7 +315,7 @@ export function ResultList({
     list.current?.focus({ preventScroll: true });
   };
 
-  const shared = { facts, spec, meta, release, names, noFit, townDrawn, ends, others, fitSaid, columnOf, onSelect, onHover, onEdit };
+  const shared = { facts, spec, meta, release, names, noFit, townDrawn, ends, others, fitSaid, linesOver, columnOf, onSelect, onHover, onEdit };
   // What a town is, is said on no result unless the look has it stand once, of every town
   // of the list. Where nothing then stands over the list it stands with the first town, in
   // the first result, and is handed to no other.

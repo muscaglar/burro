@@ -504,16 +504,27 @@ describe("what Burro does with a sentence is said as it is done", () => {
     expect(TAKEN.does).toMatch(/\btake any chip off again\b/);
   });
 
-  test("test_the_methods_name_the_two_things_that_are_never_taken_for_a_person_with_the_one_rule_and_why", () => {
+  test("test_the_methods_name_every_kind_of_thing_that_is_left_out_unless_a_person_chooses_it_with_the_one_rule_and_why", () => {
     expect(METHODS.ranking.points).toContain(TAKEN.never);
-    expect(TAKEN.never).toMatch(/\brecorded crime, and anything that counts who lived in an area\b/);
+    // They said that two kinds of thing are left out, and there are more: what counts who
+    // lived somewhere, recorded crime, and a measure that a decision holds to be offered
+    // and never applied. No measure is named.
+    expect(TAKEN.never).toMatch(
+      /\banything that counts who lived in an area, recorded crime, and a measurement that closely follows household income\b/,
+    );
     expect(TAKEN.never).toMatch(/\bunless you choose them yourself\b/);
+    expect(TAKEN.never).not.toMatch(/\btwo kinds\b|\bcouncil\b|\btax\b/i);
     // When recorded crime counts is said by the one rule, word for word.
     expect(TAKEN.never).toContain(CRIME_RULE);
-    // Where Burro says that it left one out, and why it leaves both to the person.
-    // The line stands under the box and over what was understood.
-    expect(TAKEN.never).toMatch(/\bnames it in a line under the search box\b/);
+    // Why Burro leaves these to the person.
     expect(TAKEN.never).toMatch(/\bbecause it gives no verdict on an area or on the people who live in it\b/);
+    // And what it leaves out because it cannot tell: a wish or a journey that may be
+    // somebody else's, and a thing whose way the words do not give.
+    expect(TAKEN.never).toMatch(/\bcannot tell from your words that you want it yourself, or which way you want it to count\b/);
+    expect(TAKEN.never).toMatch(/\bbecause it does not guess\b/);
+    // Where Burro says that it left a thing out: the line stands under the box and over
+    // what was understood, and opens to why.
+    expect(TAKEN.never).toMatch(/\bnames it in a line under the search box and says why\b/);
     // What Burro does is said first, and what it never does after it.
     const at = (words: string) => METHODS.ranking.points.findIndex((point) => point === words);
     expect(at(TAKEN.never)).toBe(at(TAKEN.does) + 1);
@@ -526,7 +537,7 @@ describe("what Burro does with a sentence is said as it is done", () => {
     expect(ABOUT.key.result.notice).toMatch(/\bthe line that names what it left out of your search\.$/);
     // What is never taken, and why, in the words the methods say them in.
     for (const sentence of ABOUT.key.result.never.split(/(?<=\.)\s+/)) expect(TAKEN.never).toContain(sentence);
-    expect(ABOUT.key.result.never).toMatch(/\brecorded crime, and anything that counts who lived in an area\b/);
+    expect(ABOUT.key.result.never).toMatch(/\banything that counts who lived in an area, recorded crime, and a measurement\b/);
     expect(ABOUT.key.result.never).toMatch(/\bbecause it gives no verdict\b/);
   });
 

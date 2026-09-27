@@ -502,6 +502,20 @@
   font-size: var(--size-small);
 }
 
+/*
+ * Under the fit of a result whose area has no figure for a thing that was asked for: that
+ * the area is listed lower for it, so that a higher fit is not read as a fault where it
+ * stands under a lower. It is a sentence, and is read: in ink, at the size of a small
+ * sentence, from edge to edge of the result. Nothing of it warns.
+ */
+.lower {
+  max-width: none;
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--size-small);
+  line-height: 1.3;
+}
+
 .based,
 .untested {
   margin: 0;

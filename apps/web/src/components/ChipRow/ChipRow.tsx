@@ -10,6 +10,7 @@ import {
   type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
+  type Ref,
   type RefObject,
 } from "react";
 
@@ -194,7 +195,9 @@ function isWhereASearchStarts(spec: PreferenceSpec, defaults: MetaData["defaults
  * opened out. A chip opens the same control the settings hold, in place, and
  * can be removed where the setting can be. A part nobody chose carries the
  * word "assumed", and its chip has the solid edge every chip has. A chip of a
- * scale says which end is asked for, and "Turn" asks for the other.
+ * scale says which end is asked for, and "Turn" asks for the other. Such a
+ * chip keeps the room of what it says once it is turned, and is no narrower
+ * turned than it was as it was pressed: so "Turn" stands where it was pressed.
  *
  * A chip is drawn as the look draws one: the small drawing of its thing, its
  * words, and a cross that takes it off. One that has this moment been added
@@ -275,14 +278,24 @@ export function ChipRow({
   // for it. Until the person opens the row or a chip of it, the chips are said in short,
   // however few they are: the answer comes first.
   const out = all || openKey !== null;
-  /** What "Turn" says it will do: the name of the vibe, and the end it would ask for. */
-  const turnOf = (chip: Drawn): string | null => {
+  /** The vibe of a chip that turns, and the end it would ask for once it is turned. */
+  const otherEndOf = (chip: Drawn) => {
     if (chip.turn === null) return null;
     const tag = meta.tags.find((one) => one.tag_id === chip.id);
     const weight = spec.tags.find((one) => one.tag_id === chip.id);
     if (tag === undefined || weight === undefined) return null;
     const other = endAskedFor(tag, weight.toward === "low" ? "high" : "low");
-    return other === null ? null : CHIPS.turnTo(tag.label, other);
+    return other === null ? null : { vibe: tag.label, end: other };
+  };
+  /** What "Turn" says it will do: the name of the vibe, and the end it would ask for. */
+  const turnOf = (chip: Drawn): string | null => {
+    const turned = otherEndOf(chip);
+    return turned === null ? null : CHIPS.turnTo(turned.vibe, turned.end);
+  };
+  /** What the chip is named once it is turned. */
+  const turnedOf = (chip: Drawn): string | null => {
+    const turned = otherEndOf(chip);
+    return turned === null ? null : CHIPS.towards(turned.vibe, turned.end);
   };
 
   /** What says how much room a chip takes where the row is narrow: its words, in full or in short, and its buttons. */
@@ -444,6 +457,9 @@ export function ChipRow({
                 onRemove={chip.removal ? () => onEdit(chip.removal as Operations) : undefined}
                 onTurn={chip.turn ? () => onEdit(chip.turn as Operations) : undefined}
                 turnName={turnOf(chip)}
+                turned={turnedOf(chip)}
+                // On a narrow row a chip is as wide as the row lays it out, and keeps no room of its own.
+                keeps={!narrow}
                 editor={editorOf(chip)}
                 arrives={row.fresh.has(chip.key)}
                 onArrived={() => setLast((was) => landed(was, chip.key))}
@@ -479,6 +495,10 @@ interface ChipProps {
   /** Asks for the other end of a scale. Left out for a chip that is of no scale. */
   readonly onTurn?: () => void;
   readonly turnName?: string | null;
+  /** What the chip is named once it is turned, where it is of a scale. It keeps the room of it. */
+  readonly turned?: string | null;
+  /** True where a chip that is turned is no narrower than it was as it was pressed. */
+  readonly keeps?: boolean;
   /** The control the chip opens. `null` where it opens none. */
   readonly editor: ReactNode;
   /** True of a chip that has this moment been added: it drops into its place, once. */
@@ -492,9 +512,24 @@ interface ChipProps {
 /** A chip that has a row to itself, where nothing says how it lies. */
 const ALONE: Laid = { lies: "alone", beside: 0, letters: 0, row: 1 };
 
-function Words({ said }: { readonly said: Said }) {
-  return (
-    <span className={styles.words}>
+interface WordsProps {
+  readonly said: Said;
+  /** What the chip is named once it is turned. `null` for a chip that does not turn. */
+  readonly turned?: string | null;
+  /** The words themselves, for the chip to measure. */
+  readonly ref?: Ref<HTMLSpanElement>;
+}
+
+/**
+ * The words of a chip. Those of a chip that turns lie in one place with what the chip says
+ * once it is turned, which is laid out and not drawn: so the chip is as wide as the wider
+ * of the two, and what is pressed beside its words does not go along the row as the name
+ * of one end gives way to the name of the other. What is not drawn is written in no text
+ * of the page, and is kept from whoever hears it.
+ */
+function Words({ said, turned = null, ref }: WordsProps) {
+  const now = (
+    <>
       <span className={styles.label}>{said.label}</span>
       {said.whole ? <span className={styles.assumed}> {CHIPS.assumed}</span> : null}
       {said.parts.map((part) => (
@@ -504,6 +539,22 @@ function Words({ said }: { readonly said: Said }) {
         </span>
       ))}
       {said.rest ? <span className={styles.assumed}>, {CHIPS.restAssumed}</span> : null}
+    </>
+  );
+  if (turned === null) return <span className={styles.words}>{now}</span>;
+  return (
+    <span ref={ref} className={styles.words} data-turns="">
+      <span>{now}</span>
+      <span className={styles.then} aria-hidden="true">
+        <span className={styles.label} data-says={turned} />
+        {said.whole ? <span className={styles.assumed} data-says={` ${CHIPS.assumed}`} /> : null}
+        {said.parts.map((part) => (
+          <span key={part.text} className={styles.part} data-says={`, ${part.text}`}>
+            {part.assumed ? <span className={styles.assumed} data-says={` ${CHIPS.assumed}`} /> : null}
+          </span>
+        ))}
+        {said.rest ? <span className={styles.assumed} data-says={`, ${CHIPS.restAssumed}`} /> : null}
+      </span>
     </span>
   );
 }
@@ -535,6 +586,8 @@ export function Chip({
   onRemove,
   onTurn,
   turnName = null,
+  turned = null,
+  keeps = false,
   editor,
   arrives = false,
   onArrived,
@@ -543,7 +596,19 @@ export function Chip({
   const id = useId();
   const item = useRef<HTMLLIElement>(null);
   const button = useRef<HTMLButtonElement | null>(null);
+  const words = useRef<HTMLSpanElement>(null);
   const opens = editor !== null;
+
+  /**
+   * The chip is turned. What nobody said of a vibe is said no longer once a person turns
+   * it, so the chip may say less than it did: it is told to be no narrower than it is as
+   * it is pressed, and "Turn" stands where it was pressed.
+   */
+  const turn = () => {
+    const wide = keeps ? (words.current?.getBoundingClientRect().width ?? 0) : 0;
+    if (wide > 0 && words.current !== null) words.current.style.minWidth = `${wide}px`;
+    onTurn?.();
+  };
 
   /**
    * The button the chip is pressed by. It bears a mark, by which the chip beside one that
@@ -598,7 +663,7 @@ export function Chip({
         <Label
           ref={main}
           thing={thing}
-          says={<Words said={saidBy(chip, full)} />}
+          says={<Words ref={words} said={saidBy(chip, full)} turned={onTurn ? turned : null} />}
           state={state}
           // The words of a chip say which part nobody chose, and that it counts for nothing.
           stateSaid
@@ -607,7 +672,7 @@ export function Chip({
           onTakeOff={onRemove ? remove : undefined}
           beside={
             onTurn && turnName !== null ? (
-              <button type="button" className={`${styles.turn} target`} aria-label={turnName} onClick={onTurn}>
+              <button type="button" className={`${styles.turn} target`} aria-label={turnName} onClick={turn}>
                 {CHIPS.turn}
               </button>
             ) : undefined

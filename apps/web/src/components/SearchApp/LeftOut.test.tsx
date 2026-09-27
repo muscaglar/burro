@@ -56,8 +56,27 @@ describe("the line of what was left out, as it is drawn", () => {
     // What gives way where there is little room is the line, and never the mark before it.
     expect(drawn.get("min-width")).toBe("0");
     expect(setsOf(".mark").get("flex")).toBe("none");
-    // Opened, it says all that it names, on as many lines as that takes.
-    expect(setsOf(".opens[open] > summary > .names").get("white-space")).toBe("normal");
+  });
+
+  test("test_the_line_is_of_one_size_open_and_closed_and_what_it_names_is_said_whole_under_it", async () => {
+    // Measured in a browser: opened, the line said all that it names on as many lines as
+    // that took, and grew under the press by 42 px at 1440 wide and by 96 on a phone.
+    // Nothing changes size under a press. What the line has no room for is said under
+    // it, each thing by its name with why.
+    const user = userEvent.setup({ delay: null });
+    render(<LeftOut things={[gritty, young, pubs, unknown, anArea]} words meta={meta} />);
+
+    const open = SHEET.filter((rule) => /\[open\]/.test(rule.selector));
+    expect(open.map((rule) => rule.selector)).toEqual([".opens[open] > summary > .mark"]);
+    // What turns as it opens is the mark, inside the room it keeps.
+    expect(open.flatMap((rule) => [...rule.sets.keys()])).toEqual(["transform"]);
+    expect(setsOf(".opens > summary").get("align-items")).toBe("center");
+
+    await user.click(line());
+
+    expect(opens().open).toBe(true);
+    const names = ["Gritty", "Young professionals", "Pubs and bars", "A journey", "What to do with Pellam Cross", LEFT_OUT.words];
+    expect(entries().map((entry, at) => entry?.startsWith(`${names[at]}. `))).toEqual(names.map(() => true));
   });
 
   test("test_it_stands_in_no_box_and_a_band_of_amber_marks_it_as_a_note", () => {
@@ -206,21 +225,35 @@ describe("what Burro left out of a search", () => {
     expect(LEFT_OUT.why.journey).not.toMatch(/\?/);
   });
 
-  test("test_what_waits_for_a_person_says_that_burro_could_not_be_sure_it_is_wanted_and_where_it_is_added", () => {
-    // A measure that a decision holds to be offered and never applied, or a wish the words
-    // do not say is the person's own. Which it is, is the service's to say, so what is said
-    // of it names no measure and gives the one reason that is true of each.
+  test("test_a_measure_that_waits_by_a_decision_says_that_burro_adds_it_only_where_it_is_chosen_and_where_it_is_added", () => {
+    // A measure that a decision holds to be offered and never applied. Which measure that
+    // is, is the service's to say, so what is said of it names none. Seen in a browser: it
+    // said that Burro "could not be sure that you want it counted", which is why a wish
+    // waits that may be somebody else's, and is not why this does.
     const bands: LeftThing = { key: "by_choice Homes", name: "Homes in the higher council tax bands", why: "by_choice", says: "" };
     render(<LeftOut things={[bands]} words={false} meta={meta} />);
 
     const [said] = entries();
     expect(said).toBe(`Homes in the higher council tax bands. ${LEFT_OUT.why.by_choice}`);
-    expect(LEFT_OUT.why.by_choice).toMatch(/could not be sure that you want it counted/);
+    expect(LEFT_OUT.why.by_choice).toMatch(/only when you choose it yourself/);
+    expect(LEFT_OUT.why.by_choice).not.toMatch(/could not be sure|could not tell/);
     expect(LEFT_OUT.why.by_choice).toMatch(/left it for you to add/);
     expect(LEFT_OUT.why.by_choice.includes(REFINE.label)).toBe(true);
     expect(LEFT_OUT.why.by_choice).not.toMatch(/council|tax|income|crime|census/i);
     // It asks nothing and offers nothing, as every line of the notice.
     expect(LEFT_OUT.why.by_choice).not.toMatch(/\?/);
+  });
+
+  test("test_a_wish_that_may_be_somebody_elses_says_that_burro_could_not_be_sure_it_is_wanted_and_where_it_is_added", () => {
+    const park: LeftThing = { key: "not_said Nearer a park", name: "Nearer a park", why: "not_said", says: "" };
+    render(<LeftOut things={[park]} words={false} meta={meta} />);
+
+    expect(entries()).toEqual([`Nearer a park. ${LEFT_OUT.why.not_said}`]);
+    expect(LEFT_OUT.why.not_said).toMatch(/could not be sure that you want it counted/);
+    expect(LEFT_OUT.why.not_said).toMatch(/left it for you to add/);
+    expect(LEFT_OUT.why.not_said.includes(REFINE.label)).toBe(true);
+    expect(LEFT_OUT.why.not_said).not.toBe(LEFT_OUT.why.by_choice);
+    expect(LEFT_OUT.why.not_said).not.toMatch(/\?/);
   });
 
   test("test_a_thing_the_service_gave_no_way_to_take_is_said_in_the_services_own_words", () => {
@@ -312,8 +345,9 @@ describe("what Burro left out of a search", () => {
 
   test("test_nothing_of_it_asks_and_nothing_of_it_is_offered_to_be_added", () => {
     const bands: LeftThing = { key: "by_choice Homes", name: "Homes", why: "by_choice", says: "" };
+    const park: LeftThing = { key: "not_said A park", name: "A park", why: "not_said", says: "" };
     const prices: LeftThing = { key: "otherwise Prices", name: "Prices", why: "otherwise", says: "" };
-    render(<LeftOut things={[gritty, young, pubs, unknown, anArea, noWay, bands, prices]} words meta={meta} />);
+    render(<LeftOut things={[gritty, young, pubs, unknown, anArea, noWay, bands, park, prices]} words meta={meta} />);
 
     expect(notice().textContent).not.toMatch(/\?/);
     expect(within(notice()).queryAllByRole("button")).toEqual([]);

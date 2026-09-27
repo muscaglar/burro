@@ -1,8 +1,11 @@
 /*
- * The lines of a result, as the look draws them: one line for each vibe, with a rule of
- * sand over it. On a line stand the small drawing of the vibe with its name, and its
- * gauge: five steps with their peg, and a picture at each end. Where the figure is not
- * whole, or is not known, two words say so. No other word stands on a line.
+ * The lines of a result, as the look draws them: one line for each thing that was asked
+ * for, with a rule of sand over it. On a line stand the small drawing of the thing with
+ * its name, and what the area has of it. Of a vibe and of a measure that is a gauge: five
+ * steps with their peg, and a picture at each end. Of a journey and of a budget it is a
+ * figure, and the word that says on which side of what was set the figure falls. Where
+ * the figure is not whole, or is not known, two words say so. No other word stands on a
+ * line.
  *
  * THE STEPS OF EVERY LINE STAND IN ONE COLUMN, so that the eye runs down them: in every
  * line of a result, and from one result to the next. A person who walked the website asked
@@ -72,6 +75,13 @@
   gap: 0 var(--between);
   align-items: center;
   min-width: 0;
+  /*
+   * Every line is as high as the line of a gauge, whatever it holds: a gauge is as high as
+   * the picture at its end or as its steps with their peg, whichever is the higher. So the
+   * line of a journey is as high as the line of a vibe over it, and no line grows as the
+   * gauge of a measure comes to stand in it.
+   */
+  min-block-size: max(var(--room), calc(var(--px) * var(--steps-high, 0)));
   text-align: start;
 }
 
@@ -223,6 +233,35 @@
 }
 
 /*
+ * What an area has of a journey or of a budget: a figure, and the word that says on which
+ * side of what the person set the figure falls. It stands where a gauge stands, and begins
+ * where the gauge of every line begins, so that the eye runs down the one column. Both are
+ * read, and are set in the reading face: the word is the heavier of the two, in ink, and
+ * nothing of it is coloured, since neither side is marked as the better.
+ */
+.told {
+  display: flex;
+  flex-wrap: wrap;
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  gap: 0 var(--space-2);
+  align-items: baseline;
+  min-width: 0;
+  color: var(--ink);
+  font: 400 var(--size-small) / 1.3 var(--font-say);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The figure is read as a sentence is, and the word after it is the heavier of the two. */
+.figure {
+  font-weight: 400;
+}
+
+.side {
+  font-weight: 700;
+}
+
+/*
  * An end of a gauge. It is no box of its own: its picture is laid out by the gauge, so
  * that the pictures and the steps stand on one line. Neither end is the good one, and the
  * two are drawn alike.
@@ -296,17 +335,54 @@
 }
 
 /*
- * A line with no gauge, as one of a thing that is no vibe: the two words stand where a
- * gauge begins, on the line of the name.
+ * A line with neither a gauge nor a figure, as one of a journey with no time: the two
+ * words stand where a gauge begins, on the line of the name.
  */
-.mark:not(:has(> .picture)) > .first {
+.mark:not(:has(> .picture, > .told)) > .first {
   grid-row: 1 / span 2;
 }
 
-.mark:not(:has(> .picture)) > .said {
+.mark:not(:has(> .picture, > .told)) > .said {
   grid-row: 1 / span 2;
   grid-column: 2 / -1;
   padding-inline-start: 0;
+}
+
+/*
+ * THE PRESS THAT SHOWS THE REST. A result with the room of a desk shows every line of
+ * what was asked for, and the press is not drawn. A result as narrow as a phone shows the
+ * first of them, so that the first result is whole on the first screen, and the press
+ * stands under them on a rule of sand, as a line does: it says how many more there are.
+ * What it shows opens under it, so that the press stays where it was pressed.
+ */
+.fold {
+  display: none;
+  margin: 0;
+  padding-block: var(--px);
+  border-block-start: var(--edge) solid var(--sand);
+}
+
+/* It is as high as a small button of the look, and weighs more than the button of the kit, whichever sheet is read last. */
+.fold > button {
+  min-height: var(--target-min);
+}
+
+/*
+ * What the press says: how many more there are, and what puts them away again. Both are
+ * laid in one place and one is drawn, so that the press is as wide saying the one as the
+ * other, and nothing of it changes size under the press.
+ */
+.says {
+  display: grid;
+}
+
+.saying {
+  grid-row: 1;
+  grid-column: 1;
+}
+
+.saying[data-said="false"] {
+  visibility: hidden;
 }
 
 /*
@@ -316,6 +392,11 @@
 .strip[data-short="true"] .item {
   padding-block: var(--px);
   border-block-start: 0;
+}
+
+/* Its steps are small, and lower than the picture at an end: a line is as high as that picture. */
+.strip[data-short="true"] .mark {
+  min-block-size: var(--room);
 }
 
 /*
@@ -331,6 +412,26 @@
 
   .item {
     padding-block: var(--px);
+  }
+
+  /*
+   * A figure and its word that have not the room of one line stand on two, which are as
+   * high together as the picture at the end of a gauge: so the line of a budget is as high
+   * as the line over it. Measured on a phone after a plain search, with the lines as far
+   * apart as they are read elsewhere: the line of the budget was 7 px higher than the
+   * rest, and the first result ended 2 px over the foot of the first screen.
+   */
+  .told {
+    line-height: 1.05;
+  }
+
+  /* The press is drawn, and what it shows is put away until it is pressed. */
+  .fold {
+    display: block;
+  }
+
+  .lines[data-folded="true"] {
+    display: none;
   }
 }
 
@@ -355,7 +456,8 @@
     grid-row: 1;
   }
 
-  .mark > .picture {
+  .mark > .picture,
+  .mark > .told {
     grid-row: 2;
     grid-column: 1;
     justify-self: start;
@@ -383,7 +485,7 @@
     grid-row: 1 / span 2;
   }
 
-  .mark[data-known]:has(> .picture) > .said {
+  .mark[data-known]:has(> .picture, > .told) > .said {
     grid-row: 1 / span 2;
     grid-column: 3;
     padding-inline-start: 0;
@@ -391,7 +493,8 @@
 }
 
 @media (forced-colors: active) {
-  .item {
+  .item,
+  .fold {
     border-block-start-color: CanvasText;
   }
 }

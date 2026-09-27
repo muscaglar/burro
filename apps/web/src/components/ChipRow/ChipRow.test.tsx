@@ -554,16 +554,17 @@ describe("a chip as it is drawn", () => {
     expect(container.innerHTML.includes("syn-p0021")).toBe(false);
   });
 
-  test("test_what_nobody_said_bears_the_word_once_and_what_a_person_said_does_not", () => {
+  test("test_what_nobody_said_bears_the_word_once_for_each_part_of_it_and_what_a_person_said_does_not", () => {
     show(first.spec, { inARow: true });
     const held = chipsOf(first.spec, meta, areas, PLACES, ASSUMED);
 
     expect(chips().map(stateIn)).toEqual(["said", "said", "assumed", "assumed", "said"]);
     expect(chips().map(stateIn)).toEqual(held.map((chip) => stateOf(chip, first.spec)));
-    // The word says it, once: the part of the kit is told that the words of the chip do.
-    for (const chip of chips().filter((one) => stateIn(one) === "assumed")) {
-      expect(wordsOf(chip).split(CHIPS.assumed)).toHaveLength(2);
-    }
+    // The word says it, once for each part that nobody said and no more: the part of the
+    // kit is told that the words of the chip do, and says nothing of its own.
+    const parts = (at: number) => held[at]?.parts.filter((part) => part.assumed).length ?? 0;
+    expect(chips().map((chip) => wordsOf(chip).split(CHIPS.assumed).length - 1)).toEqual(held.map((_, at) => parts(at)));
+    expect(held.map((_, at) => parts(at))).toEqual([0, 0, 2, 1, 0]);
     for (const chip of chips().filter((one) => stateIn(one) === "said")) {
       expect(wordsOf(chip)).not.toContain(CHIPS.assumed);
     }
@@ -782,15 +783,14 @@ describe("what Burro took for the person", () => {
     const { user } = show(first.spec, { assumed: TAKEN, inARow: true });
     const place = () => chips().map(wordsOf).find((words) => words.startsWith("Cindermoor Works"));
 
-    // In the row: the name, that it was assumed, what was said, and that the rest was too.
-    expect(place()).toBe(`Cindermoor Works ${CHIPS.assumed}, 35 minutes, ${CHIPS.restAssumed}`);
+    // In the row: the name, that it was assumed, and every part, with which of them nobody chose.
+    const said = `Cindermoor Works ${CHIPS.assumed}, public transport ${CHIPS.assumed}, 35 minutes, flexible ${CHIPS.assumed}`;
+    expect(place()).toBe(said);
 
     await user.click(screen.getByRole("button", { name: /^Cindermoor Works/ }));
 
-    // In full: every part, and which of them nobody chose.
-    expect(place()).toBe(
-      `Cindermoor Works ${CHIPS.assumed}, public transport ${CHIPS.assumed}, 35 minutes, flexible ${CHIPS.assumed}`,
-    );
+    // In full it says the same.
+    expect(place()).toBe(said);
     // It can be taken off, as any place can, and what "assumed" means is said in sight.
     expect(screen.getByRole("button", { name: `${CHIPS.remove}: Cindermoor Works` })).toBeInTheDocument();
     expect(screen.getByText(CHIPS.assumedHint)).toBeInTheDocument();
@@ -799,7 +799,9 @@ describe("what Burro took for the person", () => {
   test("test_a_place_a_person_named_in_full_says_nothing_of_the_kind_after_its_name", () => {
     show(first.spec, { inARow: true });
 
-    expect(chips().map(wordsOf)).toContain(`Cindermoor Works, 35 minutes, ${CHIPS.restAssumed}`);
+    expect(chips().map(wordsOf)).toContain(
+      `Cindermoor Works, public transport ${CHIPS.assumed}, 35 minutes, flexible ${CHIPS.assumed}`,
+    );
   });
 
   test("test_a_thing_that_was_taken_the_gentler_way_says_which_way_and_that_it_was_assumed", () => {
@@ -897,7 +899,7 @@ describe("the chips in the row", () => {
       "Village feel",
       "Parks close by",
       "Food and drink",
-      `Cindermoor Works, 35 minutes, ${CHIPS.restAssumed}`,
+      `Cindermoor Works, public transport ${CHIPS.assumed}, 35 minutes, flexible ${CHIPS.assumed}`,
     ]);
     const rest = screen.getByRole("button", { name: CHIPS.rest(2) });
     expect(rest).toHaveAttribute("aria-expanded", "false");
@@ -926,22 +928,27 @@ describe("the chips in the row", () => {
     show(many, { inARow: true });
 
     // The chip of the settings nobody chose stood last, over and above the six.
-    expect(wordsOf(chips().at(-1) as HTMLElement)).toBe(`Cindermoor Works, 35 minutes, ${CHIPS.restAssumed}`);
+    expect(wordsOf(chips().at(-1) as HTMLElement)).toBe(
+      `Cindermoor Works, public transport ${CHIPS.assumed}, 35 minutes, flexible ${CHIPS.assumed}`,
+    );
     expect(chips()).toHaveLength(SHOWN_AT_FIRST);
   });
 
-  test("test_in_the_row_a_chip_says_what_was_said_and_that_the_rest_was_assumed", () => {
+  test("test_in_the_row_a_chip_says_every_part_of_what_was_taken_and_marks_what_was_assumed_of_it", () => {
     show(first.spec, { inARow: true });
 
-    // One part that nobody said is named, and the word "assumed" stands on it alone. Seen
-    // in a browser: "rest assumed" beside the very words that were typed.
+    // Every part is named, and the word "assumed" stands on each that nobody said and on
+    // no other. Seen in a browser: "rest assumed" beside the very words that were typed,
+    // and then "Burro assumed the rest" of a journey, which did not say that its limit
+    // was flexible.
     expect(chips().map(wordsOf)).toEqual([
       "Leafy",
       "Quiet streets",
-      `Cindermoor Works, 35 minutes, ${CHIPS.restAssumed}`,
+      `Cindermoor Works, public transport ${CHIPS.assumed}, 35 minutes, flexible ${CHIPS.assumed}`,
       `£1,700 a month, one bedroom, flexible ${CHIPS.assumed}`,
       "Renting",
     ]);
+    expect(document.body.textContent?.includes(CHIPS.restAssumed)).toBe(false);
     // The chip says still that something of it was assumed, to whatever lays the row out.
     expect(chips().map((chip) => chip.getAttribute("data-assumed"))).toEqual([
       "false",
@@ -1712,6 +1719,84 @@ describe("a chip of a vibe", () => {
     show();
 
     expect(screen.queryByRole("button", { name: /^Turn/ })).toBeNull();
+    expect(document.querySelector("[data-turns]")).toBeNull();
+  });
+
+  test("test_a_chip_of_a_scale_keeps_the_room_of_what_it_says_once_it_is_turned_so_that_turn_stands_where_it_was_pressed", () => {
+    // Measured at 1440 by 900: "Turn" went 9 px along the row under the press, as the chip
+    // came to name the other end of its scale, whose name is shorter.
+    const sheet = rulesOf(readFileSync(path.join(__dirname, "ChipRow.module.css"), "utf8")).filter((rule) => rule.under === null);
+    const setsOf = (selector: string) => new Map(sheet.filter((rule) => rule.selector === selector).flatMap((rule) => [...rule.sets]));
+    show(calm.spec, { assumed: { "tag:pace": ["weight"] } });
+
+    const main = screen.getByRole("button", { name: new RegExp(`^${CHIPS.towards("Going out", "Calm")}`) });
+    const words = main.querySelector("[data-turns]") as HTMLElement;
+    const [now, then] = [...words.children] as HTMLElement[];
+    // What it says now is what is read and heard, and all that is.
+    expect(now?.textContent).toBe(`${CHIPS.towards("Going out", "Calm")} ${CHIPS.assumed}`);
+    expect(main.textContent).toBe(now?.textContent);
+    // What it says once it is turned lies in the same place, laid out and not drawn, in the
+    // faces it is set in: it is in no text of the page, and is kept from whoever hears it.
+    expect(then).toHaveAttribute("aria-hidden", "true");
+    expect(then?.textContent).toBe("");
+    expect([...(then?.querySelectorAll("[data-says]") ?? [])].map((part) => [part.className, part.getAttribute("data-says")])).toEqual([
+      ["label", CHIPS.towards("Going out", "Buzzy")],
+      ["assumed", ` ${CHIPS.assumed}`],
+    ]);
+    expect(setsOf(".words[data-turns]").get("display")).toBe("inline-grid");
+    expect(setsOf(".words[data-turns] > *").get("grid-area")).toBe("1 / 1");
+    expect(setsOf(".then").get("visibility")).toBe("hidden");
+    expect(setsOf(".then [data-says]::before").get("content")).toBe("attr(data-says)");
+  });
+
+  test("test_a_chip_that_is_turned_is_no_narrower_than_it_was_as_it_was_pressed", async () => {
+    // What nobody said of a vibe is said no longer once a person turns it: the chip said
+    // less, and "Turn" went back along the row by as much as the word "assumed" is wide.
+    const measure = jest.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+      const wide = this.hasAttribute("data-turns") ? 236.5 : this.tagName === "SECTION" ? 600 : 0;
+      return { top: 0, bottom: 0, left: 0, right: wide, x: 0, y: 0, width: wide, height: 0, toJSON: () => ({}) };
+    });
+    try {
+      const { user, rerender } = show(calm.spec, { assumed: { "tag:pace": ["weight"] } });
+      const words = () => document.querySelector("[data-turns]") as HTMLElement;
+      expect(words().style.minWidth).toBe("");
+
+      await user.click(screen.getByRole("button", { name: CHIPS.turnTo("Going out", "Buzzy") }));
+      rerender(
+        <ChipRow
+          spec={turned.body.data.spec}
+          assumed={{}}
+          placeNames={PLACES}
+          meta={meta}
+          areas={areas}
+          onEdit={() => undefined}
+          onTenure={() => undefined}
+          version={2}
+          readBy="rule"
+        />,
+      );
+
+      expect(words().textContent).toBe(CHIPS.towards("Going out", "Buzzy"));
+      expect(words().style.minWidth).toBe("236.5px");
+    } finally {
+      measure.mockRestore();
+    }
+  });
+
+  test("test_on_a_narrow_row_a_chip_that_is_turned_keeps_no_room_of_its_own_since_it_is_laid_out_by_the_row", async () => {
+    const measure = jest.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+      const wide = this.hasAttribute("data-turns") ? 236.5 : this.tagName === "SECTION" ? 358 : 0;
+      return { top: 0, bottom: 0, left: 0, right: wide, x: 0, y: 0, width: wide, height: 0, toJSON: () => ({}) };
+    });
+    try {
+      const { user } = show(calm.spec, { assumed: {} });
+
+      await user.click(screen.getByRole("button", { name: CHIPS.turnTo("Going out", "Buzzy") }));
+
+      expect((document.querySelector("[data-turns]") as HTMLElement).style.minWidth).toBe("");
+    } finally {
+      measure.mockRestore();
+    }
   });
 
   test("test_a_chip_of_a_scale_opens_one_slider_with_both_ends_named", async () => {

@@ -10,6 +10,7 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type FocusEvent,
   type KeyboardEvent,
   type ReactNode,
 } from "react";
@@ -42,9 +43,10 @@ import {
 } from "@/lib/map/style";
 import { canDrawMap, prefersReducedMotion } from "@/lib/map/webgl";
 import { basedOn } from "@/lib/search/card";
-import { bringIntoSight } from "@/lib/sight";
+import { bringIntoSight, bringIntoSightUnder, holdOffTheSecondPress, keepTheRoomOf, standsAt, type Stood } from "@/lib/sight";
 import type { Lens } from "@/lib/vibes";
 
+import { BAR_SAYS } from "../CompareTray/look";
 import { Disclosure } from "../Disclosure/Disclosure";
 import { Frame } from "../kit/Frame/Frame";
 import { Press } from "../kit/Press/Press";
@@ -90,6 +92,15 @@ interface Props {
 
 
 const never = () => () => undefined;
+
+/** The box that scrolls in itself and holds the map, as the column beside the answer does. `null` where none does. */
+function columnOf(part: HTMLElement | null): HTMLElement | null {
+  for (let holds = part?.parentElement ?? null; holds !== null && holds !== document.body; holds = holds.parentElement) {
+    const { overflowY } = getComputedStyle(holds);
+    if (overflowY === "auto" || overflowY === "scroll") return holds;
+  }
+  return null;
+}
 
 type Library = { Map: typeof MapLibreMap; Marker: typeof MapLibreMarker };
 
@@ -142,11 +153,23 @@ type Fitted = [[number, number], [number, number]];
  * takes a person to the result. Escape closes the card, as its button does,
  * and the focus goes back to the pin.
  *
+ * An area may be shown on the map from elsewhere: by "Show on the map" in the
+ * working of a result, and by "Show" in a row of the table. The card is then
+ * given the focus by what was pressed, and the map brings itself into sight
+ * with the card under it, by as little as must be: what was pressed goes
+ * from under the hand once, to where a person looks for what they asked
+ * for, and not at all where both are in sight already.
+ *
  * On a screen of one column the map is a strip, and what shows the whole of
  * it stands over it, so that the button stays under the hand as the map
  * grows under it. A strip is for a glance: a finger that is drawn across it
  * scrolls the page, and moves no map. Before a search it is low, and the
  * city is drawn as wide as it.
+ *
+ * The table of all areas is one press away, at the foot of the box. Beside
+ * the answer the map stands in a column that scrolls in itself, which holds
+ * less once the table has closed: the column keeps the room of it, so that
+ * the bar that closed it stands where it was pressed.
  */
 export function MapView({
   geometry,
@@ -183,6 +206,18 @@ export function MapView({
   // its pin, by key or by pointer, or by its ground.
   const card = useRef<HTMLElement>(null);
   const onTheMap = useRef(false);
+  // The box of the map, with all that is said of it.
+  const view = useRef<HTMLDivElement>(null);
+  // True while the map itself gives the card the focus, of a press on the map.
+  const ours = useRef(false);
+  // How far the page and the column of the map were scrolled, as a browser last said so.
+  const scrolled = useRef({ page: 0, column: 0 });
+  // Whether the table of all areas is open, where it stood as it was pressed to close it,
+  // and what gives up the room that is kept of it.
+  const [tableOpen, setTableOpen] = useState(false);
+  const fold = useRef<HTMLDivElement>(null);
+  const closing = useRef<Stood | null>(null);
+  const kept = useRef<(() => void) | null>(null);
   // The area that is chosen, as the map was last drawn: what is pressed on the map is not drawn by the page.
   const chosenNow = useRef(selectedId);
   // The geometry the map is ready to draw. It is ready when this is the geometry in hand.
@@ -211,7 +246,9 @@ export function MapView({
    */
   const chooseHere = useCallback((areaId: string | null) => {
     if (areaId !== null && areaId === chosenNow.current) {
+      ours.current = true;
       card.current?.focus({ preventScroll: true });
+      ours.current = false;
       return;
     }
     onTheMap.current = areaId !== null;
@@ -573,9 +610,62 @@ export function MapView({
       [...(container.current?.querySelectorAll<HTMLElement>("button[data-area]") ?? [])].find(
         (pin) => pin.dataset.area === selectedId,
       ) ?? container.current;
+    ours.current = true;
     card.current.focus({ preventScroll: true });
+    ours.current = false;
     if (pressed) bringIntoSight(card.current, pressed);
   }, [selectedId]);
+
+  // How far the page and the column are scrolled is noted as a browser says so, which is
+  // once it has drawn them there: so what is noted as the card takes the focus is where
+  // they stood before the focus moved them.
+  useEffect(() => {
+    const note = () => {
+      scrolled.current = { page: window.scrollY, column: columnOf(view.current)?.scrollTop ?? 0 };
+    };
+    note();
+    window.addEventListener("scroll", note, { capture: true, passive: true });
+    return () => window.removeEventListener("scroll", note, { capture: true });
+  }, []);
+
+  /**
+   * The card takes the focus of a press elsewhere, which asked for its area to be shown on
+   * the map. A browser that gives a thing the focus brings it into sight its own way: to
+   * the middle of a box that scrolls, and clear of the room the page keeps at its foot
+   * for the bar of areas, whether or not the bar is there. Measured at 1440 by 900, the
+   * page went 40 px from under the press for a card that was in plain sight. So the page
+   * and the column are put back where they stood, and the map is brought into sight with
+   * the card under it, by as little as must be.
+   */
+  const onCardFocus = (event: FocusEvent<HTMLElement>) => {
+    if (ours.current || event.target !== event.currentTarget || view.current === null) return;
+    const column = columnOf(view.current);
+    if (column !== null && column.scrollTop !== scrolled.current.column) column.scrollTop = scrolled.current.column;
+    if (window.scrollY !== scrolled.current.page) window.scrollBy(0, scrolled.current.page - window.scrollY);
+    const bar = document.getElementById(BAR_SAYS)?.closest("section") ?? null;
+    const by = bringIntoSightUnder(view.current, event.currentTarget, bar);
+    // What was pressed has gone from under the pointer, and the map may stand there.
+    if (by !== 0) holdOffTheSecondPress(view.current);
+  };
+
+  /** The table is opened or closed. Where it stood is kept of the press that closes it. */
+  const toggleTable = (open: boolean) => {
+    const bar = fold.current?.querySelector<HTMLElement>("button[aria-expanded]") ?? null;
+    closing.current = open || bar === null ? null : standsAt(bar);
+    setTableOpen(open);
+  };
+
+  // Once the table is off the page, and before the page is drawn: the column keeps the
+  // room of it. What is kept is given up as the table opens again, which has the room.
+  useLayoutEffect(() => {
+    const stood = closing.current;
+    closing.current = null;
+    if (!tableOpen && stood === null) return;
+    kept.current?.();
+    kept.current = tableOpen || stood === null ? null : keepTheRoomOf(stood);
+  }, [tableOpen]);
+
+  useEffect(() => () => kept.current?.(), []);
 
   // Nothing pans unless the chosen area is off screen.
   useEffect(() => {
@@ -592,9 +682,11 @@ export function MapView({
   // It stands at the foot of the box of the map. Beside the answer that is the foot of a
   // column that scrolls in itself, and what it opened began under it, out of sight.
   const theTable = (
-    <Disclosure label={TABLE.title} className={styles.table} bring>
-      {table}
-    </Disclosure>
+    <div ref={fold} className={styles.fold}>
+      <Disclosure label={TABLE.title} className={styles.table} open={tableOpen} onToggle={toggleTable} bring>
+        {table}
+      </Disclosure>
+    </div>
   );
 
   if (geometryFailed || drawable === false || broken) {
@@ -653,7 +745,7 @@ export function MapView({
 
   return (
     // The map stands in a box, and so does all that is said of it: nothing is read on the grass.
-    <Frame kind="box" bare className={styles.view} data-taller={taller} data-low={low} data-names={NAMES}>
+    <Frame kind="box" bare ref={view} className={styles.view} data-taller={taller} data-low={low} data-names={NAMES}>
       {/* Drawn on a screen of one column only, where the map is a strip. It stands over the
           map, so that it stays where it was pressed as the map grows under it. It says
           whether the whole map is shown by being on, and keeps its name: with a name that
@@ -686,6 +778,7 @@ export function MapView({
             ref={card}
             id={`${id}-card`}
             onKeyDown={onKeyDown}
+            onFocus={onCardFocus}
             summary={chosen}
             scores={scores}
             filtered={filtered}

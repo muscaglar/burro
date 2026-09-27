@@ -403,6 +403,15 @@ export const STATUS = {
    */
   budgetWentForAVisit:
     "Your budget was taken off, because you are visiting and Burro does not ask what you can pay for a visit. It ranks the areas by everything else in your search.",
+  /**
+   * Said once a person has stopped a search that was their first, until the search next
+   * moves: what was stopped, and what became of the words. The line said nothing, and
+   * whoever could not see the page could not tell that the press had landed. It is two
+   * lines of a phone and no more.
+   */
+  stopped: "Burro stopped, as you asked. No areas are ranked, and your words are still in the box.",
+  /** The same over a search that is open: what was added to it is what was stopped. */
+  stoppedOpen: "Burro stopped, as you asked. Your search is as it was, and your words are in the box.",
   nothingMatches: "No area passes every limit you set.",
   /**
    * Said in its place where no limit left any area out: every area has too little data for
@@ -626,12 +635,15 @@ export const LEFT_OUT = {
       'If you want to look only in this area, you can type "only" and then its name. ' +
       "If you want to leave it out, you can hide it with the button on its result.",
     /**
-     * Of what the service says waits for a person, and counts neither recorded crime nor
-     * who lived somewhere: a thing a decision holds to be offered and never applied, or a
-     * wish the words do not say is the person's own. Which of them it is, is the
-     * service's: so it names no thing, and gives the one reason that is true of each.
+     * Of what the service says waits for a person, where it counts neither recorded crime
+     * nor who lived somewhere and the service says no more of why: a measure that a
+     * decision holds to be offered and never applied, whoever asks. Which measure that
+     * is, and what it follows, is the service's to say: so it names no thing and no
+     * cause, and says what is true of each.
      */
-    by_choice: `Burro noticed this in your words, but it could not be sure that you want it counted, so it has left it for you to add. You can add it under ${REFINE.label}.`,
+    by_choice: `Burro noticed this in your words, but it is one of the things that Burro adds only when you choose it yourself, so it has left it for you to add. You can add it under ${REFINE.label}.`,
+    /** Of a wish that the service says the words do not say is the person's own: it may be somebody else's. */
+    not_said: `Burro noticed this in your words, but it could not be sure that you want it counted, so it has left it for you to add. You can add it under ${REFINE.label}.`,
     /** Of a journey that the service says waits for a person: the place may be somebody else's. */
     journey: `Burro noticed this place in your words, but it could not be sure that you need to reach it, so it has left the journey for you to add. You can add it under ${REFINE.label}.`,
     two_ways: `Burro could not tell from your words which way you want this to count, so it has left it out. You can add it under ${REFINE.label}.`,
@@ -796,12 +808,21 @@ export const RESULTS = {
 } as const;
 
 /**
- * The strip of vibes under a result's name. The name of a vibe and the names of the ends of
- * a scale are the API's. "least" and "most" are the ends of a vibe that runs one way, as the
+ * The lines under a result's name. The name of a vibe and the names of the ends of a scale
+ * are the API's. "least" and "most" are the ends of a vibe that runs one way, as the
  * contract names them (section 7.3), and a test holds them to the facts.
  */
 export const STRIP = {
+  /**
+   * The name of each list of lines, to whoever hears the page, which says what the list
+   * holds: what was asked for, the rest of it where a narrow result folds its lines, the
+   * vibes of an area where nothing was asked for, and the vibes nobody asked for where the
+   * look has them stand under what was. The name of the area is the API's.
+   */
+  askedOf: (area: string) => `What you asked for in ${area}`,
+  restOf: (area: string) => `More of what you asked for in ${area}`,
   label: (area: string) => `Vibes of ${area}`,
+  othersOf: (area: string) => `Other vibes of ${area}`,
   least: "least",
   most: "most",
   band: (band: number) => `band ${band} of 5`,

@@ -20,6 +20,7 @@ import type {
   AreaSummary,
   ExplainedSentence,
   Explanation,
+  Fact,
   GeometryData,
   Operations,
   PreferenceSpec,
@@ -45,11 +46,14 @@ import { Skeleton } from "../Skeleton/Skeleton";
 import { SourceNote } from "../SourceNote/SourceNote";
 import { isFromPart, Strip, type Ends } from "../Strip/Strip";
 import { Town } from "../Town/Town";
-import { linesOf } from "./lines";
+import { linesOf, measuredBy, standsLower } from "./lines";
 import {
   BESIDE_A_TRADE_OFF,
   DRAWING_OF_A_TRADE_OFF,
+  LETTERS_ON_A_LINE_OF_A_NAME,
+  LINES_WITH_NO_FOLD,
   type FitSaid,
+  type LinesOverTheFold,
   type OthersStand,
   type TownDrawn,
   type TradeOffDrawn,
@@ -87,9 +91,11 @@ interface Shared {
   readonly others: OthersStand;
   /** Where what a fit is based on is said, which is the same for every result. */
   readonly fitSaid: FitSaid;
+  /** How many lines of a narrow result stand over the press that shows the rest, which is the same for every result. */
+  readonly linesOver: LinesOverTheFold;
   /**
-   * Every name that stands in the column of names, of every result of the list: the steps
-   * of a line then begin in one place from one result to the next.
+   * Every name that stands in the column of names, of every result of the list: what an
+   * area has of each thing then begins in one place from one result to the next.
    */
   readonly columnOf: readonly string[];
   readonly selected: boolean;
@@ -424,32 +430,47 @@ function SourceOfTheTradeOff({ sentence, facts, summary, meta }: SourceOfProps) 
 
 interface VibesProps extends Pick<Shared, "summary" | "facts" | "meta"> {
   readonly marks: readonly StripMark[];
+  /**
+   * The fact of each measure whose line on the result is drawn from one, in the order the
+   * search holds them. `undefined` of one whose fact may yet come. Left out of a row,
+   * which draws nothing of a measure but its name.
+   */
+  readonly measures?: readonly (Fact | undefined)[];
   /** True while the facts of the result may yet come, with its reasons or with its profile. */
   readonly waiting: boolean;
+  /**
+   * True where the result shows a figure whose source the working does not hold, as a row
+   * shows what a home costs: the way to the page of the area is then drawn, whatever is
+   * held of the gauges.
+   */
+  readonly away?: boolean;
 }
 
 /**
  * The figures behind each gauge, in the working: the fact of each vibe the API gave with
- * the result, of those that were asked for and of the others, each with the key of its
- * source. A band that was worked out from some of what goes into its vibe says so here,
- * in the API's words, after the mark that stands beside its gauge.
+ * the result, of those that were asked for and of the others, and of each measure that
+ * was asked for, each with the key of its source. A band that was worked out from some of
+ * what goes into its vibe says so here, in the API's words, after the mark that stands
+ * beside its gauge.
  *
  * The page holds the facts of the first five results and asks for no other: so a row has
  * none, unless another search left them, and a card has none where they failed to come.
  * A gauge is drawn of the ranking all the same. Of one whose fact the page does not hold,
  * the working says what the ranking gave, laid out as its fact would be, and one link
  * under them leads to the page of the area, which holds every figure with its source and
- * its date. So no gauge of a result is without a way to its source.
+ * its date. So no gauge of a result is without a way to its source, and no figure.
  */
-function Vibes({ marks, facts, meta, summary, waiting }: VibesProps) {
+function Vibes({ marks, measures = [], facts, meta, summary, waiting, away = false }: VibesProps) {
   const drawn = marks.flatMap((mark) => {
     const fact = facts[mark.fact_id];
     const tag = meta.tags.find((one) => one.tag_id === mark.tag_id);
     // A vibe the release does not name has no line on the result, and none here without its fact.
     return fact === undefined && tag === undefined ? [] : [{ mark, fact, tag }];
   });
-  if (drawn.length === 0) return null;
-  const elsewhere = !waiting && drawn.some(({ fact }) => fact === undefined);
+  // A measure whose fact did not come has its name on the result and no figure: nothing of it is owed a source.
+  const measured = measures.filter((fact) => fact !== undefined || waiting);
+  if (drawn.length === 0 && measured.length === 0 && !away) return null;
+  const elsewhere = !waiting && (away || drawn.some(({ fact }) => fact === undefined));
   return (
     <div className={styles.part}>
       <h4 className={styles.tag}>{CARD.vibes}</h4>
@@ -473,6 +494,10 @@ function Vibes({ marks, facts, meta, summary, waiting }: VibesProps) {
             </li>
           );
         })}
+        {measured.map((fact, at) => (
+          // The measures of a search are in one order, which no answer changes: each is told by its place.
+          <li key={fact?.fact_id ?? at}>{fact === undefined ? <Skeleton /> : <FactRow fact={fact} />}</li>
+        ))}
       </ul>
       {elsewhere ? (
         <p className={styles.elsewhere}>
@@ -522,7 +547,7 @@ function Placed({ mark, tag }: PlacedProps) {
  * One of the first five results. Its short form is the answer, and holds no
  * more than this: its rank, its name and what stands beside the name, its
  * fit, the way to compare it and the town of the area; a line for each thing
- * that was asked for, with its gauge; and its trade-off.
+ * that was asked for, with its gauge or its figure; and its trade-off.
  * Everything else is the working, one press away: where the area is, why it
  * fits, the figures behind the trade-off and behind each gauge, what has no
  * figure, each journey, the cost, and how the fit is worked out.
@@ -550,6 +575,7 @@ export function ResultCard({
   ends,
   others,
   fitSaid,
+  linesOver,
   tradeOffDrawn,
   columnOf,
   geometry,
@@ -568,12 +594,15 @@ export function ResultCard({
   const { area_id: areaId } = area;
   const reasons = explanation?.reasons.slice(0, REASONS) ?? [];
   const tradeOff = tradeOffOf(area, explanation, spec, meta);
-  const lines = linesOf(area, meta, spec, others, fitSaid);
+  const lines = linesOf(area, meta, spec, { facts, places: names }, { others, fitSaid });
   const inShort = fitSaid === "working";
-  // The vibe of the trade-off has its figures under the trade-off, and is not said a second time.
+  // What the trade-off is about has its figures under the trade-off, and is not said a second time.
   const ofTheTradeOff = tradeOff === null ? [] : factAbout(tradeOff, facts).map((fact) => fact.fact_id);
   // A visit is a search for somewhere to stay: nothing of what a home costs is drawn of one.
   const aVisit = spec.tenure === "visit";
+  // What a home costs stands on the line of the budget. Its source is with the cost, in the
+  // working: where the cost did not come, the page of the area holds it.
+  const costShown = lines.asked.some((one) => one.thing.kind === "budget" && one.figure !== undefined);
 
   const working = (
     <div className={styles.opened}>
@@ -620,10 +649,12 @@ export function ResultCard({
 
       <Vibes
         marks={area.strip.filter((mark) => !ofTheTradeOff.includes(mark.fact_id))}
+        measures={measuredBy(area, spec, facts).filter((fact) => fact === undefined || !ofTheTradeOff.includes(fact.fact_id))}
         facts={facts}
         meta={meta}
         summary={summary}
         waiting={waitingForReasons || waitingForDetail}
+        away={costShown && cost === null && !waitingForDetail}
       />
 
       <Missing
@@ -696,6 +727,9 @@ export function ResultCard({
           approx={inShort && isNotWhole(area)}
           line={line}
         />
+        {/* Such an area stands below every area that has the figure, whatever its fit: said
+            under the fit, where a higher fit is seen to stand under a lower. */}
+        {inShort && standsLower(area, meta, spec) ? <p className={styles.lower}>{CARD.listedLower}</p> : null}
         {/* Where the look has it said on the result, directly after the fit: it says how far the fit is to be trusted. */}
         {inShort ? null : <Completeness area={area} meta={meta} spec={spec} />}
       </div>
@@ -705,9 +739,10 @@ export function ResultCard({
         facts={facts}
         of={summary.name}
         unplaced={lines.unplaced}
-        lacked={lines.lacked}
+        asked={lines.asked}
         ends={ends}
         names={columnOf}
+        fold={{ over: linesOver, most: LINES_WITH_NO_FOLD, letters: LETTERS_ON_A_LINE_OF_A_NAME }}
       />
       <TradeOff
         area={area}
@@ -730,6 +765,12 @@ export function ResultCard({
  * Its working is one press away: the figures behind its gauges with the way
  * to their source, what its fit is based on, the journeys, and how the fit is
  * worked out.
+ *
+ * Its lines are those of a card, drawn of what the ranking gives: the gauge of
+ * a vibe, how long a journey takes, and what a home costs. Where an area stands
+ * on a measure is in the fact of the measure, and the page asks for the facts
+ * of the first five results alone: so the line of a measure says its name, and
+ * says the same whatever facts another search left.
  */
 export function ResultRow({
   area,
@@ -745,6 +786,7 @@ export function ResultRow({
   ends,
   others,
   fitSaid,
+  linesOver,
   columnOf,
   selected,
   onSelect,
@@ -753,13 +795,15 @@ export function ResultRow({
 }: Shared) {
   const id = useId();
   const { area_id: areaId } = area;
-  const lines = linesOf(area, meta, spec, others, fitSaid);
+  const lines = linesOf(area, meta, spec, { facts: null, places: names }, { others, fitSaid });
   const inShort = fitSaid === "working";
+  // A row holds no cost with its source: the page of the area does.
+  const costShown = lines.asked.some((one) => one.thing.kind === "budget" && one.figure !== undefined);
 
   const working = (
     <div className={styles.opened}>
       {/* Nothing is asked of the service for a row, so nothing of it is waited for. */}
-      <Vibes marks={area.strip} facts={facts} meta={meta} summary={summary} waiting={false} />
+      <Vibes marks={area.strip} facts={facts} meta={meta} summary={summary} waiting={false} away={costShown} />
       {inShort ? <Missing area={area} waiting={false} facts={facts} meta={meta} spec={spec} /> : null}
       {area.legs.length > 0 ? (
         <div className={styles.part}>
@@ -805,6 +849,7 @@ export function ResultRow({
         id={`${id}-name`}
         approx={inShort && isNotWhole(area)}
       />
+      {inShort && standsLower(area, meta, spec) ? <p className={styles.lower}>{CARD.listedLower}</p> : null}
       {inShort ? null : <Completeness area={area} meta={meta} spec={spec} />}
       {/* In short: a row never says that a band is not whole. Said of a row only where its
           fact happened to be in hand, it came and went as other searches were made. It is
@@ -815,11 +860,12 @@ export function ResultRow({
         facts={facts}
         of={summary.name}
         unplaced={lines.unplaced}
-        lacked={lines.lacked}
+        asked={lines.asked}
         short
         rests={false}
         ends={ends}
         names={columnOf}
+        fold={{ over: linesOver, most: LINES_WITH_NO_FOLD, letters: LETTERS_ON_A_LINE_OF_A_NAME }}
       />
     </Result>
   );

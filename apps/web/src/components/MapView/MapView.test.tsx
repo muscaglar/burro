@@ -4,6 +4,7 @@ import path from "node:path";
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { useState } from "react";
 
+import { CARD } from "@/content/card";
 import { COMPARE } from "@/content/compare";
 import { LEGEND, MAP, MAP_CARD, TABLE } from "@/content/map";
 import { COMPLETENESS, FILTERED, STRIP, UNRANKED } from "@/content/search";
@@ -1898,59 +1899,134 @@ describe("the table of the map, where the map stands in a column that scrolls in
   });
 });
 
-describe("what is pressed in the table, as the card of its area opens over the table", () => {
+describe("what is pressed in the table, which leads to the map over it", () => {
   beforeEach(() => setWebGL(true));
   afterEach(() => setWebGL(false));
 
-  /** Where the button of a row stands in the window: at `stood` until the card is on the page, and at `went` once it is. */
-  const stands = (named: string, stood: number, went: number) =>
+  const named = TABLE.select("Cindermoor");
+  /** Where each part stands in the window, from its head to its foot. What is not named stands nowhere. */
+  interface Stands {
+    readonly column?: readonly [number, number];
+    readonly map: readonly [number, number];
+    readonly card: readonly [number, number];
+    readonly bar?: readonly [number, number];
+  }
+  const stands = (at: Stands) =>
     jest.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
-      const open = document.querySelector(`section[aria-label="${MAP_CARD.label}"]`) !== null;
       const [top, foot] = this.hasAttribute("data-column")
-        ? [16, 884]
-        : this.getAttribute("aria-label") === named
-          ? [open ? went : stood, (open ? went : stood) + 34]
-          : [0, 0];
+        ? (at.column ?? [0, 0])
+        : this.hasAttribute("data-taller")
+          ? at.map
+          : this.getAttribute("aria-label") === MAP_CARD.label
+            ? at.card
+            : this.getAttribute("aria-label") === COMPARE_BAR
+              ? (at.bar ?? [0, 0])
+              : [0, 0];
       return { top, bottom: foot, left: 0, right: 0, x: 0, y: top, width: 0, height: foot - top, toJSON: () => ({}) };
     });
-
-  test("test_on_a_narrow_screen_the_page_goes_by_as_much_as_the_card_is_high_and_what_was_pressed_stands_where_it_stood", async () => {
-    // Seen at 390 by 844: "Show Cindermoor on the map and in the list" was pressed at 340
-    // and stood at 645, and the card it opened stood over the window, from -343 to -50. A
-    // second press aimed where the first was landed on the row of another area.
-    const named = TABLE.select("Cindermoor");
-    const measure = stands(named, 340, 645);
+  const COMPARE_BAR = "Areas to compare";
+  /** What the page was asked to go by, each time it was. */
+  const watched = () => {
     const asked: number[] = [];
     const scroll = jest.spyOn(window, "scrollBy").mockImplementation(((_: number, y: number) => {
       asked.push(y);
     }) as typeof window.scrollBy);
+    return { asked, scroll };
+  };
+  const card = () => screen.getByRole("region", { name: MAP_CARD.label });
+  /** What the table says a press in it did, in the line that is heard. */
+  const did = () => within(screen.getByRole("table").parentElement?.parentElement as HTMLElement).getByRole("status");
+
+  test("test_show_in_a_row_says_what_it_did_and_gives_the_focus_to_the_box_of_the_area", async () => {
+    // Seen in a browser: the button said that it was pressed and its row was framed, and
+    // nothing else was seen or heard. The box of the area had opened over the head of the
+    // window, and the focus was left on the button.
+    const { told } = await show();
+    fireEvent.click(screen.getByRole("button", { name: TABLE.title }));
+    expect(did()).toBeEmptyDOMElement();
+
+    fireEvent.click(screen.getByRole("button", { name: named }));
+
+    expect(told.selected).toEqual(["syn-n0003"]);
+    expect(card()).toHaveFocus();
+    expect(card()).toHaveTextContent("Cindermoor");
+    expect(did().textContent).toBe(CARD.shownOnMap("Cindermoor"));
+    expect(screen.getByRole("button", { name: named })).toHaveAttribute("aria-pressed", "true");
+    // The box leads back: closed, it hands the focus to the pin of the area, on the map.
+    fireEvent.click(within(card()).getByRole("button", { name: MAP_CARD.close }));
+    expect(pins().filter((pin) => pin === document.activeElement)).toHaveLength(1);
+    // Once no area is chosen, the line says nothing of one that was.
+    expect(did()).toBeEmptyDOMElement();
+  });
+
+  test("test_the_line_says_it_of_the_area_that_is_chosen_and_of_no_other", async () => {
+    await show();
+    fireEvent.click(screen.getByRole("button", { name: TABLE.title }));
+
+    fireEvent.click(screen.getByRole("button", { name: named }));
+    fireEvent.click(screen.getByRole("button", { name: TABLE.select("Gorsebeck") }));
+
+    expect(card()).toHaveTextContent("Gorsebeck");
+    expect(did().textContent).toBe(CARD.shownOnMap("Gorsebeck"));
+    // Another is then chosen on the map itself: the table says nothing of the one it showed.
+    fireEvent.click(pins()[0] as HTMLButtonElement);
+    expect(did()).toBeEmptyDOMElement();
+  });
+
+  test("test_on_a_narrow_screen_the_page_goes_to_the_map_with_the_box_of_the_area_under_it", async () => {
+    // Seen at 390 by 844: "Show" was pressed in the third row at 329, and the box of the
+    // area stood from -378 to -85, over the head of the window, with the map over it.
+    const measure = stands({ map: [-729, -30], card: [-378, -85] });
+    const { asked, scroll } = watched();
+    const high = window.innerHeight;
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 844 });
     try {
-      const { told } = await show();
+      await show();
       fireEvent.click(screen.getByRole("button", { name: TABLE.title }));
 
       fireEvent.click(screen.getByRole("button", { name: named }));
 
-      expect(told.selected).toEqual(["syn-n0003"]);
-      expect(screen.getByRole("region", { name: MAP_CARD.label })).toBeInTheDocument();
-      expect(asked).toEqual([305]);
-      // Pressed again, it chooses nothing anew, and nothing is moved for it.
+      // The head of the box of the map at the head of the window, and the card whole under it.
+      expect(card()).toHaveFocus();
+      expect(asked).toEqual([-729 - 8]);
+    } finally {
+      measure.mockRestore();
+      scroll.mockRestore();
+      Object.defineProperty(window, "innerHeight", { configurable: true, value: high });
+    }
+  });
+
+  test("test_a_press_that_is_counted_as_the_second_of_two_lands_on_nothing_of_the_map_once_the_page_has_gone_to_it", async () => {
+    // What was pressed has gone from under the pointer, and the map may stand there: a
+    // second press aimed at the row chose another area, and drew the map nearer.
+    const measure = stands({ map: [-729, -30], card: [-378, -85] });
+    const { scroll } = watched();
+    try {
+      const { told } = await show();
+      fireEvent.click(screen.getByRole("button", { name: TABLE.title }));
       fireEvent.click(screen.getByRole("button", { name: named }));
-      expect(asked).toEqual([305]);
+
+      fireEvent.click(pins()[4] as HTMLButtonElement, { detail: 2 });
+      fireEvent.click(within(card()).getByRole("button", { name: MAP_CARD.close }), { detail: 2 });
+
+      expect(told.selected).toEqual(["syn-n0003"]);
+      expect(card()).toHaveTextContent("Cindermoor");
+      // A press of its own lands at once.
+      fireEvent.click(pins()[4] as HTMLButtonElement, { detail: 1 });
+      expect(told.selected).toHaveLength(2);
     } finally {
       measure.mockRestore();
       scroll.mockRestore();
     }
   });
 
-  test("test_beside_the_answer_the_column_of_the_map_goes_by_as_much_and_the_page_does_not", async () => {
-    // Seen at 1440 by 900: the button was pressed at 593 and stood at 884, under the foot
-    // of the column of the map, with the focus on it.
-    const named = TABLE.select("Cindermoor");
-    const measure = stands(named, 593, 884);
-    const asked: number[] = [];
-    const scroll = jest.spyOn(window, "scrollBy").mockImplementation(((_: number, y: number) => {
-      asked.push(y);
-    }) as typeof window.scrollBy);
+  test("test_beside_the_answer_the_column_of_the_map_goes_to_the_map_and_the_page_does_not", async () => {
+    // Seen at 1440 by 900: the column stood scrolled by 955 to the row that was pressed,
+    // and the box of the area stood from -470 to -167, over the head of the column.
+    const measure = stands({ column: [16, 884], map: [-939, -100], card: [-470, -167] });
+    const { asked, scroll } = watched();
+    const high = window.innerHeight;
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 900 });
     const told: Told = { selected: [], hovered: [], shown: [] };
     try {
       const { container } = render(
@@ -1960,35 +2036,33 @@ describe("what is pressed in the table, as the card of its area opens over the t
       );
       const column = container.firstElementChild as HTMLElement;
       Object.defineProperty(column, "clientHeight", { configurable: true, value: 868 });
-      Object.defineProperty(column, "scrollHeight", { configurable: true, value: 6685 });
+      Object.defineProperty(column, "scrollHeight", { configurable: true, value: 4973 });
       await arrived();
       act(() => lastMap().fire("load"));
       fireEvent.click(screen.getByRole("button", { name: TABLE.title }));
-      const opened = column.scrollTop;
+      column.scrollTop = 955;
+      fireEvent.scroll(column);
 
       fireEvent.click(screen.getByRole("button", { name: named }));
 
-      expect(column.scrollTop - opened).toBe(291);
+      expect(card()).toHaveFocus();
+      expect(column.scrollTop).toBe(955 - 939 - 16 - 8);
       expect(asked).toEqual([]);
     } finally {
       measure.mockRestore();
       scroll.mockRestore();
+      Object.defineProperty(window, "innerHeight", { configurable: true, value: high });
     }
   });
 
   test("test_an_area_chosen_on_the_map_moves_nothing_for_what_was_pressed_in_the_table_before_it", async () => {
-    // The button of a row that was pressed and chose nothing anew is forgotten: what is
-    // chosen later, elsewhere, is not held against where it stood.
-    const named = TABLE.select("Cindermoor");
-    const measure = stands(named, 340, 645);
-    const asked: number[] = [];
-    const scroll = jest.spyOn(window, "scrollBy").mockImplementation(((_: number, y: number) => {
-      asked.push(y);
-    }) as typeof window.scrollBy);
+    // What a press in the table moved the page for is forgotten: what is chosen later, on
+    // the map itself, moves the page nowhere.
+    const measure = stands({ map: [-729, -30], card: [-378, -85] });
+    const { asked, scroll } = watched();
     try {
       await show();
       fireEvent.click(screen.getByRole("button", { name: TABLE.title }));
-      fireEvent.click(screen.getByRole("button", { name: named }));
       fireEvent.click(screen.getByRole("button", { name: named }));
       asked.length = 0;
 
@@ -2000,6 +2074,190 @@ describe("what is pressed in the table, as the card of its area opens over the t
       measure.mockRestore();
       scroll.mockRestore();
     }
+  });
+});
+
+describe("the box of an area, as a press elsewhere gives it the focus", () => {
+  beforeEach(() => setWebGL(true));
+  afterEach(() => setWebGL(false));
+
+  /** The map with an area chosen elsewhere, as "Show on the map" in the working of a result chooses one. */
+  const chosenElsewhere = async () => {
+    const told: Told = { selected: [], hovered: [], shown: [] };
+    const shown = (selectedId: string | null) => (
+      <MapView
+        geometry={geometry}
+        areas={areas}
+        scores={first.scores}
+        ranked={first.ranked}
+        filtered={first.filtered}
+        unranked={first.unranked}
+        selectedId={selectedId}
+        hoveredId={null}
+        onSelect={(areaId) => told.selected.push(areaId)}
+        onHover={() => undefined}
+        onShowInList={() => undefined}
+        table={<p>the table</p>}
+      />
+    );
+    const view = render(shown(null));
+    await arrived();
+    act(() => lastMap().fire("load"));
+    view.rerender(shown("syn-n0006"));
+    return screen.getByRole("region", { name: MAP_CARD.label });
+  };
+  const inTheWindow = (at: { map: readonly [number, number]; card: readonly [number, number] }) =>
+    jest.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (this: HTMLElement) {
+      const [top, foot] = this.hasAttribute("data-taller") ? at.map : this.getAttribute("aria-label") === MAP_CARD.label ? at.card : [0, 0];
+      return { top, bottom: foot, left: 0, right: 0, x: 0, y: top, width: 0, height: foot - top, toJSON: () => ({}) };
+    });
+  /** The page as a browser scrolls it: how far it stands scrolled, and what it was asked to go by. */
+  const aPage = (scrolledTo: number) => {
+    let at = scrolledTo;
+    const asked: number[] = [];
+    const was = Object.getOwnPropertyDescriptor(window, "scrollY");
+    Object.defineProperty(window, "scrollY", { configurable: true, get: () => at });
+    const scroll = jest.spyOn(window, "scrollBy").mockImplementation(((_: number, y: number) => {
+      asked.push(y);
+      at += y;
+    }) as typeof window.scrollBy);
+    return {
+      asked,
+      /** A browser moves the page, as it does for what it gives the focus, and says so a moment later. */
+      goes: (by: number) => {
+        at += by;
+      },
+      says: () => fireEvent.scroll(window),
+      putBack: () => {
+        scroll.mockRestore();
+        if (was) Object.defineProperty(window, "scrollY", was);
+      },
+    };
+  };
+
+  test("test_where_the_map_and_the_box_are_in_sight_the_page_is_put_back_where_a_browser_moved_it_for_the_focus", async () => {
+    // Measured at 1440 by 900: "Show on the map" was pressed in the working of a result,
+    // and the box of the area opened under the map, from 485 to 764. The page went 40 px
+    // all the same: a browser brings what it gives the focus clear of the room the page
+    // keeps at its foot for the bar of areas, and no bar was there.
+    const high = window.innerHeight;
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 900 });
+    const page = aPage(3368);
+    const measure = inTheWindow({ map: [16, 880], card: [485, 764] });
+    try {
+      const card = await chosenElsewhere();
+      page.says();
+
+      page.goes(40);
+      act(() => card.focus());
+
+      expect(card).toHaveFocus();
+      expect(page.asked).toEqual([-40]);
+    } finally {
+      measure.mockRestore();
+      page.putBack();
+      Object.defineProperty(window, "innerHeight", { configurable: true, value: high });
+    }
+  });
+
+  test("test_where_the_box_is_out_of_sight_the_page_goes_to_the_map_once_and_by_no_more_than_it_must", async () => {
+    // Seen at 390 by 844: the map stands a long way under the working of a result.
+    const high = window.innerHeight;
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 844 });
+    const page = aPage(3813);
+    const measure = inTheWindow({ map: [780, 1500], card: [1090, 1383] });
+    try {
+      const card = await chosenElsewhere();
+      page.says();
+
+      act(() => card.focus({ preventScroll: true }));
+
+      // The foot of the box at the foot of the window: the map is over it, in sight.
+      expect(page.asked).toEqual([1383 + 8 - 844]);
+    } finally {
+      measure.mockRestore();
+      page.putBack();
+      Object.defineProperty(window, "innerHeight", { configurable: true, value: high });
+    }
+  });
+
+  test("test_the_focus_that_comes_to_what_the_box_holds_moves_nothing", async () => {
+    const page = aPage(3813);
+    const measure = inTheWindow({ map: [780, 1500], card: [1090, 1383] });
+    try {
+      const card = await chosenElsewhere();
+      page.says();
+
+      act(() => within(card).getByRole("button", { name: MAP_CARD.close }).focus());
+
+      expect(page.asked).toEqual([]);
+    } finally {
+      measure.mockRestore();
+      page.putBack();
+    }
+  });
+});
+
+describe("the table of the map, as it closes in a column that scrolls in itself", () => {
+  beforeEach(() => setWebGL(true));
+  afterEach(() => setWebGL(false));
+
+  test("test_the_column_keeps_the_room_of_the_table_so_that_the_bar_stands_where_it_was_pressed", async () => {
+    // Measured at 1440 by 900: "Table of all areas" was pressed at 428 to close the table,
+    // and stood at 798 once it had: the column held less, and a browser scrolled it back.
+    const measure = jest.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      const isTheBar = this.tagName === "BUTTON" && this.textContent === TABLE.title;
+      const [top, foot] = this.hasAttribute("data-column")
+        ? [16, 884]
+        : isTheBar
+          ? this.getAttribute("aria-expanded") === "true"
+            ? [428, 472]
+            : [798, 842]
+          : [900, 4800];
+      return { top, bottom: foot, left: 0, right: 0, x: 0, y: top, width: 0, height: foot - top, toJSON: () => ({}) };
+    });
+    const told: Told = { selected: [], hovered: [], shown: [] };
+    try {
+      const { container } = render(
+        <div data-column="" style={{ overflowY: "auto" }}>
+          <Held ranking={first} told={told} />
+        </div>,
+      );
+      const column = container.firstElementChild as HTMLElement;
+      Object.defineProperty(column, "clientHeight", { configurable: true, value: 868 });
+      Object.defineProperty(column, "scrollHeight", { configurable: true, value: 4973 });
+      await arrived();
+      act(() => lastMap().fire("load"));
+      const bar = screen.getByRole("button", { name: TABLE.title });
+      fireEvent.click(bar);
+      column.scrollTop = 557;
+
+      fireEvent.click(bar);
+
+      expect(bar).toHaveAttribute("aria-expanded", "false");
+      // As much as the bar went is kept at the foot of the column, which is scrolled as it was.
+      expect(column.style.paddingBottom).toBe("370px");
+      expect(column.scrollTop).toBe(557);
+      // Opened again, the table has the room, and none is kept beside it.
+      fireEvent.click(bar);
+      expect(bar).toHaveAttribute("aria-expanded", "true");
+      expect(column.style.paddingBottom).toBe("");
+    } finally {
+      measure.mockRestore();
+    }
+  });
+
+  test("test_on_a_page_that_scrolls_as_a_whole_nothing_is_kept_as_the_table_closes", async () => {
+    await show();
+    const bar = screen.getByRole("button", { name: TABLE.title });
+
+    fireEvent.click(bar);
+    fireEvent.click(bar);
+
+    expect(bar).toHaveAttribute("aria-expanded", "false");
+    expect(document.querySelectorAll("[style*='padding']")).toHaveLength(0);
   });
 });
 

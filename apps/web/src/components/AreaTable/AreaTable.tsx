@@ -1,20 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { useLayoutEffect, useRef, type CSSProperties } from "react";
+import { useState, type CSSProperties } from "react";
+import { flushSync } from "react-dom";
 
+import { CARD } from "@/content/card";
 import { TABLE } from "@/content/map";
 import { BREAKDOWN, FILTERED, RESULTS, UNRANKED } from "@/content/search";
 import type { AreaSummary, Filtered, MetaData, Score, Unranked } from "@/lib/api/schema";
 import { fitOf } from "@/lib/map/fill";
 import { paths } from "@/lib/paths";
 import { basedOn } from "@/lib/search/card";
-import { keepInPlace } from "@/lib/sight";
 import { placedOn, type Lens } from "@/lib/vibes";
 
 import { BesideName } from "../BesideName/BesideName";
 import { pictureOf } from "../kit/drawings";
 import { picturesOf } from "../kit/Press/kinds";
+import { cardOfTheMap } from "../MapView/MapCard";
 import styles from "./AreaTable.module.css";
 
 interface Props {
@@ -144,26 +146,40 @@ function CellLabel({ children }: { readonly children: string }) {
  * and every part says its role again, so that a browser which forgets a table
  * when it is laid out as blocks is told.
  *
- * What is pressed in it stays under the hand. The card of the area that is chosen opens
- * by the map, over the table and in the same box, and the table went down by as much as
- * the card is high. Seen at 390 by 844: a button was pressed at 340 and stood at 645, and
- * a second press aimed where the first was chose another area. So what the table is seen
- * through goes by as much, before anything is drawn.
+ * "Show" in a row leads to the map. A press marks the area there and opens its box under
+ * the map, which stands over the table and may be a long way from the row, out of sight.
+ * So the press says what it did, in a line that is heard as it is written, and the focus
+ * goes to the box it opened, which the map brings into sight with itself: the box leads
+ * on to the list. Seen in a browser: the button said that it was pressed, the box opened
+ * over the head of the window, and nothing was heard. What was pressed goes from under
+ * the hand for it, once, and a press that a browser counts as the second of two lands on
+ * nothing of the map.
+ *
+ * The line is said for as long as the area is the one that is chosen. Once another is
+ * chosen it would say of this one what is no longer so.
  */
 export function AreaTable(props: Props) {
   const { selectedId, onSelect, onHover, searched, lens = null } = props;
   const rows = rowsOf(props);
-  // What was pressed, and where it stood as the press landed. Kept of a press that chooses an area anew, and of no other.
-  const pressed = useRef<{ readonly part: HTMLElement; readonly top: number } | null>(null);
+  // What the press that last showed an area did, and which area it was.
+  const [did, setDid] = useState<{ readonly areaId: string; readonly says: string } | null>(null);
 
-  useLayoutEffect(() => {
-    const held = pressed.current;
-    pressed.current = null;
-    if (held?.part.isConnected === true) keepInPlace(held.part, held.top);
-  }, [selectedId]);
+  const showOnTheMap = (area: AreaSummary) => {
+    // The page draws what the press chose before the box is looked for: it is drawn of the press.
+    flushSync(() => onSelect(area.area_id));
+    const box = cardOfTheMap();
+    // The map brings itself into sight with the box, by as little as must be.
+    box?.focus({ preventScroll: true });
+    setDid({ areaId: area.area_id, says: box === null ? CARD.notOnMap(area.name) : CARD.shownOnMap(area.name) });
+  };
 
   return (
     <div className={styles.whole}>
+      {/* It is on the page from the first, and holds nothing, so that what comes to stand in
+          it is heard. It takes no room until it speaks. */}
+      <p className={styles.did} role="status">
+        {did !== null && did.areaId === selectedId ? did.says : null}
+      </p>
       <div className="scroll-x">
         <table role="table" className={styles.table}>
           <caption>{searched ? TABLE.caption : TABLE.captionEmpty}</caption>
@@ -253,10 +269,7 @@ export function AreaTable(props: Props) {
                     style={drawnAs(selectedId === area.area_id)}
                     aria-label={TABLE.select(area.name)}
                     aria-pressed={selectedId === area.area_id}
-                    onClick={({ currentTarget: part }) => {
-                      if (selectedId !== area.area_id) pressed.current = { part, top: part.getBoundingClientRect().top };
-                      onSelect(area.area_id);
-                    }}
+                    onClick={() => showOnTheMap(area)}
                   >
                     <span className={styles.face}>
                       <span className={styles.says}>{TABLE.show}</span>

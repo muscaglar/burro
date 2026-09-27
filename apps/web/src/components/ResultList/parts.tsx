@@ -35,11 +35,19 @@ import {
 import { Disclosure } from "../Disclosure/Disclosure";
 import { columnsOf } from "../FactRow/FactRow";
 import { Approx } from "../kit/Approx/Approx";
+import type { ThingOf } from "../kit/Thing/drawn";
 import { factsCited, Sentence } from "../Sentence/Sentence";
 import { Skeleton } from "../Skeleton/Skeleton";
 import { SourceNote } from "../SourceNote/SourceNote";
-import type { Lacked } from "../Strip/Strip";
 import styles from "./ResultList.module.css";
+
+/** A thing that was asked for and is no vibe, which the area has no figure for. */
+export interface Lacked {
+  /** The name of the thing, as the page names it everywhere. */
+  readonly name: string;
+  /** What is drawn for it. */
+  readonly thing: ThingOf;
+}
 
 /**
  * What a cell is of, for the eye. On a narrow screen a table's rows are

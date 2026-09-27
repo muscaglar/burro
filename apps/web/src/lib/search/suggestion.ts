@@ -51,6 +51,26 @@ export function waitsForAPerson(suggestion: object): boolean {
   return "only_by_choice" in suggestion && suggestion.only_by_choice === true;
 }
 
+/**
+ * What the service says in the note of an offer that waits because the words do not say
+ * that the wish is the person's own: it may be somebody else's, or is only named. It is
+ * the service's sentence, word for word (docs/design/contract.md, 8.2), and stands after
+ * whatever else the service has a person know of the thing. It is here to know such an
+ * offer by, and nothing is drawn of it from here. A test holds it to every answer that
+ * was recorded.
+ */
+export const NOT_SAID_TO_BE_WANTED =
+  "Burro could not tell from your words whether you want this yourself, so it has left it for you to add.";
+
+/**
+ * True where the service says of an offer that the words do not say the wish is the
+ * person's own. An offer waits for a person for one of several reasons, and the two
+ * things it says of itself do not tell them apart: its note does.
+ */
+export function saysItMayBeAnothers(suggestion: Pick<Suggestion, "note">): boolean {
+  return suggestion.note.includes(NOT_SAID_TO_BE_WANTED);
+}
+
 /** True of an offer of a measure or of a vibe: a wish, and no limit, journey, home or area. */
 export function isAWish(suggestion: Pick<Suggestion, "target">): boolean {
   return suggestion.target.startsWith("feature:") || suggestion.target.startsWith("tag:");

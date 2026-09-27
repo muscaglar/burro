@@ -33,6 +33,19 @@
  * on by as much, before anything is drawn: what was pressed stands where it stood, and
  * what it opened is whole and in sight over it. Where it has room neither way it stands
  * under, and its head is brought into sight.
+ *
+ * Some presses lead elsewhere. "Show on the map" is pressed in the working of a result or
+ * in a row of the table of all areas, and what it opens is the box of the area under the
+ * map, which may stand a long way off. What was pressed must then go from under the hand,
+ * so that what it opened is in sight. It goes once, by as little as brings the map into
+ * sight with the box under it, which is where a person looks for both: and not at all
+ * where both are in sight already.
+ *
+ * And what a press closes may have held the room that what was pressed stood in. A box
+ * that scrolls in itself holds less once a table in it has closed, and a browser scrolls
+ * it back as far as it must: the bar that was pressed went to the foot of the box. So the
+ * box keeps the room of what closed, at its foot, for as long as it stands scrolled into
+ * that room, and gives it up as a person scrolls back.
  */
 
 /** The room kept clear between what is brought into sight and the edge it is brought to, in pixels. */
@@ -56,8 +69,12 @@ function seenThrough(part: HTMLElement): HTMLElement | null {
   return null;
 }
 
-/** A press the browser counts as the second or a later one of a double press lands on nothing here, for a moment. */
-function holdOffTheSecondPress(opened: HTMLElement): void {
+/**
+ * A press the browser counts as the second or a later one of a double press lands on
+ * nothing here, for a moment. Nor does what a browser says of the two presses as one: a
+ * map is drawn nearer by it.
+ */
+export function holdOffTheSecondPress(opened: HTMLElement): void {
   const stop = (event: MouseEvent) => {
     if (event.detail < 2) return;
     event.preventDefault();
@@ -65,7 +82,11 @@ function holdOffTheSecondPress(opened: HTMLElement): void {
   };
   // Heard on the way down, before whatever was pressed hears of it.
   opened.addEventListener("click", stop, true);
-  setTimeout(() => opened.removeEventListener("click", stop, true), DOUBLE_PRESS_MS);
+  opened.addEventListener("dblclick", stop, true);
+  setTimeout(() => {
+    opened.removeEventListener("click", stop, true);
+    opened.removeEventListener("dblclick", stop, true);
+  }, DOUBLE_PRESS_MS);
 }
 
 /**
@@ -183,4 +204,94 @@ export function keepInPlace(part: HTMLElement, stoodAt: number): number {
   if (box === null) window.scrollBy(0, by);
   else box.scrollTop += by;
   return by;
+}
+
+/**
+ * Brings what a press elsewhere led to into sight with what it stands under, and says how
+ * far it moved what they are seen through: nought where nothing was moved, and less than
+ * nought where it went back. The box of an area stands under the map, and a press that
+ * asks for an area to be shown on the map is answered by both.
+ *
+ * Where both have room they are both brought into sight, by as little as must be: the head
+ * of what stands over to the top, where it began over it, and else the foot of what was
+ * brought to the foot. Where they have not, what was brought is shown whole, with as much
+ * over it as has room. What is higher than the room there is, is shown from its head.
+ *
+ * `held` is what is held at the foot of the window, as the bar of areas to compare is once
+ * an area is chosen: nothing is left under it. It asks no browser to bring a thing into
+ * sight: a browser keeps the room of that bar clear whether or not the bar is there.
+ */
+export function bringIntoSightUnder(over: HTMLElement, brought: HTMLElement, held: HTMLElement | null = null): number {
+  const box = seenThrough(brought);
+  const edges = box?.getBoundingClientRect();
+  const bar = held?.getBoundingClientRect();
+  const floor = bar !== undefined && bar.bottom > bar.top ? Math.min(window.innerHeight, bar.top) : window.innerHeight;
+  const top = Math.max(0, edges?.top ?? 0) + CLEAR;
+  const foot = Math.min(floor, edges?.bottom ?? floor) - CLEAR;
+  const { top: head, bottom: end } = brought.getBoundingClientRect();
+  if (end <= head) return 0;
+  const room = foot - top;
+  const begins = Math.min(head, over.getBoundingClientRect().top);
+  // What is to be in sight: from the head of what stands over it, where both have room.
+  const first = end - begins <= room ? begins : Math.min(head, end - room);
+  const by = first < top ? first - top : Math.max(0, Math.min(end - foot, first - top));
+  if (by === 0) return 0;
+  if (box === null) window.scrollBy(0, by);
+  else box.scrollTop += by;
+  return by;
+}
+
+/** Where what is about to close what it opened stands, and how far what it is seen through is scrolled. */
+export interface Stood {
+  readonly pressed: HTMLElement;
+  readonly top: number;
+  /** The box it is seen through, where one that holds it scrolls in itself. `null` where it is the window. */
+  readonly box: HTMLElement | null;
+  readonly scrolled: number;
+}
+
+/** Where a thing stands as it is pressed, before what the press does is drawn. */
+export function standsAt(pressed: HTMLElement): Stood {
+  const box = seenThrough(pressed);
+  return { pressed, top: pressed.getBoundingClientRect().top, box, scrolled: box?.scrollTop ?? 0 };
+}
+
+/**
+ * Keeps what was pressed where it stood, once what it had opened has closed under it in a
+ * box that scrolls in itself. The box keeps the room of what closed, at its foot, and is
+ * scrolled to where it was. It is called once what closed is off the page, and before the
+ * page is drawn.
+ *
+ * The room is given up as the box is scrolled back, by as much as has gone under its
+ * foot: so none of it is seen to go, and nothing in sight moves for it. What it gives
+ * back gives the whole of it up at once, as where what closed is opened again. It gives
+ * back `null` where nothing was kept: what was pressed stands where it stood, or stands in
+ * no box that scrolls in itself, where what follows it holds the page as long as it was.
+ */
+export function keepTheRoomOf(stood: Stood): (() => void) | null {
+  const { pressed, box } = stood;
+  if (box === null || !pressed.isConnected) return null;
+  const went = pressed.getBoundingClientRect().top - stood.top;
+  if (went < 1) return null;
+  // What the box keeps at its foot already is its style sheet's, and is kept with the room.
+  const own = Number.parseFloat(getComputedStyle(box).paddingBottom) || 0;
+  let kept = went;
+  const keep = () => {
+    box.style.paddingBottom = kept > 0 ? `${own + kept}px` : "";
+  };
+  const scrolled = () => {
+    const needed = Math.max(0, Math.ceil(box.scrollTop + box.clientHeight - (box.scrollHeight - kept)));
+    if (needed >= kept) return;
+    kept = needed;
+    keep();
+    if (kept === 0) box.removeEventListener("scroll", scrolled);
+  };
+  keep();
+  box.scrollTop = stood.scrolled;
+  box.addEventListener("scroll", scrolled, { passive: true });
+  return () => {
+    kept = 0;
+    keep();
+    box.removeEventListener("scroll", scrolled);
+  };
 }

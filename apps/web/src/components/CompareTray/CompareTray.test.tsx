@@ -26,9 +26,12 @@ import {
   BAR_SAYS,
   BAR_SAYS_OF_ITS_TOWNS,
   CLEAR_MAY_STAND,
+  CLEAR_ON_A_NARROW_SCREEN,
+  CLEAR_ON_A_NARROW_SCREEN_MAY_BE,
   CLEAR_STANDS,
   WAY_TO_COMPARE,
   type BarSaysOfItsTowns,
+  type ClearOnANarrowScreen,
   type ClearStands,
 } from "./look";
 import { ofATown } from "./town";
@@ -50,15 +53,20 @@ interface Shown {
   readonly invites?: boolean;
   /** Whether the bar has the way to take every area out at once, where a test makes the call the look does not. */
   readonly clears?: ClearStands;
+  readonly narrow?: ClearOnANarrowScreen;
   /** What the bar says of its towns, where a test makes the call the look does not. */
   readonly says?: BarSaysOfItsTowns;
 }
 
-function show(count = 5, { towns = false, small = false, invites = false, clears, says }: Shown = {}) {
+function show(count = 5, { towns = false, small = false, invites = false, clears, narrow, says }: Shown = {}) {
   const user = userEvent.setup({ delay: null });
   const view = render(
     <SessionProvider>
-      <CompareTray {...(clears === undefined ? {} : { clears })} {...(says === undefined ? {} : { says })} />
+      <CompareTray
+        {...(clears === undefined ? {} : { clears })}
+        {...(narrow === undefined ? {} : { narrow })}
+        {...(says === undefined ? {} : { says })}
+      />
       <ul>
         {areas.slice(0, count).map((area, at) => (
           <li key={area.area_id}>
@@ -99,6 +107,21 @@ describe("the words of comparing", () => {
     expect(COMPARE.invite).toContain(`"${COMPARE.addShort}"`);
     expect(COMPARE.invite).toMatch(/two to four areas/);
     expect(COMPARE.invite).toMatch(/side by side/);
+  });
+
+  test("test_what_is_read_of_the_invitation_stands_beside_its_two_towns_and_no_word_of_it_under_them", () => {
+    // Seen at 390 by 844: the sentence ran round the two towns, which are as high as two
+    // lines of it, and took four. Its last word stood alone under the towns.
+    const sheet = rulesOf(readFileSync(path.join(__dirname, "CompareTray.module.css"), "utf8")).filter((rule) => rule.under === null);
+    const setsOf = (selector: string) => new Map(sheet.filter((rule) => rule.selector === selector).flatMap((rule) => [...rule.sets]));
+
+    // The towns and the sentence are laid side by side, from their heads.
+    expect([setsOf(".invite").get("display"), setsOf(".invite").get("align-items")]).toEqual(["flex", "flex-start"]);
+    expect(setsOf(".invite").get("gap")).toBe("var(--space-3)");
+    // The towns keep their width, and nothing runs round them.
+    expect(setsOf(".twoTowns").get("flex")).toBe("none");
+    expect([setsOf(".twoTowns").get("float"), setsOf(".twoTowns").get("margin-inline-end")]).toEqual([undefined, undefined]);
+    expect(setsOf(".invite > :last-child").get("min-width")).toBe("0");
   });
 
   test("test_no_word_of_comparing_calls_an_area_the_best_or_says_that_one_has_won", () => {
@@ -362,17 +385,38 @@ describe("the tray of areas to compare", () => {
     expect(cross(0)).toHaveFocus();
   });
 
-  test("test_on_a_narrow_screen_the_bar_is_no_higher_than_it_was_so_clear_is_not_drawn_there", () => {
-    // Measured on a screen 390 wide with "Clear" in the line of what the bar says: 179 px
-    // with four areas chosen, where it was 160. The page clears 176 px for the bar.
+  test("test_on_a_narrow_screen_clear_is_drawn_in_the_line_of_what_the_bar_says_and_the_bar_is_no_higher_than_the_page_clears", async () => {
+    // Seen at 390 by 844: the bar had no "Clear", which it has on a wide screen. Measured
+    // there with "Clear" in the line of what the bar says, as that line was set: 179 px
+    // with four areas chosen, and the page clears 176 px for the bar. So the lines of what
+    // the bar says are set closer there.
     const sheet = rulesOf(readFileSync(path.join(__dirname, "CompareTray.module.css"), "utf8"));
-    const narrow = sheet.filter((rule) => rule.under === "@media (max-width: 40rem)" && rule.selector === ".says > .clear");
+    const NARROW = "@media (max-width: 40rem)";
+    const narrow = (selector: string) => sheet.filter((rule) => rule.under === NARROW && rule.selector === selector).map((rule) => [...rule.sets]);
+    expect(CLEAR_ON_A_NARROW_SCREEN).toBe("drawn");
+    const { user } = show(5);
+    for (const at of [0, 1]) await user.click(add(at));
 
-    expect(narrow.map((rule) => [...rule.sets])).toEqual([[["display", "none"]]]);
+    expect(tray()).toHaveAttribute("data-clear-narrow", "true");
+    expect(clear()).not.toBeNull();
+    // Nothing takes it off a narrow screen but the one line of the look.
+    expect(narrow(".says > .clear")).toEqual([]);
+    expect(narrow('.tray[data-clear-narrow="false"] .says > .clear')).toEqual([[["display", "none"]]]);
+    expect(narrow('.tray[data-clear-narrow="true"] .says')).toEqual([[["line-height", "1.2"]]]);
     // Wherever it is drawn it is in the line, and takes no line of its own.
     const drawn = sheet.filter((rule) => rule.under === null && rule.selector === ".says > .clear");
     expect(drawn.map((rule) => rule.sets.get("display"))).toEqual(["inline-flex"]);
     expect(sheet.filter((rule) => rule.under === null && rule.selector === ".status").map((rule) => rule.sets.get("display"))).toEqual(["inline"]);
+  });
+
+  test("test_one_line_of_the_look_leaves_clear_off_a_narrow_screen_as_it_was", async () => {
+    expect(CLEAR_ON_A_NARROW_SCREEN_MAY_BE).toEqual(["drawn", "not"]);
+    const { user } = show(5, { narrow: "not" });
+    for (const at of [0, 1]) await user.click(add(at));
+
+    // It is in the page, for a wide screen: the style sheet does not draw it on a narrow one.
+    expect(tray()).toHaveAttribute("data-clear-narrow", "false");
+    expect(clear()).not.toBeNull();
   });
 
   test("test_one_line_of_the_look_takes_clear_out_of_the_bar", async () => {

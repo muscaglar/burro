@@ -15,6 +15,7 @@ import { recordedAnswer } from "@/lib/api/recorded";
 import { AREA } from "./area";
 import { COMPARE_TABLE } from "./compare";
 import { FACT_COLUMNS } from "./facts";
+import { TABLE } from "./map";
 import {
   APART,
   BREAKDOWN,
@@ -88,7 +89,10 @@ const copy: readonly (readonly [where: string, words: string])[] = [
   ["RESULTS.hide", RESULTS.hide(GAP)],
   ["RESULTS.showOnMap", RESULTS.showOnMap(GAP)],
   ["RESULTS.actions", RESULTS.actions],
+  ["STRIP.askedOf", STRIP.askedOf(GAP)],
+  ["STRIP.restOf", STRIP.restOf(GAP)],
   ["STRIP.label", STRIP.label(GAP)],
+  ["STRIP.othersOf", STRIP.othersOf(GAP)],
   ["STRIP.asked", STRIP.asked],
   ["STRIP.askedFor", STRIP.askedFor(GAP)],
   ["STRIP.group.asked", STRIP.group.asked],
@@ -402,6 +406,18 @@ describe("the words of a result, of a failure and of what Burro cannot answer", 
     test("test_the_list_of_what_an_area_lacks_is_named_one_way_wherever_it_stands", () => {
       expect(APART.lacks).toBe(COMPLETENESS.missingTitle);
     });
+
+    test("test_the_list_and_the_table_of_all_areas_say_that_they_are_in_the_order_of_the_ranking_and_never_of_the_fit", () => {
+      // An area with no figure for a thing that was asked for stands below every area that
+      // has one, so a higher fit may stand under a lower. Seen in a browser: fits of 54,
+      // 44, 35, 53 and 34, under a caption that said "in order of fit".
+      expect(RESULTS.listLabel).toBe("Areas, in the order Burro ranked them");
+      expect(TABLE.caption).toBe("Every area, in the order Burro ranked them and then by name");
+      expect(TABLE.captionEmpty).toBe("Every area, by name");
+      for (const words of [RESULTS.listLabel, RESULTS.restLabel, TABLE.caption, TABLE.captionEmpty]) {
+        expect(/\border of (the )?fit\b|\bby fit\b/i.test(words)).toBe(false);
+      }
+    });
   });
 
   describe("a failure", () => {
@@ -425,6 +441,23 @@ describe("the words of a result, of a failure and of what Burro cannot answer", 
     test("test_what_is_quoted_with_a_report_is_led_in_by_a_line_that_ends_in_a_colon", () => {
       // The code of the request follows it on the same line.
       expect(NOTICE.requestId).toMatch(/quote this reference:$/);
+    });
+  });
+
+  describe("what a list of lines is named", () => {
+    test("test_each_list_of_a_result_is_named_for_what_it_holds_and_for_its_area", () => {
+      // The list of a result was named "Vibes of" its area, whatever it held: a journey and
+      // a budget are no vibes. It is named for what was asked for, and keeps the name of
+      // the vibes of an area where it holds those that nobody asked for.
+      expect(STRIP.askedOf(GAP)).toBe(`What you asked for in ${GAP}`);
+      expect(STRIP.restOf(GAP)).toBe(`More of what you asked for in ${GAP}`);
+      expect(STRIP.label(GAP)).toBe(`Vibes of ${GAP}`);
+      expect(STRIP.othersOf(GAP)).toBe(`Other vibes of ${GAP}`);
+      const names = [STRIP.askedOf(GAP), STRIP.restOf(GAP), STRIP.label(GAP), STRIP.othersOf(GAP)];
+      expect(new Set(names).size).toBe(names.length);
+      for (const name of names) expect(name.endsWith(GAP)).toBe(true);
+      // Only a list of what was asked for says that it was.
+      expect(names.map((name) => /asked/.test(name))).toEqual([true, true, false, false]);
     });
   });
 

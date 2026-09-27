@@ -404,7 +404,7 @@ export function Shelf({
   );
   // The card has its place whether or not a word is open, so that the buttons can name it.
   const theCard = (
-    <div key="card" id={`${id}-card`}>
+    <div key="card" id={`${id}-card`} className={styles.place}>
       {opened === undefined ? null : (
         <VibeCard
           // A card is made anew for each word: what a person opened in one is closed in the next.

@@ -51,7 +51,9 @@ function whyOf(thing: LeftThing, meta: Props["meta"]): string {
  * Burro asks nothing: what it noticed in a sentence it takes of itself. A few things it
  * never takes for a person, and says so here. What counts recorded crime, unless the
  * person asked for it by name. What counts who lived somewhere, which counts only where a
- * person chooses it. Whatever else the service says waits for a person. A journey to a
+ * person chooses it. Whatever else the service says waits for a person: a measure that
+ * waits by a decision, and a wish or a journey that may be somebody else's, each with
+ * the reason that is its own. A journey to a
  * place it does not know. What the service gave no way to take. A rule for an area, which
  * leaves areas out, and a thing that runs two ways, where the words give no way of it.
  * And what is read into words that were taken another way. Nothing here is offered and
@@ -62,8 +64,9 @@ function whyOf(thing: LeftThing, meta: Props["meta"]): string {
  * sentence of a dozen things the first result began at 909 of 900, out of sight. As a box
  * of one line that ran to two and three on a phone, it was 60 px and 88 there, and the
  * first result ended under the first screen. What the line has no room for is cut at its
- * end, and is said whole to whoever hears the page and to whoever opens it. Where nothing
- * is ranked the line stands open.
+ * end, and is said whole to whoever hears the page and to whoever opens it: under the
+ * line, each thing by its name. The line is of one size open and closed, since it is what
+ * takes the press. Where nothing is ranked the line stands open.
  *
  * It is a note, and a band of amber marks it as one, from its head to its foot.
  *

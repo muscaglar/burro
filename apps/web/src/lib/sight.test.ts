@@ -1,11 +1,15 @@
 import {
   bringIntoSight,
+  bringIntoSightUnder,
   bringWholeIntoSight,
   DOUBLE_PRESS_MS,
   HEAD,
+  holdOffTheSecondPress,
   keepInPlace,
+  keepTheRoomOf,
   OPENS,
   sideWithRoom,
+  standsAt,
   WHAT_A_PRESS_OPENS,
 } from "./sight";
 
@@ -474,5 +478,217 @@ describe("where what a press opens stands, so that it is in sight and what was p
     expect(keepInPlace(line, 400)).toBe(300);
     expect(column.scrollTop).toBe(300);
     expect(asked).toEqual([]);
+  });
+});
+
+describe("what a press elsewhere led to, brought into sight with what it stands under", () => {
+  /** The map, and under it the box of the area that a press elsewhere asked to be shown on it. */
+  function aMap(holds: HTMLElement = document.body) {
+    const { pressed: map, opened: box, inside, asked } = aPage(holds);
+    return { map, box, inside, asked };
+  }
+
+  test("test_what_stands_over_the_window_is_brought_down_until_the_map_begins_at_its_head", () => {
+    // Seen at 390 by 844: "Show" was pressed in a row of the table of all areas, which
+    // stands under the map. The box of the area opened over the head of the window, from
+    // -378 to -85, with the map over it from -688.
+    const { map, box, asked } = aMap();
+    stand(map, [-729, -85]);
+    stand(box, [-378, -85]);
+
+    const moved = bringIntoSightUnder(map, box);
+
+    expect(asked).toEqual([-729 - 8]);
+    expect(moved).toBe(-737);
+  });
+
+  test("test_what_stands_under_the_foot_is_brought_up_until_its_foot_is_in_sight_and_no_further", () => {
+    const { map, box, asked } = aMap();
+    stand(map, [300, 1100]);
+    stand(box, [800, 1100]);
+
+    expect(bringIntoSightUnder(map, box)).toBe(1100 + 8 - 844);
+    expect(asked).toEqual([264]);
+  });
+
+  test("test_where_both_are_in_sight_nothing_is_moved", () => {
+    // Seen at 1440 by 900: "Show on the map" was pressed in the working of a result, and
+    // the box of the area opened under the map from 485 to 764, in plain sight. The page
+    // went 40 px all the same, for the room it keeps at its foot for a bar that was not there.
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 900 });
+    const { map, box, asked } = aMap();
+    stand(map, [16, 764]);
+    stand(box, [485, 764]);
+
+    expect(bringIntoSightUnder(map, box)).toBe(0);
+    expect(asked).toEqual([]);
+  });
+
+  test("test_where_the_two_are_higher_than_the_window_the_box_is_whole_and_as_much_of_the_map_as_has_room_over_it", () => {
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 600 });
+    const { map, box, asked } = aMap();
+    stand(map, [-900, -100]);
+    stand(box, [-400, -100]);
+
+    // The foot of the box at the foot of the window, and the map over it as far as it goes.
+    expect(bringIntoSightUnder(map, box)).toBe(-100 + 8 - 600);
+    expect(asked).toEqual([-692]);
+  });
+
+  test("test_a_box_that_is_higher_than_the_window_is_shown_from_its_head", () => {
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 300 });
+    const { map, box, asked } = aMap();
+    stand(map, [900, 1800]);
+    stand(box, [1300, 1800]);
+
+    bringIntoSightUnder(map, box);
+
+    expect(asked).toEqual([1300 - 8]);
+  });
+
+  test("test_what_is_held_at_the_foot_of_the_window_is_not_stood_under", () => {
+    // The bar of areas to compare is held at the foot of the window once an area is chosen.
+    const { map, box, asked } = aMap();
+    const bar = document.createElement("section");
+    document.body.append(bar);
+    stand(bar, [733, 844]);
+    stand(map, [300, 830]);
+    stand(box, [530, 830]);
+
+    expect(bringIntoSightUnder(map, box, bar)).toBe(830 + 8 - 733);
+    expect(asked).toEqual([105]);
+    // A bar that is not drawn is held nowhere.
+    stand(bar, [0, 0]);
+    expect(bringIntoSightUnder(map, box, bar)).toBe(0);
+  });
+
+  test("test_in_a_box_that_scrolls_in_itself_the_box_is_scrolled_and_the_page_is_not", () => {
+    // Seen at 1440 by 900: the column of the map stood from 16 to 884, scrolled by 955 to
+    // the row that was pressed, and the box of the area stood from -470 to -167.
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 900 });
+    const column = aBoxThatScrolls([16, 884], 4973);
+    column.scrollTop = 955;
+    const { map, box, asked } = aMap(column);
+    stand(map, [-939, -167]);
+    stand(box, [-470, -167]);
+
+    const moved = bringIntoSightUnder(map, box);
+
+    expect(moved).toBe(-939 - 16 - 8);
+    expect(column.scrollTop).toBe(955 - 963);
+    expect(asked).toEqual([]);
+  });
+
+  test("test_what_holds_nothing_moves_nothing", () => {
+    const { map, box, asked } = aMap();
+    stand(map, [-729, -85]);
+    stand(box, [-85, -85]);
+
+    expect(bringIntoSightUnder(map, box)).toBe(0);
+    expect(asked).toEqual([]);
+  });
+});
+
+describe("a press that is counted as the second of a double press, held off", () => {
+  test("test_it_lands_on_nothing_of_what_is_held_for_as_long_as_it_may_be_counted_so", () => {
+    jest.useFakeTimers();
+    const { opened, inside } = aPage();
+    const heard = jest.fn();
+    inside.addEventListener("click", heard);
+    inside.addEventListener("dblclick", heard);
+
+    holdOffTheSecondPress(opened);
+    inside.dispatchEvent(press(2));
+    // What a browser says of two presses as one is held off with the second of them: a map
+    // that is drawn nearer by it was drawn nearer under a press that was aimed elsewhere.
+    inside.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, cancelable: true, detail: 2 }));
+    expect(heard).not.toHaveBeenCalled();
+
+    inside.dispatchEvent(press(1));
+    expect(heard).toHaveBeenCalledTimes(1);
+    jest.advanceTimersByTime(DOUBLE_PRESS_MS);
+    inside.dispatchEvent(press(2));
+    inside.dispatchEvent(new MouseEvent("dblclick", { bubbles: true, cancelable: true, detail: 2 }));
+    expect(heard).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe("what was pressed, kept where it stood as what it had opened closes", () => {
+  /** A column that scrolls in itself, which holds a bar and what the bar opened. */
+  function aColumn(at: Stands, holdsAsMuchAs: number, scrolled: number) {
+    const column = aBoxThatScrolls(at, holdsAsMuchAs);
+    column.scrollTop = scrolled;
+    const { pressed: bar, opened } = aPage(column);
+    /** What the column holds, which changes as what the bar opened closes. */
+    const holds = (high: number) => Object.defineProperty(column, "scrollHeight", { configurable: true, value: high });
+    return { column, bar, opened, holds };
+  }
+
+  test("test_the_box_keeps_the_room_of_what_closed_so_that_the_bar_stands_where_it_was_pressed", () => {
+    // Seen at 1440 by 900: "Table of all areas" was pressed at 428 to close the table, in
+    // the column of the map, which stood scrolled by 557. The column held no more than 187
+    // px over its height once the table had closed, and the bar went to 798, 370 px from
+    // under the pointer.
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 900 });
+    const { column, bar, holds } = aColumn([16, 884], 4973, 557);
+    stand(bar, [428, 472]);
+    const stood = standsAt(bar);
+    expect(stood).toMatchObject({ top: 428, box: column, scrolled: 557 });
+
+    // The table closes: the column holds less, and a browser scrolls it back as far as it must.
+    holds(868 + 187);
+    column.scrollTop = 187;
+    stand(bar, [798, 842]);
+    const giveUp = keepTheRoomOf(stood);
+
+    expect(column.style.paddingBottom).toBe("370px");
+    expect(column.scrollTop).toBe(557);
+    giveUp?.();
+    expect(column.style.paddingBottom).toBe("");
+  });
+
+  test("test_the_room_is_given_up_as_the_box_is_scrolled_back_and_none_of_it_is_seen_to_go", () => {
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 900 });
+    const { column, bar, holds } = aColumn([16, 884], 4973, 557);
+    stand(bar, [428, 472]);
+    const stood = standsAt(bar);
+    holds(868 + 187);
+    column.scrollTop = 187;
+    stand(bar, [798, 842]);
+    keepTheRoomOf(stood);
+    // With the room it keeps the column holds as much as it is scrolled to.
+    holds(868 + 187 + 370);
+
+    // A person scrolls the column back by 200: that much of the room is under its foot, and goes.
+    column.scrollTop = 357;
+    column.dispatchEvent(new Event("scroll"));
+    expect(column.style.paddingBottom).toBe("170px");
+    holds(868 + 187 + 170);
+
+    // And to where the column ends without it: none of it is left, and nothing is kept.
+    column.scrollTop = 150;
+    column.dispatchEvent(new Event("scroll"));
+    expect(column.style.paddingBottom).toBe("");
+    holds(868 + 187);
+    column.scrollTop = 187;
+    column.dispatchEvent(new Event("scroll"));
+    expect(column.style.paddingBottom).toBe("");
+  });
+
+  test("test_nothing_is_kept_where_the_bar_stands_where_it_stood_or_stands_in_no_box_that_scrolls", () => {
+    Object.defineProperty(window, "innerHeight", { configurable: true, value: 900 });
+    const { column, bar } = aColumn([16, 884], 4973, 0);
+    stand(bar, [670, 714]);
+    const stood = standsAt(bar);
+
+    expect(keepTheRoomOf(stood)).toBeNull();
+    expect(column.style.paddingBottom).toBe("");
+    // On a page that scrolls as a whole, what follows the bar holds the page where it was.
+    const { pressed } = aPage();
+    stand(pressed, [324, 368]);
+    const onThePage = standsAt(pressed);
+    expect(onThePage.box).toBeNull();
+    stand(pressed, [400, 444]);
+    expect(keepTheRoomOf(onThePage)).toBeNull();
   });
 });
