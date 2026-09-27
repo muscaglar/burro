@@ -1,0 +1,103 @@
+/*
+ * The page of an account: what a person keeps, where they are signed in, and the ways to
+ * take a copy and to delete it all. Every box is the kit's. What is said here is how the
+ * rows of a list are laid out inside one.
+ *
+ * A row is a thing that is kept: its name, what is said of it, and at its end what can be
+ * done with it. The rows stand on rules of sand, as the rows of a table do: a rule is
+ * there for the eye to run along, and says nothing.
+ */
+.rows {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.rows > li {
+  max-width: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  align-items: center;
+  padding-block: var(--space-3);
+  border-block-end: var(--edge) solid var(--sand);
+}
+
+.rows > li:first-child > .row {
+  padding-block-start: 0;
+}
+
+.rows > li:last-child > .row {
+  padding-block-end: 0;
+  border-block-end: 0;
+}
+
+/* What a row is of, and under it what is said of it. */
+.of {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.of > * {
+  margin: 0;
+  max-width: none;
+}
+
+/* The name of what is kept. It is the service's, and may be long: it is read, and is broken where it must be. */
+.name {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* What can be done with it: a row of buttons, which goes to a second line where it must. */
+.does {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/*
+ * A row is laid out by the width of its own box, and not by the width of the screen: where
+ * there is room, what can be done stands at the far end of the row, beside what it is of.
+ */
+.list {
+  container-type: inline-size;
+  min-width: 0;
+}
+
+@container (min-width: 36rem) {
+  .row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--space-2) var(--space-5);
+  }
+
+  .does {
+    justify-content: flex-end;
+  }
+
+  /* What is said of the whole row, as a failure is, stands under both. */
+  .row > .under {
+    grid-column: 1 / -1;
+  }
+}
+
+/* The link that saves the copy stands alone, and takes the size of a main control. */
+.saves {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+@media (forced-colors: active) {
+  .row {
+    border-block-end-color: CanvasText;
+  }
+}

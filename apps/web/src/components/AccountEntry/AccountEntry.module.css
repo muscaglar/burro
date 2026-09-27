@@ -1,0 +1,33 @@
+/*
+ * The entry of accounts in the name board. How it is drawn is the board's to say, by the
+ * class the board hands it. What is said here is that it is of one size whichever of its
+ * two names it says, and what becomes of it on a narrow screen once a search is open.
+ */
+
+/* Both names are laid in one place, and the one that is not said is not drawn. */
+.says {
+  display: inline-grid;
+  justify-items: center;
+}
+
+.one {
+  grid-area: 1 / 1;
+}
+
+/* It keeps its room and draws nothing. It is kept from whoever hears the page by the page itself. */
+.one[data-said="false"] {
+  visibility: hidden;
+}
+
+/*
+ * A narrow screen, once a search is open: the answer comes first, and on a phone the first
+ * result is whole on the first screen. The entry gives way: it is not laid out, the board
+ * is one line as it is with accounts off, on the narrowest phone too, and the way to an
+ * account stands with the button that keeps a search. One line of the look keeps it in the
+ * board, where it has room on a phone 360 wide or wider: `look.ts` has what was measured.
+ */
+@media (max-width: 40rem) {
+  :global(body):has([data-search="open"]) .entry[data-narrow="gives-way"] {
+    display: none;
+  }
+}

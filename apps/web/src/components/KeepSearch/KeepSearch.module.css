@@ -1,0 +1,74 @@
+/*
+ * The button that keeps a search, beside the way to share one. The button is the kit's.
+ * What holds it is laid out by the page, as what holds the way to share a search is: the
+ * button stands in the row, and what it says goes under the row.
+ */
+.keep {
+  min-width: 0;
+}
+
+/*
+ * What the button says of what it did. While it says nothing it is laid out nowhere, and
+ * takes no line of the row and no room between two lines. It is on the page all the same:
+ * what is not there is not heard when it first speaks.
+ */
+.says {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/*
+ * Once it says something it is a slip of cream inside a plain edge of ink, since nothing
+ * is read on the grass. Its edge ends where the edge of ink of a box ends, which keeps the
+ * room of its shadow inside itself.
+ */
+.says[data-says="true"] {
+  position: static;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  width: auto;
+  height: auto;
+  min-width: 0;
+  margin: 0 calc(var(--px) * 2) 0 0;
+  padding: var(--space-3) var(--space-4);
+  overflow: visible;
+  clip-path: none;
+  border: var(--edge) solid var(--border);
+  background: var(--page);
+}
+
+.said,
+.way {
+  margin: 0;
+}
+
+/*
+ * The way to the account, which stands here on a narrow screen alone: there the entry of
+ * the name board gives way to the answer once a search is open. On any other screen the
+ * board has it, and this is not laid out. It is named by what it is a class of as well,
+ * so that it weighs more than what the kit says of a button.
+ */
+a.account {
+  display: none;
+}
+
+@media (max-width: 40rem) {
+  a.account {
+    display: inline-flex;
+  }
+}
+
+.said:empty {
+  display: none;
+}
+
+@media (forced-colors: active) {
+  .says[data-says="true"] {
+    border-color: CanvasText;
+  }
+}

@@ -1,0 +1,306 @@
+/*
+ * What the pages of accounts share: a page of boxes on the meadow, a failure, a notice, a
+ * tick, a field, and a row of buttons. Every box is the kit's, and brings its ground, its
+ * rule and its shadow. What is said here is where a thing stands and how what it holds is
+ * set. Every sentence is set in the reading face, in ink, on cream.
+ *
+ * Nothing here moves, nothing changes under the pointer, and nothing that holds words has
+ * a height of its own, so that the words can be made larger.
+ */
+
+/* A page: boxes of cream, one over the other, with grass between them. */
+.page {
+  /* The room a box keeps between its rule and what is read in it. */
+  --room: var(--space-3);
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  min-width: 0;
+  padding-block-end: var(--space-5);
+}
+
+/*
+ * A page that says one thing and asks one: it stands in the middle, and is no wider than
+ * a sentence is read at. On a narrow screen it is as wide as the page.
+ */
+.page[data-lay="narrow"] {
+  justify-items: center;
+  padding-block: var(--space-4) var(--space-6);
+}
+
+.page[data-lay="narrow"] > * {
+  width: 100%;
+  max-width: 44rem;
+}
+
+@media (min-width: 40rem) {
+  .page {
+    --room: var(--space-4);
+
+    gap: var(--space-4);
+  }
+
+  .page[data-lay="narrow"] {
+    padding-block: var(--space-5) var(--space-7);
+  }
+}
+
+@media (min-width: 60rem) {
+  .page {
+    --room: var(--space-5);
+  }
+}
+
+/*
+ * A box of a page. It is told that it brings its own room, so that the room is said here.
+ * It is named by the page as well, so that it weighs more than what the kit says of a box:
+ * which of two sheets is read last is not the website's to decide.
+ */
+.page > .box {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--room) var(--room) calc(var(--room) + var(--space-1));
+}
+
+.box > *,
+.holds > * {
+  min-width: 0;
+  margin: 0;
+}
+
+/* The heading of a page, and what it is for under it. */
+.title {
+  margin: 0;
+}
+
+.lead {
+  max-width: var(--measure);
+  font-size: var(--size-lead);
+}
+
+/* The heading of one box of a page. Reached by the focus, it is brought into sight with the head of its box over it. */
+.heading {
+  margin: 0;
+  scroll-margin-top: calc(var(--room) + var(--px) * 6);
+}
+
+/* What is handed the focus by what was pressed and went. It is no stop of its own, and draws no ring. */
+.lands:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* What a box holds under its heading, one thing under the other. */
+.holds {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+/* A line that says less than the rest: when a thing was done, what a control is for. */
+.quiet {
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+/* What is said of a thing that was just done. It keeps the height of a line while it says nothing, so that nothing moves. */
+.said {
+  min-height: calc(var(--leading-text) * 1em);
+}
+
+/* The points of a box. The mark of a line is a square of ink, as the look marks a line. */
+.points {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  padding-inline-start: var(--space-5);
+  list-style: square;
+}
+
+.points > li::marker {
+  color: var(--ink);
+}
+
+/* An address a person signs in with. It is read exactly, so it is set in the reading face, heavy, and is broken where it must be. */
+.address {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+/* A row of buttons, which goes to a second line where it must. */
+.ways {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/*
+ * A failure: plain and flat. Cream, inside a rule of ink, with a band of poppy at its
+ * start, inside the rule. What it says is in ink: poppy is an edge, and never small words.
+ */
+.failed,
+.notice {
+  --band: calc(var(--px) * 3);
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + var(--band));
+  background: var(--bg);
+  border: var(--edge) solid var(--border);
+  box-shadow: inset var(--band) 0 0 var(--error-edge);
+  color: var(--text);
+}
+
+.failed p,
+.notice p {
+  margin: 0;
+}
+
+.failedTitle {
+  color: var(--error);
+  font-weight: 700;
+}
+
+/* The id of the request is read out to whoever is told of the failure, and may be long. */
+.request {
+  color: var(--muted);
+  font-size: var(--size-small);
+  overflow-wrap: anywhere;
+}
+
+/*
+ * A notice: what a person is to read before they go on. It is drawn as a failure is, with
+ * a band of amber in the place of the poppy: amber is not told from cream by everyone,
+ * and the rule of ink is.
+ */
+.notice {
+  background: var(--notice-bg);
+  border-color: var(--notice-edge);
+  box-shadow: inset var(--band) 0 0 var(--notice-mark);
+  color: var(--notice-text);
+}
+
+.noticeTitle {
+  font-weight: 700;
+}
+
+/* A tick and its words. The whole line takes the press, and is as high as a main control. */
+.tick {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--px) * 4);
+  min-height: var(--target);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/*
+ * The tick: a square with an edge of ink, which is amber with a tick of ink on it while it
+ * is ticked. It is the browser's own checkbox, and says what one says. The tick is drawn a
+ * pixel at a time, in a square of twelve: a small control is 24 px at the least.
+ */
+.check > input {
+  /* What the tick is drawn in. */
+  --dot: linear-gradient(var(--ink), var(--ink));
+
+  flex: none;
+  width: calc(var(--px) * 12);
+  height: calc(var(--px) * 12);
+  margin: 0;
+  border: var(--px) solid var(--ink);
+  border-radius: 0;
+  background: var(--page);
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.check > input:checked {
+  background:
+    var(--dot) calc(var(--px) * 7) calc(var(--px) * 2) / calc(var(--px) * 1) calc(var(--px) * 1) no-repeat,
+    var(--dot) calc(var(--px) * 6) calc(var(--px) * 3) / calc(var(--px) * 2) calc(var(--px) * 1) no-repeat,
+    var(--dot) calc(var(--px) * 1) calc(var(--px) * 4) / calc(var(--px) * 1) calc(var(--px) * 1) no-repeat,
+    var(--dot) calc(var(--px) * 5) calc(var(--px) * 4) / calc(var(--px) * 2) calc(var(--px) * 1) no-repeat,
+    var(--dot) calc(var(--px) * 1) calc(var(--px) * 5) / calc(var(--px) * 2) calc(var(--px) * 1) no-repeat,
+    var(--dot) calc(var(--px) * 4) calc(var(--px) * 5) / calc(var(--px) * 2) calc(var(--px) * 1) no-repeat,
+    var(--dot) calc(var(--px) * 2) calc(var(--px) * 6) / calc(var(--px) * 3) calc(var(--px) * 1) no-repeat,
+    var(--dot) calc(var(--px) * 3) calc(var(--px) * 7) / calc(var(--px) * 1) calc(var(--px) * 1) no-repeat,
+    var(--chosen);
+}
+
+/* A field and what is said of it, one under the other. */
+.field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
+}
+
+/* The name of a field is a short label, and is set in the face of names. */
+.label {
+  color: var(--ink);
+  font: 400 var(--name-2) / 1.1 var(--font-name);
+  font-synthesis: none;
+}
+
+/*
+ * The field is sunk into the page: a shade lies along its top and its left, inside its
+ * edge. It is named by what holds it as well, so that it weighs more than what the page
+ * says of every field.
+ */
+.field > .input {
+  width: 100%;
+  max-width: 32rem;
+  min-width: 0;
+  padding: var(--space-2) calc(var(--px) * 4);
+  border: var(--edge) solid var(--border);
+  border-radius: 0;
+  background: var(--page);
+  box-shadow: inset var(--px) var(--px) 0 var(--sand);
+  color: var(--ink);
+  font-size: var(--size-lead);
+}
+
+/* A field that was not filled in as it must be has an edge of poppy inside its edge of ink, and says so in words under it. */
+.field > .input[aria-invalid="true"] {
+  box-shadow:
+    inset 0 0 0 var(--px) var(--error-edge),
+    inset var(--px) var(--px) 0 var(--sand);
+}
+
+/*
+ * With forced colours the system's own colours carry every edge, and the band of a
+ * failure or a notice is a second edge. The tick is the browser's own.
+ */
+@media (forced-colors: active) {
+  .failed,
+  .notice {
+    border-color: CanvasText;
+    border-inline-start-width: var(--band);
+    box-shadow: none;
+  }
+
+  .check > input,
+  .check > input:checked {
+    background: none;
+    -webkit-appearance: auto;
+    appearance: auto;
+  }
+
+  .field > .input,
+  .field > .input[aria-invalid="true"] {
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+}
