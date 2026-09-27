@@ -1,6 +1,6 @@
 # 0014. Evidence first, and census figures are shown
 
-Status: accepted, 2026-09-23. It amends [0002](0002-deterministic-core.md) and [0006](0006-rank-places-not-residents.md), and changes sections 9 and 15 of the plan. The number 0013 is kept for the record on vibes. Amended the same day, for the founder to approve: the third sentence of rule 8 is reworded, and the registry's heading and use are named. See "Rule 8, reworded" below. **Amended on 2026-09-24** by [0006](0006-rank-places-not-residents.md): age and household type may feed a vibe and a ranking. Country of birth, ethnic group and religion are shown and never ranked on, as before. See "Amended, 2026-09-24", below. Amended again on 2026-09-24, for the founder to approve: what stands beside a figure, and how a small number is said. See "How the figures are shown, as built" below.
+Status: accepted, 2026-09-23. It amends [0002](0002-deterministic-core.md) and [0006](0006-rank-places-not-residents.md), and changes sections 9 and 15 of the plan. The number 0013 is kept for the record on vibes. Amended the same day, for the founder to approve: the third sentence of rule 8 is reworded, and the registry's heading and use are named. See "Rule 8, reworded" below. **Amended on 2026-09-24** by [0006](0006-rank-places-not-residents.md): age and household type may feed a vibe and a ranking. Country of birth, ethnic group and religion are shown and never ranked on, as before. See "Amended, 2026-09-24", below. Amended again on 2026-09-24, for the founder to approve: what stands beside a figure, and how a small number is said. See "How the figures are shown, as built" below. **Amended on 2026-09-27**, once the founder had walked the website a third time: on a result of the website the key of a source stands under the working of the result, and no longer after each sentence. What stands behind a figure is as it was. See "Amended, 2026-09-27", below.
 
 ## Context
 
@@ -95,6 +95,19 @@ What stands as it was written:
 What the publisher says of small counts, as its two pages on the matter were read on 2026-09-24: it names counts of nought, one and two as small, says that about 14 in 100 counts were changed by a small amount, and gives no figure under which a count is withheld or is not to be relied on. So the two figures above, 1 in 100 and 1,000, are Burro's own, and a first guess.
 
 The registry's entry for the census tables still holds the conditions as first written: shares only, no count, no comparison. A real census cannot be written until the entry and this record say the same. Nothing of the registry was changed with this amendment.
+
+## Amended, 2026-09-27: where the source of a figure stands on a result
+
+The founder walked the website a third time, late on 2026-09-26, and wrote: "the source's key should just exist under the show the working section we dont need it at the summary high level card version."
+
+| This record says | Now |
+|---|---|
+| Nothing is said about a place unless a stored record stands behind it. The record names its source, the date of the data, the date it was retrieved, and how the figure or sentence was derived | As it was. No figure lost its record, and nothing of the service or of a release was changed |
+| This holds whether or not the screen shows the source | It is the founder's own, from the day this record was made: "Even if not exposed to the user, these should be present and known before we reach conclusions." The website showed the source of every sentence of a result all the same, behind a key that followed the sentence. Since 2026-09-27 a result draws no key as it is first shown. The key of every figure it shows stands under "Show the working", which is one press from the result, and opens to the source and the date as it did: so they are two presses from a result, where they were one |
+| There is no fallback to uncited text | As it was. A result shows nothing of a place that no fact sent |
+| The census figures of an area | As they were: on the page of an area, and in no result |
+
+[0046](0046-a-result-shows-what-was-asked-for-as-a-name-and-a-gauge-and-the-source-of-every-figure-stands-under-its-working.md) records what a result shows since, what holds that no source was lost, and what that gives up: a person who presses nothing sees no source, and the licence registry asks of many sources that a credit, a date or a caution stands beside every figure made from them. Whether under the working is beside it is the founder's to settle.
 
 ## What would change it
 

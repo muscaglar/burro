@@ -48,6 +48,14 @@ vercel env ls
 
 With no address of the API set, a build reads the recorded answers and calls nothing: the first deployment was built so. With `NEXT_PUBLIC_BURRO_API_URL` set, a build calls routes 4, 5, 6 and 11 of the API. **A build makes the page of the first 24 areas of the release, and no more**: `src/lib/area/ahead.ts`. The page of any other area is made the first time it is asked for, and kept for an hour as a built page is. The first build on London, on 2026-09-26, made a page for every area, a thousand of them: after about ninety the machine of the API, which shares its processor, fell so far behind that the host answered 503 for three minutes, and the build failed. A build now asks the API some thirty times. A read that timed out, or met a service too busy to answer, is asked for four times at most, each waited for longer than the last. A failure then stops the build, and the deployment before it stays live. Deploy the API before you set its address. After a new release reaches the API, the pages catch up within the hour, or at once with a new deployment.
 
+## When the website is deployed again
+
+| After | Do | Why |
+|---|---|---|
+| The provider of the language model is turned on, turned off or changed | Deploy the website again, at once | Since 2026-09-26 the notice of who reads what a person types is shown on the page of methods and nowhere else, and that page is built ahead of time: it shows what the service said when it was built, and catches up within the hour. Until it has, it tells a visitor of the reader before. The search page asks the service as it opens and sends no sentence until the service has said, and shows nothing of what it said ([ADR 0023](../../docs/adr/0023-what-is-typed-goes-as-typed-and-people-are-told.md), as amended) |
+| The catalogue moved, as it did on 2026-09-26 | Build London again and commit its lock, then deploy the service, then the website | A release is served only where its catalogue is the code's, so the service refuses the release that was approved before. [The guide to data builds](../../docs/data-builds.md), "Before the service is deployed again", has the steps in order |
+| The contract moved, as it did for a visit | Deploy the service first, and the website after it | The website is built from the types of the contract. A service that knows no visit refuses a search that is one |
+
 ## The headers the website already sets
 
 `next.config.ts` sets them on every path, from `src/lib/headers.ts`. They are not repeated in `vercel.json`: two sources would come to disagree, and the policy depends on the API's address.
@@ -58,12 +66,34 @@ With no address of the API set, a build reads the recorded answers and calls not
 | `Referrer-Policy` | `no-referrer` |
 | `X-Content-Type-Options` | `nosniff` |
 | `Permissions-Policy` | `camera=(), geolocation=(), microphone=()` |
+| `Cache-Control` | `public, max-age=31536000, immutable`, on each face under `/fonts/`, and on nothing else |
 
 `X-Powered-By` is switched off. The website does not set `Strict-Transport-Security`. Vercel is expected to add it; the check in [../README.md](../README.md) shows whether it does.
 
+## The faces and the drawings
+
+The look of the website is made of files of its own: two faces, in four files under `/fonts/`, and the drawings under `/art/`. No page asks another origin for either, and the policy above lets nothing else by. [The design of the look](../../docs/design/look.md) says what each is.
+
+| What | Served with | Why |
+|---|---|---|
+| A face, `/fonts/NAME.woff2` | `Cache-Control: public, max-age=31536000, immutable`, which the website sets for each file that is there when it is built | A browser keeps a face for a year, by its name. So a file whose bytes change is given a new name, and a test holds every file to the bytes it had |
+| A drawing, `/art/NAME.png` | `Cache-Control: public, max-age=0`, which is the framework's own for a file of `public` | A drawing may change under its name. So a browser asks for each again on every page, and is answered that it has not changed. The ground is on every page |
+| A name under `/fonts/` that is no file | 404, with the framework's own `s-maxage=3600, stale-while-revalidate=31532400` | A browser keeps nothing of it. A cache that stands before the website may keep it for an hour |
+| A picture the framework would make of a drawing, `/_next/image` | 404: `next.config.ts` turns the framework's pictures off (`images.unoptimized`) | No page asks for one, since a drawing is laid by a style at its own size. Left on, it makes a picture of any drawing at any of its widths for whoever asks, and a host that counts the pictures it makes counts those |
+
+**Seen served by `next start`, and not yet on Vercel.** Whether Vercel serves a file of `public` with a header that `next.config.ts` sets is not known. On the first deployment of the look, ask for one face and read what it comes with:
+
+```
+curl -sI https://PROJECT.vercel.app/fonts/rubik-latin.woff2 | grep -i cache-control
+```
+
+If the year is not there, the faces are asked for again on every page, as the drawings are, and nothing else is wrong.
+
+**The address of a drawing names what it is of.** A chip of a vibe asks for `/art/thing-leafy.png`. So Vercel's log of a request, which holds its path, says which vibes a search holds, where before the look it held the slug of an area and no more. No word that was typed and no place is in any address. The design of the website, section 10, has it, and whether it may stand is the founder's to decide.
+
 ## Privacy settings
 
-The website has no route handler, no server action and no middleware, so nothing a person types passes through Vercel. These settings keep it that way.
+The website has no server action and no middleware, and one route handler, which passes the routes of accounts on to the API and passes nothing on while accounts are off. So nothing a person types into a search passes through Vercel. These settings keep it that way. Where accounts are turned on, what is sent for an account passes through Vercel on its way to the API: an address of email, the token of a link, two cookies, and a search that is kept. Three settings more are then made for Production alone, and what each must hold is in [../README.md](../README.md#turning-accounts-on), step 8 and "The settings, in short".
 
 | Setting | Set to | Why |
 |---|---|---|
@@ -76,7 +106,7 @@ The website has no route handler, no server action and no middleware, so nothing
 | Git Fork Protection | On, as it comes | A pull request from a fork is not built until you allow it |
 | Deployment Protection | On for previews, as it comes | A preview is not for the public |
 
-What Vercel's own log holds for a request: the path, the query string, the status and the browser's name. For this website that is an area's slug, or the slugs of a comparison. It is kept for 1 hour on Hobby, which is the free plan and the one in use, and 1 day on Pro.
+What Vercel's own log holds for a request: the path, the query string, the status and the browser's name. For this website that is an area's slug, or the slugs of a comparison, and since the look the name of each drawing a page asks for. It is kept for 1 hour on Hobby, which is the free plan and the one in use, and 1 day on Pro.
 
 `vercel link` writes a `.vercel` folder that names the account and the project. It is not in `.gitignore` yet. Do not commit it.
 

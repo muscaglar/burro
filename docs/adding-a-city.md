@@ -103,7 +103,7 @@ A band needs 60 in 100 of its recipe. What a home lets for is held for London, f
 | 3 | Prefer a file a fetch can take to a form a person fills in: a file saved by hand reaches the store from a person's machine alone | `docs/research/data/by-hand-files.md` |
 | 4 | Draft the names from publishers' files, let a name stand by rule only where one official publisher writes it, and keep a person's hours for the rest | ADR 0022 and ADR 0025 |
 | 5 | Treat every number of the estimate of a journey as London's. **None was fitted to a journey that was timed.** One was widened once the estimate had been held against London's timetables, so that less is promised. Its one faster rate is for an area near the Underground or the DLR | `packages/core/src/burro_core/estimate.py:26`. ADR 0027 |
-| 6 | Do not promise a village from conservation areas, old homes and the outlines of high streets: three tries put 8, 24 and 25 villages among fifty, where the bar is 30. London serves the vibe as a rough guide, which says so wherever it is shown and is never taken without a press of its own | `docs/research/data/high-streets.md`. ADR 0013, as amended |
+| 6 | Do not promise a village from conservation areas, old homes and the outlines of high streets: three tries put 8, 24 and 25 villages among fifty, where the bar is 30. London serves the vibe as a rough guide: the service says that it is less sure than the other vibes, and why. The website has not passed that on to a visitor since 2026-09-26, when the founder asked that it does not | `docs/research/data/high-streets.md`. ADR 0013, as amended |
 | 7 | Never set a band of one city beside another's: a fifth of any city is in the top band | `docs/design/contract.md`, section 2.4 |
 | 8 | Read every file of points for a box wider than the city, and leave a home at the edge out where a file stops there | `docs/research/data/food-register.md`, section 9 |
 | 9 | Hold a register that each council keeps against a second source before you rank on one of its kinds | `docs/research/data/food-register.md`, section 6 |
@@ -449,7 +449,7 @@ What section 1 names, with the whole path of each.
 | `packages/core/src/burro_core/lexicon.py:968` | `outside london` | Core | What the reader hears. So "near a tube", line 667, and "by tube" in `grammar.py`, line 161 |
 | `packages/core/src/burro_core/rank.py:139` | `FIRM_BUDGET_MARGIN_PERCENT = 25` | Core | Reasoned on flats sold in London: the comment above it |
 | `apps/web/src/lib/city.ts:9` | `lon: "london"` | Website | The first part of the address of an area's page. Line 21 gives any other city no page |
-| `apps/web/src/content/methods.ts:44` | `London's neighbourhoods` | Website | A sentence of the page of methods. So line 149, of the Underground |
+| `apps/web/src/content/methods.ts:196` | `an Underground or DLR station` | Website | A sentence of the page of methods, of how a journey is estimated. So line 201, of the timetables the estimate was held against. How an area is named names no city |
 | `apps/web/scripts/check-pages.mjs:252` | `synthetic\|london` | Website | How the check of the built pages knows the page of an area |
 | `apps/ios/BurroKit/Sources/BurroKit/Shell/SiteAddress.swift:47` | `case "lon"` | App | The city of a shared address |
 | `apps/ios/BurroKit/Sources/BurroKit/Features/Area/IncomingLink.swift:44` | `"lon-"` | App | The cities a link that is opened may name |

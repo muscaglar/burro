@@ -319,7 +319,7 @@ A vibe or a figure that counts who lives somewhere says three things wherever it
 | Beside a figure of age | N% of residents were aged 20 to 34. Counted at the 2021 census, on 21 March 2021, during a lockdown, when many young adults had left London |
 | In a reason | More households here had dependent children than in N in 100 of the areas compared, at the 2021 census |
 | A control in the settings | More households with children (2021 census) |
-| The group of the settings | Who lives there, at the 2021 census |
+| The group of the settings | Who lived there, at the census of 2021 |
 | Where there is no figure | Burro holds no census figure for this area |
 
 - A reason never says why people live somewhere, and never says an area is "popular with" anyone.
@@ -461,7 +461,7 @@ Core was not changed. Each row is one change, to be made together in one reviewe
 | `_FEATURES` | Add the four, each with the label and short label of section 4, unit `%`, polarity `MORE`, the comparatives `more` and `fewer`, kind `RESIDENTS` |
 | `_feature` | `describes` is `RESIDENTS` where the dimension is `RESIDENTS`. `in_likeness` is false for such a feature |
 | `_FAMILY_OF` | `Dimension.RESIDENTS` is shown in `Family.WHO_LIVES_THERE` |
-| `FAMILIES` | The label of the new group: "Who lives there, at the 2021 census" |
+| `FAMILIES` | The label of the new group: "Who lived there, at the census of 2021" |
 | `checked_recipe` | Three new refusals. A recipe reads a part that describes residents from its high end. A scale holds no part that describes residents. A recipe that holds such a part says so first in its meaning |
 | `_TAGS` | The new vibes of section 5, once the founder has chosen |
 
@@ -610,7 +610,7 @@ Built on 2026-09-24, after the row of section 12 was written. Every rule of sect
 
 | What | Built as | Where this page left a choice |
 |---|---|---|
-| The four measures | Features of core, `COUNTS_RESIDENTS`, each of kind and of dimension `residents` and of the family "Who lives there, at the 2021 census". Polarity more, unit %, in no likeness. A person may weigh each on request | Their short labels hold no figure, as every short label does: "More young adults" is of residents aged 20 to 34, and "More older residents" of residents aged 65 and over. The label holds the ages |
+| The four measures | Features of core, `COUNTS_RESIDENTS`, each of kind and of dimension `residents` and of the family "Who lived there, at the census of 2021". Polarity more, unit %, in no likeness. A person may weigh each on request | Their short labels hold no figure, as every short label does: "More young adults" is of residents aged 20 to 34, and "More older residents" of residents aged 65 and over. The label holds the ages |
 | Family area | One way: households with dependent children 40, primary schools within 800 m 25, the nearest play space 20, the nearest park 15 | The recipe of section 5 gave the households 45. No part is over 40 now, and the three parts of the place are in the order and near the shares that Family amenities gives them |
 | One family vibe or two, question 8 | Two. Family amenities stays a vibe of places, and says in its meaning that it counts places alone | A person can still ask for what is there without counting who lives there, which the decision record says they can. "Family friendly", "good for kids" and "good for families" are offered as both, and the person chooses. "Families" and "a family area" are offered as Family area |
 | Young professionals | One way: residents aged 20 to 34 at 40, the nearest station 25, places to eat and drink for each 1,000 homes 20, cultural venues for each 1,000 homes 15. It says it cannot see what anyone does for work | It is built in place of Young and busy, which held flats and homes per hectare and found the areas that Houses or flats finds. Section 14 says how it stands against Houses or flats on London's areas |

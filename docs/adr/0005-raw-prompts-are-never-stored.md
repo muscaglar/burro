@@ -1,6 +1,6 @@
 # 0005. Raw prompts are never stored
 
-Status: accepted, 2026-09-23. Tightened the same day by [0011](0011-nothing-is-kept-for-a-search.md), which this record now agrees with. Amended twice the same day: first what was logged of a spec became its hash under a key, and no longer its plain hash; then nothing worked out from a spec was logged, or kept about a call, at all.
+Status: accepted, 2026-09-23. Tightened the same day by [0011](0011-nothing-is-kept-for-a-search.md), which this record now agrees with. Amended twice the same day: first what was logged of a spec became its hash under a key, and no longer its plain hash; then nothing worked out from a spec was logged, or kept about a call, at all. **Amended on 2026-09-26** by [0044](0044-a-person-who-has-signed-in-may-keep-a-search-and-what-is-kept-is-the-spec-and-never-the-words.md): a share is no longer the one place a spec is stored. What is typed is still never stored. The last paragraph of the decision says what changed.
 
 ## Context
 
@@ -21,6 +21,8 @@ Raw prompt text and destination strings are never written to any log, error repo
 - An evaluation set of real prompts is a separate table, filled only with explicit consent.
 
 The only place raw text leaves Burro is the model API call, and only where a provider has been turned on. **Amended on 2026-09-24** by [0019](0019-no-one-provider-and-a-key-alone-turns-nothing-on.md): this record said that the provider keeps inputs for up to 30 days, which is what two of the four providers say. What a provider keeps, for how long and where is held by provider in `services/api/src/burro_api/providers/terms.py`, with the pages each answer was read on, and is served by the API. The words go alone unless the service is set to send the search settings with them. **Amended again the same day** by [0023](0023-what-is-typed-goes-as-typed-and-people-are-told.md): what a provider's pages say is kept as research, which nobody has checked, and is served to nobody. People are told whose language model reads what they type, and are given a link to the company's own terms. What is typed goes as it was typed.
+
+**Amended on 2026-09-26** by [0044](0044-a-person-who-has-signed-in-may-keep-a-search-and-what-is-kept-is-the-spec-and-never-the-words.md), at the founder's asking. This record said that the one place a spec is stored is a share. Where accounts are on there is a second: a search that a person who has signed in keeps, or lets Burro keep as one of their last ten. What is kept of it is the spec, the release it was made on, and a name that code works out from the spec. **What is typed is still never stored**: not with a search that is kept, not under an account, and in no table of the file that holds accounts ([0045](0045-the-service-has-a-database-one-file-for-accounts-and-what-they-keep.md)). A person cannot name a kept search, because a name that is typed is typed text. One thing that a person types is kept, and is no prompt: the address of email they sign in by, which is the account. It is in no log.
 
 ## Consequences
 

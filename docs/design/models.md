@@ -248,11 +248,11 @@ A few sentences, the same for every provider but for the company's name. They sa
 
 The notice for Gemini, as `terms.py` makes it where the words go alone:
 
-> What you type is sent to a language model run by Google, to be read. Your words go alone: none of your search settings is sent with them. Do not type anything private. Burro itself keeps nothing of what you type. What Google does with it is in Google's own terms.
+> What you type is sent to a language model run by Google, to be read. Your words go alone: none of your space requirements is sent with them. Do not type anything private. Burro itself keeps nothing of what you type. What Google does with it is in Google's own terms.
 
 And where the settings are sent with them:
 
-> What you type is sent to a language model run by Google, to be read. With it go your search settings: your budget, whether you rent or buy, how long you will travel, what matters to you, and the areas you have ruled in or out. Do not type anything private. Burro itself keeps nothing of what you type. What Google does with it is in Google's own terms.
+> What you type is sent to a language model run by Google, to be read. With it go your space requirements: your budget, whether you rent, buy or visit, how long you will travel, what matters to you, and the areas you have ruled in or out. Do not type anything private. Burro itself keeps nothing of what you type. What Google does with it is in Google's own terms.
 
 With no model: "What you type is read by rules that are part of Burro. It is not sent to a language model."
 
@@ -272,11 +272,11 @@ The words go alone unless the service is set to send the search with them. One s
 | `BURRO_MODEL_SENDS_SETTINGS` | What leaves with the words | What every notice says |
 |---|---|---|
 | Not set, or anything but `yes` | Nothing of the search. The instructions, which hold the names of the features and the vibes, are Burro's own and the same for everyone | The sentence below that begins "Your words go alone" |
-| `yes` | The search as it stands: the budget in pounds, whether to rent or buy, each journey's time and mode, every weight and tag, and every area that is ruled in or out, by its id. The one thing taken out is where a journey leads. On real data an area's id names a real neighbourhood | The sentence below that begins "With it go" |
+| `yes` | The search as it stands: the budget in pounds, whether it is to rent, to buy or to visit, each journey's time and mode, every weight and tag, and every area that is ruled in or out, by its id. The one thing taken out is where a journey leads. On real data an area's id names a real neighbourhood | The sentence below that begins "With it go" |
 
-> Your words go alone: none of your search settings is sent with them.
+> Your words go alone: none of your space requirements is sent with them.
 
-> With it go your search settings: your budget, whether you rent or buy, how long you will travel, what matters to you, and the areas you have ruled in or out.
+> With it go your space requirements: your budget, whether you rent, buy or visit, how long you will travel, what matters to you, and the areas you have ruled in or out.
 
 `SENT_WITH` in `terms.py` names each field of a search and the words that tell of it. A test sends a whole search through the real reader with the setting on, and fails if a field leaves that the notice does not name. Another sends the same search with the setting off, unset and set to a word that is not `yes`, and fails if anything of the search is in what leaves.
 
@@ -331,7 +331,7 @@ What is typed is sent as typed, so a provider may refuse it, for safety or for i
 | The call | On record with the status `refused`, as the `interpret` line has it in `call_status`. No line is written for a refusal alone, and nothing counts them |
 | What was typed | Nowhere. Nor why the provider refused, where in the text, or who sent it |
 
-A client that abuses the service is blocked afterwards by its address, at the host's edge: `deploy/README.md`. Burro holds no account, follows nobody and keeps nothing of a search (ADR 0023).
+A client that abuses the service is blocked afterwards by its address, at the host's edge: `deploy/README.md`. Burro follows nobody and keeps nothing of what was typed (ADR 0023). It has accounts since 2026-09-26, which are off until they are turned on: no sentence is tied to one, the reader is handed nothing of who asked, and an account blocks nobody (ADR 0043).
 
 ## 7. Measuring a provider before it is turned on
 
@@ -371,13 +371,15 @@ These are proposed. The founder sets the floor, in `floor.json`, after the first
 | Is any reading of the rules lost because a model is on? | None |
 | What can a stand-in not say? | Whether a real model reads a follow-up less well with the words alone, and how often a real model reads a turn backwards |
 
+**Since 2026-09-26 the website applies what is offered, and asks nothing** (ADR 0012, as amended). The service is as the table says: it applies nothing a model reads. But what the table calls a guess that is not applied until it is pressed is, on the website, taken as soon as it is read, and shown as a chip that says it was assumed. So the 92 cases of a backwards guess are 92 searches that would be ranked backwards, where they were 92 offers that a person could leave.
+
 The floor below which no model is turned on is in the contract, section 8.2, and ADR 0012. One model has been measured against it once, on 112 sentences, and its answers are kept in `evals/reader/answers/`. That is a fit and not a measurement: the checks were chosen after reading those answers. Before a provider is turned on, measure it on sentences the checks were not fitted to.
 
 ## 8. What the wiring step changes, in order
 
 Each is a change to a file that exists. The last column says which are done. Step 5 is the one that matters most: since it was done, a key alone turns nothing on.
 
-The table is what was done then. Two things in it were changed afterwards, by ADR 0023: no provider waits on a person's check, and `reader` serves the notice and the address of the company's own terms, with no `sources`.
+The table is what was done then. Two things in it were changed afterwards, by ADR 0023: no provider waits on a person's check, and `reader` serves the notice and the address of the company's own terms, with no `sources`. A third was changed on 2026-09-26, by that record as it was amended once the founder had walked the website a second time: the search page shows no notice by the text box, and the draft of the privacy notice points to the notice the service serves, which the website shows on its page of methods (rows 13 and 19). The search page still asks the service who reads as it opens, and sends no sentence until the service has said.
 
 | # | File | Change | Done |
 |---|---|---|---|
@@ -410,7 +412,7 @@ Nothing under `apps/ios` was changed, and the app was not built. Its check fails
 | `make -C apps/ios generate` | `APIModels.swift` is generated from `contracts/openapi.json`. `InterpreterName` holds `model` where it held `claude`, `MetaData` gains `reader`, and `Reader`, `ReaderSource`, `Provider` and `Question` are new. The recorded answers are copied from the website's, which hold the new name and two new answers, `meta-model-reads` and `meta-model-reads-with-settings` |
 | `SearchCopy.swift` | The word for who read a sentence is keyed by the old name: key it by `model`. Its line on how long a provider keeps words says "up to 30 days", which is true of two of the four: take it out, and show what is served |
 | `PermissionView` and `Consent` | The app asks before a sentence is sent. What it shows is to be `reader.notice`, as served, and no provider's name or terms of its own. Where `reader.model_reads` is false it says that no language model reads what is typed |
-| `Search/` | It follows the website's `state.ts` and `flow.ts` event for event. Both gained who reads: `reader` and `readerFailed` in the state, the events `reader_said` and `reader_unsaid`, `loadReader`, and the rule that `submitText` sends no sentence while `reader` is `null`. Port them, and their tests |
+| `Search/` | It follows the website's `state.ts` and `flow.ts` event for event. Both gained who reads: `reader` in the state, the event `reader_said`, `loadReader`, and the rule that `submitText` sends no sentence while `reader` is `null`. Where the service cannot say who reads, the sentence is not sent and the failure is the search's own: nothing else is kept of it. Port them, and their tests |
 | A test | That no provider's name or terms stands in the app's own source, as `apps/web/test/privacy/source.test.ts` and `apps/web/test/site-copy.test.ts` hold the website |
 
 After a change to any of these, run the verify skill: drive route 1 with a made-up sentence and no key, then with a key and nothing else, then with a key and no accepted terms, and see the rules answer all three times.

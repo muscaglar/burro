@@ -1,6 +1,6 @@
 # 0024. An area with no figure for what was asked for stands below every area that has one
 
-Status: accepted, 2026-09-24. The founder decided it. One reading of it is the founder's to confirm: the last section says which.
+Status: accepted, 2026-09-24. The founder decided it. One reading of it is the founder's to confirm: the last section says which. **Amended on 2026-09-27**, once the founder had walked the website a third time: a result of the website says which figure it lacks in a line of two words, and in a sentence under its working. The order, the fit and the engine are as they were. See "Amended, 2026-09-27", below.
 
 ## Context
 
@@ -30,6 +30,22 @@ The engine is 1.12.0.
 - **An area at the edge of the data falls further.** A measure that the edge of London has no figure for, such as the distance to a station that lies outside the file, puts an area below the line whenever a person asks for that measure by name. Where nobody asked, it moves nothing.
 - **A cost that is not known now counts against an area** in a search that holds a budget. ADR 0021 kept such an area in the list with its cost not known. It is still kept, and still says so. It now stands below every area whose cost is known.
 - **A person who sets a slider to the very weight nobody chose has, to the engine, chosen nothing.** The website marks the setting as theirs, and the engine moves no area for it. The two agree on every other weight.
+
+## Amended, 2026-09-27: what a result says of a figure it lacks
+
+The founder walked the website a third time, late on 2026-09-26, and asked for less on a result: "we need the info to be title of what was asked for, the visual gauge, and where relevent, the approx data call out". [0046](0046-a-result-shows-what-was-asked-for-as-a-name-and-a-gauge-and-the-source-of-every-figure-stands-under-its-working.md) records what a result shows since.
+
+| This record says | Now |
+|---|---|
+| Its card says which figure is missing | It does, in fewer words. On the website the result of such an area has a line for each thing that was asked for and has no figure, by the name of the thing, with the two words "no data" beside a step that holds nothing. Of a vibe, its gauge is drawn with five empty steps and no peg, which is neither nought nor the middle. The sentence that names what is missing, and the service's own sentence for each thing, are under the working of the result |
+| The fit of such an area | Worked out as it was. It says "approx data" beside it on the result, since it rests on part of what counts, and what it is based on is under the working |
+| It is never left out for it, and never scored as nought | As it was. Nothing of the ranking was changed |
+| The website sorts nothing, and the card of an area below the line says what it lacks, so the reason is on the page | The reason is on the page still, in sight and with nothing pressed: the line that says "no data" names what the area lacks |
+| A usual setting that has no figure | It has no line on a result, since nobody asked for it. It is named under the working, as what nobody chose |
+
+**What it gives up.** Two words say less than a sentence did. The sentence said that the person had asked for the thing, that Burro has no figure for it in the area, and that the fit leaves it out. "No data" beside the name of the thing says that there is none, and leaves the rest to the working.
+
+What holds it, beside the list of results in `apps/web/src/components/ResultList/`: `test_a_vibe_that_was_asked_for_and_has_no_figure_has_its_line_on_the_result_with_an_empty_gauge_and_says_no_data`, `test_what_nobody_chose_and_has_no_figure_has_no_line_on_a_result_and_is_named_in_its_working`, and `test_journeys_that_do_not_count_because_none_has_a_time_are_said_on_the_result_to_be_not_known_and_in_its_working_why`.
 
 ## What would change it
 

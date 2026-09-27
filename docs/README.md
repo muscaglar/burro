@@ -18,7 +18,10 @@ The way in to every guide. Find what you want to do, and open the one guide besi
 | Put the website and the API on the internet | [Putting Burro on the internet](../deploy/README.md) |
 | Set the project up at Vercel | [The website on Vercel](../deploy/web/README.md) |
 | Serve a release of London, or go back to the one before | [The same guide, "Serving a release of London"](../deploy/README.md#serving-a-release-of-london) |
+| Turn accounts on, change a secret of them, or put their file back | [The same guide, "Turning accounts on"](../deploy/README.md#turning-accounts-on) |
 | Turn a model on, or change how many calls it may be sent | [The same guide, "Turning the model on"](../deploy/README.md#turning-the-model-on) |
+| Know what must be done before the service is deployed from this code | [Data builds, "Before the service is deployed again"](data-builds.md#before-the-service-is-deployed-again): London is built again, since the catalogue moved |
+| Know when the website is deployed again | [The website on Vercel, "When the website is deployed again"](../deploy/web/README.md#when-the-website-is-deployed-again) |
 
 ## To refresh the data
 
@@ -45,6 +48,8 @@ The way in to every guide. Find what you want to do, and open the one guide besi
 | Look up a record, a rule or a route | [The contract](design/contract.md) |
 | Change the engine, the pipeline or the API | [packages/core](../packages/core/AGENTS.md), [packages/pipeline](../packages/pipeline/AGENTS.md), [services/api](../services/api/AGENTS.md) |
 | Change the website or the iPhone app | [apps/web](../apps/web/AGENTS.md), [apps/ios](../apps/ios/AGENTS.md) |
+| Write or change a word that a visitor reads | [The words of the website](design/words.md) |
+| Change how a person signs in, or what an account keeps | [The design of accounts](design/accounts.md). Read [what could go wrong](design/accounts-threats.md) first |
 | Change the review desk, or the cases the reader is scored on | [tools/desk](../tools/desk/AGENTS.md), [evals](../evals/AGENTS.md) |
 | Drive a change before you say it works | [Verifying a change in Burro](../.claude/skills/verify/SKILL.md) |
 
@@ -66,7 +71,11 @@ The way in to every guide. Find what you want to do, and open the one guide besi
 |---|---|
 | [contract.md](design/contract.md) | How core, the release and the API fit: every record, rule and route. `make ci` holds the code to it |
 | [web.md](design/web.md) | The website: every page, state and control |
+| [look.md](design/look.md) | The look of the website: what is drawn where, where each thing is changed, how each part is turned down in one line, and what is still open for the founder |
+| [words.md](design/words.md) | The words of the website: who reads them, how a sentence is written for them, and what no sentence may loosen |
 | [models.md](design/models.md) | Four providers of a model behind one interface, and what must hold before one reads |
+| [accounts.md](design/accounts.md) | Accounts: signing in by a link sent by email, what a person keeps, every route, table, setting and line of the log, and the test of each rule. Off until it is turned on |
+| [accounts-threats.md](design/accounts-threats.md) | What could go wrong with accounts: who might try, each way in, what holds it, and what nothing holds |
 | [desk.md](design/desk.md) | The review desk and its queues |
 | [panel.md](design/panel.md) | The panel: how a change a person keeps reaches a build |
 | [london-data.md](design/london-data.md) | The plan for real data for all of London, by milestone. It stands where one of the designs behind it disagrees |
@@ -113,12 +122,17 @@ The way in to every guide. Find what you want to do, and open the one guide besi
 |  | [0003](adr/0003-three-grids.md) | Three grids, and one table of cells |
 |  | [0010](adr/0010-one-contract-one-synthetic-release.md) | One contract, and a made-up release to build on |
 |  | [0024](adr/0024-an-area-with-no-figure-for-what-was-asked-stands-below.md) | An area with no figure for what was asked stands below every area that has one |
+|  | [0041](adr/0041-a-search-may-be-a-visit.md) | A search may be a visit, which holds no budget and no home |
 | What people type, and the model | [0005](adr/0005-raw-prompts-are-never-stored.md) | Raw prompts are never stored |
 |  | [0011](adr/0011-nothing-is-kept-for-a-search.md) | Nothing is kept for a search |
-|  | [0012](adr/0012-a-closed-vocabulary-and-a-guard-on-the-model.md) | The reader applies a plain prompt and asks about any other, and a model proposes |
+|  | [0012](adr/0012-a-closed-vocabulary-and-a-guard-on-the-model.md) | The reader applies a plain prompt and offers what it read of any other, and the website applies what is offered and asks nothing |
 |  | [0019](adr/0019-no-one-provider-and-a-key-alone-turns-nothing-on.md) | No one provider of a model, and a key alone turns nothing on |
-|  | [0023](adr/0023-what-is-typed-goes-as-typed-and-people-are-told.md) | What is typed goes to the provider as typed, and people are told so |
+|  | [0023](adr/0023-what-is-typed-goes-as-typed-and-people-are-told.md) | What is typed goes to the provider as typed, and people are told so, on the page the foot of every page leads to |
 |  | [0032](adr/0032-calls-to-a-model-are-capped-for-the-whole-service.md) | Calls to a model are capped for the whole service, and nobody is told apart |
+|  | [0036](adr/0036-the-box-sends-what-was-added-and-keeps-counts.md) | The box sends what was added to a search, and what is kept to know it is counts |
+| Accounts, and what a person keeps | [0043](adr/0043-burro-has-accounts-and-a-person-signs-in-by-a-link-sent-by-email.md) | Burro has accounts, and a person signs in by a link sent by email |
+|  | [0044](adr/0044-a-person-who-has-signed-in-may-keep-a-search-and-what-is-kept-is-the-spec-and-never-the-words.md) | A person who has signed in may keep a search, and what is kept is the spec and never the words |
+|  | [0045](adr/0045-the-service-has-a-database-one-file-for-accounts-and-what-they-keep.md) | The service has a database, one file, for accounts and what they keep |
 | Who lives in a place | [0006](adr/0006-rank-places-not-residents.md) | Rank places, never residents |
 |  | [0014](adr/0014-evidence-first-and-census-figures-shown.md) | Evidence first, and census figures are shown |
 |  | [0028](adr/0028-household-income-is-shown-and-never-ranked-on.md) | Household income is shown, and never ranked on |
@@ -136,3 +150,12 @@ The way in to every guide. Find what you want to do, and open the one guide besi
 |  | [0026](adr/0026-the-chains-in-a-place-are-measured-by-a-table-of-tiers.md) | The chains in a place are measured by a table of tiers |
 |  | [0027](adr/0027-a-journey-is-estimated-from-distance-until-a-timetable-is-held.md) | A journey is estimated from distance until a timetable is held |
 |  | [0031](adr/0031-the-traffic-near-homes-is-a-measure.md) | The traffic near homes is a measure, and an area with no figure is never taken to have little |
+| The website: its look, its pages and its words | [0033](adr/0033-the-website-looks-like-the-map-of-a-gentle-game.md) | The website looks like the map of a gentle game, and reading comes first |
+|  | [0034](adr/0034-the-town-of-an-area-is-drawn-by-rule-and-is-no-picture-of-the-place.md) | The town of an area is drawn by rule from four bands, and is no picture of the place |
+|  | [0035](adr/0035-the-search-page-is-one-box-and-the-look-gives-way-to-the-answer.md) | A search begins at one of two tabs, the answer comes first, and the look gives way to it |
+|  | [0037](adr/0037-the-iphone-app-is-held-to-a-copy-of-the-websites-colours-and-words.md) | The iPhone app is held to a copy of the website's colours and words, until it is given the look |
+|  | [0038](adr/0038-the-words-of-the-website-are-written-for-a-person-who-has-never-seen-burro.md) | The words of the website are written for a person who has never seen Burro, and no promise is loosened for a sentence |
+|  | [0039](adr/0039-comparing-areas-is-a-headline-of-the-website-and-nobody-wins-a-comparison.md) | Comparing areas is a headline of the website, and nobody wins a comparison |
+|  | [0040](adr/0040-a-page-that-explains-leads-with-a-key-and-folds-its-working.md) | A page that explains leads with a key, and folds its working |
+|  | [0042](adr/0042-the-website-makes-no-claim-of-a-standard-of-accessibility.md) | The website makes no claim of a standard of accessibility, and keeps what was built for a keyboard and a screen reader |
+|  | [0046](adr/0046-a-result-shows-what-was-asked-for-as-a-name-and-a-gauge-and-the-source-of-every-figure-stands-under-its-working.md) | A result shows what was asked for as a name and a gauge, and the source of every figure stands under its working |

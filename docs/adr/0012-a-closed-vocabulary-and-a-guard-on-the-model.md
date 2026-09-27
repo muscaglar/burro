@@ -1,6 +1,6 @@
-# 0012. The reader applies a plain prompt and asks about any other, and a model proposes
+# 0012. The reader applies a plain prompt and offers what it read of any other, and the website applies what is offered
 
-Status: accepted, 2026-09-23. Amended the same day: the reader now applies a prompt only when the whole of it is plain, which was the next step this record named. Amended 2026-09-24: the guard on the model went, and nothing a model reads is applied. The model proposes, the person confirms, code checks. Amended again that day: what makes a limit firm, and then what is said about a thing, which the foot of this record says. Amended 2026-09-25: one press may take what a person plainly said of the home they look for, which the foot of this record says too, and later that day a journey that was plainly said, as a guide, by the rules alone as with a model, and a budget to buy a house is asked about by the kind of house. Amended again that day: a place to stay away from is never a journey to it, and a house of no kind is taken as a terraced house and said to be assumed. Builds on [0002](0002-deterministic-core.md) and [0005](0005-raw-prompts-are-never-stored.md). Three calls of the amendment are for the founder to confirm.
+Status: accepted, 2026-09-23. Amended the same day: the reader now applies a prompt only when the whole of it is plain, which was the next step this record named. Amended 2026-09-24: the guard on the model went, and nothing a model reads is applied. The model proposes, the person confirms, code checks. Amended again that day: what makes a limit firm, and then what is said about a thing, which the foot of this record says. Amended 2026-09-25: one press may take what a person plainly said of the home they look for, which the foot of this record says too, and later that day a journey that was plainly said, as a guide, by the rules alone as with a model, and a budget to buy a house is asked about by the kind of house. Amended again that day: a place to stay away from is never a journey to it, and a house of no kind is taken as a terraced house and said to be assumed. Amended 2026-09-26: a time in hours, an amount by the week, a journey on foot, and what is said of a home that the search cannot hold, which the foot of this record says. **Amended again on 2026-09-26, once the founder had walked the website a second time**: the website applies what was read without asking, and shows each thing as a chip that can be taken off. The rules, the guard on a model and the service are as they were, and a model still never ranks, scores or describes a place. What is given up is that nothing a model read moves a search until it is pressed. Until then this record was named "The reader applies a plain prompt and asks about any other, and a model proposes". See "The amendment of 26 September 2026", at the foot of this record, which says what that risks and what holds it. **Amended that night, once the website had been driven against the service**: where the words give no way of it, the website takes neither way of a rule that leaves areas out, nor of a thing that runs two ways, and says in a line that it left each. See "Amended that night", at the foot of this record. **Amended on 2026-09-27**: the service marks the way the words give of a wish, offers no way for more of a thing the words turn round, and says of every offer whether the words name what it counts and whether it waits for a person. The website reads both, and names no measure to keep a promise. See "The amendment of 27 September 2026", at the foot of this record. Builds on [0002](0002-deterministic-core.md) and [0005](0005-raw-prompts-are-never-stored.md). Three calls of the amendment of 24 September are for the founder to confirm, and six of the amendments of 26 September.
 
 ## Context
 
@@ -225,7 +225,7 @@ A fifth of the sentences, 23, was held back by a hash of each id before any answ
 ### What it still gets wrong, after the second measurement
 
 - **A number that is no budget.** "I have a 50k deposit" was a budget of £50,000, with the guess marked, in one look of four. Core lists no word for what an amount is of but money, minutes and bedrooms.
-- **A turn in another sentence, in the heading of a list, or in words core does not list.** "A park? No thanks.", "Dealbreakers: pubs", "a station would drive me up the wall". They are most of the 73.
+- **A turn in another sentence, in the heading of a list, or in words core does not list.** "A park? No thanks.", "Dealbreakers: pubs", "a station would drive me up the wall". They are most of the 73. *Since 2026-09-27 a turn in another sentence or in the heading of a list is read, of a thing the rules noticed, and not of a thing only a model read. A turn in words core does not list is not.*
 - **A way a model adds to a question.** "Everyone tells me to live near the station but the trains would drive me mad": in one look of four the model added more lines nearby, and it stands as a third way of the rules' question, with no guess.
 - **What a model reads differs from one asking to the next.** Of ten sentences asked four to six times, five came back one way and five did not, before and after. The founder's sentence came back three ways in six looks: with a guess at culture, without one, and once with the notice about who lives somewhere and no journey. The order of a model's edits no longer changes what is offered. What it reads, which words it quotes and whether it flags a sentence still do, and code cannot make those the same.
 - **The rules' question about a place is dropped where a model reads.** The rules alone ask which place "Chancery lane" is. With a model on, the question is asked only where the model reads the journey too. The scorer counts it as a reading of the rules lost, on the founder's sentence and on two cases like it. It was so before this amendment, and is not mended by it.
@@ -402,3 +402,241 @@ So what houses sold for is carried, by kind, and which kind a person means is th
 
 - **A house that is named of another home is heard as the home that is looked for.** Of "selling the house, buying, max £500k" the budget is asked about by kind of house.
 - **The number of bedrooms of a house to buy is heard and not held.** Of "two bed house, max £650k" the budget is held against what terraced houses of any size sold for, and the two bedrooms are said not to be in the data.
+
+### A time in hours, an amount by the week, a walk, and what a home cannot hold
+
+Amended on 2026-09-26. Four things a person types every day were read wrongly, and each was found by typing it. Of "1 hour 15 to Cindermoor Works" the rules offered a journey of 15 minutes, which one press took. Of "£350 a week" they offered a budget of £350, which the search holds by the month. "Walking distance to Cindermoor Works" was applied as 45 minutes by public transport. And "buying a 3 bed house up to 600k" was applied with its three bedrooms in no list: not applied, not offered, and not said to be unread.
+
+**Decided.**
+
+| What is typed | What is made of it |
+|---|---|
+| A time in hours | It is a number of minutes, read where a number is read: "1 hour 15" is 75, "1h" 60, "an hour and a half" 90, "three quarters of an hour" 45. Minutes that stand after hours with no word of their own are read from 5 to 59. Hours typed with a point are read only as a half or a quarter of an hour: "1.30 hours" is an hour and a half as a clock shows it, and is not read. No word for hours is a word of the grammar: `hours_at` in core's `reading.py` reads them |
+| The minutes of a longer time | They are never offered by themselves. A time is not put together across a mark, so "1 hour, 15 minutes to" is no time that was taken, and 15 is offered nowhere. `part_of_a_longer_time` in `grammar.py` holds it |
+| A time that stands before a place and was not taken | No journey is offered at the usual 45 minutes. The place is said to be heard, with nothing to choose, and its note says why: "Burro could not take the time beside this place as the time of a journey. Say the whole of it in minutes." |
+| An amount by the week | It is offered as what it comes to by the month, at 52 weeks to 12 months, to the nearest pound: "£350 a week" is £1,517 a month. The note says that it was worked out, and from what. It is never applied: a prompt that holds one is not plain. It carries no guess, so one press takes none of it |
+| An amount by any other period | A year, a fortnight, a night, six months: it is not read, and its words are said to be unread. Nobody can say what it comes to by the month. So with a word for a period that stands beside an amount in any way the lists do not hold |
+| Words for near that say a walk | "Walking distance to", "a short walk to": the journey is one on foot. Where no minutes are said it is held at the usual 45, which is said to be assumed |
+| A way of travelling beside a place | It is taken where it stands before the name, between the time and the name, or straight after the name, and nothing more is said of it: "a 25 minute walk to", "30 minutes to Pellam Cross by bike". A way that what follows denies, that somebody else goes, or that a word turns, is not read. Of two ways said of one journey neither is taken |
+| What a home cannot hold | The bedrooms of a home to buy, the kind of house of a home to rent, a studio or a room to buy. A plain prompt is applied as it was, and each is said as a suggestion with nothing to choose but to skip, in the words the offer of a home says it in. Nothing of it is unread, so no model is asked, and the status of the answer is as it was |
+| Two sizes, or two kinds, of home | The prompt is not plain: nothing is applied, and each is offered. A flat and a house to buy are two kinds. The first of the two was applied, and the second was in no list |
+| A model's reading of any of them | It is held to what the rules say. A reading of "£350 a week" as £350, or of "1 hour, 15 minutes" as 15, is dropped as a number the person did not type |
+
+The contract, section 8, has each with the words it is read by.
+
+**What it did.**
+
+- **The evaluation set holds 911 cases, where it held 878**: 481 are read rightly, 291 are offered, 4 are read in part and 135 are declined. None is read backwards and none holds an edit nobody asked for. All 92 plain cases are applied. The share read rightly is 0.528 over a floor of 0.52.
+- **Four cases are read better and none worse.** Thirty-three were added, each at the end of its file.
+- **The engine is 1.15.0, as it was.** The reading changed, and neither the ranking nor a rule of the reducer did. No recorded answer of the website changed, and `contracts/openapi.json` is as it was.
+- **The vocabulary is smaller.** Five phrases for hours left it. It holds 572 words and the known words are 306, and the two bounds came down with them.
+- **Then 3,258 sentences were typed against it, to find a wrong reading.** Thirty-three kinds of wrong reading were found, thirteen of them new with the change and twenty older than it. Twenty-two were mended, and eleven were left.
+
+**What it still gets wrong.** Each was found and left. Most are older than this amendment.
+
+- **Minutes that stand apart from their place are lost, and one press adds 45.** "30 minutes max by bike to Cindermoor Works", "about 30 minutes or so to". An hour with a word after it is answered with the note, and minutes are not.
+- **A journey that what follows turns is offered and taken**: "an hour to Cindermoor Works is out of the question". It is taken at 60 minutes, where it was taken at the usual 45.
+- **A journey to a place that is somebody else's is offered and taken**, where the words are none that core lists: "my stalker works at".
+- **Any number straight before "to" and a place is read as minutes**: "I take the 25 to", "trains every 15 minutes to".
+- **An amount by the week that is turned, a least, a wage or one person's share** is offered as a budget, by its own press: "£350 a week is too much", "I earn £700 a week".
+- **A house or a flat to rent with no bedrooms, and a house to buy with no amount**, are applied, and the kind of home is in no list. Two tests hold that such a prompt carries no suggestion, which is a rule.
+- **A time that a mark parts is lost, where the older reading was the likelier**: of "half an hour, 40 minutes to" nothing is taken, where 40 was offered.
+- **Behind a model, a plain sentence that leaves one word unread is applied by nobody.** The service asks the model wherever the rules left words unread, and then returns no edits: of "leafy, a flat", typed by a renter, the wish for leafy is lost. It is a fault of the service and not of the reading, it is older than this amendment, and a model is on where Burro is hosted. *Mended on 2026-09-27: a prompt that the rules applied is handed to no model, though a word of it is unread.*
+
+**To confirm.**
+
+1. **A week is worked out at 52 weeks to 12 months.** `by_the_month` in core's `interpret.py` is the one place the rate is written.
+2. **A walk with no number is held at the usual 45 minutes.** A shorter usual time for a walk may be wanted.
+3. **What a home cannot hold is said as a suggestion with nothing to add.** The website draws it under "Choose what to add", which reads oddly over it.
+4. **Two sizes make a prompt not plain.** "I can pay up to £1,300 for a studio or a one bed" was applied with the one bed. Now nothing is applied and each is offered, and no offer of that clause carries a guess, the budget included. To apply the rest and offer the two would be kinder, and needs a state the contract does not have.
+5. **The case `other-027`**, "within half an hour of them", expects no firm limit, where every other case with "within" expects one. Now that the time is read, the case is the founder's to amend.
+
+## The amendment of 26 September 2026
+
+The founder walked the website a second time, and wrote: "When running a search, don't ask the user to add anything, assume they want it to be added and just present the results. Is this due this demo not having gemini?"
+
+**It was not for want of a model.** Asking was the rule of this record, whoever read. The rules applied a prompt only where the whole of it was plain, and offered what they noticed of any other. What a model read was offered too, and nothing of it was applied without a press. So the page asked with a model on as it asked with none.
+
+The day before, the founder had typed a sentence of their own, and the answer took ten presses. One press was then let take what was plainly said. Walked again, the page still asked before it answered, and a person who has typed what they want is waiting for areas, and not for a question.
+
+### Decision
+
+**The website applies what was read, ranks, and shows the results. It asks nothing. Each thing it applied is a chip in what Burro understood, which can be taken off, and one that nobody said in so many words says "assumed".**
+
+| Matter | What stood | What stands now |
+|---|---|---|
+| The rules read first | They read every prompt, and a model is asked only of what they left unread | The same |
+| A plain prompt | The service applies the whole of it | The same |
+| Any other prompt | The service applies nothing. It returns what was noticed as offers, each with its ways, with Burro's guess marked on one of them where it has one, and with the way that one press may take | The same. **The service is not changed**, and no route, record or rule of the contract moved for this |
+| What the website does with an offer | It drew the offer under "Choose what to add", in four parts, and sent nothing of it until a person pressed | It sends the edits of one way of the offer, as the service gave them, with those of every other offer of the answer, and ranks. No offer is drawn, no button adds several things, and no dialogue asks |
+| Which way of an offer is sent | The one a person pressed | The table below |
+| The guard on a model | Thirteen checks stand between what a model answers and an offer, and some things are never offered from a model whatever it says | The same. It is the service's, and what it turns away never reaches the website |
+| What is said of what was applied | The line after a press said what was added, and what was left for the person | The line under the box says what happened, as it does of a plain prompt. Each thing is a chip, in the words the chip of that thing has. What nobody said in so many words says "assumed": a way that was Burro's guess, a way that was taken as the gentler, and every part of a thing that the words did not give |
+| What could not be read | Said in a line, with the way to see it in the box | The same. It is no question |
+| A model never ranks, scores or describes a place | [0002](0002-deterministic-core.md) | The same. A model is asked what a sentence says, and nothing of any place |
+
+**Which way of an offer the website takes.** It builds no edit of its own: every edit it sends is one the service gave with a way of the offer, unchanged but for the place of a journey that held none. It chooses among the ways, in this order, and `apps/web/src/lib/search/takes.ts` is the one place that does.
+
+| # | The offer | The way that is taken | Why |
+|---|---|---|---|
+| 1 | The service names the way that one press may take, in `add_all` | That way, as the one press took it: a wish or a vibe at a mention, that a person rents or buys, a kind of home, a budget as the person worded it, and a journey as a guide | It is what the founder decided on 2026-09-25 that one press may take, with every rule of "What one press may take", above |
+| 2 | It names none, and the offer is of a limit that may be firm or a guide | The guide, whichever the words give | No area is left out on a guess. A budget that was plainly said with a word that makes it firm is named by the service, in the row above, and is firm as it was at one press |
+| 3 | It names none, and marks one way as Burro's guess | The way that is the guess | The guess is on the way the words give, where no check of the guard fired |
+| 4 | A thing that runs two ways, more or fewer, or towards either end of a scale, with no guess | More of what the name of the thing says, for that evening. **Since that night neither way is taken**, and the thing is said to be left: "Amended that night", below. A thing that runs one way is taken that way, as it was | It is the gentler of the two: it leaves no area out. It is also what this record was written against: see what it risks, below. That nothing is taken of such a thing, and a line says that Burro could not tell which was meant, is built too, and `WHERE_BURRO_CANNOT_TELL` in that file chooses |
+| 5 | A name that several places bear | The first of them the service gives | The service gives them in its own order, and the chip names the place that was taken, and says that it was assumed |
+
+To skip a thing and to stop counting it are no ways of taking it, and are never chosen.
+
+**What is never taken.** One line under the box, over what Burro understood, says what was left out. It asks nothing, and what it names can be added under "Refine search".
+
+| Never taken | Why |
+|---|---|
+| Recorded crime, in any form: a measure of it, or a vibe whose recipe holds it | Recorded crime counts only when a person asks for it by name ([0006](0006-rank-places-not-residents.md), [0013](0013-vibes-are-the-centre.md)). A word that was offered as recorded crime, as "safe" and "posh" are, is no name of it |
+| A vibe or a measure that counts who lived somewhere | Of residents, only their age and the make-up of their households may be ranked on, and only where a person asks for more of what a figure counts (rule 8 of [the guide](../../AGENTS.md)). The rules offer such a thing and never apply it |
+| A journey to a place Burro does not know, where the data holds none with a name like it | There is no place to take |
+| Since that night, where the words give no way of it: a rule for an area, which looks only there or leaves it out | Either leaves areas out, and no area is left out on a guess. "Amended that night", below |
+| Since that night, where the words give no way of it: a thing that runs two ways | More of it may be the wrong way round. "Amended that night", below |
+| What the service offers with nothing to choose but to leave it out: a place to stay away from, what a home cannot hold | There is nothing to take. What the service says of it is said |
+
+**This is the one exception to what the founder asked, and it was made for them.** The founder asked that Burro ask nothing, and assume that a person wants everything it read to be added. Everything is added but recorded crime and what counts who lives somewhere, because a promise of the product forbids those two: neither counts until a person has asked for it. Nothing is asked of them either. They are left out, and said to be. It is the founder's to overturn, and to overturn it is to change the rule on recorded crime and rule 8, which is a decision of its own and a change to [0006](0006-rank-places-not-residents.md). Since that night two kinds of thing more are left, and for another reason: no promise forbids them, and each is taken wherever the words give its way. They are left where the words give none, because a guess at either costs a person more than the wish that waits.
+
+### What it gives up
+
+The amendment of 24 September 2026 decided: "Nothing of a model's is applied without a press. Not a weight, not a budget, not a notice that changes the search. This is a test and not a rate." It was the first row of the floor that a model is held to before it is turned on. **It is given up, of the website.** A reading of a model's now moves a search as soon as it is in, and so does a reading of the rules that the rules themselves would not apply.
+
+What the service does is as it was decided: it applies nothing of a prompt that is not plain. The test that holds that of the service stands. What no longer stands is that a person stood between an offer and the search.
+
+**The line that said what one press did is given up with the press.** It said how many things were added, and how many areas a firm budget among them left out, from the ranking that followed: the founder had found on 2026-09-25 that a budget which leaves areas out must not be taken in silence. A firm budget that is taken of a sentence that is no plain list is now said as one that is taken of a plain list is: its chip says "firm limit", the line that says what happened says how many areas were ranked, and the map and the table of all areas say which were left out. No line counts them.
+
+### What it risks
+
+Each of these was known when this record was written, and was the reason it asked. None was mended by the amendment. Each now reaches the ranking where it reached an offer.
+
+| What | How often, where it was measured | What a person now sees |
+|---|---|---|
+| A reading that is backwards, with Burro's guess on it | 1 of the 113 sentences a model read, on the second measurement, which is 0.9 in 100: the floor allows 1 in 100, "with nothing to spare" | The search is moved the wrong way, and its chip says "assumed" |
+| A wish that the words turn round, in words core does not list | The sentences this record was written for: "Pubs are so noisy", "Some want pubs", "I want pubs. Actually I do not want pubs." The rules offer each with more and fewer, and guess at neither | **Areas with more pubs come first**, under a chip that says more pubs were assumed. It is the misreading that costs trust, and asking was what kept it from the ranking |
+| Somebody else's wish | "My mum is after a park" is offered as a wish for a park, in every look | It is applied as the person's own |
+| A model that is careless, or means harm | A stand-in that raises whatever a sentence names was marked as the guess, backwards, on 73 of the 820 cases of the evaluation set | Whatever it raises and the guard lets through is applied |
+| A number that is no budget | "I have a 50k deposit" was a budget of £50,000, with the guess, in one look of four | A budget of £50,000 is set, as a guide |
+| What a model reads differs from one asking to the next | Of ten sentences asked four to six times, five came back one way and five did not | The same sentence may rank areas otherwise the next time it is typed |
+| The rules alone, where every guess is taken | Of the 901 sentences that are held as cases, 42 hold a guess of the rules. To take every one leaves 2 right and 39 in part, and one where nothing that was asked for was guessed. None is backwards | Most such searches hold part of what was asked, and say what was not read |
+| An offer with two ways and no guess, taken as the gentler | Not measured. The scorer takes what carries a guess, and nothing else | Not known |
+
+### What holds it
+
+| What | Where it is held |
+|---|---|
+| What a model may read, which way, how much and how firm are code's to say, and some things are never offered from a model | The guard, in the service, with the thirteen checks of the contract, section 8.2. Nothing of it was changed |
+| No area is left out on a guess | A limit is firm only where the person's own words make it one, by core's two lists. A journey is never taken as a firm limit, since it is estimated from distance ([0027](0027-a-journey-is-estimated-from-distance-until-a-timetable-is-held.md)). `test_no_limit_leaves_an_area_out_unless_the_service_says_one_press_may_set_it`, and `test_a_journey_is_taken_as_a_guide_though_the_words_give_a_firm_limit_and_the_guide_is_said_to_be_assumed` |
+| The website builds no edit of its own | `test_whatever_is_taken_is_a_way_the_service_gave_with_the_edits_it_gave` |
+| What was applied is in sight, where a person looks when they press Search | Directly under the box: what Burro understood, as chips. Nothing stands between the box and it |
+| What nobody said is said to be assumed | The word on the chip, as it was. It is never told by colour alone |
+| One press takes a thing off | The cross of its chip. "Refine search" holds every setting with its value, and a chip opens the control of its thing in place |
+| A wish counts as a mention counts | The edits are the service's own, and a wish that one press took was taken at a mention or a small step. Nothing is taken at the most a thing can count |
+| Recorded crime, and what counts who lives somewhere, wait for a person | The website takes neither, and says what it left: `test_what_counts_who_lived_somewhere_is_never_taken_and_is_said_to_be_left`, in `apps/web/src/lib/search/takes.test.ts`, and beside it, until 2026-09-27, a test that held the same of recorded crime. *Since then recorded crime is taken where the service says the person's own words name it, and the tests that hold it are `test_what_counts_recorded_crime_is_left_unless_the_service_says_the_persons_own_words_name_it` and `test_what_counts_recorded_crime_is_taken_where_the_service_says_the_persons_own_words_name_it`: "The amendment of 27 September 2026", below.* Which thing is of which kind is read from what the service says of every measure and of the recipe of every vibe, and is written nowhere in the website. The reducer still turns away an edit of recorded crime that is only inferred |
+| What was not read is said | The line under the box, and the words in the box that it points at |
+| Nothing a person typed is kept, and what was applied is kept no longer than the search | [0005](0005-raw-prompts-are-never-stored.md), [0011](0011-nothing-is-kept-for-a-search.md) |
+
+**What does not hold it.** No test holds that a wish which was turned round is not applied: the tests that held that nothing was ranked from what was noticed until the person chose were of the rule that went. The words that turn a wish are core's lists, and English has more of them than any list: that is how this record began.
+
+### What follows
+
+- **The floor cannot be met as it is written.** Its first row was that no reading of a model's is applied without a press, and it was a test and not a rate. A model was turned on where Burro is hosted on 2026-09-26, under the floor as it then stood. Whether a model stays on while what it reads is applied unasked is the founder's to say, and the first thing to confirm below.
+- **What the floor counted as offered with a guess, it now counts as applied.** "A backwards reading offered with a guess marked: 1 in 100 sentences" is a backwards search in a hundred. The measurement that holds it is of one model, on 113 made-up sentences, and the record says of it that it is a fit and not a measurement.
+- **The legal drafts said that a person chooses.** [The terms](../legal/terms-of-use.md), section 5, and [the privacy notice](../legal/privacy-notice.md), sections 3 and 4, were brought to the change. Each marked as not yet built that nothing a model reads is applied until a person chooses it. It is now decided the other way.
+- **The iPhone app still asks.** It draws an offer in its four parts and takes a choice by its id, as the website did, and was not changed.
+- **The drawings of a question are met nowhere.** The rabbit on his hind legs, the dialogue box and the carrot were drawn where Burro asked ([0033](0033-the-website-looks-like-the-map-of-a-gentle-game.md), as amended). *The carrot is met still, where it lay besides: beside the choice in hand in the list of examples and in the list of places that match a name.*
+- **The box still sends what was added, and no word twice** ([0036](0036-the-box-sends-what-was-added-and-keeps-counts.md)). Words are read once something came of them, and what comes of them is now applied.
+
+### To confirm
+
+Each was decided for the founder, from what they asked, and is theirs to overturn.
+
+1. **A model may stay on while what it reads is applied unasked.** The floor's first row is given up. The other rows stand, and are of what is now applied.
+2. **Where Burro cannot tell which of two things was meant, it takes the gentler.** A limit is a guide, a thing counts for more of what its name says, and a name that several places bear is the first the service gives. The second of these applies the sentences this record was written against. To take nothing of a thing that runs two ways with no guess would lose the wish and keep the trust: it is built, and is the one line `WHERE_BURRO_CANNOT_TELL`. *That line was turned that night, and the second of these stands of a thing that runs one way alone: "Amended that night", below.*
+3. **Recorded crime, and what counts who lives somewhere, are not taken.** They wait for a person, in the settings, and one line says that they were left out. It is the one exception to what the founder asked, and keeps two promises of the product. It means that a person who typed "gritty" in a sentence that is not plain is not given Gritty until they choose it. To overturn it is to change the rule on recorded crime and rule 8.
+4. **What was left out is said in a line, and nothing is asked.** A person who reads the line finds the thing under "Refine search". One who does not read it has a search that holds less than they typed.
+
+### Amended that night: where the words give no way, neither is taken
+
+The website was driven against the service that night, sentence by sentence. Two things were found of the fourth row of the table of ways, which took more of a thing where the service named no way and marked none as its guess.
+
+| What was typed | What the service offered | What the website made of it |
+|---|---|---|
+| "Leafy and quiet, near Gorsebeck", and "visiting my mother in Pellam Cross": each names a place that is an area as well | A rule for the area, two ways and no guess: to look only there, or to leave it out | It took the first. Seen in a browser after the first sentence: one area was ranked and 21 were left out, on a guess, under a chip that said "Gorsebeck, only" and not that it was assumed |
+| "Pubs are so noisy", and a wish for fewer of a thing in a sentence that is no plain list | The thing, more or fewer, with no guess | More of it was counted, under a chip that said "assumed". It is the first thing this record risked, and it was seen to happen |
+
+**Decision.** Where the words give no way of a thing, which is where the service names no way that one press may take and marks none as its guess, the website takes neither way of two kinds of thing. Each is named in the line of what was left out, which says why when it is opened.
+
+| Left, where the words give no way | Why | What the line says of it |
+|---|---|---|
+| A rule for an area: to look only there, or to leave it out | Whichever is taken, areas are left out, so neither is the gentler. That no area is left out on a guess was decided that evening, and this was a way round it | That Burro noticed the name of the area and could not be sure what was wanted of it, so it left every area in. And how to say either: the word "only" before the name, or the button that hides an area, on its result |
+| A thing that runs two ways: more or fewer, or towards either end of a scale | More of it may be the wrong way round, and a ranking that is turned round costs more trust than a wish that waits | That Burro could not tell which way it was meant to count, and that it can be added under "Refine search" |
+
+**So four kinds of thing are never taken without being asked**: what counts recorded crime, what counts who lived somewhere, a rule that leaves areas out, and a thing whose words give neither way. The first two wait for a person whatever the words say, because a promise of the product keeps them. The other two are taken wherever the words give the way: "only in Foxholt" looks only there, and "fewer pubs" in a plain list counts fewer.
+
+| Matter | What stood that evening | What stands now |
+|---|---|---|
+| A thing that runs one way, with no guess | More of what its name says | The same |
+| A thing that runs two ways, with no guess | More of what its name says, under a chip that said "assumed" | Neither. It is named among what was left out. One line has more of it taken: `WHERE_BURRO_CANNOT_TELL` in `apps/web/src/lib/search/takes.ts`, which is on `left` where it was on `more` |
+| A rule for an area, with no guess | The first way the service gave, which looks only there | Neither, and every area stays in. No line chooses otherwise. Such an offer is told by the edits the service gives with its ways, and by no name |
+| A rule for an area that the service names or guesses | Taken | The same |
+| A limit, a place that several places bear the name of, and what is never taken | Rows 1, 2, 3 and 5 of the table of ways, and the table of what is never taken | The same |
+| The service | Applies a plain prompt, and offers what it noticed of any other | The same. Nothing of it was changed for this |
+
+**What it gives up.** More of what the founder asked for on their second walk. A thing that was noticed and left is in the search only once a person adds it, and a person who does not read the line has a search that holds less than they typed.
+
+**What it mends of what this record risks.** The second row of "What it risks": a wish that the words turn round, in words core does not list, no longer reaches the ranking where the service marks no guess. It reaches it still where the service guesses, or a model does, and the guess is wrong. The last row, which was not measured, is of a state that is no longer met.
+
+**What holds it.** `apps/web/src/lib/search/takes.test.ts` holds each row of the table above, and that a rule for an area is taken where the service says the words give it. `said.ts` beside it holds what the line says of each.
+
+**To confirm, of that night.** Each was decided for the founder, and is theirs to overturn. They are the fifth and the sixth of what the amendments of 26 September leave to confirm.
+
+5. **Where the words give no way of it, a rule that leaves areas out and a thing that runs two ways are left, and said to be.** Decided that night, from what driving the website found. It gives up more of "assume they want it to be added" than the evening did: a person who wrote that pubs are noisy has nothing of pubs in their search until they add it. One line has more of such a thing taken, as it was for an evening.
+6. **A word that the rules read more ways than one is taken every way.** "Affluent" and "posh" are read as the mix of brands, as what homes sell for and as the share of homes in the higher council tax bands, and each is taken and marked "assumed". The amendment of 25 September kept such readings from one press, and the record of household income has the last of them offered and never applied, because it follows household income at 0.71 ([0028](0028-household-income-is-shown-and-never-ranked-on.md)). It was left as the evening built it, and is the founder's to decide knowingly: `OF_A_WORD_READ_SEVERAL_WAYS` in `apps/web/src/lib/search/takes.ts` has none of them taken.
+
+## The amendment of 27 September 2026
+
+**What was found.** Since the evening of 26 September the website takes what is offered and asks nothing. The service had been built for a person who chooses. Of a thing that runs two ways it offered both, though the words plainly named one, and it said of no offer whether the words named the thing. So a client that asks nothing could not keep two promises of the product but by the name of a measure: that recorded crime counts only when a person asks for it by name, and that some things are offered and never applied. Driven in a browser on 2026-09-27: "Honestly, somewhere calm" was answered "Burro has not ranked any areas yet. Left out of your search: Going out". "I never use the station" ranked 22 areas under a chip that said "Nearer a station assumed", and the first reason of the first result was how close its station is.
+
+### Decision
+
+**The service says more of each offer, and the website reads what it says. The service still applies nothing but a plain prompt, and a model still never ranks, scores or describes a place.**
+
+| Matter | What stood | What stands now |
+|---|---|---|
+| The way the words give of a wish | The rules offered a measure or a vibe wherever it was named, and chose no way of it | Where the rules would apply the sentence a thing stands in, were it all that was typed, the way they give is Burro's guess, and the way one press may take. What is said of the words alone is left out of the sentence first, as "honestly" and "I think" are: a closed list of 16, in core |
+| A thing the words turn round | Offered every way | Where the rules read the turn, their way is the guess: "honestly, no station" is to stop counting it. Where they cannot, no way that counts the thing for more is offered, and nothing is the guess: what is left is to stop counting it, or nothing, with a sentence that says why |
+| A thing that runs two ways, which the words turn round where the rules cannot read the turn, as "I hate pubs" | Both ways | Both ways, and no guess, so the website takes neither. It was built a second way, which offers only the way against the thing: one line chooses, `WHERE_A_TURN_IS_NOT_READ` in `services/api/src/burro_api/guard.py` |
+| What the words do not say is the person's own | Offered every way | Offered every way, and it waits for the person: a wish that may be somebody else's, a nuisance that is only named, a thing in a list after one that is turned away, and a thing under a heading that core does not list as heading what is wanted |
+| What an offer says of itself | Its ways, its guess and what one press may take | Those, and two things more. `by_name`: the person's own words name what the offer counts. `only_by_choice`: it waits for a person, and a client that asks nothing takes no way of it. What counts who lived somewhere waits whatever the words are. What counts recorded crime waits wherever the words do not name it. So does a measure that a decision holds to be offered and never applied, which is the share of homes in the higher council tax bands ([0028](0028-household-income-is-shown-and-never-ranked-on.md)) |
+| What the website never takes | What counts recorded crime, and what counts who lived somewhere, which it told by what the service says each measure is of | Whatever the service says waits for a person. It takes what counts recorded crime where the service says the person named it: to type "gritty" is to ask, and to type "posh" is not, though the same vibe is offered for both. What counts who lived somewhere is never taken, whatever is said of it. The website reads no word, and names no measure |
+| A rule for an area | Taken where the service named a way of it or marked one | Taken by the way the service marks as its guess, and by no other. Its chip says that it was assumed |
+| A thing the words turn away, where all that is offered is to stop counting it and the service marks that as its guess: "honestly, no station" | To stop counting a thing was no way of taking it, so nothing was taken | The thing is counted no longer, and its chip says that it is off. Such a thing counts a little in every search until a person says otherwise. One line leaves it counting, as it was: `WHAT_THE_WORDS_TURN_AWAY` in `apps/web/src/lib/search/takes.ts` |
+| A word that is read more ways than one, as "affluent" is | Every reading was taken | One reading is taken: the one the service marks as its guess, or else the first it gives of those that may be taken. The others are named in the line of what was left out. One line has every reading taken, or none: `OF_A_WORD_READ_SEVERAL_WAYS` in `apps/web/src/lib/search/takes.ts` |
+| A plain sentence that leaves one word unread, behind a model | Applied by nobody | Applied by the rules, and handed to no model |
+| "At the very most" | No firm limit | A firm limit, as "at most" is, of money and of minutes |
+| "Somewhere cheaper", typed into a visit | Turned away | Answered with a sentence that says a visit has no budget |
+
+[The contract](../design/contract.md), section 8.2, has every rule and how each is worked out. The contract stays at version 3: each of the two fields has a default and is not required.
+
+### What it did
+
+Held to the evaluation set, which was 1,026 sentences on 2026-09-27, by the scorer's own judgement of the search that follows: a client that takes what is offered and asks nothing read 87 sentences backwards, made an edit nobody asked for in 39, and was right in 674. It reads 31 backwards and 33 unasked, and is right in 704. All 132 plain cases are applied, as they were. `services/api/tests/test_what_a_client_that_asks_nothing_takes.py` holds the three counts as a ceiling and a floor.
+
+### What it still gets wrong
+
+- **A client that asks nothing still reads 31 sentences of 1,026 backwards.** They are in words core does not list: "a station would drive me up the wall", "parks aren't important to me", "I'm done renting", "I earn 60k".
+- **What is said of a home or of a journey with no guess is still taken.** "I earn 60k" is taken as a budget. To hold them to the guess mends 9 sentences and loses 35 that are right, so it was left.
+- **Where the service could not read a turn, the thing still counts as it did.** Of "I never use the station" nothing is taken, and the station counts a little, as it does in every search until a person says otherwise.
+
+### To confirm
+
+Each was decided for the founder, and is theirs to overturn.
+
+1. **Where a turn is not read, both ways of a thing that runs two ways are offered, and neither is taken.** To offer only the way against the thing reads "I hate pubs" rightly, and reads "you can't beat a good pub" backwards: on the 1,026 sentences it is right in 724 and backwards in 41, where this is right in 704 and backwards in 31. The way that shows less was chosen.
+2. **What homes sell for does not wait.** The record of household income has the higher council tax bands offered and never applied, and says that what homes sell for stays as it is served, though it follows household income at 0.58. So of "slightly affluent" the website takes one of the mix of brands and what homes sell for, and never the bands. To have it wait too is one name added to `OFFERED_AND_NEVER_APPLIED` in `packages/core/src/burro_core/catalogue.py`.
+3. **One reading of a word that is read several ways is taken.** It overturns the sixth of what the amendments of 26 September left to confirm, which had every reading taken. None is one line.
+4. **A thing the words turn away is counted no longer, where the service reads the turn.** It is the one case in which the website takes a thing off that a person did not take off themselves. One line leaves it counting.
+

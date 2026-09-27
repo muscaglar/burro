@@ -1,6 +1,6 @@
 # 0008. Where packages come from
 
-Status: accepted, 2026-09-23. The lockfile steps below are still to do.
+Status: accepted, 2026-09-23. The lockfile steps below are still to do. Amended on 2026-09-27: `make public-only` looks for a key.
 
 ## Context
 
@@ -20,6 +20,8 @@ The repository is hosted on GitHub, and hosted CI installs from the public index
 - The project installs no package that ships a native binary it needs to run. Python console scripts and compiled extension modules are fine. `ruff` and `pyright` are prerequisites installed by the system package manager, like `uv` itself. CI installs pinned versions of both.
 - `make` is the task runner, because it is already present everywhere.
 - `make public-only` fails if a lockfile or a package settings file names any host outside the public allowlist, or if any file contains a URL with credentials. It covers uv, pip, poetry, npm, yarn, pnpm and Swift packages, Dockerfiles and CI workflows, and it fails closed: in those files a URL under any key must be on the allowlist. To use another public host, add it to the allowlist in `tools/check_public_only.py`. As a backstop it also reads the machine's own package settings and fails if any file mentions a host that is private there, in any form. It looks at what git would track and at what is staged. It checks against an allowlist so that no private hostname is ever written here. It is not a secret scanner: add one as a system prerequisite when the first real credential exists.
+
+**Amended, 2026-09-27: `make public-only` looks for a key.** The first real credential came on 2026-09-24, when a hosted fetch ran on a key of the store, and a key of a model was set on the host on 2026-09-26. No scanner had been added, and the check passed a file that held a key. It now fails where a file holds a setting that is named for a secret, with 32 characters or more beside it, or a key of a provider Burro is fitted to, by its shape. A line marked `public-only: allow` is excused, for a value that is made up for a test. It is written with the standard library, as the rest of the check is, and no prerequisite is added. It is a net under the keys Burro holds, and no secret scanner: a key of a shape it does not know passes where it stands under no such name. A whole scanner, as a system prerequisite, is still the founder's to choose.
 
 **Still to do: commit the lockfiles**
 

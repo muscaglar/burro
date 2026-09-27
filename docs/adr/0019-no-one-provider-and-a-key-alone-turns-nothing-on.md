@@ -1,6 +1,6 @@
 # 0019. No one provider of a model, and a key alone turns nothing on
 
-Status: accepted, 2026-09-24. The founder decided the three things in its title and that Gemini comes first. It amends [0005](0005-raw-prompts-are-never-stored.md), which said what one provider keeps. Amended the same day: the founder accepted what Google keeps, ruled DeepSeek out for what real people type, and settled what a model may apply. Amended again the same day by [0023](0023-what-is-typed-goes-as-typed-and-people-are-told.md): nothing waits on a person's check, DeepSeek never reads what people type, and what a provider's pages say is served to nobody. Three points are left to confirm, and are listed at the end.
+Status: accepted, 2026-09-24. The founder decided the three things in its title and that Gemini comes first. It amends [0005](0005-raw-prompts-are-never-stored.md), which said what one provider keeps. Amended the same day: the founder accepted what Google keeps, ruled DeepSeek out for what real people type, and settled what a model may apply. Amended again the same day by [0023](0023-what-is-typed-goes-as-typed-and-people-are-told.md): nothing waits on a person's check, DeepSeek never reads what people type, and what a provider's pages say is served to nobody. Amended on 2026-09-26 by the amendment of [0023](0023-what-is-typed-goes-as-typed-and-people-are-told.md): the website shows the service's notice on the page that says how words are handled, and no longer by the box. Three points are left to confirm, and are listed at the end.
 
 ## Context
 
@@ -34,7 +34,7 @@ With any of them missing the rules read, and every route works. The service says
 
 Route 11 serves it as `reader`: the whole notice, whether the settings are sent, and the address of the company's own terms. Where no model reads it says that nothing typed is sent to a language model. The reader and the notice are made from one choice, so the service cannot send to one provider and tell people of another, or of none.
 
-**A client writes no provider's name and no terms.** The website shows the notice by the box before anything is typed, as it was served, and sends no sentence until the service has said who reads it. A test reads the website's source for the name of any provider and for any period of keeping.
+**A client writes no provider's name and no terms.** The website shows the notice by the box before anything is typed, as it was served, and sends no sentence until the service has said who reads it. A test reads the website's source for the name of any provider and for any period of keeping. *Since the evening of 2026-09-26 the website shows the notice on the page of methods, as it was served when that page was built, and nothing by the box: [0023](0023-what-is-typed-goes-as-typed-and-people-are-told.md), as amended, says what that gives up. It still writes no provider's name and no terms, and the test still reads its source for both.*
 
 **The answer of route 1 says `rule` or `model`.** It named one provider. Which provider's model is said by route 11.
 
@@ -51,8 +51,8 @@ What was not taken:
 ## Consequences
 
 - Nobody has checked a sentence of `terms.py`, for any of the four. Since [0023](0023-what-is-typed-goes-as-typed-and-people-are-told.md) that holds no provider back, and no sentence of it is shown to anyone.
-- A page built ahead of time may be older than the service's setting. So the website asks the service who reads as the page opens, and shows nothing of what it was built on in its place. If the service cannot say, no sentence is sent.
-- The methods page is built ahead of time, and says that it says what the service said when it was built. Build the website again when the provider changes.
+- A page built ahead of time may be older than the service's setting. So the website asks the service who reads as the page opens, and shows nothing of what it was built on in its place. If the service cannot say, no sentence is sent. *Since the evening of 2026-09-26 no line by the box shows what the service says.*
+- The methods page is built ahead of time, and says that it says what the service said when it was built. Build the website again when the provider changes. *Since that evening it is the one place a person is told, so this is no longer a courtesy: until the website is built again the page tells people of the provider before, or of none.*
 - A provider can be measured on the evaluation set before it is turned on, because every sentence there is made up. Measuring asks nothing of the terms.
 - The iPhone app's models are generated from the contract, and its copy still states one provider's terms. It needs the changes `docs/design/models.md` lists before it is shown to anyone.
 - Rows of the call record gain `provider`, from a closed list.

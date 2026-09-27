@@ -1,0 +1,145 @@
+# 0043. Burro has accounts, and a person signs in by a link sent by email
+
+Status: accepted, 2026-09-26, as groundwork. The founder asked for it, and their words are the reason: they are quoted under Context. It is off until it is turned on, and nothing of it has run on a host. It amends [0023](0023-what-is-typed-goes-as-typed-and-people-are-told.md), which said that Burro builds no accounts, and [0032](0032-calls-to-a-model-are-capped-for-the-whole-service.md), which said that the service reads no address. [0044](0044-a-person-who-has-signed-in-may-keep-a-search-and-what-is-kept-is-the-spec-and-never-the-words.md) says what an account may keep, and [0045](0045-the-service-has-a-database-one-file-for-accounts-and-what-they-keep.md) where. Every number in it is a first guess, and the founder's to confirm. Five things are the founder's to decide, and the last section lists them. A second record of this decision was written as the service was built, under a number that [another record](0041-a-search-may-be-a-visit.md) bears. What it said that this one did not is brought in here, and into the two beside it, and it is gone: one decision has one record.
+
+## Context
+
+- The founder wrote, on 26 September 2026:
+
+  > We will also need to lay the ground work for a user login, account creation, security etc. Hardening with proper logging etc. If those can be added in parallel please do so. We can keep it simple with magic link login etc. I'd prefer good securirty with mininal overhead. We'd need to store user preferences/previous searches etc and re-present this etc.
+
+- Until that day Burro had no account. [0023](0023-what-is-typed-goes-as-typed-and-people-are-told.md) said "Burro builds no accounts, follows nobody, and keeps no store of what was typed", and [0011](0011-nothing-is-kept-for-a-search.md) named accounts as the thing that would change it.
+- [The plan](../PLAN.md), section 4, had accounts in its last phase, as "Sign in with Apple, Google or email code", on a database and a sign-in service bought from another company. This record departs from both, and says why.
+- An account ties what Burro has kept out of every log to an address of a person. A spec says where somebody works, and a list of who has an account says who is thinking of moving.
+- The website set no cookie and had no handler of its own, so nothing a person typed passed through its host. The service read no cookie, no header and no address of a client.
+- There is one founder, and no budget for a review of security. What is built must be little enough to be read whole, and to be held by tests.
+- The design went through a review of its security before it was built. It found two things, and both are in the decision: that a link sent by somebody else must not sign a person in to that somebody's account unseen, and that the address of a client is believed from the website alone.
+- Rule 12 stands: no dependency is added. Everything of accounts is made with the standard library.
+
+## Decision
+
+**Burro has accounts. A person signs in by a link sent to their address of email, and there is no password. Nothing that worked without an account asks for one. All of it is off until it is turned on.**
+
+| Matter | What is so |
+|---|---|
+| What an account is | An address of email, made regular. A random id of 128 bits. When it was made, and when the person said that they are 18 or over. No name, no password, and nothing else is asked for |
+| What needs one | Keeping a search, and what goes with that ([0044](0044-a-person-who-has-signed-in-may-keep-a-search-and-what-is-kept-is-the-spec-and-never-the-words.md)). Nothing else. Every route that was there answers as it did, and the same for everyone, signed in or not |
+| Asking for a link | An address is sent in the body of a `POST`. The answer is always the same, and takes the same time, whether or not the address has an account. No account is looked for, so the work is the same too. So nobody can learn who has one. The email is sent once the answer has been given, so that no answer waits on the company that sends |
+| The token | 32 bytes from the system's source of randomness. Its SHA-256 is stored, and the token is not. It ends after 15 minutes and works once. Using one ends every other that was asked for the same address |
+| The link | The token stands after the `#` of the address, which a browser sends to no server. So it is in no log of requests and in no referrer. The page takes it out of the address bar and keeps it in memory alone. What this does not reach: a browser keeps the address a page was opened at, whole, in its record of how the page was loaded, where a script of the page itself can read it until the page is left. No page can take it out. The token there is a quarter of an hour old at the most, and works once |
+| The page asks first | It asks the service whose link this is, which uses nothing up, and shows it: "Sign in as name@example.org". Only a press of the button sends the token, in a body. **So a program that opens the links of a mailbox uses nothing up, and a link that somebody else sent cannot sign a person in to that somebody's account unseen** |
+| The browser that asked | Asking for a link sets a cookie that lasts as long as the token and holds a random value, whose hash is kept with the token. Where the link is opened in another browser, on a phone say, the page says so plainly, shows the address again, and asks a second time |
+| Who is signed in | The browser that pressed, and never the browser that asked. A link that a person did not ask for signs nobody else in, whoever opens it |
+| A first sign-in | It makes the account, once the person has ticked that they are 18 or over. It is a statement, and nothing checks it |
+| A session | 32 random bytes in a cookie that no script can read, `__Host-burro_session`: `Secure`, `HttpOnly`, `SameSite=Lax`, `Path=/`, and no `Domain`. Its SHA-256 is what is stored. It lasts 30 days, which is put forward when it is used, once a day at the most, and never past 90 days from when it was made. A new one is always made: none is ever taken from the client |
+| Where the routes of accounts are asked | Of the website's own origin, which passes them on to the service. So the cookie is the website's own, and no browser sends it across sites. The website says who it is by a secret that both read from their environment, which the service compares in constant time, and the service answers these routes to nobody else |
+| The address of a client | Is what the website's host says it is, in one header. The website takes out any header of that name that a client sent, and the service believes the header from the website alone, and reads nothing else that names an address. Two addresses say that the website did not write them alone, and are refused. The website gives the address with every request it passes on, and passes nothing on where its host gave no one address. The service refuses a request of the website's that names none, or one that cannot be read, anywhere but in development. It is held in memory under a keyed hash, for the limits, and written nowhere |
+| A request that changes anything | Needs an `Origin` that is on the list, exactly, `Content-Type: application/json`, and a header that a form on another site cannot send, `X-Burro-Request: 1`. Signing in is such a request, though there is no cookie yet. A `GET` changes nothing, ever |
+| The limits | Three links to an address in a quarter of an hour and ten in a day. Ten requests for a link from one client in a quarter of an hour, and thirty links shown. A cap on the whole service in an hour, which is 200 links unless it is set otherwise. An address over its limit is answered as every address is, and is sent nothing. It fills the hour as any other does: **amended on 2026-09-27**, after what was built was tried, because with the hour one short of full the answer to whoever asked next said which it had been |
+| Signing out | Revokes the session at the service. "Sign out everywhere" revokes every session of the account |
+| Deleting an account | Takes the account and everything of it, in one transaction, after a sign-in in the last ten minutes |
+| The sender | One small interface. A company that a setting names sends over HTTPS, with the standard library. With none named, asking for a link answers 503 |
+| What is logged | What happened and how it ended, each a word of a closed list. No address, token, session, account or address of a client is in any line ([the design](../design/accounts.md), section 8) |
+| Off until it is turned on | One setting turns all of it on, at the service and at the website: `BURRO_ACCOUNTS` and `NEXT_PUBLIC_BURRO_ACCOUNTS`. With it off no route of it exists, no page of it is reached, no file is opened and no cookie is set, and every answer of the service is what it was. The contract lists the routes either way, because a client is made from it, and marks each as a route of accounts. It is not turned on until a sender of email is named, the website stands at a domain of Burro's own, and the privacy notice says what is kept. [The design](../design/accounts.md), section 2, says which of these the code itself holds, and which is a step of the founder's |
+
+**What does not change.**
+
+| Promise | How it stands |
+|---|---|
+| What a person types is never stored and never logged | A search that is kept is the spec, what Burro understood, and never the words ([0044](0044-a-person-who-has-signed-in-may-keep-a-search-and-what-is-kept-is-the-spec-and-never-the-words.md)). No body of accounts has a field for what was typed but one: the address a person signs in with |
+| A search knows nobody | No route that reads, ranks, explains, compares or shares takes a session, sets a cookie, or is answered otherwise to somebody who is signed in. A search is kept by a route of accounts, and never as it is made |
+| Nothing worked out from a spec is logged or kept | No hash of a spec is made in the package of accounts, plain or under a key. Two searches are told to be the same by what they hold |
+| Ranking is a pure function of a spec and a release | Accounts rank nothing |
+| The cap on calls to a model is for the whole service | It reads nothing of a caller, as before. The limits on signing in are of the routes of accounts alone |
+
+**Why a link, and no password.** The founder named it: "We can keep it simple with magic link login". It is also the least that can be held.
+
+| A password would ask for | A link asks for |
+|---|---|
+| A secret of each person's, which many use elsewhere too, kept by Burro for as long as the account lasts | Nothing of a person's. What is kept of a link is a hash of 32 random bytes, which is of no use once 15 minutes have passed |
+| A way back in when it is forgotten, which is a link sent by email. So the mailbox opens the account either way, and the password is a second thing to steal that takes the first away from nobody | The one way in |
+| Rules for what a password may be, a check against the passwords that have leaked, and a guard against every leaked password being tried on every account | Nothing to guess: a token is one of 2 to the power of 256 |
+| A count of wrong tries for each account, by which one person can lock another out | No count, for there is no wrong try that is near a right one |
+
+What was weighed, and put aside:
+
+| Way | Why not |
+|---|---|
+| A password | The table above. It is more to build, more to hold, and more to lose, and the founder asked for "mininal overhead" |
+| Signing in through another company, as the plan had it | Each is a company that would learn who uses Burro, and when. To hold what such a company sends to be true, a signature is checked with a key of the company's, which the standard library cannot do: it would be a new dependency, where the standard library is preferred (rule 12, [0008](0008-package-sources.md)). Where an app offers another company's sign-in, Apple asks that it offers one that guards privacy as well, so one would bring a second ([the report on accounts](../research/reports/accounts-compliance.md)) |
+| A code typed by hand, six digits in an email | The report on accounts advised it over a link, as more reliable on a phone. A code of six digits is one of a million, so it needs a count of wrong tries, which is a way to lock a person out. A person can be talked into reading a code to somebody, and a code typed into a page that is not Burro's is a code given away. The founder asked for a link by name. What it costs is below: a link opens in whatever browser the mail is read in |
+| A passkey | It is the strongest: nothing is sent by mail, and nothing can be given away. It needs the same check of a signature, and a way back in when a device is lost, which is a link by email. It can be added beside the link |
+| A sign-in service bought from another company, as the plan had it | A company that holds every address and every session, with a library of its own in the website, which keeps a session where the library chooses. It would save the building of what this record lists, which tests now hold |
+| A link with the token before the `#`, or in the path | The token would be in the log of the website's host, in the history of the browser, and in the referrer of whatever the page asks for next |
+| Signing in as the link is opened, with no press | A program that reads a mailbox opens every link in it, and would use the token up. And a link sent by somebody else would sign a person in to that somebody's account, where whatever they then kept would be the sender's to read |
+| Refusing a link that is opened in another browser | A person who asks at a desk and reads their mail on a phone could not sign in. They are asked a second time in its place |
+| The session in the storage of the browser, for a script to send | A script can read what a script can send. The cookie is one no script can read |
+| The browser asking the service itself, with a cookie of the service's | The cookie would cross from one origin to another, which asks for credentials to be allowed across origins. The list of origins stays exact, and no cookie is ever allowed across them |
+| A limit for each address of a client, kept in the database or in a log | An address of a client is kept nowhere. The counts are in memory, under a keyed hash, and start again when the service does |
+
+## Consequences
+
+- **A sender of email is given every address that asks for a link**, whether or not an account comes of it. It is a company, and one more that handles what is a person's: it is named in the privacy notice, with an agreement and a check of where it keeps what it is given. It holds the link as well, for as long as it keeps the mail, so whoever can read mail at the sender can sign in for the 15 minutes that a link lasts. Most charge past an allowance.
+- **The mailbox is the key.** Whoever can read a person's mail can sign in as them. A person who loses their mailbox loses the account: there is no other way in, and no way to change the address of an account is built.
+- **Signing in waits on a mail.** A mail that is slow, or that is taken for spam, keeps a person out for as long. A search does not wait on it: nothing that worked without an account asks for one.
+- **The website sets a cookie, for the first time**, and only for a person who asks for a link: one that binds the link to the browser, for 15 minutes, and one that holds the session. Neither follows anybody. What [the design of the website](../design/web.md) says of cookies, in section 10, is so of a person who has not asked for a link, and of every person while accounts are off.
+- **The website has handlers of its own, for the first time.** The address a person types to sign in, the token, the session and the spec of a search that is kept pass through the host of the website on their way to the service. What is typed into the search box does not: the browser sends that to the service itself, as before.
+- **The service reads an address of a client**, on the routes of accounts alone and from the website alone. It is counted by, and never kept. The cap on calls to a model is handed nothing of a call, as before.
+- **The service holds secrets, for the first time but the key of a model**: the secret between the website and the service, the key the limits are counted under, and the key of the sender. Each comes from the environment, is needed at start where accounts are on, and is in no file of the repository. [The guide to deployment](../../deploy/README.md#turning-accounts-on) says how each is made and what is done when one is lost. [0011](0011-nothing-is-kept-for-a-search.md) said that the service holds no key. It holds none that a spec could be kept under, and a test says so.
+- **The edge of the service takes the bytes of a `DELETE` as it takes those of a `POST`**, and marks every answer of a route of accounts as never to be kept and never to be taken for what it does not say it is. No answer of any other route is changed.
+- **The contract lists 17 routes more**, and every client is made from it. The website asks them of its own origin, and lists them apart from what it asks of the service. The iPhone app's models are made from the contract too, so the routes are in what is made for it, and nothing of the app's own asks one.
+- **Accounts need a domain of Burro's own.** A sender of email sends for a domain that is proved to be the sender's, and a link in a mail is trusted by the name it leads to. Neither host's own address will do.
+- **A person says that they are 18 or over when an account is made.** It is the first statement of age on the website. It keeps no child out, and [the page on children](../legal/access-by-children.md) says what it adds.
+- **The iPhone app has no accounts.** A link in a mail opens a browser, and the app holds no cookie of the website's.
+- **Burro sends no mail but the link.** Nobody is told that their account was signed in to, or that it was deleted. A person sees where they are signed in on the page of their account, and what happened to their account in the copy of it.
+- **Nothing tells a person from a program.** There is no check for a bot. The limits bound what one client can ask for, and what the whole service sends.
+- **Nothing stops whoever holds a link.** A link that is passed on, or read in a mailbox that somebody else can open, signs that somebody in, once they have confirmed. A link is as safe as the mailbox it was sent to.
+- **The counts do not outlive the process.** What each client asked is counted in the memory of one process, and starts again when it does.
+- What holds it: [the design](../design/accounts.md), section 12, names the test of each rule, and [what could go wrong](../design/accounts-threats.md) says of each way in what holds it and what nothing holds.
+
+## What was decided while it was built, and is the founder's to overturn
+
+The design left these open, or met them only as it was built. Each is in the code as the second column says, and [the design](../design/accounts.md) has where.
+
+| Matter | What was built | Why |
+|---|---|---|
+| An address over its limit | It is answered 202 as any address is, and as soon, and nothing is sent. What is written to the file is what is written for any address, and is taken out again before it is kept | A refusal would say that the address was asked for lately, which is most often because somebody uses it here. So would an answer that came sooner |
+| When an email is sent | Once the answer has been given. **Amended on 2026-09-26, the day it was built**, after what was built was tried: it was sent before the answer, so an address over its limit, which is sent nothing, was answered sooner by as long as the company takes. Whoever timed three answers could tell that a person had asked for a link that quarter of an hour | An answer that waits on the email says by how long it takes whether one was sent |
+| An email that is not sent | The answer was given, and is the 202 any address is given. The link is ended. Where the company was out of reach, asking for a link answers 503 for the minute after, whatever the address. Where it would not take the email, nobody is told | The company may have refused the address. That it cannot be reached is the same whatever the address, and whoever asks next should not wait for an email that will not come. **What the minute costs**, found on 2026-09-27: an address over its limit hands the company no email, so while the company cannot be used the answer to whoever asks next says whether the address before it was over its limit. With no minute nobody could tell, and nobody would be told that no email will come. [The design](../design/accounts.md), section 4, has the line that chooses, and the choice is the founder's |
+| A request that names no one address of a client | The website passes it nowhere, and the service refuses it, anywhere but in development. **Amended on 2026-09-26, the day it was built**, after what was built was tried: every such client was counted as one, whom ten requests from anybody stopped from signing in for a quarter of an hour | The limits count people. Those of whom nothing is said cannot be told apart, so they are not counted together: they are not heard |
+| An address that is not in plain letters | It is refused | Folded into plain letters it may be the address of somebody else, and an account that two mailboxes can open is one the wrong mailbox can |
+| A full stop or a plus sign in an address | Is part of the address. Nothing of an address is changed but its case | Some hosts of mail read two such addresses as one mailbox, and some as two. **What it costs**, found on 2026-09-27: where a host reads them as one, the mailbox is sent an email for each spelling, so what it can be sent is bounded by the limit of a client and the cap of the hour, and not by the limit of an address. To count an address with its tag taken out would have two people share a count where a host reads them as two, and the one could then tell how often a link was asked for the other. [The page of threats](../design/accounts-threats.md), way 30, has both, and the choice is the founder's |
+| What happened where there is no account | It is logged, and is not kept in the file | A row for each request that is refused would let anybody fill the volume. The file is written only by what has passed the limits |
+| A limit on showing a link | A client may show 30 in a quarter of an hour | A token cannot be found by trying. It bounds the work that one client can ask for |
+| A link that is refused | It is logged, and is not kept with the account it was for | What is kept of an account is so many rows. Whoever held a link that had ended could show it until every row was of that, and none of who had signed in |
+| What a `GET` writes | Nothing a person keeps. It puts the session forward where a day has passed, which is two times of one row, and lets go of what is too old as it does | The design asks for both: that a `GET` changes nothing, and that a session is put forward when it is used |
+| How long what is kept is kept | A link for a day. A session for 30 days after it ends. What happened to an account for 90 days, and the newest 200. **Each is the least, and not the most**: what is too old, of every kind, goes wherever accounts write already, which is as a link is asked for, as somebody signs in, as a session is put forward and as the service starts. **Amended on 2026-09-27**, after what was built was tried: each kind went only as a row of its own kind was written, so the address of somebody who never signed in was held until a link was next asked for | A first guess. No step runs by the clock: so on a day when nobody uses an account, and while accounts are off and the file is not opened, what is too old stays. To hold a period to the day takes a step that runs by the clock, which is the founder's to choose |
+| What goes with an account that is deleted | Everything of it, and every link that was asked for its address | The address is what a person asks to have deleted |
+| A file that others on the machine may read | It is refused, and the service says so | A file that was put there by hand is not made its owner's alone in silence |
+| In development | The two cookies bear their plain names and are not `Secure`, and a link is written to the terminal | A browser need take neither the prefix nor `Secure` from a page in the clear. Chrome, tried on 2026-09-26, took neither from a page at `http://127.0.0.1`, and took both from one at `http://localhost`. No other browser was tried. The service is in development only where it says so and listens to its own machine alone |
+| A page that the browser puts away | It lets go of who is signed in, of the address a link was asked for, of the token of a link, and of everything of an account that it has drawn. When it is shown again it begins again, and asks the service. Where somebody is signed in, the service is asked again as they come back to the tab. **Amended on 2026-09-26, the day it was built**, after what was built was tried: a person signed out, somebody pressed Back, and the page of their account was shown as it had stood, with their address and the searches they had kept | A browser keeps a page that a person has left, as it stood, and shows it again when they press Back. It asks nothing as it does. And a person may have signed out since, in another tab, or of every browser from another one |
+| Which search is a last search | One whose ranking has stood on the page for five seconds | A setting that is moved ranks again at every step, and what is kept is what the person stopped at |
+| The entry of the name board on a phone | It gives way once a search is open, and the way to the account stands after the first result. The other way is built too, and one line chooses | It was built while the board held four pages: with a fifth entry the board was two lines on a phone, and the first result no longer ended on the first screen. The board holds three pages since the evening of 2026-09-26 ([0042](0042-the-website-makes-no-claim-of-a-standard-of-accessibility.md)). Measured with them, the entry stands on the one line of a phone 360 wide or wider, and the first result stands where it stood whether the entry stays or gives way. On a phone 320 wide it takes a second line. So what giving way saves is now the narrowest phones alone, and which way stands is the founder's to choose again |
+
+## What would change it
+
+| If | Then |
+|---|---|
+| The iPhone app is given accounts | A link must open the app, or a code typed by hand is added beside the link, with the count of wrong tries that it needs |
+| People cannot get the mail, or too many links go unused | A code or a passkey is added beside the link. The link stays: it is the way back in |
+| The sender of email cannot be trusted with the addresses, or will not sign an agreement | Another is named. The sender is a setting, behind one small interface |
+| A person is signed in to an account that is not theirs, by a link that was sent to them | A link that is opened in another browser than the one that asked is refused, and no longer asked about twice. People who read their mail on another device then sign in there |
+| The founder wants a person to be able to change the address of an account | A link to the new address, and a notice to the old. Until then a person makes a new account and deletes the old |
+| A finding that a link by email is not enough for what an account holds | A new decision. A passkey was weighed above, and can be added beside the link |
+| Accounts are paid for | What an account holds is then worth more to whoever takes it, and what guards one is weighed again |
+| A second machine | The counts of the limits would be shared, as the counts of calls to a model would ([0032](0032-calls-to-a-model-are-capped-for-the-whole-service.md)), and the file of [0045](0045-the-service-has-a-database-one-file-for-accounts-and-what-they-keep.md) would not do |
+
+## What is the founder's, and is not decided here
+
+| # | What | What the choice costs |
+|---|---|---|
+| 1 | Who sends the email | A company that is given every address. It is built as a setting, and none is named. [The guide to deployment](../../deploy/README.md#turning-accounts-on) says what to ask of one |
+| 2 | The domain | Paid by the year. Accounts cannot be turned on without one |
+| 3 | A volume for the file | The host charges for it, by its size and by the hour ([0045](0045-the-service-has-a-database-one-file-for-accounts-and-what-they-keep.md)) |
+| 4 | How long what is kept is kept, and what the privacy notice says of it | [The privacy notice](../legal/privacy-notice.md), section 20, lists each thing that is kept with the choices there are |
+| 5 | Whether a person's last searches are kept from the start | [0044](0044-a-person-who-has-signed-in-may-keep-a-search-and-what-is-kept-is-the-spec-and-never-the-words.md). It is built both ways, and one line chooses |

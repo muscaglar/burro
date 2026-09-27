@@ -13,16 +13,17 @@ Every figure about a host below was read from that host's own pages on 2026-09-2
 | Names | None yet. Each host gives an address of its own: `https://APP.fly.dev` and `https://PROJECT.vercel.app` | | A domain is a later step: "A domain, once there is one" |
 | Releases | Cloudflare R2, a bucket of its own | | A release of London is kept there once a hosted run has built it. It is taken from there before the image is built, and carried inside the image: "Serving a release of London". The machine that runs reaches no bucket |
 | Tiles | Cloudflare R2 | Later | Not needed yet |
-| Accounts | Supabase | Later, London | Not needed yet: there is no sign-in |
+| Accounts | The API's own machine: one file of SQLite, on a volume of it. And a company that sends email, which is not chosen | London, for the file | Built on 2026-09-26, and **off until they are turned on**: "Turning accounts on". No volume is made yet, and nothing of them has run on a host |
 | Error reports | Sentry, EU | Later | Not wired in. See ADR 0005 before it is |
 
 ## Before you start
 
-Three things the plan and the code already say, and a deployment must not undo.
+Four things the plan and the code already say, and a deployment must not undo.
 
 1. **Do not set the model key yet.** The API works without one: the rules read the prompt. The plan says no outside person reaches the model until the privacy notice, the ICO registration and the provider's data processing agreement are in place. Those are the founder's to have in place. The service does cap its calls to a model, for everyone together ([ADR 0032](../docs/adr/0032-calls-to-a-model-are-capped-for-the-whole-service.md)), so a key on the open internet is no longer an open bill. And the model-backed reader has never been run against the provider. "Turning the model on" has the steps.
 2. **The release is synthetic.** Every answer says `synthetic: true`, the website shows a banner, and no page may be indexed. That stays so until you have approved a release of London and deployed it: "Serving a release of London". With nothing given, the image carries the made-up city.
-3. **One machine, no more.** A shared search is kept in the machine's memory. A second machine would not find a link the first one made. Every deploy and every restart forgets every link. This holds until shares have a store.
+3. **One machine, no more.** A shared search is kept in the machine's memory. A second machine would not find a link the first one made. Every deploy and every restart forgets every link. This holds until shares have a store. Where accounts are on, their file is on a volume that the host attaches to one machine.
+4. **Accounts stay off** until every step of "Turning accounts on" is done. They are off unless one setting at the service and one at the website each say `on`, and with them off the website and the service are what they were before there were accounts.
 
 You need: an account at Fly.io and at Vercel, `flyctl` and `curl` on the machine you deploy from, and a checkout of this repository. No domain is needed. Docker is not needed: Fly.io builds the image on its own builder.
 
@@ -36,10 +37,11 @@ No price is given here. A price read on one day is soon out of date, and this gu
 | An address and a certificate | Fly.io | |
 | Data sent out | Fly.io | Small: an answer is a few kilobytes |
 | The website, one seat | Vercel | The free plan was used for the first deployment. Vercel's terms keep that plan to work that is not commercial, so a launch needs the paid one. Read the terms on Vercel's own page before you rely on this |
-| A domain and its DNS, later | The registrar and the DNS host | Paid by the year. Not needed to deploy |
+| A domain and its DNS, later | The registrar and the DNS host | Paid by the year. Not needed to deploy. Accounts cannot be turned on without one |
 | Hosted CI | GitHub | The repository is public |
 | Object storage, later | Cloudflare | |
-| A database and sign-in, later | Supabase | |
+| A volume for the file of accounts, once they are on | Fly.io | By its size and by the hour, whether or not the machine runs. Its daily copies are charged for too, past an allowance: "Turning accounts on" has what was read. No database and no sign-in is bought from another company ([ADR 0045](../docs/adr/0045-the-service-has-a-database-one-file-for-accounts-and-what-they-keep.md)) |
+| A company that sends email, once accounts are on | The company | By the email, past an allowance. One email is sent for each link that is asked for |
 | Error reports, later | Sentry | |
 | The model, later | The provider, by use | The plan, section 12. The service makes no more than 2,000 calls a day unless it is set otherwise: "Turning the model on" |
 
@@ -87,7 +89,8 @@ If the deploy fails its health check, read `fly logs --app APP --no-tail`.
 | The log says | It means |
 |---|---|
 | `a setting in the environment is not in the form it needs` | `BURRO_ALLOWED_ORIGINS` still holds the placeholder, or has a path, a slash at the end, a capital letter or the port `443` in it. Or one of the two caps on calls to a model is set to what is no whole number, or to more than it may be: "Turning the model on" |
-| `the release could not be loaded`, with a file and a rule | The release folder in the image is not what its manifest says. With nothing given to the build, `RELEASE_ID` in the Dockerfile must be the name of a folder under `data/fixtures/synthetic/` |
+| `the release could not be loaded`, ending `manifest.json, at catalogue_version [versions_match]` | The release was built with another catalogue than this code holds, so this code does not serve it. Nothing is wrong with the folder, and no setting mends it. Go back, as "Going back to the release before" says. Then build London again with this code and approve it, as [the guide to data builds](../docs/data-builds.md#before-the-service-is-deployed-again) says under "Before the service is deployed again" |
+| `the release could not be loaded`, with any other file and rule | The release folder in the image is not what its manifest says. With nothing given to the build, `RELEASE_ID` in the Dockerfile must be the name of a folder under `data/fixtures/synthetic/` |
 | `could not listen on` | The port is taken or not allowed. `BURRO_PORT` in the image and `internal_port` in `fly.toml` must both be 8080 |
 
 ### 3. The website again, with the API
@@ -160,7 +163,7 @@ The website was walked so after the second deploy, on 25 September 2026. A searc
 | The privacy notice, the ICO registration and the provider's agreement are in place, and the evaluation set passes on it. The cap on calls exists | The model | "Turning the model on", below. Set a budget and an alert at the provider first, and build the website again afterwards: its methods page is built from what the service says |
 | You have approved a release of London | The release | "Serving a release of London", below. The image carries it, so the machine needs no bucket, no key and no network to start |
 | The map needs tiles | Cloudflare R2 | Choose where the bucket is kept when it is made. Which choices there are was not read |
-| Sign-in is built | Supabase | London, on a paid plan |
+| Accounts are to be turned on | A domain, a volume, a company that sends email, the secrets and the privacy notice | "Turning accounts on", below. Sign-in is built, and is off |
 | Shares need to outlive a deploy | A store for shares | Until then, one machine |
 
 ## A domain, once there is one
@@ -201,6 +204,7 @@ A release of London reaches the service in three moves. A hosted run builds it a
 | The lock of the release on `main` | A release with no lock is refused. The guide to data builds says how a lock is committed, under "London, from the bucket to the service" |
 | A working copy of `main`, with nothing changed | `fly deploy .` sends the builder what is in the folder, and the lock is read from there |
 | `make setup` done in it | The step `take` is a step of the pipeline |
+| A release that was built with the catalogue this code holds | The service refuses any other as it starts, and neither the step `take` nor the build of the image can tell: each holds files to their hashes, and a lock names no catalogue. So the first word of it would be in the log of the host, once the deploy is made. Once step 2 has taken the release, `uv run burro-release check data/releases/served/ID`, with its id for `ID`, says in words whether this code serves it, while nothing is deployed yet. Where it does not, [the guide to data builds](../docs/data-builds.md#before-the-service-is-deployed-again) has the steps, under "Before the service is deployed again" |
 | The take key, and the address and the name of the bucket of releases | The same part of the guide, under "The three keys" |
 | The API deployed once with the made-up city | It was, on 25 September 2026: steps 1 to 4 above. The app is then there |
 | What an answer of a preview says, decided | The release is a preview and a development build, and its lock says both. ADR 0015 keeps a development build from the public. A preview says that it is one on every page, and no page of one may be indexed. Whether the address is one the public is given is yours to decide before you deploy |
@@ -372,9 +376,306 @@ For the founder, and made by hand. **Done once, on 2026-09-26**: a key of Gemini
 
 To turn the model off again, set `BURRO_MODEL_CALLS_PER_DAY = "0"` under `[env]` in `deploy/api/fly.toml`, and deploy. The host's command that takes a secret away was not read.
 
+## Turning accounts on
+
+For the founder, and made by hand. **Not done, and not tried.** Accounts were built on 2026-09-26 as groundwork ([ADR 0043](../docs/adr/0043-burro-has-accounts-and-a-person-signs-in-by-a-link-sent-by-email.md), [0044](../docs/adr/0044-a-person-who-has-signed-in-may-keep-a-search-and-what-is-kept-is-the-spec-and-never-the-words.md) and [0045](../docs/adr/0045-the-service-has-a-database-one-file-for-accounts-and-what-they-keep.md)), and have run on a developer's own machine alone, with the link written to the terminal: "On a machine of your own", below, has the steps and what was seen. No volume was made, no company that sends email was chosen, and no mail was sent. [The design of accounts](../docs/design/accounts.md) has the whole of what is built, section 9.8 of [the contract](../docs/design/contract.md) has what each route takes and gives, and [what could go wrong](../docs/design/accounts-threats.md) says what each step below guards against.
+
+They are off unless `BURRO_ACCOUNTS` at the service and `NEXT_PUBLIC_BURRO_ACCOUNTS` at the website each say `on`. With them off no route of accounts exists, no page of them is reached, no file is opened and no cookie is set.
+
+### What must be in place first, in order
+
+| # | What | Whose | What it costs | State |
+|---|---|---|---|---|
+| 1 | What is the founder's to decide: how long each thing is kept, whether a person's last searches are kept from the start, and what is done for a person who has lost their mailbox | The founder's | An hour | Not decided. [The legal drafts](../docs/legal/README.md), under "What accounts changed", set out each choice with what it costs |
+| 2 | A domain, with the website at it and the service under it | The founder's | Paid by the year, to a registrar. The DNS host may charge too | Not bought. "A domain, once there is one", above, has the steps, and is itself untried |
+| 3 | The paid plan at the website's host | The founder's | By the seat, by the month | The free plan is in use. With accounts on, an address of email passes through the website's host, and its agreement on data processing is for its paid plans, as read: task 4 of [the launch checklist](../docs/legal/data-protection-checklist.md) |
+| 4 | A company that sends email, with its agreement, and the domain proved to it | The founder's | By the email, past an allowance. One email is sent for each link that is asked for, whether or not it is used | Not chosen. Two are fitted: "The company that sends email", below |
+| 5 | A volume at the service's host, for the file | The founder's | By its size and by the hour, whether or not the machine runs. Its daily copies past an allowance. One gigabyte is far more than accounts need | Not made |
+| 6 | The secrets: one that the website and the service share, one that the limits are counted under, and the key of the company that sends | The founder's | Nothing | Not made |
+| 7 | The privacy notice and the terms, published, with what an account keeps in them, and a link to the notice where a person asks for a link to sign in | The founder's, and the build | The founder's hours: "Before accounts are turned on", in [the launch checklist](../docs/legal/data-protection-checklist.md), has twelve steps and about 15 hours | A draft: [privacy-notice.md](../docs/legal/privacy-notice.md), section 20. It holds blanks that only the founder can fill. No page of the website shows it |
+
+No price is given here, as nowhere in this guide. Read each company's own page of prices on the day.
+
+**Why a domain.** A company that sends email sends for a domain that is proved to be the sender's, by records that are made where the domain's names are kept. A link in a mail is trusted by the name it leads to, and a link to a host's own address is what a forged mail would hold. And a session is a cookie of the website's host: move the website to another name, and everybody is signed out. Nothing in the code asks that the service stands under the same domain as the website, because a browser asks the routes of accounts of the website and never of the service. It asks that the website is reached over TLS, and that its origin is one of those the service answers.
+
+### The company that sends email
+
+It is given every address that asks for a link, and the mail, which holds the link. So it is a company that handles what is a person's, and is named in the privacy notice. **Which company is the founder's to choose.** Two are fitted, because the service speaks to each in its own way, and neither has been run against its company: there is no key to run one with.
+
+| Ask of a company | Why |
+|---|---|
+| That it sends over HTTPS, with a key, to a host of its own | The service makes one call with the standard library, and installs nothing of the company's |
+| That a key can be made that may send, and may do nothing else | A key that is lost then sends mail, and reads nothing |
+| That it does not rewrite a link, and does not count who opened a mail, or that both can be turned off | A company that follows a link puts an address of its own in its place. The token of the link would then be in the company's record of who pressed |
+| Its agreement on data processing, where it keeps a mail and what it keeps of one, and for how long | The privacy notice must say each. For the 15 minutes that a link works, whoever can read the mail at the company can sign in |
+| That it sends for a domain, proved by records | Mail from a domain that is not proved is taken for spam, or refused |
+
+What the two that are fitted say of themselves. Each page was read on 2026-09-26, through a reader that extracts of a page. A quoted sentence may differ from the source by a word: check the wording in a browser before relying on it. **Nothing here is said of either as fact**, and neither was tried.
+
+| | Postmark | Resend |
+|---|---|---|
+| Named in `BURRO_ACCOUNTS_SENDER` as | `postmark` | `resend` |
+| Where the service sends | `api.postmarkapp.com`, written in the code | `api.resend.com`, written in the code |
+| Following of links, and counting of who opened | Off for every mail that Burro sends, in the mail itself: the service sends `TrackLinks` as `None` and `TrackOpens` as false. The company, of links: "No links will be replaced or tracked. This is the default setting for all messages and new and existing servers." Read at <https://postmarkapp.com/developer/user-guide/tracking-links> | **A setting of the domain, at the company, which no code holds.** "Tracking is configured on the domain level." Whether it is off until it is turned on was not said on the page read. Read at <https://resend.com/blog/open-and-click-tracking>. Leave both off, and read a mail that arrived |
+| What it keeps of a mail | "Postmark stores email content, events (e.g. delivery, click, open), and metadata for all messages for 45 days by default", and "you can adjust this timeframe from 7 to 365 days with our Retention Add-on". "Message content cannot be hidden or deleted immediately." Read at <https://postmarkapp.com/support/article/how-long-are-inbound-and-outbound-messages-stored-in-activity> and at the page beside it on turning the saving of content off | "While your account is active, email and log data is retained for 30 days on Free, Pro, and Scale plans." Read at <https://resend.com/security/gdpr> |
+| Where it keeps it | "Postmark's primary data and servers are hosted at Deft's data center (located outside of Chicago), and Amazon Web Services (AWS)." Read at <https://postmarkapp.com/eu-privacy> | "Resend stores customer data in the United States, including message content, delivery logs, webhook payloads, and account records." A region can be chosen for where mail is sent from, Ireland among them, and "does not control where data is stored". Read at the same page, and at <https://resend.com/docs/dashboard/domains/regions> |
+| Its agreement on data processing | "as of September 27, 2021, our updated Terms of Service incorporate our DPA with new SCCs. It is therefore no longer necessary to obtain a signed copy of our DPA." Read at <https://postmarkapp.com/eu-privacy>. What it says of a transfer out of the UK was not read | "This Addendum shall become legally binding upon Customer entering into the Agreement or upon execution of this Addendum." It speaks of transfers out of the UK by name. Read at <https://resend.com/legal/dpa> |
+| What was not read | Its prices, its allowance, whether a key can be held to sending alone, and the agreement itself | The same, and whether following of links is off for a new domain |
+
+So with either, the company holds the address of everybody who asked for a link, and the mail with its link, for a month or more. A link is of no use once 15 minutes have passed. **The address, and that its owner asked to sign in to Burro, is kept by the company for as long as the table says**, and the privacy notice must say so.
+
+A third company needs code: a row of `COMPANIES` in `services/api/src/burro_api/accounts/sender.py`, which says where the company is asked and how a mail is written for it, a name in `SenderName`, and the tests beside them.
+
+### The steps
+
+Replace `DOMAIN` with the domain, `APP` with the name of the app at Fly.io, and `COMPANY` with `postmark` or `resend`.
+
+1. **Decide**, as row 1 of the table above, and fill the blanks of [the privacy notice](../docs/legal/privacy-notice.md), section 20, with what was decided.
+
+2. **The domain, and the paid plan.** Do "A domain, once there is one", above, whole, and make its checks. The website is then at `https://DOMAIN` and the service at `https://api.DOMAIN`.
+
+3. **The company that sends.** Make an account with it, in the name that runs Burro. Prove the domain: the company shows the records to make, and they are made where the domain's names are kept. Choose an address to send from, such as `sign-in@DOMAIN`. Turn off the following of links and the counting of who opened a mail, where the company has a setting for either. Make a key for the deployed service, which may send and do nothing else where the company allows that. Save a dated copy of its agreement on data processing.
+
+4. **The volume.** Decide first how many days the host keeps a daily copy of it: from 1 to 60, and 5 unless it is said. It is how long an account that was deleted is still held in a copy, and the privacy notice says the number.
+
+   ```
+   fly volumes create burro_accounts --app APP --region lhr --size 1 --snapshot-retention 5
+   fly volumes list --app APP
+   ```
+
+   Do not give `--no-encryption`: a volume is ciphered at rest unless that is given. In `deploy/api/fly.toml` the section that mounts it stands ready, marked out. Take the marks off it, and off nothing else yet:
+
+   ```
+   [mounts]
+     source = "burro_accounts"
+     destination = "/data"
+   ```
+
+   Commit, and deploy as step 2 of "The steps, in order", so that the machine starts with the volume and with accounts off. Then give the folder to the user the service runs as, which is user 10001 and not root. The console of the host is root's:
+
+   ```
+   fly ssh console --app APP -C "chown 10001:10001 /data"
+   fly ssh console --app APP -C "ls -ld /data"
+   ```
+
+   Whether the host gives the folder to the user of the image by itself was not tried, and its guide does not say: "What was read, for accounts", below.
+
+5. **The settings of the service that are no secret.** In `deploy/api/fly.toml`, under `[env]`, they stand ready, marked out. Take the marks off, and set each:
+
+   ```
+   BURRO_ACCOUNTS = "on"
+   BURRO_ACCOUNTS_DB = "/data/accounts.db"
+   BURRO_ACCOUNTS_SITE = "https://DOMAIN"
+   BURRO_ACCOUNTS_SENDER = "COMPANY"
+   BURRO_ACCOUNTS_SENDER_FROM = "sign-in@DOMAIN"
+   ```
+
+   `BURRO_ACCOUNTS_SITE` is where a link leads, and must be one of the origins of `BURRO_ALLOWED_ORIGINS`, to the letter. Commit the change. Do not deploy yet.
+
+6. **The secrets.** Make two, each on a line of its own, and keep both in your password manager:
+
+   ```
+   python3 -c 'import secrets; print(secrets.token_urlsafe(48))'
+   python3 -c 'import secrets; print(secrets.token_urlsafe(48))'
+   ```
+
+   The first is what the website and the service share. The second is what the limits are counted under, and the service refuses to start where the two are the same. Then `fly secrets import --app APP`, and type three lines, and end the input: `BURRO_WEBSITE_SECRET=` and the first, `BURRO_ACCOUNTS_LIMITS_KEY=` and the second, and `BURRO_ACCOUNTS_SENDER_KEY=` and the key of step 3. They are read from the keyboard, so none is kept in the shell's history. **None goes into `fly.toml`, a file, a chat or a command line.**
+
+7. **Deploy the service**, as step 2 of "The steps, in order". Then see that it started, and that it answers the routes of accounts to nobody but the website:
+
+   ```
+   fly logs --app APP --no-tail | grep -E '"event":"(starting|accounts_on)"' | tail -2
+   # "event":"accounts_on", after "event":"starting"
+
+   curl -sS -o /dev/null -w '%{http_code}\n' https://api.DOMAIN/v1/auth/session
+   # 403. A 404 says that accounts are off at the service
+
+   curl -sS https://api.DOMAIN/v1/auth/session | grep -o '"code":"[a-z_]*"'
+   # "code":"not_the_website"
+
+   fly ssh console --app APP -C "ls -l /data"
+   # accounts.db, and two files beside it, each for its owner alone: -rw-------
+   ```
+
+   If the service does not start, read `fly logs --app APP --no-tail`. Where a setting is at fault it says `error: accounts are on, and need these settings:` and names each, and never what one was set to:
+
+   | The log names | It means |
+   |---|---|
+   | `BURRO_ACCOUNTS` | It is set to a word that is neither `on` nor `off` |
+   | `BURRO_ACCOUNTS_DB`, `BURRO_ACCOUNTS_SITE`, `BURRO_WEBSITE_SECRET`, `BURRO_ACCOUNTS_LIMITS_KEY` | One that accounts need is missing. A secret is 32 characters at the least, with no space in it |
+   | `BURRO_WEBSITE_SECRET` and `BURRO_ACCOUNTS_LIMITS_KEY` together | The two are the same |
+   | `BURRO_ACCOUNTS_SITE` and `BURRO_ALLOWED_ORIGINS` together | The website is not one of the origins the service answers |
+   | `BURRO_ACCOUNTS_SITE` alone | It begins `http://`. A link never leads to a website in the clear |
+   | `BURRO_ACCOUNTS_SENDER`, or its key, or the address it sends from | The company is not one of those that are fitted, or its key is missing, or the address is not a plain address with no name before it |
+   | `BURRO_ACCOUNTS_SENDER` and `BURRO_ACCOUNTS_DEVELOPMENT` together | The sender is `console`, which writes the link to the terminal, and is for a machine of one's own |
+
+   Where the file is at fault it says `error: the file of accounts could not be used`, and a word in brackets:
+
+   | The word | It means |
+   |---|---|
+   | `[no_folder]` | The volume is not mounted where `BURRO_ACCOUNTS_DB` says |
+   | `[not_permitted]` | The folder is root's, so the service may not write to it. Give it to the user the service runs as: step 4. It says the same of a file that it may not read and write |
+   | `[not_a_file]`, `[not_a_file_of_accounts]` | What stands at that path is no file, or no file of accounts |
+   | `[open_to_others]` | The file was put there by hand, and others on the machine may read it. Make it its owner's alone: `chmod 600` |
+   | `[layout_not_applied]`, `[not_set]` | A change to the layout of the file failed and was undone, or the file did not keep a setting. The file is left as it was |
+   | `[newer_layout]` | The file was written by a later build than this one: "The file", below |
+   | None of these: `error:` and a few words of the system's own, as `Too many levels of symbolic links` | A fault of the machine that has no word above. The words are the system's: they name no path, and do not say that it is of accounts |
+
+8. **The website.** At Vercel, for Production alone. A preview is given none of them, so a preview has no accounts:
+
+   | Name | Value | Note |
+   |---|---|---|
+   | `BURRO_WEBSITE_SECRET` | The first secret of step 6 | Mark it as sensitive. It is read on the server alone, and is never in a page |
+   | `BURRO_CLIENT_ADDRESS_HEADER` | `x-vercel-forwarded-for` | The name of the header in which the host gives the address of a client. It is no secret. **Without it the website passes nothing on**, and every route of accounts answers 503 |
+   | `NEXT_PUBLIC_BURRO_ACCOUNTS` | `on` | It is no secret. It is read when the website is built, so it does nothing until the next deployment |
+   | `NEXT_PUBLIC_BURRO_API_URL` | As it is set already: `https://api.DOMAIN` | It begins `https://`. The website passes nothing of accounts on to a service that it would reach in the clear, and every route of accounts then answers 503 |
+
+   **The header must be one that the host writes over, whatever a client sent under its name.** The service counts what each client asks by this address and by nothing else. A header that a client can write lets one client be as many as it likes, and the limits on signing in then count nothing: step 11 tries it. Vercel's own page, read on 2026-09-26 and last updated 2025-12-13, says of `x-forwarded-for`: "we currently overwrite the `X-Forwarded-For` header and **do not forward external IPs**. This restriction is in place to prevent IP spoofing." It says of `x-vercel-forwarded-for`: "This header is identical to the `x-forwarded-for` header. However, `x-forwarded-for` could be overwritten if you're using a proxy on top of Vercel." So on Vercel the setting is `x-vercel-forwarded-for`. The page says of `x-real-ip` too that it is identical to `x-forwarded-for`. Nobody has tried either on the host.
+
+   A request that reaches the website with no one address in that header is passed nowhere, and is answered 503: two addresses, a list, or none. The service refuses the same, from whoever holds the secret. As accounts were first built, both counted every such client as one, so that ten requests from anybody stopped every one of them from signing in for a quarter of an hour.
+
+   Then deploy the website again. **The service first, and the website after**: a website that offers a sign-in which the service does not serve tells a person that Burro has nothing at the address.
+
+9. **Walk it, in a browser, with an address of your own.** Ask for a link. Read the mail as it arrived, and see that the link in it leads to `https://DOMAIN/sign-in/confirm` and to nowhere else, with nothing of the company's in its place. Open it, and see that the page says whom it would sign in, and signs nobody in until the button is pressed. Open a second link in another browser, and see that the page says so and asks twice. Keep a search, and open it again from the page of the account. Take the copy. Sign out. Then delete the account, which asks for a sign-in in the last ten minutes. In the browser's own tools, see two cookies and no more, `__Host-burro_link` and `__Host-burro_session`, and nothing in its storage.
+
+10. **Read the log for what must not be in it.**
+
+    ```
+    fly logs --app APP --no-tail | grep -ci 'THE-ADDRESS-YOU-USED'
+    # 0
+    fly logs --app APP --no-tail | grep -c '"event":"account"'
+    # the lines of accounts: what happened and how it ended, and nothing of whom
+    ```
+
+11. **See that the limits count people, and that no client writes its own address.** First, that the website's host writes over the header of a client's address. Ask for a link eleven times from one machine, each time saying that you are somebody else, in the header that `BURRO_CLIENT_ADDRESS_HEADER` names. Three emails are sent to your address and no more, whatever is answered.
+
+    ```
+    for n in 1 2 3 4 5 6 7 8 9 10 11; do
+      curl -sS -o /dev/null -w '%{http_code} ' -X POST https://DOMAIN/v1/auth/link \
+        -H 'Origin: https://DOMAIN' -H 'X-Burro-Request: 1' -H 'Content-Type: application/json' \
+        -H "x-vercel-forwarded-for: 203.0.113.$n" --data '{"email": "THE-ADDRESS-YOU-USED"}'
+    done
+    # 202 ten times and then 429: the host wrote your own address over each that you sent.
+    # 202 eleven times: a client can write the header. Turn accounts off, and name another.
+    # 503 each time: the host gave the website no one address in the header that is named.
+    ```
+
+    Then, that a second person is not counted with the first. From a second machine, on another connection, within the same quarter of an hour, ask for a link once. It is answered 202. If it is answered 429, the two are counted as one client: the header that is named holds an address of the host's own, and not the client's.
+
+### The settings, in short
+
+[The design of accounts](../docs/design/accounts.md), section 11, has every setting with what it may hold.
+
+| Where | Setting | A secret | What it is for |
+|---|---|---|---|
+| The service | `BURRO_ACCOUNTS` | No | `on` turns accounts on. Any word but `on` and `off` stops the service |
+| | `BURRO_ACCOUNTS_DB` | No | The file, on the volume |
+| | `BURRO_ACCOUNTS_SITE` | No | The origin of the website: where a link leads |
+| | `BURRO_WEBSITE_SECRET` | **Yes** | What the website is known by. The same at the website |
+| | `BURRO_ACCOUNTS_LIMITS_KEY` | **Yes** | What the addresses of clients are counted under, in memory |
+| | `BURRO_ACCOUNTS_SENDER`, `BURRO_ACCOUNTS_SENDER_FROM` | No | Which company sends, and from which address. With no company named, asking for a link is answered 503 |
+| | `BURRO_ACCOUNTS_SENDER_KEY` | **Yes** | The key of that company |
+| | `BURRO_ACCOUNTS_LINKS_PER_HOUR` | No | How many links the whole service sends in an hour: 200 unless it is set, and 10,000 at the most. Nought sends none. A first guess, and the founder's to confirm |
+| | `BURRO_ACCOUNTS_KEEP_RECENT` | No | `asked`, which is so unless it is set: a person's last searches are kept once they turn that on. `from_the_start`: they are kept from the first sign-in, until the person turns it off |
+| | `BURRO_ACCOUNTS_DEVELOPMENT` | No | `yes` on a machine of one's own, and never on a host: the service refuses it unless it listens to its own machine alone |
+| The website | `NEXT_PUBLIC_BURRO_ACCOUNTS` | No | `on` turns accounts on. Read when the website is built |
+| | `BURRO_WEBSITE_SECRET` | **Yes** | The same as the service's |
+| | `BURRO_CLIENT_ADDRESS_HEADER` | No | The header in which the host gives the address of a client, and writes over whatever a client sent under its name. Without it the website passes nothing on |
+| | `BURRO_ACCOUNTS_DEVELOPMENT` | No | `yes` on a machine of one's own, and **never at a host**. It lets the two cookies by under their plain names, and passes a request on though no host said whose it is, and only for a request that reached the website in the clear on the machine it runs on |
+
+### On a machine of your own
+
+Nobody else can reach a service that listens to its own machine alone, so there nothing of "What must be in place first" need be met. `BURRO_ACCOUNTS_DEVELOPMENT=yes` lets the website be in the clear, gives the two cookies their plain names, and lets the sender be `console`, which writes each link to the terminal and sends no mail. The service refuses all three unless it listens to its own machine alone. The plain names, `burro_session` and `burro_link`, are because a browser need take no `Secure` cookie from a page in the clear: Chrome, tried on 2026-09-26, took none from a page at `http://127.0.0.1`. No host stands before the website there, so `BURRO_CLIENT_ADDRESS_HEADER` is left unset, and those of whom nothing is said are counted together. Nowhere else are they.
+
+1. **The service**, in one terminal, from the root of the repository. `make setup` once before it.
+
+   ```
+   mkdir -p data/raw/accounts                    # git ignores data/raw
+   export BURRO_ACCOUNTS=on
+   export BURRO_ACCOUNTS_DEVELOPMENT=yes
+   export BURRO_ACCOUNTS_DB=data/raw/accounts/accounts.db
+   export BURRO_ACCOUNTS_SITE=http://127.0.0.1:3000
+   export BURRO_ALLOWED_ORIGINS=http://127.0.0.1:3000
+   export BURRO_ACCOUNTS_SENDER=console
+   export BURRO_WEBSITE_SECRET="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+   export BURRO_ACCOUNTS_LIMITS_KEY="$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')"
+   echo "$BURRO_WEBSITE_SECRET"                  # the website is given the same
+   make api
+   ```
+
+   Its first lines say `"event":"starting"` and then `"event":"accounts_on"`.
+
+2. **The website**, in a second terminal, in `apps/web`. `make web-setup` once before it. `NEXT_PUBLIC_BURRO_ACCOUNTS` is read when the website is built, so build with it:
+
+   ```
+   export NEXT_PUBLIC_BURRO_ACCOUNTS=on
+   export NEXT_PUBLIC_BURRO_API_URL=http://127.0.0.1:8000
+   export BURRO_SITE_URL=http://127.0.0.1:3000
+   export BURRO_ACCOUNTS_DEVELOPMENT=yes
+   export BURRO_WEBSITE_SECRET=...               # what the first terminal showed
+   npx next build
+   npx next start -H 127.0.0.1 -p 3000
+   ```
+
+3. **Walk it.** Open `http://127.0.0.1:3000/sign-in`, by that address and not as `localhost`: the service answers a page only from the origin it was given, to the letter. `localhost` will do as well, where it is written in all three places. Type an address, which need not be anybody's. The link is in the first terminal, under "Burro, in development". Open it in the same browser: the page says whom it would sign in, and asks for the tick and for a press. Then the page of the account, and "Delete my account".
+
+Without the website, `curl` can stand in its place: send `X-Burro-Website` with the secret, and with whatever changes anything `Origin: http://127.0.0.1:3000`, `X-Burro-Request: 1` and `Content-Type: application/json`.
+
+**What was seen, on 2026-09-26.** The service and the website were run together on one machine, the service on port 8383 and the website on 3383. In a browser: a link was asked for, the page led on with no address in its own address, the link was read from the terminal and opened, the token was gone from the address bar at once, the page said whose link it was and that an account would be made, a press with the tick signed in, the page of the account said which kind of browser and until when, and "Delete my account" asked a second time and then deleted. No script could read a cookie, nothing was in the browser's storage, and every request of accounts went to the website's own origin. With `curl`: a request without the secret was given 403 `not_the_website`, one with a query 422, a form 415, a link used twice 410 `link_used`, and a first sign-in without the tick 409 `age_not_confirmed`. After each account was deleted its address was in no byte of the file or of the two files beside it. No line of the log held an address, a token or the address of a client. **It was one machine, one browser and one day.** Nothing of it says what a host, a company that sends email or a mailbox will do.
+
+### When a secret is lost
+
+A secret is lost when it may have been read by anybody it was not meant for: it was pasted where it should not be, a machine that held it was lost, or somebody who knew it has left.
+
+| Secret | What whoever holds it can do | What to do |
+|---|---|---|
+| `BURRO_WEBSITE_SECRET` | Ask the routes of accounts of the service itself, and say what they like of the address of a client. So the limit for each client is gone for them: they can use up what the whole service sends in an hour, and send ten mails a day to any address. **It opens no account**: a session does | Make another. Set it at the service with `fly secrets import`, which starts the service again, and then at Vercel, and deploy the website again. Between the two, the website is refused by the service, and nobody can sign in or open their account. A search is as it was |
+| `BURRO_ACCOUNTS_LIMITS_KEY` | Nothing, unless they can also read the memory of the machine | Make another and set it. The counts start again |
+| `BURRO_ACCOUNTS_SENDER_KEY` | Send mail in Burro's name, and perhaps read at the company who was written to | Revoke it at the company, make another there, and set it. Ask the company what was read with it. It may be a breach to report: task 12 of [the launch checklist](../docs/legal/data-protection-checklist.md) |
+| Any of them, and it is not known which | | All three, in that order. Then sign everybody out: it is the last row of the next table |
+
+### The file: keeping it, putting it back, and ending it
+
+| To | Do this | Know first |
+|---|---|---|
+| See what the host keeps | `fly volumes list --app APP`, then `fly volumes snapshots list VOLUME` | A copy is made each day and kept for the days that were set. Neither command was tried |
+| Change how long a copy is kept | `fly volumes update VOLUME --snapshot-retention DAYS`, and the number in the privacy notice with it | What the notice says of how long a deleted account is held in a copy must be the number that is set |
+| Put the file back as it was on an earlier day | Make a volume from the copy, `fly volumes create burro_accounts --app APP --region lhr --snapshot-id COPY -s 1`, and deploy with it in the place of the first | **Every account that was deleted since that copy was made is back, and so is every search that was taken away.** Nothing in the file says which they were. Write down the day of the copy, outside this repository, and decide what is told to whom: [the legal drafts](../docs/legal/README.md), risk 21. Every session that was made since the copy is unknown to the file, so those people are signed out |
+| Go back to code of before a change to the layout of the file | Do not. A change to the layout goes forward only. The service refuses a file of a later layout than it knows, and leaves it as it was | The layout is at its first version, so no code that serves accounts is older than the file. "Rolling back", below, says what goes back with an image and what does not |
+| Turn accounts off for a while | Set `BURRO_ACCOUNTS = "off"` in `fly.toml` and deploy. Take `NEXT_PUBLIC_BURRO_ACCOUNTS` away at Vercel and deploy | The file is kept on its volume, and is not opened. Every session a browser holds opens nothing meanwhile, because no route reads one. Nobody can sign in, see what they kept, take a copy or delete their account, for as long as accounts are off. What is kept is still kept, so the privacy notice is still owed. **Nothing is let go of by its age meanwhile**, because the file is not opened: what grew too old goes as the service next starts with accounts on |
+| End accounts for good | Tell everybody first, so that they can take a copy. Then turn accounts off, take the `[mounts]` out of `fly.toml`, deploy, and `fly volumes destroy VOLUME` | It cannot be undone. The host's copies of the volume last as long as they were set to |
+| Sign everybody out | Not built. There is no command for it | What can be done today is to end accounts for good, or to put back a file that holds no session. It is asked for where a secret or the file may have been read |
+
+### What was read, for accounts
+
+Read on 2026-09-26, on each host's own pages, through a reader that summarises. Check the wording in a browser before relying on it.
+
+| Page | What it says |
+|---|---|
+| Fly.io, volumes, at <https://docs.fly.io/volumes/overview/> | "Volumes are, by default, created with encryption-at-rest enabled for additional protection of the data on the volume." "A volume exists on one server in a single region. It is not network storage." "Always provision at least two volumes per app. Running an app with a single Machine and volume leaves you at risk for downtime and data loss." "Fly.io takes daily block-level snapshots of volumes. We keep snapshots for five days by default, but you can configure the snapshot retention to be from 1 to 60 days." |
+| Fly.io, snapshots, at <https://docs.fly.io/volumes/snapshots/> | "We automatically take daily snapshots of all Fly Volumes." It names `fly volumes snapshots list <volume id>`, `fly volumes update <volume id> --snapshot-retention <retention in days>`, and, to put one back, `fly volumes create <volume name> --snapshot-id <snapshot id> -s <volume size in GB>` |
+| Fly.io, `fly volumes create`, at <https://docs.fly.io/flyctl/volumes-create/> | `--snapshot-retention`: "Snapshot retention in days (default 5)". `--no-encryption`: "Do not encrypt the volume contents. Volume contents are encrypted by default." `--size`: "The size of volume in gigabytes (default 1)" |
+| Fly.io, the `[mounts]` of `fly.toml`, at <https://docs.fly.io/reference/configuration/> | "The `source` is a volume name that this app should mount." "The `destination` is the directory where the `source` volume should be mounted on the running app." |
+| Fly.io, billing, at <https://docs.fly.io/about/billing/> | "Volume billing is pro-rated to the hour." "You're billed for volumes that aren't attached to Machines, and for volumes that are attached to Machines in any state, including stopped Machines." Of snapshots: "we subtract the free allowance first", and "you're only charged for data that has changed since the previous snapshot for the volume". No price was kept |
+| Vercel, request headers, at <https://vercel.com/docs/headers/request-headers> | Of `x-forwarded-for`: "The public IP address of the client that made the request", and "we currently overwrite the `X-Forwarded-For` header and do not forward external IPs. This restriction is in place to prevent IP spoofing." Of `x-real-ip`: "This header is identical to the `x-forwarded-for` header." Of `x-vercel-forwarded-for`: "This header is identical to the `x-forwarded-for` header. However, `x-forwarded-for` could be overwritten if you're using a proxy on top of Vercel." The page gives its last change as 2025-12-13 |
+| Fly.io's forum, a post of its staff of June 2021 | "We automatically `chown` the mount destination of your volume with your docker image's user and group." It is a post and no page of the host's guide, and is five years old |
+
+### What has not been checked, of accounts
+
+Nothing of accounts has run on a host. Of what would be met first:
+
+- **That the user the service runs as can write to the volume.** The image runs the service as a user of its own, and a volume is the host's to mount. The host's guide, as read, says nothing of whose the folder is. Its staff wrote in 2021 that the folder is given to the user of the image. Step 4 gives it by hand, and that step is untried: whether the console of the host may change whose a folder is, and whether it stays so when the machine starts again.
+- That a daily copy of a volume holds a file of SQLite that opens. The file is written ahead, and a copy is taken of the volume as it stands.
+- That the host sends `x-vercel-forwarded-for`, that it holds one address, that it is the client's, and that the host writes over what a client sent under that name. Step 11 tries it.
+- That a mail arrives, and is not taken for spam. That depends on the records of the domain, and on the company.
+- That either company takes the mail as the service writes it. Each was fitted to the company's pages, and has met a stand-in only.
+- That `fly secrets import` starts the service again, and how long nobody can sign in while a secret is changed.
+- How much the file grows. A link that was asked for is a row until it is let go of, and an account keeps a hundred searches at the most.
+- That the framework writes `NEXT_PUBLIC_BURRO_ACCOUNTS` into the pages at Vercel as it does on a machine of one's own.
+
 ## Privacy settings, host by host
 
-ADR 0005 and ADR 0011 say what may never be written down: what a person typed, a destination, a place id, a fact id, a share id, and anything worked out from a spec. The code keeps that in its own log. These are the settings that keep it at each host.
+ADR 0005 and ADR 0011 say what may never be written down: what a person typed, a destination, a place id, a fact id, a share id, and anything worked out from a spec. Of an account it is the same: an address of email, the token of a link, a session, an id, and the address of a client ([ADR 0043](../docs/adr/0043-burro-has-accounts-and-a-person-signs-in-by-a-link-sent-by-email.md)). The code keeps that in its own log. These are the settings that keep it at each host.
 
 | Host | What reaches it | What it writes down | Where | Kept for | Set this |
 |---|---|---|---|---|---|
@@ -385,12 +686,15 @@ ADR 0005 and ADR 0011 say what may never be written down: what a person typed, a
 | Cloudflare R2 | Publishers' files, and the releases built from them. Never what a person typed, and nothing of a search | Whatever it records of a request for a file. It was not read | Chosen when a bucket is made | | Public access off on both buckets. No domain on either |
 | Model provider, later | The prompt, once a provider is turned on. The search settings too, if the service is set to send them | It differs by provider. `services/api/src/burro_api/providers/terms.py` holds what a tool read of each provider's pages, which nobody has checked and the service serves to nobody. The service serves a link to the provider's own terms | It differs by provider, and none offers a UK region | It differs by provider | Nothing until the conditions in step 5 are met. The privacy notice must say what the service serves |
 | Sentry, later | Errors | Must be set to: request bodies off, default PII off, a scrubber | To be chosen. Which regions there are was not read | | Attach it at `logs.log_failure` and nowhere else |
+| Fly.io, where accounts are on | What the website passes on for an account: an address of email, the token of a link, two cookies, the spec of a search that is kept. And the file of accounts, on a volume | The service's own lines, as above: of accounts, what happened and how it ended, and nothing of whom. The file holds the addresses and the specs as they are, and the hash of every token and session | London, for the machine and its volume. Where the host keeps a daily copy of a volume was not read | The file: as the privacy notice says. A daily copy: 5 days unless it is set, from 1 to 60 | The volume ciphered, which it is unless it is made otherwise. How long a copy is kept, as the privacy notice says. "Turning accounts on" |
+| Vercel, where accounts are on | The same, on its way to the service, in the body and the headers of a request to the website's own handler. **So an address of email that a person typed passes through Vercel**, which nothing typed did before | Of such a request, its path, which is one of nine fixed paths and holds nothing of anybody. The website's handler writes nothing down. What the host's own systems record of the body of a request was not read | The handler runs where the website's functions do: London, if the region is set | As the host keeps its logs | The secret for Production alone, and marked as sensitive. No log drain, as above |
+| The company that sends email, where accounts are on | Every address that asks for a link, and the mail, which holds the link | As the company keeps a mail: "The company that sends email", under "Turning accounts on", has what two companies say | As the company says | As the company says | No following of links and no counting of who opened a mail. A key that may only send |
 
-Two things follow for the privacy notice. Fly.io and Vercel are processors and must be named. And "hosted in London" is true of where the API runs. It may not be true of where a visitor's connection is first decrypted.
+Two things follow for the privacy notice. Fly.io and Vercel are processors and must be named. And "hosted in London" is true of where the API runs. It may not be true of where a visitor's connection is first decrypted. Accounts add a third: the company that sends email is a processor too, and is named before accounts are turned on.
 
 ## Blocking a client that abuses the service
 
-Burro builds nothing to block anyone: no accounts, nothing that follows a person, and no store of what was typed (ADR 0023). A client that abuses the service is blocked afterwards, by its address, at the host's edge. The sign of abuse is a run of `interpret` lines with `call_status` `refused` in `fly logs`, or a notice from the provider. Neither says who it was: Burro's log holds no address, so who it was is in the host's own record of requests. At Vercel, the project's Firewall blocks an address or a range of them for a host (IP Blocking), and limits how often one address may ask within a window of 10 seconds to 10 minutes (a rate limit rule, counted by IP). Both were read on <https://vercel.com/docs/vercel-firewall/vercel-waf/ip-blocking> and <https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting> on 2026-09-24. **That stands in front of the website and not in front of the API**, which the browser calls itself, at Fly.io. Fly.io's pages on `fly.toml` and on networking, read on the same day through a reader that summarises, name no block list and no limit by address: `concurrency` in `fly.toml` limits what one machine takes from everyone, not what one client sends. So as this guide stands, a client of the API can be blocked at an edge only once a host with a firewall stands in front of the API. That host would see the body of every request, which holds what a person typed. It is a new place for user text, and needs a decision first, as "A domain, once there is one" says of a proxy. Until then what limits the API is its own cap on calls to a model, which is for everyone together and tells nobody apart ([ADR 0032](../docs/adr/0032-calls-to-a-model-are-capped-for-the-whole-service.md)), the spending cap on the provider's project, and `hard_limit` in `fly.toml`.
+Burro builds nothing to block anyone from a search: nothing that follows a person, and no store of what was typed (ADR 0023). It has accounts since 2026-09-26, and an account blocks nobody: a search asks for none, and knows nobody ([ADR 0043](../docs/adr/0043-burro-has-accounts-and-a-person-signs-in-by-a-link-sent-by-email.md)). What one client may ask of the routes of accounts is limited by the service itself, which counts the address the website gave it. A client that abuses the service is blocked afterwards, by its address, at the host's edge. The sign of abuse is a run of `interpret` lines with `call_status` `refused` in `fly logs`, or a notice from the provider. Neither says who it was: Burro's log holds no address, so who it was is in the host's own record of requests. At Vercel, the project's Firewall blocks an address or a range of them for a host (IP Blocking), and limits how often one address may ask within a window of 10 seconds to 10 minutes (a rate limit rule, counted by IP). Both were read on <https://vercel.com/docs/vercel-firewall/vercel-waf/ip-blocking> and <https://vercel.com/docs/vercel-firewall/vercel-waf/rate-limiting> on 2026-09-24. **That stands in front of the website and not in front of the API**, which the browser calls itself, at Fly.io. It does stand in front of the routes of accounts, which a browser asks of the website: so a client that asks for link after link can be blocked, or limited, at Vercel. Fly.io's pages on `fly.toml` and on networking, read on the same day through a reader that summarises, name no block list and no limit by address: `concurrency` in `fly.toml` limits what one machine takes from everyone, not what one client sends. So as this guide stands, a client of the API can be blocked at an edge only once a host with a firewall stands in front of the API. That host would see the body of every request, which holds what a person typed. It is a new place for user text, and needs a decision first, as "A domain, once there is one" says of a proxy. Until then what limits the API is its own cap on calls to a model, which is for everyone together and tells nobody apart ([ADR 0032](../docs/adr/0032-calls-to-a-model-are-capped-for-the-whole-service.md)), the spending cap on the provider's project, and `hard_limit` in `fly.toml`.
 
 ## Rolling back
 
@@ -408,6 +712,8 @@ fly deploy . --config deploy/api/fly.toml --image IMAGE --ha=false --depot=false
 **The website.** In Vercel's dashboard, on the project's page, press Instant Rollback and choose the deployment. After a rollback, new pushes to the main branch no longer go live by themselves. To undo that, promote a deployment: `vercel promote DEPLOYMENT`. A rolled-back build holds the environment variables it was built with.
 
 **Both.** Roll the website back first if the API's contract changed, so that no page calls a route that is gone.
+
+**The file of accounts does not go back with an image.** It is on a volume, and a deploy leaves it as it was. So an image of before accounts serves no account and harms none: the file is kept, unopened. An image whose code knows an older layout of the file than the file has is refused by the service as it starts, and the file is left as it was. "Turning accounts on" says how the file itself is put back, and what that brings back with it.
 
 ## Pins, and what changes when the lockfiles are committed
 
@@ -437,5 +743,6 @@ Until then two builds of the same commit can differ, and a build can break on a 
 - A domain, a certificate and a DNS record: "A domain, once there is one".
 - A release of London: "Serving a release of London" lists what of it is untried.
 - The cap on calls to a model, on the host. A model is on, and the cap has met a stand-in only: "Turning the model on". What the service writes to the host's log with a model on was not read for a marker.
+- Anything of accounts, on a host: a volume, who owns its folder, the secrets, a sender, and an email that arrives. Every step of "Turning accounts on" is untried there, and it lists what would be met first. On a machine of a developer's own the service was started with accounts on, a whole life of an account was driven over a socket, and the website was walked with it in a browser: 2026-09-26.
 - That the website's functions run in London. `vercel.json` is not read where it is, and whether the region was set by hand was not noted: [web/README.md](web/README.md).
 - The two retention figures were read on the hosts' pages on 2026-09-23, through a reader that summarises. No price was kept.

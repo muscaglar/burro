@@ -173,9 +173,9 @@ What is counted is a call, never a search. The count goes up before the words ar
 | The payment provider never learns what was searched | Checkout is the provider's hosted page, so Burro never holds a card. It carries an action and an opaque reference. A product is named "Burro report", never for an area: a receipt that named an area would say where someone means to live |
 | What Burro keeps of a payment | `account_id`, `action`, `source`, `status`, `period_end` and the provider's reference |
 | A shortlist holds areas, not a search | `account_id` and `area_id`, as contract 11 says |
-| A saved search is a new decision | It would hold a spec, and so a workplace, for an account. ADR 0011 allows it once there are accounts. It needs its own record first |
+| A saved search is a new decision | It would hold a spec, and so a workplace, for an account. ADR 0011 allows it once there are accounts. It needs its own record first. **It has one since 2026-09-26**: [ADR 0044](../adr/0044-a-person-who-has-signed-in-may-keep-a-search-and-what-is-kept-is-the-spec-and-never-the-words.md). Accounts are built, are free, and are off until they are turned on |
 | A document's token is not tied to a spec | Paying buys a token. Redeeming it allows one document. What the document was of is not kept |
-| A session changes the website's rules | Web 10 rule 1 allows no cookie and no storage. An account needs one or the other, or a sign-in on every visit. Contract 9.1 sends no credentials header. Both change in the same change that adds accounts |
+| A session changes the website's rules | Web 10 rule 1 allows no cookie and no storage. An account needs one or the other, or a sign-in on every visit. Contract 9.1 sends no credentials header. Both change in the same change that adds accounts. **As accounts were built**, the session is a cookie that no script can read, the website keeps nothing in the storage of a browser, and no credentials cross origins: a browser asks the routes of accounts of the website's own origin ([the design of accounts](accounts.md), section 5) |
 
 ### 4.5 Tests to write now
 

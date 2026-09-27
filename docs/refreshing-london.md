@@ -136,7 +136,7 @@ and open the screen **What moved**. The release the panel shows is the newer bui
 | `catalogue_before`, `catalogue_after` | The version of the catalogue each build was made under. Where the two differ, read the part of `moved.md` on the catalogue first: it is why the rest moved |
 | `parts_came`, `parts_went`, `shares_changed` | A recipe that is made of other parts, or of the same parts at other shares. Every band of that vibe may move with it |
 | `names_changed` | A measure or a vibe that people will find under another name. What is printed counts it, and `moved.md` says what the name was and is |
-| `rough_came`, `rough_went` | A vibe that became a rough guide, or ceased to be one. A rough guide says so wherever it is shown, and is on a result only where it was asked for |
+| `rough_came`, `rough_went` | A vibe that became a rough guide, or ceased to be one. The service says which vibe is one, and the panel of the review desk shows it. The website has not told a visitor since 2026-09-26. A rough guide is on a result only where it was asked for |
 | A vibe with many `gained` | A vibe that places areas it did not place. With `changed=0` no area that had a band has another |
 | `measures_went`, `vibes_went` | A measure or a vibe that people will no longer find. The lock names the rule that left it out |
 | `areas_came`, `areas_went`, `areas_renamed`, `areas_redrawn` | Each should be nought unless the names or the borders were meant to change |

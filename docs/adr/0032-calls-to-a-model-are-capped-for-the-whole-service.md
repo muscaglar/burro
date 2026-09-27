@@ -1,6 +1,6 @@
 # 0032. Calls to a model are capped for the whole service, and nobody is told apart
 
-Status: accepted, 2026-09-25. The founder asked for a limit before a model is turned on. That the cap is for the whole service follows [0023](0023-what-is-typed-goes-as-typed-and-people-are-told.md) and [0011](0011-nothing-is-kept-for-a-search.md). The two numbers are a first guess, and are the founder's to confirm.
+Status: accepted, 2026-09-25. The founder asked for a limit before a model is turned on. That the cap is for the whole service follows [0023](0023-what-is-typed-goes-as-typed-and-people-are-told.md) and [0011](0011-nothing-is-kept-for-a-search.md). The two numbers are a first guess, and are the founder's to confirm. **Amended on 2026-09-26** by [0043](0043-burro-has-accounts-and-a-person-signs-in-by-a-link-sent-by-email.md): there are accounts, and where they are on the service reads the address of a client, on the routes of accounts alone, to limit how many links are asked for. The cap on calls to a model is as it was: for the whole service, and handed nothing of a call, signed in or not. See "Amended, 2026-09-26", below.
 
 ## Context
 
@@ -56,9 +56,19 @@ Why the cap is for the whole service, and not for each person:
 - `model_not_used` has one more reason, and `reason` is written in one more line. Neither holds anything that was set.
 - Whatever a model's path raises is caught where the model is asked, whatever its kind, and the rules answer. It reaches neither the handler at the edge nor the server's own.
 
+## Amended, 2026-09-26
+
+The founder asked for accounts ([0043](0043-burro-has-accounts-and-a-person-signs-in-by-a-link-sent-by-email.md)). They are off until they are turned on, and with them off every line of this record stands.
+
+| This record said | What is so, where accounts are on |
+|---|---|
+| "No person is told apart from another: no address, header, cookie or token is read, hashed or kept." | It is so of the cap on calls to a model, as before: the counter is handed nothing of a call, and the reader is handed nothing of who asked. It is no longer so of the whole service. The routes of accounts read a cookie, which is the session, and the address of a client as the website gives it |
+| "A cap for each address: the service reads no address and logs none. To count by one is to keep it, or a hash of it that a guess confirms." | A person who asks for a link is counted by the address of their client, so that one client cannot make Burro send a great deal of mail. The count is held in memory under a keyed hash, and is written to no log, no table and no file. What a guess confirmed in [0011](0011-nothing-is-kept-for-a-search.md) was a value that stood in a log. This one stands nowhere that can be read |
+| "A cap for each account: there are no accounts." | There are. No cap on calls to a model is for an account, and none is built: a search asks for no account, so a cap for each account would cap nobody who had not signed in |
+
 ## What would change it
 
-- Accounts. A cap for each account could then stand in `admit`, beside this one.
+- Accounts. A cap for each account could then stand in `admit`, beside this one. Accounts were built on 2026-09-26, and no such cap with them: the section above says why.
 - A second machine. The counts would have to be shared, or each machine given a part of the cap.
 - A host with a firewall in front of the API, which could limit by address. It would see what people type, so it needs a decision of its own first.
 - A day's calls used up by one caller, more than once.
