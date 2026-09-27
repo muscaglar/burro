@@ -1,47 +1,122 @@
 /*
- * Where an area sits on a vibe: five cells, from the low end to the high end. The cell that
- * is filled differs from the rest in how dark it is, and the band is always said in words
- * as well: by the name of the picture, or by the words beside it.
+ * Where an area sits on a vibe, as the look draws a band: five steps, and a peg on one.
+ * Never a bar that fills. It is drawn as the part Peg of the kit draws it, point for point:
+ * a step is nine art pixels by six, of page with a rule of ink, the steps stand one art
+ * pixel apart, and the foot of the peg stands two art pixels into its step. The band is
+ * always said in words as well: by the name of the picture, or by the words beside it.
+ *
+ * Every length is a count of art pixels. `--step` is how wide a step is, and `--rise` how
+ * high: a line that stands in a narrow place, or in a list of many small things, has
+ * smaller steps and is laid out by the same sums.
+ *
+ * Whatever holds lines that stand one under the next may say how wide a step of them is,
+ * `--track-step`, so that every line of them is as wide as the next. Left unsaid, a step
+ * is nine.
  */
 .track {
+  --step: var(--track-step, 9);
+  --rise: 6;
+  /* The room over the steps: the height of the peg, less what of it stands in its step. */
+  --room: calc(var(--h) - 3);
+
+  position: relative;
   display: inline-grid;
-  grid-template-columns: repeat(5, 0.75rem);
-  gap: 2px;
   flex: none;
+  grid-template-columns: repeat(5, calc(var(--px) * var(--step)));
+  gap: var(--px);
+  /*
+   * The room over the steps is there whether a peg is or not, so that a line with a peg
+   * and a line with none are of one height. The art pixel at either side is the room of
+   * the ends of a rail.
+   */
+  padding: calc(var(--px) * var(--room)) var(--px) 0;
+  vertical-align: bottom;
 }
 
 .cell {
-  height: 0.75rem;
-  border: 1px solid var(--map-line);
-  border-radius: 2px;
-  background: var(--bg);
+  height: calc(var(--px) * var(--rise));
+  border: var(--px) solid var(--ink);
+  background: var(--page);
 }
 
+/* The step the area sits on is ink. It differs from the rest in how dark it is, and has the peg. */
 .cell[data-on="true"] {
-  background: var(--map-line);
+  background: var(--ink);
 }
 
-/* A range is joined up, so that it reads as one stretch and not as three marks. */
-.track[data-range="true"] {
-  gap: 0;
+/* On part of its recipe: the step is chequered, in squares two art pixels wide. */
+.track[data-part="true"] .cell[data-on="true"] {
+  background: repeating-conic-gradient(var(--ink) 0 25%, var(--page) 0 50%) 0 0 / calc(var(--px) * 4)
+    calc(var(--px) * 4);
 }
 
-.track[data-range="true"] .cell {
-  border-radius: 0;
+/* The peg, in the middle of its step. It is a drawing, shown at its own size with a hard edge. */
+.peg {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: calc(
+    var(--px) * (1 + (var(--step) + 1) * var(--at) + (var(--step) - var(--w)) / 2)
+  );
+  width: calc(var(--px) * var(--w));
+  height: calc(var(--px) * var(--h));
+  background: var(--art) 0 0 / calc(var(--px) * var(--w)) calc(var(--px) * var(--h)) no-repeat;
+  image-rendering: pixelated;
 }
 
-/* A narrow screen: the cells are narrower, so that two marks stand on a line where they can. */
+/* A mixed area: the steps it spans are sand, a rail joins them, and there is no peg. */
+.track[data-range="true"] .cell[data-on="true"] {
+  background: var(--sand);
+}
+
+.rail {
+  position: absolute;
+  inset-block-end: calc(var(--px) * var(--rise));
+  inset-inline-start: calc(var(--px) * (var(--step) + 1) * var(--at));
+  width: calc(var(--px) * ((var(--step) + 1) * var(--over) + 1));
+  height: calc(var(--px) * 4);
+  border: calc(var(--px) * 2) solid var(--ink);
+  border-block-end: 0;
+}
+
+/*
+ * An area that cannot be placed has five steps like any, each with its solid edge, and no
+ * step of ink and no peg: it holds nothing, and is neither the middle nor nought. The words
+ * beside the line, or the name of the picture, say that it cannot be placed.
+ */
+
+/*
+ * In a list of many small things the steps are five art pixels square, and the one the
+ * area sits on has a cap of poppy and no peg: a peg on every line of a long list is noise.
+ * A mixed area has a bar of ink over the steps it spans.
+ */
+.track[data-small="true"] {
+  --step: 5;
+  --rise: 5;
+  --room: 3;
+}
+
+.track[data-small="true"] .peg {
+  inset-inline-start: calc(var(--px) * (1 + (var(--step) + 1) * var(--at)));
+  width: calc(var(--px) * var(--step));
+  height: calc(var(--px) * 2);
+  background: var(--poppy);
+}
+
+.track[data-small="true"] .rail {
+  inset-block-end: calc(var(--px) * (var(--rise) + 1));
+  height: calc(var(--px) * 2);
+  border: 0;
+  background: var(--ink);
+}
+
+/* A narrow screen: the steps are narrower, so that a line and its words stand side by side. */
 @media (max-width: 40rem) {
   .track[data-narrow="true"] {
-    grid-template-columns: repeat(5, 0.5rem);
-    gap: 1px;
-  }
-
-  .track[data-narrow="true"][data-range="true"] {
-    gap: 0;
+    --step: 7;
   }
 }
 
+/* With forced colours the system's own colours carry the steps. The peg is a picture, and stays. */
 @media (forced-colors: active) {
   .cell {
     border-color: CanvasText;
@@ -49,7 +124,25 @@
     background: Canvas;
   }
 
-  .cell[data-on="true"] {
+  .cell[data-on="true"],
+  .track[data-part="true"] .cell[data-on="true"],
+  .track[data-range="true"] .cell[data-on="true"] {
+    background: CanvasText;
+  }
+
+  .peg {
+    forced-color-adjust: none;
+  }
+
+  .track[data-small="true"] .peg {
+    background: Highlight;
+  }
+
+  .rail {
+    border-color: CanvasText;
+  }
+
+  .track[data-small="true"] .rail {
     background: CanvasText;
   }
 }

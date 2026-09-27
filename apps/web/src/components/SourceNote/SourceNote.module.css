@@ -1,33 +1,73 @@
+/*
+ * The source of a sentence or a figure. Its key is the part Note of the kit, which draws
+ * the key, the word and the rule under both, and the box of sand that it opens to.
+ *
+ * What it opens to stands on sand, where ink alone is read: so every word of a source is
+ * ink, the name that leads to its entry among them, which is told to be a link by its line.
+ */
 .note {
-  display: inline-block;
   vertical-align: baseline;
 }
 
-.link {
+/*
+ * With no fact in hand the key is a link to the page of sources. It is drawn as the key of
+ * the kit is: the drawing, the word in the face of names, and a rule of ink under both.
+ */
+.toSources {
   display: inline-flex;
   align-items: center;
-  font-size: var(--size-small);
+  gap: calc(var(--px) * 3);
+  padding: 0 calc(var(--px) * 1) 0 0;
+  border-block-end: var(--px) solid var(--ink);
+  color: var(--ink);
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+  text-decoration: none;
+}
+
+/* In hand it stands on amber, as the key does. Nothing of it moves or changes size. */
+.toSources:hover,
+.toSources:focus-visible {
+  background-color: var(--amber);
+}
+
+.said,
+.lines {
+  margin: 0;
+  padding: 0;
+  color: var(--ink);
+}
+
+/* What a vibe's fact says of itself, in the API's words: whose recipe it is, and that it is a judgement. */
+.said {
+  max-width: var(--measure);
+}
+
+.said + .lines,
+.lines + .said,
+.said + .said {
+  margin-block-start: var(--space-1);
 }
 
 .lines {
   display: grid;
   gap: var(--space-1);
-  margin: 0;
-  padding: var(--space-2) var(--space-3);
   list-style: none;
-  font-size: var(--size-small);
-  background: var(--surface);
-  border-inline-start: 2px solid var(--border);
 }
 
 .lines li {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1) var(--space-3);
+  align-items: baseline;
+  gap: 0 var(--space-3);
+  max-width: none;
 }
 
-.lines span {
-  color: var(--muted);
+.link {
+  display: inline-flex;
+  align-items: center;
+  color: var(--ink);
+  font-weight: 700;
 }
 
 /* A publisher's statement of credit takes a line of its own, under the name of its source. */
@@ -35,19 +75,23 @@
   flex-basis: 100%;
 }
 
+/* That the data is made up is a notice: cream, a rule of ink, and a band of amber beside the rule. */
 .lines .madeUp {
-  color: var(--notice-text);
+  padding: 0 var(--space-2) 0 calc(var(--space-2) + var(--px) * 2);
+  border: var(--edge) solid var(--notice-edge);
   background: var(--notice-bg);
-  padding: 0 var(--space-1);
-  border-radius: var(--radius);
+  box-shadow: inset calc(var(--px) * 2) 0 0 var(--notice-mark);
+  color: var(--notice-text);
+  font-weight: 700;
 }
 
-/* What a vibe's fact says of itself, in the API's words: whose recipe it is, and that it is a judgement. */
-.said {
-  margin: 0;
-  padding: var(--space-1) var(--space-3);
-  font-size: var(--size-small);
-  color: var(--muted);
-  background: var(--surface);
-  border-inline-start: 2px solid var(--border);
+@media (forced-colors: active) {
+  .toSources {
+    border-block-end-color: LinkText;
+  }
+
+  .lines .madeUp {
+    border-color: CanvasText;
+    box-shadow: none;
+  }
 }

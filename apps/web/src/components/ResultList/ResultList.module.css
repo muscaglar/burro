@@ -1,11 +1,21 @@
 /*
- * The results. A card is the answer in a few lines, and a row is one line. What either
- * opens to has no limit: it is one press away. docs/design/web.md, section 4.1, gives what
- * was measured of the short forms.
+ * The results, as the look draws the answer. A card is a box: a pennant with its rank, the
+ * name of the area in the face of names, the fit, the way to compare it, the town of the
+ * area, a line for each thing that was asked for, the trade-off, and two buttons. It holds
+ * no more: a person who walked the website asked for less on it. A row is the same in
+ * short, in a plain edge of ink. What either opens to is its working, which stands under
+ * it in a box of its own.
+ *
+ * Every sentence and every figure is read, and is set in the reading face, in ink. The
+ * game is in the box, the pennant, the peg, the labels, the drawings and the buttons.
+ *
+ * What a card or a row opens to has no limit: it is one press away. docs/design/web.md,
+ * section 4.1, gives what was measured of the short forms.
  */
 .list {
   display: grid;
-  gap: var(--space-2);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -16,13 +26,79 @@
 }
 
 /*
+ * The first part of the list, with what is said over it and under its first result. It
+ * is a part of the page that stands loose, under which the page lays a slip of cream: it
+ * has none, since a list stands on the grass, and what is said brings the cream it is
+ * read on.
+ *
+ * It is as wide as a result is, and says how wide that is: so what is said goes where the
+ * towns go, by the width of a result and never by the width of the screen.
+ */
+.listed {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  container-type: inline-size;
+}
+
+/*
+ * What is said of the list, once, in a slip: over it, where the look has anything stand
+ * over a list, and under its first result. It is one paragraph, read in the reading face,
+ * in ink, on cream within an edge of ink, and is as short as it can be.
+ *
+ * Its edge ends where the edge of ink of the card under it ends. A card is a box, which
+ * keeps the room of its shadow inside itself: two art pixels at its far side.
+ */
+.above,
+.underFirst {
+  display: flow-root;
+  max-width: none;
+  margin: 0;
+  margin-inline-end: calc(var(--px) * 2);
+  padding: var(--space-1) var(--space-3);
+  border: var(--edge) solid var(--border);
+  background: var(--page);
+  font-size: var(--size-small);
+  line-height: 1.3;
+}
+
+/*
+ * What a town is, and that it is no picture of the place, where the look has it said once,
+ * of every town of the list: it is said on no result unless one line of the look says so.
+ * It is the quieter of what stands where it does.
+ */
+.towns {
+  color: var(--muted);
+}
+
+/*
+ * Asked to stand over the list, what says that areas can be compared stands under the
+ * first result only where a result is narrow: which is said further down, by the width of
+ * a result.
+ */
+.listed[data-invite="over"] > .underFirst {
+  display: none;
+}
+
+/*
  * A list that is being worked out again stays where it is, and says so in words above
  * it. It is not dimmed: at 70% its muted text, its links and its edges all fall below the
- * contrast they need.
+ * contrast they need. The line is a notice, and is drawn as one.
  */
 .workingOut {
+  justify-self: start;
+  max-width: none;
   margin: 0 0 var(--space-2);
-  font-weight: 600;
+  padding: var(--space-1) var(--space-3) var(--space-1) calc(var(--space-3) + var(--px) * 2);
+  border: var(--edge) solid var(--notice-edge);
+  background: var(--notice-bg);
+  box-shadow: inset calc(var(--px) * 2) 0 0 var(--notice-mark);
+  color: var(--notice-text);
+  font-weight: 700;
 }
 
 .item {
@@ -31,54 +107,88 @@
   scroll-margin-block: var(--space-5);
 }
 
+/*
+ * Rows stand one on the next and share an edge, as the lines of one list: a row of grass
+ * between every two of them would be noise. A row whose working is open stands apart from
+ * the next, so that the box of its working keeps its shadow.
+ */
+.item[data-kind="row"]:has(> article > [hidden]) + .item[data-kind="row"] {
+  margin-block-start: calc((var(--space-4) + var(--edge)) * -1);
+}
+
+/* What is said before any ranking has come. */
 .waiting {
   margin: 0;
   color: var(--muted);
 }
 
-.card,
-.row {
+/* A result: the answer, and under it its working. The two are one article. */
+.result {
   display: grid;
-  gap: var(--space-1);
-  padding: var(--space-2) var(--space-3);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
-}
-
-/* The chosen area is marked by a heavy edge, and says so to a screen reader. */
-.card[aria-current="true"],
-.row[aria-current="true"] {
-  outline: 3px solid var(--map-line);
-  outline-offset: 1px;
+  /* One column, never wider than what holds it: a long word is broken, and pushes nothing out of its box. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  container-type: inline-size;
 }
 
 /*
- * The top of a card: the heading, and what the fit rests on after it, on one line where
- * there is room and on the next where there is not. A firm limit that was not tested, or
- * journeys that do not count, take a line of their own: they are not small print.
+ * A card and a row are each a column of their parts. So the heading has a line of its own:
+ * with the borough beside the name it once left room for one of the three ways on, and the
+ * other two were drawn under it.
+ */
+.card,
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.card,
+.row {
+  /* The room a result keeps between its edge and what it holds, at either side. */
+  --inside: var(--space-3);
+}
+
+.card {
+  padding: var(--space-2) var(--inside) var(--space-3);
+}
+
+/*
+ * A row is a plain frame, whose edge is one art pixel wide where the rule of a box is four.
+ * It keeps the three more at either side, so that what a row holds begins where what a card
+ * holds begins, and ends where it ends: the steps of a row then stand in the column of the
+ * steps of every card over it. Measured in a browser, they stood 9 px before them.
+ */
+.row {
+  padding: var(--space-2) calc(var(--inside) + var(--px) * 3);
+}
+
+/* The chosen area is in hand. A card has the box of what is in hand. A row has a band of amber inside its edge. */
+.result[aria-current="true"] > .row {
+  box-shadow: inset 0 0 0 calc(var(--px) * 2) var(--chosen);
+}
+
+/*
+ * The top of a card: the heading, and under it what the fit is based on, where the look
+ * has that said on the result and it is not everything.
  */
 .top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 var(--space-3);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
 }
 
-.top .heading {
-  flex: 1 1 auto;
-}
-
-.top .completeness:has(.untested) {
-  flex-basis: 100%;
-}
-
-/* One line: the rank, the name, the borough, and the fit at the far end. */
+/*
+ * The heading: the pennant, and beside it the name, with what stands beside the name under
+ * it, the fit, the way to compare the area, and the town of the area at the far end. A
+ * long name runs to a second line, and nothing of it is cut.
+ */
 .heading {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 var(--space-2);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0 var(--space-3);
+  align-items: start;
 }
 
 .heading p {
@@ -86,34 +196,81 @@
 }
 
 .rank {
-  align-self: center;
+  line-height: 0;
+}
+
+.titled {
   display: grid;
-  place-items: center;
-  min-width: 1.5rem;
-  height: 1.5rem;
-  padding: 0 var(--space-1);
-  border-radius: 0.75rem;
-  background: var(--map-line);
-  color: var(--bg);
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0 var(--space-3);
+  align-items: center;
+  min-width: 0;
+}
+
+/*
+ * The way to compare the area: the button, and under it the way to the comparison once
+ * there are areas enough. It stands where the eye goes, in the heading, beside the town,
+ * and is the last thing of what the name stands with. It is named by what the part that
+ * draws it says of itself, whether its area is chosen: a result lays it out, and draws
+ * nothing of it.
+ *
+ * With the way to the comparison under it the button is about as high as a town is, so
+ * that a result is as high once its area is chosen as it was. What to do next, while one
+ * area is chosen, is said by the bar of areas and not here.
+ */
+.titled > [data-chosen] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-row: 1 / span 2;
+  grid-column: 3;
+  gap: 0;
+  align-self: start;
+  justify-items: end;
+  min-width: 0;
+  text-align: end;
+}
+
+.titled > [data-chosen] > :not(button) {
   font-size: var(--size-small);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
 }
 
+/*
+ * A result that is wider than a narrow one has the room of a town beside its name, and the
+ * way to the comparison stands in it, under the button, in sight: the part that draws the
+ * button lays it over the page wherever it is told of no room. It says so more heavily
+ * than that part does, whichever of the two sheets is read last.
+ *
+ * A narrow result has no such room, and is as high pressed as it was. Seen on a phone:
+ * what stood under the button took the room of what stands beside the name, which broke
+ * into four lines of a word each, and the result grew by 39 px under the press.
+ */
+@container (width > 30rem) {
+  .list .heading .titled > [data-chosen] > a {
+    position: static;
+    z-index: auto;
+    padding: 0;
+    border: 0;
+    background: none;
+    white-space: normal;
+    transform: none;
+  }
+}
+
+/* The name of an area is set in the face of names, and never smaller than a heading in it may be. */
 .name {
+  grid-row: 1;
+  grid-column: 1;
   margin: 0;
-  font-size: var(--size-lead);
+  font: 400 var(--name-2) / 1 var(--font-name);
+  font-synthesis: none;
 }
 
-.row .name {
-  font-size: var(--size-body);
-}
-
-/* The name of a result is the way to the page of its area. It is drawn as the name is. */
+/* The name of a result is the way to the page of its area. It is drawn as the name is, with a hard line under it. */
 .toArea {
   color: inherit;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 0.2em;
+  text-decoration-thickness: var(--px);
+  text-underline-offset: 0.12em;
 }
 
 .toArea:hover {
@@ -121,112 +278,227 @@
 }
 
 .borough {
+  grid-row: 2;
+  grid-column: 1;
   color: var(--muted);
   font-size: var(--size-small);
+  line-height: 1.3;
 }
 
+/* The fit: the word over the figure. The figure is read, and is set in the reading face, heavy. */
 .fit {
-  margin-inline-start: auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  justify-items: end;
+  text-align: end;
 }
 
 .fitLabel {
   color: var(--muted);
-  font-size: var(--size-small);
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
 }
 
+/* It is as large as the name, where a card has the room: a fit is the first thing a result is read for. */
 .fitFigure {
-  font-weight: 650;
+  font: 700 var(--name-2) / 1 var(--font-say);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/*
+ * The two words that say a fit is not whole, after their mark: under the figure of the
+ * fit, of which they are said, and at its side of the heading. They take no room where a
+ * fit is whole. Their mark is drawn at the pixel of the ground, as the marks of the lines
+ * under the heading are.
+ */
+.approx {
+  --px: var(--px-ground);
+
+  margin-block-start: var(--px);
+}
+
+/*
+ * The town of the area: a small drawing at the far end of the heading, beside the name and
+ * the fit. It is of one size on every result, the first as the tenth, and no rule here
+ * gives it another: a drawing is laid at its own size, by the part that draws it.
+ *
+ * The town is no box of its own here. Its drawing and what it says are each laid out by
+ * the heading: the drawing beside the name and the fit, and what it says under them, from
+ * edge to edge, where it has the room of a line. A rule that lays the town out weighs more
+ * than the town's own, since which sheet is read last is not the website's to decide.
+ */
+.heading > .town {
+  display: contents;
+}
+
+.heading > .town > [role="img"] {
+  grid-column: 3;
+  grid-row: 1;
+}
+
+.heading > .town > figcaption {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  margin-block-start: var(--space-1);
+}
+
+/*
+ * Where the look has what a town is said once, and nothing stands over the list, it stands
+ * where the first town is: under the heading of the first result, from edge to edge, as
+ * what a town says of itself does. It is a sentence, set as the slip over a list set it.
+ * What the town of that result says of itself, that a part of it is left blank and why,
+ * follows it on the next line.
+ *
+ * It takes no room from the top of the answer: measured at 1440 by 900, over the list it
+ * stood the first result 100 px lower, with what says that areas can be compared.
+ */
+.heading > .towns {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  max-width: none;
+  margin-block-start: var(--space-1);
+  font-size: var(--size-small);
+  line-height: 1.3;
+}
+
+.heading:has(> .towns) > .town > figcaption {
+  grid-row: 3;
+}
+
+/*
+ * No town of a result says what a town is, unless the look has the line stand under each:
+ * on a result it is said nowhere, and where the look has it said once, of every town of
+ * the list, under every one of ten towns it is the same words ten times. The line is the
+ * first thing a town says. What else a town says, that a part of it is left blank and why,
+ * stays with the town, in sight. A town that says its line and no more has nothing left to
+ * say, and takes no room to say it in.
+ */
+.list:not([data-line="each"]) .town > figcaption > :first-child {
+  display: none;
+}
+
+.list:not([data-line="each"]) .town > figcaption:not(:has(> :not(:first-child))) {
+  display: none;
+}
+
+/*
+ * A short label over a part, as the look draws one: a small board in the face of names.
+ * It is ink with its words in the colour that is read on, so that at the size of a label
+ * it is never lighter to the eye than the sentence it heads.
+ */
+.tag {
+  display: inline-block;
+  justify-self: start;
+  margin: 0;
+  padding: 0 calc(var(--px) * 3) var(--px);
+  border: var(--edge) solid var(--ink);
+  background: var(--ink);
+  color: var(--page);
+  font: 400 var(--name-1) / 1.1 var(--font-name);
+  font-synthesis: none;
+}
+
+/*
+ * THE TRADE-OFF: what was given for what was got. It stands out by where it stands and
+ * how it is drawn, and never by red, which says danger, nor by anything that says the area
+ * is the worse for it. Every word of it is ink.
+ *
+ * Its heading stands at the head of its sentence, which runs beside it and then under it:
+ * the drawing, the word, and then the sentence. A heading over the sentence would cost a
+ * line of every card, and a heading on the first line of it made that line as high as the
+ * drawing. Whether a journey is within its limit goes under the sentence.
+ *
+ * Its drawing is drawn at the pixel of the ground, which is two pixels of the screen to
+ * one of its own on every screen, as the drawings of the lines over it are.
+ */
+.tradeOff {
+  display: flow-root;
+  min-width: 0;
+  color: var(--ink);
+}
+
+.tradeOff p {
+  max-width: none;
+  margin-block: 0;
+}
+
+.tradeOffTitle {
+  --px: var(--px-ground);
+
+  display: flex;
+  float: inline-start;
+  gap: calc(var(--px) * 3);
+  align-items: center;
+  margin: 0;
+  margin-inline-end: var(--space-2);
+}
+
+.tradeOffWord {
+  font: 400 var(--name-1) / 1.1 var(--font-name);
+  font-synthesis: none;
+}
+
+/*
+ * The sentence is laid out as words are, line by line, so that its lines run beside the
+ * heading and then under it: laid out as a box of its own, as a sentence is where its
+ * source stands beside it, the whole of it stood beside the heading.
+ */
+.tradeOffSaid > div {
+  display: block;
+}
+
+
+/*
+ * On a band of its own, from edge to edge of the result: sand, between two rules of ink.
+ * On sand ink alone is read. Its heading stands on a plate of ink, its word in the colour
+ * that is read on, and a pair of scales stands before the plate.
+ */
+.tradeOff[data-drawn="band"] {
+  margin-inline: calc(var(--inside) * -1);
+  padding: var(--space-2) var(--inside);
+  border-block: var(--edge) solid var(--ink);
+  background: var(--sand);
+}
+
+.tradeOff[data-drawn="band"] .tradeOffWord {
+  padding: 0 calc(var(--px) * 3) var(--px);
+  border: var(--edge) solid var(--ink);
+  background: var(--ink);
+  color: var(--page);
+}
+
+/*
+ * In a box of its own within the result: cream, in an edge of ink, with the hard shadow of
+ * the look, whose room it keeps at its far side and its foot. Its heading is ink, and two
+ * arrows stand before it, one each way.
+ */
+.tradeOff[data-drawn="box"] {
+  margin-block-end: calc(var(--px) * 2);
+  margin-inline-end: calc(var(--px) * 2);
+  padding: var(--space-2) var(--space-3);
+  border: var(--edge) solid var(--ink);
+  background: var(--page);
+  box-shadow: var(--box-shadow);
 }
 
 .part {
   display: grid;
-  gap: 0;
-}
-
-.part h4 {
-  margin: 0;
-  font-size: var(--size-small);
-  color: var(--muted);
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  min-width: 0;
 }
 
 .part p {
-  margin: 0;
-}
-
-/*
- * In the answer, what a sentence is of runs into it: "Why it fits", and then the sentence
- * and its source, on the same lines. A heading above each would cost a line of every card.
- * What a source opens, and whether a journey is within its limit, go under the sentence.
- */
-.part.runIn {
-  display: block;
-}
-
-.part.runIn h4 {
-  display: inline-flex;
-  margin-inline-end: var(--space-2);
-  vertical-align: baseline;
-}
-
-.part.runIn > div,
-.part.runIn p {
-  display: inline;
-}
-
-.part.runIn p {
-  margin-inline-end: var(--space-2);
-}
-
-/* What holds the place of a sentence that is waited for is a line of its own. */
-.part.runIn > div[aria-hidden="true"],
-.part.runIn .within,
-.part.runIn .over,
-.part.runIn .failed {
-  display: block;
-}
-
-.where {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--space-3) var(--space-4);
-  align-items: start;
-}
-
-.whereWords {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.reasons {
-  display: grid;
-  gap: var(--space-2);
-  margin: 0;
-  padding-inline-start: var(--space-5);
-}
-
-.reasons li {
-  max-width: none;
-}
-
-/* The trade-off is told apart by its word and its mark, as well as its colour. */
-.part .tradeOff {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  color: var(--tradeoff);
-}
-
-.tradeOffMark {
-  width: 0;
-  height: 0;
-  border-inline: 0.4em solid transparent;
-  border-block-end: 0.7em solid currentColor;
+  margin-block: 0;
 }
 
 .completeness {
   display: grid;
-  gap: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
   font-size: var(--size-small);
 }
 
@@ -240,72 +512,201 @@
 }
 
 /*
- * A firm limit that could not be tested. It is the gravest thing a result can carry, so it
- * has the mark and the weight of the trade-off, and is not small print.
+ * What was asked for and is not in the fit: a thing with no figure, journeys that do not
+ * count, a firm limit that could not be held against the area. It is the gravest thing
+ * that is said of a fit, so it is said heavier, in ink, and is not small print.
  */
 .untested {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  color: var(--tradeoff);
+  color: var(--ink);
   font-size: var(--size-body);
-  font-weight: 600;
+  font-weight: 700;
 }
 
-.untested .tradeOffMark {
-  flex: none;
+/* What follows the mark of what is not whole, in the working: the mark, and then the words, on their lines. */
+.marked {
+  max-width: none;
+  margin: 0;
+}
+
+.marked > span {
+  align-items: baseline;
 }
 
 /*
- * What a result leads to, in one row: its working, the areas like it, and the comparison.
- * The working opens under the row, as wide as the card.
+ * What a result leads to at its foot, in one row of two buttons of one height: its working,
+ * and the areas like it. Each is as wide as its words ask, and no wider: the way to
+ * compare, which stands in the heading, is the one a result makes the most of. No word of
+ * a button is ever broken: where text is made so large that the two have no room on one
+ * row, a button goes to the next.
+ *
+ * Each is drawn by the part that draws it, as a button of the look. This sheet says where
+ * each stands in the row, and nothing of how a button is drawn.
  */
 .waysOn {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
   gap: var(--space-1) var(--space-2);
-  font-size: var(--size-small);
+  align-items: stretch;
 }
 
-/* Three ways on stand on one line of a phone: each is as wide as its words and a little more. */
-.waysOn button,
-.waysOn a {
-  padding-inline: var(--space-1);
+.waysOn > a,
+.waysOn > span > button {
+  flex: 0 1 auto;
+  min-width: min-content;
 }
 
-.working {
+/* What holds a button is no box of its own, so that the two buttons are the two things of the row. */
+.waysOn > span {
   display: contents;
 }
 
-/* The working comes after the row of buttons, whatever stands in the row. */
-.working > div {
-  order: 1;
-  flex-basis: 100%;
-  font-size: var(--size-body);
+/*
+ * The working: a box of its own under the result, which is there only while it is open. It
+ * is laid out by its own width, so that it reads in a narrow column as it does on a phone.
+ */
+.working {
+  container-type: inline-size;
 }
 
-.way {
-  font-weight: 600;
+.working[hidden] {
+  display: none;
+}
+
+/* Whose working it is: a board of ink at the head of the box, from edge to edge, in the face of names. */
+.workingOf {
+  max-width: none;
+  margin: 0;
+  padding: var(--space-1) var(--space-4) calc(var(--space-1) + var(--px));
+  background: var(--ink);
+  color: var(--page);
+  font: 400 var(--name-1) / 1.1 var(--font-name);
+  font-synthesis: none;
 }
 
 .opened {
   display: grid;
-  gap: var(--space-4);
-  padding-block: var(--space-2);
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
 }
 
-.opened .part {
+/* Each part of the working stands under a rule of ink, from edge to edge of its box. */
+.opened > .part {
+  padding: var(--space-3) var(--space-4);
+  border-block-start: var(--edge) solid var(--ink);
+}
+
+.opened > .part:first-child {
+  border-block-start: 0;
+}
+
+.where {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-3) var(--space-4);
+  align-items: start;
+}
+
+.whereWords {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-2);
 }
 
-.opened .part h4 {
-  font-size: var(--size-body);
+.reasons {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  margin: 0;
+  padding-inline-start: var(--space-5);
+}
+
+.reasons li {
+  max-width: none;
+}
+
+/* What the trade-off is about, and the key of its source after it, on its line where there is room. */
+.ofWhat {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  align-items: baseline;
+}
+
+.ofWhat > p {
+  flex: 1 1 16rem;
+  max-width: none;
+}
+
+/* What the key opens takes the whole width under both, and the key stays where it was pressed. */
+.ofWhat > :has(> button[aria-expanded]) {
+  display: contents;
+}
+
+.ofWhat > * > button[aria-expanded] + div {
+  flex-basis: 100%;
+  margin-block-start: 0;
+}
+
+/* The figures behind each gauge: the fact of each vibe under a rule of sand, as a line of a list. */
+.vibes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vibes > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
+  justify-items: start;
+  max-width: none;
+  padding-block: var(--space-2);
+  border-block-start: var(--edge) solid var(--sand);
+}
+
+.vibes > li:first-child {
+  padding-block-start: 0;
+  border-block-start: 0;
+}
+
+/*
+ * A gauge whose fact the page does not hold, laid out as a fact is: its name heavy, and
+ * under it what the ranking gave, each under the name of its column.
+ */
+.placed {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
+}
+
+.placed > p {
+  max-width: none;
+  font-weight: 700;
+}
+
+.placed > dl {
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * The way to the page that holds the source of each of them: the key, as the source of a
+ * figure is drawn wherever one stands, and then the link, which is read and is set as a
+ * sentence is. The key stands on the first line of a link that takes two.
+ */
+.elsewhere {
+  display: flex;
+  gap: var(--space-2);
+  align-items: baseline;
+  max-width: none;
 }
 
 .journeysPart,
 .breakdownPart {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-2);
   min-width: 0;
 }
@@ -339,10 +740,14 @@
   font-size: var(--size-small);
 }
 
-/* What the data says of one thing that counts: the slots of its fact, each under its name. */
+/*
+ * What the data says of one thing that counts: the slots of its fact, each under its name,
+ * side by side where there is room.
+ */
 .says {
-  display: grid;
-  gap: var(--space-1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-5);
   margin: 0;
 }
 
@@ -353,18 +758,32 @@
 .within,
 .over {
   margin: 0;
+  font-weight: 700;
 }
 
 .within {
   color: var(--good);
 }
 
+/* Over a limit is said in ink, with a mark of poppy before it. */
 .over {
   color: var(--tradeoff);
 }
 
+.over::before {
+  content: "";
+  display: inline-block;
+  width: calc(var(--px) * 3);
+  height: calc(var(--px) * 3);
+  margin-inline-end: calc(var(--px) * 2);
+  background: var(--tradeoff-mark);
+}
+
+/* A fault is said in ink, with an edge of poppy beside it. */
 .failed {
   margin: 0;
+  padding-inline-start: var(--space-2);
+  border-inline-start: calc(var(--px) * 2) solid var(--error-edge);
   color: var(--error);
 }
 
@@ -378,27 +797,50 @@
 }
 
 .actions li {
-  max-width: none;
-}
-
-.action {
-  display: inline-flex;
-  align-items: center;
+  display: flex;
+  max-width: 100%;
 }
 
 /*
- * Under the list, on one line where there is room: the button that shows the rest, or the
- * line that says areas are ranked below the last one listed, and the areas that are not ranked.
+ * What a press of the working did, in words, under what was pressed. It is on the page
+ * before it speaks, so that what it says is heard, and holds no line until then: so it
+ * takes no room, and what it stands with is one thing of its part, with no room between
+ * the two but what the line brings once it has words.
+ */
+.acts {
+  min-width: 0;
+}
+
+.did {
+  max-width: none;
+  margin: 0;
+}
+
+.did:not(:empty) {
+  margin-block-start: var(--space-2);
+}
+
+/*
+ * Under the list, in one plain edge: the button that shows the rest, or the line that says
+ * areas are ranked below the last one listed, the areas that are not ranked, and which
+ * release ranked them.
  */
 .under {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  margin-block-start: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+}
+
+.more {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
   gap: var(--space-2) var(--space-4);
-  margin-block-start: var(--space-2);
 }
 
-.under:empty {
+.more:empty {
   display: none;
 }
 
@@ -441,12 +883,21 @@
 
 .apartList {
   display: grid;
-  gap: var(--space-3);
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
   margin-block-start: var(--space-2);
 }
 
+/* Each area that is not ranked stands under a rule of sand, as a line of a list does. */
+.apartItem {
+  max-width: none;
+  padding-block: var(--space-2);
+  border-block-start: var(--edge) solid var(--sand);
+}
+
 .apartName {
-  font-weight: 600;
+  font: 400 var(--name-1) / 1.1 var(--font-name);
+  font-synthesis: none;
 }
 
 .apartLacks {
@@ -464,74 +915,21 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0 var(--space-4);
-  margin-block-start: var(--space-2);
   color: var(--muted);
   font-size: var(--size-small);
 }
 
 /*
- * A row is three lines: the rank, the name, what stands beside the name and the fit,
- * then the ways on, and then the strip. What the fit rests on is said between them where
- * it is not all that counts. The working opens under the whole row.
- *
- * The heading has a line of its own. With the borough beside the name it left room for
- * one of the three ways on, and the other two were drawn under it.
- *
- * The ways on come after the strip in the page, and are drawn before it. The strip of a
- * row holds nothing a keyboard stops at, so the order of the keyboard is the order drawn.
+ * A narrow box, as the middle column of a wide screen is: a thing that counts is stacked,
+ * so that nothing scrolls sideways. What the row is of comes first, then each cell under
+ * its own name. The headings of the columns are kept for a screen reader and not drawn.
  */
-.row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 var(--space-2);
-}
-
-.row .heading {
-  flex: 1 1 100%;
-}
-
-.row .waysOn {
-  display: contents;
-  font-size: var(--size-small);
-}
-
-.row .waysOn > *,
-.row .working > button {
-  order: 1;
-  font-size: var(--size-small);
-}
-
-.row .completeness {
-  order: 2;
-  flex-basis: 100%;
-}
-
-.row > ul {
-  order: 3;
-  flex-basis: 100%;
-}
-
-.row .working > div {
-  order: 4;
-  font-size: var(--size-body);
-}
-
-@media (max-width: 40rem) {
+@container (max-width: 40rem) {
+  /* The two pictures of where the area is go under the words, which then have the whole width. */
   .where {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  /*
-   * A narrow screen: a journey, and a thing that counts, is stacked, so that nothing
-   * scrolls sideways. What the row is of comes first, then each cell under its own
-   * name. The headings of the columns are kept for a screen reader and not drawn.
-   */
-  .journeys,
-  .journeys caption,
-  .journeys tbody,
-  .journeys th,
-  .journeys td,
   .breakdown,
   .breakdown caption,
   .breakdown tbody,
@@ -540,16 +938,23 @@
     display: block;
   }
 
-  /* A row is a column of its cells, so that one of them can be brought forward. */
-  .journeys tr,
+  /*
+   * A row is what it is of, then how much it counts, its share and what it adds, side by
+   * side, and then what the data says of it, from edge to edge.
+   */
   .breakdown tr {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: repeat(3, auto) minmax(0, 1fr);
+    gap: 0 var(--space-4);
     padding: var(--space-2) 0;
-    border-block-end: 1px solid var(--border);
+    border-block-end: var(--edge) solid var(--sand);
   }
 
-  .journeys .head,
+  .breakdown tbody th,
+  .breakdown td:last-child {
+    grid-column: 1 / -1;
+  }
+
   .breakdown .head {
     position: absolute;
     width: 1px;
@@ -560,15 +965,55 @@
     white-space: nowrap;
   }
 
-  .journeys th,
-  .journeys td,
   .breakdown th,
   .breakdown td {
     padding: var(--space-1) 0;
     border: 0;
   }
 
-  .cellLabel {
+  .breakdown .cellLabel {
+    display: block;
+  }
+}
+
+/*
+ * A narrower box still, as a phone has: a journey is stacked as well. A journey is five
+ * short cells, and stands as a table in the narrow column of a wide screen.
+ */
+@container (max-width: 30rem) {
+  .journeys,
+  .journeys caption,
+  .journeys tbody,
+  .journeys th,
+  .journeys td {
+    display: block;
+  }
+
+  /* A row is a column of its cells, so that one of them can be brought forward. */
+  .journeys tr {
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-2) 0;
+    border-block-end: var(--edge) solid var(--sand);
+  }
+
+  .journeys .head {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .journeys th,
+  .journeys td {
+    padding: var(--space-1) 0;
+    border: 0;
+  }
+
+  .journeys .cellLabel {
     display: block;
   }
 
@@ -582,18 +1027,466 @@
   }
 }
 
+/*
+ * A result with a town and no room for the way to compare beside it: the way to compare
+ * has a line of its own under the name, the fit and the town, at the far end, under the
+ * town. What it says beside itself stands before it on that line, so that the heading is
+ * no higher once the area is chosen.
+ *
+ * Beside the name and the fit a town takes 112 px and the way to compare some 160. Measured
+ * in a browser: under 46rem of a result they left a name of one word less room than it needs.
+ *
+ * What the name stands with is then laid out by the heading, part by part.
+ *
+ * It is so whichever way the look has a narrow result drawn: a result of this width has
+ * room for a town, and that line of the look chooses what becomes of a town on one that
+ * has none.
+ */
+@container (width > 36rem) and (width < 46rem) {
+  .list[data-narrow] .heading {
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+  }
+
+  .list[data-narrow] .titled {
+    display: contents;
+  }
+
+  .list[data-narrow] .rank {
+    grid-row: 1 / span 2;
+    grid-column: 1;
+  }
+
+  .list[data-narrow] .name {
+    grid-column: 2;
+    align-self: end;
+  }
+
+  .list[data-narrow] .borough {
+    grid-column: 2;
+    align-self: start;
+  }
+
+  .list[data-narrow] .fit {
+    grid-column: 3;
+    align-self: center;
+  }
+
+  .list[data-narrow] .heading > .town > [role="img"] {
+    grid-row: 1 / span 2;
+    grid-column: 4;
+  }
+
+  .list[data-narrow] .titled > [data-chosen] {
+    display: flex;
+    flex-direction: row-reverse;
+    flex-wrap: wrap;
+    grid-row: 3;
+    grid-column: 1 / -1;
+    gap: var(--space-1) var(--space-3);
+    align-items: center;
+    justify-self: end;
+    margin-block-start: var(--space-1);
+  }
+
+  .list[data-narrow] .heading > .town > figcaption {
+    grid-row: 4;
+  }
+
+  /* What a town is stands under the way to compare there, and what the town says of itself after it. */
+  .list[data-narrow] .heading > .towns {
+    grid-row: 4;
+  }
+
+  .list[data-narrow] .heading:has(> .towns) > .town > figcaption {
+    grid-row: 5;
+  }
+}
+
+/*
+ * A result with no room for a town has none, and its list has no line of the towns, where
+ * the look has one stand: the look gives way.
+ *
+ * Beside the name and the fit a town takes 112 px and the room between two things. Under
+ * 36rem of a result that leaves the name less than it has on a phone today: there a name
+ * was seen to break inside a word, and what stands beside it to run to a second line.
+ *
+ * And on a phone the answer comes first. Measured at 390 by 844 after a plain search, the
+ * first result stands from 454 to 828, with 16 px to spare. With a town at the far end of
+ * its heading and the fit under the name it was 402 px high, 28 more than it is, and with
+ * the line over the list it stood from 519 to 921, under the foot of the first screen.
+ *
+ * So the heading of such a result is as it was before a town stood in one: the pennant,
+ * and the name with the fit. It goes by the width of the result, as all of a result does,
+ * and the line by the width of what holds it and the list, which is as wide.
+ */
+@container (max-width: 36rem) {
+  .list[data-narrow="none"] .heading {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .list[data-narrow="none"] .heading > .town {
+    display: none;
+  }
+
+  .listed[data-narrow="none"] .towns {
+    display: none;
+  }
+
+  /*
+   * Nor is anything else said over a list of narrow results: what says that areas can be
+   * compared stands under the first result there, and the slip over the list is not drawn.
+   */
+  .listed > .above > [data-stands="over"] {
+    display: none;
+  }
+
+  .listed[data-narrow="none"] > .above {
+    display: none;
+  }
+
+  .listed[data-invite="over"] > .underFirst {
+    display: flow-root;
+  }
+}
+
+/*
+ * A result with no town that is wider than a narrow one, which lays its heading out in
+ * lines: the way to compare has a line of its own there too, under the name and the fit,
+ * at the far end, and what it says beside itself stands before it on that line.
+ *
+ * Beside the name and the fit the way to compare takes some 175 px. Measured in a browser:
+ * at 30rem of a result, which a window 960 px wide gives, it left the name 26 px, and a
+ * name of one word was broken six times inside the word.
+ */
+@container (width > 30rem) and (max-width: 36rem) {
+  .list[data-narrow="none"] .titled {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .list[data-narrow="none"] .titled > [data-chosen] {
+    display: flex;
+    flex-direction: row-reverse;
+    flex-wrap: wrap;
+    grid-row: 3;
+    grid-column: 1 / -1;
+    gap: var(--space-1) var(--space-3);
+    align-items: center;
+    justify-self: end;
+    margin-block-start: var(--space-1);
+  }
+}
+
+/*
+ * The larger of the two sizes a town was built at is 168 px wide on a wide screen, half as
+ * wide again, and asks for a wider result: one of 39rem, which is what a desk gives it. On
+ * a result of 586 px the name had 134 px beside it, and a name of one word broke in two.
+ */
+@container (width < 39rem) {
+  .list[data-narrow="none"][data-town="screen"] .heading {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .list[data-narrow="none"][data-town="screen"] .heading > .town {
+    display: none;
+  }
+
+  .listed[data-narrow="none"][data-town="screen"] .towns {
+    display: none;
+  }
+}
+
+/*
+ * The other way, which is the founder's to choose in one line of `look.ts`: a town at the
+ * far end of the heading of a result with no room for one beside the name and the fit.
+ * The name, the fit and what stands beside the name then have a line each, beside the
+ * town, as high as the three together nearly: so the heading of a result of a phone is 46
+ * px higher than it is.
+ *
+ * It holds where a result has no room for a town, and nowhere else: a result with room for
+ * one is laid out as it is whichever way is chosen. While it held under 39rem and the way
+ * to compare had its line from 36rem for the first way alone, a result of a desk, which is
+ * 39.6rem, had neither: the way to compare stood beside the name, which was left 49 px
+ * and was broken inside the word.
+ */
+@container (max-width: 36rem) {
+  .list[data-narrow="beside"] .titled {
+    display: contents;
+  }
+
+  .list[data-narrow="beside"] .name {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  /* The fit is one line there, the word before the figure, as it is on a narrow result. */
+  .list[data-narrow="beside"] .fit {
+    display: flex;
+    flex-wrap: wrap;
+    grid-row: 2;
+    grid-column: 1 / 3;
+    gap: 0 var(--space-1);
+    align-items: baseline;
+    justify-self: start;
+    text-align: start;
+  }
+
+  .list[data-narrow="beside"] .fitFigure {
+    font-size: var(--size-h3);
+    white-space: normal;
+  }
+
+  .list[data-narrow="beside"] .borough {
+    grid-row: 3;
+    grid-column: 1 / 3;
+  }
+
+  .list[data-narrow="beside"] .heading > .town > [role="img"] {
+    grid-row: 1 / 4;
+  }
+
+  /* The way to compare has the line after them, at the far end, and what the town says the line after that. */
+  .list[data-narrow="beside"] .titled > [data-chosen] {
+    grid-row: 4;
+    grid-column: 1 / -1;
+    justify-self: end;
+    margin-block-start: var(--space-1);
+  }
+
+  .list[data-narrow="beside"] .heading > .town > figcaption {
+    grid-row: 5;
+  }
+
+  .list[data-narrow="beside"] .heading > .towns {
+    grid-row: 5;
+  }
+
+  .list[data-narrow="beside"] .heading:has(> .towns) > .town > figcaption {
+    grid-row: 6;
+  }
+}
+
+/*
+ * A narrow result, as a phone has, and as the middle column of a wide screen has where
+ * text is made large: it is laid out by its own width, and not by the width of the screen.
+ */
+@container (max-width: 30rem) {
+  /*
+   * On a phone the first result is whole on the first screen: so a card stands close, and
+   * the fit is one line beside the name, with what stands beside the name under both.
+   *
+   * Measured on a phone 390 wide with every part of the page dressed, a card was 418 px
+   * high where the trunk's was 305, and ended under the foot of the first screen when all
+   * that stands over it had given way. So its parts stand as close as the lines of a list,
+   * and what is read of it is the size of a small sentence, as it was before it was dressed.
+   *
+   * It keeps one art pixel under its last line, as over its first. With two under it, the
+   * first result of the page a shared link opens ended 1.5 px under the foot of a phone's
+   * first screen: what such a search holds is said in full, and stands 18 px higher.
+   */
+  .card,
+  .row {
+    --inside: var(--space-2);
+
+    gap: var(--space-1);
+    padding: var(--px) var(--inside);
+  }
+
+  .row {
+    padding-inline: calc(var(--inside) + var(--px) * 3);
+  }
+
+  /*
+   * The lines stand directly on the trade-off, which begins with a rule of its own, and
+   * the room between the parts of a card is kept over the lines and under the trade-off.
+   */
+  .card {
+    gap: 0;
+  }
+
+  .card > .top,
+  .card > .tradeOff {
+    margin-block-end: var(--space-1);
+  }
+
+  /* Its lines stand a little closer than those of a page of reading: a trade-off is a sentence or two, and the result is to be whole on a first screen. */
+  .card > .tradeOff {
+    font-size: var(--size-small);
+    line-height: 1.4;
+  }
+
+  .tradeOff[data-drawn="band"] {
+    padding-block: var(--space-1);
+  }
+
+  .tradeOff[data-drawn="box"] {
+    margin-block-start: var(--space-1);
+    padding: var(--space-1) var(--space-2);
+  }
+
+  .opened > .part {
+    padding-inline: var(--space-3);
+  }
+
+  .heading {
+    column-gap: var(--space-2);
+  }
+
+  /*
+   * The name, and the fit on one line beside it where the two have room. Where they have
+   * not, the fit goes under the name, which then has the whole line: a name is broken
+   * between its words, and only a word too long for a line of its own is broken in two.
+   */
+  .titled {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-2);
+    align-items: baseline;
+  }
+
+  .name {
+    flex: 1 1 auto;
+    order: 1;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .fit {
+    display: flex;
+    flex: 0 1 auto;
+    flex-wrap: wrap;
+    order: 2;
+    gap: 0 var(--space-1);
+    align-items: baseline;
+    min-width: 0;
+    text-align: start;
+  }
+
+  .fitFigure {
+    font-size: var(--size-h3);
+    white-space: normal;
+  }
+
+  /*
+   * That a fit is not whole has the line under the fit, at the far end of it. The fit is
+   * then a grid of two lines, which is as wide as the wider of them: laid out as a row
+   * that wraps, it asked for the room of both on one line, and went under the name.
+   */
+  .fit:has(> .approx) {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: end;
+  }
+
+  .approx {
+    grid-column: 1 / -1;
+    justify-self: end;
+    margin-block-start: 0;
+  }
+
+  .workingOf {
+    padding-inline: var(--space-3);
+  }
+
+  /* The name and the fit have a line of their own, and what follows begins the next. */
+  .titled::after {
+    content: "";
+    flex: 0 0 100%;
+    order: 3;
+  }
+
+  /*
+   * What stands beside the name, and at the far end of its line the way to compare. What
+   * stands beside the name has what room the button leaves it, and breaks where it has none.
+   */
+  .borough {
+    flex: 1 1 0;
+    order: 4;
+    align-self: center;
+    min-width: 0;
+  }
+
+  .titled > [data-chosen] {
+    display: grid;
+    flex: 0 0 auto;
+    order: 5;
+    max-width: 100%;
+  }
+
+
+  .waysOn {
+    column-gap: var(--space-1);
+  }
+
+  /*
+   * On a phone the first result is whole on the first screen, and the way to compare must
+   * not cost that. So the buttons of a narrow result are as high as a small button of the
+   * look is: what the way to compare adds to the heading, the two ways on at the foot give
+   * back. Each is still a native control, and larger than the smallest a control may be.
+   */
+  .list[data-buttons="small"] .titled > [data-chosen] > button,
+  .list[data-buttons="small"] .waysOn > a,
+  .list[data-buttons="small"] .waysOn > span > button {
+    min-height: var(--target-min);
+  }
+}
+
+@media (max-width: 40rem) {
+  .list {
+    gap: var(--space-3);
+  }
+
+  .item[data-kind="row"]:has(> article > [hidden]) + .item[data-kind="row"] {
+    margin-block-start: calc((var(--space-3) + var(--edge)) * -1);
+  }
+}
+
 @media (forced-colors: active) {
-  .rank {
-    border: 1px solid CanvasText;
+  .tag,
+  .tradeOff[data-drawn="band"] .tradeOffWord,
+  .workingOf {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .tradeOff[data-drawn] {
+    border-color: CanvasText;
+    background: Canvas;
+    box-shadow: none;
+  }
+
+  .workingOf {
+    border-block-end: var(--edge) solid CanvasText;
+  }
+
+  .over::before {
+    forced-color-adjust: none;
+  }
+
+  .workingOut {
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .above,
+  .underFirst {
+    border-color: CanvasText;
+  }
+
+  .opened > .part,
+  .vibes > li {
+    border-block-start-color: CanvasText;
   }
 
   .journeys tr,
-  .breakdown tr {
-    border-block-end-color: CanvasText;
+  .breakdown tr,
+  .apartItem {
+    border-color: CanvasText;
   }
 
-  .card[aria-current="true"],
-  .row[aria-current="true"] {
-    outline-color: Highlight;
+  .result[aria-current="true"] > .row {
+    box-shadow: none;
+    outline: calc(var(--px) * 2) solid Highlight;
+    outline-offset: calc(var(--px) * -2);
   }
 }

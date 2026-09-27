@@ -1,8 +1,12 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { render } from "@testing-library/react";
 
 import { NAMED } from "@/content/area";
 import type { Named } from "@/lib/api/schema";
 
+import { rulesOf } from "../../../test/support/css";
 import { BesideName } from "./BesideName";
 
 const drafted: Named = { label: "Quillhaven 001", source_ids: ["synthetic"], state: "draft" };
@@ -38,5 +42,19 @@ describe("what is drawn beside the name of an area", () => {
     expect(container.querySelector("p.note")?.textContent).toBe("Quillhaven 001");
     const unnamed = render(<BesideName area={{ ...area, named: null }} className="none" labelOnly />);
     expect(unnamed.container.querySelector("p.none")).toBeNull();
+  });
+
+  test("test_the_words_that_say_a_name_is_a_draft_go_to_the_next_line_together_and_never_run_out_of_their_box", () => {
+    // Seen in a browser, with text twice as large in a narrow column: the two words could
+    // not be parted, and ran over the edge of the card.
+    const [draft] = rulesOf(readFileSync(path.join(__dirname, "BesideName.module.css"), "utf8")).filter(
+      (rule) => rule.selector === ".draft",
+    );
+
+    expect(draft?.sets.get("display")).toBe("inline-block");
+    expect(draft?.sets.get("max-width")).toBe("100%");
+    // The space before the mark between the parts is kept, at the head of the two words.
+    expect(draft?.sets.get("white-space")).toBe("pre-wrap");
+    expect(NAMED.between.startsWith(" ")).toBe(true);
   });
 });

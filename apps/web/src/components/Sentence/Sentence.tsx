@@ -12,6 +12,11 @@ interface Props {
   readonly of?: string;
   /** The vibes and the features of the release, for the source of a vibe that counts recorded crime. */
   readonly meta?: Pick<MetaData, "tags" | "features">;
+  /**
+   * False where the key of its source stands elsewhere, as it does for a sentence of a
+   * result as it is first shown: its source is in the working of the result.
+   */
+  readonly source?: boolean;
 }
 
 /** The facts a sentence cites, of those in hand. */
@@ -26,20 +31,25 @@ export function factsCited(
   return sentence.fact_ids.flatMap((id) => byId(id) ?? []);
 }
 
+/** The fact a sentence is about: the first it cites, of those in hand. Any other only names the area. */
+export function factAbout(
+  sentence: Pick<ExplainedSentence, "fact_ids">,
+  facts: Readonly<Record<string, Fact>> | readonly Fact[],
+): readonly Fact[] {
+  return factsCited(sentence, facts).slice(0, 1);
+}
+
 /**
  * One sentence about a place, as the API wrote it: not reworded, not joined
- * to another, nothing added. It ends in its source. A sentence a model wrote
- * says so.
+ * to another, nothing added. It ends in its source, unless it is told that
+ * its source stands elsewhere. A sentence a model wrote says so.
  */
-export function Sentence({ sentence, facts, of, meta }: Props) {
-  const cited = factsCited(sentence, facts);
-  // The first fact cited is the one the sentence is about. Any other only names the area.
-  const about = cited.slice(0, 1);
+export function Sentence({ sentence, facts, of, meta, source = true }: Props) {
   return (
     <div className={styles.sentence}>
       <p className={styles.text}>{sentence.text}</p>
       {sentence.origin === "model" ? <p className={styles.byModel}>{RESULTS.byModel}</p> : null}
-      <SourceNote facts={about} of={of} meta={meta} />
+      {source ? <SourceNote facts={factAbout(sentence, facts)} of={of} meta={meta} /> : null}
     </div>
   );
 }

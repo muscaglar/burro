@@ -1,4 +1,4 @@
-import { readdirSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 import { render, screen } from "@testing-library/react";
@@ -8,6 +8,7 @@ import { SOURCE } from "@/content/search";
 import { readRecorded, recordedAnswer, recordedFolder } from "@/lib/api/recorded";
 import type { AreaData, ExplanationsData, Fact } from "@/lib/api/schema";
 
+import { rulesOf } from "../../../test/support/css";
 import { linesOf, SourceNote } from "./SourceNote";
 
 const farrowmere = recordedAnswer("get_area", "area/farrowmere").body.data;
@@ -123,7 +124,9 @@ describe("the source of a figure", () => {
     await userEvent.setup({ delay: null }).click(screen.getByRole("button", { name: SOURCE.buttonFor("a vibe") }));
 
     expect(sentence.text.includes("judgement")).toBe(false);
-    expect(vibe.slots.judgement).toBe("The recipe is Burro's own. The weights are a judgement.");
+    expect(vibe.slots.judgement).toBe(
+      "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+    );
     expect(screen.getByText(vibe.slots.judgement ?? "none")).toBeInTheDocument();
     expect(screen.getByText(vibe.slots.made_from ?? "none")).toBeInTheDocument();
     // The date of its parts is the date of the fact, and is given as any date is.
@@ -173,5 +176,56 @@ describe("the source of a figure", () => {
 
     render(<SourceNote facts={[]} of="the journey" />);
     expect(screen.getByRole("link")).toHaveAttribute("data-prefetch", "false");
+  });
+
+  test("test_the_source_is_drawn_with_the_key_whether_it_opens_in_place_or_leads_to_the_page_of_sources", async () => {
+    const fact = farrowmere.facts[0] as Fact;
+    const keyOf = (control: HTMLElement) => control.querySelector<HTMLElement>("span[aria-hidden='true']");
+    const { unmount } = render(<SourceNote facts={[fact]} of="the journey" />);
+    const opens = screen.getByRole("button", { name: SOURCE.buttonFor("the journey") });
+
+    // The key is a drawing, kept from a screen reader: the word beside it is what is read.
+    expect(keyOf(opens)?.style.getPropertyValue("--art")).toBe('url("/art/ui-key.png")');
+    expect(opens).toHaveTextContent(SOURCE.button);
+    expect(opens).toHaveAttribute("aria-expanded", "false");
+    // It is small in a line of text, and is never smaller than a small control may be.
+    expect(opens.classList.contains("target-min")).toBe(true);
+    await userEvent.setup({ delay: null }).click(opens);
+    expect(opens).toHaveAttribute("aria-expanded", "true");
+    expect(document.getElementById(opens.getAttribute("aria-controls") ?? "")).toHaveTextContent(SOURCE.madeUp);
+    unmount();
+
+    render(<SourceNote facts={[]} of="the journey" />);
+    const leads = screen.getByRole("link", { name: SOURCE.buttonFor("the journey") });
+    expect(keyOf(leads)?.style.getPropertyValue("--art")).toBe('url("/art/ui-key.png")');
+    expect(leads).toHaveTextContent(SOURCE.button);
+    expect(leads.classList.contains("target-min")).toBe(true);
+  });
+
+  test("test_every_word_of_a_source_that_is_open_is_ink_because_it_stands_on_sand", () => {
+    // On sand only ink is read: the colour of a link, and the colour of what is said quietly, are not.
+    const rules = rulesOf(readFileSync(path.join(__dirname, "SourceNote.module.css"), "utf8")).filter(
+      (rule) => !/forced-colors/.test(rule.under ?? ""),
+    );
+    const colours = rules.filter((rule) => rule.sets.has("color")).map((rule) => [rule.selector, rule.sets.get("color")]);
+
+    expect(colours).toEqual([
+      [".toSources", "var(--ink)"],
+      [".said", "var(--ink)"],
+      [".lines", "var(--ink)"],
+      [".link", "var(--ink)"],
+      // That the data is made up is a notice, on cream of its own.
+      [".lines .madeUp", "var(--notice-text)"],
+    ]);
+    expect(rules.find((rule) => rule.selector === ".lines .madeUp")?.sets.get("background")).toBe("var(--notice-bg)");
+    // A name that leads to its entry is told to be a link by its line and its weight.
+    const link = rules.find((rule) => rule.selector === ".link")?.sets;
+    expect([link?.get("font-weight"), link?.has("text-decoration")]).toEqual(["700", false]);
+    // In hand, the key that is a link changes its ground and nothing else: nothing moves.
+    const inHand = rules.filter((rule) => /:(hover|focus-visible|active)/.test(rule.selector));
+    expect(inHand.map((rule) => [rule.selector, [...rule.sets.keys()]])).toEqual([
+      [".toSources:hover", ["background-color"]],
+      [".toSources:focus-visible", ["background-color"]],
+    ]);
   });
 });

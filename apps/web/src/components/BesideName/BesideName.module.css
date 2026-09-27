@@ -1,4 +1,9 @@
-/* That a name is a draft is said in words, in the colour of what it stands beside. */
+/*
+ * That a name is a draft is said in words, in the colour of what it stands beside. The two
+ * words go to the next line together, and are parted only where a line cannot hold both.
+ */
 .draft {
-  white-space: nowrap;
+  display: inline-block;
+  max-width: 100%;
+  white-space: pre-wrap;
 }

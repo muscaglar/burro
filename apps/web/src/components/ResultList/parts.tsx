@@ -2,15 +2,18 @@
 
 import Link from "next/link";
 
+import { CARD } from "@/content/card";
 import { MODE } from "@/content/labels";
 import { BREAKDOWN, COMPLETENESS, JOURNEYS, UNTESTED } from "@/content/search";
 import type {
   Combine,
   Commute,
+  CommuteLeg,
   Contribution,
   Cutoffs,
   ExplainedSentence,
   Fact,
+  JourneyBand,
   MetaData,
   PreferenceSpec,
   RankedArea,
@@ -31,9 +34,11 @@ import {
 
 import { Disclosure } from "../Disclosure/Disclosure";
 import { columnsOf } from "../FactRow/FactRow";
+import { Approx } from "../kit/Approx/Approx";
 import { factsCited, Sentence } from "../Sentence/Sentence";
 import { Skeleton } from "../Skeleton/Skeleton";
 import { SourceNote } from "../SourceNote/SourceNote";
+import type { Lacked } from "../Strip/Strip";
 import styles from "./ResultList.module.css";
 
 /**
@@ -57,27 +62,30 @@ function CellLabel({ children }: { readonly children: string }) {
 
 /**
  * What an area has no figure for, by the names the chips give: what the person asked for,
- * and then the settings nobody chose. A vibe, a journey and a budget are always asked for.
- * A thing the page has no name for is left out.
+ * and then the settings nobody chose. A vibe is always asked for. A thing the page has no
+ * name for is left out.
+ *
+ * A journey and a budget are among them only where no sentence of their own says so:
+ * each is the name of no thing a person asks for, and "You asked for Budget" stood
+ * directly over the sentence that said of the budget all there was to say.
  */
 export function lackedBy(
-  area: Pick<RankedArea, "contributions">,
+  area: Pick<RankedArea, "contributions" | "legs">,
   meta: Pick<MetaData, "features" | "tags">,
   spec: Pick<PreferenceSpec, "weights">,
 ): { readonly asked: readonly string[]; readonly usual: readonly string[] } {
   const asked: string[] = [];
   const usual: string[] = [];
   for (const { component, present } of area.contributions) {
-    if (present) continue;
+    if (present || component === "budget") continue;
+    if (component === "commute" && journeysLeftOut(area) !== null) continue;
     const [kind, id] = component.split(":", 2);
     const name =
       component === "commute"
         ? BREAKDOWN.journey
-        : component === "budget"
-          ? BREAKDOWN.budget
-          : kind === "feature"
-            ? meta.features.find((one) => one.feature_id === id)?.short_label
-            : meta.tags.find((one) => one.tag_id === id)?.label;
+        : kind === "feature"
+          ? meta.features.find((one) => one.feature_id === id)?.short_label
+          : meta.tags.find((one) => one.tag_id === id)?.label;
     if (name === undefined) continue;
     const byDefault =
       kind === "feature" &&
@@ -85,6 +93,61 @@ export function lackedBy(
     (byDefault ? usual : asked).push(name);
   }
   return { asked, usual };
+}
+
+/**
+ * How many of the things that count for an area are usual settings, which nobody chose. A
+ * vibe, a journey and a budget are always asked for.
+ */
+export function usualAmong(area: Pick<RankedArea, "contributions">, spec: Pick<PreferenceSpec, "weights">): number {
+  return area.contributions.filter(({ component }) => {
+    const [kind, id] = component.split(":", 2);
+    return kind === "feature" && spec.weights.find((weight) => weight.feature_id === id)?.provenance === "default";
+  }).length;
+}
+
+/**
+ * What was asked for that an area has no figure for, as a result draws it: the vibes, by
+ * the ids the API gives them, and whatever else, each by its name and with what is drawn
+ * for it. What nobody chose is not among them. A thing the page has no name for is left out.
+ *
+ * What is drawn for a measurement is chosen by the family the API puts it in, and for a
+ * journey and a budget by what they are. No name of a thing is written here.
+ */
+export function thingsLacked(
+  area: Pick<RankedArea, "contributions">,
+  meta: Pick<MetaData, "features" | "tags">,
+  spec: Pick<PreferenceSpec, "weights">,
+): { readonly vibes: readonly string[]; readonly others: readonly Lacked[] } {
+  const vibes: string[] = [];
+  const others: Lacked[] = [];
+  for (const { component, present } of area.contributions) {
+    if (present) continue;
+    const [kind, id] = component.split(":", 2);
+    if (component === "commute") others.push({ name: BREAKDOWN.journey, thing: { kind: "place" } });
+    else if (component === "budget") others.push({ name: BREAKDOWN.budget, thing: { kind: "budget" } });
+    else if (kind === "tag" && id !== undefined && meta.tags.some((one) => one.tag_id === id)) vibes.push(id);
+    else if (kind === "feature") {
+      const feature = meta.features.find((one) => one.feature_id === id);
+      const byDefault = spec.weights.find((weight) => weight.feature_id === id)?.provenance === "default";
+      if (feature === undefined || byDefault) continue;
+      others.push({ name: feature.short_label, thing: { kind: "feature", id: feature.feature_id, family: feature.family } });
+    }
+  }
+  return { vibes, others };
+}
+
+/**
+ * True where the fit of an area is not whole: it was worked out from some of what counts,
+ * or its journeys count for nothing in it, or a firm limit could not be held against it. A
+ * fit is never given alone where that is so.
+ */
+export function isNotWhole(area: Pick<RankedArea, "contributions" | "legs" | "untested_filters">): boolean {
+  const { asked, complete } = completenessOf(area);
+  if (asked === 0) return false;
+  // A code the website has no word for is left out.
+  const untested = area.untested_filters.filter((reason) => Boolean(UNTESTED[reason]));
+  return !complete || journeysLeftOut(area) !== null || untested.length > 0;
 }
 
 interface CompletenessProps {
@@ -104,53 +167,56 @@ interface CompletenessProps {
 
 /**
  * How much of what counts the area has a figure for, in words. Under it, each
- * firm limit that could not be tested here, with the weight of a trade-off:
- * it is the one thing the person called firm, and it was not applied.
+ * firm limit that could not be held against the area: it is the one thing the
+ * person called firm, and it was not applied.
  *
  * So is it said when the journeys count for nothing in the fit, because none
  * of them has a time: the person named the places, and the fit did not weigh
  * them.
  *
- * It sits directly under the fit, because it says how far to trust it. Where
- * the fit rests on everything that counts, no more is said of it on a result:
- * it was said on most of them, and told a person nothing to act on.
+ * It says how far to trust the fit. On a result two words say that the fit is
+ * not whole, beside the fit, and this says why, in the working: unless the
+ * look has it said on the result itself, under the fit, as it was. Where the
+ * fit is whole nothing is said of it: it was said on most results, and told a
+ * person nothing to act on.
+ *
+ * Where the things that count are counted, it says how many of them nobody
+ * chose: a person who asked for four things was told that ten count.
  */
 export function Completeness({ area, quiet = true, meta, spec }: CompletenessProps) {
   const { asked, present, complete } = completenessOf(area);
   if (asked === 0) return null;
   const lacked = meta === undefined || spec === undefined ? null : lackedBy(area, meta, spec);
+  const usual = spec === undefined ? 0 : usualAmong(area, spec);
   const leftOut = journeysLeftOut(area);
   // A code the website has no word for is left out.
   const untested = area.untested_filters.filter((reason) => Boolean(UNTESTED[reason]));
+  // A firm budget that could not be checked says of itself that the area has no cost figure.
+  const noCost = area.contributions.some((part) => part.component === "budget" && !part.present) && !untested.includes("over_budget");
   if (quiet && complete && leftOut === null && untested.length === 0) return null;
   return (
     <div className={styles.completeness}>
       {quiet && complete ? null : (
-        <p className={styles.based}>{complete ? COMPLETENESS.all : COMPLETENESS.some(present, asked)}</p>
-      )}
-      {/* What is dropped is said, and by name. What was asked for is said first, with the
-          weight of a trade-off: the person asked for it, and the fit does not hold it. */}
-      {lacked !== null && lacked.asked.length > 0 ? (
-        <p className={styles.untested}>
-          <span className={styles.tradeOffMark} aria-hidden="true" />
-          {COMPLETENESS.lacksAsked(lacked.asked)}
+        <p className={styles.based}>
+          <span>{complete ? COMPLETENESS.all : COMPLETENESS.some(present, asked)}</span>
+          {usual > 0 ? <span> {COMPLETENESS.usual(usual)}</span> : null}
         </p>
+      )}
+      {/* What is dropped is said, and by name. What was asked for is said first, and
+          heavier: the person asked for it, and the fit does not hold it. */}
+      {lacked !== null && lacked.asked.length > 0 ? (
+        <p className={styles.untested}>{COMPLETENESS.lacksAsked(lacked.asked)}</p>
       ) : null}
       {lacked !== null && lacked.usual.length > 0 ? (
         <p className={styles.based}>{COMPLETENESS.lacks(lacked.usual)}</p>
       ) : null}
-      {leftOut !== null ? (
-        <p className={styles.untested}>
-          <span className={styles.tradeOffMark} aria-hidden="true" />
-          {JOURNEYS.notCounted(leftOut)}
-        </p>
-      ) : null}
+      {leftOut !== null ? <p className={styles.untested}>{JOURNEYS.notCounted(leftOut)}</p> : null}
+      {noCost ? <p className={styles.untested}>{CARD.noCost}</p> : null}
       {untested.map((reason) => (
-          <p key={reason} className={styles.untested}>
-            <span className={styles.tradeOffMark} aria-hidden="true" />
-            {UNTESTED[reason]}
-          </p>
-        ))}
+        <p key={reason} className={styles.untested}>
+          {UNTESTED[reason]}
+        </p>
+      ))}
     </div>
   );
 }
@@ -162,20 +228,40 @@ interface MissingProps {
   /** True while the sentences are waited for. */
   readonly waiting: boolean;
   readonly facts: Facts;
+  /**
+   * The names the API gives what counts, and the spec that was ranked. With both in hand
+   * the part says first what the fit is based on, where that is not everything: what two
+   * words say on the result.
+   */
+  readonly meta?: Pick<MetaData, "features" | "tags">;
+  readonly spec?: Pick<PreferenceSpec, "weights">;
 }
 
 /**
- * The API's sentence for each thing the area has no figure for. How many
- * there will be is known from the ranking, so their place is held while they
- * are waited for.
+ * What the area has no figure for, in the working of a result. First what that
+ * means for the fit, after the mark and the two words that stand beside the
+ * fit on the result: how much of what counts the fit is based on, what it
+ * leaves out, and each firm limit that could not be held against the area.
+ * Then the API's sentence for each thing the area has no figure for, each with
+ * its source. How many of those there will be is known from the ranking, so
+ * their place is held while they are waited for.
  */
-export function Missing({ area, missing = [], waiting, facts }: MissingProps) {
+export function Missing({ area, missing = [], waiting, facts, meta, spec }: MissingProps) {
   const { asked, present } = completenessOf(area);
   const held = missing.length === 0 && waiting ? asked - present : 0;
-  if (missing.length === 0 && held === 0) return null;
+  const ofTheFit = meta !== undefined && spec !== undefined && isNotWhole(area);
+  if (missing.length === 0 && held === 0 && !ofTheFit) return null;
   return (
     <div className={styles.part}>
-      <h4>{COMPLETENESS.missingTitle}</h4>
+      <h4 className={styles.tag}>{COMPLETENESS.missingTitle}</h4>
+      {ofTheFit ? (
+        <>
+          <p className={styles.marked}>
+            <Approx />
+          </p>
+          <Completeness area={area} meta={meta} spec={spec} />
+        </>
+      ) : null}
       {held > 0 ? <Skeleton lines={held} /> : null}
       {missing.map((sentence) => (
         <Sentence
@@ -188,6 +274,34 @@ export function Missing({ area, missing = [], waiting, facts }: MissingProps) {
       ))}
     </div>
   );
+}
+
+/**
+ * What is said of a journey that was estimated: the band as it is said where it stands
+ * alone, and the line that says it is an estimate and what it was worked out from.
+ *
+ * The band is the journey's own. It is said in the words of its fact where that fact is in
+ * hand and says the band the ranking does, and else in the words the website keeps for
+ * the band: the fact of another journey says nothing of this one, and the fact of an older
+ * answer may say another band.
+ *
+ * The line is one line, which the service says of every journey it estimated. So it is
+ * taken from the fact of any such journey that is in hand, as the source and the date of a
+ * journey are: seen in a browser, of five results three said it in the words of the
+ * service and two in words of the website. With none in hand the website says its own.
+ */
+function toldOfTheEstimate(
+  facts: Facts,
+  area: Pick<RankedArea, "area_id">,
+  leg: Pick<CommuteLeg, "place_id" | "mode">,
+  band: JourneyBand,
+): { readonly verdict: string; readonly estimated: string } {
+  const estimated = Object.values(facts).filter((fact) => fact.kind === "travel" && fact.template === "travel_estimated");
+  const own = estimated.find(
+    (fact) => fact.area_id === area.area_id && fact.key === `${leg.place_id}.${leg.mode}` && fact.slots.band === band,
+  );
+  const line = [own, ...estimated].flatMap((fact) => fact?.slots.estimated ?? [])[0];
+  return { verdict: own?.slots.verdict ?? JOURNEYS.estimated[band], estimated: line ?? JOURNEYS.estimatedFrom };
 }
 
 interface JourneyProps {
@@ -256,6 +370,7 @@ export function JourneyList({ area, commutes, combine, cutoffs, names, facts }: 
             const commute = commutes.find((one) => one.place_id === leg.place_id);
             const within = withinLimit(leg, commute);
             const band = estimateOf(leg);
+            const told = band === null ? null : toldOfTheEstimate(facts, area, leg, band);
             const name = names.get(leg.place_id) ?? "";
             // By bike and on foot there is one time, and no service to miss.
             const oneTime = leg.mode !== "pt";
@@ -297,7 +412,7 @@ export function JourneyList({ area, commutes, combine, cutoffs, names, facts }: 
                     {band !== null ? (
                       // No time is held. The band is said, and that it is an estimate, and no minutes.
                       <>
-                        <strong>{JOURNEYS.estimated[band]}</strong>. {JOURNEYS.estimatedFrom}
+                        <strong>{told?.verdict}</strong>. {told?.estimated}
                       </>
                     ) : leg.status === "beyond_cutoff" ? (
                       JOURNEYS.beyond(cutoffs[leg.mode])

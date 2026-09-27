@@ -1,37 +1,43 @@
 /**
- * A vibe that is a rough guide: what it says of itself wherever it is shown.
+ * A vibe the service says is less sure than the rest, which it calls a rough guide.
  *
- * The founder decided on 2026-09-25 that Village feel is served though it did
- * not reach the bar they had set, and that it says it is less sure than the
- * other vibes. So wherever such a vibe is shown it says so, in sight and not
- * behind a press: one short label, and one sentence that says why.
+ * The founder decided on 2026-09-25 that Village feel is served though it did not reach
+ * the bar they had set, and the website said so wherever such a vibe was shown: a short
+ * label beside its name, and a sentence that said why. On 2026-09-26 the founder walked
+ * the website and asked for that to go: "remove the concept of rough guide, we don't want
+ * to pass this on to a user".
  *
- * No vibe is written here, and no word. Which vibe is a rough guide is the
- * API's to say, in `sureness` of the vibe, and the label and the sentence are
- * route 11's, in `rough_guides`. A vibe that does not say is as sure as the
- * rest, and so is one the API gives no label for: nothing is said of it.
+ * So the service still says which vibe is less sure, in `sureness` of the vibe, and what
+ * such a vibe says of itself, in a part of route 11 that the website reads nowhere and
+ * hands to no page (`lib/api/handed.ts`).
+ *
+ * What the website still does with a vibe that is less sure is said by nothing:
+ * `LESS_SURE` chooses.
  */
 
-import type { MetaData, RoughGuide, Tag } from "@/lib/api/schema";
+import type { Tag } from "@/lib/api/schema";
 
-/** What a page is given of route 11 to say it with. An answer recorded before the field holds none. */
-export type Guides = Partial<Pick<MetaData, "rough_guides">>;
+/**
+ * What becomes of a vibe the service says is less sure, where the website says a thing in
+ * short. `held-back`: it is in no line of what an area is like in short, in no list of what
+ * two areas share, and is not named as an example of what a vibe is. It has its own line on
+ * the page of an area and its own box on the page of vibes, as every vibe has. `as-the-rest`:
+ * it is held back from nothing, and may lead what an area is said to be like.
+ *
+ * Neither says anything to a visitor. It is the founder's to choose.
+ */
+export type LessSure = "held-back" | "as-the-rest";
 
-/** The label and the sentence of one rough guide, as the API serves them. */
-export type Told = Pick<RoughGuide, "label" | "why">;
+/** This is the one line that chooses. */
+export const LESS_SURE: LessSure = "held-back";
 
-/** Whether the API says a vibe is a rough guide. */
+/** Whether a vibe would be held back from what is said in short, were the look to choose so. */
+export function heldBack(tag: Partial<Pick<Tag, "sureness">>, lessSure: LessSure): boolean {
+  return lessSure === "held-back" && tag.sureness === "rough_guide";
+}
+
+/** Whether a vibe is held back from what is said in short, because the service says it is less sure. */
 export function isRough(tag: Partial<Pick<Tag, "sureness">>): boolean {
-  return tag.sureness === "rough_guide";
+  return heldBack(tag, LESS_SURE);
 }
 
-/** What a vibe that is a rough guide says of itself, or `null` of a vibe that is as sure as the rest. */
-export function roughOf(tag: Pick<Tag, "tag_id"> & Partial<Pick<Tag, "sureness">>, meta: Guides): Told | null {
-  if (!isRough(tag)) return null;
-  return meta.rough_guides?.find((one) => one.tag_id === tag.tag_id) ?? null;
-}
-
-/** The label and the sentence in one line, as a note says them: the label, a full stop, the sentence. */
-export function saidOf(told: Told): string {
-  return `${told.label}. ${told.why}`;
-}

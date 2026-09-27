@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { render, screen } from "@testing-library/react";
 
 import { ONE_NUMBER } from "@/content/facts";
@@ -6,6 +9,7 @@ import { recordedAnswer } from "@/lib/api/recorded";
 import type { CostEstimate } from "@/lib/api/schema";
 
 import { faultsIn } from "../../../test/support/axe";
+import { rulesOf } from "../../../test/support/css";
 import { CostRange, hasARange, isOfAWiderPlace, placesOnBar, scaleOf } from "./CostRange";
 
 const farrowmere = recordedAnswer("get_area", "area/farrowmere").body.data;
@@ -351,5 +355,47 @@ describe("a rent that is of a wider place than the area", () => {
     // The margin is to the middle rent, and the fit names no upper end.
     expect(over.every((one) => one.budget?.upper_quartile === null)).toBe(true);
     expect(ranked.filtered.filter((one) => one.reason === "over_budget").length).toBeGreaterThan(0);
+  });
+});
+
+describe("the bar of a cost as the look draws it", () => {
+  const RULES = rulesOf(readFileSync(path.join(__dirname, "CostRange.module.css"), "utf8")).filter(
+    (rule) => !/forced-colors/.test(rule.under ?? ""),
+  );
+  const setsOf = (selector: string) =>
+    new Map(RULES.filter((rule) => rule.selector === selector).flatMap((rule) => [...rule.sets]));
+
+  test("test_nothing_of_the_bar_is_round_or_turned_and_every_height_is_a_count_of_art_pixels", () => {
+    const drawn = [".bar", ".span", ".median", ".budget", ".budget::before", ".pips span"];
+
+    expect(RULES.filter((rule) => ["border-radius", "transform", "rotate", "clip-path"].some((one) => rule.sets.has(one)))).toEqual([]);
+    for (const selector of drawn) {
+      const height = setsOf(selector).get("height");
+      expect([selector, height === undefined || /^calc\(var\(--px\) \* \d+\)$/.test(height)]).toEqual([selector, true]);
+    }
+    // Along the bar a thing stands where its figure puts it, which the component works out.
+    expect(drawn.map((selector) => setsOf(selector).has("inset-inline-start") && selector !== ".budget::before")).toEqual(
+      drawn.map(() => false),
+    );
+  });
+
+  test("test_the_range_the_middle_and_the_budget_are_told_apart_by_shape_and_not_by_colour_alone", () => {
+    // A block of sand with an edge of ink, a post of ink, and a taller post with a sign of amber at its head.
+    expect([setsOf(".span").get("background"), setsOf(".span").get("border")]).toEqual(["var(--sand)", "var(--px) solid var(--ink)"]);
+    expect([setsOf(".median").get("background"), setsOf(".median").get("height")]).toEqual(["var(--ink)", "calc(var(--px) * 8)"]);
+    expect([setsOf(".budget").get("background"), setsOf(".budget").get("height")]).toEqual(["var(--ink)", "calc(var(--px) * 13)"]);
+    expect([setsOf(".budget::before").get("background"), setsOf(".budget::before").get("border")]).toEqual([
+      "var(--amber)",
+      "var(--px) solid var(--ink)",
+    ]);
+    // The sign is as high as the bar at the most: nothing of it is drawn outside the bar.
+    expect(setsOf(".bar").get("height")).toBe(setsOf(".budget").get("height"));
+  });
+
+  test("test_every_figure_of_a_cost_is_set_in_the_reading_face", () => {
+    const faced = RULES.flatMap((rule) => [...rule.sets].filter(([property]) => property === "font" || property === "font-family"));
+
+    expect(faced).toEqual([["font", "700 var(--size-h3) / 1.2 var(--font-say)"]]);
+    expect(setsOf(".figure").get("font-variant-numeric")).toBe("tabular-nums");
   });
 });

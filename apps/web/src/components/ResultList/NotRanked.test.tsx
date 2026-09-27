@@ -90,10 +90,12 @@ describe("the areas that are not ranked", () => {
 
     expect(first.unranked).toHaveLength(3);
     expect(button()).toHaveAttribute("aria-expanded", "false");
-    expect(button()).toHaveTextContent("3 areas are not ranked");
+    // It says that Burro could not rank them, which is why the list under it says why of each.
+    expect(button()).toHaveTextContent(APART.title(3));
+    expect(APART.title(3)).toBe("3 areas could not be ranked");
     expect(screen.queryByRole("list", { name: APART.label })).toBeNull();
     expect(screen.queryByText("Otterby Fields")).toBeNull();
-    expect(APART.title(1)).toBe("1 area is not ranked");
+    expect(APART.title(1)).toBe("1 area could not be ranked");
   });
 
   test("test_each_area_says_what_it_has_no_figure_for_by_the_names_the_api_gives", async () => {

@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 
+import { Art } from "@/components/kit/Art/Art";
+import { Note } from "@/components/kit/Note/Note";
 import { countsOf } from "@/content/crime";
 import { SOURCE } from "@/content/search";
 import type { Fact, MetaData } from "@/lib/api/schema";
@@ -9,7 +11,6 @@ import { citedBy, creditOf, linesOf } from "@/lib/facts";
 import { readableDate } from "@/lib/format";
 import { paths } from "@/lib/paths";
 
-import { Disclosure } from "../Disclosure/Disclosure";
 import styles from "./SourceNote.module.css";
 
 interface Props {
@@ -47,9 +48,10 @@ function crimeOf(facts: readonly Fact[], meta: Props["meta"]): readonly string[]
 }
 
 /**
- * The "Source" button that ends every sentence and every figure. It opens,
- * in place: the name of each source, linked to its entry on the sources
- * page, the date of the data, and "Made-up data" when it is.
+ * The "Source" button that ends every sentence and every figure: a key, as
+ * the look draws the source of a fact. It opens, in place: the name of each
+ * source, linked to its entry on the sources page, the date of the data, and
+ * "Made-up data" when it is.
  *
  * A vibe is Burro's own recipe, and its sources are those of its parts. Its
  * fact says so, and that the weights are a judgement, in the API's words.
@@ -57,14 +59,15 @@ function crimeOf(facts: readonly Fact[], meta: Props["meta"]): readonly string[]
  * the short sentence leaves out is one press away, with its source.
  *
  * With no fact in hand there is nothing to open, so it is a link to the
- * sources page instead.
+ * sources page instead, drawn with the same key.
  */
 export function SourceNote({ facts, of, judgementSaid = false, meta }: Props) {
   const name = of === undefined ? undefined : SOURCE.buttonFor(of);
   if (facts.length === 0) {
     return (
-      <Link className={`${styles.link} target-min`} href={paths.sources()} aria-label={name} prefetch={false}>
-        {SOURCE.button}
+      <Link className={`${styles.toSources} target-min`} href={paths.sources()} aria-label={name} prefetch={false}>
+        <Art name="ui-key" alt="" />
+        <span>{SOURCE.button}</span>
       </Link>
     );
   }
@@ -72,7 +75,7 @@ export function SourceNote({ facts, of, judgementSaid = false, meta }: Props) {
   const judgement = judgementSaid ? null : saidByAll(facts, "judgement");
   const { sources, dates, synthetic } = citedBy(facts);
   return (
-    <Disclosure label={SOURCE.button} name={name} size="small" className={styles.note}>
+    <Note label={SOURCE.button} name={name} className={styles.note}>
       {madeFrom === null ? null : <p className={styles.said}>{madeFrom}</p>}
       {/* Each source once, with who published it. The date is said once, after them: it is
           the date of what is said, and not of any one source. */}
@@ -111,6 +114,6 @@ export function SourceNote({ facts, of, judgementSaid = false, meta }: Props) {
         </p>
       ))}
       {judgement === null ? null : <p className={styles.said}>{judgement}</p>}
-    </Disclosure>
+    </Note>
   );
 }

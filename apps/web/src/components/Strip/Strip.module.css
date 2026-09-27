@@ -1,86 +1,397 @@
 /*
- * The strip of vibes under a result's name. Each mark is one line high: the name, the low
- * end, five cells, the high end. Marks stand side by side and wrap.
+ * The lines of a result, as the look draws them: one line for each vibe, with a rule of
+ * sand over it. On a line stand the small drawing of the vibe with its name, and its
+ * gauge: five steps with their peg, and a picture at each end. Where the figure is not
+ * whole, or is not known, two words say so. No other word stands on a line.
+ *
+ * THE STEPS OF EVERY LINE STAND IN ONE COLUMN, so that the eye runs down them: in every
+ * line of a result, and from one result to the next. A person who walked the website asked
+ * for it: the steps began wherever the name before them ended, and stood at a different
+ * place on every line.
+ *
+ * So a line is three columns. The first is the column of names, which is as wide as the
+ * longest name that stands in it needs and no wider than it can be given: a name that is
+ * longer breaks onto a second line. The second is the gauge, and begins where the first
+ * ends: the picture of an end is of one size whatever it is of, so the steps begin in one
+ * place. The third has the rest, and holds the two words where a result has the room.
+ *
+ * The name of a vibe is a short label, and is set in the face of names. What is read is
+ * set in the reading face.
+ *
+ * A line is laid out by the width of the result that holds it, and not of the screen: in
+ * the narrow column of a wide screen it reads as it does on a phone.
  */
 .strip {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1) var(--space-3);
+  /* The room the drawing of a thing takes before its name: its sixteen art pixels, and two after them. */
+  --marker: calc(var(--px-ground) * 18);
+  /*
+   * The most the column of names is given of a result, the drawing before a name with it:
+   * under half of it, which on a phone leaves the gauge its room, and no more than the
+   * longest name of a vibe has yet asked for.
+   */
+  --names-most: clamp(8rem, 45cqi, 14rem);
+  /* The room between two columns of a line. */
+  --between: var(--space-2);
+  /* The room of an end of a gauge: as wide as the picture of one. */
+  --room: calc(var(--px-ground) * 16);
+  /* The room between an end and the steps. */
+  --beside: calc(var(--px) * 2);
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  min-width: 0;
+  color: var(--ink);
+  font: 400 var(--size-small) / 1.3 var(--font-say);
+}
+
+.lines {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
   margin: 0;
   padding: 0;
   list-style: none;
-  font-size: var(--size-small);
 }
 
 .item {
-  max-width: 100%;
+  max-width: none;
+  padding-block: calc(var(--px) * 2);
+  border-block-start: var(--edge) solid var(--sand);
 }
 
 /*
- * A mark that opens takes the line under it for what it opens to. Its last word stands
- * clear of the edge of its button.
+ * One line: the name, the gauge, and the two words, in three columns. The column of names
+ * is as wide as what stands in it, up to the most it is given, and the gauge begins where
+ * it ends. A line is two rows high, so that the two words may stand under the name where
+ * a result has no room for them after the gauge.
  */
-.opens[class] > button {
-  padding: 0 var(--space-1) 0 0;
-  color: inherit;
-}
-
-.opens:has(> button[aria-expanded="true"]) {
-  flex-basis: 100%;
-}
-
 .mark {
-  display: inline-flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: fit-content(var(--names-most)) auto minmax(0, 1fr);
+  gap: 0 var(--between);
   align-items: center;
-  gap: 0 var(--space-2);
-  min-height: var(--target-min);
+  min-width: 0;
+  text-align: start;
+}
+
+/*
+ * What a line is of, in the column of names: the drawing of the thing and its name, and
+ * with them every name of the column, which is laid here and is not drawn. So it is as
+ * wide in this line as in the next, whatever the name of this line is.
+ */
+.first {
+  /*
+   * Each thing in it is a block under the last. So it asks of the line the width of the
+   * widest of them, and is never narrower than what cannot break in it: laid out as a grid
+   * of one column that takes what is left, it asked for no width at all.
+   */
+  display: block;
+  /* Each part of a line is told its place: left to be found one, what comes later in the page stands a line lower. */
+  grid-row: 1 / span 2;
+  grid-column: 1;
+}
+
+/* The drawing of the thing, and after it the name, which begins in one place on every line. */
+.title {
+  display: grid;
+  grid-template-columns: var(--marker) minmax(0, 1fr);
+  align-items: center;
+  min-width: 0;
+}
+
+/*
+ * The small drawing of the thing. It is drawn at the pixel of the ground, which is two
+ * pixels of the screen to one of its own on every screen, as the thing of a chip is: at
+ * the art pixel of a desk it stood half as high again as the name it stands with.
+ */
+.thing {
+  --px: var(--px-ground);
+
+  display: block;
+  line-height: 0;
+}
+
+.titled {
+  display: grid;
+  justify-items: start;
+  min-width: 0;
 }
 
 .name {
-  font-weight: 600;
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+  /* A name is broken between its words, and a word too long for the column is broken in two: none is cut. */
+  overflow-wrap: break-word;
 }
 
-.end,
+/* Said once before the lines it is true of: that they were asked for, or that they were not. */
 .group {
   color: var(--muted);
-}
-
-/* The end that was asked for is drawn heavier. The name of the picture says which it is. */
-.end[data-asked="true"] {
-  color: var(--text);
-  font-weight: 600;
-}
-
-/*
- * The picture of a vibe beside the sentence that is about it: the two ends and the five
- * cells, on the line of the sentence, before its first word.
- */
-.beside {
-  display: inline-flex;
-  align-items: center;
-  gap: 0 var(--space-1);
-  margin-inline-end: var(--space-2);
   font-size: var(--size-small);
-  vertical-align: baseline;
+  line-height: 1.2;
 }
 
 /*
- * A narrow screen: the marks stand closer, so that two stand on a line where they can. Where
- * a vibe was asked for, the strip holds what was asked for and no more, so that a result is
- * a few lines. The others are on the page of the area, one press from its name.
+ * EVERY NAME OF THE COLUMN, laid in the column of every line and drawn in none. A style
+ * sheet cannot be told how wide a name is: it is told the names, by whatever holds the
+ * lines, each on a line of its own, and sets them as a name is set. They take no height,
+ * are not drawn, and are heard by nobody: they are no part of the page, and are not
+ * written in it.
+ *
+ * The names may break as a name does, so the column is never wider for them than it can
+ * be given.
  */
-@media (max-width: 40rem) {
+.wide {
+  display: block;
+}
+
+.wide::before,
+.wide::after {
+  display: block;
+  height: 0;
+  /*
+   * Cut off, and not hidden in a box that scrolls: what is laid out in a box that scrolls
+   * asks no width of what holds it, and the column would be no wider for it.
+   */
+  overflow: clip;
+  visibility: hidden;
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+  white-space: pre-line;
+}
+
+/* The name of every thing that is drawn where the column runs, each as far in as a name stands. */
+.wide::before {
+  content: var(--names, "");
+  padding-inline-start: var(--marker);
+}
+
+/* What is said once over a run of names, which is read, and stands as far in. */
+.wide::after {
+  content: var(--groups, "");
+  padding-inline-start: var(--marker);
+  font: 400 var(--size-small) / 1.2 var(--font-say);
+}
+
+/*
+ * What else stands in the column, under a name: the two words that say a figure is not
+ * whole, or is not known, each as far in as it stands, after the room of its mark, which
+ * is handed over with the words as a count of art pixels. They are set as they are read,
+ * and are never broken: so the column is never narrower than they are, on any line, and
+ * the steps of a line that says them begin where the steps of every line begin.
+ */
+.first::before,
+.first::after {
+  display: block;
+  height: 0;
+  overflow: clip;
+  visibility: hidden;
+  font: 400 var(--size-small) / 1.3 var(--font-say);
+  white-space: pre;
+}
+
+.first::before {
+  content: var(--beside-1, "");
+  padding-inline-start: calc(var(--marker) + var(--px-ground) * var(--beside-1-more, 0));
+}
+
+.first::after {
+  content: var(--beside-2, "");
+  padding-inline-start: calc(var(--marker) + var(--px-ground) * var(--beside-2-more, 0));
+}
+
+/*
+ * The gauge: a picture at its low end, the steps with their peg, and a picture at its high
+ * end. Each end has a room of one width, which is the width of the picture of an end: so
+ * the steps begin in one place on every line, whatever its vibe. The pictures stand on
+ * the line the steps stand on.
+ */
+.picture {
+  display: inline-grid;
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  grid-template-columns: var(--room) auto var(--room);
+  gap: var(--px-ground) var(--beside);
+  align-items: end;
+  justify-items: center;
+}
+
+.picture > :not(.end) {
+  grid-row: 1;
+  grid-column: 2;
+}
+
+/*
+ * An end of a gauge. It is no box of its own: its picture is laid out by the gauge, so
+ * that the pictures and the steps stand on one line. Neither end is the good one, and the
+ * two are drawn alike.
+ *
+ * Its picture is drawn at the pixel of the ground, as the thing before the name is.
+ */
+.end {
+  --px: var(--px-ground);
+
+  display: contents;
+}
+
+.end > * {
+  grid-row: 1;
+  grid-column: 1;
+}
+
+.end ~ .end > * {
+  grid-column: 3;
+}
+
+/*
+ * The names of the two ends, where the look has the ends named: under the gauge, from
+ * edge to edge of it, each at its own end. So a name has the room of half a gauge, and
+ * is broken between its words. They are no part of the line the steps stand on.
+ */
+.picture > .named {
+  display: flex;
+  grid-row: 2;
+  grid-column: 1 / -1;
+  gap: var(--space-2);
+  justify-content: space-between;
+  justify-self: stretch;
+  min-width: 0;
+}
+
+.ofEnd {
+  min-width: 0;
+  color: var(--ink);
+  font: 400 var(--size-small) / 1.1 var(--font-say);
+  /* The name of an end is the API's, and may be long: it is broken between its words, and a word too long for its room in two. */
+  overflow-wrap: break-word;
+}
+
+.ofEnd:last-child {
+  text-align: end;
+}
+
+/* The end that was asked for is named heavier, and the name of the picture says which it is. */
+.ofEnd[data-asked="true"] {
+  font-weight: 700;
+}
+
+/*
+ * The two words that say a figure is not whole, or is not known. As it stands they are
+ * under the name, from where the name begins, and the gauge stands beside the two: after
+ * the gauge a result as narrow as a phone has not the room of them. Their mark is drawn
+ * at the pixel of the ground, as the drawings of the line are.
+ */
+.said {
+  --px: var(--px-ground);
+
+  grid-row: 2;
+  grid-column: 1;
+  padding-inline-start: var(--marker);
+}
+
+.mark[data-known="some"] > .first,
+.mark[data-known="none"] > .first {
+  grid-row: 1;
+}
+
+/*
+ * A line with no gauge, as one of a thing that is no vibe: the two words stand where a
+ * gauge begins, on the line of the name.
+ */
+.mark:not(:has(> .picture)) > .first {
+  grid-row: 1 / span 2;
+}
+
+.mark:not(:has(> .picture)) > .said {
+  grid-row: 1 / span 2;
+  grid-column: 2 / -1;
+  padding-inline-start: 0;
+}
+
+/*
+ * In a list of many small things a line stands close, under no rule: its steps are small,
+ * and it is laid out in the columns of every line.
+ */
+.strip[data-short="true"] .item {
+  padding-block: var(--px);
+  border-block-start: 0;
+}
+
+/*
+ * A result as narrow as a phone: the steps are narrower, in every line, so that the name
+ * before them keeps the room it had. And a line stands close, with one art pixel over it
+ * and under it where it had two: on a phone the first result is whole on the first
+ * screen, and a line is as high as its pictures already.
+ */
+@container (max-width: 30rem) {
+  .picture {
+    --track-step: 7;
+  }
+
+  .item {
+    padding-block: var(--px);
+  }
+}
+
+/*
+ * A result narrower than a phone gives, as one is in a window 320 px wide: a line has not
+ * the room of a name and a gauge side by side. The column of names is never narrower than
+ * the two words that may stand under a name, and a gauge is as wide as its steps and its
+ * two pictures. Measured in a browser at 320: the two wanted 303 px of a line of 268, the
+ * gauge ran 35 px past its result, and the page scrolled sideways.
+ *
+ * So the gauge has the line under the name there, and the two words the line under the
+ * gauge, each as far in as the name stands. The steps of every line begin in one place
+ * still. A result in a phone 360 px wide has the room, and is laid out as it was.
+ */
+@container (max-width: 21.2rem) {
+  .mark {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Each weighs what the rule it takes the place of weighs, and stands after it. */
+  .mark[data-known] > .first {
+    grid-row: 1;
+  }
+
+  .mark > .picture {
+    grid-row: 2;
+    grid-column: 1;
+    justify-self: start;
+    margin-inline-start: var(--marker);
+  }
+
+  .mark[data-known] > .said {
+    grid-row: 3;
+    grid-column: 1;
+    padding-inline-start: var(--marker);
+  }
+}
+
+/*
+ * A result with room: the two words stand after the gauge, on its line, and every line is
+ * as high as its gauge.
+ */
+@container (min-width: 37.5rem) {
   .strip {
-    column-gap: var(--space-2);
+    --between: var(--space-3);
   }
 
-  .strip[data-asked="true"] .item[data-asked="false"] {
-    display: none;
+  /* Each weighs what the rule it takes the place of weighs, and stands after it. */
+  .mark[data-known] > .first {
+    grid-row: 1 / span 2;
   }
 
-  .mark,
-  .opens[class] > button {
-    gap: 0 var(--space-1);
+  .mark[data-known]:has(> .picture) > .said {
+    grid-row: 1 / span 2;
+    grid-column: 3;
+    padding-inline-start: 0;
+  }
+}
+
+@media (forced-colors: active) {
+  .item {
+    border-block-start-color: CanvasText;
   }
 }
