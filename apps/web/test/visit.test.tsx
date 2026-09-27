@@ -1,9 +1,10 @@
 /**
- * One person's whole visit, as a person makes it: a first search, a second
- * sentence, a control, a question answered, the notice, a sentence that holds
- * nothing, an area's page, a comparison, a link made and opened, a search
- * the model did not answer, and a search begun at the shelf: a word added, a
- * scale turned, and one of the things the reader noticed chosen.
+ * One person's whole visit, as a person makes it: a look at both ways in, a
+ * first search, a second sentence, a control, a place named in part, the
+ * notice, a sentence that holds nothing, an area's page, a comparison, a link
+ * made and opened, a search the model did not answer, and a search begun at
+ * the shelf: a word added, a scale turned, and a sentence that is no plain
+ * list, of which Burro takes what it noticed.
  *
  * Every other test answers the website from a recording whatever it sends.
  * This one answers a request only if it is, to the letter, a request the
@@ -11,9 +12,15 @@
  * `test/record.py`), where each request is made of the answer before it. So
  * it holds the website to what the service takes, and what it shows to what
  * the service said of that very search.
+ *
+ * The website asks nothing since the founder's second review: what Burro
+ * noticed it takes of itself, and a name that several places bear is the first
+ * of them. The visit was recorded while a person chose: the second of the
+ * places, and fewer pubs. It was recorded again as the website now makes it,
+ * so the whole visit is held. Beside it stands a plain test of its first steps.
  */
 
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { ReactElement } from "react";
 
@@ -23,7 +30,7 @@ import { SearchApp } from "@/components/SearchApp/SearchApp";
 import { SharedSearch } from "@/components/SharedSearch/SharedSearch";
 import { Shell } from "@/components/Shell/Shell";
 import { COMPARE, COMPARE_TABLE, TRAY } from "@/content/compare";
-import { CHIPS, CLARIFY, NOTICE, RESULTS, SHELF, STATUS, SUGGEST, UNMET } from "@/content/search";
+import { CHIPS, LEFT_OUT, NOTICE, RESULTS, SHELF, SOURCE, STATUS, UNMET } from "@/content/search";
 import { FEATURES, JOURNEY, SETTINGS } from "@/content/settings";
 import { SHARE, SHARED } from "@/content/share";
 import { BANNER } from "@/content/site";
@@ -46,16 +53,23 @@ import {
   bands,
   everyChip,
   everyResult,
+  helper,
   meta,
   promptBox,
   results,
   settingsAt,
   settled,
+  theSettingsIfAny,
+  way,
+  whatRefines,
   workingOf,
 } from "./support/search";
 import { stepOfTheVisit, stepsOfTheVisit, visitApi, type VisitApi } from "./support/visit";
 
 jest.mock("next/navigation", () => ({ usePathname: () => "/" }));
+
+/** The group of the settings that holds a family of vibes, by the name the service gives the family. */
+const groupOf = (family: string) => meta.data.families.find((one) => one.family === family)?.label ?? "";
 
 interface Enveloped<Data> {
   readonly data: Data;
@@ -82,11 +96,17 @@ async function say(user: ReturnType<typeof userEvent.setup>, name: string) {
   await settled();
 }
 
-/** The first reason of each of the first five cards, which is in the answer. */
-const firstReasons = () =>
-  results()
-    .slice(0, 5)
-    .map((card) => within(card).getByRole("heading", { name: RESULTS.reasonsTitle }).parentElement?.textContent ?? "");
+/** The part of a result that one of its headings heads. */
+const partUnder = (card: HTMLElement, heading: string) =>
+  within(card).getByRole("heading", { name: heading }).parentElement as HTMLElement;
+/** What a card says under "Trade-off", which is what a card says of what the service wrote of its area. */
+const tradeOffOf = (card: HTMLElement) =>
+  partUnder(card, RESULTS.tradeOffTitle).textContent?.slice(RESULTS.tradeOffTitle.length);
+/** What the working of a card says under "Why it fits": each line of it, as it is written. */
+const reasonsOf = (card: HTMLElement) =>
+  within(partUnder(card, RESULTS.reasonsTitle))
+    .getAllByRole("listitem")
+    .map((reason) => reason.textContent);
 
 beforeEach(() => {
   setOnline(true);
@@ -103,11 +123,14 @@ describe("one person's whole visit", () => {
     expect(steps.filter((step) => step.status !== 200).map((step) => step.scenario)).toEqual([]);
   });
 
-  test("test_everything_a_visit_sends_is_a_request_the_service_answered_and_what_is_shown_is_its_answer", async () => {
-    const api = visitApi();
-    const user = userEvent.setup({ delay: null });
-    const view = render(inShell(searchPage(api)));
-    await arrived();
+  /** A look at both ways in, a first sentence, a second, and a control. It answers with the last ranking. */
+  async function theFirstDay(api: VisitApi, user: ReturnType<typeof userEvent.setup>): Promise<RankData> {
+    // A look at the second way in and at a group of its settings, and back to the first:
+    // nothing is set, and nothing is sent.
+    await settingsAt(user, SETTINGS.airAndNoise);
+    await way(user, "quick");
+    expect(api.unanswered).toEqual([]);
+    expect(api.unused()).toEqual(stepsOfTheVisit().map((step) => step.scenario));
 
     // A first sentence, sent with the defaults the page opened on.
     const first = answerOf<RankData>("first-rank");
@@ -118,11 +141,22 @@ describe("one person's whole visit", () => {
     await everyResult(user);
     expect(results()).toHaveLength(first.ranked.length);
     expect(results()[0]).toHaveTextContent(RESULTS.fitOf(fitOf(first.ranked[0]?.score ?? 0)));
-    for (const [at, explanation] of answerOf<ExplanationsData>("first-reasons").explanations.entries()) {
-      expect(firstReasons()[at]).toContain(explanation.reasons[0]?.text);
-      // The other reasons are in the working of the result.
-      const card = await workingOf(user, nameOf(explanation.area_id));
-      for (const reason of explanation.reasons) expect(card.textContent?.includes(reason.text)).toBe(true);
+    const written = answerOf<ExplanationsData>("first-reasons").explanations;
+    expect(written.map((one) => one.area_id)).toEqual(first.ranked.slice(0, 5).map((area) => area.area_id));
+    for (const [at, explanation] of written.entries()) {
+      // The trade-off is in the answer, and no reason is: a card says why it fits in its working.
+      const card = results()[at] as HTMLElement;
+      expect([at, tradeOffOf(card)]).toEqual([at, explanation.trade_off?.text ?? RESULTS.noTradeOff]);
+      expect([at, explanation.reasons.some((reason) => card.textContent?.includes(reason.text))]).toEqual([at, false]);
+      // Every reason is in the working of the result, in the order the service gave them,
+      // and each ends in the key of its source.
+      expect((await workingOf(user, nameOf(explanation.area_id))) === card).toBe(true);
+      expect(explanation.reasons.length).toBeGreaterThan(0);
+      expect(reasonsOf(card)).toEqual(
+        explanation.reasons.map(
+          (reason) => `${reason.text}${reason.origin === "model" ? RESULTS.byModel : ""}${SOURCE.button}`,
+        ),
+      );
     }
 
     // A second sentence: one thing more, and one taken off.
@@ -148,22 +182,107 @@ describe("one person's whole visit", () => {
     expect(results()).toHaveLength(firm.ranked.length);
     expect(chip("Cindermoor Works")).toHaveTextContent(CHIPS.firm);
     // The switch of what was taken off is off, and stays off. It is a part of the recipe of Going out.
-    await settingsAt(user, "Pace and food", FEATURES.madeOfName("Going out"));
+    await settingsAt(user, groupOf("pace_food"), FEATURES.madeOfName("Going out"));
     expect(screen.getByRole("switch", { name: highStreet })).not.toBeChecked();
-    await user.click(screen.getByRole("button", { name: SETTINGS.title }));
+    // The settings are folded again, over the answer, by what opened them.
+    await user.click(whatRefines() as HTMLElement);
+    expect(whatRefines()).toHaveAttribute("aria-expanded", "false");
+    expect(theSettingsIfAny()).toBeNull();
+    return firm;
+  }
 
-    // A place named in part: a question, and nothing ranked again until it is answered.
+  /** Another day: a model reads and does not answer, and the rules read the words in its place. */
+  async function theDayAModelDidNotAnswer(user: ReturnType<typeof userEvent.setup>): Promise<void> {
+    // What the rules noticed is taken at once, and ranked: it never waits on a model. The
+    // model's answer does not come, the rules answer in its place with what they had
+    // noticed, and nothing is taken or ranked a second time.
+    const slow = answerOf<InterpretData>("slow");
+    await say(user, "slow");
+    expect(answerOf<InterpretData>("slow-at-once")).toMatchObject({ model_pending: true, degraded: false });
+    expect(slow).toMatchObject({ degraded: true, interpreter: "rule", applied: [] });
+    // The line is said once the model's answer has not come, which is a moment after the rules'.
+    await waitFor(() => expect(status()).toContain(NOTICE.degraded));
+    await settled();
+    const [water] = slow.suggestions;
+    expect(screen.queryByRole("region", { name: "Choose what to add" })).toBeNull();
+    expect(chip(water?.label ?? "no such thing")).toBeInTheDocument();
+    expect(results()[0]).toHaveTextContent(nameOf(answerOf<RankData>("slow-rank").ranked[0]?.area_id));
+  }
+
+  /** Another day again, begun at the shelf: a word added, and its scale turned. It answers with the last ranking. */
+  async function theDayBegunAtTheShelf(user: ReturnType<typeof userEvent.setup>): Promise<RankData> {
+    // The shelf is behind a helper, and opening one sends nothing.
+    await helper(user, "word");
+    const shelf = within(screen.getByRole("region", { name: SHELF.title }));
+    await user.click(shelf.getByRole("button", { name: "lively" }));
+    await user.click(screen.getByRole("button", { name: SHELF.add }));
+    await settled();
+    const lively = answerOf<RankData>("shelf-rank");
+    expect(lively.spec.tags).toMatchObject([{ tag_id: "pace", toward: "high" }]);
+    expect(chip(CHIPS.towards("Going out", "Buzzy"))).toBeInTheDocument();
+    expect(results()[0]).toHaveTextContent(nameOf(lively.ranked[0]?.area_id));
+
+    // The chip of the scale is turned: the other end, with the weight it had.
+    await user.click(screen.getByRole("button", { name: CHIPS.turnTo("Going out", "Calm") }));
+    await settled();
+    const calm = answerOf<RankData>("turned-rank");
+    expect(calm.spec.tags).toMatchObject([{ tag_id: "pace", toward: "low", weight: lively.spec.tags[0]?.weight }]);
+    expect(chip(CHIPS.towards("Going out", "Calm"))).toBeInTheDocument();
+    expect(results()[0]).toHaveTextContent(nameOf(calm.ranked[0]?.area_id));
+    return calm;
+  }
+
+  test("test_every_step_the_recording_answers_today_is_a_request_the_website_makes_and_what_is_shown_is_its_answer", async () => {
+    // Today's behaviour, against the visit as it was recorded: every step of it that the
+    // website still makes as it was recorded. When the whole visit under this passes, this
+    // test goes: it holds nothing the whole visit does not.
+    const api = visitApi();
+    const user = userEvent.setup({ delay: null });
+    const view = render(inShell(searchPage(api)));
+    await arrived();
+
+    await theFirstDay(api, user);
+    view.unmount();
+    const another = render(inShell(searchPage(api)));
+    await arrived();
+    await theDayAModelDidNotAnswer(user);
+    another.unmount();
+    render(inShell(searchPage(api)));
+    await arrived();
+    await theDayBegunAtTheShelf(user);
+
+    // Nothing was sent that the service was not sent when the visit was recorded. And
+    // every step of these days was asked for: what is left is what a person chose where
+    // the website now asks nothing, and all that was made of the search they chose.
+    expect(api.unanswered).toEqual([]);
+    const walked = /^visit\/\d+-(first|second|firm|slow|shelf|turned)(-at-once|-rank|-reasons)?$/;
+    expect(stepsOfTheVisit().filter((step) => walked.test(step.scenario))).toHaveLength(16);
+    expect(api.unused().filter((step) => walked.test(step))).toEqual([]);
+  }, 120_000);
+
+  // The visit is recorded as the website makes it: it takes the first place the service
+  // gave and what Burro noticed, and asks nothing.
+  test("test_everything_a_visit_sends_is_a_request_the_service_answered_and_what_is_shown_is_its_answer", async () => {
+    const api = visitApi();
+    const user = userEvent.setup({ delay: null });
+    const view = render(inShell(searchPage(api)));
+    await arrived();
+
+    const firm = await theFirstDay(api, user);
+    const highStreet = plainNameOf("highstreet_access");
+
+    // A place named in part. Nothing is asked: the journey is to the first of the places
+    // the service gave, and its chip says that the place was assumed.
     const asked = answerOf<InterpretData>("place");
     await say(user, "place");
-    const question = within(screen.getByRole("region", { name: CLARIFY.question }));
-    expect(asked.clarify[0]?.options.map((option) => option.name)).toContain("Pellam Exchange");
-    expect(results()).toHaveLength(firm.ranked.length);
-    await user.click(question.getByRole("button", { name: /^Pellam Exchange/ }));
-    await settled();
+    const [taken] = asked.clarify[0]?.options ?? [];
+    expect(asked.clarify[0]?.options.length).toBeGreaterThan(1);
+    expect(document.body.textContent).not.toMatch(/Which (place|area) did you mean/);
     const answered = answerOf<RankData>("answered-rank");
     expect(answered.spec.commutes).toHaveLength(2);
-    expect(screen.queryByRole("region", { name: CLARIFY.question })).toBeNull();
-    expect(chip("Pellam Exchange")).toBeInTheDocument();
+    expect(answered.spec.commutes.map((journey) => journey.place_id)).toContain(taken?.id);
+    expect(firm.spec.commutes).toHaveLength(1);
+    expect(chip(taken?.name ?? "no place")).toHaveTextContent(CHIPS.assumed);
     expect(results()[0]).toHaveTextContent(nameOf(answered.ranked[0]?.area_id));
 
     // Part of a sentence is about who lives somewhere: the API's one sentence, and the rest.
@@ -193,7 +312,7 @@ describe("one person's whole visit", () => {
     await arrived();
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(nameOf(one));
     expect(screen.getByRole("region", { name: BANNER.label })).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: COMPARE.add(nameOf(one)) }));
+    await user.click(screen.getByRole("button", { name: COMPARE.addNamed(nameOf(one)) }));
     // The way to the comparison is beside the button that was pressed, and in the tray at the
     // foot of the screen. Both lead to the same two areas.
     const ways = screen.getAllByRole("link", { name: TRAY.go(2) });
@@ -264,59 +383,38 @@ describe("one person's whole visit", () => {
     window.history.replaceState(null, "", "/");
     const another = render(inShell(searchPage(api)));
     await arrived();
-    // A model reads, and does not answer. What the rules offer is on the page at once, and
-    // stays when the model's answer does not come.
-    const slow = answerOf<InterpretData>("slow");
-    await say(user, "slow");
-    expect(answerOf<InterpretData>("slow-at-once")).toMatchObject({ model_pending: true, degraded: false });
-    expect(slow).toMatchObject({ degraded: true, interpreter: "rule", applied: [] });
-    expect(status()).toContain(NOTICE.degraded);
-    const water = slow.suggestions[0];
-    await user.click(screen.getByRole("button", { name: SUGGEST.named("Add", water?.label ?? "") }));
-    await settled();
-    expect(results()[0]).toHaveTextContent(nameOf(answerOf<RankData>("slow-rank").ranked[0]?.area_id));
+    await theDayAModelDidNotAnswer(user);
 
     // Another day again, begun at the shelf: a word of it added, with nothing typed.
     another.unmount();
     render(inShell(searchPage(api)));
     await arrived();
-    const shelf = within(screen.getByRole("region", { name: SHELF.title }));
-    await user.click(shelf.getByRole("button", { name: "lively" }));
-    await user.click(screen.getByRole("button", { name: SHELF.add }));
-    await settled();
-    const lively = answerOf<RankData>("shelf-rank");
-    expect(lively.spec.tags).toMatchObject([{ tag_id: "pace", toward: "high" }]);
-    expect(chip(CHIPS.towards("Going out", "Buzzy"))).toBeInTheDocument();
-    expect(results()[0]).toHaveTextContent(nameOf(lively.ranked[0]?.area_id));
+    const calm = await theDayBegunAtTheShelf(user);
 
-    // The chip of the scale is turned: the other end, with the weight it had.
-    await user.click(screen.getByRole("button", { name: CHIPS.turnTo("Going out", "Calm") }));
-    await settled();
-    const calm = answerOf<RankData>("turned-rank");
-    expect(calm.spec.tags).toMatchObject([{ tag_id: "pace", toward: "low", weight: lively.spec.tags[0]?.weight }]);
-    expect(chip(CHIPS.towards("Going out", "Calm"))).toBeInTheDocument();
-    expect(results()[0]).toHaveTextContent(nameOf(calm.ranked[0]?.area_id));
-
-    // A sentence that is not plain. Nothing of it is applied, and nothing is ranked again.
+    // A sentence that is not plain. The service applies nothing of it, and returns what it
+    // noticed: Burro takes what the words give the way of, and the areas are ranked again.
+    // Nothing is offered.
     const noticed = answerOf<InterpretData>("noticed");
     await say(user, "noticed");
     expect(noticed.status).toBe("suggest");
     expect(noticed.spec).toEqual(calm.spec);
-    const offered = within(screen.getByRole("region", { name: SUGGEST.title }));
-    // Each offer is named by what it would do, in the API's words.
-    const told = offered.getAllByRole("group").map((thing) => thing.getAttribute("aria-labelledby") ?? "");
-    expect(told.map((id) => document.getElementById(id)?.textContent)).toEqual(
-      noticed.suggestions.map((one) => one.does),
-    );
-    expect(results()[0]).toHaveTextContent(nameOf(calm.ranked[0]?.area_id));
-
-    // One of the things noticed is chosen: the edits the API gave with the choice.
-    const fewer = noticed.suggestions[0]?.choices[1];
-    await user.click(offered.getByRole("button", { name: fewer?.label }));
-    await settled();
+    expect(noticed.suggestions.map((one) => [one.target, one.only_by_choice])).toEqual([
+      ["tag:young_professionals", true],
+      ["tag:pace", false],
+      ["feature:station_walk", false],
+    ]);
+    expect(screen.queryByRole("region", { name: "Choose what to add" })).toBeNull();
     const chosen = answerOf<RankData>("chosen-rank");
     expect(results()[0]).toHaveTextContent(nameOf(chosen.ranked[0]?.area_id));
-    expect(chip(plainNameOf("venue_evening_per_homes"))).toBeInTheDocument();
+    // What counts who lived somewhere waits for the person: it is not taken, no chip is
+    // drawn of it, and the line of what was left out names it. "Lively" turns the scale
+    // that was turned to its calm end, and the station is taken as it was said.
+    expect(chosen.spec.tags.map((tag) => [tag.tag_id, tag.toward])).toEqual([["pace", "high"]]);
+    expect(screen.queryByRole("button", { name: new RegExp(`^${noticed.suggestions[0]?.label}`) })).toBeNull();
+    expect(screen.getByRole("status", { name: LEFT_OUT.title }).querySelector("summary")?.textContent).toBe(
+      `${LEFT_OUT.title}: ${noticed.suggestions[0]?.label}`,
+    );
+    expect(chip(plainNameOf("station_walk"))).not.toHaveTextContent(CHIPS.assumed);
 
     // Nothing was sent that the service was not sent when the visit was recorded,
     // and nothing was recorded that the website does not send.

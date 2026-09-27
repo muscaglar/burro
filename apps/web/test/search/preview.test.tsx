@@ -17,10 +17,13 @@ import userEvent from "@testing-library/user-event";
 
 import { SearchApp } from "@/components/SearchApp/SearchApp";
 import { Shell } from "@/components/Shell/Shell";
+import { CARD } from "@/content/card";
+import { KNOWN } from "@/content/kit";
+import { HELPERS } from "@/content/helpers";
+import { WAYS } from "@/content/ways";
 import { LEGEND } from "@/content/map";
 import {
   CHIPS,
-  CLARIFY,
   COMPLETENESS,
   EXAMPLE_POOL,
   NOT_IN_DATA,
@@ -31,20 +34,34 @@ import {
   RESULTS,
   SEARCH,
   SHELF,
-  SUGGEST,
   FIND_AREA,
 } from "@/content/search";
 import { BUDGET, JOURNEY, SETTINGS } from "@/content/settings";
 import { saysItsBorough } from "@/lib/area/named";
 import { readRecorded, recordedAnswer, responseFrom } from "@/lib/api/recorded";
-import { examplesFor } from "@/lib/holds";
+import type { MetaData } from "@/lib/api/schema";
+import { examplesFor, placedOf } from "@/lib/holds";
 
 import { standInApi, type StandIn } from "../support/api";
-import { arrived, promptBox, results, settingsAt, settled } from "../support/search";
+import {
+  arrived,
+  helper,
+  helpers,
+  panelOf,
+  promptBox,
+  results,
+  settingsAt,
+  settled,
+  theSettings,
+  way,
+  ways,
+} from "../support/search";
 
 jest.mock("next/navigation", () => ({ usePathname: () => "/" }));
 
 const form = recordedAnswer("get_meta", "preview/meta").body;
+/** The group of the settings that holds a family of vibes, by the name the service gives the family. */
+const groupOf = (family: string) => form.data.families.find((one) => one.family === family)?.label ?? "";
 const listed = recordedAnswer("list_areas", "preview/areas").body.data;
 const whole = recordedAnswer("get_meta", "meta").body.data;
 const sentenceOf = (scenario: string) =>
@@ -60,16 +77,27 @@ function previewApi(): StandIn {
 }
 
 /** The page as it is built on the preview, with the service that holds it behind it. */
-async function openPreview(api: StandIn = previewApi()) {
+async function openPreview(api: StandIn = previewApi(), data: MetaData = form.data) {
   const user = userEvent.setup({ delay: null });
   render(
     <Shell meta={form.meta}>
-      <SearchApp meta={form.data} areas={listed.areas} bands={listed.bands} client={api.client} />
+      <SearchApp meta={data} areas={listed.areas} bands={listed.bands} client={api.client} />
     </Shell>,
   );
   await arrived();
   return { api, user };
 }
+
+/** What the helpers of the first screen say, in the order they stand in. */
+const helpersDrawn = () =>
+  within(helpers())
+    .getAllByRole("button")
+    .map((button) => button.textContent);
+/** The two ways in, by what their tabs say, in the order they stand in. */
+const waysDrawn = () =>
+  within(ways())
+    .getAllByRole("tab")
+    .map((tab) => tab.textContent);
 
 /** Types a recorded sentence and sends it, against the answers recorded for it. */
 async function typed(scenario: string, rank?: string, reasons?: string) {
@@ -120,23 +148,31 @@ describe("the first screen, on data that is not finished", () => {
     // and says that the data names no place to reach.
     const { api, user } = await openPreview();
     api.on("search_places", () => responseFrom(readRecorded("preview/places-search")));
+    // The field stands at the head of the second way in, over the settings.
+    await way(user, "deep");
 
     expect(screen.queryByRole("combobox", { name: PLACE.label })).toBeNull();
     expect(screen.queryByRole("combobox", { name: FIND_AREA.label })).toBeNull();
     expect(document.body.textContent?.includes(FIND_AREA.hintAlone)).toBe(true);
-    expect(FIND_AREA.hintAlone).toContain("names no places to reach");
-    await user.type(screen.getByRole("combobox", { name: FIND_AREA.labelAlone }), "alder");
+    // It says why it finds no place: Burro has none to reach, and so can work out no journey.
+    expect(FIND_AREA.hintAlone).toMatch(/\bno places\b/);
+    expect(FIND_AREA.hintAlone).toMatch(/\bjourney\b/);
+    await user.type(screen.getByRole("textbox", { name: FIND_AREA.labelAlone }), "alder");
     await arrived();
 
     const found = await screen.findByRole("group", { name: FIND_AREA.title });
     expect(Array.from(found.querySelectorAll("a")).map((link) => link.textContent)).toEqual(["Alderwick"]);
-    expect(screen.queryAllByRole("option")).toEqual([]);
+    // No place is offered to pick: the field lays no list. The settings under it stand
+    // open, and the kinds of home in them are the browser's own list, of no place.
+    expect(screen.queryAllByRole("listbox")).toEqual([]);
+    expect(screen.queryAllByRole("option").filter((one) => one.closest("select") === null)).toEqual([]);
   });
 
   test("test_every_example_the_page_offers_gives_a_list", async () => {
     // Seen in a browser: two of the three examples ranked no area of 1,002.
     const { user } = await openPreview();
     const offered = examplesFor(form.data);
+    await helper(user, "example");
 
     expect(offered).toHaveLength(3);
     for (const text of offered) {
@@ -173,6 +209,7 @@ describe("the first screen, on data that is not finished", () => {
   test("test_the_shelf_offers_first_the_words_an_area_can_be_placed_on", async () => {
     // Seen in a browser: "leafy" was the first word of the shelf, and ranked no area.
     const { user } = await openPreview();
+    await helper(user, "word");
     const words = () =>
       shelf()
         .getAllByRole("button")
@@ -205,6 +242,7 @@ describe("the first screen, on data that is not finished", () => {
     // Seen in a browser: its card had "Add to my search", which ranked no area, over a map
     // of dots under "Coloured by Leafy, in five bands".
     const { user, api } = await openPreview();
+    await helper(user, "word");
     await user.click(shelf().getByRole("button", { name: SHELF.more }));
     await user.click(shelf().getByRole("button", { name: "leafy" }));
     const card = screen.getByRole("region", { name: "Leafy" });
@@ -227,14 +265,15 @@ describe("the first screen, on data that is not finished", () => {
 
   test("test_a_word_that_rests_on_part_of_its_recipe_says_the_share_and_what_it_waits_on", async () => {
     const { user, api } = await openPreview(previewApi().on("rank", "preview/rank-plain"));
+    await helper(user, "word");
     await user.click(shelf().getByRole("button", { name: "quiet street" }));
     const card = screen.getByRole("region", { name: "Quiet streets" });
     const held = heldOf("quiet_residential");
 
     expect(card.textContent?.includes(SHELF.held(70, 60))).toBe(true);
-    expect(held?.waits_on.map((part) => [part.label, part.hundredths])).toEqual([
-      ["Share of homes with three or more pubs or bars within 150 m, in a straight line", 30],
-    ]);
+    // What it waits on is one measure, named as the service names it, which counts for 30 of 100.
+    expect(held?.waits_on.map((part) => [part.feature_id, part.hundredths])).toEqual([["evening_cluster_exposure", 30]]);
+    expect(held?.waits_on[0]?.label).toMatch(/pubs or bars within 150 m/);
     expect(card.textContent?.includes(held?.waits_on[0]?.label ?? "none")).toBe(true);
     // It can be added, as ever.
     await user.click(within(card).getByRole("button", { name: SHELF.add }));
@@ -242,7 +281,7 @@ describe("the first screen, on data that is not finished", () => {
     expect(api.callsTo("rank")).toHaveLength(1);
   });
 
-  test("test_on_a_release_that_holds_everything_the_first_screen_is_as_it_was", async () => {
+  test("test_on_a_release_that_holds_everything_the_first_screen_offers_all_of_it", async () => {
     const user = userEvent.setup({ delay: null });
     const full = recordedAnswer("get_meta", "meta").body;
     const all = recordedAnswer("list_areas", "areas").body.data;
@@ -255,10 +294,80 @@ describe("the first screen, on data that is not finished", () => {
 
     expect(document.body.textContent?.includes(PROMPT.hint)).toBe(true);
     expect(document.body.textContent?.includes(SEARCH.lead)).toBe(true);
-    expect(screen.getByRole("combobox", { name: FIND_AREA.label })).toBeInTheDocument();
+    expect(waysDrawn()).toEqual([WAYS.quick, WAYS.deep]);
+    expect(helpersDrawn()).toEqual([HELPERS.example, HELPERS.word]);
+    // The second way in holds the field that finds an area by its name, and its settings
+    // hold the field that finds a place to reach, under the journeys.
+    await way(user, "deep");
+    expect(within(panelOf("deep")).getByRole("textbox", { name: FIND_AREA.labelAlone })).toBeInTheDocument();
+    await settingsAt(user, SETTINGS.journeys);
+    expect(within(theSettings()).getByRole("combobox", { name: PLACE.label })).toBeInTheDocument();
+    await way(user, "quick");
+    await helper(user, "word");
     expect(shelf().queryByRole("list", { name: SHELF.waiting })).toBeNull();
     await user.click(shelf().getByRole("button", { name: SHELF.more }));
     expect(shelf().queryByRole("list", { name: SHELF.waiting })).toBeNull();
+  });
+
+  test("test_the_preview_of_these_tests_gives_every_helper_something_to_offer", async () => {
+    const { user } = await openPreview();
+
+    // Three examples it can answer the whole of, and three words an area can be placed on.
+    expect(examplesFor(form.data)).toHaveLength(3);
+    expect(placedOf(form.data, form.data.tags)).toHaveLength(3);
+    expect(helpersDrawn()).toEqual([HELPERS.example, HELPERS.word]);
+    // And the second way in, which holds the field that finds an area by its name where
+    // the data names no place to reach, and the settings under it.
+    expect(waysDrawn()).toEqual([WAYS.quick, WAYS.deep]);
+    await way(user, "deep");
+    expect(within(panelOf("deep")).getByRole("textbox", { name: FIND_AREA.labelAlone })).toBeInTheDocument();
+    expect(panelOf("deep")).toContainElement(theSettings());
+  });
+
+  test("test_a_helper_is_not_drawn_where_the_data_gives_it_nothing_to_offer", async () => {
+    // A release that places no area on any vibe, and ranks none of what an example asks
+    // for. A shelf of words that cannot be added is nothing to start from, and a heading
+    // over no example is no help.
+    const poorer: MetaData = {
+      ...form.data,
+      recipes: form.data.recipes.map((held) => ({ ...held, placed: false })),
+      features: form.data.features.map((metric) => ({ ...metric, rankable: false })),
+    };
+    const { user } = await openPreview(previewApi(), poorer);
+
+    expect(examplesFor(poorer)).toEqual([]);
+    expect(placedOf(poorer, poorer.tags)).toEqual([]);
+    // Neither helper has anything to offer, so no line of helpers is drawn: no button that
+    // opens nothing, and no line that holds none.
+    expect(screen.queryByRole("group", { name: HELPERS.label })).toBeNull();
+    expect(screen.queryByRole("button", { name: HELPERS.example })).toBeNull();
+    expect(screen.queryByRole("button", { name: HELPERS.word })).toBeNull();
+    // Both ways in are there all the same. The box is in the first, and what is left to
+    // choose from is in the second: renting or buying, and the field that finds an area by name.
+    expect(waysDrawn()).toEqual([WAYS.quick, WAYS.deep]);
+    expect(panelOf("quick")).toContainElement(promptBox());
+    await way(user, "deep");
+    expect(within(panelOf("deep")).getByRole("textbox", { name: FIND_AREA.labelAlone })).toBeInTheDocument();
+    expect(within(panelOf("deep")).getAllByRole("radio").length).toBeGreaterThan(1);
+    expect(screen.queryByRole("region", { name: SHELF.title })).toBeNull();
+    expect(screen.queryByRole("heading", { name: PROMPT.examplesTitle })).toBeNull();
+  });
+
+  test("test_a_helper_is_drawn_for_the_words_alone_where_no_example_can_be_answered", async () => {
+    const noExample: MetaData = {
+      ...form.data,
+      // Every example of the pool asks for a thing this release no longer holds.
+      recipes: form.data.recipes.map((held) =>
+        held.tag_id === "homes" ? held : { ...held, placed: false },
+      ),
+      features: form.data.features.map((metric) => ({ ...metric, rankable: false })),
+    };
+    await openPreview(previewApi(), noExample);
+
+    expect(examplesFor(noExample)).toEqual([]);
+    expect(placedOf(noExample, noExample.tags).map((tag) => tag.tag_id)).toEqual(["homes"]);
+    expect(helpersDrawn()).toEqual([HELPERS.word]);
+    expect(waysDrawn()).toEqual([WAYS.quick, WAYS.deep]);
   });
 });
 
@@ -290,7 +399,7 @@ describe("a sentence, on data that is not finished", () => {
   test("test_what_is_not_in_the_data_is_said_in_one_line_and_why_is_one_press_away", async () => {
     // Seen in a browser: the notice was 192 px high on a desk and 288 on a phone, above the
     // answer. It names each thing in one line, and opens to why by the browser's own element.
-    await typed("preview/interpret-long");
+    await typed("preview/interpret-long", "preview/rank-plain", "preview/explanations-plain");
 
     const opens = notInData().querySelector("details");
     const line = opens?.querySelector("summary");
@@ -324,32 +433,37 @@ describe("a sentence, on data that is not finished", () => {
     expect(chips.includes("£")).toBe(false);
   });
 
-  test("test_a_long_sentence_is_offered_only_what_can_be_answered_and_told_what_cannot", async () => {
+  test("test_of_a_long_sentence_only_what_can_be_answered_is_taken_and_the_page_says_what_cannot", async () => {
     // Seen in a browser: a budget was offered, and the one button that adds what needs no
-    // choice added it. No area of 1,002 was left.
-    await typed("preview/interpret-long");
-    const offered = within(screen.getByRole("region", { name: SUGGEST.title }))
-      .getAllByRole("button")
-      .map((button) => button.textContent ?? "");
+    // choice added it. No area of 1,002 was left. The service offers only what the data
+    // can answer, and that is all Burro takes: no budget and no journey is sent.
+    const { api } = await typed("preview/interpret-long", "preview/rank-plain", "preview/explanations-plain");
+    const noticed = recordedAnswer("interpret", "preview/interpret-long").body.data.suggestions;
 
-    expect(offered.some((label) => label.includes("£") || /budget/i.test(label))).toBe(false);
-    expect(offered.some((label) => /journey/i.test(label))).toBe(false);
-    // An offer is named over its buttons, and a button says what it does.
-    const named = within(screen.getByRole("region", { name: SUGGEST.title }))
-      .getAllByRole("listitem")
-      .map((item) => item.textContent ?? "");
-    expect(named.some((words) => words.includes("Quiet streets"))).toBe(true);
+    expect(noticed.map((one) => one.target)).toEqual(["tag:quiet_residential", "feature:park_proximity", "tenure"]);
+    expect(screen.queryByRole("region", { name: "Choose what to add" })).toBeNull();
+    const sent = api.lastCallTo("rank").body as { operations: { budget_ops: { amount: number }[]; commute_ops: unknown[] } };
+    expect(sent.operations.commute_ops).toEqual([]);
+    expect(sent.operations.budget_ops.filter((edit) => edit.amount !== 0)).toEqual([]);
+    expect(api.lastCallTo("rank").sent?.includes("350")).toBe(false);
     expect(namedAsMissing()).toEqual(["More culture nearby", NOT_IN_DATA.commute, NOT_IN_DATA.budget]);
     // The amount that was typed is drawn nowhere but in the box.
     expect(notInData().textContent?.includes("350")).toBe(false);
+    expect(results().length).toBeGreaterThan(0);
   });
 
   test("test_nothing_is_asked_about_a_place_where_the_data_names_none", async () => {
     await typed("preview/interpret-journey");
 
-    expect(document.body.textContent?.includes(CLARIFY.question)).toBe(false);
-    expect(document.body.textContent?.includes(CLARIFY.none)).toBe(false);
-    expect(screen.queryByRole("combobox")).toBeNull();
+    expect(document.body.textContent).not.toMatch(/Which (place|area) did you mean/);
+    expect(screen.queryByRole("region", { name: REJECTED_LABEL })).toBeNull();
+    // No field finds a place. The settings stand open for what was not read, and a couple
+    // of their groups with them: the list of kinds of home is the browser's own, and is no such field.
+    expect(screen.queryByRole("combobox", { name: PLACE.label })).toBeNull();
+    expect(screen.queryByRole("combobox", { name: FIND_AREA.label })).toBeNull();
+    expect(screen.queryByRole("textbox", { name: FIND_AREA.labelAlone })).toBeNull();
+    expect(screen.queryAllByRole("combobox").filter((one) => one.tagName !== "SELECT")).toEqual([]);
+    expect(screen.queryAllByRole("listbox")).toEqual([]);
     expect(namedAsMissing()).toEqual([NOT_IN_DATA.commute]);
     expect(notInData().textContent?.includes(NOT_IN_DATA.why.commute)).toBe(true);
   });
@@ -373,6 +487,21 @@ describe("an area that is named for its borough", () => {
 });
 
 describe("a result that has no figure for what was asked for", () => {
+  /** What a result says was asked for and has no figure, line by line, before anything is opened. */
+  const lackedOn = (card: HTMLElement, name: string) =>
+    within(card)
+      .queryAllByRole("list", { name: CARD.lacked(name) })
+      .flatMap((list) => within(list).getAllByRole("listitem"))
+      .map((line) => line.textContent);
+  /** The two words that say a fit is not whole, where a result says them with its fit. */
+  const withTheFit = (card: HTMLElement) => within(card.querySelector("header") as HTMLElement).queryByText(KNOWN.some);
+  /** Opens the working of a result, and gives what it holds. */
+  const workingOf = async (user: ReturnType<typeof userEvent.setup>, card: HTMLElement, name: string) => {
+    const opens = within(card).getByRole("button", { name: RESULTS.workingOf(name) });
+    await user.click(opens);
+    return document.getElementById(opens.getAttribute("aria-controls") ?? "") as HTMLElement;
+  };
+
   test("test_the_card_names_what_the_area_has_no_figure_for_before_anything_is_opened", async () => {
     // Seen in a browser: asked for period homes, the first three results had no figure for
     // them. The card said "Based on 4 of the 5 things", and named nothing. Such an area now
@@ -396,20 +525,29 @@ describe("a result that has no figure for what was asked for", () => {
       "feature:air_no2",
     ]);
     const card = results().find((one) => one.textContent?.includes(name)) as HTMLElement;
-    // It is said in sight, by the name the chip has, and that the person asked for it.
-    expect(card.textContent?.includes(COMPLETENESS.some(3, 4))).toBe(true);
-    expect(card.textContent?.includes(COMPLETENESS.lacksAsked([air]))).toBe(true);
-    expect(within(card).getByRole("button", { name: RESULTS.workingOf(name) })).toHaveAttribute(
-      "aria-expanded",
-      "false",
-    );
+    // It is said in sight, with nothing pressed: on a line of its own, by the name the chip
+    // has, among what was asked for. And the fit, which leaves it out, is said to be not whole.
+    expect(within(card).getByRole("button", { name: RESULTS.workingOf(name) })).toHaveAttribute("aria-expanded", "false");
+    expect(lackedOn(card, name)).toEqual([`${air}${KNOWN.none}`]);
+    expect(within(card).getByText(KNOWN.none).closest("[aria-hidden='true'], [hidden], .visually-hidden")).toBeNull();
+    expect(withTheFit(card)).not.toBeNull();
+    // Nothing is drawn of the figure that is not known: no gauge, no step and no nought.
+    const line = within(card).getByRole("list", { name: CARD.lacked(name) });
+    expect(line.querySelector("[role='img'], [data-on], [data-placed]")).toBeNull();
+    expect(/\d/.test(line.textContent ?? "")).toBe(false);
     // A result that has a figure for everything says nothing of it.
     const whole = results()[0] as HTMLElement;
-    expect(whole.textContent?.includes("No figure here")).toBe(false);
+    expect(whole.textContent?.includes(KNOWN.none)).toBe(false);
+    expect(withTheFit(whole)).toBeNull();
+    // That the person asked for it, and that the fit leaves it out, is said in full one press away.
+    expect(card.textContent?.includes(COMPLETENESS.lacksAsked([air]))).toBe(false);
+    const working = await workingOf(user, card, name);
+    expect(working.textContent?.includes(COMPLETENESS.some(3, 4))).toBe(true);
+    expect(working.textContent?.includes(COMPLETENESS.lacksAsked([air]))).toBe(true);
   });
 
   test("test_a_usual_setting_with_no_figure_is_named_and_not_said_to_be_asked_for", async () => {
-    await typed("preview/interpret-plain", "preview/rank-plain", "preview/explanations-plain");
+    const { user } = await typed("preview/interpret-plain", "preview/rank-plain", "preview/explanations-plain");
     const ranking = recordedAnswer("rank", "preview/rank-plain").body.data;
     const lacking = ranking.ranked.find((area) => area.contributions.some((part) => !part.present));
     const name = listed.areas.find((area) => area.area_id === lacking?.area_id)?.name ?? "";
@@ -419,8 +557,13 @@ describe("a result that has no figure for what was asked for", () => {
     expect(lacking?.contributions.filter((part) => !part.present).map((part) => part.component)).toEqual([
       "feature:air_no2",
     ]);
-    expect(card.textContent?.includes(COMPLETENESS.lacks([air]))).toBe(true);
-    expect(card.textContent?.includes(COMPLETENESS.lacksAsked([air]))).toBe(false);
+    // Its fit is said to be not whole, and it has no line among what was asked for: nobody asked for it.
+    expect(withTheFit(card)).not.toBeNull();
+    expect(lackedOn(card, name)).toEqual([]);
+    expect(card.textContent?.includes(KNOWN.none)).toBe(false);
+    const working = await workingOf(user, card, name);
+    expect(working.textContent?.includes(COMPLETENESS.lacks([air]))).toBe(true);
+    expect(working.textContent?.includes(COMPLETENESS.lacksAsked([air]))).toBe(false);
   });
 });
 
@@ -449,7 +592,7 @@ describe("the settings, on data that is not finished", () => {
 
   test("test_a_vibe_no_area_can_be_placed_on_has_no_slider_and_says_why", async () => {
     const { user } = await openPreview();
-    await settingsAt(user, "Green");
+    await settingsAt(user, groupOf("green"));
     const leafy = screen.getByRole("group", { name: "Leafy" });
     const parks = screen.getByRole("group", { name: "Parks close by" });
 

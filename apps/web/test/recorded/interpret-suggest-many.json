@@ -16,7 +16,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "7757",
+    "content-length": "8871",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -26,7 +26,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -117,7 +117,7 @@
         {
           "target": "feature:venue_evening_per_homes",
           "label": "Pubs and bars",
-          "does": "Pubs and bars: more, or fewer?",
+          "does": "Pubs and bars: do you want more, or fewer?",
           "spans": [
             {
               "start": 16,
@@ -128,7 +128,7 @@
             "start": 0,
             "end": 20
           },
-          "follows": "What Burro counts: pubs and bars for each 1,000 homes within 800 m, in a straight line.",
+          "follows": "This is what Burro measures for it: pubs and bars for each 1,000 homes within 800 m, in a straight line.",
           "said": [],
           "choices": [
             {
@@ -192,18 +192,20 @@
               }
             }
           ],
-          "note": "",
+          "note": "Burro could not tell from your words whether you want this yourself, so it has left it for you to add.",
           "read_by": "rule",
           "add_all": "",
           "needs": "pubs and bars",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": true
         },
         {
           "target": "feature:station_walk",
           "label": "Nearer a station",
-          "does": "Nearer a station: count it, or stop counting it?",
+          "does": "Nearer a station: do you want Burro to count this, or to stop counting it?",
           "spans": [
             {
               "start": 24,
@@ -214,7 +216,7 @@
             "start": 22,
             "end": 31
           },
-          "follows": "What Burro counts: straight-line distance to the nearest way in to a station. Within 800 m in a straight line is about a 10 to 15 minute walk.",
+          "follows": "This is what Burro measures for it: distance to the nearest station entrance, in a straight line. Within 800 m in a straight line is about a 10 to 15 minute walk.",
           "said": [],
           "choices": [
             {
@@ -278,18 +280,20 @@
               }
             }
           ],
-          "note": "",
+          "note": "Burro could not tell from your words whether you want this yourself, so it has left it for you to add.",
           "read_by": "rule",
           "add_all": "",
           "needs": "nearer a station",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": true
         },
         {
           "target": "feature:highstreet_access",
           "label": "Nearer a town centre",
-          "does": "Nearer a town centre: count it, or stop counting it?",
+          "does": "Nearer a town centre: do you want Burro to count this, or to stop counting it?",
           "spans": [
             {
               "start": 35,
@@ -300,7 +304,7 @@
             "start": 33,
             "end": 46
           },
-          "follows": "What Burro counts: straight-line distance to the nearest town centre boundary.",
+          "follows": "This is what Burro measures for it: distance to the edge of the nearest town centre, in a straight line.",
           "said": [],
           "choices": [
             {
@@ -364,18 +368,20 @@
               }
             }
           ],
-          "note": "",
+          "note": "Burro could not tell from your words whether you want this yourself, so it has left it for you to add.",
           "read_by": "rule",
           "add_all": "",
           "needs": "nearer a town centre",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": true
         },
         {
           "target": "feature:play_space_proximity",
           "label": "Nearer a play space",
-          "does": "Rank areas higher for this: nearer a play space.",
+          "does": "Rank an area higher when it is nearer a play space.",
           "spans": [
             {
               "start": 50,
@@ -386,7 +392,7 @@
             "start": 48,
             "end": 60
           },
-          "follows": "What Burro counts: straight-line distance to the nearest marked way into a play space.",
+          "follows": "This is what Burro measures for it: distance to the nearest marked entrance to a play space, in a straight line.",
           "said": [],
           "choices": [
             {
@@ -427,18 +433,20 @@
               }
             }
           ],
-          "note": "",
+          "note": "Burro could not tell from your words whether you want this yourself, so it has left it for you to add.",
           "read_by": "rule",
-          "add_all": "more",
-          "needs": "",
+          "add_all": "",
+          "needs": "nearer a play space",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": true
         },
         {
           "target": "feature:water_access",
           "label": "Nearer a river or canal",
-          "does": "Rank areas higher for this: nearer a river or canal.",
+          "does": "Rank an area higher when it is nearer a river or canal.",
           "spans": [
             {
               "start": 64,
@@ -449,7 +457,7 @@
             "start": 62,
             "end": 83
           },
-          "follows": "What Burro counts: share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake.",
+          "follows": "This is what Burro measures for it: homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes.",
           "said": [],
           "choices": [
             {
@@ -490,18 +498,20 @@
               }
             }
           ],
-          "note": "",
+          "note": "Burro could not tell from your words whether you want this yourself, so it has left it for you to add.",
           "read_by": "rule",
-          "add_all": "more",
-          "needs": "",
+          "add_all": "",
+          "needs": "nearer a river or canal",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": false,
+          "only_by_choice": true
         },
         {
           "target": "feature:air_no2",
           "label": "Cleaner air",
-          "does": "Rank areas higher for this: cleaner air.",
+          "does": "Rank an area higher when it has cleaner air.",
           "spans": [
             {
               "start": 74,
@@ -512,7 +522,7 @@
             "start": 62,
             "end": 83
           },
-          "follows": "What Burro counts: modelled annual mean nitrogen dioxide.",
+          "follows": "This is what Burro measures for it: nitrogen dioxide in the air, as a modelled average over a year.",
           "said": [],
           "choices": [
             {
@@ -553,13 +563,15 @@
               }
             }
           ],
-          "note": "",
+          "note": "Burro could not tell from your words whether you want this yourself, so it has left it for you to add.",
           "read_by": "rule",
-          "add_all": "less",
-          "needs": "",
+          "add_all": "",
+          "needs": "cleaner air",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": false,
+          "only_by_choice": true
         }
       ],
       "unread": [

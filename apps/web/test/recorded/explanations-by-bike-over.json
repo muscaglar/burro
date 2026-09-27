@@ -89,7 +89,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "4919",
+    "content-length": "5157",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -99,7 +99,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -118,7 +118,7 @@
           },
           "reasons": [
             {
-              "text": "Straight-line distance to the nearest town centre boundary: 810 m, closer than 71% of the 21 areas compared in this release.",
+              "text": "Distance to the edge of the nearest town centre, in a straight line: 810 m, which is closer than 71% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0023/feature/highstreet_access"
               ],
@@ -126,7 +126,7 @@
               "replaced": false
             },
             {
-              "text": "Lines within a 10-minute walk: 1, more than 31% of the 22 areas compared in this release, and the same as 11 others.",
+              "text": "Lines within a 10-minute walk: 1, which is more than 31% of the 22 areas Burro compared, and the same as 11 others.",
               "fact_ids": [
                 "syn-n0023/feature/station_lines"
               ],
@@ -135,7 +135,7 @@
             }
           ],
           "trade_off": {
-            "text": "By bike to Cindermoor Works: about 17 minutes, 7 minutes over the 10 you set.",
+            "text": "By bike to Cindermoor Works: about 17 minutes. That is 7 minutes over the limit of 10 minutes you set.",
             "fact_ids": [
               "syn-n0023/travel/syn-p0021.cycle"
             ],
@@ -183,18 +183,18 @@
           "area_id": "syn-n0023",
           "kind": "feature",
           "key": "highstreet_access",
-          "label": "Straight-line distance to the nearest town centre boundary",
+          "label": "Distance to the edge of the nearest town centre, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest town centre boundary",
+            "label": "Distance to the edge of the nearest town centre, in a straight line",
             "value": "810 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "71",
-            "standing": "closer than 71% of the 21 areas compared in this release",
+            "standing": "closer than 71% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "23",
-            "standing_worse": "further than 23% of the 21 areas compared in this release",
+            "standing_worse": "further than 23% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -229,10 +229,10 @@
             "band": "2",
             "comparative": "more than",
             "pct": "31",
-            "standing": "more than 31% of the 22 areas compared in this release, and the same as 11 others",
+            "standing": "more than 31% of the 22 areas Burro compared, and the same as 11 others",
             "comparative_worse": "fewer than",
             "pct_worse": "13",
-            "standing_worse": "fewer than 13% of the 22 areas compared in this release, and the same as 11 others",
+            "standing_worse": "fewer than 13% of the 22 areas Burro compared, and the same as 11 others",
             "compared": "22",
             "level": "11"
           },
@@ -275,9 +275,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -322,8 +322,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",

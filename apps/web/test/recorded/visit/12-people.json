@@ -21,7 +21,7 @@
         },
         "commutes": [
           {
-            "place_id": "syn-p0017",
+            "place_id": "syn-p0012",
             "mode": "pt",
             "max_minutes": 30,
             "strictness": "soft",
@@ -110,7 +110,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "2491",
+    "content-length": "2560",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -120,7 +120,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -155,7 +155,7 @@
         },
         "commutes": [
           {
-            "place_id": "syn-p0017",
+            "place_id": "syn-p0012",
             "mode": "pt",
             "max_minutes": 30,
             "strictness": "soft",
@@ -236,7 +236,7 @@
         "pt_basis_from": "default",
         "commute_weight_from": "default"
       },
-      "spec_hash": "828ca1ba40b3f8999f0ca032437c1a72cbea2719a7d722ca045fc5a3cae7fb3c",
+      "spec_hash": "29d7723cb49c3410c51a7e90406867a61d80eca933d740676dfa602cde6b1f1d",
       "applied": [
         {
           "group": "weight_ops",
@@ -249,7 +249,7 @@
       "unmet": [],
       "clarify": [],
       "notice": "neutral_places",
-      "notice_text": "Burro ranks places by what is there. Of who lives in a place it counts only their age and their households, at the census of 2021, and you cannot ask for fewer of anyone. The rest of your search has been applied.",
+      "notice_text": "Burro ranks places by what is there. The only things it counts about the people who live in a place are their age and the kind of household they live in, as the census of 2021 recorded them, and you cannot ask for fewer of any group of people. The rest of your search has been applied.",
       "interpreter": "rule",
       "degraded": false,
       "model_refused": false,
@@ -268,9 +268,9 @@
       "model_pending": false,
       "places": [
         {
-          "place_id": "syn-p0017",
-          "name": "Pellam Exchange",
-          "kind": "district"
+          "place_id": "syn-p0012",
+          "name": "Pellam Cross",
+          "kind": "station"
         },
         {
           "place_id": "syn-p0021",

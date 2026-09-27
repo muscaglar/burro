@@ -28,6 +28,7 @@ import { BANNER } from "@/content/site";
 import { sentenceOf } from "@/content/templates";
 import { recordedAnswer } from "@/lib/api/recorded";
 import type { AreaData, RankBody } from "@/lib/api/schema";
+import { loadMeta } from "@/lib/api/server";
 import { cannotSee, GROUPS, portraitOf, shownOn } from "@/lib/area/portrait";
 import { alikeRows, costFacts, factsShown, featuresByDimension, sharedVibes, stationFacts } from "@/lib/area/profile";
 import { readableDate } from "@/lib/format";
@@ -36,6 +37,7 @@ import { NO_EDITS } from "@/lib/search/edits";
 import { standInApi } from "../support/api";
 import { faultsIn } from "../support/axe";
 import { figuresNotFrom, saidBy } from "../support/figures";
+import { ROUGH, service } from "../support/rough";
 import { firstSearch, search, settled } from "../support/search";
 import { watch } from "../support/watch";
 
@@ -43,6 +45,14 @@ jest.mock("next/navigation", () => ({
   ...jest.requireActual("next/navigation"),
   usePathname: () => "/synthetic/alderwick",
 }));
+
+// The page reads the release as it is built. It reads it as it was recorded, but where a
+// test has the service say of a rough guide what one said until it stopped.
+jest.mock("@/lib/api/server", () =>
+  jest
+    .requireActual<typeof import("../support/rough")>("../support/rough")
+    .asAPageReads(jest.requireActual<typeof import("@/lib/api/server")>("@/lib/api/server")),
+);
 
 const meta = recordedAnswer("get_meta", "meta").body;
 const areas = recordedAnswer("list_areas", "areas").body.data.areas;
@@ -476,6 +486,9 @@ describe("what an area's page says", () => {
   });
 
   test("test_recorded_crime_carries_its_caveat_and_no_verdict", async () => {
+    // The page is built on a release that says of a rough guide what a service said until it
+    // stopped, as one may again: its label, and the sentence that said why.
+    service.saysSo = true;
     await show("alderwick");
     const main = screen.getByRole("main");
 
@@ -488,9 +501,11 @@ describe("what an area's page says", () => {
     }
 
     expect(crime).toHaveLength(4);
-    // The label of a rough guide is the API's, and is said of a guide: no word of it is said of a place.
-    const said = meta.data.rough_guides.reduce((text, one) => text.replaceAll(one.label, ""), main.textContent ?? "");
-    expect(/\b(safe|safer|safest|unsafe|dangerous|rough|dodgy|sketchy)\b/i.test(said)).toBe(false);
+    // No word of the page is a verdict, and none is the word the service gives a vibe that is less sure.
+    expect(/\b(safe|safer|safest|unsafe|dangerous|rough|dodgy|sketchy)\b/i.test(main.textContent ?? "")).toBe(false);
+    expect(main.querySelector("[data-rough-guide]")).toBeNull();
+    expect([meta.data.rough_guides, (await loadMeta()).data.rough_guides]).toEqual([[], [ROUGH]]);
+    expect([main.textContent?.includes(ROUGH.label), main.textContent?.includes(ROUGH.why)]).toEqual([false, false]);
   });
 
   test("test_the_cost_of_every_kind_of_home_is_given_as_a_range_with_its_date_and_confidence", async () => {
@@ -1092,13 +1107,13 @@ describe("choosing an area to compare, from its page", () => {
 
     const user = userEvent.setup({ delay: null });
 
-    await user.click(screen.getByRole("button", { name: COMPARE.add("Alderwick") }));
+    await user.click(screen.getByRole("button", { name: COMPARE.addNamed("Alderwick") }));
 
     expect(within(tray).getByText("Alderwick")).toBeInTheDocument();
     expect(tray).toHaveTextContent(TRAY.one);
     // The button says beside itself what the tray does, because the tray is at the foot of the screen.
     expect(screen.getByRole("group", { name: AREA.compare })).toHaveTextContent(TRAY.one);
-    await user.click(screen.getByRole("button", { name: COMPARE.remove("Alderwick") }));
+    await user.click(screen.getByRole("button", { name: COMPARE.removeNamed("Alderwick") }));
     expect(tray).toHaveAttribute("data-closed", "true");
   });
 });
@@ -1311,8 +1326,8 @@ describe("starting a search from an area", () => {
     await show("thrushcombe");
     const list = within(part("character")).getByRole("group", { name: PORTRAIT.groups.more });
 
-    // Thrushcombe is in the highest band of Village feel, which is a rough guide: it is among
-    // what an area has more of than most for no area, so no one press adds it with others.
+    // Thrushcombe is in the highest band of Village feel, which the service says is less sure:
+    // it is among what an area has more of than most for no area, so no one press adds it with others.
     expect(more("thrushcombe").map((tag) => tag.label)).toEqual(["Food and drink", "Parks close by", "Everyday on foot"]);
     expect(within(list).getByRole("link", { name: PORTRAIT.search.button })).toHaveAttribute("href", "/");
     expect(list).toHaveTextContent(PORTRAIT.search.adds("Food and drink, Parks close by and Everyday on foot"));

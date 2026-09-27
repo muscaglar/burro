@@ -4,6 +4,7 @@ import path from "node:path";
 
 import Ajv2020 from "ajv/dist/2020";
 
+import { ACCOUNT_OPERATIONS } from "@/lib/account/routes";
 import { ROUTES } from "@/lib/api/operations";
 import { readRecorded, recordedFolder, type Recorded } from "@/lib/api/recorded";
 
@@ -73,9 +74,15 @@ describe("the recorded answers", () => {
       Object.values(methods).map((operation) => operation.operationId),
     );
 
-    expect(inContract.filter((id) => !recorded.has(id as never))).toEqual([]);
-    // And the client calls every route but the one that says the service is up.
-    expect(Object.keys(ROUTES).sort()).toEqual(inContract.filter((id) => id !== "healthz").sort());
+    // The routes of accounts are in the contract whether or not they are served, and are
+    // served only where accounts are turned on: no answer of one is recorded yet. Until one
+    // is, the tests of accounts answer from a stand-in that is held to the contract
+    // (`test/account/standin.test.ts`). When they are recorded, this line goes.
+    const ofAccounts: readonly string[] = ACCOUNT_OPERATIONS;
+    expect(inContract.filter((id) => !recorded.has(id as never) && !ofAccounts.includes(id))).toEqual([]);
+    // And the website calls every route but the one that says the service is up: of the
+    // API itself, and of accounts, which it asks of its own origin.
+    expect([...Object.keys(ROUTES), ...ofAccounts].sort()).toEqual(inContract.filter((id) => id !== "healthz").sort());
   });
 
   test("test_every_state_the_search_page_has_is_recorded", () => {

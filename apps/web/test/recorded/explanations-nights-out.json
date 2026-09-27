@@ -102,7 +102,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "30447",
+    "content-length": "31861",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -112,7 +112,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -131,7 +131,7 @@
           },
           "reasons": [
             {
-              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 8.2 per 1,000 homes, more than 95% of the 21 areas compared in this release.",
+              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 8.2 per 1,000 homes, which is more than 95% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0018/feature/venue_evening_per_homes"
               ],
@@ -139,7 +139,7 @@
               "replaced": false
             },
             {
-              "text": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line: 18.3 per 1,000 homes, more than 95% of the 21 areas compared in this release.",
+              "text": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line: 18.3 per 1,000 homes, which is more than 95% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0018/feature/venue_food_drink_per_homes"
               ],
@@ -147,7 +147,7 @@
               "replaced": false
             },
             {
-              "text": "Going out: band 5 of 5, counted from Calm to Buzzy, among the 21 areas compared in this release.",
+              "text": "Going out: band 5 of 5 among the 21 areas Burro compared, where the bands run from Calm to Buzzy.",
               "fact_ids": [
                 "syn-n0018/tag/pace"
               ],
@@ -156,7 +156,7 @@
             }
           ],
           "trade_off": {
-            "text": "Modelled annual mean nitrogen dioxide: 34.5 µg/m³, higher than 95% of the 20 areas compared in this release.",
+            "text": "Nitrogen dioxide in the air, as a modelled average over a year: 34.5 µg/m³, which is higher than 95% of the 20 areas Burro compared.",
             "fact_ids": [
               "syn-n0018/feature/air_no2"
             ],
@@ -177,7 +177,7 @@
           },
           "reasons": [
             {
-              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 7.6 per 1,000 homes, more than 90% of the 21 areas compared in this release.",
+              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 7.6 per 1,000 homes, which is more than 90% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0012/feature/venue_evening_per_homes"
               ],
@@ -185,7 +185,7 @@
               "replaced": false
             },
             {
-              "text": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line: 15.4 per 1,000 homes, more than 90% of the 21 areas compared in this release.",
+              "text": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line: 15.4 per 1,000 homes, which is more than 90% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0012/feature/venue_food_drink_per_homes"
               ],
@@ -193,7 +193,7 @@
               "replaced": false
             },
             {
-              "text": "Going out: band 5 of 5, counted from Calm to Buzzy, among the 21 areas compared in this release.",
+              "text": "Going out: band 5 of 5 among the 21 areas Burro compared, where the bands run from Calm to Buzzy.",
               "fact_ids": [
                 "syn-n0012/tag/pace"
               ],
@@ -202,7 +202,7 @@
             }
           ],
           "trade_off": {
-            "text": "Share of residents exposed to 55 dB or more of transport noise: 46%, noisier than 90% of the 20 areas compared in this release.",
+            "text": "Share of residents exposed to 55 dB or more of transport noise: 46%, which is noisier than 90% of the 20 areas Burro compared.",
             "fact_ids": [
               "syn-n0012/feature/noise_exposure"
             ],
@@ -223,7 +223,7 @@
           },
           "reasons": [
             {
-              "text": "Going out: band 5 of 5, counted from Calm to Buzzy, among the 21 areas compared in this release.",
+              "text": "Going out: band 5 of 5 among the 21 areas Burro compared, where the bands run from Calm to Buzzy.",
               "fact_ids": [
                 "syn-n0021/tag/pace"
               ],
@@ -231,7 +231,7 @@
               "replaced": false
             },
             {
-              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 5.4 per 1,000 homes, more than 80% of the 21 areas compared in this release.",
+              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 5.4 per 1,000 homes, which is more than 80% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0021/feature/venue_evening_per_homes"
               ],
@@ -239,7 +239,7 @@
               "replaced": false
             },
             {
-              "text": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line: 11.7 per 1,000 homes, more than 80% of the 21 areas compared in this release.",
+              "text": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line: 11.7 per 1,000 homes, which is more than 80% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0021/feature/venue_food_drink_per_homes"
               ],
@@ -248,7 +248,7 @@
             }
           ],
           "trade_off": {
-            "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 1,070 m, further than 80% of the 21 areas compared in this release.",
+            "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 1,070 m, which is further than 80% of the 21 areas Burro compared.",
             "fact_ids": [
               "syn-n0021/feature/park_proximity"
             ],
@@ -269,7 +269,7 @@
           },
           "reasons": [
             {
-              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 6 per 1,000 homes, more than 85% of the 21 areas compared in this release.",
+              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 6 per 1,000 homes, which is more than 85% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0023/feature/venue_evening_per_homes"
               ],
@@ -277,7 +277,7 @@
               "replaced": false
             },
             {
-              "text": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line: 12.7 per 1,000 homes, more than 85% of the 21 areas compared in this release.",
+              "text": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line: 12.7 per 1,000 homes, which is more than 85% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0023/feature/venue_food_drink_per_homes"
               ],
@@ -285,7 +285,7 @@
               "replaced": false
             },
             {
-              "text": "Going out: band 5 of 5, counted from Calm to Buzzy, among the 21 areas compared in this release.",
+              "text": "Going out: band 5 of 5 among the 21 areas Burro compared, where the bands run from Calm to Buzzy.",
               "fact_ids": [
                 "syn-n0023/tag/pace"
               ],
@@ -294,7 +294,7 @@
             }
           ],
           "trade_off": {
-            "text": "Share of residents exposed to 55 dB or more of transport noise: 36%, noisier than 65% of the 20 areas compared in this release.",
+            "text": "Share of residents exposed to 55 dB or more of transport noise: 36%, which is noisier than 65% of the 20 areas Burro compared.",
             "fact_ids": [
               "syn-n0023/feature/noise_exposure"
             ],
@@ -315,7 +315,7 @@
           },
           "reasons": [
             {
-              "text": "By public transport to Pellam Exchange: about 13 minutes on a typical weekday morning, 16 if you just miss a service.",
+              "text": "By public transport to Pellam Exchange: about 13 minutes on a typical weekday morning, or 16 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0011/travel/syn-p0017.pt"
               ],
@@ -323,7 +323,7 @@
               "replaced": false
             },
             {
-              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 5.2 per 1,000 homes, more than 76% of the 21 areas compared in this release.",
+              "text": "Pubs and bars for each 1,000 homes within 800 m, in a straight line: 5.2 per 1,000 homes, which is more than 76% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0011/feature/venue_evening_per_homes"
               ],
@@ -331,7 +331,7 @@
               "replaced": false
             },
             {
-              "text": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line: 11.4 per 1,000 homes, more than 76% of the 21 areas compared in this release.",
+              "text": "Places to eat and drink for each 1,000 homes within 800 m, in a straight line: 11.4 per 1,000 homes, which is more than 76% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0011/feature/venue_food_drink_per_homes"
               ],
@@ -340,7 +340,7 @@
             }
           ],
           "trade_off": {
-            "text": "Modelled annual mean nitrogen dioxide: 29.2 µg/m³, higher than 85% of the 20 areas compared in this release.",
+            "text": "Nitrogen dioxide in the air, as a modelled average over a year: 29.2 µg/m³, which is higher than 85% of the 20 areas Burro compared.",
             "fact_ids": [
               "syn-n0011/feature/air_no2"
             ],
@@ -388,17 +388,17 @@
           "area_id": "syn-n0018",
           "kind": "feature",
           "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "value": "34.5 µg/m³",
             "band": "5",
-            "standing": "lower than none of the 19 other areas compared in this release",
+            "standing": "higher than all 19 other areas Burro compared",
             "comparative": "lower than",
             "comparative_worse": "higher than",
             "pct_worse": "95",
-            "standing_worse": "higher than 95% of the 20 areas compared in this release",
+            "standing_worse": "higher than 95% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -433,8 +433,8 @@
             "band": "5",
             "comparative": "more than",
             "pct": "95",
-            "standing": "more than 95% of the 21 areas compared in this release",
-            "standing_worse": "fewer than none of the 20 other areas compared in this release",
+            "standing": "more than 95% of the 21 areas Burro compared",
+            "standing_worse": "more than all 20 other areas Burro compared",
             "comparative_worse": "fewer than",
             "compared": "21"
           },
@@ -470,8 +470,8 @@
             "band": "5",
             "comparative": "more than",
             "pct": "95",
-            "standing": "more than 95% of the 21 areas compared in this release",
-            "standing_worse": "fewer than none of the 20 other areas compared in this release",
+            "standing": "more than 95% of the 21 areas Burro compared",
+            "standing_worse": "more than all 20 other areas Burro compared",
             "comparative_worse": "fewer than",
             "compared": "21"
           },
@@ -513,9 +513,9 @@
             "known": "3",
             "parts": "5",
             "share": "70",
-            "partly": "Worked out from 3 of its 5 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -557,9 +557,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -603,8 +603,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -671,10 +671,10 @@
             "band": "5",
             "comparative": "quieter than",
             "pct": "5",
-            "standing": "quieter than 5% of the 20 areas compared in this release",
+            "standing": "quieter than 5% of the 20 areas Burro compared",
             "comparative_worse": "noisier than",
             "pct_worse": "90",
-            "standing_worse": "noisier than 90% of the 20 areas compared in this release",
+            "standing_worse": "noisier than 90% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -709,10 +709,10 @@
             "band": "5",
             "comparative": "more than",
             "pct": "90",
-            "standing": "more than 90% of the 21 areas compared in this release",
+            "standing": "more than 90% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "4",
-            "standing_worse": "fewer than 4% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 4% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -747,10 +747,10 @@
             "band": "5",
             "comparative": "more than",
             "pct": "90",
-            "standing": "more than 90% of the 21 areas compared in this release",
+            "standing": "more than 90% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "4",
-            "standing_worse": "fewer than 4% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 4% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -792,8 +792,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -834,9 +834,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -880,8 +880,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -940,18 +940,18 @@
           "area_id": "syn-n0021",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "1,070 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "14",
-            "standing": "closer than 14% of the 21 areas compared in this release",
+            "standing": "closer than 14% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "80",
-            "standing_worse": "further than 80% of the 21 areas compared in this release",
+            "standing_worse": "further than 80% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -986,10 +986,10 @@
             "band": "5",
             "comparative": "more than",
             "pct": "80",
-            "standing": "more than 80% of the 21 areas compared in this release",
+            "standing": "more than 80% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "14",
-            "standing_worse": "fewer than 14% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 14% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1024,10 +1024,10 @@
             "band": "5",
             "comparative": "more than",
             "pct": "80",
-            "standing": "more than 80% of the 21 areas compared in this release",
+            "standing": "more than 80% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "14",
-            "standing_worse": "fewer than 14% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 14% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1069,8 +1069,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1111,9 +1111,9 @@
             "known": "3",
             "parts": "5",
             "share": "70",
-            "partly": "Worked out from 3 of its 5 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 3 of the 5 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1156,8 +1156,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1224,10 +1224,10 @@
             "band": "4",
             "comparative": "quieter than",
             "pct": "30",
-            "standing": "quieter than 30% of the 20 areas compared in this release",
+            "standing": "quieter than 30% of the 20 areas Burro compared",
             "comparative_worse": "noisier than",
             "pct_worse": "65",
-            "standing_worse": "noisier than 65% of the 20 areas compared in this release",
+            "standing_worse": "noisier than 65% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -1262,10 +1262,10 @@
             "band": "5",
             "comparative": "more than",
             "pct": "85",
-            "standing": "more than 85% of the 21 areas compared in this release",
+            "standing": "more than 85% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "9",
-            "standing_worse": "fewer than 9% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 9% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1300,10 +1300,10 @@
             "band": "5",
             "comparative": "more than",
             "pct": "85",
-            "standing": "more than 85% of the 21 areas compared in this release",
+            "standing": "more than 85% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "9",
-            "standing_worse": "fewer than 9% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 9% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1344,9 +1344,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1391,8 +1391,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1451,18 +1451,18 @@
           "area_id": "syn-n0011",
           "kind": "feature",
           "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "value": "29.2 µg/m³",
             "band": "5",
             "comparative": "lower than",
             "pct": "10",
-            "standing": "lower than 10% of the 20 areas compared in this release",
+            "standing": "lower than 10% of the 20 areas Burro compared",
             "comparative_worse": "higher than",
             "pct_worse": "85",
-            "standing_worse": "higher than 85% of the 20 areas compared in this release",
+            "standing_worse": "higher than 85% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -1497,10 +1497,10 @@
             "band": "4",
             "comparative": "more than",
             "pct": "76",
-            "standing": "more than 76% of the 21 areas compared in this release",
+            "standing": "more than 76% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "19",
-            "standing_worse": "fewer than 19% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 19% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1535,10 +1535,10 @@
             "band": "4",
             "comparative": "more than",
             "pct": "76",
-            "standing": "more than 76% of the 21 areas compared in this release",
+            "standing": "more than 76% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "19",
-            "standing_worse": "fewer than 19% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 19% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1579,9 +1579,9 @@
             "known": "2",
             "parts": "3",
             "share": "80",
-            "partly": "Worked out from 2 of its 3 parts, 80 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 80 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1625,8 +1625,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1668,8 +1668,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",

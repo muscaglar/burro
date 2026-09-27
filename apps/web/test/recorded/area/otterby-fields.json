@@ -13,9 +13,9 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-cache",
-    "content-length": "41262",
+    "content-length": "41276",
     "content-type": "application/json",
-    "etag": "\"syn-2026-09-23-01\"",
+    "etag": "\"syn-2026-09-23-01.f431a1ba\"",
     "vary": "Origin",
     "x-burro-preview": "false",
     "x-burro-synthetic": "true",
@@ -24,7 +24,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -2014,10 +2014,10 @@
             "band": "3",
             "comparative": "more than",
             "pct": "40",
-            "standing": "more than 40% of the 22 areas compared in this release",
+            "standing": "more than 40% of the 22 areas Burro compared",
             "comparative_worse": "less than",
             "pct_worse": "54",
-            "standing_worse": "less than 54% of the 22 areas compared in this release",
+            "standing_worse": "less than 54% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -2048,14 +2048,14 @@
           "template": "feature",
           "slots": {
             "label": "Homes per hectare",
-            "value": "15.7 per ha",
+            "value": "15.7 per hectare",
             "band": "1",
             "comparative": "denser than",
             "pct": "4",
-            "standing": "denser than 4% of the 22 areas compared in this release",
+            "standing": "denser than 4% of the 22 areas Burro compared",
             "comparative_worse": "less dense than",
             "pct_worse": "90",
-            "standing_worse": "less dense than 90% of the 22 areas compared in this release",
+            "standing_worse": "less dense than 90% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -2088,11 +2088,11 @@
             "label": "Flats as a share of homes",
             "value": "14%",
             "band": "1",
-            "standing": "more than none of the 21 other areas compared in this release",
+            "standing": "fewer than all 21 other areas Burro compared",
             "comparative": "more than",
             "comparative_worse": "fewer than",
             "pct_worse": "95",
-            "standing_worse": "fewer than 95% of the 22 areas compared in this release",
+            "standing_worse": "fewer than 95% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -2127,10 +2127,10 @@
             "band": "3",
             "comparative": "more than",
             "pct": "54",
-            "standing": "more than 54% of the 22 areas compared in this release, and the same as 6 others",
+            "standing": "more than 54% of the 22 areas Burro compared, and the same as 6 others",
             "comparative_worse": "fewer than",
             "pct_worse": "13",
-            "standing_worse": "fewer than 13% of the 22 areas compared in this release, and the same as 6 others",
+            "standing_worse": "fewer than 13% of the 22 areas Burro compared, and the same as 6 others",
             "compared": "22",
             "level": "6"
           },
@@ -2165,10 +2165,10 @@
             "label": "Lines within a 10-minute walk",
             "value": "0",
             "band": "1",
-            "standing": "the same as 6 of the 21 other areas compared in this release",
+            "standing": "the same as 6 of the 21 other areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "68",
-            "standing_worse": "fewer than 68% of the 22 areas compared in this release, and the same as 6 others",
+            "standing_worse": "fewer than 68% of the 22 areas Burro compared, and the same as 6 others",
             "compared": "22",
             "level": "6"
           },
@@ -2197,18 +2197,18 @@
           "area_id": "syn-n0017",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "2,160 m",
             "band": "4",
             "comparative": "closer than",
             "pct": "18",
-            "standing": "closer than 18% of the 22 areas compared in this release",
+            "standing": "closer than 18% of the 22 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "77",
-            "standing_worse": "further than 77% of the 22 areas compared in this release",
+            "standing_worse": "further than 77% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -2243,10 +2243,10 @@
             "band": "2",
             "comparative": "closer than",
             "pct": "59",
-            "standing": "closer than 59% of the 22 areas compared in this release",
+            "standing": "closer than 59% of the 22 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "36",
-            "standing_worse": "further than 36% of the 22 areas compared in this release",
+            "standing_worse": "further than 36% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -2273,16 +2273,16 @@
           "area_id": "syn-n0017",
           "kind": "feature",
           "key": "water_access",
-          "label": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake",
+          "label": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes",
           "template": "feature",
           "slots": {
-            "label": "Share of homes within 300 m, in a straight line, of the centre line of a river, canal or lake",
+            "label": "Homes within 300 m of the centre line of a river, canal or lake, in a straight line, as a share of all homes",
             "value": "0%",
             "band": "1",
-            "standing": "the same as 12 of the 21 other areas compared in this release",
+            "standing": "the same as 12 of the 21 other areas Burro compared",
             "comparative_worse": "less than",
             "pct_worse": "40",
-            "standing_worse": "less than 40% of the 22 areas compared in this release, and the same as 12 others",
+            "standing_worse": "less than 40% of the 22 areas Burro compared, and the same as 12 others",
             "compared": "22",
             "level": "12"
           },
@@ -2516,9 +2516,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",

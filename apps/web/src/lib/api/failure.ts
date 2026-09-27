@@ -70,11 +70,6 @@ export function isApiFailure(failure: Failure): failure is ApiFailure {
   return failure.kind === "api";
 }
 
-/** True when the API answered with this code. */
-export function hasCode(answer: Answer<unknown>, code: ErrorCode): boolean {
-  return !answer.ok && isApiFailure(answer.failure) && answer.failure.code === code;
-}
-
 export function failed(
   kind: ClientFailureKind,
   seen: { status?: number; synthetic?: boolean | null; requestId?: string | null } = {},

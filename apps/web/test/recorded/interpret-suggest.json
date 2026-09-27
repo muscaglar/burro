@@ -16,7 +16,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "3579",
+    "content-length": "3825",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -26,7 +26,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -117,7 +117,7 @@
         {
           "target": "feature:venue_evening_per_homes",
           "label": "Pubs and bars",
-          "does": "Pubs and bars: more, or fewer?",
+          "does": "Pubs and bars: do you want more, or fewer?",
           "spans": [
             {
               "start": 0,
@@ -128,7 +128,7 @@
             "start": 0,
             "end": 17
           },
-          "follows": "What Burro counts: pubs and bars for each 1,000 homes within 800 m, in a straight line.",
+          "follows": "This is what Burro measures for it: pubs and bars for each 1,000 homes within 800 m, in a straight line.",
           "said": [],
           "choices": [
             {
@@ -198,12 +198,14 @@
           "needs": "pubs and bars",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "feature:noise_exposure",
           "label": "Less transport noise",
-          "does": "Less transport noise: count it?",
+          "does": "Less transport noise: do you want Burro to count this?",
           "spans": [
             {
               "start": 12,
@@ -214,7 +216,7 @@
             "start": 0,
             "end": 17
           },
-          "follows": "What Burro counts: share of residents exposed to 55 dB or more of transport noise.",
+          "follows": "This is what Burro measures for it: share of residents exposed to 55 dB or more of transport noise.",
           "said": [],
           "choices": [
             {
@@ -255,13 +257,15 @@
               }
             }
           ],
-          "note": "",
+          "note": "Burro could not tell from your words whether you want this yourself, so it has left it for you to add.",
           "read_by": "rule",
           "add_all": "",
           "needs": "less transport noise",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": true
         }
       ],
       "unread": [

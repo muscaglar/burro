@@ -16,7 +16,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "4401",
+    "content-length": "4528",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -26,7 +26,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -176,7 +176,9 @@
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "budget",
@@ -313,13 +315,15 @@
               }
             }
           ],
-          "note": "You named no kind of house, so Burro has taken a terraced house, the least dear kind in most areas. Semi-detached and detached are one press away.",
+          "note": "You did not say what kind of house, so Burro has assumed a terraced house, which is the kind of house that costs the least in most areas. You can choose a semi-detached or a detached house instead.",
           "read_by": "rule",
           "add_all": "terraced",
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         }
       ],
       "unread": [],

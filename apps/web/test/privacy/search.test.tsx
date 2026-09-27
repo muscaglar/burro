@@ -4,8 +4,13 @@
  *
  * Each test plants a canary, a string found nowhere else, in the sentence, in
  * the place search and in the name of a place the API answers with. It then
- * runs a whole search: read, ask, answer, rank, refine, fail, go offline, and
- * a sentence that is not plain, of which the reader offers what it noticed.
+ * runs a whole search: read, rank, refine, fail, go offline, a sentence that is
+ * not plain, of which Burro takes what it noticed, and a place found by name.
+ *
+ * The search begins as a person may begin one: the sentence is typed, the other
+ * way in is chosen and its fields typed in, groups of the settings are opened
+ * and closed, and the first way is come back to, where the sentence is sent
+ * from. So what the page keeps of all that is watched too.
  */
 
 import { act, screen, waitFor, within } from "@testing-library/react";
@@ -13,7 +18,9 @@ import { act, screen, waitFor, within } from "@testing-library/react";
 import { CHIPS, NOTICE, PLACE, PROMPT, RESULTS, SUGGEST, FIND_AREA } from "@/content/search";
 import { JOURNEY, SETTINGS } from "@/content/settings";
 import { recordedAnswer, responseFrom } from "@/lib/api/recorded";
-import type { FoundPlace } from "@/lib/api/schema";
+import type { FoundPlace, Operations } from "@/lib/api/schema";
+import { merged, NO_EDITS } from "@/lib/search/edits";
+import { takenOfAll } from "@/lib/search/takes";
 
 import { BASE, setOnline, type StandIn } from "../support/api";
 import {
@@ -22,14 +29,20 @@ import {
   everyChip,
   everyResult,
   firstSearch,
+  meta,
+  noisyAtHome,
   openSearch,
+  panelOf,
   promptBox,
   removeChip,
   search,
   settingsAt,
   settled,
+  tabOf,
+  theSettings,
   theTable,
   theWholeOfIt,
+  way,
 } from "../support/search";
 import { watch, type Watch } from "../support/watch";
 
@@ -59,6 +72,40 @@ function rankedWithThePlace() {
 
 beforeEach(() => setOnline(true));
 
+/** The list a field that finds a place names as its own. What it found is in it, and nothing else is. */
+const listOf = (field: HTMLElement) => document.getElementById(field.getAttribute("aria-controls") ?? "") as HTMLElement;
+
+/**
+ * What a person may do before anything is sent, with a canary in all that is typed: the
+ * sentence is typed, the second way in is chosen by keyboard and both its fields typed in,
+ * a group of the settings is closed and another opened, and the first way is come back to.
+ * It answers with the sentence, which is in the box still.
+ */
+async function begun(user: Awaited<ReturnType<typeof openSearch>>["user"], sentence: string): Promise<void> {
+  const box = promptBox();
+  await user.type(box, sentence);
+
+  act(() => tabOf("quick").focus());
+  await user.keyboard("{ArrowRight}");
+  expect(tabOf("deep")).toHaveAttribute("aria-selected", "true");
+  // The field of the journeys, among the settings, finds a place to reach.
+  const field = within(theSettings()).getByRole("combobox", { name: PLACE.label });
+  await user.type(field, `${CANARY} wor`);
+  await within(listOf(field)).findByRole("option", { name: new RegExp(CANARY) });
+  await user.keyboard("{Escape}");
+  // The field at the foot of the way finds an area by its name.
+  await user.type(within(panelOf("deep")).getByRole("textbox", { name: FIND_AREA.labelAlone }), `${CANARY} are`);
+  await arrived();
+  await user.keyboard("{Escape}");
+  const bars = within(theSettings()).getAllByRole("button", { expanded: true });
+  await user.click(bars[0] as HTMLElement);
+  await user.click(within(theSettings()).getAllByRole("button", { expanded: false }).at(-1) as HTMLElement);
+
+  await way(user, "quick");
+  // Said as a yes or a no: a test that fails must not print what was typed.
+  expect([promptBox() === box, box.value === sentence, panelOf("quick").contains(box)]).toEqual([true, true, true]);
+}
+
 /** A whole search, with a canary in everything a person types and in a place's name. */
 async function wholeSearch() {
   const api = answeringWithThePlace(firstSearch().on("interpret", "interpret-clarify"));
@@ -70,14 +117,13 @@ async function wholeSearch() {
 }
 
 async function run(api: StandIn, user: Awaited<ReturnType<typeof openSearch>>["user"]) {
-
-  // Read a sentence, which leaves a question.
-  await search(user, `leafy and quiet, 30 minutes to ${CANARY}`);
-  // Search for a place by name, and pick it as the answer.
-  const question = within(screen.getByRole("region", { name: /Which place did you mean/ }));
-  await user.type(question.getByRole("combobox"), `${CANARY} wor`);
-  await user.click(await question.findByRole("option", { name: new RegExp(CANARY) }));
+  // Before anything is sent: both ways in and the settings, with the sentence typed.
+  await begun(user, `leafy and quiet, 30 minutes to ${CANARY}`);
+  // Read the sentence, which names a place in part. Nothing is asked: the first place the
+  // service gave is taken, and the areas are ranked.
+  await user.click(screen.getByRole("button", { name: PROMPT.submit }));
   await settled();
+  expect(document.body.textContent).not.toMatch(/Which (place|area) did you mean/);
   // Refine with a control.
   api.on("rank", "rank-refined").on("explain_top", "explanations-refined");
   await settingsAt(user, SETTINGS.journeys);
@@ -111,19 +157,16 @@ async function run(api: StandIn, user: Awaited<ReturnType<typeof openSearch>>["u
   setOnline(true);
   act(() => void window.dispatchEvent(new Event("online")));
   await arrived();
-  // A sentence that is not plain: nothing of it is applied, and what was noticed is offered.
+  // A sentence that is not plain: Burro takes what it noticed in it, and ranks.
   api.on("interpret", "interpret-suggest").on("rank", "rank-first").on("explain_top", "explanations-first");
   await user.clear(promptBox());
   await user.type(promptBox(), `Pubs are so noisy near ${CANARY}`);
+  const readBefore = api.callsTo("interpret").length;
   await user.click(screen.getByRole("button", { name: PROMPT.submit }));
-  const offered = within(await screen.findByRole("region", { name: SUGGEST.title }));
-  // The words a thing was noticed in, and the words that were not read, are shown in the box.
-  await user.click(offered.getAllByRole("button", { name: /^Show the words in the box: / })[0] as HTMLElement);
-  await user.click(screen.getByRole("button", { name: SUGGEST.showUnread }));
-  // One is chosen, and one is left out.
-  await user.click(offered.getByRole("button", { name: "Fewer pubs and bars" }));
+  await waitFor(() => expect(api.callsTo("interpret")).toHaveLength(readBefore + 1));
   await settled();
-  await user.click(screen.getByRole("button", { name: SUGGEST.named("Skip", "Less transport noise") }));
+  // The words that were not read are shown in the box.
+  await user.click(screen.getByRole("button", { name: SUGGEST.showUnread }));
   // A place added by hand, from the field in the settings.
   api.on("rank", rankedWithThePlace);
   await user.type(screen.getAllByRole("combobox", { name: PLACE.label })[0] as HTMLElement, CANARY);
@@ -278,37 +321,70 @@ describe("what a person types", () => {
   });
 
   test("test_the_prompt_form_cannot_be_sent_as_a_get", async () => {
-    await openSearch();
+    const { user } = await openSearch();
 
-    const form = promptBox().closest("form");
+    const box = promptBox();
+    const form = box.closest("form");
     expect(form).toHaveAttribute("method", "post");
     expect(form).not.toHaveAttribute("action");
     // With no name, a field is left out of what a form sends, whatever sends it.
-    expect(promptBox()).not.toHaveAttribute("name");
-    expect(promptBox()).toHaveAttribute("autocomplete", "off");
+    expect(box).not.toHaveAttribute("name");
+    expect(box).toHaveAttribute("autocomplete", "off");
     // Nor is the browser asked to check the spelling, which may send the words to its maker.
-    expect(promptBox()).toHaveAttribute("spellcheck", "false");
-    const place = screen.getByRole("combobox", { name: FIND_AREA.label });
-    expect(place).not.toHaveAttribute("name");
-    expect(place).toHaveAttribute("autocomplete", "off");
-    expect(place).toHaveAttribute("spellcheck", "false");
-    expect(place.closest("form")).toBeNull();
+    expect(box).toHaveAttribute("spellcheck", "false");
+    // The fields that find by name are in the second way in: the one of the journeys, among
+    // the settings, which finds a place, and the one at its foot, which finds an area.
+    await settingsAt(user, SETTINGS.journeys);
+    const places = [
+      within(theSettings()).getByRole("combobox", { name: PLACE.label }),
+      screen.getByRole("textbox", { name: FIND_AREA.labelAlone }),
+    ];
+    for (const place of places) {
+      expect(place).not.toHaveAttribute("name");
+      expect(place).toHaveAttribute("autocomplete", "off");
+      expect(place).toHaveAttribute("spellcheck", "false");
+      expect(place.closest("form")).toBeNull();
+    }
+    // They are the fields of the page that words are typed in, and the form of the box is
+    // its one form, whichever way in is chosen: both are on the page all the while. A field
+    // of text that takes figures is no field of words.
+    const typedIn = [
+      ...document.querySelectorAll<HTMLElement>(
+        "textarea, input[role='combobox'], input[type='search'], input[type='text']:not([inputmode='numeric'])",
+      ),
+    ];
+    expect(typedIn).toEqual([box, ...places]);
     expect([...document.querySelectorAll("form")]).toEqual([form]);
+    await way(user, "quick");
+    expect([...document.querySelectorAll("form")]).toEqual([form]);
+    expect(promptBox()).toBe(box);
   });
 
   test("test_the_text_is_not_kept_in_the_markup_of_the_box", async () => {
     const { user, container } = await openSearch();
 
     await user.type(promptBox(), `leafy ${CANARY}`);
-    await user.type(screen.getByRole("combobox", { name: FIND_AREA.label }), CANARY);
+    expect(container.innerHTML.includes(CANARY)).toBe(false);
+    // The field that finds an area is in the second way in. While that is chosen the box
+    // is not drawn, and is on the page all the same, with what was typed in it.
+    await way(user, "deep");
+    const field = screen.getByRole("textbox", { name: FIND_AREA.labelAlone });
+    await user.type(field, CANARY);
     await arrived();
+    expect(container.innerHTML.includes(CANARY)).toBe(false);
+    expect(field).toHaveValue(CANARY);
 
-    // The box holds the text. Nothing else in the page's markup does.
+    await way(user, "quick");
+
+    // The box holds the text. Nothing else in the page's markup does, whichever way is chosen.
     expect(promptBox()).toHaveValue(`leafy ${CANARY}`);
     expect(container.innerHTML.includes(CANARY)).toBe(false);
+    expect(document.body.innerHTML.includes(CANARY)).toBe(false);
   });
 
-  test("test_the_question_never_repeats_what_was_typed", async () => {
+  test("test_where_a_name_is_borne_by_several_places_nothing_on_the_page_repeats_what_was_typed", async () => {
+    // The question never repeated what was typed. Nothing is asked now: the first place is
+    // taken, and the chip of it holds the name the service gives, and no word of the box.
     const { user } = await openSearch(firstSearch().on("interpret", "interpret-clarify"));
 
     await search(user, `30 minutes to ${CANARY}`);
@@ -316,57 +392,66 @@ describe("what a person types", () => {
     const page = document.body.cloneNode(true) as HTMLElement;
     page.querySelectorAll("textarea, input").forEach((field) => field.remove());
     expect(page.textContent?.includes(CANARY)).toBe(false);
+    expect(page.textContent).not.toMatch(/30 minutes to\b/);
   });
 
-  test("test_the_words_beside_an_offer_are_cut_from_the_box_and_are_nowhere_else_on_the_page", async () => {
-    const { user, api, container } = await openSearch(firstSearch().on("interpret", "interpret-suggest"));
+  test("test_what_burro_took_of_a_sentence_is_sent_as_the_edits_the_service_gave_and_no_word_of_the_box_is_drawn_or_sent_with_them", async () => {
+    // Of the two things that were noticed one is taken, and the words give no way of the other.
+    const noticed = noisyAtHome().body.data;
+    const { user, api, container } = await openSearch(
+      firstSearch()
+        .on("interpret", noisyAtHome)
+        .on("rank", "rank-suggestion-chosen")
+        .on("explain_top", "explanations-suggestion-chosen"),
+    );
     const typed = `Pubs are so noisy near ${CANARY}`;
 
     await user.type(promptBox(), typed);
     await user.click(screen.getByRole("button", { name: PROMPT.submit }));
-    const offered = within(await screen.findByRole("region", { name: SUGGEST.title }));
-    await user.click(offered.getAllByRole("button", { name: /^Show the words in the box: / })[0] as HTMLElement);
+    await settled();
     await user.click(screen.getByRole("button", { name: SUGGEST.showUnread }));
 
-    // The words are selected where they stand, and those an offer rests on are drawn beside it.
+    // The words that were not read are selected where they stand, in the box.
     expect(promptBox()).toHaveValue(typed);
     expect(promptBox().selectionEnd).toBeGreaterThan(promptBox().selectionStart);
-    const quoted = [...container.querySelectorAll("q")];
-    expect(quoted.map((words) => words.textContent)).toEqual(["Pubs are so noisy", "Pubs are so noisy"]);
-    expect(quoted.every((words) => words.closest("section")?.getAttribute("aria-labelledby"))).toBe(true);
-    // They are in the text of the page there, and in no attribute, no id and no other place.
+    // No word of the box is drawn on the page: not beside what Burro took, which the
+    // words of an offer once were, and in no attribute, no id and no other place.
+    expect(container.querySelectorAll("q")).toHaveLength(0);
     const page = container.cloneNode(true) as HTMLElement;
-    page.querySelectorAll("textarea, q").forEach((held) => held.remove());
+    page.querySelectorAll("textarea").forEach((held) => held.remove());
     expect(page.innerHTML.includes(CANARY)).toBe(false);
     expect(page.innerHTML.includes("so noisy")).toBe(false);
-    // What nothing was made of is drawn nowhere.
     expect(container.innerHTML.replace(/<textarea[\s\S]*?<\/textarea>/g, "").includes(CANARY)).toBe(false);
-    // Nothing is ranked from what was noticed until the person chooses.
-    expect(api.callsTo("rank")).toEqual([]);
-
-    api.on("rank", "rank-suggestion-chosen").on("explain_top", "explanations-suggestion-chosen");
-    await user.click(offered.getByRole("button", { name: "Fewer pubs and bars" }));
-    await settled();
-
-    // What is sent is the edit the API gave with the choice, and nothing of what was typed.
-    const chosen = recordedAnswer("rank", "rank-suggestion-chosen");
-    expect(api.lastCallTo("rank").body).toEqual(chosen.request.body);
+    // What is sent to be ranked is the edits the service gave with the ways that were
+    // taken, and the search as it stood: nothing of what was typed.
+    const taken = takenOfAll(noticed.suggestions, meta.data).reduce(
+      (all, made) => (made.way === null ? all : merged(all, made.operations)),
+      NO_EDITS,
+    );
+    expect(api.callsTo("rank")).toHaveLength(1);
+    expect((api.lastCallTo("rank").body as { operations: Operations }).operations).toEqual(taken);
+    expect(Object.keys(api.lastCallTo("rank").body as object).sort()).toEqual(["limit", "operations", "spec"]);
     expect(api.lastCallTo("rank").sent?.includes(CANARY)).toBe(false);
+    expect(api.lastCallTo("rank").sent?.includes("noisy")).toBe(false);
     expect(api.callsTo("interpret")).toHaveLength(1);
   });
 
-  test("test_the_words_beside_an_offer_go_when_the_box_changes", async () => {
-    const { user, container } = await openSearch(firstSearch().on("interpret", "interpret-suggest"));
+  test("test_where_the_unread_words_stand_is_known_for_the_text_that_was_sent_and_the_way_to_show_them_goes_when_the_box_changes", async () => {
+    const { user } = await openSearch(
+      firstSearch()
+        .on("interpret", "interpret-suggest")
+        .on("rank", "rank-suggestion-chosen")
+        .on("explain_top", "explanations-suggestion-chosen"),
+    );
 
     await user.type(promptBox(), `Pubs are so noisy near ${CANARY}`);
     await user.click(screen.getByRole("button", { name: PROMPT.submit }));
-    await screen.findByRole("region", { name: SUGGEST.title });
-    expect(container.querySelectorAll("q")).toHaveLength(2);
+    await settled();
+    expect(screen.getByRole("button", { name: SUGGEST.showUnread })).toBeInTheDocument();
     await user.type(promptBox(), " and more");
 
     // Where the words stand is known for the text that was sent, and for no other.
-    expect(container.querySelectorAll("q")).toHaveLength(0);
-    expect(screen.queryByRole("region", { name: SUGGEST.title })).toBeNull();
+    expect(screen.queryByRole("button", { name: SUGGEST.showUnread })).toBeNull();
   });
 
   test("test_the_words_are_sent_twice_where_a_model_reads_and_each_time_in_the_body_of_a_post", async () => {
@@ -375,7 +460,7 @@ describe("what a person types", () => {
 
     await user.type(promptBox(), `quiet, honestly ${CANARY}`);
     await user.click(screen.getByRole("button", { name: PROMPT.submit }));
-    await screen.findByRole("region", { name: SUGGEST.title });
+    await waitFor(() => expect(api.callsTo("interpret")).toHaveLength(2));
     await settled();
 
     const calls = api.callsTo("interpret");

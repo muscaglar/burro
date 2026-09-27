@@ -1,6 +1,6 @@
 {
   "scenario": "visit/09-place",
-  "shows": "A place named in part: a question, and no edit applied",
+  "shows": "A place named in part: the places that bear the name, and no edit applied",
   "captured": true,
   "request": {
     "operation_id": "interpret",
@@ -113,7 +113,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },

@@ -96,7 +96,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "27461",
+    "content-length": "29826",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -106,7 +106,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -125,7 +125,7 @@
           },
           "reasons": [
             {
-              "text": "By public transport to Eskerfold: about 4 minutes on a typical weekday morning, 4 if you just miss a service.",
+              "text": "By public transport to Eskerfold: about 4 minutes on a typical weekday morning, or 4 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0005/travel/syn-p0005.pt"
               ],
@@ -133,7 +133,7 @@
               "replaced": false
             },
             {
-              "text": "Quiet streets: band 4 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Quiet streets: band 4 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0005/tag/quiet_residential"
               ],
@@ -141,7 +141,7 @@
               "replaced": false
             },
             {
-              "text": "Leafy: band 4 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Leafy: band 4 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0005/tag/leafy"
               ],
@@ -150,7 +150,7 @@
             }
           ],
           "trade_off": {
-            "text": "The upper end is £50 over your budget of £1,700.",
+            "text": "For this kind of home, the upper end of the range of costs here is £1,750, which is £50 over your budget of £1,700.",
             "fact_ids": [
               "syn-n0005/budget_fit/rent.bed_1"
             ],
@@ -171,7 +171,7 @@
           },
           "reasons": [
             {
-              "text": "Leafy: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Leafy: band 5 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0001/tag/leafy"
               ],
@@ -179,7 +179,7 @@
               "replaced": false
             },
             {
-              "text": "Quiet streets: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Quiet streets: band 5 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0001/tag/quiet_residential"
               ],
@@ -187,7 +187,7 @@
               "replaced": false
             },
             {
-              "text": "By public transport to Eskerfold: about 22 minutes on a typical weekday morning, 27 if you just miss a service.",
+              "text": "By public transport to Eskerfold: about 22 minutes on a typical weekday morning, or 27 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0001/travel/syn-p0005.pt"
               ],
@@ -196,7 +196,7 @@
             }
           ],
           "trade_off": {
-            "text": "The upper end is £225 over your budget of £1,700.",
+            "text": "For this kind of home, the upper end of the range of costs here is £1,925, which is £225 over your budget of £1,700.",
             "fact_ids": [
               "syn-n0001/budget_fit/rent.bed_1"
             ],
@@ -205,7 +205,7 @@
           },
           "missing": [
             {
-              "text": "There is no Modelled annual mean nitrogen dioxide figure for Alderwick in this release, so it was left out of the score.",
+              "text": "Nitrogen dioxide in the air, as a modelled average over a year: Burro has no figure for this in Alderwick, so it does not count towards the fit of this area.",
               "fact_ids": [
                 "syn-n0001/missing/feature:air_no2"
               ],
@@ -226,7 +226,7 @@
           },
           "reasons": [
             {
-              "text": "Quiet streets: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Quiet streets: band 5 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0008/tag/quiet_residential"
               ],
@@ -234,7 +234,7 @@
               "replaced": false
             },
             {
-              "text": "Leafy: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Leafy: band 5 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0008/tag/leafy"
               ],
@@ -242,7 +242,7 @@
               "replaced": false
             },
             {
-              "text": "The upper end is £150 under your budget of £1,700.",
+              "text": "For this kind of home, the upper end of the range of costs here is £1,550, which is £150 under your budget of £1,700.",
               "fact_ids": [
                 "syn-n0008/budget_fit/rent.bed_1"
               ],
@@ -251,7 +251,7 @@
             }
           ],
           "trade_off": {
-            "text": "By public transport to Eskerfold: about 33 minutes on a typical weekday morning, 38 if you just miss a service, 3 minutes over the 30 you set.",
+            "text": "By public transport to Eskerfold: about 33 minutes on a typical weekday morning, or 38 minutes if you just miss a service. This journey is 3 minutes over the limit of 30 minutes you set.",
             "fact_ids": [
               "syn-n0008/travel/syn-p0005.pt"
             ],
@@ -272,7 +272,7 @@
           },
           "reasons": [
             {
-              "text": "Leafy: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Leafy: band 5 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0013/tag/leafy"
               ],
@@ -280,7 +280,7 @@
               "replaced": false
             },
             {
-              "text": "Quiet streets: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Quiet streets: band 5 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0013/tag/quiet_residential"
               ],
@@ -288,7 +288,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 380 m, closer than 90% of the 21 areas compared in this release.",
+              "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 380 m, which is closer than 90% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0013/feature/park_proximity"
               ],
@@ -297,7 +297,7 @@
             }
           ],
           "trade_off": {
-            "text": "By public transport to Eskerfold: about 35 minutes on a typical weekday morning, 40 if you just miss a service, 5 minutes over the 30 you set.",
+            "text": "By public transport to Eskerfold: about 35 minutes on a typical weekday morning, or 40 minutes if you just miss a service. This journey is 5 minutes over the limit of 30 minutes you set.",
             "fact_ids": [
               "syn-n0013/travel/syn-p0005.pt"
             ],
@@ -318,7 +318,7 @@
           },
           "reasons": [
             {
-              "text": "Leafy: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Leafy: band 5 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0002/tag/leafy"
               ],
@@ -326,7 +326,7 @@
               "replaced": false
             },
             {
-              "text": "By public transport to Eskerfold: about 26 minutes on a typical weekday morning, 28 if you just miss a service.",
+              "text": "By public transport to Eskerfold: about 26 minutes on a typical weekday morning, or 28 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0002/travel/syn-p0005.pt"
               ],
@@ -334,7 +334,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest way in to a station: 160 m, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
+              "text": "Distance to the nearest station entrance, in a straight line: 160 m, which is closer than 77% of the 22 areas Burro compared, and the same as 4 others.",
               "fact_ids": [
                 "syn-n0002/feature/station_walk"
               ],
@@ -343,7 +343,7 @@
             }
           ],
           "trade_off": {
-            "text": "The upper end is £325 over your budget of £1,700.",
+            "text": "For this kind of home, the upper end of the range of costs here is £2,025, which is £325 over your budget of £1,700.",
             "fact_ids": [
               "syn-n0002/budget_fit/rent.bed_1"
             ],
@@ -436,8 +436,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -480,8 +480,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -523,8 +523,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -567,8 +567,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -693,10 +693,10 @@
           "area_id": "syn-n0001",
           "kind": "missing",
           "key": "feature:air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "missing",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "name": "Alderwick"
           },
           "numbers": [],
@@ -735,8 +735,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -777,9 +777,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -823,8 +823,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -866,8 +866,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1007,9 +1007,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -1054,8 +1054,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1097,8 +1097,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -1141,8 +1141,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1238,18 +1238,18 @@
           "area_id": "syn-n0013",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "380 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "90",
-            "standing": "closer than 90% of the 21 areas compared in this release",
+            "standing": "closer than 90% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "4",
-            "standing_worse": "further than 4% of the 21 areas compared in this release",
+            "standing_worse": "further than 4% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1291,8 +1291,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1334,8 +1334,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1377,8 +1377,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1420,8 +1420,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1547,16 +1547,16 @@
           "area_id": "syn-n0002",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "160 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "77",
-            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others",
-            "standing_worse": "the same as 4 of the 21 other areas compared in this release",
+            "standing": "closer than 77% of the 22 areas Burro compared, and the same as 4 others",
+            "standing_worse": "the same as 4 of the 21 other areas Burro compared",
             "compared": "22",
             "level": "4"
           },
@@ -1600,8 +1600,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1643,8 +1643,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1686,8 +1686,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1729,8 +1729,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",

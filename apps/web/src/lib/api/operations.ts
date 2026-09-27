@@ -4,10 +4,16 @@
  * Every type here is worked out from the generated schema. None is written by hand.
  */
 
+import type { AccountOperation } from "@/lib/account/routes";
+
 import type { operations } from "./schema";
 
-/** Every operation the website calls. `healthz` is left out: no page needs it. */
-export type OperationId = Exclude<keyof operations, "healthz">;
+/**
+ * Every operation the website calls of the API itself. `healthz` is left out: no page needs
+ * it. So are the routes of accounts, which a browser asks of the website's own origin and
+ * never of the API's: `lib/account` has them.
+ */
+export type OperationId = Exclude<keyof operations, "healthz" | AccountOperation>;
 
 type JsonOf<T> = T extends { readonly content: { readonly "application/json": infer Body } }
   ? Body

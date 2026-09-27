@@ -13,15 +13,21 @@ import { readdirSync } from "node:fs";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
+import { picturesAtEnds } from "@/components/kit/Ends/picture";
 import { SearchApp } from "@/components/SearchApp/SearchApp";
 import { Shell } from "@/components/Shell/Shell";
+import { Town } from "@/components/Town/Town";
 
+import { CARD } from "@/content/card";
 import { CRIME_ACCOUNT, crimeVibes } from "@/content/crime";
 import { COMBINE } from "@/content/labels";
 import { MAP } from "@/content/map";
-import { CHIPS, JOURNEYS, RESULTS, STRIP } from "@/content/search";
+import { CHIPS, JOURNEYS, RESULTS, SOURCE, STRIP } from "@/content/search";
+import { TOWN } from "@/content/town";
 import { readRecorded, recordedAnswer, recordedFolder } from "@/lib/api/recorded";
 import type { ExplanationsData, RankData } from "@/lib/api/schema";
+import type { Mark } from "@/lib/town/bands";
+import { saidOf } from "@/lib/town/said";
 
 import { standInApi, type Responder } from "../support/api";
 import {
@@ -29,6 +35,7 @@ import {
   arrived,
   everyChip,
   everyResult,
+  meta,
   openSearch,
   promptBox,
   results,
@@ -67,6 +74,18 @@ const shownByNumber = () =>
 /** The part of a result under the word "Trade-off". */
 const tradeOff = (result: HTMLElement) =>
   within(result).getByRole("heading", { name: RESULTS.tradeOffTitle }).parentElement as HTMLElement;
+
+/**
+ * Opens the working of the result of an area, and says whether it holds the source of a
+ * trade-off: the heading of that part, or the key that is named for it.
+ */
+async function sourceOfATradeOffIn(user: ReturnType<typeof userEvent.setup>, name: string): Promise<boolean> {
+  const working = within(await workingOf(user, name));
+  return (
+    working.queryByRole("heading", { name: CARD.sourceOfTheTradeOff }) !== null ||
+    working.queryByRole("button", { name: SOURCE.buttonFor(RESULTS.sourceOfTradeOff(name)) }) !== null
+  );
+}
 
 describe("a place the person named", () => {
   test("test_every_place_the_person_named_is_shown_by_its_name_wherever_it_is_shown", async () => {
@@ -124,6 +143,10 @@ describe("what is said under the word trade-off", () => {
     // The next card has one, and says it in the API's words.
     const given = recordedAnswer("explain_top", "explanations-first").body.data.explanations[1]?.trade_off;
     expect(tradeOff(results()[1] as HTMLElement)).toHaveTextContent(given?.text ?? "no trade-off");
+    // The source of a trade-off stands in the working, of a result that has one and of no other.
+    const [first, next] = recordedAnswer("rank", "rank-first").body.data.ranked;
+    expect(await sourceOfATradeOffIn(user, nameOf(first?.area_id ?? ""))).toBe(false);
+    expect(await sourceOfATradeOffIn(user, nameOf(next?.area_id ?? ""))).toBe(true);
   });
 
   test("test_a_strength_the_api_gave_as_a_trade_off_is_not_shown_as_one", async () => {
@@ -156,6 +179,9 @@ describe("what is said under the word trade-off", () => {
     expect(within(results()[0] as HTMLElement).getByRole("heading", { name: "Farrowmere" })).toBeInTheDocument();
     expect(document.body.textContent?.includes(text)).toBe(false);
     expect(tradeOff(results()[0] as HTMLElement)).toHaveTextContent(RESULTS.noTradeOff);
+    // Nor does the working give it a source as the trade-off of the area.
+    expect(await sourceOfATradeOffIn(user, "Farrowmere")).toBe(false);
+    expect(document.body.textContent?.includes(text)).toBe(false);
   });
 });
 
@@ -193,6 +219,12 @@ describe("the side a sentence is said from", () => {
     );
   }
 
+  /** What stands under "Why it fits" in the working of a result: each line of it, as it is written. */
+  const reasonsIn = (result: HTMLElement) =>
+    within(within(result).getByRole("heading", { name: RESULTS.reasonsTitle }).parentElement as HTMLElement)
+      .getAllByRole("listitem")
+      .map((reason) => reason.textContent);
+
   test("test_a_reason_is_shown_word_for_word_as_the_api_said_it", async () => {
     const ranking: RankData = recordedAnswer("rank", "rank-buyer-family").body.data;
     const { explanations } = recordedAnswer("explain_top", "explanations-buyer-family").body.data;
@@ -206,12 +238,20 @@ describe("the side a sentence is said from", () => {
     await settled();
 
     // The website lays the sentence out. It does not reword it, and it does not turn it round.
-    // The first reason is in the answer, and the others are in the working.
+    // A result says no reason until its working is opened. Every reason is there, under
+    // "Why it fits", in the order the API gave them, and each ends in the key of its source.
     for (const [at, area] of ranking.ranked.slice(0, 5).entries()) {
       const reasons = explanations.find((one) => one.area_id === area.area_id)?.reasons ?? [];
-      expect(results()[at]?.textContent?.includes(reasons[0]?.text ?? "no reason")).toBe(true);
+      const result = results()[at] as HTMLElement;
+      expect([at, reasons.length > 0]).toEqual([at, true]);
+      expect(within(result).queryByRole("heading", { name: RESULTS.reasonsTitle })).toBeNull();
+      expect(reasons.filter((reason) => result.textContent?.includes(reason.text))).toEqual([]);
+
       await workingOf(user, nameOf(area.area_id));
-      for (const reason of reasons) expect(results()[at]?.textContent?.includes(reason.text)).toBe(true);
+
+      expect(reasonsIn(result)).toEqual(
+        reasons.map((reason) => `${reason.text}${reason.origin === "model" ? RESULTS.byModel : ""}${SOURCE.button}`),
+      );
     }
   });
 
@@ -252,22 +292,73 @@ describe("the word gritty, which is built two ways", () => {
     within(screen.getByRole("region", { name: CHIPS.label }))
       .getAllByRole("listitem")
       .map((chip) => chip.textContent?.replace(/×|Turn/g, "") ?? "");
+  /** What was recorded of the search on a release: the vibe the word was read as, and what was written of the first area. */
+  function recordedOn(variant: "" | "variant-a/") {
+    const ranking = recordedAnswer("rank", `${variant}rank-gritty`).body.data;
+    const { explanations, facts } = recordedAnswer("explain_top", `${variant}explanations-gritty`).body.data;
+    const { tags } = recordedAnswer("get_meta", `${variant}meta`).body.data;
+    const [first] = ranking.ranked;
+    const vibe = tags.find((tag) => tag.tag_id === ranking.spec.tags[0]?.tag_id);
+    const written = explanations.find((one) => one.area_id === first?.area_id);
+    if (first === undefined || vibe === undefined || written === undefined) throw new Error("Nothing was recorded of it.");
+    const listed = recordedAnswer("list_areas", `${variant}areas`).body.data.areas;
+    const name = listed.find((area) => area.area_id === first.area_id)?.name ?? "";
+    /** True of a sentence that is about the vibe: the first fact it cites is the fact of the vibe. */
+    const isOfTheVibe = (sentence: { readonly fact_ids: readonly string[] } | null) => {
+      const about = facts.find((fact) => fact.fact_id === sentence?.fact_ids[0]);
+      return about?.kind === "tag" && about.key === vibe.tag_id;
+    };
+    return { vibe, written, name, isOfTheVibe };
+  }
+  /** Where a drawing is served from, as the style of what draws it says. */
+  const served = (name: string) => `url("/art/${name}.png")`;
+  /**
+   * Opens the working of the first result, and in it the source of everything that is of the
+   * vibe: of each sentence about it, and of its figure where no sentence of the result holds
+   * it. It answers with what each source says, once it is open.
+   */
+  async function sourcesOfTheVibe(user: ReturnType<typeof userEvent.setup>, variant: "" | "variant-a/") {
+    const { vibe, written, name, isOfTheVibe } = recordedOn(variant);
+    const working = within(await workingOf(user, name));
+    const of = [
+      ...written.reasons.flatMap((reason, at) => (isOfTheVibe(reason) ? [RESULTS.sourceOfReason(at + 1, name)] : [])),
+      // The figure of the vibe stands under the trade-off where the trade-off is about it, and
+      // with the figures behind each vibe where it is not.
+      isOfTheVibe(written.trade_off) ? RESULTS.sourceOfTradeOff(name) : vibe.label,
+    ];
+    const said: string[] = [];
+    for (const what of of) {
+      const key = working.getByRole("button", { name: SOURCE.buttonFor(what) });
+      await user.click(key);
+      said.push(document.getElementById(key.getAttribute("aria-controls") ?? "")?.textContent ?? "");
+    }
+    return said;
+  }
 
   test("test_where_it_is_a_scale_the_chip_names_the_end_and_nothing_is_assumed", async () => {
     const { form } = await openOn("");
+    const { vibe } = recordedOn("");
 
     expect(form.data.gritty_variant).toBe("b");
     expect(chipsSaid()).toContain(`${CHIPS.towards("Gritty", "Gritty")}, ${CRIME_ACCOUNT.chip}`);
     expect(chipsSaid().filter((said) => said.includes("“"))).toEqual([]);
     expect(screen.getByRole("button", { name: CHIPS.turnTo("Gritty", "Polished") })).toBeInTheDocument();
-    // The first result shows where it sits between the two ends: a picture, with the name
-    // of an end at each side of it. It is the reason, so it stands beside its sentence.
+    // The first result shows where it sits between the two ends: a gauge, on the line of the
+    // vibe, with a picture at each end. No name of an end is written on a result: the name
+    // of the gauge says both ends, and which of them was asked for, to whoever hears the page.
     const card = results()[0] as HTMLElement;
-    const picture = within(card)
-      .getAllByRole("img")
-      .find((one) => one.previousElementSibling?.textContent === "Polished");
-    expect(picture?.nextElementSibling?.textContent).toBe("Gritty");
-    expect(card.textContent?.includes("Gritty")).toBe(true);
+    const lines = within(card).getAllByRole("listitem");
+    expect(lines.map((line) => line.textContent)).toEqual([vibe.label]);
+    const gauge = within(lines[0] as HTMLElement).getByRole("img");
+    expect(gauge).toHaveAccessibleName(
+      `${STRIP.band(5)}, ${STRIP.from("Polished", "Gritty")}, ${STRIP.askedFor("Gritty")}`,
+    );
+    expect(card.textContent?.includes("Polished")).toBe(false);
+    // The picture of each end is chosen by the id the API gives the vibe, and the two are not one.
+    const [low, high] = picturesAtEnds(vibe.tag_id);
+    const ends = [...gauge.querySelectorAll<HTMLElement>("[aria-hidden='true'][style*='/art/end-']")];
+    expect(ends.map((end) => end.style.getPropertyValue("--art"))).toEqual([served(low), served(high)]);
+    expect(low === high).toBe(false);
   });
 
   test("test_where_it_is_one_part_of_a_place_the_chip_quotes_the_word_and_says_it_was_assumed", async () => {
@@ -297,22 +388,27 @@ describe("the word gritty, which is built two ways", () => {
     const understood = screen.getByRole("region", { name: CHIPS.label });
 
     expect(understood.textContent?.includes("recorded crime")).toBe(true);
-    // The source of the sentence about it names the parts of its recipe that are of crime.
-    const card = results()[0] as HTMLElement;
-    await user.click(within(card).getAllByRole("button", { name: /^Source for / })[0] as HTMLElement);
+    // No key of a source stands on a result until its working is opened. There, the source of
+    // the sentence about the vibe names the parts of its recipe that are of crime, and so
+    // does the source of its figure.
+    const said = await sourcesOfTheVibe(user, "");
     const parts = crimeVibes(recordedAnswer("get_meta", "meta").body.data)[0]?.parts.map((part) => part.label) ?? [];
     expect(parts).toHaveLength(2);
-    expect(card.textContent?.includes(CRIME_ACCOUNT.counts)).toBe(true);
-    for (const part of parts) expect(card.textContent?.includes(part)).toBe(true);
+    expect(said).toHaveLength(2);
+    expect(said.map((source) => source.includes(CRIME_ACCOUNT.counts))).toEqual([true, true]);
+    for (const part of parts) expect(said.map((source) => source.includes(part))).toEqual([true, true]);
   });
 
   test("test_where_it_is_built_from_land_use_nothing_is_said_to_count_recorded_crime", async () => {
     const { user } = await openOn("variant-a/");
-    const card = results()[0] as HTMLElement;
-    await user.click(within(card).getAllByRole("button", { name: /^Source for / })[0] as HTMLElement);
+    const said = await sourcesOfTheVibe(user, "variant-a/");
 
     expect(/recorded crime/i.test(screen.getByRole("region", { name: CHIPS.label }).textContent ?? "")).toBe(false);
-    expect(card.textContent?.includes(CRIME_ACCOUNT.counts)).toBe(false);
+    // Each source is open, and says what a source says: where the data is from.
+    expect(said).toHaveLength(2);
+    expect(said.map((source) => source.includes(SOURCE.dataFrom))).toEqual([true, true]);
+    expect(said.map((source) => source.includes(CRIME_ACCOUNT.counts))).toEqual([false, false]);
+    expect(results()[0]?.textContent?.includes(CRIME_ACCOUNT.counts)).toBe(false);
   });
 
   test("test_neither_way_of_building_it_holds_a_figure_about_who_lives_somewhere", () => {
@@ -328,6 +424,76 @@ describe("the word gritty, which is built two ways", () => {
       }
       expect(gritty?.cannot_see.length).toBeGreaterThan(1);
     }
+  });
+});
+
+describe("the town of a result", () => {
+  /** The searches whose strips differ most: what was asked for is what a strip holds. */
+  const SEARCHES = ["first", "buyer-family", "nights-out", "scale", "two-journeys", "by-the-river"] as const;
+  const profileOf = (areaId: string) =>
+    recordedAnswer("get_area", `area/${areas.find((area) => area.area_id === areaId)?.slug ?? ""}`).body.data;
+  const townOf = (result: Element) => result.querySelector("figure") as HTMLElement;
+  const heardOf = (town: Element) => within(town as HTMLElement).getByRole("img").getAttribute("aria-label");
+  /** What the part draws and says of what it is handed, with nothing about it. */
+  function alone(marks: readonly Mark[], name: string) {
+    const { container, unmount } = render(<Town marks={marks} meta={meta.data} of={name} />);
+    const town = { heard: heardOf(container), says: container.querySelector("figcaption")?.textContent };
+    unmount();
+    return town;
+  }
+
+  test.each(SEARCHES)("test_the_town_of_a_result_is_the_town_of_the_page_of_its_area_whatever_was_searched_for: %s", async (scenario) => {
+    // Seen in a browser: drawn from the strip of its result, which holds what was asked for
+    // and two more, the town of the first result said "Left blank: lit windows. What is not
+    // known is not drawn.", and the page of that area drew them. The page holds where every
+    // area sits, and hands it to the list.
+    const { user } = await openSearch(
+      standInApi()
+        .on("interpret", `interpret-${scenario}`)
+        .on("rank", `rank-${scenario}`)
+        .on("explain_top", `explanations-${scenario}`)
+        .on("search_places", "places-search"),
+    );
+    await search(user, sentenceOf(`interpret-${scenario}`));
+    await settled();
+    const ranked = recordedAnswer("rank", `rank-${scenario}`).body.data.ranked;
+
+    expect(results().length).toBeGreaterThan(0);
+    results().forEach((result, at) => {
+      const areaId = ranked[at]?.area_id ?? "";
+      const page = alone(profileOf(areaId).tags, nameOf(areaId));
+
+      expect([at, heardOf(townOf(result))]).toEqual([at, page.heard]);
+      expect([at, townOf(result).querySelector("figcaption")?.textContent]).toEqual([at, page.says]);
+    });
+  });
+
+  test.each(SEARCHES)("test_a_part_of_a_town_is_blank_for_what_is_not_known_and_never_for_what_was_not_asked_for: %s", async (scenario) => {
+    const { user } = await openSearch(
+      standInApi()
+        .on("interpret", `interpret-${scenario}`)
+        .on("rank", `rank-${scenario}`)
+        .on("explain_top", `explanations-${scenario}`)
+        .on("search_places", "places-search"),
+    );
+    await search(user, sentenceOf(`interpret-${scenario}`));
+    await settled();
+    const ranked = recordedAnswer("rank", `rank-${scenario}`).body.data.ranked;
+    /** How often a town says that something is not known of its area, whatever it is. */
+    const timesNotKnown = (heard: string) => heard.split(TOWN.notKnown("")).length - 1;
+
+    results().forEach((result, at) => {
+      const areaId = ranked[at]?.area_id ?? "";
+      // What the service holds no band for, of the area: that, and nothing else, is not known of it.
+      const notKnown = saidOf(profileOf(areaId).tags, meta.data).filter(({ why }) => why === "unknown");
+      const heard = heardOf(townOf(result)) ?? "";
+
+      expect([at, timesNotKnown(heard)]).toEqual([at, notKnown.length]);
+      for (const part of notKnown) expect([at, part.part, heard.includes(`${part.says}.`)]).toEqual([at, part.part, true]);
+      // What is left blank for it is said in sight, in the words of the town, and of no other town.
+      const inSight = townOf(result).querySelector("figcaption")?.textContent ?? "";
+      expect([at, inSight.includes(TOWN.whyBlank.unknown)]).toEqual([at, notKnown.length > 0]);
+    });
   });
 });
 

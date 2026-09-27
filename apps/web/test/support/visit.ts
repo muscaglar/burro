@@ -20,18 +20,35 @@ import path from "node:path";
 
 import { aMomentLater, BASE } from "./api";
 
+/**
+ * The walks that were recorded step by step, each by the name of its folder. The visit is
+ * one person's whole visit. `added` is a search that was set by hand and then added to in
+ * words (`record_what_was_added`).
+ */
+export type Walk = "visit" | "added";
+
+/** The steps of a walk, in the order they were recorded. */
+export function stepsOf(walk: Walk): readonly Recorded[] {
+  return readdirSync(path.join(recordedFolder(), walk))
+    .sort()
+    .map((file) => readRecorded(`${walk}/${file.replace(/\.json$/, "")}`));
+}
+
+/** One step of a walk by its name, which is its file's name with no number: `first-rank`. */
+export function stepOf<Body = unknown>(walk: Walk, name: string): Recorded<Body> {
+  const found = stepsOf(walk).find((step) => step.scenario.replace(/^[a-z]+\/\d+-/, "") === name);
+  if (found === undefined) throw new Error(`The walk ${walk} has no step named ${name}.`);
+  return found as Recorded<Body>;
+}
+
 /** The steps of the visit, in the order they were recorded. */
 export function stepsOfTheVisit(): readonly Recorded[] {
-  return readdirSync(path.join(recordedFolder(), "visit"))
-    .sort()
-    .map((file) => readRecorded(`visit/${file.replace(/\.json$/, "")}`));
+  return stepsOf("visit");
 }
 
 /** One step by its name, which is its file's name with no number: `first-rank`. */
 export function stepOfTheVisit<Body = unknown>(name: string): Recorded<Body> {
-  const found = stepsOfTheVisit().find((step) => step.scenario.replace(/^visit\/\d+-/, "") === name);
-  if (found === undefined) throw new Error(`The visit has no step named ${name}.`);
-  return found as Recorded<Body>;
+  return stepOf<Body>("visit", name);
 }
 
 /** The same whatever order the keys of an object were written in. */
@@ -58,8 +75,14 @@ export interface VisitApi {
   unused(): string[];
 }
 
+/** The stand-in for the visit. */
 export function visitApi(): VisitApi {
-  const steps = stepsOfTheVisit();
+  return walkApi("visit");
+}
+
+/** A stand-in that answers the steps of one walk, to the letter, and nothing else. */
+export function walkApi(walk: Walk): VisitApi {
+  const steps = stepsOf(walk);
   // Two steps may be one request: the reasons of a search, asked for again when its link is
   // opened. The service answers both alike, so either answer will do for both.
   const byKey = new Map<string, Recorded[]>();
@@ -85,7 +108,7 @@ export function visitApi(): VisitApi {
     const area = /^\/v1\/areas\/([a-z0-9-]+)$/.exec(pathname);
     if (method === "GET" && area !== null) return responseFrom(readRecorded(`area/${area[1] ?? ""}`));
     unanswered.push(`${method} ${pathname.replace(/^(\/v1\/shares)\/.+$/, "$1/{share_id}")}`);
-    throw new TypeError("This request is no step of the recorded visit.");
+    throw new TypeError("This request is no step of the walk that was recorded.");
   }) as typeof globalThis.fetch;
 
   return {

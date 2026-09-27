@@ -159,8 +159,9 @@ describe("when the release is real", () => {
       headerAsksToBeLeftOut: false,
       crawlersAreLetIn: true,
       sitemapNamed: true,
-      // The search, the vibes, methods, sources and the statement, and a page for each area.
-      listed: 5 + recorded.areas.data.areas.length,
+      // The search, the vibes, the methods and the sources, and a page for each area. The
+      // statement of accessibility was the fifth, and the page went when the founder asked.
+      listed: 4 + recorded.areas.data.areas.length,
       canonical: true,
       structured: true,
     });
@@ -185,10 +186,19 @@ describe("when the release is real", () => {
       `${SITE}/vibes`,
       `${SITE}/methods`,
       `${SITE}/sources`,
-      `${SITE}/accessibility`,
       ...recorded.areas.data.areas.map((area) => `${SITE}/synthetic/${area.slug}`),
     ]);
     expect(new Set(listed).size).toBe(listed.length);
+  });
+
+  test("test_the_sitemap_hands_a_search_engine_no_address_of_a_page_that_is_gone", async () => {
+    process.env.BURRO_SITE_URL = SITE;
+
+    // The page of accessibility went, and a search engine that is handed its address
+    // is led to a page that is not there.
+    const listed = (await sitemap()).map((entry) => new URL(entry.url).pathname);
+
+    expect(listed.filter((path) => /accessib/i.test(path))).toEqual([]);
   });
 
   test("test_the_sitemap_lists_no_comparison_and_no_shared_search", async () => {
@@ -228,7 +238,8 @@ describe("the pages that are one person's", () => {
     meta = REAL;
     process.env.BURRO_SITE_URL = SITE;
 
-    expect(await keptOutByHeader()).toEqual(["/compare", "/s"]);
+    // The pages of accounts are one person's too, and so is what the website passes on for them.
+    expect(await keptOutByHeader()).toEqual(["/account", "/compare", "/s", "/sign-in/:path*", "/v1/:path*"]);
   });
 });
 

@@ -28,14 +28,27 @@ export async function aMomentLater(): Promise<void> {
 }
 
 let onTheirWay = 0;
+/** Which test the answers that are counted were asked for in. */
+let asked = 0;
 
 /**
  * How many answers are on their way: asked for, and not yet given. An answer that a test
- * holds back, or that is never given, is not on its way. A test that waits for the page
- * waits for these to land, and not for a turn of the clock.
+ * holds back, or that is never given, is not on its way: a test says which with `hold`,
+ * `gate`, `silent` and `never`. A test that waits for the page waits for these to land,
+ * and not for a turn of the clock.
  */
 export function answersOnTheirWay(): number {
   return onTheirWay;
+}
+
+// An answer that was asked for in one test is of a page that is gone by the next, and is
+// not waited for there. One that never landed was waited for by every test after it in its
+// file, for as long as a test waits: a file of sixty tests took two and a half minutes.
+if (typeof beforeEach === "function") {
+  beforeEach(() => {
+    asked += 1;
+    onTheirWay = 0;
+  });
 }
 
 /** How long answers that are on their way are waited for, in milliseconds, before a test goes on. */
@@ -78,6 +91,11 @@ export interface Held {
   waiting(): number;
 }
 
+export interface Gate extends Held {
+  /** The answer that waits, to be set as any other is: `api.inTurn("interpret", "at-once", gate.answers)`. */
+  readonly answers: Responder;
+}
+
 export interface StandIn {
   readonly fetch: typeof fetch;
   readonly client: Client;
@@ -100,6 +118,14 @@ export interface StandIn {
   unreachable(operation: OperationId): StandIn;
   /** Makes an operation never answer, until it is stopped. */
   silent(operation: OperationId): StandIn;
+  /**
+   * An answer that waits until it is released, to be set among others: the second of the
+   * answers of `inTurn`, as a model answers once the rules have. What it holds is not on
+   * its way until it is released.
+   */
+  gate(responder: Responder): Gate;
+  /** An answer that is never given, until the call is stopped, to be set among others. It is not on its way. */
+  readonly never: Responder;
   /**
    * From now on every recording is answered as a service holding this release answers
    * it: a service names the release it holds in every answer, whatever the route.
@@ -170,13 +196,15 @@ export function standInApi(): StandIn {
       const held = await responder(call);
       return held instanceof Response ? held : responseFrom(asTheReleaseNow(held, call));
     }
+    const during = asked;
     onTheirWay += 1;
     try {
       await aMomentLater();
       const made = typeof responder === "string" ? readRecorded(responder) : await responder(call);
       return made instanceof Response ? made : responseFrom(asTheReleaseNow(made, call));
     } finally {
-      onTheirWay -= 1;
+      // One that lands in a later test than it was asked for in was not counted there.
+      if (during === asked) onTheirWay -= 1;
     }
   }
 
@@ -222,6 +250,9 @@ export function standInApi(): StandIn {
     return { held, handle: { release: () => open(), waiting: () => waiting } };
   }
 
+  const never: Responder = () => new Promise<Response>(() => undefined);
+  waits.add(never);
+
   const standIn: StandIn = {
     fetch,
     client: createClient({ baseUrl: BASE, fetch }),
@@ -255,11 +286,14 @@ export function standInApi(): StandIn {
       return standIn;
     },
     silent(operation) {
-      const never: Responder = () => new Promise<Response>(() => undefined);
-      waits.add(never);
       responders.set(operation, [never]);
       return standIn;
     },
+    gate(responder) {
+      const { held, handle } = gated(responder);
+      return { ...handle, answers: held };
+    },
+    never,
     movedTo(next) {
       release = next;
       return standIn;

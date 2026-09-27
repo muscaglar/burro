@@ -5,12 +5,14 @@
 
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 
+import { CARD } from "@/content/card";
+import { HELPERS } from "@/content/helpers";
 import { MAP, TABLE } from "@/content/map";
 import {
   CHIPS,
-  CLARIFY,
   SHELF,
   FILTERED,
+  LEFT_OUT,
   NOTHING_MATCHES,
   NOTICE,
   PROMPT,
@@ -19,6 +21,7 @@ import {
   REJECTED_PART,
   RESULTS,
   STATUS,
+  SUGGEST,
   TENURE_CHOICE,
   UNMET,
   UNMET_LABEL,
@@ -28,8 +31,9 @@ import {
 import { BUDGET, JOURNEY, SETTINGS } from "@/content/settings";
 import { SHOWN_AT_FIRST } from "@/components/ResultList/ResultList";
 import { BANNER } from "@/content/site";
+import { UNREAD, WAYS } from "@/content/ways";
 import { recordedAnswer, recordedError, responseFrom } from "@/lib/api/recorded";
-import type { Operations } from "@/lib/api/schema";
+import type { Operations, Span, UnmetCategory } from "@/lib/api/schema";
 import { edits } from "@/lib/search/edits";
 
 import { reasonsFor, setOnline, standInApi, withTheSpecSent } from "../support/api";
@@ -40,8 +44,12 @@ import {
   everyChip,
   everyResult,
   firstSearch,
+  groupsAre,
+  helper,
+  helpers,
   meta,
   openSearch,
+  panelOf,
   promptBox,
   removeChip,
   resultList,
@@ -49,11 +57,21 @@ import {
   search,
   settingsAt,
   settled,
+  tabOf,
+  theSettings,
+  theSettingsIfAny,
   theTable,
+  way,
+  ways,
+  waysIfAny,
+  whatRefines,
   workingOf,
 } from "../support/search";
 
 jest.mock("next/navigation", () => ({ usePathname: () => "/" }));
+
+/** The group of the settings that holds a family of vibes, by the name the service gives the family. */
+const groupOf = (family: string) => meta.data.families.find((one) => one.family === family)?.label ?? "";
 
 const first = {
   read: recordedAnswer("interpret", "interpret-first").body.data,
@@ -66,8 +84,19 @@ const sentenceOf = (scenario: string) =>
   (recordedAnswer("interpret", scenario).request.body as { text: string }).text;
 const status = () => screen.getAllByRole("status").map((line) => line.textContent ?? "");
 const banner = () => screen.getByRole("region", { name: BANNER.label });
-const settingsButton = () => screen.getByRole("button", { name: SETTINGS.title });
-const settingsAreOpen = () => settingsButton().getAttribute("aria-expanded") === "true";
+/** True where the part that refines a search is open, and the settings are drawn under it. */
+const settingsAreOpen = () => whatRefines()?.getAttribute("aria-expanded") === "true" && theSettingsIfAny() !== null;
+/** The two tabs: what each says, and whether it says it is chosen. */
+const waysAre = () =>
+  within(ways())
+    .getAllByRole("tab")
+    .map((tab) => [tab.textContent, tab.getAttribute("aria-selected")]);
+const THE_FIRST_WAY_CHOSEN = [
+  [WAYS.quick, "true"],
+  [WAYS.deep, "false"],
+];
+/** A pattern of these very words, whatever signs they hold. */
+const wordFor = (words: string) => words.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 /** Moves the slider of a vibe that runs one way, as a drag that is let go does. */
 const slide = (name: string, to: number) => {
   const slider = screen.getByRole("slider", { name });
@@ -75,24 +104,71 @@ const slide = (name: string, to: number) => {
   fireEvent.change(slider, { target: { value: String(to) } });
   fireEvent.pointerUp(slider);
 };
+/**
+ * Presses the button of the second way in, which makes a search of what was chosen in its
+ * settings. What is chosen there is kept, and no search is made of it until this is pressed.
+ */
+const rankTheSettings = async (user: Awaited<ReturnType<typeof openSearch>>["user"]) => {
+  await user.click(within(panelOf("deep")).getByRole("button", { name: SETTINGS.rank }));
+  await settled();
+};
 
 beforeEach(() => setOnline(true));
 afterEach(() => jest.useRealTimers());
 
+/** The helpers as they stand in their line: what each says, and whether it says it is open. */
+const helpersAre = () =>
+  within(helpers())
+    .getAllByRole("button")
+    .map((button) => [button.textContent, button.getAttribute("aria-expanded")]);
+const EVERY_HELPER_CLOSED = [
+  [HELPERS.example, "false"],
+  [HELPERS.word, "false"],
+];
+
 describe("empty: before anything is asked for", () => {
-  test("test_the_page_opens_on_one_box_the_choice_of_tenure_a_place_search_and_every_area", async () => {
+  test("test_the_page_opens_on_two_ways_in_the_first_chosen_with_the_box_two_helpers_each_closed_and_every_area", async () => {
     const { api, user } = await openSearch();
 
     expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
     expect(promptBox()).toHaveValue("");
-    expect(screen.getByRole("radio", { name: TENURE_CHOICE.rent })).toBeChecked();
-    // The one box that finds by name: a place to reach, or an area.
-    expect(screen.getByRole("combobox", { name: FIND_AREA.label })).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /./ }).map((button) => button.textContent)).toEqual(
       expect.arrayContaining([PROMPT.submit]),
     );
+    // The first screen offers two ways in, and the first is chosen: the box. Under it stands
+    // one line of helpers, each closed, and what each opens is not on the page until it is
+    // pressed. Nothing of the second way is drawn until it is chosen.
+    expect(waysAre()).toEqual(THE_FIRST_WAY_CHOSEN);
+    expect(helpersAre()).toEqual(EVERY_HELPER_CLOSED);
+    expect(screen.queryByRole("heading", { name: PROMPT.examplesTitle })).toBeNull();
+    expect(screen.queryByRole("region", { name: SHELF.title })).toBeNull();
+    expect(screen.queryByRole("group", { name: TENURE_CHOICE.legend })).toBeNull();
+    expect(screen.queryByRole("combobox")).toBeNull();
+    expect(screen.queryByRole("textbox", { name: FIND_AREA.labelAlone })).toBeNull();
+    expect(theSettingsIfAny()).toBeNull();
+    expect(panelOf("deep")).toBeEmptyDOMElement();
+    // Nothing opens and closes the settings before a search, under their old name or their new.
+    expect(screen.queryByRole("button", { name: SETTINGS.title })).toBeNull();
+    expect(whatRefines()).toBeNull();
     // The vibes are on the shelf, to look at and to add.
+    await helper(user, "word");
     expect(screen.getByRole("region", { name: SHELF.title })).toBeInTheDocument();
+    // The second way: the settings, which stand open and ask renting or buying first, the
+    // button that makes a search of them, and the field that finds an area by its name.
+    // The first way is kept as it was left, and is not drawn while the second is chosen.
+    await way(user, "deep");
+    expect(panelOf("quick")).not.toBeVisible();
+    expect(screen.queryByRole("region", { name: SHELF.title })).toBeNull();
+    expect(screen.getAllByRole("radio", { name: TENURE_CHOICE.rent })[0]).toBeChecked();
+    expect(screen.getByRole("textbox", { name: FIND_AREA.labelAlone })).toBeInTheDocument();
+    expect(within(panelOf("deep")).getByRole("button", { name: SETTINGS.rank })).toBeVisible();
+    expect(theSettings()).toBeVisible();
+    // A couple of their groups stand open, to show that a group opens and closes: the
+    // first two, and no other.
+    const standOpen = groupsAre().filter(([, open]) => open);
+    expect(standOpen.map(([name]) => name)).toEqual([SETTINGS.money, SETTINGS.journeys]);
+    expect(groupsAre().slice(0, 2)).toEqual(standOpen);
+    expect(groupsAre().length).toBeGreaterThan(5);
     // Every area of the release is there by name, as a link to its page, one press from the map.
     await theTable(user);
     for (const area of areas) {
@@ -101,7 +177,6 @@ describe("empty: before anything is asked for", () => {
         `/synthetic/${area.slug}`,
       );
     }
-    expect(settingsAreOpen()).toBe(false);
     expect(screen.queryByRole("list", { name: RESULTS.listLabel })).toBeNull();
     // Nothing is sent until something is asked for, but the boundaries for the map, and the
     // form, which says who reads what is typed. Neither holds anything of the person.
@@ -131,23 +206,63 @@ describe("empty: before anything is asked for", () => {
   test("test_an_example_fills_the_box_and_sends_nothing", async () => {
     const { user, api } = await openSearch();
     api.calls.length = 0;
+    await helper(user, "example");
 
     await user.click(screen.getByRole("button", { name: /^Buying a terraced house/ }));
 
     expect(promptBox().value).toMatch(/^Buying a terraced house/);
     expect(promptBox()).toHaveFocus();
     expect(api.calls).toEqual([]);
+    // The examples stay where they were opened, for another to be tried.
+    expect(screen.getByRole("button", { name: HELPERS.example })).toHaveAttribute("aria-expanded", "true");
+  });
+
+  test("test_opening_a_helper_sends_nothing_and_the_open_one_closes_when_another_is_pressed", async () => {
+    const { user, api } = await openSearch();
+    api.calls.length = 0;
+
+    for (const which of ["example", "word"] as const) {
+      await helper(user, which);
+      expect(helpersAre().filter(([, open]) => open === "true")).toEqual([[HELPERS[which], "true"]]);
+      // The helper that was pressed keeps the focus: it is still there.
+      expect(screen.getByRole("button", { name: HELPERS[which] })).toHaveFocus();
+    }
+    await user.click(screen.getByRole("button", { name: HELPERS.word }));
+
+    expect(helpersAre()).toEqual(EVERY_HELPER_CLOSED);
+    expect(screen.queryByRole("region", { name: SHELF.title })).toBeNull();
+    expect(api.calls).toEqual([]);
+  });
+
+  test("test_choosing_the_other_way_in_sends_nothing_and_the_tab_that_was_pressed_keeps_the_focus", async () => {
+    const { user, api } = await openSearch();
+    api.calls.length = 0;
+
+    for (const which of ["deep", "quick"] as const) {
+      await way(user, which);
+      expect(waysAre().filter(([, chosen]) => chosen === "true")).toEqual([[WAYS[which], "true"]]);
+      expect(tabOf(which)).toHaveFocus();
+      expect(panelOf(which)).toBeVisible();
+    }
+
+    expect(waysAre()).toEqual(THE_FIRST_WAY_CHOSEN);
+    expect(screen.queryByRole("group", { name: TENURE_CHOICE.legend })).toBeNull();
+    expect(whatRefines()).toBeNull();
+    expect(api.calls).toEqual([]);
   });
 
   test("test_rent_or_buy_swaps_the_defaults_and_sends_nothing", async () => {
     const { user, api } = await openSearch();
     api.calls.length = 0;
+    await way(user, "deep");
+    // It is what the second way asks first, over the settings, which ask it as well.
+    const [buying] = screen.getAllByRole("radio", { name: TENURE_CHOICE.buy });
 
-    await user.click(screen.getByRole("radio", { name: TENURE_CHOICE.buy }));
+    await user.click(buying as HTMLElement);
 
-    expect(screen.getByRole("radio", { name: TENURE_CHOICE.buy })).toBeChecked();
+    for (const asks of screen.getAllByRole("radio", { name: TENURE_CHOICE.buy })) expect(asks).toBeChecked();
     // Nothing has been asked for yet: the page is as it was, and the settings hold a buyer's.
-    expect(screen.getByRole("region", { name: SHELF.title })).toBeInTheDocument();
+    expect(tabOf("deep")).toHaveAttribute("aria-selected", "true");
     expect(screen.queryByRole("region", { name: CHIPS.label })).toBeNull();
     await settingsAt(user, SETTINGS.money);
     const budget = within(screen.getByRole("group", { name: BUDGET.legend }));
@@ -158,13 +273,60 @@ describe("empty: before anything is asked for", () => {
   test("test_the_settings_hold_the_defaults_and_can_be_ranked_by_hand", async () => {
     const { user, api } = await openSearch(standInApi().on("rank", "rank-default-rent").on("explain_top", "explanations-first"));
 
-    await user.click(settingsButton());
+    await settingsAt(user);
     await user.click(screen.getByRole("button", { name: SETTINGS.rank }));
+    // The button goes as it is pressed, and the two ways in with it. The focus goes to what
+    // opens the settings from now, and is never left on nothing. Seen in a browser: it was
+    // left on the page as a whole.
+    expect(whatRefines()).toHaveFocus();
     await settled();
 
     expect(api.callsTo("interpret")).toEqual([]);
     expect(api.lastCallTo("rank").body).toEqual({ spec: meta.data.defaults.rent, limit: 20 });
     expect(results().length).toBeGreaterThan(0);
+    // A search is open, so the two ways in and the helpers have gone. The person asked for
+    // the ranking, so the settings are closed over the answer, one press away.
+    expect(waysIfAny()).toBeNull();
+    expect(screen.queryByRole("group", { name: HELPERS.label })).toBeNull();
+    expect(whatRefines()).toHaveAttribute("aria-expanded", "false");
+    expect(theSettingsIfAny()).toBeNull();
+    expect(whatRefines()).toHaveFocus();
+  });
+
+  test("test_a_setting_moved_before_a_search_keeps_the_focus_and_its_group_and_no_search_opens_until_its_button_is_pressed", async () => {
+    // The second way in is built by choosing and then searching. What is chosen is sent to
+    // be applied, so that the settings are drawn from what the service holds, and is kept:
+    // the tabs stay, and nothing is ranked for the page, until the button is pressed.
+    const { user, api } = await openSearch();
+    await settingsAt(user, groupOf("green"));
+    const slider = screen.getByRole("slider", { name: "Leafy" });
+    slider.focus();
+
+    slide("Leafy", 50);
+    await settled();
+
+    expect(api.lastCallTo("rank").body).toEqual({
+      spec: meta.data.defaults.rent,
+      operations: edits.tagWeight("leafy", 0.5, "high"),
+      limit: 1,
+    });
+    expect(screen.queryAllByRole("article")).toEqual([]);
+    expect(waysAre()).toEqual([
+      [WAYS.quick, "false"],
+      [WAYS.deep, "true"],
+    ]);
+    expect(screen.getByRole("slider", { name: "Leafy" })).toBe(slider);
+    expect(slider).toHaveFocus();
+    expect(screen.getByRole("button", { name: groupOf("green") })).toHaveAttribute("aria-expanded", "true");
+
+    await rankTheSettings(user);
+
+    // The search is made of what was gathered, with nothing more to apply.
+    expect(api.lastCallTo("rank").body).toEqual({ spec: first.rank.spec, limit: 20 });
+    expect(results().length).toBeGreaterThan(0);
+    expect(screen.queryByRole("group", { name: HELPERS.label })).toBeNull();
+    expect(waysIfAny()).toBeNull();
+    expect(whatRefines()).toHaveFocus();
   });
 
   test("test_the_empty_page_has_no_accessibility_fault", async () => {
@@ -187,9 +349,15 @@ describe("interpreting: a sentence was sent", () => {
     expect(screen.getByRole("button", { name: PROMPT.stop })).toBeInTheDocument();
     expect(status()).toContain(STATUS.reading);
     expect(promptBox()).toHaveValue("leafy and quiet");
-    // Skeletons hold the place of the chips and of five cards. They say nothing to a reader.
-    expect(document.querySelectorAll(".skeleton").length).toBeGreaterThanOrEqual(8);
-    expect(document.querySelector("[aria-busy='true']")).not.toBeNull();
+    // Burro hops where the results will stand, centre stage, and says nothing to a reader:
+    // the line under the box says what happens. No grey bar and no grey card holds the
+    // place of the chips or of a result.
+    expect(document.querySelectorAll(".skeleton")).toHaveLength(0);
+    const wait = screen.getByRole("region", { name: RESULTS.title }).querySelector("[data-wait]");
+    expect(wait?.querySelector("[data-pose='hops'][data-stage='true']")).not.toBeNull();
+    expect(wait).toHaveAttribute("aria-busy", "true");
+    expect([...(wait?.children ?? [])].map((part) => part.getAttribute("aria-hidden"))).toEqual(["true"]);
+    expect(document.querySelectorAll("[aria-busy='true']")).toHaveLength(1);
 
     reading.release();
     await settled();
@@ -262,26 +430,34 @@ describe("results: the ranking came back", () => {
     // The words said "Renting", so the tenure is not marked as assumed: the spec says it was stated.
     expect(first.read.operations.budget_ops[0]).toMatchObject({ tenure: "rent", provenance: "stated" });
     expect(first.read.spec.tenure_from).toBe("stated");
-    // What was asked for by way of character comes first, and the usual settings last.
+    // What was asked for by way of character comes first. The settings nobody chose have no
+    // chip: one that is not chosen moves no area, and "Usual settings: 6 assumed" told a
+    // person nothing. Each stands with its value where the search is refined.
     expect(said()).toEqual([
       "Leafy",
       "Quiet streets",
-      `Cindermoor Works, within 35 minutes, ${CHIPS.restAssumed}`,
-      "£1,700 a month, One bedroom, flexible assumed",
+      `Cindermoor Works, 35 minutes, ${CHIPS.restAssumed}`,
+      "£1,700 a month, one bedroom, flexible assumed",
       "Renting",
-      "Usual settings: 6 assumed",
     ]);
     // A chip that is opened opens the row out, and each chip then says every part of itself.
     await chipInFull(user, /^Cindermoor Works/);
     expect(said()).toEqual([
       "Leafy",
       "Quiet streets",
-      "Cindermoor Works, Public transport assumed, within 35 minutes, flexible assumed",
-      "£1,700 a month, One bedroom, flexible assumed",
+      "Cindermoor Works, public transport assumed, 35 minutes, flexible assumed",
+      "£1,700 a month, one bedroom, flexible assumed",
       "Renting",
-      "Usual settings: 6 assumed",
     ]);
-    expect(chips.getByText(CHIPS.readBy.rule)).toBeInTheDocument();
+    const understood = screen.getByRole("region", { name: CHIPS.label });
+    expect(understood.textContent?.includes("Usual settings")).toBe(false);
+    // Nothing beside the heading says who read the words: the line under the box says
+    // whether a language model reads what is typed, before it is sent.
+    expect(understood.textContent ?? "").not.toMatch(/\bAI\b|\bRead (by|with|without)\b/i);
+    expect(chips.getAllByRole("heading").map((heading) => heading.textContent)).toEqual([CHIPS.label]);
+    expect(chips.getByRole("heading").parentElement?.textContent).toBe(CHIPS.label);
+    // What nobody said is still marked, in a word: it is said, and no edge says it.
+    expect(understood.textContent?.includes(CHIPS.assumed)).toBe(true);
   });
 
   test("test_the_list_is_in_rank_order_with_five_cards_and_the_rest_as_rows", async () => {
@@ -295,8 +471,17 @@ describe("results: the ranking came back", () => {
     await everyResult(user);
     expect(shown()).toEqual(first.rank.ranked.map((area) => nameOf(area.area_id)));
     expect(resultList().tagName).toBe("OL");
-    const withReasons = results().filter((one) => within(one).queryByText(RESULTS.reasonsTitle));
-    expect(withReasons).toHaveLength(5);
+    // A card says what its area gives up, and a row does not: the first five are cards.
+    const under = (heading: string) =>
+      results().map((one) => within(one).queryByRole("heading", { name: heading }) !== null);
+    const theFirstFive = first.rank.ranked.map((_, at) => at < 5);
+    expect(theFirstFive.filter(Boolean)).toHaveLength(5);
+    expect(under(RESULTS.tradeOffTitle)).toEqual(theFirstFive);
+    // No result says why it fits until its working is opened. The working of a card then
+    // does, and that of a row does not: the line under the list says where it is read.
+    expect(under(RESULTS.reasonsTitle)).toEqual(theFirstFive.map(() => false));
+    for (const area of first.rank.ranked) await workingOf(user, nameOf(area.area_id));
+    expect(under(RESULTS.reasonsTitle)).toEqual(theFirstFive);
     expect(screen.getByText(RESULTS.firstFive)).toBeInTheDocument();
     expect(status()).toContain(`${STATUS.ranked(21, "Farrowmere")} ${STATUS.gaveWay}`);
   });
@@ -370,7 +555,7 @@ describe("refining: a control changed something", () => {
     // Every control is drawn again from the spec that came back.
     expect(journey.getByRole("textbox", { name: JOURNEY.longest })).toHaveValue("30");
     // Fewer areas are ranked than were: the line says so, and how many of the rest moved.
-    expect(status().join(" ")).toMatch(/10 areas ranked, 11 fewer than before\. \d+ of the rest changed place\./);
+    expect(status().join(" ")).toMatch(new RegExp(`${wordFor(STATUS.rankedNow(10, -11))} \\d+ of the rest changed place\\.`));
   });
 
   test("test_a_chip_opens_the_same_control_the_settings_hold_in_place", async () => {
@@ -436,71 +621,95 @@ describe("refining: a control changed something", () => {
   });
 });
 
-describe("clarifying a place", () => {
+describe("a place whose name several places bear", () => {
   const asked = recordedAnswer("interpret", "interpret-clarify").body.data;
+  const [first] = asked.clarify[0]?.options ?? [];
+  const chipsSay = () =>
+    within(screen.getByRole("region", { name: CHIPS.label }))
+      .getAllByRole("listitem")
+      .map((chip) => (chip.querySelector("[data-main]") ?? chip).textContent);
 
-  test("test_the_question_offers_each_place_by_name_and_kind_and_never_repeats_what_was_typed", async () => {
-    const { user } = await openSearch(firstSearch().on("interpret", "interpret-clarify"));
+  test("test_nothing_is_asked_and_the_journey_is_to_the_first_place_the_service_gave", async () => {
+    const { user, api } = await openSearch(
+      firstSearch().on("interpret", "interpret-clarify").on("rank", "rank-two-places").on("explain_top", "explanations-two-places"),
+    );
     await search(user, "Leafy, renting, 30 minutes to Pellam");
 
-    const question = within(screen.getByRole("region", { name: CLARIFY.question }));
-    expect(question.getAllByRole("button").map((button) => button.textContent)).toEqual([
-      "Pellam CrossStation",
-      "Pellam ExchangeDistrict",
-      "Pellam InfirmaryHospital",
-      CLARIFY.leaveOut,
+    expect(asked.clarify[0]?.options.map((option) => option.name)).toEqual([
+      "Pellam Cross",
+      "Pellam Exchange",
+      "Pellam Infirmary",
     ]);
-    expect(question.getByRole("combobox", { name: CLARIFY.search })).toBeInTheDocument();
-    expect(screen.getByRole("region", { name: CLARIFY.question }).textContent).not.toMatch(/30 minutes to Pellam\b/);
-    // The rest was read and ranked: there are results under the question.
+    // No question is drawn, no place is offered to be pressed, and no field finds another.
+    expect(document.body.textContent).not.toMatch(/Which (place|area) did you mean/);
+    expect(screen.queryAllByRole("combobox")).toEqual([]);
+    expect(status().join(" ")).not.toContain("Burro has a question about a place.");
+    // One ranking, with the edit that was read and the first place in it.
+    expect(api.callsTo("rank")).toHaveLength(1);
+    const sent = (api.lastCallTo("rank").body as { operations: Operations }).operations;
+    expect(sent.commute_ops).toEqual([{ ...asked.operations.commute_ops[0], place_id: first?.id }]);
     expect(results().length).toBeGreaterThan(0);
-    expect(status().join(" ")).toContain(STATUS.question);
-    // The refusal the question stands for is not said twice.
+    // The refusal the question stood for is not said: the place is known now.
     expect(screen.queryByRole("region", { name: REJECTED_LABEL })).toBeNull();
+    // Nothing on the page repeats what was typed.
+    expect(screen.getByRole("main").textContent).not.toMatch(/30 minutes to Pellam\b/);
   });
 
-  test("test_picking_a_place_sends_the_copied_edit_with_its_id_and_the_question_goes", async () => {
-    const { user, api } = await openSearch(firstSearch().on("interpret", "interpret-clarify"));
+  test("test_the_chip_of_the_place_says_that_it_was_assumed_and_it_can_be_taken_off_or_changed", async () => {
+    // No ranking was recorded of a journey to the first of them. The service answers as it
+    // was recorded answering of the second, with the place that was sent in its place.
+    const recorded = recordedAnswer("rank", "rank-nights-out");
+    const toTheFirst = () => {
+      const { data } = recorded.body;
+      const [journey] = data.spec.commutes;
+      if (!journey || !first) throw new Error("the recording holds no journey, or the question no place");
+      return {
+        ...recorded,
+        body: {
+          ...recorded.body,
+          data: {
+            ...data,
+            spec: { ...data.spec, commutes: [{ ...journey, place_id: first.id }] },
+            places: [{ place_id: first.id, name: first.name, kind: first.kind }],
+          },
+        },
+      };
+    };
+    const { user, api } = await openSearch(
+      firstSearch().on("interpret", "interpret-clarify").on("rank", toTheFirst).on("explain_top", "explanations-nights-out"),
+    );
     await search(user, "Leafy, renting, 30 minutes to Pellam");
-    api.on("rank", "rank-nights-out").on("explain_top", "explanations-nights-out");
 
-    await user.click(screen.getByRole("button", { name: /^Pellam Exchange/ }));
+    const place = chipsSay().find((words) => words?.startsWith(first?.name ?? "no place"));
+    expect(place?.startsWith(`${first?.name} ${CHIPS.assumed}`)).toBe(true);
+
+    api.on("rank", "rank-first").on("explain_top", "explanations-first");
+    await removeChip(user, first?.name ?? "");
     await settled();
 
-    const sent = (api.lastCallTo("rank").body as { operations: Operations }).operations;
-    expect(sent.commute_ops).toEqual([{ ...asked.operations.commute_ops[0], place_id: "syn-p0017" }]);
-    expect(screen.queryByRole("region", { name: CLARIFY.question })).toBeNull();
-    // The chip for the place carries the name that was picked.
-    expect(screen.getByRole("button", { name: /^Pellam Exchange/ })).toBeInTheDocument();
+    expect(api.lastCallTo("rank").body).toMatchObject({ operations: edits.placeRemove(first?.id ?? "") });
   });
 
-  test("test_with_no_options_there_is_the_search_field_alone", async () => {
+  test("test_a_place_burro_does_not_know_is_left_out_and_said_in_a_line_with_nothing_to_press", async () => {
     const { user, api } = await openSearch(firstSearch().on("interpret", "interpret-clarify-no-options"));
     await search(user, sentenceOf("interpret-clarify-no-options"));
-    const question = within(screen.getByRole("region", { name: CLARIFY.question }));
 
-    expect(question.getAllByRole("button").map((button) => button.textContent)).toEqual([CLARIFY.leaveOut]);
-    expect(question.getByText(CLARIFY.none)).toBeInTheDocument();
-
-    await user.type(question.getByRole("combobox", { name: CLARIFY.search }), "pel");
-    await user.click(await question.findByRole("option", { name: /^Pellam Cross/ }));
-    await settled();
-
-    expect(api.lastCallTo("rank").body).toMatchObject({
-      operations: { commute_ops: [{ action: "add", place_id: "syn-p0012", provenance: "stated" }] },
-    });
-  });
-
-  test("test_leave_it_out_takes_the_question_away_and_sends_nothing", async () => {
-    const { user, api } = await openSearch(firstSearch().on("interpret", "interpret-clarify"));
-    await search(user, "Leafy, renting, 30 minutes to Pellam");
-    await settled();
-    api.calls.length = 0;
-
-    await user.click(screen.getByRole("button", { name: CLARIFY.leaveOut }));
-
-    expect(screen.queryByRole("region", { name: CLARIFY.question })).toBeNull();
-    expect(api.calls).toEqual([]);
+    expect(document.body.textContent).not.toMatch(/Which (place|area) did you mean/);
+    // It is named in the one line of what was left out, with why one press away: said in a
+    // line of its own under the chips it read "Burro does not know that place.", of nothing.
+    const leftOut = screen.getByRole("status", { name: LEFT_OUT.title });
+    expect(leftOut.querySelector("summary")?.textContent).toBe(`${LEFT_OUT.title}: ${LEFT_OUT.named_by_the_page.commute}`);
+    expect(within(leftOut).getAllByRole("listitem").map((line) => line.textContent)).toEqual([
+      `${LEFT_OUT.named_by_the_page.commute}. ${LEFT_OUT.why.place}`,
+    ]);
+    expect(leftOut.querySelectorAll("button, a, input")).toHaveLength(0);
+    expect(screen.queryByRole("region", { name: REJECTED_LABEL })).toBeNull();
+    expect(document.body.textContent?.includes(REJECTED.unknown_place)).toBe(false);
+    expect(screen.queryAllByRole("combobox")).toEqual([]);
+    // The rest of the sentence is ranked, with no edit of a journey.
+    expect(api.callsTo("rank")).toHaveLength(1);
+    expect(api.lastCallTo("rank").body).not.toHaveProperty("operations");
+    expect(results().length).toBeGreaterThan(0);
   });
 });
 
@@ -560,6 +769,18 @@ describe("nothing matches", () => {
   });
 });
 
+/**
+ * The answer to a sentence of which no edit, no offer and no question came, and in which
+ * these things were heard that Burro has no data on, with these words not read. It is the
+ * recorded answer of a sentence nothing was read of, with `unmet` and `unread` as the
+ * service gives them for such a sentence.
+ */
+const heardAndUnmet = (unmet: readonly UnmetCategory[], unread: readonly Span[]) => {
+  const said = recordedAnswer("interpret", "interpret-nothing-read");
+  const body = { ...said.body, data: { ...said.body.data, unmet, unread } };
+  return () => responseFrom({ ...said, body });
+};
+
 describe("nothing read", () => {
   test("test_the_page_says_so_opens_the_settings_and_keeps_the_results_on_screen", async () => {
     const { user, api } = await openSearch();
@@ -572,6 +793,7 @@ describe("nothing read", () => {
     await search(user, "What is the best way to learn the piano");
 
     expect(status()).toContain(NOTICE.nothingRead);
+    // The settings do the same job, and the page opens the part that holds them.
     expect(settingsAreOpen()).toBe(true);
     expect(results()).toHaveLength(SHOWN_AT_FIRST);
     expect(api.calls.map((call) => call.operation)).toEqual(["interpret"]);
@@ -582,9 +804,8 @@ describe("nothing read", () => {
     // a setting", which led nowhere. Burro cannot tell one language from another. It can say
     // what it reads, and give a sentence that it does read.
     expect(NOTICE.nothingRead).toContain("plain English");
-    expect(NOTICE.nothingRead).toContain(NOTICE.readable);
     // The sentence it gives is one the reader applies whole. It names no place.
-    expect(sentenceOf("interpret-plain-list")).toBe(NOTICE.readable);
+    expect(NOTICE.nothingRead).toContain(`such as "${sentenceOf("interpret-plain-list")}".`);
     expect(recordedAnswer("interpret", "interpret-plain-list").body.data).toMatchObject({ status: "ok", unread: [] });
   });
 
@@ -601,11 +822,46 @@ describe("nothing read", () => {
     expect(screen.queryByText(UNMET.other)).toBeNull();
 
     // Nor does it come up when the line goes.
-    await settingsAt(user, "Green");
+    await settingsAt(user, groupOf("green"));
     slide("Leafy", 50);
     await settled();
     expect(status()).not.toContain(NOTICE.nothingRead);
     expect(screen.queryByText(UNMET.other)).toBeNull();
+  });
+
+  test("test_a_wish_burro_has_no_data_on_was_heard_and_is_not_said_to_be_unreadable", async () => {
+    // Seen in a browser: "Burro could not read anything in what you typed" stood over "Burro
+    // has no data on broadband, so it has left that out of your search", and both cannot be
+    // so. The service says no word of "somewhere cheap" went unread.
+    const { user, api } = await openSearch(
+      firstSearch().on("interpret", heardAndUnmet(["affordability_verdict"], [])),
+    );
+
+    await search(user, "somewhere cheap");
+
+    const unmet = within(screen.getByRole("region", { name: UNMET_LABEL }));
+    expect(unmet.getAllByRole("listitem").map((line) => line.textContent)).toEqual([UNMET.affordability_verdict]);
+    expect(status()).not.toContain(NOTICE.nothingRead);
+    // Nothing is ranked of it, and the space requirements open as they do where nothing was read.
+    expect(settingsAreOpen()).toBe(true);
+    expect(api.callsTo("rank")).toEqual([]);
+  });
+
+  test("test_words_beside_such_a_wish_that_were_not_read_can_be_shown_in_the_box", async () => {
+    // "fast broadband": broadband was heard, and "fast" was not read. Said by nobody, the
+    // words that were not read would be lost with the line that nothing could be read.
+    const { user } = await openSearch(
+      firstSearch().on("interpret", heardAndUnmet(["broadband", "other"], [{ start: 0, end: 4 }])),
+    );
+
+    await search(user, "fast broadband");
+
+    const unmet = within(screen.getByRole("region", { name: UNMET_LABEL }));
+    expect(unmet.getAllByRole("listitem").map((line) => line.textContent)).toEqual([UNMET.broadband]);
+    expect(status()).not.toContain(NOTICE.nothingRead);
+    expect(screen.getByText(SUGGEST.unread)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: SUGGEST.showUnread }));
+    expect([promptBox().selectionStart, promptBox().selectionEnd]).toEqual([0, 4]);
   });
 
   test("test_a_part_that_was_not_read_is_still_said_when_the_rest_was", async () => {
@@ -666,7 +922,7 @@ describe("nothing read", () => {
     await user.click(screen.getByRole("button", { name: PROMPT.submit }));
     await waitFor(() => expect(status()).toContain(NOTICE.nothingRead));
 
-    await settingsAt(user, "Green");
+    await settingsAt(user, groupOf("green"));
     slide("Leafy", 50);
     await settled();
 
@@ -729,7 +985,7 @@ describe("degraded to a form", () => {
     expect(screen.getByRole("button", { name: PROMPT.tryAgain })).toBeInTheDocument();
   });
 
-  test("test_when_reading_takes_too_long_the_settings_open_on_the_defaults_and_still_work", async () => {
+  test("test_when_reading_takes_too_long_the_page_names_the_second_way_in_and_the_settings_still_work", async () => {
     const api = firstSearch().silent("interpret");
     const { user } = await openSearch(api);
     jest.useFakeTimers();
@@ -739,20 +995,32 @@ describe("degraded to a form", () => {
     await act(() => jest.advanceTimersByTimeAsync(8_000));
     jest.useRealTimers();
 
-    expect(status()).toContain(NOTICE.degraded);
-    expect(settingsAreOpen()).toBe(true);
+    // No search is open, so the two ways in are there. The settings do the same job, and
+    // they stand in the second: the line names it. The page chooses no tab for the person,
+    // which would hide the box, their words and the way to try them again.
+    expect(status()).toContain(UNREAD.before);
+    expect(UNREAD.before).toContain(WAYS.deep);
+    expect(status()).not.toContain(NOTICE.degraded);
+    expect(waysAre()).toEqual(THE_FIRST_WAY_CHOSEN);
+    expect(helpersAre()).toEqual(EVERY_HELPER_CLOSED);
+    expect(theSettingsIfAny()).toBeNull();
     expect(screen.queryByRole("alert")).toBeNull();
     expect(promptBox()).toHaveValue("leafy and quiet");
+    expect(promptBox()).toBeVisible();
+    expect(screen.getByRole("button", { name: PROMPT.tryAgain })).toBeVisible();
 
-    // The same controls work as a form, with no words read at all.
-    await settingsAt(user, "Green");
+    // The same controls work as a form, with no words read at all: what is chosen in the
+    // second way in is kept, and its button makes the search of it.
+    await settingsAt(user, groupOf("green"));
     slide("Leafy", 50);
     await settled();
     expect(api.lastCallTo("rank").body).toEqual({
       spec: meta.data.defaults.rent,
       operations: edits.tagWeight("leafy", 0.5, "high"),
-      limit: 20,
+      limit: 1,
     });
+    await rankTheSettings(user);
+    expect(api.lastCallTo("rank").body).toEqual({ spec: first.rank.spec, limit: 20 });
     expect(results()).toHaveLength(SHOWN_AT_FIRST);
   });
 
@@ -769,14 +1037,17 @@ describe("degraded to a form", () => {
 
     await user.type(promptBox(), "leafy");
     await user.click(screen.getByRole("button", { name: PROMPT.submit }));
-    await waitFor(() => expect(status()).toContain(NOTICE.degraded));
+    await waitFor(() => expect(status()).toContain(UNREAD.before));
 
-    expect(settingsAreOpen()).toBe(true);
+    // The first way stays chosen, with the words in the box, and the second holds the settings.
+    expect(waysAre()).toEqual(THE_FIRST_WAY_CHOSEN);
+    expect(theSettingsIfAny()).toBeNull();
     await settingsAt(user, SETTINGS.money);
     const budget = within(screen.getByRole("group", { name: BUDGET.legend }));
     await user.type(budget.getByRole("textbox", { name: BUDGET.amount.rent }), "1700{Enter}");
     await settled();
-    expect(api.lastCallTo("rank").body).toMatchObject({ operations: edits.budgetAmount(1700) });
+    expect(api.lastCallTo("rank").body).toMatchObject({ operations: edits.budgetAmount(1700), limit: 1 });
+    await rankTheSettings(user);
     expect(results()).toHaveLength(SHOWN_AT_FIRST);
   });
 
@@ -785,7 +1056,7 @@ describe("degraded to a form", () => {
     const { user } = await openSearch(api);
     await user.type(promptBox(), "leafy and quiet");
     await user.click(screen.getByRole("button", { name: PROMPT.submit }));
-    await waitFor(() => expect(status()).toContain(NOTICE.degraded));
+    await waitFor(() => expect(status()).toContain(UNREAD.before));
     api.on("interpret", "interpret-first");
 
     await user.click(screen.getByRole("button", { name: PROMPT.tryAgain }));
@@ -796,15 +1067,63 @@ describe("degraded to a form", () => {
       "leafy and quiet",
     ]);
     expect(results()).toHaveLength(SHOWN_AT_FIRST);
-    expect(status()).not.toContain(NOTICE.degraded);
+    for (const gone of [UNREAD.before, NOTICE.degraded]) expect(status()).not.toContain(gone);
+  });
+
+  test("test_in_the_second_way_in_that_words_were_not_read_is_said_in_sight_and_they_can_be_tried_again_from_there", async () => {
+    // What Burro says of a search stands in the box, which is in the first way in. A person
+    // who goes to the settings, as the line tells them they may, is told the same where
+    // they are, with the way to try the words again beside it: over the button that makes
+    // a search of that way, which is held in sight wherever they are among the groups.
+    const api = firstSearch().on("interpret", "error-internal");
+    const { user } = await openSearch(api);
+    await user.type(promptBox(), "leafy and quiet");
+    await user.click(screen.getByRole("button", { name: PROMPT.submit }));
+    await waitFor(() => expect(status()).toContain(UNREAD.before));
+
+    await way(user, "deep");
+
+    expect(status().filter((line) => line === UNREAD.before)).toHaveLength(1);
+    const said = screen.getByText(UNREAD.before);
+    expect(panelOf("deep")).toContainElement(said);
+    expect(said).toBeVisible();
+    const again = screen.getByRole("button", { name: PROMPT.tryAgain });
+    expect(panelOf("deep")).toContainElement(again);
+    // It stands with the button of the way, over it, and after the settings in the page.
+    const before = (one: Element, other: Element) =>
+      Boolean(one.compareDocumentPosition(other) & Node.DOCUMENT_POSITION_FOLLOWING);
+    const makes = within(panelOf("deep")).getByRole("button", { name: SETTINGS.rank });
+    expect(makes.parentElement).toContainElement(again);
+    expect(before(again, makes)).toBe(true);
+    expect(before(theSettings(), again)).toBe(true);
+
+    api.on("interpret", "interpret-first");
+    await user.click(again);
+    await settled();
+
+    // The words are in the box still, though it was not in sight, and are sent as they were.
+    expect(api.callsTo("interpret").map((call) => (call.body as { text: string }).text)).toEqual([
+      "leafy and quiet",
+      "leafy and quiet",
+    ]);
+    expect(results()).toHaveLength(SHOWN_AT_FIRST);
+    expect(promptBox()).toHaveValue("leafy and quiet");
+    expect(promptBox()).toBeVisible();
+    // The button went with the line it stood beside. The focus is on Search, and never on nothing.
+    expect(screen.getByRole("button", { name: PROMPT.submit })).toHaveFocus();
   });
 
   test("test_the_degraded_form_has_no_accessibility_fault", async () => {
     const { user, container } = await openSearch(firstSearch().on("interpret", "error-internal"));
     await user.type(promptBox(), "leafy");
     await user.click(screen.getByRole("button", { name: PROMPT.submit }));
-    await waitFor(() => expect(status()).toContain(NOTICE.degraded));
+    await waitFor(() => expect(status()).toContain(UNREAD.before));
 
+    expect(await faultsIn(container, { wholePage: true })).toEqual([]);
+
+    // Nor where the line stands at the head of the second way in, over the settings.
+    await way(user, "deep");
+    expect(panelOf("deep")).toContainElement(screen.getByText(UNREAD.before));
     expect(await faultsIn(container, { wholePage: true })).toEqual([]);
   });
 });
@@ -951,9 +1270,12 @@ describe("an error from the API", () => {
 
     expect(screen.queryByRole("alert")).toBeNull();
     expect(screen.queryByRole("list", { name: RESULTS.listLabel })).toBeNull();
-    // Nothing is understood of anything: the shelf is back, and the box asks for a search.
+    // Nothing is understood of anything: the two ways in are back with the first chosen,
+    // its helpers each closed, and the box asks for a search.
     expect(screen.queryByRole("region", { name: CHIPS.label })).toBeNull();
-    expect(screen.getByRole("region", { name: SHELF.title })).toBeInTheDocument();
+    expect(waysAre()).toEqual(THE_FIRST_WAY_CHOSEN);
+    expect(helpersAre()).toEqual(EVERY_HELPER_CLOSED);
+    expect(whatRefines()).toBeNull();
     expect(promptBox()).toHaveAccessibleName(PROMPT.label);
   });
 
@@ -964,7 +1286,12 @@ describe("an error from the API", () => {
     const fault = recordedError("error-internal");
 
     expect(results()).toHaveLength(SHOWN_AT_FIRST);
-    expect(within(results()[0] as HTMLElement).getByText(RESULTS.reasonsFailed)).toBeInTheDocument();
+    // A card says what it lacks where it would stand: under "Trade-off", which is what a
+    // card says of what Burro wrote, that the trade-off could not be loaded.
+    const card = results()[0] as HTMLElement;
+    const under = (heading: string) =>
+      within(within(card).getByRole("heading", { name: heading }).parentElement as HTMLElement);
+    expect(under(RESULTS.tradeOffTitle).getByText(CARD.tradeOffFailed)).toBeInTheDocument();
     // Why they could not be loaded is never met with silence: the API's words, the id to
     // quote and "Try again". The results themselves were updated, and are not said not to be.
     const alert = screen.getByRole("alert");
@@ -972,6 +1299,11 @@ describe("an error from the API", () => {
     expect(alert).toHaveTextContent(fault.headers["x-request-id"] ?? "no id");
     expect(alert).not.toHaveTextContent(NOTICE.notUpdated);
     expect(within(alert).getByRole("button", { name: PROMPT.tryAgain })).toBeInTheDocument();
+    // The reasons stand in the working of a card, and the working says that they could not
+    // be loaded, under "Why it fits". Nothing of it is left waiting.
+    await workingOf(user, nameOf(first.rank.ranked[0]?.area_id ?? ""));
+    expect(under(RESULTS.reasonsTitle).getByText(RESULTS.reasonsFailed)).toBeInTheDocument();
+    expect(card.querySelectorAll(".skeleton")).toHaveLength(0);
   });
 
   test("test_the_error_state_has_no_accessibility_fault", async () => {

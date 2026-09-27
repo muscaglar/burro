@@ -16,7 +16,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "7142",
+    "content-length": "7497",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -26,7 +26,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -130,8 +130,8 @@
           },
           "follows": "Areas further off rank lower.",
           "said": [
-            "You named no way of travelling: Burro took public transport.",
-            "You gave no number of minutes: Burro took 45."
+            "You did not say how you would travel, so Burro has assumed public transport.",
+            "You gave no number of minutes, so Burro has used 45."
           ],
           "choices": [
             {
@@ -179,7 +179,9 @@
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "tag:leafy",
@@ -195,14 +197,14 @@
             "start": 97,
             "end": 136
           },
-          "follows": "What it counts: gardens, woodland and trees, and a public park near home. It cannot see: one street or one home. An area is many streets.",
+          "follows": "This vibe counts gardens, woodland and trees, and a public park near home. It describes an area as a whole, so it cannot tell you about one street or one home.",
           "said": [],
           "choices": [
             {
               "id": "more",
               "direction": "more",
               "label": "Add",
-              "guess": false,
+              "guess": true,
               "operations": {
                 "budget_ops": [],
                 "commute_ops": [],
@@ -242,12 +244,14 @@
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "tag:quiet_residential",
           "label": "Quiet streets",
-          "does": "Add Quiet streets.",
+          "does": "Add Quiet streets, counted a little.",
           "spans": [
             {
               "start": 131,
@@ -258,14 +262,14 @@
             "start": 97,
             "end": 136
           },
-          "follows": "What it counts: homes away from main roads, from heavy traffic and from clusters of pubs and bars, with little transport noise. It cannot see: one street or one home. An area is many streets.",
+          "follows": "This vibe counts homes away from main roads, from heavy traffic and from clusters of pubs and bars, with little transport noise. It describes an area as a whole, so it cannot tell you about one street or one home.",
           "said": [],
           "choices": [
             {
               "id": "more",
               "direction": "more",
               "label": "Add",
-              "guess": false,
+              "guess": true,
               "operations": {
                 "budget_ops": [],
                 "commute_ops": [],
@@ -275,7 +279,7 @@
                     "action": "nudge",
                     "tag_id": "quiet_residential",
                     "value": 0.0,
-                    "step": "up_large",
+                    "step": "up_small",
                     "toward": "high",
                     "provenance": "ui_edit"
                   }
@@ -305,12 +309,14 @@
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "feature:venue_evening_per_homes",
           "label": "Pubs and bars",
-          "does": "Pubs and bars: more, or fewer?",
+          "does": "Rank an area higher when it has more pubs and bars.",
           "spans": [
             {
               "start": 164,
@@ -321,14 +327,14 @@
             "start": 138,
             "end": 167
           },
-          "follows": "What Burro counts: pubs and bars for each 1,000 homes within 800 m, in a straight line.",
+          "follows": "This is what Burro measures for it: pubs and bars for each 1,000 homes within 800 m, in a straight line.",
           "said": [],
           "choices": [
             {
               "id": "more",
               "direction": "more",
               "label": "More pubs and bars",
-              "guess": false,
+              "guess": true,
               "operations": {
                 "budget_ops": [],
                 "commute_ops": [],
@@ -387,11 +393,13 @@
           ],
           "note": "",
           "read_by": "rule",
-          "add_all": "",
-          "needs": "pubs and bars",
+          "add_all": "more",
+          "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "budget",
@@ -409,7 +417,7 @@
           },
           "follows": "",
           "said": [
-            "You did not say renting or buying: Burro took renting, as the search stands."
+            "You did not say whether you are renting or buying, so Burro has kept your search on renting."
           ],
           "choices": [
             {
@@ -457,7 +465,9 @@
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "budget",
@@ -521,7 +531,9 @@
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         }
       ],
       "unread": [

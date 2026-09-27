@@ -16,7 +16,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "3449",
+    "content-length": "3760",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -26,7 +26,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -108,7 +108,7 @@
       ],
       "clarify": [],
       "notice": "neutral_places",
-      "notice_text": "Burro ranks places by what is there. Of who lives in a place it counts only their age and their households, at the census of 2021, and you cannot ask for fewer of anyone. Nothing you typed has changed your search.",
+      "notice_text": "Burro ranks places by what is there. The only things it counts about the people who live in a place are their age and the kind of household they live in, as the census of 2021 recorded them, and you cannot ask for fewer of any group of people. Nothing you typed has changed your search.",
       "interpreter": "rule",
       "degraded": false,
       "model_refused": false,
@@ -128,14 +128,14 @@
             "start": 0,
             "end": 27
           },
-          "follows": "What it counts: gardens, woodland and trees, and a public park near home. It cannot see: one street or one home. An area is many streets.",
+          "follows": "This vibe counts gardens, woodland and trees, and a public park near home. It describes an area as a whole, so it cannot tell you about one street or one home.",
           "said": [],
           "choices": [
             {
               "id": "more",
               "direction": "more",
               "label": "Add",
-              "guess": false,
+              "guess": true,
               "operations": {
                 "budget_ops": [],
                 "commute_ops": [],
@@ -175,12 +175,14 @@
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "feature:noise_exposure",
           "label": "Less transport noise",
-          "does": "Less transport noise: count it?",
+          "does": "Less transport noise: do you want Burro to count this?",
           "spans": [
             {
               "start": 42,
@@ -191,7 +193,7 @@
             "start": 29,
             "end": 47
           },
-          "follows": "What Burro counts: share of residents exposed to 55 dB or more of transport noise.",
+          "follows": "This is what Burro measures for it: share of residents exposed to 55 dB or more of transport noise.",
           "said": [],
           "choices": [
             {
@@ -232,13 +234,15 @@
               }
             }
           ],
-          "note": "",
+          "note": "Burro could not tell from your words whether you want this yourself, so it has left it for you to add.",
           "read_by": "rule",
           "add_all": "",
           "needs": "less transport noise",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": true
         }
       ],
       "unread": [

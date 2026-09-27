@@ -96,7 +96,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "27010",
+    "content-length": "29252",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -106,7 +106,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -125,7 +125,7 @@
           },
           "reasons": [
             {
-              "text": "Quiet streets: band 4 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Quiet streets: band 4 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0006/tag/quiet_residential"
               ],
@@ -133,7 +133,7 @@
               "replaced": false
             },
             {
-              "text": "The upper end is £400 under your budget of £1,700.",
+              "text": "For this kind of home, the upper end of the range of costs here is £1,300, which is £400 under your budget of £1,700.",
               "fact_ids": [
                 "syn-n0006/budget_fit/rent.bed_1"
               ],
@@ -141,7 +141,7 @@
               "replaced": false
             },
             {
-              "text": "Leafy: band 3 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Leafy: band 3 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0006/tag/leafy"
               ],
@@ -150,7 +150,7 @@
             }
           ],
           "trade_off": {
-            "text": "Straight-line distance to the nearest town centre boundary: 1,460 m, further than 66% of the 21 areas compared in this release.",
+            "text": "Distance to the edge of the nearest town centre, in a straight line: 1,460 m, which is further than 66% of the 21 areas Burro compared.",
             "fact_ids": [
               "syn-n0006/feature/highstreet_access"
             ],
@@ -171,7 +171,7 @@
           },
           "reasons": [
             {
-              "text": "Quiet streets: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Quiet streets: band 5 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0008/tag/quiet_residential"
               ],
@@ -179,7 +179,7 @@
               "replaced": false
             },
             {
-              "text": "Leafy: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Leafy: band 5 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0008/tag/leafy"
               ],
@@ -187,7 +187,7 @@
               "replaced": false
             },
             {
-              "text": "The upper end is £150 under your budget of £1,700.",
+              "text": "For this kind of home, the upper end of the range of costs here is £1,550, which is £150 under your budget of £1,700.",
               "fact_ids": [
                 "syn-n0008/budget_fit/rent.bed_1"
               ],
@@ -225,7 +225,7 @@
               "replaced": false
             },
             {
-              "text": "The upper end is £650 under your budget of £1,700.",
+              "text": "For this kind of home, the upper end of the range of costs here is £1,050, which is £650 under your budget of £1,700.",
               "fact_ids": [
                 "syn-n0003/budget_fit/rent.bed_1"
               ],
@@ -233,7 +233,7 @@
               "replaced": false
             },
             {
-              "text": "Quiet streets: band 3 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Quiet streets: band 3 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0003/tag/quiet_residential"
               ],
@@ -242,7 +242,7 @@
             }
           ],
           "trade_off": {
-            "text": "Leafy: band 2 of 5, counted from least to most, among the 21 areas compared in this release.",
+            "text": "Leafy: band 2 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
             "fact_ids": [
               "syn-n0003/tag/leafy"
             ],
@@ -263,7 +263,7 @@
           },
           "reasons": [
             {
-              "text": "Leafy: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Leafy: band 5 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0001/tag/leafy"
               ],
@@ -271,7 +271,7 @@
               "replaced": false
             },
             {
-              "text": "Quiet streets: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Quiet streets: band 5 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0001/tag/quiet_residential"
               ],
@@ -279,7 +279,7 @@
               "replaced": false
             },
             {
-              "text": "Share of residents exposed to 55 dB or more of transport noise: 9%, quieter than 90% of the 20 areas compared in this release.",
+              "text": "Share of residents exposed to 55 dB or more of transport noise: 9%, which is quieter than 90% of the 20 areas Burro compared.",
               "fact_ids": [
                 "syn-n0001/feature/noise_exposure"
               ],
@@ -297,7 +297,7 @@
           },
           "missing": [
             {
-              "text": "There is no Modelled annual mean nitrogen dioxide figure for Alderwick in this release, so it was left out of the score.",
+              "text": "Nitrogen dioxide in the air, as a modelled average over a year: Burro has no figure for this in Alderwick, so it does not count towards the fit of this area.",
               "fact_ids": [
                 "syn-n0001/missing/feature:air_no2"
               ],
@@ -318,7 +318,7 @@
           },
           "reasons": [
             {
-              "text": "Quiet streets: band 4 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Quiet streets: band 4 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0005/tag/quiet_residential"
               ],
@@ -326,7 +326,7 @@
               "replaced": false
             },
             {
-              "text": "Leafy: band 4 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Leafy: band 4 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0005/tag/leafy"
               ],
@@ -334,7 +334,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest way in to a station: 320 m, closer than 50% of the 22 areas compared in this release, and the same as 5 others.",
+              "text": "Distance to the nearest station entrance, in a straight line: 320 m, which is closer than 50% of the 22 areas Burro compared, and the same as 5 others.",
               "fact_ids": [
                 "syn-n0005/feature/station_walk"
               ],
@@ -421,18 +421,18 @@
           "area_id": "syn-n0006",
           "kind": "feature",
           "key": "highstreet_access",
-          "label": "Straight-line distance to the nearest town centre boundary",
+          "label": "Distance to the edge of the nearest town centre, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest town centre boundary",
+            "label": "Distance to the edge of the nearest town centre, in a straight line",
             "value": "1,460 m",
             "band": "4",
             "comparative": "closer than",
             "pct": "28",
-            "standing": "closer than 28% of the 21 areas compared in this release",
+            "standing": "closer than 28% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "66",
-            "standing_worse": "further than 66% of the 21 areas compared in this release",
+            "standing_worse": "further than 66% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -474,8 +474,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -517,9 +517,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -563,8 +563,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "3",
@@ -606,8 +606,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -710,9 +710,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -757,8 +757,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -800,8 +800,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -844,8 +844,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -980,9 +980,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -1027,8 +1027,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -1071,8 +1071,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -1115,8 +1115,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "3",
@@ -1219,10 +1219,10 @@
             "band": "1",
             "comparative": "quieter than",
             "pct": "90",
-            "standing": "quieter than 90% of the 20 areas compared in this release",
+            "standing": "quieter than 90% of the 20 areas Burro compared",
             "comparative_worse": "noisier than",
             "pct_worse": "5",
-            "standing_worse": "noisier than 5% of the 20 areas compared in this release",
+            "standing_worse": "noisier than 5% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -1249,10 +1249,10 @@
           "area_id": "syn-n0001",
           "kind": "missing",
           "key": "feature:air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "missing",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "name": "Alderwick"
           },
           "numbers": [],
@@ -1291,8 +1291,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1333,9 +1333,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -1379,8 +1379,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1422,8 +1422,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1514,18 +1514,18 @@
           "area_id": "syn-n0005",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "320 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "50",
-            "standing": "closer than 50% of the 22 areas compared in this release, and the same as 5 others",
+            "standing": "closer than 50% of the 22 areas Burro compared, and the same as 5 others",
             "comparative_worse": "further than",
             "pct_worse": "22",
-            "standing_worse": "further than 22% of the 22 areas compared in this release, and the same as 5 others",
+            "standing_worse": "further than 22% of the 22 areas Burro compared, and the same as 5 others",
             "compared": "22",
             "level": "5"
           },
@@ -1569,8 +1569,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -1613,8 +1613,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1656,8 +1656,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1700,8 +1700,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",

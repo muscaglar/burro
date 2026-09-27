@@ -63,7 +63,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "25453",
+    "content-length": "26915",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "true",
@@ -73,7 +73,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": true
     },
@@ -92,7 +92,7 @@
           },
           "reasons": [
             {
-              "text": "Homes built before 1919: 63%, more than 85% of the 21 areas compared in this release.",
+              "text": "Homes built before 1919: 63%, which is more than 85% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0024/feature/homes_pre1919"
               ],
@@ -100,7 +100,7 @@
               "replaced": false
             },
             {
-              "text": "Modelled annual mean nitrogen dioxide: 18.5 µg/m³, lower than 65% of the 20 areas compared in this release, and the same as 1 other.",
+              "text": "Nitrogen dioxide in the air, as a modelled average over a year: 18.5 µg/m³, which is lower than 65% of the 20 areas Burro compared, and the same as 1 other.",
               "fact_ids": [
                 "syn-n0024/feature/air_no2"
               ],
@@ -108,7 +108,7 @@
               "replaced": false
             },
             {
-              "text": "Share of residents exposed to 55 dB or more of transport noise: 17%, quieter than 70% of the 20 areas compared in this release.",
+              "text": "Share of residents exposed to 55 dB or more of transport noise: 17%, which is quieter than 70% of the 20 areas Burro compared.",
               "fact_ids": [
                 "syn-n0024/feature/noise_exposure"
               ],
@@ -131,7 +131,7 @@
           },
           "reasons": [
             {
-              "text": "Modelled annual mean nitrogen dioxide: 16.4 µg/m³, lower than 85% of the 20 areas compared in this release.",
+              "text": "Nitrogen dioxide in the air, as a modelled average over a year: 16.4 µg/m³, which is lower than 85% of the 20 areas Burro compared.",
               "fact_ids": [
                 "syn-n0013/feature/air_no2"
               ],
@@ -139,7 +139,7 @@
               "replaced": false
             },
             {
-              "text": "Homes built before 1919: 40%, more than 57% of the 21 areas compared in this release.",
+              "text": "Homes built before 1919: 40%, which is more than 57% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0013/feature/homes_pre1919"
               ],
@@ -147,7 +147,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 380 m, closer than 90% of the 21 areas compared in this release.",
+              "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 380 m, which is closer than 90% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0013/feature/park_proximity"
               ],
@@ -170,7 +170,7 @@
           },
           "reasons": [
             {
-              "text": "Modelled annual mean nitrogen dioxide: 16.5 µg/m³, lower than 80% of the 20 areas compared in this release.",
+              "text": "Nitrogen dioxide in the air, as a modelled average over a year: 16.5 µg/m³, which is lower than 80% of the 20 areas Burro compared.",
               "fact_ids": [
                 "syn-n0002/feature/air_no2"
               ],
@@ -178,7 +178,7 @@
               "replaced": false
             },
             {
-              "text": "Homes built before 1919: 41%, more than 61% of the 21 areas compared in this release.",
+              "text": "Homes built before 1919: 41%, which is more than 61% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0002/feature/homes_pre1919"
               ],
@@ -186,7 +186,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 480 m, closer than 85% of the 21 areas compared in this release.",
+              "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 480 m, which is closer than 85% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0002/feature/park_proximity"
               ],
@@ -209,7 +209,7 @@
           },
           "reasons": [
             {
-              "text": "Homes built before 1919: 65%, more than 90% of the 21 areas compared in this release.",
+              "text": "Homes built before 1919: 65%, which is more than 90% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0022/feature/homes_pre1919"
               ],
@@ -217,7 +217,7 @@
               "replaced": false
             },
             {
-              "text": "Modelled annual mean nitrogen dioxide: 22.6 µg/m³, lower than 50% of the 20 areas compared in this release.",
+              "text": "Nitrogen dioxide in the air, as a modelled average over a year: 22.6 µg/m³, which is lower than 50% of the 20 areas Burro compared.",
               "fact_ids": [
                 "syn-n0022/feature/air_no2"
               ],
@@ -225,7 +225,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 590 m, closer than 71% of the 21 areas compared in this release.",
+              "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 590 m, which is closer than 71% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0022/feature/park_proximity"
               ],
@@ -248,7 +248,7 @@
           },
           "reasons": [
             {
-              "text": "Modelled annual mean nitrogen dioxide: 13.2 µg/m³, lower than 95% of the 20 areas compared in this release.",
+              "text": "Nitrogen dioxide in the air, as a modelled average over a year: 13.2 µg/m³, which is lower than 95% of the 20 areas Burro compared.",
               "fact_ids": [
                 "syn-n0008/feature/air_no2"
               ],
@@ -256,7 +256,7 @@
               "replaced": false
             },
             {
-              "text": "Share of residents exposed to 55 dB or more of transport noise: 6%, quieter than 95% of the 20 areas compared in this release.",
+              "text": "Share of residents exposed to 55 dB or more of transport noise: 6%, which is quieter than 95% of the 20 areas Burro compared.",
               "fact_ids": [
                 "syn-n0008/feature/noise_exposure"
               ],
@@ -264,7 +264,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 490 m, closer than 80% of the 21 areas compared in this release.",
+              "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 490 m, which is closer than 80% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0008/feature/park_proximity"
               ],
@@ -273,7 +273,7 @@
             }
           ],
           "trade_off": {
-            "text": "Homes built before 1919: 19%, fewer than 66% of the 21 areas compared in this release.",
+            "text": "Homes built before 1919: 19%, which is fewer than 66% of the 21 areas Burro compared.",
             "fact_ids": [
               "syn-n0008/feature/homes_pre1919"
             ],
@@ -321,18 +321,18 @@
           "area_id": "syn-n0024",
           "kind": "feature",
           "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "value": "18.5 µg/m³",
             "band": "2",
             "comparative": "lower than",
             "pct": "65",
-            "standing": "lower than 65% of the 20 areas compared in this release, and the same as 1 other",
+            "standing": "lower than 65% of the 20 areas Burro compared, and the same as 1 other",
             "comparative_worse": "higher than",
             "pct_worse": "25",
-            "standing_worse": "higher than 25% of the 20 areas compared in this release, and the same as 1 other",
+            "standing_worse": "higher than 25% of the 20 areas Burro compared, and the same as 1 other",
             "compared": "20",
             "level": "1"
           },
@@ -369,10 +369,10 @@
             "band": "5",
             "comparative": "more than",
             "pct": "85",
-            "standing": "more than 85% of the 21 areas compared in this release",
+            "standing": "more than 85% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "9",
-            "standing_worse": "fewer than 9% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 9% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -407,10 +407,10 @@
             "band": "2",
             "comparative": "quieter than",
             "pct": "70",
-            "standing": "quieter than 70% of the 20 areas compared in this release",
+            "standing": "quieter than 70% of the 20 areas Burro compared",
             "comparative_worse": "noisier than",
             "pct_worse": "25",
-            "standing_worse": "noisier than 25% of the 20 areas compared in this release",
+            "standing_worse": "noisier than 25% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -451,9 +451,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -496,9 +496,9 @@
             "known": "3",
             "parts": "4",
             "share": "70",
-            "partly": "Worked out from 3 of its 4 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 3 of the 4 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -559,18 +559,18 @@
           "area_id": "syn-n0013",
           "kind": "feature",
           "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "value": "16.4 µg/m³",
             "band": "1",
             "comparative": "lower than",
             "pct": "85",
-            "standing": "lower than 85% of the 20 areas compared in this release",
+            "standing": "lower than 85% of the 20 areas Burro compared",
             "comparative_worse": "higher than",
             "pct_worse": "10",
-            "standing_worse": "higher than 10% of the 20 areas compared in this release",
+            "standing_worse": "higher than 10% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -605,10 +605,10 @@
             "band": "3",
             "comparative": "more than",
             "pct": "57",
-            "standing": "more than 57% of the 21 areas compared in this release",
+            "standing": "more than 57% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "38",
-            "standing_worse": "fewer than 38% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 38% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -635,18 +635,18 @@
           "area_id": "syn-n0013",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "380 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "90",
-            "standing": "closer than 90% of the 21 areas compared in this release",
+            "standing": "closer than 90% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "4",
-            "standing_worse": "further than 4% of the 21 areas compared in this release",
+            "standing_worse": "further than 4% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -687,9 +687,9 @@
             "known": "2",
             "parts": "3",
             "share": "70",
-            "partly": "Worked out from 2 of its 3 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -732,9 +732,9 @@
             "known": "3",
             "parts": "4",
             "share": "70",
-            "partly": "Worked out from 3 of its 4 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 3 of the 4 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -795,18 +795,18 @@
           "area_id": "syn-n0002",
           "kind": "feature",
           "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "value": "16.5 µg/m³",
             "band": "1",
             "comparative": "lower than",
             "pct": "80",
-            "standing": "lower than 80% of the 20 areas compared in this release",
+            "standing": "lower than 80% of the 20 areas Burro compared",
             "comparative_worse": "higher than",
             "pct_worse": "15",
-            "standing_worse": "higher than 15% of the 20 areas compared in this release",
+            "standing_worse": "higher than 15% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -841,10 +841,10 @@
             "band": "4",
             "comparative": "more than",
             "pct": "61",
-            "standing": "more than 61% of the 21 areas compared in this release",
+            "standing": "more than 61% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "33",
-            "standing_worse": "fewer than 33% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 33% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -871,18 +871,18 @@
           "area_id": "syn-n0002",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "480 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "85",
-            "standing": "closer than 85% of the 21 areas compared in this release",
+            "standing": "closer than 85% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "9",
-            "standing_worse": "further than 9% of the 21 areas compared in this release",
+            "standing_worse": "further than 9% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -923,9 +923,9 @@
             "known": "2",
             "parts": "3",
             "share": "70",
-            "partly": "Worked out from 2 of its 3 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -986,18 +986,18 @@
           "area_id": "syn-n0022",
           "kind": "feature",
           "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "value": "22.6 µg/m³",
             "band": "3",
             "comparative": "lower than",
             "pct": "50",
-            "standing": "lower than 50% of the 20 areas compared in this release",
+            "standing": "lower than 50% of the 20 areas Burro compared",
             "comparative_worse": "higher than",
             "pct_worse": "45",
-            "standing_worse": "higher than 45% of the 20 areas compared in this release",
+            "standing_worse": "higher than 45% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -1032,10 +1032,10 @@
             "band": "5",
             "comparative": "more than",
             "pct": "90",
-            "standing": "more than 90% of the 21 areas compared in this release",
+            "standing": "more than 90% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "4",
-            "standing_worse": "fewer than 4% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 4% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1062,18 +1062,18 @@
           "area_id": "syn-n0022",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "590 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "71",
-            "standing": "closer than 71% of the 21 areas compared in this release",
+            "standing": "closer than 71% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "23",
-            "standing_worse": "further than 23% of the 21 areas compared in this release",
+            "standing_worse": "further than 23% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1114,9 +1114,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -1160,9 +1160,9 @@
             "known": "2",
             "parts": "3",
             "share": "70",
-            "partly": "Worked out from 2 of its 3 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1224,16 +1224,16 @@
           "area_id": "syn-n0008",
           "kind": "feature",
           "key": "air_no2",
-          "label": "Modelled annual mean nitrogen dioxide",
+          "label": "Nitrogen dioxide in the air, as a modelled average over a year",
           "template": "feature",
           "slots": {
-            "label": "Modelled annual mean nitrogen dioxide",
+            "label": "Nitrogen dioxide in the air, as a modelled average over a year",
             "value": "13.2 µg/m³",
             "band": "1",
             "comparative": "lower than",
             "pct": "95",
-            "standing": "lower than 95% of the 20 areas compared in this release",
-            "standing_worse": "higher than none of the 19 other areas compared in this release",
+            "standing": "lower than 95% of the 20 areas Burro compared",
+            "standing_worse": "lower than all 19 other areas Burro compared",
             "comparative_worse": "higher than",
             "compared": "20"
           },
@@ -1269,10 +1269,10 @@
             "band": "2",
             "comparative": "more than",
             "pct": "28",
-            "standing": "more than 28% of the 21 areas compared in this release",
+            "standing": "more than 28% of the 21 areas Burro compared",
             "comparative_worse": "fewer than",
             "pct_worse": "66",
-            "standing_worse": "fewer than 66% of the 21 areas compared in this release",
+            "standing_worse": "fewer than 66% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1307,8 +1307,8 @@
             "band": "1",
             "comparative": "quieter than",
             "pct": "95",
-            "standing": "quieter than 95% of the 20 areas compared in this release",
-            "standing_worse": "noisier than none of the 19 other areas compared in this release",
+            "standing": "quieter than 95% of the 20 areas Burro compared",
+            "standing_worse": "quieter than all 19 other areas Burro compared",
             "comparative_worse": "noisier than",
             "compared": "20"
           },
@@ -1336,18 +1336,18 @@
           "area_id": "syn-n0008",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "490 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "80",
-            "standing": "closer than 80% of the 21 areas compared in this release",
+            "standing": "closer than 80% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "14",
-            "standing_worse": "further than 14% of the 21 areas compared in this release",
+            "standing_worse": "further than 14% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1388,9 +1388,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -1434,9 +1434,9 @@
             "known": "3",
             "parts": "4",
             "share": "70",
-            "partly": "Worked out from 3 of its 4 parts, 70 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 3 of the 4 measurements that go into this vibe, and they count for 70 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",

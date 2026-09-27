@@ -13,7 +13,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "179",
+    "content-length": "190",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -23,13 +23,13 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
     "error": {
       "code": "not_found",
-      "message": "There is no such route.",
+      "message": "Burro has nothing at this address.",
       "fields": []
     }
   }

@@ -96,7 +96,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "28548",
+    "content-length": "30786",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -106,7 +106,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -125,7 +125,7 @@
           },
           "reasons": [
             {
-              "text": "Quiet streets: band 4 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Quiet streets: band 4 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0006/tag/quiet_residential"
               ],
@@ -133,7 +133,7 @@
               "replaced": false
             },
             {
-              "text": "By public transport to Cindermoor Works: about 21 minutes on a typical weekday morning, 26 if you just miss a service.",
+              "text": "By public transport to Cindermoor Works: about 21 minutes on a typical weekday morning, or 26 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0006/travel/syn-p0021.pt"
               ],
@@ -141,7 +141,7 @@
               "replaced": false
             },
             {
-              "text": "The upper end is £400 under your budget of £1,700.",
+              "text": "For this kind of home, the upper end of the range of costs here is £1,300, which is £400 under your budget of £1,700.",
               "fact_ids": [
                 "syn-n0006/budget_fit/rent.bed_1"
               ],
@@ -150,7 +150,7 @@
             }
           ],
           "trade_off": {
-            "text": "Straight-line distance to the nearest town centre boundary: 1,460 m, further than 66% of the 21 areas compared in this release.",
+            "text": "Distance to the edge of the nearest town centre, in a straight line: 1,460 m, which is further than 66% of the 21 areas Burro compared.",
             "fact_ids": [
               "syn-n0006/feature/highstreet_access"
             ],
@@ -171,7 +171,7 @@
           },
           "reasons": [
             {
-              "text": "By public transport to Cindermoor Works: about 2 minutes on a typical weekday morning, 2 if you just miss a service.",
+              "text": "By public transport to Cindermoor Works: about 2 minutes on a typical weekday morning, or 2 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0003/travel/syn-p0021.pt"
               ],
@@ -179,7 +179,7 @@
               "replaced": false
             },
             {
-              "text": "The upper end is £650 under your budget of £1,700.",
+              "text": "For this kind of home, the upper end of the range of costs here is £1,050, which is £650 under your budget of £1,700.",
               "fact_ids": [
                 "syn-n0003/budget_fit/rent.bed_1"
               ],
@@ -187,7 +187,7 @@
               "replaced": false
             },
             {
-              "text": "Quiet streets: band 3 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Quiet streets: band 3 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0003/tag/quiet_residential"
               ],
@@ -196,7 +196,7 @@
             }
           ],
           "trade_off": {
-            "text": "Leafy: band 2 of 5, counted from least to most, among the 21 areas compared in this release.",
+            "text": "Leafy: band 2 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
             "fact_ids": [
               "syn-n0003/tag/leafy"
             ],
@@ -217,7 +217,7 @@
           },
           "reasons": [
             {
-              "text": "By public transport to Cindermoor Works: about 16 minutes on a typical weekday morning, 18 if you just miss a service.",
+              "text": "By public transport to Cindermoor Works: about 16 minutes on a typical weekday morning, or 18 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0023/travel/syn-p0021.pt"
               ],
@@ -225,7 +225,7 @@
               "replaced": false
             },
             {
-              "text": "Quiet streets: band 3 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Quiet streets: band 3 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0023/tag/quiet_residential"
               ],
@@ -233,7 +233,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest town centre boundary: 810 m, closer than 71% of the 21 areas compared in this release.",
+              "text": "Distance to the edge of the nearest town centre, in a straight line: 810 m, which is closer than 71% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0023/feature/highstreet_access"
               ],
@@ -242,7 +242,7 @@
             }
           ],
           "trade_off": {
-            "text": "The upper end is £125 over your budget of £1,700.",
+            "text": "For this kind of home, the upper end of the range of costs here is £1,825, which is £125 over your budget of £1,700.",
             "fact_ids": [
               "syn-n0023/budget_fit/rent.bed_1"
             ],
@@ -263,7 +263,7 @@
           },
           "reasons": [
             {
-              "text": "Leafy: band 5 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Leafy: band 5 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0002/tag/leafy"
               ],
@@ -271,7 +271,7 @@
               "replaced": false
             },
             {
-              "text": "By public transport to Cindermoor Works: about 27 minutes on a typical weekday morning, 29 if you just miss a service.",
+              "text": "By public transport to Cindermoor Works: about 27 minutes on a typical weekday morning, or 29 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0002/travel/syn-p0021.pt"
               ],
@@ -279,7 +279,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest way in to a station: 160 m, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
+              "text": "Distance to the nearest station entrance, in a straight line: 160 m, which is closer than 77% of the 22 areas Burro compared, and the same as 4 others.",
               "fact_ids": [
                 "syn-n0002/feature/station_walk"
               ],
@@ -288,7 +288,7 @@
             }
           ],
           "trade_off": {
-            "text": "The upper end is £325 over your budget of £1,700.",
+            "text": "For this kind of home, the upper end of the range of costs here is £2,025, which is £325 over your budget of £1,700.",
             "fact_ids": [
               "syn-n0002/budget_fit/rent.bed_1"
             ],
@@ -309,7 +309,7 @@
           },
           "reasons": [
             {
-              "text": "Leafy: band 4 of 5, counted from least to most, among the 21 areas compared in this release.",
+              "text": "Leafy: band 4 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
               "fact_ids": [
                 "syn-n0004/tag/leafy"
               ],
@@ -317,7 +317,7 @@
               "replaced": false
             },
             {
-              "text": "By public transport to Cindermoor Works: about 27 minutes on a typical weekday morning, 32 if you just miss a service.",
+              "text": "By public transport to Cindermoor Works: about 27 minutes on a typical weekday morning, or 32 minutes if you just miss a service.",
               "fact_ids": [
                 "syn-n0004/travel/syn-p0021.pt"
               ],
@@ -325,7 +325,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest way in to a station: 320 m, closer than 50% of the 22 areas compared in this release, and the same as 5 others.",
+              "text": "Distance to the nearest station entrance, in a straight line: 320 m, which is closer than 50% of the 22 areas Burro compared, and the same as 5 others.",
               "fact_ids": [
                 "syn-n0004/feature/station_walk"
               ],
@@ -334,7 +334,7 @@
             }
           ],
           "trade_off": {
-            "text": "Quiet streets: band 1 of 5, counted from least to most, among the 21 areas compared in this release.",
+            "text": "Quiet streets: band 1 of 5 among the 21 areas Burro compared, where the bands run from least to most.",
             "fact_ids": [
               "syn-n0004/tag/quiet_residential"
             ],
@@ -412,18 +412,18 @@
           "area_id": "syn-n0006",
           "kind": "feature",
           "key": "highstreet_access",
-          "label": "Straight-line distance to the nearest town centre boundary",
+          "label": "Distance to the edge of the nearest town centre, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest town centre boundary",
+            "label": "Distance to the edge of the nearest town centre, in a straight line",
             "value": "1,460 m",
             "band": "4",
             "comparative": "closer than",
             "pct": "28",
-            "standing": "closer than 28% of the 21 areas compared in this release",
+            "standing": "closer than 28% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "66",
-            "standing_worse": "further than 66% of the 21 areas compared in this release",
+            "standing_worse": "further than 66% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -465,8 +465,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -508,9 +508,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -554,8 +554,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "3",
@@ -597,8 +597,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -738,9 +738,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -785,8 +785,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -829,8 +829,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -873,8 +873,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "3",
@@ -1000,18 +1000,18 @@
           "area_id": "syn-n0023",
           "kind": "feature",
           "key": "highstreet_access",
-          "label": "Straight-line distance to the nearest town centre boundary",
+          "label": "Distance to the edge of the nearest town centre, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest town centre boundary",
+            "label": "Distance to the edge of the nearest town centre, in a straight line",
             "value": "810 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "71",
-            "standing": "closer than 71% of the 21 areas compared in this release",
+            "standing": "closer than 71% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "23",
-            "standing_worse": "further than 23% of the 21 areas compared in this release",
+            "standing_worse": "further than 23% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1052,9 +1052,9 @@
             "known": "2",
             "parts": "3",
             "share": "75",
-            "partly": "Worked out from 2 of its 3 parts, 75 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 75 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1099,8 +1099,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "3",
@@ -1142,8 +1142,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1185,8 +1185,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "3",
@@ -1313,16 +1313,16 @@
           "area_id": "syn-n0002",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "160 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "77",
-            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others",
-            "standing_worse": "the same as 4 of the 21 other areas compared in this release",
+            "standing": "closer than 77% of the 22 areas Burro compared, and the same as 4 others",
+            "standing_worse": "the same as 4 of the 21 other areas Burro compared",
             "compared": "22",
             "level": "4"
           },
@@ -1366,8 +1366,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1409,8 +1409,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1452,8 +1452,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1495,8 +1495,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -1593,18 +1593,18 @@
           "area_id": "syn-n0004",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "320 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "50",
-            "standing": "closer than 50% of the 22 areas compared in this release, and the same as 5 others",
+            "standing": "closer than 50% of the 22 areas Burro compared, and the same as 5 others",
             "comparative_worse": "further than",
             "pct_worse": "22",
-            "standing_worse": "further than 22% of the 22 areas compared in this release, and the same as 5 others",
+            "standing_worse": "further than 22% of the 22 areas Burro compared, and the same as 5 others",
             "compared": "22",
             "level": "5"
           },
@@ -1648,8 +1648,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -1692,8 +1692,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1735,8 +1735,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1779,8 +1779,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",

@@ -16,7 +16,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "3696",
+    "content-length": "3859",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -26,7 +26,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -132,7 +132,7 @@
             "start": 0,
             "end": 23
           },
-          "follows": "What it counts: gardens, woodland and trees, and a public park near home. It cannot see: one street or one home. An area is many streets.",
+          "follows": "This vibe counts gardens, woodland and trees, and a public park near home. It describes an area as a whole, so it cannot tell you about one street or one home.",
           "said": [],
           "choices": [
             {
@@ -179,7 +179,9 @@
           "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         },
         {
           "target": "commute",
@@ -197,13 +199,13 @@
           },
           "follows": "Areas further off are left out.",
           "said": [
-            "You named no way of travelling: Burro took public transport."
+            "You did not say how you would travel, so Burro has assumed public transport."
           ],
           "choices": [
             {
               "id": "firm",
               "direction": "more",
-              "label": "Add as a firm limit: areas further off are left out",
+              "label": "Add it as a firm limit, which leaves out areas that are further away",
               "guess": true,
               "operations": {
                 "budget_ops": [],
@@ -227,7 +229,7 @@
             {
               "id": "guide",
               "direction": "more",
-              "label": "Add as a guide: areas further off rank lower",
+              "label": "Add it as a guide, which ranks areas lower when they are further away",
               "guess": false,
               "operations": {
                 "budget_ops": [],
@@ -264,12 +266,14 @@
             }
           ],
           "note": "",
-          "read_by": "model",
+          "read_by": "rule",
           "add_all": "guide",
-          "needs": "the journey can be made a firm limit",
+          "needs": "the journey, which you can make a firm limit",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         }
       ],
       "unread": [

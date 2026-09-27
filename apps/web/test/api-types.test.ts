@@ -3,6 +3,8 @@ import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 
+import { REQUIRED_OF_A_LINK } from "@/lib/account/client";
+import { ACCOUNT_ROUTES } from "@/lib/account/routes";
 import { ROUTES } from "@/lib/api/operations";
 import { REQUIRED_IN_DATA } from "@/lib/api/required";
 
@@ -32,8 +34,12 @@ describe("the generated API types", () => {
     expect([...REQUIRED_IN_DATA.interpret].sort()).toEqual(
       [...(contract.components.schemas.InterpretData?.required ?? [])].sort(),
     );
-    // Every operation the website calls is there, so none goes unchecked.
-    expect(Object.keys(REQUIRED_IN_DATA).sort()).toEqual(Object.keys(ROUTES).sort());
+    // Every operation the website calls is there, so none goes unchecked: of the API
+    // itself, and of accounts. What is generated lists what an answer of 200 must hold, and
+    // asking for a link is answered 202: the client of accounts holds that one itself.
+    const called = [...Object.keys(ROUTES), ...Object.keys(ACCOUNT_ROUTES)];
+    expect([...Object.keys(REQUIRED_IN_DATA), "ask_for_link"].sort()).toEqual(called.sort());
+    expect(REQUIRED_OF_A_LINK.length).toBeGreaterThan(0);
     for (const names of Object.values(REQUIRED_IN_DATA)) expect(names.length).toBeGreaterThan(0);
   });
 

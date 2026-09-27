@@ -13,7 +13,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "4458",
+    "content-length": "4566",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -24,7 +24,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -33,11 +33,11 @@
       "heading": "A made-up count: who lived here",
       "date_line": "A made-up count, dated 21 March 2021. Nothing here was counted, and nobody published it.",
       "notes": [
-        "A real count says here what was unusual about the day it was taken.",
-        "An area can change. These figures are of that day, and not of today.",
-        "Grapnel Dock is drawn by Burro from 1 made-up small area. The figures are made-up counts, added up by Burro.",
+        "In a real count, this note says what was unusual about the day it was taken.",
+        "An area can change, so these figures describe it on that day, and not as it is today.",
+        "Burro draws Grapnel Dock from 1 made-up small area, and the figures are made-up counts, which Burro has added up.",
         "Shares are whole numbers and may not add up to 100%. Where fewer than 1 in 100 were counted, the table says so and gives no count.",
-        "Beside each figure is the figure for Quillhaven, and nothing else. Burro says nothing about what a figure means."
+        "Beside each figure you will see the figure for Quillhaven as a whole, and nothing else. Burro does not say what any figure means."
       ],
       "city": "Quillhaven",
       "output_areas": 1,
@@ -69,7 +69,7 @@
           "title": "Made-up countries, in place of country of birth",
           "caption": "Made-up countries, in place of country of birth",
           "definition": "The definition a publisher would give: \"The made-up country a person was born in. Made up for testing: it counts nobody.\"",
-          "shown_only": "Shown here and nowhere else. Burro never ranks, filters or compares on it.",
+          "shown_only": "Burro shows this table here and nowhere else. It never ranks, filters or compares areas by it.",
           "note": null,
           "columns": {
             "label": "Made-up country",
@@ -111,7 +111,7 @@
           "title": "Made-up groups, in place of ethnic group",
           "caption": "Made-up groups, in place of ethnic group",
           "definition": "The definition a publisher would give: \"The made-up group a person would say they belong to. Made up for testing: it counts nobody.\"",
-          "shown_only": "Shown here and nowhere else. Burro never ranks, filters or compares on it.",
+          "shown_only": "Burro shows this table here and nowhere else. It never ranks, filters or compares areas by it.",
           "note": null,
           "columns": {
             "label": "Made-up group",
@@ -132,7 +132,7 @@
           "title": "Made-up beliefs, in place of religion",
           "caption": "Made-up beliefs, in place of religion",
           "definition": "The definition a publisher would give: \"The made-up belief a person would name, or none. Made up for testing: it counts nobody.\"",
-          "shown_only": "Shown here and nowhere else. Burro never ranks, filters or compares on it.",
+          "shown_only": "Burro shows this table here and nowhere else. It never ranks, filters or compares areas by it.",
           "note": null,
           "columns": {
             "label": "Made-up belief",

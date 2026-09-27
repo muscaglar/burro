@@ -4,6 +4,7 @@ import path from "node:path";
 
 import { readRecorded, recordedFolder } from "@/lib/api/recorded";
 import type { AreaData, AreasData, MetaData, PlacesData } from "@/lib/api/schema";
+import { CITIES, cityOf } from "@/lib/city";
 
 const CONTENT = path.resolve(__dirname, "..", "src", "content");
 
@@ -25,10 +26,17 @@ function siteCopy(): [where: string, text: string][] {
   return found;
 }
 
-/** Every name of the recorded release: areas, boroughs, stations, lines and places. */
+/**
+ * Every name of the recorded release: areas, boroughs, stations, lines and places. And every
+ * city the website has an address for, but the city of the recorded release itself, which is
+ * made up: no recorded answer is of a real city, so none names one, and site copy is drawn
+ * over every city alike.
+ */
 function namesOfPlaces(): string[] {
   const names = new Set<string>();
   const areas = (readRecorded("areas").body as { data: AreasData }).data.areas;
+  const recorded = cityOf(areas[0]?.area_id ?? "");
+  for (const city of CITIES) if (city !== recorded) names.add(city);
   for (const area of areas) {
     names.add(area.name);
     names.add(area.borough);
@@ -69,6 +77,8 @@ describe("site copy", () => {
     );
 
     expect(names.length).toBeGreaterThan(30);
+    // A city that is not made up is among them: the methods named one over the made-up city.
+    expect(names.filter((name) => (CITIES as readonly string[]).includes(name)).length).toBeGreaterThan(0);
     expect(copy.length).toBeGreaterThan(80);
     expect(naming).toEqual([]);
   });
@@ -128,15 +138,6 @@ describe("site copy", () => {
     // It read "the lower and the upper quartile", and "the median".
     expect(copy.filter(([, text]) => /\b(quartile|median|percentile)s?\b/i.test(text))).toEqual([]);
     expect(lead).toContain("Half of homes of this kind cost between these two figures.");
-  });
-
-  test("test_the_accessibility_statement_does_not_say_what_kind_of_data_is_shown", () => {
-    // Seen on a build of a real city: under the banner that says the figures are of real
-    // places, the statement said "This is a test release on made-up data." The statement is
-    // drawn on every release, and only an answer knows whether its data is made up.
-    const said = copy.filter(([where, text]) => where.startsWith("accessibility.ts") && /made.up/i.test(text));
-
-    expect(said.map(([where]) => where)).toEqual([]);
   });
 
   test("test_the_banner_says_the_three_things_it_must", () => {

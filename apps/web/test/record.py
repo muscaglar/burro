@@ -80,6 +80,7 @@ ROUTES = {
 NO_ROUTE = "/v1/nothing-here"
 
 WORKS = "syn-p0021"  # Cindermoor Works
+PELLAM = "Pellam Cross"
 SCHOOL = "syn-p0031"  # Alderwick Primary School, which a share coarsens to a station
 GONE_PLACE = "syn-p9999"  # A place no release has, as a spec kept from an older one names
 
@@ -349,6 +350,65 @@ def _mixed(body: Any) -> bool:
     return any(mark["spread_high"] - mark["spread_low"] >= 2 for mark in marks)
 
 
+def _is_a_visit(spec: Any) -> bool:
+    """True when a spec is a search for somewhere to stay, and holds what a visit holds."""
+    budget = spec["budget"]
+    return (
+        spec["tenure"] == "visit"
+        and (budget["amount"], budget["weight"], budget["provenance"]) == (None, 0, "default")
+        and budget["strictness"] == "soft"
+    )
+
+
+def _ranked_by_no_cost(body: Any) -> bool:
+    """True when areas are ranked, none is left out for what a home costs, and none holds a fit."""
+    ranked = _data(body)["ranked"]
+    return (
+        bool(ranked)
+        and all(area["budget"] is None for area in ranked)
+        and all(part["component"] != "budget" for area in ranked for part in area["contributions"])
+        and not [one for one in _data(body)["filtered"] if one["reason"] == "over_budget"]
+    )
+
+
+def _ways(suggestion: Any) -> list[str]:
+    return [way["id"] for way in suggestion["choices"]]
+
+
+def _offers(body: Any) -> list[tuple[str, str, str, list[str]]]:
+    """Of each suggestion: what it is of, its label, what one press takes and what is guessed."""
+    return [
+        (s["target"], s["label"], s["add_all"], [w["id"] for w in s["choices"] if w["guess"]])
+        for s in _data(body).get("suggestions", [])
+    ]
+
+
+def _amounts(body: Any) -> list[int]:
+    """Every amount of money that some way of a suggestion would set."""
+    return [
+        edit["amount"]
+        for s in _data(body).get("suggestions", [])
+        for way in s["choices"]
+        for edit in way["operations"]["budget_ops"]
+        if edit["amount"]
+    ]
+
+
+def _holds(body: Any) -> tuple[int | None, list[int], float | None, float | None]:
+    """What the search of an answer holds of what the walk sets by hand, and of what it leaves.
+
+    The budget, the longest each journey may take, and how much Leafy and Quiet streets count.
+    """
+    spec = _data(body)["spec"]
+    counts = {vibe["tag_id"]: vibe["weight"] for vibe in spec["tags"]}
+    return (
+        spec["budget"]["amount"],
+        [journey["max_minutes"] for journey in spec["commutes"]],
+        counts.get("leafy"),
+        counts.get("quiet_residential"),
+    )
+
+
 # What each scenario must show to be worth recording. A step of the visit is named without
 # its number. A scenario that is not here is recorded whatever it shows.
 PROVES: dict[str, Callable[[Any], bool]] = {
@@ -411,7 +471,7 @@ PROVES: dict[str, Callable[[Any], bool]] = {
         _nothing_applied(b)
         and [(one["target"], one["add_all"]) for one in _data(b)["suggestions"]]
         == [("tag:leafy", "more"), ("tag:quiet_residential", "more"), ("tag:village_feel", "")]
-        and _data(b)["suggestions"][2]["note"].startswith("Rough guide. ")
+        and _data(b)["suggestions"][2]["note"] == ""
         and not any(way["guess"] for way in _data(b)["suggestions"][2]["choices"])
     ),
     "rank-rough-guide": lambda b: (
@@ -543,13 +603,24 @@ PROVES: dict[str, Callable[[Any], bool]] = {
     "interpret-by-model-least": lambda b: (
         _nothing_applied(b) and _offered(b) == [["ignore"]] and _guessed(b) == []
     ),
-    # The rules guess at what was plainly said and at no wish: the journey, renting, the
-    # budget and the size. One press takes each, the journey as a guide, which may be made firm.
+    # The rules guess at what was plainly said: the journey, renting, the budget and the
+    # size, and each wish whose way the words give, which are quiet, a park and culture. A
+    # word that is read into several things, "affluent", "a real identity", carries none.
+    # One press takes each, the journey as a guide, which may be made firm.
     "interpret-rules-at-once": lambda b: (
         _data(b)["interpreter"] == "rule"
         and _data(b)["model_pending"] is True
         and _nothing_applied(b)
-        and _guessed_of(b) == ["commute", "tenure", "budget", "budget"]
+        and _guessed_of(b)
+        == [
+            "tag:quiet_residential",
+            "feature:park_proximity",
+            "feature:culture_venues_per_homes",
+            "commute",
+            "tenure",
+            "budget",
+            "budget",
+        ]
         and _taken(b, "tenure", "budget") == [("more", False)] * 3
         and _taken(b, "commute") == [("guide", True)]
         and len(_data(b)["suggestions"]) >= 4
@@ -775,6 +846,90 @@ PROVES: dict[str, Callable[[Any], bool]] = {
     ),
     "visit/slow": lambda b: (
         _data(b)["degraded"] is True and _nothing_applied(b) and len(_offered(b)) == 1
+    ),
+    "added/01-first": lambda b: _changed(b) == 4 and _holds(b) == (1_700, [35], 0.5, 0.5),
+    "added/08-leafy-rank": lambda b: _holds(b) == SET_BY_HAND,
+    "added/10-more": lambda b: (
+        _changed(b) == 2 and _off(b, "highstreet_access") and _holds(b) == SET_BY_HAND
+    ),
+    "added/11-more-rank": lambda b: _holds(b) == SET_BY_HAND and bool(_data(b)["ranked"]),
+    # A search for somewhere to stay. It holds no budget and no kind of home, wherever it is.
+    "visiting/interpret": lambda b: (
+        _is_a_visit(_data(b)["spec"]) and _changed(b) == 3 and not _data(b)["rejected"]
+    ),
+    "visiting/rank": lambda b: _is_a_visit(_data(b)["spec"]) and _ranked_by_no_cost(b),
+    "visiting/explanations": lambda b: (
+        len(_data(b)["explanations"]) == 5
+        and not {fact["kind"] for fact in _data(b)["facts"]} & {"cost", "budget_fit"}
+    ),
+    "visiting/rank-usual": lambda b: (
+        _is_a_visit(_data(b)["spec"])
+        and _data(b)["spec"]["tenure_from"] == "default"
+        and len(_data(b)["spec"]["weights"]) == 6
+        and _ranked_by_no_cost(b)
+    ),
+    "visiting/rank-becomes": lambda b: (
+        _is_a_visit(_data(b)["spec"])
+        and _changed(b) == 1
+        and len(_data(b)["spec"]["commutes"]) == 1
+        and _ranked_by_no_cost(b)
+    ),
+    "visiting/rank-back": lambda b: (
+        _data(b)["spec"]["tenure"] == "rent"
+        and _data(b)["spec"]["budget"]["amount"] is None
+        and _data(b)["spec"]["budget"]["weight"] > 0
+        and len(_data(b)["spec"]["commutes"]) == 1
+    ),
+    "visiting/rank-rejected": lambda b: (
+        _is_a_visit(_data(b)["spec"])
+        and _changed(b) == 0
+        and [one["reason"] for one in _data(b)["rejected"]]
+        == ["not_in_release", "segment_not_for_tenure"]
+        and bool(_data(b)["ranked"])
+    ),
+    "visiting/interpret-said": lambda b: (
+        _nothing_applied(b)
+        and ("tenure", "Visiting", "more", ["more"]) in _offers(b)
+        and _data(b)["spec"]["tenure"] == "rent"
+    ),
+    "visiting/interpret-night": lambda b: (
+        _nothing_applied(b)
+        and "prices_and_hours" in _data(b)["unmet"]
+        and [offer[:2] for offer in _offers(b)] == [("tenure", "Visiting"), ("commute", PELLAM)]
+        and not _amounts(b)
+        and not _data(b)["unread"]
+    ),
+    "visiting/interpret-home": lambda b: (
+        _is_a_visit(_data(b)["spec"])
+        and _nothing_applied(b)
+        and not _data(b)["rejected"]
+        and not _data(b)["not_in_release"]
+        and [offer[:2] for offer in _offers(b)]
+        == [("budget", "A flat"), ("budget", "A budget of £2,000")]
+        and all(s["note"] and _ways(s) == ["ignore"] for s in _data(b)["suggestions"])
+    ),
+    "visiting/interpret-mother": lambda b: (
+        _nothing_applied(b)
+        and _data(b)["spec"]["tenure"] == "rent"
+        and [offer[0] for offer in _offers(b)] == ["commute"]
+        and all(s["note"] and not s["add_all"] for s in _data(b)["suggestions"])
+    ),
+    "visiting/compare": lambda b: (
+        "budget" not in [row["component"] for row in _data(b)["rows"]]
+        and any(row["component"].startswith("commute.") for row in _data(b)["rows"])
+        and not {fact["kind"] for fact in _data(b)["facts"]} & {"cost", "budget_fit"}
+    ),
+    "visiting/share": lambda b: _is_a_visit(_data(b)["spec"]),
+    "visiting/share-opened": lambda b: _is_a_visit(_data(b)["spec"]) and _ranked_by_no_cost(b),
+    "visiting/invalid-spec": lambda b: (
+        b["error"]["code"] == "invalid_spec"
+        and b["error"]["fields"] == [{"path": "spec", "problem": "invalid"}]
+    ),
+    "visiting/preview-meta": lambda b: (
+        not _data(b)["holds"]["costs"] and _is_a_visit(_data(b)["defaults"]["visit"])
+    ),
+    "visiting/preview-rank": lambda b: (
+        _is_a_visit(_data(b)["spec"]) and _ranked_by_no_cost(b) and not _data(b)["rejected"]
     ),
 }
 
@@ -1102,7 +1257,7 @@ NOT_PLAIN = (
     (
         "suggest-rough-guide",
         "leafy, quiet streets, villagey",
-        "A vibe that is a rough guide: offered with its label and its sentence, never applied, "
+        "A vibe that is a rough guide: offered with no word that says so, never applied, "
         "and never taken by the one press that takes what stands beside it",
     ),
     (
@@ -1872,8 +2027,8 @@ def record_what_needs_another_service(rec: Recorder, specs: dict[str, dict[str, 
         read_by(read_long),
         "interpret-rules-at-once",
         "The same, asked of the rules alone: what they offer is served at once, with a guess "
-        "at what was plainly said of the journey and of the home and at no wish, and the answer "
-        "says that a model has more to read",
+        "at what was plainly said of the journey and of the home and at each wish whose way "
+        "the words give, and the answer says that a model has more to read",
         "interpret",
         {"text": long, "ask_model": False},
     )
@@ -2018,8 +2173,8 @@ def a_preview() -> InMemoryRelease:
 
     Its journeys, its places to reach, its stations and its costs are taken out,
     and all but ten of its measures. Every vibe is worked out again from what is
-    left, as a builder works it out, so an area has a band only where 60 in 100
-    of a recipe is measured. Nothing is taken out by hand, and nothing stands in
+    left, as a build of data works it out, so an area has a band only where 60 in
+    100 of a recipe is measured. Nothing is taken out by hand, and nothing stands in
     for what is missing.
     """
     found: dict[str, Any] = load_release(SYNTHETIC_FIXTURE).documents()  # pyright: ignore[reportAssignmentType]
@@ -2278,9 +2433,22 @@ VISIT = {
     "people": "not too many students, and near a park",
     "unread": "What is the best way to learn the piano",
     "slow": "somewhere by the water, honestly",
-    "noticed": NOT_PLAIN[0][1],
+    # Of this one the website takes two things and leaves one, which waits for the person.
+    "noticed": NOT_PLAIN[3][1],
 }
 PICKED = "syn-p0017"  # Pellam Exchange, the answer to "which Pellam?"
+
+# What one person types, and then types after it in the same box. The first says "up to",
+# which makes its budget a firm limit. The second begins with the comma it was typed after:
+# the website sends what was added to the box as it was typed, and nothing that stood before it.
+ADDED = {
+    "first": "Renting a 1 bed up to £1,700 a month, leafy and quiet, "
+    "35 minutes to Cindermoor Works",
+    "more": f", {SECOND_SENTENCE}",
+}
+# What the same person sets by hand between the two, and what they leave as it was read:
+# the budget, the longest the journey may take, how much Leafy counts, and Quiet streets.
+SET_BY_HAND = (1_800, [30], 0.8, 0.5)
 
 
 # What a buyer of the recording of one number has for a flat. Some areas of the made-up city
@@ -2441,6 +2609,95 @@ def record_the_income(rec: Recorder, client: TestClient) -> None:
     rec.call(off, "meta-no-income", "What route 11 says where none is served", "get_meta")
 
 
+def _taken_by_the_website(thing: dict[str, Any]) -> dict[str, Any] | None:
+    """The way of an offer that the website takes of itself, as `lib/search/takes.ts` chooses.
+
+    Nothing of what the service says waits for a person: what counts who lived somewhere,
+    what counts recorded crime where the words do not name it, a measure that is offered
+    and never applied, and a wish or a journey that the words do not say is the person's
+    own. A rule for an area by the way marked as the guess, and by no other. The way one
+    press may add. Of a limit, the way that leaves no area out. The way marked as the
+    guess. And of a thing that runs one way, that way. Where the words give no way,
+    nothing is taken of a thing that runs two ways. Nor is a journey to a place that is
+    yet to be chosen: no sentence of the visit offers one.
+    """
+
+    def takes_off(way: dict[str, Any]) -> bool:
+        wishes = [*way["operations"]["weight_ops"], *way["operations"]["tag_ops"]]
+        return bool(wishes) and all(edit["action"] == "remove" for edit in wishes)
+
+    if thing["only_by_choice"]:
+        return None
+    ways = [way for way in thing["choices"] if way["id"] != "ignore" and not takes_off(way)]
+    guessed = [way for way in ways if way["guess"]]
+    rules_an_area = any(
+        edit["action"] != "clear" for way in ways for edit in way["operations"]["area_ops"]
+    )
+    if rules_an_area:
+        return guessed[0] if guessed else None
+    said = [way for way in ways if thing["add_all"] and way["id"] == thing["add_all"]]
+    limits = [
+        way
+        for way in ways
+        if any(
+            edit["strictness"] != "unchanged"
+            for edit in [*way["operations"]["budget_ops"], *way["operations"]["commute_ops"]]
+        )
+    ]
+    guides = [
+        way
+        for way in limits
+        if not any(
+            edit["strictness"] == "hard"
+            for edit in [*way["operations"]["budget_ops"], *way["operations"]["commute_ops"]]
+        )
+    ]
+    if said or guides or guessed:
+        return (said or guides or guessed)[0]
+    more = [way for way in ways if way["direction"] == "more"]
+    less = [way for way in ways if way["direction"] == "less"]
+    if (more and less) or not ways:
+        return None
+    return (more or ways)[0]
+
+
+def _taken_of_all_by_the_website(things: list[dict[str, Any]]) -> list[dict[str, Any] | None]:
+    """The way taken of each offer of one answer, as `takenOfAll` of `takes.ts` chooses.
+
+    Each as it is by itself, but a wish that is read into words that are taken another
+    way: a word counts once. Of the wishes that are read into the same words, the one
+    whose way is marked as the guess is taken, or the first, and none where the words
+    name a wish that is taken.
+    """
+
+    def is_a_wish(thing: dict[str, Any]) -> bool:
+        return thing["target"].startswith(("feature:", "tag:"))
+
+    def rests_on(thing: dict[str, Any]) -> str:
+        return " ".join(f"{span['start']}-{span['end']}" for span in thing["spans"])
+
+    def is_read_in(thing: dict[str, Any]) -> bool:
+        return bool(thing["spans"]) and is_a_wish(thing) and not thing["by_name"]
+
+    made = [_taken_by_the_website(thing) for thing in things]
+    for words in dict.fromkeys(rests_on(thing) for thing in things if is_read_in(thing)):
+        on_them = [
+            at for at, thing in enumerate(things) if is_a_wish(thing) and rests_on(thing) == words
+        ]
+        named = [at for at in on_them if not is_read_in(things[at])]
+        read_in = [at for at in on_them if is_read_in(things[at])]
+        taken_already = any(made[at] is not None for at in named)
+        if not taken_already and len(on_them) < 2:
+            continue
+        may_be = [at for at in read_in if made[at] is not None]
+        guessed = [at for at in may_be if (made[at] or {}).get("guess")]
+        kept = None if taken_already or not may_be else (guessed or may_be)[0]
+        for at in may_be:
+            if at != kept:
+                made[at] = None
+    return made
+
+
 def record_the_visit(rec: Recorder, defaults: dict[str, Any]) -> None:
     """One person's whole visit, each request made of the answer before it.
 
@@ -2491,13 +2748,19 @@ def record_the_visit(rec: Recorder, defaults: dict[str, Any]) -> None:
         commute_ops=[commute_edit(WORKS, strictness="hard")],
     )["spec"]
 
-    # A place named in part. Nothing is applied, so nothing is ranked until it is answered.
-    asked = said("place", "A place named in part: a question, and no edit applied", spec)
+    # A place named in part. The service applies nothing, and says which places bear the
+    # name. The website asks nothing: it takes the first of them the service gives.
+    asked = said(
+        "place",
+        "A place named in part: the places that bear the name, and no edit applied",
+        spec,
+    )
     question = asked["clarify"][0]
-    answer = asked["operations"][question["group"]][question["index"]] | {"place_id": PICKED}
+    first = question["options"][0]["id"]
+    answer = asked["operations"][question["group"]][question["index"]] | {"place_id": first}
     spec = moved(
         "answered",
-        "The question answered: the edit, with the id picked",
+        "The first of the places taken: the edit, with its id",
         spec,
         **{question["group"]: [answer]},
     )["spec"]
@@ -2574,15 +2837,79 @@ def record_the_visit(rec: Recorder, defaults: dict[str, Any]) -> None:
         tag_ops=[tag_edit("pace", action="set", value=pace["weight"], toward="low")],
     )["spec"]
 
-    # A sentence that is not plain: nothing applied, and nothing ranked until one is chosen.
+    # A sentence that is not plain: the service applies nothing, and returns what it noticed.
+    # The website asks nothing: it takes each thing, by the way its `takes.ts` chooses, and
+    # sends the edits the API gave with those ways in one request. Where it takes nothing,
+    # it sends nothing, and the ranking stands as it stood.
     noticed = said("noticed", "A sentence that is not plain: what was noticed, and no edit", calm)
-    fewer = noticed["suggestions"][0]["choices"][1]
-    moved(
-        "chosen",
-        "One of the things noticed, chosen: the edits the API gave with the choice",
-        noticed["spec"],
-        **fewer["operations"],
+    taken = operations()
+    for way in _taken_of_all_by_the_website(noticed["suggestions"]):
+        if way is None:
+            continue
+        for group, edits in way["operations"].items():
+            taken[group] = [*taken[group], *edits]
+    if any(taken.values()):
+        moved(
+            "chosen",
+            "What was noticed, taken: the edits the API gave with the way taken of each thing",
+            noticed["spec"],
+            **taken,
+        )
+
+
+def record_what_was_added(rec: Recorder, defaults: dict[str, Any]) -> None:
+    """A search that is set by hand, and then added to in words, each request made of the last.
+
+    A person types a sentence, sets three things by hand, and types more after the sentence
+    in the same box. Every body here is the body the website sends at that step, and
+    `test/search/added.test.tsx` holds the website to it: what is sent to be read is what
+    was added, with the search as it was set by hand. The whole of the box, sent with that
+    search, is read onto it a second time, and sets back what was set by hand.
+    """
+    client = TestClient(create_app(make_deps()))
+    numbered = iter(range(1, 100))
+    budget, (minutes,), leafy, _ = SET_BY_HAND
+
+    def step(name: str, shows: str, operation: str, body: Any) -> Any:
+        return rec.call(client, f"added/{next(numbered):02d}-{name}", shows, operation, body)
+
+    def ranked_and_explained(name: str, spec: dict[str, Any]) -> None:
+        step(f"{name}-rank", "Its ranking", "rank", {"spec": spec, "limit": 20})
+        step(f"{name}-reasons", "Its reasons", "explain_top", {"spec": spec, "limit": 5})
+
+    def said(name: str, shows: str, spec: dict[str, Any]) -> dict[str, Any]:
+        body = {"text": ADDED[name].strip(), "spec": spec, "ask_model": False}
+        return step(name, shows, "interpret", body)["data"]["spec"]
+
+    def set_by_hand(name: str, shows: str, spec: dict[str, Any], **groups: Any) -> dict[str, Any]:
+        body = {"spec": spec, "limit": 20, "operations": operations(**groups)}
+        ranking = step(f"{name}-rank", shows, "rank", body)["data"]
+        step(f"{name}-reasons", "Its reasons", "explain_top", {"spec": ranking["spec"], "limit": 5})
+        return ranking["spec"]
+
+    spec = said("first", "A first sentence, whose budget is a firm limit", defaults["rent"])
+    ranked_and_explained("first", spec)
+    spec = set_by_hand(
+        "budget", "The budget set by hand", spec, budget_ops=[budget_edit(amount=budget)]
     )
+    spec = set_by_hand(
+        "journey",
+        "The longest the journey may take, set by hand",
+        spec,
+        commute_ops=[commute_edit(WORKS, max_minutes=minutes)],
+    )
+    spec = set_by_hand(
+        "leafy",
+        "How much a vibe counts, set by hand",
+        spec,
+        tag_ops=[tag_edit("leafy", action="set", value=leafy, toward="high")],
+    )
+    spec = said(
+        "more",
+        "What was typed after the first sentence, sent without it: what was set by hand stands",
+        spec,
+    )
+    ranked_and_explained("more", spec)
 
 
 # The months the made-up rents were recorded in, and how many rents a made-up figure rests
@@ -2744,6 +3071,165 @@ def record_a_difference_of_nothing(rec: Recorder) -> None:
         )
 
 
+# What a person types who is looking for somewhere to stay, and what a person types who
+# only uses a word for a visit. Each sentence is made up for the recording.
+STAYING = {
+    "plain": "I'm visiting for a weekend, somewhere buzzy with lots of restaurants",
+    "said": "Honestly, I'm visiting for a weekend, somewhere leafy",
+    "night": f"a hotel for £150 a night near {PELLAM}",
+    "home": "a 2 bed flat, up to £2,000",
+    "mother": "Visiting my mother in Cindermoor Works",
+}
+
+
+def record_somewhere_to_stay(rec: Recorder) -> None:
+    """A search for somewhere to stay on a visit, which holds no budget and no kind of home.
+
+    What a visitor starts from is in `meta`, as `defaults.visit`. Here is what
+    the service answers to a search of that kind on every route that takes a
+    search: read from words, ranked, explained, compared and shared. And what
+    it answers where a budget or a home meets a visit: a search that becomes
+    a visit and one that ceases to be, an edit that is turned away, words of a
+    home typed into a visit, what a night costs, and a visit sent with a budget.
+    """
+    client = TestClient(create_app(make_deps()))
+    defaults = rec_defaults(client)
+    renter, visitor = defaults["rent"], defaults["visit"]
+
+    def step(name: str, shows: str, operation: str, body: Any = None, **path: str) -> Any:
+        return rec.call(client, f"visiting/{name}", shows, operation, body, **path)
+
+    def said(name: str, shows: str, words: str, spec: dict[str, Any]) -> dict[str, Any]:
+        return step(name, shows, "interpret", {"text": STAYING[words], "spec": spec})["data"]
+
+    read = said(
+        "interpret",
+        "A sentence that says a visit, typed into a renter's search: the search becomes a visit",
+        "plain",
+        renter,
+    )
+    spec = read["spec"]
+    ranked = step(
+        "rank",
+        "Its ranking: no area holds a fit to a budget, and none is left out for a cost",
+        "rank",
+        {"spec": spec, "limit": 20},
+    )["data"]
+    step(
+        "explanations",
+        "Its reasons: no sentence and no fact of what a home costs",
+        "explain_top",
+        {"spec": spec, "limit": 5},
+    )
+    step(
+        "rank-usual",
+        "What a visitor is taken to mind, where they have said nothing: the usual settings",
+        "rank",
+        {"spec": visitor, "limit": 20},
+    )
+
+    # A search for a home, with a firm budget and a journey, that becomes a visit and back.
+    home = renter | {
+        "budget": renter["budget"]
+        | {"amount": 1_800, "strictness": "hard", "provenance": "ui_edit"},
+        "commutes": [commute(WORKS)],
+    }
+    becomes = step(
+        "rank-becomes",
+        "A search for a home that becomes a visit: the budget and the home go, the journey stays",
+        "rank",
+        {
+            "spec": home,
+            "limit": 20,
+            "operations": operations(budget_ops=[budget_edit(tenure="visit")]),
+        },
+    )["data"]
+    step(
+        "rank-back",
+        "A visit that becomes a search to rent: the usual budget of renting, with no amount",
+        "rank",
+        {
+            "spec": becomes["spec"],
+            "limit": 20,
+            "operations": operations(budget_ops=[budget_edit(tenure="rent")]),
+        },
+    )
+    step(
+        "rank-rejected",
+        "An amount and a kind of home sent to a visit: each is turned away, and says why",
+        "rank",
+        {
+            "spec": becomes["spec"],
+            "limit": 20,
+            "operations": operations(
+                budget_ops=[budget_edit(amount=1_500), budget_edit(segment="bed_2")]
+            ),
+        },
+    )
+
+    said(
+        "interpret-said",
+        "A visit that is plainly said in a sentence that is not plain: offered, with Burro's guess",
+        "said",
+        renter,
+    )
+    said(
+        "interpret-night",
+        "What a night costs: no budget is offered, and it is said to be what Burro cannot hold",
+        "night",
+        renter,
+    )
+    said(
+        "interpret-home",
+        "A home and an amount typed into a visit: each is said, and nothing is set",
+        "home",
+        becomes["spec"] | {"commutes": []},
+    )
+    said(
+        "interpret-mother",
+        "Whom the speaker visits: the place is offered, and the search is no visit",
+        "mother",
+        renter,
+    )
+
+    journey = spec | {"commutes": [commute(WORKS)]}
+    step(
+        "compare",
+        "Three areas compared for a visit: a row for the journey, and none for a budget",
+        "compare",
+        {"area_ids": [area["area_id"] for area in ranked["ranked"][:3]], "spec": journey},
+    )
+    shared = step("share", "A visit, shared", "create_share", {"spec": journey})["data"]
+    step(
+        "share-opened",
+        "The share, opened: a visit, ranked as it is now",
+        "get_share",
+        share_id=shared["share_id"],
+    )
+    step(
+        "invalid-spec",
+        "A visit sent with a budget: refused, and nothing that was sent is said back",
+        "rank",
+        {"spec": visitor | {"budget": visitor["budget"] | {"amount": 150}}},
+    )
+
+    # A release that holds no cost and no journey serves a visit whole.
+    preview = TestClient(create_app(make_deps(release=a_preview())))
+    meta = rec.call(
+        preview,
+        "visiting/preview-meta",
+        "A release that holds no cost: what a visit starts from there",
+        "get_meta",
+    )
+    rec.call(
+        preview,
+        "visiting/preview-rank",
+        "A visit on a release that holds no cost: ranked, with nothing said to be missing",
+        "rank",
+        {"spec": meta["data"]["defaults"]["visit"], "limit": 20},
+    )
+
+
 def rec_defaults(client: TestClient) -> dict[str, Any]:
     """The searches a service starts from. It is asked, and the answer is not recorded."""
     return client.get("/v1/meta").json()["data"]["defaults"]
@@ -2768,9 +3254,12 @@ def main() -> int:
     record_a_difference_of_nothing(rec)
     record_the_examples(rec, client, TestClient(create_app(make_deps(release=a_preview()))))
     record_the_visit(rec, meta["defaults"])
+    record_what_was_added(rec, meta["defaults"])
     # From a service of its own, so that it moves the id of no other recording.
     record_the_census(rec, TestClient(create_app(make_deps())))
     record_the_income(rec, TestClient(create_app(make_deps())))
+    # Each from services of its own too.
+    record_somewhere_to_stay(rec)
     if not rec.finish():
         sys.stderr.write("Nothing was written. Reword these in record.py, and record again:\n")
         sys.stderr.write("".join(f"  {failure}\n" for failure in rec.failed))

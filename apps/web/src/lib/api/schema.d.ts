@@ -124,6 +124,74 @@ export interface paths {
         readonly patch?: never;
         readonly trace?: never;
     };
+    readonly "/v1/auth/link": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        /**
+         * Ask For Link
+         * @description Send a link to sign in with. The answer is the same whether or not the address is known.
+         */
+        readonly post: operations["ask_for_link"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/auth/link/whose": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        readonly put?: never;
+        /**
+         * Whose Link
+         * @description Whose link this is, for a page to show before it signs anybody in. It uses nothing up.
+         */
+        readonly post: operations["whose_link"];
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/auth/session": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /**
+         * Get Session
+         * @description Whether the browser is signed in, and as whom. It is answered 200 either way.
+         */
+        readonly get: operations["get_session"];
+        readonly put?: never;
+        /**
+         * Sign In
+         * @description Use a link up and sign the browser in. The first time, it makes the account.
+         */
+        readonly post: operations["sign_in"];
+        /**
+         * Sign Out
+         * @description Sign the browser out. Its session is revoked, and not only forgotten.
+         */
+        readonly delete: operations["sign_out"];
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
     readonly "/v1/compare": {
         readonly parameters: {
             readonly query?: never;
@@ -179,6 +247,150 @@ export interface paths {
          */
         readonly post: operations["interpret"];
         readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/me": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /**
+         * Get Me
+         * @description The address of the account and its preferences.
+         */
+        readonly get: operations["get_me"];
+        readonly put?: never;
+        readonly post?: never;
+        /**
+         * Delete Me
+         * @description Delete the account and everything of it. It asks for a sign-in in the last ten minutes.
+         */
+        readonly delete: operations["delete_me"];
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/me/export": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /**
+         * Export Me
+         * @description Everything Burro holds of the account.
+         */
+        readonly get: operations["export_me"];
+        readonly put?: never;
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/me/preferences": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly get?: never;
+        /**
+         * Set Preferences
+         * @description Set a preference, and give back every preference as it now stands.
+         */
+        readonly put: operations["set_preferences"];
+        readonly post?: never;
+        readonly delete?: never;
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/me/recent": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /**
+         * List Recent
+         * @description The last ten searches, where the person lets Burro keep them.
+         */
+        readonly get: operations["list_recent"];
+        readonly put?: never;
+        /**
+         * Keep Recent
+         * @description Put a search among the last ten, where the person lets Burro keep them.
+         */
+        readonly post: operations["keep_recent"];
+        /**
+         * Forget Recent
+         * @description Take every one of the last searches away.
+         */
+        readonly delete: operations["forget_recent"];
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/me/searches": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /**
+         * List Searches
+         * @description The searches a person has kept, the newest first.
+         */
+        readonly get: operations["list_searches"];
+        readonly put?: never;
+        /**
+         * Keep Search
+         * @description Keep a search. What is kept is the spec, and a name worked out from it.
+         */
+        readonly post: operations["keep_search"];
+        /**
+         * Forget Search
+         * @description Take one search away, and give back those that are left.
+         */
+        readonly delete: operations["forget_search"];
+        readonly options?: never;
+        readonly head?: never;
+        readonly patch?: never;
+        readonly trace?: never;
+    };
+    readonly "/v1/me/sessions": {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        /**
+         * List Sessions
+         * @description Where a person is signed in.
+         */
+        readonly get: operations["list_sessions"];
+        readonly put?: never;
+        readonly post?: never;
+        /**
+         * End Sessions
+         * @description Sign out of one browser, or of every one.
+         */
+        readonly delete: operations["end_sessions"];
         readonly options?: never;
         readonly head?: never;
         readonly patch?: never;
@@ -402,6 +614,12 @@ export interface components {
             /** Spread Low */
             readonly spread_low: number | null;
         };
+        /**
+         * Browser
+         * @description The family of a browser, coarsely. It is all that is kept of what a browser says it is.
+         * @enum {string}
+         */
+        readonly Browser: "chrome" | "edge" | "firefox" | "safari" | "other";
         /** Budget */
         readonly Budget: {
             /** Amount */
@@ -840,10 +1058,14 @@ export interface components {
             /** Walk */
             readonly walk: number;
         };
-        /** Defaults */
+        /**
+         * Defaults
+         * @description What a search of each kind starts from, before a person has chosen anything.
+         */
         readonly Defaults: {
             readonly buy: components["schemas"]["PreferenceSpec"];
             readonly rent: components["schemas"]["PreferenceSpec"];
+            readonly visit: components["schemas"]["PreferenceSpec"];
         };
         /**
          * Describes
@@ -896,6 +1118,11 @@ export interface components {
             readonly data: components["schemas"]["ExplanationsData"];
             readonly meta: components["schemas"]["Meta"];
         };
+        /** Envelope[Export] */
+        readonly Envelope_Export_: {
+            readonly data: components["schemas"]["Export"];
+            readonly meta: components["schemas"]["Meta"];
+        };
         /** Envelope[GeometryData] */
         readonly Envelope_GeometryData_: {
             readonly data: components["schemas"]["GeometryData"];
@@ -911,6 +1138,26 @@ export interface components {
             readonly data: components["schemas"]["InterpretData"];
             readonly meta: components["schemas"]["Meta"];
         };
+        /** Envelope[KeptSearch] */
+        readonly Envelope_KeptSearch_: {
+            readonly data: components["schemas"]["KeptSearch"];
+            readonly meta: components["schemas"]["Meta"];
+        };
+        /** Envelope[KeptSearches] */
+        readonly Envelope_KeptSearches_: {
+            readonly data: components["schemas"]["KeptSearches"];
+            readonly meta: components["schemas"]["Meta"];
+        };
+        /** Envelope[LinkAsked] */
+        readonly Envelope_LinkAsked_: {
+            readonly data: components["schemas"]["LinkAsked"];
+            readonly meta: components["schemas"]["Meta"];
+        };
+        /** Envelope[Me] */
+        readonly Envelope_Me_: {
+            readonly data: components["schemas"]["Me"];
+            readonly meta: components["schemas"]["Meta"];
+        };
         /** Envelope[MetaData] */
         readonly Envelope_MetaData_: {
             readonly data: components["schemas"]["MetaData"];
@@ -921,9 +1168,29 @@ export interface components {
             readonly data: components["schemas"]["PlacesData"];
             readonly meta: components["schemas"]["Meta"];
         };
+        /** Envelope[Preferences] */
+        readonly Envelope_Preferences_: {
+            readonly data: components["schemas"]["Preferences"];
+            readonly meta: components["schemas"]["Meta"];
+        };
         /** Envelope[RankData] */
         readonly Envelope_RankData_: {
             readonly data: components["schemas"]["RankData"];
+            readonly meta: components["schemas"]["Meta"];
+        };
+        /** Envelope[RecentSearches] */
+        readonly Envelope_RecentSearches_: {
+            readonly data: components["schemas"]["RecentSearches"];
+            readonly meta: components["schemas"]["Meta"];
+        };
+        /** Envelope[Session] */
+        readonly Envelope_Session_: {
+            readonly data: components["schemas"]["Session"];
+            readonly meta: components["schemas"]["Meta"];
+        };
+        /** Envelope[Sessions] */
+        readonly Envelope_Sessions_: {
+            readonly data: components["schemas"]["Sessions"];
             readonly meta: components["schemas"]["Meta"];
         };
         /** Envelope[ShareCreated] */
@@ -934,6 +1201,16 @@ export interface components {
         /** Envelope[ShareData] */
         readonly Envelope_ShareData_: {
             readonly data: components["schemas"]["ShareData"];
+            readonly meta: components["schemas"]["Meta"];
+        };
+        /** Envelope[SignedIn] */
+        readonly Envelope_SignedIn_: {
+            readonly data: components["schemas"]["SignedIn"];
+            readonly meta: components["schemas"]["Meta"];
+        };
+        /** Envelope[WhoseLink] */
+        readonly Envelope_WhoseLink_: {
+            readonly data: components["schemas"]["WhoseLink"];
             readonly meta: components["schemas"]["Meta"];
         };
         /** ErrorBody */
@@ -948,12 +1225,18 @@ export interface components {
          * ErrorCode
          * @enum {string}
          */
-        readonly ErrorCode: "malformed_json" | "body_too_large" | "unsupported_media_type" | "internal_error" | "not_found" | "method_not_allowed" | "invalid_request" | "invalid_text" | "invalid_spec" | "invalid_operations" | "invalid_compare" | "invalid_query" | "unknown_place" | "unknown_area" | "area_not_found" | "share_not_found" | "release_changed" | "census_not_available" | "income_not_available";
+        readonly ErrorCode: "malformed_json" | "body_too_large" | "unsupported_media_type" | "internal_error" | "not_found" | "method_not_allowed" | "invalid_request" | "invalid_text" | "invalid_spec" | "invalid_operations" | "invalid_compare" | "invalid_query" | "unknown_place" | "unknown_area" | "area_not_found" | "share_not_found" | "release_changed" | "census_not_available" | "income_not_available" | "not_the_website" | "not_signed_in" | "sign_in_again" | "rate_limited" | "sign_in_busy" | "sign_in_unavailable" | "invalid_email" | "link_not_valid" | "link_expired" | "link_used" | "other_browser" | "age_not_confirmed" | "too_many_searches" | "search_not_found" | "session_not_found";
         /** ErrorEnvelope */
         readonly ErrorEnvelope: {
             readonly error: components["schemas"]["ErrorBody"];
             readonly meta: components["schemas"]["Meta"];
         };
+        /**
+         * Event
+         * @description What happened.
+         * @enum {string}
+         */
+        readonly Event: "link_requested" | "link_sent" | "link_send_failed" | "link_used" | "link_rejected" | "session_created" | "session_revoked" | "rate_limited" | "account_deleted";
         /** ExplainedSentence */
         readonly ExplainedSentence: {
             /** Fact Ids */
@@ -992,6 +1275,31 @@ export interface components {
             readonly facts: readonly components["schemas"]["Fact"][];
             /** Spec Hash */
             readonly spec_hash: string;
+        };
+        /**
+         * Export
+         * @description Everything Burro holds of an account.
+         */
+        readonly Export: {
+            /** Adult At */
+            readonly adult_at: string;
+            /** Email */
+            readonly email: string;
+            /** Events */
+            readonly events: readonly components["schemas"]["Happened"][];
+            /** Exported At */
+            readonly exported_at: string;
+            /** Links */
+            readonly links: readonly components["schemas"]["LinkHeld"][];
+            /** Made At */
+            readonly made_at: string;
+            readonly preferences: components["schemas"]["Preferences"];
+            /** Recent */
+            readonly recent: readonly components["schemas"]["KeptSearch"][];
+            /** Searches */
+            readonly searches: readonly components["schemas"]["KeptSearch"][];
+            /** Sessions */
+            readonly sessions: readonly components["schemas"]["SignedInAt"][];
         };
         /** Fact */
         readonly Fact: {
@@ -1099,6 +1407,11 @@ export interface components {
             readonly area_id: string;
             readonly reason: components["schemas"]["FilterReason"];
         };
+        /** ForgetBody */
+        readonly ForgetBody: {
+            /** Search Id */
+            readonly search_id: string;
+        };
         /** FoundPlace */
         readonly FoundPlace: {
             /** Coarse Name */
@@ -1165,6 +1478,13 @@ export interface components {
          * @enum {string}
          */
         readonly GrittyVariant: "a" | "b";
+        /** Happened */
+        readonly Happened: {
+            /** At */
+            readonly at: string;
+            readonly event: components["schemas"]["Event"];
+            readonly outcome: components["schemas"]["Outcome"];
+        };
         /** Health */
         readonly Health: {
             /** Ok */
@@ -1328,6 +1648,65 @@ export interface components {
          * @enum {string}
          */
         readonly JourneyBand: "likely_within" | "borderline" | "likely_beyond";
+        /** KeepBody */
+        readonly KeepBody: {
+            readonly spec: components["schemas"]["PreferenceSpec"];
+        };
+        /** KeptSearch */
+        readonly KeptSearch: {
+            /** Kept At */
+            readonly kept_at: string;
+            /** Name */
+            readonly name: string;
+            /** Release Id */
+            readonly release_id: string;
+            /** Search Id */
+            readonly search_id: string;
+            readonly spec: components["schemas"]["PreferenceSpec"] | null;
+            readonly state: components["schemas"]["SearchState"];
+        };
+        /** KeptSearches */
+        readonly KeptSearches: {
+            /** Most */
+            readonly most: number;
+            /** Searches */
+            readonly searches: readonly components["schemas"]["KeptSearch"][];
+        };
+        /**
+         * LinkAsked
+         * @description What asking for a link is answered: the same, whoever asked and whatever the address.
+         */
+        readonly LinkAsked: {
+            /** Lasts Minutes */
+            readonly lasts_minutes: number;
+        };
+        /** LinkBody */
+        readonly LinkBody: {
+            /** Email */
+            readonly email: string;
+        };
+        /**
+         * LinkHeld
+         * @description A link that was asked for the address of the account, for as long as Burro holds it.
+         */
+        readonly LinkHeld: {
+            /** Asked At */
+            readonly asked_at: string;
+            /** Ends At */
+            readonly ends_at: string;
+            /** Used */
+            readonly used: boolean;
+        };
+        /** Me */
+        readonly Me: {
+            /** Email */
+            readonly email: string;
+            /** Fresh */
+            readonly fresh: boolean;
+            /** Made At */
+            readonly made_at: string;
+            readonly preferences: components["schemas"]["Preferences"];
+        };
         /** Meta */
         readonly Meta: {
             /** Engine Version */
@@ -1552,6 +1931,12 @@ export interface components {
          */
         readonly OptionKind: "station" | "district" | "postcode_district" | "university" | "hospital" | "school" | "landmark" | "area";
         /**
+         * Outcome
+         * @description How it ended.
+         * @enum {string}
+         */
+        readonly Outcome: "ok" | "refused" | "expired" | "used" | "limited" | "unavailable";
+        /**
          * PlaceKind
          * @description In the order that breaks a tie between two matches of the same score.
          * @enum {string}
@@ -1642,6 +2027,20 @@ export interface components {
             readonly tenure_from: components["schemas"]["Provenance"];
             /** Weights */
             readonly weights: readonly components["schemas"]["FeatureWeight"][];
+        };
+        /**
+         * Preferences
+         * @description Every preference as it now stands, whether the person set it or nobody did.
+         */
+        readonly Preferences: {
+            readonly keep_recent: components["schemas"]["Switch"];
+        };
+        /**
+         * PreferencesBody
+         * @description What to set. A preference that is left out, or is `null`, stays as it was.
+         */
+        readonly PreferencesBody: {
+            readonly keep_recent?: components["schemas"]["Switch"] | null;
         };
         /**
          * Problem
@@ -1741,6 +2140,15 @@ export interface components {
             /** Terms Url */
             readonly terms_url: string | null;
         };
+        /** RecentSearches */
+        readonly RecentSearches: {
+            /** Kept */
+            readonly kept: boolean;
+            /** Most */
+            readonly most: number;
+            /** Searches */
+            readonly searches: readonly components["schemas"]["KeptSearch"][];
+        };
         /**
          * RecipeHeld
          * @description How much of one vibe's recipe a release carries, and what the vibe waits on.
@@ -1806,7 +2214,10 @@ export interface components {
         };
         /**
          * RoughGuide
-         * @description What stands beside a vibe that is a rough guide, wherever the vibe is shown.
+         * @description What is said of a vibe that is a rough guide: its label, and why it is less sure.
+         *
+         *     The review desk shows it to whoever decides a recipe. The service hands it
+         *     to no client: route 11 holds a list of these, which is always empty.
          */
         readonly RoughGuide: {
             /** Label */
@@ -1826,6 +2237,12 @@ export interface components {
             /** Score */
             readonly score: number;
         };
+        /**
+         * SearchState
+         * @description Whether a search that was kept can be searched again on the data as it is now.
+         * @enum {string}
+         */
+        readonly SearchState: "ok" | "release_changed" | "unreadable";
         /**
          * Segment
          * @enum {string}
@@ -1921,6 +2338,23 @@ export interface components {
             readonly weight_unit: number;
         };
         /**
+         * Session
+         * @description Whether the browser that asked is signed in, and as whom.
+         */
+        readonly Session: {
+            /** Email */
+            readonly email: string | null;
+            /** Signed In */
+            readonly signed_in: boolean;
+        };
+        /** Sessions */
+        readonly Sessions: {
+            /** Sessions */
+            readonly sessions: readonly components["schemas"]["SignedInAt"][];
+            /** Signed In */
+            readonly signed_in: boolean;
+        };
+        /**
          * Setting
          * @enum {string}
          */
@@ -1989,6 +2423,57 @@ export interface components {
             readonly stale: boolean;
             /** Unranked */
             readonly unranked: readonly components["schemas"]["Unranked"][];
+        };
+        /** SignInBody */
+        readonly SignInBody: {
+            /**
+             * Adult
+             * @default false
+             */
+            readonly adult: boolean;
+            /**
+             * Other Browser
+             * @default false
+             */
+            readonly other_browser: boolean;
+            /** Token */
+            readonly token: string;
+        };
+        /** SignOutBody */
+        readonly SignOutBody: {
+            /**
+             * Everywhere
+             * @default false
+             */
+            readonly everywhere: boolean;
+            /** Session Id */
+            readonly session_id?: string | null;
+        };
+        /** SignedIn */
+        readonly SignedIn: {
+            /** Email */
+            readonly email: string;
+            /** New Account */
+            readonly new_account: boolean;
+        };
+        /**
+         * SignedInAt
+         * @description One browser a person is signed in with.
+         */
+        readonly SignedInAt: {
+            readonly browser: components["schemas"]["Browser"];
+            /** Current */
+            readonly current: boolean;
+            /** Ends At */
+            readonly ends_at: string;
+            /** Made At */
+            readonly made_at: string;
+            /** Revoked */
+            readonly revoked: boolean;
+            /** Seen At */
+            readonly seen_at: string;
+            /** Session Id */
+            readonly session_id: string;
         };
         /**
          * Similar
@@ -2098,6 +2583,11 @@ export interface components {
             readonly add_all: string;
             /** Asks Place */
             readonly asks_place: boolean;
+            /**
+             * By Name
+             * @default false
+             */
+            readonly by_name: boolean;
             /** Choices */
             readonly choices: readonly components["schemas"]["SuggestionChoice"][];
             /** Does */
@@ -2111,6 +2601,11 @@ export interface components {
             readonly needs: string;
             /** Note */
             readonly note: string;
+            /**
+             * Only By Choice
+             * @default false
+             */
+            readonly only_by_choice: boolean;
             /** Options */
             readonly options: readonly components["schemas"]["ClarifyOption"][];
             readonly read_by: components["schemas"]["InterpreterName"];
@@ -2155,6 +2650,11 @@ export interface components {
          * @enum {string}
          */
         readonly Sureness: "as_the_rest" | "rough_guide";
+        /**
+         * Switch
+         * @enum {string}
+         */
+        readonly Switch: "on" | "off";
         /** Tag */
         readonly Tag: {
             /** Cannot See */
@@ -2259,19 +2759,28 @@ export interface components {
         readonly TemplateId: "area" | "feature" | "feature_crime" | "vibe" | "vibe_range" | "vibe_unknown" | "cost_rent" | "cost_buy" | "cost_buy_median" | "cost_buy_sold" | "cost_rent_recorded" | "budget_under" | "budget_over" | "budget_at" | "budget_under_median" | "budget_over_median" | "budget_at_median" | "budget_under_recorded" | "budget_over_recorded" | "budget_at_recorded" | "travel_pt" | "travel_pt_over" | "travel_other" | "travel_other_over" | "travel_beyond" | "travel_estimated" | "station" | "station_nearby" | "missing" | "missing_journey" | "likeness" | "likeness_same";
         /**
          * Tenure
+         * @description What a search is for: a home to rent, a home to buy, or somewhere to stay on a visit.
+         *
+         *     A visit is a kind of search of its own. It holds no budget, no number of bedrooms and
+         *     no kind of home, and what homes cost is no part of how its areas are ranked.
          * @enum {string}
          */
-        readonly Tenure: "rent" | "buy";
+        readonly Tenure: "rent" | "buy" | "visit";
         /**
          * TenureChoice
          * @enum {string}
          */
-        readonly TenureChoice: "rent" | "buy" | "unchanged";
+        readonly TenureChoice: "rent" | "buy" | "visit" | "unchanged";
         /**
          * TermReading
          * @enum {string}
          */
         readonly TermReading: "high" | "low";
+        /** TokenBody */
+        readonly TokenBody: {
+            /** Token */
+            readonly token: string;
+        };
         /**
          * Toward
          * @description Which end of a vibe is asked for. A one-way vibe has the high end alone.
@@ -2346,6 +2855,18 @@ export interface components {
             /** Value */
             readonly value: number;
         };
+        /**
+         * WhoseLink
+         * @description Whose link this is. Asking uses nothing up.
+         */
+        readonly WhoseLink: {
+            /** Email */
+            readonly email: string;
+            /** New Account */
+            readonly new_account: boolean;
+            /** Same Browser */
+            readonly same_browser: boolean;
+        };
     };
     responses: never;
     parameters: never;
@@ -2364,6 +2885,7 @@ export type AreasData = components['schemas']['AreasData'];
 export type Assumption = components['schemas']['Assumption'];
 export type AssumptionCode = components['schemas']['AssumptionCode'];
 export type BandMark = components['schemas']['BandMark'];
+export type Browser = components['schemas']['Browser'];
 export type Budget = components['schemas']['Budget'];
 export type BudgetAction = components['schemas']['BudgetAction'];
 export type BudgetEdit = components['schemas']['BudgetEdit'];
@@ -2409,21 +2931,34 @@ export type EnvelopeAreasData = components['schemas']['Envelope_AreasData_'];
 export type EnvelopeCensusPanel = components['schemas']['Envelope_CensusPanel_'];
 export type EnvelopeCompareData = components['schemas']['Envelope_CompareData_'];
 export type EnvelopeExplanationsData = components['schemas']['Envelope_ExplanationsData_'];
+export type EnvelopeExport = components['schemas']['Envelope_Export_'];
 export type EnvelopeGeometryData = components['schemas']['Envelope_GeometryData_'];
 export type EnvelopeIncomeShown = components['schemas']['Envelope_IncomeShown_'];
 export type EnvelopeInterpretData = components['schemas']['Envelope_InterpretData_'];
+export type EnvelopeKeptSearch = components['schemas']['Envelope_KeptSearch_'];
+export type EnvelopeKeptSearches = components['schemas']['Envelope_KeptSearches_'];
+export type EnvelopeLinkAsked = components['schemas']['Envelope_LinkAsked_'];
+export type EnvelopeMe = components['schemas']['Envelope_Me_'];
 export type EnvelopeMetaData = components['schemas']['Envelope_MetaData_'];
 export type EnvelopePlacesData = components['schemas']['Envelope_PlacesData_'];
+export type EnvelopePreferences = components['schemas']['Envelope_Preferences_'];
 export type EnvelopeRankData = components['schemas']['Envelope_RankData_'];
+export type EnvelopeRecentSearches = components['schemas']['Envelope_RecentSearches_'];
+export type EnvelopeSession = components['schemas']['Envelope_Session_'];
+export type EnvelopeSessions = components['schemas']['Envelope_Sessions_'];
 export type EnvelopeShareCreated = components['schemas']['Envelope_ShareCreated_'];
 export type EnvelopeShareData = components['schemas']['Envelope_ShareData_'];
+export type EnvelopeSignedIn = components['schemas']['Envelope_SignedIn_'];
+export type EnvelopeWhoseLink = components['schemas']['Envelope_WhoseLink_'];
 export type ErrorBody = components['schemas']['ErrorBody'];
 export type ErrorCode = components['schemas']['ErrorCode'];
 export type ErrorEnvelope = components['schemas']['ErrorEnvelope'];
+export type Event = components['schemas']['Event'];
 export type ExplainedSentence = components['schemas']['ExplainedSentence'];
 export type Explanation = components['schemas']['Explanation'];
 export type ExplanationsBody = components['schemas']['ExplanationsBody'];
 export type ExplanationsData = components['schemas']['ExplanationsData'];
+export type Export = components['schemas']['Export'];
 export type Fact = components['schemas']['Fact'];
 export type FactKind = components['schemas']['FactKind'];
 export type FactSource = components['schemas']['FactSource'];
@@ -2436,6 +2971,7 @@ export type FeatureWeight = components['schemas']['FeatureWeight'];
 export type FieldProblem = components['schemas']['FieldProblem'];
 export type FilterReason = components['schemas']['FilterReason'];
 export type Filtered = components['schemas']['Filtered'];
+export type ForgetBody = components['schemas']['ForgetBody'];
 export type FoundPlace = components['schemas']['FoundPlace'];
 export type GeoFeature = components['schemas']['GeoFeature'];
 export type GeoProperties = components['schemas']['GeoProperties'];
@@ -2443,6 +2979,7 @@ export type Geometry = components['schemas']['Geometry'];
 export type GeometryData = components['schemas']['GeometryData'];
 export type GeometryType = components['schemas']['GeometryType'];
 export type GrittyVariant = components['schemas']['GrittyVariant'];
+export type Happened = components['schemas']['Happened'];
 export type Health = components['schemas']['Health'];
 export type Holds = components['schemas']['Holds'];
 export type HowEstimated = components['schemas']['HowEstimated'];
@@ -2453,6 +2990,13 @@ export type InterpretData = components['schemas']['InterpretData'];
 export type InterpretStatus = components['schemas']['InterpretStatus'];
 export type InterpreterName = components['schemas']['InterpreterName'];
 export type JourneyBand = components['schemas']['JourneyBand'];
+export type KeepBody = components['schemas']['KeepBody'];
+export type KeptSearch = components['schemas']['KeptSearch'];
+export type KeptSearches = components['schemas']['KeptSearches'];
+export type LinkAsked = components['schemas']['LinkAsked'];
+export type LinkBody = components['schemas']['LinkBody'];
+export type LinkHeld = components['schemas']['LinkHeld'];
+export type Me = components['schemas']['Me'];
 export type Meta = components['schemas']['Meta'];
 export type MetaData = components['schemas']['MetaData'];
 export type Method = components['schemas']['Method'];
@@ -2470,6 +3014,7 @@ export type Notice = components['schemas']['Notice'];
 export type Operations = components['schemas']['Operations'];
 export type OpsGroup = components['schemas']['OpsGroup'];
 export type OptionKind = components['schemas']['OptionKind'];
+export type Outcome = components['schemas']['Outcome'];
 export type PlaceKind = components['schemas']['PlaceKind'];
 export type PlaceSearchBody = components['schemas']['PlaceSearchBody'];
 export type PlacesData = components['schemas']['PlacesData'];
@@ -2478,6 +3023,8 @@ export type Portrait = components['schemas']['Portrait'];
 export type PortraitMark = components['schemas']['PortraitMark'];
 export type PortraitPart = components['schemas']['PortraitPart'];
 export type PreferenceSpec = components['schemas']['PreferenceSpec'];
+export type Preferences = components['schemas']['Preferences'];
+export type PreferencesBody = components['schemas']['PreferencesBody'];
 export type Problem = components['schemas']['Problem'];
 export type Provenance = components['schemas']['Provenance'];
 export type Provider = components['schemas']['Provider'];
@@ -2486,6 +3033,7 @@ export type RankBody = components['schemas']['RankBody'];
 export type RankData = components['schemas']['RankData'];
 export type RankedArea = components['schemas']['RankedArea'];
 export type Reader = components['schemas']['Reader'];
+export type RecentSearches = components['schemas']['RecentSearches'];
 export type RecipeHeld = components['schemas']['RecipeHeld'];
 export type RejectReason = components['schemas']['RejectReason'];
 export type Rejected = components['schemas']['Rejected'];
@@ -2493,16 +3041,23 @@ export type RentsSaid = components['schemas']['RentsSaid'];
 export type RestsOn = components['schemas']['RestsOn'];
 export type RoughGuide = components['schemas']['RoughGuide'];
 export type Score = components['schemas']['Score'];
+export type SearchState = components['schemas']['SearchState'];
 export type Segment = components['schemas']['Segment'];
 export type SegmentChoice = components['schemas']['SegmentChoice'];
 export type SentenceOrigin = components['schemas']['SentenceOrigin'];
 export type ServedLimits = components['schemas']['ServedLimits'];
+export type Session = components['schemas']['Session'];
+export type Sessions = components['schemas']['Sessions'];
 export type Setting = components['schemas']['Setting'];
 export type SettingAction = components['schemas']['SettingAction'];
 export type SettingEdit = components['schemas']['SettingEdit'];
 export type ShareBody = components['schemas']['ShareBody'];
 export type ShareCreated = components['schemas']['ShareCreated'];
 export type ShareData = components['schemas']['ShareData'];
+export type SignInBody = components['schemas']['SignInBody'];
+export type SignOutBody = components['schemas']['SignOutBody'];
+export type SignedIn = components['schemas']['SignedIn'];
+export type SignedInAt = components['schemas']['SignedInAt'];
 export type Similar = components['schemas']['Similar'];
 export type Source = components['schemas']['Source'];
 export type Span = components['schemas']['Span'];
@@ -2515,6 +3070,7 @@ export type Suggestion = components['schemas']['Suggestion'];
 export type SuggestionChoice = components['schemas']['SuggestionChoice'];
 export type SuggestionDirection = components['schemas']['SuggestionDirection'];
 export type Sureness = components['schemas']['Sureness'];
+export type Switch = components['schemas']['Switch'];
 export type Tag = components['schemas']['Tag'];
 export type TagEdit = components['schemas']['TagEdit'];
 export type TagId = components['schemas']['TagId'];
@@ -2526,6 +3082,7 @@ export type TemplateId = components['schemas']['TemplateId'];
 export type Tenure = components['schemas']['Tenure'];
 export type TenureChoice = components['schemas']['TenureChoice'];
 export type TermReading = components['schemas']['TermReading'];
+export type TokenBody = components['schemas']['TokenBody'];
 export type Toward = components['schemas']['Toward'];
 export type TowardChoice = components['schemas']['TowardChoice'];
 export type TravelStatus = components['schemas']['TravelStatus'];
@@ -2537,6 +3094,7 @@ export type VibeBands = components['schemas']['VibeBands'];
 export type WaitsOn = components['schemas']['WaitsOn'];
 export type WeightAction = components['schemas']['WeightAction'];
 export type WeightEdit = components['schemas']['WeightEdit'];
+export type WhoseLink = components['schemas']['WhoseLink'];
 export type $defs = Record<string, never>;
 export interface operations {
     readonly healthz: {
@@ -2794,6 +3352,415 @@ export interface operations {
             };
         };
     };
+    readonly ask_for_link: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["LinkBody"];
+            };
+        };
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 202: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_LinkAsked_"];
+                };
+            };
+            /** @description Bad Request */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Content Too Large */
+            readonly 413: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            readonly 415: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Too Many Requests */
+            readonly 429: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Service Unavailable */
+            readonly 503: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly whose_link: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["TokenBody"];
+            };
+        };
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_WhoseLink_"];
+                };
+            };
+            /** @description Bad Request */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gone */
+            readonly 410: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Content Too Large */
+            readonly 413: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            readonly 415: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Too Many Requests */
+            readonly 429: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly get_session: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_Session_"];
+                };
+            };
+            /** @description Forbidden */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly sign_in: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["SignInBody"];
+            };
+        };
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_SignedIn_"];
+                };
+            };
+            /** @description Bad Request */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Gone */
+            readonly 410: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Content Too Large */
+            readonly 413: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            readonly 415: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Too Many Requests */
+            readonly 429: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly sign_out: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_Session_"];
+                };
+            };
+            /** @description Forbidden */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Content Too Large */
+            readonly 413: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            readonly 415: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
     readonly compare: {
         readonly parameters: {
             readonly query?: never;
@@ -2965,6 +3932,896 @@ export interface operations {
             };
             /** @description Bad Request */
             readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Content Too Large */
+            readonly 413: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            readonly 415: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly get_me: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_Me_"];
+                };
+            };
+            /** @description Unauthorized */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly delete_me: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_Session_"];
+                };
+            };
+            /** @description Unauthorized */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Content Too Large */
+            readonly 413: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            readonly 415: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly export_me: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_Export_"];
+                };
+            };
+            /** @description Unauthorized */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly set_preferences: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["PreferencesBody"];
+            };
+        };
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_Preferences_"];
+                };
+            };
+            /** @description Bad Request */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthorized */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Content Too Large */
+            readonly 413: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            readonly 415: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly list_recent: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_RecentSearches_"];
+                };
+            };
+            /** @description Unauthorized */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly keep_recent: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["KeepBody"];
+            };
+        };
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_RecentSearches_"];
+                };
+            };
+            /** @description Bad Request */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthorized */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Content Too Large */
+            readonly 413: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            readonly 415: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly forget_recent: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_RecentSearches_"];
+                };
+            };
+            /** @description Unauthorized */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Content Too Large */
+            readonly 413: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            readonly 415: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly list_searches: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_KeptSearches_"];
+                };
+            };
+            /** @description Unauthorized */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly keep_search: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["KeepBody"];
+            };
+        };
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_KeptSearch_"];
+                };
+            };
+            /** @description Bad Request */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthorized */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Conflict */
+            readonly 409: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Content Too Large */
+            readonly 413: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            readonly 415: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly forget_search: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["ForgetBody"];
+            };
+        };
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_KeptSearches_"];
+                };
+            };
+            /** @description Bad Request */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthorized */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            readonly 404: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Content Too Large */
+            readonly 413: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unsupported Media Type */
+            readonly 415: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly list_sessions: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody?: never;
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_Sessions_"];
+                };
+            };
+            /** @description Unauthorized */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unprocessable Content */
+            readonly 422: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Internal Server Error */
+            readonly 500: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+        };
+    };
+    readonly end_sessions: {
+        readonly parameters: {
+            readonly query?: never;
+            readonly header?: never;
+            readonly path?: never;
+            readonly cookie?: never;
+        };
+        readonly requestBody: {
+            readonly content: {
+                readonly "application/json": components["schemas"]["SignOutBody"];
+            };
+        };
+        readonly responses: {
+            /** @description Successful Response */
+            readonly 200: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["Envelope_Sessions_"];
+                };
+            };
+            /** @description Bad Request */
+            readonly 400: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Unauthorized */
+            readonly 401: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Forbidden */
+            readonly 403: {
+                headers: {
+                    readonly [name: string]: unknown;
+                };
+                content: {
+                    readonly "application/json": components["schemas"]["ErrorEnvelope"];
+                };
+            };
+            /** @description Not Found */
+            readonly 404: {
                 headers: {
                     readonly [name: string]: unknown;
                 };

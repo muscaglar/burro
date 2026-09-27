@@ -101,6 +101,8 @@ describe("only the page of an area asks for the census", () => {
 
     expect(imports.sort()).toEqual([
       "../AreaProfile/AreaProfile.module.css",
+      "../Disclosure/Folded",
+      "../Disclosure/Summary",
       "../ErrorBlock/ErrorBlock",
       "./CensusPanel.module.css",
       "./part",
@@ -111,8 +113,13 @@ describe("only the page of an area asks for the census", () => {
       "next/link",
       "react",
     ]);
+    // The bar it folds under is the bar of every fold, and is held as the panel is.
+    const fold = ["Folded.tsx", "Summary.tsx"].flatMap((part) =>
+      [...code(path.join(SRC, "components", "Disclosure", part)).matchAll(/from "([^"]+)"/g)].map(([, from]) => from ?? ""),
+    );
+    expect(fold.length).toBeGreaterThan(0);
     for (const never of ["search", "session", "compare", "vibes", "map", "storage", "localStorage"]) {
-      expect(imports.some((from) => from.includes(`/${never}`))).toBe(false);
+      expect([...imports, ...fold].filter((from) => from.includes(`/${never}`))).toEqual([]);
     }
   });
 

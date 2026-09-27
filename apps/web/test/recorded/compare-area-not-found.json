@@ -78,7 +78,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "199",
+    "content-length": "192",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -88,13 +88,13 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
     "error": {
       "code": "area_not_found",
-      "message": "There is no such area in this release.",
+      "message": "Burro has no area by that name.",
       "fields": []
     }
   }

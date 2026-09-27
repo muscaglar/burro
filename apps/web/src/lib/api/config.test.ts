@@ -76,8 +76,13 @@ describe("where the API is", () => {
     // never by the browser: it says where a page lives, and nothing of where the API is.
     expect(SITE_URL_VARIABLE).toBe("BURRO_SITE_URL");
     expect(readingThe(SITE_URL_VARIABLE)).toEqual([path.join("src", "lib", "indexing.ts")]);
+    // The settings of accounts are four, and `lib/account/on.test.ts` says which file reads each.
     expect([...named].sort()).toEqual([
+      "process.env.BURRO_ACCOUNTS_DEVELOPMENT",
+      "process.env.BURRO_CLIENT_ADDRESS_HEADER",
       "process.env.BURRO_SITE_URL",
+      "process.env.BURRO_WEBSITE_SECRET",
+      "process.env.NEXT_PUBLIC_BURRO_ACCOUNTS",
       "process.env.NEXT_PUBLIC_BURRO_API_URL",
       "process.env.NODE_ENV",
     ]);

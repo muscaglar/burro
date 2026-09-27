@@ -13,7 +13,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "42378",
+    "content-length": "42374",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -23,7 +23,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -167,7 +167,7 @@
               "loss": 0.0407,
               "fact_ids": [
                 "syn-n0002/travel/syn-p0021.pt",
-                "syn-n0002/travel/syn-p0017.pt"
+                "syn-n0002/travel/syn-p0012.pt"
               ]
             },
             {
@@ -245,7 +245,7 @@
           ],
           "legs": [
             {
-              "place_id": "syn-p0017",
+              "place_id": "syn-p0012",
               "mode": "pt",
               "status": "ok",
               "minutes": 12,
@@ -388,7 +388,7 @@
               "loss": 0.0678,
               "fact_ids": [
                 "syn-n0005/travel/syn-p0021.pt",
-                "syn-n0005/travel/syn-p0017.pt"
+                "syn-n0005/travel/syn-p0012.pt"
               ]
             },
             {
@@ -442,7 +442,7 @@
           ],
           "legs": [
             {
-              "place_id": "syn-p0017",
+              "place_id": "syn-p0012",
               "mode": "pt",
               "status": "ok",
               "minutes": 15,
@@ -573,7 +573,7 @@
               "loss": 0.0407,
               "fact_ids": [
                 "syn-n0004/travel/syn-p0021.pt",
-                "syn-n0004/travel/syn-p0017.pt"
+                "syn-n0004/travel/syn-p0012.pt"
               ]
             },
             {
@@ -639,7 +639,7 @@
           ],
           "legs": [
             {
-              "place_id": "syn-p0017",
+              "place_id": "syn-p0012",
               "mode": "pt",
               "status": "ok",
               "minutes": 18,
@@ -745,7 +745,7 @@
               "contribution": 0.0949,
               "loss": 0.0407,
               "fact_ids": [
-                "syn-n0006/travel/syn-p0017.pt",
+                "syn-n0006/travel/syn-p0012.pt",
                 "syn-n0006/travel/syn-p0021.pt"
               ]
             },
@@ -836,7 +836,7 @@
           ],
           "legs": [
             {
-              "place_id": "syn-p0017",
+              "place_id": "syn-p0012",
               "mode": "pt",
               "status": "ok",
               "minutes": 24,
@@ -918,7 +918,7 @@
               "contribution": 0.1266,
               "loss": 0.009,
               "fact_ids": [
-                "syn-n0023/travel/syn-p0017.pt",
+                "syn-n0023/travel/syn-p0012.pt",
                 "syn-n0023/travel/syn-p0021.pt"
               ]
             },
@@ -1033,7 +1033,7 @@
           ],
           "legs": [
             {
-              "place_id": "syn-p0017",
+              "place_id": "syn-p0012",
               "mode": "pt",
               "status": "ok",
               "minutes": 17,
@@ -1115,7 +1115,7 @@
               "contribution": 0.1311,
               "loss": 0.0045,
               "fact_ids": [
-                "syn-n0003/travel/syn-p0017.pt",
+                "syn-n0003/travel/syn-p0012.pt",
                 "syn-n0003/travel/syn-p0021.pt"
               ]
             },
@@ -1230,7 +1230,7 @@
           ],
           "legs": [
             {
-              "place_id": "syn-p0017",
+              "place_id": "syn-p0012",
               "mode": "pt",
               "status": "ok",
               "minutes": 16,
@@ -1337,7 +1337,7 @@
               "loss": 0.0441,
               "fact_ids": [
                 "syn-n0019/travel/syn-p0021.pt",
-                "syn-n0019/travel/syn-p0017.pt"
+                "syn-n0019/travel/syn-p0012.pt"
               ]
             },
             {
@@ -1427,7 +1427,7 @@
           ],
           "legs": [
             {
-              "place_id": "syn-p0017",
+              "place_id": "syn-p0012",
               "mode": "pt",
               "status": "ok",
               "minutes": 19,
@@ -1534,7 +1534,7 @@
               "loss": 0.0644,
               "fact_ids": [
                 "syn-n0007/travel/syn-p0021.pt",
-                "syn-n0007/travel/syn-p0017.pt"
+                "syn-n0007/travel/syn-p0012.pt"
               ]
             },
             {
@@ -1624,7 +1624,7 @@
           ],
           "legs": [
             {
-              "place_id": "syn-p0017",
+              "place_id": "syn-p0012",
               "mode": "pt",
               "status": "ok",
               "minutes": 14,
@@ -1766,7 +1766,7 @@
               "contribution": 0.0368,
               "loss": 0.1011,
               "fact_ids": [
-                "syn-n0014/travel/syn-p0017.pt",
+                "syn-n0014/travel/syn-p0012.pt",
                 "syn-n0014/travel/syn-p0021.pt"
               ]
             },
@@ -1821,7 +1821,7 @@
           ],
           "legs": [
             {
-              "place_id": "syn-p0017",
+              "place_id": "syn-p0012",
               "mode": "pt",
               "status": "ok",
               "minutes": 37,
@@ -1904,7 +1904,7 @@
               "loss": 0.0339,
               "fact_ids": [
                 "syn-n0010/travel/syn-p0021.pt",
-                "syn-n0010/travel/syn-p0017.pt"
+                "syn-n0010/travel/syn-p0012.pt"
               ]
             },
             {
@@ -2018,7 +2018,7 @@
           ],
           "legs": [
             {
-              "place_id": "syn-p0017",
+              "place_id": "syn-p0012",
               "mode": "pt",
               "status": "ok",
               "minutes": 10,
@@ -2101,7 +2101,7 @@
               "loss": 0.0102,
               "fact_ids": [
                 "syn-n0021/travel/syn-p0021.pt",
-                "syn-n0021/travel/syn-p0017.pt"
+                "syn-n0021/travel/syn-p0012.pt"
               ]
             },
             {
@@ -2215,7 +2215,7 @@
           ],
           "legs": [
             {
-              "place_id": "syn-p0017",
+              "place_id": "syn-p0012",
               "mode": "pt",
               "status": "ok",
               "minutes": 9,
@@ -2298,7 +2298,7 @@
               "loss": 0.061,
               "fact_ids": [
                 "syn-n0011/travel/syn-p0021.pt",
-                "syn-n0011/travel/syn-p0017.pt"
+                "syn-n0011/travel/syn-p0012.pt"
               ]
             },
             {
@@ -2412,7 +2412,7 @@
           ],
           "legs": [
             {
-              "place_id": "syn-p0017",
+              "place_id": "syn-p0012",
               "mode": "pt",
               "status": "ok",
               "minutes": 13,
@@ -2495,7 +2495,7 @@
               "loss": 0.0136,
               "fact_ids": [
                 "syn-n0018/travel/syn-p0021.pt",
-                "syn-n0018/travel/syn-p0017.pt"
+                "syn-n0018/travel/syn-p0012.pt"
               ]
             },
             {
@@ -2609,7 +2609,7 @@
           ],
           "legs": [
             {
-              "place_id": "syn-p0017",
+              "place_id": "syn-p0012",
               "mode": "pt",
               "status": "ok",
               "minutes": 2,
@@ -2692,7 +2692,7 @@
               "loss": 0.0508,
               "fact_ids": [
                 "syn-n0012/travel/syn-p0021.pt",
-                "syn-n0012/travel/syn-p0017.pt"
+                "syn-n0012/travel/syn-p0012.pt"
               ]
             },
             {
@@ -2806,7 +2806,7 @@
           ],
           "legs": [
             {
-              "place_id": "syn-p0017",
+              "place_id": "syn-p0012",
               "mode": "pt",
               "status": "ok",
               "minutes": 10,
@@ -2942,7 +2942,7 @@
         },
         "commutes": [
           {
-            "place_id": "syn-p0017",
+            "place_id": "syn-p0012",
             "mode": "pt",
             "max_minutes": 30,
             "strictness": "soft",
@@ -3023,15 +3023,15 @@
         "pt_basis_from": "default",
         "commute_weight_from": "default"
       },
-      "spec_hash": "828ca1ba40b3f8999f0ca032437c1a72cbea2719a7d722ca045fc5a3cae7fb3c",
+      "spec_hash": "29d7723cb49c3410c51a7e90406867a61d80eca933d740676dfa602cde6b1f1d",
       "coarsened": false,
       "stale": false,
       "original_release_id": "syn-2026-09-23-01",
       "places": [
         {
-          "place_id": "syn-p0017",
-          "name": "Pellam Exchange",
-          "kind": "district"
+          "place_id": "syn-p0012",
+          "name": "Pellam Cross",
+          "kind": "station"
         },
         {
           "place_id": "syn-p0021",

@@ -6,16 +6,21 @@
  * axe runs here in jsdom and cannot judge contrast, size or layout.
  */
 
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { act, screen, within } from "@testing-library/react";
 
+import { WAY_TO_COMPARE } from "@/components/CompareTray/look";
 import { COMPARE, TRAY } from "@/content/compare";
-import { RESULTS, SEARCH } from "@/content/search";
+import { PROMPT, RESULTS, SEARCH } from "@/content/search";
 import { SHARE } from "@/content/share";
 import { recordedAnswer } from "@/lib/api/recorded";
 
 import { setOnline } from "../support/api";
 import { faultsIn } from "../support/axe";
-import { areas, everyResult, firstSearch, openSearch, search, settled } from "../support/search";
+import { rulesOf } from "../support/css";
+import { areas, everyResult, firstSearch, openSearch, results, search, settled } from "../support/search";
 
 jest.mock("next/navigation", () => ({ usePathname: () => "/" }));
 
@@ -208,5 +213,79 @@ describe("comparing, by keyboard", () => {
     }
 
     expect(await faultsIn(container, { wholePage: true })).toEqual([]);
+  });
+});
+
+describe("the button that matters most, with the bar or the panel on the page", () => {
+  /** Every button and link of a part that is drawn in cobalt, by what it says. */
+  const cobalt = (part: Element) =>
+    [...part.querySelectorAll("[data-kind='go']")].map((face) => face.closest("a, button")?.textContent ?? "");
+  /** What the bar holds in cobalt, as the one line of the look has it: its one button, or nothing. */
+  const ofTheBar = (chosen: number) => (WAY_TO_COMPARE === "go" ? [TRAY.go(chosen)] : []);
+  const comesBefore = (one: Element, other: Element) =>
+    Boolean(one.compareDocumentPosition(other) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+  test("test_with_areas_chosen_search_and_the_way_to_compare_are_the_cobalt_buttons_and_never_stand_side_by_side", async () => {
+    // Seen in a browser, at both sizes: with two areas chosen, Search at the head of the page
+    // and the way to the comparison at its foot were both cobalt, and both in sight. Comparing
+    // is a headline since, and its one button is cobalt by one line of the look: the page then
+    // holds two, and no more, one at its head and one at the foot of the screen.
+    const { user } = await searched();
+    for (const place of [0, 1]) await user.click(screen.getByRole("button", { name: COMPARE.addNamed(nameAt(place)) }));
+
+    const go = within(tray()).getByRole("link", { name: TRAY.go(2) });
+    expect(cobalt(tray())).toEqual(ofTheBar(2));
+    expect(cobalt(screen.getByRole("main"))).toEqual([PROMPT.submit, ...ofTheBar(2)]);
+    // Never side by side: Search is of the form at the head of the page, the way to the
+    // comparison is of the bar, neither part holds the other, and the results stand between.
+    const form = screen.getByRole("region", { name: SEARCH.formLabel });
+    const search = within(form).getByRole("button", { name: PROMPT.submit });
+    expect([form.contains(tray()), tray().contains(form)]).toEqual([false, false]);
+    expect(comesBefore(search, results()[0] as HTMLElement)).toBe(true);
+    expect(comesBefore(results().at(-1) as HTMLElement, go)).toBe(true);
+    // No result holds one: the way on beside a button that was pressed is a plain link.
+    for (const result of results()) expect(cobalt(result)).toEqual([]);
+    expect(results().filter((result) => within(result).queryByRole("link", { name: TRAY.go(2) }) !== null)).toHaveLength(2);
+  });
+
+  test("test_the_bar_is_held_at_the_foot_of_the_screen_which_is_what_keeps_its_button_from_search", async () => {
+    // jsdom lays nothing out, so where the bar stands is read from its style sheet: by what
+    // the bar says of itself once an area is chosen, which is what the page draws it with.
+    const { user } = await searched();
+    await user.click(screen.getByRole("button", { name: COMPARE.addNamed(nameAt(0)) }));
+    expect(tray()).toHaveAttribute("data-closed", "false");
+
+    const sheet = readFileSync(path.resolve(__dirname, "../../src/components/CompareTray/CompareTray.module.css"), "utf8");
+    const ofTheBarInUse = rulesOf(sheet).filter((rule) => rule.selector === '.tray[data-closed="false"]');
+    const placed = ofTheBarInUse.filter((rule) => rule.sets.has("position") || rule.sets.has("inset-block-end"));
+
+    // One rule places it, on a screen of any width, and no other takes it from the foot.
+    expect(placed.map((rule) => [rule.under, rule.sets.get("position"), rule.sets.get("inset-block-end")])).toEqual([
+      [null, "sticky", "0"],
+    ]);
+  });
+
+  test("test_the_panel_that_shares_a_search_holds_one_cobalt_button_and_the_bar_under_it_no_more_than_its_own", async () => {
+    // What makes the link is the one button of the panel that matters most. Search stands
+    // a screen and more over it, and the bar stands under it, at the foot of the screen.
+    const { user } = await searched();
+    for (const place of [0, 1]) await user.click(screen.getByRole("button", { name: COMPARE.addNamed(nameAt(place)) }));
+    await user.click(screen.getByRole("button", { name: SHARE.open }));
+
+    const panel = screen.getByRole("region", { name: SHARE.holds.title });
+    expect(cobalt(panel)).toEqual([SHARE.make]);
+    expect(cobalt(tray())).toEqual(ofTheBar(2));
+    // The panel is no part of the bar, and comes before it in the page.
+    expect([panel.contains(tray()), tray().contains(panel)]).toEqual([false, false]);
+    expect(comesBefore(panel, tray())).toBe(true);
+    expect(cobalt(screen.getByRole("main"))).toEqual([PROMPT.submit, SHARE.make, ...ofTheBar(2)]);
+  });
+
+  test("test_before_an_area_is_chosen_the_bar_holds_no_button_and_search_is_the_one_in_cobalt", async () => {
+    await searched();
+
+    expect(within(tray()).queryAllByRole("link")).toEqual([]);
+    expect(within(tray()).queryAllByRole("button")).toEqual([]);
+    expect(cobalt(screen.getByRole("main"))).toEqual([PROMPT.submit]);
   });
 });

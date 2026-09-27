@@ -13,22 +13,24 @@ import { renderToStaticMarkup } from "react-dom/server";
 import ComparePage from "@/app/compare/page";
 import { CompareView } from "@/components/CompareTable/CompareView";
 import { SearchApp } from "@/components/SearchApp/SearchApp";
+import { SharedSearch } from "@/components/SharedSearch/SharedSearch";
 import { Shell } from "@/components/Shell/Shell";
 import { RESTS_ON } from "@/content/bands";
 import { COMPARE, COMPARE_STATUS, COMPARE_TABLE, TRAY } from "@/content/compare";
-import { PROMPT, SOURCE, STRIP } from "@/content/search";
+import { FACT_COLUMNS } from "@/content/facts";
+import { CHIPS, PROMPT, SOURCE, STRIP } from "@/content/search";
 import { CRIME_CAVEAT } from "@/content/settings";
 import { BANNER } from "@/content/site";
-import { recordedAnswer, recordedError } from "@/lib/api/recorded";
-import type { CompareBody, CompareData } from "@/lib/api/schema";
+import { readRecorded, recordedAnswer, recordedError } from "@/lib/api/recorded";
+import type { CompareBody, CompareData, Meta } from "@/lib/api/schema";
 import { chosenFrom } from "@/lib/compare/list";
 import { readableDate } from "@/lib/format";
 import { fitOf } from "@/lib/map/fill";
 
-import { setOnline, standInApi, type StandIn } from "../support/api";
+import { reasonsFor, setOnline, standInApi, type StandIn } from "../support/api";
 import { faultsIn } from "../support/axe";
 import { figuresNotFrom, saidBy } from "../support/figures";
-import { areas, arrived, CANARY, firstSearch, meta, search, settled } from "../support/search";
+import { areas, arrived, CANARY, firstSearch, meta, removeChip, results, search, settled } from "../support/search";
 
 jest.mock("next/navigation", () => ({ usePathname: () => "/compare" }));
 
@@ -156,7 +158,14 @@ describe("the character of the areas compared", () => {
     two.character.forEach((vibe, at) => {
       const cells = within(rows[at] as HTMLElement).getAllByRole("cell");
       expect(cells.map((cell) => cell.querySelectorAll("[data-on='true']").length)).toEqual(vibe.marks.map(() => 1));
-      vibe.marks.forEach((mark, column) => expect(cells[column]).toHaveTextContent(STRIP.band(mark.band ?? 0)));
+      vibe.marks.forEach((mark, column) => {
+        const cell = cells[column] as HTMLElement;
+        if (mark.band === null) throw new Error("Both areas are placed on every vibe.");
+        // Nothing stands under a gauge. Where the area sits is said in words all the same,
+        // by the name of the one picture of its cell, to whoever hears the page.
+        expect(within(cell).getByRole("img")).toHaveAccessibleName(expect.stringContaining(STRIP.band(mark.band)));
+        expect(cell.textContent?.includes(STRIP.band(mark.band))).toBe(false);
+      });
     });
   });
 
@@ -360,13 +369,18 @@ describe("the rows of a comparison", () => {
 
   test("test_an_area_with_no_figure_for_a_thing_says_so_and_nothing_is_filled_in", async () => {
     await openFromASearch(THREE);
+    // The row is found by the name the API gives it, which the website writes none of.
+    const recorded = three.rows.find((row) => row.component === "feature:air_no2");
+    if (recorded === undefined) throw new Error("the recorded comparison holds no row of the air");
     const air = within(table())
       .getAllByRole("row")
-      .find((row) => row.textContent?.includes("nitrogen dioxide")) as HTMLElement;
+      .find((row) => within(row).queryAllByRole("rowheader").some((head) => head.textContent?.startsWith(recorded.label)));
+    if (air === undefined) throw new Error("the comparison draws no row of the air");
 
     const cells = within(air).getAllByRole("cell");
 
-    expect(three.rows.find((row) => row.component === "feature:air_no2")?.cells[2]?.value).toBeNull();
+    expect(recorded.label).toMatch(/nitrogen dioxide/i);
+    expect(recorded.cells[2]?.value).toBeNull();
     expect(cells[2]).toHaveTextContent(`Alderwick${COMPARE_TABLE.noFigure}`);
     expect(/\d/.test(cells[2]?.textContent ?? "")).toBe(false);
     expect(within(cells[2] as HTMLElement).queryByRole("button")).toBeNull();
@@ -387,9 +401,10 @@ describe("the areas of a comparison", () => {
     const at = three.rows.findIndex((row) => row.place !== null);
     const journey = within(table()).getAllByRole("row")[at + 1] as HTMLElement;
     const cell = within(journey).getAllByRole("cell")[2] as HTMLElement;
-    expect(cell).toHaveTextContent("Typical minutes53");
-    expect(cell).toHaveTextContent("Your limit, in minutes30");
-    expect(cell).toHaveTextContent("Over your limit by, in minutes23");
+    // Each column is named by its key, and the figure under it is the one that was recorded.
+    expect(cell).toHaveTextContent(`${FACT_COLUMNS.typical}53`);
+    expect(cell).toHaveTextContent(`${FACT_COLUMNS.limit}30`);
+    expect(cell).toHaveTextContent(`${FACT_COLUMNS.overLimit}23`);
     expect(/Adds \d+ of 100/.test(cell.textContent ?? "")).toBe(false);
     expect(within(cell).getByRole("button", { name: /^Source for / })).toBeInTheDocument();
   });
@@ -507,6 +522,178 @@ describe("the areas of a comparison", () => {
     expect(within(tray).getAllByRole("listitem").map((item) => item.textContent)).toEqual(
       two.areas.map((area) => `${area.name}×`),
     );
+  });
+});
+
+describe("the way back from a comparison", () => {
+  // The founder, who had walked the website: "Compare areas needs a back step, how do I get
+  // back to my search?" The way back stood at the foot of the page, under both tables, and
+  // was called "Choose other areas".
+  const main = () => screen.getByRole("main");
+  /** The first thing of the page that can be pressed, which is the first stop of a keyboard in it. */
+  const firstToPress = () => main().querySelector("a, button, input, select, textarea, summary, [tabindex='0']");
+  /**
+   * What the search page holds of a search, as a person reads it: what was understood, the
+   * results, and the bar. What was understood is named for how the search was made, by
+   * words or by the settings, and is one part of the page either way.
+   */
+  const held = () => ({
+    understood: screen.getByRole("region", { name: new RegExp(`^(${CHIPS.label}|${CHIPS.setLabel})$`) }).textContent,
+    results: results().map((result) => within(result).getByRole("heading", { level: 3 }).textContent),
+    // Each area of the bar by its name, which the bar draws and says: its town is a drawing.
+    toCompare: within(screen.getByRole("region", { name: TRAY.title }))
+      .queryAllByRole("listitem")
+      .map((item) => item.querySelector("[data-says='name']")?.textContent),
+  });
+
+  test("test_the_way_back_stands_at_the_head_of_the_comparison_before_anything_else_and_says_where_it_leads", async () => {
+    await openFromASearch(THREE);
+    const [back] = within(main()).getAllByRole("link", { name: COMPARE.back });
+    if (back === undefined) throw new Error("the comparison draws no way back");
+
+    expect(COMPARE.back).toBe("Back to your search");
+    // Before anything else: it is the first thing of the page, and the first stop of a keyboard in it.
+    expect(back === firstToPress()).toBe(true);
+    expect(main().textContent?.trimStart().startsWith(COMPARE.back)).toBe(true);
+    const heading = screen.getByRole("heading", { level: 1 });
+    expect(Boolean(back.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+    // It leads to the search page, which is fetched when it is pressed and not before.
+    expect(back).toHaveAttribute("href", "/");
+    expect(back).toHaveAttribute("data-prefetch", "false");
+    // The address it leads to holds nothing of the search: no word, no place and no setting.
+    expect(back.getAttribute("href")).not.toMatch(/[?#]/);
+  });
+
+  test("test_it_leads_to_the_search_as_it_was_left_what_was_asked_for_what_was_set_the_results_and_the_areas_chosen", async () => {
+    const api = firstSearch().on("compare", "compare-three");
+    const user = userEvent.setup({ delay: null });
+    const view = render(inShell(<SearchApp meta={meta.data} areas={areas} client={api.client} />));
+    await arrived();
+    await search(user);
+    const asFirstRead = held().understood;
+    // A control is pressed, and the service answers as it was recorded of a search that was
+    // set by hand: the journey made firm, and five minutes shorter. So what the search holds
+    // is no longer what the sentence alone made it.
+    api.on("rank", "rank-refined").on("explain_top", "explanations-refined");
+    await removeChip(user, "Leafy");
+    await settled();
+    const refined = recordedAnswer("rank", "rank-refined").body.data;
+    expect(refined.spec.commutes.map((journey) => [journey.max_minutes, journey.strictness])).toEqual([[30, "hard"]]);
+    // And three areas are chosen to compare, from the results.
+    for (const result of results().slice(0, 3)) {
+      await user.click(within(result).getByRole("button", { name: /^Add to compare: / }));
+    }
+    const left = held();
+    expect(left.understood).not.toBe(asFirstRead);
+    expect(left.understood?.includes("30 minutes")).toBe(true);
+    expect(left.results).toEqual(
+      refined.ranked.slice(0, SHOWN_AT_FIRST).map((area) => areas.find((one) => one.area_id === area.area_id)?.name),
+    );
+    expect(left.toCompare).toEqual(
+      refined.ranked.slice(0, 3).map((area) => areas.find((one) => one.area_id === area.area_id)?.name),
+    );
+    const asked = { interpret: api.callsTo("interpret").length, rank: api.callsTo("rank").length };
+    const chosen = refined.ranked.slice(0, 3).map((area) => slugOf(area.area_id));
+
+    // The way to the comparison, and then the way back. In a browser each is a press: here
+    // one page gives way to the other inside the one shell, which holds what is kept.
+    view.rerender(inShell(comparison(chosen, api)));
+    await arrived();
+    expect(sent(api).spec).toEqual(refined.spec);
+    expect(within(main()).getAllByRole("link", { name: COMPARE.back })[0]).toHaveAttribute("href", "/");
+    view.rerender(inShell(<SearchApp meta={meta.data} areas={areas} client={api.client} />));
+    await settled();
+
+    // All of it is there as it was left, and the search is open: no tab to begin at is drawn.
+    expect(held()).toEqual(left);
+    expect(results()).toHaveLength(Math.min(SHOWN_AT_FIRST, refined.ranked.length));
+    expect(screen.queryAllByRole("tab")).toEqual([]);
+    // Coming back asks the service for nothing: the search was kept, and not made again.
+    expect({ interpret: api.callsTo("interpret").length, rank: api.callsTo("rank").length }).toEqual(asked);
+  });
+
+  test("test_an_area_taken_out_of_the_comparison_is_out_of_the_bar_on_the_way_back", async () => {
+    const { api, rerender } = await openFromASearch(THREE);
+
+    // "Take out" leads to the comparison of the others.
+    rerender(inShell(comparison(THREE.slice(0, 2), api.on("compare", "compare-two-defaults"))));
+    await arrived();
+    rerender(inShell(<SearchApp meta={meta.data} areas={areas} client={api.client} />));
+    await settled();
+
+    expect(held().toCompare).toEqual(three.areas.slice(0, 2).map((area) => area.name));
+  });
+
+  test("test_with_no_search_open_it_says_start_a_search_and_leads_to_the_first_page", async () => {
+    // The comparison was opened by its link alone: there is no search to go back to.
+    await open(TWO);
+    const [start] = within(main()).getAllByRole("link", { name: COMPARE.start });
+    if (start === undefined) throw new Error("the comparison draws no way to a search");
+
+    expect(COMPARE.start).toBe("Start a search");
+    expect(within(main()).queryByRole("link", { name: COMPARE.back })).toBeNull();
+    expect(start === firstToPress()).toBe(true);
+    expect(start).toHaveAttribute("href", "/");
+    expect(start).toHaveAttribute("data-prefetch", "false");
+  });
+
+  test("test_a_search_page_that_was_opened_and_never_searched_is_no_search_to_go_back_to", async () => {
+    const api = standInApi().on("compare", "compare-two-defaults");
+    const view = render(inShell(<SearchApp meta={meta.data} areas={areas} client={api.client} />));
+    await arrived();
+
+    view.rerender(inShell(comparison(TWO, api)));
+    await arrived();
+
+    expect(within(main()).queryByRole("link", { name: COMPARE.back })).toBeNull();
+    expect(within(main()).getAllByRole("link", { name: COMPARE.start })[0] === firstToPress()).toBe(true);
+    expect(main()).toHaveTextContent(COMPARE.fromDefaults.rent);
+  });
+
+  test("test_a_search_that_came_from_a_link_is_gone_back_to_on_the_page_the_link_opened", async () => {
+    const opened = recordedAnswer("get_share", "share-opened");
+    const id = opened.request.path.split("/").pop() ?? "";
+    const api = standInApi()
+      .movedTo((readRecorded("share-opened").body as { meta: Meta }).meta.release_id)
+      .on("get_share", "share-opened")
+      .on("explain_top", reasonsFor("share-opened", "explanations-share-opened"))
+      .on("compare", "compare-three");
+    window.history.replaceState(null, "", "/s");
+    window.location.hash = id;
+    try {
+      const view = render(inShell(<SharedSearch meta={meta.data} areas={areas} client={api.client} />));
+      await arrived();
+      await settled();
+      expect(results().length).toBeGreaterThan(0);
+
+      view.rerender(inShell(comparison(THREE, api)));
+      await arrived();
+
+      // The search is the one the link holds, and the way back leads to the page that link
+      // opened, where the search is open already: it is not opened again over what was changed.
+      const [back] = within(main()).getAllByRole("link", { name: COMPARE.back });
+      expect(back === firstToPress()).toBe(true);
+      expect(back).toHaveAttribute("href", `/s#${id}`);
+      // The id of a share stands after the `#` of an address, which a browser sends to no server.
+      expect(back?.getAttribute("href")?.split("#")[0]).toBe("/s");
+      expect(main()).toHaveTextContent(COMPARE.fromSearch);
+    } finally {
+      window.history.replaceState(null, "", "/");
+    }
+  });
+
+  test("test_the_way_back_is_said_again_at_the_foot_of_a_long_comparison_in_the_same_words", async () => {
+    await openFromASearch(THREE);
+    const ways = within(main()).getAllByRole("link", { name: COMPARE.back });
+
+    // One way has one name, wherever it stands on the page: at its head, and under both tables.
+    expect(ways).toHaveLength(2);
+    expect(ways.map((way) => way.getAttribute("href"))).toEqual(["/", "/"]);
+    const tables = screen.getAllByRole("table");
+    expect(Boolean((tables.at(-1) as HTMLElement).compareDocumentPosition(ways[1] as HTMLElement) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+    for (const gone of ["Choose other areas", "Go to the search"]) {
+      expect(main().textContent?.includes(gone)).toBe(false);
+    }
   });
 });
 

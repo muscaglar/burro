@@ -14,8 +14,7 @@ import { noteSaid } from "./said";
 import { send, type SendSettings } from "./send";
 import { noteSynthetic } from "./synthetic";
 
-export type { Answer, ApiFailure, ClientFailure, ClientFailureKind, Failure } from "./failure";
-export { hasCode, isApiFailure } from "./failure";
+export type { Answer, Failure } from "./failure";
 
 type Post<Op extends OperationId> = (
   body: BodyOf<Op>,

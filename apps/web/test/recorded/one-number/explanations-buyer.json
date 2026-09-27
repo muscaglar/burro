@@ -81,7 +81,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "27162",
+    "content-length": "28073",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -91,7 +91,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -110,7 +110,7 @@
           },
           "reasons": [
             {
-              "text": "Straight-line distance to the nearest way in to a station: 160 m, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
+              "text": "Distance to the nearest station entrance, in a straight line: 160 m, which is closer than 77% of the 22 areas Burro compared, and the same as 4 others.",
               "fact_ids": [
                 "syn-n0002/feature/station_walk"
               ],
@@ -118,7 +118,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 480 m, closer than 85% of the 21 areas compared in this release.",
+              "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 480 m, which is closer than 85% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0002/feature/park_proximity"
               ],
@@ -126,7 +126,7 @@
               "replaced": false
             },
             {
-              "text": "Public parks and gardens as a share of the area: 38%, more than 86% of the 22 areas compared in this release.",
+              "text": "Public parks and gardens as a share of the area: 38%, which is more than 86% of the 22 areas Burro compared.",
               "fact_ids": [
                 "syn-n0002/feature/green_cover"
               ],
@@ -164,7 +164,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 710 m, closer than 61% of the 21 areas compared in this release.",
+              "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 710 m, which is closer than 61% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0005/feature/park_proximity"
               ],
@@ -172,7 +172,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest way in to a station: 320 m, closer than 50% of the 22 areas compared in this release, and the same as 5 others.",
+              "text": "Distance to the nearest station entrance, in a straight line: 320 m, which is closer than 50% of the 22 areas Burro compared, and the same as 5 others.",
               "fact_ids": [
                 "syn-n0005/feature/station_walk"
               ],
@@ -203,7 +203,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 600 m, closer than 66% of the 21 areas compared in this release.",
+              "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 600 m, which is closer than 66% of the 21 areas Burro compared.",
               "fact_ids": [
                 "syn-n0004/feature/park_proximity"
               ],
@@ -211,7 +211,7 @@
               "replaced": false
             },
             {
-              "text": "Straight-line distance to the nearest way in to a station: 320 m, closer than 50% of the 22 areas compared in this release, and the same as 5 others.",
+              "text": "Distance to the nearest station entrance, in a straight line: 320 m, which is closer than 50% of the 22 areas Burro compared, and the same as 5 others.",
               "fact_ids": [
                 "syn-n0004/feature/station_walk"
               ],
@@ -234,14 +234,6 @@
           },
           "reasons": [
             {
-              "text": "Straight-line distance to the nearest way in to a station: 160 m, closer than 77% of the 22 areas compared in this release, and the same as 4 others.",
-              "fact_ids": [
-                "syn-n0024/feature/station_walk"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
               "text": "The middle price of flats of all sizes is at your budget of £455,000.",
               "fact_ids": [
                 "syn-n0024/budget_fit/buy.flat"
@@ -250,7 +242,15 @@
               "replaced": false
             },
             {
-              "text": "Share of residents exposed to 55 dB or more of transport noise: 17%, quieter than 70% of the 20 areas compared in this release.",
+              "text": "Distance to the nearest station entrance, in a straight line: 160 m, which is closer than 77% of the 22 areas Burro compared, and the same as 4 others.",
+              "fact_ids": [
+                "syn-n0024/feature/station_walk"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Share of residents exposed to 55 dB or more of transport noise: 17%, which is quieter than 70% of the 20 areas Burro compared.",
               "fact_ids": [
                 "syn-n0024/feature/noise_exposure"
               ],
@@ -259,7 +259,7 @@
             }
           ],
           "trade_off": {
-            "text": "Straight-line distance to the nearest town centre boundary: 1,550 m, further than 76% of the 21 areas compared in this release.",
+            "text": "Distance to the edge of the nearest town centre, in a straight line: 1,550 m, which is further than 76% of the 21 areas Burro compared.",
             "fact_ids": [
               "syn-n0024/feature/highstreet_access"
             ],
@@ -280,14 +280,6 @@
           },
           "reasons": [
             {
-              "text": "Straight-line distance to the nearest marked way into a park of 2 ha or more: 380 m, closer than 90% of the 21 areas compared in this release.",
-              "fact_ids": [
-                "syn-n0013/feature/park_proximity"
-              ],
-              "origin": "template",
-              "replaced": false
-            },
-            {
               "text": "The middle price of flats of all sizes is at your budget of £455,000.",
               "fact_ids": [
                 "syn-n0013/budget_fit/buy.flat"
@@ -296,7 +288,15 @@
               "replaced": false
             },
             {
-              "text": "Public parks and gardens as a share of the area: 44%, more than 90% of the 22 areas compared in this release.",
+              "text": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line: 380 m, which is closer than 90% of the 21 areas Burro compared.",
+              "fact_ids": [
+                "syn-n0013/feature/park_proximity"
+              ],
+              "origin": "template",
+              "replaced": false
+            },
+            {
+              "text": "Public parks and gardens as a share of the area: 44%, which is more than 90% of the 22 areas Burro compared.",
               "fact_ids": [
                 "syn-n0013/feature/green_cover"
               ],
@@ -305,7 +305,7 @@
             }
           ],
           "trade_off": {
-            "text": "Straight-line distance to the nearest way in to a station: 2,240 m, further than 81% of the 22 areas compared in this release.",
+            "text": "Distance to the nearest station entrance, in a straight line: 2,240 m, which is further than 81% of the 22 areas Burro compared.",
             "fact_ids": [
               "syn-n0013/feature/station_walk"
             ],
@@ -393,10 +393,10 @@
             "band": "5",
             "comparative": "more than",
             "pct": "86",
-            "standing": "more than 86% of the 22 areas compared in this release",
+            "standing": "more than 86% of the 22 areas Burro compared",
             "comparative_worse": "less than",
             "pct_worse": "9",
-            "standing_worse": "less than 9% of the 22 areas compared in this release",
+            "standing_worse": "less than 9% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -423,18 +423,18 @@
           "area_id": "syn-n0002",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "480 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "85",
-            "standing": "closer than 85% of the 21 areas compared in this release",
+            "standing": "closer than 85% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "9",
-            "standing_worse": "further than 9% of the 21 areas compared in this release",
+            "standing_worse": "further than 9% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -461,16 +461,16 @@
           "area_id": "syn-n0002",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "160 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "77",
-            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others",
-            "standing_worse": "the same as 4 of the 21 other areas compared in this release",
+            "standing": "closer than 77% of the 22 areas Burro compared, and the same as 4 others",
+            "standing_worse": "the same as 4 of the 21 other areas Burro compared",
             "compared": "22",
             "level": "4"
           },
@@ -514,8 +514,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -557,8 +557,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -649,18 +649,18 @@
           "area_id": "syn-n0005",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "710 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "61",
-            "standing": "closer than 61% of the 21 areas compared in this release",
+            "standing": "closer than 61% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "33",
-            "standing_worse": "further than 33% of the 21 areas compared in this release",
+            "standing_worse": "further than 33% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -687,18 +687,18 @@
           "area_id": "syn-n0005",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "320 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "50",
-            "standing": "closer than 50% of the 22 areas compared in this release, and the same as 5 others",
+            "standing": "closer than 50% of the 22 areas Burro compared, and the same as 5 others",
             "comparative_worse": "further than",
             "pct_worse": "22",
-            "standing_worse": "further than 22% of the 22 areas compared in this release, and the same as 5 others",
+            "standing_worse": "further than 22% of the 22 areas Burro compared, and the same as 5 others",
             "compared": "22",
             "level": "5"
           },
@@ -742,8 +742,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "2",
@@ -786,8 +786,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -878,18 +878,18 @@
           "area_id": "syn-n0004",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "600 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "66",
-            "standing": "closer than 66% of the 21 areas compared in this release",
+            "standing": "closer than 66% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "28",
-            "standing_worse": "further than 28% of the 21 areas compared in this release",
+            "standing_worse": "further than 28% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -916,18 +916,18 @@
           "area_id": "syn-n0004",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "320 m",
             "band": "2",
             "comparative": "closer than",
             "pct": "50",
-            "standing": "closer than 50% of the 22 areas compared in this release, and the same as 5 others",
+            "standing": "closer than 50% of the 22 areas Burro compared, and the same as 5 others",
             "comparative_worse": "further than",
             "pct_worse": "22",
-            "standing_worse": "further than 22% of the 22 areas compared in this release, and the same as 5 others",
+            "standing_worse": "further than 22% of the 22 areas Burro compared, and the same as 5 others",
             "compared": "22",
             "level": "5"
           },
@@ -971,8 +971,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "1",
@@ -1015,8 +1015,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1105,18 +1105,18 @@
           "area_id": "syn-n0024",
           "kind": "feature",
           "key": "highstreet_access",
-          "label": "Straight-line distance to the nearest town centre boundary",
+          "label": "Distance to the edge of the nearest town centre, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest town centre boundary",
+            "label": "Distance to the edge of the nearest town centre, in a straight line",
             "value": "1,550 m",
             "band": "4",
             "comparative": "closer than",
             "pct": "19",
-            "standing": "closer than 19% of the 21 areas compared in this release",
+            "standing": "closer than 19% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "76",
-            "standing_worse": "further than 76% of the 21 areas compared in this release",
+            "standing_worse": "further than 76% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1151,10 +1151,10 @@
             "band": "2",
             "comparative": "quieter than",
             "pct": "70",
-            "standing": "quieter than 70% of the 20 areas compared in this release",
+            "standing": "quieter than 70% of the 20 areas Burro compared",
             "comparative_worse": "noisier than",
             "pct_worse": "25",
-            "standing_worse": "noisier than 25% of the 20 areas compared in this release",
+            "standing_worse": "noisier than 25% of the 20 areas Burro compared",
             "compared": "20"
           },
           "numbers": [
@@ -1181,16 +1181,16 @@
           "area_id": "syn-n0024",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "160 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "77",
-            "standing": "closer than 77% of the 22 areas compared in this release, and the same as 4 others",
-            "standing_worse": "the same as 4 of the 21 other areas compared in this release",
+            "standing": "closer than 77% of the 22 areas Burro compared, and the same as 4 others",
+            "standing_worse": "the same as 4 of the 21 other areas Burro compared",
             "compared": "22",
             "level": "4"
           },
@@ -1234,8 +1234,8 @@
             "parts": "4",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1276,9 +1276,9 @@
             "known": "2",
             "parts": "3",
             "share": "80",
-            "partly": "Worked out from 2 of its 3 parts, 80 of 100 by weight.",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "partly": "Burro has a figure for 2 of the 3 measurements that go into this vibe, and they count for 80 of 100 in it.",
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "4",
@@ -1378,10 +1378,10 @@
             "band": "5",
             "comparative": "more than",
             "pct": "90",
-            "standing": "more than 90% of the 22 areas compared in this release",
+            "standing": "more than 90% of the 22 areas Burro compared",
             "comparative_worse": "less than",
             "pct_worse": "4",
-            "standing_worse": "less than 4% of the 22 areas compared in this release",
+            "standing_worse": "less than 4% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -1408,18 +1408,18 @@
           "area_id": "syn-n0013",
           "kind": "feature",
           "key": "park_proximity",
-          "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+          "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest marked way into a park of 2 ha or more",
+            "label": "Distance to the nearest marked entrance to a park of 2 hectares or more, in a straight line",
             "value": "380 m",
             "band": "1",
             "comparative": "closer than",
             "pct": "90",
-            "standing": "closer than 90% of the 21 areas compared in this release",
+            "standing": "closer than 90% of the 21 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "4",
-            "standing_worse": "further than 4% of the 21 areas compared in this release",
+            "standing_worse": "further than 4% of the 21 areas Burro compared",
             "compared": "21"
           },
           "numbers": [
@@ -1446,18 +1446,18 @@
           "area_id": "syn-n0013",
           "kind": "feature",
           "key": "station_walk",
-          "label": "Straight-line distance to the nearest way in to a station",
+          "label": "Distance to the nearest station entrance, in a straight line",
           "template": "feature",
           "slots": {
-            "label": "Straight-line distance to the nearest way in to a station",
+            "label": "Distance to the nearest station entrance, in a straight line",
             "value": "2,240 m",
             "band": "5",
             "comparative": "closer than",
             "pct": "13",
-            "standing": "closer than 13% of the 22 areas compared in this release",
+            "standing": "closer than 13% of the 22 areas Burro compared",
             "comparative_worse": "further than",
             "pct_worse": "81",
-            "standing_worse": "further than 81% of the 22 areas compared in this release",
+            "standing_worse": "further than 81% of the 22 areas Burro compared",
             "compared": "22"
           },
           "numbers": [
@@ -1499,8 +1499,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",
@@ -1542,8 +1542,8 @@
             "parts": "3",
             "share": "100",
             "partly": "",
-            "judgement": "The recipe is Burro's own. The weights are a judgement.",
-            "made_from": "Burro's recipe. Made from data published by:"
+            "judgement": "Burro chose which measurements go into this vibe and how much each of them counts. That choice is a judgement, and not a fact about the place.",
+            "made_from": "Burro worked this out from data published by:"
           },
           "numbers": [
             "5",

@@ -319,7 +319,16 @@ describe("a release of the size of London", () => {
       expect(rows[RANKED - 1]).toHaveTextContent(String(RANKED));
       expect(within(rows[RANKED] as HTMLElement).getAllByRole("cell")[0]).not.toHaveTextContent(/\d/);
     }
-    expect(lastMap().markers).toHaveLength(10);
+    // Ten pins, and no more. Of a thousand areas none has room for its own name, so what
+    // is named is of the first ten, each under its pin: nothing else is laid over the map.
+    const pins = lastMap().markers.filter((marker) => marker.element.tagName === "BUTTON");
+    const names = lastMap().markers.filter((marker) => "label" in marker.element.dataset);
+    expect(pins).toHaveLength(10);
+    expect(names.length).toBeLessThanOrEqual(pins.length);
+    expect(names.map((name) => name.position)).toEqual(
+      names.map((name) => pins.find((pin) => pin.position?.join() === name.position?.join())?.position),
+    );
+    expect(lastMap().markers).toHaveLength(pins.length + names.length);
     expect(leftUnfilled()).toEqual([]);
     setWebGL(false);
   }, 60_000);

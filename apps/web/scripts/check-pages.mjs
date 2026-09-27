@@ -13,7 +13,7 @@
 // are in docs/design/web.md, section 4.1. They stand only while no more is drawn
 // at first than was measured, so a page that draws more fails here.
 
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,6 +24,8 @@ const require = createRequire(import.meta.url);
 const { JSDOM } = createRequire(require.resolve("jest-environment-jsdom"))("jsdom");
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", ".next", "server", "app");
+// The files of the website's own, which a page may ask for by name.
+const PUBLIC = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "public");
 const BANNER = "This is made-up test data.";
 const PREVIEW_BANNER = "This is a preview for the people who build Burro.";
 // The page a fault in the server shows before anything is drawn. It is the framework's
@@ -31,8 +33,28 @@ const PREVIEW_BANNER = "This is a preview for the people who build Burro.";
 // docs/design/web.md, section 12, says what it lacks.
 const NOT_OURS = new Set(["_global-error.html"]);
 // What the search page may hold before a search, as it is built: docs/design/web.md, section 4.1.
-const AT_FIRST = { controls: 30, words: 8 };
+// The first screen offers two ways in, as two tabs, the first of them chosen: the box, with
+// one line of helpers under it, each closed until it is pressed. Built, it draws 13
+// controls: two links that skip, the two tabs, the box and Search, two helpers, and five
+// of the map. It drew one more while a button stood by the rabbit, and 15 while the way
+// to how words are handled stood beside the box: the founder had each go. It was 30 at
+// most while the shelf, the tenure, the place field and the examples stood open.
+// The panel of the second way is in the page and holds nothing until its tab is pressed.
+// What the helpers hold, and the second way, are kept in the page for a browser with
+// scripts off, which no button can open anything for, each way under its name. The helpers
+// keep 11 controls, of which eight at most are words of the shelf. What the second way
+// keeps is the settings', and is theirs to count.
+// A page is built with no screen to ask, so it is built as for a screen of one column,
+// where the map stands over the two ways in: it is what a phone draws before any script
+// has run, and nothing moves there once one has. On a wide screen every part has its
+// column and its row by name, and the page puts the map after the two ways in once it runs.
+const AT_FIRST = { controls: 13, ways: 2, helpers: 2, kept: 11, words: 8 };
+// What stood beside the box and under it, and is said there no longer: that what is typed is
+// sent or read, by whom, and the way to how words are handled.
+const OF_WHO_READS = /What you type is (sent|read)|language model|words are handled/i;
 const CONTROLS = "a[href], button, input, select, textarea";
+// What is drawn only by a browser with scripts off.
+const KEPT = "noscript";
 // What the page of an area may draw before anything is opened: docs/design/web.md, section 4.2.
 // Measured on the made-up release: 151 lines and 32 controls at the most, with 11 vibes. The
 // portrait opens with what the area is like in short, five lines at most, and where it is.
@@ -51,6 +73,12 @@ const AREA_CLOSED = ["alike", "cost", "measured", "sources"];
 // hands its scripts.
 const CENSUS = "census";
 const OF_A_CENSUS = /fewer than 1 in 100|over 99%/;
+// What the service says of the vibes it calls a rough guide, by the name of its part of
+// route 11: a label and a sentence for each. The founder asked that neither is passed on.
+// No page drew either, and a page that was handed the whole of route 11 held both, in what
+// it hands its scripts. It is read by the name of the part, and not by its words, which
+// are the service's to change.
+const OF_A_ROUGH_GUIDE = /rough_guides/;
 
 /** True for what is drawn while every part that opens is closed: what no such part holds, and what opens one. */
 function drawnAtFirst(element) {
@@ -99,6 +127,9 @@ function faultsOf(file) {
     const found = faultsIn(page, window.document);
     // Read from the file itself, so that what a script holds is read with what is drawn.
     if (OF_A_CENSUS.test(built)) found.faults.push("a figure of the census is in the page as it is built");
+    if (OF_A_ROUGH_GUIDE.test(built)) {
+      found.faults.push("what the service says of a rough guide is in the page as it is built");
+    }
     return found;
   } finally {
     // A page that is kept open is kept in memory. A release of all of London has a
@@ -221,6 +252,19 @@ function faultsIn(page, document) {
     if (found) say(`${what}: "${text.slice(Math.max(0, found.index - 40), found.index + 40).trim()}"`);
   }
 
+  // The face of names is asked for with the page: every page draws its name board in it, and
+  // a page that asks for it once its style sheets have come jumps as the face arrives. It is
+  // asked for as a style sheet asks for a face, or a browser fetches it a second time.
+  const ahead = [...document.querySelectorAll("link[rel='preload'][as='font']")];
+  if (ahead.length === 0) say("the page asks for no face ahead of its style sheets, and jumps as the face of names comes");
+  for (const face of ahead) {
+    const file = face.getAttribute("href") ?? "";
+    if (!/^\/fonts\/[a-z0-9-]+\.woff2$/.test(file) || !existsSync(path.join(PUBLIC, file))) {
+      say(`the page asks ahead for a face that is not there: ${file}`);
+    }
+    if (!face.hasAttribute("crossorigin")) say(`a face is asked for ahead in a way that has it fetched twice: ${file}`);
+  }
+
   // An icon of the website's own. With none named, a browser asks for one that is not there.
   const icon = document.querySelector('link[rel~="icon"]')?.getAttribute("href") ?? "";
   if (!icon.startsWith("/") || icon.startsWith("//")) say("the page names no icon of the website's own");
@@ -228,20 +272,160 @@ function faultsIn(page, document) {
   // What is drawn before anything is opened.
   const main = body.querySelector("main");
   if (page === "index.html" && main !== null) {
-    const controls = main.querySelectorAll(CONTROLS).length;
+    // This reads a page as a browser with scripts off does, so what is kept for one is in
+    // it as the rest is. A browser with scripts on draws none of that.
+    const drawn = (selector, within = main) =>
+      [...within.querySelectorAll(selector)].filter((one) => one.closest(KEPT) === null);
+    const kept = (selector) => [...main.querySelectorAll(KEPT)].flatMap((part) => [...part.querySelectorAll(selector)]);
+    // A part of the page by its id, as the page that is read here holds it.
+    const named = (id) => (id === null || id === "" ? null : main.querySelector(`[id="${id.replace(/"/g, '\\"')}"]`));
+    const controls = drawn(CONTROLS).length;
     if (controls > AT_FIRST.controls) {
-      say(`the search page holds ${controls} controls before a search, and may hold ${AT_FIRST.controls}`);
+      say(`the search page draws ${controls} controls before a search, and may draw ${AT_FIRST.controls}`);
     }
-    if (main.querySelector("[aria-expanded='true'], details[open]") !== null) {
+    // What is kept for a browser with scripts off may hold a part that stands open, as a
+    // group of the settings may: no browser with scripts on draws it.
+    if (drawn("[aria-expanded='true'], details[open]").length > 0) {
       say("something on the search page is open before anything is pressed");
     }
     if (main.querySelector("article, table") !== null) say("the search page holds a result or a table before a search");
-    const words = [...main.querySelectorAll("section")]
-      .filter((part) => part.querySelector("h2") !== null && part.querySelectorAll(":scope > ul > li > button").length > 0)
-      .map((part) => part.querySelectorAll(":scope > ul > li > button").length);
-    if (words.length === 0) say("the search page has no shelf of words to start from");
-    if (words.some((count) => count > AT_FIRST.words)) {
+
+    // Two ways in, as tabs: one list of them, each a tab that says whether it is chosen and
+    // names the panel it shows. The first is chosen. The panel of a tab that is not chosen
+    // is in the page, so that the tab names something, is not drawn, and holds nothing.
+    const box = drawn("textarea")[0];
+    // Nothing beside the box says who reads what is typed, as the page is built: not in
+    // what is drawn, and not in what is kept for a browser with scripts off.
+    const form = box?.closest("form") ?? null;
+    if (form !== null && OF_WHO_READS.test(form.textContent ?? "")) {
+      say("the box of the search page says who reads what is typed, or leads to how words are handled");
+    }
+    if (form !== null && form.querySelector("a[href]") !== null) say("a link stands in the box of the search page");
+    const lists = drawn("[role='tablist']");
+    const tabs = lists.flatMap((list) => [...list.querySelectorAll("[role='tab']")]);
+    if (box === undefined) say("the search page has no box to type in");
+    if (lists.length !== 1) say("the search page does not have one list of tabs");
+    const map = named("panel-map");
+    if (map === null) say("the search page holds no map before a search");
+    else if (lists.some((list) => !(map.compareDocumentPosition(list) & 4))) {
+      say("the map does not stand over the two ways in, in the page as it is built");
+    }
+    if (lists.some((list) => nameOf(list, document) === "")) say("the list of tabs has no name");
+    if (lists.some((list) => [...list.children].some((one) => one.getAttribute("role") !== "tab"))) {
+      say("something that is no tab stands in the list of tabs");
+    }
+    if (tabs.length !== AT_FIRST.ways) say(`the search page offers ${tabs.length} ways in, and offers ${AT_FIRST.ways}`);
+    if (tabs.map((tab) => tab.getAttribute("aria-selected")).join() !== ["true", ...tabs.slice(1).map(() => "false")].join()) {
+      say("the first way in is not the one that is chosen as the page is built");
+    }
+    if (box !== undefined && lists.some((list) => !(list.compareDocumentPosition(box) & 4))) {
+      say("the tabs of the search page do not stand over the box");
+    }
+    for (const tab of tabs) {
+      const name = nameOf(tab, document).slice(0, 40);
+      const chosen = tab.getAttribute("aria-selected") === "true";
+      const panel = named(tab.getAttribute("aria-controls"));
+      if (tab.tagName !== "BUTTON") say(`a tab is no button: "${name}"`);
+      if (tab.getAttribute("tabindex") !== (chosen ? "0" : "-1")) say(`a keyboard does not stop at the chosen tab alone: "${name}"`);
+      if (panel === null || panel.getAttribute("role") !== "tabpanel" || panel.getAttribute("aria-labelledby") !== tab.id) {
+        say(`a tab names no panel that is named by it: "${name}"`);
+        continue;
+      }
+      if (panel.closest(KEPT) !== null) say(`the panel of a tab is kept for a browser with scripts off alone: "${name}"`);
+      if (chosen && (panel.hasAttribute("hidden") || (box !== undefined && !panel.contains(box)))) {
+        say(`the panel of the chosen tab is not drawn, or does not hold the box: "${name}"`);
+      }
+      if (!chosen && (!panel.hasAttribute("hidden") || panel.childNodes.length > 0)) {
+        say(`the panel of a tab that is not chosen is drawn before it is pressed: "${name}"`);
+      }
+      // With scripts off no tab can be pressed, and each way stands under its name.
+      if (!kept("h2").some((heading) => heading.textContent.trim() === nameOf(tab, document))) {
+        say(`a way in does not stand under its name for a browser with scripts off: "${name}"`);
+      }
+    }
+
+    // Under the box, one line of helpers, each closed. A helper is a button that says
+    // whether it is open and names the part it opens.
+    const lines = drawn("[role='group']").filter((group) => {
+      const held = [...group.querySelectorAll("button")];
+      return (
+        held.length > 0 &&
+        held.length === group.querySelectorAll(CONTROLS).length &&
+        held.every((one) => one.hasAttribute("aria-expanded") && one.hasAttribute("aria-controls"))
+      );
+    });
+    const helpers = lines.flatMap((line) => [...line.querySelectorAll("button")]);
+    if (lines.length !== 1) say("the search page does not have one line of helpers under the box");
+    if (helpers.length > AT_FIRST.helpers) {
+      say(`the search page holds ${helpers.length} helpers, and may hold ${AT_FIRST.helpers}`);
+    }
+    if (box !== undefined && lines.some((line) => !(box.compareDocumentPosition(line) & 4))) {
+      say("the helpers of the search page do not stand under the box");
+    }
+    if (lines.some((line) => nameOf(line, document) === "")) say("the line of helpers has no name");
+    for (const helper of helpers) {
+      const name = nameOf(helper, document).slice(0, 40);
+      const opens = named(helper.getAttribute("aria-controls"));
+      if (helper.getAttribute("aria-expanded") !== "false") say(`a helper does not say that it is closed: "${name}"`);
+      if (opens === null || !opens.hasAttribute("hidden") || opens.childNodes.length > 0) {
+        say(`what a helper opens is drawn before it is pressed: "${name}"`);
+      }
+      if (opens !== null && lines.some((line) => !(line.compareDocumentPosition(opens) & 4) || line.contains(opens))) {
+        say(`what a helper opens does not stand under the line of helpers: "${name}"`);
+      }
+    }
+    // What a helper holds, and what the second way holds, is drawn by no browser with
+    // scripts on until it is pressed.
+    const wordsIn = (parts) =>
+      parts
+        .filter((part) => part.querySelector("h2") !== null && part.querySelectorAll(":scope > ul > li > button").length > 0)
+        .map((part) => part.querySelectorAll(":scope > ul > li > button").length);
+    if (wordsIn(drawn("section")).length > 0 || drawn("input, select").length > 0) {
+      say("something a helper or the second way in holds stands open on the search page before it is pressed");
+    }
+
+    // With scripts off no button can open a helper, so what each holds is kept in the page,
+    // beside the line: one part for each helper, and none of them empty.
+    const beside = lines.flatMap((line) => [...(line.parentElement?.querySelectorAll(`:scope > ${KEPT}`) ?? [])]);
+    const parts = beside.flatMap((part) => [...part.querySelectorAll(":scope > div > div")]);
+    const keptBeside = (selector) => beside.flatMap((part) => [...part.querySelectorAll(selector)]);
+    if (helpers.length > 0 && parts.length !== helpers.length) {
+      say(`the search page holds ${helpers.length} helpers, and keeps ${parts.length} parts for a browser with scripts off`);
+    }
+    if (parts.some((part) => part.querySelector(CONTROLS) === null)) {
+      say("a part that is kept for a browser with scripts off holds nothing to use");
+    }
+    if (lines.some((line) => beside.some((part) => !(line.compareDocumentPosition(part) & 4)))) {
+      say("what is kept for a browser with scripts off does not stand under the line of helpers");
+    }
+    if (keptBeside(CONTROLS).length > AT_FIRST.kept) {
+      say(
+        `the helpers keep ${keptBeside(CONTROLS).length} controls for a browser with scripts off, and may keep ${AT_FIRST.kept}`,
+      );
+    }
+    if (wordsIn(keptBeside("section")).some((count) => count > AT_FIRST.words)) {
       say(`the shelf holds more than ${AT_FIRST.words} buttons before "more" is pressed`);
+    }
+    // And the second way in is kept under the first: what it says of itself, the settings,
+    // which ask renting or buying and the place to reach, what ranks by them, and the field
+    // that finds an area by its name.
+    const second = [...main.querySelectorAll(KEPT)].filter((part) => !beside.includes(part) && part.querySelector(CONTROLS) !== null);
+    if (tabs.length > 1 && second.length !== tabs.length - 1) {
+      say(`the search page keeps ${second.length} ways in for a browser with scripts off, beside the first`);
+    }
+    for (const way of second) {
+      if (box !== undefined && !(box.compareDocumentPosition(way) & 4)) {
+        say("a way in that is kept for a browser with scripts off does not stand under the box");
+      }
+      if (way.querySelector("input[type='text']") === null) {
+        say("the search page keeps no field that finds by name for a browser with scripts off");
+      }
+      if (way.querySelectorAll("input[type='radio']").length < 2) {
+        say("the search page keeps no choice of renting or buying for a browser with scripts off");
+      }
+      if (way.querySelector("section[aria-labelledby] button") === null) {
+        say("the search page keeps no settings for a browser with scripts off");
+      }
     }
   }
   const closedAtFirst = body.querySelectorAll("details");
@@ -310,11 +494,17 @@ function faultsIn(page, document) {
     if (/^([a-z]+:)?\/\//i.test(from)) say(`something is loaded from another origin: ${from}`);
   }
 
+  // The style sheets the page lays, and those it asks for ahead and may never lay.
+  const sheets = (rel, as) =>
+    [...document.querySelectorAll(`link[rel='${rel}']${as}`)].map((one) => one.getAttribute("href") ?? "");
+
   return {
     page,
     title,
     robots,
     faults,
+    laid: sheets("stylesheet", ""),
+    ahead: sheets("preload", "[as='style']"),
     hasBanner: text.includes(BANNER),
     saysPreview: text.includes(PREVIEW_BANNER),
     names: text.includes("syn-"),
@@ -356,6 +546,17 @@ for (const [title, sharing] of titles) {
     for (const found of pages.filter(({ page }) => sharing.includes(page))) {
       found.faults.push(`its title is also the title of ${sharing.filter((page) => page !== found.page).join(", ")}`);
     }
+  }
+}
+
+// A style sheet that pages ask for ahead is one that some page lays. One that no page lays
+// is fetched by each page that asks for it and used by none, and the browser says so in the
+// console of each: as the sheet of the page of a fault in the layout was, which the
+// framework has every page ask for.
+const laid = new Set(pages.flatMap((found) => found.laid ?? []));
+for (const found of pages) {
+  for (const sheet of new Set(found.ahead ?? [])) {
+    if (!laid.has(sheet)) found.faults.push(`the page asks ahead for a style sheet that no page lays: ${sheet}`);
   }
 }
 

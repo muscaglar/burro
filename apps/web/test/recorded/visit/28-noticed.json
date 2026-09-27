@@ -8,7 +8,7 @@
     "route": "/v1/interpret",
     "path": "/v1/interpret",
     "body": {
-      "text": "Pubs are so noisy",
+      "text": "young professionals, lively, near a station",
       "spec": {
         "schema_version": 1,
         "tenure": "rent",
@@ -83,7 +83,7 @@
     "access-control-allow-origin": "http://localhost:3000",
     "access-control-expose-headers": "X-Burro-Synthetic, X-Burro-Preview, X-Request-Id",
     "cache-control": "no-store",
-    "content-length": "3652",
+    "content-length": "5263",
     "content-type": "application/json",
     "vary": "Origin",
     "x-burro-preview": "false",
@@ -93,7 +93,7 @@
   "body": {
     "meta": {
       "release_id": "syn-2026-09-23-01",
-      "engine_version": "1.15.0",
+      "engine_version": "1.19.0",
       "synthetic": true,
       "preview": false
     },
@@ -177,9 +177,7 @@
       "applied": [],
       "rejected": [],
       "assumptions": [],
-      "unmet": [
-        "other"
-      ],
+      "unmet": [],
       "clarify": [],
       "notice": "none",
       "notice_text": "",
@@ -189,41 +187,106 @@
       "rests_on": [],
       "suggestions": [
         {
-          "target": "feature:venue_evening_per_homes",
-          "label": "Pubs and bars",
-          "does": "Pubs and bars: more, or fewer?",
+          "target": "tag:young_professionals",
+          "label": "Young professionals",
+          "does": "Add Young professionals.",
           "spans": [
             {
               "start": 0,
-              "end": 4
+              "end": 19
             }
           ],
           "shown": {
             "start": 0,
-            "end": 17
+            "end": 19
           },
-          "follows": "What Burro counts: pubs and bars for each 1,000 homes within 800 m, in a straight line.",
+          "follows": "This vibe counts residents aged 20 to 34 at Census 2021, with a station, places to eat and drink and culture nearby. It counts who lived there as well as what is there. It describes an area as a whole, so it cannot tell you about one street or one home.",
           "said": [],
           "choices": [
             {
               "id": "more",
               "direction": "more",
-              "label": "More pubs and bars",
+              "label": "Add",
               "guess": false,
               "operations": {
                 "budget_ops": [],
                 "commute_ops": [],
-                "weight_ops": [
+                "weight_ops": [],
+                "tag_ops": [
                   {
                     "action": "nudge",
-                    "feature_id": "venue_evening_per_homes",
+                    "tag_id": "young_professionals",
                     "value": 0.0,
                     "step": "up_large",
-                    "direction": "more",
+                    "toward": "high",
                     "provenance": "ui_edit"
                   }
                 ],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "ignore",
+              "direction": "ignore",
+              "label": "Skip",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
                 "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            }
+          ],
+          "note": "Burro measures places first. When it counts people, it counts who was living there at the census of 2021.",
+          "read_by": "rule",
+          "add_all": "",
+          "needs": "Young professionals",
+          "asks_place": false,
+          "named_at": null,
+          "options": [],
+          "by_name": false,
+          "only_by_choice": true
+        },
+        {
+          "target": "tag:pace",
+          "label": "Going out",
+          "does": "Add Going out, towards Buzzy.",
+          "spans": [
+            {
+              "start": 21,
+              "end": 27
+            }
+          ],
+          "shown": {
+            "start": 21,
+            "end": 27
+          },
+          "follows": "Going out runs from Calm to Buzzy. This vibe counts how much there is to eat, drink and go out to within reach of homes. It describes an area as a whole, so it cannot tell you about one street or one home.",
+          "said": [],
+          "choices": [
+            {
+              "id": "more",
+              "direction": "more",
+              "label": "Towards Buzzy",
+              "guess": true,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [],
+                "tag_ops": [
+                  {
+                    "action": "nudge",
+                    "tag_id": "pace",
+                    "value": 0.0,
+                    "step": "up_large",
+                    "toward": "high",
+                    "provenance": "ui_edit"
+                  }
+                ],
                 "area_ops": [],
                 "setting_ops": []
               }
@@ -231,22 +294,22 @@
             {
               "id": "less",
               "direction": "less",
-              "label": "Fewer pubs and bars",
+              "label": "Towards Calm",
               "guess": false,
               "operations": {
                 "budget_ops": [],
                 "commute_ops": [],
-                "weight_ops": [
+                "weight_ops": [],
+                "tag_ops": [
                   {
                     "action": "nudge",
-                    "feature_id": "venue_evening_per_homes",
+                    "tag_id": "pace",
                     "value": 0.0,
                     "step": "up_large",
-                    "direction": "less",
+                    "toward": "low",
                     "provenance": "ui_edit"
                   }
                 ],
-                "tag_ops": [],
                 "area_ops": [],
                 "setting_ops": []
               }
@@ -268,43 +331,68 @@
           ],
           "note": "",
           "read_by": "rule",
-          "add_all": "",
-          "needs": "pubs and bars",
+          "add_all": "more",
+          "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": false,
+          "only_by_choice": false
         },
         {
-          "target": "feature:noise_exposure",
-          "label": "Less transport noise",
-          "does": "Less transport noise: count it?",
+          "target": "feature:station_walk",
+          "label": "Nearer a station",
+          "does": "Rank an area higher when it is nearer a station.",
           "spans": [
             {
-              "start": 12,
-              "end": 17
+              "start": 29,
+              "end": 43
             }
           ],
           "shown": {
-            "start": 0,
-            "end": 17
+            "start": 29,
+            "end": 43
           },
-          "follows": "What Burro counts: share of residents exposed to 55 dB or more of transport noise.",
+          "follows": "This is what Burro measures for it: distance to the nearest station entrance, in a straight line. Within 800 m in a straight line is about a 10 to 15 minute walk.",
           "said": [],
           "choices": [
             {
-              "id": "less",
-              "direction": "less",
+              "id": "more",
+              "direction": "more",
               "label": "Add",
-              "guess": false,
+              "guess": true,
               "operations": {
                 "budget_ops": [],
                 "commute_ops": [],
                 "weight_ops": [
                   {
                     "action": "nudge",
-                    "feature_id": "noise_exposure",
+                    "feature_id": "station_walk",
                     "value": 0.0,
                     "step": "up_large",
+                    "direction": "default",
+                    "provenance": "ui_edit"
+                  }
+                ],
+                "tag_ops": [],
+                "area_ops": [],
+                "setting_ops": []
+              }
+            },
+            {
+              "id": "off",
+              "direction": "less",
+              "label": "Stop counting it",
+              "guess": false,
+              "operations": {
+                "budget_ops": [],
+                "commute_ops": [],
+                "weight_ops": [
+                  {
+                    "action": "remove",
+                    "feature_id": "station_walk",
+                    "value": 0.0,
+                    "step": "none",
                     "direction": "default",
                     "provenance": "ui_edit"
                   }
@@ -331,19 +419,16 @@
           ],
           "note": "",
           "read_by": "rule",
-          "add_all": "",
-          "needs": "less transport noise",
+          "add_all": "more",
+          "needs": "",
           "asks_place": false,
           "named_at": null,
-          "options": []
+          "options": [],
+          "by_name": true,
+          "only_by_choice": false
         }
       ],
-      "unread": [
-        {
-          "start": 5,
-          "end": 11
-        }
-      ],
+      "unread": [],
       "not_in_release": [],
       "unmet_at": [],
       "model_pending": false,

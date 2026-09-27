@@ -89,10 +89,22 @@ describe("what the source holds", () => {
     expect(/(^|[\s;])\*([\s;]|$)/.test(policy)).toBe(false);
   });
 
-  test("test_the_website_has_no_handler_action_or_middleware", () => {
+  test("test_the_website_has_one_handler_which_passes_accounts_on_and_no_action_or_middleware", () => {
     const app = files.filter((file) => file.startsWith(path.join(SRC, "app")));
 
-    expect(app.filter((file) => /(^|\/)route\.(ts|tsx|js)$/.test(file)).map(named)).toEqual([]);
+    // The routes of accounts are asked of the website's own origin, which passes them on:
+    // `lib/account/pass.ts` is the handler, and it stands at the two places they are asked
+    // at. Nothing that a person types into a search passes through it, and with accounts
+    // off it passes nothing on at all.
+    const handlers = app.filter((file) => /(^|\/)route\.(ts|tsx|js)$/.test(file));
+    expect(handlers.map(named).sort()).toEqual([
+      path.join("app", "v1", "auth", "[...path]", "route.ts"),
+      path.join("app", "v1", "me", "[[...path]]", "route.ts"),
+    ]);
+    for (const handler of handlers) {
+      expect(code(handler)).toContain('import { pass } from "@/lib/account/pass";');
+      expect([...code(handler).matchAll(/^import\b.*$/gm)]).toHaveLength(1);
+    }
     expect(files.filter((file) => /(^|\/)(middleware|proxy)\.(ts|js)$/.test(file)).map(named)).toEqual([]);
     expect(
       readdirSync(path.resolve(SRC, "..")).filter((name) => /^(middleware|proxy)\.(ts|js)$/.test(name)),
@@ -101,15 +113,19 @@ describe("what the source holds", () => {
   });
 
   test("test_nothing_in_the_source_touches_storage_the_console_or_the_address", () => {
-    const reaching = source
-      .filter((file) =>
-        /\b(localStorage|sessionStorage|indexedDB|document\.cookie|cookieStore|serviceWorker|sendBeacon|console\.\w+|history\.(push|replace)State|location\.(assign|replace|href\s*=|search|hash\s*=)|useRouter|useSearchParams|window\.open)\b/.test(
-          code(file),
-        ),
-      )
-      .map(named);
+    const touching = (what: RegExp) => source.filter((file) => what.test(code(file))).map(named).sort();
 
-    expect(reaching).toEqual([]);
+    expect(
+      touching(
+        /\b(localStorage|sessionStorage|indexedDB|document\.cookie|cookieStore|serviceWorker|sendBeacon|console\.\w+|history\.pushState|location\.(assign|replace|href\s*=|search|hash\s*=)|useSearchParams|window\.open)\b/,
+      ),
+    ).toEqual([]);
+    // Two files of accounts touch the address, each for one thing. One takes the token of a
+    // link to sign in out of the address it was opened at, and puts a fixed address in its
+    // place. One leads to a page of a closed list once an answer is in. Neither is handed
+    // an address, and the tests beside each hold it to that.
+    expect(touching(/\bhistory\.replaceState\b/)).toEqual([path.join("lib", "account", "token.ts")]);
+    expect(touching(/\buseRouter\b/)).toEqual([path.join("lib", "account", "go.ts")]);
   });
 
   test("test_nothing_is_put_into_the_page_as_markup", () => {
