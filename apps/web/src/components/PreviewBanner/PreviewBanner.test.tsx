@@ -102,3 +102,69 @@ describe("the banner that says the release is not finished", () => {
     expect(await faultsIn(container)).toEqual([]);
   });
 });
+
+describe("how the banner is drawn", () => {
+  const RULES = rulesOf(readFileSync(path.join(__dirname, "PreviewBanner.module.css"), "utf8"));
+  const FORCED = /forced-colors:\s*active/;
+  const setsOf = (selector: string) =>
+    new Map(RULES.filter((rule) => rule.selector === selector && rule.under === null).flatMap((rule) => [...rule.sets]));
+
+  test("test_it_is_cream_with_its_words_in_ink_on_a_rule_of_ink_with_a_band_of_amber_over_the_rule", () => {
+    const banner = setsOf(".banner");
+
+    expect([banner.get("background"), banner.get("color")]).toEqual(["var(--notice-bg)", "var(--notice-text)"]);
+    expect(banner.get("border-block-end")).toBe("2px solid var(--notice-edge)");
+    // The band is its own, and not the shell's alone: the page for a fault in the layout has
+    // no shell, and its banner has its edge of amber all the same. It takes no room.
+    expect(banner.get("box-shadow")).toBe("inset 0 calc(var(--px) * -2) 0 var(--notice-mark)");
+  });
+
+  test("test_the_mark_of_a_notice_is_drawn_behind_the_words_and_is_no_part_of_what_is_said", () => {
+    render(<PreviewBanner preview real />);
+    const banner = screen.getByRole("region", { name: PREVIEW_BANNER.label });
+    const text = setsOf(".text");
+    const layers = (text.get("background") ?? "").split("linear-gradient(").slice(1);
+
+    // It is a ground of the paragraph: the page holds no element for it, and no picture.
+    expect([...banner.querySelectorAll("img, svg, [aria-hidden], [role='img']")]).toEqual([]);
+    expect(banner.querySelectorAll("p")).toHaveLength(1);
+    // Five cells of ink on a square of cream, inside a rule of ink: a chequer of three each way.
+    expect(layers).toHaveLength(7);
+    expect(layers.map((layer) => /^var\(--(ink|page)\), var\(--\1\)\)/.exec(layer)?.[1])).toEqual([
+      "ink",
+      "ink",
+      "ink",
+      "ink",
+      "ink",
+      "page",
+      "ink",
+    ]);
+    expect(layers.every((layer) => /no-repeat[,;]?\s*$/.test(layer.trim()))).toBe(true);
+    expect(text.get("--mark")).toBe("calc(var(--cell) * 3)");
+    // The words begin clear of it, and their second line under their first.
+    expect(text.get("padding-inline-start")).toBe("calc(var(--mark) + var(--edge) * 2 + var(--space-2))");
+  });
+
+  test("test_a_cell_of_the_mark_is_a_whole_count_of_art_pixels_on_a_phone_and_on_a_desk", () => {
+    const wide = RULES.filter((rule) => rule.selector === ".text" && /min-width:\s*60rem/.test(rule.under ?? ""));
+
+    // Three art pixels of two, and two of three: six pixels of the screen on both.
+    expect(setsOf(".text").get("--cell")).toBe("calc(var(--px) * 3)");
+    expect(wide.map((rule) => rule.sets.get("--cell"))).toEqual(["calc(var(--px) * 2)"]);
+  });
+
+  test("test_the_mark_stands_in_the_middle_of_the_first_line_however_large_the_words_are_set", () => {
+    // It is placed by the height of a line, which grows with the size a person has set.
+    expect(setsOf(".text").get("--down")).toBe("calc((var(--leading-text) * 1em - var(--mark)) / 2)");
+    // Nothing that holds the words has a height of its own.
+    const fixed = RULES.filter((rule) => rule.sets.has("height") || rule.sets.has("max-height"));
+    expect(fixed.map((rule) => rule.selector)).toEqual([]);
+  });
+
+  test("test_where_the_system_draws_in_its_own_colours_the_mark_and_the_band_are_not_drawn", () => {
+    const forced = new Map(RULES.filter((rule) => FORCED.test(rule.under ?? "")).map((rule) => [rule.selector, rule.sets]));
+
+    expect(forced.get(".banner")?.get("box-shadow")).toBe("none");
+    expect([forced.get(".text")?.get("background"), forced.get(".text")?.get("padding-inline-start")]).toEqual(["none", "0"]);
+  });
+});

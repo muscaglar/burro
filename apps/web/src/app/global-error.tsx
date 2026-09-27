@@ -1,12 +1,13 @@
 "use client";
 
+import { Press } from "@/components/kit/Press/Press";
+import { Alone } from "@/components/Shell/Alone";
+import { PlainPage } from "@/components/Shell/PlainPage";
 import { LiveSyntheticBanner } from "@/components/SyntheticBanner/LiveSyntheticBanner";
 import { FAULT, SITE } from "@/content/site";
 
 import "@/styles/tokens.css";
 import "@/styles/base.css";
-
-import styles from "./global-error.module.css";
 
 interface Props {
   // The error is not read. Its message could repeat what a person typed, so
@@ -28,6 +29,9 @@ interface Props {
  * It shows no figure and names no place. It carries the banner when anything
  * this tab has read said the data was made up. When the layout fails on the
  * first page a tab opens, nothing is known of the data, and nothing is said.
+ *
+ * It is drawn as the page of a fault is: one box on the meadow. It has no name board and
+ * no foot, which the layout would have drawn.
  */
 export default function GlobalError({ retry, reset }: Props) {
   return (
@@ -39,15 +43,13 @@ export default function GlobalError({ retry, reset }: Props) {
       </head>
       <body>
         <LiveSyntheticBanner />
-        <main id="main" className={styles.main}>
-          <div role="alert">
-            <h1>{FAULT.title}</h1>
-            <p>{FAULT.text}</p>
-            <button type="button" className="target" onClick={() => (retry ?? reset)?.()}>
+        <Alone>
+          <PlainPage kind="fault" title={FAULT.title} text={FAULT.text}>
+            <Press kind="go" onPress={() => (retry ?? reset)?.()}>
               {FAULT.retry}
-            </button>
-          </div>
-        </main>
+            </Press>
+          </PlainPage>
+        </Alone>
       </body>
     </html>
   );

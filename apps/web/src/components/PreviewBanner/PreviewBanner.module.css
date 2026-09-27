@@ -1,14 +1,55 @@
+/*
+ * A banner: a strip of cream from edge to edge, above everything but the way to skip it. Its
+ * words are in ink, and it stands on a rule of ink with a band of amber over the rule, which
+ * is its edge: amber is not told from cream by everyone, and ink is. It is sober, and it has
+ * no way to be closed.
+ */
 .banner {
   background: var(--notice-bg);
   color: var(--notice-text);
   border-block-end: 2px solid var(--notice-edge);
   padding: var(--space-2) var(--space-4);
+  /* The band is drawn inside the banner and takes no room. */
+  box-shadow: inset 0 calc(var(--px) * -2) 0 var(--notice-mark);
 }
 
+/*
+ * What it says, and before it the mark of a notice, as Town Map draws it: a chequer of ink
+ * on cream, three cells each way, inside a rule of ink. It is a sign that is not a colour.
+ *
+ * The mark is drawn behind the room the words leave at their start, so the words are one
+ * paragraph, and their second line begins under their first. It stands in the middle of
+ * the first line, however large the words are set. A cell is six pixels of the screen on a
+ * phone and on a desk, which is a whole count of art pixels on both.
+ */
 .text {
+  --cell: calc(var(--px) * 3);
+  --mark: calc(var(--cell) * 3);
+  --down: calc((var(--leading-text) * 1em - var(--mark)) / 2);
+
   margin: 0 auto;
   max-width: var(--page-width);
+  padding-inline-start: calc(var(--mark) + var(--edge) * 2 + var(--space-2));
   font-weight: 600;
+  background:
+    linear-gradient(var(--ink), var(--ink)) var(--edge) var(--down) / var(--cell) var(--cell) no-repeat,
+    linear-gradient(var(--ink), var(--ink)) calc(var(--edge) + var(--cell) * 2) var(--down) / var(--cell) var(--cell)
+      no-repeat,
+    linear-gradient(var(--ink), var(--ink)) calc(var(--edge) + var(--cell)) calc(var(--down) + var(--cell)) / var(--cell)
+      var(--cell) no-repeat,
+    linear-gradient(var(--ink), var(--ink)) var(--edge) calc(var(--down) + var(--cell) * 2) / var(--cell) var(--cell)
+      no-repeat,
+    linear-gradient(var(--ink), var(--ink)) calc(var(--edge) + var(--cell) * 2) calc(var(--down) + var(--cell) * 2) /
+      var(--cell) var(--cell) no-repeat,
+    linear-gradient(var(--page), var(--page)) var(--edge) var(--down) / var(--mark) var(--mark) no-repeat,
+    linear-gradient(var(--ink), var(--ink)) 0 calc(var(--down) - var(--edge)) / calc(var(--mark) + var(--edge) * 2)
+      calc(var(--mark) + var(--edge) * 2) no-repeat;
+}
+
+@media (min-width: 60rem) {
+  .text {
+    --cell: calc(var(--px) * 2);
+  }
 }
 
 /* The one line that stands for the whole on a narrow screen. It is drawn nowhere else. */
@@ -35,8 +76,15 @@
   }
 }
 
+/* With forced colours the system's own colours carry the edge, and the mark is not drawn. */
 @media (forced-colors: active) {
   .banner {
     border-block-end-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .text {
+    padding-inline-start: 0;
+    background: none;
   }
 }

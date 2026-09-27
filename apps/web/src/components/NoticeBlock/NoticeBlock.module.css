@@ -1,23 +1,48 @@
+/*
+ * What Burro says of a search that is no result: a notice, a state of the page, and what
+ * could not be answered or was not applied.
+ *
+ * Each is plain and flat: cream, inside a rule of ink, with no shadow. Each brings the
+ * cream it is read on, so that it is read wherever a page stands it, on the grass or in a
+ * box. Its words are in ink, in the reading face.
+ *
+ * A notice and a state have an edge of amber: a band at their start, inside the rule. The
+ * rule is what tells them from the page, and the band is told from the rule: amber is not
+ * told from cream by everyone.
+ */
+.notice,
+.state,
+.list {
+  --band: calc(var(--px) * 3);
+
+  border: var(--edge) solid var(--notice-edge);
+  color: var(--text);
+}
+
 .notice,
 .state {
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + var(--band));
+  box-shadow: inset var(--band) 0 0 var(--notice-mark);
 }
 
 .notice {
   background: var(--info-bg);
   color: var(--info-text);
-  border-inline-start: 4px solid var(--info-text);
 }
 
 .state {
   background: var(--surface);
-  border-inline-start: 4px solid var(--border);
 }
 
 .notice p,
 .state p {
   margin: 0;
+}
+
+/* What could not be answered, and what was not applied: a list, which has no band. */
+.list {
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg);
 }
 
 .list ul {
@@ -27,10 +52,31 @@
   padding-inline-start: var(--space-5);
 }
 
+/* The mark of a line is a square of ink, one art pixel larger than a full stop. */
 .list li {
   color: var(--muted);
+  list-style: square;
+}
+
+.list li::marker {
+  color: var(--ink);
 }
 
 .list strong {
   color: var(--text);
+}
+
+/* With forced colours the system's own colours carry the edge, and the band is a second edge. */
+@media (forced-colors: active) {
+  .notice,
+  .state,
+  .list {
+    border-color: CanvasText;
+  }
+
+  .notice,
+  .state {
+    box-shadow: none;
+    border-inline-start-width: var(--band);
+  }
 }

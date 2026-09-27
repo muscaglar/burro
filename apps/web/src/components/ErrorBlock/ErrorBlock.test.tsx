@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 
@@ -9,6 +12,8 @@ import { edits, NO_EDITS } from "@/lib/search/edits";
 import { isStale, repairsFor } from "@/lib/search/repairs";
 
 import { faultsIn } from "../../../test/support/axe";
+import { asWritten } from "../../../test/support/contrast";
+import { rulesOf } from "../../../test/support/css";
 import { CANARY } from "../../../test/support/search";
 import { ErrorBlock, wordsFor } from "./ErrorBlock";
 
@@ -57,6 +62,26 @@ describe("what is said of a failure", () => {
     },
   );
 
+  test("test_an_answer_that_is_not_burros_own_says_by_its_status_that_burro_is_busy_or_has_a_fault", () => {
+    // Seen in a browser, of an answer of 429 whose body was a page and no answer of Burro's:
+    // "Burro sent back an answer that this page could not understand.", with "Try again"
+    // beside it. Nothing said to wait, and trying again at once is what such an answer refuses.
+    const answered = (status: number | null): Failure => ({ kind: "unreadable", status, synthetic: null, requestId: null });
+
+    expect(wordsFor(answered(429))).toBe(FAILURE.busy);
+    for (const status of [500, 502, 503, 504]) expect([status, wordsFor(answered(status))]).toEqual([status, FAILURE.fault]);
+    // An answer that says all went well, and cannot be read, is what it was said to be.
+    for (const status of [200, 404, null]) expect([status, wordsFor(answered(status))]).toEqual([status, FAILURE.unreadable]);
+    // Only the one that was refused for asking too often says to wait.
+    expect(FAILURE.busy).toMatch(/\bwait\b/);
+    expect(new Set([FAILURE.busy, FAILURE.fault, FAILURE.unreadable]).size).toBe(3);
+    // What is Burro's own is said in Burro's words, whatever its status.
+    expect(wordsFor(fromThe("error-internal"))).toBe(recordedError("error-internal").body.error.message);
+
+    show(answered(429));
+    expect(screen.getByRole("alert")).toHaveTextContent(FAILURE.busy);
+  });
+
   test("test_nothing_that_was_sent_is_shown_because_nothing_that_was_sent_is_given", () => {
     // A failure holds codes, paths and fixed words. There is nowhere in it for what was typed.
     const refusal = fromThe("rank-invalid-operations");
@@ -65,7 +90,29 @@ describe("what is said of a failure", () => {
     expect(Object.keys(refusal).sort()).toEqual(
       ["code", "fields", "kind", "message", "meta", "requestId", "status", "synthetic"].sort(),
     );
-    expect(wordsFor(refusal)).toBe("The operations are not valid.");
+    // What is shown is the service's sentence for the failure, word for word as it came. The
+    // service wrote its sentences again for a person who has never seen Burro, and each is
+    // fixed text as it was: one sentence for a code, whatever was sent.
+    expect(wordsFor(refusal)).toBe(recordedError("rank-invalid-operations").body.error.message);
+    expect(wordsFor(refusal)).toBe("Burro could not make that change to your search.");
+    // It says where in what was sent the fault stands, and never what stood there.
+    expect(refusal.kind === "api" && refusal.fields.map((field) => Object.keys(field).sort())).toEqual(
+      recordedError("rank-invalid-operations").body.error.fields.map(() => ["path", "problem"]),
+    );
+  });
+
+  test("test_the_id_of_a_place_that_was_sent_is_in_no_failure_and_in_nothing_the_block_shows", () => {
+    // The id of a place says where someone needs to be. A search that names a place the data
+    // no longer has was sent with that id, and is refused by where the place stood in it.
+    const recorded = recordedError("rank-stale-spec");
+    const sent = (recorded.request.body as { spec: PreferenceSpec }).spec.commutes.map((commute) => commute.place_id);
+    const gone = fromThe("rank-stale-spec");
+    const { container } = show(gone, { notUpdated: true, repairs: repairsFor(gone, stale, NO_EDITS), nameOf: () => null });
+
+    expect(sent).toEqual(["syn-p0021", "syn-p9999"]);
+    expect(sent.filter((id) => JSON.stringify(gone).includes(id))).toEqual([]);
+    expect(sent.filter((id) => container.innerHTML.includes(id))).toEqual([]);
+    expect(container.innerHTML.includes(CANARY)).toBe(false);
   });
 
   test("test_trying_again_and_starting_again_are_buttons_of_full_size", async () => {
@@ -159,5 +206,74 @@ describe("a search that names something the data no longer has", () => {
     } as Failure;
 
     expect(repairsFor(twice, stale, NO_EDITS)).toHaveLength(1);
+  });
+});
+
+describe("how a failure is drawn", () => {
+  const RULES = rulesOf(readFileSync(path.join(__dirname, "ErrorBlock.module.css"), "utf8"));
+  const FORCED = /forced-colors:\s*active/;
+  const DRAWN = RULES.filter((rule) => !FORCED.test(rule.under ?? ""));
+  const setsOf = (selector: string) => new Map(DRAWN.filter((rule) => rule.selector === selector).flatMap((rule) => [...rule.sets]));
+  const TOKENS = asWritten();
+  /** The picture a button is drawn with, as the page names it on its face. */
+  const drawnWith = (button: HTMLElement) =>
+    /\/art\/([a-z0-9-]+)\.png/.exec((button.firstElementChild as HTMLElement).style.getPropertyValue("--art"))?.[1] ?? "";
+
+  test("test_it_is_cream_inside_a_rule_of_ink_with_an_edge_of_poppy_and_its_words_are_in_ink", () => {
+    const block = setsOf(".error");
+
+    expect([block.get("background"), block.get("border"), block.get("color")]).toEqual([
+      "var(--bg)",
+      "var(--edge) solid var(--border)",
+      "var(--text)",
+    ]);
+    expect(block.get("box-shadow")).toBe("inset var(--band) 0 0 var(--error-edge)");
+    expect([TOKENS["--error-edge"], TOKENS["--error"]]).toEqual(["var(--poppy)", "var(--ink)"]);
+    // Poppy is an edge and never words: on cream it cannot be read.
+    const words = DRAWN.flatMap((rule) => (rule.sets.has("color") ? [rule.sets.get("color")] : []));
+    expect(words.sort()).toEqual(["var(--error)", "var(--muted)", "var(--text)"]);
+  });
+
+  test("test_it_is_plain_and_flat", () => {
+    const thrown = DRAWN.filter((rule) => rule.sets.has("box-shadow") && !/^inset /.test(rule.sets.get("box-shadow") ?? ""));
+
+    expect(thrown.map((rule) => rule.selector)).toEqual([]);
+    expect(DRAWN.filter((rule) => rule.sets.has("border-image") || rule.sets.has("border-radius")).map((rule) => rule.selector)).toEqual([]);
+  });
+
+  test("test_what_can_be_done_is_drawn_as_buttons_and_none_is_the_button_that_matters_most", () => {
+    const failure = fromThe("rank-stale-spec");
+    show(failure, { repairs: repairsFor(failure, stale, NO_EDITS), nameOf: () => null });
+
+    const drawn = Object.fromEntries(screen.getAllByRole("button").map((button) => [button.textContent, drawnWith(button)]));
+
+    expect(drawn).toEqual({
+      [NOTICE.takeOut(NOTICE.thePlace)]: "ui-button",
+      [PROMPT.tryAgain]: "ui-button",
+      // It keeps nothing of the search, and is drawn as what takes away is drawn.
+      [PROMPT.startAgain]: "ui-button-stop",
+    });
+    for (const button of screen.getAllByRole("button")) {
+      expect(button.tagName).toBe("BUTTON");
+      expect(button).toHaveAttribute("type", "button");
+      expect(button).toHaveClass("target");
+      // A button that holds no state says none.
+      expect(button).not.toHaveAttribute("aria-pressed");
+    }
+  });
+
+  test("test_what_a_repair_takes_out_is_a_name_the_service_gives_and_is_set_to_be_read", () => {
+    const failure = fromThe("rank-stale-spec");
+    const long = "Saint Bartholomew the Less Hospital, West Smithfield";
+    show(failure, { repairs: repairsFor(failure, stale, NO_EDITS), nameOf: () => long });
+
+    const repair = screen.getByRole("button", { name: NOTICE.takeOut(long) });
+
+    expect(repair.querySelector("[data-reads='true']")?.textContent).toBe(NOTICE.takeOut(long));
+    expect(screen.getByRole("button", { name: PROMPT.tryAgain }).querySelector("[data-reads='true']")).toBeNull();
+  });
+
+  test("test_the_id_of_a_request_is_broken_where_it_must_be_so_that_the_page_is_never_wider_for_it", () => {
+    expect(setsOf(".request").get("overflow-wrap")).toBe("anywhere");
   });
 });

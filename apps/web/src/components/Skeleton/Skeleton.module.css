@@ -1,28 +1,51 @@
+/*
+ * What holds the place of what is coming. A line is one whole bar in the colour of a chip at
+ * rest, as long as the line it holds the place of. It was a row of dashes, and read as a
+ * dashed line, which was not understood: nothing here is drawn in pieces. It is still.
+ * Nothing of it is read.
+ */
 .lines,
 .card {
   display: grid;
   gap: var(--space-2);
 }
 
+/* The place of a whole card is plain and flat: cream, inside a rule of ink. */
 .card {
   padding: var(--space-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
+  background: var(--bg);
+  border: var(--edge) solid var(--border);
 }
 
-/* One line of text high, whatever the size of the text. */
-.line {
+/*
+ * One line of text high, whatever the size of the text. It weighs more than the ground
+ * every skeleton is given, whichever of the two sheets is read last.
+ */
+.line:global(.skeleton) {
   display: block;
   height: calc(var(--leading-text) * 1em);
+  background: var(--sand);
+  /* The bar is as high as the letters of a line, with the room of a line round it. */
+  background-clip: content-box;
+  padding-block: calc(var(--px) * 2);
 }
 
 .line:last-child:not(:first-child) {
   width: 60%;
 }
 
-.chip {
+/* The place of a chip has the whole edge every chip has: no edge of the website is dashed. */
+.chip:global(.skeleton) {
   display: inline-block;
   width: 8rem;
   height: var(--target);
-  border-radius: var(--radius);
+  border: var(--edge) solid var(--border);
+  background: var(--sand) padding-box;
+}
+
+@media (forced-colors: active) {
+  .card,
+  .chip:global(.skeleton) {
+    border-color: CanvasText;
+  }
 }

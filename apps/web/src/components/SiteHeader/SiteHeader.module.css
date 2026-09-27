@@ -1,58 +1,283 @@
+/*
+ * The name board: a box on the meadow that holds the name of the website and the three
+ * pages about it. Where it stands, and how wide, is the shell's to say: it stands over the
+ * page and is as wide as the page's own boxes.
+ *
+ * The box is the kit's, and brings its ground and its shadow. Nothing here lays a ground
+ * over it or cuts anything off at its edge.
+ */
 .header {
-  border-block-end: 1px solid var(--border);
-  background: var(--bg);
+  min-width: 0;
 }
 
+/*
+ * On a narrow screen the board is one line: the name at its start and the three links at
+ * its end. A control is 44 px high and the rules of the box stand 2 art pixels clear of it, so
+ * the line lies that far over the room of the rules, above and below, where nothing is
+ * drawn that it could hide: the board is then as high as the strip it took the place of.
+ *
+ * On a screen too narrow for one line the links go under the name. The two lines stand as
+ * far apart as each lies over its own room, so that no control lies over another.
+ */
 .inner {
+  --lies-over: calc(var(--px) * -2);
+
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--space-2) var(--space-5);
-  max-width: var(--page-width);
-  margin: 0 auto;
-  padding: var(--space-2) var(--space-4);
+  gap: calc(var(--lies-over) * -2) var(--space-1);
+  padding: 0 var(--space-1);
 }
 
+/*
+ * The name is set by the shell, in the face of names. Here it throws the hard shadow of a
+ * title, one art pixel down and one to the right, in the colour of what is lit.
+ */
 .name {
   display: inline-flex;
   align-items: center;
-  font-size: var(--size-h3);
-  font-weight: 700;
+  margin-block: var(--lies-over);
   color: var(--text);
   text-decoration: none;
+  text-shadow: var(--px) var(--px) 0 var(--amber);
 }
 
+/*
+ * Burro stands in the board after the name, wherever the board has room for him. On a
+ * narrow screen he is not drawn in it, and the foot of the page draws him. While the board
+ * held four links it had no room for him there: they and the name left 15 px of the line
+ * on a phone 390 wide, and he is 48 wide. With three it has the room on that phone and not
+ * on a narrower one, and where he is drawn on a narrow screen is a line of the look.
+ */
+.burro {
+  display: none;
+}
+
+/* The three stand shoulder to shoulder, each with its own room round its words: the name and they are one line on a phone. */
 .links {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1) var(--space-5);
-  margin: 0;
+  margin: var(--lies-over) 0;
   padding: 0;
   list-style: none;
 }
 
+/*
+ * A link is a short label, in the face of names. On a narrow screen it is its words, in the
+ * colour of a link and underlined with a hard line, so that colour is not all that says it.
+ */
 .link {
+  /* As high as its words and four art pixels more, however large the words are set. */
+  --plate: calc(1em + var(--px) * 4);
+
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  padding: 0 var(--space-1);
+  color: var(--accent);
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
 }
 
-/* A narrow screen: the name and the links on one line, so that the page starts higher. */
+/*
+ * The page being read stands on a plate of amber, as what is on does, inside a rule of ink:
+ * amber is not told from cream by everyone. The plate is drawn behind the words and is
+ * lower than the control, which takes a press above it and below it as well.
+ */
+.link[aria-current="page"] {
+  color: var(--on-chosen);
+  text-decoration: none;
+  background:
+    linear-gradient(var(--chosen), var(--chosen)) center / calc(100% - 2 * var(--edge)) calc(var(--plate) - 2 * var(--edge))
+      no-repeat,
+    linear-gradient(var(--border), var(--border)) center / 100% var(--plate) no-repeat;
+}
+
 @media (max-width: 40rem) {
+  /* The words of a link stand a hair clear of the rule of its plate. */
+  .link {
+    text-underline-offset: 0.15em;
+  }
+
+  /*
+   * Once a search is open the board is lower, so that the first result is whole on the
+   * first screen of a phone. Its line lies one art pixel further over the room of its
+   * rules, above and below: the board is 52 px where it was 56, and every control of it
+   * is as high as it was. Before a search, and on every other page, it is as it was.
+   */
+  :global(body):has([data-search="open"]) .inner[data-narrow="labels"] {
+    --lies-over: calc(var(--px) * -3);
+  }
+
+  /*
+   * The other way to draw the board on a narrow screen, which the header is handed: the
+   * three links as buttons, as on a wide screen, in a line of their own under the name.
+   * There is less room round the words of each than on a wide screen, so that the three
+   * are one line on a phone. The board is then two lines, and as much higher.
+   */
+  .inner[data-narrow="keys"] {
+    --lies-over: 0px;
+
+    gap: var(--space-1);
+    padding-block-end: var(--space-1);
+  }
+
+  .inner[data-narrow="keys"] .links {
+    flex: 1 0 100%;
+    gap: var(--space-1);
+  }
+
+  .inner[data-narrow="keys"] .link {
+    padding: 0 var(--px);
+    border-style: solid;
+    border-width: calc(var(--px) * 3) calc(var(--px) * 3) calc(var(--px) * 4);
+    border-color: var(--ink);
+    border-image: var(--art) 3 3 4 3 fill / calc(var(--px) * 3) calc(var(--px) * 3) calc(var(--px) * 4) repeat;
+    background: var(--page) padding-box;
+    color: var(--ink);
+    text-decoration: none;
+    image-rendering: pixelated;
+  }
+
+  .inner[data-narrow="keys"] .link[aria-current="page"] {
+    background: var(--chosen) padding-box;
+  }
+
+  .inner[data-narrow="keys"] .link:active {
+    border-image-source: var(--art-down);
+  }
+
+  /*
+   * Drawn that way the board is two lines, and the first of them has room for Burro: he
+   * sits beside the name, behind the row of the three pages, and is seen from his back up.
+   * He lies over the room between the two lines, so that the board is as high with him as
+   * it is without him.
+   */
+  .inner[data-narrow="keys"] .burro {
+    display: block;
+    align-self: flex-end;
+    margin-block-end: calc(var(--space-1) * -1);
+  }
+}
+
+/*
+ * Where there is room for the name and three buttons on one line, a link is drawn as Town
+ * Map draws a button: a picture cut in nine, lit from the top left, with its hard shadow
+ * at its foot. The page hands it the picture, and the picture of the button pressed. Under
+ * the picture are an edge of ink and the ground of a button, which are what is seen of a
+ * link whose picture has not come.
+ *
+ * The link is what takes the press, and it never moves: under a press its picture gives
+ * way to the picture of it pressed, which is of the same size and cut in the same place.
+ */
+@media (min-width: 40rem) {
   .inner {
-    gap: var(--space-1) var(--space-3);
-    padding-block: var(--space-1);
+    --lies-over: 0px;
+
+    gap: var(--space-1) var(--space-4);
+    padding: var(--space-1) var(--space-3);
   }
 
   .links {
     gap: var(--space-1) var(--space-2);
-    font-size: var(--size-small);
+  }
+
+  /*
+   * He sits behind the rule at the foot of the board, and is seen from his back up. Under
+   * the line of the board are its room and one art pixel of page, and then the rule: he
+   * lies over both, and sits on the rule. He lies over the room above the line as well,
+   * so that the line is as high as a control and no higher, and the board as high with
+   * him as without him.
+   */
+  .burro {
+    --under: var(--space-1);
+
+    display: block;
+    align-self: flex-end;
+    margin-block-start: calc(var(--under) * -1);
+    margin-block-end: calc((var(--under) + var(--px)) * -1);
+  }
+
+  /* He stands with the name, at the start of the board, and the three stand at its end. */
+  .burro + nav {
+    margin-inline-start: auto;
+  }
+
+  .link {
+    padding: 0 calc(var(--px) * 5);
+    border-style: solid;
+    border-width: calc(var(--px) * 3) calc(var(--px) * 3) calc(var(--px) * 4);
+    border-color: var(--ink);
+    border-image: var(--art) 3 3 4 3 fill / calc(var(--px) * 3) calc(var(--px) * 3) calc(var(--px) * 4) repeat;
+    background: var(--page) padding-box;
+    color: var(--ink);
+    text-decoration: none;
+    image-rendering: pixelated;
+  }
+
+  .link[aria-current="page"] {
+    background: var(--chosen) padding-box;
+  }
+
+  .link:active {
+    border-image-source: var(--art-down);
   }
 }
 
-/* The page being read is marked by weight and by an edge, as well as to a screen reader. */
-.link[aria-current="page"] {
-  color: var(--text);
-  font-weight: 700;
-  text-decoration-thickness: 2px;
+@media (min-width: 60rem) {
+  .inner {
+    padding: var(--space-2) var(--space-4);
+  }
+
+  .burro {
+    --under: var(--space-2);
+  }
+}
+
+/*
+ * He is one rabbit. Where he is drawn on the page itself, beside the heading, where he
+ * asks or where the answer will stand, he is not drawn in the board as well: nothing of
+ * him is laid out there, so nothing of him runs unseen. The board is laid out the same
+ * with him and without him: the name stands at its start and the three pages at its end,
+ * and he lies over the room of the board and takes none of the line.
+ *
+ * What holds him where he asks may say that it is drawn only where there is room for him,
+ * `data-room="wide"`, and is then not drawn on a screen narrower than 60rem: he is in the
+ * page and is not seen. There the board draws him all the same.
+ */
+@media (min-width: 60rem) {
+  :global(body):has(main [data-pose]) .inner > .burro {
+    display: none;
+  }
+}
+
+@media (max-width: 59.99rem) {
+  :global(body):has(main :not([data-room="wide"]) > [data-pose]) .inner > .burro {
+    display: none;
+  }
+}
+
+/*
+ * With forced colours the system's own colours carry every edge, and no picture is drawn
+ * over them. A picture is taken away by its source: written as the whole of `border-image`,
+ * the build makes nothing of it, and the picture stays.
+ */
+@media (forced-colors: active) {
+  .name {
+    text-shadow: none;
+  }
+
+  .link,
+  .link:active {
+    border-image-source: none;
+    border-color: LinkText;
+  }
+
+  .link[aria-current="page"] {
+    border-color: Highlight;
+    background: Canvas;
+    color: CanvasText;
+    text-decoration: underline;
+  }
 }

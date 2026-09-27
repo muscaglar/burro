@@ -1,41 +1,642 @@
+/*
+ * A fold: a bar, and under it what the bar opens, in place.
+ *
+ * EVERY BAR THAT FOLDS IS DRAWN ONE WAY, on every page: cream, with its name at its near
+ * end and its arrow in a cell at its far end. The arrow points down while the fold is
+ * closed, at what would open under it, and up while it is open. While it is open the bar
+ * is amber, as what is on is. A fold was drawn four ways on the website, and a person who
+ * had learnt one did not know the next for what it was.
+ *
+ * A bar is one of a stack, from edge to edge of what holds the stack, as Town Map drew its
+ * drawers: or it stands alone, and then has an edge of ink of its own and the hard shadow
+ * of the look. It is a button, or the browser's own `summary`, which folds with scripts
+ * off: either is drawn by this sheet, and takes the look from nowhere else.
+ *
+ * A small fold stands beside a line of text, on a rule of ink, with the head of the arrow
+ * before its words. It is no bar.
+ *
+ * The bar is what takes the press, and nothing ever moves it or changes its size: open or
+ * closed, pressed or not, it takes the room it took. The arrow turns inside a room of its
+ * own, in one step and not over time.
+ *
+ * Every edge of a fold is a whole line of ink. None is broken into dashes.
+ */
 .disclosure {
+  min-width: 0;
+}
+
+/* A fold that is the browser's own: what holds its bar and what the bar opens. */
+.fold {
   min-width: 0;
 }
 
 .button {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
+  border-radius: 0;
+  color: var(--ink);
+}
+
+/*
+ * The browser's own bar. The mark a browser draws before it is taken off: the arrow of
+ * the look says what it said, at the far end, where the arrow of every fold stands.
+ */
+summary.button {
+  list-style: none;
+  cursor: pointer;
+}
+
+summary.button::-webkit-details-marker {
+  display: none;
+}
+
+/*
+ * What the button says, and its arrow, side by side. A short label is set in the face of
+ * names, which is drawn in pixels and is set at its own sizes and no other: so the face
+ * and the size are said here, of what is said, and a page that lays the button out
+ * changes neither.
+ */
+.says {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  min-width: 0;
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
   text-align: left;
 }
 
+/* Words that hold a figure, and a label that is more than words, are read. */
+.says[data-reads="true"] {
+  font: 700 var(--size-body) / 1.25 var(--font-say);
+}
+
+/*
+ * What a bar says is as wide as the bar is, and as high, so that the cell of its arrow
+ * stands at the far end of it, from its head to its foot, however a page lays the bar out.
+ */
+.bar > .says {
+  flex: 1 1 auto;
+  align-items: stretch;
+  gap: 0;
+}
+
+/*
+ * Where what a bar says begins, from its near end: five art pixels in. Whatever lays a
+ * fold out may say another room in a sheet of its own, so that what the bar says begins
+ * where what the bar opens begins: a page knows how far from its sides it keeps what it
+ * holds, and at which widths, and this sheet asks no width of the screen. It is said here
+ * with no weight, so that whatever says it anywhere weighs more, whichever sheet is read
+ * last. And it is said of every fold, so that a fold inside another begins where a fold
+ * begins, and not where the one that holds it does.
+ */
+:where(.disclosure),
+:where(.fold) {
+  --bar-begins: calc(var(--px-small) * 5);
+}
+
+/*
+ * A BAR. It is drawn as the plain button of the look is, laid flat: cream, with its shade
+ * in sand along its foot. Open it is the button of what is on: amber, with its shade in
+ * poppy. It takes no room at its sides but before its first word: its arrow stands at its
+ * very end. The whole bar takes the press: its name, what it holds, and the cell of its arrow.
+ *
+ * It is drawn at the pixel of a phone on every screen, as every control of the settings
+ * is: a bar is then the same bar wherever it stands.
+ */
+.bar {
+  --px: var(--px-small);
+
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  padding-block: 0;
+  padding-inline: var(--bar-begins) 0;
+  border: 0;
+  background-color: var(--page);
+  box-shadow: inset 0 calc(var(--px) * -1) 0 var(--sand);
+  text-align: start;
+}
+
+/*
+ * One of a stack of bars, each from one edge of what holds the stack to the other. A rule
+ * of ink stands under each, and over the first.
+ */
+.stacked {
+  border-block-end: var(--px-small) solid var(--ink);
+}
+
+.stacked:not(.stacked + .stacked) {
+  border-block-start: var(--px-small) solid var(--ink);
+}
+
+/*
+ * A bar that stands alone: no stack gives it a rule, so it has an edge of ink of its own,
+ * and the hard shadow of the look, as a chip has. It is as wide as what it says, unless
+ * whatever lays it out makes it wider: its arrow stands at the far end of it either way.
+ */
+.alone {
+  display: inline-flex;
+  width: auto;
+  max-width: 100%;
+  border: var(--px) solid var(--ink);
+  box-shadow:
+    inset 0 calc(var(--px) * -1) 0 var(--sand),
+    var(--box-shadow);
+}
+
+/* The browser's own bar is laid out as a block is: it is as wide as what holds it. */
+summary.alone {
+  display: flex;
+}
+
+/* As Town Map drew its drawers: sand, and flat. */
+.bar[data-rest="sand"] {
+  background-color: var(--sand);
+  box-shadow: none;
+}
+
+.alone[data-rest="sand"] {
+  box-shadow: var(--box-shadow);
+}
+
+/*
+ * In hand a bar that is closed is lit, as a chip is: sand where it stands on cream, and
+ * cream where it stands on sand. Under a press, with the focus of a keyboard, and under a
+ * pointer that can stand over a thing without pressing it. A bar that is open is amber in
+ * hand as out of it: nothing here is said of one.
+ */
+.bar[aria-expanded="false"]:active,
+.bar[aria-expanded="false"]:focus-visible,
+.fold:not([open]) > .bar:active,
+.fold:not([open]) > .bar:focus-visible {
+  background-color: var(--sand);
+}
+
+.bar[data-rest="sand"][aria-expanded="false"]:active,
+.bar[data-rest="sand"][aria-expanded="false"]:focus-visible,
+.fold:not([open]) > .bar[data-rest="sand"]:active,
+.fold:not([open]) > .bar[data-rest="sand"]:focus-visible {
+  background-color: var(--page);
+}
+
+@media (hover: hover) {
+  .bar[aria-expanded="false"]:hover,
+  .fold:not([open]) > .bar:hover {
+    background-color: var(--sand);
+  }
+
+  .bar[data-rest="sand"][aria-expanded="false"]:hover,
+  .fold:not([open]) > .bar[data-rest="sand"]:hover {
+    background-color: var(--page);
+  }
+}
+
+.bar[aria-expanded="true"],
+.fold[open] > .bar {
+  background-color: var(--chosen);
+  box-shadow: inset 0 calc(var(--px) * -1) 0 var(--poppy);
+  color: var(--on-chosen);
+}
+
+.alone[aria-expanded="true"],
+.fold[open] > .alone {
+  box-shadow:
+    inset 0 calc(var(--px) * -1) 0 var(--poppy),
+    var(--box-shadow);
+}
+
+/* Under a press the shade of an open bar goes to its other side, as that of a face that has stepped into its shadow. */
+.bar[aria-expanded="true"]:active,
+.fold[open] > .bar:active {
+  box-shadow: inset 0 var(--px) 0 var(--poppy);
+}
+
+.alone[aria-expanded="true"]:active,
+.fold[open] > .alone:active {
+  box-shadow:
+    inset 0 var(--px) 0 var(--poppy),
+    var(--box-shadow);
+}
+
+/*
+ * A bar that is a box of the kit, where it stands on the grass among the boxes of a page:
+ * the box brings its rule, its shadow and the room of both, and the bar lays none of its
+ * own. What the box holds is the face of the bar, from edge to edge of the room inside
+ * its rule: cream, and amber while it is open. The box itself is given no ground, which
+ * would lie under its shadow.
+ */
+.bar.boxed {
+  padding-inline-start: 0;
+  border-style: solid;
+  border-width: var(--frame-box-wide);
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+}
+
+.boxed > .told {
+  align-content: center;
+  align-self: stretch;
+  padding-inline: var(--bar-begins) calc(var(--px) * 4);
+  background-color: var(--page);
+  box-shadow: inset 0 calc(var(--px) * -1) 0 var(--sand);
+}
+
+/* The face of the bar reaches the rule of the cell: the room between the two is the face's own. */
+.bar.boxed .mark {
+  margin-inline-start: 0;
+}
+
+.bar.boxed[aria-expanded="false"]:active,
+.bar.boxed[aria-expanded="false"]:focus-visible,
+.fold:not([open]) > .bar.boxed:active,
+.fold:not([open]) > .bar.boxed:focus-visible {
+  background: none;
+}
+
+.boxed[aria-expanded="false"]:active > .told,
+.boxed[aria-expanded="false"]:focus-visible > .told,
+.fold:not([open]) > .boxed:active > .told,
+.fold:not([open]) > .boxed:focus-visible > .told {
+  background-color: var(--sand);
+}
+
+@media (hover: hover) {
+  .bar.boxed[aria-expanded="false"]:hover,
+  .fold:not([open]) > .bar.boxed:hover {
+    background: none;
+  }
+
+  .boxed[aria-expanded="false"]:hover > .told,
+  .fold:not([open]) > .boxed:hover > .told {
+    background-color: var(--sand);
+  }
+}
+
+.bar.boxed[aria-expanded="true"],
+.fold[open] > .bar.boxed,
+.bar.boxed[aria-expanded="true"]:active,
+.fold[open] > .bar.boxed:active {
+  background: none;
+  box-shadow: none;
+}
+
+.boxed[aria-expanded="true"] > .told,
+.fold[open] > .boxed > .told {
+  background-color: var(--chosen);
+  box-shadow: inset 0 calc(var(--px) * -1) 0 var(--poppy);
+}
+
+/* While it is open the inner rule of the box is amber, as the rule of a box in hand is. */
+.boxed[aria-expanded="true"]::before,
+.fold[open] > .boxed::before {
+  border-image-source: var(--frame-box-on);
+}
+
+/*
+ * The ring of the focus stands inside a bar of a stack: outside it, it would lie over the
+ * bar above and the bar below. Round a bar that stands alone, and round one that is a
+ * box, it stands where the ring of every control does.
+ */
+.bar:not(.alone, .boxed):focus-visible {
+  outline-offset: calc(var(--focus-ring) * -1);
+}
+
+/* The drawing before the name of a bar. It is as large as it is drawn, whatever room the bar has. */
+.drawn {
+  display: inline-flex;
+  flex: none;
+  align-self: center;
+  margin-inline-end: calc(var(--px) * 4);
+}
+
+/*
+ * What is read on a bar: its name, and what it holds. They stand side by side where the
+ * bar has room for both, and one under the other where it has not. Nobody is asked how
+ * wide the bar is: what it holds asks for the room it needs to be read, and takes a line
+ * of its own where it is not given it.
+ */
+.told {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: baseline;
+  align-self: center;
+  gap: var(--px) calc(var(--px) * 6);
+  min-width: 0;
+  padding-block: calc(var(--px) * 3) calc(var(--px) * 4);
+}
+
+/*
+ * On the browser's own bar what is read stands in the bar itself, and may be a heading:
+ * the part that the bar opens is then found by its heading, as any part of a page is. A
+ * short label is set as the name of any bar is, whatever a page says of its headings.
+ */
+summary.bar > .told {
+  margin: 0;
+  max-width: none;
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+  text-align: start;
+}
+
+/*
+ * A heading is never lighter to the eye than what it heads. At 20 pixels the face of names
+ * reads as small as a sentence at 13, so no heading is set in it under 30: the heading of
+ * a part of a page is set in it at 30, as the name of a group of the settings is, and a
+ * small heading inside a part is set in the face of a sentence, heavy.
+ */
+summary.bar > h2.told {
+  font: 400 var(--name-2) / 1 var(--font-name);
+  font-synthesis: none;
+}
+
+/*
+ * Words that hold a figure are read, as on any bar. In a heading of the second rank the
+ * size of a sentence is the size of a name, as the page has it of every such heading.
+ */
+summary.bar > .told[data-reads="true"] {
+  font: 700 var(--size-body) / 1.25 var(--font-say);
+}
+
+summary.bar > h3.told,
+summary.bar > h4.told,
+summary.bar > h3.told[data-reads="true"],
+summary.bar > h4.told[data-reads="true"] {
+  font: 700 var(--size-h3) / 1.2 var(--font-say);
+}
+
+.named {
+  min-width: 0;
+}
+
+/*
+ * What a bar holds is read: it is set in the reading face, in ink, and is not heavy.
+ *
+ * A line of it is a whole number of pixels high: four thirds of its size, which is 20 to
+ * its 15. A bar comes to say more as a thing of its group is turned on, and grows by a
+ * line: what was pressed under it is held where it stands by the page going by as much,
+ * and a page goes by whole pixels. A line of 19.5 left it half a pixel from where it stood.
+ * It is said as a length, which is worked out once and is whole: said as a figure, it is
+ * multiplied as the line is laid out, and the line came to 19.98.
+ */
+.holds {
+  flex: 1 1 12rem;
+  min-width: 0;
+  font: 400 var(--size-small) / calc(var(--size-small) * 4 / 3) var(--font-say);
+}
+
+/*
+ * Where movement is welcome what stands on the face steps with it, in the one step the
+ * face takes. It is the drawing and the words that step: the cell of the arrow stands
+ * against the end of the bar and the rules about it, and stays where it is.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .bar:active .drawn,
+  .bar:active .told {
+    transform: translate(var(--px), var(--px));
+  }
+}
+
+/*
+ * A small fold: its words on a rule of ink, as the key of a source has. In hand, and while
+ * it is open, it stands on amber.
+ */
 .small {
   min-height: var(--target-min);
-  padding: 0 var(--space-2);
-  font-size: var(--size-small);
-  color: var(--accent);
-  background: transparent;
+  padding: 0 var(--px) 0 0;
+  border: 0;
+  border-block-end: var(--edge) solid var(--ink);
+  background: none;
 }
 
-/* A mark that points right when closed and down when open. The button's state says the same. */
-.mark {
+.small > .says {
+  gap: calc(var(--px) * 2);
+}
+
+.small > .says[data-reads="true"] {
+  font: 400 var(--size-small) / 1.25 var(--font-say);
+}
+
+.small:focus-visible,
+.small[aria-expanded="true"],
+.fold[open] > .small {
+  background-color: var(--chosen);
+  color: var(--on-chosen);
+}
+
+/*
+ * Under a pointer that can stand over a thing without pressing it. A finger cannot: on a
+ * touch screen what was last pressed is held to be under the pointer until something else
+ * is, and a fold that was closed by a press would stand on amber as if it were open.
+ */
+@media (hover: hover) {
+  .small:hover {
+    background-color: var(--chosen);
+    color: var(--on-chosen);
+  }
+}
+
+/*
+ * THE ARROW OF A BAR stands in a cell of its own at the very end of the bar, as the cross
+ * of a chip does: sand, behind a rule of ink, as high as the bar. It is a part of the bar
+ * and no button of its own: the whole bar takes the press. It comes first in the page and
+ * is laid out last: it says nothing to whoever hears the page, wherever it stands.
+ *
+ * The cell is a whole number of art pixels wide, and no narrower than a control is, so
+ * that the arrow stands in the middle of it with every pixel of it whole. It is laid out
+ * where it stands and is no layer of its own: the ring of the focus, which stands inside
+ * a bar of a stack, is then drawn over it and is whole on all four sides.
+ */
+.bar .mark {
+  display: grid;
   flex: none;
-  width: 0.5em;
-  height: 0.5em;
-  border-right: 2px solid currentColor;
-  border-bottom: 2px solid currentColor;
-  transform: rotate(-45deg);
-  transition: transform var(--motion-fast);
+  order: 1;
+  place-items: center;
+  align-self: stretch;
+  width: calc(var(--px) * (var(--arrow-w) + 13));
+  margin-inline-start: calc(var(--px) * 4);
+  border-inline-start: var(--px) solid var(--ink);
+  background-color: var(--sand);
 }
 
-.button[aria-expanded="true"] .mark {
-  transform: rotate(45deg);
+/*
+ * The drawing points up, which is what it says of a fold that is open: what was opened
+ * can be put away again. Turned half way round it points down, at what would open, and
+ * every pixel of it is whole.
+ */
+.bar .mark::before {
+  content: "";
+  width: calc(var(--px) * var(--arrow-w));
+  height: calc(var(--px) * var(--arrow-h));
+  background: var(--arrow) 0 0 / calc(var(--px) * var(--arrow-w)) calc(var(--px) * var(--arrow-h)) no-repeat;
+  image-rendering: pixelated;
+  transform: rotate(180deg);
+}
+
+.bar[aria-expanded="true"] .mark::before,
+.fold[open] > .bar .mark::before {
+  transform: none;
+}
+
+/*
+ * The head of the arrow, for a small fold: three steps of ink, each one art pixel wide,
+ * five art pixels high at the most. It is drawn by this sheet, in art pixels, in a room
+ * five art pixels square, before the words of the fold.
+ */
+.small .mark {
+  position: relative;
+  flex: none;
+  width: calc(var(--px) * 5);
+  height: calc(var(--px) * 5);
+}
+
+.small .mark::before {
+  content: "";
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  width: calc(var(--px) * 5);
+  height: calc(var(--px) * 5);
+  background:
+    linear-gradient(var(--ink), var(--ink)) var(--px) 0 / var(--px) calc(var(--px) * 5) no-repeat,
+    linear-gradient(var(--ink), var(--ink)) calc(var(--px) * 2) var(--px) / var(--px) calc(var(--px) * 3) no-repeat,
+    linear-gradient(var(--ink), var(--ink)) calc(var(--px) * 3) calc(var(--px) * 2) / var(--px) var(--px) no-repeat;
+}
+
+.small[aria-expanded="true"] .mark::before,
+.fold[open] > .small .mark::before {
+  transform: rotate(90deg);
 }
 
 .panel {
   margin-block-start: var(--space-2);
 }
 
+/*
+ * What a bar of a stack opens stands directly under it, parted from it by a rule of ink.
+ * The rule is of what was opened, and not of the bar: the bar is as high open as closed.
+ */
+.stacked > .bar + * {
+  margin-block-start: 0;
+  border-block-start: var(--px-small) solid var(--ink);
+}
+
 .panel[hidden] {
   display: none;
+}
+
+/*
+ * With forced colours the system's own colours carry the edge, and no shade is laid. The
+ * arrow is drawn in ink, which may be the colour of the system's ground: so there it is
+ * cut from the colour of the system's words, in the shape of the drawing, and is turned
+ * as the drawing is.
+ *
+ * A bar of a stack has no edge of its own to say that it is open. So a bar that is open
+ * is drawn in the colours the system gives to what is chosen.
+ */
+@media (forced-colors: active) {
+  .stacked,
+  .stacked:not(.stacked + .stacked),
+  .stacked > .bar + * {
+    border-color: ButtonText;
+  }
+
+  .bar,
+  .bar[data-rest="sand"],
+  .bar[aria-expanded="false"]:hover,
+  .bar[aria-expanded="false"]:active,
+  .bar[aria-expanded="false"]:focus-visible,
+  .bar[data-rest="sand"][aria-expanded="false"]:hover,
+  .bar[data-rest="sand"][aria-expanded="false"]:active,
+  .bar[data-rest="sand"][aria-expanded="false"]:focus-visible,
+  .fold:not([open]) > .bar:hover,
+  .fold:not([open]) > .bar:active,
+  .fold:not([open]) > .bar:focus-visible,
+  .fold:not([open]) > .bar[data-rest="sand"]:hover,
+  .fold:not([open]) > .bar[data-rest="sand"]:active,
+  .fold:not([open]) > .bar[data-rest="sand"]:focus-visible,
+  .bar .mark {
+    background-color: ButtonFace;
+    color: ButtonText;
+  }
+
+  .alone,
+  .alone[data-rest="sand"] {
+    border-color: ButtonText;
+    box-shadow: none;
+  }
+
+  .bar .mark {
+    border-inline-start-color: ButtonText;
+  }
+
+  .bar[aria-expanded="true"],
+  .fold[open] > .bar {
+    forced-color-adjust: none;
+    background-color: Highlight;
+    box-shadow: none;
+    color: HighlightText;
+  }
+
+  .alone[aria-expanded="true"],
+  .fold[open] > .alone {
+    border-color: HighlightText;
+  }
+
+  .boxed > .told,
+  .boxed[aria-expanded="false"]:hover > .told,
+  .boxed[aria-expanded="false"]:active > .told,
+  .boxed[aria-expanded="false"]:focus-visible > .told,
+  .fold:not([open]) > .boxed:hover > .told,
+  .fold:not([open]) > .boxed:active > .told,
+  .fold:not([open]) > .boxed:focus-visible > .told {
+    background-color: ButtonFace;
+    box-shadow: none;
+  }
+
+  .boxed[aria-expanded="true"] > .told,
+  .fold[open] > .boxed > .told {
+    background-color: Highlight;
+    box-shadow: none;
+  }
+
+  .boxed[aria-expanded="true"]::before,
+  .fold[open] > .boxed::before {
+    border-image-source: none;
+  }
+
+  .bar[aria-expanded="true"] .mark,
+  .fold[open] > .bar .mark {
+    border-inline-start-color: HighlightText;
+    background-color: Highlight;
+  }
+
+  .small {
+    border-block-end-color: ButtonText;
+  }
+
+  .small:hover,
+  .small:focus-visible,
+  .small[aria-expanded="true"],
+  .fold[open] > .small {
+    background-color: ButtonFace;
+    color: ButtonText;
+  }
+
+  .bar .mark::before {
+    background: ButtonText;
+    clip-path: polygon(50% 0, 100% 62.5%, 70% 62.5%, 70% 100%, 30% 100%, 30% 62.5%, 0 62.5%);
+  }
+
+  .bar[aria-expanded="true"] .mark::before,
+  .fold[open] > .bar .mark::before {
+    background: HighlightText;
+  }
+
+  .small .mark::before {
+    background: ButtonText;
+    clip-path: polygon(20% 0, 80% 50%, 20% 100%);
+  }
 }

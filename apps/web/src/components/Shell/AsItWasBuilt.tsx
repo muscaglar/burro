@@ -6,7 +6,7 @@ import { DISAGREES } from "@/content/site";
 import type { Meta } from "@/lib/api/schema";
 import { disagrees, NOTHING_SAID, subscribeToWhatWasSaid, whatWasSaid } from "@/lib/api/said";
 
-import styles from "./Shell.module.css";
+import { PlainPage } from "./PlainPage";
 
 interface Props {
   /** The release the page was built on. */
@@ -21,7 +21,8 @@ interface Props {
  * another. If an answer says its data is made up and the page was built on
  * data that is not, or the other way, or one is a preview and the other is
  * not, then what the page says of itself is not true of what it would show.
- * Nothing of the page is shown then, and a plain notice says why.
+ * Nothing of the page is shown then, and a plain notice says why: one box on the meadow,
+ * marked as a notice is, and said at once to whoever hears the page.
  *
  * A release that moved on to another of the same kind changes nothing here:
  * the search keeps what each release made apart.
@@ -29,10 +30,5 @@ interface Props {
 export function AsItWasBuilt({ meta, children }: Props) {
   const said = useSyncExternalStore(subscribeToWhatWasSaid, whatWasSaid, () => NOTHING_SAID);
   if (!disagrees(meta, said)) return <>{children}</>;
-  return (
-    <div className={styles.disagrees} role="alert">
-      <h1>{DISAGREES.heading}</h1>
-      <p>{DISAGREES.text}</p>
-    </div>
-  );
+  return <PlainPage kind="held" title={DISAGREES.heading} text={DISAGREES.text} />;
 }

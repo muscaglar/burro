@@ -1,0 +1,86 @@
+/*
+ * A page that says one thing: one box on the meadow, in the middle of the page and no
+ * wider than a sentence is read at. On a narrow screen it is as wide as the page.
+ *
+ * The box is the kit's, and brings its ground and its shadow. What is read in it is set
+ * as every sentence is: in ink, on cream, in the reading face.
+ */
+.page {
+  display: grid;
+  justify-items: center;
+  padding-block: var(--space-4) var(--space-6);
+}
+
+/*
+ * It is told that it brings its own room, so that the room is said here and nowhere else.
+ * A box of the kit is as wide as what holds it unless it is told otherwise, by a rule that
+ * weighs more than the kit's own: which of two sheets is read last is not the website's to
+ * decide.
+ */
+.page > .box {
+  width: 100%;
+  max-width: 40rem;
+  padding: var(--space-3) var(--space-4);
+}
+
+/* The heading, and before it what the page is drawn with. */
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  margin-block: var(--space-2) var(--space-4);
+}
+
+.title {
+  flex: 1 1 8ch;
+  min-width: 0;
+  margin: 0;
+}
+
+/*
+ * The mark of a failure, as Town Map draws the mark of a line that matters: a square of
+ * poppy, inside a rule of ink. Poppy is a mark and an edge, and never words. A page that
+ * is held back is no failure: its mark is the amber of a notice.
+ */
+.mark {
+  flex: none;
+  width: calc(var(--px) * 8);
+  height: calc(var(--px) * 8);
+  border: var(--edge) solid var(--border);
+  background: var(--error-edge);
+}
+
+[data-says="held"] .mark {
+  background: var(--notice-mark);
+}
+
+.says {
+  margin: 0 0 var(--space-3);
+  font-size: var(--size-lead);
+}
+
+.way {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block: var(--space-4) var(--space-2);
+}
+
+@media (min-width: 40rem) {
+  .page {
+    padding-block: var(--space-6) var(--space-8);
+  }
+
+  .page > .box {
+    padding: var(--space-4) var(--space-5);
+  }
+}
+
+@media (forced-colors: active) {
+  .mark,
+  [data-says="held"] .mark {
+    border-color: CanvasText;
+    background: Mark;
+  }
+}

@@ -1,3 +1,9 @@
+/*
+ * The way past the banners and the name board. It is drawn as Town Map draws the button
+ * that matters most: cobalt, lit from the top left, with its hard shadow at its foot. The
+ * page hands it the picture, and the picture of the button pressed. Under the picture are
+ * an edge of ink and the ground of the button, for a picture that has not come.
+ */
 .skip {
   position: absolute;
   inset-block-start: var(--space-2);
@@ -5,12 +11,17 @@
   z-index: 10;
   display: inline-flex;
   align-items: center;
-  padding: var(--space-2) var(--space-4);
-  background: var(--bg);
-  color: var(--accent);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  font-weight: 600;
+  padding: 0 calc(var(--px) * 5);
+  border-style: solid;
+  border-width: calc(var(--px) * 3) calc(var(--px) * 3) calc(var(--px) * 4);
+  border-color: var(--ink);
+  border-image: var(--art) 3 3 4 3 fill / calc(var(--px) * 3) calc(var(--px) * 3) calc(var(--px) * 4) repeat;
+  background: var(--accent) padding-box;
+  color: var(--on-accent);
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+  text-decoration: none;
+  image-rendering: pixelated;
   /* Off the screen until a keyboard reaches it. It stays in the reading order. */
   transform: translateY(-200%);
 }
@@ -18,4 +29,23 @@
 .skip:focus,
 .skip:focus-visible {
   transform: none;
+}
+
+/* The link is what takes the press, and it never moves: its picture gives way to the picture of it pressed. */
+.skip:active {
+  border-image-source: var(--art-down);
+}
+
+/*
+ * With forced colours the system's own colours carry the edge, and no picture is drawn
+ * over them. A picture is taken away by its source.
+ */
+@media (forced-colors: active) {
+  .skip,
+  .skip:active {
+    border-image-source: none;
+    border-color: LinkText;
+    background: Canvas;
+    color: LinkText;
+  }
 }

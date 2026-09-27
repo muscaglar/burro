@@ -1,34 +1,44 @@
+/*
+ * The foot: a box on the meadow, as wide as the name board and in line with it. Where it
+ * stands is the shell's to say. The box is the kit's, and brings its ground and its shadow.
+ *
+ * It is the calmest part of a page: its links are labels and never buttons, and what it
+ * says of the data is set to be read.
+ */
 .footer {
-  margin-block-start: var(--space-8);
-  border-block-start: 1px solid var(--border);
-  background: var(--surface);
+  min-width: 0;
 }
 
 .inner {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--space-4) var(--space-6);
-  max-width: var(--page-width);
-  margin: 0 auto;
-  padding: var(--space-5) var(--space-4);
+  gap: var(--space-2) var(--space-6);
+  padding: var(--space-1) var(--space-2) var(--space-2);
 }
 
 .links {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1) var(--space-5);
+  gap: 0 var(--space-3);
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/* A link is a short label, in the face of names and the colour of a link, underlined with a hard line. */
 .link {
   display: inline-flex;
   align-items: center;
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
 }
 
+/*
+ * The release and the engine behind every figure. Each is an id that a person may read
+ * out, so each is set in the reading face, under a label that is quieter than it.
+ */
 .release {
   display: flex;
   flex-wrap: wrap;
@@ -37,6 +47,55 @@
   font-size: var(--size-small);
 }
 
+.release dt {
+  line-height: 1.2;
+}
+
 .release dd {
   margin: 0;
+  /* An id has no gap to break at, and is never wider than the box. */
+  overflow-wrap: anywhere;
+}
+
+/*
+ * Burro, on a screen too narrow for the name board to hold him. He sits on the grass
+ * behind the rule at the head of the foot, at its far end, and is seen from his back up:
+ * his box ends where the rule begins, which stands four art pixels over what the box
+ * holds. He is laid over the grass that parts the page from the foot, which is higher
+ * than he is, and takes no room: the foot is as high with him as without him, and stands
+ * where it stood.
+ *
+ * On a wider screen the name board draws him, and the foot does not.
+ */
+.burro {
+  display: none;
+}
+
+@media (max-width: 39.99rem) {
+  .burro {
+    position: absolute;
+    inset-block-end: calc(100% + var(--px) * 4);
+    inset-inline-end: var(--space-5);
+    display: block;
+  }
+
+  /*
+   * He is one rabbit. Where he is drawn on the page itself he is not drawn over the foot
+   * as well. What holds him where he asks may say that it is drawn only where there is
+   * room for him, `data-room="wide"`, which a narrow screen has not: he is then in the
+   * page and is not seen, and the foot draws him.
+   */
+  :global(body):has(main :not([data-room="wide"]) > [data-pose]) .burro {
+    display: none;
+  }
+}
+
+@media (min-width: 40rem) {
+  .inner {
+    padding: var(--space-2) var(--space-4) var(--space-3);
+  }
+
+  .links {
+    gap: 0 var(--space-5);
+  }
 }

@@ -1,31 +1,234 @@
+/*
+ * What every page stands in. The ground is a meadow from edge to edge, and nothing is read
+ * on the grass. The banners are strips of cream across the top. Under them, on the grass,
+ * stand three boxes of cream, one over the other: the name board, the page itself, and the
+ * foot.
+ *
+ * The banners, the board and the foot are drawn by style sheets of their own. What is said
+ * of them here is where they stand: how wide, and how far from each other.
+ */
 .shell {
+  /* The grass at either hand of a box, and the room inside the box of a page. */
+  --gutter: var(--space-2);
+  --room: var(--space-3);
+
   display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
 
+@media (min-width: 40rem) {
+  .shell {
+    --gutter: var(--space-4);
+    --room: var(--space-4);
+  }
+}
+
+@media (min-width: 60rem) {
+  .shell {
+    --room: var(--space-5);
+  }
+}
+
+/*
+ * The page: one box, so that a page nobody has dressed stands whole on cream. It is as wide
+ * inside as the page was before it had a box, and the grass shows on either hand.
+ *
+ * Its edge is one art pixel of ink. The picture of the box is laid over that edge and over
+ * the room inside it, and its shadow past it, so the box takes the same room with the
+ * picture and without. The cream is laid inside the edge and not under it, so that the
+ * grass shows at each corner, where the picture is notched.
+ */
 .main {
+  --gutter: var(--space-2);
+  --room: var(--space-3);
+
   flex: 1;
-  width: 100%;
-  max-width: var(--page-width);
+  width: calc(100% - 2 * var(--gutter));
+  max-width: calc(var(--page-width) - 2 * var(--space-4) + 2 * (var(--room) + var(--edge)));
+  /* As far under the board as the board stands under the banner. */
+  margin: var(--space-2) auto 0;
+  padding: var(--space-3) var(--room) var(--space-5);
+  background: var(--bg);
+  background-clip: padding-box;
+  border: var(--edge) solid var(--border);
+  border-image: var(--frame-box) var(--frame-box-cut) / var(--frame-box-wide) / var(--frame-box-out) repeat;
+  box-shadow: var(--box-shadow);
+  image-rendering: pixelated;
+}
+
+/* What the page holds is drawn as it always was: only the box is drawn in pixels. */
+:where(.main) > * {
+  image-rendering: auto;
+}
+
+@media (min-width: 40rem) {
+  .main {
+    --gutter: var(--space-4);
+    --room: var(--space-4);
+
+    margin-block-start: var(--space-3);
+    padding-block-start: var(--space-4);
+  }
+}
+
+@media (min-width: 60rem) {
+  .main {
+    --room: var(--space-5);
+
+    margin-block-start: var(--space-4);
+  }
+}
+
+/*
+ * A page that is dressed stands boxes of its own on the grass, and says so on its outermost
+ * element: `data-dressed`. The shell then draws no box round it, and keeps the grass at
+ * either hand.
+ */
+.main:has(> [data-dressed]) {
+  max-width: calc(var(--page-width) - 2 * var(--space-4) + 2 * var(--gutter));
+  padding: 0 0 var(--space-5);
+  background: none;
+  border: 0;
+  border-image-source: none;
+  box-shadow: none;
+}
+
+/*
+ * The page where no shell stands round it, as on the page of a fault in the layout. It
+ * takes the width of the shell and its grass at either hand for itself. What it says stands
+ * in a box of its own, so it draws no box round that one: the ground, the edge and the
+ * shadow every `main` is given are taken off.
+ */
+.alone {
+  --gutter: var(--space-2);
+
+  width: calc(100% - 2 * var(--gutter));
+  max-width: calc(var(--page-width) - 2 * var(--space-4) + 2 * var(--gutter));
   margin: 0 auto;
-  padding: var(--space-4) var(--space-4) 0;
+  padding: var(--space-2) 0 var(--space-6);
+  background: none;
+  border: 0;
+  box-shadow: none;
 }
 
-.disagrees {
-  background: var(--notice-bg);
-  color: var(--notice-text);
-  border: 2px solid var(--notice-edge);
-  padding: var(--space-4);
-  max-width: 45rem;
+@media (min-width: 40rem) {
+  .alone {
+    --gutter: var(--space-4);
+  }
 }
 
-.disagrees h1 {
-  margin-block-start: 0;
+/*
+ * A banner is cream with its words in ink, and stands on a rule of ink. Its edge of amber
+ * is a band inside it, over the rule: amber is not told from cream by everyone, and ink is.
+ */
+.shell > section {
+  border-block-end-width: var(--edge);
+  box-shadow: inset 0 calc(var(--px) * -2) 0 var(--notice-mark);
 }
 
+/*
+ * The name board and the foot stand in line with the boxes of the page, and are as wide.
+ *
+ * A page that is dressed stands boxes of the kit on the grass. The shadow of such a box is
+ * inside the room the box takes, so the board and the foot, which are such boxes, are as
+ * wide as the page.
+ *
+ * A page nobody has dressed stands whole in one box, which the shell draws, and whose
+ * shadow falls past it into the grass. Beside it the board and the foot are as wide as
+ * that box and its shadow together, so that their edges of ink stand over its own.
+ */
+.shell > header,
+.shell > footer {
+  width: calc(100% - 2 * var(--gutter));
+  max-width: calc(var(--page-width) - 2 * var(--space-4) + 2 * (var(--room) + var(--edge)));
+  margin-inline: auto;
+}
+
+/* As far past it as the shadow of the look falls: two art pixels. */
+.shell > header > *,
+.shell > footer > * {
+  margin-inline-end: calc(var(--px) * -2);
+}
+
+.shell:has(> main > [data-dressed]) > header,
+.shell:has(> main > [data-dressed]) > footer {
+  max-width: calc(var(--page-width) - 2 * var(--space-4) + 2 * var(--gutter));
+}
+
+.shell:has(> main > [data-dressed]) > header > *,
+.shell:has(> main > [data-dressed]) > footer > * {
+  margin-inline-end: 0;
+}
+
+/* The grass shows between the banner and the board, and between the board and the page. */
+.shell > header {
+  margin-block-start: var(--space-2);
+}
+
+.shell > footer {
+  margin-block: var(--space-7) var(--space-4);
+}
+
+/*
+ * The name of the website is set in the face of names, at the smallest size a name is read
+ * at. The header is as high as it was: what is pressed is higher than the name.
+ */
+.shell > header > div > a:first-child {
+  font-family: var(--font-name);
+  font-size: var(--name-2);
+  font-weight: 400;
+  font-synthesis: none;
+  line-height: 1;
+}
+
+/* Where the board has room it is a size larger, and is still lower than what is pressed. */
+@media (min-width: 40rem) {
+  .shell > header {
+    margin-block-start: var(--space-3);
+  }
+
+  .shell > header > div > a:first-child {
+    font-size: var(--name-3);
+  }
+}
+
+@media (min-width: 60rem) {
+  .shell > header {
+    margin-block-start: var(--space-4);
+  }
+}
+
+/*
+ * A narrow screen, once a search is open: the answer comes first, and on a phone the first
+ * result is whole on the first screen. What stands over it gives way, and the room between
+ * two boxes is the first to. Half of it is left, which is as far as a hard shadow falls:
+ * the grass still shows between the banner, the board and the page. Before a search, and on
+ * every other page, there is as much of it as there was.
+ */
+@media (max-width: 40rem) {
+  .shell:has([data-search="open"]) > header {
+    margin-block-start: var(--space-1);
+  }
+
+  .shell:has([data-search="open"]) > .main {
+    margin-block-start: var(--space-1);
+  }
+}
+
+/*
+ * With forced colours the system's own colours carry every edge, and no picture is drawn
+ * over them. The picture is taken away by its source: written as `border-image: none`, the
+ * build makes nothing of it, and the picture stays.
+ */
 @media (forced-colors: active) {
-  .disagrees {
+  .main {
+    border-image-source: none;
     border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .shell > section {
+    box-shadow: none;
   }
 }

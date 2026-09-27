@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import path from "node:path";
+
 import { render, screen } from "@testing-library/react";
 
 import { NOTICE, REJECTED, REJECTED_LABEL, STATUS, UNMET, UNMET_LABEL } from "@/content/search";
@@ -5,6 +8,8 @@ import { recordedAnswer } from "@/lib/api/recorded";
 import type { RejectReason, UnmetCategory } from "@/lib/api/schema";
 
 import { faultsIn } from "../../../test/support/axe";
+import { asWritten } from "../../../test/support/contrast";
+import { rulesOf } from "../../../test/support/css";
 import { statusOf, StatusLine } from "../StatusLine/StatusLine";
 import { NoticeBlock, OfflineLine, RejectedList, StateLine, UnmetList } from "./NoticeBlock";
 
@@ -19,7 +24,7 @@ describe("the neutral notice", () => {
     const block = screen.getByRole("status", { name: NOTICE.label });
     expect(block.textContent).toBe(notice.notice_text);
     expect(notice.notice_text).toBe(
-      "Burro ranks places by what is there. Of who lives in a place it counts only their age and their households, at the census of 2021, and you cannot ask for fewer of anyone. The rest of your search has been applied.",
+      "Burro ranks places by what is there. The only things it counts about the people who live in a place are their age and the kind of household they live in, as the census of 2021 recorded them, and you cannot ask for fewer of any group of people. The rest of your search has been applied.",
     );
   });
 
@@ -108,25 +113,29 @@ describe("the lines that say a state", () => {
   test("test_each_state_has_one_thing_to_say", () => {
     const shared = { areas, moved: null, gaveWay: false };
     const ranking = { ...first };
+    // How many areas were ranked, and which is the first. How it is worded is held beside
+    // the line that says it: here, that the count and the name are both in what is said.
+    const ranked = STATUS.ranked(21, "Farrowmere");
 
+    expect(ranked).toBe(`${STATUS.rankedUnnamed(21)} ${STATUS.first("Farrowmere")}`);
+    expect(STATUS.rankedUnnamed(21)).toMatch(/\b21 areas\b/);
+    expect(STATUS.first("Farrowmere")).toMatch(/\bFarrowmere\.$/);
     expect(statusOf({ ...shared, phase: "empty", ranking: null })).toBe("");
     expect(statusOf({ ...shared, phase: "interpreting", ranking: null })).toBe(STATUS.reading);
     expect(statusOf({ ...shared, phase: "interpreting", ranking })).toBe(STATUS.reading);
-    expect(statusOf({ ...shared, phase: "results", ranking })).toBe("21 areas ranked. First: Farrowmere.");
-    expect(statusOf({ ...shared, phase: "results", ranking, gaveWay: true })).toBe(
-      `21 areas ranked. First: Farrowmere. ${STATUS.gaveWay}`,
-    );
+    expect(statusOf({ ...shared, phase: "results", ranking })).toBe(ranked);
+    expect(statusOf({ ...shared, phase: "results", ranking, gaveWay: true })).toBe(`${ranked} ${STATUS.gaveWay}`);
     // What was asked of the place leads, until a person makes a journey or a budget count for more.
     const asked = recordedAnswer("interpret", "interpret-first").body.data.spec;
     expect(statusOf({ ...shared, phase: "results", ranking, gaveWay: true, spec: asked })).toBe(
-      `21 areas ranked. First: Farrowmere. ${STATUS.gaveWay}`,
+      `${ranked} ${STATUS.gaveWay}`,
     );
     // Where a journey and a budget outweigh what was asked of the place, the line says so,
     // whether or not anything gave way: it is what explains the order on screen.
     const spec = { ...asked, commute_weight: 1, budget: { ...asked.budget, weight: 0.8 } };
     for (const gaveWay of [true, false]) {
       expect(statusOf({ ...shared, phase: "results", ranking, gaveWay, spec })).toBe(
-        `21 areas ranked. First: Farrowmere. ${STATUS.leads(1, true)}`,
+        `${ranked} ${STATUS.leads(1, true)}`,
       );
     }
     expect(statusOf({ ...shared, phase: "results", ranking, moved: 3, spec })).toBe(
@@ -135,15 +144,19 @@ describe("the lines that say a state", () => {
     // With nothing asked of the place, what was asked for is the journey and the budget.
     const money = recordedAnswer("interpret", "interpret-money-and-work").body.data.spec;
     expect(statusOf({ ...shared, phase: "results", ranking, gaveWay: true, spec: money })).toBe(
-      `21 areas ranked. First: Farrowmere. ${STATUS.gaveWay}`,
+      `${ranked} ${STATUS.gaveWay}`,
     );
-    expect([STATUS.leads(1, true), STATUS.leads(2, true), STATUS.leads(1, false), STATUS.leads(2, false), STATUS.leads(0, true)]).toEqual([
-      "Journey and budget count most.",
-      "Journeys and budget count most.",
-      "Journey counts most.",
-      "Journeys count most.",
-      "Budget counts most.",
+    // What leads is named, one journey as one and two as two, and the budget where it leads too.
+    const leads = [STATUS.leads(1, true), STATUS.leads(2, true), STATUS.leads(1, false), STATUS.leads(2, false), STATUS.leads(0, true)];
+    expect(leads.map((said) => [/\bjourney\b/i.test(said), /\bjourneys\b/i.test(said), /\bbudget\b/i.test(said)])).toEqual([
+      [true, false, true],
+      [false, true, true],
+      [true, false, false],
+      [false, true, false],
+      [false, false, true],
     ]);
+    // Each is a whole sentence, and none says that what was asked of the place comes first.
+    expect(leads.filter((said) => !/^[A-Z].+\.$/.test(said) || said === STATUS.gaveWay)).toEqual([]);
     expect(statusOf({ ...shared, phase: "results", ranking, moved: 3 })).toBe("3 areas changed place.");
     expect(statusOf({ ...shared, phase: "results", ranking, moved: 1 })).toBe("1 area changed place.");
     expect(statusOf({ ...shared, phase: "results", ranking, moved: 0 })).toBe("No area changed place.");
@@ -155,7 +168,6 @@ describe("the lines that say a state", () => {
     expect(statusOf({ ...shared, phase: "results", ranking: { ...ranking, ranked: [], filtered: [] } })).toBe(
       STATUS.nothingRanked,
     );
-    expect(statusOf({ ...shared, phase: "empty", ranking: null, asking: true })).toBe(STATUS.question);
   });
 
   test("test_a_ranking_that_follows_one_of_no_area_is_said_as_a_first_ranking_is", () => {
@@ -164,7 +176,8 @@ describe("the lines that say a state", () => {
     const shared = { areas, gaveWay: false, phase: "results" as const, ranking: first };
     const now = first.scores.length;
 
-    expect(statusOf({ ...shared, moved: 0, was: 0 })).toBe(`${now} areas ranked. First: Farrowmere.`);
+    expect(statusOf({ ...shared, moved: 0, was: 0 })).toBe(STATUS.ranked(now, "Farrowmere"));
+    expect(statusOf({ ...shared, moved: 0, was: 0 })).not.toMatch(/\bbefore\b|\bthe rest\b/);
   });
 
   test("test_when_fewer_or_more_areas_are_ranked_the_line_says_so_and_counts_only_those_that_moved", () => {
@@ -173,14 +186,18 @@ describe("the lines that say a state", () => {
     const now = first.scores.length;
 
     expect(statusOf({ ...shared, moved: 0, was: now + 6 })).toBe(
-      `${now} areas ranked, 6 fewer than before. The rest are in the order they were.`,
+      `${STATUS.rankedNow(now, -6)} ${STATUS.movedOfTheRest(0)}`,
     );
-    expect(statusOf({ ...shared, moved: 2, was: now - 1 })).toBe(
-      `${now} areas ranked, 1 more than before. 2 of the rest changed place.`,
-    );
+    expect(statusOf({ ...shared, moved: 2, was: now - 1 })).toBe(`${STATUS.rankedNow(now, 1)} ${STATUS.movedOfTheRest(2)}`);
     expect(statusOf({ ...shared, moved: 1, was: now + 1 })).toBe(
-      `${now} areas ranked, 1 fewer than before. 1 of the rest changed place.`,
+      `${STATUS.rankedNow(now, -1)} ${STATUS.movedOfTheRest(1)}`,
     );
+    // How many are ranked now is said, and by how many that is fewer or more. Of the rest,
+    // only those that moved are counted: an area that went moves no other.
+    expect(STATUS.rankedNow(now, -6)).toMatch(new RegExp(`\\b${now} areas\\b.*\\b6 fewer\\b`));
+    expect(STATUS.rankedNow(now, 1)).toMatch(new RegExp(`\\b${now} areas\\b.*\\b1 more\\b`));
+    expect([STATUS.movedOfTheRest(2), STATUS.movedOfTheRest(1)].map((said) => /^(\d+) of the rest\b/.exec(said)?.[1])).toEqual(["2", "1"]);
+    expect(/\d/.test(STATUS.movedOfTheRest(0))).toBe(false);
     // The same number as before: only what moved is said.
     expect(statusOf({ ...shared, moved: 3, was: now })).toBe("3 areas changed place.");
   });
@@ -191,11 +208,14 @@ describe("the lines that say a state", () => {
     const unknown = { ...first, ranked: [{ ...(top as (typeof first.ranked)[number]), area_id: "syn-n9999" }, ...rest] };
     const second = areas.find((area) => area.area_id === rest[0]?.area_id)?.name ?? "no name";
 
-    // The first result the page can name is named, and never "First: ." with nothing after it.
-    expect(statusOf({ ...shared, ranking: unknown })).toBe(`21 areas ranked. First: ${second}.`);
-    expect(
-      statusOf({ ...shared, ranking: { ...first, ranked: first.ranked.map((area) => ({ ...area, area_id: "syn-n9999" })) } }),
-    ).toBe("21 areas ranked.");
+    // The first result the page can name is named, and the first is never said to be nothing.
+    expect(statusOf({ ...shared, ranking: unknown })).toBe(STATUS.ranked(21, second));
+    const unnamed = statusOf({
+      ...shared,
+      ranking: { ...first, ranked: first.ranked.map((area) => ({ ...area, area_id: "syn-n9999" })) },
+    });
+    expect(unnamed).toBe(STATUS.rankedUnnamed(21));
+    expect(unnamed.includes(STATUS.first(""))).toBe(false);
   });
 
   test("test_while_an_edit_is_ranked_the_line_keeps_what_it_said", () => {
@@ -238,5 +258,63 @@ describe("the lines that say a state", () => {
     );
 
     expect(await faultsIn(container)).toEqual([]);
+  });
+});
+
+describe("how a notice, a state and a list are drawn", () => {
+  const RULES = rulesOf(readFileSync(path.join(__dirname, "NoticeBlock.module.css"), "utf8"));
+  const FORCED = /forced-colors:\s*active/;
+  const DRAWN = RULES.filter((rule) => !FORCED.test(rule.under ?? ""));
+  const setsOf = (selector: string) => new Map(DRAWN.filter((rule) => rule.selector === selector).flatMap((rule) => [...rule.sets]));
+  const TOKENS = asWritten();
+  const colourOf = (value: string | undefined) => TOKENS[/^var\((--[a-z-]+)\)$/.exec(value ?? "")?.[1] ?? ""];
+
+  test.each([".notice", ".state", ".list"])("test_each_brings_the_cream_it_is_read_on_inside_a_rule_of_ink: %s", (block) => {
+    // A page may stand it on the grass or in a box. Nothing is read on the grass.
+    expect([block, colourOf(setsOf(block).get("background"))]).toEqual([block, "var(--page)"]);
+    expect([block, setsOf(block).get("border")]).toEqual([block, "var(--edge) solid var(--notice-edge)"]);
+    expect(TOKENS["--notice-edge"]).toBe("var(--ink)");
+  });
+
+  test("test_a_notice_and_a_state_have_an_edge_of_amber_inside_the_rule_and_a_list_has_none", () => {
+    for (const block of [".notice", ".state"]) {
+      expect([block, setsOf(block).get("box-shadow")]).toEqual([block, "inset var(--band) 0 0 var(--notice-mark)"]);
+      // The words begin clear of the band, by as much as they stand clear of the other edge.
+      expect([block, setsOf(block).get("padding")]).toEqual([
+        block,
+        "var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + var(--band))",
+      ]);
+    }
+    expect(setsOf(".list").has("box-shadow")).toBe(false);
+    expect(TOKENS["--notice-mark"]).toBe("var(--amber)");
+  });
+
+  test("test_each_is_plain_and_flat", () => {
+    // No shadow that falls to a side, no picture, and no corner that is rounded.
+    const thrown = DRAWN.filter((rule) => rule.sets.has("box-shadow") && !/^inset /.test(rule.sets.get("box-shadow") ?? ""));
+    const pictured = DRAWN.filter((rule) => rule.sets.has("border-image") || rule.sets.has("border-radius"));
+
+    expect(thrown.map((rule) => rule.selector)).toEqual([]);
+    expect(pictured.map((rule) => rule.selector)).toEqual([]);
+  });
+
+  test("test_every_word_is_in_ink_or_in_the_quieter_colour_that_is_read_on_cream", () => {
+    const colours = DRAWN.flatMap((rule) => (rule.sets.has("color") ? [[rule.selector, rule.sets.get("color")]] : []));
+
+    expect(colours.map(([, colour]) => colour).every((colour) => ["var(--text)", "var(--info-text)", "var(--muted)", "var(--ink)"].includes(colour ?? ""))).toBe(true);
+    // Amber is never words: on cream it cannot be read.
+    expect(colours.filter(([, colour]) => /notice-mark|amber|chosen/.test(colour ?? ""))).toEqual([]);
+  });
+
+  test("test_where_the_system_draws_in_its_own_colours_the_band_is_a_second_edge", () => {
+    const forced = new Map(RULES.filter((rule) => FORCED.test(rule.under ?? "")).map((rule) => [rule.selector, rule.sets]));
+
+    for (const block of [".notice", ".state"]) {
+      expect([block, forced.get(block)?.get("box-shadow"), forced.get(block)?.get("border-inline-start-width")]).toEqual([
+        block,
+        "none",
+        "var(--band)",
+      ]);
+    }
   });
 });

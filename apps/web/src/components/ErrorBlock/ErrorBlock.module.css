@@ -1,10 +1,20 @@
+/*
+ * A failure: plain and flat, as a notice is. Cream, inside a rule of ink, with an edge of
+ * poppy: a band at its start, inside the rule. It brings the cream it is read on.
+ *
+ * What it says is in ink. Poppy is an edge and never small words: on cream it cannot be
+ * read.
+ */
 .error {
+  --band: calc(var(--px) * 3);
+
   display: grid;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--error);
-  border-inline-start-width: 4px;
-  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + var(--band));
+  background: var(--bg);
+  border: var(--edge) solid var(--border);
+  box-shadow: inset var(--band) 0 0 var(--error-edge);
+  color: var(--text);
 }
 
 .error p {
@@ -13,9 +23,10 @@
 
 .message {
   color: var(--error);
-  font-weight: 600;
+  font-weight: 700;
 }
 
+/* The id of the request is read out to whoever is told of the failure, and may be long. */
 .request {
   color: var(--muted);
   font-size: var(--size-small);
@@ -26,4 +37,14 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
+  margin-block-start: var(--space-1);
+}
+
+/* With forced colours the system's own colours carry the edge, and the band is a second edge. */
+@media (forced-colors: active) {
+  .error {
+    border-color: CanvasText;
+    border-inline-start-width: var(--band);
+    box-shadow: none;
+  }
 }
