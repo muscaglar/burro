@@ -123,7 +123,7 @@ out.moved = await go(page, '#/moved');
 
 // A figure is flagged, from the screen of its area.
 await go(page, '#/area/syn-n0004');
-button(page, (node) => node.parent.tagName === 'TD' && node.parent.parent.textContent.includes('Modelled annual mean nitrogen dioxide')).click();
+button(page, (node) => node.parent.tagName === 'TD' && node.parent.parent.textContent.includes('Nitrogen dioxide in the air, as a modelled average over a year')).click();
 out.asked_why = { open: page.$('box').open, of: page.text('box-of') };
 out.flagged = await confirm(page, 'A made-up reason, from the panel');
 out.listed = await go(page, '#/flagged');

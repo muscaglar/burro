@@ -252,7 +252,9 @@ def serve(
     try:
         running.serve_forever()
     except KeyboardInterrupt:
-        print("\nStopped.")
+        # Printed at once, which waits for a line that a thread is printing. Left to the
+        # end, Python would print through what that thread still holds, and end in a fault.
+        print("\nStopped.", flush=True)
     finally:
         running.server_close()
     return OK

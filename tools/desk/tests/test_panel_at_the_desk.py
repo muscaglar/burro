@@ -78,7 +78,7 @@ def test_an_area_is_found_by_its_name_and_shown_with_every_figure(sat: Sat):
     assert area["tab"].startswith("Dulcimer Green - ")
     for words in (
         "Dulcimer Green, Quillhaven",
-        "Modelled annual mean nitrogen dioxide",
+        "Nitrogen dioxide in the air, as a modelled average over a year",
         "19.7 µg/m³",
         "Leafy",
         "4 of 5",
@@ -110,11 +110,13 @@ def test_what_moved_says_how_to_name_the_release_to_hold_this_one_against(sat: S
 def test_a_figure_is_flagged_in_one_press_with_a_note_and_the_line_is_on_the_disk(sat: Sat):
     assert sat.seen["asked_why"] == {
         "open": True,
-        "of": "Modelled annual mean nitrogen dioxide, of Dulcimer Green",
+        "of": "Nitrogen dioxide in the air, as a modelled average over a year, of Dulcimer Green",
     }
     flagged = sat.seen["flagged"]
     assert (flagged["open"], flagged["trouble"]) == (False, "")
-    assert flagged["said"].startswith("Flagged: Modelled annual mean nitrogen dioxide")
+    assert flagged["said"].startswith(
+        "Flagged: Nitrogen dioxide in the air, as a modelled average over a year"
+    )
     assert "Flagged here" in flagged["main"] and REASON in flagged["main"]
     first = sat.lines[0]
     assert (first.n, first.by, first.what, first.of, first.why) == (

@@ -52,7 +52,7 @@ openapi: ## Rewrite contracts/openapi.json from the routes. Generated and commit
 eval-reader: ## Score the sentence reader against evals/reader/cases. Fails if any case is read backwards. ARGS="--show declined"
 	uv run python evals/reader/score.py $(ARGS)
 
-public-only: ## Fail on a private package host, or a URL with credentials, in anything committable
+public-only: ## Fail on a private package host, a URL with credentials, or a key, in anything committable
 	uv run --no-project python tools/check_public_only.py
 
 install-hooks: ## Opt in to running public-only on what is staged, before every commit

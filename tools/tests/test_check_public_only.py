@@ -5,6 +5,7 @@ import pytest
 from check_public_only import (
     hosts_private_to_this_machine,
     lines_naming,
+    lines_with_a_key,
     lines_with_credentials,
     main,
     private_hosts,
@@ -248,6 +249,126 @@ def test_binary_files_are_skipped():
     assert problems_in(Path("trace.zip"), b"PK\0" + LEAK.encode()) == []
 
 
+# A key
+
+
+def made_up(length: int) -> str:
+    """Letters and digits that open nothing. Put together here, so that no line of this
+    file holds what the check looks for."""
+    return ("a1B2c3D4e5F6g7H8" * 8)[:length]
+
+
+# A key of each kind of provider Burro is fitted to: Google's, a model's, a sender's.
+OF_GOOGLE = "AIza" + made_up(35)
+OF_A_MODEL = "sk-" + made_up(48)
+OF_A_SENDER = "re_" + made_up(33)
+# What the website and the service share is as long as the first. The id of a key of the
+# store is as long as the second, and no key Burro holds is shorter.
+SHARED = made_up(64)
+AN_ID = made_up(32)
+
+
+@pytest.mark.parametrize("key", [OF_GOOGLE, OF_A_MODEL, OF_A_SENDER])
+@pytest.mark.parametrize(
+    "line",
+    ["{key}", "the key is {key}, as it was pasted", 'curl -H "x-goog-api-key: {key}" ADDRESS'],
+)
+def test_a_key_of_a_provider_is_caught_by_its_shape_wherever_it_stands(key: str, line: str):
+    assert lines_with_a_key(f"nothing\n{line.format(key=key)}\n".encode()) == [2]
+
+
+@pytest.mark.parametrize(
+    "name",
+    [
+        "GEMINI_API_KEY",
+        "BURRO_WEBSITE_SECRET",
+        "BURRO_ACCOUNTS_LIMITS_KEY",
+        "BURRO_STORE_KEY_ID",
+        # A setting that nothing reads yet is named as the rest are.
+        "BURRO_RAIL_SECRET",
+        "FLY_API_TOKEN",
+        "TOKEN",
+    ],
+)
+@pytest.mark.parametrize(
+    "line",
+    [
+        "{name}={value}",
+        "export {name}='{value}'",
+        '  {name} = "{value}"',
+        '    "{name}": "{value}",',
+        "          {name}: {value}",
+        "fly secrets set {name}={value} --app APP",
+        "process.env.{name} = '{value}';",
+    ],
+)
+@pytest.mark.parametrize("value", [SHARED, AN_ID])
+def test_a_setting_named_for_a_secret_is_caught_with_its_value(name: str, line: str, value: str):
+    assert lines_with_a_key(line.format(name=name, value=value).encode()) == [1]
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        "          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}",
+        "BURRO_STORE_SECRET=$BURRO_STORE_SECRET",
+        "export BURRO_WEBSITE_SECRET=\"$(python3 -c 'print(secrets.token_urlsafe(48))')\"",
+        "BURRO_WEBSITE_SECRET=<what the first terminal showed, and nothing else at all>",
+        "`BURRO_WEBSITE_SECRET=` and the first, `BURRO_ACCOUNTS_LIMITS_KEY=` and the second",
+        '    "BURRO_STORE_SECRET": os.environ["BURRO_STORE_SECRET_OF_THE_REHEARSAL"],',
+        "    BURRO_WEBSITE_SECRET: process.env.BURRO_WEBSITE_SECRET_OF_ANOTHER_NAME,",
+        '    key_variable="GEMINI_API_KEY",',
+        "| `BURRO_ACCOUNTS_SENDER_KEY` | **Yes** | The key of that company |",
+    ],
+)
+def test_a_setting_whose_value_is_read_from_elsewhere_holds_no_key(line: str):
+    assert lines_with_a_key(line.encode()) == []
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        '    "GEMINI_API_KEY": "a-test-key-that-opens-nothing",',
+        '    "BURRO_STORE_SECRET": "rehearsal-secret-0000",',
+        f"BURRO_WEBSITE_SECRET={made_up(31)}",
+    ],
+)
+def test_a_value_shorter_than_any_key_is_not_taken_for_one(line: str):
+    assert lines_with_a_key(line.encode()) == []
+
+
+@pytest.mark.parametrize(
+    "line",
+    [
+        # An answer of the service names a measure so, and a recorded answer can bear no mark.
+        '          "key": "households_with_dependent_children_under_five",',
+        f'  "spec_hash": "{made_up(64)}",',
+        f"QUEUE_KEYS = {made_up(40)}",
+        f"MONKEY = {made_up(40)}",
+        "def test_the_line_of_a_request_is_there_when_its_answer_is_read_by_a_caller():",
+        "def re_read_what_was_kept_and_hold_it_to_the_lock_of_the_release_it_names():",
+        "tools/desk-synthetic-folder-of-the-made-up-city-and-of-nothing-else/items",
+        f"ask-{made_up(40)}",
+        f"store_{made_up(33)}",
+        f"AIza{made_up(20)}",
+    ],
+)
+def test_a_long_name_or_an_id_is_not_taken_for_a_key(line: str):
+    assert lines_with_a_key(line.encode()) == []
+
+
+def test_a_marked_line_is_excused_from_the_check_for_a_key():
+    line = f'EXAMPLE_SECRET = "{SHARED}"  # public-only: allow'
+    assert lines_with_a_key(line.encode()) == []
+    assert lines_with_a_key(f"{OF_GOOGLE}  # public-only: allow".encode()) == []
+
+
+def test_what_is_said_of_a_key_never_holds_it():
+    held = f'  GEMINI_API_KEY = "{OF_GOOGLE}"\n'.encode()
+    (problem,) = problems_in(Path("deploy/api/fly.toml"), held)
+    assert problem == "deploy/api/fly.toml:1: holds what looks like a key"
+
+
 @pytest.fixture
 def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
@@ -303,6 +424,32 @@ def test_what_is_staged_is_checked_even_after_the_file_is_fixed_on_disk(
     (repo / "notes.md").write_text("fixed, but not staged again\n")
     assert main() == 1
     assert "notes.md:1: contains credentials (staged)" in capsys.readouterr().err
+
+
+def test_a_file_of_keys_fails_as_it_stands_and_as_it_was_staged(
+    repo: Path, capsys: pytest.CaptureFixture[str]
+):
+    (repo / "deploy").mkdir()
+    held = repo / "deploy" / "secrets.txt"
+    held.write_text(
+        f"GEMINI_API_KEY={OF_GOOGLE}\n"
+        f"BURRO_WEBSITE_SECRET={SHARED}\n"
+        f"BURRO_ACCOUNTS_SENDER_KEY={OF_A_SENDER}\n"
+    )
+    assert main() == 1
+    said = capsys.readouterr()
+    assert said.err.splitlines() == [
+        f"error: deploy/secrets.txt:{n}: holds what looks like a key" for n in (1, 2, 3)
+    ]
+
+    stage(held)
+    held.write_text("taken out, but not staged again\n")
+    assert main() == 1
+    said = capsys.readouterr()
+    assert said.err.splitlines() == [
+        f"error: deploy/secrets.txt:{n}: holds what looks like a key (staged)" for n in (1, 2, 3)
+    ]
+    assert not {OF_GOOGLE, SHARED, OF_A_SENDER} & set((said.err + said.out).split())
 
 
 def test_a_symlink_is_read_as_the_link_git_would_commit(repo: Path):

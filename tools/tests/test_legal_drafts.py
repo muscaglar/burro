@@ -9,6 +9,11 @@ One promise is held too. The police publish recorded crime, outcomes and stop an
 from one form, and a file saved whole holds all three. A notice may say that stop and
 search is never read. It may say that it is never held only beside a mark that says what
 must be done first.
+
+One page is held to the task that asks for it. The checklist asks the founder to write
+down why Burro is not for children, and the page that does is a draft until the founder
+has read it. So the task says where the page is, and the page says at its head whom it
+waits for.
 """
 
 import re
@@ -22,6 +27,7 @@ NOTICE = "privacy-notice.md"
 TERMS = "terms-of-use.md"
 CHECKLIST = "data-protection-checklist.md"
 READING = "residents-crime-and-equality.md"
+CHILDREN = "access-by-children.md"
 LIST = "README.md"
 # The name the list of risks gives each draft in its column "Where".
 NAMED = {NOTICE: "Notice", TERMS: "Terms"}
@@ -138,11 +144,32 @@ def test_the_drafts_cite_risks_so_the_check_has_something_to_hold():
     assert sorted(risks()) == list(range(1, len(risks()) + 1))
 
 
-@pytest.mark.parametrize("name", [NOTICE, TERMS, CHECKLIST, READING, LIST])
+@pytest.mark.parametrize("name", [NOTICE, TERMS, CHECKLIST, READING, CHILDREN, LIST])
 def test_a_task_cited_by_number_is_a_task_of_the_checklist(name: str):
     there = tasks()
     wrong = [f"{name}:{at}: task {task}" for at, task in tasks_cited(name) if task not in there]
     assert wrong == []
+
+
+def test_the_page_on_children_cites_tasks_so_the_check_has_something_to_hold():
+    assert len(list(tasks_cited(CHILDREN))) >= 3
+
+
+def test_the_page_on_children_says_at_its_head_that_it_waits_for_the_founder():
+    head = next(line for line in lines_of(CHILDREN) if line and not line.startswith("#"))
+    assert head.startswith("**Draft, for the founder to review. Not legal advice.**")
+
+
+def test_the_task_that_asks_for_the_page_on_children_says_where_the_page_is():
+    # Found by its words, because its number moves when a task is put in above it.
+    asked_for = "Write down why Burro is not for children"
+    headings = [
+        line.lstrip("#").strip()
+        for line in lines_of(CHECKLIST)
+        if line.startswith("## ") and line.endswith(asked_for)
+    ]
+    assert len(headings) == 1
+    assert f"]({CHILDREN})" in " ".join(part(CHECKLIST, headings[0]))
 
 
 def test_the_checklist_lists_in_short_every_task_it_holds_and_the_list_counts_them():

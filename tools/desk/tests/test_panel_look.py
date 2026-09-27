@@ -75,7 +75,7 @@ def test_every_figure_of_an_area_says_its_unit_its_source_its_date_and_its_file(
     figures = shown["figures"]
     air = of(figures, "measure", "air_no2")
     assert (air["value"], air["unit"]) == (19.7, "µg/m³")
-    assert air["label"] == "Modelled annual mean nitrogen dioxide"
+    assert air["label"] == "Nitrogen dioxide in the air, as a modelled average over a year"
     assert air["sources"] == [
         {"id": "synthetic", "name": "Synthetic test data", "publisher": "Burro"}
     ]
@@ -149,7 +149,10 @@ def test_a_measure_says_its_spread_and_the_areas_highest_and_lowest(held: Held):
     shown = look.measure(held, "air_no2")
     assert shown is not None
     about, spread = shown["measure"], shown["spread"]
-    assert (about["label"], about["unit"]) == ("Modelled annual mean nitrogen dioxide", "µg/m³")
+    assert (about["label"], about["unit"]) == (
+        "Nitrogen dioxide in the air, as a modelled average over a year",
+        "µg/m³",
+    )
     values = sorted(
         row.value
         for row in held.release.features
@@ -212,7 +215,9 @@ def test_a_vibe_says_its_recipe_its_bands_and_the_areas_highest_and_lowest(held:
     assert shown is not None
     about = shown["vibe"]
     assert (about["label"], about["shape"], about["low_end"]) == ("Leafy", "one_way", None)
-    assert about["cannot_see"][0] == "One street or one home. An area is many streets."
+    assert about["cannot_see"][0] == (
+        "What one street or one home is like, because an area is made up of many streets."
+    )
     assert [(part["measure"], part["hundredths"]) for part in about["recipe"]] == [
         ("land_gardens", 40),
         ("land_woodland", 30),
@@ -271,8 +276,10 @@ def test_a_vibe_that_is_a_rough_guide_says_so_wherever_the_panel_names_it(held: 
     said = {
         "label": "Rough guide",
         "why": (
-            "Of the areas it puts highest, about half read as villages to people, and it "
-            "takes some busy main roads and some grand inner streets for villages."
+            "This vibe is less sure than the others, because only about half of the areas it "
+            "puts highest seemed like villages to the people who were asked, and it also "
+            "takes some busy main roads and some grand streets near the centre of the city "
+            "for villages."
         ),
     }
     assert said == {"label": ROUGH_GUIDE, "why": WHY_A_ROUGH_GUIDE[TagId.VILLAGE_FEEL]}

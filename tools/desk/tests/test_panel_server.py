@@ -9,6 +9,7 @@ import http.client
 import json
 import shutil
 import threading
+import time
 from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -57,6 +58,10 @@ class Answer:
         return json.loads(self.raw)
 
 
+# How long a caller waits for the desk to print the line of a request it has answered.
+WAIT_FOR_A_LINE = 5.0
+
+
 @dataclass
 class Sitting:
     """One desk with its panel, on a copy of the made-up city, asked through its own port."""
@@ -70,6 +75,7 @@ class Sitting:
         return self.running.server_address[1]
 
     def ask(self, method: str, path: str, sent: Any = None, shown: str | None = None) -> Answer:
+        before = self.requests_printed()
         link = http.client.HTTPConnection("127.0.0.1", self.port, timeout=5)
         try:
             headers = {"Host": f"127.0.0.1:{self.port}"}
@@ -82,9 +88,19 @@ class Sitting:
                 }
             link.request(method, path, body=body, headers=headers)
             got = link.getresponse()
-            return Answer(got.status, got.read())
+            answer = Answer(got.status, got.read())
         finally:
             link.close()
+        # The desk prints the line of a request once its answer is sent, so the answer
+        # can be read before the line is there. A test reads both, so it waits for the line.
+        until = time.monotonic() + WAIT_FOR_A_LINE
+        while self.requests_printed() == before and time.monotonic() < until:
+            time.sleep(0.001)
+        return answer
+
+    def requests_printed(self) -> int:
+        """How many lines of a request the desk has printed. A fault has a line of its own."""
+        return sum(1 for line in self.log if not line.startswith("fault "))
 
     def get(self, path: str) -> Answer:
         return self.ask("GET", path)
@@ -226,6 +242,20 @@ def test_a_word_that_is_no_key_finds_nothing(sitting: Sitting, path: str):
     assert answer.status == 404 and answer.held["error"] == "not_found"
 
 
+def test_the_line_of_a_request_of_the_panel_is_there_when_its_answer_is_read(sitting: Sitting):
+    # The desk prints the line of a request once its answer is sent. A caller that reads
+    # what was printed straight after an answer must find the line, however late it is.
+    write = sitting.desk.log
+
+    def late(line: str) -> None:
+        time.sleep(0.2)
+        write(line)
+
+    object.__setattr__(sitting.desk, "log", late)
+    assert sitting.get("/api/panel/home").status == 200
+    assert sitting.log == ["GET /api/panel/home 200"]
+
+
 def test_what_the_panel_prints_holds_no_area_and_no_reason(sitting: Sitting):
     sitting.get(f"/api/panel/area/{AREA}")
     sitting.flag(why=CANARY)
@@ -284,7 +314,7 @@ def test_the_list_of_what_is_flagged_is_one_page(sitting: Sitting, opener: Opene
         ("r1", "border", ""),
         ("r1", "name", ""),
         ("r1", "band", "Leafy"),
-        ("r1", "figure", "Modelled annual mean nitrogen dioxide"),
+        ("r1", "figure", "Nitrogen dioxide in the air, as a modelled average over a year"),
         ("r2", "figure", "buy.flat"),
     ]
     assert all(one["area"]["name"] == "Dulcimer Green" for one in listed)

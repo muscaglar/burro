@@ -1,6 +1,6 @@
-"""Fail if a private package address or a URL with credentials is about to be committed.
+"""Fail if a private package address, a URL with credentials or a key is about to be committed.
 
-Three checks, on every file git tracks or would track, and on what is staged:
+Four checks, on every file git tracks or would track, and on what is staged:
 
 1. No URL with a username, password or token in it, in any file.
 2. No URL to a host outside the public allowlist, in any file that says where
@@ -8,24 +8,32 @@ Three checks, on every file git tracks or would track, and on what is staged:
    CI workflows, and the settings files of uv, pip, npm and yarn.
 3. No mention, in any file and in any form, of a package host that this machine
    is set up to use and that is not public.
+4. No key, in any file: a setting that is named for a secret, as
+   `BURRO_WEBSITE_SECRET` and `GEMINI_API_KEY` are, with a value of 32
+   characters or more beside it, or a key of a provider Burro is fitted to,
+   wherever it stands.
 
 The second check fails closed on URLs. To use another public host, add it to
 PUBLIC_HOSTS below, where the change is reviewed. There is no per-line opt-out.
-A line marked `public-only: allow` is excused from the first check only, for
-placeholders such as a local database address.
+A line marked `public-only: allow` is excused from the first check and from the
+fourth, and from no other: for a placeholder such as a local database address,
+and for a value that is made up for a test and has the look of a key.
 
 The third check is the backstop. It reads this machine's own uv, pip, npm and
 yarn settings to learn which hosts are private here, then looks for them
 everywhere. It catches what a URL pattern cannot, such as a bare hostname. On a
 machine with no private settings it does nothing.
 
-It is not a secret scanner. It will not notice an API key on a line of its own.
-A private host written without a URL scheme, on a machine that is not
-configured to use it, will also pass.
+It is still no secret scanner. A key of a shape it does not know passes where
+it stands under no name, under a name in small letters, or apart from its name.
+So does a key shorter than 32 characters, and one inside a binary file. A
+private host written without a URL scheme, on a machine that is not configured
+to use it, will also pass.
 
 No private hostname is ever written into this repository or printed: hosts are
-counted, and the machine's settings are read but never shown. Standard library
-only: this runs before the virtual environment exists.
+counted, and the machine's settings are read but never shown. Nor is a key
+printed: the line it stands on is named. Standard library only: this runs
+before the virtual environment exists.
 See docs/adr/0008-package-sources.md.
 """
 
@@ -118,6 +126,21 @@ NPM_TOKEN = re.compile(
     rb"""^\s*(?:(?://[^/\s]+/:)?_(?:auth|authToken|password)\s*=|npmAuth(?:Token|Ident)\s*:)"""
     rb"""\s*(?!["']?\$\{?\w)\S"""
 )
+# A setting that holds a secret is named for it, in capitals, and a key is made of letters,
+# digits and a few marks. No key Burro holds is shorter than 32 of them: the service refuses
+# a shorter secret of its own, and the id of a key of the store is as long. So a value that
+# is read from the environment is not taken for a key, nor a made-up word or two in a test,
+# nor the id of a measure under `key` in an answer, which can bear no mark.
+NAMED_SECRET = re.compile(
+    rb"(?<![A-Za-z0-9_])(?:[A-Z][A-Z0-9_]*_)?(?:SECRET|KEY|KEY_ID|TOKEN|PASSWORD)"
+    rb"""["']?\s*[=:]\s*["']?[A-Za-z0-9_+/=-]{32,}"""
+)
+# A key of a provider Burro is fitted to, under any name or none: Google's, a model's, a
+# sender's. Each only where it stands alone, or a long name of a test is taken for one.
+KEY_SHAPE = re.compile(
+    rb"(?<![A-Za-z0-9_-])(?:AIza[0-9A-Za-z_-]{35}|sk-[A-Za-z0-9_-]{32,}|re_[A-Za-z0-9_]{33})"
+    rb"(?![A-Za-z0-9_-])"
+)
 
 
 def _matches(path: Path, patterns: tuple[str, ...]) -> bool:
@@ -191,12 +214,23 @@ def lines_with_credentials(content: bytes) -> list[int]:
     ]
 
 
+def lines_with_a_key(content: bytes) -> list[int]:
+    """Line numbers holding a setting named for a secret with its value, or a provider's key."""
+    return [
+        number
+        for number, line in enumerate(content.splitlines(), start=1)
+        if (NAMED_SECRET.search(line) or KEY_SHAPE.search(line))
+        and ALLOW_MARKER.encode() not in line
+    ]
+
+
 def problems_in(
     path: Path, content: bytes, machine_hosts: frozenset[str] = frozenset()
 ) -> list[str]:
     if b"\0" in content:
         return []
     found = [f"{path}:{n}: contains credentials" for n in lines_with_credentials(content)]
+    found += [f"{path}:{n}: holds what looks like a key" for n in lines_with_a_key(content)]
     found += [
         f"{path}:{n}: names a package host that is private to this machine"
         for n in lines_naming(machine_hosts, content)

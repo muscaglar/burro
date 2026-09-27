@@ -119,15 +119,15 @@ def test_a_chain_is_moved_to_another_tier_and_the_panel_says_which_measures_a_bu
     looked = sitting.post("preview", what="brand", of="lidl", now=row_of("lidl", tier="premium"))
     assert (looked["was"], looked["now"]) == (row_of("lidl"), row_of("lidl", tier="premium"))
     assert looked["worked_out_again"] == [
-        "Straight-line distance to the nearest Lidl within 2,000 m of home",
-        "Share of the chain grocers, gyms and coffee places within 800 m of home that are "
-        "premium, with a mid-range one counted as half, by Burro's table of tiers",
-        "Straight-line distance to the nearest premium grocer within 2,000 m of home, by "
-        "Burro's table of tiers",
-        "Premium grocers within 800 m of home, in a straight line, by Burro's table of tiers",
-        "Straight-line distance to the nearest value grocer within 2,000 m of home, by "
-        "Burro's table of tiers",
-        "Value grocers within 800 m of home, in a straight line, by Burro's table of tiers",
+        "Distance to the nearest Lidl within 2,000 m of home, in a straight line",
+        "Premium chains as a share of the chain grocers, gyms and coffee places within 800 m "
+        "of home, with a mid-range chain counted as half, as Burro sorts the chains",
+        "Distance to the nearest premium grocer within 2,000 m of home, in a straight line, "
+        "as Burro sorts the chains",
+        "Premium grocers within 800 m of home, in a straight line, as Burro sorts the chains",
+        "Distance to the nearest value grocer within 2,000 m of home, in a straight line, as "
+        "Burro sorts the chains",
+        "Value grocers within 800 m of home, in a straight line, as Burro sorts the chains",
     ]
     answer = sitting.keep("lidl", row_of("lidl", tier="premium"))
     assert answer["line"]["n"] == 1 and answer["line"]["what"] == "brand"

@@ -2065,9 +2065,13 @@ def test_the_log_holds_the_method_the_template_and_the_status_and_nothing_sent(s
 # The one command
 
 
-def run_desk(*args: str, cwd: Path) -> subprocess.Popen[str]:
-    """The desk as `make desk` starts it: `python -m desk`, with `tools` on the path."""
-    environ = {**os.environ, "PYTHONPATH": str(TOOLS)}
+def run_desk(*args: str, cwd: Path, before: Path | None = None) -> subprocess.Popen[str]:
+    """The desk as `make desk` starts it: `python -m desk`, with `tools` on the path.
+
+    A folder that is named stands on the path before it, for what a test puts in the way.
+    """
+    path = [str(TOOLS)] if before is None else [str(before), str(TOOLS)]
+    environ = {**os.environ, "PYTHONPATH": os.pathsep.join(path)}
     return subprocess.Popen(
         [sys.executable, "-m", "desk", *args],
         cwd=cwd,
@@ -2108,6 +2112,10 @@ def test_the_one_command_starts_the_desk_prints_the_address_and_opens_nothing(tm
         sent = decision("names", first, "area", rev=shown["rev"], detail=shown["preset"])
         sitting.token = state["token"]
         assert sitting.post("/api/decide", sent).held["line"]["n"] == 1
+        # The desk prints the line of a request once its answer is sent, each on a thread
+        # of its own, and a desk that is stopped waits for no thread. So the lines of the
+        # four requests are read before it is stopped, in whatever order they come.
+        printed = [desk.stdout.readline() for _ in range(4)]
 
         desk.send_signal(signal.SIGINT)
         assert desk.wait(timeout=10) == 0
@@ -2115,9 +2123,15 @@ def test_the_one_command_starts_the_desk_prints_the_address_and_opens_nothing(tm
     finally:
         stop.cancel()
         desk.kill()
-    assert rest.endswith("Stopped.\n")
-    assert "POST /api/decide 200" in rest
-    assert first not in rest and shown["title"] not in rest, "what is printed names no item"
+    assert rest == "\nStopped.\n"
+    assert sorted(printed) == [
+        "GET /api/item/{queue}/{item} 200\n",
+        "GET /api/queue/{queue} 200\n",
+        "GET /api/state 200\n",
+        "POST /api/decide 200\n",
+    ]
+    whole = "".join([*said, *printed, rest])
+    assert first not in whole and shown["title"] not in whole, "what is printed names no item"
 
     made = run_desk("compile", "--data", str(data), cwd=tmp_path)
     assert made.wait(timeout=20) == 0
@@ -2136,6 +2150,68 @@ def test_the_one_command_starts_the_desk_prints_the_address_and_opens_nothing(tm
         "layers",
         "out",
     ]
+
+
+# What stands in for a processor that is taken from a thread of the desk as it prints.
+# Python reads a file of this name as it starts. Any thread but the first is held for half
+# a second once what it printed has reached the pipe, and before it lets go of what is
+# printed through.
+HELD_AS_IT_PRINTS = """
+import io, os, sys, threading, time
+
+
+class Held(io.RawIOBase):
+    def writable(self):
+        return True
+
+    def fileno(self):
+        return 1
+
+    def write(self, sent):
+        written = os.write(1, sent)
+        if threading.current_thread() is not threading.main_thread():
+            time.sleep(0.5)
+        return written
+
+
+sys.stdout = io.TextIOWrapper(io.BufferedWriter(Held()), encoding="utf-8")
+"""
+
+
+def test_a_desk_that_is_stopped_while_a_line_is_printed_says_its_last_word_and_ends_well(
+    tmp_path: Path,
+):
+    """A desk that is stopped waits for no thread, and one may be printing the line of a
+    request. Python ends in a fault where it must print through what a thread still holds.
+    So the desk prints its last word at once, which waits for the line.
+    """
+    data = tmp_path / "desk-synthetic"
+    filled = run_desk("fill", "--made-up", "--data", str(data), cwd=tmp_path)
+    assert filled.wait(timeout=20) == 0
+    before = tmp_path / "before"
+    before.mkdir()
+    (before / "sitecustomize.py").write_text(HELD_AS_IT_PRINTS, encoding="utf-8")
+
+    desk = run_desk("serve", "--data", str(data), "--port", "0", cwd=tmp_path, before=before)
+    stop = threading.Timer(20, desk.kill)
+    stop.start()
+    try:
+        assert desk.stdout is not None
+        said = [desk.stdout.readline() for _ in range(6)]
+        address = re.fullmatch(r"Open http://127\.0\.0\.1:(\d+)/\n", said[4])
+        assert address is not None, "the desk prints the address to open"
+        sitting = Sitting(cast(Desk, None), int(address[1]), [], hears=False)
+
+        assert sitting.get("/api/state").status == 200
+        # The line is out, and the thread that printed it has not let go of it.
+        assert desk.stdout.readline() == "GET /api/state 200\n"
+        desk.send_signal(signal.SIGINT)
+        assert desk.wait(timeout=10) == 0
+        rest = desk.stdout.read()
+    finally:
+        stop.cancel()
+        desk.kill()
+    assert rest == "\nStopped.\n"
 
 
 def test_an_older_python_is_told_what_the_desk_needs():

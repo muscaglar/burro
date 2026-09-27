@@ -178,10 +178,16 @@ def test_the_page_keeps_an_answer_while_the_desk_is_down_and_sends_it_once(sat: 
     assert (back["trouble"], back["item"] != down["item"]) == ("", True)
     sent = [line for line in sat.lines("claims") if line.item == down["item"]]
     assert [line.answer for line in sent] == [questions()["claims"]["answers"][3]["code"]]
-    # The page asks the desk who it is now, and only then sends the answer it kept.
+    # The page asks the desk who it is now, and only then sends the answer it kept. The
+    # order is read from what the page asked, which it wrote down as it asked. The desk
+    # prints the line of a request once its answer is sent, each on a thread of its own, so
+    # two of its lines can change places.
+    asked = sat.seen["asked"]
+    again = ["POST /api/decide", "GET /api/state", "POST /api/decide"]
+    assert [asked[at : at + 3] for at in range(len(asked))].count(again) == 1
+    # The desk that was started answered both, and turned nothing away.
     second = sat.seen["printed"].split("Stopped.\n")[1].splitlines()
-    asked = [line for line in second if line.startswith(("GET", "POST"))]
-    assert asked[:2] == ["GET /api/state 200", "POST /api/decide 200"]
+    assert {"GET /api/state 200", "POST /api/decide 200"} <= set(second)
     assert " 403" not in sat.seen["printed"]
 
 
