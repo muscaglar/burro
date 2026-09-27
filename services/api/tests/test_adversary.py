@@ -321,7 +321,12 @@ def test_a_thing_under_a_turn_is_no_guess_whatever_words_the_model_rests_it_on(
 
     result, _ = asked(answer, text=text)
 
-    assert _guesses(result, f"feature:{feature}") == []
+    # The raise is no guess. Where the rules read what is said of the thing by itself,
+    # "no parks", their reading of the turn is the guess, as it is with no model.
+    ruled, _ = asked(model_output(), text=text)
+    marked = _guesses(result, f"feature:{feature}")
+    assert marked == _guesses(ruled, f"feature:{feature}")
+    assert marked in ([], ["off"])
     # The rules' own offer of it stands, with every way they give.
     assert f"feature:{feature}" in offers(result)
 

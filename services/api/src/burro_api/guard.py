@@ -21,7 +21,7 @@ tests as tests that are expected to fail.
 """
 
 from collections import Counter
-from collections.abc import Collection, Sequence
+from collections.abc import Callable, Collection, Sequence
 from dataclasses import dataclass, field
 from enum import StrEnum
 from typing import NamedTuple
@@ -121,6 +121,7 @@ from burro_api.typed import (
     holds,
     in_doubt,
     is_nuisance,
+    may_be_said_of_it,
     not_minded,
     overlap,
     said_not_to_matter,
@@ -960,6 +961,30 @@ _RULES = RuleInterpreter()
 # What they make of each clause of one request, by its words, and nothing where they would
 # not apply it. It is made while an answer is made, and is let go of with it.
 _Clauses = dict[str, InterpretResult | None]
+
+
+@dataclass
+class _Sayings:
+    """What the rules make of what is said of each thing of one request, and of what is beside it.
+
+    It is made while an answer is made, and is let go of with it. Words are
+    read once, however many things stand in them, and a part of a sentence
+    is asked once what it may say of a thing beside it, however many things
+    its sentence holds: anybody may send a list of a hundred.
+    """
+
+    # What the rules make of some words, were they all that was typed, by the words.
+    read: dict[str, InterpretResult] = field(default_factory=dict[str, InterpretResult])
+    # What a part of a sentence is to a thing that stands beside it, by where it stands.
+    beside: dict[Span, str] = field(default_factory=dict[Span, str])
+
+
+# What a part of a sentence is to a thing that stands in another part of it. The rules
+# know its words, or it heads what is wanted. It may be said of the thing: it holds a
+# sign of doubt, a word that stands for what was named, or the speaker. Or it is made of
+# words that core does not list, which say nothing of the thing but at the head of its
+# sentence, where they may head it.
+_KNOWN, _MAY_BE_SAID_OF_IT, _NOT_LISTED = "known", "may be said of it", "not listed"
 # What is offered of a thing that runs two ways, where the words about it turn it round and
 # the rules cannot read the turn: "I hate pubs", "you can't beat a good pub". It was built
 # both ways, and this line chooses.
@@ -973,6 +998,20 @@ _Clauses = dict[str, InterpretResult | None]
 # and 724 rightly.
 BOTH, AGAINST = "both", "against"
 WHERE_A_TURN_IS_NOT_READ = BOTH
+# What is made of a thing where words the rules do not know stand after it, beyond a mark,
+# and hold no sign of doubt core lists, no word that stands for what was named and no
+# speaker: "lively, lots going on in the evening", and "pubs, bleh". No list tells the two
+# apart. It was built both ways, and this line chooses.
+#
+# `READ`: what is said of the thing is read by itself, so the first is taken as it is
+# wanted, and the second is taken too, until core lists its word. `LEFT`: the way of the
+# thing is left unsaid wherever a part of its sentence is not known to the rules, whoever
+# begins that part, so neither is taken. Held to the 1,062 sentences the evaluation set held
+# on the evening of 2026-09-27, as a client that asks nothing takes them, each reads 31
+# backwards and 33 unasked: the first is right in 752 and the second in 750. Of the 514
+# things the cases say must rise, 397 count by the first and 394 by the second.
+READ, LEFT = "read", "left"
+WHERE_WORDS_BEYOND_A_MARK_ARE_NOT_KNOWN = READ
 
 
 def plainly_said(offers: Sequence[Offer], typed: Typed, spec: PreferenceSpec) -> tuple[Offer, ...]:
@@ -1056,13 +1095,14 @@ def plainly_said(offers: Sequence[Offer], typed: Typed, spec: PreferenceSpec) ->
 
     wishes = any(thing_named(offer.target) is not None for offer in offers)
     read = _read_without_asides(typed, spec) if wishes else {}
+    sayings = _Sayings()
 
     def of_each(offer: Offer) -> Offer:
         if offer.target in OF_A_HOME:
             return as_it_was_said(offer)
         if offer.target == COMMUTE_TARGET:
             return _journey_as_said(offer, typed, spec, clauses)
-        return _wish_as_said(offer, typed, read)
+        return _wish_as_said(offer, typed, read, spec, sayings)
 
     return tuple(of_each(offer) for offer in offers)
 
@@ -1081,6 +1121,9 @@ class _Said(NamedTuple):
     against: bool
     # The rules would apply it at a small step: "fairly leafy".
     little: bool = False
+    # The phrase asks for what it asks for whatever is said of it, and names no way of
+    # its own beside a phrase that does: "historic, lots of character".
+    whatever: bool = False
 
 
 _Wish = WeightEdit | TagEdit
@@ -1124,6 +1167,18 @@ def _read_without_asides(typed: Typed, spec: PreferenceSpec) -> _Read:
     return found
 
 
+def _as_the_rules_give_it(names: str, edits: Sequence[_Wish]) -> _Said | None:
+    """What the rules say of a thing by the edits they would make of it, where they give one way."""
+    gave = {_way_of(edit) for edit in edits}
+    if len(gave) != 1:
+        return None
+    (way,) = gave
+    if way == OFF and any(edit.action is not WeightAction.REMOVE for edit in edits):
+        return _Said(names, "", against=True)
+    little = all(edit.step is Step.UP_SMALL for edit in edits)
+    return _Said(names, way, against=way != names, little=little)
+
+
 def _said_where_it_stands(
     thing: FeatureId | TagId,
     where: Span,
@@ -1131,6 +1186,7 @@ def _said_where_it_stands(
     typed: Typed,
     edits: Sequence[_Wish],
     others: Sequence[Span],
+    alone: Callable[[], Sequence[_Wish]],
 ) -> _Said:
     """What the words say of a thing where core finds it named.
 
@@ -1142,34 +1198,176 @@ def _said_where_it_stands(
     would turn down, "less station", is turned round, and no way of an offer
     holds that edit.
 
+    **Where they would not apply its sentence, they read what is said of
+    the thing by itself.** `alone` gives what they would apply of it, were
+    what is said of it all that was typed: "want somewhere leafy", of "I'm
+    tired of the city and want somewhere leafy", and "lively", of "lively,
+    lots going on in the evening". It gives nothing where something beside
+    the thing may be said of it too (`_read_by_itself`), and is asked only
+    where nothing turns the thing.
+
     Where they would apply nothing of it, which way is meant is nobody's
     to say, and what turns the thing is looked for in the words core lists:
-    one before the thing in its clause, what is dreaded about it, and what
-    turns alone beyond the mark either side of it. Two words that turn
-    before a thing may turn it round twice, "I can't live without a park",
-    so they turn nothing here. A nuisance is turned by what says that it is
-    not minded. And a thing is turned by a sentence beside it that takes it
-    back, and by words that close the list it stands in: "I can do without
-    all of them".
+    one that leads up to the thing, what is dreaded about it, and what
+    turns alone beyond the mark either side of it. **A word that turns
+    leads up to the thing it is said of, and no further** (`said_before`
+    of `typed.py`). Two words that turn before a thing may turn it round
+    twice, "I can't live without a park", so they turn nothing here. A
+    nuisance is turned by what says that it is not minded. And a thing is
+    turned by a sentence beside it that takes it back, and by words that
+    close the list it stands in: "I can do without all of them".
     """
     names = _named_way(thing, target)
     # A word for character asks for a place with character whatever is said of it, and
     # what may ask for fewer of those who are counted draws the notice and no offer.
     if target.whatever or thing in COUNTS_RESIDENTS or thing in HOLDS_RESIDENTS:
-        return _Said(names, "", against=False)
+        return _Said(names, "", against=False, whatever=target.whatever)
     if typed.taken_back(where) or typed.closed_by_a_turn(where):
         return _Said(names, "", against=True)
-    gave = {_way_of(edit) for edit in edits}
-    if len(gave) == 1:
-        (way,) = gave
-        if way == OFF and any(edit.action is not WeightAction.REMOVE for edit in edits):
-            return _Said(names, "", against=True)
-        little = all(edit.step is Step.UP_SMALL for edit in edits)
-        return _Said(names, way, against=way != names, little=little)
+    given = _as_the_rules_give_it(names, edits)
+    if given is not None:
+        return given
+    about = turned_about(typed, where, thing)
+    if not about and not target.note:
+        # A phrase the rules offer what is nearest for names no way to take.
+        given = _as_the_rules_give_it(names, alone())
+        if given is not None:
+            return given
     if is_nuisance(thing):
-        return _Said(names, "", against=said_not_to_matter(typed, where, others))
-    turned = turned_once(typed, typed.led_up_to(where)) or turned_about(typed, where, thing)
+        # What is said of a nuisance is said as far as the next thing, whatever it is of.
+        beside = typed.things(where)
+        return _Said(names, "", against=said_not_to_matter(typed, where, beside))
+    turned = about or turned_once(typed, typed.said_before(where))
     return _Said(names, "", against=turned)
+
+
+def _read_by_itself(
+    offer: Offer,
+    thing: FeatureId | TagId,
+    where: Span,
+    others: Sequence[Span],
+    typed: Typed,
+    spec: PreferenceSpec,
+    sayings: _Sayings,
+) -> Sequence[_Wish]:
+    """What the rules would apply of a thing, were what is said of it all that was typed.
+
+    Nothing where what is said of it cannot be read by itself: the thing
+    waits for a person whatever the words are, the words do not say that
+    the wish is the person's own, or something beside the thing may be said
+    of it too (`_stands_alone`). And nothing where the rules would not
+    apply what is said of it: they apply words only where the grammar makes
+    the whole of them, so what they apply holds no word that they do not
+    place.
+
+    What is said of a thing is read once, however many things stand in it
+    and however often each is named: `sayings` holds what was made of each.
+    """
+    if offer.only_by_choice or _is_for_the_person(typed, where, thing, others):
+        return ()
+    if not _stands_alone(typed, where, spec, sayings):
+        return ()
+
+    def of_it(read: InterpretResult) -> Sequence[_Wish]:
+        edits = read.operations
+        if isinstance(thing, TagId):
+            return [edit for edit in edits.tag_ops if edit.tag_id is thing]
+        return [edit for edit in edits.weight_ops if edit.feature_id is thing]
+
+    heard = False
+    for words in typed.said_alone(where):
+        read = _read_of(words, typed, spec, sayings)
+        if read.status is InterpretStatus.OK:
+            return of_it(read)
+        heard = heard or (read.status is InterpretStatus.SUGGEST and not read.unread)
+    if not heard or typed.holds_doubt(typed.saying(where)):
+        return ()
+    # The rules know every word of what is said, and offer part of it: a thing that no
+    # word applies stands beside this one, "historic and villagey". What is said of this
+    # one is then what stands with it, as far as the word that joins the two.
+    own = typed.text[slice(*typed.about(where)[0])]
+    read = _read_of(" ".join(own.split()), typed, spec, sayings)
+    return of_it(read) if read.status is InterpretStatus.OK else ()
+
+
+def _read_of(words: str, typed: Typed, spec: PreferenceSpec, sayings: _Sayings) -> InterpretResult:
+    """What the rules make of some words, were they all that was typed. It is read once."""
+    if words not in sayings.read:
+        asked = InterpretRequest(text=words, spec=spec, release=typed.release)
+        sayings.read[words] = _RULES.interpret(asked)
+    return sayings.read[words]
+
+
+def _beside(part: Span, typed: Typed, spec: PreferenceSpec, sayings: _Sayings) -> str:
+    """What a part of a sentence is to a thing that stands in another part. It is asked once."""
+    if part not in sayings.beside:
+        read = _read_of(typed.text[part[0] : part[1]], typed, spec, sayings)
+        heard = read.status in (InterpretStatus.OK, InterpretStatus.SUGGEST)
+        if (heard and not read.unread) or typed.heads_what_is_wanted(part):
+            sayings.beside[part] = _KNOWN
+        elif may_be_said_of_it(typed, part):
+            sayings.beside[part] = _MAY_BE_SAID_OF_IT
+        else:
+            sayings.beside[part] = _NOT_LISTED
+    return sayings.beside[part]
+
+
+def _stands_alone(typed: Typed, where: Span, spec: PreferenceSpec, sayings: _Sayings) -> bool:
+    """Whether what is said of a thing may be read by itself, whatever stands beside it.
+
+    The rules apply a prompt only where the grammar makes the whole of it,
+    so one word they do not know left the way of every thing of its
+    sentence unsaid: "lively, lots going on in the evening". What is said
+    of a thing is read by itself where nothing beside it may be said of the
+    thing too:
+
+    - its sentence does not ask, holds no token that is no word, since a
+      face that means no turns a wish as a word does, and is taken back by
+      no sentence beside it;
+    - its clause holds no word about who lives somewhere, and none for a
+      community's amenity: what stands with one is part of a wish about
+      people;
+    - what stands after it in its sentence, beyond a mark, is known to the
+      rules, begins what is said next after a wish of the speaker's own,
+      or holds no sign of doubt core lists, no word that stands for what
+      was named and no speaker: "nightlife, I'll pass", "pubs, forget it",
+      "schools, playgrounds, not relevant";
+    - and where no wish of the speaker's own leads up to it, what stands
+      before it in its sentence, beyond a mark, is held to the same, and
+      what its sentence begins with is known to the rules or heads what is
+      wanted. Words that do neither may head it: "Irritants - pubs, bars".
+      A wish of the speaker's own begins anew, whatever stands before it:
+      "sick of the city, we want somewhere leafy".
+
+    Words are known to the rules where they would apply them or offer
+    them, were they all that was typed, and would leave none of them
+    unread. No list of the words that turn a wish is ever whole: a turn
+    that stands after a thing, beyond a mark, in words core does not list
+    is not seen here, "pubs, bleh", and nor is one that the speaker begins
+    after a wish of their own: "I want pubs, I'm joking".
+    `WHERE_WORDS_BEYOND_A_MARK_ARE_NOT_KNOWN` chooses whether such a thing
+    is read: where it is `LEFT`, every part of the sentence after the thing
+    is known to the rules, and every part before it that no wish of the
+    speaker's own sets apart.
+    """
+    if typed.asks(where) or typed.holds_a_mark_that_is_not_read(where):
+        return False
+    if typed.taken_back_by_the_rules(where) or typed.stands_with_people(where):
+        return False
+    wished = typed.wished_by_the_speaker(where)
+    read = WHERE_WORDS_BEYOND_A_MARK_ARE_NOT_KNOWN == READ
+    parts, held = typed.parts(where)
+    for at, part in enumerate(parts):
+        if at == held or (at < held and wished):
+            continue
+        if at > held and wished and read and typed.begins_what_is_said_next(part):
+            continue
+        said = _beside(part, typed, spec, sayings)
+        if said == _KNOWN:
+            continue
+        if not read or said == _MAY_BE_SAID_OF_IT or at == 0:
+            return False
+    return True
 
 
 def _is_for_the_person(
@@ -1190,7 +1388,8 @@ def _is_for_the_person(
         return True
     if typed.under_a_heading_of_other_words(where):
         return True
-    return is_nuisance(thing) and not_minded(typed, where, thing, others)
+    # What is said of a nuisance is said as far as the next thing, whatever it is of.
+    return is_nuisance(thing) and not_minded(typed, where, thing, typed.things(where))
 
 
 def _noted(offer: Offer, *said: str) -> str:
@@ -1198,7 +1397,9 @@ def _noted(offer: Offer, *said: str) -> str:
     return " ".join(dict.fromkeys(words for words in (offer.note, *said) if words))
 
 
-def _wish_as_said(offer: Offer, typed: Typed, read: _Read) -> Offer:
+def _wish_as_said(
+    offer: Offer, typed: Typed, read: _Read, spec: PreferenceSpec, sayings: _Sayings
+) -> Offer:
     """A measure or a vibe that was noticed, with the way the words give marked as the guess.
 
     The rules offer a thing wherever it is named, and chose no way of it: of
@@ -1212,10 +1413,23 @@ def _wish_as_said(offer: Offer, typed: Typed, read: _Read) -> Offer:
     that applies the word in a plain list: the rules would apply the
     sentence the thing stands in, were it all that was typed and were what is
     said of the words alone not in it. Where the thing stands more than once,
-    every place gives the same way. A way is never read from the clause of a
-    thing alone: what stands beyond a mark turns a wish as often as what
-    stands beside it, "nightlife, I'll pass", "dealbreakers: pubs", and no
-    list of such words is ever whole.
+    every place gives the same way.
+
+    **Where they would not apply its sentence, the rules read what is said
+    of the thing by itself** (2026-09-27, later that day). To hold the guess
+    to the whole sentence asked too much: one word the rules do not know
+    left the way of every thing of its sentence unsaid, and a client that
+    asks nothing left out what was plainly wanted. What is said of a thing
+    begins where a wish of the speaker's own, "but", "because" or a turn of
+    its own begins it, and ends where what is said next begins. It is read
+    by itself only where nothing beside it may be said of the thing too:
+    what stands beyond a mark turns a wish as often as what stands beside
+    it, "nightlife, I'll pass", "dealbreakers: pubs" (`_stands_alone`). And
+    the way is still the rules' own: a word they do not know in what is
+    said of the thing leaves its way unsaid, as it did, because no list of
+    the words that turn a wish is ever whole. "A good local pub within
+    stumbling distance" is left, as "a pub on the corner would ruin it for
+    me" is.
 
     **Where the words turn the thing round, no way is offered that counts it
     for more.** A thing that runs one way is taken that way by whoever takes
@@ -1240,6 +1454,10 @@ def _wish_as_said(offer: Offer, typed: Typed, read: _Read) -> Offer:
         return offer
     others = [other for other, _ in stands]
     given = read.get(offer.target, ())
+
+    def alone(where: Span) -> Callable[[], Sequence[_Wish]]:
+        return lambda: _read_by_itself(offer, thing, where, others, typed, spec, sayings)
+
     said = [
         _said_where_it_stands(
             thing,
@@ -1249,22 +1467,31 @@ def _wish_as_said(offer: Offer, typed: Typed, read: _Read) -> Offer:
             # What the rules make of a thing is made of every sentence they read.
             given if typed.read_by_the_rules(where) else (),
             others,
+            alone(where),
         )
         for where, target in stands
     ]
     ways = [way for way in offer.choices if way.direction is not SuggestionDirection.IGNORE]
-    # A way that the words turn away at every place that names it is not offered.
+    # A way that the words turn away is not offered, but where they give it as well. A
+    # place that only names the thing, in words the rules do not read, says nothing
+    # against the turn: "take off the high street, I do all my shopping online".
     turned = {one.names for one in said if one.against and one.names}
-    wanted = {one.names for one in said if not one.against and one.names}
+    wanted = {one.gives for one in said if not one.against and one.gives}
+    wanted |= {one.names for one in said if one.whatever and one.names}
     dropped: set[str] = turned - wanted
     two_ways = {MORE, LESS} <= {way.id for way in ways}
     unread = any(one.against and not one.gives for one in said)
     if two_ways and unread and WHERE_A_TURN_IS_NOT_READ == BOTH:
         dropped = set()
     kept = [way for way in ways if way.id not in dropped]
-    gives = {one.gives for one in said}
+    # A phrase that asks for the thing whatever is said of it gives the way of a phrase
+    # beside it that names the thing, where the two ask for the same.
+    named = [one for one in said if not one.whatever]
+    gives = {one.gives for one in named}
     (given_way,) = gives if len(gives) == 1 else ("",)
-    little = bool(given_way) and all(one.little for one in said)
+    if any(one.names != given_way for one in said if one.whatever):
+        given_way = ""
+    little = bool(given_way) and all(one.little for one in named)
     # What is left to take of it: a way that counts the thing, and not one that stops.
     counts = [way for way in kept if way.id != OFF]
     waits = offer.only_by_choice or (

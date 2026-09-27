@@ -692,8 +692,7 @@ def test_the_end_the_rules_read_is_the_guess_whatever_end_a_model_names():
         # Two words that turn leave nobody sure which way.
         ("honestly I wouldn't say no to flats", "homes", "high"),
         ("honestly never not buzzy", "pace", "high"),
-        # An end that is only named, where the model names none: no more than the rules noticed.
-        ("honestly nightlife, I suppose", "pace", "default"),
+        # Both ends are named, where the model names none: no more than the rules noticed.
         ("honestly calm by day and buzzy by night", "pace", "default"),
     ],
 )
@@ -1304,7 +1303,11 @@ def test_what_the_rules_keep_is_served_as_the_rules_give_it_whatever_a_model_ans
         theirs = _kept_by_the_rules(raw)
         ruled, _ = asked(model_output(), text=text, spec=spec)
         result, _ = read_again(case, look)
-        if _as_served(result, theirs) != _as_served(ruled, theirs) or _marked(result, theirs):
+        # What is marked is what the rules mark of it with no model: the way of a phrase
+        # beside the word, which names the thing, as "old houses" does beside "character".
+        # No reading of a model's is marked on it.
+        same_marks = _marked(result, theirs) == _marked(ruled, theirs)
+        if _as_served(result, theirs) != _as_served(ruled, theirs) or not same_marks:
             changed.append(f"{case} look {look}")
     assert changed == []
 

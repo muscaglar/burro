@@ -169,6 +169,7 @@ GROUPS = (
     "vibes",
     "whole_searches",
     "visits",
+    "left_behind",
 )
 
 

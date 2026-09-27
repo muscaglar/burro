@@ -568,6 +568,8 @@ class Wish:
     join: Join = Join.FIRST
     # The speaker opens it with a wish of their own: "I want", "we need".
     own: bool = False
+    # The wish that opens it has no speaker of its own: "and want", "or need".
+    unspoken: bool = False
     # A thing of the lexicon, and what is said of it.
     phrase: str = ""
     target: Target | None = None
@@ -1843,6 +1845,7 @@ class Grammar:
                 continue
             for wish in self._item(segment, last):
                 wish.join, wish.own = join, own
+                wish.unspoken = own and not segment.spoke
                 wish.of_the_speaker = segment.spoke and not own
                 found.append(self._checked(wish))
         found = [self._checked(wish) for wish in self._one_turn_one_thing(found)]
@@ -2004,6 +2007,11 @@ class Grammar:
         said after the thing, and nothing begins a new wish there but a turn
         of its own. And what is said to count after the last thing of a list
         may be said of every one of them, so that is not plain either.
+
+        Nor does a wish with no speaker of its own begin one after "or",
+        where a turn is carried: "I don't want pubs or need a station" asks
+        for neither, and was read as a wish for a station. Nobody can say
+        so from the words of the grammar, so the prompt is not plain.
         """
         carried = Way.NONE
         listed = False
@@ -2011,6 +2019,8 @@ class Grammar:
             if wish.kind is not Kind.WISH:
                 carried, listed = Way.NONE, False
                 continue
+            if wish.join is Join.OR and wish.unspoken and carried is not Way.NONE:
+                raise NotPlain
             goes_on = wish.join in (Join.MARK, Join.AND, Join.OR) and not wish.own
             turns = wish.way is not Way.NONE and not wish.turned_after
             if goes_on and carried is not Way.NONE and not turns:

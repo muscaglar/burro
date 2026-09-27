@@ -47,6 +47,7 @@ from burro_core.interpret import (
     may_ask_for_fewer,
     names_a_visit,
     paid_by,
+    taken_back_in,
 )
 from burro_core.lexicon import (
     ENDS_NAMED_AS_HOMES,
@@ -71,16 +72,22 @@ from burro_core.vocabulary import (
     FIRM_OF_MINUTES,
     FIRM_OF_MONEY,
     FOR_WHOM,
+    GIVES_A_REASON,
     GOOD,
     HEADS_WHAT_IS_WANTED,
     IMPORTANT,
     IN_CASE,
     JOINS,
     LARGE_STEP,
+    LEADS_IN_A_WISH,
+    LEADS_IN_WHAT_IS_SAID_NEXT,
     NEAR_TO,
     NEARBY,
+    OPENS_A_HEADING,
     PHRASES_OF_DOUBT,
+    SAYS_HOW_LONG,
     SMALL_STEP,
+    SOFTLY,
     SOMEWHERE,
     SOMEWHERE_THAT,
     SPEAKER,
@@ -94,7 +101,9 @@ from burro_core.vocabulary import (
     TURNS_DOWN,
     TURNS_DOWN_AFTER,
     TURNS_FIRMLY,
+    TURNS_NOTHING,
     TURNS_SOFTLY,
+    TURNS_WHERE_IT_STANDS_ALONE,
     WHO_ELSE,
     WHOSE,
     WISH,
@@ -118,6 +127,7 @@ __all__ = [
     "holds",
     "in_doubt",
     "is_nuisance",
+    "may_be_said_of_it",
     "not_minded",
     "overlap",
     "said_not_to_matter",
@@ -175,9 +185,10 @@ _SAYS_NO = _phrases(TURNS_FIRMLY, TURNS_SOFTLY, WORDS_THAT_TURN_AWAY)
 # What is said of how much a thing counts, and not of the thing: "don't mind",
 # "doesn't matter", "less weight on". Of a nuisance too it takes the weight off.
 _COUNTS_FOR_LESS = _phrases(TAKES_OFF, TAKES_OFF_AFTER, TURNS_DOWN, TURNS_DOWN_AFTER)
-# What leads in to a thing and is no doubt about it: "not far from a park". And
-# what says a number is the most it may be, which never makes it a least.
-_NO_DOUBT = _phrases(NEAR_TO, CAPS, CAPS_FIRMLY, THE_MOST_AFTER)
+# What leads in to a thing and is no doubt about it: "not far from a park". What says a
+# number is the most it may be, which never makes it a least. And what holds a word that
+# turns and turns nothing: "a few restaurants", "nothing but parks".
+_NO_DOUBT = _phrases(NEAR_TO, CAPS, CAPS_FIRMLY, THE_MOST_AFTER, TURNS_NOTHING)
 # What makes an amount of money a firm limit, and what makes a number of minutes one. Each
 # is core's list, so that a model's reading is held to the words the rules are held to.
 FIRMLY_OF_MONEY = _phrases(FIRM_OF_MONEY)
@@ -204,6 +215,8 @@ _DREADED = _phrases(DREADS, TAKES_OFF_AFTER, TURNS_DOWN_AFTER)
 # and "not too expensive" says something of the price.
 _TURNS_APART = _phrases(TURNS, _DREADED)
 _SAYS_NO_MORE = _phrases(_NAMES_NOTHING, STANDS_FOR, DOUBT)
+# What turns only where it is all that stands between two marks: "pubs, pass".
+_TURNS_ALONE = frozenset(_phrases(TURNS_WHERE_IT_STANDS_ALONE))
 # What leads in to a thing, and what says after it where it is wanted, is no doubt about
 # it: "a park within walking distance".
 _NO_DOUBT_ABOUT = _phrases(_NO_DOUBT, NEARBY.words)
@@ -212,22 +225,49 @@ _NO_DOUBT_ABOUT = _phrases(_NO_DOUBT, NEARBY.words)
 _WHO_ELSE = _phrases(WHO_ELSE)
 _CARRIES_A_TURN = _phrases(CARRIES_A_TURN)
 # What may head a list of things that are wanted: what core lists as such, what names
-# nothing, and what says that a thing counts or is good.
+# nothing, what says that a thing counts or is good, and what is said of the words alone.
 _HEADS_A_WISH = _phrases(
-    HEADS_WHAT_IS_WANTED, _NAMES_NOTHING, ESSENTIAL, IMPORTANT.words, GOOD.words
+    HEADS_WHAT_IS_WANTED,
+    _NAMES_NOTHING,
+    ESSENTIAL,
+    IMPORTANT.words,
+    GOOD.words,
+    ASIDES,
+    SAYS_HOW_LONG,
+    OPENS_A_HEADING,
 )
+_OPENS_A_HEADING = _phrases(OPENS_A_HEADING)
 _STANDS_FOR = _phrases(STANDS_FOR)
+# The words of doubt that end in the word that begins a new wish, where it begins none:
+# "anything but", "nothing but".
+_PHRASES_WITH_BUT = frozenset(
+    phrase for phrase in _phrases(PHRASES_OF_DOUBT) if phrase.split()[-1] == Join.BUT.value
+)
 _CANNOT_BEAR = _phrases(CANNOT_BEAR)
-# What a person says of their own words, and of no wish: "honestly", "I think".
-_ASIDES = frozenset(_phrases(ASIDES))
+# What a person says of their own words, and of no wish: "honestly", "I think". And what a
+# heading says of the words under it, which is set apart by its colon.
+_ASIDES = frozenset(_phrases(ASIDES, SAYS_HOW_LONG))
+_LONGEST_ASIDE = max(len(aside.split()) for aside in _ASIDES)
+# The speaker, for what is read as the speaker's own with the speaker left unsaid.
+_THE_SPEAKER = min(SPEAKER.words, key=lambda word: (len(word), word))
 _WISHES_OF_ANOTHER = tuple(tuple(wish.split()) for wish in sorted(WISHES_OF_ANOTHER))
 _HOUSEHOLD = frozenset(whom.split()[-1] for whom in FOR_WHOM.words)
 # The words that begin a wish of the speaker's own: "I want", "we'd like", "I am after".
 _SPEAKS = frozenset(SPEAKER.words)
 _WISHES = frozenset(wish.split()[0] for wish in WISH.words)
+# How much the speaker wishes, which may stand between the speaker and the wish: "I really
+# want", "we would quite like".
+_HOW_MUCH_IS_WISHED = frozenset(STRENGTHENS.words) | SOFTLY
+# The speaker with whatever is written on to the word, "I'll", "we've": who speaks is told
+# by what stands before the apostrophe.
+_WHO_SPEAKS = frozenset(speaker.split("'")[0] for speaker in SPEAKER.words)
 _JOINS = frozenset(JOINS.words)
 # The one word that joins which begins a new wish, whoever wished before it.
 _BUT = Join.BUT.value
+# Where what is said next begins, so that what stands before it is said of something else.
+_LEADS_IN_A_WISH = frozenset(LEADS_IN_A_WISH)
+_LEADS_IN_WHAT_IS_SAID_NEXT = frozenset(LEADS_IN_WHAT_IS_SAID_NEXT)
+_GIVES_A_REASON = frozenset(GIVES_A_REASON)
 _ARTICLES = _phrases(ARTICLE.words)
 # What core reads as something, which what is said of one thing does not reach across.
 _READ = frozenset({Is.THING, Is.NAME, Is.NUMBER, Is.PEOPLE, Is.AMENITY, Is.UNMET})
@@ -287,23 +327,57 @@ def stands_against(before: str, after: str, phrases: Sequence[str]) -> bool:
 
 
 def _own_wish(tokens: Sequence[Token], index: int) -> bool:
-    """Whether a wish of the speaker's own begins at a token: "I want", "we'd like"."""
-    return (
-        tokens[index].word in _SPEAKS
-        and index + 1 < len(tokens)
-        and tokens[index + 1].word in _WISHES
-    )
+    """Whether a wish of the speaker's own begins at a token: "I want", "we'd like".
+
+    How much the speaker wishes may stand between the two, as the grammar
+    reads it: "I really want".
+    """
+    if tokens[index].word not in _SPEAKS:
+        return False
+    after = index + 1
+    while after < len(tokens) and tokens[after].word in _HOW_MUCH_IS_WISHED:
+        after += 1
+    return after < len(tokens) and tokens[after].word in _WISHES
+
+
+def _speaks(token: Token) -> bool:
+    """Whether a token is the speaker, with whatever is written on to the word: "I've"."""
+    return token.word.split("'")[0] in _WHO_SPEAKS
+
+
+def _wish_led_in(tokens: Sequence[Token], index: int) -> bool:
+    """Whether a wish begins at a token with its speaker left unsaid: "and want", "so need".
+
+    At the head of a sentence or of a part of one, "fed up with my flat,
+    looking for", or after a word that leads one in. After "or" it begins
+    nothing, since "or" carries a turn: "I don't want pubs or need a
+    station".
+    """
+    if tokens[index].word not in _WISHES:
+        return False
+    return index == 0 or tokens[index].apart or tokens[index - 1].word in _LEADS_IN_A_WISH
 
 
 def _cut(tokens: Sequence[Token], index: int, others: set[int]) -> bool:
     """Whether what is said of a thing reaches no further than a token beside it.
 
-    It stops at another thing, at a wish of the speaker's own, and at a word
-    that joins two wishes. A word that joins nothing, which the sentence
-    ends with, is part of what is said: "a high street, anything but".
+    It stops at another thing, at a wish of the speaker's own, at a word
+    that joins two wishes, and at a word that begins a reason. "So" joins
+    two only where the speaker or a wish follows it, "so I need": before
+    anything else it says how much, "so noisy". A word that joins nothing,
+    which the sentence ends with, is part of what is said: "a high street,
+    anything but".
     """
-    joins = tokens[index].word in _JOINS and index + 1 < len(tokens)
-    return index in others or joins or _own_wish(tokens, index)
+    word = tokens[index].word
+    follows = index + 1 < len(tokens)
+    joins = word in _JOINS and follows
+    leads = (
+        word in _LEADS_IN_WHAT_IS_SAID_NEXT
+        and follows
+        and (_speaks(tokens[index + 1]) or tokens[index + 1].word in _WISHES)
+    )
+    reason = word in _GIVES_A_REASON
+    return index in others or joins or leads or reason or _own_wish(tokens, index)
 
 
 def _wishes_as_another(tokens: Sequence[Token], index: int) -> bool:
@@ -430,10 +504,17 @@ class Typed:
         # Where the sentences stand that a sentence beside them takes back, and those the
         # rules read. Each is asked of few requests, so it is worked out when first asked.
         self._known: tuple[Span, ...] | None = None
+        self._taken_back: tuple[Span, ...] | None = None
         # Whether one word that turns leads up to a thing, by where the thing stands. It
         # is asked of every thing of a list for each thing that stands after it, so a list
         # of a hundred things asked it ten thousand times, and anybody may send one.
         self._led_by_a_turn: dict[Span, bool] = {}
+        # Where what is said of a thing begins, by where the thing stands. It is asked
+        # more than once of every place a thing is named, and is worked out once.
+        self._said_from: dict[Span, tuple[int, bool]] = {}
+        # What is said of each thing, as it would be typed alone, by where the words stand.
+        # Many things may stand in the same words, which are then made ready once.
+        self._alone: dict[Span, tuple[str, ...]] = {}
 
     def says_something(self, span: Span) -> bool:
         """Whether a stretch holds a word that may name a thing, a place or a number.
@@ -501,6 +582,216 @@ class Typed:
         while first > 0 and not tokens[first].apart:
             first -= 1
         return min(span[0], tokens[first].start), span[1]
+
+    def _begins_anew(self, tokens: Sequence[Token], at: int, until: int) -> bool:
+        """Whether what is said next begins at a token, so that what stands before it is not.
+
+        A reason begins after "because", and a new wish after "but", which
+        is part of some words of doubt and begins nothing there: "anything
+        but". A wish of the speaker's own begins with its speaker, "so I
+        need", or with the wish where a word leads it in and the speaker is
+        left unsaid: "and want". And after a word that leads in what is said
+        next, the speaker begins it, "and I never", or a turn of its own
+        does: "and never". What leads in to a thing is no turn: "and not far
+        from". A wish of somebody else's begins as the speaker's own does,
+        where a word leads it in: "and wants".
+        """
+        before = tokens[at - 1].word
+        if before in _GIVES_A_REASON:
+            return True
+        if before == _BUT:
+            led = tokens[at - 2].bare if at > 1 and not tokens[at - 1].apart else ""
+            return f"{led} {_BUT}" not in _PHRASES_WITH_BUT
+        if _own_wish(tokens, at) or _wish_led_in(tokens, at):
+            return True
+        if before in _LEADS_IN_A_WISH and _wishes_as_another(tokens, at):
+            return True
+        if before not in _LEADS_IN_WHAT_IS_SAID_NEXT:
+            return False
+        return _speaks(tokens[at]) or self._turn_begins(tokens, at, until)
+
+    def _turn_begins(self, tokens: Sequence[Token], at: int, until: int) -> bool:
+        """Whether words that turn a wish begin at a token. What leads in to a thing is no turn."""
+        said = f"{self.said((tokens[at].start, until))} "
+        if any(said.startswith(f"{near} ") for near in _NO_DOUBT):
+            return False
+        return any(said.startswith(f"{turn} ") for turn in TURNS)
+
+    def _where_it_is_said_from(self, span: Span) -> tuple[int, bool]:
+        """Where what is said of a stretch begins, and whether a wish of the speaker's begins it."""
+        if span not in self._said_from:
+            found = self._within(span)
+            begins, wished = span[0], False
+            if found is not None:
+                tokens, first, _ = found
+                while first > 0 and not tokens[first].apart:
+                    if self._begins_anew(tokens, first, span[0]):
+                        break
+                    first -= 1
+                begins = min(span[0], tokens[first].start)
+                wished = _own_wish(tokens, first) or _wish_led_in(tokens, first)
+            self._said_from[span] = (begins, wished)
+        return self._said_from[span]
+
+    def said_before(self, span: Span) -> Span:
+        """A stretch, with the words that lead up to it and are said of it.
+
+        As far back as a mark, as `led_up_to` reads, and no further than
+        where what is said of it begins: "and want", "so I need", "but I
+        love" and "because" each begin what is said next. So a word that
+        turns leads up to the thing it is said of, and no further: what a
+        person is leaving is not what they want, in "I'm tired of the city
+        and want somewhere leafy".
+
+        It is for what the rules noticed. What a model read is held to
+        every word as far back as a mark, since a model chooses its words.
+        """
+        return self._where_it_is_said_from(span)[0], span[1]
+
+    def wished_by_the_speaker(self, span: Span) -> bool:
+        """Whether a wish of the speaker's own leads up to a stretch: "I want", "and would like"."""
+        return self._where_it_is_said_from(span)[1]
+
+    def saying(self, span: Span) -> Span:
+        """What is said of a stretch: from where it begins to where what is said next does.
+
+        It begins where `said_before` has it begin. It ends at the next
+        mark, or before the words that begin what is said next: "quiet
+        because I hate the city", "a park and I never use the station". A
+        word that joins two things ends nothing: "leafy and quiet" is said
+        together. A wish that "or" leads in is said of what follows it,
+        though a turn before it carries over: "I don't want pubs or need a
+        station" says of the pubs that they are not wanted.
+        """
+        begins = self.said_before(span)[0]
+        found = self._within(span)
+        if found is None:
+            return begins, span[1]
+        tokens, _, last = found
+        ends = tokens[-1].end
+        at = last + 1
+        while at < len(tokens) and not tokens[at].apart:
+            led_in = tokens[at - 1].word in _LEADS_IN_WHAT_IS_SAID_NEXT | _GIVES_A_REASON
+            wished = led_in and tokens[at].word in _WISHES
+            if wished or self._begins_anew(tokens, at, ends):
+                return begins, tokens[at - 2 if led_in and at - 1 > last else at - 1].end
+            at += 1
+        return begins, max(span[1], tokens[at - 1].end)
+
+    def said_alone(self, span: Span) -> tuple[str, ...]:
+        """What is said of a stretch, as it would be typed were it all that was said.
+
+        Less what is said of the words alone, wherever it stands in it: "I
+        honestly want somewhere calm". Where a wish begins it with its
+        speaker left unsaid, "and would like somewhere leafy", it is given
+        with the speaker said as well, since the grammar reads few wishes
+        without one. It is handed to the rules and kept nowhere.
+        """
+        said = self.saying(span)
+        if said not in self._alone:
+            self._alone[said] = self._as_typed_alone(*said)
+        return self._alone[said]
+
+    def _as_typed_alone(self, begins: int, ends: int) -> tuple[str, ...]:
+        """Some words of the text, less what is said of the words alone, with a speaker if none."""
+        words = [word for word in self._words if begins <= word.start and word.end <= ends]
+        kept = list(self.text[begins:ends])
+        at = 0
+        while at < len(words):
+            size = next(
+                (
+                    size
+                    for size in range(min(_LONGEST_ASIDE, len(words) - at), 0, -1)
+                    if " ".join(_said(word.word) for word in words[at : at + size]) in _ASIDES
+                ),
+                0,
+            )
+            if size:
+                first, final = words[at].start - begins, words[at + size - 1].end - begins
+                kept[first:final] = " " * (final - first)
+            at += size or 1
+        alone = " ".join("".join(kept).split())
+        if not alone or not words:
+            return ()
+        unsaid = words[0].word in _WISHES
+        return (alone, f"{_THE_SPEAKER} {alone}") if unsaid else (alone,)
+
+    def holds_a_mark_that_is_not_read(self, span: Span) -> bool:
+        """Whether the sentence of a stretch holds a token the reader cannot read as a word.
+
+        One with a mark inside it, one in quotes, or a sign that is no word at
+        all: a face that means no turns a wish as a word does.
+        """
+        return any(
+            token.odd
+            for line in self._lines
+            if overlap(span, (line.start, line.end))
+            for token in line.tokens
+        )
+
+    def stands_with_people(self, span: Span) -> bool:
+        """Whether the clause of a stretch holds words about who lives somewhere.
+
+        Or words for a community's amenity. What stands with either is
+        part of a wish about people: "somewhere lively for young
+        professionals".
+        """
+        clause = self.clause(span)
+        return any(overlap(clause, people) for people in (*self.about_people(), *self.amenities()))
+
+    def parts(self, span: Span) -> tuple[tuple[Span, ...], int]:
+        """The parts of the sentence a stretch stands in, and which of them holds the stretch.
+
+        A part is what stands between two marks. None where the stretch
+        stands in no sentence.
+        """
+        found = self._within(span)
+        if found is None:
+            return (), 0
+        tokens, first, _ = found
+        begins = [at for at, token in enumerate(tokens) if at == 0 or token.apart]
+        ends = [*begins[1:], len(tokens)]
+        parts = tuple(
+            (tokens[start].start, tokens[end - 1].end)
+            for start, end in zip(begins, ends, strict=True)
+        )
+        held = max(at for at, start in enumerate(begins) if start <= first)
+        return parts, held
+
+    def begins_what_is_said_next(self, span: Span) -> bool:
+        """Whether a part of a sentence begins with words that begin what is said next.
+
+        The speaker, a wish with no speaker said, the word that begins a
+        new wish or a reason, or a word that leads one of them in: "I'm not
+        one for silence", "because I hate the city", "and I never drive".
+        """
+        found = self._within(span)
+        if found is None:
+            return False
+        tokens, first, _ = found
+        word = tokens[first].word
+        if _speaks(tokens[first]) or word in _WISHES or word in _GIVES_A_REASON or word == _BUT:
+            return True
+        return word in _LEADS_IN_WHAT_IS_SAID_NEXT and first + 1 < len(tokens)
+
+    def holds_doubt(self, span: Span) -> bool:
+        """Whether a stretch holds a sign of doubt core lists, beside what says where a thing is."""
+        return _in_doubt_about(self, span)
+
+    def things(self, span: Span) -> tuple[Span, ...]:
+        """Where every thing stands that core finds in the sentence of a stretch."""
+        found = self._sentence_of(span)
+        if found is None:
+            return ()
+        return tuple(item.span for item in found[1] if item.what is Is.THING)
+
+    def speaks_in(self, span: Span) -> bool:
+        """Whether the speaker stands in a stretch, with whatever is written on to the word."""
+        return any(
+            word.word.split("'")[0] in _WHO_SPEAKS
+            for word in self._words
+            if span[0] <= word.start and word.end <= span[1]
+        )
 
     def clause(self, span: Span) -> Span:
         """The clause a stretch stands in: from one mark to the next, within its sentence."""
@@ -623,14 +914,45 @@ class Typed:
         if not any(_own_wish(tokens, index) for index in range(first, last + 1)):
             while begins > 0 and tokens[begins - 1].word != _BUT:
                 begins -= 1
-                if _own_wish(tokens, begins):
+                if _own_wish(tokens, begins) or self._speaker_goes_on(tokens, begins):
                     break
         within, beyond, _ = self.about(span)
-        reach = tokens[begins].start, max(within[1], beyond[1])
+        # A wish of the speaker's own leads up to the thing, so what stands beyond the
+        # mark after it is said next, and says nothing of whose wish this is.
+        own = _own_wish(tokens, begins) or self._speaker_goes_on(tokens, begins)
+        reach = tokens[begins].start, within[1] if own else max(within[1], beyond[1])
         return holds(self.said(reach), _WHO_ELSE) or any(
             _wishes_as_another(tokens, index)
             for index, token in enumerate(tokens)
             if reach[0] <= token.start and token.end <= reach[1]
+        )
+
+    def _speaker_goes_on(self, tokens: Sequence[Token], at: int) -> bool:
+        """Whether a wish with no speaker said begins at a token, and is the speaker's own.
+
+        "I hate my landlord and want somewhere leafy": a word leads the
+        wish in, and who wishes is who spoke before it. It is the speaker
+        where the words before it begin with the speaker, as far back as a
+        mark or the word that begins a new wish, or where nobody else is
+        named before it in the whole of its sentence. After "My husband
+        hates pubs and would like", the wish is his. A wish that begins
+        after a mark is read as it was, with all that stands before it: "my
+        mum, bless her, would like a park".
+        """
+        if at == 0 or tokens[at].apart or not _wish_led_in(tokens, at):
+            return False
+        # What was said before the word that leads the wish in.
+        ends = at - 1
+        begins = ends - 1
+        while begins > 0 and not tokens[begins].apart and tokens[begins - 1].word != _BUT:
+            begins -= 1
+        if begins < 0:
+            return False
+        if _speaks(tokens[begins]):
+            return True
+        said = self.said((tokens[0].start, tokens[ends - 1].end))
+        return not holds(said, _WHO_ELSE) and not any(
+            _wishes_as_another(tokens, index) for index in range(ends)
         )
 
     def sentences(self, span: Span) -> Span:
@@ -856,17 +1178,39 @@ class Typed:
         begins = ends - 1
         while begins > 0 and not tokens[begins].apart:
             begins -= 1
-        heading = self.said((tokens[begins].start, tokens[ends - 1].end))
-        return bool(without(heading, _HEADS_A_WISH))
+        return not self.heads_what_is_wanted((tokens[begins].start, tokens[ends - 1].end))
+
+    def heads_what_is_wanted(self, heading: Span) -> bool:
+        """Whether some words may head a list of things that are wanted.
+
+        They are made of words that core lists as heading what is wanted,
+        that name nothing, or that are said of the words alone: "Must
+        haves", "I want", "Short version". Or the speaker says a wish of
+        their own in them, and they hold no sign of doubt but a word that
+        opens a heading: "What I care about", "So I care about the bones of
+        the place". "What I want to avoid" holds one, and heads what is not
+        wanted.
+        """
+        said = self.said(heading)
+        if not without(said, _HEADS_A_WISH):
+            return True
+        found = self._within(heading)
+        if found is None:
+            return False
+        tokens, first, last = found
+        own = any(_own_wish(tokens, at) for at in range(first, last + 1))
+        return own and not holds(without(said, _OPENS_A_HEADING), DOUBT)
 
     def closed_by_a_turn(self, span: Span) -> bool:
         """Whether the list a thing stands in ends in words that turn all of it away.
 
         "A station, a high street, nightlife: I can do without all of them."
         The last part of the sentence names nothing, holds one word that
-        turns, and a word that stands for what was named: "them", "it",
-        "those". It is said of the list before it, as far back as a wish of
-        the speaker's own or the word that begins a new one.
+        turns, and after it a word that stands for what was named: "them",
+        "it", "those". It is said of the list before it, as far back as a
+        wish of the speaker's own or the word that begins a new one. A word
+        that stands before the turn stands for something else: "somewhere
+        that doesn't feel like everywhere else".
         """
         found = self._sentence_of(span)
         if found is None:
@@ -887,7 +1231,12 @@ class Typed:
         if any(item.what in _READ and item.first >= last for item in items):
             return False
         closing = (tokens[last].start, tokens[-1].end)
-        return turned_once(self, closing) and holds(self.said(closing), _STANDS_FOR)
+        if not turned_once(self, closing):
+            return False
+        turns = [at for at in range(last, len(tokens)) if self._turn_begins(tokens, at, closing[1])]
+        return bool(turns) and any(
+            tokens[at].bare in _STANDS_FOR for at in range(turns[0] + 1, len(tokens))
+        )
 
     def listed_after_a_turn(self, span: Span) -> bool:
         """Whether a thing stands later in a list in which a thing before it is turned away.
@@ -907,7 +1256,9 @@ class Typed:
             clause = inside[0]
             while clause > 0 and not tokens[clause].apart:
                 clause -= 1
-            if tokens[clause].word == _BUT or _own_wish(tokens, clause):
+            # Nor is one that the speaker opens: "no noise, I'm out most nights so bars".
+            opens = _own_wish(tokens, clause) or _speaks(tokens[clause])
+            if tokens[clause].word == _BUT or opens:
                 return False
             begins = clause
             while begins > 0:
@@ -926,7 +1277,7 @@ class Typed:
     def _is_led_by_a_turn(self, span: Span) -> bool:
         """Whether one word that turns a wish leads up to a thing. It is read once for each."""
         if span not in self._led_by_a_turn:
-            self._led_by_a_turn[span] = turned_once(self, self.led_up_to(span))
+            self._led_by_a_turn[span] = turned_once(self, self.said_before(span))
         return self._led_by_a_turn[span]
 
     def read_by_the_rules(self, span: Span) -> bool:
@@ -942,6 +1293,27 @@ class Typed:
             )
         return any(overlap(span, sentence) for sentence in self._known)
 
+    def taken_back_by_the_rules(self, span: Span) -> bool:
+        """Whether a sentence beside the one a stretch stands in takes it back, as core reads it.
+
+        By the rule the reader holds what it reads to, of a sentence it
+        reads and of one it does not: a sentence that holds doubt and names
+        nothing is said of the one before it, and of what is listed after it.
+        A sentence that heads what is wanted takes nothing back, "Must
+        haves:", so it is left out of what core is asked about, as what is
+        said of the words alone is.
+        """
+        if self._taken_back is None:
+            words = list(self.without_asides())
+            for line in self._lines:
+                whole = (line.start, line.end)
+                if ":" in line.closed_by and self.heads_what_is_wanted(whole):
+                    words[line.start : line.end] = " " * (line.end - line.start)
+            self._taken_back = tuple(
+                (found.start, found.end) for found in taken_back_in("".join(words), self._grammar)
+            )
+        return any(overlap(span, sentence) for sentence in self._taken_back)
+
     def _names_something(self, at: int) -> bool:
         """Whether core finds a thing, a name, a number or a word for people in a sentence."""
         return any(item.what in _READ for item in self._items[at])
@@ -950,14 +1322,24 @@ class Typed:
         """Whether a sentence may head a list of things that are not wanted.
 
         It names nothing itself. And it ends in a colon, "Dealbreakers:",
-        holds a word for what a person cannot bear, "Things I hate", or
-        turns and says nothing more: "No."
+        ends in a word for what a person cannot bear, "Things I hate", or
+        turns and says nothing more: "No." One that goes on to say what
+        cannot be borne is said of that: "I don't want to be somewhere with
+        drunk people on a Friday night".
         """
         line = self._lines[at]
         if self._names_something(at):
             return False
         said = self.said((line.start, line.end))
-        return ":" in line.closed_by or holds(said, _CANNOT_BEAR) or _turns_alone(said)
+        if ":" in line.closed_by:
+            return not self.heads_what_is_wanted((line.start, line.end))
+        padded = f" {said} "
+        ends_in_it = any(
+            f" {bears} " in padded
+            and not without(padded.rpartition(f" {bears} ")[2], _SAYS_NO_MORE)
+            for bears in _CANNOT_BEAR
+        )
+        return ends_in_it or _turns_alone(said)
 
     def taken_back(self, span: Span) -> bool:
         """Whether a sentence beside the one a stretch stands in turns it round.
@@ -1144,6 +1526,31 @@ def in_doubt(
     return holds(without(said, _NO_DOUBT), signs)
 
 
+def _in_doubt_about(typed: Typed, reach: Span) -> bool:
+    """Whether a stretch holds a sign of doubt core lists, beside what says where a thing is."""
+    return holds(without(typed.said(reach), _NO_DOUBT_ABOUT), DOUBT)
+
+
+def may_be_said_of_it(typed: Typed, reach: Span) -> bool:
+    """Whether words that stand apart from a thing, beyond a mark, may be said of it.
+
+    They hold a sign of doubt core lists, a word that stands for what was
+    named, or the speaker: "nightlife, I'll pass", "pubs, forget it",
+    "schools, playgrounds, not relevant". Or they are a word that turns
+    where it stands alone: "pubs, pass". Words that hold none of them say
+    more of what is wanted, or say something else: "lively, lots going on
+    in the evening".
+    """
+    if reach[1] <= reach[0]:
+        return False
+    return (
+        typed.said(reach) in _TURNS_ALONE
+        or _in_doubt_about(typed, reach)
+        or holds(typed.said(reach), _STANDS_FOR)
+        or typed.speaks_in(reach)
+    )
+
+
 def turned_once(typed: Typed, reach: Span) -> bool:
     """Whether one word that turns a wish stands in a stretch, and no second.
 
@@ -1164,7 +1571,10 @@ def _turns_alone(said: str) -> bool:
     """Whether some words turn a wish round and say nothing more: "no thanks", "I'd hate that".
 
     Words that go on to say something are said of that: "not too expensive".
+    And what turns only where it is all that is said: "pass".
     """
+    if said in _TURNS_ALONE:
+        return True
     return holds(said, _TURNS_APART) and not without(said, _SAYS_NO_MORE)
 
 
@@ -1205,11 +1615,17 @@ def _either_side(typed: Typed, where: Span, others: Sequence[Span]) -> tuple[str
 
     No further than the next of some other things, either way.
     """
-    begins, ends = typed.clause(where)
+    before, after, _ = _beside_it(typed, where, others)
+    return before, after
+
+
+def _beside_it(typed: Typed, where: Span, others: Sequence[Span]) -> tuple[str, str, bool]:
+    """What is said either side of a thing, and whether what is said after it runs up to another."""
+    begins, clause_ends = typed.clause(where)
     apart = [other for other in others if not overlap(other, where)]
     begins = max([begins, *(end for _, end in apart if end <= where[0])])
-    ends = min([ends, *(start for start, _ in apart if start >= where[1])])
-    return typed.said((begins, where[0])), typed.said((where[1], ends))
+    ends = min([clause_ends, *(start for start, _ in apart if start >= where[1])])
+    return typed.said((begins, where[0])), typed.said((where[1], ends)), ends < clause_ends
 
 
 def said_not_to_matter(typed: Typed, where: Span, others: Sequence[Span] = ()) -> bool:
@@ -1219,8 +1635,12 @@ def said_not_to_matter(typed: Typed, where: Span, others: Sequence[Span] = ()) -
     crime", "noise is not important". And a word that says no, after it:
     "crime doesn't bother me". Before it, such a word is the wish itself.
     """
-    before, after = _either_side(typed, where, others)
-    return holds(f"{before} {after}", _COUNTS_FOR_LESS) or holds(after, _SAYS_NO)
+    before, after, runs_on = _beside_it(typed, where, others)
+    if holds(f"{before} {after}", _COUNTS_FOR_LESS):
+        return True
+    # A word that says no, and runs up to another thing, is said of that thing: "low
+    # noise matters more than the station".
+    return holds(after, _SAYS_NO) and not runs_on
 
 
 def not_minded(

@@ -556,6 +556,39 @@ WORDS_THAT_TURN_AWAY: frozenset[str] = frozenset(_AWAY.split()) | CONTRACTIONS
 # counts the words that turn before a thing: two may turn a wish round twice, which is to
 # wish for the thing, "I can't live without a park", and these two never do.
 CARRIES_A_TURN: frozenset[str] = frozenset({"nor", "than"})
+# What holds a word that turns, and turns nothing: "a few restaurants" and "a little
+# centre" say some of a thing, and "nothing but parks" says that nothing else will do. It is
+# for whoever counts the words that turn before a thing. The reader reads none of them:
+# "few", "little" and "nothing" are no words of the grammar, so a prompt that holds one is
+# not plain, as it was, and nothing of it is applied.
+TURNS_NOTHING: frozenset[str] = frozenset({"a few", "quite a few", "a little", "nothing but"})
+# What turns a wish only where it is the whole of what stands between two marks: "pubs,
+# pass". Among other words it says something else, "a park I pass on my way to work", so it
+# is no word of doubt and no word of dread. "Pass on" is a phrase of doubt wherever it
+# stands. It is for whoever asks what the words beyond a mark say of a thing.
+TURNS_WHERE_IT_STANDS_ALONE: frozenset[str] = frozenset({"pass", "hard pass"})
+
+# --- Where what is said next begins -------------------------------------------------------
+#
+# The reader reads none of these by these lists: each is a word it knows already, or one it
+# does not know at all. They are written down for whoever asks what a word that turns is
+# said of, in a sentence that is no plain list. Such a word leads up to the thing it is
+# said of, and no further. It was held to lead up to every thing after it until a mark, so
+# of "I'm tired of the city and want somewhere leafy" the wish was read as turned away, and
+# a person was told that they did not want what they had asked for.
+#
+# What leads in a wish of the speaker's own whose speaker is left unsaid: "and want", "so
+# need", "but love". "Or" is not among them. After a word that turns it carries the turn, so
+# "I don't want pubs or need a station" asks for neither.
+LEADS_IN_A_WISH: frozenset[str] = frozenset({"and", "but", "so", "plus", "also"})
+# What leads in words that the speaker opens, or that a turn of their own opens: "and I
+# never", "or no", "so we". "With" joins a thing to the thing before it, and what is said
+# before it may be said of both: "I don't want a park with no pubs".
+LEADS_IN_WHAT_IS_SAID_NEXT: frozenset[str] = LEADS_IN_A_WISH | {"or"}
+# What begins a reason, wherever it stands. What follows it is said of what the reason
+# names, and what stands before it of what was wished: "somewhere quiet because I hate the
+# city". "As" and "since" are as often said of a time or of a likeness, so neither is here.
+GIVES_A_REASON: frozenset[str] = frozenset({"because"})
 
 # --- A place that is no place to reach -------------------------------------------------
 #
@@ -662,6 +695,16 @@ HEADS_WHAT_IS_WANTED: frozenset[str] = frozenset(
         *("nice to haves", "main thing", "main things", "key things", "ideally"),
         *("positives", "in order", "in order of importance"),
     }
+)
+# What opens a heading and says nothing of what it heads: "What I want:", "Things I care
+# about:". It is a word that asks anywhere else, and a sign of doubt there. What follows
+# it says whether the list is of what is wanted: "What I hate:" is held to "hate".
+OPENS_A_HEADING: frozenset[str] = frozenset({"what", "things", "the things"})
+# What a heading says of the words under it, and of no wish: how long they are. "Short
+# version: quiet, leafy, near a station". Set apart by its colon, it says nothing of which
+# way a thing is wanted, as what is said of one's own words says nothing.
+SAYS_HOW_LONG: frozenset[str] = frozenset(
+    {"short version", "long version", "the short version", "the long version", "in short"}
 )
 
 # --- An amount that is said by no month ------------------------------------------------

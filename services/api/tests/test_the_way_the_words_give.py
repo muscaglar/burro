@@ -193,16 +193,32 @@ def test_what_is_said_of_the_words_alone_leaves_the_way_as_it_was_given(
 @pytest.mark.parametrize(
     "text",
     [
-        # Not set apart by a mark, it is a word the reader does not know.
+        # It says nothing of the wish wherever it stands in what is said of the thing.
         "I honestly want somewhere calm",
         "somewhere calm honestly",
-        # Words that are no such aside may say anything.
+        # Words core does not list, beyond a mark after the thing, say something else.
         "somewhere calm, QuorvexMib TandleFrosk",
-        "somewhere calm, maybe",
-        "somewhere calm, maybe not",
     ],
 )
-def test_words_that_are_no_aside_leave_the_way_unsaid(client: TestClient, text: str):
+def test_what_is_said_of_a_thing_is_read_by_itself(client: TestClient, text: str):
+    found = read(client, text)[PACE]
+
+    assert guess(found) == [LESS]
+    assert ways(found) == [MORE, LESS]
+    assert taken(found) == LESS
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # A sign of doubt core lists, beyond a mark, may be said of the thing.
+        "somewhere calm, maybe",
+        "somewhere calm, maybe not",
+        # And words core does not list may head what follows them.
+        "QuorvexMib TandleFrosk, somewhere calm",
+    ],
+)
+def test_words_that_may_be_said_of_a_thing_leave_the_way_unsaid(client: TestClient, text: str):
     found = read(client, text)[PACE]
 
     assert guess(found) == []

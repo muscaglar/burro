@@ -231,6 +231,7 @@ __all__ = [
     "paid_by",
     "prepare",
     "sentences_of",
+    "taken_back_in",
 ]
 
 MAX_TEXT = 600
@@ -4977,6 +4978,21 @@ def known_in(text: str, grammar: Grammar) -> tuple[Span, ...]:
         Span(start=sentence.line.start, end=sentence.line.end)
         for sentence in _sentences(text, grammar, listed=True)
         if sentence.plain and not sentence.taken_back
+    )
+
+
+def taken_back_in(text: str, grammar: Grammar) -> tuple[Span, ...]:
+    """Where the sentences stand that a sentence beside them takes back, or heads.
+
+    It is for the same caller as `known_in`, which reads what is said of a
+    thing by itself where the reader would not apply its sentence. Such a
+    sentence is as much taken back as one the reader reads: "I'd love to
+    be near pubs. Actually no, scrap that."
+    """
+    return tuple(
+        Span(start=sentence.line.start, end=sentence.line.end)
+        for sentence in _sentences(text, grammar, listed=True)
+        if sentence.taken_back
     )
 
 

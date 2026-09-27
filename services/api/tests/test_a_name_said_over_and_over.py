@@ -14,8 +14,11 @@ words is looked through for no two things with no word between them: a word
 of one letter said three hundred times, with a wish in the middle, held a
 processor for three seconds. And whether a turn leads up to a thing is read once
 for the thing, however many things are listed after it: a list of ninety-nine
-was read ten thousand times. Every name here is of the made-up city, and every
-sentence is one the service was driven with.
+was read ten thousand times. And what is said of a thing is read by itself,
+where the rules would not apply its sentence, once for all the things that
+stand in it, and each part of its sentence once for all the things beside it.
+Every name here is of the made-up city, and every sentence is one the service
+was driven with.
 """
 
 import time
@@ -136,6 +139,95 @@ def test_a_list_is_read_for_a_turn_no_more_often_for_each_thing_as_it_grows_long
 
     # As many times for each thing of a long list as of a short one, and a few over.
     assert of_many / many <= of_few / few + 1
+
+
+def each_saying_something_else(said: str) -> str:
+    """`said` over and over, with two letters in place of its "#" that are never the same."""
+    letters = "abcdefghijklmnopqrstuvwxyz"
+    pairs = (first + second for first in letters for second in letters)
+    text = ""
+    for pair in pairs:
+        more = said.replace("#", pair)
+        if len(text) + len(more) > MOST:
+            break
+        text += more
+    return text.rstrip(" ,")
+
+
+# What is said of a thing is read by itself where the rules would not apply its sentence,
+# and so is each part of the sentence beside it. Each of these has the rules read as many
+# words again as the sentence holds parts, and none is said twice.
+EACH_BY_ITSELF = [
+    "pub #, ",
+    "# pub, ",
+    "lively, # #, ",
+    "leafy and want pubs # ",
+    "I hate # and want pubs ",
+    "pubs because # ",
+    "no pubs or #, ",
+]
+
+
+@pytest.mark.parametrize("said", EACH_BY_ITSELF)
+def test_things_that_are_each_said_by_themselves_are_read_within_two_seconds_of_processor(
+    client: TestClient, said: str
+):
+    text = each_saying_something_else(said)
+
+    assert MOST - len(said) - 2 <= len(text) <= MOST
+    assert any(processor_taken(client, text) < WITHIN_S for _ in range(READINGS))
+
+
+def test_what_is_said_of_many_things_together_is_read_once(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+):
+    rules = guard._RULES  # pyright: ignore[reportPrivateUsage]
+    read: list[str] = []
+
+    class Counted:
+        def interpret(self, request: InterpretRequest) -> InterpretResult:
+            read.append(request.text)
+            return rules.interpret(request)
+
+        def __getattr__(self, name: str) -> Any:
+            return getattr(rules, name)
+
+    monkeypatch.setattr(guard, "_RULES", Counted())
+    wanted = "want a park and a station and cafes and restaurants and pubs and culture"
+    text = f"I'm tired of the city and {wanted}"
+
+    response = client.post("/v1/interpret", json={"text": text, "ask_model": False})
+
+    found = response.json()["data"]["suggestions"]
+    assert len(found) == 6 and all(offer["add_all"] == "more" for offer in found)
+    # Six things stand in what is said, and the rules read it once for all of them.
+    assert read == [wanted]
+
+
+def test_a_part_of_a_sentence_is_read_once_however_many_things_stand_beside_it(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+):
+    rules = guard._RULES  # pyright: ignore[reportPrivateUsage]
+    read: list[str] = []
+
+    class Counted:
+        def interpret(self, request: InterpretRequest) -> InterpretResult:
+            read.append(request.text)
+            return rules.interpret(request)
+
+        def __getattr__(self, name: str) -> Any:
+            return getattr(rules, name)
+
+    monkeypatch.setattr(guard, "_RULES", Counted())
+    things = ["pubs", "cafes", "restaurants", "a park", "a station", "culture"]
+    text = ", ".join([*things, "QuorvexMib TandleFrosk"])
+
+    response = client.post("/v1/interpret", json={"text": text, "ask_model": False})
+
+    assert response.status_code == 200 and len(response.json()["data"]["suggestions"]) == 6
+    # Each part is read once: as what is said of its thing, and as what stands beside
+    # the five others.
+    assert sorted(read) == sorted([*things, "QuorvexMib TandleFrosk"])
 
 
 def test_a_name_said_sixty_times_is_offered_as_it_was(client: TestClient):

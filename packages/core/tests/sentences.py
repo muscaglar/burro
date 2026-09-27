@@ -2,7 +2,8 @@
 
 `REVERSED` and `UNASKED` are the sentences an adversary wrote after the second round of
 fixes: each made the reader do the opposite of what was asked, or something nobody
-asked for. `TURNED_LISTS` are the ones two reviewers found after the fourth. `PLAIN`
+asked for. `TURNED_LISTS` are the ones two reviewers found after the fourth, and three
+that were found on 2026-09-27, of a wish that follows "or" with no speaker said. `PLAIN`
 and `HELD_OUT` are plain wishes as a person might type them, each with what it asks
 for. `UNKNOWN_WORDS` are ordinary words that are not in the reader's vocabulary, and
 must never be added to it without a rule. "Rough", "soulless" and "bland" were among
@@ -185,6 +186,11 @@ TURNED_LISTS: tuple[tuple[str, set[str]], ...] = (
     ("not near a station or near a pub", {"station_walk", "venue_evening_per_homes"}),
     ("I worry about noise or pubs", {"venue_evening_per_homes"}),
     ("I don't want a station or a high street within a ten minute walk", {"station_walk"}),
+    # A wish with no speaker of its own, after "or": the turn carries over it. Each was
+    # applied with the last thing raised.
+    ("I don't want pubs or need a station", {"venue_evening_per_homes", "station_walk"}),
+    ("I don't need a station or want pubs nearby", {"station_walk", "venue_evening_per_homes"}),
+    ("I don't want a park or need a station nearby", {"park_proximity", "station_walk"}),
 )
 
 # The first ninety are the adversary's own, written without sight of the vocabulary.

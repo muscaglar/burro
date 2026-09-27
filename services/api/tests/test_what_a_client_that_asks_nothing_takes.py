@@ -31,11 +31,15 @@ from burro_core.places import Names
 from .support import scorer
 
 # What the same client made of the same sentences before the service marked the way the
-# words give and said what waits for a person: of the 1,026 the set holds, it read 87
-# backwards and made an edit nobody asked for in 39, and 674 were right.
+# words give and said what waits for a person: of the 1,026 the set then held, it read 87
+# backwards and made an edit nobody asked for in 39, and 674 were right. Once the way was
+# marked where the rules would apply the whole sentence, it read 31 backwards and 33
+# unasked, and was right in 704. Since the rules read what is said of a thing by itself
+# it is right in 716 of those, and in all 36 of the sentences that say what is left behind
+# and then what is wanted, which the set has held since: 752 of 1,062.
 READ_BACKWARDS_AT_MOST = 31
 UNASKED_AT_MOST = 33
-RIGHT_AT_LEAST = 704
+RIGHT_AT_LEAST = 752
 
 
 def _stops(way: Way) -> bool:
@@ -122,6 +126,11 @@ def test_the_sentences_that_were_seen_to_be_read_backwards_are_read_so_no_longer
     # did. A station that is never used, a park that somebody else is after and a noise
     # that is liked were each taken for a wish.
     mended = {
+        "left-001",  # I'm tired of the city and want somewhere leafy and quiet
+        "left-007",  # I never want to see another pub but I love parks
+        "left-026",  # I want somewhere leafy and quiet because I hate the city
+        "left-035",  # we are sick of parks and never use the station
+        "left-036",  # I don't want pubs or need a station
         "sugg-032",  # Honestly, somewhere calm
         "sugg-035",  # Honestly, fewer pubs
         "sugg-037",  # I never use the station

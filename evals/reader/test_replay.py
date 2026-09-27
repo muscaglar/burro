@@ -120,14 +120,16 @@ def test_what_the_guard_makes_of_the_answers_on_disk():
     # to press every guess takes the rest of each and leaves it for a press of its own.
     # One more is right since the way the rules read of a sentence is marked as the
     # guess, whatever a model read: "with some culture around it", where the model in
-    # its one look named no culture.
+    # its one look named no culture. Two more are right since the rules read what is said
+    # of a thing by itself, where they would not apply its sentence: "ideally Victorian",
+    # and "but I want some green space" after a nuisance that is not minded.
     assert replay.counted(first()) == {
         "answers": 112,
         "calls the reader made": 79,
         "answered by the rules, with no call or in a model's place": 33,
-        "right": 83,
-        "in part": 12,
-        "not read": 14,
+        "right": 85,
+        "in part": 11,
+        "not read": 13,
         "a guess nobody asked for": 3,
         "backwards, offered with no guess marked": 0,
         "backwards, marked as the guess": 0,

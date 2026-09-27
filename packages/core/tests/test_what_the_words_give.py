@@ -20,6 +20,7 @@ from burro_core.interpret import (
     InterpretResult,
     RuleInterpreter,
     known_in,
+    taken_back_in,
 )
 from burro_core.ops import NO_OPERATIONS
 from burro_core.places import Names
@@ -29,7 +30,16 @@ from burro_core.vocabulary import (
     CANNOT_BEAR,
     CARRIES_A_TURN,
     DREADS,
+    GIVES_A_REASON,
     HEADS_WHAT_IS_WANTED,
+    JOINS,
+    LEADS_IN_A_WISH,
+    LEADS_IN_WHAT_IS_SAID_NEXT,
+    OPENS_A_HEADING,
+    PHRASES_OF_DOUBT,
+    SAYS_HOW_LONG,
+    TURNS_NOTHING,
+    TURNS_WHERE_IT_STANDS_ALONE,
     WHO_ELSE,
     WORDS_OF_DOUBT,
     WORDS_THAT_TURN_AWAY,
@@ -161,3 +171,124 @@ def test_the_reader_applies_nothing_of_a_prompt_that_holds_such_a_sentence_all_t
 )
 def test_what_is_listed_under_a_heading_is_headed_by_it(text: str, read_of_it: list[str]):
     assert known(text) == read_of_it
+
+
+def taken_back(text: str) -> list[str]:
+    """The sentences of a text that a sentence beside them takes back, or heads."""
+    return [text[span.start : span.end] for span in taken_back_in(text, GRAMMAR)]
+
+
+def test_a_sentence_is_taken_back_whether_or_not_the_reader_reads_it():
+    # The reader reads the first of these and not the second, and each is taken back.
+    for wish in ("I want a station", "A good pub within stumbling distance"):
+        assert taken_back(f"{wish}. Actually no, scrap that.") == [wish]
+        assert taken_back(f"{wish}. Moving next month.") == []
+    assert known("I want a station. Moving next month.") == ["I want a station"]
+    assert known("A good pub within stumbling distance. Moving next month.") == []
+    assert taken_back("Things I hate\n- pubs\n- a station") == ["pubs", "a station"]
+    assert taken_back("Requirements\npubs\na station") == []
+
+
+# --- Where what is said next begins -----------------------------------------------------------
+
+
+def test_what_begins_what_is_said_next_turns_nothing_and_puts_nothing_in_doubt():
+    assert frozenset({"and", "but", "so", "plus", "also"}) == LEADS_IN_A_WISH
+    assert LEADS_IN_A_WISH | {"or"} == LEADS_IN_WHAT_IS_SAID_NEXT
+    assert frozenset({"because"}) == GIVES_A_REASON
+    begins = LEADS_IN_WHAT_IS_SAID_NEXT | GIVES_A_REASON
+    assert not begins & IN_DOUBT
+    # Each leads in words that are said next. A word that says when or how much is as
+    # often part of what is said of the thing before it, and begins nothing.
+    for never in ("as", "since", "while", "though", "than", "with", "if", "unless"):
+        assert never not in begins
+
+
+def test_or_leads_in_no_wish_since_it_carries_a_turn():
+    assert "or" in JOINS.words and "or" not in LEADS_IN_A_WISH
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "I don't want pubs or need a station",
+        "I don't need a station or want pubs nearby",
+        "no pubs or want a station",
+        "I don't like parks or love pubs",
+    ],
+)
+def test_a_wish_with_no_speaker_begins_nothing_after_or_where_a_turn_is_carried(text: str):
+    found = read(text)
+
+    # Nobody can say from the words of the grammar whether the turn reaches it.
+    assert found.operations == NO_OPERATIONS
+    assert found.suggestions
+
+
+@pytest.mark.parametrize(
+    ("text", "asked"),
+    [
+        # A turn of its own, the speaker, and "and" or "but" each begin a new wish.
+        ("I don't want pubs and need a station", ["venue_evening_per_homes", "station_walk"]),
+        ("I don't want pubs but need a station", ["venue_evening_per_homes", "station_walk"]),
+        ("I don't want pubs or I need a station", ["venue_evening_per_homes", "station_walk"]),
+        # Where no turn is carried, a wish after "or" is a wish.
+        ("I want a park or need a station", ["park_proximity", "station_walk"]),
+        ("I rent and want a park", ["park_proximity"]),
+    ],
+)
+def test_a_wish_with_no_speaker_is_read_as_it_was_anywhere_else(text: str, asked: list[str]):
+    assert wishes(read(text)) == asked
+
+
+# --- What holds a word that turns, and turns nothing -------------------------------------------
+
+
+def test_what_turns_nothing_holds_a_word_that_turns_and_is_no_word_of_the_grammar():
+    assert frozenset({"a few", "quite a few", "a little", "nothing but"}) == TURNS_NOTHING
+    turns = WORDS_THAT_TURN_AWAY | PHRASES_OF_DOUBT
+    for phrase in TURNS_NOTHING:
+        assert phrase in turns or set(phrase.split()) & turns, phrase
+        assert phrase not in VOCABULARY, phrase
+    # What says few, none or not at all is never among them.
+    for never in ("few", "little", "nothing", "anything but", "all but", "not a few"):
+        assert never not in TURNS_NOTHING
+
+
+def test_what_turns_where_it_stands_alone_is_no_word_of_doubt_and_no_word_of_the_grammar():
+    assert frozenset({"pass", "hard pass"}) == TURNS_WHERE_IT_STANDS_ALONE
+    # Among other words each says something else, "a park I pass on my way to work", so
+    # none is doubt wherever it stands. "Pass on" is, and is listed as a phrase.
+    assert not TURNS_WHERE_IT_STANDS_ALONE & (IN_DOUBT | DREADS | VOCABULARY)
+    assert "pass on" in PHRASES_OF_DOUBT
+    for text in ("pubs, pass", "pubs, hard pass", "a park I pass on my way to work"):
+        assert read(text).operations == NO_OPERATIONS, text
+
+
+@pytest.mark.parametrize("phrase", sorted(TURNS_NOTHING))
+def test_a_prompt_that_holds_such_words_is_not_plain_and_nothing_of_it_is_applied(phrase: str):
+    found = read(f"{phrase} parks")
+
+    assert found.operations == NO_OPERATIONS
+    assert {offer.target for offer in found.suggestions} == {"feature:park_proximity"}
+
+
+# --- What opens a heading, and what a heading says of the words under it ------------------------
+
+
+def test_what_opens_a_heading_and_what_says_how_long_say_nothing_of_a_wish():
+    assert frozenset({"what", "things", "the things"}) == OPENS_A_HEADING
+    assert len(SAYS_HOW_LONG) == 5
+    words = {word for phrase in SAYS_HOW_LONG for word in phrase.split()}
+    assert not SAYS_HOW_LONG & IN_DOUBT and not words & IN_DOUBT
+    # "What" asks anywhere else, and is a sign of doubt there.
+    assert {"what"} == OPENS_A_HEADING & IN_DOUBT
+    assert not (OPENS_A_HEADING | SAYS_HOW_LONG) & (HEADS_WHAT_IS_WANTED | ASIDES)
+
+
+@pytest.mark.parametrize("heading", ["What I want", "Things I care about", *sorted(SAYS_HOW_LONG)])
+def test_a_prompt_under_such_a_heading_is_not_plain_and_nothing_of_it_is_applied(heading: str):
+    found = read(f"{heading}: a park, a station")
+
+    assert found.operations == NO_OPERATIONS
+    assert {offer.target for offer in found.suggestions} >= {"feature:park_proximity"}

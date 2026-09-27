@@ -137,7 +137,14 @@ from burro_core.spec import (
 # word between them: it is not plain, since a part that long is looked through for none.
 # And in a prompt that is not plain, a journey to part of a name is asked about where its
 # part of the sentence is the whole of it, and the name of an area is no rule for the area
-# where the words before it expect a place to reach.
+# where the words before it expect a place to reach. In the same version a wish that
+# follows "or" with no speaker of its own begins nothing where a turn is carried: "I don't
+# want pubs or need a station" was applied with the station raised, and is not plain now.
+# And core holds, for whoever marks the way the words give of what is only offered, the
+# words that begin what is said next, so that a word that turns leads up to the thing it
+# is said of and no further, and the words that turn only where they stand alone between
+# two marks. It says too which sentences a sentence beside them takes back. It moves no
+# arithmetic: a search is ranked as it was.
 ENGINE_VERSION = "1.19.0"
 
 FULL_UNTIL_MIN = 15  # a journey this short is as good as any shorter
