@@ -11,8 +11,14 @@ import { chipsOf } from "@/lib/search/chips";
 import { namesOf } from "@/lib/search/state";
 import type { MadeShare } from "@/lib/session/session";
 
+import { stateOf, thingOf } from "../ChipRow/drawn";
 import { Disclosure } from "../Disclosure/Disclosure";
 import { wordsFor } from "../ErrorBlock/ErrorBlock";
+import { Frame } from "../kit/Frame/Frame";
+import { Label } from "../kit/Label/Label";
+import { Press } from "../kit/Press/Press";
+import { SharedFold } from "../SharedSearch/SharedFold";
+import { WHAT_IT_OPENS, type WhatItOpens } from "./look";
 import styles from "./SharePanel.module.css";
 
 interface Props {
@@ -31,6 +37,8 @@ interface Props {
   readonly held?: MadeShare | null;
   /** Told of a link once it is made, so that it can be kept while the tab is open. */
   readonly onMade?: (made: MadeShare) => void;
+  /** What becomes of the page as the panel opens. Left out, it is what `look.ts` chooses. */
+  readonly opens?: WhatItOpens;
 }
 
 type Said = "none" | "made" | "copied" | "not_copied";
@@ -47,14 +55,25 @@ export function linkTo(shareId: string, origin: string): string | null {
  * in its fragment and nothing else.
  *
  * It opens in place and traps nothing. The id is held in memory, here and in
- * the store, and is written nowhere.
+ * the store, and is written nowhere. The page is not moved as it opens: what
+ * was pressed stays under the hand. One line of the look has what it opens
+ * brought into sight, as it was.
  *
  * The button that makes the link is never switched off: a button that is
  * switched off while it has the focus leaves the focus on nothing. It says
  * that it is busy, and a press while it is asks for nothing more. So the
  * focus stays on it, and the next Tab reaches the field that holds the link.
+ *
+ * It is a box of the look, with what it is called on a band of ink at its head. The
+ * settings a link holds are drawn as the chips of a search are, each with the drawing of
+ * its thing, and none of them is pressed: a link holds what it holds. They are what a
+ * person set, or Burro filled in of what they set: the usual settings nobody chose are
+ * not counted among them, as they are not over the results.
+ *
+ * Beside it stands the way to what says that the search came from a link, where it came
+ * from one: all that is said of sharing is one press away, after the first result.
  */
-export function SharePanel({ spec, specHash, meta, areas, create, held = null, onMade }: Props) {
+export function SharePanel({ spec, specHash, meta, areas, create, held = null, onMade, opens = WHAT_IT_OPENS }: Props) {
   const id = useId();
   const field = useRef<HTMLInputElement>(null);
   const [exact, setExact] = useState(false);
@@ -111,13 +130,15 @@ export function SharePanel({ spec, specHash, meta, areas, create, held = null, o
   };
 
   // The answer names each place of the spec it stored: the place that stands in, where one does.
-  const chips =
-    current === null ? [] : chipsOf(current.share.spec, meta, areas, namesOf(current.share.places), {});
+  // The usual settings that nobody chose are not counted among them: they have no chip.
+  const chips = current === null ? [] : chipsOf(current.share.spec, meta, areas, namesOf(current.share.places), {});
 
   return (
-    // Open at first where it holds a link made before the page was left.
-    <Disclosure label={SHARE.open} className={styles.share} openAtFirst={current !== null}>
-      <section className={styles.panel} aria-labelledby={`${id}-title`}>
+    <>
+    {/* Open at first where it holds a link made before the page was left. Its button stands
+        after the first result, which is the foot of the first screen. */}
+    <Disclosure label={SHARE.open} className={styles.share} openAtFirst={current !== null} bring={opens === "brought"}>
+      <Frame as="section" kind="box" bare className={styles.panel} aria-labelledby={`${id}-title`}>
         <h3 id={`${id}-title`} className={styles.title}>
           {SHARE.holds.title}
         </h3>
@@ -147,14 +168,10 @@ export function SharePanel({ spec, specHash, meta, areas, create, held = null, o
           <p className={styles.hint}>{SHARE.noPlaces}</p>
         )}
 
-        <button
-          type="button"
-          className={`${styles.make} target`}
-          aria-disabled={busy ? true : undefined}
-          onClick={() => void make()}
-        >
+        {/* It is the one button of the panel that matters most. While the link is made it is off, and keeps the focus. */}
+        <Press kind="go" off={busy} onPress={() => void make()}>
           {busy ? SHARE.making : current === null ? SHARE.make : SHARE.makeAgain}
-        </button>
+        </Press>
 
         <p className={styles.said} role="status">
           {said === "made" && current !== null
@@ -196,9 +213,7 @@ export function SharePanel({ spec, specHash, meta, areas, create, held = null, o
                 spellCheck={false}
                 onFocus={(event) => event.target.select()}
               />
-              <button type="button" className="target" onClick={() => void copy()}>
-                {SHARE.copy}
-              </button>
+              <Press onPress={() => void copy()}>{SHARE.copy}</Press>
             </div>
             <p className={styles.hint}>
               {current.share.coarsened
@@ -214,22 +229,34 @@ export function SharePanel({ spec, specHash, meta, areas, create, held = null, o
             <ul className={styles.chips}>
               {chips.map((chip) => (
                 <li key={chip.key} className={styles.chip} data-assumed={chip.assumed}>
-                  <span className={styles.chipLabel}>{chip.label}</span>
-                  {chip.assumed && !chip.parts.some((part) => part.assumed) ? (
-                    <span className={styles.assumed}> {CHIPS.assumed}</span>
-                  ) : null}
-                  {chip.parts.map((part) => (
-                    <span key={part.text}>
-                      , {part.text}
-                      {part.assumed ? <span className={styles.assumed}> {CHIPS.assumed}</span> : null}
-                    </span>
-                  ))}
+                  {/* Its words say what nobody chose, so its state is drawn and is not said a second time. */}
+                  <Label
+                    thing={thingOf(chip, meta)}
+                    state={stateOf(chip, current.share.spec)}
+                    stateSaid
+                    says={
+                      <>
+                        <span className={styles.chipLabel}>{chip.label}</span>
+                        {chip.assumed && !chip.parts.some((part) => part.assumed) ? (
+                          <span className={styles.assumed}> {CHIPS.assumed}</span>
+                        ) : null}
+                        {chip.parts.map((part) => (
+                          <span key={part.text} className={styles.part}>
+                            , {part.text}
+                            {part.assumed ? <span className={styles.assumed}> {CHIPS.assumed}</span> : null}
+                          </span>
+                        ))}
+                      </>
+                    }
+                  />
                 </li>
               ))}
             </ul>
           </div>
         ) : null}
-      </section>
+      </Frame>
     </Disclosure>
+    <SharedFold opens={opens} />
+    </>
   );
 }

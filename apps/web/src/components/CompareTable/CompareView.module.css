@@ -1,12 +1,33 @@
+/*
+ * The comparison page. It stands on the meadow: every part of it is a box of cream, or a
+ * notice on cream, with grass between it and the next. Nothing is read on the grass.
+ *
+ * What the page is stands in a box of the look. Each table stands within a plain edge of
+ * ink, under its heading on a band of ink: a table is many small things, and a box with a
+ * shadow round each row would be noise. Every sentence and every figure is set in the
+ * reading face, in ink.
+ */
 .view {
   display: grid;
-  gap: var(--space-4);
-  padding-block-end: var(--space-7);
+  gap: var(--space-3);
+  padding-block-end: var(--space-5);
   min-width: 0;
 }
 
-.view h1 {
+/* What the page is, what it compares, and what it compares on. */
+.head {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.head h1 {
   margin: 0;
+}
+
+/* It is handed the focus where what had it goes. It is no stop of its own, and draws no ring. */
+.head h1:focus {
+  outline: none;
+  box-shadow: none;
 }
 
 .lead {
@@ -14,30 +35,46 @@
   color: var(--muted);
 }
 
-.note {
-  margin: 0;
-  color: var(--muted);
-}
-
+/*
+ * What the address held that was no area, that the comparison needs scripts, and what the
+ * areas are compared on: each a notice, plain and flat. Cream, inside a rule of ink, with
+ * a band of amber at its start, inside the rule. Each brings the cream it is read on, so
+ * it reads in a box and on the grass alike.
+ */
+.note,
 .state {
-  padding: var(--space-3) var(--space-4);
-  background: var(--surface);
-  border-inline-start: 4px solid var(--border);
-  border-radius: var(--radius);
+  --band: calc(var(--px) * 3);
+
+  justify-self: start;
+  margin: 0;
+  max-width: 100%;
+  padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + var(--band));
+  background: var(--notice-bg);
+  border: var(--edge) solid var(--notice-edge);
+  box-shadow: inset var(--band) 0 0 var(--notice-mark);
+  color: var(--notice-text);
 }
 
 .state p {
   margin: 0;
+  max-width: var(--measure);
 }
 
+/*
+ * A comparison that failed: plain and flat, as a failure is, with a band of poppy at its
+ * start. What it says is in ink: poppy is an edge, and never small words.
+ */
 .error {
+  --band: calc(var(--px) * 3);
+
   display: grid;
   gap: var(--space-2);
   justify-items: start;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--error);
-  border-inline-start-width: 4px;
-  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + var(--band));
+  background: var(--bg);
+  border: var(--edge) solid var(--border);
+  box-shadow: inset var(--band) 0 0 var(--error-edge);
+  color: var(--text);
 }
 
 .error p {
@@ -46,31 +83,141 @@
 
 .errorTitle {
   color: var(--error);
-  font-weight: 600;
+  font-weight: 700;
 }
 
+/* The id of the request is read out to whoever is told of the failure, and may be long. */
 .request {
   color: var(--muted);
   font-size: var(--size-small);
   overflow-wrap: anywhere;
 }
 
-/* A heading and the table under it. */
-.part {
+/*
+ * Where the answer stands: the tables, or what holds their place, or why there are none.
+ * Each part of it brings its own cream, with grass between it and the next.
+ */
+.answer {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-3);
   min-width: 0;
+  /*
+   * A box of the kit keeps the room of its shadow inside itself: its edge of ink stands
+   * two art pixels short of its far side. What stands here is in a plain edge, which
+   * keeps none: so it stands as far short, and its edge ends where the edge of the boxes
+   * over it ends.
+   */
+  padding-inline-end: calc(var(--px) * 2);
 }
 
-.part h2 {
+/* It is handed the focus by what is pressed in it and goes. It is no stop of its own, and draws no ring. */
+.answer:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/*
+ * What holds the answer keeps that room for all that stands in it, the tables among it. A
+ * plain frame of the kit keeps as much itself where it stands on the grass: here it would
+ * be kept twice, so a table keeps none of its own. It weighs more than what the kit says.
+ */
+.answer > .part {
+  margin-inline-end: 0;
+}
+
+/*
+ * A heading and the table under it, within a plain edge of ink. The frame is the kit's,
+ * and brings the edge and the cream: what is said here is the room inside it.
+ */
+.part {
+  /* The room at either side. The band at the head lies over it, from edge to edge. */
+  --within: var(--space-4);
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  padding: 0 var(--within) var(--space-3);
+}
+
+/*
+ * What the table is of: a band of ink at the head of the frame, from one side of it to the
+ * other, with the heading on it in the face of names. It is ink with its words in the
+ * colour that is read on, so that it is never lighter to the eye than what it heads.
+ */
+.partTitle {
+  margin: 0 calc(var(--within) * -1);
+  padding: calc(var(--px) * 3) var(--within) calc(var(--px) * 4);
+  background: var(--ink);
+  color: var(--page);
+  font: 400 var(--name-2) / 1 var(--font-name);
+  font-synthesis: none;
+}
+
+/*
+ * The way back, at the head of the page and again at its foot, is a button of the look. It
+ * brings its own ground, and stands on the grass.
+ */
+.back,
+.on {
   margin: 0;
 }
 
-.back {
-  margin: 0;
+@media (max-width: 40rem) {
+  .part {
+    --within: var(--space-3);
+  }
 }
 
-.back a {
-  display: inline-flex;
-  align-items: center;
+/*
+ * A wide screen: what the page is stands beside what it compares on, under the heading, so
+ * that the head of the page is no higher than it need be and the areas stand sooner.
+ */
+@media (min-width: 60rem) {
+  .head {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-2) var(--space-5);
+  }
+
+  .head > h1 {
+    grid-column: 1 / -1;
+  }
+
+  .head > .lead {
+    grid-row: 2 / span 3;
+    grid-column: 1;
+  }
+
+  .head > .note,
+  .head > .state {
+    grid-column: 2;
+    justify-self: stretch;
+  }
+
+  /*
+   * Where too few areas are chosen the page says nothing of areas set side by side, so what
+   * it says instead has nothing to stand beside: it begins where the heading does.
+   */
+  .head:not(:has(> .lead)) > :is(.note, .state) {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}
+
+/* With forced colours the system's own colours carry every edge, and a band is a second edge. */
+@media (forced-colors: active) {
+  .note,
+  .state,
+  .error {
+    border-color: CanvasText;
+    border-inline-start-width: var(--band);
+    box-shadow: none;
+  }
+
+  .partTitle {
+    border-block-end: var(--edge) solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
 }

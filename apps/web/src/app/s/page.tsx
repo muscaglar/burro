@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 
 import { SharedSearch } from "@/components/SharedSearch/SharedSearch";
 import { SHARED } from "@/content/share";
+import { handed } from "@/lib/api/handed";
 import { loadAreas, loadMeta } from "@/lib/api/server";
+import { bandsToDraw } from "@/lib/holds";
 import { KEEP_OUT } from "@/lib/indexing";
 
 // A built page is kept for an hour at most: the `max-age` the API sends.
@@ -23,5 +25,9 @@ export const metadata: Metadata = {
  */
 export default async function SharedPage() {
   const [meta, areas] = await Promise.all([loadMeta(), loadAreas()]);
-  return <SharedSearch meta={meta.data} areas={areas.data.areas} />;
+  // Where every area sits comes with the page, as it does with the search page: the town of
+  // a result is drawn from it. It is of the release, and the same for every link.
+  return (
+    <SharedSearch meta={handed(meta.data)} areas={areas.data.areas} bands={bandsToDraw(meta.data, areas.data.bands)} />
+  );
 }

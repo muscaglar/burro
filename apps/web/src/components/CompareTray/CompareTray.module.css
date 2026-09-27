@@ -1,22 +1,35 @@
 /*
- * The tray stays at the foot of the screen once an area is chosen, in one line where there
- * is room, so that it is within reach of every button that fills it. Until then it takes no
- * room at all: what the page is for comes first.
+ * The bar of areas to compare. It stays at the foot of the screen once an area is chosen,
+ * so that it is within reach of every button that fills it, and is the one thing that
+ * stays there. Until then it takes no room at all: what the page is for comes first.
+ *
+ * It is a box of the look: cream, the double rule of ink, and the hard shadow, which lies
+ * inside the room the box takes, so that the whole of it is in sight at the foot of a
+ * screen. The box is the kit's. What is said here is where it stands, and how what it
+ * holds is laid out.
+ *
+ * It lies over the page, so it is as low as it can be. Where a screen has the width for
+ * it, it holds what the bar is at its start, four places in its middle, each with the town
+ * of its area or kept empty, and at its end what to do next with the one button of the
+ * bar: all on one line. Where a screen has not, no town is drawn in it, as none is drawn
+ * on a narrow result: an area is its name and its cross, as a chip is.
+ *
+ * The kit says of every box where it is positioned. The bar says otherwise, and each rule
+ * that does so names the state of the bar as well as the bar: it then weighs more than the
+ * kit's own, whichever of the two sheets is read last.
  */
-.tray {
+.tray[data-closed="false"] {
   position: sticky;
   inset-block-end: 0;
   z-index: 2;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: var(--space-1) var(--space-3);
-  padding: var(--space-2) var(--space-3);
-  background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: var(--radius-card);
+  gap: var(--space-1) var(--space-4);
+  padding: var(--space-1) var(--space-3);
 }
 
+/* Until an area is chosen: no edge, no ground, no room, and nothing that sticks. */
 .tray[data-closed="true"] {
   position: static;
   padding: 0;
@@ -25,108 +38,497 @@
 }
 
 /*
- * A narrow screen: the tray that sticks is short, so that it covers little of the list and
- * nothing that has the focus. It names the areas and leads to the comparison. An area is
- * taken out from its own result, where "Remove from compare" stands, or all with "Clear".
+ * The bar is handed the focus by what is pressed in it and goes. It is no stop of its own,
+ * and by then it is closed and takes no room: so it draws no ring.
  */
-@media (max-width: 40rem) {
-  .tray[data-closed="false"] {
-    gap: 0 var(--space-2);
-    padding: var(--space-1) var(--space-3);
-  }
-
-  .tray .chosen {
-    gap: 0 var(--space-2);
-    font-size: var(--size-small);
-  }
-
-  .tray .area {
-    border: 0;
-    background: transparent;
-  }
-
-  .tray .name {
-    min-height: 0;
-    padding: 0;
-  }
-
-  .tray .remove,
-  .tray .status:empty {
-    display: none;
-  }
+.tray:focus {
+  outline: none;
+  box-shadow: none;
 }
 
+/* What the bar is, and under it what is said of its towns, where the look has anything said of them. */
+.about {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
+  justify-items: start;
+  min-width: 0;
+}
+
+/* What the bar is, as the label of a drawing: a short label in the face of names, page on ink. */
 .title {
   margin: 0;
-  font-size: var(--size-body);
+  padding: var(--px-small) calc(var(--px-small) * 3) calc(var(--px-small) * 2);
+  background: var(--ink);
+  color: var(--page);
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
 }
 
-.chosen {
+/*
+ * What a town is, and that it is no picture of the place, where the look has it said: once,
+ * of every town of the bar. It is drawn where the towns are, which is on a wide screen.
+ */
+.towns {
+  display: none;
+  margin: 0;
+  max-width: none;
+  color: var(--muted);
+  font-size: var(--size-small);
+  line-height: 1.3;
+}
+
+/* The places of the bar, side by side: the areas that are chosen, and on a wide screen the places kept empty. */
+.places {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  align-items: flex-start;
+  gap: var(--space-1) var(--space-2);
+  min-width: 0;
+}
+
+/* What holds the areas is no box of its own, so that an area and an empty place are laid out alike. */
+.chosen {
+  display: contents;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/*
+ * An area that was chosen, as the look draws a chip that can be taken off: cream, one rule
+ * of ink, a hard shadow, its name, and its cross on sand. A name is the service's and may
+ * be long: it wraps, and is never cut. Every area is drawn as the next is.
+ */
 .area {
   display: inline-flex;
   align-items: stretch;
+  min-width: 0;
   max-width: 100%;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  background: var(--page);
+  border: var(--edge) solid var(--border);
+  box-shadow: var(--box-shadow);
 }
 
+/* The town of an area is drawn where the bar has the width for four of them. */
+.area > .town {
+  display: none;
+}
+
+/* The name of an area is read, and is set in the reading face, heavy. */
 .name {
   display: inline-flex;
   align-items: center;
-  min-height: var(--target);
-  padding: var(--space-1) var(--space-3);
-  font-weight: 600;
+  min-width: 0;
+  padding: 0 calc(var(--px-small) * 4);
+  font: 700 var(--size-small) / 1.3 var(--font-say);
+  /*
+   * A name is broken between its words, and a word too long for its place is broken in
+   * two. It may be broken anywhere, so that a chip is never wider than the bar for it: a
+   * word that is broken only where it runs past its line is as wide as it is to the chip.
+   */
+  overflow-wrap: anywhere;
 }
 
-.remove {
-  padding: 0 var(--space-2);
+/*
+ * The cross that takes an area out: a small control, as high as a chip of a search is on
+ * a phone. It is named by what holds it as well, so that it weighs more than what the page
+ * says of every button.
+ */
+.area > .remove {
+  display: grid;
+  flex: none;
+  place-items: center;
+  min-width: calc(var(--px-small) * 18);
+  min-height: calc(var(--px-small) * 18);
+  padding: 0;
   border: 0;
-  border-inline-start: 1px solid var(--border);
-  border-radius: 0 var(--radius) var(--radius) 0;
-  background: transparent;
-  font-size: var(--size-lead);
-  line-height: 1;
+  border-inline-start: var(--edge) solid var(--border);
+  border-radius: 0;
+  background: var(--sand);
+  cursor: pointer;
+}
+
+/* In hand it is amber. Nothing of it moves or changes size. */
+.area > .remove:hover,
+.area > .remove:focus-visible {
+  background-color: var(--chosen);
+}
+
+/*
+ * The cross is a drawing, shown at its own size with a hard edge, at two pixels of the
+ * screen to one of its own on every screen: it stands in a small control. The letter it
+ * stands for is under it, for a page that is read with no style sheet, and is set out of
+ * its sight.
+ */
+.cross {
+  display: block;
+  overflow: hidden;
+  width: calc(var(--px-small) * var(--w));
+  height: calc(var(--px-small) * var(--h));
+  background: var(--art) 0 0 / calc(var(--px-small) * var(--w)) calc(var(--px-small) * var(--h)) no-repeat;
+  image-rendering: pixelated;
+  text-indent: 100%;
+  white-space: nowrap;
+}
+
+/*
+ * A place that is kept empty for an area: a plot of the size of a town, 56 art pixels by
+ * 32 at the pixel of the ground, with nothing on it. It is told from a place that is
+ * taken by what it holds, which is nothing, and by its ground. It is drawn where the
+ * towns are.
+ */
+.plot {
+  display: none;
+  flex: none;
+  width: calc(var(--px-ground) * 56);
+  height: calc(var(--px-ground) * 32);
+  /* The room of the cross of an area stands after it, so that the four places stand as far apart. */
+  margin-inline-end: calc(var(--px-small) * 16);
+  border: var(--edge) solid var(--border);
+  background: var(--lea);
+}
+
+/* What to do next, and the one button of the bar: side by side, the button first. */
+.next {
+  display: flex;
+  flex-direction: row-reverse;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1) var(--space-3);
+  min-width: 0;
+}
+
+/*
+ * What the bar says of how many are chosen, and after it, in its line, what takes them all
+ * out. It is read on the cream of the bar.
+ */
+.says {
+  flex: 1 1 8rem;
+  min-width: 0;
+  max-width: none;
+  font-size: var(--size-small);
+  line-height: 1.3;
 }
 
 .status {
+  display: inline;
   margin: 0;
-  color: var(--muted);
-  font-size: var(--size-small);
+  max-width: none;
 }
 
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-2);
+/* Until it says something it takes no room. It is on the page all the same. */
+.status:empty {
+  display: none;
 }
 
-.go {
+/*
+ * What takes every area out at once: the drawing of a cross and the word, in the line of
+ * what the bar says, as the way that takes an area out of a comparison is drawn. It is the
+ * quietest thing of the bar, which has one button of the size of a main control. It is a
+ * small control all the same, as high as the least a control may be, and its word is read.
+ * It is named by what holds it as well, so that it weighs more than what the page says of
+ * every button.
+ */
+.says > .clear {
   display: inline-flex;
+  gap: calc(var(--px-small) * 3);
   align-items: center;
-  padding: var(--space-2) var(--space-4);
-  color: var(--on-accent);
-  background: var(--accent);
-  border-radius: var(--radius);
-  font-weight: 600;
-  text-decoration: none;
+  margin-inline-start: var(--space-2);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--text);
+  font: 400 var(--size-small) / 1.3 var(--font-say);
+  text-decoration: underline;
+  text-decoration-thickness: var(--px-small);
+  text-underline-offset: 0.2em;
+  vertical-align: middle;
+  cursor: pointer;
 }
 
-/* The button of one area, with what it says of itself beside it. */
+/* In hand it is amber, as the cross of an area is. Nothing of it moves or changes size. */
+.says > .clear:hover,
+.says > .clear:focus-visible {
+  background-color: var(--chosen);
+}
+
+/*
+ * A wide screen, and what a town is drawn from in hand: the bar is one line. At its start
+ * what it is, in its middle the four places, and at its end what to do next over the one
+ * button.
+ *
+ * Four places with their crosses are 612 px wide, and the button with what stands over it
+ * 208: under 72rem of a screen they left what the bar is less room than its name takes.
+ */
+@media (min-width: 72rem) {
+  .tray[data-closed="false"][data-towns="true"] {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 13rem);
+    gap: var(--space-2) var(--space-4);
+  }
+
+  .tray[data-towns="true"] .towns {
+    display: block;
+  }
+
+  .tray[data-towns="true"] .places {
+    gap: var(--space-2) var(--space-3);
+  }
+
+  /*
+   * An area with its town: the town with the cross that takes the area out beside it, and
+   * under both its name. It is as wide as its town and its cross, which is 56 art pixels
+   * at the pixel of the ground and 14 at the pixel of a small control, with two between.
+   */
+  .tray[data-towns="true"] .area {
+    display: grid;
+    grid-template-columns: calc(var(--px-ground) * 56) calc(var(--px-small) * 14);
+    align-items: start;
+    gap: var(--px-small) calc(var(--px-small) * 2);
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  /*
+   * The town of an area, at its own size: the bar lays it out and draws nothing of it.
+   * What a town says under its drawing is not drawn in the bar, which lies over the page
+   * and is as low as it can be: what a town is, and what it leaves blank, are said where
+   * the town stands on the page, beside the name of its area.
+   */
+  .tray[data-towns="true"] .area > .town {
+    display: flex;
+    grid-row: 1;
+    grid-column: 1;
+  }
+
+  .tray[data-towns="true"] .area > .town > figcaption {
+    display: none;
+  }
+
+  .tray[data-towns="true"] .area > .remove {
+    grid-row: 1;
+    grid-column: 2;
+    min-width: calc(var(--px-small) * 14);
+    min-height: calc(var(--px-small) * 14);
+    border: var(--edge) solid var(--border);
+  }
+
+  .tray[data-towns="true"] .name {
+    display: block;
+    grid-row: 2;
+    grid-column: 1 / -1;
+    padding: 0;
+  }
+
+  .tray[data-towns="true"] .plot {
+    display: block;
+  }
+
+  /* What to do next stands over the button, at the far end of the bar. */
+  .tray[data-towns="true"] .next {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+    justify-items: end;
+    text-align: end;
+  }
+}
+
+/*
+ * A narrow screen: the bar that sticks is short, so that it covers little of the list and
+ * nothing that has the focus. What the bar is called is kept for whoever hears the page:
+ * what it holds says what it is.
+ *
+ * The page clears 176 px at the foot of the screen for the bar. Measured on a screen 390
+ * wide: 111 px with one area chosen, 116 with two, and 160 with three and with four.
+ */
+@media (max-width: 40rem) {
+  .tray[data-closed="false"] {
+    padding: var(--px) var(--space-2);
+  }
+
+  .tray .title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /*
+   * What takes every area out at once is not drawn there: the bar has no line to spare for
+   * it. Measured on a screen 390 wide, as its word alone in the line of what the bar says:
+   * the bar was 179 px high with four areas chosen, where it is 160, and the page clears
+   * 176 for it. Each area is taken out by its own cross, which is as near.
+   */
+  .says > .clear {
+    display: none;
+  }
+
+  /*
+   * On the page of an area the first screen is for the area: what is said beside the button
+   * takes three lines of a phone at the head of it, and the bar says what to do next once
+   * the area is chosen. So the button stands alone there, and is as high pressed as not.
+   */
+  .beside[data-invites="true"] > .under {
+    display: contents;
+  }
+
+  .beside[data-invites="true"] > .under > .why,
+  .beside[data-invites="true"] > .under::before,
+  .beside[data-invites="true"] > .under::after {
+    display: none;
+  }
+
+  /*
+   * The way to the comparison has no room there that it would not take from the page. It
+   * is in sight in the bar, at the foot of the screen. Beside the button it is kept for
+   * whoever hears the page and for a keyboard, as the next stop after the button: it is
+   * laid out over the page, kept off the screen until a keyboard reaches it, and set down
+   * under the button then. It moves nothing.
+   */
+  .beside[data-invites="true"] .near {
+    position: absolute;
+    inset-block-start: 100%;
+    inset-inline-start: 0;
+    z-index: 1;
+    padding: 0 var(--space-2);
+    border: var(--edge) solid var(--border);
+    background: var(--page);
+    transform: translateY(-9999px);
+  }
+
+  .beside[data-invites="true"] .near:focus-visible {
+    transform: none;
+  }
+}
+
+/*
+ * The button of one area, with what stands beside it. What is laid over it, as the way to
+ * the comparison is where there is no room to draw it, is laid out from it.
+ */
 .beside {
+  position: relative;
   display: inline-flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-1) var(--space-3);
+}
+
+/*
+ * Beside the name of an area, as in a result and in the card of the map, the way to the
+ * comparison takes no room: what holds the button there has none that it would not take
+ * from what stands beside it. Seen in a browser: in the card of the map the row of buttons
+ * broke in two as the second area was added, and the button that was pressed went 52 px
+ * down from under the pointer. The way on is in sight in the bar of areas, at the foot of
+ * the screen. Beside the button it is kept for whoever hears the page and for a keyboard,
+ * as the next stop after the button: it is laid out over the page, kept off the screen
+ * until a keyboard reaches it, and set down under the button then. It moves nothing. A
+ * part that has the room for it, as a wide result has, says so in its own sheet.
+ */
+.beside[data-small="true"] > .near {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-end: 0;
+  z-index: 1;
+  padding: 0 var(--space-2);
+  border: var(--edge) solid var(--border);
+  background: var(--page);
+  white-space: nowrap;
+  transform: translateY(-9999px);
+}
+
+.beside[data-small="true"] > .near:focus-visible {
+  transform: none;
+}
+
+/*
+ * On the page of an area: what is said beside the button, or the way to the comparison.
+ * Whichever it is, it stands in one place of one grid. In the same place lie what is said
+ * before the area is chosen and what is said after, each laid out and neither drawn: so
+ * the place is as high as the higher of the two from the start, whatever it holds and
+ * however wide it is, and nothing under the press moves. Seen on a phone: what was said
+ * went from two lines to three as the area was chosen, and all that stood under it went
+ * 23 px down.
+ */
+.under {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  flex: 1 1 100%;
+  align-items: start;
+  min-width: 0;
+  font-size: var(--size-small);
+}
+
+.under > *,
+.under::before,
+.under::after {
+  grid-area: 1 / 1;
+}
+
+.under::before {
+  content: attr(data-before);
+  visibility: hidden;
+}
+
+.under::after {
+  content: attr(data-after);
+  visibility: hidden;
+}
+
+.under > .near {
+  justify-self: start;
+}
+
+/*
+ * What stands beside the button is set apart from it by the room the two are laid out
+ * with, and by no more: what the page gives the second of two small controls is not added
+ * to it. It is named by all that holds it, so that it weighs more than what the page says
+ * of every small control.
+ */
+.beside > .fills + .near {
+  margin-inline-start: 0;
+}
+
+/*
+ * The button that puts an area in the bar, or takes it out. The kit draws it. Beside the
+ * name of a result it is as high as a main control, where the result has room: it says so
+ * twice over, so that it weighs more than the smallest size a control may be.
+ */
+.fills.small {
+  min-height: var(--target);
+}
+
+/*
+ * It is as wide chosen as not. Under its words lies the longer of its two lines, which is
+ * laid out and takes no height, and is not drawn: so the button keeps the room of it, and
+ * nothing beside the button moves when it is pressed.
+ */
+.fills [data-widest]::after {
+  content: attr(data-widest);
+  display: block;
+  height: 0;
+  overflow: hidden;
+  visibility: hidden;
+}
+
+/*
+ * When four are chosen it can add no more, and is switched off. It is then down, as far as
+ * a press would take it, and keeps its ink: nothing is dimmed. Why is said beside it.
+ */
+.fills:disabled {
+  color: var(--ink);
+  cursor: default;
+}
+
+.fills:disabled > span {
+  border-image-source: var(--art-down);
 }
 
 .why {
@@ -134,23 +536,72 @@
   font-size: var(--size-small);
 }
 
-/* The button in a row of small ones, as on a result: as high as "Source" is, and no higher. */
-.small {
-  min-height: var(--target-min);
-  padding: 0 var(--space-2);
-  font-size: var(--size-small);
-  color: var(--accent);
-  background: transparent;
-}
-
+/* The way to the comparison, beside the button that was pressed. It is a link, and is read. */
 .near {
   display: inline-flex;
   align-items: center;
-  font-weight: 600;
+  font-weight: 700;
 }
 
+/*
+ * What says that areas can be compared, before anybody has chosen one: the drawing of two
+ * towns, and the sentence. It is drawn in a line, and what holds it lays it out and gives
+ * it the cream it is read on.
+ *
+ * The drawing stands at the start, and what is read runs beside it: the two towns are as
+ * high as two lines are.
+ */
+.invite {
+  color: var(--text);
+}
+
+/*
+ * The two towns: two drawings of the look side by side, at the pixel of the ground, which
+ * is the pixel a town is drawn at on every screen. They are dress, and the sentence beside
+ * them says what they stand for.
+ */
+.twoTowns {
+  --px: var(--px-ground);
+
+  display: inline-flex;
+  float: inline-start;
+  gap: calc(var(--px-ground) * 2);
+  align-items: flex-end;
+  margin-inline-end: var(--space-3);
+}
+
+/*
+ * With forced colours the system's own colours carry every edge, and no shadow is thrown.
+ * The cross is a picture, and stays.
+ */
 @media (forced-colors: active) {
-  .go {
-    border: 1px solid LinkText;
+  .title {
+    border: var(--edge) solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .area,
+  .plot {
+    border-color: CanvasText;
+    box-shadow: none;
+  }
+
+  .plot {
+    background: Canvas;
+  }
+
+  .area > .remove {
+    border-color: CanvasText;
+    background: ButtonFace;
+  }
+
+  .cross,
+  .twoTowns {
+    forced-color-adjust: none;
+  }
+
+  .fills:disabled > span {
+    border-image-source: none;
   }
 }

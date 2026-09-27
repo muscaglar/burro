@@ -1,54 +1,271 @@
+/*
+ * The areas of a comparison, and its two tables.
+ *
+ * Nobody wins a comparison. Every area is drawn as the next is: a column of one width, a
+ * town of one size, the same way out, and no colour, mark or order that sets one apart.
+ *
+ * A name is set in the face of names: the name of an area, of a vibe, and the head of a
+ * column. Every sentence and every figure is set in the reading face, in ink.
+ */
 .compare {
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-3);
   min-width: 0;
 }
 
-/* The areas, each with its status and its links. One beside the next where there is room. */
+/*
+ * The heads of the areas, side by side within one plain edge of ink, which the kit draws.
+ * The room at either side is the room a table has within its edge, so that on a wide
+ * screen the column of an area stands over the column it has in the tables under it.
+ */
+.heads {
+  /* The room at either side, which is the room at either side of a table of the page. */
+  --within: var(--space-4);
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-3) var(--within);
+}
+
+/*
+ * What a town is, and that it is no picture of the place, where the look has it said: once,
+ * of every town of the comparison. It is the quieter of what stands at the head, and is
+ * ink all the same.
+ */
+.towns {
+  max-width: none;
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--size-small);
+  line-height: 1.3;
+}
+
+/*
+ * The areas: two side by side on a narrow screen, and then as many as there is room for.
+ * Each has as much room as the next.
+ */
 .areas {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
   gap: var(--space-3);
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
+/*
+ * One area: its name, its town, what is said of it, and the way that takes it out, one
+ * under the other. It is no box of its own.
+ */
 .area {
-  display: grid;
-  gap: var(--space-1);
-  align-content: start;
-  justify-items: start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  min-width: 0;
   max-width: none;
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-card);
 }
 
 .area p {
   margin: 0;
 }
 
+/* The name of an area, in the face of names. It is the service's, and may be long: it wraps. */
 .areaName {
-  font-size: var(--size-h3);
-  font-weight: 650;
-  line-height: var(--leading-heading);
+  font: 400 var(--name-2) / 1.1 var(--font-name);
+  font-synthesis: none;
+  overflow-wrap: anywhere;
 }
 
+/* The name is the way to the page of the area. It is drawn as the name is, with a hard line under it. */
+.toArea {
+  color: inherit;
+  text-decoration-thickness: var(--px);
+  text-underline-offset: 0.12em;
+}
+
+/*
+ * Its town, under its name: of one size for every area. What a town is, is the first thing
+ * a town says under itself, and is not drawn here: it is said at the head of the page of
+ * an area and in the key to the drawings, and where the look has it, once over all the
+ * towns of a comparison. What a town leaves blank is said with the town, in sight.
+ */
+.area > .town {
+  align-self: stretch;
+}
+
+.area > .town > figcaption > :first-child {
+  display: none;
+}
+
+.area > .town > figcaption:not(:has(> :not(:first-child))) {
+  display: none;
+}
+
+/*
+ * What is said of the area: whether it is ranked, where it stands in the search that is
+ * open, and how much of what counts it has a figure for. Each is said in words, in ink,
+ * the same way of every area. The line has its place before it has its words.
+ */
 .status {
   display: grid;
   gap: var(--space-1);
+  align-content: start;
+  align-self: stretch;
   min-height: calc(var(--leading-text) * 1em);
-  color: var(--muted);
+  color: var(--text);
+  font-size: var(--size-small);
 }
 
-.link {
+/* The way that takes the area out stands at the foot of its column, in one line across the areas. */
+.ways {
+  margin-block-start: auto;
+}
+
+/*
+ * It is a link, and is read: the drawing of a cross, and what it does in two words. It is
+ * the quietest thing of the head, so that nothing at the head of an area is louder than
+ * its name.
+ */
+.takeOut {
   display: inline-flex;
+  gap: calc(var(--px-small) * 3);
   align-items: center;
+  font-size: var(--size-small);
 }
 
+/* The cross is a drawing, at two pixels of the screen to one of its own on every screen: it stands in a line of words. */
+.cross {
+  --px: var(--px-small);
+
+  display: inline-flex;
+}
+
+/*
+ * Where a browser can lay the parts of one area on the lines of the area beside it, it
+ * does: the names stand on one line across the areas, the towns on the next, then what is
+ * said of each, then the way out. A name that runs to three lines then moves no town out
+ * of line with the others. Where it cannot, each area is laid out by itself, as above.
+ */
+@supports (grid-template-rows: subgrid) {
+  .area {
+    display: grid;
+    grid-template-rows: subgrid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-row: span 3;
+    row-gap: var(--space-2);
+    justify-items: start;
+    align-items: start;
+  }
+
+  /* With its town an area has four parts, and without it three. */
+  .area:has(> .town) {
+    grid-row: span 4;
+  }
+
+  /*
+   * Each part is as wide as its column and as high as what it holds, at the head of its
+   * line: a town that says less than the town beside it is not pulled apart to fill the line.
+   */
+  .area > .town,
+  .area > .status,
+  .area > .ways {
+    justify-self: stretch;
+    align-self: start;
+  }
+
+  /* The way out stands at the foot of its line, which is the foot of the column. */
+  .area > .ways {
+    align-self: end;
+  }
+}
+
+/*
+ * A wide screen: the areas stand over the columns they have in the tables under them. A
+ * table has a column for what each row is of and then one for each area, all of one width:
+ * so the heads have as many, and the first of them, over the names of the rows, holds
+ * nothing, or what the look has said of the towns.
+ */
+@media (min-width: 60rem) {
+  .heads[data-areas="2"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .heads[data-areas="3"] {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .heads[data-areas="4"] {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .heads {
+    gap: 0;
+  }
+
+  .heads > .towns {
+    padding-inline-end: var(--space-3);
+  }
+
+  .heads > .areas {
+    grid-template-columns: subgrid;
+    grid-column: 2 / -1;
+    column-gap: 0;
+  }
+
+  /* A rule of ink stands between an area and what is before it, as between two columns of a table. */
+  .heads .area {
+    padding-inline: var(--space-3);
+    border-inline-start: var(--edge) solid var(--border);
+  }
+
+  /* Where nothing is said of a town the areas begin in the second column all the same, over their own. */
+  .heads[data-towns="false"] > .areas,
+  .heads[data-says="nothing"] > .areas {
+    grid-column: 2 / -1;
+  }
+
+  /* One area alone, or none, is no comparison, and has no table to stand over: it has the width of the page. */
+  .heads[data-areas="0"] > .areas,
+  .heads[data-areas="1"] > .areas {
+    grid-template-columns: minmax(0, 1fr);
+    grid-column: 1 / -1;
+  }
+
+  .heads[data-areas="1"] .area {
+    padding-inline: 0;
+    border-inline-start: 0;
+  }
+}
+
+/* A narrow screen: the room at either side is the room a table has there. */
+@media (max-width: 40rem) {
+  .heads {
+    --within: var(--space-3);
+  }
+
+  .areaName {
+    font-size: var(--name-1);
+  }
+}
+
+/*
+ * Every area has as much room as the next, in both tables, so that a column is as wide in
+ * the one as in the other and no area is given more of the page than another.
+ */
 .table {
   margin: 0;
+  table-layout: fixed;
+}
+
+/* The head of a column is a name: of what the rows are, and of each area. */
+.head th {
+  color: var(--text);
+  font: 400 var(--name-1) / 1.1 var(--font-name);
+  font-synthesis: none;
+  overflow-wrap: anywhere;
 }
 
 .thing {
@@ -62,37 +279,87 @@
   display: block;
 }
 
-/* Where a journey is to: as heavy as the name of the row, which it is part of. */
-.place {
-  font-weight: 600;
+/*
+ * What a row is of, with the small drawing of its vibe before it where the row is of one.
+ * The drawing stands on the line of the name, at two pixels of the screen to one of its
+ * own on every screen: it stands in the head of a row, which is a narrow column.
+ */
+.named {
+  --px: var(--px-ground);
+
+  display: flex;
+  gap: calc(var(--px) * 3);
+  align-items: center;
+  min-width: 0;
 }
 
-/* A fit that rests on part of what counts: marked as a trade-off is, and said in words. */
+/*
+ * The two ends of a vibe, where they stand once at the head of its row: each under its
+ * picture, with the one word that joins them between the two.
+ */
+.ends {
+  --px: var(--px-ground);
+
+  display: block;
+  margin-block-start: var(--space-1);
+  font-weight: 400;
+}
+
+.to {
+  color: var(--muted);
+  font-size: var(--size-small);
+}
+
+/* What a row is of: a short label, in the face of names. */
+.label {
+  font: 400 var(--name-1) / 1.1 var(--font-name);
+  font-synthesis: none;
+}
+
+/* The name of a measure runs to a sentence, and words that hold a figure are read exactly. */
+.label[data-reads="true"] {
+  font: 700 var(--size-body) / 1.3 var(--font-say);
+}
+
+/* Where a journey is to: as heavy as the name of the row, which it is part of. */
+.place {
+  font-weight: 700;
+}
+
+/*
+ * A fit that rests on part of what counts says so as a result does: the mark of what is not
+ * whole and its two words, and under them how much of what counts the area has a figure
+ * for. Nothing of it warns: it is ink on cream, and the mark is drawn at two pixels of the
+ * screen to one of its own, in a line of small words.
+ */
 .part {
+  --px: var(--px-ground);
+
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: var(--space-2);
-  align-items: baseline;
+  grid-template-columns: minmax(0, 1fr);
+  gap: calc(var(--px) * 1);
+  justify-items: start;
   color: var(--text);
 }
 
-.partMark {
-  width: 0.625rem;
-  height: 0.625rem;
-  background: var(--tradeoff);
-  border-radius: 2px;
-  transform: rotate(45deg);
+.onPart {
+  color: var(--muted);
 }
 
-/* Said once over the vibes: which areas Burro cannot place on some of them, and why. */
+/*
+ * Said once over the vibes: which areas Burro cannot place on some of them, and why. It is
+ * a notice: cream, inside a rule of ink, with a band of amber at its start.
+ */
 .unplaced {
+  --band: calc(var(--px) * 3);
+
   display: grid;
   gap: var(--space-1);
-  margin-block-end: var(--space-3);
-  padding: var(--space-3) var(--space-4);
-  background: var(--surface);
-  border-inline-start: 4px solid var(--border);
-  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3) var(--space-2) calc(var(--space-3) + var(--band));
+  background: var(--notice-bg);
+  border: var(--edge) solid var(--notice-edge);
+  box-shadow: inset var(--band) 0 0 var(--notice-mark);
+  color: var(--notice-text);
 }
 
 .unplaced p {
@@ -105,21 +372,39 @@
   font-size: var(--size-small);
 }
 
-.weight,
-.caveat {
+.weight {
   color: var(--muted);
   font-size: var(--size-small);
   font-weight: 400;
+}
+
+/*
+ * What is said of a row in its head: that a figure of recorded crime is of what was
+ * recorded, and that a vibe counts recorded crime. It is a notice, and is drawn as a notice
+ * is wherever one is said: cream, its words in ink, a rule of ink and a band of amber
+ * beside the rule.
+ */
+.caveat {
+  max-width: var(--measure);
+  margin: var(--space-1) 0 0;
+  padding: var(--space-1) var(--space-2) var(--space-1) calc(var(--space-3) + var(--px) * 2);
+  border-inline-start: var(--edge) solid var(--notice-edge);
+  background: var(--notice-bg);
+  box-shadow: inset calc(var(--px) * 2) 0 0 var(--notice-mark);
+  color: var(--notice-text);
+  font: 400 var(--size-small) / var(--leading-text) var(--font-say);
 }
 
 .cell {
   min-width: 10rem;
 }
 
-/* Whose cell it is. Shown only where the rows are stacked. */
+/* Whose cell it is. Shown only where the rows are stacked. It is the name of an area. */
 .cellName {
   display: none;
-  font-weight: 600;
+  font: 400 var(--name-1) / 1.1 var(--font-name);
+  font-synthesis: none;
+  overflow-wrap: anywhere;
 }
 
 .figures {
@@ -141,25 +426,58 @@
 }
 
 /*
- * Where an area sits on a vibe: the mark on its line, and the band in words beside it. The
- * way to its source follows on the same line where there is room.
+ * Where an area sits on a vibe: its gauge, and under it what is said of it. It says how
+ * wide it is, so that its gauge is drawn with steps its cell has the room of. A cell is
+ * small: what is drawn in it is drawn at two pixels of the screen to one of its own, on
+ * every screen.
  */
 .placed {
+  --px: var(--px-ground);
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-1);
+  justify-items: start;
+  margin: 0;
+  container-type: inline-size;
+}
+
+/*
+ * The gauge: the picture of the low end, the five steps, and the picture of the high end,
+ * on the line the steps stand on. A picture is 16 art pixels wide whatever its vibe, so
+ * the steps of every gauge of a column begin on one line.
+ */
+.gauge {
   display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-1) var(--space-2);
-  margin: 0 var(--space-3) 0 0;
-  vertical-align: middle;
+  gap: calc(var(--px) * 2);
+  align-items: flex-end;
+  max-width: 100%;
 }
 
-/* The vibes of each area: every area has as much room as the next, so that the marks line up. */
-.character {
-  table-layout: fixed;
+/*
+ * A gauge with a picture at each end is 42 art pixels and five steps wide: 174 px with
+ * steps of nine, 154 with steps of seven and 134 with steps of five. Its steps are as wide
+ * as its cell has the room of, and are never cut. It is asked in pixels of the screen,
+ * which is what a drawing is laid in.
+ */
+@container (max-width: 175px) {
+  .gauge {
+    --track-step: 7;
+  }
 }
 
-.character .thing {
-  width: 16rem;
+@container (max-width: 155px) {
+  .gauge {
+    --track-step: 5;
+  }
+}
+
+/*
+ * Where an area sits is said in lines of one length, where a browser can see to it: the
+ * last word of a band is then not left on a line of its own.
+ */
+.where {
+  text-wrap: balance;
 }
 
 .adds,
@@ -172,6 +490,25 @@
 .none {
   margin: 0;
   font-size: var(--size-body);
+}
+
+/*
+ * A wide screen: the areas stand side by side, each in a column of its own, and a rule of
+ * ink stands between one column and the next, from the head of the table to its foot. The
+ * rows stand on rules of sand, which are there for the eye to run along.
+ */
+@media (min-width: 60rem) {
+  .table th + th,
+  .table th + td,
+  .table td + td {
+    padding-inline-start: var(--space-3);
+    border-inline-start: var(--edge) solid var(--border);
+  }
+
+  /* The last row stands on the foot of the frame, and has no rule of its own. */
+  .table tbody tr:last-child > * {
+    border-block-end: 0;
+  }
 }
 
 /*
@@ -199,9 +536,15 @@
     white-space: nowrap;
   }
 
+  /* One thing, and how each area does on it, stand on a rule of ink: a row is many lines here. */
   .row {
     padding: var(--space-3) 0;
-    border-block-end: 1px solid var(--border);
+    border-block-end: var(--edge) solid var(--border);
+  }
+
+  .row:last-child {
+    padding-block-end: 0;
+    border-block-end: 0;
   }
 
   .table th,
@@ -211,12 +554,22 @@
     border: 0;
   }
 
-  .thing {
-    font-size: var(--size-lead);
+  /*
+   * What the row is of heads all that stands under it, and the name of each area heads its
+   * own part of it: so the first is set a size larger than the second.
+   */
+  .label {
+    font-size: var(--name-2);
   }
 
-  .cell {
+  .label[data-reads="true"] {
+    font-size: var(--size-h3);
+  }
+
+  /* Each area of a row stands on a rule of sand, which parts it from the one over it. */
+  .table .cell {
     padding-block: var(--space-2);
+    border-block-start: var(--edge) solid var(--sand);
   }
 
   .cellName {
@@ -238,9 +591,8 @@
   .table .mark {
     display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 0 var(--space-2);
-    padding-block: var(--space-1);
+    align-items: end;
+    gap: var(--space-1) var(--space-2);
   }
 
   .mark .cellName {
@@ -255,14 +607,6 @@
     gap: 0 var(--space-2);
   }
 
-  .mark .placed {
-    margin: 0;
-  }
-
-  .character .thing {
-    width: auto;
-  }
-
   .mark > :has(> button[aria-expanded]) {
     display: contents;
   }
@@ -274,22 +618,161 @@
 }
 
 @media (forced-colors: active) {
-  .area,
   .row,
-  .unplaced {
+  .table .cell,
+  .table th + th,
+  .table th + td,
+  .table td + td,
+  .heads .area {
     border-color: CanvasText;
   }
 
-  .partMark {
+  .cross {
     forced-color-adjust: none;
-    background: CanvasText;
+  }
+
+  .unplaced {
+    border-color: CanvasText;
+    border-inline-start-width: var(--band);
+    box-shadow: none;
+  }
+
+  .caveat {
+    border-inline-start-color: CanvasText;
+    box-shadow: none;
   }
 }
 
-/* What a weight is, said once over the table of what counts. */
-.weights {
+/* What a weight is, said once over the table of what counts, and what a vibe is over the vibes. */
+.weights,
+.lead {
   margin: 0;
   max-width: var(--measure);
   color: var(--muted);
   font-size: var(--size-small);
+}
+
+/*
+ * What a vibe is stands between the areas and where they sit, and is set small: so its
+ * lines are half as long again as a line of a sentence is, and it is two lines on a wide
+ * screen where it was four.
+ */
+.lead {
+  max-width: calc(var(--measure) * 1.5);
+}
+
+/* The way to the source of a vibe, once in its row, under what the row is of. */
+.source {
+  margin-block-start: var(--space-1);
+  font-weight: 400;
+}
+
+/*
+ * The vibes of each area stand side by side on a narrow screen as well: it is what a
+ * person came for. A vibe has a line of its own, with the way to its source at the end
+ * of it, and under it each area has a column under its own name, each as wide as the next.
+ * On a phone two areas stand side by side, and the third and the fourth under them: in a
+ * column a quarter of a phone wide a name was broken in two, and what is said of a band
+ * ran to five lines.
+ *
+ * Every rule here names the table twice over, so that it weighs more than what is said of
+ * every table of a comparison, which is stacked there.
+ */
+@media (max-width: 59.99rem) {
+  .table.character .row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 var(--space-3);
+  }
+
+  /*
+   * What the row is of, from edge to edge: its name and under it its two ends, and at the
+   * far end of the line the key of its source. Everything else it says is as wide as the row.
+   */
+  .table.character .thing {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-column: 1 / -1;
+    gap: 0 var(--space-3);
+    align-items: start;
+  }
+
+  .table.character .thing > * {
+    grid-column: 1 / -1;
+  }
+
+  .table.character .thing > .named,
+  .table.character .thing > .weight,
+  .table.character .thing > .ends {
+    grid-column: 1;
+  }
+
+  /*
+   * The key stays where it is when it is pressed: nothing moves under a press. So the key
+   * and what it opens to are laid out by the row itself, the key at the end of the first
+   * line and what it opens to under the lines, from edge to edge. What holds the two
+   * draws no box of its own.
+   */
+  .table.character .source,
+  .table.character .source > div {
+    display: contents;
+  }
+
+  .table.character .source > div > button {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    align-self: start;
+    justify-self: end;
+  }
+
+  .table.character .source > div > div {
+    grid-column: 1 / -1;
+  }
+
+  /* An area of the row: its name, the mark on its line, and under the mark where it sits in words. */
+  .table.character .mark,
+  .table.character .mark[data-placed="false"] {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+    align-content: start;
+    align-items: start;
+    border-block-start: 0;
+    padding-block: var(--space-1) 0;
+  }
+
+  .table.character .cellName {
+    font: 700 var(--size-small) / 1.3 var(--font-say);
+    overflow-wrap: break-word;
+  }
+
+  .table.character .placed {
+    font-size: var(--size-small);
+  }
+
+  .table.character .none {
+    font-size: var(--size-small);
+  }
+}
+
+/*
+ * A screen narrower than any phone of today: a column half its width has not the room of a
+ * gauge with a picture at each end, which is 134 px at its narrowest. Each area then has
+ * the width of the row.
+ */
+@media (max-width: 21.99rem) {
+  .table.character .row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Where a screen is wider than a phone every area of the comparison has a column in the one row. */
+@media (min-width: 40.0625rem) and (max-width: 59.99rem) {
+  .table.character[data-areas="3"] .row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .table.character[data-areas="4"] .row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }

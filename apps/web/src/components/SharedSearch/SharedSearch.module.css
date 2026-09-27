@@ -1,7 +1,16 @@
+/*
+ * The page a shared link opens, until the share is open, and what says of an open search
+ * that it came from a link.
+ *
+ * The page stands on the meadow. Every part of it is a box of cream, or a notice on cream,
+ * with grass between it and the next: nothing is read on the grass. Every sentence is set
+ * in the reading face, in ink.
+ */
+
 .page {
   display: grid;
-  gap: var(--space-4);
-  padding-block-end: var(--space-7);
+  gap: var(--space-3);
+  padding-block-end: var(--space-5);
   min-width: 0;
 }
 
@@ -10,25 +19,61 @@
   margin: 0;
 }
 
+/*
+ * What became of the link: a notice, a failure, or the line that says it is being opened
+ * over what holds the place of the search. Each part brings its own cream.
+ */
+.became {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-3);
+  min-width: 0;
+  /*
+   * A box of the kit keeps the room of its shadow inside itself: its edge of ink stands
+   * two art pixels short of its far side. What stands here is in a plain edge, which
+   * keeps none: so it stands as far short, and its edge ends where the edge of the box
+   * over it ends.
+   */
+  padding-inline-end: calc(var(--px) * 2);
+}
+
+/* It is handed the focus by what is pressed in it and goes. It is no stop of its own, and draws no ring. */
+.became:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* What the page is, and what a share holds: the heading in the face of names, and under it a sentence. */
+.head {
+  display: grid;
+  gap: var(--space-2);
+}
+
 .holds {
   color: var(--muted);
 }
 
+/*
+ * What says a search came from a link, what became of a link that opens nothing, and the
+ * line that says a share is being opened: each a notice, plain and flat. Cream, inside a
+ * rule of ink, with a band of amber at its start, inside the rule: amber is not told from
+ * cream by everyone, and the rule is.
+ *
+ * The first is a plain frame of the kit, which is a rule of ink on cream and sets no room
+ * and no shadow of its own: so whichever of the two sheets is read last, it is drawn the same.
+ */
 .header,
-.state {
+.state,
+.opening {
+  --band: calc(var(--px) * 3);
+
   display: grid;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  background: var(--info-bg);
-  color: var(--info-text);
-  border-inline-start: 4px solid var(--info-text);
-  border-radius: var(--radius);
-}
-
-.state {
-  background: var(--surface);
-  color: var(--text);
-  border-inline-start-color: var(--border);
+  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + var(--band));
+  background: var(--notice-bg);
+  border: var(--edge) solid var(--notice-edge);
+  box-shadow: inset var(--band) 0 0 var(--notice-mark);
+  color: var(--notice-text);
 }
 
 .header p {
@@ -36,29 +81,127 @@
   max-width: none;
 }
 
+/* It stands among the boxes of the search page, and its edge ends where their edge of ink ends. */
+.header {
+  margin-inline-end: calc(var(--px) * 2);
+}
+
+/*
+ * Over the box it is one line, which says what the search is and opens in place: the
+ * browser's own element. The band and the rule are the notice's. What is read stands
+ * clear of the band, by three art pixels.
+ */
+.header[data-stands="over"] {
+  display: block;
+  padding: 0;
+}
+
+.opens > summary {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  padding-block: calc(var(--px) * 2);
+  padding-inline: calc(var(--band) + var(--px) * 3) calc(var(--px) * 4);
+  list-style: none;
+  cursor: pointer;
+}
+
+.opens > summary::-webkit-details-marker {
+  display: none;
+}
+
+/*
+ * The arrow of the look, at the far end of the line, as the arrow of every fold is. It is
+ * drawn pointing up, and is longer than it is high: it is turned inside a square as wide
+ * as it is long, so that it takes the same room whichever way it points. It points down
+ * while the line is closed, at what would open under it, and up while it is open. It
+ * turns in one step, and not over time. It comes first in the page and is laid out last:
+ * it says nothing to whoever hears the page, wherever it stands.
+ */
+.mark {
+  display: grid;
+  flex: none;
+  order: 1;
+  place-items: center;
+  width: calc(var(--px) * 10);
+  height: calc(var(--px) * 10);
+  margin-inline-start: auto;
+  transform: rotate(180deg);
+}
+
+.opens[open] > summary > .mark {
+  transform: none;
+}
+
+/* What the search is: a short label, in the face of names, at the least of its sizes. */
+.opens > summary > .title {
+  font: 400 var(--name-1) / 1 var(--font-name);
+  font-synthesis: none;
+}
+
+/* All that is said of it, under a rule of ink, which parts what the line opened to from the line. */
+.says {
+  display: grid;
+  gap: var(--space-2);
+  padding-block: var(--space-2) var(--space-3);
+  padding-inline: calc(var(--band) + var(--px) * 3) calc(var(--px) * 4);
+  border-block-start: var(--edge) solid var(--border);
+}
+
+/*
+ * A narrow screen, once a search is open: what stands over the answer stands closer to it,
+ * as the parts of the search page do there.
+ */
+@media (max-width: 40rem) {
+  .header[data-stands="over"] {
+    margin-block-end: calc(var(--space-2) - var(--space-3));
+  }
+}
+
+/*
+ * After the first result it is a fold, beside the way to share a search: what it opens to
+ * is as wide as what holds the two.
+ */
+.fold {
+  min-width: 0;
+}
+
+/* The line that says a share is being opened is as wide as what holds its place under it. */
+.page .opening {
+  max-width: none;
+}
+
+/* What the notice is of, where the page's own heading does not say it: in the face of names. */
 .title {
   margin: 0;
-  font-size: var(--size-lead);
 }
 
 .stateTitle,
 .errorTitle {
-  font-weight: 600;
+  font-weight: 700;
 }
 
+/*
+ * A share that could not be opened: plain and flat, as a failure is, with a band of poppy
+ * at its start. What it says is in ink: poppy is an edge, and never small words.
+ */
 .error {
+  --band: calc(var(--px) * 3);
+
   display: grid;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--error);
-  border-inline-start-width: 4px;
-  border-radius: var(--radius);
+  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + var(--band));
+  background: var(--bg);
+  border: var(--edge) solid var(--border);
+  box-shadow: inset var(--band) 0 0 var(--error-edge);
+  color: var(--text);
 }
 
 .errorTitle {
   color: var(--error);
 }
 
+/* The id of the request is read out to whoever is told of the failure, and may be long. */
 .request {
   color: var(--muted);
   font-size: var(--size-small);
@@ -69,10 +212,18 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2) var(--space-4);
+  gap: var(--space-2);
+  margin-block-start: var(--space-1);
 }
 
-.link {
-  display: inline-flex;
-  align-items: center;
+/* With forced colours the system's own colours carry every edge, and a band is a second edge. */
+@media (forced-colors: active) {
+  .header,
+  .state,
+  .opening,
+  .error {
+    border-color: CanvasText;
+    border-inline-start-width: var(--band);
+    box-shadow: none;
+  }
 }
